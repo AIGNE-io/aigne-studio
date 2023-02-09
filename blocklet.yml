@@ -1,0 +1,50 @@
+name: ai-studio
+title: AI Studio
+description: AI Studio is a flexible tool designed to create prompts for AI Kit
+keywords:
+  - blocklet
+  - react
+group: dapp
+did: z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB
+main: api/dist/index.js
+author:
+  name: Yechao Li
+  email: liyechao@yechao.xyz
+repository:
+  type: git
+  url: git+https://github.com/blocklet/ai-assistant.git
+specVersion: 1.1.1
+version: 0.1.0
+logo: logo.png
+files:
+  - dist
+  - logo.png
+  - screenshots
+  - api/hooks/pre-start.js
+interfaces:
+  - type: web
+    name: publicUrl
+    path: /
+    prefix: '*'
+    port: BLOCKLET_PORT
+    protocol: http
+community: ''
+documentation: ''
+homepage: ''
+license: ''
+payment:
+  price: []
+  share: []
+timeout:
+  start: 60
+requirements:
+  server: '>=1.6.29'
+  os: '*'
+  cpu: '*'
+scripts:
+  preStart: node api/hooks/pre-start.js
+  dev: npm run start
+environments: []
+capabilities: {}
+screenshots: []
+components: []
