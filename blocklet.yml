@@ -48,3 +48,14 @@ environments: []
 capabilities: {}
 screenshots: []
 components: []
+navigation:
+  - id: template
+    title: Template
+    icon: fluent:design-ideas-16-regular
+    link: /playground/template
+    section:
+      - sessionManager
+      - dashboard
+    role:
+      - admin
+      - owner
