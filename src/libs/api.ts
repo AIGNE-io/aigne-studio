@@ -1,14 +1,14 @@
 import axios from 'axios';
 
-axios.interceptors.request.use(
-  (config) => {
-    const prefix = window.blocklet ? window.blocklet.prefix : '/';
-    config.baseURL = prefix || '';
-    config.timeout = 200000;
+export const PREFIX = window.blocklet?.prefix || '/';
 
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+export const API_TIMEOUT = 30 * 1000;
 
-export default axios;
+const api = axios.create({
+  baseURL: PREFIX,
+  timeout: API_TIMEOUT,
+});
+
+export default api;
+
+export const getErrorMessage = (error: any) => error.response?.data?.message || error.message || error;

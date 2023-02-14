@@ -13,8 +13,8 @@ author:
 repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
-specVersion: 1.1.1
-version: 0.1.0
+specVersion: 1.2.7
+version: 0.1.1
 logo: logo.png
 files:
   - dist
@@ -45,6 +45,20 @@ scripts:
   preStart: node api/hooks/pre-start.js
   dev: npm run start
 environments: []
-capabilities: {}
+capabilities:
+  clusterMode: false
+  component: true
+  navigation: true
 screenshots: []
 components: []
+navigation:
+  - id: template
+    title: Template
+    icon: fluent:design-ideas-16-regular
+    link: /playground/template
+    section:
+      - sessionManager
+      - dashboard
+    role:
+      - admin
+      - owner
