@@ -89,7 +89,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
                       anchorEl: e.currentTarget,
                       anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
                       transformOrigin: { horizontal: 'right', vertical: 'top' },
-                      sx: { maxHeight: '50vh', maxWidth: 300 },
+                      PaperProps: { sx: { maxHeight: '50vh', width: 300 } },
                       children: <TemplateList {...templates} current={form} onCurrentChange={setForm} />,
                     })
                   }>
@@ -223,6 +223,12 @@ function TemplateList({
   return (
     <>
       {popper}
+
+      {templates.length === 0 && (
+        <ListItemButton dense disabled>
+          <ListItemText primary="No Templates" primaryTypographyProps={{ textAlign: 'center' }} />
+        </ListItemButton>
+      )}
 
       {templates.map((item) => (
         <ListItem
