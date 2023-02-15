@@ -1,16 +1,20 @@
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import { ArrowDropDown, CopyAll } from '@mui/icons-material';
+import { ArrowDropDown, CopyAll, Delete } from '@mui/icons-material';
 import {
   Box,
   Button,
+  DialogActions,
+  DialogTitle,
   Grid,
   IconButton,
   InputAdornment,
+  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   MenuItem,
+  Paper,
   TextField,
   TextFieldProps,
 } from '@mui/material';
@@ -20,6 +24,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo } from 'react';
 import { getErrorMessage } from '../../libs/api';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
 import useMenu from '../../utils/use-menu';
+import usePopper from '../../utils/use-popper';
 
 export interface Template {
   _id: string;
@@ -37,7 +42,7 @@ export type Parameter = { type?: ParameterType; value?: any; [key: string]: any 
 const INIT_FORM: Template = {
   _id: '',
   name: '',
-  icon: undefined,
+  icon: '',
   description: undefined,
   template: '',
   parameters: {},
@@ -50,7 +55,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   const form = useReactive({ ...INIT_FORM });
 
   const setForm = useCallback(
-    (template: Template) => Object.assign(form, { ...INIT_FORM }, JSON.parse(JSON.stringify(template))),
+    (template?: Template) => Object.assign(form, { ...INIT_FORM }, JSON.parse(JSON.stringify(template))),
     []
   );
 
@@ -63,7 +68,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   useEffect(() => {
     const last = templates.templates.at(0);
     if (last) setForm(last);
-  }, [templates.templates]);
+  }, [templates.templates.length]);
 
   return (
     <Grid container spacing={2}>
@@ -85,17 +90,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
                       anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
                       transformOrigin: { horizontal: 'right', vertical: 'top' },
                       sx: { maxHeight: '50vh', maxWidth: 300 },
-                      children: templates.templates.map((item) => (
-                        <ListItemButton key={item._id} onClick={() => setForm(item)} dense>
-                          <ListItemIcon sx={{ minWidth: 32 }}>{item.icon && <Icon icon={item.icon} />}</ListItemIcon>
-                          <ListItemText
-                            primary={item.name || item._id}
-                            secondary={item.description || item.template}
-                            primaryTypographyProps={{ noWrap: true, overflow: 'hidden', textOverflow: 'ellipsis' }}
-                            secondaryTypographyProps={{ noWrap: true, overflow: 'hidden', textOverflow: 'ellipsis' }}
-                          />
-                        </ListItemButton>
-                      )),
+                      children: <TemplateList {...templates} current={form} onCurrentChange={setForm} />,
                     })
                   }>
                   <ArrowDropDown fontSize="small" />
@@ -214,6 +209,97 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   );
 }
 
+function TemplateList({
+  templates,
+  current,
+  remove,
+  onCurrentChange,
+}: {
+  current?: Template;
+  onCurrentChange?: (template?: Template) => void;
+} & Pick<ReturnType<typeof useTemplates>, 'templates' | 'remove'>) {
+  const { popper, showPopper, closePopper } = usePopper();
+
+  return (
+    <>
+      {popper}
+
+      {templates.map((item) => (
+        <ListItem
+          key={item._id}
+          disablePadding
+          secondaryAction={
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                showPopper({
+                  anchorEl: e.currentTarget,
+                  children: (
+                    <Paper elevation={24}>
+                      <DialogTitle>Delete this template?</DialogTitle>
+                      <DialogActions>
+                        <Button
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            closePopper();
+                          }}>
+                          Cancel
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="error"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await remove(item._id);
+                              closePopper();
+                              if (current?._id === item._id) {
+                                onCurrentChange?.(templates[0]);
+                              }
+                              Toast.success('Deleted');
+                            } catch (error) {
+                              Toast.error(getErrorMessage(error));
+                              throw error;
+                            }
+                          }}>
+                          Delete
+                        </Button>
+                      </DialogActions>
+                    </Paper>
+                  ),
+                });
+              }}>
+              <Delete fontSize="small" />
+            </IconButton>
+          }>
+          <ListItemButton selected={current?._id === item._id} onClick={() => onCurrentChange?.(item)} dense>
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <Icon icon={item.icon || 'bi:x-diamond'} />
+            </ListItemIcon>
+            <ListItemText
+              primary={item.name || item._id}
+              secondary={item.description || item.template}
+              primaryTypographyProps={{
+                noWrap: true,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+              secondaryTypographyProps={{
+                noWrap: true,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+      ))}
+    </>
+  );
+}
+
 const PARAMETER_SELECT_MAP: { [key in ParameterType]: (value: Parameter) => string } = {
   number: () => 'number',
   string: (value) => (value.multiline ? 'long-text' : 'text'),
@@ -290,7 +376,7 @@ function useTemplates() {
     templates.loading = true;
     try {
       const res = await getTemplates();
-      templates.templates = res.templates;
+      templates.templates.splice(0, templates.templates.length, ...res.templates);
     } catch (error) {
       templates.error = error;
       throw error;
