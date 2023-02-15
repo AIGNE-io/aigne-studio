@@ -2,11 +2,13 @@ import Dashboard from '@blocklet/ui-react/lib/Dashboard';
 import styled from '@emotion/styled';
 import { Box, Divider } from '@mui/material';
 import { useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import Conversation, { ConversationRef } from '../../components/conversation';
 import TemplateForm, { Template, matchParams } from '../../components/template-form';
 
 export default function TemplateView() {
+  const [, setSearchParams] = useSearchParams();
   const conversation = useRef<ConversationRef>(null);
 
   const onExecute = (template: Template) => {
@@ -17,12 +19,22 @@ export default function TemplateView() {
     for (const param of params) {
       prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), template.parameters[param]?.value || '');
     }
-    conversation.current?.addConversation(prompt);
+    conversation.current?.addConversation(prompt, template);
   };
 
   return (
     <Root footerProps={{ className: 'dashboard-footer' }}>
-      <Conversation className="conversation" ref={conversation} sx={{ flex: 1 }} />
+      <Conversation
+        className="conversation"
+        ref={conversation}
+        sx={{ flex: 1 }}
+        onTemplateClick={(template) => {
+          setSearchParams((prev) => {
+            if (prev.get('templateId') !== template._id) prev.set('templateId', template._id);
+            return prev;
+          });
+        }}
+      />
 
       <Divider orientation="vertical" />
 

@@ -1,6 +1,6 @@
 import { cx } from '@emotion/css';
 import styled from '@emotion/styled';
-import { Cancel, CopyAll, Error, Send } from '@mui/icons-material';
+import { Cancel, CopyAll, Error, Send, SyncAlt } from '@mui/icons-material';
 import {
   Alert,
   Avatar,
@@ -20,6 +20,7 @@ import { nanoid } from 'nanoid';
 import { ReactNode, RefObject, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 import { AIImageResponse, ImageGenerationSize, completions, imageGenerations } from '../../libs/ai';
+import { Template } from '../template-form';
 
 const nextId = () => nanoid(16);
 
@@ -27,81 +28,88 @@ const STICKY_SCROLL_BOTTOM_GAP = 20;
 
 export interface ConversationRef extends ReturnType<typeof useConversation> {}
 
-export default forwardRef<ConversationRef, BoxProps>(({ maxWidth, ...props }: BoxProps, ref) => {
-  const scroller = useRef<HTMLDivElement>(null);
-  const conversation = useConversation({ scroller });
-  const { scrollToBottomElement, scrollToBottom, conversations, addConversation, cancelConversation } = conversation;
+export default forwardRef<ConversationRef, BoxProps & { onTemplateClick?: (template: Template) => void }>(
+  ({ maxWidth, onTemplateClick, ...props }, ref) => {
+    const scroller = useRef<HTMLDivElement>(null);
+    const conversation = useConversation({ scroller });
+    const { scrollToBottomElement, scrollToBottom, conversations, addConversation, cancelConversation } = conversation;
 
-  useImperativeHandle(ref, () => conversation);
+    useImperativeHandle(ref, () => conversation);
 
-  return (
-    <Box
-      {...props}
-      ref={scroller}
-      sx={{
-        flexGrow: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'auto',
-        ...props.sx,
-      }}>
-      <Box sx={{ mt: 2, mx: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ flexGrow: 1, width: '100%', mx: 'auto', maxWidth }}>
-          {conversations.map((item) => (
-            <Box key={item.id} id={`conversation-${item.id}`}>
-              <ConversationItemView avatar={<Avatar sx={{ bgcolor: 'secondary.main' }} />} text={item.prompt} />
-              <ConversationItemView
-                my={1}
-                id={`response-${item.id}`}
-                text={typeof item.response === 'string' ? item.response : undefined}
-                showCursor={!!item.response && item.writing}
-                avatar={<Avatar sx={{ bgcolor: 'primary.main' }}>AI</Avatar>}
-                onCancel={item.writing ? () => cancelConversation(item.id) : undefined}>
-                {typeof item.response === 'object' && (
-                  <Grid container spacing={1}>
-                    {item.response.data.map(({ url }) => (
-                      <Grid key={url} item xs={4}>
-                        <Box
-                          component="img"
-                          src={url}
-                          sx={{ display: 'block', width: '100%' }}
-                          onLoad={() => scrollToBottom()}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                )}
-                {item.error ? (
-                  <Alert color="error" icon={<Error />} sx={{ px: 1, py: 0 }}>
-                    {(item.error as AxiosError<{ message: string }>).response?.data?.message || item.error.message}
-                  </Alert>
-                ) : (
-                  !item.response && (
-                    <Box minHeight={24} display="flex" alignItems="center">
-                      <CircularProgress size={16} />
-                    </Box>
-                  )
-                )}
-              </ConversationItemView>
+    return (
+      <Box
+        {...props}
+        ref={scroller}
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'auto',
+          ...props.sx,
+        }}>
+        <Box sx={{ mt: 2, mx: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ flexGrow: 1, width: '100%', mx: 'auto', maxWidth }}>
+            {conversations.map((item) => (
+              <Box key={item.id} id={`conversation-${item.id}`}>
+                <ConversationItemView
+                  avatar={<Avatar sx={{ bgcolor: 'secondary.main' }} />}
+                  text={item.prompt}
+                  onTemplateClick={item.template && (() => item.template && onTemplateClick?.(item.template))}
+                />
+                <ConversationItemView
+                  my={1}
+                  id={`response-${item.id}`}
+                  text={typeof item.response === 'string' ? item.response : undefined}
+                  showCursor={!!item.response && item.writing}
+                  avatar={<Avatar sx={{ bgcolor: 'primary.main' }}>AI</Avatar>}
+                  onCancel={item.writing ? () => cancelConversation(item.id) : undefined}>
+                  {typeof item.response === 'object' && (
+                    <Grid container spacing={1}>
+                      {item.response.data.map(({ url }) => (
+                        <Grid key={url} item xs={4}>
+                          <Box
+                            component="img"
+                            src={url}
+                            sx={{ display: 'block', width: '100%' }}
+                            onLoad={() => scrollToBottom()}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                  {item.error ? (
+                    <Alert color="error" icon={<Error />} sx={{ px: 1, py: 0 }}>
+                      {(item.error as AxiosError<{ message: string }>).response?.data?.message || item.error.message}
+                    </Alert>
+                  ) : (
+                    !item.response && (
+                      <Box minHeight={24} display="flex" alignItems="center">
+                        <CircularProgress size={16} />
+                      </Box>
+                    )
+                  )}
+                </ConversationItemView>
+              </Box>
+            ))}
+
+            {scrollToBottomElement}
+          </Box>
+
+          <Box sx={{ mx: 'auto', width: '100%', maxWidth, position: 'sticky', bottom: 0 }}>
+            <Box height={16} sx={{ pointerEvents: 'none', background: 'linear-gradient(transparent, white)' }} />
+            <Box pb={2} sx={{ bgcolor: 'background.paper' }}>
+              <Prompt onSubmit={addConversation} />
             </Box>
-          ))}
-
-          {scrollToBottomElement}
-        </Box>
-
-        <Box sx={{ mx: 'auto', width: '100%', maxWidth, position: 'sticky', bottom: 0 }}>
-          <Box height={16} sx={{ pointerEvents: 'none', background: 'linear-gradient(transparent, white)' }} />
-          <Box pb={2} sx={{ bgcolor: 'background.paper' }}>
-            <Prompt onSubmit={addConversation} />
           </Box>
         </Box>
       </Box>
-    </Box>
-  );
-});
+    );
+  }
+);
 
 export interface ConversationItem {
   id: string;
+  template?: Template;
   prompt: string;
   response?: string | AIImageResponse;
   writing?: boolean;
@@ -115,9 +123,9 @@ function useConversation({ scroller }: { scroller: RefObject<HTMLDivElement> }) 
     { id: nextId(), prompt: 'Hi!', response: 'Hi, I am AI Kit from ArcBlock!' },
   ]);
 
-  const addConversation = useCallback(async (prompt: string) => {
+  const addConversation = useCallback(async (prompt: string, template?: Template) => {
     const id = nextId();
-    setConversations((v) => v.concat({ id, prompt }));
+    setConversations((v) => v.concat({ id, template, prompt }));
     scrollToBottom({ force: true });
 
     try {
@@ -234,8 +242,16 @@ function ConversationItemView({
   showCursor,
   avatar,
   onCancel,
+  onTemplateClick,
   ...props
-}: { text?: string; children?: ReactNode; showCursor?: boolean; avatar: ReactNode; onCancel?: () => void } & BoxProps) {
+}: {
+  text?: string;
+  children?: ReactNode;
+  showCursor?: boolean;
+  avatar: ReactNode;
+  onCancel?: () => void;
+  onTemplateClick?: () => void;
+} & BoxProps) {
   const [copied, setCopied] = useState<'copied' | boolean>(false);
 
   return (
@@ -248,6 +264,14 @@ function ConversationItemView({
 
         {!!text && (
           <Box className="actions">
+            {onTemplateClick && (
+              <Tooltip title="Use current template" placement="top">
+                <Button size="small" onClick={onTemplateClick}>
+                  <SyncAlt fontSize="small" />
+                </Button>
+              </Tooltip>
+            )}
+
             {onCancel && (
               <Tooltip title="Stop" placement="top">
                 <Button size="small" onClick={onCancel}>

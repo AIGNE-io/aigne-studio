@@ -1,25 +1,31 @@
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import { ArrowDropDown, CopyAll } from '@mui/icons-material';
+import { ArrowDropDown, CopyAll, Delete } from '@mui/icons-material';
 import {
   Box,
   Button,
+  DialogActions,
+  DialogTitle,
   Grid,
   IconButton,
   InputAdornment,
+  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   MenuItem,
+  Paper,
   TextField,
   TextFieldProps,
 } from '@mui/material';
 import { useReactive } from 'ahooks';
 import { useCallback, useDeferredValue, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { getErrorMessage } from '../../libs/api';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
 import useMenu from '../../utils/use-menu';
+import usePopper from '../../utils/use-popper';
 
 export interface Template {
   _id: string;
@@ -37,33 +43,39 @@ export type Parameter = { type?: ParameterType; value?: any; [key: string]: any 
 const INIT_FORM: Template = {
   _id: '',
   name: '',
-  icon: undefined,
+  icon: '',
   description: undefined,
   template: '',
   parameters: {},
 };
 
 export default function TemplateForm({ onExecute }: { onExecute?: (template: Template) => void }) {
-  const templates = useTemplates();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const templateId = searchParams.get('templateId');
+  const state = useTemplates();
   const { menu, showMenu } = useMenu();
 
   const form = useReactive({ ...INIT_FORM });
 
-  const setForm = useCallback(
-    (template: Template) => Object.assign(form, { ...INIT_FORM }, JSON.parse(JSON.stringify(template))),
-    []
-  );
+  const setForm = useCallback((template?: Template) => {
+    Object.assign(form, { ...INIT_FORM }, template && JSON.parse(JSON.stringify(template)));
+    setSearchParams((prev) => {
+      if (template?._id) prev.set('templateId', template._id);
+      else prev.delete('templateId');
+      return prev;
+    });
+  }, []);
 
   const deferredTemplate = useDeferredValue(form.template);
 
   const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
 
-  const submit = () => onExecute?.(form);
+  const submit = () => onExecute?.(JSON.parse(JSON.stringify(form)));
 
   useEffect(() => {
-    const last = templates.templates.at(0);
-    if (last) setForm(last);
-  }, [templates.templates]);
+    const template = state.templates.find((i) => i._id === templateId) ?? state.templates.at(0);
+    if (template && template._id !== form._id) setForm(template);
+  }, [state.templates.length, templateId]);
 
   return (
     <Grid container spacing={2}>
@@ -84,18 +96,8 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
                       anchorEl: e.currentTarget,
                       anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
                       transformOrigin: { horizontal: 'right', vertical: 'top' },
-                      sx: { maxHeight: '50vh', maxWidth: 300 },
-                      children: templates.templates.map((item) => (
-                        <ListItemButton key={item._id} onClick={() => setForm(item)} dense>
-                          <ListItemIcon sx={{ minWidth: 32 }}>{item.icon && <Icon icon={item.icon} />}</ListItemIcon>
-                          <ListItemText
-                            primary={item.name || item._id}
-                            secondary={item.description || item.template}
-                            primaryTypographyProps={{ noWrap: true, overflow: 'hidden', textOverflow: 'ellipsis' }}
-                            secondaryTypographyProps={{ noWrap: true, overflow: 'hidden', textOverflow: 'ellipsis' }}
-                          />
-                        </ListItemButton>
-                      )),
+                      PaperProps: { sx: { maxHeight: '50vh', width: 300 } },
+                      children: <TemplateList {...state} current={form} onCurrentChange={setForm} />,
                     })
                   }>
                   <ArrowDropDown fontSize="small" />
@@ -176,7 +178,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             variant="outlined"
             onClick={async () => {
               try {
-                setForm(await (form._id ? templates.update(form._id, form) : templates.create(form)));
+                setForm(await (form._id ? state.update(form._id, form) : state.create(form)));
                 Toast.success('Saved');
               } catch (error) {
                 Toast.error(getErrorMessage(error));
@@ -190,7 +192,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             sx={{ mx: 1 }}
             onClick={async () => {
               try {
-                setForm(await templates.create(form));
+                setForm(await state.create(form));
                 Toast.success('Saved');
               } catch (error) {
                 Toast.error(getErrorMessage(error));
@@ -211,6 +213,103 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
         </Box>
       </Grid>
     </Grid>
+  );
+}
+
+function TemplateList({
+  templates,
+  current,
+  remove,
+  onCurrentChange,
+}: {
+  current?: Template;
+  onCurrentChange?: (template?: Template) => void;
+} & Pick<ReturnType<typeof useTemplates>, 'templates' | 'remove'>) {
+  const { popper, showPopper, closePopper } = usePopper();
+
+  return (
+    <>
+      {popper}
+
+      {templates.length === 0 && (
+        <ListItemButton dense disabled>
+          <ListItemText primary="No Templates" primaryTypographyProps={{ textAlign: 'center' }} />
+        </ListItemButton>
+      )}
+
+      {templates.map((item) => (
+        <ListItem
+          key={item._id}
+          disablePadding
+          secondaryAction={
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                showPopper({
+                  anchorEl: e.currentTarget,
+                  children: (
+                    <Paper elevation={24}>
+                      <DialogTitle>Delete this template?</DialogTitle>
+                      <DialogActions>
+                        <Button
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            closePopper();
+                          }}>
+                          Cancel
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="error"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await remove(item._id);
+                              closePopper();
+                              if (current?._id === item._id) {
+                                onCurrentChange?.(templates[0]);
+                              }
+                              Toast.success('Deleted');
+                            } catch (error) {
+                              Toast.error(getErrorMessage(error));
+                              throw error;
+                            }
+                          }}>
+                          Delete
+                        </Button>
+                      </DialogActions>
+                    </Paper>
+                  ),
+                });
+              }}>
+              <Delete fontSize="small" />
+            </IconButton>
+          }>
+          <ListItemButton selected={current?._id === item._id} onClick={() => onCurrentChange?.(item)} dense>
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <Icon icon={item.icon || 'bi:x-diamond'} />
+            </ListItemIcon>
+            <ListItemText
+              primary={item.name || item._id}
+              secondary={item.description || item.template}
+              primaryTypographyProps={{
+                noWrap: true,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+              secondaryTypographyProps={{
+                noWrap: true,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+      ))}
+    </>
   );
 }
 
@@ -280,22 +379,22 @@ export const matchParams = (template: string) => [
 ];
 
 function useTemplates() {
-  const templates = useReactive<{ templates: Template[]; loading: boolean; submiting: boolean; error?: Error }>({
+  const state = useReactive<{ templates: Template[]; loading: boolean; submiting: boolean; error?: Error }>({
     templates: [],
     loading: false,
     submiting: false,
   });
 
   const refetch = useCallback(async () => {
-    templates.loading = true;
+    state.loading = true;
     try {
       const res = await getTemplates();
-      templates.templates = res.templates;
+      state.templates.splice(0, state.templates.length, ...res.templates);
     } catch (error) {
-      templates.error = error;
+      state.error = error;
       throw error;
     } finally {
-      templates.loading = false;
+      state.loading = false;
     }
   }, []);
 
@@ -304,37 +403,37 @@ function useTemplates() {
   }, []);
 
   const create = useCallback(async (template: Template) => {
-    templates.submiting = true;
+    state.submiting = true;
     try {
       const res = await createTemplate(template);
       await refetch();
       return res;
     } finally {
-      templates.submiting = false;
+      state.submiting = false;
     }
   }, []);
 
   const update = useCallback(async (templateId: string, template: Template) => {
-    templates.submiting = true;
+    state.submiting = true;
     try {
       const res = await updateTemplate(templateId, template);
       await refetch();
       return res;
     } finally {
-      templates.submiting = false;
+      state.submiting = false;
     }
   }, []);
 
   const remove = useCallback(async (templateId: string) => {
-    templates.submiting = true;
+    state.submiting = true;
     try {
       const res = await deleteTemplate(templateId);
       await refetch();
       return res;
     } finally {
-      templates.submiting = false;
+      state.submiting = false;
     }
   }, []);
 
-  return { ...templates, refetch, create, update, remove };
+  return { ...state, refetch, create, update, remove };
 }
