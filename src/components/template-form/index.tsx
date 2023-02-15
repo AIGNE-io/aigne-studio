@@ -52,7 +52,7 @@ const INIT_FORM: Template = {
 export default function TemplateForm({ onExecute }: { onExecute?: (template: Template) => void }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const templateId = searchParams.get('templateId');
-  const templates = useTemplates();
+  const state = useTemplates();
   const { menu, showMenu } = useMenu();
 
   const form = useReactive({ ...INIT_FORM });
@@ -73,9 +73,9 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   const submit = () => onExecute?.(JSON.parse(JSON.stringify(form)));
 
   useEffect(() => {
-    const template = templates.templates.find((i) => i._id === templateId) ?? templates.templates.at(0);
+    const template = state.templates.find((i) => i._id === templateId) ?? state.templates.at(0);
     if (template && template._id !== form._id) setForm(template);
-  }, [templates.templates.length, templateId]);
+  }, [state.templates.length, templateId]);
 
   return (
     <Grid container spacing={2}>
@@ -97,7 +97,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
                       anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
                       transformOrigin: { horizontal: 'right', vertical: 'top' },
                       PaperProps: { sx: { maxHeight: '50vh', width: 300 } },
-                      children: <TemplateList {...templates} current={form} onCurrentChange={setForm} />,
+                      children: <TemplateList {...state} current={form} onCurrentChange={setForm} />,
                     })
                   }>
                   <ArrowDropDown fontSize="small" />
@@ -178,7 +178,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             variant="outlined"
             onClick={async () => {
               try {
-                setForm(await (form._id ? templates.update(form._id, form) : templates.create(form)));
+                setForm(await (form._id ? state.update(form._id, form) : state.create(form)));
                 Toast.success('Saved');
               } catch (error) {
                 Toast.error(getErrorMessage(error));
@@ -192,7 +192,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             sx={{ mx: 1 }}
             onClick={async () => {
               try {
-                setForm(await templates.create(form));
+                setForm(await state.create(form));
                 Toast.success('Saved');
               } catch (error) {
                 Toast.error(getErrorMessage(error));
@@ -379,22 +379,22 @@ export const matchParams = (template: string) => [
 ];
 
 function useTemplates() {
-  const templates = useReactive<{ templates: Template[]; loading: boolean; submiting: boolean; error?: Error }>({
+  const state = useReactive<{ templates: Template[]; loading: boolean; submiting: boolean; error?: Error }>({
     templates: [],
     loading: false,
     submiting: false,
   });
 
   const refetch = useCallback(async () => {
-    templates.loading = true;
+    state.loading = true;
     try {
       const res = await getTemplates();
-      templates.templates.splice(0, templates.templates.length, ...res.templates);
+      state.templates.splice(0, state.templates.length, ...res.templates);
     } catch (error) {
-      templates.error = error;
+      state.error = error;
       throw error;
     } finally {
-      templates.loading = false;
+      state.loading = false;
     }
   }, []);
 
@@ -403,37 +403,37 @@ function useTemplates() {
   }, []);
 
   const create = useCallback(async (template: Template) => {
-    templates.submiting = true;
+    state.submiting = true;
     try {
       const res = await createTemplate(template);
       await refetch();
       return res;
     } finally {
-      templates.submiting = false;
+      state.submiting = false;
     }
   }, []);
 
   const update = useCallback(async (templateId: string, template: Template) => {
-    templates.submiting = true;
+    state.submiting = true;
     try {
       const res = await updateTemplate(templateId, template);
       await refetch();
       return res;
     } finally {
-      templates.submiting = false;
+      state.submiting = false;
     }
   }, []);
 
   const remove = useCallback(async (templateId: string) => {
-    templates.submiting = true;
+    state.submiting = true;
     try {
       const res = await deleteTemplate(templateId);
       await refetch();
       return res;
     } finally {
-      templates.submiting = false;
+      state.submiting = false;
     }
   }, []);
 
-  return { ...templates, refetch, create, update, remove };
+  return { ...state, refetch, create, update, remove };
 }
