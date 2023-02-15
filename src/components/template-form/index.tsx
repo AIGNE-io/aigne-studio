@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { useReactive } from 'ahooks';
 import { useCallback, useDeferredValue, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { getErrorMessage } from '../../libs/api';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
@@ -49,15 +50,20 @@ const INIT_FORM: Template = {
 };
 
 export default function TemplateForm({ onExecute }: { onExecute?: (template: Template) => void }) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const templates = useTemplates();
   const { menu, showMenu } = useMenu();
 
   const form = useReactive({ ...INIT_FORM });
 
-  const setForm = useCallback(
-    (template?: Template) => Object.assign(form, { ...INIT_FORM }, JSON.parse(JSON.stringify(template))),
-    []
-  );
+  const setForm = useCallback((template?: Template) => {
+    Object.assign(form, { ...INIT_FORM }, template && JSON.parse(JSON.stringify(template)));
+    setSearchParams((prev) => {
+      if (template?._id) prev.set('templateId', template._id);
+      else prev.delete('templateId');
+      return prev;
+    });
+  }, []);
 
   const deferredTemplate = useDeferredValue(form.template);
 
@@ -66,7 +72,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   const submit = () => onExecute?.(form);
 
   useEffect(() => {
-    const last = templates.templates.at(0);
+    const last = templates.templates.find((i) => i._id === searchParams.get('templateId')) ?? templates.templates.at(0);
     if (last) setForm(last);
   }, [templates.templates.length]);
 
