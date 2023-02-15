@@ -51,6 +51,7 @@ const INIT_FORM: Template = {
 
 export default function TemplateForm({ onExecute }: { onExecute?: (template: Template) => void }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const templateId = searchParams.get('templateId');
   const templates = useTemplates();
   const { menu, showMenu } = useMenu();
 
@@ -69,12 +70,12 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
 
   const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
 
-  const submit = () => onExecute?.(form);
+  const submit = () => onExecute?.(JSON.parse(JSON.stringify(form)));
 
   useEffect(() => {
-    const last = templates.templates.find((i) => i._id === searchParams.get('templateId')) ?? templates.templates.at(0);
-    if (last) setForm(last);
-  }, [templates.templates.length]);
+    const template = templates.templates.find((i) => i._id === templateId) ?? templates.templates.at(0);
+    if (template && template._id !== form._id) setForm(template);
+  }, [templates.templates.length, templateId]);
 
   return (
     <Grid container spacing={2}>
