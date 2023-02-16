@@ -388,7 +388,7 @@ function useTemplates() {
   const refetch = useCallback(async () => {
     state.loading = true;
     try {
-      const res = await getTemplates();
+      const res = await getTemplates({ limit: 100, sort: '-updatedAt' });
       state.templates.splice(0, state.templates.length, ...res.templates);
     } catch (error) {
       state.error = error;

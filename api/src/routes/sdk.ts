@@ -1,13 +1,10 @@
 import { component } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 
-import { templates } from '../store/templates';
+import { getTemplates } from './templates';
 
 const router = Router();
 
-router.get('/templates', component.verifySig, async (_, res) => {
-  const list = await templates.paginate({ sort: { updatedAt: -1 } });
-  res.json({ templates: list });
-});
+router.get('/templates', component.verifySig, getTemplates);
 
 export default router;
