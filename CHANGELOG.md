@@ -1,3 +1,7 @@
+## 0.1.4 (2023-2-16)
+
+- fix: paging query templates
+
 ## 0.1.3 (2023-2-15)
 
 - feat: support set current form by click message item

@@ -1,5 +1,5 @@
 import { middlewares } from '@blocklet/sdk';
-import { Router } from 'express';
+import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 
 import { ensureAdmin } from '../libs/security';
@@ -22,10 +22,38 @@ const templateSchema = Joi.object<TemplateInput>({
   ),
 });
 
-router.get('/', ensureAdmin, async (_, res) => {
-  const list = await templates.paginate({ sort: { updatedAt: -1 } });
-  res.json({ templates: list });
+const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string }>({
+  offset: Joi.number().integer().min(0).default(0),
+  limit: Joi.number().integer().min(1).max(100).default(20),
+  sort: Joi.string().empty(''),
+  search: Joi.string().empty(''),
 });
+
+const templateSortableFields: (keyof Template)[] = ['name', 'createdAt', 'updatedAt'];
+
+const getTemplateSort = (sort: any) => {
+  if (typeof sort !== 'string') {
+    return null;
+  }
+  const field = sort.replace(/^[+-]?/, '');
+  if (!templateSortableFields.includes(field as any)) {
+    return null;
+  }
+  return { [field]: sort[0] === '-' ? -1 : 1 };
+};
+
+export async function getTemplates(req: Request, res: Response) {
+  const { offset, limit, ...query } = await paginationSchema.validateAsync(req.query);
+  const sort = getTemplateSort(query.sort) ?? { updatedAt: -1 };
+  const regex = query.search ? new RegExp(query.search, 'i') : undefined;
+  const filter = regex ? { $or: [{ name: { $regex: regex } }, { description: { $regex: regex } }] } : undefined;
+
+  const list = await templates.cursor(filter).sort(sort).skip(offset).limit(limit).exec();
+
+  res.json({ templates: list });
+}
+
+router.get('/', ensureAdmin, getTemplates);
 
 router.get('/:templateId', ensureAdmin, async (req, res) => {
   const { templateId } = req.params;

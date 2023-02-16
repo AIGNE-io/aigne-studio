@@ -2,8 +2,16 @@ import { TemplateInput } from '../../api/src/routes/templates';
 import { Template } from '../../api/src/store/templates';
 import axios from './api';
 
-export async function getTemplates(): Promise<{ templates: Template[] }> {
-  return axios.get('/api/templates').then((res) => res.data);
+export async function getTemplates({
+  offset,
+  limit,
+  sort,
+}: {
+  offset?: number;
+  limit?: number;
+  sort?: string;
+} = {}): Promise<{ templates: Template[] }> {
+  return axios.get('/api/templates', { params: { offset, limit, sort } }).then((res) => res.data);
 }
 
 export async function getTemplate(templateId: string): Promise<Template> {
