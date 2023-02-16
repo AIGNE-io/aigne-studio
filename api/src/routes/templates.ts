@@ -55,7 +55,7 @@ export async function getTemplates(req: Request, res: Response) {
 
 router.get('/', ensureAdmin, getTemplates);
 
-router.get('/:templateId', ensureAdmin, async (req, res) => {
+export async function getTemplate(req: Request, res: Response) {
   const { templateId } = req.params;
 
   const template = await templates.findOne({ _id: templateId });
@@ -65,7 +65,9 @@ router.get('/:templateId', ensureAdmin, async (req, res) => {
   }
 
   res.json(template);
-});
+}
+
+router.get('/:templateId', ensureAdmin, getTemplate);
 
 router.post('/', middlewares.user(), ensureAdmin, async (req, res) => {
   const template = await templateSchema.validateAsync(req.body, { stripUnknown: true });
