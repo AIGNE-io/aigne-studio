@@ -1,6 +1,6 @@
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import { ArrowDropDown, CopyAll, Delete, Settings, TravelExplore } from '@mui/icons-material';
+import { ArrowDropDown, CopyAll, Delete, ImportExport, Settings, TravelExplore } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -18,9 +18,11 @@ import {
   TextFieldProps,
 } from '@mui/material';
 import { useReactive } from 'ahooks';
+import { saveAs } from 'file-saver';
 import Joi from 'joi';
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { stringify } from 'yaml';
 
 import { getErrorMessage } from '../../libs/api';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
@@ -274,8 +276,9 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
         </Button>
       </Grid>
       <Grid item xs={12} lg>
-        <Box display="flex">
+        <Box display="flex" flexWrap="wrap" sx={{ m: -0.5 }}>
           <Button
+            sx={{ m: 0.5 }}
             variant="outlined"
             onClick={async () => {
               try {
@@ -289,8 +292,8 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             Save
           </Button>
           <Button
+            sx={{ m: 0.5 }}
             variant="outlined"
-            sx={{ mx: 1 }}
             onClick={async () => {
               try {
                 setForm(await state.create(form));
@@ -303,6 +306,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             Save As New
           </Button>
           <Button
+            sx={{ m: 0.5 }}
             startIcon={<CopyAll />}
             variant="outlined"
             onClick={() => {
@@ -310,6 +314,16 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
               Toast.success('Copied');
             }}>
             Copy
+          </Button>
+          <Button
+            sx={{ m: 0.5 }}
+            startIcon={<ImportExport />}
+            variant="outlined"
+            onClick={() => {
+              const text = stringify(form);
+              saveAs(new Blob([text]), `${form.name || form._id}.yml`);
+            }}>
+            Export Template
           </Button>
         </Box>
       </Grid>
