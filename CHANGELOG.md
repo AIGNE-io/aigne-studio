@@ -1,3 +1,9 @@
+## 0.1.6 (2023-2-20)
+
+- feat: support export as template
+- fix: add a button to select icon by open iconify
+- feat: field configuration
+
 ## 0.1.5 (2023-2-16)
 
 - fix: add component api query template detail
