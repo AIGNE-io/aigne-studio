@@ -1,6 +1,6 @@
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import { ArrowDropDown, CopyAll, Delete, Settings } from '@mui/icons-material';
+import { ArrowDropDown, CopyAll, Delete, Settings, TravelExplore } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -191,6 +191,15 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             startAdornment: form.icon && (
               <InputAdornment position="start">
                 <Icon icon={form.icon} />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  onClick={() => window.open('https://icon-sets.iconify.design/?query=', '_blank')}>
+                  <TravelExplore fontSize="small" />
+                </IconButton>
               </InputAdornment>
             ),
           }}
