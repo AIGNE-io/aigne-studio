@@ -1,6 +1,6 @@
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import { ArrowDropDown, CopyAll, Delete } from '@mui/icons-material';
+import { ArrowDropDown, CopyAll, Delete, Settings } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -13,19 +13,20 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  MenuItem,
   Paper,
   TextField,
   TextFieldProps,
 } from '@mui/material';
 import { useReactive } from 'ahooks';
-import { useCallback, useDeferredValue, useEffect, useMemo } from 'react';
+import Joi from 'joi';
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { getErrorMessage } from '../../libs/api';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
 import useMenu from '../../utils/use-menu';
 import usePopper from '../../utils/use-popper';
+import ParameterConfig, { NumberField } from './parameter-config';
 
 export interface Template {
   _id: string;
@@ -38,7 +39,15 @@ export interface Template {
 
 export type ParameterType = 'number' | 'string';
 
-export type Parameter = { type?: ParameterType; value?: any; [key: string]: any };
+export type Parameter = {
+  type?: ParameterType;
+  value?: any;
+  label?: string;
+  placeholder?: string;
+  helper?: string;
+  required?: boolean;
+  [key: string]: any;
+};
 
 const INIT_FORM: Template = {
   _id: '',
@@ -70,12 +79,75 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
 
   const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
 
-  const submit = () => onExecute?.(JSON.parse(JSON.stringify(form)));
+  useEffect(() => {
+    for (const param of params) {
+      if (!form.parameters[param]) {
+        form.parameters[param] = {};
+      }
+    }
+  }, [params]);
+
+  const [error, setError] = useState<Joi.ValidationError>();
+
+  const submit = () => {
+    const getValueSchema = (parameter: Parameter) => {
+      return {
+        number: () => {
+          let s = Joi.number();
+          if (parameter.required) {
+            s = s.required();
+          }
+          if (typeof parameter.min === 'number') {
+            s = s.min(parameter.min);
+          }
+          if (typeof parameter.max === 'number') {
+            s = s.max(parameter.max);
+          }
+          return s;
+        },
+        string: () => {
+          let s = Joi.string();
+          if (parameter.required) {
+            s = s.required();
+          }
+          if (typeof parameter.minLength === 'number') {
+            s = s.min(parameter.minLength);
+          }
+          if (typeof parameter.maxLength === 'number') {
+            s = s.max(parameter.maxLength);
+          }
+          return s;
+        },
+      }[parameter.type || 'string']();
+    };
+
+    const schema = Joi.object(
+      Object.fromEntries(
+        params.map((param) => {
+          const parameter = form.parameters[param];
+          return [param, parameter ? getValueSchema(parameter) : undefined];
+        })
+      )
+    );
+
+    setError(undefined);
+    const { error, value } = schema.validate(
+      Object.fromEntries(Object.entries(form.parameters).map(([key, { value }]) => [key, value])),
+      { allowUnknown: true }
+    );
+    if (error) {
+      setError(error);
+      return;
+    }
+    onExecute?.(JSON.parse(JSON.stringify({ ...form, parameters: value })));
+  };
 
   useEffect(() => {
     const template = state.templates.find((i) => i._id === templateId) ?? state.templates.at(0);
     if (template && template._id !== form._id) setForm(template);
   }, [state.templates.length, templateId]);
+
+  const { popper, showPopper } = usePopper();
 
   return (
     <Grid container spacing={2}>
@@ -146,27 +218,47 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           onChange={(e) => (form.template = e.target.value)}
         />
       </Grid>
-      {params.map((param) => (
-        <Grid item xs={12} key={param}>
-          <Box display="flex" justifyContent="space-between">
-            <ParameterRenderer
-              key={`${form._id}-${param}`}
-              sx={{ flex: 1, mr: 2 }}
-              size="small"
-              label={param}
-              parameter={form.parameters[param]}
-              value={form.parameters[param]?.value}
-              onChange={(value) => (form.parameters[param] = { ...form.parameters[param], value })}
-            />
-            <ParameterTypeSelect
-              key={`${form._id}-${param}-type`}
-              inputProps={{ tabIndex: -1 }}
-              value={form.parameters[param]}
-              onChange={(value) => (form.parameters[param] = { ...value })}
-            />
-          </Box>
-        </Grid>
-      ))}
+      {params.map((param) => {
+        const parameter = form.parameters[param];
+        if (!parameter) {
+          return null;
+        }
+
+        const err = error?.details.find((i) => i.path[0] === param);
+
+        return (
+          <Grid item xs={12} key={param}>
+            <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+              <ParameterRenderer
+                key={`${form._id}-${param}`}
+                sx={{ flex: 1 }}
+                size="small"
+                label={parameter.label || param}
+                parameter={parameter}
+                error={!!err}
+                helperText={err?.message ?? parameter.helper}
+              />
+              <IconButton
+                sx={{ ml: 2, mt: 0.5 }}
+                size="small"
+                onClick={(e) =>
+                  showPopper({
+                    anchorEl: e.currentTarget.parentElement,
+                    placement: 'bottom-end',
+                    children: (
+                      <Paper elevation={11} sx={{ p: 3, maxWidth: 320 }}>
+                        <ParameterConfig value={parameter} />
+                      </Paper>
+                    ),
+                  })
+                }>
+                <Settings fontSize="small" />
+              </IconButton>
+            </Box>
+          </Grid>
+        );
+      })}
+      {popper}
       <Grid item xs={12} lg={3}>
         <Button fullWidth sx={{ flex: 1 }} variant="contained" onClick={submit}>
           Execute
@@ -313,63 +405,46 @@ function TemplateList({
   );
 }
 
-const PARAMETER_SELECT_MAP: { [key in ParameterType]: (value: Parameter) => string } = {
-  number: () => 'number',
-  string: (value) => (value.multiline ? 'long-text' : 'text'),
-};
+function ParameterRenderer({ parameter, ...props }: { parameter: Parameter } & Omit<TextFieldProps, 'onChange'>) {
+  const Field = {
+    number: NumberParameterField,
+    string: StringParameterField,
+  }[parameter.type || 'string'];
 
-const PARAMETER_SELECT_VALUE_MAP: { [key: string]: Parameter } = {
-  text: { type: 'string' },
-  'long-text': { type: 'string', multiline: true },
-  number: { type: 'number' },
-};
+  return <Field parameter={parameter} {...props} />;
+}
 
-function ParameterTypeSelect({
-  value,
-  onChange,
-  ...props
-}: { value?: Parameter; onChange: (value?: Parameter) => void } & Omit<TextFieldProps, 'value' | 'onChange'>) {
-  const v = value?.type ? PARAMETER_SELECT_MAP[value.type](value) : 'text';
-
+function NumberParameterField({ parameter, ...props }: { parameter: Parameter } & Omit<TextFieldProps, 'onChange'>) {
   return (
-    <TextField
+    <NumberField
+      required={parameter.required}
+      label={parameter.label}
+      placeholder={parameter.placeholder}
+      helperText={parameter.helper}
+      min={parameter.min}
+      max={parameter.max}
+      value={parameter.value ?? ''}
+      onChange={(val) => (parameter.value = val)}
       {...props}
-      sx={{ width: 130 }}
-      size="small"
-      select
-      value={v}
-      onChange={(e) => onChange(PARAMETER_SELECT_VALUE_MAP[e.target.value])}>
-      <MenuItem value="text">Short Text</MenuItem>
-      <MenuItem value="long-text">Long Text</MenuItem>
-      <MenuItem value="number">Number</MenuItem>
-    </TextField>
+    />
   );
 }
 
-function ParameterRenderer({
-  parameter,
-  value,
-  onChange,
-  ...props
-}: { parameter?: Parameter; value?: string; onChange?: (value: string) => void } & Omit<TextFieldProps, 'onChange'>) {
+function StringParameterField({ parameter, ...props }: { parameter: Parameter } & Omit<TextFieldProps, 'onChange'>) {
   const multiline = parameter?.type === 'string' && parameter.multiline;
 
   return (
     <TextField
-      {...props}
-      inputProps={
-        parameter?.type === 'number'
-          ? {
-              type: 'number',
-              inputMode: 'numeric',
-              pattern: '[0-9]*',
-            }
-          : undefined
-      }
+      required={parameter.required}
+      label={parameter.label}
+      placeholder={parameter.placeholder}
+      helperText={parameter.helper}
+      value={parameter.value ?? ''}
       multiline={multiline}
       minRows={multiline ? 2 : undefined}
-      value={value || ''}
-      onChange={(e) => onChange?.(e.target.value)}
+      onChange={(e) => (parameter.value = e.target.value)}
+      inputProps={{ maxLength: parameter.maxLength }}
+      {...props}
     />
   );
 }

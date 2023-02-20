@@ -22,6 +22,9 @@ export default function usePopper() {
         children: (
           <ClickAwayListener
             onClickAway={(e) => {
+              if (e.target === document.body) {
+                return;
+              }
               if (
                 ignoreClickAwaySelector &&
                 [...document.querySelectorAll(ignoreClickAwaySelector)].some((i) => i.contains(e.target as any))
