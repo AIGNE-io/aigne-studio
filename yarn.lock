@@ -1251,31 +1251,12 @@
     prop-types "^15.8.1"
     react-is "^18.2.0"
 
-"@nedb/binary-search-tree@2.1.3":
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/@nedb/binary-search-tree/-/binary-search-tree-2.1.3.tgz#3094aafdeb01095dbb2ebae8280c75c98821deeb"
-  integrity sha512-uKw/X47Nxie2fZxJcIAowPf0LjUMgwsgrm3ahYjhk57M/hBex2RYdEFkBtw0QPwpcveihRv1rOa1F29dPF/QBw==
-
 "@nedb/binary-search-tree@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nedb/binary-search-tree/-/binary-search-tree-2.1.5.tgz#21b88683a7956669692486fdd236f5ee50d88bde"
   integrity sha512-1GWPA1IevTrPlUURCF3R2gYK2RRq10QFkjFVq3PmSUYz/Wvud+CyOWqY/DPBr0dksRhFgVegpdte6ZFWKHHmog==
 
-"@nedb/core@2.1.3", "@nedb/core@2.x", "@nedb/core@^2.1.3":
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/@nedb/core/-/core-2.1.3.tgz#b73a51d2c129a08ec2a52b6e33f570226e7f2c23"
-  integrity sha512-iLZfUqUY5b5LsJY2vdMiAfqK6zmfALNc2K0a5jr9GPMkU4Cv2EWFix6LECYSYllV2B83KmFes+D/yu4Zis+k0w==
-  dependencies:
-    "@nedb/binary-search-tree" "2.1.3"
-    async "^3.2.4"
-    debug "^4.3.4"
-    localforage "^1.10.0"
-    lodash.isplainobject "^4.0.6"
-    mkdirp "^1.0.4"
-    node-line-reader "0.0.3"
-    standard-as-callback "^2.1.0"
-
-"@nedb/core@^2.1.5":
+"@nedb/core@2.1.3", "@nedb/core@2.x", "@nedb/core@^2.1.3", "@nedb/core@^2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nedb/core/-/core-2.1.5.tgz#2a45173f26e5e02bdde02f0934bb715c9e21ef9e"
   integrity sha512-2rgJRWv7/wTRhtVVxPBntjuBSuQlEEXabvRiV4xjzOSeyvgz+SnHNbuuTvVP/j6tVv9dTQ3tjSr6fNVJqFL6EA==
@@ -1809,6 +1790,11 @@
     "@types/express-serve-static-core" "^4.17.33"
     "@types/qs" "*"
     "@types/serve-static" "*"
+
+"@types/file-saver@^2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@types/file-saver/-/file-saver-2.0.5.tgz#9ee342a5d1314bb0928375424a2f162f97c310c7"
+  integrity sha512-zv9kNf3keYegP5oThGLaPk8E081DFDuwfqjtiTzm6PoxChdJ1raSuADf2YGCVIyrSynLrgc8JWv296s7Q7pQSQ==
 
 "@types/fs-extra@^9.0.13":
   version "9.0.13"
@@ -4236,6 +4222,11 @@ file-entry-cache@^6.0.1:
   integrity sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==
   dependencies:
     flat-cache "^3.0.4"
+
+file-saver@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/file-saver/-/file-saver-2.0.5.tgz#d61cfe2ce059f414d899e9dd6d4107ee25670c38"
+  integrity sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==
 
 file-stream-rotator@^0.6.1:
   version "0.6.1"
