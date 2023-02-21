@@ -150,7 +150,14 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       setError(error);
       return;
     }
-    onExecute?.(JSON.parse(JSON.stringify({ ...form, parameters: value })));
+    onExecute?.(
+      JSON.parse(
+        JSON.stringify({
+          ...form,
+          parameters: Object.fromEntries(Object.entries(value).map(([key, value]) => [key, { value }])),
+        })
+      )
+    );
   };
 
   useEffect(() => {
