@@ -1,6 +1,15 @@
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import { ArrowDropDown, CopyAll, Delete, ImportExport, Settings, TravelExplore } from '@mui/icons-material';
+import {
+  Add,
+  ArrowDropDown,
+  CopyAll,
+  Delete,
+  ImportExport,
+  SaveOutlined,
+  Settings,
+  TravelExplore,
+} from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -71,7 +80,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   const setForm = useCallback((template?: Template) => {
     Object.assign(form, { ...INIT_FORM }, template && JSON.parse(JSON.stringify(template)));
     setSearchParams((prev) => {
-      if (template?._id) prev.set('templateId', template._id);
+      if (typeof template?._id === 'string') prev.set('templateId', template._id);
       else prev.delete('templateId');
       return prev;
     });
@@ -145,6 +154,9 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   };
 
   useEffect(() => {
+    if (templateId === '') {
+      return;
+    }
     const template = state.templates.find((i) => i._id === templateId) ?? state.templates.at(0);
     if (template && template._id !== form._id) setForm(template);
   }, [state.templates.length, templateId]);
@@ -280,6 +292,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           <Button
             sx={{ m: 0.5 }}
             variant="outlined"
+            startIcon={<SaveOutlined />}
             onClick={async () => {
               try {
                 setForm(await (form._id ? state.update(form._id, form) : state.create(form)));
@@ -294,24 +307,23 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           <Button
             sx={{ m: 0.5 }}
             variant="outlined"
+            startIcon={<Add />}
             onClick={async () => {
               try {
-                setForm(await state.create(form));
-                Toast.success('Saved');
+                setForm(JSON.parse(JSON.stringify(INIT_FORM)));
               } catch (error) {
                 Toast.error(getErrorMessage(error));
                 throw error;
               }
             }}>
-            Save As New
+            New
           </Button>
           <Button
             sx={{ m: 0.5 }}
             startIcon={<CopyAll />}
             variant="outlined"
             onClick={() => {
-              navigator.clipboard.writeText(JSON.stringify({ ...form }));
-              Toast.success('Copied');
+              setForm(JSON.parse(JSON.stringify({ ...form, _id: '' })));
             }}>
             Copy
           </Button>
