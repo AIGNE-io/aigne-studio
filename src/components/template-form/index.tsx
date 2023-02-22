@@ -13,6 +13,7 @@ import {
 import {
   Box,
   Button,
+  ClickAwayListener,
   DialogActions,
   DialogTitle,
   Grid,
@@ -23,18 +24,23 @@ import {
   ListItemIcon,
   ListItemText,
   Paper,
+  Popper,
   TextField,
   TextFieldProps,
 } from '@mui/material';
 import { useReactive } from 'ahooks';
+import equal from 'fast-deep-equal';
 import { saveAs } from 'file-saver';
+import produce from 'immer';
+import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useBeforeUnload, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
 
 import { getErrorMessage } from '../../libs/api';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
+import useDialog from '../../utils/use-dialog';
 import useMenu from '../../utils/use-menu';
 import usePopper from '../../utils/use-popper';
 import ParameterConfig, { NumberField } from './parameter-config';
@@ -64,7 +70,7 @@ const INIT_FORM: Template = {
   _id: '',
   name: '',
   icon: '',
-  description: undefined,
+  description: '',
   template: '',
   parameters: {},
 };
@@ -75,28 +81,63 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   const state = useTemplates();
   const { menu, showMenu } = useMenu();
 
-  const form = useReactive({ ...INIT_FORM });
+  const original = useRef<Template>({ ...INIT_FORM });
+  const [form, setForm] = useState(INIT_FORM);
 
-  const setForm = useCallback((template?: Template) => {
-    Object.assign(form, { ...INIT_FORM }, template && JSON.parse(JSON.stringify(template)));
-    setSearchParams((prev) => {
-      if (typeof template?._id === 'string') prev.set('templateId', template._id);
-      else prev.delete('templateId');
-      return prev;
-    });
-  }, []);
+  const updateForm = useCallback(
+    (update: typeof form | ((value: WritableDraft<typeof form>) => void)) => {
+      setForm((form) =>
+        typeof update === 'function'
+          ? produce(form, (draft) => {
+              update(draft);
+            })
+          : update
+      );
+    },
+    [setForm]
+  );
+
+  const resetForm = useCallback(
+    (value?: typeof form) => {
+      const form = JSON.parse(JSON.stringify(value ?? INIT_FORM));
+      original.current = form;
+      setForm(form);
+
+      setSearchParams((prev) => {
+        if (typeof value?._id === 'string') prev.set('templateId', value._id);
+        else prev.delete('templateId');
+        return prev;
+      });
+    },
+    [setSearchParams]
+  );
+
+  const formChanged = !equal(original.current, form);
+  const formIsInitial = equal(form, INIT_FORM);
+  const needSave = formChanged || (!formIsInitial && !form._id);
+
+  useBeforeUnload(
+    useCallback(
+      (e) => {
+        if (needSave) {
+          e.returnValue = 'Discard changes?';
+        }
+      },
+      [needSave]
+    )
+  );
 
   const deferredTemplate = useDeferredValue(form.template);
 
   const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
 
   useEffect(() => {
-    for (const param of params) {
-      if (!form.parameters[param]) {
-        form.parameters[param] = {};
+    updateForm((form) => {
+      for (const param of params) {
+        form.parameters[param] ??= {};
       }
-    }
-  }, [params]);
+    });
+  }, [updateForm, params]);
 
   const [error, setError] = useState<Joi.ValidationError>();
 
@@ -160,15 +201,17 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
     );
   };
 
+  // set init form
   useEffect(() => {
     if (templateId === '') {
       return;
     }
     const template = state.templates.find((i) => i._id === templateId) ?? state.templates.at(0);
-    if (template && template._id !== form._id) setForm(template);
+    if (template && template._id !== form._id) resetForm(template);
   }, [state.templates.length, templateId]);
 
-  const { popper, showPopper } = usePopper();
+  const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
+  const { dialog, showDialog } = useDialog();
 
   return (
     <Grid container spacing={2}>
@@ -178,7 +221,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           label="Name"
           size="small"
           value={form.name}
-          onChange={(e) => (form.name = e.target.value)}
+          onChange={(e) => updateForm((form) => (form.name = e.target.value))}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -190,7 +233,9 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
                       anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
                       transformOrigin: { horizontal: 'right', vertical: 'top' },
                       PaperProps: { sx: { maxHeight: '50vh', width: 300 } },
-                      children: <TemplateList {...state} current={form} onCurrentChange={setForm} />,
+                      children: (
+                        <TemplateList {...state} current={form} onCurrentChange={(template) => resetForm(template)} />
+                      ),
                     })
                   }>
                   <ArrowDropDown fontSize="small" />
@@ -206,8 +251,8 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           fullWidth
           label="Icon"
           size="small"
-          value={form.icon || ''}
-          onChange={(e) => (form.icon = e.target.value)}
+          value={form.icon ?? ''}
+          onChange={(e) => updateForm((form) => (form.icon = e.target.value))}
           InputProps={{
             startAdornment: form.icon && (
               <InputAdornment position="start">
@@ -231,8 +276,8 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           fullWidth
           label="Description"
           size="small"
-          value={form.description || ''}
-          onChange={(e) => (form.description = e.target.value)}
+          value={form.description ?? ''}
+          onChange={(e) => updateForm((form) => (form.description = e.target.value))}
           multiline
           minRows={2}
         />
@@ -245,7 +290,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           multiline
           minRows={2}
           value={form.template}
-          onChange={(e) => (form.template = e.target.value)}
+          onChange={(e) => updateForm((form) => (form.template = e.target.value))}
         />
       </Grid>
       {params.map((param) => {
@@ -267,42 +312,52 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
                 parameter={parameter}
                 error={!!err}
                 helperText={err?.message ?? parameter.helper}
+                value={parameter.value ?? ''}
+                onChange={(value) => updateForm((form) => (form.parameters[param]!.value = value))}
               />
               <IconButton
                 sx={{ ml: 2, mt: 0.5 }}
                 size="small"
-                onClick={(e) =>
-                  showPopper({
-                    anchorEl: e.currentTarget.parentElement,
-                    placement: 'bottom-end',
-                    children: (
-                      <Paper elevation={11} sx={{ p: 3, maxWidth: 320 }}>
-                        <ParameterConfig value={parameter} />
-                      </Paper>
-                    ),
-                  })
-                }>
+                onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
                 <Settings fontSize="small" />
               </IconButton>
             </Box>
           </Grid>
         );
       })}
-      {popper}
-      <Grid item xs={12} lg={3}>
-        <Button fullWidth sx={{ flex: 1 }} variant="contained" onClick={submit}>
-          Execute
-        </Button>
-      </Grid>
-      <Grid item xs={12} lg>
+
+      <Popper open={Boolean(paramConfig)} anchorEl={paramConfig?.anchorEl} placement="bottom-end">
+        <ClickAwayListener
+          onClickAway={(e) => {
+            if (e.target === document.body) return;
+            setParamConfig(undefined);
+          }}>
+          <Paper elevation={11} sx={{ p: 3, maxWidth: 320 }}>
+            {paramConfig && (
+              <ParameterConfig
+                value={form.parameters[paramConfig.param]!}
+                onChange={(parameter) => updateForm((form) => (form.parameters[paramConfig.param] = parameter))}
+              />
+            )}
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
+
+      {dialog}
+
+      <Grid item xs={12}>
         <Box display="flex" flexWrap="wrap" sx={{ m: -0.5 }}>
+          <Button sx={{ m: 0.5 }} variant="contained" onClick={submit}>
+            Execute
+          </Button>
           <Button
             sx={{ m: 0.5 }}
             variant="outlined"
             startIcon={<SaveOutlined />}
+            disabled={!needSave}
             onClick={async () => {
               try {
-                setForm(await (form._id ? state.update(form._id, form) : state.create(form)));
+                resetForm(await (form._id ? state.update(form._id, form) : state.create(form)));
                 Toast.success('Saved');
               } catch (error) {
                 Toast.error(getErrorMessage(error));
@@ -315,9 +370,18 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             sx={{ m: 0.5 }}
             variant="outlined"
             startIcon={<Add />}
+            disabled={formIsInitial}
             onClick={async () => {
               try {
-                setForm(JSON.parse(JSON.stringify(INIT_FORM)));
+                if (needSave) {
+                  showDialog({
+                    title: 'Discard changes?',
+                    content: <Box minWidth={300} />,
+                    onOk: () => resetForm(INIT_FORM),
+                  });
+                } else {
+                  resetForm(INIT_FORM);
+                }
               } catch (error) {
                 Toast.error(getErrorMessage(error));
                 throw error;
@@ -329,8 +393,9 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             sx={{ m: 0.5 }}
             startIcon={<CopyAll />}
             variant="outlined"
+            disabled={formIsInitial || !form._id}
             onClick={() => {
-              setForm(JSON.parse(JSON.stringify({ ...form, _id: '' })));
+              resetForm({ ...form, _id: '' });
             }}>
             Copy
           </Button>
@@ -338,6 +403,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             sx={{ m: 0.5 }}
             startIcon={<ImportExport />}
             variant="outlined"
+            disabled={!form._id}
             onClick={() => {
               const text = stringify(form);
               saveAs(new Blob([text]), `${form.name || form._id}.yml`);
@@ -447,7 +513,13 @@ function TemplateList({
   );
 }
 
-function ParameterRenderer({ parameter, ...props }: { parameter: Parameter } & Omit<TextFieldProps, 'onChange'>) {
+function ParameterRenderer({
+  parameter,
+  ...props
+}: {
+  parameter: Parameter;
+  onChange: (value: string | number | undefined) => void;
+} & Omit<TextFieldProps, 'onChange'>) {
   const Field = {
     number: NumberParameterField,
     string: StringParameterField,
@@ -456,7 +528,13 @@ function ParameterRenderer({ parameter, ...props }: { parameter: Parameter } & O
   return <Field parameter={parameter} {...props} />;
 }
 
-function NumberParameterField({ parameter, ...props }: { parameter: Parameter } & Omit<TextFieldProps, 'onChange'>) {
+function NumberParameterField({
+  parameter,
+  ...props
+}: {
+  parameter: Parameter;
+  onChange: (value: number | undefined) => void;
+} & Omit<TextFieldProps, 'onChange'>) {
   return (
     <NumberField
       required={parameter.required}
@@ -465,14 +543,16 @@ function NumberParameterField({ parameter, ...props }: { parameter: Parameter } 
       helperText={parameter.helper}
       min={parameter.min}
       max={parameter.max}
-      value={parameter.value ?? ''}
-      onChange={(val) => (parameter.value = val)}
       {...props}
     />
   );
 }
 
-function StringParameterField({ parameter, ...props }: { parameter: Parameter } & Omit<TextFieldProps, 'onChange'>) {
+function StringParameterField({
+  parameter,
+  onChange,
+  ...props
+}: { parameter: Parameter; onChange: (value: string) => void } & Omit<TextFieldProps, 'onChange'>) {
   const multiline = parameter?.type === 'string' && parameter.multiline;
 
   return (
@@ -481,11 +561,10 @@ function StringParameterField({ parameter, ...props }: { parameter: Parameter } 
       label={parameter.label}
       placeholder={parameter.placeholder}
       helperText={parameter.helper}
-      value={parameter.value ?? ''}
       multiline={multiline}
       minRows={multiline ? 2 : undefined}
-      onChange={(e) => (parameter.value = e.target.value)}
       inputProps={{ maxLength: parameter.maxLength }}
+      onChange={(e) => onChange(e.target.value)}
       {...props}
     />
   );

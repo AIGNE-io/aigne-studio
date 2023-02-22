@@ -1,12 +1,15 @@
 import { FormControl, FormControlLabel, Grid, MenuItem, Switch, TextField, TextFieldProps } from '@mui/material';
-import { useUpdate } from 'ahooks';
 import { ChangeEvent } from 'react';
 
 import type { Parameter, ParameterType } from '.';
 
-export default function ParameterConfig({ value }: { value: Parameter }) {
-  const update = useUpdate();
-
+export default function ParameterConfig({
+  value,
+  onChange,
+}: {
+  value: Parameter;
+  onChange: (value: Parameter) => void;
+}) {
   const type = value.type ? PARAMETER_SELECT_MAP[value.type](value) : 'text';
 
   return (
@@ -18,10 +21,7 @@ export default function ParameterConfig({ value }: { value: Parameter }) {
           size="small"
           select
           value={type}
-          onChange={(e) => {
-            Object.assign(value, PARAMETER_SELECT_VALUE_MAP[e.target.value]!);
-            update();
-          }}>
+          onChange={(e) => onChange({ ...value, ...PARAMETER_SELECT_VALUE_MAP[e.target.value] })}>
           <MenuItem value="text">Short Text</MenuItem>
           <MenuItem value="long-text">Long Text</MenuItem>
           <MenuItem value="number">Number</MenuItem>
@@ -33,10 +33,7 @@ export default function ParameterConfig({ value }: { value: Parameter }) {
           label="Label"
           size="small"
           value={value.label || ''}
-          onChange={(e) => {
-            value.label = e.target.value;
-            update();
-          }}
+          onChange={(e) => onChange({ ...value, label: e.target.value })}
         />
       </Grid>
       <Grid item xs={12}>
@@ -45,10 +42,7 @@ export default function ParameterConfig({ value }: { value: Parameter }) {
           label="Placeholder"
           size="small"
           value={value.placeholder || ''}
-          onChange={(e) => {
-            value.placeholder = e.target.value;
-            update();
-          }}
+          onChange={(e) => onChange({ ...value, placeholder: e.target.value })}
         />
       </Grid>
       <Grid item xs={12}>
@@ -57,10 +51,7 @@ export default function ParameterConfig({ value }: { value: Parameter }) {
           label="Helper"
           size="small"
           value={value.helper || ''}
-          onChange={(e) => {
-            value.helper = e.target.value;
-            update();
-          }}
+          onChange={(e) => onChange({ ...value, helper: e.target.value })}
         />
       </Grid>
       <Grid item xs={12}>
@@ -68,13 +59,7 @@ export default function ParameterConfig({ value }: { value: Parameter }) {
           <FormControlLabel
             label="Required"
             control={
-              <Switch
-                checked={value.required || false}
-                onChange={(_, v) => {
-                  value.required = v;
-                  update();
-                }}
-              />
+              <Switch checked={value.required || false} onChange={(_, required) => onChange({ ...value, required })} />
             }
           />
         </FormControl>
@@ -86,12 +71,9 @@ export default function ParameterConfig({ value }: { value: Parameter }) {
               fullWidth
               label="Min Length"
               size="small"
-              value={value.minLength || ''}
-              inputProps={{ type: 'number' }}
-              onChange={(val) => {
-                value.minLength = val;
-                update();
-              }}
+              min={1}
+              value={value.minLength ?? ''}
+              onChange={(val) => onChange({ ...value, minLength: val })}
             />
           </Grid>
           <Grid item xs={6}>
@@ -99,11 +81,9 @@ export default function ParameterConfig({ value }: { value: Parameter }) {
               fullWidth
               label="Max Length"
               size="small"
+              min={1}
               value={value.maxLength ?? ''}
-              onChange={(val) => {
-                value.maxLength = val;
-                update();
-              }}
+              onChange={(val) => onChange({ ...value, maxLength: val })}
             />
           </Grid>
         </>
@@ -116,10 +96,7 @@ export default function ParameterConfig({ value }: { value: Parameter }) {
               label="Min"
               size="small"
               value={value.min ?? ''}
-              onChange={(val) => {
-                value.min = val;
-                update();
-              }}
+              onChange={(min) => onChange({ ...value, min })}
             />
           </Grid>
           <Grid item xs={6}>
@@ -128,10 +105,7 @@ export default function ParameterConfig({ value }: { value: Parameter }) {
               label="Max"
               size="small"
               value={value.max ?? ''}
-              onChange={(val) => {
-                value.max = val;
-                update();
-              }}
+              onChange={(max) => onChange({ ...value, max })}
             />
           </Grid>
         </>
