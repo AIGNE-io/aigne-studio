@@ -1,3 +1,7 @@
+## 0.1.8 (2023-2-22)
+
+- feat: support image preview by @blocklet/ai-kit
+
 ## 0.1.7 (2023-2-22)
 
 - fix: confirm to discard changes

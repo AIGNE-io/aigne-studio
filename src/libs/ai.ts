@@ -48,6 +48,28 @@ export async function imageGenerations(options: {
   prompt: string;
   size: ImageGenerationSize;
   n: number;
+  response_format?: string;
 }): Promise<AIImageResponse> {
-  return axios.post('/api/ai/image/generations', options).then((res) => res.data);
+  // client side default is b64_json, so that we can download image
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const { response_format = 'b64_json' } = options;
+  return axios
+    .post('/api/ai/image/generations', {
+      ...options,
+      response_format,
+    })
+    .then((res) => {
+      if (response_format === 'b64_json') {
+        try {
+          res.data.data = res.data.data.map((item: any) => {
+            return {
+              url: `data:image/png;base64,${item.b64_json}`,
+            };
+          });
+        } catch (error) {
+          console.error('format b64_json error: ', error);
+        }
+      }
+      return res.data;
+    });
 }
