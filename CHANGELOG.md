@@ -1,3 +1,9 @@
+## 0.1.7 (2023-2-22)
+
+- fix: confirm to discard changes
+- fix: correctly emit prompt parameters
+- fix: change actions to `save` `new` and `copy`
+
 ## 0.1.6 (2023-2-20)
 
 - feat: support export as template
