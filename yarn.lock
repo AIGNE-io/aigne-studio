@@ -802,20 +802,24 @@
     "@babel/helper-validator-identifier" "^7.19.1"
     to-fast-properties "^2.0.0"
 
-"@blocklet/ai-kit@^0.0.27":
-  version "0.0.27"
-  resolved "https://registry.yarnpkg.com/@blocklet/ai-kit/-/ai-kit-0.0.27.tgz#4b5d892f4c3168d8e1f9efe8f11d9d60c409408b"
-  integrity sha512-JPzl/mK1xc++6Uu6o/RgLw7XP3IYbaR5ADAhg8X6dFhJFFx/4odtCezxdVd6d1Mmtz+Qu13JGIeEGZDrwQI6uA==
+"@blocklet/ai-kit@^0.0.31":
+  version "0.0.31"
+  resolved "https://registry.yarnpkg.com/@blocklet/ai-kit/-/ai-kit-0.0.31.tgz#0cdd96461af07056a6ae405dbb1dabfe02ee9d16"
+  integrity sha512-tQuhcAsAAWDYx9sagfFy4MgcMf0dtdkeZJyqJGFzaNKZJ+nqQT1A5fHiPVmbMnoiveDSkqKqMvhA3KHGmn15QQ==
   dependencies:
     "@arcblock/ux" "^2.4.65"
+    "@emotion/css" "^11.10.6"
     "@emotion/react" "^11.10.6"
     "@emotion/styled" "^11.10.6"
     "@mui/icons-material" "^5.11.9"
     "@mui/lab" "^5.0.0-alpha.120"
     "@mui/material" "^5.11.10"
     ahooks "^3.7.4"
+    axios "^1.3.4"
     file-saver "^2.0.5"
+    immer "^9.0.19"
     lodash "^4.17.21"
+    nanoid "^4.0.1"
     react-photo-view "^1.2.3"
 
 "@blocklet/constant@1.8.64":
@@ -1025,6 +1029,17 @@
   integrity sha512-maJy0wG82hWsiwfJpc3WrYsyVwUbdu+sdIseKUB+/OLjB8zgc3tqkT6eO0Yt0AhIkJwGGnmMY/xmQwEAgQ4JHA==
   dependencies:
     "@emotion/babel-plugin" "^11.10.5"
+    "@emotion/cache" "^11.10.5"
+    "@emotion/serialize" "^1.1.1"
+    "@emotion/sheet" "^1.2.1"
+    "@emotion/utils" "^1.2.0"
+
+"@emotion/css@^11.10.6":
+  version "11.10.6"
+  resolved "https://registry.yarnpkg.com/@emotion/css/-/css-11.10.6.tgz#5d226fdd8ef2a46d28e4eb09f66dc01a3bda5a04"
+  integrity sha512-88Sr+3heKAKpj9PCqq5A1hAmAkoSIvwEq1O2TwDij7fUtsJpdkV4jMTISSTouFeRvsGvXIpuSuDQ4C1YdfNGXw==
+  dependencies:
+    "@emotion/babel-plugin" "^11.10.6"
     "@emotion/cache" "^11.10.5"
     "@emotion/serialize" "^1.1.1"
     "@emotion/sheet" "^1.2.1"
@@ -2623,6 +2638,15 @@ axios@^1.3.2:
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.3.3.tgz#e7011384ba839b885007c9c9fae1ff23dceb295b"
   integrity sha512-eYq77dYIFS77AQlhzEL937yUBSepBfPIe8FcgEDN35vMNZKMrs81pgnyrQpwfy4NF4b4XWX1Zgx7yX+25w8QJA==
+  dependencies:
+    follow-redirects "^1.15.0"
+    form-data "^4.0.0"
+    proxy-from-env "^1.1.0"
+
+axios@^1.3.4:
+  version "1.3.4"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.3.4.tgz#f5760cefd9cfb51fd2481acf88c05f67c4523024"
+  integrity sha512-toYm+Bsyl6VC5wSkfkbbNB6ROv7KY93PEBBL6xyDczaIHasAiv4wPqQ/c4RjoQzipxRD2W5g21cOqQulZ7rHwQ==
   dependencies:
     follow-redirects "^1.15.0"
     form-data "^4.0.0"
