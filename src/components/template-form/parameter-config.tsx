@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import styled from '@emotion/styled';
 import { Add, Delete } from '@mui/icons-material';
 import {
@@ -30,26 +31,28 @@ export default function ParameterConfig({
   value: Parameter;
   onChange: (value: Parameter) => void;
 }) {
+  const { t } = useLocaleContext();
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={6}>
         <TextField
           fullWidth
-          label="Type"
+          label={t('form.parameter.type')}
           size="small"
           select
           value={value.type ?? 'string'}
           onChange={(e) => onChange({ ...value, type: e.target.value as any })}>
-          <MenuItem value="string">Text</MenuItem>
-          <MenuItem value="number">Number</MenuItem>
-          <MenuItem value="select">Select</MenuItem>
-          <MenuItem value="language">Language</MenuItem>
+          <MenuItem value="string">{t('form.parameter.typeText')}</MenuItem>
+          <MenuItem value="number">{t('form.parameter.typeNumber')}</MenuItem>
+          <MenuItem value="select">{t('form.parameter.typeSelect')}</MenuItem>
+          <MenuItem value="language">{t('form.parameter.typeLanguage')}</MenuItem>
         </TextField>
       </Grid>
       {(!value.type || value.type === 'string') && (
         <Grid item xs={6} display="flex" alignItems="center" minHeight="100%" justifyContent="flex-end">
           <FormControlLabel
-            label="Multiline"
+            label={t('form.parameter.multiline')}
             control={<Checkbox />}
             checked={value.multiline ?? false}
             onChange={(_, multiline) => onChange({ ...value, multiline })}
@@ -59,7 +62,7 @@ export default function ParameterConfig({
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Label"
+          label={t('form.parameter.label')}
           size="small"
           value={value.label || ''}
           onChange={(e) => onChange({ ...value, label: e.target.value })}
@@ -68,7 +71,7 @@ export default function ParameterConfig({
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Placeholder"
+          label={t('form.parameter.placeholder')}
           size="small"
           value={value.placeholder || ''}
           onChange={(e) => onChange({ ...value, placeholder: e.target.value })}
@@ -77,7 +80,7 @@ export default function ParameterConfig({
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Helper"
+          label={t('form.parameter.helper')}
           size="small"
           value={value.helper || ''}
           onChange={(e) => onChange({ ...value, helper: e.target.value })}
@@ -91,7 +94,7 @@ export default function ParameterConfig({
       <Grid item xs={12}>
         <FormControl>
           <FormControlLabel
-            label="Required"
+            label={t('form.parameter.required')}
             control={
               <Switch checked={value.required || false} onChange={(_, required) => onChange({ ...value, required })} />
             }
@@ -103,7 +106,7 @@ export default function ParameterConfig({
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label="Min Length"
+              label={t('form.parameter.minLength')}
               size="small"
               min={1}
               value={value.minLength ?? ''}
@@ -113,7 +116,7 @@ export default function ParameterConfig({
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label="Max Length"
+              label={t('form.parameter.maxLength')}
               size="small"
               min={1}
               value={value.maxLength ?? ''}
@@ -127,7 +130,7 @@ export default function ParameterConfig({
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label="Min"
+              label={t('form.parameter.min')}
               size="small"
               value={value.min ?? ''}
               onChange={(min) => onChange({ ...value, min })}
@@ -136,7 +139,7 @@ export default function ParameterConfig({
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label="Max"
+              label={t('form.parameter.max')}
               size="small"
               value={value.max ?? ''}
               onChange={(max) => onChange({ ...value, max })}
@@ -200,6 +203,8 @@ function SelectOptionsConfig({
   options: SelectParameter['options'];
   onChange: (options: SelectParameter['options']) => void;
 }) {
+  const { t } = useLocaleContext();
+
   const init = useMemo<NonNullable<typeof options>>(() => (options && JSON.parse(JSON.stringify(options))) ?? [], []);
 
   const data = useReactive(init);
@@ -235,14 +240,14 @@ function SelectOptionsConfig({
               <Input
                 inputProps={{ id: `option-label-${option.id}` }}
                 disableUnderline
-                placeholder="Label"
+                placeholder={t('form.parameter.label')}
                 value={option.label}
                 onChange={(e) => (option.label = e.target.value)}
               />
               <Input
                 sx={{ ml: 0.5 }}
                 disableUnderline
-                placeholder="Value"
+                placeholder={t('form.parameter.value')}
                 value={option.value}
                 onChange={(e) => (option.value = e.target.value)}
               />
@@ -259,7 +264,7 @@ function SelectOptionsConfig({
             data.push({ id, label: '', value: '' });
             setTimeout(() => document.getElementById(`option-label-${id}`)?.focus());
           }}>
-          Add Option
+          {t('form.parameter.addOption')}
         </Button>
       </Box>
     </DndProvider>

@@ -1,0 +1,43 @@
+import flat from 'flat';
+
+export default flat({
+  form: {
+    name: 'Name',
+    icon: 'Icon',
+    description: 'Description',
+    template: 'Prompt Template',
+    execute: 'Execute',
+    save: 'Save',
+    new: 'New',
+    copy: 'Copy',
+    exportTemplate: 'Export Template',
+    parameter: {
+      type: 'Type',
+      typeText: 'Text',
+      typeNumber: 'Number',
+      typeSelect: 'Select',
+      typeLanguage: 'Language',
+      label: 'Label',
+      value: 'Value',
+      multiline: 'Multiline',
+      placeholder: 'Placeholder',
+      helper: 'Helper Text',
+      required: 'Required',
+      minLength: 'Min Length',
+      maxLength: 'Max Length',
+      min: 'Min',
+      max: 'Max',
+      addOption: 'Add Option',
+    },
+  },
+  alert: {
+    noTemplates: 'No Templates',
+    discardChanges: 'Discard changes?',
+    deleteTemplate: 'Delete this template?',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    ok: 'Ok',
+    saved: 'Saved!',
+    deleted: 'Deleted!',
+  },
+});

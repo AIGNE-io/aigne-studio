@@ -73,6 +73,8 @@ const INIT_FORM: Template = {
 };
 
 export default function TemplateForm({ onExecute }: { onExecute?: (template: Template) => void }) {
+  const { t } = useLocaleContext();
+
   const [searchParams, setSearchParams] = useSearchParams();
   const templateId = searchParams.get('templateId');
   const state = useTemplates();
@@ -117,7 +119,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
     useCallback(
       (e) => {
         if (needSave) {
-          e.returnValue = 'Discard changes?';
+          e.returnValue = t('alert.discardChanges');
         }
       },
       [needSave]
@@ -229,7 +231,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Name"
+          label={t('form.name')}
           size="small"
           value={form.name}
           onChange={(e) => updateForm((form) => (form.name = e.target.value))}
@@ -260,7 +262,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Icon"
+          label={t('form.icon')}
           size="small"
           value={form.icon ?? ''}
           onChange={(e) => updateForm((form) => (form.icon = e.target.value))}
@@ -285,7 +287,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Description"
+          label={t('form.description')}
           size="small"
           value={form.description ?? ''}
           onChange={(e) => updateForm((form) => (form.description = e.target.value))}
@@ -296,7 +298,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Template"
+          label={t('form.template')}
           size="small"
           multiline
           minRows={2}
@@ -376,7 +378,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <Box display="flex" flexWrap="wrap" sx={{ m: -0.5 }}>
           <Button sx={{ m: 0.5 }} variant="contained" onClick={submit}>
-            Execute
+            {t('form.execute')}
           </Button>
           <Button
             sx={{ m: 0.5 }}
@@ -386,13 +388,13 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             onClick={async () => {
               try {
                 resetForm(await (form._id ? state.update(form._id, form) : state.create(form)));
-                Toast.success('Saved');
+                Toast.success(t('alert.saved'));
               } catch (error) {
                 Toast.error(getErrorMessage(error));
                 throw error;
               }
             }}>
-            Save
+            {t('form.save')}
           </Button>
           <Button
             sx={{ m: 0.5 }}
@@ -403,8 +405,10 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
               try {
                 if (needSave) {
                   showDialog({
-                    title: 'Discard changes?',
+                    title: t('alert.discardChanges'),
                     content: <Box minWidth={300} />,
+                    cancelText: t('alert.cancel'),
+                    okText: t('alert.ok'),
                     onOk: () => resetForm(INIT_FORM),
                   });
                 } else {
@@ -415,7 +419,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
                 throw error;
               }
             }}>
-            New
+            {t('form.new')}
           </Button>
           <Button
             sx={{ m: 0.5 }}
@@ -425,7 +429,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             onClick={() => {
               resetForm({ ...form, _id: '' });
             }}>
-            Copy
+            {t('form.copy')}
           </Button>
           <Button
             sx={{ m: 0.5 }}
@@ -436,7 +440,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
               const text = stringify(form);
               saveAs(new Blob([text]), `${form.name || form._id}.yml`);
             }}>
-            Export Template
+            {t('form.exportTemplate')}
           </Button>
         </Box>
       </Grid>
@@ -453,6 +457,8 @@ function TemplateList({
   current?: Template;
   onCurrentChange?: (template?: Template) => void;
 } & Pick<ReturnType<typeof useTemplates>, 'templates' | 'remove'>) {
+  const { t } = useLocaleContext();
+
   const { popper, showPopper, closePopper } = usePopper();
 
   return (
@@ -461,7 +467,7 @@ function TemplateList({
 
       {templates.length === 0 && (
         <ListItemButton dense disabled>
-          <ListItemText primary="No Templates" primaryTypographyProps={{ textAlign: 'center' }} />
+          <ListItemText primary={t('alert.noTemplates')} primaryTypographyProps={{ textAlign: 'center' }} />
         </ListItemButton>
       )}
 
@@ -478,7 +484,7 @@ function TemplateList({
                   anchorEl: e.currentTarget,
                   children: (
                     <Paper elevation={24}>
-                      <DialogTitle>Delete this template?</DialogTitle>
+                      <DialogTitle>{t('alert.deleteTemplate')}</DialogTitle>
                       <DialogActions>
                         <Button
                           size="small"
@@ -486,7 +492,7 @@ function TemplateList({
                             e.stopPropagation();
                             closePopper();
                           }}>
-                          Cancel
+                          {t('alert.cancel')}
                         </Button>
                         <Button
                           size="small"
@@ -500,13 +506,13 @@ function TemplateList({
                               if (current?._id === item._id) {
                                 onCurrentChange?.(templates[0]);
                               }
-                              Toast.success('Deleted');
+                              Toast.success(t('alert.deleted'));
                             } catch (error) {
                               Toast.error(getErrorMessage(error));
                               throw error;
                             }
                           }}>
-                          Delete
+                          {t('alert.delete')}
                         </Button>
                       </DialogActions>
                     </Paper>

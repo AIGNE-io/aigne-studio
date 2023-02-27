@@ -9,6 +9,7 @@ import { Navigate, Route, RouterProvider, createBrowserRouter, createRoutesFromE
 
 import Loading from './components/loading';
 import { SessionProvider, useIsRole } from './contexts/session';
+import { translations } from './locales';
 import { HomeLazy } from './pages/home';
 import { TemplatePageLazy } from './pages/playground';
 
@@ -28,7 +29,7 @@ export default function App() {
       />
 
       <ToastProvider>
-        <LocaleProvider translations={{}}>
+        <LocaleProvider translations={translations}>
           <SessionProvider serviceHost={basename}>
             <Suspense fallback={<Loading />}>
               <AppRoutes basename={basename} />
