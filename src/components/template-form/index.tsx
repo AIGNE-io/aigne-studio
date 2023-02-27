@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -39,7 +40,13 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { useBeforeUnload, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
 
-import { NumberParameter, Parameter, SelectParameter, StringParameter } from '../../../api/src/store/templates';
+import {
+  LanguageParameter,
+  NumberParameter,
+  Parameter,
+  SelectParameter,
+  StringParameter,
+} from '../../../api/src/store/templates';
 import { getErrorMessage } from '../../libs/api';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
 import useDialog from '../../utils/use-dialog';
@@ -161,6 +168,13 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           return s;
         },
         select: (parameter: SelectParameter) => {
+          let s = Joi.string();
+          if (parameter.required) {
+            s = s.required();
+          }
+          return s;
+        },
+        language: (parameter: LanguageParameter) => {
           let s = Joi.string();
           if (parameter.required) {
             s = s.required();
@@ -538,6 +552,7 @@ function ParameterRenderer({
     number: NumberParameterField,
     string: StringParameterField,
     select: SelectParameterField,
+    language: LanguageParameterField,
   }[parameter.type || 'string'];
 
   return <Field {...({ parameter } as any)} {...props} />;
@@ -603,6 +618,67 @@ function SelectParameterField({
       {(parameter.options ?? []).map((option) => (
         <MenuItem key={option.id} value={option.value}>
           {option.label}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+}
+
+const languages = [
+  { en: 'English', cn: '英语' },
+  { en: 'Simplified Chinese', cn: '中文-简体' },
+  { en: 'Traditional Chinese', cn: '中文-繁体' },
+  { en: 'Spanish', cn: '西班牙语' },
+  { en: 'French', cn: '法语' },
+  { en: 'German', cn: '德语' },
+  { en: 'Italian', cn: '意大利语' },
+  { en: 'Portuguese', cn: '葡萄牙语' },
+  { en: 'Japanese', cn: '日语' },
+  { en: 'Korean', cn: '韩语' },
+  { en: 'Russian', cn: '俄语' },
+  { en: 'Polish', cn: '波兰语' },
+  { en: 'Arabic', cn: '阿拉伯语' },
+  { en: 'Dutch', cn: '荷兰语' },
+  { en: 'Swedish', cn: '瑞典语' },
+  { en: 'Finnish', cn: '芬兰语' },
+  { en: 'Czech', cn: '捷克语' },
+  { en: 'Danish', cn: '丹麦语' },
+  { en: 'Greek', cn: '希腊语' },
+  { en: 'Romanian', cn: '罗马尼亚语' },
+  { en: 'Hungarian', cn: '匈牙利语' },
+  { en: 'Bulgarian', cn: '保加利亚语' },
+  { en: 'Slovak', cn: '斯洛伐克语' },
+  { en: 'Norwegian', cn: '挪威语' },
+  { en: 'Hebrew', cn: '希伯来语' },
+  { en: 'Turkish', cn: '土耳其语' },
+  { en: 'Thai', cn: '泰语' },
+  { en: 'Indonesian', cn: '印尼语' },
+  { en: 'Vietnamese', cn: '越南语' },
+  { en: 'Hindi', cn: '印地语' },
+];
+
+function LanguageParameterField({
+  parameter,
+  onChange,
+  ...props
+}: {
+  parameter: SelectParameter;
+  onChange: (value: string | undefined) => void;
+} & Omit<TextFieldProps, 'onChange'>) {
+  const { locale } = useLocaleContext();
+
+  return (
+    <TextField
+      required={parameter.required}
+      label={parameter.label}
+      placeholder={parameter.placeholder}
+      helperText={parameter.helper}
+      select
+      onChange={(e) => onChange(e.target.value)}
+      {...props}>
+      {languages.map((option) => (
+        <MenuItem key={option.en} value={option.en}>
+          {locale === 'zh' ? option.cn : option.en}
         </MenuItem>
       ))}
     </TextField>

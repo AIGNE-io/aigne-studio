@@ -13,7 +13,7 @@ export interface Template {
   updatedBy: string;
 }
 
-export type Parameter = StringParameter | NumberParameter | SelectParameter;
+export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter;
 
 export type ParameterType = NonNullable<Parameter['type']>;
 
@@ -43,6 +43,11 @@ export interface SelectParameter extends BaseParameter {
   type: 'select';
   value?: string;
   options?: { id: string; label: string; value: string }[];
+}
+
+export interface LanguageParameter extends BaseParameter {
+  type: 'language';
+  value?: string;
 }
 
 export default class Templates extends Database {

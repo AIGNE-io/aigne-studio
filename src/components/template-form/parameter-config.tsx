@@ -43,6 +43,7 @@ export default function ParameterConfig({
           <MenuItem value="string">Text</MenuItem>
           <MenuItem value="number">Number</MenuItem>
           <MenuItem value="select">Select</MenuItem>
+          <MenuItem value="language">Language</MenuItem>
         </TextField>
       </Grid>
       {(!value.type || value.type === 'string') && (

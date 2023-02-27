@@ -17,7 +17,7 @@ const templateSchema = Joi.object<TemplateInput>({
   parameters: Joi.object().pattern(
     Joi.string().required(),
     Joi.object({
-      type: Joi.string().valid('string', 'number', 'select').default('string'),
+      type: Joi.string().valid('string', 'number', 'select', 'language').default('string'),
       value: Joi.alternatives().conditional('type', {
         is: 'number',
         then: Joi.number(),
