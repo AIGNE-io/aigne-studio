@@ -130,10 +130,19 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
 
   const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
 
+  const parametersHistory = useRef<Record<string, Parameter>>({});
+
   useEffect(() => {
     updateForm((form) => {
       for (const param of params) {
-        form.parameters[param] ??= {};
+        const history = parametersHistory.current[param];
+        form.parameters[param] ??= history ?? {};
+      }
+      for (const [key, val] of Object.entries(form.parameters)) {
+        if (!params.includes(key)) {
+          delete form.parameters[key];
+          parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
+        }
       }
     });
   }, [updateForm, params]);
