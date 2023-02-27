@@ -17,8 +17,41 @@ const templateSchema = Joi.object<TemplateInput>({
   parameters: Joi.object().pattern(
     Joi.string().required(),
     Joi.object({
-      type: Joi.string().valid('number', 'string'),
-    }).pattern(Joi.string(), Joi.any())
+      type: Joi.string().valid('string', 'number', 'select').default('string'),
+      value: Joi.alternatives().conditional('type', {
+        is: 'number',
+        then: Joi.number(),
+        otherwise: Joi.string().allow(''),
+      }),
+      required: Joi.boolean(),
+      label: Joi.string().allow(''),
+      placeholder: Joi.string().allow(''),
+      helper: Joi.string().allow(''),
+    })
+      .when(Joi.object({ type: 'string' }).unknown(), {
+        then: Joi.object({
+          multiline: Joi.boolean(),
+          minLength: Joi.number().integer().min(1),
+          maxLength: Joi.number().integer().min(1),
+        }),
+      })
+      .when(Joi.object({ type: 'number' }).unknown(), {
+        then: Joi.object({
+          min: Joi.number(),
+          max: Joi.number(),
+        }),
+      })
+      .when(Joi.object({ type: 'select' }).unknown(), {
+        then: Joi.object({
+          options: Joi.array().items(
+            Joi.object({
+              id: Joi.string().required(),
+              label: Joi.string().required().allow(''),
+              value: Joi.string().required().allow(''),
+            })
+          ),
+        }),
+      })
   ),
 });
 

@@ -23,6 +23,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  MenuItem,
   Paper,
   Popper,
   TextField,
@@ -38,6 +39,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { useBeforeUnload, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
 
+import { NumberParameter, Parameter, SelectParameter, StringParameter } from '../../../api/src/store/templates';
 import { getErrorMessage } from '../../libs/api';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
 import useDialog from '../../utils/use-dialog';
@@ -53,18 +55,6 @@ export interface Template {
   template: string;
   parameters: { [key: string]: Parameter };
 }
-
-export type ParameterType = 'number' | 'string';
-
-export type Parameter = {
-  type?: ParameterType;
-  value?: any;
-  label?: string;
-  placeholder?: string;
-  helper?: string;
-  required?: boolean;
-  [key: string]: any;
-};
 
 const INIT_FORM: Template = {
   _id: '',
@@ -144,7 +134,20 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   const submit = () => {
     const getValueSchema = (parameter: Parameter) => {
       return {
-        number: () => {
+        string: (parameter: StringParameter) => {
+          let s = Joi.string().allow('');
+          if (parameter.required) {
+            s = s.required();
+          }
+          if (typeof parameter.minLength === 'number') {
+            s = s.min(parameter.minLength);
+          }
+          if (typeof parameter.maxLength === 'number') {
+            s = s.max(parameter.maxLength);
+          }
+          return s;
+        },
+        number: (parameter: NumberParameter) => {
           let s = Joi.number();
           if (parameter.required) {
             s = s.required();
@@ -157,20 +160,14 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           }
           return s;
         },
-        string: () => {
+        select: (parameter: SelectParameter) => {
           let s = Joi.string();
           if (parameter.required) {
             s = s.required();
           }
-          if (typeof parameter.minLength === 'number') {
-            s = s.min(parameter.minLength);
-          }
-          if (typeof parameter.maxLength === 'number') {
-            s = s.max(parameter.maxLength);
-          }
           return s;
         },
-      }[parameter.type || 'string']();
+      }[parameter.type || 'string'](parameter as any);
     };
 
     const schema = Joi.object(
@@ -326,13 +323,30 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
         );
       })}
 
-      <Popper open={Boolean(paramConfig)} anchorEl={paramConfig?.anchorEl} placement="bottom-end">
+      <Popper
+        open={Boolean(paramConfig)}
+        modifiers={[
+          {
+            name: 'preventOverflow',
+            enabled: true,
+            options: {
+              altAxis: true,
+              altBoundary: true,
+              tether: true,
+              rootBoundary: 'document',
+              padding: 8,
+            },
+          },
+        ]}
+        anchorEl={paramConfig?.anchorEl}
+        placement="bottom-end"
+        sx={{ zIndex: 1200 }}>
         <ClickAwayListener
           onClickAway={(e) => {
             if (e.target === document.body) return;
             setParamConfig(undefined);
           }}>
-          <Paper elevation={11} sx={{ p: 3, maxWidth: 320 }}>
+          <Paper elevation={11} sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             {paramConfig && (
               <ParameterConfig
                 value={form.parameters[paramConfig.param]!}
@@ -523,16 +537,37 @@ function ParameterRenderer({
   const Field = {
     number: NumberParameterField,
     string: StringParameterField,
+    select: SelectParameterField,
   }[parameter.type || 'string'];
 
-  return <Field parameter={parameter} {...props} />;
+  return <Field {...({ parameter } as any)} {...props} />;
+}
+
+function StringParameterField({
+  parameter,
+  onChange,
+  ...props
+}: { parameter: StringParameter; onChange: (value: string) => void } & Omit<TextFieldProps, 'onChange'>) {
+  return (
+    <TextField
+      required={parameter.required}
+      label={parameter.label}
+      placeholder={parameter.placeholder}
+      helperText={parameter.helper}
+      multiline={parameter.multiline}
+      minRows={parameter.multiline ? 2 : undefined}
+      inputProps={{ maxLength: parameter.maxLength }}
+      onChange={(e) => onChange(e.target.value)}
+      {...props}
+    />
+  );
 }
 
 function NumberParameterField({
   parameter,
   ...props
 }: {
-  parameter: Parameter;
+  parameter: NumberParameter;
   onChange: (value: number | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
   return (
@@ -548,25 +583,29 @@ function NumberParameterField({
   );
 }
 
-function StringParameterField({
+function SelectParameterField({
   parameter,
   onChange,
   ...props
-}: { parameter: Parameter; onChange: (value: string) => void } & Omit<TextFieldProps, 'onChange'>) {
-  const multiline = parameter?.type === 'string' && parameter.multiline;
-
+}: {
+  parameter: SelectParameter;
+  onChange: (value: string | undefined) => void;
+} & Omit<TextFieldProps, 'onChange'>) {
   return (
     <TextField
       required={parameter.required}
       label={parameter.label}
       placeholder={parameter.placeholder}
       helperText={parameter.helper}
-      multiline={multiline}
-      minRows={multiline ? 2 : undefined}
-      inputProps={{ maxLength: parameter.maxLength }}
+      select
       onChange={(e) => onChange(e.target.value)}
-      {...props}
-    />
+      {...props}>
+      {(parameter.options ?? []).map((option) => (
+        <MenuItem key={option.id} value={option.value}>
+          {option.label}
+        </MenuItem>
+      ))}
+    </TextField>
   );
 }
 

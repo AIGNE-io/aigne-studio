@@ -13,13 +13,37 @@ export interface Template {
   updatedBy: string;
 }
 
-export type ParameterType = 'number' | 'string';
+export type Parameter = StringParameter | NumberParameter | SelectParameter;
 
-export type Parameter = {
-  type?: ParameterType;
-  value?: any;
-  [key: string]: any;
-};
+export type ParameterType = NonNullable<Parameter['type']>;
+
+export interface BaseParameter {
+  label?: string;
+  placeholder?: string;
+  helper?: string;
+  required?: boolean;
+}
+
+export interface StringParameter extends BaseParameter {
+  type?: 'string';
+  value?: string;
+  multiline?: boolean;
+  minLength?: number;
+  maxLength?: number;
+}
+
+export interface NumberParameter extends BaseParameter {
+  type: 'number';
+  value?: number;
+  min?: number;
+  max?: number;
+}
+
+export interface SelectParameter extends BaseParameter {
+  type: 'select';
+  value?: string;
+  options?: { id: string; label: string; value: string }[];
+}
 
 export default class Templates extends Database {
   constructor() {
