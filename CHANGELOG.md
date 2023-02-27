@@ -1,3 +1,7 @@
+## 0.1.11 (2023-2-28)
+
+- fix: trnaslate admin menu
+
 ## 0.1.10 (2023-2-27)
 
 - feat: add i18n support
