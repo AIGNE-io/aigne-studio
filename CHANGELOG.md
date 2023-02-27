@@ -1,3 +1,11 @@
+## 0.1.10 (2023-2-27)
+
+- feat: add i18n support
+- feat: support `language` type of parameter
+- feat: support `select` type of parameter
+- feat: support `select` type of parameter
+- fix: use `Conversation` from @blocklet/ai-kit
+
 ## 0.1.9 (2023-2-23)
 
 - docs: add screenshot and blocklet.md
