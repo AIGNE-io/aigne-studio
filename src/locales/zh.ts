@@ -1,0 +1,43 @@
+import flat from 'flat';
+
+export default flat({
+  form: {
+    name: '名称',
+    icon: '图标',
+    description: '描述',
+    template: '提示模版',
+    execute: '执行',
+    save: '保存',
+    new: '新建',
+    copy: '拷贝',
+    exportTemplate: '导出模版',
+    parameter: {
+      type: '类型',
+      typeText: '文本',
+      typeNumber: '数字',
+      typeSelect: '选择',
+      typeLanguage: '语言选择',
+      label: '标签',
+      value: '值',
+      multiline: '多行文本',
+      placeholder: '提示',
+      helper: '帮助文本',
+      required: '必填',
+      minLength: '最小长度',
+      maxLength: '最大长度',
+      min: '最小值',
+      max: '最大值',
+      addOption: '添加选项',
+    },
+  },
+  alert: {
+    noTemplates: '暂无模版',
+    discardChanges: '放弃更改？',
+    deleteTemplate: '确定要删除该模版吗？',
+    cancel: '取消',
+    delete: '删除',
+    ok: '确定',
+    saved: '保存成功',
+    deleted: '删除成功',
+  },
+});

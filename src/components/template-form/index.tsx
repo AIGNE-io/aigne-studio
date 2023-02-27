@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -23,6 +24,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  MenuItem,
   Paper,
   Popper,
   TextField,
@@ -38,6 +40,13 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { useBeforeUnload, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
 
+import {
+  LanguageParameter,
+  NumberParameter,
+  Parameter,
+  SelectParameter,
+  StringParameter,
+} from '../../../api/src/store/templates';
 import { getErrorMessage } from '../../libs/api';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
 import useDialog from '../../utils/use-dialog';
@@ -54,18 +63,6 @@ export interface Template {
   parameters: { [key: string]: Parameter };
 }
 
-export type ParameterType = 'number' | 'string';
-
-export type Parameter = {
-  type?: ParameterType;
-  value?: any;
-  label?: string;
-  placeholder?: string;
-  helper?: string;
-  required?: boolean;
-  [key: string]: any;
-};
-
 const INIT_FORM: Template = {
   _id: '',
   name: '',
@@ -76,6 +73,8 @@ const INIT_FORM: Template = {
 };
 
 export default function TemplateForm({ onExecute }: { onExecute?: (template: Template) => void }) {
+  const { t } = useLocaleContext();
+
   const [searchParams, setSearchParams] = useSearchParams();
   const templateId = searchParams.get('templateId');
   const state = useTemplates();
@@ -120,7 +119,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
     useCallback(
       (e) => {
         if (needSave) {
-          e.returnValue = 'Discard changes?';
+          e.returnValue = t('alert.discardChanges');
         }
       },
       [needSave]
@@ -131,10 +130,19 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
 
   const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
 
+  const parametersHistory = useRef<Record<string, Parameter>>({});
+
   useEffect(() => {
     updateForm((form) => {
       for (const param of params) {
-        form.parameters[param] ??= {};
+        const history = parametersHistory.current[param];
+        form.parameters[param] ??= history ?? {};
+      }
+      for (const [key, val] of Object.entries(form.parameters)) {
+        if (!params.includes(key)) {
+          delete form.parameters[key];
+          parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
+        }
       }
     });
   }, [updateForm, params]);
@@ -144,7 +152,20 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   const submit = () => {
     const getValueSchema = (parameter: Parameter) => {
       return {
-        number: () => {
+        string: (parameter: StringParameter) => {
+          let s = Joi.string().allow('');
+          if (parameter.required) {
+            s = s.required();
+          }
+          if (typeof parameter.minLength === 'number') {
+            s = s.min(parameter.minLength);
+          }
+          if (typeof parameter.maxLength === 'number') {
+            s = s.max(parameter.maxLength);
+          }
+          return s;
+        },
+        number: (parameter: NumberParameter) => {
           let s = Joi.number();
           if (parameter.required) {
             s = s.required();
@@ -157,20 +178,21 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           }
           return s;
         },
-        string: () => {
+        select: (parameter: SelectParameter) => {
           let s = Joi.string();
           if (parameter.required) {
             s = s.required();
           }
-          if (typeof parameter.minLength === 'number') {
-            s = s.min(parameter.minLength);
-          }
-          if (typeof parameter.maxLength === 'number') {
-            s = s.max(parameter.maxLength);
+          return s;
+        },
+        language: (parameter: LanguageParameter) => {
+          let s = Joi.string();
+          if (parameter.required) {
+            s = s.required();
           }
           return s;
         },
-      }[parameter.type || 'string']();
+      }[parameter.type || 'string'](parameter as any);
     };
 
     const schema = Joi.object(
@@ -218,7 +240,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Name"
+          label={t('form.name')}
           size="small"
           value={form.name}
           onChange={(e) => updateForm((form) => (form.name = e.target.value))}
@@ -249,7 +271,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Icon"
+          label={t('form.icon')}
           size="small"
           value={form.icon ?? ''}
           onChange={(e) => updateForm((form) => (form.icon = e.target.value))}
@@ -274,7 +296,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Description"
+          label={t('form.description')}
           size="small"
           value={form.description ?? ''}
           onChange={(e) => updateForm((form) => (form.description = e.target.value))}
@@ -285,7 +307,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Template"
+          label={t('form.template')}
           size="small"
           multiline
           minRows={2}
@@ -326,13 +348,30 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
         );
       })}
 
-      <Popper open={Boolean(paramConfig)} anchorEl={paramConfig?.anchorEl} placement="bottom-end">
+      <Popper
+        open={Boolean(paramConfig)}
+        modifiers={[
+          {
+            name: 'preventOverflow',
+            enabled: true,
+            options: {
+              altAxis: true,
+              altBoundary: true,
+              tether: true,
+              rootBoundary: 'document',
+              padding: 8,
+            },
+          },
+        ]}
+        anchorEl={paramConfig?.anchorEl}
+        placement="bottom-end"
+        sx={{ zIndex: 1200 }}>
         <ClickAwayListener
           onClickAway={(e) => {
             if (e.target === document.body) return;
             setParamConfig(undefined);
           }}>
-          <Paper elevation={11} sx={{ p: 3, maxWidth: 320 }}>
+          <Paper elevation={11} sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             {paramConfig && (
               <ParameterConfig
                 value={form.parameters[paramConfig.param]!}
@@ -348,7 +387,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <Box display="flex" flexWrap="wrap" sx={{ m: -0.5 }}>
           <Button sx={{ m: 0.5 }} variant="contained" onClick={submit}>
-            Execute
+            {t('form.execute')}
           </Button>
           <Button
             sx={{ m: 0.5 }}
@@ -358,13 +397,13 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             onClick={async () => {
               try {
                 resetForm(await (form._id ? state.update(form._id, form) : state.create(form)));
-                Toast.success('Saved');
+                Toast.success(t('alert.saved'));
               } catch (error) {
                 Toast.error(getErrorMessage(error));
                 throw error;
               }
             }}>
-            Save
+            {t('form.save')}
           </Button>
           <Button
             sx={{ m: 0.5 }}
@@ -375,8 +414,10 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
               try {
                 if (needSave) {
                   showDialog({
-                    title: 'Discard changes?',
+                    title: t('alert.discardChanges'),
                     content: <Box minWidth={300} />,
+                    cancelText: t('alert.cancel'),
+                    okText: t('alert.ok'),
                     onOk: () => resetForm(INIT_FORM),
                   });
                 } else {
@@ -387,7 +428,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
                 throw error;
               }
             }}>
-            New
+            {t('form.new')}
           </Button>
           <Button
             sx={{ m: 0.5 }}
@@ -397,7 +438,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
             onClick={() => {
               resetForm({ ...form, _id: '' });
             }}>
-            Copy
+            {t('form.copy')}
           </Button>
           <Button
             sx={{ m: 0.5 }}
@@ -408,7 +449,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
               const text = stringify(form);
               saveAs(new Blob([text]), `${form.name || form._id}.yml`);
             }}>
-            Export Template
+            {t('form.exportTemplate')}
           </Button>
         </Box>
       </Grid>
@@ -425,6 +466,8 @@ function TemplateList({
   current?: Template;
   onCurrentChange?: (template?: Template) => void;
 } & Pick<ReturnType<typeof useTemplates>, 'templates' | 'remove'>) {
+  const { t } = useLocaleContext();
+
   const { popper, showPopper, closePopper } = usePopper();
 
   return (
@@ -433,7 +476,7 @@ function TemplateList({
 
       {templates.length === 0 && (
         <ListItemButton dense disabled>
-          <ListItemText primary="No Templates" primaryTypographyProps={{ textAlign: 'center' }} />
+          <ListItemText primary={t('alert.noTemplates')} primaryTypographyProps={{ textAlign: 'center' }} />
         </ListItemButton>
       )}
 
@@ -450,7 +493,7 @@ function TemplateList({
                   anchorEl: e.currentTarget,
                   children: (
                     <Paper elevation={24}>
-                      <DialogTitle>Delete this template?</DialogTitle>
+                      <DialogTitle>{t('alert.deleteTemplate')}</DialogTitle>
                       <DialogActions>
                         <Button
                           size="small"
@@ -458,7 +501,7 @@ function TemplateList({
                             e.stopPropagation();
                             closePopper();
                           }}>
-                          Cancel
+                          {t('alert.cancel')}
                         </Button>
                         <Button
                           size="small"
@@ -472,13 +515,13 @@ function TemplateList({
                               if (current?._id === item._id) {
                                 onCurrentChange?.(templates[0]);
                               }
-                              Toast.success('Deleted');
+                              Toast.success(t('alert.deleted'));
                             } catch (error) {
                               Toast.error(getErrorMessage(error));
                               throw error;
                             }
                           }}>
-                          Delete
+                          {t('alert.delete')}
                         </Button>
                       </DialogActions>
                     </Paper>
@@ -523,16 +566,38 @@ function ParameterRenderer({
   const Field = {
     number: NumberParameterField,
     string: StringParameterField,
+    select: SelectParameterField,
+    language: LanguageParameterField,
   }[parameter.type || 'string'];
 
-  return <Field parameter={parameter} {...props} />;
+  return <Field {...({ parameter } as any)} {...props} />;
+}
+
+function StringParameterField({
+  parameter,
+  onChange,
+  ...props
+}: { parameter: StringParameter; onChange: (value: string) => void } & Omit<TextFieldProps, 'onChange'>) {
+  return (
+    <TextField
+      required={parameter.required}
+      label={parameter.label}
+      placeholder={parameter.placeholder}
+      helperText={parameter.helper}
+      multiline={parameter.multiline}
+      minRows={parameter.multiline ? 2 : undefined}
+      inputProps={{ maxLength: parameter.maxLength }}
+      onChange={(e) => onChange(e.target.value)}
+      {...props}
+    />
+  );
 }
 
 function NumberParameterField({
   parameter,
   ...props
 }: {
-  parameter: Parameter;
+  parameter: NumberParameter;
   onChange: (value: number | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
   return (
@@ -548,12 +613,74 @@ function NumberParameterField({
   );
 }
 
-function StringParameterField({
+function SelectParameterField({
   parameter,
   onChange,
   ...props
-}: { parameter: Parameter; onChange: (value: string) => void } & Omit<TextFieldProps, 'onChange'>) {
-  const multiline = parameter?.type === 'string' && parameter.multiline;
+}: {
+  parameter: SelectParameter;
+  onChange: (value: string | undefined) => void;
+} & Omit<TextFieldProps, 'onChange'>) {
+  return (
+    <TextField
+      required={parameter.required}
+      label={parameter.label}
+      placeholder={parameter.placeholder}
+      helperText={parameter.helper}
+      select
+      onChange={(e) => onChange(e.target.value)}
+      {...props}>
+      {(parameter.options ?? []).map((option) => (
+        <MenuItem key={option.id} value={option.value}>
+          {option.label}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+}
+
+const languages = [
+  { en: 'English', cn: '英语' },
+  { en: 'Simplified Chinese', cn: '中文-简体' },
+  { en: 'Traditional Chinese', cn: '中文-繁体' },
+  { en: 'Spanish', cn: '西班牙语' },
+  { en: 'French', cn: '法语' },
+  { en: 'German', cn: '德语' },
+  { en: 'Italian', cn: '意大利语' },
+  { en: 'Portuguese', cn: '葡萄牙语' },
+  { en: 'Japanese', cn: '日语' },
+  { en: 'Korean', cn: '韩语' },
+  { en: 'Russian', cn: '俄语' },
+  { en: 'Polish', cn: '波兰语' },
+  { en: 'Arabic', cn: '阿拉伯语' },
+  { en: 'Dutch', cn: '荷兰语' },
+  { en: 'Swedish', cn: '瑞典语' },
+  { en: 'Finnish', cn: '芬兰语' },
+  { en: 'Czech', cn: '捷克语' },
+  { en: 'Danish', cn: '丹麦语' },
+  { en: 'Greek', cn: '希腊语' },
+  { en: 'Romanian', cn: '罗马尼亚语' },
+  { en: 'Hungarian', cn: '匈牙利语' },
+  { en: 'Bulgarian', cn: '保加利亚语' },
+  { en: 'Slovak', cn: '斯洛伐克语' },
+  { en: 'Norwegian', cn: '挪威语' },
+  { en: 'Hebrew', cn: '希伯来语' },
+  { en: 'Turkish', cn: '土耳其语' },
+  { en: 'Thai', cn: '泰语' },
+  { en: 'Indonesian', cn: '印尼语' },
+  { en: 'Vietnamese', cn: '越南语' },
+  { en: 'Hindi', cn: '印地语' },
+];
+
+function LanguageParameterField({
+  parameter,
+  onChange,
+  ...props
+}: {
+  parameter: SelectParameter;
+  onChange: (value: string | undefined) => void;
+} & Omit<TextFieldProps, 'onChange'>) {
+  const { locale } = useLocaleContext();
 
   return (
     <TextField
@@ -561,12 +688,15 @@ function StringParameterField({
       label={parameter.label}
       placeholder={parameter.placeholder}
       helperText={parameter.helper}
-      multiline={multiline}
-      minRows={multiline ? 2 : undefined}
-      inputProps={{ maxLength: parameter.maxLength }}
+      select
       onChange={(e) => onChange(e.target.value)}
-      {...props}
-    />
+      {...props}>
+      {languages.map((option) => (
+        <MenuItem key={option.en} value={option.en}>
+          {locale === 'zh' ? option.cn : option.en}
+        </MenuItem>
+      ))}
+    </TextField>
   );
 }
 

@@ -1,15 +1,27 @@
+import { Conversation, ConversationRef, MessageItem, useConversation } from '@blocklet/ai-kit';
 import Dashboard from '@blocklet/ui-react/lib/Dashboard';
 import styled from '@emotion/styled';
-import { Box, Divider } from '@mui/material';
-import { useRef } from 'react';
+import { HighlightOff, Start } from '@mui/icons-material';
+import { Box, Button, Divider, Tooltip } from '@mui/material';
+import { ReactNode, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import Conversation, { ConversationRef } from '../../components/conversation';
 import TemplateForm, { Template, matchParams } from '../../components/template-form';
+import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
 
 export default function TemplateView() {
+  const ref = useRef<ConversationRef>(null);
+
+  const { messages, add, cancel } = useConversation({
+    scrollToBottom: (o) => ref.current?.scrollToBottom(o),
+    textCompletions: (prompt) => textCompletions({ prompt, stream: true }),
+    imageGenerations: (prompt) =>
+      imageGenerations({ ...prompt, size: prompt.size as ImageGenerationSize, response_format: 'b64_json' }).then(
+        (res) => res.data.map((i) => ({ url: `data:image/png;base64,${i.b64_json}` }))
+      ),
+  });
+
   const [, setSearchParams] = useSearchParams();
-  const conversation = useRef<ConversationRef>(null);
 
   const onExecute = (template: Template) => {
     let prompt = template.template;
@@ -17,23 +29,52 @@ export default function TemplateView() {
     const params = matchParams(template.template);
 
     for (const param of params) {
-      prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), template.parameters[param]?.value || '');
+      prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), `${template.parameters[param]?.value ?? ''}`);
     }
-    conversation.current?.addConversation(prompt, template);
+    add(prompt, template);
   };
+
+  const customActions = useCallback(
+    (msg: MessageItem): [ReactNode[], ReactNode[]] => {
+      return [
+        [],
+        [
+          msg.meta?._id && (
+            <Tooltip key="template" title="Use current template" placement="top">
+              <Button
+                size="small"
+                onClick={() => {
+                  setSearchParams((prev) => {
+                    if (prev.get('templateId') !== msg.meta._id) prev.set('templateId', msg.meta._id);
+                    return prev;
+                  });
+                }}>
+                <Start fontSize="small" />
+              </Button>
+            </Tooltip>
+          ),
+          msg.loading && (
+            <Tooltip key="stop" title="Stop" placement="top">
+              <Button size="small" onClick={() => cancel(msg)}>
+                <HighlightOff fontSize="small" />
+              </Button>
+            </Tooltip>
+          ),
+        ],
+      ];
+    },
+    [cancel, setSearchParams]
+  );
 
   return (
     <Root footerProps={{ className: 'dashboard-footer' }}>
       <Conversation
         className="conversation"
-        ref={conversation}
+        ref={ref}
         sx={{ flex: 1 }}
-        onTemplateClick={(template) => {
-          setSearchParams((prev) => {
-            if (prev.get('templateId') !== template._id) prev.set('templateId', template._id);
-            return prev;
-          });
-        }}
+        messages={messages}
+        onSubmit={(prompt) => add(prompt)}
+        customActions={customActions}
       />
 
       <Divider orientation="vertical" />
