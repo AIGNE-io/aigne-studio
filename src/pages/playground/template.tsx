@@ -29,7 +29,7 @@ export default function TemplateView() {
     const params = matchParams(template.template);
 
     for (const param of params) {
-      prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), template.parameters[param]?.value || '');
+      prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), `${template.parameters[param]?.value ?? ''}`);
     }
     add(prompt, template);
   };
