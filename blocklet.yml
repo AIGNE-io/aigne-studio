@@ -54,7 +54,9 @@ screenshots:
 components: []
 navigation:
   - id: template
-    title: Template
+    title:
+      en: Template
+      zh: 提示模版
     icon: fluent:design-ideas-16-regular
     link: /playground/template
     section:
