@@ -3,15 +3,18 @@ import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 
 import { ensureAdmin } from '../libs/security';
+import { tags } from '../store/tags';
 import { Template, templates } from '../store/templates';
 
 const router = Router();
 
-export interface TemplateInput extends Pick<Template, 'icon' | 'name' | 'description' | 'template' | 'parameters'> {}
+export interface TemplateInput
+  extends Pick<Template, 'icon' | 'name' | 'tags' | 'description' | 'template' | 'parameters'> {}
 
 const templateSchema = Joi.object<TemplateInput>({
   icon: Joi.string().allow(''),
   name: Joi.string().allow('').required(),
+  tags: Joi.array().items(Joi.string()).unique(),
   description: Joi.string().allow(''),
   template: Joi.string().allow('').required(),
   parameters: Joi.object().pattern(
@@ -104,12 +107,18 @@ router.get('/:templateId', ensureAdmin, getTemplate);
 
 router.post('/', middlewares.user(), ensureAdmin, async (req, res) => {
   const template = await templateSchema.validateAsync(req.body, { stripUnknown: true });
+  const { did } = req.user!;
+
+  if (template.tags) {
+    await tags.createIfNotExists({ tags: template.tags, did });
+  }
+
   const doc = await templates.insert({
     ...template,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    createdBy: req.user!.did,
-    updatedBy: req.user!.did,
+    createdBy: did,
+    updatedBy: did,
   });
   res.json(doc);
 });
@@ -124,13 +133,20 @@ router.put('/:templateId', middlewares.user(), ensureAdmin, async (req, res) => 
   }
 
   const update = await templateSchema.validateAsync(req.body, { stripUnknown: true });
+
+  const { did } = req.user!;
+
+  if (update.tags) {
+    await tags.createIfNotExists({ tags: update.tags, did });
+  }
+
   const [, doc] = await templates.update(
     { _id: templateId },
     {
       $set: {
         ...update,
         updatedAt: new Date().toISOString(),
-        updatedBy: req.user!.did,
+        updatedBy: did,
       },
     },
     { returnUpdatedDocs: true }

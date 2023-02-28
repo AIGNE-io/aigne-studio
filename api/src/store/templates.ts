@@ -3,6 +3,7 @@ import { Database } from '@blocklet/sdk';
 export interface Template {
   _id: string;
   name: string;
+  tags?: string[];
   icon?: string;
   description?: string;
   template: string;

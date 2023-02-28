@@ -53,10 +53,12 @@ import useDialog from '../../utils/use-dialog';
 import useMenu from '../../utils/use-menu';
 import usePopper from '../../utils/use-popper';
 import ParameterConfig, { NumberField } from './parameter-config';
+import TagsAutoComplete from './tags-autocomplete';
 
 export interface Template {
   _id: string;
   name: string;
+  tags?: string[];
   icon?: string;
   description?: string;
   template: string;
@@ -303,6 +305,9 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           multiline
           minRows={2}
         />
+      </Grid>
+      <Grid item xs={12}>
+        <TagsAutoComplete value={form.tags ?? []} onChange={(_, value) => updateForm((form) => (form.tags = value))} />
       </Grid>
       <Grid item xs={12}>
         <TextField
