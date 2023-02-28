@@ -1,3 +1,8 @@
+## 0.1.12 (2023-2-28)
+
+- chore: update deps
+- feat: support config `tags` for template
+
 ## 0.1.11 (2023-2-28)
 
 - fix: trnaslate admin menu
