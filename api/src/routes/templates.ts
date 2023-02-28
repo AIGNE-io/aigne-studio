@@ -58,11 +58,12 @@ const templateSchema = Joi.object<TemplateInput>({
   ),
 });
 
-const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string }>({
+const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; tag?: string }>({
   offset: Joi.number().integer().min(0).default(0),
   limit: Joi.number().integer().min(1).max(100).default(20),
   sort: Joi.string().empty(''),
   search: Joi.string().empty(''),
+  tag: Joi.string().empty(''),
 });
 
 const templateSortableFields: (keyof Template)[] = ['name', 'createdAt', 'updatedAt'];
@@ -79,12 +80,25 @@ const getTemplateSort = (sort: any) => {
 };
 
 export async function getTemplates(req: Request, res: Response) {
-  const { offset, limit, ...query } = await paginationSchema.validateAsync(req.query);
+  const { offset, limit, tag, ...query } = await paginationSchema.validateAsync(req.query);
   const sort = getTemplateSort(query.sort) ?? { updatedAt: -1 };
-  const regex = query.search ? new RegExp(query.search, 'i') : undefined;
-  const filter = regex ? { $or: [{ name: { $regex: regex } }, { description: { $regex: regex } }] } : undefined;
 
-  const list = await templates.cursor(filter).sort(sort).skip(offset).limit(limit).exec();
+  const filter = [];
+
+  if (query.search) {
+    const regex = new RegExp(query.search, 'i');
+    filter.push({ name: { $regex: regex } }, { description: { $regex: regex } });
+  }
+  if (tag) {
+    filter.push({ tags: { $in: [tag] } });
+  }
+
+  const list = await templates
+    .cursor(filter.length ? { $or: filter } : undefined)
+    .sort(sort)
+    .skip(offset)
+    .limit(limit)
+    .exec();
 
   res.json({ templates: list });
 }
