@@ -1,3 +1,7 @@
+## 0.1.13 (2023-3-1)
+
+- fix: use nanoid@3.* avoid es module error
+
 ## 0.1.12 (2023-2-28)
 
 - chore: update deps
