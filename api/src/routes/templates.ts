@@ -3,15 +3,18 @@ import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 
 import { ensureAdmin } from '../libs/security';
+import { tags } from '../store/tags';
 import { Template, templates } from '../store/templates';
 
 const router = Router();
 
-export interface TemplateInput extends Pick<Template, 'icon' | 'name' | 'description' | 'template' | 'parameters'> {}
+export interface TemplateInput
+  extends Pick<Template, 'icon' | 'name' | 'tags' | 'description' | 'template' | 'parameters'> {}
 
 const templateSchema = Joi.object<TemplateInput>({
   icon: Joi.string().allow(''),
   name: Joi.string().allow('').required(),
+  tags: Joi.array().items(Joi.string()).unique(),
   description: Joi.string().allow(''),
   template: Joi.string().allow('').required(),
   parameters: Joi.object().pattern(
@@ -55,11 +58,12 @@ const templateSchema = Joi.object<TemplateInput>({
   ),
 });
 
-const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string }>({
+const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; tag?: string }>({
   offset: Joi.number().integer().min(0).default(0),
   limit: Joi.number().integer().min(1).max(100).default(20),
   sort: Joi.string().empty(''),
   search: Joi.string().empty(''),
+  tag: Joi.string().empty(''),
 });
 
 const templateSortableFields: (keyof Template)[] = ['name', 'createdAt', 'updatedAt'];
@@ -76,12 +80,25 @@ const getTemplateSort = (sort: any) => {
 };
 
 export async function getTemplates(req: Request, res: Response) {
-  const { offset, limit, ...query } = await paginationSchema.validateAsync(req.query);
+  const { offset, limit, tag, ...query } = await paginationSchema.validateAsync(req.query);
   const sort = getTemplateSort(query.sort) ?? { updatedAt: -1 };
-  const regex = query.search ? new RegExp(query.search, 'i') : undefined;
-  const filter = regex ? { $or: [{ name: { $regex: regex } }, { description: { $regex: regex } }] } : undefined;
 
-  const list = await templates.cursor(filter).sort(sort).skip(offset).limit(limit).exec();
+  const filter = [];
+
+  if (query.search) {
+    const regex = new RegExp(query.search, 'i');
+    filter.push({ name: { $regex: regex } }, { description: { $regex: regex } });
+  }
+  if (tag) {
+    filter.push({ tags: { $in: [tag] } });
+  }
+
+  const list = await templates
+    .cursor(filter.length ? { $or: filter } : undefined)
+    .sort(sort)
+    .skip(offset)
+    .limit(limit)
+    .exec();
 
   res.json({ templates: list });
 }
@@ -104,12 +121,18 @@ router.get('/:templateId', ensureAdmin, getTemplate);
 
 router.post('/', middlewares.user(), ensureAdmin, async (req, res) => {
   const template = await templateSchema.validateAsync(req.body, { stripUnknown: true });
+  const { did } = req.user!;
+
+  if (template.tags) {
+    await tags.createIfNotExists({ tags: template.tags, did });
+  }
+
   const doc = await templates.insert({
     ...template,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    createdBy: req.user!.did,
-    updatedBy: req.user!.did,
+    createdBy: did,
+    updatedBy: did,
   });
   res.json(doc);
 });
@@ -124,13 +147,20 @@ router.put('/:templateId', middlewares.user(), ensureAdmin, async (req, res) => 
   }
 
   const update = await templateSchema.validateAsync(req.body, { stripUnknown: true });
+
+  const { did } = req.user!;
+
+  if (update.tags) {
+    await tags.createIfNotExists({ tags: update.tags, did });
+  }
+
   const [, doc] = await templates.update(
     { _id: templateId },
     {
       $set: {
         ...update,
         updatedAt: new Date().toISOString(),
-        updatedBy: req.user!.did,
+        updatedBy: did,
       },
     },
     { returnUpdatedDocs: true }
