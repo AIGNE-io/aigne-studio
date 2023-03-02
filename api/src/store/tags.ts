@@ -11,7 +11,7 @@ export interface Tag {
 
 export default class Tags extends Database {
   constructor() {
-    super('tags');
+    super('tags', { timestampData: false });
   }
 
   async createIfNotExists({ tags, did }: { tags: string[]; did: string }) {
