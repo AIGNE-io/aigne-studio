@@ -53,7 +53,7 @@ export interface LanguageParameter extends BaseParameter {
 
 export default class Templates extends Database {
   constructor() {
-    super('templates');
+    super('templates', { timestampData: true });
   }
 }
 
