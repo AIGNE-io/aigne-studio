@@ -1,3 +1,7 @@
+## 0.1.14 (2023-3-2)
+
+- fix: disable nedb `timestampData` option
+
 ## 0.1.13 (2023-3-1)
 
 - fix: use nanoid@3.* avoid es module error
