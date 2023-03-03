@@ -19,6 +19,7 @@ export default flat({
       typeLanguage: 'Language',
       label: 'Label',
       value: 'Value',
+      defaultValue: 'Default Value',
       multiline: 'Multiline',
       placeholder: 'Placeholder',
       helper: 'Helper Text',

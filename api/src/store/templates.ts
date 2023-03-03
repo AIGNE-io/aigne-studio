@@ -28,6 +28,7 @@ export interface BaseParameter {
 export interface StringParameter extends BaseParameter {
   type?: 'string';
   value?: string;
+  defaultValue?: string;
   multiline?: boolean;
   minLength?: number;
   maxLength?: number;
@@ -36,6 +37,7 @@ export interface StringParameter extends BaseParameter {
 export interface NumberParameter extends BaseParameter {
   type: 'number';
   value?: number;
+  defaultValue?: number;
   min?: number;
   max?: number;
 }
@@ -43,12 +45,14 @@ export interface NumberParameter extends BaseParameter {
 export interface SelectParameter extends BaseParameter {
   type: 'select';
   value?: string;
+  defaultValue?: string;
   options?: { id: string; label: string; value: string }[];
 }
 
 export interface LanguageParameter extends BaseParameter {
   type: 'language';
   value?: string;
+  defaultValue?: string;
 }
 
 export default class Templates extends Database {

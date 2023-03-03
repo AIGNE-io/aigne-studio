@@ -26,6 +26,11 @@ const templateSchema = Joi.object<TemplateInput>({
         then: Joi.number(),
         otherwise: Joi.string().allow(''),
       }),
+      defaultValue: Joi.alternatives().conditional('type', {
+        is: 'number',
+        then: Joi.number(),
+        otherwise: Joi.string().empty(''),
+      }),
       required: Joi.boolean(),
       label: Joi.string().allow(''),
       placeholder: Joi.string().allow(''),
