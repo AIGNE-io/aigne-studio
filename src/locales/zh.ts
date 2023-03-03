@@ -19,6 +19,7 @@ export default flat({
       typeLanguage: '语言选择',
       label: '标签',
       value: '值',
+      defaultValue: '默认值',
       multiline: '多行文本',
       placeholder: '提示',
       helper: '帮助文本',

@@ -24,11 +24,9 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  MenuItem,
   Paper,
   Popper,
   TextField,
-  TextFieldProps,
 } from '@mui/material';
 import { useReactive } from 'ahooks';
 import equal from 'fast-deep-equal';
@@ -52,7 +50,8 @@ import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '..
 import useDialog from '../../utils/use-dialog';
 import useMenu from '../../utils/use-menu';
 import usePopper from '../../utils/use-popper';
-import ParameterConfig, { NumberField } from './parameter-config';
+import ParameterConfig from './parameter-config';
+import ParameterField from './parameter-field';
 import TagsAutoComplete from './tags-autocomplete';
 
 export interface Template {
@@ -155,9 +154,11 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
     const getValueSchema = (parameter: Parameter) => {
       return {
         string: (parameter: StringParameter) => {
-          let s = Joi.string().allow('');
+          let s = Joi.string();
           if (parameter.required) {
             s = s.required();
+          } else {
+            s = s.allow('');
           }
           if (typeof parameter.minLength === 'number') {
             s = s.min(parameter.minLength);
@@ -208,8 +209,10 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
 
     setError(undefined);
     const { error, value } = schema.validate(
-      Object.fromEntries(Object.entries(form.parameters).map(([key, { value }]) => [key, value])),
-      { allowUnknown: true }
+      Object.fromEntries(
+        Object.entries(form.parameters).map(([key, { value, defaultValue }]) => [key, value ?? defaultValue])
+      ),
+      { allowUnknown: true, abortEarly: false }
     );
     if (error) {
       setError(error);
@@ -331,7 +334,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
         return (
           <Grid item xs={12} key={param}>
             <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-              <ParameterRenderer
+              <ParameterField
                 key={`${form._id}-${param}`}
                 sx={{ flex: 1 }}
                 size="small"
@@ -339,7 +342,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
                 parameter={parameter}
                 error={!!err}
                 helperText={err?.message ?? parameter.helper}
-                value={parameter.value ?? ''}
+                value={parameter.value ?? parameter.defaultValue ?? ''}
                 onChange={(value) => updateForm((form) => (form.parameters[param]!.value = value))}
               />
               <IconButton
@@ -558,150 +561,6 @@ function TemplateList({
         </ListItem>
       ))}
     </>
-  );
-}
-
-function ParameterRenderer({
-  parameter,
-  ...props
-}: {
-  parameter: Parameter;
-  onChange: (value: string | number | undefined) => void;
-} & Omit<TextFieldProps, 'onChange'>) {
-  const Field = {
-    number: NumberParameterField,
-    string: StringParameterField,
-    select: SelectParameterField,
-    language: LanguageParameterField,
-  }[parameter.type || 'string'];
-
-  return <Field {...({ parameter } as any)} {...props} />;
-}
-
-function StringParameterField({
-  parameter,
-  onChange,
-  ...props
-}: { parameter: StringParameter; onChange: (value: string) => void } & Omit<TextFieldProps, 'onChange'>) {
-  return (
-    <TextField
-      required={parameter.required}
-      label={parameter.label}
-      placeholder={parameter.placeholder}
-      helperText={parameter.helper}
-      multiline={parameter.multiline}
-      minRows={parameter.multiline ? 2 : undefined}
-      inputProps={{ maxLength: parameter.maxLength }}
-      onChange={(e) => onChange(e.target.value)}
-      {...props}
-    />
-  );
-}
-
-function NumberParameterField({
-  parameter,
-  ...props
-}: {
-  parameter: NumberParameter;
-  onChange: (value: number | undefined) => void;
-} & Omit<TextFieldProps, 'onChange'>) {
-  return (
-    <NumberField
-      required={parameter.required}
-      label={parameter.label}
-      placeholder={parameter.placeholder}
-      helperText={parameter.helper}
-      min={parameter.min}
-      max={parameter.max}
-      {...props}
-    />
-  );
-}
-
-function SelectParameterField({
-  parameter,
-  onChange,
-  ...props
-}: {
-  parameter: SelectParameter;
-  onChange: (value: string | undefined) => void;
-} & Omit<TextFieldProps, 'onChange'>) {
-  return (
-    <TextField
-      required={parameter.required}
-      label={parameter.label}
-      placeholder={parameter.placeholder}
-      helperText={parameter.helper}
-      select
-      onChange={(e) => onChange(e.target.value)}
-      {...props}>
-      {(parameter.options ?? []).map((option) => (
-        <MenuItem key={option.id} value={option.value}>
-          {option.label}
-        </MenuItem>
-      ))}
-    </TextField>
-  );
-}
-
-const languages = [
-  { en: 'English', cn: '英语' },
-  { en: 'Simplified Chinese', cn: '中文-简体' },
-  { en: 'Traditional Chinese', cn: '中文-繁体' },
-  { en: 'Spanish', cn: '西班牙语' },
-  { en: 'French', cn: '法语' },
-  { en: 'German', cn: '德语' },
-  { en: 'Italian', cn: '意大利语' },
-  { en: 'Portuguese', cn: '葡萄牙语' },
-  { en: 'Japanese', cn: '日语' },
-  { en: 'Korean', cn: '韩语' },
-  { en: 'Russian', cn: '俄语' },
-  { en: 'Polish', cn: '波兰语' },
-  { en: 'Arabic', cn: '阿拉伯语' },
-  { en: 'Dutch', cn: '荷兰语' },
-  { en: 'Swedish', cn: '瑞典语' },
-  { en: 'Finnish', cn: '芬兰语' },
-  { en: 'Czech', cn: '捷克语' },
-  { en: 'Danish', cn: '丹麦语' },
-  { en: 'Greek', cn: '希腊语' },
-  { en: 'Romanian', cn: '罗马尼亚语' },
-  { en: 'Hungarian', cn: '匈牙利语' },
-  { en: 'Bulgarian', cn: '保加利亚语' },
-  { en: 'Slovak', cn: '斯洛伐克语' },
-  { en: 'Norwegian', cn: '挪威语' },
-  { en: 'Hebrew', cn: '希伯来语' },
-  { en: 'Turkish', cn: '土耳其语' },
-  { en: 'Thai', cn: '泰语' },
-  { en: 'Indonesian', cn: '印尼语' },
-  { en: 'Vietnamese', cn: '越南语' },
-  { en: 'Hindi', cn: '印地语' },
-];
-
-function LanguageParameterField({
-  parameter,
-  onChange,
-  ...props
-}: {
-  parameter: SelectParameter;
-  onChange: (value: string | undefined) => void;
-} & Omit<TextFieldProps, 'onChange'>) {
-  const { locale } = useLocaleContext();
-
-  return (
-    <TextField
-      required={parameter.required}
-      label={parameter.label}
-      placeholder={parameter.placeholder}
-      helperText={parameter.helper}
-      select
-      onChange={(e) => onChange(e.target.value)}
-      {...props}>
-      {languages.map((option) => (
-        <MenuItem key={option.en} value={option.en}>
-          {locale === 'zh' ? option.cn : option.en}
-        </MenuItem>
-      ))}
-    </TextField>
   );
 }
 

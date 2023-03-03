@@ -1,3 +1,7 @@
+## 0.1.15 (2023-3-3)
+
+- feat: support config default value for parameter
+
 ## 0.1.14 (2023-3-2)
 
 - fix: disable nedb `timestampData` option

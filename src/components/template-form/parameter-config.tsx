@@ -12,17 +12,18 @@ import {
   MenuItem,
   Switch,
   TextField,
-  TextFieldProps,
 } from '@mui/material';
 import { useReactive } from 'ahooks';
 import equal from 'fast-deep-equal';
 import { nanoid } from 'nanoid';
-import { ChangeEvent, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { Parameter, SelectParameter } from '../../../api/src/store/templates';
 import { DragSortListItem } from '../drag-sort';
+import NumberField from './number-field';
+import ParameterField from './parameter-field';
 
 export default function ParameterConfig({
   value,
@@ -84,6 +85,16 @@ export default function ParameterConfig({
           size="small"
           value={value.helper || ''}
           onChange={(e) => onChange({ ...value, helper: e.target.value })}
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <ParameterField
+          parameter={value}
+          fullWidth
+          label={t('form.parameter.defaultValue')}
+          size="small"
+          value={value.defaultValue ?? ''}
+          onChange={(defaultValue: any) => onChange({ ...value, defaultValue })}
         />
       </Grid>
       {value.type === 'select' && (
@@ -148,51 +159,6 @@ export default function ParameterConfig({
         </>
       )}
     </Grid>
-  );
-}
-
-export function NumberField({
-  min,
-  max,
-  default: def,
-  onChange,
-  ...props
-}: { min?: number; max?: number; default?: number; onChange?: (value?: number) => void } & Omit<
-  TextFieldProps,
-  'onChange'
->) {
-  const correctValue = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = e.target.value.trim();
-    if (!value) {
-      return def;
-    }
-    let num = Number(Number(value).toFixed(0));
-    if (!Number.isInteger(num)) {
-      return def;
-    }
-
-    if (typeof min === 'number') {
-      num = Math.max(min, num);
-    }
-    if (typeof max === 'number') {
-      num = Math.min(max, num);
-    }
-    return num;
-  };
-
-  return (
-    <TextField
-      onChange={(e) => onChange?.(correctValue(e))}
-      inputProps={{
-        type: 'number',
-        inputMode: 'numeric',
-        pattern: '[0-9]*',
-        min,
-        max,
-        ...props.inputProps,
-      }}
-      {...props}
-    />
   );
 }
 
