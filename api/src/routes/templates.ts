@@ -11,6 +11,23 @@ const router = Router();
 export interface TemplateInput
   extends Pick<Template, 'icon' | 'name' | 'tags' | 'description' | 'template' | 'parameters'> {}
 
+const valueSchema = Joi.alternatives().conditional('type', {
+  switch: [
+    { is: 'number', then: Joi.number() },
+    {
+      is: 'horoscope',
+      then: Joi.object({
+        time: Joi.string().isoDate().required(),
+        location: Joi.object({
+          latitude: Joi.number().required(),
+          longitude: Joi.number().required(),
+        }).required(),
+      }),
+      otherwise: Joi.string().empty(''),
+    },
+  ],
+});
+
 const templateSchema = Joi.object<TemplateInput>({
   icon: Joi.string().allow(''),
   name: Joi.string().allow('').required(),
@@ -20,17 +37,9 @@ const templateSchema = Joi.object<TemplateInput>({
   parameters: Joi.object().pattern(
     Joi.string().required(),
     Joi.object({
-      type: Joi.string().valid('string', 'number', 'select', 'language').default('string'),
-      value: Joi.alternatives().conditional('type', {
-        is: 'number',
-        then: Joi.number(),
-        otherwise: Joi.string().allow(''),
-      }),
-      defaultValue: Joi.alternatives().conditional('type', {
-        is: 'number',
-        then: Joi.number(),
-        otherwise: Joi.string().empty(''),
-      }),
+      type: Joi.string().valid('string', 'number', 'select', 'language', 'horoscope').default('string'),
+      value: valueSchema,
+      defaultValue: valueSchema,
       required: Joi.boolean(),
       label: Joi.string().allow(''),
       placeholder: Joi.string().allow(''),

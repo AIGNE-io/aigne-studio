@@ -7,6 +7,7 @@ import { ReactNode, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import TemplateForm, { Template, matchParams } from '../../components/template-form';
+import { parameterToStringValue } from '../../components/template-form/parameter-field';
 import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
 
 export default function TemplateView() {
@@ -29,7 +30,10 @@ export default function TemplateView() {
     const params = matchParams(template.template);
 
     for (const param of params) {
-      prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), `${template.parameters[param]?.value ?? ''}`);
+      const p = template.parameters[param];
+      if (p) {
+        prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameterToStringValue(p));
+      }
     }
     add(prompt, template);
   };

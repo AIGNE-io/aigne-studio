@@ -17,6 +17,7 @@ export default flat({
       typeNumber: 'Number',
       typeSelect: 'Select',
       typeLanguage: 'Language',
+      typeHoroscope: 'Horoscope',
       label: 'Label',
       value: 'Value',
       defaultValue: 'Default Value',

@@ -48,6 +48,7 @@ export default function ParameterConfig({
           <MenuItem value="number">{t('form.parameter.typeNumber')}</MenuItem>
           <MenuItem value="select">{t('form.parameter.typeSelect')}</MenuItem>
           <MenuItem value="language">{t('form.parameter.typeLanguage')}</MenuItem>
+          <MenuItem value="horoscope">{t('form.parameter.typeHoroscope')}</MenuItem>
         </TextField>
       </Grid>
       {(!value.type || value.type === 'string') && (

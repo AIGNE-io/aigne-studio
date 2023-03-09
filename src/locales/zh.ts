@@ -17,6 +17,7 @@ export default flat({
       typeNumber: '数字',
       typeSelect: '选择',
       typeLanguage: '语言选择',
+      typeHoroscope: '星座',
       label: '标签',
       value: '值',
       defaultValue: '默认值',

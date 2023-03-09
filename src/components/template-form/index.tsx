@@ -39,6 +39,7 @@ import { useBeforeUnload, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
 
 import {
+  HoroscopeParameter,
   LanguageParameter,
   NumberParameter,
   Parameter,
@@ -195,6 +196,19 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           }
           return s;
         },
+        horoscope: (parameter: HoroscopeParameter) => {
+          let s = Joi.object({
+            time: Joi.string().isoDate().required(),
+            location: Joi.object({
+              latitude: Joi.number().required(),
+              longitude: Joi.number().required(),
+            }).required(),
+          });
+          if (parameter.required) {
+            s = s.required();
+          }
+          return s;
+        },
       }[parameter.type || 'string'](parameter as any);
     };
 
@@ -222,7 +236,9 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       JSON.parse(
         JSON.stringify({
           ...form,
-          parameters: Object.fromEntries(Object.entries(value).map(([key, value]) => [key, { value }])),
+          parameters: Object.fromEntries(
+            Object.entries(form.parameters).map(([param, parameter]) => [param, { ...parameter, value: value[param] }])
+          ),
         })
       )
     );
