@@ -49,7 +49,7 @@ function AppRoutes({ basename }: { basename: string }) {
       <Route>
         <Route index element={<HomeLazy />} />
         <Route path="playground" element={isAdmin ? undefined : <Navigate to="/" />}>
-          <Route index element={<Navigate to="/playground/chat" />} />
+          <Route index element={<Navigate to="/playground/template" />} />
           <Route path="template" element={<TemplatePageLazy />} />
         </Route>
         <Route
