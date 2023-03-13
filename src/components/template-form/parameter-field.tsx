@@ -179,10 +179,13 @@ function HoroscopeParameterField({
   value: HoroscopeParameter['value'];
   onChange: (value: HoroscopeParameter['value'] | undefined) => void;
 } & Pick<TextFieldProps, 'label' | 'placeholder' | 'helperText' | 'error'>) {
-  const [val, setVal] = useState<Partial<Pick<NonNullable<typeof value>, 'location'> & { time: dayjs.Dayjs }>>();
+  const [val, setVal] = useState<Partial<Pick<NonNullable<typeof value>, 'location'> & { time: dayjs.Dayjs }>>(() => ({
+    time: value?.time ? dayjs(value.time) : undefined,
+    location: value?.location,
+  }));
 
   useEffect(() => {
-    if (!equal(value?.location, val?.location) || val?.time?.toISOString() !== value?.time) {
+    if (value && (!equal(value?.location, val?.location) || val?.time?.toISOString() !== value?.time)) {
       setVal({ time: value?.time ? dayjs(value.time) : undefined, location: value?.location });
     }
   }, [value]);
@@ -191,6 +194,8 @@ function HoroscopeParameterField({
     const { location, time } = val ?? {};
     if (location && time) {
       onChange({ location, time: time.toISOString() });
+    } else if (value) {
+      onChange(undefined);
     }
   }, [val]);
 
