@@ -13,6 +13,7 @@ module.exports = {
     'react-hooks/exhaustive-deps': 'warn',
     'react/require-default-props': 'off',
     'no-return-assign': 'off',
+    'no-continue': 'off',
     'no-await-in-loop': 'warn',
   },
 };

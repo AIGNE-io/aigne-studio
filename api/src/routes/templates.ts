@@ -9,7 +9,7 @@ import { Template, templates } from '../store/templates';
 const router = Router();
 
 export interface TemplateInput
-  extends Pick<Template, 'icon' | 'name' | 'tags' | 'description' | 'template' | 'parameters'> {}
+  extends Pick<Template, 'icon' | 'name' | 'tags' | 'description' | 'template' | 'parameters' | 'templates'> {}
 
 const valueSchema = Joi.alternatives().conditional('type', {
   switch: [
@@ -19,8 +19,10 @@ const valueSchema = Joi.alternatives().conditional('type', {
       then: Joi.object({
         time: Joi.string().isoDate().required(),
         location: Joi.object({
+          id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
           latitude: Joi.number().required(),
           longitude: Joi.number().required(),
+          name: Joi.string().required(),
         }).required(),
       }),
       otherwise: Joi.string().empty(''),
@@ -28,47 +30,57 @@ const valueSchema = Joi.alternatives().conditional('type', {
   ],
 });
 
+const parametersSchema = Joi.object().pattern(
+  Joi.string().required(),
+  Joi.object({
+    type: Joi.string().valid('string', 'number', 'select', 'language', 'horoscope').default('string'),
+    value: valueSchema,
+    defaultValue: valueSchema,
+    required: Joi.boolean(),
+    label: Joi.string().allow(''),
+    placeholder: Joi.string().allow(''),
+    helper: Joi.string().allow(''),
+  })
+    .when(Joi.object({ type: 'string' }).unknown(), {
+      then: Joi.object({
+        multiline: Joi.boolean(),
+        minLength: Joi.number().integer().min(1),
+        maxLength: Joi.number().integer().min(1),
+      }),
+    })
+    .when(Joi.object({ type: 'number' }).unknown(), {
+      then: Joi.object({
+        min: Joi.number(),
+        max: Joi.number(),
+      }),
+    })
+    .when(Joi.object({ type: 'select' }).unknown(), {
+      then: Joi.object({
+        options: Joi.array().items(
+          Joi.object({
+            id: Joi.string().required(),
+            label: Joi.string().required().allow(''),
+            value: Joi.string().required().allow(''),
+          })
+        ),
+      }),
+    })
+);
+
 const templateSchema = Joi.object<TemplateInput>({
   icon: Joi.string().allow(''),
   name: Joi.string().allow('').required(),
   tags: Joi.array().items(Joi.string()).unique(),
   description: Joi.string().allow(''),
   template: Joi.string().allow('').required(),
-  parameters: Joi.object().pattern(
-    Joi.string().required(),
+  parameters: parametersSchema,
+  templates: Joi.array().items(
     Joi.object({
-      type: Joi.string().valid('string', 'number', 'select', 'language', 'horoscope').default('string'),
-      value: valueSchema,
-      defaultValue: valueSchema,
-      required: Joi.boolean(),
-      label: Joi.string().allow(''),
-      placeholder: Joi.string().allow(''),
-      helper: Joi.string().allow(''),
+      id: Joi.string().required(),
+      name: Joi.string().allow('').required(),
+      template: Joi.string().allow('').required(),
+      parameters: parametersSchema,
     })
-      .when(Joi.object({ type: 'string' }).unknown(), {
-        then: Joi.object({
-          multiline: Joi.boolean(),
-          minLength: Joi.number().integer().min(1),
-          maxLength: Joi.number().integer().min(1),
-        }),
-      })
-      .when(Joi.object({ type: 'number' }).unknown(), {
-        then: Joi.object({
-          min: Joi.number(),
-          max: Joi.number(),
-        }),
-      })
-      .when(Joi.object({ type: 'select' }).unknown(), {
-        then: Joi.object({
-          options: Joi.array().items(
-            Joi.object({
-              id: Joi.string().required(),
-              label: Joi.string().required().allow(''),
-              value: Joi.string().required().allow(''),
-            })
-          ),
-        }),
-      })
   ),
 });
 

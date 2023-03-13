@@ -6,7 +6,7 @@ import { Box, Button, Divider, Tooltip } from '@mui/material';
 import { ReactNode, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import TemplateForm, { Template, matchParams } from '../../components/template-form';
+import TemplateFormView, { TemplateForm } from '../../components/template-form';
 import { parameterToStringValue } from '../../components/template-form/parameter-field';
 import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
 
@@ -24,18 +24,19 @@ export default function TemplateView() {
 
   const [, setSearchParams] = useSearchParams();
 
-  const onExecute = (template: Template) => {
-    let prompt = template.template;
+  const onExecute = async (template: TemplateForm) => {
+    let prompt: string | undefined = template.template;
 
-    const params = matchParams(template.template);
+    while (prompt) {
+      for (const [param, value] of Object.entries(template.parameters)) {
+        prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameterToStringValue(value));
+      }
 
-    for (const param of params) {
-      const p = template.parameters[param];
-      if (p) {
-        prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameterToStringValue(p));
+      const text: string | undefined = (await add(prompt, template)).text?.trim();
+      if (text) {
+        prompt = template.templates?.find((i) => i.name === text)?.template;
       }
     }
-    add(prompt, template);
   };
 
   const customActions = useCallback(
@@ -84,7 +85,7 @@ export default function TemplateView() {
       <Divider orientation="vertical" />
 
       <Box className="form" flex={1} p={2} overflow="auto">
-        <TemplateForm onExecute={onExecute} />
+        <TemplateFormView onExecute={onExecute} />
       </Box>
     </Root>
   );

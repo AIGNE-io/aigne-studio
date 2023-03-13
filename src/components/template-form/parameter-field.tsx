@@ -1,27 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { LocationSearchingOutlined } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  IconButton,
-  InputAdornment,
-  MenuItem,
-  TextField,
-  TextFieldProps,
-} from '@mui/material';
+import { Autocomplete, Box, CircularProgress, MenuItem, TextField, TextFieldProps } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { useReactive, useThrottleFn } from 'ahooks';
 import { Horoscope, Origin } from 'circular-natal-horoscope-js/dist';
 import dayjs from 'dayjs';
 import equal from 'fast-deep-equal';
-import { useEffect, useMemo, useState } from 'react';
-import MapPicker from 'react-google-map-picker';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   HoroscopeParameter,
@@ -193,62 +179,117 @@ function HoroscopeParameterField({
   value: HoroscopeParameter['value'];
   onChange: (value: HoroscopeParameter['value'] | undefined) => void;
 } & Pick<TextFieldProps, 'label' | 'placeholder' | 'helperText' | 'error'>) {
-  const [val, setVal] = useState<Partial<typeof value>>(value);
-
-  const [open, setOpen] = useState(false);
-  const [location, setLocation] = useState<{ lat: number; lng: number }>();
-
-  const [defaultLocation] = useState(() => ({ lng: 0, lat: 0 }));
-
-  const [date, setDate] = useState<dayjs.Dayjs | null>(() => (value && dayjs(value.time)) || null);
+  const [val, setVal] = useState<Partial<Pick<NonNullable<typeof value>, 'location'> & { time: dayjs.Dayjs }>>();
 
   useEffect(() => {
-    if (!equal(value, val)) {
-      setVal({ time: value?.time, location: value?.location });
-      setDate(value?.time ? dayjs(value.time) : null);
-      setLocation(value?.location ? { lng: value.location.longitude, lat: value.location.latitude } : undefined);
+    if (!equal(value?.location, val?.location) || val?.time?.toISOString() !== value?.time) {
+      setVal({ time: value?.time ? dayjs(value.time) : undefined, location: value?.location });
     }
   }, [value]);
 
   useEffect(() => {
-    setVal((v) => ({ ...v, time: date?.toISOString() }));
-  }, [date]);
-
-  useEffect(() => {
     const { location, time } = val ?? {};
     if (location && time) {
-      onChange({ location, time });
+      onChange({ location, time: time.toISOString() });
     }
   }, [val]);
 
-  const horoscope = useMemo(() => parameterToStringValue(parameter), [val]);
+  const state = useReactive<{
+    searching: boolean;
+    searchKey: number;
+    keyword: string;
+    options: NonNullable<HoroscopeParameter['value']>['location'][];
+  }>({ searching: false, searchKey: 0, keyword: '', options: [] });
+
+  const search = useCallback(async (keyword: string) => {
+    const key = state.searchKey;
+
+    try {
+      if (!keyword.trim()) {
+        state.options = [];
+        return;
+      }
+
+      const url = new URL('https://nominatim.openstreetmap.org/search');
+      url.searchParams.set('q', keyword);
+      url.searchParams.set('polygon_geojson', '1');
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('limit', '10');
+      url.searchParams.set('accept-language', 'zh-CN');
+      url.searchParams.set('polygon_geojson', '0');
+      state.options = await fetch(url.toString())
+        .then((res) => res.json())
+        .then((res) =>
+          res.map((i: any) => ({
+            id: i.place_id,
+            longitude: i.lon,
+            latitude: i.lat,
+            name: i.display_name,
+          }))
+        );
+    } finally {
+      if (key === state.searchKey) {
+        state.searching = false;
+      }
+    }
+  }, []);
+
+  const { run } = useThrottleFn(search, { wait: 1000 });
+
+  useEffect(() => {
+    state.searchKey += 1;
+    state.searching = true;
+    run(state.keyword);
+  }, [state.keyword]);
+
+  const horoscope = useMemo(
+    () =>
+      !val?.location || !val.time
+        ? ''
+        : parameterToStringValue({ ...parameter, value: { time: val.time.toISOString(), location: val.location } }),
+    [val]
+  );
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ display: 'flex' }}>
-        <FormControl sx={{ flex: 2 }}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateTimePicker label="Date" value={date} onChange={setDate} slotProps={{ textField: { size: 'small' } }} />
-          </LocalizationProvider>
-        </FormControl>
-        <FormControl sx={{ flex: 1, ml: 1 }}>
+    <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DateTimePicker
+          label="Date"
+          value={val?.time ?? null}
+          onChange={(time) => setVal((v) => ({ ...v, time: time ?? undefined }))}
+          slotProps={{ textField: { size: 'small' } }}
+          sx={{ flex: 1, minWidth: 200 }}
+        />
+      </LocalizationProvider>
+
+      <Autocomplete
+        sx={{ flex: 1, minWidth: 200 }}
+        inputValue={state.keyword}
+        onInputChange={(_, keyword) => (state.keyword = keyword)}
+        options={state.options}
+        getOptionLabel={(v) => v.name || ''}
+        isOptionEqualToValue={(o, v) => o.id === v.id || (o.longitude === v.longitude && o.latitude === v.latitude)}
+        filterOptions={(o) => o}
+        value={val?.location ?? null}
+        loading={state.searching}
+        onChange={(_, location) => setVal((v) => ({ ...v, location: location ?? undefined }))}
+        renderInput={(params) => (
           <TextField
+            {...params}
             label="Location"
             size="small"
-            value={val?.location ? `${val.location.latitude},${val.location.longitude}` : ''}
             InputProps={{
-              readOnly: true,
+              ...params.InputProps,
               endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setOpen(true)}>
-                    <LocationSearchingOutlined />
-                  </IconButton>
-                </InputAdornment>
+                <>
+                  {state.searching && <CircularProgress size={20} />}
+                  {params.InputProps.endAdornment}
+                </>
               ),
             }}
           />
-        </FormControl>
-      </Box>
+        )}
+      />
 
       <TextField
         label={props.label}
@@ -259,47 +300,7 @@ function HoroscopeParameterField({
         value={horoscope}
         error={props.error}
         helperText={props.helperText}
-        sx={{ mt: 1 }}
       />
-
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="lg">
-        <DialogTitle>Pick location</DialogTitle>
-        <DialogContent>
-          <Box>
-            <Box component="span">Latitude: {location?.lat}</Box>
-            <Box component="span" sx={{ ml: 1 }}>
-              Longitude: {location?.lng}
-            </Box>
-          </Box>
-          <Box
-            component={MapPicker}
-            sx={{ width: '100%', height: '100%' }}
-            defaultLocation={location ?? defaultLocation}
-            onChangeLocation={(lat, lng) => setLocation({ lat, lng })}
-            apiKey="AIzaSyD07E1VvpsN_0FvsmKAj4nK9GnLq-9jtj8"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              setOpen(false);
-              setVal((v) => ({
-                ...v,
-                location:
-                  (location && {
-                    latitude: location.lat,
-                    longitude: location.lng,
-                  }) ||
-                  undefined,
-              }));
-            }}>
-            Ok
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }
@@ -318,10 +319,13 @@ export function parameterToStringValue(parameter: Parameter) {
         return '';
       }
       const date = dayjs(time);
+      if (!date.isValid()) {
+        return '';
+      }
       const horoscope = new Horoscope({
         origin: new Origin({
           year: date.year(),
-          month: date.month() + 1,
+          month: date.month(),
           date: date.date(),
           hour: date.hour(),
           minute: date.minute(),

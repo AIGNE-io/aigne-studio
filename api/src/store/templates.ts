@@ -8,6 +8,7 @@ export interface Template {
   description?: string;
   template: string;
   parameters: { [key: string]: Parameter };
+  templates?: (Pick<Template, 'name' | 'template' | 'parameters'> & { id: string })[];
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -57,7 +58,7 @@ export interface LanguageParameter extends BaseParameter {
 
 export interface HoroscopeParameter extends BaseParameter {
   type: 'horoscope';
-  value?: { time: string; location: { latitude: number; longitude: number } };
+  value?: { time: string; location: { id: number; longitude: number; latitude: number; name: string } };
   defaultValue?: HoroscopeParameter['value'];
 }
 
