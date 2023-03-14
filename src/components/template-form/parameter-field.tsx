@@ -1,7 +1,21 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { MenuItem, TextField, TextFieldProps } from '@mui/material';
+import { Autocomplete, Box, CircularProgress, MenuItem, TextField, TextFieldProps } from '@mui/material';
+import { DateTimePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { useReactive, useThrottleFn } from 'ahooks';
+import { Horoscope, Origin } from 'circular-natal-horoscope-js/dist';
+import dayjs from 'dayjs';
+import equal from 'fast-deep-equal';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { NumberParameter, Parameter, SelectParameter, StringParameter } from '../../../api/src/store/templates';
+import {
+  HoroscopeParameter,
+  NumberParameter,
+  Parameter,
+  SelectParameter,
+  StringParameter,
+} from '../../../api/src/store/templates';
 import NumberField from './number-field';
 
 export default function ParameterField({
@@ -16,6 +30,7 @@ export default function ParameterField({
     string: StringParameterField,
     select: SelectParameterField,
     language: LanguageParameterField,
+    horoscope: HoroscopeParameterField,
   }[parameter.type || 'string'];
 
   return <Field {...({ parameter } as any)} {...props} />;
@@ -152,4 +167,216 @@ function LanguageParameterField({
       ))}
     </TextField>
   );
+}
+
+function HoroscopeParameterField({
+  parameter,
+  value,
+  onChange,
+  ...props
+}: {
+  parameter: HoroscopeParameter;
+  value: HoroscopeParameter['value'];
+  onChange: (value: HoroscopeParameter['value'] | undefined) => void;
+} & Pick<TextFieldProps, 'label' | 'placeholder' | 'helperText' | 'error'>) {
+  const [val, setVal] = useState<Partial<Pick<NonNullable<typeof value>, 'location'> & { time: dayjs.Dayjs }>>(() => ({
+    time: value?.time ? dayjs(value.time) : undefined,
+    location: value?.location,
+  }));
+
+  useEffect(() => {
+    if (value && (!equal(value?.location, val?.location) || val?.time?.toISOString() !== value?.time)) {
+      setVal({ time: value?.time ? dayjs(value.time) : undefined, location: value?.location });
+    }
+  }, [value]);
+
+  useEffect(() => {
+    const { location, time } = val ?? {};
+    if (location && time) {
+      onChange({ location, time: time.toISOString() });
+    } else if (value) {
+      onChange(undefined);
+    }
+  }, [val]);
+
+  const state = useReactive<{
+    searching: boolean;
+    searchKey: number;
+    keyword: string;
+    options: NonNullable<HoroscopeParameter['value']>['location'][];
+  }>({ searching: false, searchKey: 0, keyword: '', options: [] });
+
+  const search = useCallback(async (keyword: string) => {
+    const key = state.searchKey;
+
+    try {
+      if (!keyword.trim()) {
+        state.options = [];
+        return;
+      }
+
+      const url = new URL('https://nominatim.openstreetmap.org/search');
+      url.searchParams.set('q', keyword);
+      url.searchParams.set('polygon_geojson', '1');
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('limit', '10');
+      url.searchParams.set('accept-language', 'zh-CN');
+      url.searchParams.set('polygon_geojson', '0');
+      state.options = await fetch(url.toString())
+        .then((res) => res.json())
+        .then((res) =>
+          res.map((i: any) => ({
+            id: i.place_id,
+            longitude: i.lon,
+            latitude: i.lat,
+            name: i.display_name,
+          }))
+        );
+    } finally {
+      if (key === state.searchKey) {
+        state.searching = false;
+      }
+    }
+  }, []);
+
+  const { run } = useThrottleFn(search, { wait: 1000 });
+
+  useEffect(() => {
+    state.searchKey += 1;
+    state.searching = true;
+    run(state.keyword);
+  }, [state.keyword]);
+
+  const horoscope = useMemo(
+    () =>
+      !val?.location || !val.time
+        ? ''
+        : parameterToStringValue({ ...parameter, value: { time: val.time.toISOString(), location: val.location } }),
+    [val]
+  );
+
+  return (
+    <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DateTimePicker
+          label="Date"
+          value={val?.time ?? null}
+          onChange={(time) => setVal((v) => ({ ...v, time: time ?? undefined }))}
+          slotProps={{ textField: { size: 'small' } }}
+          sx={{ flex: 1, minWidth: 200 }}
+        />
+      </LocalizationProvider>
+
+      <Autocomplete
+        sx={{ flex: 1, minWidth: 200 }}
+        inputValue={state.keyword}
+        onInputChange={(_, keyword) => (state.keyword = keyword)}
+        options={state.options}
+        getOptionLabel={(v) => v.name || ''}
+        isOptionEqualToValue={(o, v) => o.id === v.id || (o.longitude === v.longitude && o.latitude === v.latitude)}
+        filterOptions={(o) => o}
+        value={val?.location ?? null}
+        loading={state.searching}
+        onChange={(_, location) => setVal((v) => ({ ...v, location: location ?? undefined }))}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Location"
+            size="small"
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {state.searching && <CircularProgress size={20} />}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
+            }}
+          />
+        )}
+      />
+
+      <TextField
+        label={props.label}
+        fullWidth
+        size="small"
+        multiline
+        InputProps={{ readOnly: true }}
+        value={horoscope}
+        error={props.error}
+        helperText={props.helperText}
+      />
+    </Box>
+  );
+}
+
+export function parameterToStringValue(parameter: Parameter) {
+  switch (parameter.type) {
+    case undefined:
+    case 'string':
+    case 'number':
+    case 'language':
+    case 'select':
+      return parameter.value?.toString() ?? '';
+    case 'horoscope': {
+      const { time, location } = parameter.value ?? {};
+      if (!time || !location) {
+        return '';
+      }
+      const date = dayjs(time);
+      if (!date.isValid()) {
+        return '';
+      }
+      const horoscope = new Horoscope({
+        origin: new Origin({
+          year: date.year(),
+          month: date.month(),
+          date: date.date(),
+          hour: date.hour(),
+          minute: date.minute(),
+          latitude: location.latitude,
+          longitude: location.longitude,
+        }),
+      });
+      const zh: Record<string, string> = {
+        sun: '太阳',
+        moon: '月亮',
+        mercury: '水星',
+        venus: '金星',
+        mars: '火星',
+        jupiter: '木星',
+        saturn: '土星',
+        uranus: '天王星',
+        neptune: '海王星',
+        pluto: '冥王星',
+        chiron: '凯龙星',
+        sirius: '天狼星',
+        aries: '白羊座',
+        taurus: '金牛座',
+        gemini: '双子座',
+        cancer: '巨蟹座',
+        leo: '狮子座',
+        virgo: '处女座',
+        libra: '天秤座',
+        scorpio: '天蝎座',
+        sagittarius: '射手座',
+        capricorn: '摩羯座',
+        aquarius: '水瓶座',
+        pisces: '双鱼座',
+        ophiuchus: '蛇夫座',
+      };
+      return horoscope.CelestialBodies.all
+        .map((i: any) => {
+          return {
+            house: zh[i.key],
+            sign: zh[i.House?.Sign.key],
+          };
+        })
+        .filter((i: any) => i.house && i.sign)
+        .map((i: any) => `${i.house}${i.sign}`)
+        .join('，');
+    }
+    default:
+      throw new Error(`Unsupported parameter to string value ${parameter}`);
+  }
 }

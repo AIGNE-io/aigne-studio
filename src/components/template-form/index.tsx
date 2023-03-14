@@ -6,12 +6,18 @@ import {
   ArrowDropDown,
   CopyAll,
   Delete,
+  DeleteOutline,
+  ExpandMore,
   ImportExport,
   SaveOutlined,
   Settings,
   TravelExplore,
 } from '@mui/icons-material';
 import {
+  Accordion,
+  AccordionActions,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Button,
   ClickAwayListener,
@@ -19,6 +25,7 @@ import {
   DialogTitle,
   Grid,
   IconButton,
+  Input,
   InputAdornment,
   ListItem,
   ListItemButton,
@@ -34,16 +41,19 @@ import { saveAs } from 'file-saver';
 import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
+import { nanoid } from 'nanoid';
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
 
 import {
+  HoroscopeParameter,
   LanguageParameter,
   NumberParameter,
   Parameter,
   SelectParameter,
   StringParameter,
+  Template,
 } from '../../../api/src/store/templates';
 import { getErrorMessage } from '../../libs/api';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
@@ -54,26 +64,22 @@ import ParameterConfig from './parameter-config';
 import ParameterField from './parameter-field';
 import TagsAutoComplete from './tags-autocomplete';
 
-export interface Template {
-  _id: string;
-  name: string;
-  tags?: string[];
-  icon?: string;
-  description?: string;
-  template: string;
-  parameters: { [key: string]: Parameter };
-}
+export type TemplateForm = Pick<
+  Template,
+  '_id' | 'name' | 'icon' | 'tags' | 'description' | 'template' | 'parameters' | 'templates'
+>;
 
-const INIT_FORM: Template = {
+const INIT_FORM: TemplateForm = {
   _id: '',
   name: '',
   icon: '',
   description: '',
   template: '',
   parameters: {},
+  templates: [],
 };
 
-export default function TemplateForm({ onExecute }: { onExecute?: (template: Template) => void }) {
+export default function TemplateFormView({ onExecute }: { onExecute?: (template: Template) => void }) {
   const { t } = useLocaleContext();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -81,7 +87,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   const state = useTemplates();
   const { menu, showMenu } = useMenu();
 
-  const original = useRef<Template>({ ...INIT_FORM });
+  const original = useRef({ ...INIT_FORM });
   const [form, setForm] = useState(INIT_FORM);
 
   const updateForm = useCallback(
@@ -131,24 +137,7 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
 
   const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
 
-  const parametersHistory = useRef<Record<string, Parameter>>({});
-
-  useEffect(() => {
-    updateForm((form) => {
-      for (const param of params) {
-        const history = parametersHistory.current[param];
-        form.parameters[param] ??= history ?? {};
-      }
-      for (const [key, val] of Object.entries(form.parameters)) {
-        if (!params.includes(key)) {
-          delete form.parameters[key];
-          parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
-        }
-      }
-    });
-  }, [updateForm, params]);
-
-  const [error, setError] = useState<Joi.ValidationError>();
+  const [, setError] = useState<Joi.ValidationError>();
 
   const submit = () => {
     const getValueSchema = (parameter: Parameter) => {
@@ -195,6 +184,21 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           }
           return s;
         },
+        horoscope: (parameter: HoroscopeParameter) => {
+          let s = Joi.object({
+            time: Joi.string().isoDate().required(),
+            location: Joi.object({
+              id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+              latitude: Joi.number().required(),
+              longitude: Joi.number().required(),
+              name: Joi.string().required(),
+            }).required(),
+          });
+          if (parameter.required) {
+            s = s.required();
+          }
+          return s;
+        },
       }[parameter.type || 'string'](parameter as any);
     };
 
@@ -222,7 +226,9 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       JSON.parse(
         JSON.stringify({
           ...form,
-          parameters: Object.fromEntries(Object.entries(value).map(([key, value]) => [key, { value }])),
+          parameters: Object.fromEntries(
+            Object.entries(form.parameters).map(([param, parameter]) => [param, { ...parameter, value: value[param] }])
+          ),
         })
       )
     );
@@ -237,7 +243,6 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
     if (template && template._id !== form._id) resetForm(template);
   }, [state.templates.length, templateId]);
 
-  const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
   const { dialog, showDialog } = useDialog();
 
   return (
@@ -312,83 +317,64 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <TagsAutoComplete value={form.tags ?? []} onChange={(_, value) => updateForm((form) => (form.tags = value))} />
       </Grid>
+
       <Grid item xs={12}>
-        <TextField
-          fullWidth
-          label={t('form.template')}
-          size="small"
-          multiline
-          minRows={2}
-          value={form.template}
-          onChange={(e) => updateForm((form) => (form.template = e.target.value))}
-        />
-      </Grid>
-      {params.map((param) => {
-        const parameter = form.parameters[param];
-        if (!parameter) {
-          return null;
-        }
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMore />}>{form.name}</AccordionSummary>
+          <AccordionDetails>
+            <TemplateItem value={form} onChange={(v) => updateForm(v)} />
+          </AccordionDetails>
+        </Accordion>
 
-        const err = error?.details.find((i) => i.path[0] === param);
-
-        return (
-          <Grid item xs={12} key={param}>
-            <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-              <ParameterField
-                key={`${form._id}-${param}`}
-                sx={{ flex: 1 }}
-                size="small"
-                label={parameter.label || param}
-                parameter={parameter}
-                error={!!err}
-                helperText={err?.message ?? parameter.helper}
-                value={parameter.value ?? parameter.defaultValue ?? ''}
-                onChange={(value) => updateForm((form) => (form.parameters[param]!.value = value))}
-              />
+        {form.templates?.map((item, index) => (
+          <Accordion key={item.id}>
+            <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: 'transparent !important' }}>
+              <Box onClick={(e) => e.stopPropagation()} width="100%">
+                <Input
+                  size="small"
+                  disableUnderline
+                  placeholder="Please input template name"
+                  fullWidth
+                  value={item.name}
+                  onChange={(e) => updateForm((v) => (v.templates![index]!.name = e.target.value))}
+                />
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TemplateItem value={item} onChange={(v) => updateForm((form) => v(form.templates![index]!))} />
+            </AccordionDetails>
+            <AccordionActions>
               <IconButton
-                sx={{ ml: 2, mt: 0.5 }}
                 size="small"
-                onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
-                <Settings fontSize="small" />
+                onClick={() =>
+                  updateForm((v) => {
+                    v.templates?.splice(index, 1);
+                  })
+                }>
+                <DeleteOutline fontSize="small" />
               </IconButton>
-            </Box>
-          </Grid>
-        );
-      })}
+            </AccordionActions>
+          </Accordion>
+        ))}
 
-      <Popper
-        open={Boolean(paramConfig)}
-        modifiers={[
-          {
-            name: 'preventOverflow',
-            enabled: true,
-            options: {
-              altAxis: true,
-              altBoundary: true,
-              tether: true,
-              rootBoundary: 'document',
-              padding: 8,
-            },
-          },
-        ]}
-        anchorEl={paramConfig?.anchorEl}
-        placement="bottom-end"
-        sx={{ zIndex: 1200 }}>
-        <ClickAwayListener
-          onClickAway={(e) => {
-            if (e.target === document.body) return;
-            setParamConfig(undefined);
-          }}>
-          <Paper elevation={11} sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
-            {paramConfig && (
-              <ParameterConfig
-                value={form.parameters[paramConfig.param]!}
-                onChange={(parameter) => updateForm((form) => (form.parameters[paramConfig.param] = parameter))}
-              />
-            )}
-          </Paper>
-        </ClickAwayListener>
-      </Popper>
+        <Box textAlign="center">
+          <Button
+            size="small"
+            onClick={() => {
+              updateForm((v) => {
+                v.templates ??= [];
+                v.templates.push({
+                  id: nanoid(16),
+                  name: '',
+                  template: '',
+                  parameters: {},
+                });
+              });
+            }}>
+            Add Prompt
+          </Button>
+        </Box>
+      </Grid>
 
       {dialog}
 
@@ -465,13 +451,125 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
   );
 }
 
+function TemplateItem({
+  value,
+  onChange,
+}: {
+  value: Pick<TemplateForm, 'name' | 'template' | 'parameters'>;
+  onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
+}) {
+  const { t } = useLocaleContext();
+
+  const deferredTemplate = useDeferredValue(value.template);
+
+  const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
+
+  const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
+
+  const parametersHistory = useRef<Record<string, Parameter>>({});
+
+  useEffect(() => {
+    onChange((template) => {
+      for (const param of params) {
+        const history = parametersHistory.current[param];
+        template.parameters[param] ??= history ?? {};
+      }
+      for (const [key, val] of Object.entries(template.parameters)) {
+        if (!params.includes(key)) {
+          delete template.parameters[key];
+          parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
+        }
+      }
+    });
+  }, [params]);
+
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('form.template')}
+          size="small"
+          multiline
+          minRows={2}
+          value={value.template}
+          onChange={(e) => onChange((v) => (v.template = e.target.value))}
+        />
+      </Grid>
+      {params.map((param) => {
+        const parameter = value.parameters[param];
+        if (!parameter) {
+          return null;
+        }
+
+        return (
+          <Grid item xs={12} key={param}>
+            <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+              <ParameterField
+                key={param}
+                sx={{ flex: 1 }}
+                size="small"
+                label={parameter.label || param}
+                parameter={parameter}
+                helperText={parameter.helper}
+                value={parameter.value ?? parameter.defaultValue ?? ''}
+                onChange={(value) => onChange((v) => (v.parameters[param]!.value = value))}
+              />
+              <IconButton
+                sx={{ ml: 2, mt: 0.5 }}
+                size="small"
+                onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
+                <Settings fontSize="small" />
+              </IconButton>
+            </Box>
+          </Grid>
+        );
+      })}
+
+      <Popper
+        open={Boolean(paramConfig)}
+        modifiers={[
+          {
+            name: 'preventOverflow',
+            enabled: true,
+            options: {
+              altAxis: true,
+              altBoundary: true,
+              tether: true,
+              rootBoundary: 'document',
+              padding: 8,
+            },
+          },
+        ]}
+        anchorEl={paramConfig?.anchorEl}
+        placement="bottom-end"
+        sx={{ zIndex: 1200 }}>
+        <ClickAwayListener
+          onClickAway={(e) => {
+            if (e.target === document.body) return;
+            setParamConfig(undefined);
+          }}>
+          <Paper elevation={11} sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
+            {paramConfig && (
+              <ParameterConfig
+                value={value.parameters[paramConfig.param]!}
+                onChange={(parameter) => onChange((v) => (v.parameters[paramConfig.param] = parameter))}
+              />
+            )}
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
+    </Grid>
+  );
+}
+
 function TemplateList({
   templates,
   current,
   remove,
   onCurrentChange,
 }: {
-  current?: Template;
+  current?: TemplateForm;
   onCurrentChange?: (template?: Template) => void;
 } & Pick<ReturnType<typeof useTemplates>, 'templates' | 'remove'>) {
   const { t } = useLocaleContext();
@@ -592,7 +690,7 @@ function useTemplates() {
     refetch();
   }, []);
 
-  const create = useCallback(async (template: Template) => {
+  const create = useCallback(async (template: TemplateForm) => {
     state.submiting = true;
     try {
       const res = await createTemplate(template);
@@ -603,7 +701,7 @@ function useTemplates() {
     }
   }, []);
 
-  const update = useCallback(async (templateId: string, template: Template) => {
+  const update = useCallback(async (templateId: string, template: TemplateForm) => {
     state.submiting = true;
     try {
       const res = await updateTemplate(templateId, template);

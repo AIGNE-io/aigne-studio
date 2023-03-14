@@ -8,13 +8,14 @@ export interface Template {
   description?: string;
   template: string;
   parameters: { [key: string]: Parameter };
+  templates?: (Pick<Template, 'name' | 'template' | 'parameters'> & { id: string })[];
   createdAt: string;
   updatedAt: string;
   createdBy: string;
   updatedBy: string;
 }
 
-export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter;
+export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | HoroscopeParameter;
 
 export type ParameterType = NonNullable<Parameter['type']>;
 
@@ -53,6 +54,12 @@ export interface LanguageParameter extends BaseParameter {
   type: 'language';
   value?: string;
   defaultValue?: string;
+}
+
+export interface HoroscopeParameter extends BaseParameter {
+  type: 'horoscope';
+  value?: { time: string; location: { id: number; longitude: number; latitude: number; name: string } };
+  defaultValue?: HoroscopeParameter['value'];
 }
 
 export default class Templates extends Database {
