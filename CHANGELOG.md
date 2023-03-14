@@ -1,3 +1,7 @@
+## 0.1.17 (2023-3-14)
+
+- fix: upgrade vite to resolve bundle error
+
 ## 0.1.16 (2023-3-14)
 
 - fix: support clear horoscope field
