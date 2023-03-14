@@ -1,3 +1,11 @@
+## 0.1.16 (2023-3-14)
+
+- fix: support clear horoscope field
+- feat: support nested template
+- fix: catch error in error handler of express
+- feat: add `Horoscope` type of parameter
+- fix: correct redirect destination
+
 ## 0.1.15 (2023-3-3)
 
 - feat: support config default value for parameter

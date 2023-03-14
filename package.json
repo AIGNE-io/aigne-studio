@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "scripts": {
     "dev": "blocklet dev",
     "eject": "vite eject",
