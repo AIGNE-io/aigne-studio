@@ -1,4 +1,4 @@
-import { Database } from '@blocklet/sdk';
+import Database from '@blocklet/sdk/lib/database';
 
 export interface Template {
   _id: string;

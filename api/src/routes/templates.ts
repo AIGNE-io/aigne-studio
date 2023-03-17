@@ -1,4 +1,4 @@
-import { middlewares } from '@blocklet/sdk';
+import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 
@@ -145,7 +145,7 @@ export async function getTemplate(req: Request, res: Response) {
 
 router.get('/:templateId', ensureAdmin, getTemplate);
 
-router.post('/', middlewares.user(), ensureAdmin, async (req, res) => {
+router.post('/', user(), ensureAdmin, async (req, res) => {
   const template = await templateSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
 
@@ -163,7 +163,7 @@ router.post('/', middlewares.user(), ensureAdmin, async (req, res) => {
   res.json(doc);
 });
 
-router.put('/:templateId', middlewares.user(), ensureAdmin, async (req, res) => {
+router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
   const { templateId } = req.params;
 
   const template = await templates.findOne({ _id: templateId });

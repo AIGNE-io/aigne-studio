@@ -1,4 +1,4 @@
-import { getChildWebEndpoint, getComponentWebEndpoint, getParentWebEndpoint } from '@blocklet/sdk';
+import { getChildWebEndpoint, getComponentWebEndpoint, getParentWebEndpoint } from '@blocklet/sdk/lib/component';
 import axios, { AxiosRequestConfig } from 'axios';
 import { Response } from 'express';
 import stringify from 'json-stable-stringify';
