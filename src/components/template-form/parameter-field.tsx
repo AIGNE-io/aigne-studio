@@ -1,5 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Autocomplete, Box, CircularProgress, MenuItem, TextField, TextFieldProps } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  CircularProgress,
+  FormHelperText,
+  MenuItem,
+  TextField,
+  TextFieldProps,
+} from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -202,9 +210,10 @@ function HoroscopeParameterField({
   const state = useReactive<{
     searching: boolean;
     searchKey: number;
+    resultKey: number;
     keyword: string;
     options: NonNullable<HoroscopeParameter['value']>['location'][];
-  }>({ searching: false, searchKey: 0, keyword: '', options: [] });
+  }>({ searching: false, searchKey: 0, resultKey: 0, keyword: '', options: [] });
 
   const search = useCallback(async (keyword: string) => {
     const key = state.searchKey;
@@ -222,7 +231,7 @@ function HoroscopeParameterField({
       url.searchParams.set('limit', '10');
       url.searchParams.set('accept-language', 'zh-CN');
       url.searchParams.set('polygon_geojson', '0');
-      state.options = await fetch(url.toString())
+      const options = await fetch(url.toString())
         .then((res) => res.json())
         .then((res) =>
           res.map((i: any) => ({
@@ -232,6 +241,10 @@ function HoroscopeParameterField({
             name: i.display_name,
           }))
         );
+      if (key > state.resultKey) {
+        state.resultKey = key;
+        state.options = options;
+      }
     } finally {
       if (key === state.searchKey) {
         state.searching = false;
@@ -262,7 +275,7 @@ function HoroscopeParameterField({
           label="Date"
           value={val?.time ?? null}
           onChange={(time) => setVal((v) => ({ ...v, time: time ?? undefined }))}
-          slotProps={{ textField: { size: 'small' } }}
+          slotProps={{ textField: { size: 'small', error: props.error } }}
           sx={{ flex: 1, minWidth: 200 }}
         />
       </LocalizationProvider>
@@ -281,6 +294,7 @@ function HoroscopeParameterField({
         renderInput={(params) => (
           <TextField
             {...params}
+            error={props.error}
             label="Location"
             size="small"
             InputProps={{
@@ -296,6 +310,10 @@ function HoroscopeParameterField({
         )}
       />
 
+      <Box sx={{ width: '100%', mt: -0.5 }}>
+        <FormHelperText error={props.error}>{props.helperText}</FormHelperText>
+      </Box>
+
       <TextField
         label={props.label}
         fullWidth
@@ -303,8 +321,7 @@ function HoroscopeParameterField({
         multiline
         InputProps={{ readOnly: true }}
         value={horoscope}
-        error={props.error}
-        helperText={props.helperText}
+        disabled
       />
     </Box>
   );
@@ -365,15 +382,10 @@ export function parameterToStringValue(parameter: Parameter) {
         pisces: '双鱼座',
         ophiuchus: '蛇夫座',
       };
+
       return horoscope.CelestialBodies.all
-        .map((i: any) => {
-          return {
-            house: zh[i.key],
-            sign: zh[i.House?.Sign.key],
-          };
-        })
-        .filter((i: any) => i.house && i.sign)
-        .map((i: any) => `${i.house}${i.sign}`)
+        .map((i: any) => `${zh[i.key]}${zh[i.Sign.key]}`)
+        .concat(horoscope.Houses.map((i: any, index: number) => `${index + 1}宫${zh[i.Sign.key]}`))
         .join('，');
     }
     default:
