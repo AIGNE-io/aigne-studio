@@ -1,3 +1,9 @@
+## 0.1.18 (2023-3-17)
+
+- fix: import dependencies as needed
+- feat: upgrade blocklet sdk
+- fix: correct horoscope result
+
 ## 0.1.17 (2023-3-14)
 
 - fix: upgrade vite to resolve bundle error
