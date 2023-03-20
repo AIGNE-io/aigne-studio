@@ -1,21 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  Autocomplete,
-  Box,
-  CircularProgress,
-  FormHelperText,
-  MenuItem,
-  TextField,
-  TextFieldProps,
-} from '@mui/material';
+import { Box, FormHelperText, MenuItem, TextField, TextFieldProps } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { useReactive, useThrottleFn } from 'ahooks';
 import { Horoscope, Origin } from 'circular-natal-horoscope-js/dist';
 import dayjs from 'dayjs';
 import equal from 'fast-deep-equal';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   HoroscopeParameter,
@@ -24,7 +15,8 @@ import {
   SelectParameter,
   StringParameter,
 } from '../../../api/src/store/templates';
-import NumberField from './number-field';
+import NominatimLocationSearch from '../nominatim-location-search';
+import NumberField from '../number-field';
 
 export default function ParameterField({
   parameter,
@@ -207,59 +199,6 @@ function HoroscopeParameterField({
     }
   }, [val]);
 
-  const state = useReactive<{
-    searching: boolean;
-    searchKey: number;
-    resultKey: number;
-    keyword: string;
-    options: NonNullable<HoroscopeParameter['value']>['location'][];
-  }>({ searching: false, searchKey: 0, resultKey: 0, keyword: '', options: [] });
-
-  const search = useCallback(async (keyword: string) => {
-    const key = state.searchKey;
-
-    try {
-      if (!keyword.trim()) {
-        state.options = [];
-        return;
-      }
-
-      const url = new URL('https://nominatim.openstreetmap.org/search');
-      url.searchParams.set('q', keyword);
-      url.searchParams.set('polygon_geojson', '1');
-      url.searchParams.set('format', 'jsonv2');
-      url.searchParams.set('limit', '10');
-      url.searchParams.set('accept-language', 'zh-CN');
-      url.searchParams.set('polygon_geojson', '0');
-      const options = await fetch(url.toString())
-        .then((res) => res.json())
-        .then((res) =>
-          res.map((i: any) => ({
-            id: i.place_id,
-            longitude: i.lon,
-            latitude: i.lat,
-            name: i.display_name,
-          }))
-        );
-      if (key > state.resultKey) {
-        state.resultKey = key;
-        state.options = options;
-      }
-    } finally {
-      if (key === state.searchKey) {
-        state.searching = false;
-      }
-    }
-  }, []);
-
-  const { run } = useThrottleFn(search, { wait: 1000 });
-
-  useEffect(() => {
-    state.searchKey += 1;
-    state.searching = true;
-    run(state.keyword);
-  }, [state.keyword]);
-
   const horoscope = useMemo(
     () =>
       !val?.location || !val.time
@@ -280,34 +219,11 @@ function HoroscopeParameterField({
         />
       </LocalizationProvider>
 
-      <Autocomplete
+      <NominatimLocationSearch
         sx={{ flex: 1, minWidth: 200 }}
-        inputValue={state.keyword}
-        onInputChange={(_, keyword) => (state.keyword = keyword)}
-        options={state.options}
-        getOptionLabel={(v) => v.name || ''}
-        isOptionEqualToValue={(o, v) => o.id === v.id || (o.longitude === v.longitude && o.latitude === v.latitude)}
-        filterOptions={(o) => o}
         value={val?.location ?? null}
-        loading={state.searching}
         onChange={(_, location) => setVal((v) => ({ ...v, location: location ?? undefined }))}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            error={props.error}
-            label="Location"
-            size="small"
-            InputProps={{
-              ...params.InputProps,
-              endAdornment: (
-                <>
-                  {state.searching && <CircularProgress size={20} />}
-                  {params.InputProps.endAdornment}
-                </>
-              ),
-            }}
-          />
-        )}
+        renderInput={(params) => <TextField {...params} label="Location" size="small" />}
       />
 
       <Box sx={{ width: '100%', mt: -0.5 }}>

@@ -6,8 +6,8 @@ import { Box, Button, Divider, Tooltip } from '@mui/material';
 import { ReactNode, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView, { TemplateForm } from '../../components/template-form';
-import { parameterToStringValue } from '../../components/template-form/parameter-field';
 import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
 
 export default function TemplateView() {

@@ -60,8 +60,8 @@ import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '..
 import useDialog from '../../utils/use-dialog';
 import useMenu from '../../utils/use-menu';
 import usePopper from '../../utils/use-popper';
+import ParameterField from '../parameter-field';
 import ParameterConfig from './parameter-config';
-import ParameterField from './parameter-field';
 import TagsAutoComplete from './tags-autocomplete';
 
 export type TemplateForm = Pick<

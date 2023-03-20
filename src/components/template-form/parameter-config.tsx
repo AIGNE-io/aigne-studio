@@ -22,8 +22,8 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { Parameter, SelectParameter } from '../../../api/src/store/templates';
 import { DragSortListItem } from '../drag-sort';
-import NumberField from './number-field';
-import ParameterField from './parameter-field';
+import NumberField from '../number-field';
+import ParameterField from '../parameter-field';
 
 export default function ParameterConfig({
   value,
