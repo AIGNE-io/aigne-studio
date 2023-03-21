@@ -60,8 +60,8 @@ import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '..
 import useDialog from '../../utils/use-dialog';
 import useMenu from '../../utils/use-menu';
 import usePopper from '../../utils/use-popper';
+import ParameterField from '../parameter-field';
 import ParameterConfig from './parameter-config';
-import ParameterField from './parameter-field';
 import TagsAutoComplete from './tags-autocomplete';
 
 export type TemplateForm = Pick<
@@ -186,7 +186,8 @@ export default function TemplateFormView({ onExecute }: { onExecute?: (template:
         },
         horoscope: (parameter: HoroscopeParameter) => {
           let s = Joi.object({
-            time: Joi.string().isoDate().required(),
+            time: Joi.string().required(),
+            offset: Joi.number().integer(),
             location: Joi.object({
               id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
               latitude: Joi.number().required(),

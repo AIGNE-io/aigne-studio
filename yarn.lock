@@ -2176,6 +2176,11 @@
   resolved "https://registry.yarnpkg.com/@types/triple-beam/-/triple-beam-1.3.2.tgz#38ecb64f01aa0d02b7c8f4222d7c38af6316fef8"
   integrity sha512-txGIh+0eDFzKGC25zORnswy+br1Ha7hj5cMVwKIU7+s0U2AxxJru/jZSMU6OC9MJWP6+pc/hc6ZjyZShpsyY2g==
 
+"@types/tz-lookup@^6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@types/tz-lookup/-/tz-lookup-6.1.0.tgz#9d3982eb2f0531aa3b600a222622c6b743adc71b"
+  integrity sha512-e+TvKH1exSsa4eM/C/BODjvSwc6pdxjPlMe/jiO3eYSRtHl4B/tPPRhEXYfEfGTQb1/l6/ubkY8JHe+Kgld3ag==
+
 "@types/which@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@types/which/-/which-2.0.1.tgz#27ecd67f915b7c3d6ba552135bb1eecd66e63501"
@@ -8365,7 +8370,7 @@ typescript@^4.9.4:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.5.tgz#095979f9bcc0d09da324d58d03ce8f8374cbe65a"
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
-tz-lookup@^6.1.24:
+tz-lookup@^6.1.24, tz-lookup@^6.1.25:
   version "6.1.25"
   resolved "https://registry.yarnpkg.com/tz-lookup/-/tz-lookup-6.1.25.tgz#34d68a7e1ccfcb51f29a9893d2d48e4118d873cd"
   integrity sha512-fFewT9o1uDzsW1QnUU1ValqaihFnwiUiiHr1S79/fxOzKXYYvX+EHeRnpvQJ9B3Qg67wPXT6QF2Esc4pFOrvLg==

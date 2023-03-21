@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "scripts": {
     "dev": "blocklet dev",
     "eject": "vite eject",
@@ -83,6 +83,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.0",
     "rimraf": "^3.0.2",
+    "tz-lookup": "^6.1.25",
     "yaml": "^2.2.1"
   },
   "devDependencies": {
@@ -100,6 +101,7 @@
     "@types/node": "^18.11.18",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
+    "@types/tz-lookup": "^6.1.0",
     "@vitejs/plugin-react": "^2.2.0",
     "bumpp": "^8.2.1",
     "cross-env": "^7.0.3",
