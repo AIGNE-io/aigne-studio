@@ -17,7 +17,8 @@ const valueSchema = Joi.alternatives().conditional('type', {
     {
       is: 'horoscope',
       then: Joi.object({
-        time: Joi.string().isoDate().required(),
+        time: Joi.string().required(),
+        offset: Joi.number().integer(),
         location: Joi.object({
           id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
           latitude: Joi.number().required(),

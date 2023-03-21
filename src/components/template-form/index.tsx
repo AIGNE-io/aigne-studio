@@ -186,7 +186,8 @@ export default function TemplateFormView({ onExecute }: { onExecute?: (template:
         },
         horoscope: (parameter: HoroscopeParameter) => {
           let s = Joi.object({
-            time: Joi.string().isoDate().required(),
+            time: Joi.string().required(),
+            offset: Joi.number().integer(),
             location: Joi.object({
               id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
               latitude: Joi.number().required(),

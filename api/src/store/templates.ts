@@ -58,7 +58,11 @@ export interface LanguageParameter extends BaseParameter {
 
 export interface HoroscopeParameter extends BaseParameter {
   type: 'horoscope';
-  value?: { time: string; location: { id: number; longitude: number; latitude: number; name: string } };
+  value?: {
+    time: string;
+    offset?: number;
+    location: { id: number; longitude: number; latitude: number; name: string };
+  };
   defaultValue?: HoroscopeParameter['value'];
 }
 
