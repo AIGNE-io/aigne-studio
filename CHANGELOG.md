@@ -1,3 +1,7 @@
+## 0.1.20 (2023-3-22)
+
+- fix: auto set time zone according to daylight saving time
+
 ## 0.1.19 (2023-3-21)
 
 - feat: support custom timezone
