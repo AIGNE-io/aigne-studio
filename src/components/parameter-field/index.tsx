@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, FormHelperText, InputAdornment, MenuItem, TextField, TextFieldProps } from '@mui/material';
-import { DateTimePicker } from '@mui/x-date-pickers';
+import { Add, Remove } from '@mui/icons-material';
+import { Box, Button, FormHelperText, InputAdornment, MenuItem, TextField, TextFieldProps } from '@mui/material';
+import { DateTimePicker, DateTimePickerProps, TimePicker, TimePickerProps } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { Horoscope, Origin } from 'circular-natal-horoscope-js/dist';
@@ -8,7 +9,8 @@ import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import equal from 'fast-deep-equal';
-import { useEffect, useMemo, useState } from 'react';
+import { isNil } from 'lodash';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import tzlookup from 'tz-lookup';
 
 import {
@@ -23,8 +25,6 @@ import NumberField from '../number-field';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-const HOROSCOPE_DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
 export default function ParameterField({
   parameter,
@@ -187,33 +187,16 @@ function HoroscopeParameterField({
   value: HoroscopeParameter['value'];
   onChange: (value: HoroscopeParameter['value'] | undefined) => void;
 } & Pick<TextFieldProps, 'label' | 'placeholder' | 'helperText' | 'error'>) {
-  const [val, setVal] = useState<
-    Partial<Pick<NonNullable<typeof value>, 'location' | 'offset'> & { time: dayjs.Dayjs }>
-  >(() => ({
-    time: value?.time ? dayjs(value.time) : undefined,
-    offset: value?.offset,
-    location: value?.location,
-  }));
+  const [val, setVal] = useState(() => ({ ...value }));
 
   useEffect(() => {
-    if (
-      value &&
-      (!equal(val.location, value.location) ||
-        val.offset !== value.offset ||
-        val.time?.format(HOROSCOPE_DATE_FORMAT) !== value.time)
-    ) {
-      setVal({
-        time: value.time ? dayjs(value.time) : undefined,
-        offset: value.offset,
-        location: value.location,
-      });
-    }
+    if (!equal(val, value)) setVal({ ...value });
   }, [value]);
 
   useEffect(() => {
-    const { location, offset, time } = val ?? {};
+    const { location, offset, time } = val;
     if (location && time) {
-      onChange({ location, offset, time: time.format(HOROSCOPE_DATE_FORMAT) });
+      onChange({ location, offset, time });
     } else if (value) {
       onChange(undefined);
     }
@@ -221,73 +204,172 @@ function HoroscopeParameterField({
 
   const horoscope = useMemo(
     () =>
-      !val?.location || !val.time
-        ? ''
-        : parameterToStringValue({
+      val.location && val.time
+        ? parameterToStringValue({
             ...parameter,
-            value: {
-              time: val.time.format(HOROSCOPE_DATE_FORMAT),
-              offset: val.offset,
-              location: val.location,
-            },
-          }),
+            value: { time: val.time, offset: val.offset, location: val.location },
+          })
+        : '',
     [val]
   );
 
+  const setAutoTimezone = useCallback(
+    ({
+      time,
+      location,
+    }: Partial<{ time: dayjs.ConfigType; location: NonNullable<HoroscopeParameter['value']>['location'] | null }>) => {
+      const d = dayjs(time);
+      const tz = location && tzlookup(location.latitude, location.longitude);
+      const offset = tz ? d.tz(tz).utcOffset() : null;
+      if (!isNil(offset)) {
+        setVal((v) => ({ ...v, offset }));
+      }
+    },
+    []
+  );
+
   return (
-    <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DateTimePicker
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        <DateStringPicker
+          slotProps={{ textField: { size: 'small' } }}
           label="Date"
-          ampm={false}
-          value={val?.time ?? null}
-          onChange={(time) => setVal((v) => ({ ...v, time: time ?? undefined }))}
-          slotProps={{ textField: { size: 'small', error: props.error } }}
           sx={{ flex: 1, minWidth: 200 }}
+          value={val.time ?? null}
+          onChange={(time) => {
+            setVal((v) => ({ ...v, time: time ?? undefined }));
+            setAutoTimezone({ ...val, time });
+          }}
         />
-      </LocalizationProvider>
 
-      <NominatimLocationSearch
-        sx={{ flex: 1, minWidth: 200 }}
-        value={val?.location ?? null}
-        onChange={(_, location) => {
-          const tz = location && tzlookup(location.latitude, location.longitude);
-          const offset = tz ? dayjs().tz(tz).utcOffset() : null;
+        <NominatimLocationSearch
+          sx={{ flex: 1, minWidth: 200 }}
+          value={val?.location ?? null}
+          onChange={(_, location) => {
+            setVal((v) => ({ ...v, location: location ?? undefined }));
+            setAutoTimezone({ ...val, location });
+          }}
+          renderInput={(params) => <TextField {...params} label="Location" size="small" />}
+        />
 
-          setVal((v) => ({ ...v, location: location ?? undefined, offset: offset ?? v.offset }));
-        }}
-        renderInput={(params) => <TextField {...params} label="Location" size="small" />}
-      />
+        <UTCOffsetPicker
+          label="Timezone"
+          sx={{ flex: 1, minWidth: 200 }}
+          value={val.offset ?? null}
+          onChange={(offset) => setVal((v) => ({ ...v, offset: offset ?? undefined }))}
+          slotProps={{ textField: { size: 'small' } }}
+        />
 
-      <TextField
-        select
-        label="Timezone"
-        size="small"
-        sx={{ flex: 1, minWidth: 200 }}
-        value={val.offset ?? ''}
-        onChange={(e) => setVal((v) => ({ ...v, offset: e.target.value as any }))}
-        InputProps={{ startAdornment: <InputAdornment position="start">UTC</InputAdornment> }}>
-        {new Array(14).fill(0).map((_, hour) => (
-          <MenuItem key={hour} value={hour * 60}>
-            +{hour}:00
-          </MenuItem>
-        ))}
-      </TextField>
+        <Box sx={{ width: '100%', mt: -0.5 }}>
+          <FormHelperText error={props.error}>{props.helperText}</FormHelperText>
+        </Box>
 
-      <Box sx={{ width: '100%', mt: -0.5 }}>
-        <FormHelperText error={props.error}>{props.helperText}</FormHelperText>
+        <TextField
+          label={props.label}
+          fullWidth
+          size="small"
+          multiline
+          InputProps={{ readOnly: true }}
+          value={horoscope}
+          disabled
+        />
       </Box>
+    </LocalizationProvider>
+  );
+}
 
-      <TextField
-        label={props.label}
-        fullWidth
-        size="small"
-        multiline
-        InputProps={{ readOnly: true }}
-        value={horoscope}
-        disabled
-      />
-    </Box>
+function DateStringPicker({
+  format = 'YYYY-MM-DD HH:mm:ss',
+  value,
+  onChange,
+  ...props
+}: { format?: string; value?: string | null; onChange?: (value: string | null) => void } & Omit<
+  DateTimePickerProps<dayjs.Dayjs>,
+  'value' | 'onChange'
+>) {
+  const [time, setTime] = useState(() => (value ? dayjs(value) : null));
+
+  useEffect(() => {
+    if (time?.format(format) !== value) setTime(dayjs(value));
+  }, [value]);
+
+  return (
+    <DateTimePicker
+      ampm={false}
+      {...props}
+      value={time}
+      onChange={(time) => {
+        setTime(time);
+        onChange?.(time?.format(format) ?? null);
+      }}
+    />
+  );
+}
+
+function UTCOffsetPicker({
+  value,
+  onChange,
+  ...props
+}: { value?: number | null; onChange?: (value: number | null) => void } & Omit<
+  TimePickerProps<dayjs.Dayjs>,
+  'value' | 'onChange'
+>) {
+  const minutesToTime = useCallback(
+    (value?: number | null) => (typeof value === 'number' ? dayjs().startOf('year').minute(Math.abs(value)) : value),
+    []
+  );
+
+  const timeToMinutes = useCallback(
+    (time?: dayjs.Dayjs | null) => (time ? time.hour() * 60 + time.minute() : time),
+    []
+  );
+
+  const [time, setTime] = useState(() => minutesToTime(value));
+
+  useEffect(() => {
+    if (timeToMinutes(time) !== value) {
+      setTime(minutesToTime(value));
+    }
+  }, [value]);
+
+  const factor = typeof value === 'number' && value < 0 ? -1 : 1;
+
+  return (
+    <TimePicker
+      ampm={false}
+      {...props}
+      value={time}
+      slots={{ actionBar: () => null }}
+      onChange={(time) => {
+        setTime(time);
+        onChange?.(time ? (time.hour() * 60 + time.minute()) * factor : null);
+      }}
+      slotProps={{
+        ...props.slotProps,
+        textField: {
+          ...props.slotProps?.textField,
+          InputProps: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <Button
+                  size="small"
+                  color="inherit"
+                  sx={{ minWidth: 0, p: 0 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange?.(typeof value === 'number' ? -value : null);
+                  }}>
+                  <Box component="span" sx={{ lineHeight: 1 }}>
+                    UTC
+                  </Box>
+                  {factor === -1 ? <Remove fontSize="small" /> : <Add fontSize="small" />}
+                </Button>
+              </InputAdornment>
+            ),
+          },
+        },
+      }}
+    />
   );
 }
 
@@ -310,7 +392,7 @@ export function parameterToStringValue(parameter: Parameter) {
       }
 
       if (typeof offset === 'number') {
-        d = d.utcOffset(offset);
+        d = d.utcOffset(offset, true);
       }
       d = d.tz(tzlookup(location.latitude, location.longitude), true);
 
