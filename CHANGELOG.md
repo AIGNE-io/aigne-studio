@@ -1,3 +1,8 @@
+## 0.1.21 (2023-3-23)
+
+- chore: update deps
+- fix: use component `call` of @blocklet/sdk
+
 ## 0.1.20 (2023-3-22)
 
 - fix: auto set time zone according to daylight saving time
