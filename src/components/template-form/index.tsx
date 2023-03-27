@@ -1,6 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import encode from '@beskar-labs/gpt-encoder';
 import { Icon } from '@iconify-icon/react';
 import {
   Add,
@@ -57,6 +56,7 @@ import {
   Template,
 } from '../../../api/src/store/templates';
 import { getErrorMessage } from '../../libs/api';
+import encode from '../../libs/encode';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
 import useDialog from '../../utils/use-dialog';
 import useMenu from '../../utils/use-menu';
