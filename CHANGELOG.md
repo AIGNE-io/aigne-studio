@@ -1,3 +1,8 @@
+## 0.1.23 (2023-3-27)
+
+- chore: update vite & remove preload options
+- fix: gpt-encoder not working on production bundle
+
 ## 0.1.22 (2023-3-27)
 
 - feat: display token counter
