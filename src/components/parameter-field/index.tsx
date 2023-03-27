@@ -373,7 +373,7 @@ function UTCOffsetPicker({
   );
 }
 
-export function parameterToStringValue(parameter: Parameter) {
+export function parameterToStringValue(parameter: Parameter): string {
   switch (parameter.type) {
     case undefined:
     case 'string':

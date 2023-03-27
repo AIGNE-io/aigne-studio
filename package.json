@@ -44,7 +44,7 @@
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.5.14",
     "@arcblock/ux": "^2.5.14",
-    "@blocklet/ai-kit": "^0.0.44",
+    "@blocklet/ai-kit": "^0.0.46",
     "@blocklet/sdk": "1.16.0-beta-1d6c582e",
     "@blocklet/ui-react": "^2.5.14",
     "@emotion/css": "^11.10.5",

@@ -15,7 +15,22 @@ export default function TemplateView() {
 
   const { messages, add, cancel } = useConversation({
     scrollToBottom: (o) => ref.current?.scrollToBottom(o),
-    textCompletions: (prompt) => textCompletions({ prompt, stream: true }),
+    textCompletions: (prompt, { meta: template }: { meta?: TemplateForm }) => {
+      const questionParam = template?.parameters.question;
+      const question = questionParam && parameterToStringValue(questionParam);
+
+      return textCompletions({
+        ...(question
+          ? {
+              messages: [
+                { role: 'system', content: prompt },
+                { role: 'user', content: question },
+              ],
+            }
+          : { prompt }),
+        stream: true,
+      });
+    },
     imageGenerations: (prompt) =>
       imageGenerations({ ...prompt, size: prompt.size as ImageGenerationSize, response_format: 'b64_json' }).then(
         (res) => res.data.map((i) => ({ url: `data:image/png;base64,${i.b64_json}` }))
