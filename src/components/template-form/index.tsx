@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import encode from '@beskar-labs/gpt-encoder';
 import { Icon } from '@iconify-icon/react';
 import {
   Add,
@@ -60,7 +61,7 @@ import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '..
 import useDialog from '../../utils/use-dialog';
 import useMenu from '../../utils/use-menu';
 import usePopper from '../../utils/use-popper';
-import ParameterField from '../parameter-field';
+import ParameterField, { parameterToStringValue } from '../parameter-field';
 import ParameterConfig from './parameter-config';
 import TagsAutoComplete from './tags-autocomplete';
 
@@ -493,8 +494,11 @@ function TemplateItem({
           size="small"
           multiline
           minRows={2}
+          maxRows={10}
           value={value.template}
           onChange={(e) => onChange((v) => (v.template = e.target.value))}
+          helperText={<TokenCounter value={value.template} />}
+          FormHelperTextProps={{ sx: { textAlign: 'right', mt: 0 } }}
         />
       </Grid>
       {params.map((param) => {
@@ -512,7 +516,12 @@ function TemplateItem({
                 size="small"
                 label={parameter.label || param}
                 parameter={parameter}
-                helperText={parameter.helper}
+                helperText={
+                  <Box sx={{ display: 'flex' }}>
+                    <Box sx={{ flex: 1, overflow: 'hidden' }}>{parameter.helper}</Box>
+                    <TokenCounter value={parameter} />
+                  </Box>
+                }
                 value={parameter.value ?? parameter.defaultValue ?? ''}
                 onChange={(value) => onChange((v) => (v.parameters[param]!.value = value))}
               />
@@ -725,4 +734,13 @@ function useTemplates() {
   }, []);
 
   return { ...state, refetch, create, update, remove };
+}
+
+function TokenCounter({ value }: { value: string | Parameter }) {
+  const deferred = useDeferredValue(value);
+  const count = useMemo(
+    () => encode(typeof deferred === 'string' ? deferred : parameterToStringValue(deferred)).length,
+    [deferred]
+  );
+  return <Box component="span">{count} tokens</Box>;
 }

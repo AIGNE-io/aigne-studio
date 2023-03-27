@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Add, Remove } from '@mui/icons-material';
-import { Box, Button, FormHelperText, InputAdornment, MenuItem, TextField, TextFieldProps } from '@mui/material';
+import { Box, Button, InputAdornment, MenuItem, TextField, TextFieldProps } from '@mui/material';
 import { DateTimePicker, DateTimePickerProps, TimePicker, TimePickerProps } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -57,6 +57,7 @@ function StringParameterField({
       helperText={parameter.helper}
       multiline={parameter.multiline}
       minRows={parameter.multiline ? 2 : undefined}
+      maxRows={parameter.multiline ? 10 : undefined}
       inputProps={{ maxLength: parameter.maxLength }}
       onChange={(e) => onChange(e.target.value)}
       {...props}
@@ -260,10 +261,6 @@ function HoroscopeParameterField({
           slotProps={{ textField: { size: 'small' } }}
         />
 
-        <Box sx={{ width: '100%', mt: -0.5 }}>
-          <FormHelperText error={props.error}>{props.helperText}</FormHelperText>
-        </Box>
-
         <TextField
           label={props.label}
           fullWidth
@@ -272,6 +269,8 @@ function HoroscopeParameterField({
           InputProps={{ readOnly: true }}
           value={horoscope}
           disabled
+          error={props.error}
+          helperText={props.helperText}
         />
       </Box>
     </LocalizationProvider>
@@ -373,7 +372,7 @@ function UTCOffsetPicker({
   );
 }
 
-export function parameterToStringValue(parameter: Parameter) {
+export function parameterToStringValue(parameter: Parameter): string {
   switch (parameter.type) {
     case undefined:
     case 'string':
