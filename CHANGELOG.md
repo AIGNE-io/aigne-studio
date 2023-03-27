@@ -1,3 +1,8 @@
+## 0.1.22 (2023-3-27)
+
+- feat: display token counter
+- feat: support complete chat messages
+
 ## 0.1.21 (2023-3-23)
 
 - chore: update deps
