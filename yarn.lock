@@ -635,6 +635,11 @@
     "@babel/helper-validator-identifier" "^7.19.1"
     to-fast-properties "^2.0.0"
 
+"@beskar-labs/gpt-encoder@^1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@beskar-labs/gpt-encoder/-/gpt-encoder-1.0.6.tgz#a4d65cfb89c04b51736d52e43cdc7b30fd092ca8"
+  integrity sha512-7gLHHDJA2+rb1U62XHy8ym3PThqF8bN7v2VzUep/4BfcxBHKLH3LnNwSU6uLgpqBuI7zYfnN1VFiDXeeG93LXg==
+
 "@blocklet/ai-kit@^0.0.46":
   version "0.0.46"
   resolved "https://registry.yarnpkg.com/@blocklet/ai-kit/-/ai-kit-0.0.46.tgz#c50c6d0264a3d1adbb367e252363034265ce3bc2"
