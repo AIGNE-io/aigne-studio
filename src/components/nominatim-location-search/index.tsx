@@ -70,8 +70,8 @@ export default function NominatimLocationSearch<
         .then((res) =>
           res.map((i: any) => ({
             id: i.place_id,
-            longitude: i.lon,
-            latitude: i.lat,
+            longitude: Number(i.lon),
+            latitude: Number(i.lat),
             name: i.display_name,
           }))
         );
@@ -89,6 +89,9 @@ export default function NominatimLocationSearch<
   const { run } = useThrottleFn(search, { wait: 1000 });
 
   useEffect(() => {
+    if (typeof props.value === 'object' && !Array.isArray(props.value) && state.keyword === props.value?.name) {
+      return;
+    }
     state.searchKey += 1;
     state.searching = true;
     run(state.keyword);

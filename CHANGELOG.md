@@ -1,3 +1,9 @@
+## 0.1.24 (2023-3-30)
+
+- fix: div cannot appear as a descendant of <p>
+- feat: add houses data
+- fix: avoid unnecessary location searches
+
 ## 0.1.23 (2023-3-27)
 
 - chore: update vite & remove preload options

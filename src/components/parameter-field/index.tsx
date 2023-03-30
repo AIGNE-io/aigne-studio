@@ -57,7 +57,6 @@ function StringParameterField({
       helperText={parameter.helper}
       multiline={parameter.multiline}
       minRows={parameter.multiline ? 2 : undefined}
-      maxRows={parameter.multiline ? 10 : undefined}
       inputProps={{ maxLength: parameter.maxLength }}
       onChange={(e) => onChange(e.target.value)}
       {...props}
@@ -434,11 +433,28 @@ export function parameterToStringValue(parameter: Parameter): string {
         aquarius: '水瓶座',
         pisces: '双鱼座',
         ophiuchus: '蛇夫座',
+        ascendant: '上升',
+        midheaven: '中天',
+        northnode: '北交',
+        southnode: '南交',
       };
 
-      return horoscope.CelestialBodies.all
-        .map((i: any) => `${zh[i.key]}${zh[i.Sign.key]}`)
-        .concat(horoscope.Houses.map((i: any, index: number) => `${index + 1}宫${zh[i.Sign.key]}`))
+      const allBodies: {
+        key: string;
+        Sign: { key: string };
+        House: { id: number; Sign: { key: string } };
+        isRetrograde?: true;
+      }[] = horoscope.CelestialBodies.all;
+
+      const houses: { id: number; Sign: { key: string } }[] = horoscope.Houses;
+
+      const bodies = allBodies.filter((i) => !['chiron', 'sirius'].includes(i.key));
+
+      return bodies
+        .concat([horoscope.CelestialPoints.northnode, horoscope.Ascendant, horoscope.Midheaven])
+        .map((i) => `${zh[i.key]}${zh[i.Sign.key]}${i.isRetrograde ? '(逆行)' : ''}`)
+        .concat(houses.map((i) => `${i.id}宫${zh[i.Sign.key]}`))
+        .concat(bodies.concat(horoscope.CelestialPoints.northnode).map((i) => `${zh[i.key]}落入${i.House.id}宫`))
         .join('，');
     }
     default:

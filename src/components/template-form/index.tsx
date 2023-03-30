@@ -517,8 +517,10 @@ function TemplateItem({
                 label={parameter.label || param}
                 parameter={parameter}
                 helperText={
-                  <Box sx={{ display: 'flex' }}>
-                    <Box sx={{ flex: 1, overflow: 'hidden' }}>{parameter.helper}</Box>
+                  <Box component="span" sx={{ display: 'flex' }}>
+                    <Box component="span" sx={{ flex: 1, overflow: 'hidden' }}>
+                      {parameter.helper}
+                    </Box>
                     <TokenCounter value={parameter} />
                   </Box>
                 }
