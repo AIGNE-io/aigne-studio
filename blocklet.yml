@@ -14,7 +14,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.24
+version: 0.1.25
 logo: logo.png
 files:
   - dist
@@ -38,7 +38,7 @@ payment:
 timeout:
   start: 60
 requirements:
-  server: '>=1.6.29'
+  server: '>=1.16.0'
   os: '*'
   cpu: '*'
 scripts:

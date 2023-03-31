@@ -1,3 +1,7 @@
+## 0.1.25 (2023-3-30)
+
+- feat: update sdk to 1.16.0
+
 ## 0.1.24 (2023-3-30)
 
 - fix: div cannot appear as a descendant of <p>
