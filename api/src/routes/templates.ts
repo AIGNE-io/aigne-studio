@@ -9,7 +9,10 @@ import { Template, templates } from '../store/templates';
 const router = Router();
 
 export interface TemplateInput
-  extends Pick<Template, 'type' | 'icon' | 'name' | 'tags' | 'description' | 'template' | 'parameters' | 'branch'> {}
+  extends Pick<
+    Template,
+    'mode' | 'type' | 'icon' | 'name' | 'tags' | 'description' | 'template' | 'parameters' | 'branch'
+  > {}
 
 const valueSchema = Joi.alternatives().conditional('type', {
   switch: [
@@ -69,6 +72,7 @@ const parametersSchema = Joi.object().pattern(
 );
 
 const templateSchema = Joi.object<TemplateInput>({
+  mode: Joi.string().valid('default', 'chat').empty(''),
   type: Joi.string().valid('branch').empty(''),
   icon: Joi.string().allow(''),
   name: Joi.string().allow('').required(),
