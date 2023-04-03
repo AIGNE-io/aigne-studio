@@ -1,3 +1,7 @@
+## 0.1.26 (2023-4-3)
+
+- feat: template chain & add `branch` type of template
+
 ## 0.1.25 (2023-3-30)
 
 - feat: update sdk to 1.16.0

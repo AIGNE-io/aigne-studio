@@ -11,6 +11,10 @@ export default flat({
     new: 'New',
     copy: 'Copy',
     exportTemplate: 'Export Template',
+    prompt: 'Prompt',
+    branch: 'Branch',
+    add: 'Add',
+    type: 'Type',
     parameter: {
       type: 'Type',
       typeText: 'Text',

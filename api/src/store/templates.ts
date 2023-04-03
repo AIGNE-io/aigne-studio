@@ -2,13 +2,16 @@ import Database from '@blocklet/sdk/lib/database';
 
 export interface Template {
   _id: string;
+  type?: 'branch';
   name: string;
   tags?: string[];
   icon?: string;
   description?: string;
-  template: string;
-  parameters: { [key: string]: Parameter };
-  templates?: (Pick<Template, 'name' | 'template' | 'parameters'> & { id: string })[];
+  template?: string;
+  branch?: {
+    branches: { template?: { id: string; name: string }; description: string }[];
+  };
+  parameters?: { [key: string]: Parameter };
   createdAt: string;
   updatedAt: string;
   createdBy: string;
