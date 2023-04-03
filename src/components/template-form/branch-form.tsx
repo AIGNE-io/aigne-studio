@@ -35,7 +35,7 @@ export default function BranchForm({
       cachedValue.current = value.branch;
       data.branches = (value.branch?.branches ?? []).map((i) => ({
         ...i,
-        id: nanoid(),
+        id: i.template?.id || nanoid(),
       }));
     }
   }, [value.branch]);
