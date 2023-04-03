@@ -6,12 +6,14 @@ export async function getTemplates({
   offset,
   limit,
   sort,
+  search,
 }: {
   offset?: number;
   limit?: number;
   sort?: string;
+  search?: string;
 } = {}): Promise<{ templates: Template[] }> {
-  return axios.get('/api/templates', { params: { offset, limit, sort } }).then((res) => res.data);
+  return axios.get('/api/templates', { params: { offset, limit, sort, search } }).then((res) => res.data);
 }
 
 export async function getTemplate(templateId: string): Promise<Template> {

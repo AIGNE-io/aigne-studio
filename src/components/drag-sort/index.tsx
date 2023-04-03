@@ -94,8 +94,6 @@ const ItemRoot = styled(Box)`
   > .actions {
     position: absolute;
     right: 0;
-    top: 0;
-    bottom: 0;
     display: flex;
     align-items: center;
     overflow: hidden;
@@ -125,6 +123,5 @@ const ItemRoot = styled(Box)`
 
   > .content {
     flex: 1;
-    overflow: hidden;
   }
 `;

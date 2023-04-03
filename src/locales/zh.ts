@@ -11,6 +11,10 @@ export default flat({
     new: '新建',
     copy: '拷贝',
     exportTemplate: '导出模版',
+    prompt: '提示',
+    branch: '分支',
+    add: '添加',
+    type: '类型',
     parameter: {
       type: '类型',
       typeText: '文本',

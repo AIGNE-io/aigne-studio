@@ -6,9 +6,11 @@ import { Box, Button, Divider, Tooltip } from '@mui/material';
 import { ReactNode, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { Template } from '../../../api/src/store/templates';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView, { TemplateForm } from '../../components/template-form';
 import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
+import { getTemplate } from '../../libs/templates';
 
 export default function TemplateView() {
   const ref = useRef<ConversationRef>(null);
@@ -16,7 +18,7 @@ export default function TemplateView() {
   const { messages, add, cancel } = useConversation({
     scrollToBottom: (o) => ref.current?.scrollToBottom(o),
     textCompletions: (prompt, { meta: template }: { meta?: TemplateForm }) => {
-      const questionParam = template?.parameters.question;
+      const questionParam = template?.parameters?.question;
       const question = questionParam && parameterToStringValue(questionParam);
 
       return textCompletions({
@@ -40,16 +42,52 @@ export default function TemplateView() {
   const [, setSearchParams] = useSearchParams();
 
   const onExecute = async (template: TemplateForm) => {
-    let prompt: string | undefined = template.template;
+    const question = template.parameters?.question?.value;
 
-    while (prompt) {
-      for (const [param, value] of Object.entries(template.parameters)) {
-        prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameterToStringValue(value));
-      }
+    let next: Template | TemplateForm | undefined = template;
 
-      const text: string | undefined = (await add(prompt, template)).text?.trim();
-      if (text) {
-        prompt = template.templates?.find((i) => i.name === text)?.template;
+    while (next) {
+      const template = next;
+      next = undefined;
+
+      if (template.type === 'branch') {
+        const branches = template.branch?.branches.filter((i) => i.template?.name);
+        if (!branches || !question) {
+          return;
+        }
+        const { text } = await add(
+          `\
+你是一个分支选择器，你需要根据用户输入的问题选择最合适的一个分支。可用的分支如下：
+
+${branches.map((i) => `${i.template!.name}: ${i.description || ''}`).join('\n')}
+
+Use the following format:
+
+Question: the input question you must think about
+Thought: you should always consider which branch is more suitable
+Branch: the branch to take, should be one of [${branches.map((i) => i.template!.name).join('\n')}]
+
+Begin!"
+
+Question: ${question}\
+`,
+          template
+        );
+        const branchName = text && /Branch: (.*)/s.exec(text)?.[1]?.trim();
+        const branchId =
+          branchName && template.branch?.branches.find((i) => i.template?.name === branchName)?.template?.id;
+        if (branchId) {
+          next = await getTemplate(branchId);
+        }
+      } else {
+        let prompt = template.template;
+        if (prompt) {
+          for (const [param, value] of Object.entries(template.parameters ?? {})) {
+            prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameterToStringValue(value));
+          }
+
+          add(prompt, template);
+        }
       }
     }
   };

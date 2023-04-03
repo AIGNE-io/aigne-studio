@@ -9,7 +9,7 @@ import { Template, templates } from '../store/templates';
 const router = Router();
 
 export interface TemplateInput
-  extends Pick<Template, 'icon' | 'name' | 'tags' | 'description' | 'template' | 'parameters' | 'templates'> {}
+  extends Pick<Template, 'type' | 'icon' | 'name' | 'tags' | 'description' | 'template' | 'parameters' | 'branch'> {}
 
 const valueSchema = Joi.alternatives().conditional('type', {
   switch: [
@@ -69,20 +69,24 @@ const parametersSchema = Joi.object().pattern(
 );
 
 const templateSchema = Joi.object<TemplateInput>({
+  type: Joi.string().valid('branch').empty(''),
   icon: Joi.string().allow(''),
   name: Joi.string().allow('').required(),
   tags: Joi.array().items(Joi.string()).unique(),
   description: Joi.string().allow(''),
-  template: Joi.string().allow('').required(),
+  template: Joi.string().allow(''),
   parameters: parametersSchema,
-  templates: Joi.array().items(
-    Joi.object({
-      id: Joi.string().required(),
-      name: Joi.string().allow('').required(),
-      template: Joi.string().allow('').required(),
-      parameters: parametersSchema,
-    })
-  ),
+  branch: Joi.object({
+    branches: Joi.array().items(
+      Joi.object({
+        template: Joi.object({
+          id: Joi.string().empty(''),
+          name: Joi.string().required(),
+        }),
+        description: Joi.string().allow(''),
+      })
+    ),
+  }),
 });
 
 const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; tag?: string }>({
@@ -146,6 +150,28 @@ export async function getTemplate(req: Request, res: Response) {
 
 router.get('/:templateId', ensureAdmin, getTemplate);
 
+async function createBranches(branch: Template['branch'], did: string): Promise<Template['branch']> {
+  if (!branch) {
+    return branch;
+  }
+  return {
+    ...branch,
+    branches: await Promise.all(
+      branch.branches.map(async (i) => {
+        if (!i.template || i.template.id) return i;
+        const template = await templates.insert({
+          name: i.template.name,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          createdBy: did,
+          updatedBy: did,
+        });
+        return { ...i, template: { id: template._id!, name: i.template.name } };
+      })
+    ),
+  };
+}
+
 router.post('/', user(), ensureAdmin, async (req, res) => {
   const template = await templateSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
@@ -156,6 +182,7 @@ router.post('/', user(), ensureAdmin, async (req, res) => {
 
   const doc = await templates.insert({
     ...template,
+    branch: template.branch && (await createBranches(template.branch, did)),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     createdBy: did,
@@ -186,6 +213,7 @@ router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
     {
       $set: {
         ...update,
+        branch: update.branch && (await createBranches(update.branch, did)),
         updatedAt: new Date().toISOString(),
         updatedBy: did,
       },

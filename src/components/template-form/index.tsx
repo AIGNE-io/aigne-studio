@@ -6,18 +6,12 @@ import {
   ArrowDropDown,
   CopyAll,
   Delete,
-  DeleteOutline,
-  ExpandMore,
   ImportExport,
   SaveOutlined,
   Settings,
   TravelExplore,
 } from '@mui/icons-material';
 import {
-  Accordion,
-  AccordionActions,
-  AccordionDetails,
-  AccordionSummary,
   Box,
   Button,
   ClickAwayListener,
@@ -25,12 +19,12 @@ import {
   DialogTitle,
   Grid,
   IconButton,
-  Input,
   InputAdornment,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  MenuItem,
   Paper,
   Popper,
   TextField,
@@ -41,11 +35,11 @@ import { saveAs } from 'file-saver';
 import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
-import { nanoid } from 'nanoid';
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
 
+import { TemplateInput } from '../../../api/src/routes/templates';
 import {
   HoroscopeParameter,
   LanguageParameter,
@@ -62,22 +56,22 @@ import useDialog from '../../utils/use-dialog';
 import useMenu from '../../utils/use-menu';
 import usePopper from '../../utils/use-popper';
 import ParameterField, { parameterToStringValue } from '../parameter-field';
+import BranchForm from './branch-form';
 import ParameterConfig from './parameter-config';
 import TagsAutoComplete from './tags-autocomplete';
 
 export type TemplateForm = Pick<
   Template,
-  '_id' | 'name' | 'icon' | 'tags' | 'description' | 'template' | 'parameters' | 'templates'
->;
+  '_id' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'template' | 'parameters'
+> & {
+  branch?: Omit<Template['branch'], 'branches'> & {
+    branches: { template?: { id: string; name: string }; description: string }[];
+  };
+};
 
 const INIT_FORM: TemplateForm = {
   _id: '',
   name: '',
-  icon: '',
-  description: '',
-  template: '',
-  parameters: {},
-  templates: [],
 };
 
 export default function TemplateFormView({ onExecute }: { onExecute?: (template: Template) => void }) {
@@ -136,7 +130,7 @@ export default function TemplateFormView({ onExecute }: { onExecute?: (template:
 
   const deferredTemplate = useDeferredValue(form.template);
 
-  const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
+  const params = useMemo(() => matchParams(deferredTemplate ?? ''), [deferredTemplate]);
 
   const [, setError] = useState<Joi.ValidationError>();
 
@@ -207,7 +201,7 @@ export default function TemplateFormView({ onExecute }: { onExecute?: (template:
     const schema = Joi.object(
       Object.fromEntries(
         params.map((param) => {
-          const parameter = form.parameters[param];
+          const parameter = form.parameters?.[param];
           return [param, parameter ? getValueSchema(parameter) : undefined];
         })
       )
@@ -216,7 +210,7 @@ export default function TemplateFormView({ onExecute }: { onExecute?: (template:
     setError(undefined);
     const { error, value } = schema.validate(
       Object.fromEntries(
-        Object.entries(form.parameters).map(([key, { value, defaultValue }]) => [key, value ?? defaultValue])
+        Object.entries(form.parameters ?? {}).map(([key, { value, defaultValue }]) => [key, value ?? defaultValue])
       ),
       { allowUnknown: true, abortEarly: false }
     );
@@ -229,7 +223,10 @@ export default function TemplateFormView({ onExecute }: { onExecute?: (template:
         JSON.stringify({
           ...form,
           parameters: Object.fromEntries(
-            Object.entries(form.parameters).map(([param, parameter]) => [param, { ...parameter, value: value[param] }])
+            Object.entries(form.parameters ?? {}).map(([param, parameter]) => [
+              param,
+              { ...parameter, value: value[param] },
+            ])
           ),
         })
       )
@@ -282,6 +279,27 @@ export default function TemplateFormView({ onExecute }: { onExecute?: (template:
       </Grid>
       <Grid item xs={12}>
         <TextField
+          select
+          fullWidth
+          label={t('form.type')}
+          size="small"
+          value={form.type ?? 'prompt'}
+          onChange={(e) =>
+            updateForm((form) => {
+              const type = e.target.value as any;
+              if (type === 'prompt') {
+                delete form.type;
+              } else {
+                form.type = type;
+              }
+            })
+          }>
+          <MenuItem value="prompt">{t('form.prompt')}</MenuItem>
+          <MenuItem value="branch">{t('form.branch')}</MenuItem>
+        </TextField>
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
           fullWidth
           label={t('form.icon')}
           size="small"
@@ -321,61 +339,11 @@ export default function TemplateFormView({ onExecute }: { onExecute?: (template:
       </Grid>
 
       <Grid item xs={12}>
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMore />}>{form.name}</AccordionSummary>
-          <AccordionDetails>
-            <TemplateItem value={form} onChange={(v) => updateForm(v)} />
-          </AccordionDetails>
-        </Accordion>
-
-        {form.templates?.map((item, index) => (
-          <Accordion key={item.id}>
-            <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: 'transparent !important' }}>
-              <Box onClick={(e) => e.stopPropagation()} width="100%">
-                <Input
-                  size="small"
-                  disableUnderline
-                  placeholder="Please input template name"
-                  fullWidth
-                  value={item.name}
-                  onChange={(e) => updateForm((v) => (v.templates![index]!.name = e.target.value))}
-                />
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              <TemplateItem value={item} onChange={(v) => updateForm((form) => v(form.templates![index]!))} />
-            </AccordionDetails>
-            <AccordionActions>
-              <IconButton
-                size="small"
-                onClick={() =>
-                  updateForm((v) => {
-                    v.templates?.splice(index, 1);
-                  })
-                }>
-                <DeleteOutline fontSize="small" />
-              </IconButton>
-            </AccordionActions>
-          </Accordion>
-        ))}
-
-        <Box textAlign="center">
-          <Button
-            size="small"
-            onClick={() => {
-              updateForm((v) => {
-                v.templates ??= [];
-                v.templates.push({
-                  id: nanoid(16),
-                  name: '',
-                  template: '',
-                  parameters: {},
-                });
-              });
-            }}>
-            Add Prompt
-          </Button>
-        </Box>
+        {form.type === 'branch' ? (
+          <BranchForm value={form} onChange={updateForm} />
+        ) : (
+          <TemplateItem value={form} onChange={updateForm} />
+        )}
       </Grid>
 
       {dialog}
@@ -464,7 +432,7 @@ function TemplateItem({
 
   const deferredTemplate = useDeferredValue(value.template);
 
-  const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
+  const params = useMemo(() => matchParams(deferredTemplate ?? ''), [deferredTemplate]);
 
   const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
 
@@ -472,6 +440,7 @@ function TemplateItem({
 
   useEffect(() => {
     onChange((template) => {
+      template.parameters ??= {};
       for (const param of params) {
         const history = parametersHistory.current[param];
         template.parameters[param] ??= history ?? {};
@@ -497,12 +466,12 @@ function TemplateItem({
           maxRows={10}
           value={value.template}
           onChange={(e) => onChange((v) => (v.template = e.target.value))}
-          helperText={<TokenCounter value={value.template} />}
+          helperText={<TokenCounter value={value.template ?? ''} />}
           FormHelperTextProps={{ sx: { textAlign: 'right', mt: 0 } }}
         />
       </Grid>
       {params.map((param) => {
-        const parameter = value.parameters[param];
+        const parameter = value.parameters?.[param];
         if (!parameter) {
           return null;
         }
@@ -525,7 +494,7 @@ function TemplateItem({
                   </Box>
                 }
                 value={parameter.value ?? parameter.defaultValue ?? ''}
-                onChange={(value) => onChange((v) => (v.parameters[param]!.value = value))}
+                onChange={(value) => onChange((v) => (v.parameters![param]!.value = value))}
               />
               <IconButton
                 sx={{ ml: 2, mt: 0.5 }}
@@ -564,8 +533,8 @@ function TemplateItem({
           <Paper elevation={11} sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             {paramConfig && (
               <ParameterConfig
-                value={value.parameters[paramConfig.param]!}
-                onChange={(parameter) => onChange((v) => (v.parameters[paramConfig.param] = parameter))}
+                value={value.parameters![paramConfig.param]!}
+                onChange={(parameter) => onChange((v) => (v.parameters![paramConfig.param] = parameter))}
               />
             )}
           </Paper>
@@ -702,7 +671,7 @@ function useTemplates() {
     refetch();
   }, []);
 
-  const create = useCallback(async (template: TemplateForm) => {
+  const create = useCallback(async (template: TemplateInput) => {
     state.submiting = true;
     try {
       const res = await createTemplate(template);
@@ -713,7 +682,7 @@ function useTemplates() {
     }
   }, []);
 
-  const update = useCallback(async (templateId: string, template: TemplateForm) => {
+  const update = useCallback(async (templateId: string, template: TemplateInput) => {
     state.submiting = true;
     try {
       const res = await updateTemplate(templateId, template);
