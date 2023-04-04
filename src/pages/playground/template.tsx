@@ -17,19 +17,9 @@ export default function TemplateView() {
 
   const { messages, add, cancel } = useConversation({
     scrollToBottom: (o) => ref.current?.scrollToBottom(o),
-    textCompletions: (prompt, { meta: template }: { meta?: TemplateForm }) => {
-      const questionParam = template?.parameters?.question;
-      const question = questionParam && parameterToStringValue(questionParam);
-
+    textCompletions: (prompt) => {
       return textCompletions({
-        ...(question
-          ? {
-              messages: [
-                { role: 'system', content: prompt },
-                { role: 'user', content: question },
-              ],
-            }
-          : { prompt }),
+        prompt,
         stream: true,
       });
     },
@@ -42,7 +32,8 @@ export default function TemplateView() {
   const [, setSearchParams] = useSearchParams();
 
   const onExecute = async (template: TemplateForm) => {
-    const question = template.parameters?.question?.value;
+    const { parameters } = template;
+    const question = parameters?.question?.value;
 
     let next: Template | TemplateForm | undefined = template;
 
@@ -59,13 +50,13 @@ export default function TemplateView() {
           `\
 你是一个分支选择器，你需要根据用户输入的问题选择最合适的一个分支。可用的分支如下：
 
-${branches.map((i) => `${i.template!.name}: ${i.description || ''}`).join('\n')}
+${branches.map((i) => `Branch_${i.template!.id}: ${i.description || ''}`).join('\n')}
 
 Use the following format:
 
 Question: the input question you must think about
 Thought: you should always consider which branch is more suitable
-Branch: the branch to take, should be one of [${branches.map((i) => i.template!.name).join('\n')}]
+Branch: the branch to take, should be one of [${branches.map((i) => `Branch_${i.template!.id}`).join('\n')}]
 
 Begin!"
 
@@ -73,16 +64,15 @@ Question: ${question}\
 `,
           template
         );
-        const branchName = text && /Branch: (.*)/s.exec(text)?.[1]?.trim();
-        const branchId =
-          branchName && template.branch?.branches.find((i) => i.template?.name === branchName)?.template?.id;
-        if (branchId) {
+
+        const branchId = text && /Branch_(\w+)/s.exec(text)?.[1]?.trim();
+        if (branchId && template.branch?.branches.some((i) => i.template?.id === branchId)) {
           next = await getTemplate(branchId);
         }
       } else {
         let prompt = template.template;
         if (prompt) {
-          for (const [param, value] of Object.entries(template.parameters ?? {})) {
+          for (const [param, value] of Object.entries(parameters ?? {})) {
             prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameterToStringValue(value));
           }
 
