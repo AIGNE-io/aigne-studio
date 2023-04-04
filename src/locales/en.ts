@@ -15,6 +15,9 @@ export default flat({
     branch: 'Branch',
     add: 'Add',
     type: 'Type',
+    mode: 'Mode',
+    default: 'Default',
+    chat: 'Chat',
     parameter: {
       type: 'Type',
       typeText: 'Text',

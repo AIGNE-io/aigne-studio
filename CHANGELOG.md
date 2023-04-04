@@ -1,3 +1,7 @@
+## 0.1.27 (2023-4-4)
+
+- feat: support config template mode
+
 ## 0.1.26 (2023-4-3)
 
 - feat: template chain & add `branch` type of template

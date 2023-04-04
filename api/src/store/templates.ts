@@ -3,6 +3,7 @@ import Database from '@blocklet/sdk/lib/database';
 export interface Template {
   _id: string;
   type?: 'branch';
+  mode?: 'default' | 'chat';
   name: string;
   tags?: string[];
   icon?: string;

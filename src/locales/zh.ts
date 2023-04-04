@@ -15,6 +15,9 @@ export default flat({
     branch: '分支',
     add: '添加',
     type: '类型',
+    mode: '模式',
+    default: '默认',
+    chat: '会话',
     parameter: {
       type: '类型',
       typeText: '文本',

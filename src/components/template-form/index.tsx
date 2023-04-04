@@ -17,6 +17,9 @@ import {
   ClickAwayListener,
   DialogActions,
   DialogTitle,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
   Grid,
   IconButton,
   InputAdornment,
@@ -27,6 +30,8 @@ import {
   MenuItem,
   Paper,
   Popper,
+  Radio,
+  RadioGroup,
   TextField,
 } from '@mui/material';
 import { useReactive } from 'ahooks';
@@ -62,7 +67,7 @@ import TagsAutoComplete from './tags-autocomplete';
 
 export type TemplateForm = Pick<
   Template,
-  '_id' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'template' | 'parameters'
+  '_id' | 'mode' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'template' | 'parameters'
 > & {
   branch?: Omit<Template['branch'], 'branches'> & {
     branches: { template?: { id: string; name: string }; description: string }[];
@@ -276,6 +281,18 @@ export default function TemplateFormView({ onExecute }: { onExecute?: (template:
           }}
         />
         {menu}
+      </Grid>
+      <Grid item xs={12}>
+        <FormControl fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+          <FormLabel sx={{ mr: 2 }}>{t('form.mode')}</FormLabel>
+          <RadioGroup
+            row
+            value={form.mode ?? 'default'}
+            onChange={(_, value) => updateForm((f) => (f.mode = value as any))}>
+            <FormControlLabel value="default" control={<Radio />} label={t('form.default')} />
+            <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
+          </RadioGroup>
+        </FormControl>
       </Grid>
       <Grid item xs={12}>
         <TextField
