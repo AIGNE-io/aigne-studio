@@ -1,3 +1,7 @@
+## 0.1.28 (2023-4-4)
+
+- fix: improve the accuracy of branch judgment
+
 ## 0.1.27 (2023-4-4)
 
 - feat: support config template mode
