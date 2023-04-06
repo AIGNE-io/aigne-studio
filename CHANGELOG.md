@@ -1,3 +1,7 @@
+## 0.1.29 (2023-4-6)
+
+- fix: improve experience of branch selector
+
 ## 0.1.28 (2023-4-4)
 
 - fix: improve the accuracy of branch judgment
