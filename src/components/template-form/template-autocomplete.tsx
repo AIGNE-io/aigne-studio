@@ -72,6 +72,18 @@ export default function TemplateAutocomplete<
   return (
     <Autocomplete
       {...props}
+      onBlurCapture={(e) => {
+        if (!props.multiple && props.freeSolo && props.autoSelect && state.keyword) {
+          const { value } = props;
+          if (Array.isArray(value)) {
+            return;
+          }
+          if ((typeof value === 'string' ? value : value?.name) !== state.keyword) {
+            props.onChange?.(e, state.keyword as any, 'blur');
+          }
+        }
+      }}
+      autoSelect={false}
       inputValue={state.keyword}
       onInputChange={(_, keyword) => (state.keyword = keyword)}
       options={state.options}
