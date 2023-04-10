@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Add, Delete } from '@mui/icons-material';
+import { css } from '@emotion/css';
+import { Add, Construction, Delete } from '@mui/icons-material';
 import { Box, Button, TextField } from '@mui/material';
 import { useReactive } from 'ahooks';
 import equal from 'fast-deep-equal';
@@ -18,9 +19,11 @@ import type { TemplateForm } from '.';
 export default function BranchForm({
   value,
   onChange,
+  onTemplateClick,
 }: {
   value: Pick<TemplateForm, 'branch' | 'parameters'>;
   onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
+  onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -65,20 +68,32 @@ export default function BranchForm({
         <Box>
           {data.branches.map((branch, index) => (
             <DragSortListItem
-              sx={{ my: 2, alignItems: 'baseline', pr: 2 }}
+              sx={{ my: 2, alignItems: 'baseline' }}
               key={branch.id}
               dragType="BRANCH_ITEM"
               dropType={['BRANCH_ITEM']}
               id={branch.id}
               index={index}
+              className={css`
+                .actions {
+                  flex-direction: column;
+                }
+              `}
               move={(id, toIndex) => {
                 const srcIndex = data.branches.findIndex((i) => i.id === id);
                 data.branches.splice(toIndex, 0, ...data.branches.splice(srcIndex, 1));
               }}
               actions={
-                <Box onClick={() => data.branches.splice(index, 1)}>
-                  <Delete />
-                </Box>
+                <>
+                  {onTemplateClick && branch.template && (
+                    <Box onClick={() => onTemplateClick(branch.template!)}>
+                      <Construction />
+                    </Box>
+                  )}
+                  <Box onClick={() => data.branches.splice(index, 1)}>
+                    <Delete />
+                  </Box>
+                </>
               }>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <TemplateAutocomplete

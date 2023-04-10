@@ -50,10 +50,12 @@ export default function TemplateFormView({
   value: form,
   onChange,
   onExecute,
+  onTemplateClick,
 }: {
   value: Template;
   onChange: (update: Template | ((update: WritableDraft<Template>) => void)) => void;
   onExecute?: (template: Template) => void;
+  onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -252,7 +254,7 @@ export default function TemplateFormView({
 
       <Grid item xs={12}>
         {form.type === 'branch' ? (
-          <BranchForm value={form} onChange={onChange} />
+          <BranchForm value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
         ) : (
           <TemplateItem value={form} onChange={onChange} />
         )}

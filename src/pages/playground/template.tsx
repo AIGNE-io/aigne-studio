@@ -65,10 +65,19 @@ export default function TemplateView() {
     (template: Template) => {
       if (formChanged) {
         showDialog({
+          maxWidth: 'xs',
+          fullWidth: true,
           title: t('alert.discardChanges'),
           okText: t('alert.discard'),
+          okColor: 'error',
           cancelText: t('alert.cancel'),
+          middleText: t('form.save'),
+          middleColor: 'primary',
           onOk: () => {
+            setCurrentTemplate(template);
+          },
+          onMiddleClick: async () => {
+            await saveRef.current();
             setCurrentTemplate(template);
           },
         });
@@ -264,6 +273,8 @@ Question: ${question}\
         onCreate={async (input) => setCurrent(await create({ name: '', ...input }))}
         onDelete={(template) =>
           showDialog({
+            maxWidth: 'xs',
+            fullWidth: true,
             title: t('alert.deleteTemplate'),
             okText: t('alert.delete'),
             cancelText: t('alert.cancel'),
@@ -297,7 +308,17 @@ Question: ${question}\
       <Divider orientation="vertical" />
 
       <Box className="form" flex={1} p={2} overflow="auto">
-        {form && <TemplateFormView value={form} onChange={setFormValue} onExecute={onExecute} />}
+        {form && (
+          <TemplateFormView
+            value={form}
+            onChange={setFormValue}
+            onExecute={onExecute}
+            onTemplateClick={({ id }) => {
+              const template = templates.find((i) => i._id === id);
+              if (template) setCurrent(template);
+            }}
+          />
+        )}
       </Box>
 
       {dialog}
