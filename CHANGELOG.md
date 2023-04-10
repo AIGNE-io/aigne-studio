@@ -1,3 +1,12 @@
+## 0.1.30 (2023-4-10)
+
+- feat: support goto branch template directly
+- feat: support press `ctrl+s` or `cmd+s` to save
+- feat: support duplicate templates
+- fix: show not data or loading indicator
+- fix: move `mode` field to top
+- feat: display template list in left aside
+
 ## 0.1.29 (2023-4-6)
 
 - fix: improve experience of branch selector
