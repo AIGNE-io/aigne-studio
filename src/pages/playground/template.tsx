@@ -195,6 +195,38 @@ Question: ${question}\
     [cancel]
   );
 
+  const save = useCallback(async () => {
+    try {
+      if (form?._id) {
+        const template = await update(form._id, form);
+        setCurrentTemplate(template);
+        setForm(template);
+        Toast.success(t('alert.saved'));
+      }
+    } catch (error) {
+      Toast.error(getErrorMessage(error));
+      throw error;
+    }
+  }, [form, t, update]);
+
+  const saveRef = useRef(save);
+  saveRef.current = save;
+
+  useEffect(() => {
+    const onKeydown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        if (e.key === 's') {
+          e.preventDefault();
+          saveRef.current();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', onKeydown);
+
+    return () => window.removeEventListener('keydown', onKeydown);
+  }, []);
+
   const headerAddons = ([...exists]: ReactNode[]) => {
     exists.unshift(
       <LoadingButton
@@ -202,19 +234,7 @@ Question: ${question}\
         loading={submiting}
         loadingPosition="start"
         startIcon={<Save />}
-        onClick={async () => {
-          try {
-            if (form?._id) {
-              const template = await update(form._id, form);
-              setCurrentTemplate(template);
-              setForm(template);
-              Toast.success(t('alert.saved'));
-            }
-          } catch (error) {
-            Toast.error(getErrorMessage(error));
-            throw error;
-          }
-        }}>
+        onClick={save}>
         {t('form.save')}
       </LoadingButton>
     );
