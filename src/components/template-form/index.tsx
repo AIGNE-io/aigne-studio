@@ -165,15 +165,6 @@ export default function TemplateFormView({
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <TextField
-          fullWidth
-          label={t('form.name')}
-          size="small"
-          value={form.name}
-          onChange={(e) => onChange((form) => (form.name = e.target.value))}
-        />
-      </Grid>
-      <Grid item xs={12}>
         <FormControl fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           <FormLabel sx={{ mr: 2 }}>{t('form.mode')}</FormLabel>
           <RadioGroup
@@ -184,6 +175,15 @@ export default function TemplateFormView({
             <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
           </RadioGroup>
         </FormControl>
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('form.name')}
+          size="small"
+          value={form.name}
+          onChange={(e) => onChange((form) => (form.name = e.target.value))}
+        />
       </Grid>
       <Grid item xs={12}>
         <TextField
