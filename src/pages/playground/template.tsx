@@ -278,6 +278,7 @@ Question: ${question}\
             fullWidth: true,
             title: t('alert.deleteTemplate'),
             okText: t('alert.delete'),
+            okColor: 'error',
             cancelText: t('alert.cancel'),
             onOk: async () => {
               try {
