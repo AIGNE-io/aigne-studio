@@ -266,7 +266,8 @@ Question: ${question}\
   return (
     <Root footerProps={{ className: 'dashboard-footer' }} headerAddons={headerAddons}>
       <TemplateList
-        sx={{ width: 200, height: '100%', overflow: 'auto' }}
+        sx={{ width: 200, overflow: 'auto' }}
+        className="list"
         templates={templates}
         loading={loading}
         current={current}
@@ -335,8 +336,14 @@ const Root = styled(Dashboard)`
       overflow: hidden;
 
       @media (max-width: 900px) {
-        flex-direction: column-reverse;
+        flex-direction: column;
         overflow: auto;
+
+        > .list {
+          width: 100%;
+          overflow: visible;
+          flex: unset;
+        }
 
         > .conversation {
           overflow: unset;
