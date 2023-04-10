@@ -1,9 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { css } from '@emotion/css';
-import { Add, DeleteForever } from '@mui/icons-material';
+import { Add, CopyAll, DeleteForever } from '@mui/icons-material';
 import {
   Box,
   BoxProps,
+  Button,
   CircularProgress,
   IconButton,
   List,
@@ -13,6 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import produce from 'immer';
+import { omit } from 'lodash';
 import { useCallback, useEffect, useState } from 'react';
 
 import { TemplateInput } from '../../../api/src/routes/templates';
@@ -31,7 +33,7 @@ export default function TemplateList({
   templates: Template[];
   loading?: boolean;
   current?: Template;
-  onCreate?: () => void;
+  onCreate?: (input?: TemplateInput) => void;
   onDelete?: (template: Template) => void;
   onClick?: (template: Template) => void;
 } & Omit<BoxProps, 'onClick'>) {
@@ -55,7 +57,7 @@ export default function TemplateList({
         </Typography>
 
         {onCreate && (
-          <IconButton size="small" color="primary" onClick={onCreate}>
+          <IconButton size="small" color="primary" onClick={() => onCreate()}>
             <Add fontSize="small" />
           </IconButton>
         )}
@@ -72,8 +74,17 @@ export default function TemplateList({
               }
 
               > .MuiListItemSecondaryAction-root {
+                top: 0;
+                right: 0;
+                transform: none;
+                background-color: rgba(240, 240, 240, 0.8);
+                border-radius: 4px;
                 display: none;
-                right: 8px;
+
+                > .MuiButton-root {
+                  min-width: 0;
+                  padding: 4px 2px;
+                }
               }
 
               &:hover {
@@ -87,11 +98,25 @@ export default function TemplateList({
               }
             `}
             secondaryAction={
-              onDelete && (
-                <IconButton size="small" onClick={() => onDelete(template)}>
-                  <DeleteForever fontSize="small" />
-                </IconButton>
-              )
+              <>
+                {onCreate && (
+                  <Button
+                    size="small"
+                    onClick={() =>
+                      onCreate({
+                        ...omit(template, '_id', 'createdAt', 'updatedAt'),
+                        name: `${template.name || template._id} Copy`,
+                      })
+                    }>
+                    <CopyAll fontSize="small" />
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button size="small" onClick={() => onDelete(template)}>
+                    <DeleteForever fontSize="small" />
+                  </Button>
+                )}
+              </>
             }>
             <ListItemButton selected={current?._id === template._id} onClick={() => onClick?.(template)}>
               <ListItemText

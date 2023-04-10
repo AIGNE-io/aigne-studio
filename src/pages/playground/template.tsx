@@ -241,7 +241,7 @@ Question: ${question}\
         templates={templates}
         loading={loading}
         current={current}
-        onCreate={async () => setCurrent(await create({ name: '' }))}
+        onCreate={async (input) => setCurrent(await create({ name: '', ...input }))}
         onDelete={(template) =>
           showDialog({
             title: t('alert.deleteTemplate'),
