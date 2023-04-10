@@ -1,6 +1,17 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { css } from '@emotion/css';
 import { Add, DeleteForever } from '@mui/icons-material';
-import { Box, BoxProps, IconButton, List, ListItem, ListItemButton, ListItemText, Typography } from '@mui/material';
+import {
+  Box,
+  BoxProps,
+  CircularProgress,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Typography,
+} from '@mui/material';
 import produce from 'immer';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -10,6 +21,7 @@ import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '..
 
 export default function TemplateList({
   templates,
+  loading,
   current,
   onCreate,
   onDelete,
@@ -17,11 +29,14 @@ export default function TemplateList({
   ...props
 }: {
   templates: Template[];
+  loading?: boolean;
   current?: Template;
   onCreate?: () => void;
   onDelete?: (template: Template) => void;
   onClick?: (template: Template) => void;
 } & Omit<BoxProps, 'onClick'>) {
+  const { t } = useLocaleContext();
+
   return (
     <Box {...props}>
       <Box
@@ -36,7 +51,7 @@ export default function TemplateList({
           bgcolor: 'background.paper',
         }}>
         <Typography variant="subtitle1" sx={{ flex: 1 }}>
-          Templates
+          {t('main.templates')}
         </Typography>
 
         {onCreate && (
@@ -90,6 +105,21 @@ export default function TemplateList({
             </ListItemButton>
           </ListItem>
         ))}
+
+        {loading ? (
+          <Box textAlign="center">
+            <CircularProgress size={20} />
+          </Box>
+        ) : (
+          templates.length === 0 && (
+            <ListItem>
+              <ListItemText
+                primary={t('alert.noTemplates')}
+                primaryTypographyProps={{ color: 'text.secondary', textAlign: 'center' }}
+              />
+            </ListItem>
+          )
+        )}
       </List>
     </Box>
   );
@@ -98,7 +128,7 @@ export default function TemplateList({
 export function useTemplates() {
   const [state, setState] = useState<{ templates: Template[]; loading: boolean; submiting: boolean; error?: Error }>({
     templates: [],
-    loading: false,
+    loading: true,
     submiting: false,
   });
 

@@ -243,7 +243,11 @@ export default function TemplateFormView({
         />
       </Grid>
       <Grid item xs={12}>
-        <TagsAutoComplete value={form.tags ?? []} onChange={(_, value) => onChange((form) => (form.tags = value))} />
+        <TagsAutoComplete
+          label={t('form.tag')}
+          value={form.tags ?? []}
+          onChange={(_, value) => onChange((form) => (form.tags = value))}
+        />
       </Grid>
 
       <Grid item xs={12}>

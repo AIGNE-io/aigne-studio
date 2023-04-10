@@ -1,6 +1,9 @@
 import flat from 'flat';
 
 export default flat({
+  main: {
+    templates: '模版',
+  },
   form: {
     name: '名称',
     icon: '图标',
@@ -17,6 +20,7 @@ export default flat({
     mode: '模式',
     default: '默认',
     chat: '会话',
+    tag: '标签',
     parameter: {
       type: '类型',
       typeText: '文本',

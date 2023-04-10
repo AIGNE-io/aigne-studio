@@ -1,4 +1,4 @@
-import { Autocomplete, AutocompleteProps, CircularProgress, TextField } from '@mui/material';
+import { Autocomplete, AutocompleteProps, CircularProgress, TextField, TextFieldProps } from '@mui/material';
 import { useReactive, useThrottleEffect } from 'ahooks';
 import { useState } from 'react';
 
@@ -6,9 +6,10 @@ import { getTags } from '../../libs/tags';
 
 const SEARCH_PAGE_SIZE = 50;
 
-export default function TagsAutoComplete(
-  props: Pick<AutocompleteProps<string, true, false, true>, 'value' | 'onChange'>
-) {
+export default function TagsAutoComplete({
+  label,
+  ...props
+}: Pick<AutocompleteProps<string, true, false, true>, 'value' | 'onChange'> & Pick<TextFieldProps, 'label'>) {
   const [search, setSearch] = useState('');
   const state = useReactive<{ open: boolean; loading: boolean; options: string[] }>({
     open: false,
@@ -54,7 +55,7 @@ export default function TagsAutoComplete(
       onInputChange={(_, keyword) => setSearch(keyword)}
       renderInput={(params) => (
         <TextField
-          label="Tags"
+          label={label}
           {...params}
           InputProps={{
             ...params.InputProps,

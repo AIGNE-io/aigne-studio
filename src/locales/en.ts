@@ -1,6 +1,9 @@
 import flat from 'flat';
 
 export default flat({
+  main: {
+    templates: 'Templates',
+  },
   form: {
     name: 'Name',
     icon: 'Icon',
@@ -17,6 +20,7 @@ export default flat({
     mode: 'Mode',
     default: 'Default',
     chat: 'Chat',
+    tag: 'Tag',
     parameter: {
       type: 'Type',
       typeText: 'Text',

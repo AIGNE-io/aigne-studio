@@ -42,7 +42,7 @@ export default function TemplateView() {
       ),
   });
 
-  const { templates, submiting, create, update, remove } = useTemplates();
+  const { templates, loading, submiting, create, update, remove } = useTemplates();
   const [current, setCurrentTemplate] = useState<Template>();
   const [form, setForm] = useState<Template>();
 
@@ -215,7 +215,7 @@ Question: ${question}\
             throw error;
           }
         }}>
-        Save
+        {t('form.save')}
       </LoadingButton>
     );
 
@@ -239,6 +239,7 @@ Question: ${question}\
       <TemplateList
         sx={{ width: 200, height: '100%', overflow: 'auto' }}
         templates={templates}
+        loading={loading}
         current={current}
         onCreate={async () => setCurrent(await create({ name: '' }))}
         onDelete={(template) =>
