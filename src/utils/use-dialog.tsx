@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import type { DialogProps } from '@mui/material';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
 
@@ -16,18 +16,28 @@ export default function useDialog() {
       title,
       content,
       cancelText = 'Cancel',
+      middleText,
+      middleColor,
       okText = 'Ok',
+      okColor,
       onOk,
+      onMiddleClick,
       onClose,
+      ...props
     }: {
       title?: ReactNode;
       content?: ReactNode;
       cancelText?: string;
       okText?: string;
+      okColor?: ButtonProps['color'];
+      middleText?: string;
+      middleColor?: ButtonProps['color'];
       onOk?: () => Promise<any> | any;
+      onMiddleClick?: () => Promise<any> | any;
       onClose?: () => any;
-    }) => {
+    } & Omit<DialogProps, 'open'>) => {
       setProps({
+        ...props,
         open: true,
         children: (
           <form onSubmit={(e) => e.preventDefault()}>
@@ -39,8 +49,24 @@ export default function useDialog() {
             )}
             <DialogActions>
               <Button onClick={onClose ?? closeDialog}>{cancelText}</Button>
+              {middleText && onMiddleClick ? (
+                <Button
+                  variant="contained"
+                  color={middleColor}
+                  onClick={async () => {
+                    await onMiddleClick();
+                    if (onClose) {
+                      onClose();
+                    } else {
+                      closeDialog();
+                    }
+                  }}>
+                  {middleText}
+                </Button>
+              ) : null}
               <Button
                 variant="contained"
+                color={okColor}
                 onClick={async () => {
                   await onOk?.();
                   if (onClose) {

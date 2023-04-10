@@ -1,6 +1,9 @@
 import flat from 'flat';
 
 export default flat({
+  main: {
+    templates: 'Templates',
+  },
   form: {
     name: 'Name',
     icon: 'Icon',
@@ -10,7 +13,6 @@ export default flat({
     save: 'Save',
     new: 'New',
     copy: 'Copy',
-    exportTemplate: 'Export Template',
     prompt: 'Prompt',
     branch: 'Branch',
     add: 'Add',
@@ -18,6 +20,7 @@ export default flat({
     mode: 'Mode',
     default: 'Default',
     chat: 'Chat',
+    tag: 'Tag',
     parameter: {
       type: 'Type',
       typeText: 'Text',
@@ -40,8 +43,10 @@ export default flat({
     },
   },
   alert: {
+    export: 'Export',
     noTemplates: 'No Templates',
     discardChanges: 'Discard changes?',
+    discard: 'Discard',
     deleteTemplate: 'Delete this template?',
     cancel: 'Cancel',
     delete: 'Delete',

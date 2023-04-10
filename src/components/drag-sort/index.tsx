@@ -92,31 +92,17 @@ const ItemRoot = styled(Box)`
   }
 
   > .actions {
-    position: absolute;
-    right: 0;
     display: flex;
     align-items: center;
     overflow: hidden;
+    margin-left: 4px;
 
     > * {
       opacity: 0.5;
-      display: none;
       cursor: pointer;
-    }
 
-    > .visible {
-      display: inline-block;
-    }
-  }
-
-  &:hover {
-    > .actions {
-      > * {
-        display: inline-block;
-
-        &:hover {
-          opacity: 1;
-        }
+      &:hover {
+        opacity: 1;
       }
     }
   }
