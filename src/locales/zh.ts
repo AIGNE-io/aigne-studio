@@ -10,7 +10,6 @@ export default flat({
     save: '保存',
     new: '新建',
     copy: '拷贝',
-    exportTemplate: '导出模版',
     prompt: '提示',
     branch: '分支',
     add: '添加',
@@ -40,8 +39,10 @@ export default flat({
     },
   },
   alert: {
+    export: '导出',
     noTemplates: '暂无模版',
     discardChanges: '放弃更改？',
+    discard: '放弃',
     deleteTemplate: '确定要删除该模版吗？',
     cancel: '取消',
     delete: '删除',

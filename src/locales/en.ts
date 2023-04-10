@@ -10,7 +10,6 @@ export default flat({
     save: 'Save',
     new: 'New',
     copy: 'Copy',
-    exportTemplate: 'Export Template',
     prompt: 'Prompt',
     branch: 'Branch',
     add: 'Add',
@@ -40,8 +39,10 @@ export default flat({
     },
   },
   alert: {
+    export: 'Export',
     noTemplates: 'No Templates',
     discardChanges: 'Discard changes?',
+    discard: 'Discard',
     deleteTemplate: 'Delete this template?',
     cancel: 'Cancel',
     delete: 'Delete',
