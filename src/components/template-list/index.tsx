@@ -5,6 +5,7 @@ import {
   Box,
   BoxProps,
   Button,
+  Chip,
   CircularProgress,
   IconButton,
   List,
@@ -64,72 +65,81 @@ export default function TemplateList({
       </Box>
 
       <List disablePadding>
-        {templates.map((template) => (
-          <ListItem
-            key={template._id}
-            disablePadding
-            className={css`
-              > .MuiListItemButton-root {
-                padding-right: 16px;
-              }
+        {templates.map((template) => {
+          const type = template.type ? { branch: t('form.branch') }[template.type] : t('form.prompt');
 
-              > .MuiListItemSecondaryAction-root {
-                top: 0;
-                right: 0;
-                transform: none;
-                background-color: rgba(240, 240, 240, 0.8);
-                border-radius: 4px;
-                display: none;
-
-                > .MuiButton-root {
-                  min-width: 0;
-                  padding: 4px 2px;
-                }
-              }
-
-              &:hover {
+          return (
+            <ListItem
+              key={template._id}
+              disablePadding
+              className={css`
                 > .MuiListItemButton-root {
-                  padding-right: 32px;
+                  padding-right: 16px;
                 }
 
                 > .MuiListItemSecondaryAction-root {
-                  display: block;
+                  top: 0;
+                  right: 0;
+                  transform: none;
+                  background-color: rgba(240, 240, 240, 0.8);
+                  border-radius: 4px;
+                  display: none;
+
+                  > .MuiButton-root {
+                    min-width: 0;
+                    padding: 4px 2px;
+                  }
                 }
-              }
-            `}
-            secondaryAction={
-              <>
-                {onCreate && (
-                  <Button
-                    size="small"
-                    onClick={() =>
-                      onCreate({
-                        ...omit(template, '_id', 'createdAt', 'updatedAt'),
-                        name: `${template.name || template._id} Copy`,
-                      })
-                    }>
-                    <CopyAll fontSize="small" />
-                  </Button>
-                )}
-                {onDelete && (
-                  <Button size="small" onClick={() => onDelete(template)}>
-                    <DeleteForever fontSize="small" />
-                  </Button>
-                )}
-              </>
-            }>
-            <ListItemButton selected={current?._id === template._id} onClick={() => onClick?.(template)}>
-              <ListItemText
-                primary={template.name || template._id}
-                primaryTypographyProps={{ noWrap: true }}
-                secondary={template.description || template.template}
-                secondaryTypographyProps={{
-                  sx: { display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' },
-                }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+
+                &:hover {
+                  > .MuiListItemButton-root {
+                    padding-right: 32px;
+                  }
+
+                  > .MuiListItemSecondaryAction-root {
+                    display: block;
+                  }
+                }
+              `}
+              secondaryAction={
+                <>
+                  {onCreate && (
+                    <Button
+                      size="small"
+                      onClick={() =>
+                        onCreate({
+                          ...omit(template, '_id', 'createdAt', 'updatedAt'),
+                          name: `${template.name || template._id} Copy`,
+                        })
+                      }>
+                      <CopyAll fontSize="small" />
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button size="small" onClick={() => onDelete(template)}>
+                      <DeleteForever fontSize="small" />
+                    </Button>
+                  )}
+                </>
+              }>
+              <ListItemButton selected={current?._id === template._id} onClick={() => onClick?.(template)}>
+                <ListItemText
+                  primary={template.name || template._id}
+                  primaryTypographyProps={{ noWrap: true }}
+                  secondary={
+                    <>
+                      {type && <Chip component="span" size="small" label={type} sx={{ mr: 1 }} />}
+                      {template.description || template.template}
+                    </>
+                  }
+                  secondaryTypographyProps={{
+                    sx: { display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' },
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
 
         {loading ? (
           <Box textAlign="center">
