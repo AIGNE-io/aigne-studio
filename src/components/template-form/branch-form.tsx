@@ -13,6 +13,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { DragSortListItem } from '../drag-sort';
 import ParameterField from '../parameter-field';
+import { useTemplates } from '../template-list';
 import TemplateAutocomplete from './template-autocomplete';
 import type { TemplateForm } from '.';
 
@@ -26,6 +27,13 @@ export default function BranchForm({
   onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { t } = useLocaleContext();
+  const { templates, create } = useTemplates();
+
+  const isTemplateEmpty = ({ id }: { id: string }) => {
+    const t = templates.find((i) => i._id === id);
+    if (t?.type === 'branch') return !t.branch?.branches.length;
+    return !t?.template;
+  };
 
   const data = useReactive<{ branches: ({ id: string } & NonNullable<TemplateForm['branch']>['branches'][0])[] }>({
     branches: [],
@@ -86,7 +94,9 @@ export default function BranchForm({
               actions={
                 <>
                   {onTemplateClick && branch.template && (
-                    <Box onClick={() => onTemplateClick(branch.template!)}>
+                    <Box
+                      onClick={() => onTemplateClick(branch.template!)}
+                      color={isTemplateEmpty(branch.template) ? 'warning.main' : undefined}>
                       <Construction />
                     </Box>
                   )}
@@ -106,6 +116,8 @@ export default function BranchForm({
                     (branch.template = (typeof v === 'string' ? { id: '', name: v } : v) ?? undefined)
                   }
                   renderInput={(params) => <TextField {...params} label={t('form.name')} />}
+                  options={templates}
+                  createTemplate={create}
                 />
 
                 <TextField

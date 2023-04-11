@@ -5,6 +5,7 @@ import {
   Box,
   BoxProps,
   Button,
+  Chip,
   CircularProgress,
   IconButton,
   List,
@@ -15,7 +16,17 @@ import {
 } from '@mui/material';
 import produce from 'immer';
 import { omit } from 'lodash';
-import { useCallback, useEffect, useState } from 'react';
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { TemplateInput } from '../../../api/src/routes/templates';
 import { Template } from '../../../api/src/store/templates';
@@ -64,72 +75,81 @@ export default function TemplateList({
       </Box>
 
       <List disablePadding>
-        {templates.map((template) => (
-          <ListItem
-            key={template._id}
-            disablePadding
-            className={css`
-              > .MuiListItemButton-root {
-                padding-right: 16px;
-              }
+        {templates.map((template) => {
+          const type = template.type ? { branch: t('form.branch') }[template.type] : t('form.prompt');
 
-              > .MuiListItemSecondaryAction-root {
-                top: 0;
-                right: 0;
-                transform: none;
-                background-color: rgba(240, 240, 240, 0.8);
-                border-radius: 4px;
-                display: none;
-
-                > .MuiButton-root {
-                  min-width: 0;
-                  padding: 4px 2px;
-                }
-              }
-
-              &:hover {
+          return (
+            <ListItem
+              key={template._id}
+              disablePadding
+              className={css`
                 > .MuiListItemButton-root {
-                  padding-right: 32px;
+                  padding-right: 16px;
                 }
 
                 > .MuiListItemSecondaryAction-root {
-                  display: block;
+                  top: 0;
+                  right: 0;
+                  transform: none;
+                  background-color: rgba(240, 240, 240, 0.8);
+                  border-radius: 4px;
+                  display: none;
+
+                  > .MuiButton-root {
+                    min-width: 0;
+                    padding: 4px 2px;
+                  }
                 }
-              }
-            `}
-            secondaryAction={
-              <>
-                {onCreate && (
-                  <Button
-                    size="small"
-                    onClick={() =>
-                      onCreate({
-                        ...omit(template, '_id', 'createdAt', 'updatedAt'),
-                        name: `${template.name || template._id} Copy`,
-                      })
-                    }>
-                    <CopyAll fontSize="small" />
-                  </Button>
-                )}
-                {onDelete && (
-                  <Button size="small" onClick={() => onDelete(template)}>
-                    <DeleteForever fontSize="small" />
-                  </Button>
-                )}
-              </>
-            }>
-            <ListItemButton selected={current?._id === template._id} onClick={() => onClick?.(template)}>
-              <ListItemText
-                primary={template.name || template._id}
-                primaryTypographyProps={{ noWrap: true }}
-                secondary={template.description || template.template}
-                secondaryTypographyProps={{
-                  sx: { display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' },
-                }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+
+                &:hover {
+                  > .MuiListItemButton-root {
+                    padding-right: 32px;
+                  }
+
+                  > .MuiListItemSecondaryAction-root {
+                    display: block;
+                  }
+                }
+              `}
+              secondaryAction={
+                <>
+                  {onCreate && (
+                    <Button
+                      size="small"
+                      onClick={() =>
+                        onCreate({
+                          ...omit(template, '_id', 'createdAt', 'updatedAt'),
+                          name: `${template.name || template._id} Copy`,
+                        })
+                      }>
+                      <CopyAll fontSize="small" />
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button size="small" onClick={() => onDelete(template)}>
+                      <DeleteForever fontSize="small" />
+                    </Button>
+                  )}
+                </>
+              }>
+              <ListItemButton selected={current?._id === template._id} onClick={() => onClick?.(template)}>
+                <ListItemText
+                  primary={template.name || template._id}
+                  primaryTypographyProps={{ noWrap: true }}
+                  secondary={
+                    <>
+                      {type && <Chip component="span" size="small" label={type} sx={{ mr: 1 }} />}
+                      {template.description || template.template}
+                    </>
+                  }
+                  secondaryTypographyProps={{
+                    sx: { display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' },
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
 
         {loading ? (
           <Box textAlign="center">
@@ -150,12 +170,34 @@ export default function TemplateList({
   );
 }
 
-export function useTemplates() {
-  const [state, setState] = useState<{ templates: Template[]; loading: boolean; submiting: boolean; error?: Error }>({
+export interface TemplatesContext {
+  templates: Template[];
+  loading: boolean;
+  submiting: boolean;
+  error?: Error;
+}
+
+const templatesContext = createContext<TemplatesContext & { setState: Dispatch<SetStateAction<TemplatesContext>> }>({
+  templates: [],
+  loading: false,
+  submiting: false,
+  setState: () => {},
+});
+
+export function TemplatesProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<TemplatesContext>({
     templates: [],
-    loading: true,
+    loading: false,
     submiting: false,
   });
+
+  const value = useMemo(() => ({ ...state, setState }), [state, setState]);
+
+  return <templatesContext.Provider value={value}>{children}</templatesContext.Provider>;
+}
+
+export function useTemplates() {
+  const { setState, ...state } = useContext(templatesContext);
 
   const refetch = useCallback(async () => {
     setState((state) => ({ ...state, loading: true }));
@@ -175,7 +217,9 @@ export function useTemplates() {
   }, []);
 
   useEffect(() => {
-    refetch();
+    if (!state.templates.length) {
+      refetch();
+    }
   }, []);
 
   const create = useCallback(async (template: TemplateInput) => {

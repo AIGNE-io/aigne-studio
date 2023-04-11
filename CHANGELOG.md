@@ -1,3 +1,8 @@
+## 0.1.31 (2023-4-11)
+
+- fix: awesome branch selector
+- fix: show template type in list item
+
 ## 0.1.30 (2023-4-10)
 
 - feat: support goto branch template directly
