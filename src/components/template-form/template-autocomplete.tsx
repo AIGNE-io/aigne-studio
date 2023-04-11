@@ -1,16 +1,18 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   Autocomplete,
   AutocompleteProps,
   AutocompleteRenderInputParams,
-  CircularProgress,
   MenuItem,
   TextField,
+  createFilterOptions,
 } from '@mui/material';
-import { useReactive, useThrottleFn } from 'ahooks';
-import { useCallback, useEffect } from 'react';
+import { useMemo } from 'react';
 
+import { TemplateInput } from '../../../api/src/routes/templates';
 import { Template } from '../../../api/src/store/templates';
-import { getTemplates } from '../../libs/templates';
+
+const filter = createFilterOptions<Pick<Template, 'name'> & { id: string }>();
 
 export interface TemplateAutocompleteProps<
   Multiple extends boolean | undefined,
@@ -20,13 +22,15 @@ export interface TemplateAutocompleteProps<
     AutocompleteProps<Pick<Template, 'name'> & { id: string }, Multiple, DisableClearable, FreeSolo>,
     | 'inputValue'
     | 'onInputChange'
-    | 'options'
     | 'getOptionLabel'
+    | 'options'
     | 'isOptionEqualToValue'
     | 'filterOptions'
     | 'loading'
     | 'renderInput'
   > {
+  options: Template[];
+  createTemplate?: (input: TemplateInput) => Promise<Template>;
   renderInput?: (params: AutocompleteRenderInputParams) => React.ReactNode;
 }
 
@@ -34,82 +38,64 @@ export default function TemplateAutocomplete<
   Multiple extends boolean | undefined = false,
   DisableClearable extends boolean | undefined = false,
   FreeSolo extends boolean | undefined = false
->(props: TemplateAutocompleteProps<Multiple, DisableClearable, FreeSolo>) {
-  const state = useReactive<{
-    searching: boolean;
-    searchKey: number;
-    resultKey: number;
-    keyword: string;
-    options: (Pick<Template, 'name'> & { id: string })[];
-  }>({ searching: false, searchKey: 0, resultKey: 0, keyword: '', options: [] });
+>({
+  options: templates,
+  createTemplate,
+  ...props
+}: TemplateAutocompleteProps<Multiple, DisableClearable, FreeSolo> & {}) {
+  const { t } = useLocaleContext();
 
-  const search = useCallback(async (keyword: string) => {
-    const key = state.searchKey;
-
-    try {
-      const options = (await getTemplates({ search: keyword, limit: 20 })).templates;
-      if (key > state.resultKey) {
-        state.resultKey = key;
-        state.options = options.map((i) => ({ id: i._id, name: i.name }));
-      }
-    } finally {
-      if (key === state.searchKey) {
-        state.searching = false;
-      }
-    }
-  }, []);
-
-  const { run } = useThrottleFn(search, { wait: 1000 });
-
-  useEffect(() => {
-    state.searchKey += 1;
-    state.searching = true;
-    run(state.keyword);
-  }, [state.keyword]);
+  const options = useMemo(() => templates.map((i) => ({ id: i._id, name: i.name })), [templates]);
 
   const { renderInput = (params) => <TextField {...params} /> } = props;
 
   return (
     <Autocomplete
       {...props}
-      onBlurCapture={(e) => {
-        if (!props.multiple && props.freeSolo && props.autoSelect && state.keyword) {
-          const { value } = props;
-          if (Array.isArray(value)) {
+      onChange={(e, newValue, reason) => {
+        const inputValue = typeof newValue === 'string' ? newValue : (newValue as any)?.inputValue;
+
+        if (!Array.isArray(newValue) && inputValue) {
+          const t = options.find((i) => i.name === inputValue);
+          if (t) {
+            props.onChange?.(e, t as any, reason);
             return;
           }
-          if ((typeof value === 'string' ? value : value?.name) !== state.keyword) {
-            props.onChange?.(e, state.keyword as any, 'blur');
-          }
+
+          createTemplate?.({ name: inputValue }).then((template) => {
+            props.onChange?.(e, { id: template._id, name: template.name } as any, reason);
+          });
+        } else {
+          props.onChange?.(e, newValue, reason);
         }
       }}
-      autoSelect={false}
-      inputValue={state.keyword}
-      onInputChange={(_, keyword) => (state.keyword = keyword)}
-      options={state.options}
+      options={options}
+      clearOnBlur
+      selectOnFocus
+      handleHomeEndKeys
       getOptionLabel={(v) => (typeof v === 'string' ? v : v.name || '')}
       isOptionEqualToValue={(o, v) => o.id === v.id}
-      filterOptions={(o) => o}
+      filterOptions={(options, params) => {
+        const filtered = filter(options, params);
+
+        const { inputValue } = params;
+        const isExisting = options.some((option) => inputValue === option.name);
+        if (inputValue !== '' && !isExisting) {
+          filtered.push({
+            id: '',
+            inputValue,
+            name: `${t('form.new')} "${inputValue}"`,
+          } as any);
+        }
+
+        return filtered;
+      }}
       renderOption={(props, option) => (
         <MenuItem {...props} key={option.id}>
           {option.name}
         </MenuItem>
       )}
-      loading={state.searching}
-      renderInput={(params) =>
-        renderInput({
-          ...params,
-          InputProps: {
-            ...params.InputProps,
-            endAdornment: (
-              <>
-                {state.searching && <CircularProgress size={20} />}
-                {params.InputProps.endAdornment}
-              </>
-            ),
-          },
-        })
-      }
+      renderInput={renderInput}
     />
   );
 }

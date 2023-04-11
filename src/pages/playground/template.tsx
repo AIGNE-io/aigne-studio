@@ -17,12 +17,20 @@ import { stringify } from 'yaml';
 import { Template } from '../../../api/src/store/templates';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView, { TemplateForm } from '../../components/template-form';
-import TemplateList, { useTemplates } from '../../components/template-list';
+import TemplateList, { TemplatesProvider, useTemplates } from '../../components/template-list';
 import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
 
-export default function TemplateView() {
+export default function TemplatePage() {
+  return (
+    <TemplatesProvider>
+      <TemplateView />
+    </TemplatesProvider>
+  );
+}
+
+function TemplateView() {
   const { t } = useLocaleContext();
   const ref = useRef<ConversationRef>(null);
   const { dialog, showDialog } = useDialog();

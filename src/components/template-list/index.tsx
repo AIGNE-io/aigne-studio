@@ -16,7 +16,17 @@ import {
 } from '@mui/material';
 import produce from 'immer';
 import { omit } from 'lodash';
-import { useCallback, useEffect, useState } from 'react';
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { TemplateInput } from '../../../api/src/routes/templates';
 import { Template } from '../../../api/src/store/templates';
@@ -160,12 +170,34 @@ export default function TemplateList({
   );
 }
 
-export function useTemplates() {
-  const [state, setState] = useState<{ templates: Template[]; loading: boolean; submiting: boolean; error?: Error }>({
+export interface TemplatesContext {
+  templates: Template[];
+  loading: boolean;
+  submiting: boolean;
+  error?: Error;
+}
+
+const templatesContext = createContext<TemplatesContext & { setState: Dispatch<SetStateAction<TemplatesContext>> }>({
+  templates: [],
+  loading: false,
+  submiting: false,
+  setState: () => {},
+});
+
+export function TemplatesProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<TemplatesContext>({
     templates: [],
-    loading: true,
+    loading: false,
     submiting: false,
   });
+
+  const value = useMemo(() => ({ ...state, setState }), [state, setState]);
+
+  return <templatesContext.Provider value={value}>{children}</templatesContext.Provider>;
+}
+
+export function useTemplates() {
+  const { setState, ...state } = useContext(templatesContext);
 
   const refetch = useCallback(async () => {
     setState((state) => ({ ...state, loading: true }));
@@ -185,7 +217,9 @@ export function useTemplates() {
   }, []);
 
   useEffect(() => {
-    refetch();
+    if (!state.templates.length) {
+      refetch();
+    }
   }, []);
 
   const create = useCallback(async (template: TemplateInput) => {
