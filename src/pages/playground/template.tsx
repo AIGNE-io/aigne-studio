@@ -110,11 +110,9 @@ function TemplateView() {
   // Set current template after templates loaded
   useEffect(() => {
     const templateId = searchParams.get('templateId');
-    if (!current) {
-      const current = templates.find((i) => i._id === templateId);
-      if (current) {
-        setCurrent(current);
-      }
+    if (!current || !templates.some((i) => i._id === templateId)) {
+      const tpl = templates.find((i) => i._id === templateId) ?? templates[0];
+      if (tpl) setCurrent(tpl);
     }
   }, [templates]);
 
@@ -292,8 +290,6 @@ Question: ${question}\
               try {
                 await remove(template._id);
                 Toast.success(t('alert.deleted'));
-                setCurrentTemplate(templates[0]);
-                setForm(templates[0]);
               } catch (error) {
                 Toast.error(getErrorMessage(error));
                 throw error;
