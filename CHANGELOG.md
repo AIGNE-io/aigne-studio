@@ -1,3 +1,7 @@
+## 0.1.33 (2023-4-13)
+
+- fix: select previous template after navigate back
+
 ## 0.1.32 (2023-4-13)
 
 - fix: select the first template after delete a template
