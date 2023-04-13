@@ -1,3 +1,7 @@
+## 0.1.32 (2023-4-13)
+
+- fix: select the first template after delete a template
+
 ## 0.1.31 (2023-4-11)
 
 - fix: awesome branch selector
