@@ -54,6 +54,10 @@ function TemplateView() {
   const [current, setCurrentTemplate] = useState<Template>();
   const [form, setForm] = useState<Template>();
 
+  useEffect(() => {
+    setForm(current);
+  }, [current]);
+
   const setFormValue = useCallback(
     (update: Template | ((value: WritableDraft<Template>) => void)) => {
       setForm((form) =>
@@ -107,25 +111,42 @@ function TemplateView() {
     )
   );
 
+  const to = useCallback(
+    (templateId?: string, replace?: boolean) =>
+      setSearchParams(
+        (params) => {
+          if (templateId) {
+            params.set('templateId', templateId);
+          } else {
+            params.delete('templateId');
+          }
+          return params;
+        },
+        { replace }
+      ),
+    []
+  );
+
+  const templateId = searchParams.get('templateId');
+
   // Set current template after templates loaded
   useEffect(() => {
-    const templateId = searchParams.get('templateId');
-    if (!current || !templates.some((i) => i._id === templateId)) {
-      const tpl = templates.find((i) => i._id === templateId) ?? templates[0];
+    if (!templateId) {
+      const template = templates[0];
+      if (template) to(template._id, true);
+      return;
+    }
+    if (templates.length && !templates.some((i) => i._id === templateId)) {
+      const template = templates[0];
+      if (template) to(template._id, true);
+      else to(undefined, true);
+      return;
+    }
+    if (current?._id !== templateId) {
+      const tpl = templates.find((i) => i._id === templateId);
       if (tpl) setCurrent(tpl);
     }
-  }, [templates]);
-
-  useEffect(() => {
-    if (current) {
-      setSearchParams((params) => {
-        params.set('templateId', current._id);
-        return params;
-      });
-    }
-
-    setForm(current);
-  }, [current?._id]);
+  }, [templates, templateId]);
 
   const onExecute = async (template: TemplateForm) => {
     const { parameters } = template;
@@ -190,7 +211,7 @@ Question: ${question}\
                 onClick={() => {
                   const tpl = templates.find((i) => i._id === msg.meta?._id);
                   if (tpl && tpl._id !== current?._id) {
-                    setCurrent(tpl);
+                    to(tpl._id);
                   }
                 }}>
                 <Start fontSize="small" />
@@ -297,7 +318,7 @@ Question: ${question}\
             },
           })
         }
-        onClick={setCurrent}
+        onClick={(template) => to(template._id)}
       />
 
       <Divider orientation="vertical" />
@@ -321,7 +342,7 @@ Question: ${question}\
             onExecute={onExecute}
             onTemplateClick={({ id }) => {
               const template = templates.find((i) => i._id === id);
-              if (template) setCurrent(template);
+              if (template) to(template._id);
             }}
           />
         )}
