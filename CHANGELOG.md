@@ -1,3 +1,7 @@
+## 0.1.34 (2023-4-14)
+
+- chore: update deps
+
 ## 0.1.33 (2023-4-13)
 
 - fix: select previous template after navigate back
