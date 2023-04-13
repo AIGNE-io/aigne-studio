@@ -139,7 +139,7 @@ export default function TemplateList({
                   secondary={
                     <>
                       {type && <Chip component="span" size="small" label={type} sx={{ mr: 1 }} />}
-                      {template.description || template.template}
+                      {template.description}
                     </>
                   }
                   secondaryTypographyProps={{

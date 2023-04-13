@@ -1,17 +1,19 @@
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
+import { omit } from 'lodash';
+import { nanoid } from 'nanoid';
 
 import { ensureAdmin } from '../libs/security';
 import { tags } from '../store/tags';
-import { Template, templates } from '../store/templates';
+import { Template, roles, templates } from '../store/templates';
 
 const router = Router();
 
 export interface TemplateInput
   extends Pick<
     Template,
-    'mode' | 'type' | 'icon' | 'name' | 'tags' | 'description' | 'template' | 'parameters' | 'branch'
+    'mode' | 'type' | 'icon' | 'name' | 'tags' | 'description' | 'prompts' | 'parameters' | 'branch'
   > {}
 
 const valueSchema = Joi.alternatives().conditional('type', {
@@ -78,7 +80,15 @@ const templateSchema = Joi.object<TemplateInput>({
   name: Joi.string().allow('').required(),
   tags: Joi.array().items(Joi.string()).unique(),
   description: Joi.string().allow(''),
-  template: Joi.string().allow(''),
+  prompts: Joi.array().items(
+    Joi.object({
+      id: Joi.string().required(),
+      content: Joi.string().empty(''),
+      role: Joi.string()
+        .valid(...roles)
+        .empty(''),
+    })
+  ),
   parameters: parametersSchema,
   branch: Joi.object({
     branches: Joi.array().items(
@@ -135,7 +145,7 @@ export async function getTemplates(req: Request, res: Response) {
     .limit(limit)
     .exec();
 
-  res.json({ templates: list });
+  res.json({ templates: list.map((template) => migrateTemplateToPrompts(template as any)) });
 }
 
 router.get('/', ensureAdmin, getTemplates);
@@ -149,7 +159,15 @@ export async function getTemplate(req: Request, res: Response) {
     return;
   }
 
-  res.json(template);
+  res.json(migrateTemplateToPrompts(template as any));
+}
+
+function migrateTemplateToPrompts(template: Template): Template {
+  const prompt: string | undefined = (template as any).template;
+  if (template.prompts || !prompt) {
+    return omit(template, 'template');
+  }
+  return { ...omit(template), prompts: [{ id: nanoid(), role: 'system', content: prompt }] };
 }
 
 router.get('/:templateId', ensureAdmin, getTemplate);

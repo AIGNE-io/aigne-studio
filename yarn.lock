@@ -747,10 +747,10 @@
   resolved "https://registry.yarnpkg.com/@beskar-labs/gpt-encoder/-/gpt-encoder-1.0.6.tgz#a4d65cfb89c04b51736d52e43cdc7b30fd092ca8"
   integrity sha512-7gLHHDJA2+rb1U62XHy8ym3PThqF8bN7v2VzUep/4BfcxBHKLH3LnNwSU6uLgpqBuI7zYfnN1VFiDXeeG93LXg==
 
-"@blocklet/ai-kit@^0.0.51":
-  version "0.0.51"
-  resolved "https://registry.yarnpkg.com/@blocklet/ai-kit/-/ai-kit-0.0.51.tgz#398eb15b305cf19ea77df19592c97c37a1926bcc"
-  integrity sha512-CpeG5iaEwJDq/N+R1C8kvTYLlW+pbK1/So29vSMkPeX68BLxxhRY6YO+ibPwW9UoBfEAZtTrlkaRznJoyT4XNQ==
+"@blocklet/ai-kit@^0.0.52":
+  version "0.0.52"
+  resolved "https://registry.yarnpkg.com/@blocklet/ai-kit/-/ai-kit-0.0.52.tgz#b8906e3d9154395840018566e13b36bc0813b333"
+  integrity sha512-0vA4CtjGutoJzapNTd5Sn5+IFSMOZKaZpUeHnGVpkLcdGnDPss2LsGxCCttOBkkv8RW6raYWeg56/kNR9EHEBw==
   dependencies:
     "@arcblock/ux" "^2.5.18"
     "@emotion/css" "^11.10.6"
