@@ -1,5 +1,9 @@
 import Database from '@blocklet/sdk/lib/database';
 
+export type Role = 'system' | 'user' | 'assistant';
+
+export const roles: Role[] = ['system', 'user', 'assistant'];
+
 export interface Template {
   _id: string;
   type?: 'branch';
@@ -8,7 +12,7 @@ export interface Template {
   tags?: string[];
   icon?: string;
   description?: string;
-  template?: string;
+  prompts?: { id: string; content?: string; role?: Role }[];
   branch?: {
     branches: { template?: { id: string; name: string }; description: string }[];
   };

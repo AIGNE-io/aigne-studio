@@ -10,6 +10,7 @@ import equal from 'fast-deep-equal';
 import saveAs from 'file-saver';
 import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
+import { pick } from 'lodash';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
@@ -40,7 +41,7 @@ function TemplateView() {
     scrollToBottom: (o) => ref.current?.scrollToBottom(o),
     textCompletions: (prompt) => {
       return textCompletions({
-        prompt,
+        ...(typeof prompt === 'string' ? { prompt } : { messages: prompt }),
         stream: true,
       });
     },
@@ -164,7 +165,13 @@ function TemplateView() {
           return;
         }
         const { text } = await add(
-          `\
+          [
+            ...(template.prompts
+              ?.filter((i): i is Required<typeof i> => !!i.content && !!i.role)
+              .map((i) => pick(i, 'content', 'role')) ?? []),
+            {
+              role: 'system',
+              content: `\
 你是一个分支选择器，你需要根据用户输入的问题选择最合适的一个分支。可用的分支如下：
 
 ${branches.map((i) => `Branch_${i.template!.id}: ${i.description || ''}`).join('\n')}
@@ -179,6 +186,8 @@ Begin!"
 
 Question: ${question}\
 `,
+            },
+          ],
           template
         );
 
@@ -187,13 +196,17 @@ Question: ${question}\
           next = templates.find((i) => i._id === branchId);
         }
       } else {
-        let prompt = template.template;
-        if (prompt) {
-          for (const [param, value] of Object.entries(parameters ?? {})) {
-            prompt = prompt.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameterToStringValue(value));
-          }
-
-          add(prompt, template);
+        const prompts = template.prompts
+          ?.filter((i): i is Required<typeof i> => !!i.content && !!i.role)
+          .map((i) => {
+            let { content } = i;
+            for (const [param, value] of Object.entries(parameters ?? {})) {
+              content = content.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameterToStringValue(value));
+            }
+            return { content, role: i.role };
+          });
+        if (prompts) {
+          add(prompts, template);
         }
       }
     }

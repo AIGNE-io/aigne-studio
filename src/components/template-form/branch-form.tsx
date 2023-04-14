@@ -32,7 +32,8 @@ export default function BranchForm({
   const isTemplateEmpty = ({ id }: { id: string }) => {
     const t = templates.find((i) => i._id === id);
     if (t?.type === 'branch') return !t.branch?.branches.length;
-    return !t?.template;
+    // TODO: validate template correctly
+    return !t?.prompts?.length;
   };
 
   const data = useReactive<{ branches: ({ id: string } & NonNullable<TemplateForm['branch']>['branches'][0])[] }>({
