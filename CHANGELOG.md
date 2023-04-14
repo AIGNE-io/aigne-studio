@@ -1,3 +1,8 @@
+## 0.1.35 (2023-4-14)
+
+- feat: support add prompts for branch
+- feat: support multiple prompt with different roles
+
 ## 0.1.34 (2023-4-14)
 
 - chore: update deps
