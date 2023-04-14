@@ -3,15 +3,16 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { Conversation, ConversationRef, MessageItem, useConversation } from '@blocklet/ai-kit';
 import Dashboard from '@blocklet/ui-react/lib/Dashboard';
 import styled from '@emotion/styled';
-import { Download, HighlightOff, Save, Start } from '@mui/icons-material';
+import { Download, DragIndicator, HighlightOff, Save, Start } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Box, Button, Divider, Tooltip } from '@mui/material';
+import { Box, Button, Tooltip } from '@mui/material';
 import equal from 'fast-deep-equal';
 import saveAs from 'file-saver';
 import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
 import { pick } from 'lodash';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useBeforeUnload, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
 
@@ -305,60 +306,67 @@ Question: ${question}\
 
   return (
     <Root footerProps={{ className: 'dashboard-footer' }} headerAddons={headerAddons}>
-      <TemplateList
-        sx={{ width: 200, overflow: 'auto' }}
-        className="list"
-        templates={templates}
-        loading={loading}
-        current={current}
-        onCreate={async (input) => setCurrent(await create({ name: '', ...input }))}
-        onDelete={(template) =>
-          showDialog({
-            maxWidth: 'xs',
-            fullWidth: true,
-            title: t('alert.deleteTemplate'),
-            okText: t('alert.delete'),
-            okColor: 'error',
-            cancelText: t('alert.cancel'),
-            onOk: async () => {
-              try {
-                await remove(template._id);
-                Toast.success(t('alert.deleted'));
-              } catch (error) {
-                Toast.error(getErrorMessage(error));
-                throw error;
-              }
-            },
-          })
-        }
-        onClick={(template) => to(template._id)}
-      />
-
-      <Divider orientation="vertical" />
-
-      <Conversation
-        className="conversation"
-        ref={ref}
-        sx={{ flex: 1 }}
-        messages={messages}
-        onSubmit={(prompt) => add(prompt)}
-        customActions={customActions}
-      />
-
-      <Divider orientation="vertical" />
-
-      <Box className="form" flex={1} p={2} overflow="auto">
-        {form && (
-          <TemplateFormView
-            value={form}
-            onChange={setFormValue}
-            onExecute={onExecute}
-            onTemplateClick={({ id }) => {
-              const template = templates.find((i) => i._id === id);
-              if (template) to(template._id);
-            }}
+      <Box
+        component={PanelGroup}
+        autoSaveId="ai-studio-template-layouts"
+        direction="horizontal"
+        sx={{ height: '100%' }}>
+        <Box component={Panel} defaultSize={10} minSize={10}>
+          <TemplateList
+            sx={{ height: '100%', overflow: 'auto' }}
+            className="list"
+            templates={templates}
+            loading={loading}
+            current={current}
+            onCreate={async (input) => setCurrent(await create({ name: '', ...input }))}
+            onDelete={(template) =>
+              showDialog({
+                maxWidth: 'xs',
+                fullWidth: true,
+                title: t('alert.deleteTemplate'),
+                okText: t('alert.delete'),
+                okColor: 'error',
+                cancelText: t('alert.cancel'),
+                onOk: async () => {
+                  try {
+                    await remove(template._id);
+                    Toast.success(t('alert.deleted'));
+                  } catch (error) {
+                    Toast.error(getErrorMessage(error));
+                    throw error;
+                  }
+                },
+              })
+            }
+            onClick={(template) => to(template._id)}
           />
-        )}
+        </Box>
+        <ResizeHandle />
+        <Box component={Panel} minSize={30}>
+          <Box sx={{ px: 2, height: '100%', overflow: 'auto' }}>
+            {form && (
+              <TemplateFormView
+                value={form}
+                onChange={setFormValue}
+                onExecute={onExecute}
+                onTemplateClick={({ id }) => {
+                  const template = templates.find((i) => i._id === id);
+                  if (template) to(template._id);
+                }}
+              />
+            )}
+          </Box>
+        </Box>
+        <ResizeHandle />
+        <Box component={Panel} defaultSize={45} minSize={20}>
+          <Conversation
+            ref={ref}
+            messages={messages}
+            sx={{ height: '100%', overflow: 'auto' }}
+            onSubmit={(prompt) => add(prompt)}
+            customActions={customActions}
+          />
+        </Box>
       </Box>
 
       {dialog}
@@ -369,37 +377,8 @@ Question: ${question}\
 const Root = styled(Dashboard)`
   > .dashboard-body > .dashboard-main {
     > .dashboard-content {
-      display: flex;
-      padding-left: 0;
-      padding-right: 0;
       overflow: hidden;
-
-      @media (max-width: 900px) {
-        flex-direction: column;
-        overflow: auto;
-
-        > .list {
-          width: 100%;
-          overflow: visible;
-          flex: unset;
-        }
-
-        > .conversation {
-          overflow: unset;
-        }
-
-        > .MuiDivider-root {
-          height: 1px;
-          width: 100%;
-          margin: 32px 0;
-          border-bottom: 1px solid #eee;
-        }
-
-        > .form {
-          flex: unset;
-          overflow: unset;
-        }
-      }
+      padding: 0;
     }
 
     > .dashboard-footer {
@@ -408,3 +387,24 @@ const Root = styled(Dashboard)`
     }
   }
 `;
+
+function ResizeHandle() {
+  return (
+    <Box
+      component={PanelResizeHandle}
+      sx={{
+        width: 10,
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'grey.200',
+        opacity: 0.6,
+        ':hover': {
+          opacity: 1,
+        },
+      }}>
+      <DragIndicator sx={{ fontSize: 14 }} />
+    </Box>
+  );
+}
