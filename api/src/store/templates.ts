@@ -14,7 +14,7 @@ export interface Template {
   description?: string;
   prompts?: { id: string; content?: string; role?: Role }[];
   branch?: {
-    branches: { template?: { id: string; name: string }; description: string }[];
+    branches: { id: string; template?: { id: string; name: string }; description: string }[];
   };
   parameters?: { [key: string]: Parameter };
   createdAt: string;

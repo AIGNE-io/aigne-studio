@@ -17,6 +17,8 @@ import { useReactive } from 'ahooks';
 import equal from 'fast-deep-equal';
 import { nanoid } from 'nanoid';
 import { useEffect, useMemo } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { Parameter, SelectParameter } from '../../../api/src/store/templates';
 import { DragSortListItem } from '../drag-sort';
@@ -182,55 +184,57 @@ function SelectOptionsConfig({
   });
 
   return (
-    <Box>
-      {data.map((option, index) => (
-        <DragSortListItem
-          sx={{ my: 0.5 }}
-          key={option.id}
-          dragType="SELECT_OPTION"
-          dropType={['SELECT_OPTION']}
-          id={option.id}
-          index={index}
-          move={(id, toIndex) => {
-            const srcIndex = data.findIndex((i) => i.id === id);
-            data.splice(toIndex, 0, ...data.splice(srcIndex, 1));
-          }}
-          actions={
-            <Box onClick={() => data.splice(index, 1)}>
-              <Delete />
-            </Box>
-          }>
-          <SelectOptionConfigItem>
-            <Input
-              inputProps={{ id: `option-label-${option.id}` }}
-              disableUnderline
-              placeholder={t('form.parameter.label')}
-              value={option.label}
-              onChange={(e) => (option.label = e.target.value)}
-            />
-            <Input
-              sx={{ ml: 0.5 }}
-              disableUnderline
-              placeholder={t('form.parameter.value')}
-              value={option.value}
-              onChange={(e) => (option.value = e.target.value)}
-            />
-          </SelectOptionConfigItem>
-        </DragSortListItem>
-      ))}
+    <DndProvider backend={HTML5Backend}>
+      <Box>
+        {data.map((option, index) => (
+          <DragSortListItem
+            sx={{ my: 0.5 }}
+            key={option.id}
+            dragType="SELECT_OPTION"
+            dropType={['SELECT_OPTION']}
+            id={option.id}
+            index={index}
+            move={(id, toIndex) => {
+              const srcIndex = data.findIndex((i) => i.id === id);
+              data.splice(toIndex, 0, ...data.splice(srcIndex, 1));
+            }}
+            actions={
+              <Box onClick={() => data.splice(index, 1)}>
+                <Delete />
+              </Box>
+            }>
+            <SelectOptionConfigItem>
+              <Input
+                inputProps={{ id: `option-label-${option.id}` }}
+                disableUnderline
+                placeholder={t('form.parameter.label')}
+                value={option.label}
+                onChange={(e) => (option.label = e.target.value)}
+              />
+              <Input
+                sx={{ ml: 0.5 }}
+                disableUnderline
+                placeholder={t('form.parameter.value')}
+                value={option.value}
+                onChange={(e) => (option.value = e.target.value)}
+              />
+            </SelectOptionConfigItem>
+          </DragSortListItem>
+        ))}
 
-      <Button
-        fullWidth
-        size="small"
-        startIcon={<Add />}
-        onClick={() => {
-          const id = nanoid(16);
-          data.push({ id, label: '', value: '' });
-          setTimeout(() => document.getElementById(`option-label-${id}`)?.focus());
-        }}>
-        {t('form.parameter.addOption')}
-      </Button>
-    </Box>
+        <Button
+          fullWidth
+          size="small"
+          startIcon={<Add />}
+          onClick={() => {
+            const id = nanoid(16);
+            data.push({ id, label: '', value: '' });
+            setTimeout(() => document.getElementById(`option-label-${id}`)?.focus());
+          }}>
+          {t('form.parameter.addOption')}
+        </Button>
+      </Box>
+    </DndProvider>
   );
 }
 

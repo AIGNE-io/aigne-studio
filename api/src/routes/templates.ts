@@ -93,6 +93,7 @@ const templateSchema = Joi.object<TemplateInput>({
   branch: Joi.object({
     branches: Joi.array().items(
       Joi.object({
+        id: Joi.string().required(),
         template: Joi.object({
           id: Joi.string().empty(''),
           name: Joi.string().required(),
@@ -163,11 +164,24 @@ export async function getTemplate(req: Request, res: Response) {
 }
 
 function migrateTemplateToPrompts(template: Template): Template {
+  let res = template;
+
   const prompt: string | undefined = (template as any).template;
   if (template.prompts || !prompt) {
-    return omit(template, 'template');
+    res = omit(template, 'template');
+  } else {
+    res = { ...omit(template), prompts: [{ id: nanoid(), role: 'system', content: prompt }] };
   }
-  return { ...omit(template), prompts: [{ id: nanoid(), role: 'system', content: prompt }] };
+
+  if (res.branch?.branches) {
+    for (const i of res.branch.branches) {
+      if (!i.id) {
+        i.id = nanoid();
+      }
+    }
+  }
+
+  return res;
 }
 
 router.get('/:templateId', ensureAdmin, getTemplate);

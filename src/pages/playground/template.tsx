@@ -343,7 +343,7 @@ Question: ${question}\
         </Box>
         <ResizeHandle />
         <Box component={Panel} minSize={30}>
-          <Box sx={{ px: 2, height: '100%', overflow: 'auto' }}>
+          <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
             {form && (
               <TemplateFormView
                 value={form}
