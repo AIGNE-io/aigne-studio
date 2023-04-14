@@ -45,7 +45,7 @@
     "@arcblock/did-connect": "^2.5.25",
     "@arcblock/ux": "^2.5.25",
     "@beskar-labs/gpt-encoder": "^1.0.6",
-    "@blocklet/ai-kit": "^0.0.51",
+    "@blocklet/ai-kit": "^0.0.53",
     "@blocklet/sdk": "^1.16.5",
     "@blocklet/ui-react": "^2.5.25",
     "@emotion/css": "^11.10.5",
