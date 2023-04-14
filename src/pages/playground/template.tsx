@@ -10,6 +10,7 @@ import equal from 'fast-deep-equal';
 import saveAs from 'file-saver';
 import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
+import { pick } from 'lodash';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
@@ -165,6 +166,9 @@ function TemplateView() {
         }
         const { text } = await add(
           [
+            ...(template.prompts
+              ?.filter((i): i is Required<typeof i> => !!i.content && !!i.role)
+              .map((i) => pick(i, 'content', 'role')) ?? []),
             {
               role: 'system',
               content: `\

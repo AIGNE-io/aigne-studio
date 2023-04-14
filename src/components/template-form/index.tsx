@@ -259,11 +259,9 @@ export default function TemplateFormView({
         </Grid>
 
         <Grid item xs={12}>
-          {form.type === 'branch' ? (
-            <BranchForm value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
-          ) : (
-            <TemplateItem value={form} onChange={onChange} />
-          )}
+          <TemplateItem value={form} onChange={onChange} />
+
+          {form.type === 'branch' && <BranchForm value={form} onChange={onChange} onTemplateClick={onTemplateClick} />}
         </Grid>
 
         <Grid item xs={12}>
@@ -280,7 +278,7 @@ function TemplateItem({
   value,
   onChange,
 }: {
-  value: Pick<TemplateForm, 'name' | 'prompts' | 'parameters'>;
+  value: Pick<TemplateForm, 'type' | 'name' | 'prompts' | 'parameters'>;
   onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
 }) {
   const { t } = useLocaleContext();
@@ -305,6 +303,9 @@ function TemplateItem({
         template.parameters[param] ??= history ?? {};
       }
       for (const [key, val] of Object.entries(template.parameters)) {
+        if (value.type === 'branch' && key === 'question') {
+          continue;
+        }
         if (!params.includes(key)) {
           delete template.parameters[key];
           parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
@@ -341,38 +342,40 @@ function TemplateItem({
             </Box>
           }
           sx={{ position: 'relative', py: 1, alignItems: 'baseline' }}>
-          <Box
-            sx={{
-              position: 'absolute',
-              zIndex: 1,
-              right: 12,
-              transform: 'translateY(-50%)',
-              bgcolor: 'background.paper',
-              height: 18,
-              lineHeight: '18px',
-            }}>
-            <RoleSelector
-              sx={{ fontSize: 12 }}
-              variant="standard"
-              disableUnderline
+          <Box sx={{ position: 'relative' }}>
+            <Box
+              sx={{
+                position: 'absolute',
+                zIndex: 1,
+                right: 12,
+                transform: 'translateY(-50%)',
+                bgcolor: 'background.paper',
+                height: 18,
+                lineHeight: '18px',
+              }}>
+              <RoleSelector
+                sx={{ fontSize: 12 }}
+                variant="standard"
+                disableUnderline
+                size="small"
+                value={item.role ?? 'system'}
+                onChange={(e) => onChange((v) => (v.prompts![index]!.role = e.target.value as any))}
+              />
+            </Box>
+
+            <TextField
+              fullWidth
+              label={`${t('form.prompt')} ${index + 1}`}
               size="small"
-              value={item.role ?? 'system'}
-              onChange={(e) => onChange((v) => (v.prompts![index]!.role = e.target.value as any))}
+              multiline
+              minRows={2}
+              maxRows={10}
+              value={item.content ?? ''}
+              onChange={(e) => onChange((v) => (v.prompts![index]!.content = e.target.value))}
+              helperText={<TokenCounter value={item.content ?? ''} />}
+              FormHelperTextProps={{ sx: { textAlign: 'right', mt: 0 } }}
             />
           </Box>
-
-          <TextField
-            fullWidth
-            label={`${t('form.prompt')} ${index + 1}`}
-            size="small"
-            multiline
-            minRows={2}
-            maxRows={10}
-            value={item.content ?? ''}
-            onChange={(e) => onChange((v) => (v.prompts![index]!.content = e.target.value))}
-            helperText={<TokenCounter value={item.content ?? ''} />}
-            FormHelperTextProps={{ sx: { textAlign: 'right', mt: 0 } }}
-          />
         </DragSortListItem>
       ))}
 
