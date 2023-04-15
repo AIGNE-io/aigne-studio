@@ -109,6 +109,8 @@ export default function Parameters({
           },
         ]}
         anchorEl={paramConfig?.anchorEl}
+        translate="no"
+        transition={false}
         placement="bottom-end"
         sx={{ zIndex: 1200 }}>
         <ClickAwayListener

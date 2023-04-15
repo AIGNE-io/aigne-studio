@@ -1,29 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import styled from '@emotion/styled';
-import { Add, Delete } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  Grid,
-  Input,
-  MenuItem,
-  Switch,
-  TextField,
-} from '@mui/material';
-import { useReactive } from 'ahooks';
-import equal from 'fast-deep-equal';
-import { nanoid } from 'nanoid';
-import { useEffect, useMemo } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { Checkbox, FormControl, FormControlLabel, Grid, MenuItem, Switch, TextField } from '@mui/material';
 
-import { Parameter, SelectParameter } from '../../../api/src/store/templates';
-import { DragSortListItem } from '../drag-sort';
+import { Parameter } from '../../../api/src/store/templates';
 import NumberField from '../number-field';
 import ParameterField from '../parameter-field';
+import SelectOptionsConfig from './select-options-config';
 
 export default function ParameterConfig({
   value,
@@ -162,93 +143,3 @@ export default function ParameterConfig({
     </Grid>
   );
 }
-
-function SelectOptionsConfig({
-  options,
-  onChange,
-}: {
-  options: SelectParameter['options'];
-  onChange: (options: SelectParameter['options']) => void;
-}) {
-  const { t } = useLocaleContext();
-
-  const init = useMemo<NonNullable<typeof options>>(() => (options && JSON.parse(JSON.stringify(options))) ?? [], []);
-
-  const data = useReactive(init);
-
-  useEffect(() => {
-    const newOptions = JSON.parse(JSON.stringify(data));
-    if (!equal(newOptions, options)) {
-      onChange(newOptions);
-    }
-  });
-
-  return (
-    <DndProvider backend={HTML5Backend}>
-      <Box>
-        {data.map((option, index) => (
-          <DragSortListItem
-            sx={{ my: 0.5 }}
-            key={option.id}
-            dragType="SELECT_OPTION"
-            dropType={['SELECT_OPTION']}
-            id={option.id}
-            index={index}
-            move={(id, toIndex) => {
-              const srcIndex = data.findIndex((i) => i.id === id);
-              data.splice(toIndex, 0, ...data.splice(srcIndex, 1));
-            }}
-            actions={
-              <Box onClick={() => data.splice(index, 1)}>
-                <Delete />
-              </Box>
-            }>
-            <SelectOptionConfigItem>
-              <Input
-                inputProps={{ id: `option-label-${option.id}` }}
-                disableUnderline
-                placeholder={t('form.parameter.label')}
-                value={option.label}
-                onChange={(e) => (option.label = e.target.value)}
-              />
-              <Input
-                sx={{ ml: 0.5 }}
-                disableUnderline
-                placeholder={t('form.parameter.value')}
-                value={option.value}
-                onChange={(e) => (option.value = e.target.value)}
-              />
-            </SelectOptionConfigItem>
-          </DragSortListItem>
-        ))}
-
-        <Button
-          fullWidth
-          size="small"
-          startIcon={<Add />}
-          onClick={() => {
-            const id = nanoid(16);
-            data.push({ id, label: '', value: '' });
-            setTimeout(() => document.getElementById(`option-label-${id}`)?.focus());
-          }}>
-          {t('form.parameter.addOption')}
-        </Button>
-      </Box>
-    </DndProvider>
-  );
-}
-
-const SelectOptionConfigItem = styled(Box)`
-  display: flex;
-  align-items: center;
-
-  .MuiInput-root {
-    background-color: rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
-    flex: 1;
-
-    input {
-      padding: 4px 4px;
-    }
-  }
-`;

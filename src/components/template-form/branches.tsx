@@ -1,10 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Add, Construction, Delete, DragIndicator } from '@mui/icons-material';
+import { Add, Construction, Delete } from '@mui/icons-material';
 import { Box, Button, TextField } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import { nanoid } from 'nanoid';
-import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 
+import ReorderableList from '../reorderable-list';
 import { useTemplates } from '../template-list';
 import TemplateAutocomplete from './template-autocomplete';
 import type { TemplateForm } from '.';
@@ -28,90 +28,73 @@ export default function Branches({
     return !t?.prompts?.length;
   };
 
+  const branches = value.branch?.branches;
+
   return (
     <>
-      <DragDropContext
-        onDragEnd={({ source, destination }) => {
-          if (destination) {
+      {branches && (
+        <ReorderableList
+          list={branches}
+          itemKey="id"
+          onChange={(branches) =>
             onChange((v) => {
-              v.branch!.branches.splice(destination.index, 0, ...v.branch!.branches.splice(source.index, 1));
-            });
+              v.branch!.branches = branches;
+            })
           }
-        }}>
-        <Droppable droppableId="droppable">
-          {(provided) => (
-            <Box ref={provided.innerRef} {...provided.droppableProps}>
-              {value.branch?.branches.map((branch, index) => (
-                <Draggable key={branch.id} draggableId={branch.id} index={index}>
-                  {(provided) => (
-                    <Box
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      sx={{ display: 'flex', alignItems: 'flex-start', py: 1, bgcolor: 'background.paper' }}>
-                      <Box>
-                        <Box sx={{ mt: 0.5, mr: 0.5 }} {...provided.dragHandleProps}>
-                          <DragIndicator sx={{ fontSize: 18, color: 'grey.700' }} />
-                        </Box>
-                      </Box>
+          renderItem={(branch, index) => (
+            <>
+              <Box sx={{ flex: 1, mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <TemplateAutocomplete
+                  autoSelect
+                  freeSolo
+                  fullWidth
+                  size="small"
+                  value={branch.template ?? null}
+                  onChange={(_, value) =>
+                    onChange(
+                      (v) =>
+                        (v.branch!.branches[index]!.template =
+                          (typeof value === 'string' ? { id: '', name: value } : value) ?? undefined)
+                    )
+                  }
+                  renderInput={(params) => <TextField {...params} label={t('form.name')} />}
+                  options={templates}
+                  createTemplate={create}
+                />
 
-                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <TemplateAutocomplete
-                          autoSelect
-                          freeSolo
-                          fullWidth
-                          size="small"
-                          value={branch.template ?? null}
-                          onChange={(_, value) =>
-                            onChange(
-                              (v) =>
-                                (v.branch!.branches[index]!.template =
-                                  (typeof value === 'string' ? { id: '', name: value } : value) ?? undefined)
-                            )
-                          }
-                          renderInput={(params) => <TextField {...params} label={t('form.name')} />}
-                          options={templates}
-                          createTemplate={create}
-                        />
+                <TextField
+                  fullWidth
+                  size="small"
+                  multiline
+                  maxRows={5}
+                  label={t('form.description')}
+                  value={branch.description}
+                  onChange={(e) => onChange((v) => (v.branch!.branches[index]!.description = e.target.value))}
+                />
+              </Box>
 
-                        <TextField
-                          fullWidth
-                          size="small"
-                          multiline
-                          maxRows={5}
-                          label={t('form.description')}
-                          value={branch.description}
-                          onChange={(e) => onChange((v) => (v.branch!.branches[index]!.description = e.target.value))}
-                        />
-                      </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>
+                {onTemplateClick && branch.template && (
+                  <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onTemplateClick(branch.template!)}>
+                    <Construction
+                      sx={{
+                        fontSize: 16,
+                        color: isTemplateEmpty(branch.template) ? 'warning.main' : 'grey.500',
+                      }}
+                    />
+                  </Button>
+                )}
 
-                      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>
-                        {onTemplateClick && branch.template && (
-                          <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onTemplateClick(branch.template!)}>
-                            <Construction
-                              sx={{
-                                fontSize: 16,
-                                color: isTemplateEmpty(branch.template) ? 'warning.main' : 'grey.500',
-                              }}
-                            />
-                          </Button>
-                        )}
-
-                        <Button
-                          sx={{ minWidth: 0, p: 0.2 }}
-                          onClick={() => onChange((v) => v.branch!.branches.splice(index, 1))}>
-                          <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
-                        </Button>
-                      </Box>
-                    </Box>
-                  )}
-                </Draggable>
-              ))}
-
-              {provided.placeholder}
-            </Box>
+                <Button
+                  sx={{ minWidth: 0, p: 0.2 }}
+                  onClick={() => onChange((v) => v.branch!.branches.splice(index, 1))}>
+                  <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
+                </Button>
+              </Box>
+            </>
           )}
-        </Droppable>
-      </DragDropContext>
+        />
+      )}
 
       <Button
         fullWidth
