@@ -1,3 +1,8 @@
+## 0.1.36 (2023-4-17)
+
+- fix: awesome drag sort experience
+- feat: support resize panels
+
 ## 0.1.35 (2023-4-14)
 
 - feat: support add prompts for branch
@@ -107,7 +112,7 @@
 
 ## 0.1.13 (2023-3-1)
 
-- fix: use nanoid@3.* avoid es module error
+- fix: use nanoid@3.\* avoid es module error
 
 ## 0.1.12 (2023-2-28)
 
