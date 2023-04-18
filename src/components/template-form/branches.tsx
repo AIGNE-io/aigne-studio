@@ -103,6 +103,7 @@ export default function Branches({
         onClick={() => {
           const id = nanoid();
           onChange((v) => {
+            v.branch ??= { branches: [] };
             v.branch?.branches.push({ id, description: '' });
           });
           setTimeout(() => document.getElementById(`option-label-${id}`)?.focus());
