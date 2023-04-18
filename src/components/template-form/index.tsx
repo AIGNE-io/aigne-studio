@@ -1,10 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
-import { Add, Delete, Settings, TravelExplore } from '@mui/icons-material';
+import { TravelExplore } from '@mui/icons-material';
 import {
-  Box,
   Button,
-  ClickAwayListener,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -12,46 +10,32 @@ import {
   IconButton,
   InputAdornment,
   MenuItem,
-  Paper,
-  Popper,
   Radio,
   RadioGroup,
-  Select,
-  SelectProps,
   TextField,
 } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
-import { nanoid } from 'nanoid';
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useState } from 'react';
 
 import {
   HoroscopeParameter,
   LanguageParameter,
   NumberParameter,
   Parameter,
-  Role,
   SelectParameter,
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
-import encode from '../../libs/encode';
-import { DragSortListItem } from '../drag-sort';
-import ParameterField, { parameterToStringValue } from '../parameter-field';
-import BranchForm from './branch-form';
-import ParameterConfig from './parameter-config';
+import Branches from './branches';
+import Parameters, { matchParams } from './parameters';
+import Prompts from './prompts';
 import TagsAutoComplete from './tags-autocomplete';
 
 export type TemplateForm = Pick<
   Template,
-  '_id' | 'mode' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'prompts' | 'parameters'
-> & {
-  branch?: Omit<Template['branch'], 'branches'> & {
-    branches: { template?: { id: string; name: string }; description: string }[];
-  };
-};
+  '_id' | 'mode' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'prompts' | 'branch' | 'parameters'
+>;
 
 export default function TemplateFormView({
   value: form,
@@ -170,323 +154,112 @@ export default function TemplateFormView({
   };
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <FormControl fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <FormLabel sx={{ mr: 2 }}>{t('form.mode')}</FormLabel>
-            <RadioGroup
-              row
-              value={form.mode ?? 'default'}
-              onChange={(_, value) => onChange((f) => (f.mode = value as any))}>
-              <FormControlLabel value="default" control={<Radio />} label={t('form.default')} />
-              <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
-            </RadioGroup>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label={t('form.name')}
-            size="small"
-            value={form.name}
-            onChange={(e) => onChange((form) => (form.name = e.target.value))}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            select
-            fullWidth
-            label={t('form.type')}
-            size="small"
-            value={form.type ?? 'prompt'}
-            onChange={(e) =>
-              onChange((form) => {
-                const type = e.target.value as any;
-                if (type === 'prompt') {
-                  delete form.type;
-                } else {
-                  form.type = type;
-                }
-              })
-            }>
-            <MenuItem value="prompt">{t('form.prompt')}</MenuItem>
-            <MenuItem value="branch">{t('form.branch')}</MenuItem>
-          </TextField>
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label={t('form.icon')}
-            size="small"
-            value={form.icon ?? ''}
-            onChange={(e) => onChange((form) => (form.icon = e.target.value))}
-            InputProps={{
-              startAdornment: form.icon && (
-                <InputAdornment position="start">
-                  <Icon icon={form.icon} />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    onClick={() => window.open('https://icon-sets.iconify.design/?query=', '_blank')}>
-                    <TravelExplore fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label={t('form.description')}
-            size="small"
-            value={form.description ?? ''}
-            onChange={(e) => onChange((form) => (form.description = e.target.value))}
-            multiline
-            minRows={2}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TagsAutoComplete
-            label={t('form.tag')}
-            value={form.tags ?? []}
-            onChange={(_, value) => onChange((form) => (form.tags = value))}
-          />
-        </Grid>
-
-        <Grid item xs={12}>
-          <TemplateItem value={form} onChange={onChange} />
-
-          {form.type === 'branch' && <BranchForm value={form} onChange={onChange} onTemplateClick={onTemplateClick} />}
-        </Grid>
-
-        <Grid item xs={12}>
-          <Button fullWidth variant="contained" onClick={submit}>
-            {t('form.execute')}
-          </Button>
-        </Grid>
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <FormControl fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+          <FormLabel sx={{ mr: 2 }}>{t('form.mode')}</FormLabel>
+          <RadioGroup
+            row
+            value={form.mode ?? 'default'}
+            onChange={(_, value) => onChange((f) => (f.mode = value as any))}>
+            <FormControlLabel value="default" control={<Radio />} label={t('form.default')} />
+            <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
+          </RadioGroup>
+        </FormControl>
       </Grid>
-    </DndProvider>
-  );
-}
-
-function TemplateItem({
-  value,
-  onChange,
-}: {
-  value: Pick<TemplateForm, 'type' | 'name' | 'prompts' | 'parameters'>;
-  onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
-}) {
-  const { t } = useLocaleContext();
-
-  const deferredPrompts = useDeferredValue(value.prompts);
-
-  const params = useMemo(() => deferredPrompts?.flatMap((i) => matchParams(i.content ?? '')) ?? [], [deferredPrompts]);
-
-  const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
-
-  const parametersHistory = useRef<Record<string, Parameter>>({});
-
-  useEffect(() => {
-    onChange((template) => {
-      if (!template.parameters && params.length === 0) {
-        return;
-      }
-
-      template.parameters ??= {};
-      for (const param of params) {
-        const history = parametersHistory.current[param];
-        template.parameters[param] ??= history ?? {};
-      }
-      for (const [key, val] of Object.entries(template.parameters)) {
-        if (value.type === 'branch' && key === 'question') {
-          continue;
-        }
-        if (!params.includes(key)) {
-          delete template.parameters[key];
-          parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
-        }
-      }
-    });
-  }, [params]);
-
-  return (
-    <>
-      {value.prompts?.map((item, index) => (
-        <DragSortListItem
-          key={item.id}
-          id={item.id}
-          index={index}
-          dragType="PROMPT_ITEM"
-          dropType="PROMPT_ITEM"
-          move={(id, index) => {
-            onChange((v) => {
-              const prompts = v.prompts!;
-              prompts.splice(
-                index,
-                0,
-                ...prompts.splice(
-                  prompts.findIndex((i) => i.id === id),
-                  1
-                )
-              );
-            });
-          }}
-          actions={
-            <Box onClick={() => onChange((v) => v.prompts?.splice(index, 1))}>
-              <Delete />
-            </Box>
-          }
-          sx={{ position: 'relative', py: 1, alignItems: 'baseline' }}>
-          <Box sx={{ position: 'relative' }}>
-            <Box
-              sx={{
-                position: 'absolute',
-                zIndex: 1,
-                right: 12,
-                transform: 'translateY(-50%)',
-                bgcolor: 'background.paper',
-                height: 18,
-                lineHeight: '18px',
-              }}>
-              <RoleSelector
-                sx={{ fontSize: 12 }}
-                variant="standard"
-                disableUnderline
-                size="small"
-                value={item.role ?? 'system'}
-                onChange={(e) => onChange((v) => (v.prompts![index]!.role = e.target.value as any))}
-              />
-            </Box>
-
-            <TextField
-              fullWidth
-              label={`${t('form.prompt')} ${index + 1}`}
-              size="small"
-              multiline
-              minRows={2}
-              maxRows={10}
-              value={item.content ?? ''}
-              onChange={(e) => onChange((v) => (v.prompts![index]!.content = e.target.value))}
-              helperText={<TokenCounter value={item.content ?? ''} />}
-              FormHelperTextProps={{ sx: { textAlign: 'right', mt: 0 } }}
-            />
-          </Box>
-        </DragSortListItem>
-      ))}
-
-      <Grid container spacing={2}>
-        <Grid item xs={12} textAlign="center">
-          <Button
-            startIcon={<Add />}
-            onClick={() =>
-              onChange((v) => {
-                v.prompts ??= [];
-                v.prompts.push({ id: nanoid(), content: '', role: 'system' });
-              })
-            }>
-            Add Prompt
-          </Button>
-        </Grid>
-
-        {params.map((param) => {
-          const parameter = value.parameters?.[param];
-          if (!parameter) {
-            return null;
-          }
-
-          return (
-            <Grid item xs={12} key={param}>
-              <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                <ParameterField
-                  key={param}
-                  sx={{ flex: 1 }}
-                  size="small"
-                  label={parameter.label || param}
-                  parameter={parameter}
-                  helperText={
-                    <Box component="span" sx={{ display: 'flex' }}>
-                      <Box component="span" sx={{ flex: 1, overflow: 'hidden' }}>
-                        {parameter.helper}
-                      </Box>
-                      <TokenCounter value={parameter} />
-                    </Box>
-                  }
-                  value={parameter.value ?? parameter.defaultValue ?? ''}
-                  onChange={(value) => onChange((v) => (v.parameters![param]!.value = value))}
-                />
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('form.name')}
+          size="small"
+          value={form.name}
+          onChange={(e) => onChange((form) => (form.name = e.target.value))}
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
+          select
+          fullWidth
+          label={t('form.type')}
+          size="small"
+          value={form.type ?? 'prompt'}
+          onChange={(e) =>
+            onChange((form) => {
+              const type = e.target.value as any;
+              if (type === 'prompt') {
+                delete form.type;
+              } else {
+                form.type = type;
+              }
+            })
+          }>
+          <MenuItem value="prompt">{t('form.prompt')}</MenuItem>
+          <MenuItem value="branch">{t('form.branch')}</MenuItem>
+        </TextField>
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('form.icon')}
+          size="small"
+          value={form.icon ?? ''}
+          onChange={(e) => onChange((form) => (form.icon = e.target.value))}
+          InputProps={{
+            startAdornment: form.icon && (
+              <InputAdornment position="start">
+                <Icon icon={form.icon} />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
                 <IconButton
-                  sx={{ ml: 2, mt: 0.5 }}
                   size="small"
-                  onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
-                  <Settings fontSize="small" />
+                  onClick={() => window.open('https://icon-sets.iconify.design/?query=', '_blank')}>
+                  <TravelExplore fontSize="small" />
                 </IconButton>
-              </Box>
-            </Grid>
-          );
-        })}
-
-        <Popper
-          open={Boolean(paramConfig)}
-          modifiers={[
-            {
-              name: 'preventOverflow',
-              enabled: true,
-              options: {
-                altAxis: true,
-                altBoundary: true,
-                tether: true,
-                rootBoundary: 'document',
-                padding: 8,
-              },
-            },
-          ]}
-          anchorEl={paramConfig?.anchorEl}
-          placement="bottom-end"
-          sx={{ zIndex: 1200 }}>
-          <ClickAwayListener
-            onClickAway={(e) => {
-              if (e.target === document.body) return;
-              setParamConfig(undefined);
-            }}>
-            <Paper elevation={11} sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
-              {paramConfig && (
-                <ParameterConfig
-                  value={value.parameters![paramConfig.param]!}
-                  onChange={(parameter) => onChange((v) => (v.parameters![paramConfig.param] = parameter))}
-                />
-              )}
-            </Paper>
-          </ClickAwayListener>
-        </Popper>
+              </InputAdornment>
+            ),
+          }}
+        />
       </Grid>
-    </>
-  );
-}
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('form.description')}
+          size="small"
+          value={form.description ?? ''}
+          onChange={(e) => onChange((form) => (form.description = e.target.value))}
+          multiline
+          minRows={2}
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <TagsAutoComplete
+          label={t('form.tag')}
+          value={form.tags ?? []}
+          onChange={(_, value) => onChange((form) => (form.tags = value))}
+        />
+      </Grid>
 
-function RoleSelector({ ...props }: SelectProps<Role>) {
-  return (
-    <Select {...props}>
-      <MenuItem value="system">System</MenuItem>
-      <MenuItem value="user">User</MenuItem>
-      <MenuItem value="assistant">Assistant</MenuItem>
-    </Select>
-  );
-}
+      <Grid item xs={12}>
+        <Prompts value={form} onChange={onChange} />
+      </Grid>
 
-export const matchParams = (template: string) => [
-  ...new Set(Array.from(template.matchAll(/{{\s*(\w+)\s*}}/g)).map((i) => i[1]!)),
-];
+      {form.type === 'branch' && (
+        <Grid item xs={12}>
+          <Branches value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+        </Grid>
+      )}
 
-function TokenCounter({ value }: { value: string | Parameter }) {
-  const deferred = useDeferredValue(value);
-  const count = useMemo(
-    () => encode(typeof deferred === 'string' ? deferred : parameterToStringValue(deferred)).length,
-    [deferred]
+      <Grid item xs={12}>
+        <Parameters value={form} onChange={onChange} />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Button fullWidth variant="contained" onClick={submit}>
+          {t('form.execute')}
+        </Button>
+      </Grid>
+    </Grid>
   );
-  return <Box component="span">{count} tokens</Box>;
 }
