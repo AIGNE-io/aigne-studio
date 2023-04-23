@@ -21,6 +21,8 @@ export default flat({
     default: 'Default',
     chat: 'Chat',
     tag: 'Tag',
+    model: 'Model',
+    temperature: 'Temperature',
     parameter: {
       type: 'Type',
       typeText: 'Text',

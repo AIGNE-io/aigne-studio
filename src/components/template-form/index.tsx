@@ -27,10 +27,13 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
+import NumberField from '../number-field';
 import Branches from './branches';
 import Parameters, { matchParams } from './parameters';
 import Prompts from './prompts';
 import TagsAutoComplete from './tags-autocomplete';
+
+const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-0301'];
 
 export type TemplateForm = Pick<
   Template,
@@ -174,6 +177,32 @@ export default function TemplateFormView({
           size="small"
           value={form.name}
           onChange={(e) => onChange((form) => (form.name = e.target.value))}
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <TextField
+          fullWidth
+          label={t('form.model')}
+          size="small"
+          value={form.model ?? ''}
+          select
+          onChange={(e) => onChange((form) => (form.model = e.target.value))}>
+          {MODELS.map((model) => (
+            <MenuItem key={model} value={model}>
+              {model}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
+      <Grid item xs={6}>
+        <NumberField
+          size="small"
+          fullWidth
+          label={t('form.temperature')}
+          min={0}
+          max={2}
+          value={form.temperature ?? ''}
+          onChange={(v) => onChange((f) => (f.temperature = v))}
         />
       </Grid>
       <Grid item xs={12}>

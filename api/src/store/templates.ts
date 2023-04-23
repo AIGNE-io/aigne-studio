@@ -17,6 +17,8 @@ export interface Template {
     branches: { id: string; template?: { id: string; name: string }; description: string }[];
   };
   parameters?: { [key: string]: Parameter };
+  temperature?: number;
+  model?: string;
   createdAt: string;
   updatedAt: string;
   createdBy: string;
