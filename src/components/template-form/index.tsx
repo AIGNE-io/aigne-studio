@@ -165,7 +165,7 @@ export default function TemplateFormView({
             row
             value={form.mode ?? 'default'}
             onChange={(_, value) => onChange((f) => (f.mode = value as any))}>
-            <FormControlLabel value="default" control={<Radio />} label={t('form.default')} />
+            <FormControlLabel value="default" control={<Radio />} label={t('form.form')} />
             <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
           </RadioGroup>
         </FormControl>
