@@ -27,7 +27,6 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
-import NumberField from '../number-field';
 import Branches from './branches';
 import Parameters, { matchParams } from './parameters';
 import Prompts from './prompts';
@@ -195,14 +194,23 @@ export default function TemplateFormView({
         </TextField>
       </Grid>
       <Grid item xs={6}>
-        <NumberField
+        <TextField
           size="small"
           fullWidth
           label={t('form.temperature')}
-          min={0}
-          max={2}
+          inputProps={{ type: 'number', min: 0, max: 2, step: 0.1 }}
           value={form.temperature ?? ''}
-          onChange={(v) => onChange((f) => (f.temperature = v))}
+          onChange={(e) =>
+            onChange((f) => {
+              const v = e.target.value;
+              if (!v) {
+                f.temperature = undefined;
+              } else {
+                const n = Math.max(Math.min(2, Number(v)), 0);
+                f.temperature = n;
+              }
+            })
+          }
         />
       </Grid>
       <Grid item xs={12}>
