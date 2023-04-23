@@ -18,9 +18,11 @@ export default flat({
     add: '添加',
     type: '类型',
     mode: '模式',
-    default: '默认',
+    form: '表单',
     chat: '会话',
     tag: '标签',
+    model: '模型',
+    temperature: '温度',
     parameter: {
       type: '类型',
       typeText: '文本',

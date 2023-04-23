@@ -40,9 +40,11 @@ function TemplateView() {
 
   const { messages, add, cancel } = useConversation({
     scrollToBottom: (o) => ref.current?.scrollToBottom(o),
-    textCompletions: (prompt) => {
+    textCompletions: (prompt, { meta }: { meta?: Template } = {}) => {
       return textCompletions({
         ...(typeof prompt === 'string' ? { prompt } : { messages: prompt }),
+        model: meta?.model,
+        temperature: meta?.temperature,
         stream: true,
       });
     },

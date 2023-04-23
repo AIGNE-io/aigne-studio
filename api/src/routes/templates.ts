@@ -13,7 +13,17 @@ const router = Router();
 export interface TemplateInput
   extends Pick<
     Template,
-    'mode' | 'type' | 'icon' | 'name' | 'tags' | 'description' | 'prompts' | 'parameters' | 'branch'
+    | 'mode'
+    | 'type'
+    | 'icon'
+    | 'name'
+    | 'tags'
+    | 'description'
+    | 'prompts'
+    | 'parameters'
+    | 'branch'
+    | 'model'
+    | 'temperature'
   > {}
 
 const valueSchema = Joi.alternatives().conditional('type', {
@@ -102,6 +112,8 @@ const templateSchema = Joi.object<TemplateInput>({
       })
     ),
   }),
+  model: Joi.string().empty(null),
+  temperature: Joi.number().min(0).max(2).empty(null),
 });
 
 const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; tag?: string }>({

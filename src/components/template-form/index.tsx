@@ -32,6 +32,8 @@ import Parameters, { matchParams } from './parameters';
 import Prompts from './prompts';
 import TagsAutoComplete from './tags-autocomplete';
 
+const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-0301'];
+
 export type TemplateForm = Pick<
   Template,
   '_id' | 'mode' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'prompts' | 'branch' | 'parameters'
@@ -162,7 +164,7 @@ export default function TemplateFormView({
             row
             value={form.mode ?? 'default'}
             onChange={(_, value) => onChange((f) => (f.mode = value as any))}>
-            <FormControlLabel value="default" control={<Radio />} label={t('form.default')} />
+            <FormControlLabel value="default" control={<Radio />} label={t('form.form')} />
             <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
           </RadioGroup>
         </FormControl>
@@ -174,6 +176,41 @@ export default function TemplateFormView({
           size="small"
           value={form.name}
           onChange={(e) => onChange((form) => (form.name = e.target.value))}
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <TextField
+          fullWidth
+          label={t('form.model')}
+          size="small"
+          value={form.model ?? ''}
+          select
+          onChange={(e) => onChange((form) => (form.model = e.target.value))}>
+          {MODELS.map((model) => (
+            <MenuItem key={model} value={model}>
+              {model}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
+      <Grid item xs={6}>
+        <TextField
+          size="small"
+          fullWidth
+          label={t('form.temperature')}
+          inputProps={{ type: 'number', min: 0, max: 2, step: 0.1 }}
+          value={form.temperature ?? ''}
+          onChange={(e) =>
+            onChange((f) => {
+              const v = e.target.value;
+              if (!v) {
+                f.temperature = undefined;
+              } else {
+                const n = Math.max(Math.min(2, Number(v)), 0);
+                f.temperature = n;
+              }
+            })
+          }
         />
       </Grid>
       <Grid item xs={12}>

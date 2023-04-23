@@ -1,3 +1,8 @@
+## 0.1.38 (2023-4-23)
+
+- fix: change label `Default` to `Form`
+- feat: support config model and temperature of ai
+
 ## 0.1.37 (2023-4-18)
 
 - fix: create branch not working

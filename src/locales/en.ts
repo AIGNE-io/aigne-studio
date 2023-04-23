@@ -18,9 +18,11 @@ export default flat({
     add: 'Add',
     type: 'Type',
     mode: 'Mode',
-    default: 'Default',
+    form: 'Form',
     chat: 'Chat',
     tag: 'Tag',
+    model: 'Model',
+    temperature: 'Temperature',
     parameter: {
       type: 'Type',
       typeText: 'Text',
