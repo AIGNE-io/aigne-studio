@@ -86,7 +86,7 @@
     "react-router-dom": "^6.8.0",
     "rimraf": "^3.0.2",
     "tz-lookup": "^6.1.25",
-    "yaml": "^2.2.1"
+    "yaml": "^2.2.2"
   },
   "devDependencies": {
     "@arcblock/eslint-config": "^0.2.3",
