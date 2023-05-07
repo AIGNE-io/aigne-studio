@@ -1,7 +1,3 @@
-## 0.1.39 (2023-5-5)
-
-- chore: update deps
-
 ## 0.1.38 (2023-4-23)
 
 - fix: change label `Default` to `Form`
