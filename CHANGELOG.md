@@ -1,3 +1,7 @@
+## 0.1.40 (2023-5-7)
+
+- fix: revert 0.1.39 (update deps)
+
 ## 0.1.38 (2023-4-23)
 
 - fix: change label `Default` to `Form`
