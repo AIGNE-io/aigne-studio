@@ -1,3 +1,7 @@
+## 0.1.41 (2023-5-9)
+
+- fix: RouterProvider must be an ancestor of the sessionProvder
+
 ## 0.1.40 (2023-5-7)
 
 - fix: revert 0.1.39 (update deps)
