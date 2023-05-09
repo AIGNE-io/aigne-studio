@@ -1,3 +1,7 @@
+## 0.1.42 (2023-5-9)
+
+- fix: distinct parameters by name
+
 ## 0.1.41 (2023-5-9)
 
 - fix: RouterProvider must be an ancestor of the sessionProvder

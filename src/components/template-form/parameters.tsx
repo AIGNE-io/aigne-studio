@@ -22,7 +22,7 @@ export default function Parameters({
     if (deferredValue.type === 'branch') {
       params.push('question');
     }
-    return params;
+    return [...new Set(params)];
   }, [deferredValue]);
 
   const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
