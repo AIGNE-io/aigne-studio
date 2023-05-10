@@ -1,3 +1,7 @@
+## 0.1.43 (2023-5-10)
+
+- fix: the `Sign` and `House` properties are nullable
+
 ## 0.1.42 (2023-5-9)
 
 - fix: distinct parameters by name
