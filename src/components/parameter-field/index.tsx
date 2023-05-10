@@ -441,8 +441,8 @@ export function parameterToStringValue(parameter: Parameter): string {
 
       const allBodies: {
         key: string;
-        Sign: { key: string };
-        House: { id: number; Sign: { key: string } };
+        Sign?: { key: string };
+        House?: { id: number; Sign: { key: string } };
         isRetrograde?: true;
       }[] = horoscope.CelestialBodies.all;
 
@@ -452,9 +452,14 @@ export function parameterToStringValue(parameter: Parameter): string {
 
       return bodies
         .concat([horoscope.CelestialPoints.northnode, horoscope.Ascendant, horoscope.Midheaven])
-        .map((i) => `${zh[i.key]}${zh[i.Sign.key]}${i.isRetrograde ? '(逆行)' : ''}`)
+        .map((i) => (i.Sign ? `${zh[i.key]}${zh[i.Sign.key]}${i.isRetrograde ? '(逆行)' : ''}` : undefined))
         .concat(houses.map((i) => `${i.id}宫${zh[i.Sign.key]}`))
-        .concat(bodies.concat(horoscope.CelestialPoints.northnode).map((i) => `${zh[i.key]}落入${i.House.id}宫`))
+        .concat(
+          bodies
+            .concat(horoscope.CelestialPoints.northnode)
+            .map((i) => (i.House ? `${zh[i.key]}落入${i.House.id}宫` : undefined))
+        )
+        .filter(Boolean)
         .join('，');
     }
     default:
