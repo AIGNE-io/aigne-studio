@@ -1,11 +1,12 @@
+import { useFullPage } from '@arcblock/ux/lib/Layout/dashboard/full-page';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Conversation, ConversationRef, MessageItem, useConversation } from '@blocklet/ai-kit';
 import Dashboard from '@blocklet/ui-react/lib/Dashboard';
 import styled from '@emotion/styled';
-import { Download, DragIndicator, HighlightOff, Save, Start } from '@mui/icons-material';
+import { Download, DragIndicator, Fullscreen, FullscreenExit, HighlightOff, Save, Start } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Box, Button, Tooltip } from '@mui/material';
+import { Box, Button, IconButton, Tooltip } from '@mui/material';
 import equal from 'fast-deep-equal';
 import saveAs from 'file-saver';
 import produce from 'immer';
@@ -303,6 +304,9 @@ Question: ${question}\
         </Button>
       );
     }
+
+    exists.unshift(<ToggleFullscreen />);
+
     return exists;
   };
 
@@ -374,6 +378,12 @@ Question: ${question}\
       {dialog}
     </Root>
   );
+}
+
+function ToggleFullscreen() {
+  const { inFullPage, toggleFullPage } = useFullPage();
+
+  return <IconButton onClick={toggleFullPage}>{inFullPage ? <FullscreenExit /> : <Fullscreen />}</IconButton>;
 }
 
 const Root = styled(Dashboard)`
