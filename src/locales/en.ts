@@ -50,6 +50,7 @@ export default flat({
     discardChanges: 'Discard changes?',
     discard: 'Discard',
     deleteTemplate: 'Delete template "{template}"?',
+    deleteTemplateContent: 'There are {references} templates referencing this template',
     cancel: 'Cancel',
     delete: 'Delete',
     ok: 'Ok',

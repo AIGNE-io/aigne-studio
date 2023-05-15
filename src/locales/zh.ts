@@ -50,6 +50,7 @@ export default flat({
     discardChanges: '放弃更改？',
     discard: '放弃',
     deleteTemplate: '删除模版“{template}”？',
+    deleteTemplateContent: '有 {references} 个模版引用了该模版',
     cancel: '取消',
     delete: '删除',
     ok: '确定',

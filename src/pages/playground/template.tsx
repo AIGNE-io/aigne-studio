@@ -334,11 +334,27 @@ Question: ${question}\
             loading={loading}
             current={current}
             onCreate={async (input) => setCurrent(await create({ name: '', ...input }))}
-            onDelete={(template) =>
+            onDelete={(template) => {
+              const referers = templates.filter(
+                (i) => i.type === 'branch' && i.branch?.branches.some((j) => j.template?.id === template._id)
+              );
+
               showDialog({
                 maxWidth: 'xs',
                 fullWidth: true,
                 title: t('alert.deleteTemplate', { template: template.name || template._id }),
+                content: referers.length ? (
+                  <>
+                    {t('alert.deleteTemplateContent', { references: referers.length })}
+                    <ul>
+                      {referers.map((template) => (
+                        <Box key={template._id} component="li">
+                          {template.name || template._id}
+                        </Box>
+                      ))}
+                    </ul>
+                  </>
+                ) : undefined,
                 okText: t('alert.delete'),
                 okColor: 'error',
                 cancelText: t('alert.cancel'),
@@ -351,8 +367,8 @@ Question: ${question}\
                     throw error;
                   }
                 },
-              })
-            }
+              });
+            }}
             onClick={(template) => to(template._id)}
           />
         </Box>
