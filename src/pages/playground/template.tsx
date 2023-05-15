@@ -15,7 +15,7 @@ import { WritableDraft } from 'immer/dist/internal';
 import { omit, pick } from 'lodash';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { useBeforeUnload, useSearchParams } from 'react-router-dom';
+import { useBeforeUnload, useNavigate, useSearchParams } from 'react-router-dom';
 import { stringify } from 'yaml';
 
 import { Template } from '../../../api/src/store/templates';
@@ -42,6 +42,7 @@ function TemplateView() {
   const ref = useRef<ConversationRef>(null);
   const { dialog, showDialog } = useDialog();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const { messages, add, cancel } = useConversation({
     scrollToBottom: (o) => ref.current?.scrollToBottom(o),
@@ -109,6 +110,9 @@ function TemplateView() {
           onMiddleClick: async () => {
             await saveRef.current();
             setCurrentTemplate(template);
+          },
+          onCancel: () => {
+            navigate(-1);
           },
         });
       } else {
