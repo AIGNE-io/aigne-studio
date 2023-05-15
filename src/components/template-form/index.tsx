@@ -158,14 +158,34 @@ export default function TemplateFormView({
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <FormControl fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-          <FormLabel sx={{ mr: 2 }}>{t('form.mode')}</FormLabel>
+        <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+          <FormLabel sx={{ width: 60 }}>{t('form.mode')}</FormLabel>
           <RadioGroup
             row
             value={form.mode ?? 'default'}
             onChange={(_, value) => onChange((f) => (f.mode = value as any))}>
             <FormControlLabel value="default" control={<Radio />} label={t('form.form')} />
             <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
+          </RadioGroup>
+        </FormControl>
+      </Grid>
+      <Grid mt={-1} item xs={12}>
+        <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+          <FormLabel sx={{ width: 60 }}>{t('form.type')}</FormLabel>
+          <RadioGroup
+            row
+            value={form.type ?? 'prompt'}
+            onChange={(_, type) =>
+              onChange((form) => {
+                if (type === 'prompt') {
+                  delete form.type;
+                } else {
+                  form.type = type as any;
+                }
+              })
+            }>
+            <FormControlLabel value="prompt" control={<Radio />} label={t('form.prompt')} />
+            <FormControlLabel value="branch" control={<Radio />} label={t('form.branch')} />
           </RadioGroup>
         </FormControl>
       </Grid>
@@ -212,27 +232,6 @@ export default function TemplateFormView({
             })
           }
         />
-      </Grid>
-      <Grid item xs={12}>
-        <TextField
-          select
-          fullWidth
-          label={t('form.type')}
-          size="small"
-          value={form.type ?? 'prompt'}
-          onChange={(e) =>
-            onChange((form) => {
-              const type = e.target.value as any;
-              if (type === 'prompt') {
-                delete form.type;
-              } else {
-                form.type = type;
-              }
-            })
-          }>
-          <MenuItem value="prompt">{t('form.prompt')}</MenuItem>
-          <MenuItem value="branch">{t('form.branch')}</MenuItem>
-        </TextField>
       </Grid>
       <Grid item xs={12}>
         <TextField

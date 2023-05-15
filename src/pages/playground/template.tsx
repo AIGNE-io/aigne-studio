@@ -1,11 +1,13 @@
+import { useFullPage } from '@arcblock/ux/lib/Layout/dashboard/full-page';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Conversation, ConversationRef, MessageItem, useConversation } from '@blocklet/ai-kit';
 import Dashboard from '@blocklet/ui-react/lib/Dashboard';
 import styled from '@emotion/styled';
-import { Download, DragIndicator, HighlightOff, Save, Start } from '@mui/icons-material';
+import { Download, DragIndicator, Fullscreen, FullscreenExit, HighlightOff, Save, Start } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Box, Button, Tooltip } from '@mui/material';
+import { Box, Button, IconButton, Tooltip } from '@mui/material';
+import { useLocalStorageState } from 'ahooks';
 import equal from 'fast-deep-equal';
 import saveAs from 'file-saver';
 import produce from 'immer';
@@ -20,9 +22,12 @@ import { Template } from '../../../api/src/store/templates';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView, { TemplateForm } from '../../components/template-form';
 import TemplateList, { TemplatesProvider, useTemplates } from '../../components/template-list';
+import { useComponent } from '../../contexts/component';
 import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
+
+const LATEST_TEMPLATE_ID_KEY = 'ai-studio.currentTemplateId';
 
 export default function TemplatePage() {
   return (
@@ -133,10 +138,16 @@ function TemplateView() {
 
   const templateId = searchParams.get('templateId');
 
+  const [latestTemplateId, setLatestTemplateId] = useLocalStorageState<string | undefined>(LATEST_TEMPLATE_ID_KEY);
+
   // Set current template after templates loaded
   useEffect(() => {
+    if (templateId) {
+      setLatestTemplateId(templateId);
+    }
+
     if (!templateId) {
-      const template = templates[0];
+      const template = templates.find((i) => i._id === latestTemplateId) || templates[0];
       if (template) to(template._id, true);
       return;
     }
@@ -303,8 +314,13 @@ Question: ${question}\
         </Button>
       );
     }
+
+    exists.unshift(<ToggleFullscreen />);
+
     return exists;
   };
+
+  const assistant = useComponent('ai-assistant');
 
   return (
     <Root footerProps={{ className: 'dashboard-footer' }} headerAddons={headerAddons}>
@@ -321,11 +337,27 @@ Question: ${question}\
             loading={loading}
             current={current}
             onCreate={async (input) => setCurrent(await create({ name: '', ...input }))}
-            onDelete={(template) =>
+            onDelete={(template) => {
+              const referers = templates.filter(
+                (i) => i.type === 'branch' && i.branch?.branches.some((j) => j.template?.id === template._id)
+              );
+
               showDialog({
                 maxWidth: 'xs',
                 fullWidth: true,
-                title: t('alert.deleteTemplate'),
+                title: t('alert.deleteTemplate', { template: template.name || template._id }),
+                content: referers.length ? (
+                  <>
+                    {t('alert.deleteTemplateContent', { references: referers.length })}
+                    <ul>
+                      {referers.map((template) => (
+                        <Box key={template._id} component="li">
+                          {template.name || template._id}
+                        </Box>
+                      ))}
+                    </ul>
+                  </>
+                ) : undefined,
                 okText: t('alert.delete'),
                 okColor: 'error',
                 cancelText: t('alert.cancel'),
@@ -338,9 +370,22 @@ Question: ${question}\
                     throw error;
                   }
                 },
-              })
-            }
+              });
+            }}
             onClick={(template) => to(template._id)}
+            onLaunch={
+              !assistant
+                ? undefined
+                : async (template) => {
+                    if (formChanged) save();
+                    window.open(
+                      `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${
+                        template._id
+                      }?source=studio`,
+                      '_blank'
+                    );
+                  }
+            }
           />
         </Box>
         <ResizeHandle />
@@ -374,6 +419,12 @@ Question: ${question}\
       {dialog}
     </Root>
   );
+}
+
+function ToggleFullscreen() {
+  const { inFullPage, toggleFullPage } = useFullPage();
+
+  return <IconButton onClick={toggleFullPage}>{inFullPage ? <FullscreenExit /> : <Fullscreen />}</IconButton>;
 }
 
 const Root = styled(Dashboard)`

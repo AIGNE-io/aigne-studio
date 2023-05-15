@@ -1,11 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { css } from '@emotion/css';
-import { Add, CopyAll, DeleteForever } from '@mui/icons-material';
+import { Icon } from '@iconify-icon/react';
+import { Add, CopyAll, DeleteForever, Launch } from '@mui/icons-material';
 import {
   Box,
   BoxProps,
   Button,
-  Chip,
   CircularProgress,
   IconButton,
   List,
@@ -39,6 +39,7 @@ export default function TemplateList({
   onCreate,
   onDelete,
   onClick,
+  onLaunch,
   ...props
 }: {
   templates: Template[];
@@ -47,6 +48,7 @@ export default function TemplateList({
   onCreate?: (input?: TemplateInput) => void;
   onDelete?: (template: Template) => void;
   onClick?: (template: Template) => void;
+  onLaunch?: (template: Template) => void;
 } & Omit<BoxProps, 'onClick'>) {
   const { t } = useLocaleContext();
 
@@ -76,7 +78,10 @@ export default function TemplateList({
 
       <List disablePadding>
         {templates.map((template) => {
-          const type = template.type ? { branch: t('form.branch') }[template.type] : t('form.prompt');
+          const { icon, color } = (template.type &&
+            {
+              branch: { icon: 'fluent:branch-16-regular', color: 'secondary.main' },
+            }[template.type]) || { icon: 'tabler:prompt', color: 'primary.main' };
 
           return (
             <ListItem
@@ -113,6 +118,12 @@ export default function TemplateList({
               `}
               secondaryAction={
                 <>
+                  {onLaunch && (
+                    <Button size="small" onClick={() => onLaunch(template)}>
+                      <Launch fontSize="small" />
+                    </Button>
+                  )}
+
                   {onCreate && (
                     <Button
                       size="small"
@@ -125,6 +136,7 @@ export default function TemplateList({
                       <CopyAll fontSize="small" />
                     </Button>
                   )}
+
                   {onDelete && (
                     <Button size="small" onClick={() => onDelete(template)}>
                       <DeleteForever fontSize="small" />
@@ -134,14 +146,14 @@ export default function TemplateList({
               }>
               <ListItemButton selected={current?._id === template._id} onClick={() => onClick?.(template)}>
                 <ListItemText
-                  primary={template.name || template._id}
-                  primaryTypographyProps={{ noWrap: true }}
-                  secondary={
+                  primary={
                     <>
-                      {type && <Chip component="span" size="small" label={type} sx={{ mr: 1 }} />}
-                      {template.description}
+                      <Box component={Icon} icon={icon} sx={{ mr: 0.5, fontSize: 14, color }} />
+                      {template.name || template._id}
                     </>
                   }
+                  primaryTypographyProps={{ noWrap: true }}
+                  secondary={template.description}
                   secondaryTypographyProps={{
                     sx: { display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' },
                   }}
