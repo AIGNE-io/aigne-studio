@@ -1,3 +1,9 @@
+## 0.1.45 (2023-5-15)
+
+- fix: disable auto select
+- fix: restore search params after cancel navigation
+- fix: ignore debug value changes
+
 ## 0.1.44 (2023-5-15)
 
 - feat: support open in assistant
