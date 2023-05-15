@@ -45,7 +45,6 @@ export default function Branches({
             <>
               <Box sx={{ flex: 1, mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <TemplateAutocomplete
-                  autoSelect
                   freeSolo
                   fullWidth
                   size="small"
