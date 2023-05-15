@@ -22,6 +22,7 @@ import { Template } from '../../../api/src/store/templates';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView, { TemplateForm } from '../../components/template-form';
 import TemplateList, { TemplatesProvider, useTemplates } from '../../components/template-list';
+import { useComponent } from '../../contexts/component';
 import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
@@ -319,6 +320,8 @@ Question: ${question}\
     return exists;
   };
 
+  const assistant = useComponent('ai-assistant');
+
   return (
     <Root footerProps={{ className: 'dashboard-footer' }} headerAddons={headerAddons}>
       <Box
@@ -370,6 +373,19 @@ Question: ${question}\
               });
             }}
             onClick={(template) => to(template._id)}
+            onLaunch={
+              !assistant
+                ? undefined
+                : async (template) => {
+                    if (formChanged) save();
+                    window.open(
+                      `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${
+                        template._id
+                      }?source=studio`,
+                      '_blank'
+                    );
+                  }
+            }
           />
         </Box>
         <ResizeHandle />

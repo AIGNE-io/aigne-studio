@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { css } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
-import { Add, CopyAll, DeleteForever } from '@mui/icons-material';
+import { Add, CopyAll, DeleteForever, Launch } from '@mui/icons-material';
 import {
   Box,
   BoxProps,
@@ -39,6 +39,7 @@ export default function TemplateList({
   onCreate,
   onDelete,
   onClick,
+  onLaunch,
   ...props
 }: {
   templates: Template[];
@@ -47,6 +48,7 @@ export default function TemplateList({
   onCreate?: (input?: TemplateInput) => void;
   onDelete?: (template: Template) => void;
   onClick?: (template: Template) => void;
+  onLaunch?: (template: Template) => void;
 } & Omit<BoxProps, 'onClick'>) {
   const { t } = useLocaleContext();
 
@@ -116,6 +118,12 @@ export default function TemplateList({
               `}
               secondaryAction={
                 <>
+                  {onLaunch && (
+                    <Button size="small" onClick={() => onLaunch(template)}>
+                      <Launch fontSize="small" />
+                    </Button>
+                  )}
+
                   {onCreate && (
                     <Button
                       size="small"
@@ -128,6 +136,7 @@ export default function TemplateList({
                       <CopyAll fontSize="small" />
                     </Button>
                   )}
+
                   {onDelete && (
                     <Button size="small" onClick={() => onDelete(template)}>
                       <DeleteForever fontSize="small" />
