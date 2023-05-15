@@ -49,7 +49,7 @@ export default flat({
     noTemplates: '暂无模版',
     discardChanges: '放弃更改？',
     discard: '放弃',
-    deleteTemplate: '确定要删除该模版吗？',
+    deleteTemplate: '删除模版“{template}”？',
     cancel: '取消',
     delete: '删除',
     ok: '确定',

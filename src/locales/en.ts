@@ -49,7 +49,7 @@ export default flat({
     noTemplates: 'No Templates',
     discardChanges: 'Discard changes?',
     discard: 'Discard',
-    deleteTemplate: 'Delete this template?',
+    deleteTemplate: 'Delete template "{template}"?',
     cancel: 'Cancel',
     delete: 'Delete',
     ok: 'Ok',

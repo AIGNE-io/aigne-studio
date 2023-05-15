@@ -325,7 +325,7 @@ Question: ${question}\
               showDialog({
                 maxWidth: 'xs',
                 fullWidth: true,
-                title: t('alert.deleteTemplate'),
+                title: t('alert.deleteTemplate', { template: template.name || template._id }),
                 okText: t('alert.delete'),
                 okColor: 'error',
                 cancelText: t('alert.cancel'),
