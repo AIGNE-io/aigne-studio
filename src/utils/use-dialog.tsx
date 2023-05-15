@@ -22,7 +22,7 @@ export default function useDialog() {
       okColor,
       onOk,
       onMiddleClick,
-      onClose,
+      onCancel,
       ...props
     }: {
       title?: ReactNode;
@@ -34,7 +34,7 @@ export default function useDialog() {
       middleColor?: ButtonProps['color'];
       onOk?: () => Promise<any> | any;
       onMiddleClick?: () => Promise<any> | any;
-      onClose?: () => any;
+      onCancel?: () => Promise<any> | any;
     } & Omit<DialogProps, 'open'>) => {
       setProps({
         ...props,
@@ -48,18 +48,20 @@ export default function useDialog() {
               </DialogContent>
             )}
             <DialogActions>
-              <Button onClick={onClose ?? closeDialog}>{cancelText}</Button>
+              <Button
+                onClick={async () => {
+                  await onCancel?.();
+                  closeDialog();
+                }}>
+                {cancelText}
+              </Button>
               {middleText && onMiddleClick ? (
                 <Button
                   variant="contained"
                   color={middleColor}
                   onClick={async () => {
                     await onMiddleClick();
-                    if (onClose) {
-                      onClose();
-                    } else {
-                      closeDialog();
-                    }
+                    closeDialog();
                   }}>
                   {middleText}
                 </Button>
@@ -69,11 +71,7 @@ export default function useDialog() {
                 color={okColor}
                 onClick={async () => {
                   await onOk?.();
-                  if (onClose) {
-                    onClose();
-                  } else {
-                    closeDialog();
-                  }
+                  closeDialog();
                 }}
                 type="submit">
                 {okText}
@@ -81,7 +79,10 @@ export default function useDialog() {
             </DialogActions>
           </form>
         ),
-        onClose: onClose ?? closeDialog,
+        onClose: async () => {
+          await onCancel?.();
+          closeDialog();
+        },
       });
     },
     [closeDialog]
