@@ -1,3 +1,13 @@
+## 0.1.44 (2023-5-15)
+
+- feat: support open in assistant
+- fix: alert references details before deleting template
+- fix: remember latest template id
+- fix: use radio to display control of the toggle type
+- fix: use icon instead of text to describe type of template
+- feat: support toggle menu aside
+- fix: display template name or id when confirming deletion
+
 ## 0.1.43 (2023-5-10)
 
 - fix: the `Sign` and `House` properties are nullable
