@@ -7,6 +7,7 @@ import styled from '@emotion/styled';
 import { Download, DragIndicator, Fullscreen, FullscreenExit, HighlightOff, Save, Start } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import { Box, Button, IconButton, Tooltip } from '@mui/material';
+import { useLocalStorageState } from 'ahooks';
 import equal from 'fast-deep-equal';
 import saveAs from 'file-saver';
 import produce from 'immer';
@@ -24,6 +25,8 @@ import TemplateList, { TemplatesProvider, useTemplates } from '../../components/
 import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
+
+const LATEST_TEMPLATE_ID_KEY = 'ai-studio.currentTemplateId';
 
 export default function TemplatePage() {
   return (
@@ -134,10 +137,16 @@ function TemplateView() {
 
   const templateId = searchParams.get('templateId');
 
+  const [latestTemplateId, setLatestTemplateId] = useLocalStorageState<string | undefined>(LATEST_TEMPLATE_ID_KEY);
+
   // Set current template after templates loaded
   useEffect(() => {
+    if (templateId) {
+      setLatestTemplateId(templateId);
+    }
+
     if (!templateId) {
-      const template = templates[0];
+      const template = templates.find((i) => i._id === latestTemplateId) || templates[0];
       if (template) to(template._id, true);
       return;
     }
