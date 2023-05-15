@@ -12,7 +12,7 @@ import equal from 'fast-deep-equal';
 import saveAs from 'file-saver';
 import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
-import { pick } from 'lodash';
+import { omit, pick } from 'lodash';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useBeforeUnload, useSearchParams } from 'react-router-dom';
@@ -80,7 +80,16 @@ function TemplateView() {
     [setForm]
   );
 
-  const formChanged = useMemo(() => !equal(form, current), [form]);
+  const formChanged = useMemo(() => {
+    const omitParameterValue = (v: typeof form) => ({
+      ...v,
+      parameters: Object.fromEntries(
+        Object.entries(v?.parameters ?? {}).map(([key, val]) => [key, omit(val, 'value')])
+      ),
+    });
+
+    return !equal(omitParameterValue(form), omitParameterValue(current));
+  }, [form]);
 
   const setCurrent = useCallback(
     (template: Template) => {
