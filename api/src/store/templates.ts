@@ -6,15 +6,16 @@ export const roles: Role[] = ['system', 'user', 'assistant'];
 
 export interface Template {
   _id: string;
+  folderId?: string;
   type?: 'branch';
   mode?: 'default' | 'chat';
-  name: string;
+  name?: string;
   tags?: string[];
   icon?: string;
   description?: string;
   prompts?: { id: string; content?: string; role?: Role }[];
   branch?: {
-    branches: { id: string; template?: { id: string; name: string }; description: string }[];
+    branches: { id: string; template?: { id: string; name?: string }; description: string }[];
   };
   parameters?: { [key: string]: Parameter };
   temperature?: number;

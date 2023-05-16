@@ -194,7 +194,7 @@ export default function TemplateFormView({
           fullWidth
           label={t('form.name')}
           size="small"
-          value={form.name}
+          value={form.name ?? ''}
           onChange={(e) => onChange((form) => (form.name = e.target.value))}
         />
       </Grid>

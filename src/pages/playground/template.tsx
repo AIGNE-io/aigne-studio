@@ -60,7 +60,7 @@ function TemplateView() {
       ),
   });
 
-  const { templates, loading, submiting, create, update, remove } = useTemplates();
+  const { templates, submiting, create, update, remove } = useTemplates();
   const [current, setCurrentTemplate] = useState<Template>();
   const [form, setForm] = useState<Template>();
 
@@ -402,10 +402,11 @@ Question: ${question}\
           <TemplateList
             sx={{ height: '100%', overflow: 'auto' }}
             className="list"
-            templates={templates}
-            loading={loading}
             current={current}
-            onCreate={async (input) => setCurrent(await create({ name: '', ...input }))}
+            onCreate={async (input) => {
+              const res = await create({ name: '', ...input });
+              to(res._id);
+            }}
             onDelete={(template) => {
               const referers = templates.filter(
                 (i) => i.type === 'branch' && i.branch?.branches.some((j) => j.template?.id === template._id)

@@ -11,4 +11,5 @@ const api = axios.create({
 
 export default api;
 
-export const getErrorMessage = (error: any) => error.response?.data?.message || error.message || error;
+export const getErrorMessage = (error: any) =>
+  error.response?.data?.error?.message || error.response?.data?.message || error.message || error;
