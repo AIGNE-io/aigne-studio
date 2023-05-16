@@ -335,6 +335,43 @@ Question: ${question}\
 
   const assistant = useComponent('ai-assistant');
 
+  const onLaunch = useCallback(
+    async (template: Template) => {
+      if (!assistant) {
+        return;
+      }
+
+      const launch = () =>
+        window.open(
+          `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${template._id}?source=studio`,
+          '_blank'
+        );
+
+      if (!formChanged) {
+        launch();
+        return;
+      }
+
+      showDialog({
+        maxWidth: 'xs',
+        fullWidth: true,
+        title: t('alert.savingBeforeLaunch'),
+        okText: t('form.save'),
+        cancelText: t('alert.cancel'),
+        onOk: async () => {
+          await saveRef.current();
+          setTimeout(() => {
+            launch();
+          }, 300);
+        },
+        onCancel: () => {
+          launch();
+        },
+      });
+    },
+    [assistant, formChanged, t]
+  );
+
   return (
     <Root footerProps={{ className: 'dashboard-footer' }} headerAddons={headerAddons}>
       <Box
@@ -386,19 +423,7 @@ Question: ${question}\
               });
             }}
             onClick={(template) => to(template._id)}
-            onLaunch={
-              !assistant
-                ? undefined
-                : async (template) => {
-                    if (formChanged) save();
-                    window.open(
-                      `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${
-                        template._id
-                      }?source=studio`,
-                      '_blank'
-                    );
-                  }
-            }
+            onLaunch={!assistant ? undefined : onLaunch}
           />
         </Box>
         <ResizeHandle />
