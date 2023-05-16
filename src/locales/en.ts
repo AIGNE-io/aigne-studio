@@ -51,6 +51,7 @@ export default flat({
     discard: 'Discard',
     deleteTemplate: 'Delete template "{template}"?',
     deleteTemplateContent: 'There are {references} templates referencing this template',
+    savingBeforeLaunch: "You haven't saved yet, save now?",
     cancel: 'Cancel',
     delete: 'Delete',
     ok: 'Ok',

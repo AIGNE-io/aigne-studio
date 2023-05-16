@@ -51,6 +51,7 @@ export default flat({
     discard: '放弃',
     deleteTemplate: '删除模版“{template}”？',
     deleteTemplateContent: '有 {references} 个模版引用了该模版',
+    savingBeforeLaunch: '您还未保存，现在保存？',
     cancel: '取消',
     delete: '删除',
     ok: '确定',

@@ -1,3 +1,8 @@
+## 0.1.46 (2023-5-16)
+
+- fix: delete empty branches after saving
+- fix: confirm saving before launching the assistant
+
 ## 0.1.45 (2023-5-15)
 
 - fix: disable auto select

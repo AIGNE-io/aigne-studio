@@ -64,19 +64,35 @@ function TemplateView() {
   const [current, setCurrentTemplate] = useState<Template>();
   const [form, setForm] = useState<Template>();
 
+  // deleted branch templates, used to delete referred templates after saving.
+  const deletedBranchTemplateIds = useRef<Set<string>>(new Set());
+
   useEffect(() => {
+    deletedBranchTemplateIds.current.clear();
     setForm(current);
   }, [current]);
 
   const setFormValue = useCallback(
     (update: Template | ((value: WritableDraft<Template>) => void)) => {
-      setForm((form) =>
-        typeof update === 'function'
-          ? produce(form, (draft) => {
-              update(draft!);
-            })
-          : update
-      );
+      setForm((form) => {
+        const branches =
+          form?.branch?.branches.map((i) => i.template?.id).filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+
+        const newForm =
+          typeof update === 'function'
+            ? produce(form, (draft) => {
+                update(draft!);
+              })
+            : update;
+
+        const newBranches =
+          newForm?.branch?.branches.map((i) => i.template?.id).filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+
+        for (const i of branches.filter((i) => !newBranches.includes(i))) {
+          deletedBranchTemplateIds.current.add(i);
+        }
+        return newForm;
+      });
     },
     [setForm]
   );
@@ -274,7 +290,10 @@ Question: ${question}\
   const save = useCallback(async () => {
     try {
       if (form?._id) {
-        const template = await update(form._id, form);
+        const template = await update(form._id, {
+          ...form,
+          deleteEmptyTemplates: [...deletedBranchTemplateIds.current],
+        });
         setCurrentTemplate(template);
         setForm(template);
         Toast.success(t('alert.saved'));
@@ -335,6 +354,43 @@ Question: ${question}\
 
   const assistant = useComponent('ai-assistant');
 
+  const onLaunch = useCallback(
+    async (template: Template) => {
+      if (!assistant) {
+        return;
+      }
+
+      const launch = () =>
+        window.open(
+          `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${template._id}?source=studio`,
+          '_blank'
+        );
+
+      if (!formChanged) {
+        launch();
+        return;
+      }
+
+      showDialog({
+        maxWidth: 'xs',
+        fullWidth: true,
+        title: t('alert.savingBeforeLaunch'),
+        okText: t('form.save'),
+        cancelText: t('alert.cancel'),
+        onOk: async () => {
+          await saveRef.current();
+          setTimeout(() => {
+            launch();
+          }, 300);
+        },
+        onCancel: () => {
+          launch();
+        },
+      });
+    },
+    [assistant, formChanged, t]
+  );
+
   return (
     <Root footerProps={{ className: 'dashboard-footer' }} headerAddons={headerAddons}>
       <Box
@@ -386,19 +442,7 @@ Question: ${question}\
               });
             }}
             onClick={(template) => to(template._id)}
-            onLaunch={
-              !assistant
-                ? undefined
-                : async (template) => {
-                    if (formChanged) save();
-                    window.open(
-                      `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${
-                        template._id
-                      }?source=studio`,
-                      '_blank'
-                    );
-                  }
-            }
+            onLaunch={!assistant ? undefined : onLaunch}
           />
         </Box>
         <ResizeHandle />

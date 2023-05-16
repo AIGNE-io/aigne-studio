@@ -24,7 +24,9 @@ export interface TemplateInput
     | 'branch'
     | 'model'
     | 'temperature'
-  > {}
+  > {
+  deleteEmptyTemplates?: string[];
+}
 
 const valueSchema = Joi.alternatives().conditional('type', {
   switch: [
@@ -114,6 +116,7 @@ const templateSchema = Joi.object<TemplateInput>({
   }),
   model: Joi.string().empty(null),
   temperature: Joi.number().min(0).max(2).empty(null),
+  deleteEmptyTemplates: Joi.array().items(Joi.string()),
 });
 
 const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; tag?: string }>({
@@ -248,7 +251,7 @@ router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
     return;
   }
 
-  const update = await templateSchema.validateAsync(req.body, { stripUnknown: true });
+  const { deleteEmptyTemplates, ...update } = await templateSchema.validateAsync(req.body, { stripUnknown: true });
 
   const { did } = req.user!;
 
@@ -268,6 +271,15 @@ router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
     },
     { returnUpdatedDocs: true }
   );
+
+  if (deleteEmptyTemplates?.length) {
+    const ts: Template[] = (await templates.find({ _id: { $in: deleteEmptyTemplates } })) as any;
+    const ids = ts.filter(isTemplateEmpty).map((i) => i._id);
+    if (ids.length) {
+      await templates.remove({ _id: { $in: ids } }, { multi: true });
+    }
+  }
+
   res.json(doc);
 });
 
@@ -285,3 +297,13 @@ router.delete('/:templateId', ensureAdmin, async (req, res) => {
 });
 
 export default router;
+
+function isTemplateEmpty(template: Template) {
+  if (template.branch?.branches.some((i) => !!i.template)) {
+    return false;
+  }
+  if (template.prompts?.some((i) => i.content?.trim())) {
+    return false;
+  }
+  return true;
+}
