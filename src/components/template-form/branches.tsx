@@ -3,7 +3,9 @@ import { Add, Construction, Delete } from '@mui/icons-material';
 import { Box, Button, TextField } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import { nanoid } from 'nanoid';
+import { useCallback } from 'react';
 
+import { isTemplateEmpty } from '../../libs/templates';
 import ReorderableList from '../reorderable-list';
 import { useTemplates } from '../template-list';
 import TemplateAutocomplete from './template-autocomplete';
@@ -21,12 +23,13 @@ export default function Branches({
   const { t } = useLocaleContext();
   const { templates, create } = useTemplates();
 
-  const isTemplateEmpty = ({ id }: { id: string }) => {
-    const t = templates.find((i) => i._id === id);
-    if (t?.type === 'branch') return !t.branch?.branches.length;
-    // TODO: validate template correctly
-    return !t?.prompts?.length;
-  };
+  const isTemplateWarning = useCallback(
+    ({ id }: { id: string }) => {
+      const t = templates.find((i) => i._id === id);
+      return !t || isTemplateEmpty(t);
+    },
+    [templates]
+  );
 
   const branches = value.branch?.branches;
 
@@ -78,7 +81,7 @@ export default function Branches({
                     <Construction
                       sx={{
                         fontSize: 16,
-                        color: isTemplateEmpty(branch.template) ? 'warning.main' : 'grey.500',
+                        color: isTemplateWarning(branch.template) ? 'warning.main' : 'grey.500',
                       }}
                     />
                   </Button>

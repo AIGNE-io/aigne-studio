@@ -64,19 +64,35 @@ function TemplateView() {
   const [current, setCurrentTemplate] = useState<Template>();
   const [form, setForm] = useState<Template>();
 
+  // deleted branch templates, used to delete referred templates after saving.
+  const deletedBranchTemplateIds = useRef<Set<string>>(new Set());
+
   useEffect(() => {
+    deletedBranchTemplateIds.current.clear();
     setForm(current);
   }, [current]);
 
   const setFormValue = useCallback(
     (update: Template | ((value: WritableDraft<Template>) => void)) => {
-      setForm((form) =>
-        typeof update === 'function'
-          ? produce(form, (draft) => {
-              update(draft!);
-            })
-          : update
-      );
+      setForm((form) => {
+        const branches =
+          form?.branch?.branches.map((i) => i.template?.id).filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+
+        const newForm =
+          typeof update === 'function'
+            ? produce(form, (draft) => {
+                update(draft!);
+              })
+            : update;
+
+        const newBranches =
+          newForm?.branch?.branches.map((i) => i.template?.id).filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+
+        for (const i of branches.filter((i) => !newBranches.includes(i))) {
+          deletedBranchTemplateIds.current.add(i);
+        }
+        return newForm;
+      });
     },
     [setForm]
   );
@@ -274,7 +290,10 @@ Question: ${question}\
   const save = useCallback(async () => {
     try {
       if (form?._id) {
-        const template = await update(form._id, form);
+        const template = await update(form._id, {
+          ...form,
+          deleteEmptyTemplates: [...deletedBranchTemplateIds.current],
+        });
         setCurrentTemplate(template);
         setForm(template);
         Toast.success(t('alert.saved'));

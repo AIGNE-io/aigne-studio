@@ -31,3 +31,13 @@ export async function updateTemplate(templateId: string, template: TemplateInput
 export async function deleteTemplate(templateId: string): Promise<Template> {
   return axios.delete(`/api/templates/${templateId}`).then((res) => res.data);
 }
+
+export function isTemplateEmpty(template: Template) {
+  if (template.branch?.branches.some((i) => !!i.template)) {
+    return false;
+  }
+  if (template.prompts?.some((i) => i.content?.trim())) {
+    return false;
+  }
+  return true;
+}
