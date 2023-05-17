@@ -128,6 +128,12 @@ export default function TemplateList({
               }
             }
           }}
+          classes={{
+            root: css``,
+            dropTarget: css`
+              background-color: rgba(0, 0, 0, 0.05);
+            `,
+          }}
           listComponent="div"
           listItemComponent="div"
           render={(node, { depth, isOpen, onToggle }) => {
@@ -165,7 +171,7 @@ export default function TemplateList({
               <TemplateTreeItem
                 depth={depth}
                 template={template}
-                sx={{ bgcolor: selected ? 'grey.100' : undefined }}
+                sx={{ bgcolor: selected ? 'rgba(0,0,0,0.05)' : undefined }}
                 onClick={() => onClick?.(template)}
                 actions={
                   <>
