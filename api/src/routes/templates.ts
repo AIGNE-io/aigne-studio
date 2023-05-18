@@ -24,6 +24,7 @@ export interface TemplateInput
     | 'branch'
     | 'model'
     | 'temperature'
+    | 'folderId'
   > {
   deleteEmptyTemplates?: string[];
 }
@@ -85,11 +86,11 @@ const parametersSchema = Joi.object().pattern(
     })
 );
 
-const templateSchema = Joi.object<TemplateInput>({
+export const templateSchema = Joi.object<TemplateInput>({
   mode: Joi.string().valid('default', 'chat').empty(''),
   type: Joi.string().valid('branch').empty(''),
-  icon: Joi.string().allow(''),
-  name: Joi.string().allow('').required(),
+  icon: Joi.string().empty(''),
+  name: Joi.string().empty(''),
   tags: Joi.array().items(Joi.string()).unique(),
   description: Joi.string().allow(''),
   prompts: Joi.array().items(
@@ -117,6 +118,7 @@ const templateSchema = Joi.object<TemplateInput>({
   model: Joi.string().empty(null),
   temperature: Joi.number().min(0).max(2).empty(null),
   deleteEmptyTemplates: Joi.array().items(Joi.string()),
+  folderId: Joi.string().allow(null),
 });
 
 const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; tag?: string }>({

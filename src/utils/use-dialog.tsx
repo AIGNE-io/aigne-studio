@@ -1,3 +1,4 @@
+import { LoadingButton } from '@mui/lab';
 import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import type { DialogProps } from '@mui/material';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
@@ -10,6 +11,8 @@ export default function useDialog() {
   const closeDialog = useCallback(() => {
     setProps(undefined);
   }, []);
+
+  const [loading, setLoading] = useState(false);
 
   const showDialog = useCallback(
     ({
@@ -66,16 +69,22 @@ export default function useDialog() {
                   {middleText}
                 </Button>
               ) : null}
-              <Button
+              <LoadingButton
                 variant="contained"
                 color={okColor}
+                loading={loading}
                 onClick={async () => {
-                  await onOk?.();
+                  setLoading(true);
+                  try {
+                    await onOk?.();
+                  } finally {
+                    setLoading(false);
+                  }
                   closeDialog();
                 }}
                 type="submit">
                 {okText}
-              </Button>
+              </LoadingButton>
             </DialogActions>
           </form>
         ),

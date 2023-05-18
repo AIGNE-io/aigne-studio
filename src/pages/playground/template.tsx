@@ -4,28 +4,41 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { Conversation, ConversationRef, MessageItem, useConversation } from '@blocklet/ai-kit';
 import Dashboard from '@blocklet/ui-react/lib/Dashboard';
 import styled from '@emotion/styled';
-import { Download, DragIndicator, Fullscreen, FullscreenExit, HighlightOff, Save, Start } from '@mui/icons-material';
+import {
+  Download,
+  DragIndicator,
+  Fullscreen,
+  FullscreenExit,
+  HighlightOff,
+  InfoOutlined,
+  Save,
+  Start,
+  Upload,
+} from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Box, Button, IconButton, Tooltip } from '@mui/material';
+import { Box, BoxProps, Button, IconButton, Tooltip, Typography } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import equal from 'fast-deep-equal';
 import saveAs from 'file-saver';
 import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
-import { omit, pick } from 'lodash';
+import { groupBy, omit, pick, uniqBy } from 'lodash';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useBeforeUnload, useNavigate, useSearchParams } from 'react-router-dom';
-import { stringify } from 'yaml';
+import { parse, stringify } from 'yaml';
 
+import { Folder } from '../../../api/src/store/folders';
 import { Template } from '../../../api/src/store/templates';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView, { TemplateForm } from '../../components/template-form';
-import TemplateList, { TemplatesProvider, useTemplates } from '../../components/template-list';
+import TemplateList, { TemplatesProvider, TreeNode, useTemplates } from '../../components/template-list';
 import { useComponent } from '../../contexts/component';
 import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
+import { importBodySchema } from '../../libs/import';
 import useDialog from '../../utils/use-dialog';
+import usePickFile, { readFileAsText } from '../../utils/use-pick-file';
 
 const LATEST_TEMPLATE_ID_KEY = 'ai-studio.currentTemplateId';
 
@@ -60,7 +73,7 @@ function TemplateView() {
       ),
   });
 
-  const { templates, loading, submiting, create, update, remove } = useTemplates();
+  const { templates, treeRef, submiting, create, update, remove, importTemplates } = useTemplates();
   const [current, setCurrentTemplate] = useState<Template>();
   const [form, setForm] = useState<Template>();
 
@@ -107,6 +120,8 @@ function TemplateView() {
 
     return !equal(omitParameterValue(form), omitParameterValue(current));
   }, [form]);
+  const formChangedRef = useRef(formChanged);
+  formChangedRef.current = formChanged;
 
   const setCurrent = useCallback(
     (template: Template) => {
@@ -322,37 +337,40 @@ Question: ${question}\
     return () => window.removeEventListener('keydown', onKeydown);
   }, []);
 
-  const headerAddons = ([...exists]: ReactNode[]) => {
-    exists.unshift(
-      <LoadingButton
-        disabled={!formChanged}
-        loading={submiting}
-        loadingPosition="start"
-        startIcon={<Save />}
-        onClick={save}>
-        {t('form.save')}
-      </LoadingButton>
-    );
-
-    if (form) {
-      exists.unshift(
-        <Button
-          startIcon={<Download />}
-          onClick={() => {
-            const text = stringify(form);
-            saveAs(new Blob([text]), `${form.name || form._id}.yml`);
-          }}>
-          {t('alert.export')}
-        </Button>
-      );
-    }
-
-    exists.unshift(<ToggleFullscreen />);
-
-    return exists;
-  };
-
   const assistant = useComponent('ai-assistant');
+
+  const requireSave = useCallback(async () => {
+    if (!formChangedRef.current) {
+      return true;
+    }
+    return new Promise<boolean>((resolve, reject) => {
+      showDialog({
+        maxWidth: 'xs',
+        fullWidth: true,
+        title: t('alert.discardChanges'),
+        okText: t('form.save'),
+        okColor: 'primary',
+        cancelText: t('alert.cancel'),
+        middleText: t('alert.discard'),
+        middleColor: 'error',
+        onOk: async () => {
+          try {
+            await saveRef.current();
+            resolve(true);
+          } catch (error) {
+            reject(error);
+          }
+        },
+        onMiddleClick: () => {
+          setForm(current);
+          resolve(true);
+        },
+        onCancel: () => {
+          resolve(false);
+        },
+      });
+    });
+  }, [current, showDialog, t]);
 
   const onLaunch = useCallback(
     async (template: Template) => {
@@ -360,35 +378,283 @@ Question: ${question}\
         return;
       }
 
-      const launch = () =>
-        window.open(
-          `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${template._id}?source=studio`,
-          '_blank'
-        );
+      if (!(await requireSave())) return;
 
-      if (!formChanged) {
-        launch();
+      window.open(
+        `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${template._id}?source=studio`,
+        '_blank'
+      );
+    },
+    [assistant, requireSave]
+  );
+
+  const onExport = useCallback(
+    async (node?: TreeNode | { type: 'template'; id: string }, { quiet }: { quiet?: boolean } = {}) => {
+      if (!(await requireSave())) return;
+
+      const all = {
+        templates: treeRef.current
+          .filter((i): i is Required<typeof i> & { data: { type: 'template' } } => i.data?.type === 'template')
+          .map((i) => i.data?.data),
+        folders: treeRef.current
+          .filter((i): i is Required<typeof i> & { data: { type: 'folder' } } => i.data?.type === 'folder')
+          .map((i) => i.data?.data),
+      };
+
+      const isTemplate = (n: typeof node): n is { type: 'template'; id: string } => (n as any)?.type === 'template';
+
+      const result: { folders?: Folder[]; templates: Template[] } = isTemplate(node)
+        ? { templates: all.templates.filter((i) => i._id === node.id) }
+        : !node?.data
+        ? all
+        : node.data.type === 'template'
+        ? { templates: all.templates.filter((i) => i._id === node.data?.data._id) }
+        : { templates: all.templates.filter((i) => i.folderId === node.id) };
+
+      for (let i = 0; i < result.templates.length; i++) {
+        const current = result.templates[i]!;
+        if (current.branch?.branches.length) {
+          for (const { template } of current.branch.branches) {
+            if (template && !result.templates.some((i) => i._id === template.id)) {
+              const t = all.templates.find((i) => i._id === template.id);
+              if (t) result.templates.push(t);
+            }
+          }
+        }
+      }
+
+      const group = groupBy(result.templates, 'folderId');
+
+      if (!result.folders) {
+        const folderIds = Object.keys(group);
+        result.folders = all.folders.filter((i) => folderIds.includes(i._id!));
+      }
+
+      if (!result.templates.length) {
+        Toast.error('No templates to export');
         return;
       }
 
+      const rootTemplates = result.templates.filter((i) => !result.folders?.some((j) => j._id === i.folderId));
+
+      const doExport = () => {
+        const str = stringify(result);
+        const filename =
+          (node?.id &&
+            (all.folders.find((i) => i._id === node.id)?.name ?? all.templates.find((i) => i._id === node.id)?.name)) ||
+          node?.id ||
+          `templates-${Date.now()}`;
+        saveAs(new Blob([str]), `${filename}.yml`);
+      };
+
+      if (quiet) {
+        doExport();
+        return;
+      }
       showDialog({
-        maxWidth: 'xs',
         fullWidth: true,
-        title: t('alert.savingBeforeLaunch'),
-        okText: t('form.save'),
+        maxWidth: 'sm',
+        title: t('alert.export'),
+        content: (
+          <Box>
+            <Typography>{t('alert.exportTip')}</Typography>
+            <Box component="ul" sx={{ pl: 2 }}>
+              {result.folders.map((folder) => (
+                <Box key={folder!._id} component="li">
+                  <Box>{folder.name || folder._id}</Box>
+                  <Box component="ul">
+                    {group[folder._id!]?.map((template) => (
+                      <Box key={template._id} component="li">
+                        {template.name || template._id}
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              ))}
+
+              {rootTemplates.length > 0 && (
+                <Box component="li">
+                  <Box>/</Box>
+                  <Box component="ul">
+                    {rootTemplates.map((template) => (
+                      <Box key={template._id} component="li">
+                        {template.name || template._id}
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </Box>
+        ),
         cancelText: t('alert.cancel'),
-        onOk: async () => {
-          await saveRef.current();
-          setTimeout(() => {
-            launch();
-          }, 300);
-        },
-        onCancel: () => {
-          launch();
-        },
+        okText: t('alert.export'),
+        onOk: () => doExport(),
       });
     },
-    [assistant, formChanged, t]
+    [requireSave, treeRef, t, showDialog]
+  );
+
+  const pickFile = usePickFile();
+
+  const onImport = useCallback(async () => {
+    if (!(await requireSave())) return;
+
+    try {
+      const files = await pickFile({ accept: '.yaml', multiple: true });
+      const list = await Promise.all(
+        (await Promise.all(files.map((i) => readFileAsText(i))))
+          .map((i) => parse(i))
+          .map(async (obj) => importBodySchema.validateAsync(obj))
+      );
+      const merged = list.reduce((res, i) => ({
+        folders: (res.folders ?? []).concat(i.folders ?? []),
+        templates: (res.templates ?? []).concat(i.templates ?? []),
+      }));
+      merged.folders = uniqBy(merged.folders, '_id');
+      merged.templates = uniqBy(merged.templates, '_id');
+
+      const group = groupBy(merged.templates, 'folderId');
+
+      const rootTemplates = merged.templates.filter((i) => !merged.folders?.some((j) => i.folderId === j._id));
+
+      const existedTemplateIds = new Set(treeRef.current.map((i) => i.id));
+
+      const renderTemplateItem = ({ template, ...props }: { template: Template } & BoxProps) => {
+        return (
+          <Box {...props} sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ flexShrink: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {template.name || template._id}
+            </Box>
+
+            {existedTemplateIds.has(template._id) && (
+              <Tooltip
+                title={
+                  <>
+                    <Box component="span">{t('alert.overwrittenTip')}</Box>
+                    <Box
+                      component="a"
+                      sx={{
+                        ml: 1,
+                        userSelect: 'none',
+                        color: 'white',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        ':hover': { opacity: 0.6 },
+                      }}
+                      onClick={() => onExport({ type: 'template', id: template._id }, { quiet: true })}>
+                      {t('alert.downloadBackup')}
+                    </Box>
+                  </>
+                }>
+                <InfoOutlined color="warning" fontSize="small" sx={{ mx: 1 }} />
+              </Tooltip>
+            )}
+          </Box>
+        );
+      };
+
+      const renderFolder = ({ title, templates, ...props }: { title: string; templates: Template[] } & BoxProps) => {
+        return (
+          <Box {...props}>
+            <Box>{title}</Box>
+            <Box component="ul">
+              {templates.map((template) =>
+                renderTemplateItem({
+                  key: template._id,
+                  component: 'li',
+                  template,
+                })
+              )}
+            </Box>
+          </Box>
+        );
+      };
+
+      showDialog({
+        fullWidth: true,
+        maxWidth: 'sm',
+        title: t('alert.import'),
+        content: (
+          <Box>
+            <Typography>{t('alert.importTip')}</Typography>
+            <Box component="ul" sx={{ pl: 2 }}>
+              {merged.folders.map((folder) =>
+                renderFolder({
+                  key: folder._id,
+                  title: folder.name || folder._id!,
+                  component: 'li',
+                  templates: group[folder._id!] ?? [],
+                })
+              )}
+
+              {rootTemplates.length > 0 &&
+                renderFolder({
+                  title: '/',
+                  component: 'li',
+                  templates: rootTemplates,
+                })}
+            </Box>
+          </Box>
+        ),
+        cancelText: t('alert.cancel'),
+        okText: t('alert.import'),
+        onOk: async () => {
+          try {
+            await importTemplates(merged);
+            Toast.success(t('alert.imported'));
+            const current = templateId
+              ? treeRef.current.find(
+                  (i): i is TreeNode & { data: { type: 'template' } } => i.data?.data._id === templateId
+                )?.data?.data
+              : null;
+            if (current) {
+              setCurrent(current);
+            }
+          } catch (error) {
+            Toast.error(getErrorMessage(error));
+            throw error;
+          }
+        },
+      });
+    } catch (error) {
+      Toast.error(getErrorMessage(error));
+      throw error;
+    }
+  }, [importTemplates, onExport, pickFile, requireSave, showDialog, t, treeRef]);
+
+  const headerAddons = useCallback(
+    ([...exists]: ReactNode[]) => {
+      exists.unshift(
+        <LoadingButton
+          disabled={!formChanged}
+          loading={submiting}
+          loadingPosition="start"
+          startIcon={<Save />}
+          onClick={save}>
+          {t('form.save')}
+        </LoadingButton>
+      );
+
+      exists.unshift(
+        <Button startIcon={<Upload />} onClick={onImport}>
+          {t('alert.import')}
+        </Button>
+      );
+
+      if (form) {
+        exists.unshift(
+          <Button startIcon={<Download />} onClick={() => onExport()}>
+            {t('alert.export')}
+          </Button>
+        );
+      }
+
+      exists.unshift(<ToggleFullscreen />);
+
+      return exists;
+    },
+    [form, formChanged, onExport, onImport, save, submiting, t]
   );
 
   return (
@@ -402,10 +668,12 @@ Question: ${question}\
           <TemplateList
             sx={{ height: '100%', overflow: 'auto' }}
             className="list"
-            templates={templates}
-            loading={loading}
             current={current}
-            onCreate={async (input) => setCurrent(await create({ name: '', ...input }))}
+            onCreate={async (input) => {
+              const res = await create({ name: '', ...input });
+              to(res._id);
+            }}
+            onExport={onExport}
             onDelete={(template) => {
               const referers = templates.filter(
                 (i) => i.type === 'branch' && i.branch?.branches.some((j) => j.template?.id === template._id)

@@ -16,5 +16,6 @@ module.exports = {
     'no-return-assign': 'off',
     'no-continue': 'off',
     'no-await-in-loop': 'warn',
+    'no-nested-ternary': 'off',
   },
 };

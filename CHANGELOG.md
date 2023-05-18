@@ -1,3 +1,9 @@
+## 0.1.47 (2023-5-18)
+
+- feat: import/export folder and templates
+- fix: display grey background when dropped over
+- feat: support group templates by project
+
 ## 0.1.46 (2023-5-16)
 
 - fix: delete empty branches after saving
