@@ -491,7 +491,7 @@ function FolderTreeItem({
             onChange={(e) => setValue(e.target.value)}
             sx={{
               height: 24,
-              lineHeight: 24,
+              lineHeight: '24px',
               display: 'flex',
               alignItems: 'center',
             }}
