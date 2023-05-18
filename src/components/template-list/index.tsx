@@ -48,6 +48,7 @@ export default function TemplateList({
   onClick,
   onLaunch,
   onExport,
+  onRemoveFolder,
   ...props
 }: {
   current?: Template;
@@ -56,9 +57,10 @@ export default function TemplateList({
   onClick?: (template: Template) => void;
   onLaunch?: (template: Template) => void;
   onExport?: (node: TreeNode) => void;
+  onRemoveFolder?: (folderId: string) => void;
 } & Omit<BoxProps, 'onClick'>) {
   const { t } = useLocaleContext();
-  const { loading, tree, treeRef, createFolder, removeFolder, updateFolder, update, refetch } = useTemplates();
+  const { loading, tree, treeRef, createFolder, updateFolder, update, refetch } = useTemplates();
   const [newFolder, setNewFolder] = useState<Folder>();
 
   useEffect(() => {
@@ -182,11 +184,13 @@ export default function TemplateList({
                           </Button>
                         </Tooltip>
                       )}
-                      <Tooltip title="Delete">
-                        <Button size="small" onClick={() => removeFolder(node.id as any)}>
-                          <DeleteForever fontSize="small" />
-                        </Button>
-                      </Tooltip>
+                      {onRemoveFolder && (
+                        <Tooltip title="Delete">
+                          <Button size="small" onClick={() => onRemoveFolder(node.id as string)}>
+                            <DeleteForever fontSize="small" />
+                          </Button>
+                        </Tooltip>
+                      )}
                     </>
                   }
                 />
