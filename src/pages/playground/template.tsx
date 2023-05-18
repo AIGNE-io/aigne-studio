@@ -409,7 +409,7 @@ Question: ${question}\
         ? all
         : node.data.type === 'template'
         ? { templates: all.templates.filter((i) => i._id === node.data?.data._id) }
-        : { templates: templates.filter((i) => i.folderId === node.id) };
+        : { templates: all.templates.filter((i) => i.folderId === node.id) };
 
       for (let i = 0; i < result.templates.length; i++) {
         const current = result.templates[i]!;
@@ -428,6 +428,11 @@ Question: ${question}\
       if (!result.folders) {
         const folderIds = Object.keys(group);
         result.folders = all.folders.filter((i) => folderIds.includes(i._id!));
+      }
+
+      if (!result.templates.length) {
+        Toast.error('No templates to export');
+        return;
       }
 
       const rootTemplates = result.templates.filter((i) => !result.folders?.some((j) => j._id === i.folderId));

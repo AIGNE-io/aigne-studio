@@ -148,7 +148,7 @@ export default function TemplateList({
           }}
           listComponent="div"
           listItemComponent="div"
-          render={(node, { depth, isOpen, onToggle }) => {
+          render={(node, { depth, isOpen, onToggle, hasChild }) => {
             if (!node.data) {
               return <Box />;
             }
@@ -168,9 +168,11 @@ export default function TemplateList({
                     <>
                       {onExport && (
                         <Tooltip title="Export">
-                          <Button size="small" onClick={() => onExport(node)}>
-                            <Download fontSize="small" />
-                          </Button>
+                          <span>
+                            <Button disabled={!hasChild} size="small" onClick={() => onExport(node)}>
+                              <Download fontSize="small" />
+                            </Button>
+                          </span>
                         </Tooltip>
                       )}
                       {onCreate && (
