@@ -126,7 +126,7 @@ export default function TemplateList({
           rootId="/"
           initialOpen={openIds}
           onChangeOpen={setOpenIds}
-          canDrag={(node) => !!node?.data}
+          canDrag={(node) => node?.data?.type === 'template'}
           onDrop={async (_, { dragSource, dropTarget }) => {
             if (dragSource) {
               await update(dragSource.id as string, { folderId: (dropTarget?.id as string) ?? null });
