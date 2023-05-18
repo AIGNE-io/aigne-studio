@@ -48,6 +48,7 @@ export default function TemplateList({
   onClick,
   onLaunch,
   onExport,
+  onRemoveFolder,
   ...props
 }: {
   current?: Template;
@@ -56,9 +57,10 @@ export default function TemplateList({
   onClick?: (template: Template) => void;
   onLaunch?: (template: Template) => void;
   onExport?: (node: TreeNode) => void;
+  onRemoveFolder?: (folderId: string) => void;
 } & Omit<BoxProps, 'onClick'>) {
   const { t } = useLocaleContext();
-  const { loading, tree, treeRef, createFolder, removeFolder, updateFolder, update, refetch } = useTemplates();
+  const { loading, tree, treeRef, createFolder, updateFolder, update, refetch } = useTemplates();
   const [newFolder, setNewFolder] = useState<Folder>();
 
   useEffect(() => {
@@ -124,7 +126,7 @@ export default function TemplateList({
           rootId="/"
           initialOpen={openIds}
           onChangeOpen={setOpenIds}
-          canDrag={(node) => !!node?.data}
+          canDrag={(node) => node?.data?.type === 'template'}
           onDrop={async (_, { dragSource, dropTarget }) => {
             if (dragSource) {
               await update(dragSource.id as string, { folderId: (dropTarget?.id as string) ?? null });
@@ -182,11 +184,13 @@ export default function TemplateList({
                           </Button>
                         </Tooltip>
                       )}
-                      <Tooltip title="Delete">
-                        <Button size="small" onClick={() => removeFolder(node.id as any)}>
-                          <DeleteForever fontSize="small" />
-                        </Button>
-                      </Tooltip>
+                      {onRemoveFolder && (
+                        <Tooltip title="Delete">
+                          <Button size="small" onClick={() => onRemoveFolder(node.id as string)}>
+                            <DeleteForever fontSize="small" />
+                          </Button>
+                        </Tooltip>
+                      )}
                     </>
                   }
                 />
@@ -491,7 +495,7 @@ function FolderTreeItem({
             onChange={(e) => setValue(e.target.value)}
             sx={{
               height: 24,
-              lineHeight: 24,
+              lineHeight: '24px',
               display: 'flex',
               alignItems: 'center',
             }}

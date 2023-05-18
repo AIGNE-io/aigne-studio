@@ -1,3 +1,9 @@
+## 0.1.48 (2023-5-18)
+
+- fix: disallow drag folders
+- fix: confirm deleting
+- fix: correct line height of the folder name input
+
 ## 0.1.47 (2023-5-18)
 
 - feat: import/export folder and templates

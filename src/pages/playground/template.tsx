@@ -73,7 +73,7 @@ function TemplateView() {
       ),
   });
 
-  const { templates, treeRef, submiting, create, update, remove, importTemplates } = useTemplates();
+  const { templates, treeRef, submiting, create, update, remove, importTemplates, removeFolder } = useTemplates();
   const [current, setCurrentTemplate] = useState<Template>();
   const [form, setForm] = useState<Template>();
 
@@ -674,8 +674,53 @@ Question: ${question}\
               to(res._id);
             }}
             onExport={onExport}
+            onRemoveFolder={(folderId) => {
+              const folderName = treeRef.current.find((i) => i.id === folderId)?.text;
+              const templates = treeRef.current
+                .filter(
+                  (i): i is typeof i & { data: { type: 'template' } } =>
+                    i.data?.type === 'template' && i.data.data.folderId === folderId
+                )
+                .map((i) => i.data?.data);
+
+              showDialog({
+                maxWidth: 'xs',
+                fullWidth: true,
+                title: t('alert.delete'),
+                content: (
+                  <>
+                    <Box>{t('alert.deleteTemplates')}</Box>
+                    <Box component="ul" sx={{ pl: 2 }}>
+                      <Box component="li">
+                        <Box>{folderName || folderId}</Box>
+
+                        <Box component="ul">
+                          {templates.map((template) => (
+                            <Box key={template._id} component="li">
+                              {template.name || template._id}
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    </Box>
+                  </>
+                ),
+                okText: t('alert.delete'),
+                okColor: 'error',
+                cancelText: t('alert.cancel'),
+                onOk: async () => {
+                  try {
+                    await removeFolder(folderId);
+                    Toast.success(t('alert.deleted'));
+                  } catch (error) {
+                    Toast.error(getErrorMessage(error));
+                    throw error;
+                  }
+                },
+              });
+            }}
             onDelete={(template) => {
-              const referers = templates.filter(
+              const referrers = templates.filter(
                 (i) => i.type === 'branch' && i.branch?.branches.some((j) => j.template?.id === template._id)
               );
 
@@ -683,11 +728,11 @@ Question: ${question}\
                 maxWidth: 'xs',
                 fullWidth: true,
                 title: t('alert.deleteTemplate', { template: template.name || template._id }),
-                content: referers.length ? (
+                content: referrers.length ? (
                   <>
-                    {t('alert.deleteTemplateContent', { references: referers.length })}
+                    {t('alert.deleteTemplateContent', { references: referrers.length })}
                     <ul>
-                      {referers.map((template) => (
+                      {referrers.map((template) => (
                         <Box key={template._id} component="li">
                           {template.name || template._id}
                         </Box>

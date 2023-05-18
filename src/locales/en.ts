@@ -55,6 +55,7 @@ export default flat({
     deleteTemplateContent: 'There are {references} templates referencing this template',
     exportTip: 'The following templates will be exported',
     importTip: 'The following templates will be imported',
+    deleteTemplates: 'The following templates will be deleted',
     cancel: 'Cancel',
     delete: 'Delete',
     ok: 'Ok',

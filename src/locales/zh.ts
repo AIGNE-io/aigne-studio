@@ -55,6 +55,7 @@ export default flat({
     deleteTemplateContent: '有 {references} 个模版引用了该模版',
     exportTip: '下列模版将会被导出',
     importTip: '下列模版将会被导入',
+    deleteTemplates: '下列模版将会被删除',
     cancel: '取消',
     delete: '删除',
     ok: '确定',

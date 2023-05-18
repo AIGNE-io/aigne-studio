@@ -5,6 +5,7 @@ import { orderBy, uniqWith } from 'lodash';
 
 import { ensureAdmin } from '../libs/security';
 import { folders } from '../store/folders';
+import { templates } from '../store/templates';
 
 const router = Router();
 
@@ -82,7 +83,7 @@ router.delete('/:folderId', ensureAdmin, async (req, res) => {
     return;
   }
 
-  await folders.remove({ _id: folderId });
+  await Promise.all([templates.remove({ folderId }, { multi: true }), folders.remove({ _id: folderId })]);
 
   res.json(folder);
 });
