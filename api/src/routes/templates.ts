@@ -86,7 +86,7 @@ const parametersSchema = Joi.object().pattern(
     })
 );
 
-const templateSchema = Joi.object<TemplateInput>({
+export const templateSchema = Joi.object<TemplateInput>({
   mode: Joi.string().valid('default', 'chat').empty(''),
   type: Joi.string().valid('branch').empty(''),
   icon: Joi.string().empty(''),
@@ -118,7 +118,7 @@ const templateSchema = Joi.object<TemplateInput>({
   model: Joi.string().empty(null),
   temperature: Joi.number().min(0).max(2).empty(null),
   deleteEmptyTemplates: Joi.array().items(Joi.string()),
-  folderId: Joi.string().empty(null),
+  folderId: Joi.string().allow(null),
 });
 
 const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; tag?: string }>({

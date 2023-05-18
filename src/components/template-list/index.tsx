@@ -8,6 +8,7 @@ import {
   CopyAll,
   CreateNewFolderOutlined,
   DeleteForever,
+  Download,
   Edit,
   KeyboardArrowDown,
   KeyboardArrowRight,
@@ -27,6 +28,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { DndProvider } from 'react-dnd';
@@ -36,6 +38,7 @@ import { Folder } from '../../../api/src/store/folders';
 import { Template } from '../../../api/src/store/templates';
 import { getErrorMessage } from '../../libs/api';
 import * as foldersApi from '../../libs/folders';
+import { importTemplates } from '../../libs/import';
 import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
 
 export default function TemplateList({
@@ -44,6 +47,7 @@ export default function TemplateList({
   onDelete,
   onClick,
   onLaunch,
+  onExport,
   ...props
 }: {
   current?: Template;
@@ -51,13 +55,14 @@ export default function TemplateList({
   onDelete?: (template: Template) => void;
   onClick?: (template: Template) => void;
   onLaunch?: (template: Template) => void;
+  onExport?: (node: TreeNode) => void;
 } & Omit<BoxProps, 'onClick'>) {
   const { t } = useLocaleContext();
-  const { loading, tree, createFolder, removeFolder, updateFolder, update, refetch } = useTemplates();
+  const { loading, tree, treeRef, createFolder, removeFolder, updateFolder, update, refetch } = useTemplates();
   const [newFolder, setNewFolder] = useState<Folder>();
 
   useEffect(() => {
-    if (!tree.length) {
+    if (!treeRef.current.length) {
       refetch();
     }
   }, []);
@@ -121,15 +126,22 @@ export default function TemplateList({
           onChangeOpen={setOpenIds}
           canDrag={(node) => !!node?.data}
           onDrop={async (_, { dragSource, dropTarget }) => {
-            if (dragSource && dropTarget) {
-              await update(dragSource.id as any, { folderId: dropTarget.id as any });
-              if (!openIds.includes(dropTarget.id)) {
+            if (dragSource) {
+              await update(dragSource.id as string, { folderId: (dropTarget?.id as string) ?? null });
+              if (dropTarget && !openIds.includes(dropTarget.id)) {
                 setOpenIds((ids) => (ids ?? []).concat(dropTarget.id));
               }
             }
           }}
           classes={{
-            root: css``,
+            root: css`
+              min-height: 100%;
+              &:after {
+                content: '';
+                display: block;
+                height: 100px;
+              }
+            `,
             dropTarget: css`
               background-color: rgba(0, 0, 0, 0.05);
             `,
@@ -138,6 +150,10 @@ export default function TemplateList({
           listItemComponent="div"
           render={(node, { depth, isOpen, onToggle }) => {
             if (!node.data) {
+              return <Box />;
+            }
+
+            if (node.data.type === 'folder') {
               return (
                 <FolderTreeItem
                   text={node.text}
@@ -150,22 +166,33 @@ export default function TemplateList({
                   defaultEditing={newFolder?._id === node.id && !node.text}
                   actions={
                     <>
-                      <Button size="small" onClick={() => removeFolder(node.id as any)}>
-                        <DeleteForever fontSize="small" />
-                      </Button>
-                      {onCreate && (
-                        <Button size="small" onClick={() => onCreate({ folderId: node.id as any })}>
-                          <Add fontSize="small" />
-                        </Button>
+                      {onExport && (
+                        <Tooltip title="Export">
+                          <Button size="small" onClick={() => onExport(node)}>
+                            <Download fontSize="small" />
+                          </Button>
+                        </Tooltip>
                       )}
+                      {onCreate && (
+                        <Tooltip title="New Template">
+                          <Button size="small" onClick={() => onCreate({ folderId: node.id as any })}>
+                            <Add fontSize="small" />
+                          </Button>
+                        </Tooltip>
+                      )}
+                      <Tooltip title="Delete">
+                        <Button size="small" onClick={() => removeFolder(node.id as any)}>
+                          <DeleteForever fontSize="small" />
+                        </Button>
+                      </Tooltip>
                     </>
                   }
                 />
               );
             }
 
-            const selected = current?._id === node.data._id;
-            const template = node.data;
+            const selected = current?._id === node.data.data._id;
+            const template = node.data.data;
 
             return (
               <TemplateTreeItem
@@ -176,28 +203,42 @@ export default function TemplateList({
                 actions={
                   <>
                     {onLaunch && (
-                      <Button size="small" onClick={() => onLaunch(template)}>
-                        <Launch fontSize="small" />
-                      </Button>
+                      <Tooltip title="Open in Assistant">
+                        <Button size="small" onClick={() => onLaunch(template)}>
+                          <Launch fontSize="small" />
+                        </Button>
+                      </Tooltip>
+                    )}
+
+                    {onExport && (
+                      <Tooltip title="Export">
+                        <Button size="small" onClick={() => onExport(node)}>
+                          <Download fontSize="small" />
+                        </Button>
+                      </Tooltip>
                     )}
 
                     {onCreate && (
-                      <Button
-                        size="small"
-                        onClick={() =>
-                          onCreate({
-                            ...omit(template, '_id', 'createdAt', 'updatedAt'),
-                            name: `${template.name || template._id} Copy`,
-                          })
-                        }>
-                        <CopyAll fontSize="small" />
-                      </Button>
+                      <Tooltip title="Duplicate">
+                        <Button
+                          size="small"
+                          onClick={() =>
+                            onCreate({
+                              ...omit(template, '_id', 'createdAt', 'updatedAt'),
+                              name: `${template.name || template._id} Copy`,
+                            })
+                          }>
+                          <CopyAll fontSize="small" />
+                        </Button>
+                      </Tooltip>
                     )}
 
                     {onDelete && (
-                      <Button size="small" onClick={() => onDelete(template)}>
-                        <DeleteForever fontSize="small" />
-                      </Button>
+                      <Tooltip title="Delete">
+                        <Button size="small" onClick={() => onDelete(template)}>
+                          <DeleteForever fontSize="small" />
+                        </Button>
+                      </Tooltip>
                     )}
                   </>
                 }
@@ -210,9 +251,11 @@ export default function TemplateList({
   );
 }
 
+export type TreeNode = NodeModel<{ type: 'template'; data: Template } | { type: 'folder'; data: Folder }>;
+
 export interface TemplatesContext {
   templates: Template[];
-  tree: NodeModel<Template>[];
+  tree: TreeNode[];
   loading: boolean;
   submiting: boolean;
   error?: Error;
@@ -242,6 +285,9 @@ export function TemplatesProvider({ children }: { children: ReactNode }) {
 export function useTemplates() {
   const { setState, ...state } = useContext(templatesContext);
 
+  const treeRef = useRef(state.tree);
+  treeRef.current = state.tree;
+
   const refetch = useCallback(async () => {
     setState((state) => ({ ...state, loading: true }));
     try {
@@ -250,31 +296,28 @@ export function useTemplates() {
         foldersApi.getFolders(),
       ]);
       const folderIds = new Set(folders.map((i) => i._id));
-      setState((state) =>
-        produce(state, (draft) => {
+      setState((state) => {
+        const newState = produce(state, (draft) => {
           draft.templates.splice(0, draft.templates.length, ...templates);
-          draft.tree.splice(
-            0,
-            draft.tree.length,
-            ...folders
-              .map((i) => ({
-                id: i._id!,
-                parent: '/',
-                text: i.name || '',
-                droppable: true,
-              }))
-              .concat(
-                templates.map((i) => ({
-                  id: i._id,
-                  parent: i.folderId && folderIds.has(i.folderId) ? i.folderId : '/',
-                  text: i.name || i._id,
-                  droppable: false,
-                  data: i,
-                }))
-              )
-          );
-        })
-      );
+          const f: typeof state.tree = folders.map((i) => ({
+            id: i._id!,
+            parent: '/',
+            text: i.name || '',
+            droppable: true,
+            data: { type: 'folder', data: i },
+          }));
+          const t: typeof state.tree = templates.map((i) => ({
+            id: i._id,
+            parent: i.folderId && folderIds.has(i.folderId) ? i.folderId : '/',
+            text: i.name || i._id,
+            droppable: false,
+            data: { type: 'template', data: i },
+          }));
+          draft.tree = f.concat(t);
+        });
+        treeRef.current = newState.tree;
+        return newState;
+      });
     } catch (error) {
       setState((state) => ({ ...state, error }));
       throw error;
@@ -349,7 +392,31 @@ export function useTemplates() {
     }
   }, []);
 
-  return { ...state, refetch, create, update, remove, createFolder, updateFolder, removeFolder };
+  const importTemplatesFn = useCallback(
+    async ({ folders, templates }: { folders?: Folder[]; templates?: Template[] }) => {
+      setState((state) => ({ ...state, submiting: true }));
+      try {
+        await importTemplates({ folders, templates });
+        await refetch();
+      } finally {
+        setState((state) => ({ ...state, submiting: false }));
+      }
+    },
+    []
+  );
+
+  return {
+    ...state,
+    treeRef,
+    refetch,
+    create,
+    update,
+    remove,
+    createFolder,
+    updateFolder,
+    removeFolder,
+    importTemplates: importTemplatesFn,
+  };
 }
 
 function FolderTreeItem({
@@ -484,9 +551,11 @@ function FolderTreeItem({
                 e.stopPropagation();
                 setOpen(false);
               }}>
-              <Button size="small" onClick={() => setEditing(true)}>
-                <Edit fontSize="small" />
-              </Button>
+              <Tooltip title="Rename">
+                <Button size="small" onClick={() => setEditing(true)}>
+                  <Edit fontSize="small" />
+                </Button>
+              </Tooltip>
 
               {actions}
             </Box>
