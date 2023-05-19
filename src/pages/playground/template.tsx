@@ -380,12 +380,18 @@ Question: ${question}\
 
       if (!(await requireSave())) return;
 
+      const t = treeRef.current.find((i) => i.id === template._id)?.data?.data as Template;
+      if (!t) {
+        throw new Error(`Template ${template._id} does not exist`);
+        return;
+      }
+
       window.open(
-        `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${template._id}?source=studio`,
+        `${assistant.mountPoint}/${t.mode === 'chat' ? 'chat' : 'templates'}/${t._id}?source=studio`,
         '_blank'
       );
     },
-    [assistant, requireSave]
+    [assistant, requireSave, treeRef]
   );
 
   const onExport = useCallback(
