@@ -472,22 +472,17 @@ function FolderTreeItem({
     <Box
       sx={{
         position: 'relative',
-        pl: depth * 2,
+        pl: depth * 2 + 1,
+        py: 0.5,
+        pr: 2,
         display: 'flex',
         alignItems: 'center',
-        ':hover': { '.hover-visible': { opacity: 1 } },
+        cursor: 'pointer',
+        ':hover': { bgcolor: 'grey.100', '.hover-visible': { opacity: 1 } },
       }}
       onClick={onToggle}>
-      <Box
-        sx={{
-          fontSize: 16,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 20,
-          height: 20,
-        }}>
-        {isOpen ? <KeyboardArrowDown fontSize="inherit" /> : <KeyboardArrowRight fontSize="inherit" />}
+      <Box sx={{ height: 20, mr: 0.5 }}>
+        {isOpen ? <KeyboardArrowDown fontSize="small" /> : <KeyboardArrowRight fontSize="small" />}
       </Box>
       <Box sx={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {editing ? (
@@ -598,15 +593,16 @@ function TemplateTreeItem({
       {...props}
       sx={{
         position: 'relative',
-        pl: depth * 2,
+        pl: depth * 2 + 1,
+        pr: 2,
+        py: 0.5,
         display: 'flex',
         alignItems: 'center',
-        ':hover': { '.hover-visible': { opacity: 1 } },
+        cursor: 'pointer',
+        ':hover': { bgcolor: 'grey.100', '.hover-visible': { opacity: 1 } },
         ...props.sx,
       }}>
-      <Box sx={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Box component={Icon} icon={icon} sx={{ fontSize: 16, color }} />
-      </Box>
+      <Box component={Icon} icon={icon} sx={{ fontSize: 20, color, mr: 0.5 }} />
       <Box
         sx={{
           flex: 1,
