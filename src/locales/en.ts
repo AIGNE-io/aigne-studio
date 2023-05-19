@@ -23,6 +23,7 @@ export default flat({
     tag: 'Tag',
     model: 'Model',
     temperature: 'Temperature',
+    rename: 'Rename',
     parameter: {
       type: 'Type',
       typeText: 'Text',
@@ -63,5 +64,7 @@ export default flat({
     deleted: 'Deleted',
     overwrittenTip: 'This template will be overwritten',
     downloadBackup: 'Download backup',
+    openInAssistant: 'Open in Assistant',
+    duplicate: 'Duplicate',
   },
 });

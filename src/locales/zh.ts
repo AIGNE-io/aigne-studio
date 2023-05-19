@@ -23,6 +23,7 @@ export default flat({
     tag: '标签',
     model: '模型',
     temperature: '温度',
+    rename: '重命名',
     parameter: {
       type: '类型',
       typeText: '文本',
@@ -63,5 +64,7 @@ export default flat({
     deleted: '删除成功',
     overwrittenTip: '该模版将会被覆盖',
     downloadBackup: '下载备份',
+    openInAssistant: '在 Assistant 中打开',
+    duplicate: '复制',
   },
 });

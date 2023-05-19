@@ -169,7 +169,7 @@ export default function TemplateList({
                   actions={
                     <>
                       {onExport && (
-                        <Tooltip title="Export">
+                        <Tooltip title={t('alert.export')}>
                           <span>
                             <Button disabled={!hasChild} size="small" onClick={() => onExport(node)}>
                               <Download fontSize="small" />
@@ -178,14 +178,14 @@ export default function TemplateList({
                         </Tooltip>
                       )}
                       {onCreate && (
-                        <Tooltip title="New Template">
+                        <Tooltip title={`${t('form.add')} ${t('form.template')}`}>
                           <Button size="small" onClick={() => onCreate({ folderId: node.id as any })}>
                             <Add fontSize="small" />
                           </Button>
                         </Tooltip>
                       )}
                       {onRemoveFolder && (
-                        <Tooltip title="Delete">
+                        <Tooltip title={t('alert.delete')}>
                           <Button size="small" onClick={() => onRemoveFolder(node.id as string)}>
                             <DeleteForever fontSize="small" />
                           </Button>
@@ -209,7 +209,7 @@ export default function TemplateList({
                 actions={
                   <>
                     {onLaunch && (
-                      <Tooltip title="Open in Assistant">
+                      <Tooltip title={t('alert.openInAssistant')}>
                         <Button size="small" onClick={() => onLaunch(template)}>
                           <Launch fontSize="small" />
                         </Button>
@@ -217,7 +217,7 @@ export default function TemplateList({
                     )}
 
                     {onExport && (
-                      <Tooltip title="Export">
+                      <Tooltip title={t('alert.export')}>
                         <Button size="small" onClick={() => onExport(node)}>
                           <Download fontSize="small" />
                         </Button>
@@ -225,7 +225,7 @@ export default function TemplateList({
                     )}
 
                     {onCreate && (
-                      <Tooltip title="Duplicate">
+                      <Tooltip title={t('alert.duplicate')}>
                         <Button
                           size="small"
                           onClick={() =>
@@ -240,7 +240,7 @@ export default function TemplateList({
                     )}
 
                     {onDelete && (
-                      <Tooltip title="Delete">
+                      <Tooltip title={t('alert.delete')}>
                         <Button size="small" onClick={() => onDelete(template)}>
                           <DeleteForever fontSize="small" />
                         </Button>
@@ -442,6 +442,7 @@ function FolderTreeItem({
   onToggle: () => void;
   onSubmit: (name: string) => Promise<any>;
 }) {
+  const { t } = useLocaleContext();
   const [editing, setEditing] = useState(defaultEditing);
   const [value, setValue] = useState(text);
 
@@ -557,7 +558,7 @@ function FolderTreeItem({
                 e.stopPropagation();
                 setOpen(false);
               }}>
-              <Tooltip title="Rename">
+              <Tooltip title={t('form.rename')}>
                 <Button size="small" onClick={() => setEditing(true)}>
                   <Edit fontSize="small" />
                 </Button>
