@@ -1,3 +1,7 @@
+## 0.1.50 (2023-5-19)
+
+- fix: correct launch mode after saving
+
 ## 0.1.49 (2023-5-19)
 
 - fix: enlarge spacing of tree item
