@@ -158,6 +158,7 @@ export default function TemplateList({
             if (node.data.type === 'folder') {
               return (
                 <FolderTreeItem
+                  key={node.id}
                   text={node.text}
                   depth={depth}
                   isOpen={isOpen}
@@ -202,6 +203,7 @@ export default function TemplateList({
 
             return (
               <TemplateTreeItem
+                key={node.id}
                 depth={depth}
                 template={template}
                 sx={{ bgcolor: selected ? 'rgba(0,0,0,0.05)' : undefined }}
