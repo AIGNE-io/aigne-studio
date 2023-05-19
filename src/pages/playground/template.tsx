@@ -505,7 +505,7 @@ Question: ${question}\
       const list = await Promise.all(
         (await Promise.all(files.map((i) => readFileAsText(i))))
           .map((i) => parse(i))
-          .map(async (obj) => importBodySchema.validateAsync(obj))
+          .map(async (obj) => importBodySchema.validateAsync(obj, { stripUnknown: true }))
       );
       const merged = list.reduce((res, i) => ({
         folders: (res.folders ?? []).concat(i.folders ?? []),
