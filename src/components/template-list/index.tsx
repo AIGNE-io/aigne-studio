@@ -158,6 +158,7 @@ export default function TemplateList({
             if (node.data.type === 'folder') {
               return (
                 <FolderTreeItem
+                  key={node.id}
                   text={node.text}
                   depth={depth}
                   isOpen={isOpen}
@@ -169,7 +170,7 @@ export default function TemplateList({
                   actions={
                     <>
                       {onExport && (
-                        <Tooltip title="Export">
+                        <Tooltip title={t('alert.export')}>
                           <span>
                             <Button disabled={!hasChild} size="small" onClick={() => onExport(node)}>
                               <Download fontSize="small" />
@@ -178,14 +179,14 @@ export default function TemplateList({
                         </Tooltip>
                       )}
                       {onCreate && (
-                        <Tooltip title="New Template">
+                        <Tooltip title={`${t('form.add')} ${t('form.template')}`}>
                           <Button size="small" onClick={() => onCreate({ folderId: node.id as any })}>
                             <Add fontSize="small" />
                           </Button>
                         </Tooltip>
                       )}
                       {onRemoveFolder && (
-                        <Tooltip title="Delete">
+                        <Tooltip title={t('alert.delete')}>
                           <Button size="small" onClick={() => onRemoveFolder(node.id as string)}>
                             <DeleteForever fontSize="small" />
                           </Button>
@@ -202,6 +203,7 @@ export default function TemplateList({
 
             return (
               <TemplateTreeItem
+                key={node.id}
                 depth={depth}
                 template={template}
                 sx={{ bgcolor: selected ? 'rgba(0,0,0,0.05)' : undefined }}
@@ -209,7 +211,7 @@ export default function TemplateList({
                 actions={
                   <>
                     {onLaunch && (
-                      <Tooltip title="Open in Assistant">
+                      <Tooltip title={t('alert.openInAssistant')}>
                         <Button size="small" onClick={() => onLaunch(template)}>
                           <Launch fontSize="small" />
                         </Button>
@@ -217,7 +219,7 @@ export default function TemplateList({
                     )}
 
                     {onExport && (
-                      <Tooltip title="Export">
+                      <Tooltip title={t('alert.export')}>
                         <Button size="small" onClick={() => onExport(node)}>
                           <Download fontSize="small" />
                         </Button>
@@ -225,7 +227,7 @@ export default function TemplateList({
                     )}
 
                     {onCreate && (
-                      <Tooltip title="Duplicate">
+                      <Tooltip title={t('alert.duplicate')}>
                         <Button
                           size="small"
                           onClick={() =>
@@ -240,7 +242,7 @@ export default function TemplateList({
                     )}
 
                     {onDelete && (
-                      <Tooltip title="Delete">
+                      <Tooltip title={t('alert.delete')}>
                         <Button size="small" onClick={() => onDelete(template)}>
                           <DeleteForever fontSize="small" />
                         </Button>
@@ -442,6 +444,7 @@ function FolderTreeItem({
   onToggle: () => void;
   onSubmit: (name: string) => Promise<any>;
 }) {
+  const { t } = useLocaleContext();
   const [editing, setEditing] = useState(defaultEditing);
   const [value, setValue] = useState(text);
 
@@ -469,22 +472,17 @@ function FolderTreeItem({
     <Box
       sx={{
         position: 'relative',
-        pl: depth * 2,
+        pl: depth * 2 + 1,
+        py: 0.5,
+        pr: 2,
         display: 'flex',
         alignItems: 'center',
-        ':hover': { '.hover-visible': { opacity: 1 } },
+        cursor: 'pointer',
+        ':hover': { bgcolor: 'grey.100', '.hover-visible': { opacity: 1 } },
       }}
       onClick={onToggle}>
-      <Box
-        sx={{
-          fontSize: 16,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 20,
-          height: 20,
-        }}>
-        {isOpen ? <KeyboardArrowDown fontSize="inherit" /> : <KeyboardArrowRight fontSize="inherit" />}
+      <Box sx={{ height: 20, mr: 0.5 }}>
+        {isOpen ? <KeyboardArrowDown fontSize="small" /> : <KeyboardArrowRight fontSize="small" />}
       </Box>
       <Box sx={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {editing ? (
@@ -557,7 +555,7 @@ function FolderTreeItem({
                 e.stopPropagation();
                 setOpen(false);
               }}>
-              <Tooltip title="Rename">
+              <Tooltip title={t('form.rename')}>
                 <Button size="small" onClick={() => setEditing(true)}>
                   <Edit fontSize="small" />
                 </Button>
@@ -595,15 +593,16 @@ function TemplateTreeItem({
       {...props}
       sx={{
         position: 'relative',
-        pl: depth * 2,
+        pl: depth * 2 + 1,
+        pr: 2,
+        py: 0.5,
         display: 'flex',
         alignItems: 'center',
-        ':hover': { '.hover-visible': { opacity: 1 } },
+        cursor: 'pointer',
+        ':hover': { bgcolor: 'grey.100', '.hover-visible': { opacity: 1 } },
         ...props.sx,
       }}>
-      <Box sx={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Box component={Icon} icon={icon} sx={{ fontSize: 16, color }} />
-      </Box>
+      <Box component={Icon} icon={icon} sx={{ fontSize: 20, color, mr: 0.5 }} />
       <Box
         sx={{
           flex: 1,

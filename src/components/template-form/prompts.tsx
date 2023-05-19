@@ -108,7 +108,7 @@ export default function Prompts({
             v.prompts.push({ id: nanoid(), content: '', role: 'system' });
           })
         }>
-        Add Prompt
+        {t('form.add')} {t('form.prompt')}
       </Button>
     </>
   );
