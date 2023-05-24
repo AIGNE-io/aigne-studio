@@ -65,3 +65,14 @@ navigation:
     role:
       - admin
       - owner
+  - id: datasets
+    title:
+      en: Datasets
+      zh: 数据集
+    icon: icon-park-outline:data
+    link: /playground/datasets
+    section:
+      - dashboard
+    role:
+      - admin
+      - owner
