@@ -5,10 +5,11 @@ import Header from '@blocklet/ui-react/lib/Header';
 import { Global, css } from '@emotion/react';
 import { Box, CssBaseline } from '@mui/material';
 import { ReactNode, Suspense } from 'react';
-import { Navigate, Route, RouterProvider, createBrowserRouter, createRoutesFromElements } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import Loading from './components/loading';
 import { SessionProvider, useIsRole } from './contexts/session';
+import { translations } from './locales';
 import { HomeLazy } from './pages/home';
 import { TemplatePageLazy } from './pages/playground';
 
@@ -27,46 +28,43 @@ export default function App() {
         `}
       />
 
-      <ToastProvider>
-        <LocaleProvider translations={{}}>
-          <SessionProvider serviceHost={basename}>
-            <Suspense fallback={<Loading />}>
-              <AppRoutes basename={basename} />
-            </Suspense>
-          </SessionProvider>
-        </LocaleProvider>
-      </ToastProvider>
+      <BrowserRouter basename={basename}>
+        <ToastProvider>
+          <LocaleProvider translations={translations}>
+            <SessionProvider serviceHost={basename}>
+              <Suspense fallback={<Loading />}>
+                <AppRoutes />
+              </Suspense>
+            </SessionProvider>
+          </LocaleProvider>
+        </ToastProvider>
+      </BrowserRouter>
     </CssBaseline>
   );
 }
 
-function AppRoutes({ basename }: { basename: string }) {
+function AppRoutes() {
   const isAdmin = useIsRole('owner', 'admin');
 
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-      <Route>
-        <Route index element={<HomeLazy />} />
-        <Route path="playground" element={isAdmin ? undefined : <Navigate to="/" />}>
-          <Route index element={<Navigate to="/playground/chat" />} />
-          <Route path="template" element={<TemplatePageLazy />} />
-        </Route>
-        <Route
-          path="*"
-          element={
-            <Layout>
-              <Box flexGrow={1} textAlign="center">
-                <div>Not Found.</div>
-              </Box>
-            </Layout>
-          }
-        />
+  return (
+    <Routes>
+      <Route index element={<HomeLazy />} />
+      <Route path="playground" element={isAdmin ? undefined : <Navigate to="/" />}>
+        <Route index element={<Navigate to="/playground/template" />} />
+        <Route path="template" element={<TemplatePageLazy />} />
       </Route>
-    ),
-    { basename }
+      <Route
+        path="*"
+        element={
+          <Layout>
+            <Box flexGrow={1} textAlign="center">
+              <div>Not Found.</div>
+            </Box>
+          </Layout>
+        }
+      />
+    </Routes>
   );
-
-  return <RouterProvider router={router} />;
 }
 
 function Layout({ children }: { children: ReactNode }) {

@@ -1,7 +1,10 @@
-import { FormControl, FormControlLabel, Grid, MenuItem, Switch, TextField, TextFieldProps } from '@mui/material';
-import { ChangeEvent } from 'react';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { Checkbox, FormControl, FormControlLabel, Grid, MenuItem, Switch, TextField } from '@mui/material';
 
-import type { Parameter, ParameterType } from '.';
+import { Parameter } from '../../../api/src/store/templates';
+import NumberField from '../number-field';
+import ParameterField from '../parameter-field';
+import SelectOptionsConfig from './select-options-config';
 
 export default function ParameterConfig({
   value,
@@ -10,27 +13,39 @@ export default function ParameterConfig({
   value: Parameter;
   onChange: (value: Parameter) => void;
 }) {
-  const type = value.type ? PARAMETER_SELECT_MAP[value.type](value) : 'text';
+  const { t } = useLocaleContext();
 
   return (
     <Grid container spacing={2}>
       <Grid item xs={6}>
         <TextField
           fullWidth
-          label="Type"
+          label={t('form.parameter.type')}
           size="small"
           select
-          value={type}
-          onChange={(e) => onChange({ ...value, ...PARAMETER_SELECT_VALUE_MAP[e.target.value] })}>
-          <MenuItem value="text">Short Text</MenuItem>
-          <MenuItem value="long-text">Long Text</MenuItem>
-          <MenuItem value="number">Number</MenuItem>
+          value={value.type ?? 'string'}
+          onChange={(e) => onChange({ ...value, type: e.target.value as any })}>
+          <MenuItem value="string">{t('form.parameter.typeText')}</MenuItem>
+          <MenuItem value="number">{t('form.parameter.typeNumber')}</MenuItem>
+          <MenuItem value="select">{t('form.parameter.typeSelect')}</MenuItem>
+          <MenuItem value="language">{t('form.parameter.typeLanguage')}</MenuItem>
+          <MenuItem value="horoscope">{t('form.parameter.typeHoroscope')}</MenuItem>
         </TextField>
       </Grid>
-      <Grid item xs={6}>
+      {(!value.type || value.type === 'string') && (
+        <Grid item xs={6} display="flex" alignItems="center" minHeight="100%" justifyContent="flex-end">
+          <FormControlLabel
+            label={t('form.parameter.multiline')}
+            control={<Checkbox />}
+            checked={value.multiline ?? false}
+            onChange={(_, multiline) => onChange({ ...value, multiline })}
+          />
+        </Grid>
+      )}
+      <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Label"
+          label={t('form.parameter.label')}
           size="small"
           value={value.label || ''}
           onChange={(e) => onChange({ ...value, label: e.target.value })}
@@ -39,7 +54,7 @@ export default function ParameterConfig({
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Placeholder"
+          label={t('form.parameter.placeholder')}
           size="small"
           value={value.placeholder || ''}
           onChange={(e) => onChange({ ...value, placeholder: e.target.value })}
@@ -48,16 +63,31 @@ export default function ParameterConfig({
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Helper"
+          label={t('form.parameter.helper')}
           size="small"
           value={value.helper || ''}
           onChange={(e) => onChange({ ...value, helper: e.target.value })}
         />
       </Grid>
       <Grid item xs={12}>
+        <ParameterField
+          parameter={value}
+          fullWidth
+          label={t('form.parameter.defaultValue')}
+          size="small"
+          value={value.defaultValue ?? ''}
+          onChange={(defaultValue: any) => onChange({ ...value, defaultValue })}
+        />
+      </Grid>
+      {value.type === 'select' && (
+        <Grid item xs={12}>
+          <SelectOptionsConfig options={value.options} onChange={(options) => onChange({ ...value, options })} />
+        </Grid>
+      )}
+      <Grid item xs={12}>
         <FormControl>
           <FormControlLabel
-            label="Required"
+            label={t('form.parameter.required')}
             control={
               <Switch checked={value.required || false} onChange={(_, required) => onChange({ ...value, required })} />
             }
@@ -69,7 +99,7 @@ export default function ParameterConfig({
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label="Min Length"
+              label={t('form.parameter.minLength')}
               size="small"
               min={1}
               value={value.minLength ?? ''}
@@ -79,7 +109,7 @@ export default function ParameterConfig({
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label="Max Length"
+              label={t('form.parameter.maxLength')}
               size="small"
               min={1}
               value={value.maxLength ?? ''}
@@ -93,7 +123,7 @@ export default function ParameterConfig({
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label="Min"
+              label={t('form.parameter.min')}
               size="small"
               value={value.min ?? ''}
               onChange={(min) => onChange({ ...value, min })}
@@ -102,7 +132,7 @@ export default function ParameterConfig({
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label="Max"
+              label={t('form.parameter.max')}
               size="small"
               value={value.max ?? ''}
               onChange={(max) => onChange({ ...value, max })}
@@ -113,59 +143,3 @@ export default function ParameterConfig({
     </Grid>
   );
 }
-
-export function NumberField({
-  min,
-  max,
-  default: def,
-  onChange,
-  ...props
-}: { min?: number; max?: number; default?: number; onChange?: (value?: number) => void } & Omit<
-  TextFieldProps,
-  'onChange'
->) {
-  const correctValue = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = e.target.value.trim();
-    if (!value) {
-      return def;
-    }
-    let num = Number(Number(value).toFixed(0));
-    if (!Number.isInteger(num)) {
-      return def;
-    }
-
-    if (typeof min === 'number') {
-      num = Math.max(min, num);
-    }
-    if (typeof max === 'number') {
-      num = Math.min(max, num);
-    }
-    return num;
-  };
-
-  return (
-    <TextField
-      onChange={(e) => onChange?.(correctValue(e))}
-      inputProps={{
-        type: 'number',
-        inputMode: 'numeric',
-        pattern: '[0-9]*',
-        min,
-        max,
-        ...props.inputProps,
-      }}
-      {...props}
-    />
-  );
-}
-
-const PARAMETER_SELECT_MAP: { [key in ParameterType]: (value: Parameter) => string } = {
-  number: () => 'number',
-  string: (value) => (value.multiline ? 'long-text' : 'text'),
-};
-
-const PARAMETER_SELECT_VALUE_MAP: { [key: string]: Parameter } = {
-  text: { type: 'string', multiline: false },
-  'long-text': { type: 'string', multiline: true },
-  number: { type: 'number' },
-};

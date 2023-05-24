@@ -1,4 +1,5 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import type { DialogProps } from '@mui/material';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
 
@@ -11,23 +12,35 @@ export default function useDialog() {
     setProps(undefined);
   }, []);
 
+  const [loading, setLoading] = useState(false);
+
   const showDialog = useCallback(
     ({
       title,
       content,
       cancelText = 'Cancel',
+      middleText,
+      middleColor,
       okText = 'Ok',
+      okColor,
       onOk,
-      onClose,
+      onMiddleClick,
+      onCancel,
+      ...props
     }: {
       title?: ReactNode;
       content?: ReactNode;
       cancelText?: string;
       okText?: string;
+      okColor?: ButtonProps['color'];
+      middleText?: string;
+      middleColor?: ButtonProps['color'];
       onOk?: () => Promise<any> | any;
-      onClose?: () => any;
-    }) => {
+      onMiddleClick?: () => Promise<any> | any;
+      onCancel?: () => Promise<any> | any;
+    } & Omit<DialogProps, 'open'>) => {
       setProps({
+        ...props,
         open: true,
         children: (
           <form onSubmit={(e) => e.preventDefault()}>
@@ -38,24 +51,47 @@ export default function useDialog() {
               </DialogContent>
             )}
             <DialogActions>
-              <Button onClick={onClose ?? closeDialog}>{cancelText}</Button>
               <Button
-                variant="contained"
                 onClick={async () => {
-                  await onOk?.();
-                  if (onClose) {
-                    onClose();
-                  } else {
+                  await onCancel?.();
+                  closeDialog();
+                }}>
+                {cancelText}
+              </Button>
+              {middleText && onMiddleClick ? (
+                <Button
+                  variant="contained"
+                  color={middleColor}
+                  onClick={async () => {
+                    await onMiddleClick();
                     closeDialog();
+                  }}>
+                  {middleText}
+                </Button>
+              ) : null}
+              <LoadingButton
+                variant="contained"
+                color={okColor}
+                loading={loading}
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    await onOk?.();
+                  } finally {
+                    setLoading(false);
                   }
+                  closeDialog();
                 }}
                 type="submit">
                 {okText}
-              </Button>
+              </LoadingButton>
             </DialogActions>
           </form>
         ),
-        onClose: onClose ?? closeDialog,
+        onClose: async () => {
+          await onCancel?.();
+          closeDialog();
+        },
       });
     },
     [closeDialog]

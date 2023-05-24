@@ -6,12 +6,14 @@ export async function getTemplates({
   offset,
   limit,
   sort,
+  search,
 }: {
   offset?: number;
   limit?: number;
   sort?: string;
+  search?: string;
 } = {}): Promise<{ templates: Template[] }> {
-  return axios.get('/api/templates', { params: { offset, limit, sort } }).then((res) => res.data);
+  return axios.get('/api/templates', { params: { offset, limit, sort, search } }).then((res) => res.data);
 }
 
 export async function getTemplate(templateId: string): Promise<Template> {
@@ -28,4 +30,14 @@ export async function updateTemplate(templateId: string, template: TemplateInput
 
 export async function deleteTemplate(templateId: string): Promise<Template> {
   return axios.delete(`/api/templates/${templateId}`).then((res) => res.data);
+}
+
+export function isTemplateEmpty(template: Template) {
+  if (template.branch?.branches.some((i) => !!i.template)) {
+    return false;
+  }
+  if (template.prompts?.some((i) => i.content?.trim())) {
+    return false;
+  }
+  return true;
 }

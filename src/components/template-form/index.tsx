@@ -1,150 +1,78 @@
-import Toast from '@arcblock/ux/lib/Toast';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
+import { TravelExplore } from '@mui/icons-material';
 import {
-  Add,
-  ArrowDropDown,
-  CopyAll,
-  Delete,
-  ImportExport,
-  SaveOutlined,
-  Settings,
-  TravelExplore,
-} from '@mui/icons-material';
-import {
-  Box,
   Button,
-  ClickAwayListener,
-  DialogActions,
-  DialogTitle,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
   Grid,
   IconButton,
   InputAdornment,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Paper,
-  Popper,
+  MenuItem,
+  Radio,
+  RadioGroup,
   TextField,
-  TextFieldProps,
 } from '@mui/material';
-import { useReactive } from 'ahooks';
-import equal from 'fast-deep-equal';
-import { saveAs } from 'file-saver';
-import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import { useBeforeUnload, useSearchParams } from 'react-router-dom';
-import { stringify } from 'yaml';
+import { useState } from 'react';
 
-import { getErrorMessage } from '../../libs/api';
-import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
-import useDialog from '../../utils/use-dialog';
-import useMenu from '../../utils/use-menu';
-import usePopper from '../../utils/use-popper';
-import ParameterConfig, { NumberField } from './parameter-config';
+import {
+  HoroscopeParameter,
+  LanguageParameter,
+  NumberParameter,
+  Parameter,
+  SelectParameter,
+  StringParameter,
+  Template,
+} from '../../../api/src/store/templates';
+import Branches from './branches';
+import Parameters, { matchParams } from './parameters';
+import Prompts from './prompts';
+import TagsAutoComplete from './tags-autocomplete';
 
-export interface Template {
-  _id: string;
-  name: string;
-  icon?: string;
-  description?: string;
-  template: string;
-  parameters: { [key: string]: Parameter };
-}
+const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-0301'];
 
-export type ParameterType = 'number' | 'string';
+export type TemplateForm = Pick<
+  Template,
+  '_id' | 'mode' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'prompts' | 'branch' | 'parameters'
+>;
 
-export type Parameter = {
-  type?: ParameterType;
-  value?: any;
-  label?: string;
-  placeholder?: string;
-  helper?: string;
-  required?: boolean;
-  [key: string]: any;
-};
+export default function TemplateFormView({
+  value: form,
+  onChange,
+  onExecute,
+  onTemplateClick,
+}: {
+  value: Template;
+  onChange: (update: Template | ((update: WritableDraft<Template>) => void)) => void;
+  onExecute?: (template: Template) => void;
+  onTemplateClick?: (template: { id: string }) => void;
+}) {
+  const { t } = useLocaleContext();
 
-const INIT_FORM: Template = {
-  _id: '',
-  name: '',
-  icon: '',
-  description: '',
-  template: '',
-  parameters: {},
-};
-
-export default function TemplateForm({ onExecute }: { onExecute?: (template: Template) => void }) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const templateId = searchParams.get('templateId');
-  const state = useTemplates();
-  const { menu, showMenu } = useMenu();
-
-  const original = useRef<Template>({ ...INIT_FORM });
-  const [form, setForm] = useState(INIT_FORM);
-
-  const updateForm = useCallback(
-    (update: typeof form | ((value: WritableDraft<typeof form>) => void)) => {
-      setForm((form) =>
-        typeof update === 'function'
-          ? produce(form, (draft) => {
-              update(draft);
-            })
-          : update
-      );
-    },
-    [setForm]
-  );
-
-  const resetForm = useCallback(
-    (value?: typeof form) => {
-      const form = JSON.parse(JSON.stringify(value ?? INIT_FORM));
-      original.current = form;
-      setForm(form);
-
-      setSearchParams((prev) => {
-        if (typeof value?._id === 'string') prev.set('templateId', value._id);
-        else prev.delete('templateId');
-        return prev;
-      });
-    },
-    [setSearchParams]
-  );
-
-  const formChanged = !equal(original.current, form);
-  const formIsInitial = equal(form, INIT_FORM);
-  const needSave = formChanged || (!formIsInitial && !form._id);
-
-  useBeforeUnload(
-    useCallback(
-      (e) => {
-        if (needSave) {
-          e.returnValue = 'Discard changes?';
-        }
-      },
-      [needSave]
-    )
-  );
-
-  const deferredTemplate = useDeferredValue(form.template);
-
-  const params = useMemo(() => matchParams(deferredTemplate), [deferredTemplate]);
-
-  useEffect(() => {
-    updateForm((form) => {
-      for (const param of params) {
-        form.parameters[param] ??= {};
-      }
-    });
-  }, [updateForm, params]);
-
-  const [error, setError] = useState<Joi.ValidationError>();
+  const [, setError] = useState<Joi.ValidationError>();
 
   const submit = () => {
     const getValueSchema = (parameter: Parameter) => {
       return {
-        number: () => {
+        string: (parameter: StringParameter) => {
+          let s = Joi.string();
+          if (parameter.required) {
+            s = s.required();
+          } else {
+            s = s.allow('');
+          }
+          if (typeof parameter.minLength === 'number') {
+            s = s.min(parameter.minLength);
+          }
+          if (typeof parameter.maxLength === 'number') {
+            s = s.max(parameter.maxLength);
+          }
+          return s;
+        },
+        number: (parameter: NumberParameter) => {
           let s = Joi.number();
           if (parameter.required) {
             s = s.required();
@@ -157,26 +85,45 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
           }
           return s;
         },
-        string: () => {
+        select: (parameter: SelectParameter) => {
           let s = Joi.string();
           if (parameter.required) {
             s = s.required();
           }
-          if (typeof parameter.minLength === 'number') {
-            s = s.min(parameter.minLength);
-          }
-          if (typeof parameter.maxLength === 'number') {
-            s = s.max(parameter.maxLength);
+          return s;
+        },
+        language: (parameter: LanguageParameter) => {
+          let s = Joi.string();
+          if (parameter.required) {
+            s = s.required();
           }
           return s;
         },
-      }[parameter.type || 'string']();
+        horoscope: (parameter: HoroscopeParameter) => {
+          let s = Joi.object({
+            time: Joi.string().required(),
+            offset: Joi.number().integer(),
+            location: Joi.object({
+              id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+              latitude: Joi.number().required(),
+              longitude: Joi.number().required(),
+              name: Joi.string().required(),
+            }).required(),
+          });
+          if (parameter.required) {
+            s = s.required();
+          }
+          return s;
+        },
+      }[parameter.type || 'string'](parameter as any);
     };
+
+    const params = form.prompts?.flatMap((i) => matchParams(i.content ?? '')) ?? [];
 
     const schema = Joi.object(
       Object.fromEntries(
         params.map((param) => {
-          const parameter = form.parameters[param];
+          const parameter = form.parameters?.[param];
           return [param, parameter ? getValueSchema(parameter) : undefined];
         })
       )
@@ -184,8 +131,10 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
 
     setError(undefined);
     const { error, value } = schema.validate(
-      Object.fromEntries(Object.entries(form.parameters).map(([key, { value }]) => [key, value])),
-      { allowUnknown: true }
+      Object.fromEntries(
+        Object.entries(form.parameters ?? {}).map(([key, { value, defaultValue }]) => [key, value ?? defaultValue])
+      ),
+      { allowUnknown: true, abortEarly: false }
     );
     if (error) {
       setError(error);
@@ -195,64 +144,102 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       JSON.parse(
         JSON.stringify({
           ...form,
-          parameters: Object.fromEntries(Object.entries(value).map(([key, value]) => [key, { value }])),
+          parameters: Object.fromEntries(
+            Object.entries(form.parameters ?? {}).map(([param, parameter]) => [
+              param,
+              { ...parameter, value: value[param] },
+            ])
+          ),
         })
       )
     );
   };
 
-  // set init form
-  useEffect(() => {
-    if (templateId === '') {
-      return;
-    }
-    const template = state.templates.find((i) => i._id === templateId) ?? state.templates.at(0);
-    if (template && template._id !== form._id) resetForm(template);
-  }, [state.templates.length, templateId]);
-
-  const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
-  const { dialog, showDialog } = useDialog();
-
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <TextField
-          fullWidth
-          label="Name"
-          size="small"
-          value={form.name}
-          onChange={(e) => updateForm((form) => (form.name = e.target.value))}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  size="small"
-                  onClick={(e) =>
-                    showMenu({
-                      anchorEl: e.currentTarget,
-                      anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
-                      transformOrigin: { horizontal: 'right', vertical: 'top' },
-                      PaperProps: { sx: { maxHeight: '50vh', width: 300 } },
-                      children: (
-                        <TemplateList {...state} current={form} onCurrentChange={(template) => resetForm(template)} />
-                      ),
-                    })
-                  }>
-                  <ArrowDropDown fontSize="small" />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-        {menu}
+        <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+          <FormLabel sx={{ width: 60 }}>{t('form.mode')}</FormLabel>
+          <RadioGroup
+            row
+            value={form.mode ?? 'default'}
+            onChange={(_, value) => onChange((f) => (f.mode = value as any))}>
+            <FormControlLabel value="default" control={<Radio />} label={t('form.form')} />
+            <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
+          </RadioGroup>
+        </FormControl>
+      </Grid>
+      <Grid mt={-1} item xs={12}>
+        <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+          <FormLabel sx={{ width: 60 }}>{t('form.type')}</FormLabel>
+          <RadioGroup
+            row
+            value={form.type ?? 'prompt'}
+            onChange={(_, type) =>
+              onChange((form) => {
+                if (type === 'prompt') {
+                  delete form.type;
+                } else {
+                  form.type = type as any;
+                }
+              })
+            }>
+            <FormControlLabel value="prompt" control={<Radio />} label={t('form.prompt')} />
+            <FormControlLabel value="branch" control={<Radio />} label={t('form.branch')} />
+          </RadioGroup>
+        </FormControl>
       </Grid>
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Icon"
+          label={t('form.name')}
+          size="small"
+          value={form.name ?? ''}
+          onChange={(e) => onChange((form) => (form.name = e.target.value))}
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <TextField
+          fullWidth
+          label={t('form.model')}
+          size="small"
+          value={form.model ?? ''}
+          select
+          onChange={(e) => onChange((form) => (form.model = e.target.value))}>
+          {MODELS.map((model) => (
+            <MenuItem key={model} value={model}>
+              {model}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
+      <Grid item xs={6}>
+        <TextField
+          size="small"
+          fullWidth
+          label={t('form.temperature')}
+          inputProps={{ type: 'number', min: 0, max: 2, step: 0.1 }}
+          value={form.temperature ?? ''}
+          onChange={(e) =>
+            onChange((f) => {
+              const v = e.target.value;
+              if (!v) {
+                f.temperature = undefined;
+              } else {
+                const n = Math.max(Math.min(2, Number(v)), 0);
+                f.temperature = n;
+              }
+            })
+          }
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('form.icon')}
           size="small"
           value={form.icon ?? ''}
-          onChange={(e) => updateForm((form) => (form.icon = e.target.value))}
+          onChange={(e) => onChange((form) => (form.icon = e.target.value))}
           InputProps={{
             startAdornment: form.icon && (
               <InputAdornment position="start">
@@ -274,362 +261,41 @@ export default function TemplateForm({ onExecute }: { onExecute?: (template: Tem
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Description"
+          label={t('form.description')}
           size="small"
           value={form.description ?? ''}
-          onChange={(e) => updateForm((form) => (form.description = e.target.value))}
+          onChange={(e) => onChange((form) => (form.description = e.target.value))}
           multiline
           minRows={2}
         />
       </Grid>
       <Grid item xs={12}>
-        <TextField
-          fullWidth
-          label="Template"
-          size="small"
-          multiline
-          minRows={2}
-          value={form.template}
-          onChange={(e) => updateForm((form) => (form.template = e.target.value))}
+        <TagsAutoComplete
+          label={t('form.tag')}
+          value={form.tags ?? []}
+          onChange={(_, value) => onChange((form) => (form.tags = value))}
         />
       </Grid>
-      {params.map((param) => {
-        const parameter = form.parameters[param];
-        if (!parameter) {
-          return null;
-        }
-
-        const err = error?.details.find((i) => i.path[0] === param);
-
-        return (
-          <Grid item xs={12} key={param}>
-            <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-              <ParameterRenderer
-                key={`${form._id}-${param}`}
-                sx={{ flex: 1 }}
-                size="small"
-                label={parameter.label || param}
-                parameter={parameter}
-                error={!!err}
-                helperText={err?.message ?? parameter.helper}
-                value={parameter.value ?? ''}
-                onChange={(value) => updateForm((form) => (form.parameters[param]!.value = value))}
-              />
-              <IconButton
-                sx={{ ml: 2, mt: 0.5 }}
-                size="small"
-                onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
-                <Settings fontSize="small" />
-              </IconButton>
-            </Box>
-          </Grid>
-        );
-      })}
-
-      <Popper open={Boolean(paramConfig)} anchorEl={paramConfig?.anchorEl} placement="bottom-end">
-        <ClickAwayListener
-          onClickAway={(e) => {
-            if (e.target === document.body) return;
-            setParamConfig(undefined);
-          }}>
-          <Paper elevation={11} sx={{ p: 3, maxWidth: 320 }}>
-            {paramConfig && (
-              <ParameterConfig
-                value={form.parameters[paramConfig.param]!}
-                onChange={(parameter) => updateForm((form) => (form.parameters[paramConfig.param] = parameter))}
-              />
-            )}
-          </Paper>
-        </ClickAwayListener>
-      </Popper>
-
-      {dialog}
 
       <Grid item xs={12}>
-        <Box display="flex" flexWrap="wrap" sx={{ m: -0.5 }}>
-          <Button sx={{ m: 0.5 }} variant="contained" onClick={submit}>
-            Execute
-          </Button>
-          <Button
-            sx={{ m: 0.5 }}
-            variant="outlined"
-            startIcon={<SaveOutlined />}
-            disabled={!needSave}
-            onClick={async () => {
-              try {
-                resetForm(await (form._id ? state.update(form._id, form) : state.create(form)));
-                Toast.success('Saved');
-              } catch (error) {
-                Toast.error(getErrorMessage(error));
-                throw error;
-              }
-            }}>
-            Save
-          </Button>
-          <Button
-            sx={{ m: 0.5 }}
-            variant="outlined"
-            startIcon={<Add />}
-            disabled={formIsInitial}
-            onClick={async () => {
-              try {
-                if (needSave) {
-                  showDialog({
-                    title: 'Discard changes?',
-                    content: <Box minWidth={300} />,
-                    onOk: () => resetForm(INIT_FORM),
-                  });
-                } else {
-                  resetForm(INIT_FORM);
-                }
-              } catch (error) {
-                Toast.error(getErrorMessage(error));
-                throw error;
-              }
-            }}>
-            New
-          </Button>
-          <Button
-            sx={{ m: 0.5 }}
-            startIcon={<CopyAll />}
-            variant="outlined"
-            disabled={formIsInitial || !form._id}
-            onClick={() => {
-              resetForm({ ...form, _id: '' });
-            }}>
-            Copy
-          </Button>
-          <Button
-            sx={{ m: 0.5 }}
-            startIcon={<ImportExport />}
-            variant="outlined"
-            disabled={!form._id}
-            onClick={() => {
-              const text = stringify(form);
-              saveAs(new Blob([text]), `${form.name || form._id}.yml`);
-            }}>
-            Export Template
-          </Button>
-        </Box>
+        <Prompts value={form} onChange={onChange} />
+      </Grid>
+
+      {form.type === 'branch' && (
+        <Grid item xs={12}>
+          <Branches value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+        </Grid>
+      )}
+
+      <Grid item xs={12}>
+        <Parameters value={form} onChange={onChange} />
+      </Grid>
+
+      <Grid item xs={12}>
+        <Button fullWidth variant="contained" onClick={submit}>
+          {t('form.execute')}
+        </Button>
       </Grid>
     </Grid>
   );
-}
-
-function TemplateList({
-  templates,
-  current,
-  remove,
-  onCurrentChange,
-}: {
-  current?: Template;
-  onCurrentChange?: (template?: Template) => void;
-} & Pick<ReturnType<typeof useTemplates>, 'templates' | 'remove'>) {
-  const { popper, showPopper, closePopper } = usePopper();
-
-  return (
-    <>
-      {popper}
-
-      {templates.length === 0 && (
-        <ListItemButton dense disabled>
-          <ListItemText primary="No Templates" primaryTypographyProps={{ textAlign: 'center' }} />
-        </ListItemButton>
-      )}
-
-      {templates.map((item) => (
-        <ListItem
-          key={item._id}
-          disablePadding
-          secondaryAction={
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                showPopper({
-                  anchorEl: e.currentTarget,
-                  children: (
-                    <Paper elevation={24}>
-                      <DialogTitle>Delete this template?</DialogTitle>
-                      <DialogActions>
-                        <Button
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            closePopper();
-                          }}>
-                          Cancel
-                        </Button>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          color="error"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
-                              await remove(item._id);
-                              closePopper();
-                              if (current?._id === item._id) {
-                                onCurrentChange?.(templates[0]);
-                              }
-                              Toast.success('Deleted');
-                            } catch (error) {
-                              Toast.error(getErrorMessage(error));
-                              throw error;
-                            }
-                          }}>
-                          Delete
-                        </Button>
-                      </DialogActions>
-                    </Paper>
-                  ),
-                });
-              }}>
-              <Delete fontSize="small" />
-            </IconButton>
-          }>
-          <ListItemButton selected={current?._id === item._id} onClick={() => onCurrentChange?.(item)} dense>
-            <ListItemIcon sx={{ minWidth: 32 }}>
-              <Icon icon={item.icon || 'bi:x-diamond'} />
-            </ListItemIcon>
-            <ListItemText
-              primary={item.name || item._id}
-              secondary={item.description || item.template}
-              primaryTypographyProps={{
-                noWrap: true,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-              secondaryTypographyProps={{
-                noWrap: true,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            />
-          </ListItemButton>
-        </ListItem>
-      ))}
-    </>
-  );
-}
-
-function ParameterRenderer({
-  parameter,
-  ...props
-}: {
-  parameter: Parameter;
-  onChange: (value: string | number | undefined) => void;
-} & Omit<TextFieldProps, 'onChange'>) {
-  const Field = {
-    number: NumberParameterField,
-    string: StringParameterField,
-  }[parameter.type || 'string'];
-
-  return <Field parameter={parameter} {...props} />;
-}
-
-function NumberParameterField({
-  parameter,
-  ...props
-}: {
-  parameter: Parameter;
-  onChange: (value: number | undefined) => void;
-} & Omit<TextFieldProps, 'onChange'>) {
-  return (
-    <NumberField
-      required={parameter.required}
-      label={parameter.label}
-      placeholder={parameter.placeholder}
-      helperText={parameter.helper}
-      min={parameter.min}
-      max={parameter.max}
-      {...props}
-    />
-  );
-}
-
-function StringParameterField({
-  parameter,
-  onChange,
-  ...props
-}: { parameter: Parameter; onChange: (value: string) => void } & Omit<TextFieldProps, 'onChange'>) {
-  const multiline = parameter?.type === 'string' && parameter.multiline;
-
-  return (
-    <TextField
-      required={parameter.required}
-      label={parameter.label}
-      placeholder={parameter.placeholder}
-      helperText={parameter.helper}
-      multiline={multiline}
-      minRows={multiline ? 2 : undefined}
-      inputProps={{ maxLength: parameter.maxLength }}
-      onChange={(e) => onChange(e.target.value)}
-      {...props}
-    />
-  );
-}
-
-export const matchParams = (template: string) => [
-  ...new Set(Array.from(template.matchAll(/{{\s*(\w+)\s*}}/g)).map((i) => i[1]!)),
-];
-
-function useTemplates() {
-  const state = useReactive<{ templates: Template[]; loading: boolean; submiting: boolean; error?: Error }>({
-    templates: [],
-    loading: false,
-    submiting: false,
-  });
-
-  const refetch = useCallback(async () => {
-    state.loading = true;
-    try {
-      const res = await getTemplates({ limit: 100, sort: '-updatedAt' });
-      state.templates.splice(0, state.templates.length, ...res.templates);
-    } catch (error) {
-      state.error = error;
-      throw error;
-    } finally {
-      state.loading = false;
-    }
-  }, []);
-
-  useEffect(() => {
-    refetch();
-  }, []);
-
-  const create = useCallback(async (template: Template) => {
-    state.submiting = true;
-    try {
-      const res = await createTemplate(template);
-      await refetch();
-      return res;
-    } finally {
-      state.submiting = false;
-    }
-  }, []);
-
-  const update = useCallback(async (templateId: string, template: Template) => {
-    state.submiting = true;
-    try {
-      const res = await updateTemplate(templateId, template);
-      await refetch();
-      return res;
-    } finally {
-      state.submiting = false;
-    }
-  }, []);
-
-  const remove = useCallback(async (templateId: string) => {
-    state.submiting = true;
-    try {
-      const res = await deleteTemplate(templateId);
-      await refetch();
-      return res;
-    } finally {
-      state.submiting = false;
-    }
-  }, []);
-
-  return { ...state, refetch, create, update, remove };
 }

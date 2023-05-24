@@ -14,7 +14,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.9
+version: 0.1.51
 logo: logo.png
 files:
   - dist
@@ -38,7 +38,7 @@ payment:
 timeout:
   start: 60
 requirements:
-  server: '>=1.6.29'
+  server: '>=1.16.0'
   os: '*'
   cpu: '*'
 scripts:
@@ -54,7 +54,9 @@ screenshots:
 components: []
 navigation:
   - id: template
-    title: Template
+    title:
+      en: Template
+      zh: 提示模版
     icon: fluent:design-ideas-16-regular
     link: /playground/template
     section:

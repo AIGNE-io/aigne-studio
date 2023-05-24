@@ -12,7 +12,10 @@ module.exports = {
     '@typescript-eslint/no-use-before-define': 'off',
     'react-hooks/exhaustive-deps': 'warn',
     'react/require-default-props': 'off',
+    'react/no-array-index-key': 'warn',
     'no-return-assign': 'off',
+    'no-continue': 'off',
     'no-await-in-loop': 'warn',
+    'no-nested-ternary': 'off',
   },
 };

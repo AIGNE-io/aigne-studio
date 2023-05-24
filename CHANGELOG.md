@@ -1,3 +1,209 @@
+## 0.1.51 (2023-5-24)
+
+- chore: update deps
+
+## 0.1.50 (2023-5-19)
+
+- fix: correct launch mode after saving
+
+## 0.1.49 (2023-5-19)
+
+- fix: enlarge spacing of tree item
+- fix: add key for tree node
+- fix: support i18n for tips
+- fix: add prompt button missing i18n
+
+## 0.1.48 (2023-5-18)
+
+- fix: disallow drag folders
+- fix: confirm deleting
+- fix: correct line height of the folder name input
+
+## 0.1.47 (2023-5-18)
+
+- feat: import/export folder and templates
+- fix: display grey background when dropped over
+- feat: support group templates by project
+
+## 0.1.46 (2023-5-16)
+
+- fix: delete empty branches after saving
+- fix: confirm saving before launching the assistant
+
+## 0.1.45 (2023-5-15)
+
+- fix: disable auto select
+- fix: restore search params after cancel navigation
+- fix: ignore debug value changes
+
+## 0.1.44 (2023-5-15)
+
+- feat: support open in assistant
+- fix: alert references details before deleting template
+- fix: remember latest template id
+- fix: use radio to display control of the toggle type
+- fix: use icon instead of text to describe type of template
+- feat: support toggle menu aside
+- fix: display template name or id when confirming deletion
+
+## 0.1.43 (2023-5-10)
+
+- fix: the `Sign` and `House` properties are nullable
+
+## 0.1.42 (2023-5-9)
+
+- fix: distinct parameters by name
+
+## 0.1.41 (2023-5-9)
+
+- fix: RouterProvider must be an ancestor of the sessionProvder
+
+## 0.1.40 (2023-5-7)
+
+- fix: revert 0.1.39 (update deps)
+
+## 0.1.38 (2023-4-23)
+
+- fix: change label `Default` to `Form`
+- feat: support config model and temperature of ai
+
+## 0.1.37 (2023-4-18)
+
+- fix: create branch not working
+
+## 0.1.36 (2023-4-17)
+
+- fix: awesome drag sort experience
+- feat: support resize panels
+
+## 0.1.35 (2023-4-14)
+
+- feat: support add prompts for branch
+- feat: support multiple prompt with different roles
+
+## 0.1.34 (2023-4-14)
+
+- chore: update deps
+
+## 0.1.33 (2023-4-13)
+
+- fix: select previous template after navigate back
+
+## 0.1.32 (2023-4-13)
+
+- fix: select the first template after delete a template
+
+## 0.1.31 (2023-4-11)
+
+- fix: awesome branch selector
+- fix: show template type in list item
+
+## 0.1.30 (2023-4-10)
+
+- feat: support goto branch template directly
+- feat: support press `ctrl+s` or `cmd+s` to save
+- feat: support duplicate templates
+- fix: show not data or loading indicator
+- fix: move `mode` field to top
+- feat: display template list in left aside
+
+## 0.1.29 (2023-4-6)
+
+- fix: improve experience of branch selector
+
+## 0.1.28 (2023-4-4)
+
+- fix: improve the accuracy of branch judgment
+
+## 0.1.27 (2023-4-4)
+
+- feat: support config template mode
+
+## 0.1.26 (2023-4-3)
+
+- feat: template chain & add `branch` type of template
+
+## 0.1.25 (2023-3-30)
+
+- feat: update sdk to 1.16.0
+
+## 0.1.24 (2023-3-30)
+
+- fix: div cannot appear as a descendant of <p>
+- feat: add houses data
+- fix: avoid unnecessary location searches
+
+## 0.1.23 (2023-3-27)
+
+- chore: update vite & remove preload options
+- fix: gpt-encoder not working on production bundle
+
+## 0.1.22 (2023-3-27)
+
+- feat: display token counter
+- feat: support complete chat messages
+
+## 0.1.21 (2023-3-23)
+
+- chore: update deps
+- fix: use component `call` of @blocklet/sdk
+
+## 0.1.20 (2023-3-22)
+
+- fix: auto set time zone according to daylight saving time
+
+## 0.1.19 (2023-3-21)
+
+- feat: support custom timezone
+- refactor: spliting parameter components
+
+## 0.1.18 (2023-3-17)
+
+- fix: import dependencies as needed
+- feat: upgrade blocklet sdk
+- fix: correct horoscope result
+
+## 0.1.17 (2023-3-14)
+
+- fix: upgrade vite to resolve bundle error
+
+## 0.1.16 (2023-3-14)
+
+- fix: support clear horoscope field
+- feat: support nested template
+- fix: catch error in error handler of express
+- feat: add `Horoscope` type of parameter
+- fix: correct redirect destination
+
+## 0.1.15 (2023-3-3)
+
+- feat: support config default value for parameter
+
+## 0.1.14 (2023-3-2)
+
+- fix: disable nedb `timestampData` option
+
+## 0.1.13 (2023-3-1)
+
+- fix: use nanoid@3.\* avoid es module error
+
+## 0.1.12 (2023-2-28)
+
+- chore: update deps
+- feat: support config `tags` for template
+
+## 0.1.11 (2023-2-28)
+
+- fix: trnaslate admin menu
+
+## 0.1.10 (2023-2-27)
+
+- feat: add i18n support
+- feat: support `language` type of parameter
+- feat: support `select` type of parameter
+- feat: support `select` type of parameter
+- fix: use `Conversation` from @blocklet/ai-kit
+
 ## 0.1.9 (2023-2-23)
 
 - docs: add screenshot and blocklet.md
