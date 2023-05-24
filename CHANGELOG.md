@@ -1,3 +1,7 @@
+## 0.1.51 (2023-5-24)
+
+- chore: update deps
+
 ## 0.1.50 (2023-5-19)
 
 - fix: correct launch mode after saving
