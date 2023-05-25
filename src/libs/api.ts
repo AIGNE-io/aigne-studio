@@ -9,6 +9,17 @@ const api = axios.create({
   timeout: API_TIMEOUT,
 });
 
+// Add a global delay for every request in the DEV environment to emulate real-word situation.
+// @ts-ignore
+if (import.meta.env.DEV) {
+  api.interceptors.request.use(async (config) => {
+    await new Promise((resolve) => {
+      setTimeout(resolve, 1500);
+    });
+    return config;
+  });
+}
+
 export default api;
 
 export const getErrorMessage = (error: any) =>

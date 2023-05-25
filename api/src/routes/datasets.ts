@@ -19,6 +19,18 @@ router.get('/', ensureAdmin, async (_req, res) => {
   });
 });
 
+router.get('/:datasetId', ensureAdmin, async (req, res) => {
+  const { datasetId } = req.params;
+
+  const dataset = await datasets.findOne({ _id: datasetId });
+  if (!dataset) {
+    res.status(404).json({ error: 'No such dataset' });
+    return;
+  }
+
+  res.json(dataset);
+});
+
 router.post('/', user(), ensureAdmin, async (req, res) => {
   const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;

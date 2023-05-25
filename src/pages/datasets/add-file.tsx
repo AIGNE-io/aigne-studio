@@ -1,0 +1,188 @@
+import Toast from '@arcblock/ux/lib/Toast';
+import { ArrowBackIosNew } from '@mui/icons-material';
+import { LoadingButton } from '@mui/lab';
+import {
+  Box,
+  Breadcrumbs,
+  CircularProgress,
+  Link,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { useThrottle } from 'ahooks';
+import { useCallback, useMemo, useState } from 'react';
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
+import { useAsync } from 'react-use';
+
+import { CreateItem } from '../../../api/src/routes/dataset-items';
+import { useDataset } from '../../contexts/dataset-items';
+import { getErrorMessage } from '../../libs/api';
+import { createDatasetItem } from '../../libs/datasets';
+import { DiscussionItem, searchDiscussions } from '../../libs/discussion';
+
+export default function AddFilePage() {
+  const { datasetId } = useParams();
+  if (!datasetId) {
+    throw new Error('Missing required params `datasetId`');
+  }
+
+  const { state, refetch } = useDataset(datasetId);
+  if (state.error) throw state.error;
+
+  const navigate = useNavigate();
+
+  const [type, setType] = useState('discussion');
+
+  const [input, setInput] = useState<CreateItem[]>([]);
+
+  const [saving, setSaving] = useState(false);
+
+  const save = useCallback(async () => {
+    try {
+      setSaving(true);
+      await createDatasetItem(datasetId, input);
+      refetch();
+      Toast.success('Saved');
+      navigate('..', { replace: true });
+    } catch (error) {
+      Toast.error(getErrorMessage(error));
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  }, [datasetId, input, navigate, refetch]);
+
+  return (
+    <Box>
+      <Box display="flex" alignItems="center" mx={2} py={2}>
+        <Breadcrumbs>
+          <Link component={RouterLink} underline="hover" to=".." sx={{ display: 'flex', alignItems: 'center' }}>
+            <ArrowBackIosNew sx={{ mr: 0.5, fontSize: 18 }} />
+            Datasets
+          </Link>
+          {state.dataset ? (
+            <Link component={RouterLink} underline="hover" to=".." sx={{ display: 'flex', alignItems: 'center' }}>
+              {state.dataset.name || 'Unnamed'}
+            </Link>
+          ) : (
+            <CircularProgress size={14} />
+          )}
+          <Typography color="text.primary">Add file</Typography>
+        </Breadcrumbs>
+      </Box>
+
+      <Box my={2}>
+        <ToggleButtonGroup
+          exclusive
+          color="primary"
+          value={type}
+          onChange={(_, type) => {
+            if (type) setType(type);
+          }}
+          sx={{
+            '& .MuiToggleButtonGroup-grouped': {
+              mx: 2,
+              border: 1,
+              borderRadius: 1,
+              '&:not(:first-of-type)': {
+                borderRadius: 1,
+                border: 1,
+                ml: 0,
+              },
+              '&:first-of-type': {
+                borderRadius: 1,
+              },
+            },
+          }}>
+          <ToggleButton value="discussion">Discussion</ToggleButton>
+          <ToggleButton value="file" disabled>
+            File
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
+      <Box mx={2} my={4}>
+        <DiscussionTable value={input} onChange={setInput} />
+      </Box>
+
+      <Box m={2}>
+        <LoadingButton
+          loading={saving}
+          color="primary"
+          variant="contained"
+          disabled={input.length === 0}
+          onClick={save}>
+          Save
+        </LoadingButton>
+      </Box>
+    </Box>
+  );
+}
+
+function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (value: CreateItem[]) => void }) {
+  const [search, setSearch] = useState('');
+
+  const s = useThrottle(search, { wait: 1000 });
+
+  const { loading, value: res, error } = useAsync(() => searchDiscussions({ search: s }), [s]);
+
+  if (error) throw error;
+
+  const selection = useMemo(() => value.map((i) => i.data!.id), [value]);
+
+  const onRowSelectionModelChange = useCallback(
+    (ids: any[]) => {
+      onChange(
+        ids.map(
+          (i) =>
+            value.find((item) => item.data?.id === i) ?? {
+              name: res?.data.find((item) => item.id === i)?.title || '',
+              data: { type: 'discussion', id: i },
+            }
+        )
+      );
+    },
+    [onChange, res?.data, value]
+  );
+
+  return (
+    <>
+      <Box mb={2}>
+        <TextField label="Search" size="small" value={search} onChange={(e) => setSearch(e.target.value)} />
+      </Box>
+
+      <DataGrid
+        loading={loading}
+        rows={res?.data ?? []}
+        columns={columns}
+        autoHeight
+        hideFooterPagination
+        checkboxSelection
+        rowSelectionModel={selection}
+        onRowSelectionModelChange={onRowSelectionModelChange}
+        keepNonExistentRowsSelected
+      />
+    </>
+  );
+}
+
+const columns: GridColDef<DiscussionItem>[] = [
+  { field: 'title', headerName: 'Title', flex: 2 },
+  {
+    field: 'author',
+    headerName: 'Author',
+    flex: 1,
+    maxWidth: 200,
+    valueGetter: (params) => params.row.author.fullName,
+  },
+  {
+    field: 'createdAt',
+    headerName: 'Created At',
+    align: 'center',
+    headerAlign: 'center',
+    width: 210,
+  },
+];

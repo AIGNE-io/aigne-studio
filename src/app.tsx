@@ -4,14 +4,14 @@ import Footer from '@blocklet/ui-react/lib/Footer';
 import Header from '@blocklet/ui-react/lib/Header';
 import { Global, css } from '@emotion/react';
 import { Box, CssBaseline } from '@mui/material';
-import { ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense, lazy } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { RecoilRoot } from 'recoil';
 
 import Loading from './components/loading';
 import { DatasetsProvider } from './contexts/datasets';
 import { SessionProvider, useIsRole } from './contexts/session';
 import { translations } from './locales';
-import { DatasetsPageLazy } from './pages/datasets';
 import { HomeLazy } from './pages/home';
 import { TemplatePageLazy } from './pages/playground';
 
@@ -30,17 +30,19 @@ export default function App() {
         `}
       />
 
-      <BrowserRouter basename={basename}>
-        <ToastProvider>
-          <LocaleProvider translations={translations}>
-            <SessionProvider serviceHost={basename}>
-              <Suspense fallback={<Loading />}>
-                <AppRoutes />
-              </Suspense>
-            </SessionProvider>
-          </LocaleProvider>
-        </ToastProvider>
-      </BrowserRouter>
+      <RecoilRoot>
+        <BrowserRouter basename={basename}>
+          <ToastProvider>
+            <LocaleProvider translations={translations}>
+              <SessionProvider serviceHost={basename}>
+                <Suspense fallback={<Loading />}>
+                  <AppRoutes />
+                </Suspense>
+              </SessionProvider>
+            </LocaleProvider>
+          </ToastProvider>
+        </BrowserRouter>
+      </RecoilRoot>
     </CssBaseline>
   );
 }
@@ -64,7 +66,7 @@ function AppRoutes() {
         }>
         <Route index element={<Navigate to="/playground/template" />} />
         <Route path="template" element={<TemplatePageLazy />} />
-        <Route path="datasets" element={<DatasetsPageLazy />} />
+        <Route path="datasets/*" element={<DatasetsRoutes />} />
       </Route>
       <Route
         path="*"
@@ -79,6 +81,8 @@ function AppRoutes() {
     </Routes>
   );
 }
+
+const DatasetsRoutes = lazy(() => import('./pages/datasets'));
 
 function Layout({ children }: { children: ReactNode }) {
   return (
