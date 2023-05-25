@@ -22,13 +22,17 @@ export interface DiscussionItem {
 
 export async function searchDiscussions({
   search,
+  page,
+  size,
 }: {
   search?: string;
+  page?: number;
+  size?: number;
 }): Promise<{ data: DiscussionItem[]; total: number }> {
   return api
     .get('/api/discussions', {
       baseURL: discuss().mountPoint,
-      params: { page: 1, size: 50, search },
+      params: { page, size, search },
     })
     .then((res) => res.data);
 }

@@ -124,10 +124,26 @@ export default function AddFilePage() {
 
 function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (value: CreateItem[]) => void }) {
   const [search, setSearch] = useState('');
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
 
   const s = useThrottle(search, { wait: 1000 });
 
-  const { loading, value: res, error } = useAsync(() => searchDiscussions({ search: s }), [s]);
+  const {
+    loading,
+    value: res,
+    error,
+  } = useAsync(
+    () =>
+      searchDiscussions({
+        search: s,
+        page: paginationModel.page + 1,
+        size: paginationModel.pageSize,
+      }),
+    [s, paginationModel.page, paginationModel.pageSize]
+  );
 
   if (error) throw error;
 
@@ -159,11 +175,14 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
         rows={res?.data ?? []}
         columns={columns}
         autoHeight
-        hideFooterPagination
         checkboxSelection
         rowSelectionModel={selection}
         onRowSelectionModelChange={onRowSelectionModelChange}
         keepNonExistentRowsSelected
+        rowCount={res?.total}
+        paginationModel={paginationModel}
+        paginationMode="server"
+        onPaginationModelChange={setPaginationModel}
       />
     </>
   );

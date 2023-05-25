@@ -51,6 +51,7 @@
     "@emotion/css": "^11.10.5",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@huggingface/inference": "^2.5.0",
     "@iconify-icon/react": "^1.0.5",
     "@minoru/react-dnd-treeview": "^3.4.4",
     "@mui/icons-material": "^5.11.0",

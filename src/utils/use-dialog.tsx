@@ -1,7 +1,8 @@
-import { LoadingButton, LoadingButtonProps } from '@mui/lab';
 import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import type { DialogProps } from '@mui/material';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
+
+import PromiseLoadingButton from '../components/promise-loading-button';
 
 export default function useDialog() {
   const [props, setProps] = useState<DialogProps>();
@@ -90,24 +91,4 @@ export default function useDialog() {
   );
 
   return { dialog, showDialog, closeDialog };
-}
-
-function PromiseLoadingButton(props: LoadingButtonProps) {
-  const [loading, setLoading] = useState(false);
-
-  return (
-    <LoadingButton
-      {...props}
-      loading={loading}
-      onClick={(e) => {
-        const res = props.onClick?.(e) as any;
-        if (res instanceof Promise) {
-          setLoading(true);
-          res.finally(() => {
-            setLoading(false);
-          });
-        }
-      }}
-    />
-  );
 }

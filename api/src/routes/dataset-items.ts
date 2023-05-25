@@ -1,9 +1,14 @@
+import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import user from '@blocklet/sdk/lib/middlewares/user';
+import axios from 'axios';
 import { Router } from 'express';
 import Joi from 'joi';
+import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
+import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 
 import { ensureAdmin } from '../libs/security';
 import { DatasetItem, datasetItems } from '../store/dataset-items';
+import VectorStore from '../store/vector-store';
 
 const router = Router();
 
@@ -76,4 +81,87 @@ router.delete('/:datasetId/items/:itemId', user(), ensureAdmin, async (req, res)
   res.json({});
 });
 
+const embeddingTasks = new Map<string, Promise<void>>();
+
+const embeddingHandler: {
+  [key in NonNullable<DatasetItem['data']>['type']]: (item: DatasetItem & { data: { type: key } }) => Promise<void>;
+} = {
+  discussion: async (item) => {
+    const discussion = await getDiscussion(item.data.id);
+    const textSplitter = new RecursiveCharacterTextSplitter();
+    const docs = await textSplitter.createDocuments([discussion.content]);
+
+    const embeddings = new OpenAIEmbeddings({});
+    const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
+    const store = await VectorStore.load(item.datasetId, embeddings);
+    await store.addVectors(vectors, docs);
+    await store.save();
+  },
+};
+
+router.post('/:datasetId/items/:itemId/embedding', ensureAdmin, async (req, res) => {
+  const { datasetId, itemId } = req.params;
+  if (!datasetId || !itemId) {
+    throw new Error('Missing required params `datasetId` or `itemId`');
+  }
+
+  let task = embeddingTasks.get(itemId);
+  if (!task) {
+    task = (async () => {
+      const item = await datasetItems.findOne({ _id: itemId });
+      if (!item) throw new Error(`Dataset item ${itemId} not found`);
+      if (!item.data) return;
+
+      const handler = embeddingHandler[item.data.type];
+      if (!handler) return;
+
+      try {
+        await handler(item as any);
+        await datasetItems.update(
+          { _id: itemId },
+          {
+            $set: {
+              embeddedAt: new Date().toISOString(),
+              error: null,
+            },
+          }
+        );
+      } catch (error) {
+        await datasetItems.update(
+          { _id: itemId },
+          {
+            $set: {
+              embeddedAt: new Date().toISOString(),
+              error: error.message,
+            },
+          }
+        );
+        throw error;
+      } finally {
+        embeddingTasks.delete(itemId);
+      }
+    })();
+
+    embeddingTasks.set(itemId, task);
+  }
+
+  await task;
+
+  res.json({});
+});
+
 export default router;
+
+async function getDiscussion(discussionId: string): Promise<{ content: string }> {
+  const url = getComponentWebEndpoint('z8ia1WEiBZ7hxURf6LwH21Wpg99vophFwSJdu');
+  if (!url) {
+    throw new Error('did-comments component not found');
+  }
+
+  const { data } = await axios.get(`/api/discussions/${discussionId}`, { baseURL: url, params: { textContent: 1 } });
+  if (!data) {
+    throw new Error('Discussion not found');
+  }
+
+  return data;
+}

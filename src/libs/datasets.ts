@@ -47,3 +47,7 @@ export async function createDatasetItem(
 export async function deleteDatasetItem({ datasetId, itemId }: { datasetId: string; itemId: string }): Promise<{}> {
   return axios.delete(`/api/datasets/${datasetId}/items/${itemId}`).then((res) => res.data);
 }
+
+export async function processDatasetItem({ datasetId, itemId }: { datasetId: string; itemId: string }): Promise<{}> {
+  return axios.post(`/api/datasets/${datasetId}/items/${itemId}/embedding`).then((res) => res.data);
+}

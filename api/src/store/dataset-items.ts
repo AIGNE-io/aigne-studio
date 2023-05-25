@@ -12,6 +12,8 @@ export interface DatasetItem {
   updatedAt?: string;
   createdBy: string;
   updatedBy: string;
+  embeddedAt?: string;
+  error?: string;
 }
 
 export default class DatasetItems extends Database<DatasetItem> {
