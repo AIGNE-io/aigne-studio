@@ -25,6 +25,7 @@ export interface TemplateInput
     | 'model'
     | 'temperature'
     | 'folderId'
+    | 'contexts'
   > {
   deleteEmptyTemplates?: string[];
 }
@@ -119,6 +120,19 @@ export const templateSchema = Joi.object<TemplateInput>({
   temperature: Joi.number().min(0).max(2).empty(null),
   deleteEmptyTemplates: Joi.array().items(Joi.string()),
   folderId: Joi.string().allow(null),
+  contexts: Joi.array().items(
+    Joi.object({
+      id: Joi.string().required(),
+      type: Joi.string().valid('vectorStore').required(),
+    }).when(Joi.object({ type: 'vectorStore' }).unknown(), {
+      then: Joi.object({
+        vectorStore: Joi.object({
+          id: Joi.string().required(),
+          name: Joi.string().empty(Joi.valid(null, '')),
+        }),
+      }),
+    })
+  ),
 });
 
 const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; tag?: string }>({

@@ -28,6 +28,7 @@ import {
   Template,
 } from '../../../api/src/store/templates';
 import Branches from './branches';
+import Contexts from './contexts';
 import Parameters, { matchParams } from './parameters';
 import Prompts from './prompts';
 import TagsAutoComplete from './tags-autocomplete';
@@ -36,7 +37,7 @@ const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-0301'];
 
 export type TemplateForm = Pick<
   Template,
-  '_id' | 'mode' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'prompts' | 'branch' | 'parameters'
+  '_id' | 'mode' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'prompts' | 'branch' | 'parameters' | 'contexts'
 >;
 
 export default function TemplateFormView({
@@ -286,6 +287,10 @@ export default function TemplateFormView({
           <Branches value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
+
+      <Grid item xs={12}>
+        <Contexts value={form} onChange={onChange} />
+      </Grid>
 
       <Grid item xs={12}>
         <Parameters value={form} onChange={onChange} />
