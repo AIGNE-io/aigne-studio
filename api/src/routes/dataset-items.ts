@@ -3,9 +3,9 @@ import user from '@blocklet/sdk/lib/middlewares/user';
 import axios from 'axios';
 import { Router } from 'express';
 import Joi from 'joi';
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 
+import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { ensureAdmin } from '../libs/security';
 import { DatasetItem, datasetItems } from '../store/dataset-items';
 import VectorStore from '../store/vector-store';
@@ -91,7 +91,7 @@ const embeddingHandler: {
     const textSplitter = new RecursiveCharacterTextSplitter();
     const docs = await textSplitter.createDocuments([discussion.content]);
 
-    const embeddings = new OpenAIEmbeddings({});
+    const embeddings = new AIKitEmbeddings({});
     const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
     const store = await VectorStore.load(item.datasetId, embeddings);
     await store.addVectors(vectors, docs);
