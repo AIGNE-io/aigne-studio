@@ -154,11 +154,15 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
     [onChange, res?.data, value]
   );
 
+  const meilisearch = useComponent('meilisearch');
+
   return (
     <>
-      <Box mb={2}>
-        <TextField label="Search" size="small" value={search} onChange={(e) => setSearch(e.target.value)} />
-      </Box>
+      {meilisearch && (
+        <Box mb={2}>
+          <TextField label="Search" size="small" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </Box>
+      )}
 
       <DataGrid
         loading={loading}
