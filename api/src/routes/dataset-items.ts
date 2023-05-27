@@ -8,6 +8,7 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { omit } from 'lodash';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
+import logger from '../libs/logger';
 import { ensureAdmin } from '../libs/security';
 import { DatasetItem, datasetItems } from '../store/dataset-items';
 import VectorStore from '../store/vector-store';
@@ -123,7 +124,11 @@ async function embeddingDiscussion({ datasetId }: { datasetId: string }, { itemI
         sse.send({ itemId, total, current }, 'change');
       }
     }
-    await embeddingDiscussionItem({ datasetId, discussionId });
+    try {
+      await embeddingDiscussionItem({ datasetId, discussionId });
+    } catch (error) {
+      logger.error(`embedding discussion ${discussionId} error`, error);
+    }
   }
 }
 
