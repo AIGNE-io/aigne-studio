@@ -26,21 +26,23 @@ router.get('/:datasetId/items', ensureAdmin, async (req, res) => {
 });
 
 export interface CreateItem {
-  name?: string;
-  data?: DatasetItem['data'];
+  name: string;
+  data: DatasetItem['data'];
 }
 
 export type CreateItemInput = CreateItem | CreateItem[];
 
 const createItemSchema = Joi.object<CreateItem>({
-  name: Joi.string().empty(Joi.valid(null, '')),
+  name: Joi.string().required(),
   data: Joi.object({
     type: Joi.string().valid('discussion').required(),
-  }).when(Joi.object({ type: 'discussion' }).unknown(), {
-    then: Joi.object({
-      id: Joi.string().required(),
-    }),
-  }),
+  })
+    .when(Joi.object({ type: 'discussion' }).unknown(), {
+      then: Joi.object({
+        id: Joi.string().required(),
+      }),
+    })
+    .required(),
 });
 
 const createItemInputSchema = Joi.alternatives<CreateItemInput>().try(
@@ -59,16 +61,18 @@ router.post('/:datasetId/items', user(), ensureAdmin, async (req, res) => {
 
   const arr = Array.isArray(input) ? input : [input];
 
-  const doc = await datasetItems.insert(
-    arr.map((item) => ({
-      datasetId,
-      name: item.name,
-      data: item.data,
-      createdBy: did,
-      updatedBy: did,
-    }))
+  const docs = await Promise.all(
+    arr.map(async (item) => {
+      const [, doc] = await datasetItems.update(
+        { datasetId, data: item.data },
+        { $set: { ...item, createdBy: did, updatedBy: did } },
+        { upsert: true, returnUpdatedDocs: true }
+      );
+      return doc;
+    })
   );
-  res.json(Array.isArray(input) ? doc : doc[0]);
+
+  res.json(Array.isArray(input) ? docs : docs[0]);
 });
 
 router.delete('/:datasetId/items/:itemId', user(), ensureAdmin, async (req, res) => {

@@ -116,7 +116,7 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
   const [search, setSearch] = useState('');
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 10,
+    pageSize: 20,
   });
 
   const s = useThrottle(search, { wait: 1000 });
@@ -173,7 +173,8 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
         rowSelectionModel={selection}
         onRowSelectionModelChange={onRowSelectionModelChange}
         keepNonExistentRowsSelected
-        rowCount={res?.total}
+        rowCount={res?.total || 0}
+        pageSizeOptions={[20]}
         paginationModel={paginationModel}
         paginationMode="server"
         onPaginationModelChange={setPaginationModel}
