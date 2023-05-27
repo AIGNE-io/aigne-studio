@@ -2,13 +2,16 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { Add, ArrowBackIosNew, Error as ErrorIcon } from '@mui/icons-material';
 import { Box, Breadcrumbs, Button, Chip, CircularProgress, Link, Tooltip, Typography } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { useReactive } from 'ahooks';
+import { omit } from 'lodash';
+import { useEffect } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 
 import { DatasetItem } from '../../../api/src/store/dataset-items';
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDataset } from '../../contexts/dataset-items';
 import { getErrorMessage } from '../../libs/api';
-import { processDatasetItem } from '../../libs/datasets';
+import { processDatasetItem, watchDatasetEmbeddings } from '../../libs/datasets';
 
 export default function DatasetPage() {
   const { datasetId } = useParams();
@@ -18,6 +21,48 @@ export default function DatasetPage() {
 
   const { state } = useDataset(datasetId);
   if (state.error) throw state.error;
+
+  const embeddings = useReactive<{ status: { [key: string]: { total?: number; current?: number } } }>({ status: {} });
+
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    (async () => {
+      const res = await watchDatasetEmbeddings({ datasetId, signal: abortController.signal });
+      const reader = res.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        if (value) {
+          switch (value.type) {
+            case 'list': {
+              embeddings.status = Object.fromEntries(value.list.map((i) => [i.itemId, omit(i, 'itemId')]));
+              break;
+            }
+            case 'change': {
+              embeddings.status[value.itemId] ??= {};
+              Object.assign(embeddings.status[value.itemId]!, omit(value, 'itemId', 'type'));
+              break;
+            }
+            case 'complete': {
+              delete embeddings.status[value.itemId];
+              break;
+            }
+            default:
+              console.warn('Unsupported event', value);
+          }
+        }
+      }
+    })();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [datasetId]);
+
+  const rows = (state.items ?? []).map((i) => ({ ...i, status: embeddings.status[i._id!] }));
 
   return (
     <Box>
@@ -43,7 +88,7 @@ export default function DatasetPage() {
         <DataGrid
           getRowId={(v) => v._id!}
           loading={state.loading && !state.items?.length}
-          rows={state.items ?? []}
+          rows={rows}
           columns={columns}
           hideFooter
           autoHeight
@@ -53,7 +98,7 @@ export default function DatasetPage() {
   );
 }
 
-const columns: GridColDef<DatasetItem>[] = [
+const columns: GridColDef<DatasetItem & { status?: { total?: number; current?: number } }>[] = [
   {
     field: 'type',
     headerName: 'Type',
@@ -68,16 +113,30 @@ const columns: GridColDef<DatasetItem>[] = [
     field: 'embeddedAt',
     headerName: 'Processed At',
     width: 210,
-    renderCell: (params) => (
-      <>
-        {params.row.embeddedAt}
-        {params.row.error && (
-          <Tooltip title={params.row.error}>
-            <ErrorIcon color="error" fontSize="small" sx={{ ml: 0.5 }} />
-          </Tooltip>
-        )}
-      </>
-    ),
+    renderCell: (params) => {
+      const { status } = params.row;
+
+      if (status) {
+        const { total, current } = status;
+
+        return total && current ? (
+          <Typography variant="caption">
+            {current}/{total}
+          </Typography>
+        ) : null;
+      }
+
+      return (
+        <>
+          {params.row.embeddedAt}
+          {params.row.error && (
+            <Tooltip title={params.row.error}>
+              <ErrorIcon color="error" fontSize="small" sx={{ ml: 0.5 }} />
+            </Tooltip>
+          )}
+        </>
+      );
+    },
   },
   {
     field: 'actions',
@@ -88,11 +147,12 @@ const columns: GridColDef<DatasetItem>[] = [
   },
 ];
 
-function Actions({ item }: { item: DatasetItem }) {
+function Actions({ item }: { item: DatasetItem & { status?: {} } }) {
   const { refetch } = useDataset(item.datasetId);
 
   return (
     <PromiseLoadingButton
+      loading={!!item.status}
       size="small"
       onClick={async () => {
         try {

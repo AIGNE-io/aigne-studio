@@ -1,14 +1,17 @@
 import Toast from '@arcblock/ux/lib/Toast';
-import { ArrowBackIosNew } from '@mui/icons-material';
+import { ArrowBackIosNew, HelpOutline } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
   Breadcrumbs,
+  Checkbox,
   CircularProgress,
+  FormControlLabel,
   Link,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
@@ -137,27 +140,47 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
 
   if (error) throw error;
 
-  const selection = useMemo(() => value.map((i) => i.data!.id), [value]);
+  const selection = useMemo(() => value.map((i) => i.data!.id).filter((i): i is NonNullable<typeof i> => !!i), [value]);
 
   const onRowSelectionModelChange = useCallback(
     (ids: any[]) => {
-      onChange(
-        ids.map(
+      onChange([
+        ...ids.map(
           (i) =>
             value.find((item) => item.data?.id === i) ?? {
               name: res?.data.find((item) => item.id === i)?.title || '',
-              data: { type: 'discussion', id: i },
+              data: { type: 'discussion', id: i } as const,
             }
-        )
-      );
+        ),
+        ...value.filter((i) => !i.data?.id),
+      ]);
     },
     [onChange, res?.data, value]
   );
 
   const meilisearch = useComponent('meilisearch');
+  const fullSite = value.some((i) => i.data?.fullSite);
 
   return (
     <>
+      <Box my={2} display="flex" alignItems="center">
+        <FormControlLabel
+          checked={fullSite}
+          onChange={(_, checked) => {
+            if (checked) {
+              onChange([{ name: 'Discussion Full Site', data: { type: 'discussion', fullSite: true } }]);
+            } else {
+              onChange(value.filter((i) => !i.data?.fullSite));
+            }
+          }}
+          control={<Checkbox />}
+          label="Full Site"
+        />
+        <Tooltip title="Equivalent to selecting all the posts in the discussion">
+          <HelpOutline fontSize="small" />
+        </Tooltip>
+      </Box>
+
       {meilisearch && (
         <Box mb={2}>
           <TextField label="Search" size="small" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -169,7 +192,7 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
         rows={res?.data ?? []}
         columns={columns}
         autoHeight
-        checkboxSelection
+        checkboxSelection={!fullSite}
         rowSelectionModel={selection}
         onRowSelectionModelChange={onRowSelectionModelChange}
         keepNonExistentRowsSelected

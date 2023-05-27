@@ -7,7 +7,7 @@ export default function PromiseLoadingButton(props: LoadingButtonProps) {
   return (
     <LoadingButton
       {...props}
-      loading={loading}
+      loading={props.loading || loading}
       onClick={(e) => {
         const res = props.onClick?.(e) as any;
         if (res instanceof Promise) {

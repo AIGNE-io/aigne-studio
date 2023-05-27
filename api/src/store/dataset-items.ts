@@ -4,10 +4,17 @@ export interface DatasetItem {
   _id?: string;
   datasetId: string;
   name?: string;
-  data?: {
-    type: 'discussion';
-    id: string;
-  };
+  data?:
+    | {
+        type: 'discussion';
+        fullSite?: false;
+        id: string;
+      }
+    | {
+        type: 'discussion';
+        fullSite: true;
+        id?: undefined;
+      };
   createdAt?: string;
   updatedAt?: string;
   createdBy: string;

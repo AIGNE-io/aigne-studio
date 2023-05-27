@@ -1,3 +1,5 @@
+import { fetchEventSource } from '@microsoft/fetch-event-source';
+
 import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset-items';
 import { DatasetItem } from '../../api/src/store/dataset-items';
 import { Dataset } from '../../api/src/store/datasets';
@@ -50,4 +52,37 @@ export async function deleteDatasetItem({ datasetId, itemId }: { datasetId: stri
 
 export async function processDatasetItem({ datasetId, itemId }: { datasetId: string; itemId: string }): Promise<{}> {
   return axios.post(`/api/datasets/${datasetId}/items/${itemId}/embedding`).then((res) => res.data);
+}
+
+export async function watchDatasetEmbeddings({
+  datasetId,
+  signal,
+}: {
+  datasetId: string;
+  signal?: AbortSignal | null;
+}) {
+  const prefix = blocklet?.prefix || '';
+
+  return new ReadableStream<
+    | { type: 'list'; list: { itemId: string; total?: number; current?: number }[] }
+    | { type: 'change'; itemId: string; total?: number; current?: number }
+    | { type: 'complete'; itemId: string }
+  >({
+    async start(controller) {
+      await fetchEventSource(`${prefix}/api/datasets/${datasetId}/embeddings`, {
+        signal,
+        method: 'GET',
+        onmessage(e) {
+          const data = JSON.parse(e.data);
+          controller.enqueue({ ...data, type: e.event });
+        },
+        onerror(err) {
+          throw err;
+        },
+        onclose() {
+          controller.close();
+        },
+      });
+    },
+  });
 }

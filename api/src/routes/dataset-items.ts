@@ -2,8 +2,10 @@ import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import axios from 'axios';
 import { Router } from 'express';
+import SSE from 'express-sse';
 import Joi from 'joi';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { omit } from 'lodash';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { ensureAdmin } from '../libs/security';
@@ -14,15 +16,27 @@ const router = Router();
 
 router.get('/:datasetId/items', ensureAdmin, async (req, res) => {
   const { datasetId } = req.params;
+  if (!datasetId) throw new Error('Missing required params `datasetId`');
+
   const [items, total] = await Promise.all([
     datasetItems.cursor({ datasetId }).sort({ createdAt: 1 }).exec(),
     datasetItems.count({ datasetId }),
   ]);
 
-  res.json({
-    items,
-    total,
-  });
+  res.json({ items, total });
+});
+
+const sse = new SSE();
+
+router.get('/:datasetId/embeddings', ensureAdmin, (req, res) => {
+  sse.init(req, res);
+
+  sse.send(
+    {
+      list: [...embeddingTasks.entries()].map(([itemId, task]) => ({ itemId, ...omit(task, 'promise') })),
+    },
+    'list'
+  );
 });
 
 export interface CreateItem {
@@ -39,8 +53,9 @@ const createItemSchema = Joi.object<CreateItem>({
   })
     .when(Joi.object({ type: 'discussion' }).unknown(), {
       then: Joi.object({
-        id: Joi.string().required(),
-      }),
+        fullSite: Joi.boolean().valid(true),
+        id: Joi.string(),
+      }).xor('fullSite', 'id'),
     })
     .required(),
 });
@@ -85,21 +100,42 @@ router.delete('/:datasetId/items/:itemId', user(), ensureAdmin, async (req, res)
   res.json({});
 });
 
-const embeddingTasks = new Map<string, Promise<void>>();
+const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
+
+async function embeddingDiscussionItem({ datasetId, discussionId }: { datasetId: string; discussionId: string }) {
+  const discussion = await getDiscussion(discussionId);
+  const textSplitter = new RecursiveCharacterTextSplitter();
+  const docs = await textSplitter.createDocuments([discussion.content]);
+
+  const embeddings = new AIKitEmbeddings({});
+  const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
+  const store = await VectorStore.load(datasetId, embeddings);
+  await store.addVectors(vectors, docs);
+  await store.save();
+}
+
+async function embeddingDiscussion({ datasetId }: { datasetId: string }, { itemId }: { itemId?: string } = {}) {
+  for await (const { id: discussionId, index: current, total } of discussionsIterator()) {
+    if (itemId) {
+      const task = embeddingTasks.get(itemId);
+      if (task) {
+        Object.assign(task, { total, current });
+        sse.send({ itemId, total, current }, 'change');
+      }
+    }
+    await embeddingDiscussionItem({ datasetId, discussionId });
+  }
+}
 
 const embeddingHandler: {
   [key in NonNullable<DatasetItem['data']>['type']]: (item: DatasetItem & { data: { type: key } }) => Promise<void>;
 } = {
   discussion: async (item) => {
-    const discussion = await getDiscussion(item.data.id);
-    const textSplitter = new RecursiveCharacterTextSplitter();
-    const docs = await textSplitter.createDocuments([discussion.content]);
-
-    const embeddings = new AIKitEmbeddings({});
-    const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
-    const store = await VectorStore.load(item.datasetId, embeddings);
-    await store.addVectors(vectors, docs);
-    await store.save();
+    if (item.data.fullSite) {
+      await embeddingDiscussion({ datasetId: item.datasetId }, { itemId: item._id! });
+    } else {
+      await embeddingDiscussionItem({ datasetId: item.datasetId, discussionId: item.data.id });
+    }
   },
 };
 
@@ -111,61 +147,106 @@ router.post('/:datasetId/items/:itemId/embedding', ensureAdmin, async (req, res)
 
   let task = embeddingTasks.get(itemId);
   if (!task) {
-    task = (async () => {
-      const item = await datasetItems.findOne({ _id: itemId });
-      if (!item) throw new Error(`Dataset item ${itemId} not found`);
-      if (!item.data) return;
+    task = {
+      promise: (async () => {
+        const item = await datasetItems.findOne({ _id: itemId });
+        if (!item) throw new Error(`Dataset item ${itemId} not found`);
+        if (!item.data) return;
 
-      const handler = embeddingHandler[item.data.type];
-      if (!handler) return;
+        const handler = embeddingHandler[item.data.type];
+        if (!handler) return;
 
-      try {
-        await handler(item as any);
-        await datasetItems.update(
-          { _id: itemId },
-          {
-            $set: {
-              embeddedAt: new Date().toISOString(),
-              error: null,
-            },
-          }
-        );
-      } catch (error) {
-        await datasetItems.update(
-          { _id: itemId },
-          {
-            $set: {
-              embeddedAt: new Date().toISOString(),
-              error: error.message,
-            },
-          }
-        );
-        throw error;
-      } finally {
-        embeddingTasks.delete(itemId);
-      }
-    })();
+        try {
+          await handler(item as any);
+          await datasetItems.update(
+            { _id: itemId },
+            {
+              $set: {
+                embeddedAt: new Date().toISOString(),
+                error: null,
+              },
+            }
+          );
+        } catch (error) {
+          await datasetItems.update(
+            { _id: itemId },
+            {
+              $set: {
+                embeddedAt: new Date().toISOString(),
+                error: error.message,
+              },
+            }
+          );
+          throw error;
+        } finally {
+          embeddingTasks.delete(itemId);
+          sse.send({ itemId }, 'complete');
+        }
+      })(),
+    };
 
     embeddingTasks.set(itemId, task);
+    sse.send({ itemId }, 'change');
   }
 
-  await task;
+  await task.promise;
 
   res.json({});
 });
 
 export default router;
 
-async function getDiscussion(discussionId: string): Promise<{ content: string }> {
+const discussBaseUrl = () => {
   const url = getComponentWebEndpoint('z8ia1WEiBZ7hxURf6LwH21Wpg99vophFwSJdu');
   if (!url) {
     throw new Error('did-comments component not found');
   }
+  return url;
+};
 
-  const { data } = await axios.get(`/api/blogs/${discussionId}`, { baseURL: url, params: { textContent: 1 } });
+async function getDiscussion(discussionId: string): Promise<{ content: string }> {
+  const { data } = await axios.get(`/api/blogs/${discussionId}`, {
+    baseURL: discussBaseUrl(),
+    params: { textContent: 1 },
+  });
   if (!data) {
     throw new Error('Discussion not found');
   }
 
   return data;
+}
+
+async function* discussionsIterator() {
+  let page = 0;
+  let index = 0;
+  const size = 2;
+
+  while (true) {
+    page += 1;
+    const { data, total } = await searchDiscussions({ page, size });
+    if (!data.length) {
+      break;
+    }
+    for (const i of data) {
+      index += 1;
+      yield { total, id: i.id, index };
+    }
+  }
+}
+
+async function searchDiscussions({
+  search,
+  page,
+  size,
+}: {
+  search?: string;
+  page?: number;
+  size?: number;
+}): Promise<{ data: { id: string }[]; total: number }> {
+  return axios
+    .get('/api/discussions', {
+      baseURL: discussBaseUrl(),
+      params: { page, size, search },
+    })
+    .then((res) => res.data);
 }
