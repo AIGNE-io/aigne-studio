@@ -9,11 +9,11 @@ import { useAsync } from 'react-use';
 import { getDatasets } from '../../libs/datasets';
 import type { TemplateForm } from '.';
 
-export default function Contexts({
+export default function Datasets({
   value,
   onChange,
 }: {
-  value: Pick<TemplateForm, 'contexts'>;
+  value: Pick<TemplateForm, 'datasets'>;
   onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
 }) {
   const { t } = useLocaleContext();
@@ -23,20 +23,20 @@ export default function Contexts({
 
   return (
     <>
-      {value.contexts?.map((item, index) => (
+      {value.datasets?.map((item, index) => (
         <Box key={item.id} sx={{ display: 'flex', my: 2 }}>
           <Autocomplete
             fullWidth
             size="small"
             value={item.vectorStore ?? null}
-            onChange={(_, value) => onChange((v) => (v.contexts![index]!.vectorStore = value ?? undefined))}
-            renderInput={(params) => <TextField {...params} label={t('form.context')} />}
+            onChange={(_, value) => onChange((v) => (v.datasets![index]!.vectorStore = value ?? undefined))}
+            renderInput={(params) => <TextField {...params} label={t('form.dataset')} />}
             options={datasets}
             getOptionLabel={(v) => v.name || 'Unnamed'}
           />
 
           <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>
-            <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onChange((v) => v.contexts!.splice(index, 1))}>
+            <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onChange((v) => v.datasets!.splice(index, 1))}>
               <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
             </Button>
           </Box>
@@ -50,12 +50,12 @@ export default function Contexts({
         onClick={() => {
           const id = nanoid();
           onChange((v) => {
-            v.contexts ??= [];
-            v.contexts.push({ id, type: 'vectorStore' });
+            v.datasets ??= [];
+            v.datasets.push({ id, type: 'vectorStore' });
           });
           setTimeout(() => document.getElementById(`option-label-${id}`)?.focus());
         }}>
-        {t('form.add')} {t('form.context')}
+        {t('form.add')} {t('form.dataset')}
       </Button>
     </>
   );

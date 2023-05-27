@@ -25,7 +25,7 @@ export interface TemplateInput
     | 'model'
     | 'temperature'
     | 'folderId'
-    | 'contexts'
+    | 'datasets'
   > {
   deleteEmptyTemplates?: string[];
 }
@@ -120,7 +120,7 @@ export const templateSchema = Joi.object<TemplateInput>({
   temperature: Joi.number().min(0).max(2).empty(null),
   deleteEmptyTemplates: Joi.array().items(Joi.string()),
   folderId: Joi.string().allow(null),
-  contexts: Joi.array().items(
+  datasets: Joi.array().items(
     Joi.object({
       id: Joi.string().required(),
       type: Joi.string().valid('vectorStore').required(),

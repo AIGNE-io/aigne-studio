@@ -15,7 +15,7 @@ export default flat({
     copy: 'Copy',
     prompt: 'Prompt',
     branch: 'Branch',
-    context: 'Context',
+    dataset: 'Dataset',
     add: 'Add',
     type: 'Type',
     mode: 'Mode',

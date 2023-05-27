@@ -25,6 +25,8 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 
+app.use(compression());
+
 const router = express.Router();
 router.use('/api', routes);
 app.use(router);
@@ -33,7 +35,6 @@ const isProduction = process.env.NODE_ENV === 'production' || process.env.ABT_NO
 
 if (isProduction) {
   const staticDir = path.resolve(process.env.BLOCKLET_APP_DIR!, 'dist');
-  app.use(compression());
   app.use(express.static(staticDir, { maxAge: '30d', index: false }));
   app.use(fallback('index.html', { root: staticDir }));
 }

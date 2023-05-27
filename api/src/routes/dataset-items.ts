@@ -158,7 +158,7 @@ async function getDiscussion(discussionId: string): Promise<{ content: string }>
     throw new Error('did-comments component not found');
   }
 
-  const { data } = await axios.get(`/api/discussions/${discussionId}`, { baseURL: url, params: { textContent: 1 } });
+  const { data } = await axios.get(`/api/blogs/${discussionId}`, { baseURL: url, params: { textContent: 1 } });
   if (!data) {
     throw new Error('Discussion not found');
   }

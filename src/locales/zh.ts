@@ -15,7 +15,7 @@ export default flat({
     copy: '拷贝',
     prompt: '提示',
     branch: '分支',
-    context: '上下文',
+    dataset: '数据集',
     add: '添加',
     type: '类型',
     mode: '模式',

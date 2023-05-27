@@ -1,5 +1,21 @@
 import { call } from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
+import Joi from 'joi';
+import { Callbacks } from 'langchain/callbacks';
+import { LLMChain } from 'langchain/chains';
+import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
+import {
+  AIMessagePromptTemplate,
+  ChatPromptTemplate,
+  HumanMessagePromptTemplate,
+  SystemMessagePromptTemplate,
+} from 'langchain/prompts';
+import { ChatCompletionRequestMessage } from 'openai';
+
+import { AIKitChat } from '../core/llms/ai-kit-chat';
+import { Template, templates } from '../store/templates';
+import VectorStore from '../store/vector-store';
+import { templateSchema } from './templates';
 
 const router = Router();
 
@@ -37,5 +53,181 @@ router.post('/image/generations', async (req, res) => {
   res.set('Content-Type', response.headers['content-type']);
   response.data.pipe(res);
 });
+
+const callInputSchema = Joi.object<
+  {
+    parameters?: { [key: string]: string | number };
+  } & (
+    | {
+        templateId: string;
+        template: undefined;
+      }
+    | {
+        templateId: undefined;
+        template: Pick<Template, 'type' | 'prompts' | 'datasets' | 'branch'>;
+      }
+  )
+>({
+  templateId: Joi.string(),
+  template: Joi.object({
+    type: templateSchema.extract('type'),
+    prompts: templateSchema.extract('prompts'),
+    datasets: templateSchema.extract('datasets'),
+    branch: templateSchema.extract('branch'),
+  }),
+  parameters: Joi.object().pattern(Joi.string(), Joi.alternatives().try(Joi.string(), Joi.number())),
+}).xor('templateId', 'template');
+
+router.post('/call', async (req, res) => {
+  const stream = req.accepts().includes('text/event-stream');
+
+  const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
+
+  const template = input.template ?? ((await templates.findOne({ _id: input.templateId })) as Template);
+  const emit = (response: { type: 'delta'; delta: string }) => {
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.flushHeaders();
+    }
+
+    res.write(`data: ${JSON.stringify(response)}\n\n`);
+    res.flush();
+  };
+
+  const text = await runTemplate(
+    template,
+    input.parameters,
+    stream
+      ? [
+          {
+            handleLLMNewToken(token) {
+              emit({ type: 'delta', delta: token });
+            },
+          },
+        ]
+      : undefined
+  );
+
+  if (stream) {
+    res.end();
+  } else {
+    res.json({ type: 'text', text });
+  }
+});
+
+async function runTemplate(
+  template: Pick<Template, 'type' | 'prompts' | 'datasets' | 'branch'>,
+  parameters?: { [key: string]: string | number },
+  callbacks?: Callbacks
+): Promise<string> {
+  let current: typeof template | undefined = template;
+
+  while (current) {
+    const matchParams = (template: string) => [
+      ...new Set(Array.from(template.matchAll(/{{\s*(\w+)\s*}}/g)).map((i) => i[1]!)),
+    ];
+
+    const messages: ChatCompletionRequestMessage[] = (current.prompts ?? [])
+      .filter((i): i is Required<typeof i> => !!i.role && !!i.content)
+      .map((item) => {
+        const params = matchParams(item.content);
+        let { content } = item;
+        for (const param of params) {
+          content = content.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameters?.[param]?.toString() || '');
+        }
+
+        return { role: item.role, content };
+      });
+
+    const datasets = await Promise.all(
+      current.datasets
+        ?.filter((i): i is Required<typeof i> => !!i.vectorStore)
+        .map((item) => VectorStore.load(item.vectorStore.id, new OpenAIEmbeddings())) ?? []
+    );
+
+    const messagesString = messages.map((i) => i.content).join('\n');
+    const docs = (
+      await Promise.all(datasets.map(async (dataset) => dataset.similaritySearch(messagesString, 4)))
+    ).flat();
+
+    const prompt = ChatPromptTemplate.fromPromptMessages(
+      messages.map(({ role, content }) => {
+        const i = {
+          system: SystemMessagePromptTemplate,
+          user: HumanMessagePromptTemplate,
+          assistant: AIMessagePromptTemplate,
+        }[role];
+
+        return i.fromTemplate(content);
+      })
+    );
+
+    if (docs.length) {
+      const contextTemplate = `Use the following pieces of context to answer the users question.
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
+----------------
+{context}`;
+      prompt.promptMessages.unshift(SystemMessagePromptTemplate.fromTemplate(contextTemplate));
+    }
+
+    if (current.type === 'branch') {
+      const question = parameters?.question;
+
+      const branches = current.branch?.branches.filter((i) => i.template?.name);
+      if (!branches || !question) {
+        return '';
+      }
+
+      prompt.promptMessages.push(
+        SystemMessagePromptTemplate.fromTemplate(
+          `You are a branch selector, don't try to answer the user's question, \
+you need to choose the most appropriate one from the following minutes based on the question entered by the user.
+Branches:
+${branches.map((i) => `Branch_${i.template!.id}: ${i.description || ''}`).join('\n')}
+
+Use the following format:
+
+Question: the input question you must think about
+Thought: you should always consider which branch is more suitable
+Branch: the branch to take, should be one of [${branches.map((i) => `Branch_${i.template!.id}`).join('\n')}]
+
+Begin!"
+
+Question: ${question}\
+`
+        )
+      );
+    }
+
+    const model = new AIKitChat();
+
+    const chain = new LLMChain({
+      llm: model,
+      prompt,
+    });
+
+    const isFinalTemplate = current.type !== 'branch';
+
+    const { text } = await chain.call(
+      { context: docs.map((i) => i.pageContent).join('\n') },
+      isFinalTemplate ? callbacks : undefined
+    );
+
+    if (current.type === 'branch') {
+      const branchId = text && /Branch_(\w+)/s.exec(text)?.[1]?.trim();
+      if (branchId && current.branch?.branches.some((i) => i.template?.id === branchId)) {
+        current = (await templates.findOne({ _id: branchId })) as any;
+        continue;
+      }
+
+      current = undefined;
+      continue;
+    }
+
+    return text;
+  }
+
+  return '';
+}
 
 export default router;

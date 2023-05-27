@@ -1,5 +1,7 @@
 import { createImageGenerationApi, createStatusApi, createTextCompletionApi } from '@blocklet/ai-kit';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 
+import { Template } from '../../api/src/store/templates';
 import axios from './api';
 
 export type { ImageGenerationSize } from '@blocklet/ai-kit';
@@ -9,3 +11,40 @@ export const getAIStatus = createStatusApi({ axios, path: '/api/ai/status' });
 export const textCompletions = createTextCompletionApi({ axios, path: '/api/ai/completions' });
 
 export const imageGenerations = createImageGenerationApi({ axios, path: '/api/ai/image/generations' });
+
+export async function callAI(
+  input: {
+    parameters?: { [key: string]: string | number };
+  } & (
+    | {
+        templateId: string;
+        template?: undefined;
+      }
+    | {
+        templateId?: undefined;
+        template: Pick<Template, 'type' | 'prompts' | 'datasets' | 'branch'>;
+      }
+  )
+) {
+  const prefix = blocklet?.prefix || '';
+
+  return new ReadableStream<{ delta: string }>({
+    async start(controller) {
+      await fetchEventSource(`${prefix}/api/ai/call`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+        onmessage(event) {
+          const data = JSON.parse(event.data);
+          controller.enqueue(data);
+        },
+        onerror(err) {
+          throw err;
+        },
+        onclose() {
+          controller.close();
+        },
+      });
+    },
+  });
+}
