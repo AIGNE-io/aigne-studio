@@ -18,6 +18,7 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
 import { CreateItem } from '../../../api/src/routes/dataset-items';
+import { useComponent } from '../../contexts/component';
 import { useDataset } from '../../contexts/dataset-items';
 import { getErrorMessage } from '../../libs/api';
 import { createDatasetItem } from '../../libs/datasets';
@@ -34,7 +35,9 @@ export default function AddFilePage() {
 
   const navigate = useNavigate();
 
-  const [type, setType] = useState('discussion');
+  const discuss = useComponent('did-comments');
+
+  const [type, setType] = useState(discuss ? 'discussion' : null);
 
   const [input, setInput] = useState<CreateItem[]>([]);
 
@@ -74,30 +77,17 @@ export default function AddFilePage() {
         </Breadcrumbs>
       </Box>
 
-      <Box my={2}>
+      <Box m={2}>
         <ToggleButtonGroup
           exclusive
           color="primary"
           value={type}
           onChange={(_, type) => {
             if (type) setType(type);
-          }}
-          sx={{
-            '& .MuiToggleButtonGroup-grouped': {
-              mx: 2,
-              border: 1,
-              borderRadius: 1,
-              '&:not(:first-of-type)': {
-                borderRadius: 1,
-                border: 1,
-                ml: 0,
-              },
-              '&:first-of-type': {
-                borderRadius: 1,
-              },
-            },
           }}>
-          <ToggleButton value="discussion">Discussion</ToggleButton>
+          <ToggleButton value="discussion" disabled={!discuss}>
+            Discussion
+          </ToggleButton>
           <ToggleButton value="file" disabled>
             File
           </ToggleButton>
@@ -105,7 +95,7 @@ export default function AddFilePage() {
       </Box>
 
       <Box mx={2} my={4}>
-        <DiscussionTable value={input} onChange={setInput} />
+        {type === 'discussion' ? <DiscussionTable value={input} onChange={setInput} /> : null}
       </Box>
 
       <Box m={2}>
