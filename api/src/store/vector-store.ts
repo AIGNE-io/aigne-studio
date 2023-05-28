@@ -11,6 +11,17 @@ const vectorStores = new Map<string, Promise<VectorStore>>();
 
 const vectorStorePath = (datasetId: string) => join(env.dataDir, 'vectors', datasetId);
 
+HNSWLib.imports = async () => {
+  try {
+    const {
+      default: { HierarchicalNSW },
+    } = await import('@blocklet/hnswlib-node');
+    return { HierarchicalNSW };
+  } catch (err) {
+    throw new Error('Please install hnswlib-node as a dependency with, e.g. `npm install -S hnswlib-node`');
+  }
+};
+
 export default class VectorStore extends HNSWLib {
   constructor(private directory: string, embeddings: Embeddings, args: HNSWLibArgs) {
     super(embeddings, args);
