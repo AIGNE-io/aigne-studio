@@ -25,6 +25,15 @@ export default flat({
     model: '模型',
     temperature: '温度',
     rename: '重命名',
+    file: '文件',
+    processedAt: '处理时间',
+    actions: '操作',
+    fullSite: '全部',
+    fullSiteTip: '相当于选中了整个 discussion 站点数据',
+    title: '标题',
+    author: '作者',
+    createdAt: '创建于',
+    process: '处理',
     parameter: {
       type: '类型',
       typeText: '文本',
@@ -67,5 +76,7 @@ export default flat({
     downloadBackup: '下载备份',
     openInAssistant: '在 Assistant 中打开',
     duplicate: '复制',
+    unnamed: '未命名',
+    search: '搜索',
   },
 });

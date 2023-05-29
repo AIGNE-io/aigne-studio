@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ArrowBackIosNew, HelpOutline } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
@@ -33,6 +34,8 @@ export default function AddFilePage() {
     throw new Error('Missing required params `datasetId`');
   }
 
+  const { t } = useLocaleContext();
+
   const { state, refetch } = useDataset(datasetId);
   if (state.error) throw state.error;
 
@@ -67,16 +70,18 @@ export default function AddFilePage() {
         <Breadcrumbs>
           <Link component={RouterLink} underline="hover" to=".." sx={{ display: 'flex', alignItems: 'center' }}>
             <ArrowBackIosNew sx={{ mr: 0.5, fontSize: 18 }} />
-            Datasets
+            {t('form.dataset')}
           </Link>
           {state.dataset ? (
             <Link component={RouterLink} underline="hover" to=".." sx={{ display: 'flex', alignItems: 'center' }}>
-              {state.dataset.name || 'Unnamed'}
+              {state.dataset.name || t('alert.unnamed')}
             </Link>
           ) : (
             <CircularProgress size={14} />
           )}
-          <Typography color="text.primary">Add file</Typography>
+          <Typography color="text.primary">
+            {t('form.add')} {t('form.file')}
+          </Typography>
         </Breadcrumbs>
       </Box>
 
@@ -92,7 +97,7 @@ export default function AddFilePage() {
             Discussion
           </ToggleButton>
           <ToggleButton value="file" disabled>
-            File
+            {t('form.file')}
           </ToggleButton>
         </ToggleButtonGroup>
       </Box>
@@ -108,7 +113,7 @@ export default function AddFilePage() {
           variant="contained"
           disabled={input.length === 0}
           onClick={save}>
-          Save
+          {t('form.save')}
         </LoadingButton>
       </Box>
     </Box>
@@ -116,6 +121,8 @@ export default function AddFilePage() {
 }
 
 function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (value: CreateItem[]) => void }) {
+  const { t } = useLocaleContext();
+
   const [search, setSearch] = useState('');
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
@@ -161,6 +168,8 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
   const meilisearch = useComponent('meilisearch');
   const fullSite = value.some((i) => i.data?.fullSite);
 
+  const columns = useColumns();
+
   return (
     <>
       <Box my={2} display="flex" alignItems="center">
@@ -174,16 +183,21 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
             }
           }}
           control={<Checkbox />}
-          label="Full Site"
+          label={t('form.fullSite')}
         />
-        <Tooltip title="Equivalent to selecting all the posts in the discussion">
+        <Tooltip title={t('form.fullSiteTip')}>
           <HelpOutline fontSize="small" />
         </Tooltip>
       </Box>
 
       {meilisearch && (
         <Box mb={2}>
-          <TextField label="Search" size="small" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <TextField
+            label={t('alert.search')}
+            size="small"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </Box>
       )}
 
@@ -206,20 +220,27 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
   );
 }
 
-const columns: GridColDef<DiscussionItem>[] = [
-  { field: 'title', headerName: 'Title', flex: 2 },
-  {
-    field: 'author',
-    headerName: 'Author',
-    flex: 1,
-    maxWidth: 200,
-    valueGetter: (params) => params.row.author.fullName,
-  },
-  {
-    field: 'createdAt',
-    headerName: 'Created At',
-    align: 'center',
-    headerAlign: 'center',
-    width: 210,
-  },
-];
+const useColumns = (): GridColDef<DiscussionItem>[] => {
+  const { t } = useLocaleContext();
+
+  return useMemo(
+    () => [
+      { field: 'title', headerName: t('form.title'), flex: 2 },
+      {
+        field: 'author',
+        headerName: t('form.author'),
+        flex: 1,
+        maxWidth: 200,
+        valueGetter: (params) => params.row.author.fullName,
+      },
+      {
+        field: 'createdAt',
+        headerName: t('form.createdAt'),
+        align: 'center',
+        headerAlign: 'center',
+        width: 210,
+      },
+    ],
+    [t]
+  );
+};

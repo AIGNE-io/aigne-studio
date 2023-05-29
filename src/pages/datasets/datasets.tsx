@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Add } from '@mui/icons-material';
 import { Box, Card, CircularProgress, Grid, TextField, Typography } from '@mui/material';
@@ -9,6 +10,7 @@ import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
 
 export default function DatasetsPage() {
+  const { t } = useLocaleContext();
   const { dialog, showDialog } = useDialog();
 
   const { loading, datasets, refetch, createDataset } = useDatasets();
@@ -37,7 +39,7 @@ export default function DatasetsPage() {
                     boxShadow: 1,
                   },
                 }}>
-                <Typography>{item.name || 'Unnamed'}</Typography>
+                <Typography>{item.name || t('alert.unnamed')}</Typography>
 
                 <Box sx={{ height: '2em' }} />
               </Card>
@@ -65,13 +67,13 @@ export default function DatasetsPage() {
                 showDialog({
                   fullWidth: true,
                   maxWidth: 'sm',
-                  title: 'Create Dataset',
+                  title: `${t('form.new')} ${t('form.dataset')}`,
                   content: (
                     <Box sx={{ maxWidth: 300 }}>
                       <TextField
                         autoFocus
                         fullWidth
-                        label="Name"
+                        label={t('form.name')}
                         defaultValue={name}
                         onChange={(e) => (name = e.target.value)}
                       />
@@ -92,7 +94,7 @@ export default function DatasetsPage() {
                   <Add sx={{ display: 'block', verticalAlign: 'baseline' }} />
                 </Box>
                 <Typography variant="button" noWrap sx={{ flex: 1, overflow: 'hidden' }}>
-                  Create Dataset
+                  {`${t('form.new')} ${t('form.dataset')}`}
                 </Typography>
               </Box>
               <Box sx={{ height: '2em' }} />

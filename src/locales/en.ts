@@ -25,6 +25,15 @@ export default flat({
     model: 'Model',
     temperature: 'Temperature',
     rename: 'Rename',
+    file: 'File',
+    processedAt: 'Processed At',
+    actions: 'Actions',
+    fullSite: 'Full Site',
+    fullSiteTip: 'Equivalent to selecting all the posts in the discussion',
+    title: 'Title',
+    author: 'Author',
+    createdAt: 'Created At',
+    process: 'Process',
     parameter: {
       type: 'Type',
       typeText: 'Text',
@@ -67,5 +76,7 @@ export default flat({
     downloadBackup: 'Download backup',
     openInAssistant: 'Open in Assistant',
     duplicate: 'Duplicate',
+    unnamed: 'Unnamed',
+    search: 'Search',
   },
 });
