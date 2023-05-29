@@ -31,10 +31,14 @@ export async function deleteDataset(datasetId: string): Promise<Dataset> {
 
 export async function getDatasetItems({
   datasetId,
+  page,
+  size,
 }: {
   datasetId: string;
+  page?: number;
+  size?: number;
 }): Promise<{ items: DatasetItem[]; total: number }> {
-  return axios.get(`/api/datasets/${datasetId}/items`).then((res) => res.data);
+  return axios.get(`/api/datasets/${datasetId}/items`, { params: { page, size } }).then((res) => res.data);
 }
 
 export async function createDatasetItem(datasetId: string, input: CreateItem): Promise<DatasetItem>;

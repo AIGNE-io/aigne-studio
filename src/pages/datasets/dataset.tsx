@@ -19,7 +19,7 @@ export default function DatasetPage() {
     throw new Error('Missing required params `datasetId`');
   }
 
-  const { state } = useDataset(datasetId);
+  const { state, refetch } = useDataset(datasetId);
   if (state.error) throw state.error;
 
   const embeddings = useReactive<{ status: { [key: string]: { total?: number; current?: number } } }>({ status: {} });
@@ -90,8 +90,12 @@ export default function DatasetPage() {
           loading={state.loading && !state.items?.length}
           rows={rows}
           columns={columns}
-          hideFooter
           autoHeight
+          rowCount={state.total ?? 0}
+          pageSizeOptions={[20]}
+          paginationModel={{ page: state.page, pageSize: state.size }}
+          paginationMode="server"
+          onPaginationModelChange={({ page, pageSize: size }) => refetch({ page, size })}
         />
       </Box>
     </Box>

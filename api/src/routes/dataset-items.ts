@@ -16,12 +16,24 @@ import VectorStore from '../store/vector-store';
 
 const router = Router();
 
+const paginationSchema = Joi.object<{ page: number; size: number }>({
+  page: Joi.number().integer().min(1).default(1),
+  size: Joi.number().integer().min(1).max(100).default(20),
+});
+
 router.get('/:datasetId/items', ensureAdmin, async (req, res) => {
   const { datasetId } = req.params;
   if (!datasetId) throw new Error('Missing required params `datasetId`');
 
+  const { page, size } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
+
   const [items, total] = await Promise.all([
-    datasetItems.cursor({ datasetId }).sort({ createdAt: 1 }).exec(),
+    datasetItems
+      .cursor({ datasetId })
+      .sort({ createdAt: 1 })
+      .skip((page - 1) * size)
+      .limit(size)
+      .exec(),
     datasetItems.count({ datasetId }),
   ]);
 
