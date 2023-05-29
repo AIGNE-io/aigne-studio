@@ -11,6 +11,7 @@ import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import logger from '../libs/logger';
 import { ensureAdmin } from '../libs/security';
 import { DatasetItem, datasetItems } from '../store/dataset-items';
+import { embeddingHistories } from '../store/embedding-history';
 import VectorStore from '../store/vector-store';
 
 const router = Router();
@@ -104,15 +105,45 @@ router.delete('/:datasetId/items/:itemId', user(), ensureAdmin, async (req, res)
 const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
 
 async function embeddingDiscussionItem({ datasetId, discussionId }: { datasetId: string; discussionId: string }) {
-  const discussion = await getDiscussion(discussionId);
-  const textSplitter = new RecursiveCharacterTextSplitter();
-  const docs = await textSplitter.createDocuments([discussion.content]);
+  try {
+    const discussion = await getDiscussion(discussionId);
 
-  const embeddings = new AIKitEmbeddings({});
-  const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
-  const store = await VectorStore.load(datasetId, embeddings);
-  await store.addVectors(vectors, docs);
-  await store.save();
+    const previousEmbedding = await embeddingHistories.findOne({ targetId: discussionId });
+    if (previousEmbedding?.targetVersion === discussion.updatedAt) {
+      return;
+    }
+
+    const textSplitter = new RecursiveCharacterTextSplitter();
+    const docs = await textSplitter.createDocuments([discussion.content]);
+
+    const embeddings = new AIKitEmbeddings({});
+    const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
+    const store = await VectorStore.load(datasetId, embeddings);
+    await store.addVectors(vectors, docs);
+    await store.save();
+
+    await embeddingHistories.update(
+      { targetId: discussionId },
+      {
+        $set: {
+          updatedAt: new Date().toISOString(),
+          targetVersion: discussion.updatedAt,
+        },
+      },
+      { upsert: true }
+    );
+  } catch (error) {
+    await embeddingHistories.update(
+      { targetId: discussionId },
+      {
+        $set: {
+          updatedAt: new Date().toISOString(),
+          error: error.message,
+        },
+      },
+      { upsert: true }
+    );
+  }
 }
 
 async function embeddingDiscussion({ datasetId }: { datasetId: string }, { itemId }: { itemId?: string } = {}) {
@@ -209,7 +240,7 @@ const discussBaseUrl = () => {
   return url;
 };
 
-async function getDiscussion(discussionId: string): Promise<{ content: string }> {
+async function getDiscussion(discussionId: string): Promise<{ content: string; updatedAt: string }> {
   const { data } = await axios.get(`/api/blogs/${discussionId}`, {
     baseURL: discussBaseUrl(),
     params: { textContent: 1 },
