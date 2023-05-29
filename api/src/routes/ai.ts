@@ -13,13 +13,14 @@ import {
 import { ChatCompletionRequestMessage } from 'openai';
 
 import { AIKitChat } from '../core/llms/ai-kit-chat';
+import { ensureComponentCallOrAdmin } from '../libs/security';
 import { Template, templates } from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
 
 const router = Router();
 
-router.get('/status', async (_, res) => {
+router.get('/status', ensureComponentCallOrAdmin(), async (_, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/status',
@@ -30,7 +31,7 @@ router.get('/status', async (_, res) => {
   response.data.pipe(res);
 });
 
-router.post('/completions', async (req, res) => {
+router.post('/completions', ensureComponentCallOrAdmin(), async (req, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/completions',
@@ -42,7 +43,7 @@ router.post('/completions', async (req, res) => {
   response.data.pipe(res);
 });
 
-router.post('/image/generations', async (req, res) => {
+router.post('/image/generations', ensureComponentCallOrAdmin(), async (req, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/image/generations',
@@ -78,7 +79,7 @@ const callInputSchema = Joi.object<
   parameters: Joi.object().pattern(Joi.string(), Joi.alternatives().try(Joi.string(), Joi.number())),
 }).xor('templateId', 'template');
 
-router.post('/call', async (req, res) => {
+router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
