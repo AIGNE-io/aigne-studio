@@ -3,7 +3,6 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { Callbacks } from 'langchain/callbacks';
 import { LLMChain } from 'langchain/chains';
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import {
   AIMessagePromptTemplate,
   ChatPromptTemplate,
@@ -12,6 +11,7 @@ import {
 } from 'langchain/prompts';
 import { ChatCompletionRequestMessage } from 'openai';
 
+import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
 import { ensureComponentCallOrAdmin } from '../libs/security';
 import { Template, templates } from '../store/templates';
@@ -145,7 +145,7 @@ async function runTemplate(
     const datasets = await Promise.all(
       current.datasets
         ?.filter((i): i is Required<typeof i> => !!i.vectorStore)
-        .map((item) => VectorStore.load(item.vectorStore.id, new OpenAIEmbeddings())) ?? []
+        .map((item) => VectorStore.load(item.vectorStore.id, new AIKitEmbeddings())) ?? []
     );
 
     const messagesString = messages.map((i) => i.content).join('\n');
