@@ -1,3 +1,7 @@
+## 0.1.55 (2023-5-30)
+
+- fix: force rebuild hnswlib-node
+
 ## 0.1.54 (2023-5-30)
 
 - fix: use AIKitEmbeddigns intead of OpenAIEmbeddings

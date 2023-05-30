@@ -18,7 +18,10 @@ HNSWLib.imports = async () => {
     } = await import('@blocklet/hnswlib-node');
     return { HierarchicalNSW };
   } catch (err) {
-    throw new Error('Please install hnswlib-node as a dependency with, e.g. `npm install -S hnswlib-node`');
+    logger.error(err);
+    throw new Error(
+      'Please install @blocklet/hnswlib-node as a dependency with, e.g. `npm install -S @blocklet/hnswlib-node`'
+    );
   }
 };
 

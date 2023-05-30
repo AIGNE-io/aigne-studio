@@ -46,6 +46,18 @@ async function ensureHNSWLIBBinaryFile() {
     stdio: 'inherit',
     shell: true,
   });
+
+  // Force rebuild if binary not available
+  try {
+    await import(hnswlib);
+    logger.info(`${name} ${hnswlib} already installed`);
+  } catch {
+    spawnSync('npm', ['run', 'rebuild'], {
+      cwd: join(appDir, `node_modules/${hnswlib}`),
+      stdio: 'inherit',
+      shell: true,
+    });
+  }
 }
 
 (async () => {
