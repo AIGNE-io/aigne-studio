@@ -32,6 +32,7 @@ export default function Datasets({
             onChange={(_, value) => onChange((v) => (v.datasets![index]!.vectorStore = value ?? undefined))}
             renderInput={(params) => <TextField {...params} label={t('form.dataset')} />}
             options={datasets}
+            isOptionEqualToValue={(o, v) => o.id === v.id}
             getOptionLabel={(v) => v.name || 'Unnamed'}
           />
 

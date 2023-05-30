@@ -42,6 +42,19 @@ export async function callAI(
             controller.enqueue(data);
           }
         },
+        async onopen(response) {
+          const contentType = response.headers.get('content-type');
+          if (contentType !== 'text/event-stream') {
+            let error: string | undefined;
+            try {
+              const json = await response.json();
+              error = json.error?.message || json.message;
+            } catch {
+              /* empty */
+            }
+            throw new Error(error || 'Call AI failed');
+          }
+        },
         onerror(err) {
           throw err;
         },
