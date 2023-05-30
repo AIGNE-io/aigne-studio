@@ -1,3 +1,7 @@
+## 0.1.54 (2023-5-30)
+
+- fix: use AIKitEmbeddigns intead of OpenAIEmbeddings
+
 ## 0.1.53 (2023-5-30)
 
 - fix: allow custom model and temperature
