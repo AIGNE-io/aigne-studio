@@ -18,6 +18,7 @@ export interface Template {
     branches: { id: string; template?: { id: string; name?: string }; description: string }[];
   };
   parameters?: { [key: string]: Parameter };
+  datasets?: { id: string; type: 'vectorStore'; vectorStore?: { id: string; name?: string } }[];
   temperature?: number;
   model?: string;
   createdAt: string;

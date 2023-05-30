@@ -14,7 +14,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.51
+version: 0.1.52
 logo: logo.png
 files:
   - dist
@@ -61,6 +61,17 @@ navigation:
     link: /playground/template
     section:
       - sessionManager
+      - dashboard
+    role:
+      - admin
+      - owner
+  - id: datasets
+    title:
+      en: Datasets
+      zh: 数据集
+    icon: icon-park-outline:data
+    link: /playground/datasets
+    section:
       - dashboard
     role:
       - admin

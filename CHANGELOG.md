@@ -1,3 +1,7 @@
+## 0.1.52 (2023-5-29)
+
+- feat: support datasets
+
 ## 0.1.51 (2023-5-24)
 
 - chore: update deps

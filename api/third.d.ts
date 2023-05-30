@@ -4,6 +4,8 @@ declare module 'express-history-api-fallback';
 
 declare module 'express-async-errors';
 
+declare module 'express-sse';
+
 namespace Express {
   interface Request {
     user?: {
