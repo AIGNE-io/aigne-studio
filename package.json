@@ -45,7 +45,7 @@
     "@arcblock/did-connect": "^2.5.46",
     "@arcblock/ux": "^2.5.46",
     "@beskar-labs/gpt-encoder": "^1.0.6",
-    "@blocklet/ai-kit": "^0.0.59",
+    "@blocklet/ai-kit": "^0.0.60",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
     "@blocklet/sdk": "^1.16.10",
     "@blocklet/ui-react": "^2.5.46",

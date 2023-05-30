@@ -7,7 +7,7 @@ export const roles: Role[] = ['system', 'user', 'assistant'];
 export interface Template {
   _id: string;
   folderId?: string;
-  type?: 'branch';
+  type?: 'branch' | 'image';
   mode?: 'default' | 'chat';
   name?: string;
   tags?: string[];

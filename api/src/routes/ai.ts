@@ -9,7 +9,7 @@ import {
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from 'langchain/prompts';
-import { ChatCompletionRequestMessage } from 'openai';
+import { ChatCompletionRequestMessage, ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
@@ -87,7 +87,7 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
 
   const template = input.template ?? ((await templates.findOne({ _id: input.templateId })) as Template);
-  const emit = (response: { type: 'delta'; delta: string }) => {
+  const emit = (response: { type: 'delta'; delta: string } | typeof result) => {
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.flushHeaders();
@@ -97,7 +97,7 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
     res.flush();
   };
 
-  const text = await runTemplate(
+  const result = await runTemplate(
     template,
     input.parameters,
     stream
@@ -112,9 +112,12 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
   );
 
   if (stream) {
+    if (!res.headersSent) {
+      emit(result);
+    }
     res.end();
   } else {
-    res.json({ type: 'text', text });
+    res.json(result);
   }
 });
 
@@ -122,7 +125,10 @@ async function runTemplate(
   template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch'>,
   parameters?: { [key: string]: string | number },
   callbacks?: Callbacks
-): Promise<string> {
+): Promise<
+  | { type: 'text'; text: string }
+  | { type: 'images'; images: ({ url: string; b64_json?: undefined } | { url?: undefined; b64_json?: string })[] }
+> {
   let current: typeof template | undefined = template;
 
   while (current) {
@@ -178,7 +184,7 @@ If you don't know the answer, just say that you don't know, don't try to make up
 
       const branches = current.branch?.branches.filter((i) => i.template?.name);
       if (!branches || !question) {
-        return '';
+        return { type: 'text', text: '' };
       }
 
       prompt.promptMessages.push(
@@ -200,6 +206,26 @@ Question: ${question}\
 `
         )
       );
+    }
+
+    if (current.type === 'image') {
+      const response = await call<{ data: ImagesResponseDataInner[] }>({
+        name: 'ai-kit',
+        path: '/api/v1/sdk/image/generations',
+        method: 'POST',
+        data: {
+          prompt: (
+            await prompt.formatMessages({
+              context: docs.map((i) => i.pageContent).join('\n'),
+            })
+          )
+            .map((i) => i.text)
+            .join('\n'),
+          response_format: 'url',
+        },
+      });
+
+      return { type: 'images', images: response.data.data as any };
     }
 
     const model = new AIKitChat({
@@ -233,7 +259,7 @@ Question: ${question}\
     return text;
   }
 
-  return '';
+  return { type: 'text', text: '' };
 }
 
 export default router;

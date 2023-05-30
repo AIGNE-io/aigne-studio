@@ -187,6 +187,7 @@ export default function TemplateFormView({
             }>
             <FormControlLabel value="prompt" control={<Radio />} label={t('form.prompt')} />
             <FormControlLabel value="branch" control={<Radio />} label={t('form.branch')} />
+            <FormControlLabel value="image" control={<Radio />} label={t('form.image')} />
           </RadioGroup>
         </FormControl>
       </Grid>

@@ -28,7 +28,7 @@ export async function callAI(
 ) {
   const prefix = blocklet?.prefix || '';
 
-  return new ReadableStream<{ delta: string }>({
+  return new ReadableStream<string | { type: 'text'; text: string } | { type: 'images'; images: { url: string }[] }>({
     async start(controller) {
       await fetchEventSource(`${prefix}/api/ai/call`, {
         method: 'POST',
@@ -36,7 +36,11 @@ export async function callAI(
         body: JSON.stringify(input),
         onmessage(event) {
           const data = JSON.parse(event.data);
-          controller.enqueue(data);
+          if (data.type === 'delta') {
+            controller.enqueue(data.delta);
+          } else {
+            controller.enqueue(data);
+          }
         },
         onerror(err) {
           throw err;

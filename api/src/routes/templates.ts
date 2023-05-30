@@ -89,7 +89,7 @@ const parametersSchema = Joi.object().pattern(
 
 export const templateSchema = Joi.object<TemplateInput>({
   mode: Joi.string().valid('default', 'chat').empty(''),
-  type: Joi.string().valid('branch').empty(''),
+  type: Joi.string().valid('branch', 'image').empty(''),
   icon: Joi.string().empty(''),
   name: Joi.string().empty(''),
   tags: Joi.array().items(Joi.string()).unique(),
