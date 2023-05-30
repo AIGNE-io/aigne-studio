@@ -65,13 +65,15 @@ const callInputSchema = Joi.object<
       }
     | {
         templateId: undefined;
-        template: Pick<Template, 'type' | 'prompts' | 'datasets' | 'branch'>;
+        template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch'>;
       }
   )
 >({
   templateId: Joi.string(),
   template: Joi.object({
     type: templateSchema.extract('type'),
+    model: templateSchema.extract('model'),
+    temperature: templateSchema.extract('temperature'),
     prompts: templateSchema.extract('prompts'),
     datasets: templateSchema.extract('datasets'),
     branch: templateSchema.extract('branch'),
@@ -117,7 +119,7 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
 });
 
 async function runTemplate(
-  template: Pick<Template, 'type' | 'prompts' | 'datasets' | 'branch'>,
+  template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch'>,
   parameters?: { [key: string]: string | number },
   callbacks?: Callbacks
 ): Promise<string> {
@@ -200,7 +202,10 @@ Question: ${question}\
       );
     }
 
-    const model = new AIKitChat();
+    const model = new AIKitChat({
+      modelName: current.model,
+      temperature: current.temperature,
+    });
 
     const chain = new LLMChain({
       llm: model,
