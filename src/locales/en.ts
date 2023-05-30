@@ -34,6 +34,7 @@ export default flat({
     author: 'Author',
     createdAt: 'Created At',
     process: 'Process',
+    image: 'Image',
     parameter: {
       type: 'Type',
       typeText: 'Text',

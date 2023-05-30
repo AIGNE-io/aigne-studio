@@ -66,32 +66,11 @@ function TemplateView() {
           stream: true,
         });
       }
-      const res = await callAI({
+      return callAI({
         template: meta!,
         parameters: Object.fromEntries(
           Object.entries(meta!.parameters ?? {}).map(([key, val]) => [key, parameterToStringValue(val)])
         ),
-      });
-      return new ReadableStream({
-        async start(controller) {
-          try {
-            const reader = res.getReader();
-            const encoder = new TextEncoder();
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) {
-                break;
-              }
-              if (value) {
-                controller.enqueue(encoder.encode(value.delta));
-              }
-            }
-          } catch (error) {
-            controller.error(error);
-          } finally {
-            controller.close();
-          }
-        },
       });
     },
     imageGenerations: (prompt) =>

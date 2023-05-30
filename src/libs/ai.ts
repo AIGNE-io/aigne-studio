@@ -28,7 +28,7 @@ export async function callAI(
 ) {
   const prefix = blocklet?.prefix || '';
 
-  return new ReadableStream<{ delta: string }>({
+  return new ReadableStream<string | { type: 'text'; text: string } | { type: 'images'; images: { url: string }[] }>({
     async start(controller) {
       await fetchEventSource(`${prefix}/api/ai/call`, {
         method: 'POST',
@@ -36,7 +36,24 @@ export async function callAI(
         body: JSON.stringify(input),
         onmessage(event) {
           const data = JSON.parse(event.data);
-          controller.enqueue(data);
+          if (data.type === 'delta') {
+            controller.enqueue(data.delta);
+          } else {
+            controller.enqueue(data);
+          }
+        },
+        async onopen(response) {
+          const contentType = response.headers.get('content-type');
+          if (contentType !== 'text/event-stream') {
+            let error: string | undefined;
+            try {
+              const json = await response.json();
+              error = json.error?.message || json.message;
+            } catch {
+              /* empty */
+            }
+            throw new Error(error || 'Call AI failed');
+          }
         },
         onerror(err) {
           throw err;
