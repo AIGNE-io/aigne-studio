@@ -78,7 +78,7 @@ const callInputSchema = Joi.object<
     datasets: templateSchema.extract('datasets'),
     branch: templateSchema.extract('branch'),
   }),
-  parameters: Joi.object().pattern(Joi.string(), Joi.alternatives().try(Joi.string(), Joi.number())),
+  parameters: Joi.object().pattern(Joi.string(), Joi.alternatives().try(Joi.string(), Joi.number()).allow('', null)),
 }).xor('templateId', 'template');
 
 router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
@@ -209,6 +209,14 @@ Question: ${question}\
     }
 
     if (current.type === 'image') {
+      const { size, number } = await Joi.object<{ size: string; number: number }>({
+        size: Joi.alternatives()
+          .try(Joi.string().valid('256x256', '512x512', '1024x1024'), Joi.any().empty(Joi.any()))
+          .empty(Joi.valid(null, ''))
+          .default('256x256'),
+        number: Joi.number().min(1).max(10).empty(Joi.valid('', null)).default(1),
+      }).validateAsync(parameters, { stripUnknown: true });
+
       const response = await call<{ data: ImagesResponseDataInner[] }>({
         name: 'ai-kit',
         path: '/api/v1/sdk/image/generations',
@@ -221,6 +229,8 @@ Question: ${question}\
           )
             .map((i) => i.text)
             .join('\n'),
+          size,
+          n: number,
           response_format: 'url',
         },
       });
