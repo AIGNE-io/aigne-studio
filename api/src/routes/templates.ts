@@ -135,12 +135,20 @@ export const templateSchema = Joi.object<TemplateInput>({
   ),
 });
 
-const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; tag?: string }>({
+const paginationSchema = Joi.object<{
+  offset: number;
+  limit: number;
+  sort?: string;
+  search?: string;
+  tag?: string;
+  type?: 'image';
+}>({
   offset: Joi.number().integer().min(0).default(0),
   limit: Joi.number().integer().min(1).max(100).default(20),
   sort: Joi.string().empty(''),
   search: Joi.string().empty(''),
   tag: Joi.string().empty(''),
+  type: Joi.string().valid('image').empty(''),
 });
 
 const templateSortableFields: (keyof Template)[] = ['name', 'createdAt', 'updatedAt'];
@@ -157,11 +165,16 @@ const getTemplateSort = (sort: any) => {
 };
 
 export async function getTemplates(req: Request, res: Response) {
-  const { offset, limit, tag, ...query } = await paginationSchema.validateAsync(req.query);
+  const { offset, limit, tag, type, ...query } = await paginationSchema.validateAsync(req.query, {
+    stripUnknown: true,
+  });
   const sort = getTemplateSort(query.sort) ?? { updatedAt: -1 };
 
   const filter = [];
 
+  if (type) {
+    filter.push({ type });
+  }
   if (query.search) {
     const regex = new RegExp(query.search, 'i');
     filter.push({ name: { $regex: regex } }, { description: { $regex: regex } });
