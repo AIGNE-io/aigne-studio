@@ -159,7 +159,7 @@ const useColumns = (): GridColDef<DatasetItem & { status?: { total?: number; cur
         renderCell: (params) => <Actions item={params.row} />,
       },
     ],
-    []
+    [t]
   );
 };
 

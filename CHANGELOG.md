@@ -1,3 +1,7 @@
+## 0.1.53 (2023-5-30)
+
+- fix: allow custom model and temperature
+
 ## 0.1.52 (2023-5-29)
 
 - feat: support datasets
