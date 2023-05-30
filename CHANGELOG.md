@@ -1,3 +1,11 @@
+## 0.1.56 (2023-5-30)
+
+- fix: support filter tags by template type
+- fix: support filter templates by type
+- fix: add size/number parameters for image type
+- fix: throw error if response is invalid
+- feat: support image type
+
 ## 0.1.55 (2023-5-30)
 
 - fix: force rebuild hnswlib-node
