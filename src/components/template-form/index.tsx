@@ -29,6 +29,7 @@ import {
 } from '../../../api/src/store/templates';
 import Branches from './branches';
 import Datasets from './datasets';
+import Next from './next';
 import Parameters, { matchParams } from './parameters';
 import Prompts from './prompts';
 import TagsAutoComplete from './tags-autocomplete';
@@ -37,7 +38,18 @@ const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-0301'];
 
 export type TemplateForm = Pick<
   Template,
-  '_id' | 'mode' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'prompts' | 'branch' | 'parameters' | 'datasets'
+  | '_id'
+  | 'mode'
+  | 'type'
+  | 'name'
+  | 'icon'
+  | 'tags'
+  | 'description'
+  | 'prompts'
+  | 'branch'
+  | 'parameters'
+  | 'datasets'
+  | 'next'
 >;
 
 export default function TemplateFormView({
@@ -300,6 +312,12 @@ export default function TemplateFormView({
       <Grid item xs={12}>
         <Parameters value={form} onChange={onChange} />
       </Grid>
+
+      {form.type !== 'image' && (
+        <Grid item xs={12}>
+          <Next value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+        </Grid>
+      )}
 
       <Grid item xs={12}>
         <Button fullWidth variant="contained" onClick={submit}>

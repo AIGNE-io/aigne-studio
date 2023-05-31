@@ -65,7 +65,7 @@ const callInputSchema = Joi.object<
       }
     | {
         templateId: undefined;
-        template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch'>;
+        template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>;
       }
   )
 >({
@@ -77,6 +77,7 @@ const callInputSchema = Joi.object<
     prompts: templateSchema.extract('prompts'),
     datasets: templateSchema.extract('datasets'),
     branch: templateSchema.extract('branch'),
+    next: templateSchema.extract('next'),
   }),
   parameters: Joi.object().pattern(Joi.string(), Joi.alternatives().try(Joi.string(), Joi.number()).allow('', null)),
 }).xor('templateId', 'template');
@@ -122,16 +123,24 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
 });
 
 async function runTemplate(
-  template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch'>,
+  template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>,
   parameters?: { [key: string]: string | number },
   callbacks?: Callbacks
 ): Promise<
   | { type: 'text'; text: string }
   | { type: 'images'; images: ({ url: string; b64_json?: undefined } | { url?: undefined; b64_json?: string })[] }
 > {
-  let current: typeof template | undefined = template;
+  let current: (typeof template & { id?: string }) | undefined = template;
+  let next: Template | undefined;
+  let result: Awaited<ReturnType<typeof runTemplate>> | undefined;
 
   while (current) {
+    next = current.next && ((await templates.findOne({ _id: current.next.id })) as Template);
+    // avoid recursive call
+    if (next?._id === current.id) {
+      next = undefined;
+    }
+
     const matchParams = (template: string) => [
       ...new Set(Array.from(template.matchAll(/{{\s*(\w+)\s*}}/g)).map((i) => i[1]!)),
     ];
@@ -184,7 +193,8 @@ If you don't know the answer, just say that you don't know, don't try to make up
 
       const branches = current.branch?.branches.filter((i) => i.template?.name);
       if (!branches || !question) {
-        return { type: 'text', text: '' };
+        current = next;
+        continue;
       }
 
       prompt.promptMessages.push(
@@ -235,7 +245,8 @@ Question: ${question}\
         },
       });
 
-      return { type: 'images', images: response.data.data as any };
+      result = { type: 'images', images: response.data.data as any };
+      break;
     }
 
     const model = new AIKitChat({
@@ -248,12 +259,13 @@ Question: ${question}\
       prompt,
     });
 
-    const isFinalTemplate = current.type !== 'branch';
+    const isFinalTemplate = current.type !== 'branch' && !next;
 
     const { text } = await chain.call(
       { context: docs.map((i) => i.pageContent).join('\n') },
       isFinalTemplate ? callbacks : undefined
     );
+    result = { type: 'text', text };
 
     if (current.type === 'branch') {
       const branchId = text && /Branch_(\w+)/s.exec(text)?.[1]?.trim();
@@ -261,15 +273,21 @@ Question: ${question}\
         current = (await templates.findOne({ _id: branchId })) as any;
         continue;
       }
-
-      current = undefined;
-      continue;
     }
 
-    return text;
+    if (current.next) {
+      const { outputKey } = current.next;
+      if (outputKey) {
+        // eslint-disable-next-line no-param-reassign
+        parameters ??= {};
+        parameters[outputKey] = text;
+      }
+    }
+
+    current = next;
   }
 
-  return { type: 'text', text: '' };
+  return result!;
 }
 
 export default router;

@@ -35,6 +35,8 @@ export default flat({
     createdAt: '创建于',
     process: '处理',
     image: '图片',
+    next: '下一步',
+    outputKey: '输出变量',
     parameter: {
       type: '类型',
       typeText: '文本',

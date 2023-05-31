@@ -26,6 +26,7 @@ export interface TemplateInput
     | 'temperature'
     | 'folderId'
     | 'datasets'
+    | 'next'
   > {
   deleteEmptyTemplates?: string[];
 }
@@ -133,6 +134,11 @@ export const templateSchema = Joi.object<TemplateInput>({
       }),
     })
   ),
+  next: Joi.object({
+    id: Joi.string().empty(Joi.valid('', null)),
+    name: Joi.string().empty(Joi.valid('', null)),
+    outputKey: Joi.string().empty(Joi.valid('', null)),
+  }),
 });
 
 const paginationSchema = Joi.object<{
