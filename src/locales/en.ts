@@ -35,6 +35,8 @@ export default flat({
     createdAt: 'Created At',
     process: 'Process',
     image: 'Image',
+    next: 'Next',
+    outputKey: 'Output Key',
     parameter: {
       type: 'Type',
       typeText: 'Text',

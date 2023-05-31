@@ -1,3 +1,7 @@
+## 0.1.57 (2023-5-31)
+
+- feat: support call next template
+
 ## 0.1.56 (2023-5-30)
 
 - fix: support filter tags by template type

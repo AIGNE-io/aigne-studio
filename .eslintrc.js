@@ -17,5 +17,6 @@ module.exports = {
     'no-continue': 'off',
     'no-await-in-loop': 'warn',
     'no-nested-ternary': 'off',
+    '@typescript-eslint/no-loop-func': 'off',
   },
 };

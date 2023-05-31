@@ -21,6 +21,7 @@ export interface Template {
   datasets?: { id: string; type: 'vectorStore'; vectorStore?: { id: string; name?: string } }[];
   temperature?: number;
   model?: string;
+  next?: { id?: string; name?: string; outputKey?: string };
   createdAt: string;
   updatedAt: string;
   createdBy: string;
