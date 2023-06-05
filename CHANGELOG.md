@@ -1,3 +1,7 @@
+## 0.1.58 (2023-6-5)
+
+- chore: image generate base64 url
+
 ## 0.1.57 (2023-5-31)
 
 - feat: support call next template
