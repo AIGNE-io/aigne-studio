@@ -241,11 +241,13 @@ Question: ${question}\
             .join('\n'),
           size,
           n: number,
-          response_format: 'url',
+          response_format: 'b64_json',
         },
       });
 
-      result = { type: 'images', images: response.data.data as any };
+      const images = (response.data.data || []).map((i) => ({ url: `data:image/png;base64,${i.b64_json}` }));
+
+      result = { type: 'images', images };
       break;
     }
 
