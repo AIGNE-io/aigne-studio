@@ -13,6 +13,7 @@ export interface Template {
   tags?: string[];
   icon?: string;
   description?: string;
+  promptAtAlt?: boolean;
   prompts?: { id: string; content?: string; role?: Role }[];
   branch?: {
     branches: { id: string; template?: { id: string; name?: string }; description: string }[];

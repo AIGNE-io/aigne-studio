@@ -123,7 +123,10 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
 });
 
 async function runTemplate(
-  template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>,
+  template: Pick<
+    Template,
+    'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next' | 'promptAtAlt'
+  >,
   parameters?: { [key: string]: string | number },
   callbacks?: Callbacks
 ): Promise<
@@ -227,25 +230,25 @@ Question: ${question}\
         number: Joi.number().min(1).max(10).empty(Joi.valid('', null)).default(1),
       }).validateAsync(parameters, { stripUnknown: true });
 
+      const prompts = await prompt.formatMessages({ context: docs.map((i) => i.pageContent).join('\n') });
+      const promptText: string = prompts.map((i: any) => i.text).join('\n');
+
       const response = await call<{ data: ImagesResponseDataInner[] }>({
         name: 'ai-kit',
         path: '/api/v1/sdk/image/generations',
         method: 'POST',
         data: {
-          prompt: (
-            await prompt.formatMessages({
-              context: docs.map((i) => i.pageContent).join('\n'),
-            })
-          )
-            .map((i) => i.text)
-            .join('\n'),
+          prompt: promptText,
           size,
           n: number,
           response_format: 'b64_json',
         },
       });
 
-      const images = (response.data.data || []).map((i) => ({ url: `data:image/png;base64,${i.b64_json}` }));
+      const images = (response.data.data || []).map((i) => ({
+        url: `data:image/png;base64,${i.b64_json}`,
+        alt: template.promptAtAlt ? promptText : '',
+      }));
 
       result = { type: 'images', images };
       break;

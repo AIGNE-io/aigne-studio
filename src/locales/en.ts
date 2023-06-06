@@ -37,6 +37,7 @@ export default flat({
     image: 'Image',
     next: 'Next',
     outputKey: 'Output Key',
+    promptAtAlt: 'Prompt at alt',
     parameter: {
       type: 'Type',
       typeText: 'Text',

@@ -65,6 +65,17 @@ export default function TemplateFormView({
 }) {
   const { t } = useLocaleContext();
 
+  const ALT = [
+    {
+      label: 'Yes',
+      value: true,
+    },
+    {
+      label: 'No',
+      value: false,
+    },
+  ];
+
   const [, setError] = useState<Joi.ValidationError>();
 
   const submit = () => {
@@ -212,6 +223,7 @@ export default function TemplateFormView({
           onChange={(e) => onChange((form) => (form.name = e.target.value))}
         />
       </Grid>
+
       {form.type !== 'image' && (
         <>
           <Grid item xs={6}>
@@ -251,6 +263,7 @@ export default function TemplateFormView({
           </Grid>
         </>
       )}
+
       <Grid item xs={12}>
         <TextField
           fullWidth
@@ -294,6 +307,26 @@ export default function TemplateFormView({
           onChange={(_, value) => onChange((form) => (form.tags = value))}
         />
       </Grid>
+
+      {form.type === 'image' && (
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label={t('form.promptAtAlt')}
+            size="small"
+            value={Boolean(form.promptAtAlt ?? false)}
+            select
+            onChange={(e) => onChange((form) => (form.promptAtAlt = Boolean(e.target.value)))}>
+            {ALT.map((item: any) => {
+              return (
+                <MenuItem key={item.value} value={item.value}>
+                  {item.label}
+                </MenuItem>
+              );
+            })}
+          </TextField>
+        </Grid>
+      )}
 
       <Grid item xs={12}>
         <Prompts value={form} onChange={onChange} />

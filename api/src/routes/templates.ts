@@ -27,6 +27,7 @@ export interface TemplateInput
     | 'folderId'
     | 'datasets'
     | 'next'
+    | 'promptAtAlt'
   > {
   deleteEmptyTemplates?: string[];
 }
@@ -139,6 +140,7 @@ export const templateSchema = Joi.object<TemplateInput>({
     name: Joi.string().empty(Joi.valid('', null)),
     outputKey: Joi.string().empty(Joi.valid('', null)),
   }),
+  promptAtAlt: Joi.boolean().default(false),
 });
 
 const paginationSchema = Joi.object<{
@@ -181,10 +183,12 @@ export async function getTemplates(req: Request, res: Response) {
   if (type) {
     filter.push({ type });
   }
+
   if (query.search) {
     const regex = new RegExp(query.search, 'i');
     filter.push({ name: { $regex: regex } }, { description: { $regex: regex } });
   }
+
   if (tag) {
     filter.push({ tags: { $in: [tag] } });
   }
