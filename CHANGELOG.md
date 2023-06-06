@@ -1,3 +1,7 @@
+## 0.1.59 (2023-6-6)
+
+- fix: enable openWhenHidden
+
 ## 0.1.58 (2023-6-5)
 
 - chore: image generate base64 url
