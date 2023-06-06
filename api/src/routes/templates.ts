@@ -180,10 +180,6 @@ export async function getTemplates(req: Request, res: Response) {
 
   const filter = [];
 
-  if (type) {
-    filter.push({ type });
-  }
-
   if (query.search) {
     const regex = new RegExp(query.search, 'i');
     filter.push({ name: { $regex: regex } }, { description: { $regex: regex } });
@@ -200,7 +196,21 @@ export async function getTemplates(req: Request, res: Response) {
     .limit(limit)
     .exec();
 
-  res.json({ templates: list.map((template) => migrateTemplateToPrompts(template as any)) });
+  const migrateTemplates = list.map((template) => migrateTemplateToPrompts(template as any));
+  const addTypeTemplates = migrateTemplates.map((template) => {
+    if (template.next) {
+      const found = migrateTemplates.find((t) => t._id === template.next?.id);
+      if (found) {
+        template.type ??= found.type;
+      }
+    }
+
+    return template;
+  });
+
+  const result = addTypeTemplates.filter((template) => (type ? template.type === type : true));
+
+  res.json({ templates: result });
 }
 
 router.get('/', ensureAdmin, getTemplates);
