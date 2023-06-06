@@ -31,6 +31,7 @@ export async function callAI(
   return new ReadableStream<string | { type: 'text'; text: string } | { type: 'images'; images: { url: string }[] }>({
     async start(controller) {
       await fetchEventSource(`${prefix}/api/ai/call`, {
+        openWhenHidden: true,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(input),
