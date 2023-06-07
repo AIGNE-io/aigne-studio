@@ -197,13 +197,21 @@ export async function getTemplates(req: Request, res: Response) {
     .exec();
 
   const migrateTemplates = list.map((template) => migrateTemplateToPrompts(template as any));
-  const addTypeTemplates = migrateTemplates.map((template) => {
+  const getTemplateType = (template: Template): 'branch' | 'image' | undefined => {
     if (template.next) {
-      const found = migrateTemplates.find((t) => t._id === template.next?.id);
-      if (found) {
-        template.type ??= found.type;
+      const foundNextTemplate = migrateTemplates.find((t) => t._id === template.next?.id);
+      if (foundNextTemplate) {
+        return getTemplateType(foundNextTemplate);
       }
+
+      return template?.type;
     }
+
+    return template?.type;
+  };
+
+  const addTypeTemplates = migrateTemplates.map((template) => {
+    template.type ??= getTemplateType(template);
 
     return template;
   });
