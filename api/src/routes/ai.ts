@@ -7,6 +7,7 @@ import {
   AIMessagePromptTemplate,
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
+  PromptTemplate,
   SystemMessagePromptTemplate,
 } from 'langchain/prompts';
 import { ChatCompletionRequestMessage, ImagesResponseDataInner } from 'openai';
@@ -122,6 +123,16 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
   }
 });
 
+class StaticPromptTemplate extends PromptTemplate {
+  constructor(template: string) {
+    super({ template, inputVariables: [], validateTemplate: false });
+  }
+
+  override async format(): Promise<string> {
+    return this.template;
+  }
+}
+
 async function runTemplate(
   template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>,
   parameters?: { [key: string]: string | number },
@@ -170,13 +181,13 @@ async function runTemplate(
 
     const prompt = ChatPromptTemplate.fromPromptMessages(
       messages.map(({ role, content }) => {
-        const i = {
+        const Message = {
           system: SystemMessagePromptTemplate,
           user: HumanMessagePromptTemplate,
           assistant: AIMessagePromptTemplate,
         }[role];
 
-        return i.fromTemplate(content);
+        return new Message(new StaticPromptTemplate(content));
       })
     );
 
