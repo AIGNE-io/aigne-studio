@@ -1,3 +1,7 @@
+## 0.1.60 (2023-6-12)
+
+- fix: update import data schema
+
 ## 0.1.59 (2023-6-6)
 
 - fix: enable openWhenHidden
