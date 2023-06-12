@@ -1,3 +1,7 @@
+## 0.1.61 (2023-6-12)
+
+- fix: custom prompt format
+
 ## 0.1.60 (2023-6-12)
 
 - fix: update import data schema
