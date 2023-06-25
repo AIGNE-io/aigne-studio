@@ -1,3 +1,7 @@
+## 0.1.63 (2023-6-25)
+
+- chore: bundle with dynamic store url
+
 ## 0.1.62 (2023-6-25)
 
 - chore: add ai-kit dependency
