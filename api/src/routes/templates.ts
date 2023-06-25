@@ -25,6 +25,8 @@ export interface TemplateInput
     | 'model'
     | 'temperature'
     | 'folderId'
+    | 'datasets'
+    | 'next'
   > {
   deleteEmptyTemplates?: string[];
 }
@@ -88,7 +90,7 @@ const parametersSchema = Joi.object().pattern(
 
 export const templateSchema = Joi.object<TemplateInput>({
   mode: Joi.string().valid('default', 'chat').empty(''),
-  type: Joi.string().valid('branch').empty(''),
+  type: Joi.string().valid('branch', 'image').empty(''),
   icon: Joi.string().empty(''),
   name: Joi.string().empty(''),
   tags: Joi.array().items(Joi.string()).unique(),
@@ -119,14 +121,40 @@ export const templateSchema = Joi.object<TemplateInput>({
   temperature: Joi.number().min(0).max(2).empty(null),
   deleteEmptyTemplates: Joi.array().items(Joi.string()),
   folderId: Joi.string().allow(null),
+  datasets: Joi.array().items(
+    Joi.object({
+      id: Joi.string().required(),
+      type: Joi.string().valid('vectorStore').required(),
+    }).when(Joi.object({ type: 'vectorStore' }).unknown(), {
+      then: Joi.object({
+        vectorStore: Joi.object({
+          id: Joi.string().required(),
+          name: Joi.string().empty(Joi.valid(null, '')),
+        }),
+      }),
+    })
+  ),
+  next: Joi.object({
+    id: Joi.string().empty(Joi.valid('', null)),
+    name: Joi.string().empty(Joi.valid('', null)),
+    outputKey: Joi.string().empty(Joi.valid('', null)),
+  }),
 });
 
-const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; tag?: string }>({
+const paginationSchema = Joi.object<{
+  offset: number;
+  limit: number;
+  sort?: string;
+  search?: string;
+  tag?: string;
+  type?: 'image';
+}>({
   offset: Joi.number().integer().min(0).default(0),
   limit: Joi.number().integer().min(1).max(100).default(20),
   sort: Joi.string().empty(''),
   search: Joi.string().empty(''),
   tag: Joi.string().empty(''),
+  type: Joi.string().valid('image').empty(''),
 });
 
 const templateSortableFields: (keyof Template)[] = ['name', 'createdAt', 'updatedAt'];
@@ -143,11 +171,16 @@ const getTemplateSort = (sort: any) => {
 };
 
 export async function getTemplates(req: Request, res: Response) {
-  const { offset, limit, tag, ...query } = await paginationSchema.validateAsync(req.query);
+  const { offset, limit, tag, type, ...query } = await paginationSchema.validateAsync(req.query, {
+    stripUnknown: true,
+  });
   const sort = getTemplateSort(query.sort) ?? { updatedAt: -1 };
 
   const filter = [];
 
+  if (type) {
+    filter.push({ type });
+  }
   if (query.search) {
     const regex = new RegExp(query.search, 'i');
     filter.push({ name: { $regex: regex } }, { description: { $regex: regex } });

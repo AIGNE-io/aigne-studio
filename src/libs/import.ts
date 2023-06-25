@@ -73,7 +73,7 @@ const parametersSchema = Joi.object().pattern(
 
 export const templateSchema = Joi.object<Template>({
   mode: Joi.string().valid('default', 'chat').empty(''),
-  type: Joi.string().valid('branch').empty(''),
+  type: Joi.string().valid('branch', 'image').empty(''),
   icon: Joi.string().empty(''),
   name: Joi.string().empty(''),
   tags: Joi.array().items(Joi.string()).unique(),
@@ -102,7 +102,12 @@ export const templateSchema = Joi.object<Template>({
   }),
   model: Joi.string().empty(null),
   temperature: Joi.number().min(0).max(2).empty(null),
-  folderId: Joi.string().empty(null),
+  folderId: Joi.string().allow(null),
+  next: Joi.object({
+    id: Joi.string().empty(Joi.valid('', null)),
+    name: Joi.string().empty(Joi.valid('', null)),
+    outputKey: Joi.string().empty(Joi.valid('', null)),
+  }),
 });
 
 export const importBodySchema = Joi.object<{

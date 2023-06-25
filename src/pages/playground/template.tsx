@@ -22,7 +22,7 @@ import equal from 'fast-deep-equal';
 import saveAs from 'file-saver';
 import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
-import { groupBy, omit, pick, uniqBy } from 'lodash';
+import { groupBy, omit, uniqBy } from 'lodash';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useBeforeUnload, useNavigate, useSearchParams } from 'react-router-dom';
@@ -34,7 +34,7 @@ import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView, { TemplateForm } from '../../components/template-form';
 import TemplateList, { TemplatesProvider, TreeNode, useTemplates } from '../../components/template-list';
 import { useComponent } from '../../contexts/component';
-import { ImageGenerationSize, imageGenerations, textCompletions } from '../../libs/ai';
+import { ImageGenerationSize, callAI, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import { importBodySchema } from '../../libs/import';
 import useDialog from '../../utils/use-dialog';
@@ -59,12 +59,18 @@ function TemplateView() {
 
   const { messages, add, cancel } = useConversation({
     scrollToBottom: (o) => ref.current?.scrollToBottom(o),
-    textCompletions: (prompt, { meta }: { meta?: Template } = {}) => {
-      return textCompletions({
-        ...(typeof prompt === 'string' ? { prompt } : { messages: prompt }),
-        model: meta?.model,
-        temperature: meta?.temperature,
-        stream: true,
+    textCompletions: async (prompt, { meta }: { meta?: Template } = {}) => {
+      if (!meta) {
+        return textCompletions({
+          ...(typeof prompt === 'string' ? { prompt } : { messages: prompt }),
+          stream: true,
+        });
+      }
+      return callAI({
+        template: meta!,
+        parameters: Object.fromEntries(
+          Object.entries(meta!.parameters ?? {}).map(([key, val]) => [key, parameterToStringValue(val)])
+        ),
       });
     },
     imageGenerations: (prompt) =>
@@ -211,63 +217,7 @@ function TemplateView() {
     const { parameters } = template;
     const question = parameters?.question?.value;
 
-    let next: Template | TemplateForm | undefined = template;
-
-    while (next) {
-      const template = next;
-      next = undefined;
-
-      if (template.type === 'branch') {
-        const branches = template.branch?.branches.filter((i) => i.template?.name);
-        if (!branches || !question) {
-          return;
-        }
-        const { text } = await add(
-          [
-            ...(template.prompts
-              ?.filter((i): i is Required<typeof i> => !!i.content && !!i.role)
-              .map((i) => pick(i, 'content', 'role')) ?? []),
-            {
-              role: 'system',
-              content: `\
-你是一个分支选择器，你需要根据用户输入的问题选择最合适的一个分支。可用的分支如下：
-
-${branches.map((i) => `Branch_${i.template!.id}: ${i.description || ''}`).join('\n')}
-
-Use the following format:
-
-Question: the input question you must think about
-Thought: you should always consider which branch is more suitable
-Branch: the branch to take, should be one of [${branches.map((i) => `Branch_${i.template!.id}`).join('\n')}]
-
-Begin!"
-
-Question: ${question}\
-`,
-            },
-          ],
-          template
-        );
-
-        const branchId = text && /Branch_(\w+)/s.exec(text)?.[1]?.trim();
-        if (branchId && template.branch?.branches.some((i) => i.template?.id === branchId)) {
-          next = templates.find((i) => i._id === branchId);
-        }
-      } else {
-        const prompts = template.prompts
-          ?.filter((i): i is Required<typeof i> => !!i.content && !!i.role)
-          .map((i) => {
-            let { content } = i;
-            for (const [param, value] of Object.entries(parameters ?? {})) {
-              content = content.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameterToStringValue(value));
-            }
-            return { content, role: i.role };
-          });
-        if (prompts) {
-          add(prompts, template);
-        }
-      }
-    }
+    add(question?.toString() || '', template);
   };
 
   const customActions = useCallback(

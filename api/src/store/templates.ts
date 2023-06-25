@@ -7,7 +7,7 @@ export const roles: Role[] = ['system', 'user', 'assistant'];
 export interface Template {
   _id: string;
   folderId?: string;
-  type?: 'branch';
+  type?: 'branch' | 'image';
   mode?: 'default' | 'chat';
   name?: string;
   tags?: string[];
@@ -18,8 +18,10 @@ export interface Template {
     branches: { id: string; template?: { id: string; name?: string }; description: string }[];
   };
   parameters?: { [key: string]: Parameter };
+  datasets?: { id: string; type: 'vectorStore'; vectorStore?: { id: string; name?: string } }[];
   temperature?: number;
   model?: string;
+  next?: { id?: string; name?: string; outputKey?: string };
   createdAt: string;
   updatedAt: string;
   createdBy: string;

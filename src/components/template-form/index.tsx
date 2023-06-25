@@ -28,6 +28,8 @@ import {
   Template,
 } from '../../../api/src/store/templates';
 import Branches from './branches';
+import Datasets from './datasets';
+import Next from './next';
 import Parameters, { matchParams } from './parameters';
 import Prompts from './prompts';
 import TagsAutoComplete from './tags-autocomplete';
@@ -36,7 +38,18 @@ const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-0301'];
 
 export type TemplateForm = Pick<
   Template,
-  '_id' | 'mode' | 'type' | 'name' | 'icon' | 'tags' | 'description' | 'prompts' | 'branch' | 'parameters'
+  | '_id'
+  | 'mode'
+  | 'type'
+  | 'name'
+  | 'icon'
+  | 'tags'
+  | 'description'
+  | 'prompts'
+  | 'branch'
+  | 'parameters'
+  | 'datasets'
+  | 'next'
 >;
 
 export default function TemplateFormView({
@@ -186,6 +199,7 @@ export default function TemplateFormView({
             }>
             <FormControlLabel value="prompt" control={<Radio />} label={t('form.prompt')} />
             <FormControlLabel value="branch" control={<Radio />} label={t('form.branch')} />
+            <FormControlLabel value="image" control={<Radio />} label={t('form.image')} />
           </RadioGroup>
         </FormControl>
       </Grid>
@@ -198,41 +212,45 @@ export default function TemplateFormView({
           onChange={(e) => onChange((form) => (form.name = e.target.value))}
         />
       </Grid>
-      <Grid item xs={6}>
-        <TextField
-          fullWidth
-          label={t('form.model')}
-          size="small"
-          value={form.model ?? ''}
-          select
-          onChange={(e) => onChange((form) => (form.model = e.target.value))}>
-          {MODELS.map((model) => (
-            <MenuItem key={model} value={model}>
-              {model}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          size="small"
-          fullWidth
-          label={t('form.temperature')}
-          inputProps={{ type: 'number', min: 0, max: 2, step: 0.1 }}
-          value={form.temperature ?? ''}
-          onChange={(e) =>
-            onChange((f) => {
-              const v = e.target.value;
-              if (!v) {
-                f.temperature = undefined;
-              } else {
-                const n = Math.max(Math.min(2, Number(v)), 0);
-                f.temperature = n;
+      {form.type !== 'image' && (
+        <>
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              label={t('form.model')}
+              size="small"
+              value={form.model ?? ''}
+              select
+              onChange={(e) => onChange((form) => (form.model = e.target.value))}>
+              {MODELS.map((model) => (
+                <MenuItem key={model} value={model}>
+                  {model}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              size="small"
+              fullWidth
+              label={t('form.temperature')}
+              inputProps={{ type: 'number', min: 0, max: 2, step: 0.1 }}
+              value={form.temperature ?? ''}
+              onChange={(e) =>
+                onChange((f) => {
+                  const v = e.target.value;
+                  if (!v) {
+                    f.temperature = undefined;
+                  } else {
+                    const n = Math.max(Math.min(2, Number(v)), 0);
+                    f.temperature = n;
+                  }
+                })
               }
-            })
-          }
-        />
-      </Grid>
+            />
+          </Grid>
+        </>
+      )}
       <Grid item xs={12}>
         <TextField
           fullWidth
@@ -288,8 +306,18 @@ export default function TemplateFormView({
       )}
 
       <Grid item xs={12}>
+        <Datasets value={form} onChange={onChange} />
+      </Grid>
+
+      <Grid item xs={12}>
         <Parameters value={form} onChange={onChange} />
       </Grid>
+
+      {form.type !== 'image' && (
+        <Grid item xs={12}>
+          <Next value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+        </Grid>
+      )}
 
       <Grid item xs={12}>
         <Button fullWidth variant="contained" onClick={submit}>

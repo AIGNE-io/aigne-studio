@@ -22,6 +22,10 @@ export default function Parameters({
     if (deferredValue.type === 'branch') {
       params.push('question');
     }
+    if (deferredValue.type === 'image') {
+      params.push('size');
+      params.push('number');
+    }
     return [...new Set(params)];
   }, [deferredValue]);
 
@@ -42,6 +46,9 @@ export default function Parameters({
       }
       for (const [key, val] of Object.entries(template.parameters)) {
         if (value.type === 'branch' && key === 'question') {
+          continue;
+        }
+        if (value.type === 'image' && ['size', 'number'].includes(key)) {
           continue;
         }
         if (!params.includes(key)) {

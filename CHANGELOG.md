@@ -1,3 +1,52 @@
+## 0.1.62 (2023-6-25)
+
+- chore: add ai-kit dependency
+- chore: update deps
+
+## 0.1.61 (2023-6-12)
+
+- fix: custom prompt format
+
+## 0.1.60 (2023-6-12)
+
+- fix: update import data schema
+
+## 0.1.59 (2023-6-6)
+
+- fix: enable openWhenHidden
+
+## 0.1.58 (2023-6-5)
+
+- chore: image generate base64 url
+
+## 0.1.57 (2023-5-31)
+
+- feat: support call next template
+
+## 0.1.56 (2023-5-30)
+
+- fix: support filter tags by template type
+- fix: support filter templates by type
+- fix: add size/number parameters for image type
+- fix: throw error if response is invalid
+- feat: support image type
+
+## 0.1.55 (2023-5-30)
+
+- fix: force rebuild hnswlib-node
+
+## 0.1.54 (2023-5-30)
+
+- fix: use AIKitEmbeddigns intead of OpenAIEmbeddings
+
+## 0.1.53 (2023-5-30)
+
+- fix: allow custom model and temperature
+
+## 0.1.52 (2023-5-29)
+
+- feat: support datasets
+
 ## 0.1.51 (2023-5-24)
 
 - chore: update deps

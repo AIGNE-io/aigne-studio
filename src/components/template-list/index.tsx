@@ -584,6 +584,7 @@ function TemplateTreeItem({
   const { icon, color } = (template.type &&
     {
       branch: { icon: 'fluent:branch-16-regular', color: 'secondary.main' },
+      image: { icon: 'fluent:draw-image-20-regular', color: 'success.main' },
     }[template.type]) || { icon: 'tabler:prompt', color: 'primary.main' };
 
   const [open, setOpen] = useState(false);
