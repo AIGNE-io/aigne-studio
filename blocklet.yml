@@ -51,7 +51,13 @@ capabilities:
   navigation: true
 screenshots:
   - studio.gif
-components: []
+components:
+  - name: ai-kit
+    mountPoint: /ai-kit
+    source:
+      store: https://store.blocklet.dev
+      name: ai-kit
+      version: latest
 navigation:
   - id: template
     title:
