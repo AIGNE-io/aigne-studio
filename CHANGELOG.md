@@ -1,3 +1,8 @@
+## 0.1.62 (2023-6-25)
+
+- chore: add ai-kit dependency
+- chore: update deps
+
 ## 0.1.61 (2023-6-12)
 
 - fix: custom prompt format
