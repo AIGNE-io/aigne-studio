@@ -18,5 +18,8 @@ module.exports = {
     'no-await-in-loop': 'warn',
     'no-nested-ternary': 'off',
     '@typescript-eslint/no-loop-func': 'off',
+    'import/prefer-default-export': 'off',
+    '@typescript-eslint/comma-dangle': 'off',
+    'require-await': 'off',
   },
 };
