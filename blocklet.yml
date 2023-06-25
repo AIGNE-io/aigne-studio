@@ -14,7 +14,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.62
+version: 0.1.63
 logo: logo.png
 files:
   - dist
@@ -55,7 +55,6 @@ components:
   - name: ai-kit
     mountPoint: /ai-kit
     source:
-      store: https://store.blocklet.dev
       name: ai-kit
       version: latest
 navigation:

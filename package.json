@@ -1,8 +1,8 @@
 {
   "name": "ai-studio",
-  "version": "0.1.62",
+  "version": "0.1.63",
   "scripts": {
-    "dev": "blocklet dev",
+    "dev": "COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
     "eject": "vite eject",
     "lint": "tsc --noEmit && eslint src api/src --ext .mjs,.js,.jsx,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
