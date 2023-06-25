@@ -55,7 +55,6 @@ components:
   - name: ai-kit
     mountPoint: /ai-kit
     source:
-      store: https://store.blocklet.dev
       name: ai-kit
       version: latest
 navigation:
