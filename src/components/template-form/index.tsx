@@ -1,22 +1,40 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import { TravelExplore } from '@mui/icons-material';
+import { History, TravelExplore } from '@mui/icons-material';
 import {
+  Box,
   Button,
+  CircularProgress,
+  ClickAwayListener,
   FormControl,
   FormControlLabel,
   FormLabel,
   Grid,
   IconButton,
   InputAdornment,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
   MenuItem,
+  Tooltip as MuiTooltip,
   Radio,
   RadioGroup,
   TextField,
+  TooltipProps,
+  Typography,
+  alpha,
+  listItemButtonClasses,
+  listItemTextClasses,
+  styled,
+  tooltipClasses,
 } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
-import { useState } from 'react';
+import { ReactElement, cloneElement, useState } from 'react';
+import { useAsync } from 'react-use';
 
 import {
   HoroscopeParameter,
@@ -27,6 +45,9 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
+import { getErrorMessage } from '../../libs/api';
+import { Commit, getTemplate, getTemplateCommits } from '../../libs/templates';
+import Avatar from '../avatar';
 import Branches from './branches';
 import Datasets from './datasets';
 import Next from './next';
@@ -170,6 +191,33 @@ export default function TemplateFormView({
 
   return (
     <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography color="text.secondary" component="span">
+            Updated At:
+          </Typography>
+          <Typography component="span" sx={{ ml: 1 }}>
+            {form.updatedAt}
+          </Typography>
+
+          <CommitsTip
+            templateId={form._id}
+            onCommitClick={async (commit) => {
+              try {
+                const template = await getTemplate(form._id, { hash: commit.hash });
+                onChange(template);
+              } catch (error) {
+                Toast.error(getErrorMessage(error));
+                throw error;
+              }
+            }}>
+            <IconButton size="small" sx={{ ml: 1 }}>
+              <History fontSize="small" />
+            </IconButton>
+          </CommitsTip>
+        </Box>
+      </Grid>
+
       <Grid item xs={12}>
         <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           <FormLabel sx={{ width: 60 }}>{t('form.mode')}</FormLabel>
@@ -327,3 +375,111 @@ export default function TemplateFormView({
     </Grid>
   );
 }
+
+function CommitsTip({
+  templateId,
+  children,
+  onCommitClick,
+}: {
+  templateId: string;
+  children: ReactElement;
+  onCommitClick: (commit: Commit) => any;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const handleTooltipClose = () => {
+    setOpen(false);
+  };
+
+  const handleTooltipOpen = () => {
+    setOpen(true);
+  };
+
+  const { value, loading, error } = useAsync(() => getTemplateCommits(templateId), [templateId]);
+  if (error) throw error;
+
+  const [loadingItemHash, setLoadingItemHash] = useState<string>();
+
+  return (
+    <ClickAwayListener onClickAway={handleTooltipClose}>
+      <div>
+        <Tooltip
+          PopperProps={{
+            disablePortal: true,
+          }}
+          onClose={handleTooltipClose}
+          open={open}
+          disableFocusListener
+          disableHoverListener
+          disableTouchListener
+          sx={{
+            [`.${tooltipClasses.tooltip}`]: {
+              minWidth: 300,
+            },
+          }}
+          title={
+            <List disablePadding dense>
+              {value?.commits.map((commit) => (
+                <ListItem disablePadding>
+                  <ListItemButton
+                    key={commit.hash}
+                    onClick={async () => {
+                      try {
+                        setLoadingItemHash(commit.hash);
+                        await onCommitClick(commit);
+                        handleTooltipClose();
+                      } finally {
+                        setLoadingItemHash(undefined);
+                      }
+                    }}>
+                    <ListItemIcon>
+                      <Box component={Avatar} src={commit.author.avatar} did={commit.author.did} variant="circle" />
+                    </ListItemIcon>
+
+                    <ListItemText primary={commit.message} primaryTypographyProps={{ noWrap: true }} />
+
+                    {loadingItemHash === commit.hash && (
+                      <Box>
+                        <CircularProgress size={20} />
+                      </Box>
+                    )}
+                  </ListItemButton>
+                </ListItem>
+              ))}
+              {loading && (
+                <ListItem sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <CircularProgress size={20} />
+                </ListItem>
+              )}
+            </List>
+          }>
+          {cloneElement(children, { onClick: handleTooltipOpen })}
+        </Tooltip>
+      </div>
+    </ClickAwayListener>
+  );
+}
+
+const Tooltip = styled(({ className, ...props }: TooltipProps) => (
+  <MuiTooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    boxShadow: theme.shadows[1],
+    borderRadius: 6,
+    padding: 4,
+  },
+
+  [`.${listItemButtonClasses.root}`]: {
+    borderRadius: 6,
+
+    [`.${listItemTextClasses.primary}`]: {
+      fontSize: 16,
+    },
+
+    '&.active': {
+      backgroundColor: alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
+    },
+  },
+}));

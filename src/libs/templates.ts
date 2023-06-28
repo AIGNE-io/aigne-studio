@@ -16,8 +16,27 @@ export async function getTemplates({
   return axios.get('/api/templates', { params: { offset, limit, sort, search } }).then((res) => res.data);
 }
 
-export async function getTemplate(templateId: string): Promise<Template> {
-  return axios.get(`/api/templates/${templateId}`).then((res) => res.data);
+export async function getTemplate(templateId: string, query: { hash?: string } = {}): Promise<Template> {
+  return axios.get(`/api/templates/${templateId}`, { params: query }).then((res) => res.data);
+}
+
+export interface Commit {
+  hash: string;
+  message: string;
+  author: {
+    name: string;
+    email: string;
+    date: { seconds: number; offset: number };
+    fullName?: string;
+    avatar?: string;
+    did?: string;
+  };
+}
+
+export async function getTemplateCommits(templateId: string): Promise<{
+  commits: Commit[];
+}> {
+  return axios.get(`/api/templates/${templateId}/commits`).then((res) => res.data);
 }
 
 export async function createTemplate(template: TemplateInput): Promise<Template> {

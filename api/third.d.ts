@@ -15,3 +15,5 @@ namespace Express {
     };
   }
 }
+
+declare module '@abtnode/timemachine';

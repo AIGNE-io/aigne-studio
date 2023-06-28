@@ -1,10 +1,17 @@
+import { mkdirSync, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { Readable } from 'stream';
+
+import TimeMachine from '@abtnode/timemachine';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 import { omit } from 'lodash';
 import { nanoid } from 'nanoid';
 
+import env from '../libs/env';
 import { ensureAdmin } from '../libs/security';
+import { getUsers } from '../libs/user';
 import { tags } from '../store/tags';
 import { Template, roles, templates } from '../store/templates';
 
@@ -201,8 +208,28 @@ export async function getTemplates(req: Request, res: Response) {
 
 router.get('/', ensureAdmin, getTemplates);
 
+const getTemplateQuerySchema = Joi.object<{ hash?: string }>({
+  hash: Joi.string().empty(''),
+});
+
 export async function getTemplate(req: Request, res: Response) {
   const { templateId } = req.params;
+  if (!templateId) throw new Error('Missing required params `templateId`');
+
+  const { hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  if (hash) {
+    const timeMachine = initTemplateTimeMachine(templateId);
+    if (!(await timeMachine.hasSnapshot(hash))) {
+      res.status(404).json({ error: 'Commit not found' });
+      return;
+    }
+
+    const tree = await timeMachine.exportSnapshot(hash);
+    const json = JSON.parse(tree['template.json']);
+    res.json(json);
+    return;
+  }
 
   const template = await templates.findOne({ _id: templateId });
   if (!template) {
@@ -236,6 +263,45 @@ function migrateTemplateToPrompts(template: Template): Template {
 
 router.get('/:templateId', ensureAdmin, getTemplate);
 
+router.get('/:templateId/commits', ensureAdmin, async (req, res) => {
+  const { templateId } = req.params;
+  if (!templateId) throw new Error('Missing required params `templateId`');
+
+  const dir = join(env.dataDir, 'timemachine/templates', templateId);
+
+  const timeMachine = new TimeMachine({
+    sources: dir,
+    sourcesBase: dir,
+    targetDir: join(dir, '.git'),
+  });
+
+  const stream: Readable = await timeMachine.listSnapshots();
+
+  const commits: {
+    hash: string;
+    message: string;
+    author: {
+      name: string;
+      email: string;
+      date: { seconds: number; offset: number };
+    };
+  }[] = [];
+
+  for await (const item of stream) {
+    commits.push(item);
+  }
+
+  const dids = [...new Set(commits.map((i) => i.author.email))];
+  const users = await getUsers(dids);
+
+  commits.forEach((commit) => {
+    const user = users[commit.author.email];
+    if (user) Object.assign(commit.author, user);
+  });
+
+  res.json({ commits });
+});
+
 async function createBranches(branch: Template['branch'], did: string): Promise<Template['branch']> {
   if (!branch) {
     return branch;
@@ -266,14 +332,17 @@ router.post('/', user(), ensureAdmin, async (req, res) => {
     await tags.createIfNotExists({ tags: template.tags, did });
   }
 
-  const doc = await templates.insert({
+  const doc = (await templates.insert({
     ...template,
     branch: template.branch && (await createBranches(template.branch, did)),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     createdBy: did,
     updatedBy: did,
-  });
+  })) as Template;
+
+  await writeTemplateToTimeMachine(doc, did);
+
   res.json(doc);
 });
 
@@ -294,7 +363,7 @@ router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
     await tags.createIfNotExists({ tags: update.tags, did });
   }
 
-  const [, doc] = await templates.update(
+  const [, doc] = (await templates.update(
     { _id: templateId },
     {
       $set: {
@@ -305,7 +374,7 @@ router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
       },
     },
     { returnUpdatedDocs: true }
-  );
+  )) as any as [number, Template];
 
   if (deleteEmptyTemplates?.length) {
     const ts: Template[] = (await templates.find({ _id: { $in: deleteEmptyTemplates } })) as any;
@@ -314,6 +383,8 @@ router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
       await templates.remove({ _id: { $in: ids } }, { multi: true });
     }
   }
+
+  await writeTemplateToTimeMachine(doc, did);
 
   res.json(doc);
 });
@@ -341,4 +412,29 @@ function isTemplateEmpty(template: Template) {
     return false;
   }
   return true;
+}
+
+const templateTimeMachineDir = (templateId: string) => join(env.dataDir, 'timemachine/templates', templateId);
+
+function initTemplateTimeMachine(templateId: string) {
+  const dir = templateTimeMachineDir(templateId);
+  const sourceDir = join(dir, 'sources');
+
+  return new TimeMachine({
+    sources: sourceDir,
+    sourcesBase: sourceDir,
+    targetDir: join(dir, '.git'),
+  });
+}
+
+async function writeTemplateToTimeMachine(template: Template, did: string) {
+  const timeMachine = initTemplateTimeMachine(template._id!);
+
+  const jsonPath = join(templateTimeMachineDir(template._id), 'sources/template.json');
+
+  mkdirSync(dirname(jsonPath), { recursive: true });
+
+  writeFileSync(jsonPath, JSON.stringify(template, null, 2));
+
+  await timeMachine.takeSnapshot(new Date().toISOString(), { name: did, email: did });
 }

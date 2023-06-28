@@ -38,6 +38,17 @@
     winston "^3.8.2"
     winston-daily-rotate-file "^4.7.1"
 
+"@abtnode/timemachine@^1.16.12":
+  version "1.16.12"
+  resolved "https://registry.yarnpkg.com/@abtnode/timemachine/-/timemachine-1.16.12.tgz#363302e13ff52e9e165c826c4b3491358a8cd3ac"
+  integrity sha512-VwFXtrGs42uJND34UWVUjOtEe8aChd2cnV3KWP6w9iqobFV7FpmGbhLRg/ydhSk6TJah6uR92rGldHFGlI9mPQ==
+  dependencies:
+    "@abtnode/logger" "1.16.12"
+    fs-extra "^10.1.0"
+    js-git "^0.7.8"
+    readable-stream "^3.6.0"
+    readdirp "^3.6.0"
+
 "@abtnode/util@1.16.12":
   version "1.16.12"
   resolved "https://registry.yarnpkg.com/@abtnode/util/-/util-1.16.12.tgz#0850ab1fda7fd6c1fa98d62345854c8d479ea8d2"
@@ -6836,6 +6847,11 @@ lowercase-keys@^2.0.0:
   resolved "https://registry.yarnpkg.com/lowercase-keys/-/lowercase-keys-2.0.0.tgz#2603e78b7b4b0006cbca2fbcc8a3202558ac9479"
   integrity sha512-tqNXrS78oMOE73NMxK4EMLQsQowWf8jKooH9g7xPavRT706R6bkQJ6DY2Te7QukaZsulxa30wQ7bk0pm4XiHmA==
 
+lru-cache@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-10.0.0.tgz#b9e2a6a72a129d81ab317202d93c7691df727e61"
+  integrity sha512-svTf/fzsKHffP42sujkO/Rjs37BCIsQVRCeNYIm9WN8rgT7ffoUnRtZCqU+6BqcSBdv8gwJeTz8knJpgACeQMw==
+
 lru-cache@^5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-5.1.1.tgz#1da27e6710271947695daf6848e847f01d84b920"
@@ -8967,7 +8983,7 @@ readdir-glob@^1.0.0:
   dependencies:
     minimatch "^5.1.0"
 
-readdirp@~3.6.0:
+readdirp@^3.6.0, readdirp@~3.6.0:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/readdirp/-/readdirp-3.6.0.tgz#74a370bd857116e245b29cc97340cd431a02a6c7"
   integrity sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==
