@@ -1,3 +1,5 @@
+import { GitCommit } from '@abtnode/timemachine';
+
 import { TemplateInput } from '../../api/src/routes/templates';
 import { Template } from '../../api/src/store/templates';
 import axios from './api';
@@ -20,18 +22,13 @@ export async function getTemplate(templateId: string, query: { hash?: string } =
   return axios.get(`/api/templates/${templateId}`, { params: query }).then((res) => res.data);
 }
 
-export interface Commit {
-  hash: string;
-  message: string;
-  author: {
-    name: string;
-    email: string;
-    date: { seconds: number; offset: number };
+export type Commit = GitCommit & {
+  author: GitCommit['author'] & {
     fullName?: string;
     avatar?: string;
     did?: string;
   };
-}
+};
 
 export async function getTemplateCommits(templateId: string): Promise<{
   commits: Commit[];

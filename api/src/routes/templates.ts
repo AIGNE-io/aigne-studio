@@ -1,8 +1,7 @@
 import { mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
-import { Readable } from 'stream';
 
-import TimeMachine from '@abtnode/timemachine';
+import TimeMachine, { GitCommit } from '@abtnode/timemachine';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
@@ -228,7 +227,7 @@ export async function getTemplate(req: Request, res: Response) {
     }
 
     const tree = await timeMachine.exportSnapshot(hash);
-    const json = JSON.parse(tree['template.json']);
+    const json = JSON.parse(tree['template.json']!);
     res.json(json);
     return;
   }
@@ -277,19 +276,11 @@ router.get('/:templateId/commits', ensureAdmin, async (req, res) => {
     targetDir: join(dir, '.git'),
   });
 
-  const stream: Readable = await timeMachine.listSnapshots();
+  const stream = await timeMachine.listSnapshots();
 
-  const commits: {
-    hash: string;
-    message: string;
-    author: {
-      name: string;
-      email: string;
-      date: { seconds: number; offset: number };
-    };
-  }[] = [];
+  const commits: GitCommit[] = [];
 
-  for await (const item of stream) {
+  for await (const item of stream as any) {
     commits.push(item);
   }
 
