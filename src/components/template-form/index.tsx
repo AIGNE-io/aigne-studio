@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import { History, TravelExplore } from '@mui/icons-material';
+import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -196,11 +196,9 @@ export default function TemplateFormView({
           <Typography color="text.secondary" component="span">
             Updated At:
           </Typography>
-          <Typography component="span" sx={{ ml: 1 }}>
-            {form.updatedAt}
-          </Typography>
 
           <CommitsTip
+            key={form.updatedAt}
             templateId={form._id}
             onCommitClick={async (commit) => {
               try {
@@ -211,9 +209,12 @@ export default function TemplateFormView({
                 throw error;
               }
             }}>
-            <IconButton size="small" sx={{ ml: 1 }}>
-              <History fontSize="small" />
-            </IconButton>
+            <Button
+              sx={{ ml: 1 }}
+              color="inherit"
+              endIcon={<ArrowDropDown fontSize="small" sx={{ color: 'text.secondary' }} />}>
+              {form.updatedAt}
+            </Button>
           </CommitsTip>
         </Box>
       </Grid>
@@ -385,6 +386,8 @@ function CommitsTip({
   children: ReactElement;
   onCommitClick: (commit: Commit) => any;
 }) {
+  const { t } = useLocaleContext();
+
   const [open, setOpen] = useState(false);
 
   const handleTooltipClose = () => {
@@ -446,10 +449,16 @@ function CommitsTip({
                   </ListItemButton>
                 </ListItem>
               ))}
-              {loading && (
+              {loading ? (
                 <ListItem sx={{ display: 'flex', justifyContent: 'center' }}>
                   <CircularProgress size={20} />
                 </ListItem>
+              ) : (
+                !value?.commits.length && (
+                  <ListItem>
+                    <ListItemText primary={t('alert.noCommits')} primaryTypographyProps={{ textAlign: 'center' }} />
+                  </ListItem>
+                )
               )}
             </List>
           }>

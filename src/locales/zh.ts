@@ -81,5 +81,6 @@ export default flat({
     duplicate: '复制',
     unnamed: '未命名',
     search: '搜索',
+    noCommits: '暂无记录',
   },
 });

@@ -81,5 +81,6 @@ export default flat({
     duplicate: 'Duplicate',
     unnamed: 'Unnamed',
     search: 'Search',
+    noCommits: 'No Commits',
   },
 });
