@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.64",
+  "version": "0.1.65",
   "scripts": {
     "dev": "COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
     "eject": "vite eject",
@@ -40,7 +40,7 @@
     ]
   },
   "dependencies": {
-    "@abtnode/timemachine": "^1.16.12",
+    "@abtnode/timemachine": "^1.16.13-beta-3479d2f83",
     "@arcblock/did-auth": "^1.18.84",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.5.55",
