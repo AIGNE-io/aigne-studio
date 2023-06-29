@@ -1,3 +1,7 @@
+## 0.1.65 (2023-6-29)
+
+- fix: init time machine repo for all templates
+
 ## 0.1.64 (2023-6-29)
 
 - feat: support commit history
