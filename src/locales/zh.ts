@@ -37,6 +37,7 @@ export default flat({
     image: '图片',
     next: '下一步',
     outputKey: '输出变量',
+    versionNote: '版本说明',
     parameter: {
       type: '类型',
       typeText: '文本',

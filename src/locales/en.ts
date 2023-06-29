@@ -37,6 +37,7 @@ export default flat({
     image: 'Image',
     next: 'Next',
     outputKey: 'Output Key',
+    versionNote: 'Version Note',
     parameter: {
       type: 'Type',
       typeText: 'Text',

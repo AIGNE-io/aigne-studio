@@ -1,6 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
-import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
 import {
@@ -46,8 +45,7 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
-import { getErrorMessage } from '../../libs/api';
-import { Commit, getTemplate, getTemplateCommits } from '../../libs/templates';
+import { Commit, getTemplateCommits } from '../../libs/templates';
 import Avatar from '../avatar';
 import Branches from './branches';
 import Datasets from './datasets';
@@ -76,11 +74,15 @@ export type TemplateForm = Pick<
 
 export default function TemplateFormView({
   value: form,
+  hash,
+  onCommitSelect,
   onChange,
   onExecute,
   onTemplateClick,
 }: {
   value: Template;
+  hash?: string;
+  onCommitSelect: (commit: Commit) => any;
   onChange: (update: Template | ((update: WritableDraft<Template>) => void)) => void;
   onExecute?: (template: Template) => void;
   onTemplateClick?: (template: { id: string }) => void;
@@ -198,19 +200,7 @@ export default function TemplateFormView({
             {t('alert.updatedAt')}:
           </Typography>
 
-          <CommitsTip
-            key={form.updatedAt}
-            templateId={form._id}
-            updatedAt={form.updatedAt}
-            onCommitClick={async (commit) => {
-              try {
-                const template = await getTemplate(form._id, { hash: commit.hash });
-                onChange(template);
-              } catch (error) {
-                Toast.error(getErrorMessage(error));
-                throw error;
-              }
-            }}>
+          <CommitsTip key={form.updatedAt} templateId={form._id} hash={hash} onCommitSelect={onCommitSelect}>
             <Button
               sx={{ ml: 1 }}
               color="inherit"
@@ -219,6 +209,16 @@ export default function TemplateFormView({
             </Button>
           </CommitsTip>
         </Box>
+      </Grid>
+
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('form.versionNote')}
+          size="small"
+          value={form.versionNote ?? ''}
+          onChange={(e) => onChange((form) => (form.versionNote = e.target.value))}
+        />
       </Grid>
 
       <Grid item xs={12}>
@@ -381,14 +381,14 @@ export default function TemplateFormView({
 
 function CommitsTip({
   templateId,
-  updatedAt,
+  hash,
   children,
-  onCommitClick,
+  onCommitSelect: onCommitClick,
 }: {
   templateId: string;
-  updatedAt: string;
+  hash?: string;
   children: ReactElement;
-  onCommitClick: (commit: Commit) => any;
+  onCommitSelect: (commit: Commit) => any;
 }) {
   const { t, locale } = useLocaleContext();
 
@@ -426,10 +426,10 @@ function CommitsTip({
           }}
           title={
             <List disablePadding dense>
-              {value?.commits.map((commit) => (
+              {value?.commits.map((commit, index) => (
                 <ListItem disablePadding key={commit.hash}>
                   <ListItemButton
-                    selected={updatedAt === commit.message}
+                    selected={hash === commit.hash || (!hash && index === 0)}
                     onClick={async () => {
                       try {
                         setLoadingItemHash(commit.hash);
@@ -443,8 +443,10 @@ function CommitsTip({
                       <Box component={Avatar} src={commit.author.avatar} did={commit.author.did} variant="circle" />
                     </ListItemIcon>
                     <ListItemText
-                      primary={<RelativeTime locale={locale} value={commit.author.date.seconds * 1000} />}
+                      primary={commit.message}
+                      secondary={<RelativeTime locale={locale} value={commit.author.date.seconds * 1000} />}
                       primaryTypographyProps={{ noWrap: true }}
+                      secondaryTypographyProps={{ noWrap: true }}
                     />
                     <Box width={20} ml={1} display="flex" alignItems="center">
                       {loadingItemHash === commit.hash && <CircularProgress size={16} />}

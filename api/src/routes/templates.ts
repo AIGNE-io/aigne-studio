@@ -34,6 +34,7 @@ export interface TemplateInput
     | 'folderId'
     | 'datasets'
     | 'next'
+    | 'versionNote'
   > {
   deleteEmptyTemplates?: string[];
 }
@@ -146,6 +147,7 @@ export const templateSchema = Joi.object<TemplateInput>({
     name: Joi.string().empty(Joi.valid('', null)),
     outputKey: Joi.string().empty(Joi.valid('', null)),
   }),
+  versionNote: Joi.string().allow(''),
 });
 
 const paginationSchema = Joi.object<{
@@ -427,7 +429,7 @@ function initTemplateTimeMachine(templateId: string) {
   });
 }
 
-async function writeTemplateToTimeMachine(template: Template, did: string) {
+async function writeTemplateToTimeMachine(template: Template, did: string): Promise<string> {
   const timeMachine = initTemplateTimeMachine(template._id!);
 
   const jsonPath = join(templateTimeMachineDir(template._id), 'sources/template.json');
@@ -436,5 +438,8 @@ async function writeTemplateToTimeMachine(template: Template, did: string) {
 
   writeFileSync(jsonPath, JSON.stringify(template, null, 2));
 
-  await timeMachine.takeSnapshot(new Date(template.updatedAt).toISOString(), { name: did, email: did });
+  return timeMachine.takeSnapshot(template.versionNote || new Date(template.updatedAt).toISOString(), {
+    name: did,
+    email: did,
+  });
 }
