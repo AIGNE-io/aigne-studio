@@ -89,8 +89,6 @@ export default function TemplateFormView({
 
   const [, setError] = useState<Joi.ValidationError>();
 
-  const [hash, setHash] = useState<string>();
-
   const submit = () => {
     const getValueSchema = (parameter: Parameter) => {
       return {
@@ -203,12 +201,11 @@ export default function TemplateFormView({
           <CommitsTip
             key={form.updatedAt}
             templateId={form._id}
-            currentHash={hash}
+            updatedAt={form.updatedAt}
             onCommitClick={async (commit) => {
               try {
                 const template = await getTemplate(form._id, { hash: commit.hash });
                 onChange(template);
-                setHash(commit.hash);
               } catch (error) {
                 Toast.error(getErrorMessage(error));
                 throw error;
@@ -384,12 +381,12 @@ export default function TemplateFormView({
 
 function CommitsTip({
   templateId,
-  currentHash,
+  updatedAt,
   children,
   onCommitClick,
 }: {
   templateId: string;
-  currentHash?: string;
+  updatedAt: string;
   children: ReactElement;
   onCommitClick: (commit: Commit) => any;
 }) {
@@ -429,10 +426,10 @@ function CommitsTip({
           }}
           title={
             <List disablePadding dense>
-              {value?.commits.map((commit, index) => (
+              {value?.commits.map((commit) => (
                 <ListItem disablePadding key={commit.hash}>
                   <ListItemButton
-                    selected={currentHash === commit.hash || (!currentHash && index === 0)}
+                    selected={updatedAt === commit.message}
                     onClick={async () => {
                       try {
                         setLoadingItemHash(commit.hash);
