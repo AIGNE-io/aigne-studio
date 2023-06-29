@@ -3,8 +3,8 @@ import { ToastProvider } from '@arcblock/ux/lib/Toast';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import Header from '@blocklet/ui-react/lib/Header';
 import { Global, css } from '@emotion/react';
-import { Box, CssBaseline } from '@mui/material';
-import { ReactNode, Suspense, lazy } from 'react';
+import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { ReactNode, Suspense, lazy, useMemo } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
 
@@ -18,32 +18,44 @@ import { TemplatePageLazy } from './pages/playground';
 export default function App() {
   const basename = window.blocklet?.prefix || '/';
 
-  return (
-    <CssBaseline>
-      <Global
-        styles={css`
-          #app {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-          }
-        `}
-      />
+  const theme = useMemo(() => {
+    return createTheme({
+      typography: {
+        button: {
+          textTransform: 'none',
+        },
+      },
+    });
+  }, []);
 
-      <RecoilRoot>
-        <BrowserRouter basename={basename}>
-          <ToastProvider>
-            <LocaleProvider translations={translations}>
-              <SessionProvider serviceHost={basename}>
-                <Suspense fallback={<Loading />}>
-                  <AppRoutes />
-                </Suspense>
-              </SessionProvider>
-            </LocaleProvider>
-          </ToastProvider>
-        </BrowserRouter>
-      </RecoilRoot>
-    </CssBaseline>
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline>
+        <Global
+          styles={css`
+            #app {
+              min-height: 100vh;
+              display: flex;
+              flex-direction: column;
+            }
+          `}
+        />
+
+        <RecoilRoot>
+          <BrowserRouter basename={basename}>
+            <ToastProvider>
+              <LocaleProvider translations={translations}>
+                <SessionProvider serviceHost={basename}>
+                  <Suspense fallback={<Loading />}>
+                    <AppRoutes />
+                  </Suspense>
+                </SessionProvider>
+              </LocaleProvider>
+            </ToastProvider>
+          </BrowserRouter>
+        </RecoilRoot>
+      </CssBaseline>
+    </ThemeProvider>
   );
 }
 

@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
@@ -84,7 +85,7 @@ export default function TemplateFormView({
   onExecute?: (template: Template) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
 
   const [, setError] = useState<Joi.ValidationError>();
 
@@ -194,7 +195,7 @@ export default function TemplateFormView({
       <Grid item xs={12}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography color="text.secondary" component="span">
-            Updated At:
+            {t('alert.updatedAt')}:
           </Typography>
 
           <CommitsTip
@@ -213,7 +214,7 @@ export default function TemplateFormView({
               sx={{ ml: 1 }}
               color="inherit"
               endIcon={<ArrowDropDown fontSize="small" sx={{ color: 'text.secondary' }} />}>
-              {form.updatedAt}
+              <RelativeTime locale={locale} value={form.updatedAt} />
             </Button>
           </CommitsTip>
         </Box>
@@ -386,7 +387,7 @@ function CommitsTip({
   children: ReactElement;
   onCommitClick: (commit: Commit) => any;
 }) {
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
 
   const [open, setOpen] = useState(false);
 
@@ -439,7 +440,10 @@ function CommitsTip({
                       <Box component={Avatar} src={commit.author.avatar} did={commit.author.did} variant="circle" />
                     </ListItemIcon>
 
-                    <ListItemText primary={commit.message} primaryTypographyProps={{ noWrap: true }} />
+                    <ListItemText
+                      primary={<RelativeTime locale={locale} value={commit.author.date.seconds * 1000} />}
+                      primaryTypographyProps={{ noWrap: true }}
+                    />
 
                     {loadingItemHash === commit.hash && (
                       <Box>

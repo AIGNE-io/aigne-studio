@@ -82,5 +82,6 @@ export default flat({
     unnamed: 'Unnamed',
     search: 'Search',
     noCommits: 'No Commits',
+    updatedAt: 'Updated At',
   },
 });

@@ -82,5 +82,6 @@ export default flat({
     unnamed: '未命名',
     search: '搜索',
     noCommits: '暂无记录',
+    updatedAt: '更新于',
   },
 });
