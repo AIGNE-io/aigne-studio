@@ -38,6 +38,17 @@
     winston "^3.8.2"
     winston-daily-rotate-file "^4.7.1"
 
+"@abtnode/timemachine@^1.16.12":
+  version "1.16.12"
+  resolved "https://registry.yarnpkg.com/@abtnode/timemachine/-/timemachine-1.16.12.tgz#363302e13ff52e9e165c826c4b3491358a8cd3ac"
+  integrity sha512-VwFXtrGs42uJND34UWVUjOtEe8aChd2cnV3KWP6w9iqobFV7FpmGbhLRg/ydhSk6TJah6uR92rGldHFGlI9mPQ==
+  dependencies:
+    "@abtnode/logger" "1.16.12"
+    fs-extra "^10.1.0"
+    js-git "^0.7.8"
+    readable-stream "^3.6.0"
+    readdirp "^3.6.0"
+
 "@abtnode/util@1.16.12":
   version "1.16.12"
   resolved "https://registry.yarnpkg.com/@abtnode/util/-/util-1.16.12.tgz#0850ab1fda7fd6c1fa98d62345854c8d479ea8d2"
@@ -138,14 +149,14 @@
     semver "^7.3.8"
     tweetnacl-sealedbox-js "^1.2.0"
 
-"@arcblock/did-connect@^2.5.53":
-  version "2.5.53"
-  resolved "https://registry.yarnpkg.com/@arcblock/did-connect/-/did-connect-2.5.53.tgz#e53f0d84f88acce10fbb98f7dfe768e06f09a382"
-  integrity sha512-85tLmSbMhdWgtLeGDsQQ5PZaD0DnOPiXsaFphfDc0z4HMKrg9oLcnxl7GLDVFnnGdgHtmjEk3xIL8b8UA0PuPw==
+"@arcblock/did-connect@^2.5.55":
+  version "2.5.55"
+  resolved "https://registry.yarnpkg.com/@arcblock/did-connect/-/did-connect-2.5.55.tgz#e8b30f1ac5597c9a3a96bbac4091899c0684b0f4"
+  integrity sha512-BaaC51w0mflqwUIXDE3AIrp+F/NqXV/8KsxK+A96o/Py3sDazV4p7je1fZpejy7mG1kwHZrXzmBOuskFPU9ZsA==
   dependencies:
-    "@arcblock/icons" "^2.5.53"
-    "@arcblock/react-hooks" "^2.5.53"
-    "@arcblock/ux" "^2.5.53"
+    "@arcblock/icons" "^2.5.55"
+    "@arcblock/react-hooks" "^2.5.55"
+    "@arcblock/ux" "^2.5.55"
     "@arcblock/ws" "^1.18.84"
     "@auth0/auth0-react" "^2.0.1"
     "@emotion/react" "^11.10.4"
@@ -179,10 +190,10 @@
     debug "^4.3.4"
     lodash "^4.17.21"
 
-"@arcblock/did-motif@^1.1.10":
-  version "1.1.10"
-  resolved "https://registry.yarnpkg.com/@arcblock/did-motif/-/did-motif-1.1.10.tgz#7187ad1e9e7f1cb971a740302d65c3d5ed8656d2"
-  integrity sha512-0y1UBuH0vDNpbA/IjW4NKUidKUHXUESCd2Oojc4v7fGFfaUgslJVAy/5P9lx9g5pYxRkkRhnz8zdO3Kj4H631A==
+"@arcblock/did-motif@^1.1.12":
+  version "1.1.12"
+  resolved "https://registry.yarnpkg.com/@arcblock/did-motif/-/did-motif-1.1.12.tgz#e4fa2eb57660021506ded2f86fecff2423c16ac2"
+  integrity sha512-CFSdvks9LpFyheA6MmkgWl796JbBKIMQxBC6Fq76PniYeSEb6efojZ3WfjRDowls0QHr9r9U7plWxX/jM2omrA==
   dependencies:
     bs58 "^5.0.0"
 
@@ -259,10 +270,10 @@
     amp-message "~0.1.2"
     axon "^2.0.3"
 
-"@arcblock/icons@^2.5.53":
-  version "2.5.53"
-  resolved "https://registry.yarnpkg.com/@arcblock/icons/-/icons-2.5.53.tgz#0717314babaf912cc7b25b48cafc47a96e5ff315"
-  integrity sha512-qJw5E2POT34ul3V79XRS4OuLgsrV0CJD8ZrL0vt+JyLn1dLzJjyLGn8ThCCu0YanhmqufOEsn8l2ZPy0LexGBQ==
+"@arcblock/icons@^2.5.55":
+  version "2.5.55"
+  resolved "https://registry.yarnpkg.com/@arcblock/icons/-/icons-2.5.55.tgz#4866bce6c7a9825af848514d2aa49030ef209bce"
+  integrity sha512-WBc7M82ZPJuxQUEYFovxuj0HZQ3WcWZuvJH8M/5y7Y5rd3WqMBCBbUbNGyWuGTk81g/5ryB+IZ3TCdVNRYPifQ==
 
 "@arcblock/jwt@1.18.84", "@arcblock/jwt@^1.18.80":
   version "1.18.84"
@@ -276,10 +287,10 @@
     json-stable-stringify "^1.0.1"
     semver "^7.3.8"
 
-"@arcblock/react-hooks@^2.5.53":
-  version "2.5.53"
-  resolved "https://registry.yarnpkg.com/@arcblock/react-hooks/-/react-hooks-2.5.53.tgz#3a59da94df97e47b7934283bc24475c4772e8433"
-  integrity sha512-wQ1kFZ0x1uCN/sI/QgyjHfPxmBmyVCt+P1JC1vc7yf5SSMv9QZx99DqUnhKDYwM3ooRlcjxQ0R5QHjyUDphe7A==
+"@arcblock/react-hooks@^2.5.55":
+  version "2.5.55"
+  resolved "https://registry.yarnpkg.com/@arcblock/react-hooks/-/react-hooks-2.5.55.tgz#b161a1ce747d72a15b2ec5568ab7fa61d3e44bf1"
+  integrity sha512-v5J/WG13chPKxsETXUSTNHFdWZTacJAwd93qYchyO9lrdJGal0XPgHJI9El3xkyrGog3A/TCD6jqG+lJIIAcKA==
   dependencies:
     core-js "^3.25.5"
     event-target-shim "^5.0.1"
@@ -297,14 +308,14 @@
     lodash.isnull "^3.0.0"
     lodash.set "^4.3.2"
 
-"@arcblock/ux@^2.5.53":
-  version "2.5.53"
-  resolved "https://registry.yarnpkg.com/@arcblock/ux/-/ux-2.5.53.tgz#2e6ce75cc5753f39ae9e7fe7757c313b6881ef49"
-  integrity sha512-o3NbzkmJNxcg0If45TqQpj4E6edysyslt9EQqsGvza3T1/+bYwHKgGiDqWX1c30QkTt+dHtsKC2p0ynMaO1A6Q==
+"@arcblock/ux@^2.5.53", "@arcblock/ux@^2.5.55":
+  version "2.5.55"
+  resolved "https://registry.yarnpkg.com/@arcblock/ux/-/ux-2.5.55.tgz#32e01fd998ef9080f2f9ad7be6753a4767cbe55b"
+  integrity sha512-pU7/fQi4htT/sacgdobv1CCT/eA0uohp1kHkmTK59PqlWetTi4so6dJFx37zWNXsSSFl0t46V+XjUDgHcRllAQ==
   dependencies:
-    "@arcblock/did-motif" "^1.1.10"
-    "@arcblock/icons" "^2.5.53"
-    "@arcblock/react-hooks" "^2.5.53"
+    "@arcblock/did-motif" "^1.1.12"
+    "@arcblock/icons" "^2.5.55"
+    "@arcblock/react-hooks" "^2.5.55"
     "@babel/plugin-syntax-dynamic-import" "^7.8.3"
     "@emotion/react" "^11.10.4"
     "@emotion/styled" "^11.10.4"
@@ -760,13 +771,13 @@
     ufo "^1.1.1"
     url-join "^4.0.1"
 
-"@blocklet/ui-react@^2.5.53":
-  version "2.5.53"
-  resolved "https://registry.yarnpkg.com/@blocklet/ui-react/-/ui-react-2.5.53.tgz#45dc5c5f38fcb0ee659695d1826c48b575dfd9fc"
-  integrity sha512-55Iy95W3MQvPy3THf2lFcrZ/lWJePbuInJwF/uLeQ03GgFF1lnXf827YbOqExsH1cgQnrqZGZngP3GdInbuyrw==
+"@blocklet/ui-react@^2.5.55":
+  version "2.5.55"
+  resolved "https://registry.yarnpkg.com/@blocklet/ui-react/-/ui-react-2.5.55.tgz#361c7995d985627d66adedc47f6aaa640a76df48"
+  integrity sha512-DGY3pPrFT9IOJMel3nu2kggcsDZomsDJo9ZpgiRRpBm4EvrHyDZgljYEHipRz8DDCtmAvttaxiUiHvhEZK6k8A==
   dependencies:
-    "@arcblock/did-connect" "^2.5.53"
-    "@arcblock/ux" "^2.5.53"
+    "@arcblock/did-connect" "^2.5.55"
+    "@arcblock/ux" "^2.5.55"
     "@emotion/react" "^11.10.4"
     "@emotion/styled" "^11.10.4"
     "@iconify/iconify" "^2.2.1"
@@ -6836,6 +6847,11 @@ lowercase-keys@^2.0.0:
   resolved "https://registry.yarnpkg.com/lowercase-keys/-/lowercase-keys-2.0.0.tgz#2603e78b7b4b0006cbca2fbcc8a3202558ac9479"
   integrity sha512-tqNXrS78oMOE73NMxK4EMLQsQowWf8jKooH9g7xPavRT706R6bkQJ6DY2Te7QukaZsulxa30wQ7bk0pm4XiHmA==
 
+lru-cache@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-10.0.0.tgz#b9e2a6a72a129d81ab317202d93c7691df727e61"
+  integrity sha512-svTf/fzsKHffP42sujkO/Rjs37BCIsQVRCeNYIm9WN8rgT7ffoUnRtZCqU+6BqcSBdv8gwJeTz8knJpgACeQMw==
+
 lru-cache@^5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-5.1.1.tgz#1da27e6710271947695daf6848e847f01d84b920"
@@ -8967,7 +8983,7 @@ readdir-glob@^1.0.0:
   dependencies:
     minimatch "^5.1.0"
 
-readdirp@~3.6.0:
+readdirp@^3.6.0, readdirp@~3.6.0:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/readdirp/-/readdirp-3.6.0.tgz#74a370bd857116e245b29cc97340cd431a02a6c7"
   integrity sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==

@@ -1,3 +1,7 @@
+## 0.1.64 (2023-6-29)
+
+- feat: support commit history
+
 ## 0.1.63 (2023-6-25)
 
 - chore: bundle with dynamic store url

@@ -22,6 +22,7 @@ export interface Template {
   temperature?: number;
   model?: string;
   next?: { id?: string; name?: string; outputKey?: string };
+  versionNote?: string;
   createdAt: string;
   updatedAt: string;
   createdBy: string;

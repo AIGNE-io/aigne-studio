@@ -37,6 +37,7 @@ export default flat({
     image: 'Image',
     next: 'Next',
     outputKey: 'Output Key',
+    versionNote: 'Version Note',
     parameter: {
       type: 'Type',
       typeText: 'Text',
@@ -81,5 +82,7 @@ export default flat({
     duplicate: 'Duplicate',
     unnamed: 'Unnamed',
     search: 'Search',
+    noCommits: 'No Commits',
+    updatedAt: 'Updated At',
   },
 });

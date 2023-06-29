@@ -37,6 +37,7 @@ import { useComponent } from '../../contexts/component';
 import { ImageGenerationSize, callAI, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import { importBodySchema } from '../../libs/import';
+import { getTemplate } from '../../libs/templates';
 import useDialog from '../../utils/use-dialog';
 import usePickFile, { readFileAsText } from '../../utils/use-pick-file';
 
@@ -82,6 +83,7 @@ function TemplateView() {
   const { templates, treeRef, submiting, create, update, remove, importTemplates, removeFolder } = useTemplates();
   const [current, setCurrentTemplate] = useState<Template>();
   const [form, setForm] = useState<Template>();
+  const [hash, setHash] = useState<string>();
 
   // deleted branch templates, used to delete referred templates after saving.
   const deletedBranchTemplateIds = useRef<Set<string>>(new Set());
@@ -261,6 +263,7 @@ function TemplateView() {
         });
         setCurrentTemplate(template);
         setForm(template);
+        setHash(undefined);
         Toast.success(t('alert.saved'));
       }
     } catch (error) {
@@ -720,6 +723,17 @@ function TemplateView() {
             {form && (
               <TemplateFormView
                 value={form}
+                hash={hash}
+                onCommitSelect={async (commit) => {
+                  try {
+                    const template = await getTemplate(form._id, { hash: commit.hash });
+                    setFormValue(template);
+                    setHash(commit.hash);
+                  } catch (error) {
+                    Toast.error(getErrorMessage(error));
+                    throw error;
+                  }
+                }}
                 onChange={setFormValue}
                 onExecute={onExecute}
                 onTemplateClick={({ id }) => {

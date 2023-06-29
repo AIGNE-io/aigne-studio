@@ -1,22 +1,40 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import { Icon } from '@iconify-icon/react';
-import { TravelExplore } from '@mui/icons-material';
+import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
 import {
+  Box,
   Button,
+  CircularProgress,
+  ClickAwayListener,
   FormControl,
   FormControlLabel,
   FormLabel,
   Grid,
   IconButton,
   InputAdornment,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
   MenuItem,
+  Tooltip as MuiTooltip,
   Radio,
   RadioGroup,
   TextField,
+  TooltipProps,
+  Typography,
+  alpha,
+  listItemButtonClasses,
+  listItemTextClasses,
+  styled,
+  tooltipClasses,
 } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
-import { useState } from 'react';
+import { ReactElement, cloneElement, useState } from 'react';
+import { useAsync } from 'react-use';
 
 import {
   HoroscopeParameter,
@@ -27,6 +45,8 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
+import { Commit, getTemplateCommits } from '../../libs/templates';
+import Avatar from '../avatar';
 import Branches from './branches';
 import Datasets from './datasets';
 import Next from './next';
@@ -54,16 +74,20 @@ export type TemplateForm = Pick<
 
 export default function TemplateFormView({
   value: form,
+  hash,
+  onCommitSelect,
   onChange,
   onExecute,
   onTemplateClick,
 }: {
   value: Template;
+  hash?: string;
+  onCommitSelect: (commit: Commit) => any;
   onChange: (update: Template | ((update: WritableDraft<Template>) => void)) => void;
   onExecute?: (template: Template) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
 
   const [, setError] = useState<Joi.ValidationError>();
 
@@ -170,6 +194,33 @@ export default function TemplateFormView({
 
   return (
     <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography color="text.secondary" component="span">
+            {t('alert.updatedAt')}:
+          </Typography>
+
+          <CommitsTip key={form.updatedAt} templateId={form._id} hash={hash} onCommitSelect={onCommitSelect}>
+            <Button
+              sx={{ ml: 1 }}
+              color="inherit"
+              endIcon={<ArrowDropDown fontSize="small" sx={{ color: 'text.secondary' }} />}>
+              <RelativeTime locale={locale} value={form.updatedAt} />
+            </Button>
+          </CommitsTip>
+        </Box>
+      </Grid>
+
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('form.versionNote')}
+          size="small"
+          value={form.versionNote ?? ''}
+          onChange={(e) => onChange((form) => (form.versionNote = e.target.value))}
+        />
+      </Grid>
+
       <Grid item xs={12}>
         <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           <FormLabel sx={{ width: 60 }}>{t('form.mode')}</FormLabel>
@@ -327,3 +378,122 @@ export default function TemplateFormView({
     </Grid>
   );
 }
+
+function CommitsTip({
+  templateId,
+  hash,
+  children,
+  onCommitSelect: onCommitClick,
+}: {
+  templateId: string;
+  hash?: string;
+  children: ReactElement;
+  onCommitSelect: (commit: Commit) => any;
+}) {
+  const { t, locale } = useLocaleContext();
+
+  const [open, setOpen] = useState(false);
+
+  const handleTooltipClose = () => {
+    setOpen(false);
+  };
+
+  const handleTooltipOpen = () => {
+    setOpen(true);
+  };
+
+  const { value, loading, error } = useAsync(() => getTemplateCommits(templateId), [templateId]);
+  if (error) throw error;
+
+  const [loadingItemHash, setLoadingItemHash] = useState<string>();
+
+  return (
+    <ClickAwayListener onClickAway={handleTooltipClose}>
+      <div>
+        <Tooltip
+          PopperProps={{
+            disablePortal: true,
+          }}
+          onClose={handleTooltipClose}
+          open={open}
+          disableFocusListener
+          disableHoverListener
+          disableTouchListener
+          sx={{
+            [`.${tooltipClasses.tooltip}`]: {
+              minWidth: 200,
+            },
+          }}
+          title={
+            <List disablePadding dense>
+              {value?.commits.map((commit, index) => (
+                <ListItem disablePadding key={commit.hash}>
+                  <ListItemButton
+                    selected={hash === commit.hash || (!hash && index === 0)}
+                    onClick={async () => {
+                      try {
+                        setLoadingItemHash(commit.hash);
+                        await onCommitClick(commit);
+                        handleTooltipClose();
+                      } finally {
+                        setLoadingItemHash(undefined);
+                      }
+                    }}>
+                    <ListItemIcon>
+                      <Box component={Avatar} src={commit.author.avatar} did={commit.author.did} variant="circle" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={commit.message}
+                      secondary={<RelativeTime locale={locale} value={commit.author.date.seconds * 1000} />}
+                      primaryTypographyProps={{ noWrap: true }}
+                      secondaryTypographyProps={{ noWrap: true }}
+                    />
+                    <Box width={20} ml={1} display="flex" alignItems="center">
+                      {loadingItemHash === commit.hash && <CircularProgress size={16} />}
+                    </Box>
+                  </ListItemButton>
+                </ListItem>
+              ))}
+              {loading ? (
+                <ListItem sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <CircularProgress size={20} />
+                </ListItem>
+              ) : (
+                !value?.commits.length && (
+                  <ListItem>
+                    <ListItemText primary={t('alert.noCommits')} primaryTypographyProps={{ textAlign: 'center' }} />
+                  </ListItem>
+                )
+              )}
+            </List>
+          }>
+          {cloneElement(children, { onClick: handleTooltipOpen })}
+        </Tooltip>
+      </div>
+    </ClickAwayListener>
+  );
+}
+
+const Tooltip = styled(({ className, ...props }: TooltipProps) => (
+  <MuiTooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    boxShadow: theme.shadows[1],
+    borderRadius: 6,
+    padding: 4,
+  },
+
+  [`.${listItemButtonClasses.root}`]: {
+    borderRadius: 6,
+
+    [`.${listItemTextClasses.primary}`]: {
+      fontSize: 16,
+    },
+
+    '&.active': {
+      backgroundColor: alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
+    },
+  },
+}));
