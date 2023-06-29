@@ -436,5 +436,5 @@ async function writeTemplateToTimeMachine(template: Template, did: string) {
 
   writeFileSync(jsonPath, JSON.stringify(template, null, 2));
 
-  await timeMachine.takeSnapshot(new Date().toISOString(), { name: did, email: did });
+  await timeMachine.takeSnapshot(new Date(template.updatedAt).toISOString(), { name: did, email: did });
 }

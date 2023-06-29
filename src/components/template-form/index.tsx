@@ -89,6 +89,8 @@ export default function TemplateFormView({
 
   const [, setError] = useState<Joi.ValidationError>();
 
+  const [hash, setHash] = useState<string>();
+
   const submit = () => {
     const getValueSchema = (parameter: Parameter) => {
       return {
@@ -201,10 +203,12 @@ export default function TemplateFormView({
           <CommitsTip
             key={form.updatedAt}
             templateId={form._id}
+            currentHash={hash}
             onCommitClick={async (commit) => {
               try {
                 const template = await getTemplate(form._id, { hash: commit.hash });
                 onChange(template);
+                setHash(commit.hash);
               } catch (error) {
                 Toast.error(getErrorMessage(error));
                 throw error;
@@ -380,10 +384,12 @@ export default function TemplateFormView({
 
 function CommitsTip({
   templateId,
+  currentHash,
   children,
   onCommitClick,
 }: {
   templateId: string;
+  currentHash?: string;
   children: ReactElement;
   onCommitClick: (commit: Commit) => any;
 }) {
@@ -418,15 +424,15 @@ function CommitsTip({
           disableTouchListener
           sx={{
             [`.${tooltipClasses.tooltip}`]: {
-              minWidth: 300,
+              minWidth: 200,
             },
           }}
           title={
             <List disablePadding dense>
-              {value?.commits.map((commit) => (
-                <ListItem disablePadding>
+              {value?.commits.map((commit, index) => (
+                <ListItem disablePadding key={commit.hash}>
                   <ListItemButton
-                    key={commit.hash}
+                    selected={currentHash === commit.hash || (!currentHash && index === 0)}
                     onClick={async () => {
                       try {
                         setLoadingItemHash(commit.hash);
@@ -439,17 +445,13 @@ function CommitsTip({
                     <ListItemIcon>
                       <Box component={Avatar} src={commit.author.avatar} did={commit.author.did} variant="circle" />
                     </ListItemIcon>
-
                     <ListItemText
                       primary={<RelativeTime locale={locale} value={commit.author.date.seconds * 1000} />}
                       primaryTypographyProps={{ noWrap: true }}
                     />
-
-                    {loadingItemHash === commit.hash && (
-                      <Box>
-                        <CircularProgress size={20} />
-                      </Box>
-                    )}
+                    <Box width={20} ml={1} display="flex" alignItems="center">
+                      {loadingItemHash === commit.hash && <CircularProgress size={16} />}
+                    </Box>
                   </ListItemButton>
                 </ListItem>
               ))}
