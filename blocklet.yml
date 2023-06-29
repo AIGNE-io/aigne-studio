@@ -21,6 +21,8 @@ files:
   - logo.png
   - screenshots
   - api/hooks/pre-start.js
+  - migration
+  - api/dist/migration
 interfaces:
   - type: web
     name: publicUrl

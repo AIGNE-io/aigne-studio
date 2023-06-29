@@ -38,10 +38,10 @@
     winston "^3.8.2"
     winston-daily-rotate-file "^4.7.1"
 
-"@abtnode/timemachine@^1.16.12":
-  version "1.16.12"
-  resolved "https://registry.yarnpkg.com/@abtnode/timemachine/-/timemachine-1.16.12.tgz#363302e13ff52e9e165c826c4b3491358a8cd3ac"
-  integrity sha512-VwFXtrGs42uJND34UWVUjOtEe8aChd2cnV3KWP6w9iqobFV7FpmGbhLRg/ydhSk6TJah6uR92rGldHFGlI9mPQ==
+"@abtnode/timemachine@^1.16.13-beta-3479d2f83":
+  version "1.16.13-beta-3479d2f83"
+  resolved "https://registry.yarnpkg.com/@abtnode/timemachine/-/timemachine-1.16.13-beta-3479d2f83.tgz#59007e494c1ba8f08aaddf3321a281bdfaa69ece"
+  integrity sha512-wIieAf3yOh1b/1bIBlLBNdCRP50JfiNrUeu8Z+x4+6L7R/0CxIRcjfJOiV4GLUx5m/W2rd1jextzri9Rms9YNg==
   dependencies:
     "@abtnode/logger" "1.16.12"
     fs-extra "^10.1.0"

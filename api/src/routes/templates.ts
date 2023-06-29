@@ -1,5 +1,4 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { join } from 'path';
 
 import TimeMachine, { GitCommit } from '@abtnode/timemachine';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -10,6 +9,7 @@ import { nanoid } from 'nanoid';
 
 import env from '../libs/env';
 import { ensureAdmin } from '../libs/security';
+import { initTemplateTimeMachine, writeTemplateToTimeMachine } from '../libs/time-machine';
 import { getUsers } from '../libs/user';
 import { tags } from '../store/tags';
 import { Template, roles, templates } from '../store/templates';
@@ -405,32 +405,4 @@ function isTemplateEmpty(template: Template) {
     return false;
   }
   return true;
-}
-
-const templateTimeMachineDir = (templateId: string) => join(env.dataDir, 'timemachine/templates', templateId);
-
-function initTemplateTimeMachine(templateId: string) {
-  const dir = templateTimeMachineDir(templateId);
-  const sourceDir = join(dir, 'sources');
-
-  return new TimeMachine({
-    sources: sourceDir,
-    sourcesBase: sourceDir,
-    targetDir: join(dir, '.git'),
-  });
-}
-
-async function writeTemplateToTimeMachine(template: Template, did: string): Promise<string> {
-  const timeMachine = initTemplateTimeMachine(template._id!);
-
-  const jsonPath = join(templateTimeMachineDir(template._id), 'sources/template.json');
-
-  mkdirSync(dirname(jsonPath), { recursive: true });
-
-  writeFileSync(jsonPath, JSON.stringify(template, null, 2));
-
-  return timeMachine.takeSnapshot(template.versionNote || new Date(template.updatedAt).toISOString(), {
-    name: did,
-    email: did,
-  });
 }
