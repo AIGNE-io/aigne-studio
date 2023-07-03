@@ -1,4 +1,4 @@
-import { GitCommit } from '@abtnode/timemachine';
+import { ReadCommitResult } from 'isomorphic-git';
 
 import { TemplateInput } from '../../api/src/routes/templates';
 import { Template } from '../../api/src/store/templates';
@@ -22,11 +22,13 @@ export async function getTemplate(templateId: string, query: { hash?: string } =
   return axios.get(`/api/templates/${templateId}`, { params: query }).then((res) => res.data);
 }
 
-export type Commit = GitCommit & {
-  author: GitCommit['author'] & {
-    fullName?: string;
-    avatar?: string;
-    did?: string;
+export type Commit = ReadCommitResult & {
+  commit: ReadCommitResult['commit'] & {
+    author: ReadCommitResult['commit']['author'] & {
+      fullName?: string;
+      avatar?: string;
+      did?: string;
+    };
   };
 };
 

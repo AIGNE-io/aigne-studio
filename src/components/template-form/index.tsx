@@ -403,7 +403,7 @@ function CommitsTip({
   };
 
   const { value, loading, error } = useAsync(() => getTemplateCommits(templateId), [templateId]);
-  if (error) throw error;
+  if (error) console.error(error);
 
   const [loadingItemHash, setLoadingItemHash] = useState<string>();
 
@@ -426,30 +426,35 @@ function CommitsTip({
           }}
           title={
             <List disablePadding dense>
-              {value?.commits.map((commit, index) => (
-                <ListItem disablePadding key={commit.hash}>
+              {value?.commits.map((item, index) => (
+                <ListItem disablePadding key={item.oid}>
                   <ListItemButton
-                    selected={hash === commit.hash || (!hash && index === 0)}
+                    selected={hash === item.oid || (!hash && index === 0)}
                     onClick={async () => {
                       try {
-                        setLoadingItemHash(commit.hash);
-                        await onCommitClick(commit);
+                        setLoadingItemHash(item.oid);
+                        await onCommitClick(item);
                         handleTooltipClose();
                       } finally {
                         setLoadingItemHash(undefined);
                       }
                     }}>
                     <ListItemIcon>
-                      <Box component={Avatar} src={commit.author.avatar} did={commit.author.did} variant="circle" />
+                      <Box
+                        component={Avatar}
+                        src={item.commit.author.avatar}
+                        did={item.commit.author.did}
+                        variant="circle"
+                      />
                     </ListItemIcon>
                     <ListItemText
-                      primary={commit.message}
-                      secondary={<RelativeTime locale={locale} value={commit.author.date.seconds * 1000} />}
+                      primary={item.commit.message}
+                      secondary={<RelativeTime locale={locale} value={item.commit.author.timestamp * 1000} />}
                       primaryTypographyProps={{ noWrap: true }}
                       secondaryTypographyProps={{ noWrap: true }}
                     />
                     <Box width={20} ml={1} display="flex" alignItems="center">
-                      {loadingItemHash === commit.hash && <CircularProgress size={16} />}
+                      {loadingItemHash === item.oid && <CircularProgress size={16} />}
                     </Box>
                   </ListItemButton>
                 </ListItem>

@@ -726,9 +726,9 @@ function TemplateView() {
                 hash={hash}
                 onCommitSelect={async (commit) => {
                   try {
-                    const template = await getTemplate(form._id, { hash: commit.hash });
+                    const template = await getTemplate(form._id, { hash: commit.oid });
                     setFormValue(template);
-                    setHash(commit.hash);
+                    setHash(commit.oid);
                   } catch (error) {
                     Toast.error(getErrorMessage(error));
                     throw error;

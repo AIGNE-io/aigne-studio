@@ -1,15 +1,11 @@
-import { join } from 'path';
-
-import TimeMachine, { GitCommit } from '@abtnode/timemachine';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 import { omit } from 'lodash';
 import { nanoid } from 'nanoid';
 
-import env from '../libs/env';
 import { ensureAdmin } from '../libs/security';
-import { initTemplateTimeMachine, writeTemplateToTimeMachine } from '../libs/time-machine';
+import timeMachine from '../libs/time-machine';
 import { getUsers } from '../libs/user';
 import { tags } from '../store/tags';
 import { Template, roles, templates } from '../store/templates';
@@ -220,15 +216,8 @@ export async function getTemplate(req: Request, res: Response) {
   const { hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
   if (hash) {
-    const timeMachine = initTemplateTimeMachine(templateId);
-    if (!(await timeMachine.hasSnapshot(hash))) {
-      res.status(404).json({ error: 'Commit not found' });
-      return;
-    }
-
-    const tree = await timeMachine.exportSnapshot(hash);
-    const json = JSON.parse(tree['template.json']!);
-    res.json(json);
+    const template = await timeMachine.getTemplate(hash, templateId);
+    res.json(template);
     return;
   }
 
@@ -268,28 +257,20 @@ router.get('/:templateId/commits', ensureAdmin, async (req, res) => {
   const { templateId } = req.params;
   if (!templateId) throw new Error('Missing required params `templateId`');
 
-  const dir = join(env.dataDir, 'timemachine/templates', templateId);
+  const commits = (await timeMachine.getTemplateCommits(templateId)).map((i) => ({
+    ...i,
+    commit: {
+      ...i.commit,
+      message: i.commit.message.replace(/\n$/, ''),
+    },
+  }));
 
-  const timeMachine = new TimeMachine({
-    sources: dir,
-    sourcesBase: dir,
-    targetDir: join(dir, '.git'),
-  });
-
-  const stream = await timeMachine.listSnapshots();
-
-  const commits: GitCommit[] = [];
-
-  for await (const item of stream as any) {
-    commits.push(item);
-  }
-
-  const dids = [...new Set(commits.map((i) => i.author.email))];
+  const dids = [...new Set(commits.map((i) => i.commit.author.email))];
   const users = await getUsers(dids);
 
-  commits.forEach((commit) => {
-    const user = users[commit.author.email];
-    if (user) Object.assign(commit.author, user);
+  commits.forEach((i) => {
+    const user = users[i.commit.author.email];
+    if (user) Object.assign(i.commit.author, user);
   });
 
   res.json({ commits });
@@ -334,7 +315,7 @@ router.post('/', user(), ensureAdmin, async (req, res) => {
     updatedBy: did,
   })) as Template;
 
-  await writeTemplateToTimeMachine(doc, did);
+  await timeMachine.writeTemplate(doc);
 
   res.json(doc);
 });
@@ -377,7 +358,7 @@ router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
     }
   }
 
-  await writeTemplateToTimeMachine(doc, did);
+  await timeMachine.writeTemplate(doc);
 
   res.json(doc);
 });

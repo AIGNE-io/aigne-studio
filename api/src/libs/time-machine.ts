@@ -1,35 +1,90 @@
-import { mkdirSync, writeFileSync } from 'fs';
+import fs, { existsSync } from 'fs';
 import { dirname, join } from 'path';
 
-import TimeMachine from '@abtnode/timemachine';
+import dayjs from 'dayjs';
+import * as git from 'isomorphic-git';
 
 import { Template } from '../store/templates';
 import env from './env';
 
-export const templateTimeMachineDir = (templateId: string) => join(env.dataDir, 'timemachine/templates', templateId);
+const dir = join(env.dataDir, 'time-machine/root');
 
-export function initTemplateTimeMachine(templateId: string) {
-  const dir = templateTimeMachineDir(templateId);
-  const sourceDir = join(dir, 'sources');
+const templatePath = (templateId: string) => join('templates', `${templateId}.json`);
 
-  return new TimeMachine({
-    sources: sourceDir,
-    sourcesBase: sourceDir,
-    targetDir: join(dir, '.git'),
+const defaultBranch = 'main';
+
+async function init() {
+  if (!existsSync(dir)) {
+    await git.init({
+      fs,
+      dir,
+      defaultBranch,
+    });
+  }
+}
+
+async function writeTemplate(template: Template): Promise<string> {
+  await init();
+
+  const filepath = templatePath(template._id);
+
+  fs.mkdirSync(dirname(filepath), { recursive: true });
+
+  fs.writeFileSync(filepath, JSON.stringify(template, null, 2));
+
+  const updatedAt = dayjs(template.updatedAt);
+
+  await git.add({ fs, dir, filepath });
+  return git.commit({
+    fs,
+    dir,
+    message: template.versionNote || updatedAt.toISOString(),
+    author: {
+      name: template.updatedBy,
+      email: template.updatedBy,
+      timestamp: updatedAt.unix(),
+      timezoneOffset: -updatedAt.utcOffset(),
+    },
   });
 }
 
-export async function writeTemplateToTimeMachine(template: Template, did: string): Promise<string> {
-  const timeMachine = initTemplateTimeMachine(template._id!);
+async function getTemplateCommits(templateId: string) {
+  await init();
 
-  const jsonPath = join(templateTimeMachineDir(template._id), 'sources/template.json');
+  const filepath = templatePath(templateId);
 
-  mkdirSync(dirname(jsonPath), { recursive: true });
-
-  writeFileSync(jsonPath, JSON.stringify(template, null, 2));
-
-  return timeMachine.takeSnapshot(template.versionNote || new Date(template.updatedAt).toISOString(), {
-    name: did,
-    email: did,
+  return git.log({
+    fs,
+    dir,
+    ref: defaultBranch,
+    filepath,
+    force: true,
   });
 }
+
+async function getTemplate(oid: string, templateId: string): Promise<Template> {
+  await init();
+
+  const filepath = templatePath(templateId);
+
+  return JSON.parse(
+    Buffer.from(
+      (
+        await git.readBlob({
+          fs,
+          dir,
+          oid,
+          filepath,
+        })
+      ).blob
+    ).toString('utf-8')
+  );
+}
+
+export default {
+  dir,
+  init,
+  writeTemplate,
+  getTemplateCommits,
+  getTemplate,
+};
