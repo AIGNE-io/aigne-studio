@@ -3,6 +3,7 @@ import { dirname, join } from 'path';
 
 import dayjs from 'dayjs';
 import * as git from 'isomorphic-git';
+import { omit } from 'lodash';
 
 import { Template } from '../store/templates';
 import env from './env';
@@ -28,9 +29,11 @@ async function writeTemplate(template: Template): Promise<string> {
 
   const filepath = templatePath(template._id);
 
-  fs.mkdirSync(dirname(filepath), { recursive: true });
+  const absolutePath = join(dir, filepath);
 
-  fs.writeFileSync(filepath, JSON.stringify(template, null, 2));
+  fs.mkdirSync(dirname(absolutePath), { recursive: true });
+
+  fs.writeFileSync(absolutePath, JSON.stringify(omit(template, 'hash'), null, 2));
 
   const updatedAt = dayjs(template.updatedAt);
 

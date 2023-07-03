@@ -98,6 +98,7 @@
     "react-use": "^17.4.0",
     "recoil": "^0.7.7",
     "rimraf": "^3.0.2",
+    "snowflake-uuid": "^1.0.0",
     "tz-lookup": "^6.1.25",
     "url-join": "^4.0.1",
     "yaml": "^2.2.1"

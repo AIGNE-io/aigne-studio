@@ -9620,6 +9620,11 @@ smart-buffer@^4.2.0:
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
   integrity sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==
 
+snowflake-uuid@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/snowflake-uuid/-/snowflake-uuid-1.0.0.tgz#b656c89f7e9c9660a64d7a2977e627b1556f4a71"
+  integrity sha512-Y8Wj4ota0NgqXm2mhQ+lIWQQbUekkZYVlwXDGMmOpEhH4BfNVnCfDTqboeo0N+BFBN2FhRSaUWXLZBk4ngiImA==
+
 socks-proxy-agent@5, socks-proxy-agent@^5.0.0:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/socks-proxy-agent/-/socks-proxy-agent-5.0.1.tgz#032fb583048a29ebffec2e6a73fca0761f48177e"

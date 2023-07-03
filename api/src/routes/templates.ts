@@ -8,7 +8,7 @@ import { ensureAdmin } from '../libs/security';
 import timeMachine from '../libs/time-machine';
 import { getUsers } from '../libs/user';
 import { tags } from '../store/tags';
-import { Template, roles, templates } from '../store/templates';
+import { Template, nextTemplateId, roles, templates } from '../store/templates';
 
 const router = Router();
 
@@ -205,21 +205,9 @@ export async function getTemplates(req: Request, res: Response) {
 
 router.get('/', ensureAdmin, getTemplates);
 
-const getTemplateQuerySchema = Joi.object<{ hash?: string }>({
-  hash: Joi.string().empty(''),
-});
-
 export async function getTemplate(req: Request, res: Response) {
   const { templateId } = req.params;
   if (!templateId) throw new Error('Missing required params `templateId`');
-
-  const { hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-  if (hash) {
-    const template = await timeMachine.getTemplate(hash, templateId);
-    res.json(template);
-    return;
-  }
 
   const template = await templates.findOne({ _id: templateId });
   if (!template) {
@@ -252,6 +240,26 @@ function migrateTemplateToPrompts(template: Template): Template {
 }
 
 router.get('/:templateId', ensureAdmin, getTemplate);
+
+const checkoutTemplateQuerySchema = Joi.object<{ hash: string }>({
+  hash: Joi.string().required(),
+});
+
+router.post('/:templateId/checkout', ensureAdmin, async (req, res) => {
+  const { templateId } = req.params;
+  if (!templateId) throw new Error('Missing required params `templateId`');
+  const { hash } = await checkoutTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  const template = await timeMachine.getTemplate(hash, templateId);
+  const [, doc] = (await templates.update(
+    { _id: template._id },
+    { $set: { ...template, hash } },
+
+    { returnUpdatedDocs: true }
+  )) as any as [number, Template];
+
+  res.json(doc);
+});
 
 router.get('/:templateId/commits', ensureAdmin, async (req, res) => {
   const { templateId } = req.params;
@@ -299,23 +307,26 @@ async function createBranches(branch: Template['branch'], did: string): Promise<
 }
 
 router.post('/', user(), ensureAdmin, async (req, res) => {
-  const template = await templateSchema.validateAsync(req.body, { stripUnknown: true });
+  const input = await templateSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
 
-  if (template.tags) {
-    await tags.createIfNotExists({ tags: template.tags, did });
+  if (input.tags) {
+    await tags.createIfNotExists({ tags: input.tags, did });
   }
 
-  const doc = (await templates.insert({
-    ...template,
-    branch: template.branch && (await createBranches(template.branch, did)),
+  const template: Template = {
+    ...input,
+    _id: nextTemplateId(),
+    branch: input.branch && (await createBranches(input.branch, did)),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     createdBy: did,
     updatedBy: did,
-  })) as Template;
+  };
 
-  await timeMachine.writeTemplate(doc);
+  const hash = await timeMachine.writeTemplate(template);
+
+  const doc = (await templates.insert({ ...template, hash })) as Template;
 
   res.json(doc);
 });
@@ -323,28 +334,38 @@ router.post('/', user(), ensureAdmin, async (req, res) => {
 router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
   const { templateId } = req.params;
 
-  const template = await templates.findOne({ _id: templateId });
+  const template: Template = (await templates.findOne({ _id: templateId })) as Template;
   if (!template) {
     res.status(404).json({ error: 'No such template' });
     return;
   }
 
-  const { deleteEmptyTemplates, ...update } = await templateSchema.validateAsync(req.body, { stripUnknown: true });
+  const { deleteEmptyTemplates, ...input } = await templateSchema.validateAsync(req.body, { stripUnknown: true });
 
   const { did } = req.user!;
 
-  if (update.tags) {
-    await tags.createIfNotExists({ tags: update.tags, did });
+  if (input.tags) {
+    await tags.createIfNotExists({ tags: input.tags, did });
   }
+
+  const update = {
+    ...input,
+    branch: input.branch && (await createBranches(input.branch, did)),
+    updatedAt: new Date().toISOString(),
+    updatedBy: did,
+  };
+
+  const hash = await timeMachine.writeTemplate({
+    ...template,
+    ...update,
+  });
 
   const [, doc] = (await templates.update(
     { _id: templateId },
     {
       $set: {
         ...update,
-        branch: update.branch && (await createBranches(update.branch, did)),
-        updatedAt: new Date().toISOString(),
-        updatedBy: did,
+        hash,
       },
     },
     { returnUpdatedDocs: true }
@@ -357,8 +378,6 @@ router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
       await templates.remove({ _id: { $in: ids } }, { multi: true });
     }
   }
-
-  await timeMachine.writeTemplate(doc);
 
   res.json(doc);
 });

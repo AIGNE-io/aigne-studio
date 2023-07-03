@@ -18,8 +18,12 @@ export async function getTemplates({
   return axios.get('/api/templates', { params: { offset, limit, sort, search } }).then((res) => res.data);
 }
 
-export async function getTemplate(templateId: string, query: { hash?: string } = {}): Promise<Template> {
-  return axios.get(`/api/templates/${templateId}`, { params: query }).then((res) => res.data);
+export async function getTemplate(templateId: string): Promise<Template> {
+  return axios.get(`/api/templates/${templateId}`).then((res) => res.data);
+}
+
+export async function checkoutTemplate({ templateId, hash }: { templateId: string; hash: string }): Promise<Template> {
+  return axios.post(`/api/templates/${templateId}/checkout`, undefined, { params: { hash } }).then((res) => res.data);
 }
 
 export type Commit = ReadCommitResult & {

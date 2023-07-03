@@ -74,14 +74,12 @@ export type TemplateForm = Pick<
 
 export default function TemplateFormView({
   value: form,
-  hash,
   onCommitSelect,
   onChange,
   onExecute,
   onTemplateClick,
 }: {
   value: Template;
-  hash?: string;
   onCommitSelect: (commit: Commit) => any;
   onChange: (update: Template | ((update: WritableDraft<Template>) => void)) => void;
   onExecute?: (template: Template) => void;
@@ -200,7 +198,7 @@ export default function TemplateFormView({
             {t('alert.updatedAt')}:
           </Typography>
 
-          <CommitsTip key={form.updatedAt} templateId={form._id} hash={hash} onCommitSelect={onCommitSelect}>
+          <CommitsTip key={form.updatedAt} templateId={form._id} hash={form.hash} onCommitSelect={onCommitSelect}>
             <Button
               sx={{ ml: 1 }}
               color="inherit"

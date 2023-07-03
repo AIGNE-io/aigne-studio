@@ -19,7 +19,8 @@ async function migrate() {
     await timeMachine.init();
 
     for (const template of (await templates.find()) as Template[]) {
-      await timeMachine.writeTemplate(template);
+      const hash = await timeMachine.writeTemplate(template);
+      await templates.update({ _id: template._id }, { $set: { hash } });
     }
   }
 }

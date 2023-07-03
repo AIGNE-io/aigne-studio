@@ -39,7 +39,7 @@ import { Template } from '../../../api/src/store/templates';
 import { getErrorMessage } from '../../libs/api';
 import * as foldersApi from '../../libs/folders';
 import { importTemplates } from '../../libs/import';
-import { createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
+import { checkoutTemplate, createTemplate, deleteTemplate, getTemplates, updateTemplate } from '../../libs/templates';
 
 export default function TemplateList({
   current,
@@ -265,7 +265,7 @@ export interface TemplatesContext {
   templates: Template[];
   tree: TreeNode[];
   loading: boolean;
-  submiting: boolean;
+  submitting: boolean;
   error?: Error;
 }
 
@@ -273,7 +273,7 @@ const templatesContext = createContext<TemplatesContext & { setState: Dispatch<S
   templates: [],
   tree: [],
   loading: false,
-  submiting: false,
+  submitting: false,
   setState: () => {},
 });
 
@@ -282,7 +282,7 @@ export function TemplatesProvider({ children }: { children: ReactNode }) {
     templates: [],
     tree: [],
     loading: true,
-    submiting: false,
+    submitting: false,
   });
 
   const value = useMemo(() => ({ ...state, setState }), [state, setState]);
@@ -335,79 +335,90 @@ export function useTemplates() {
   }, []);
 
   const create = useCallback(async (template: TemplateInput) => {
-    setState((state) => ({ ...state, submiting: true }));
+    setState((state) => ({ ...state, submitting: true }));
     try {
       const res = await createTemplate(template);
       await refetch();
       return res;
     } finally {
-      setState((state) => ({ ...state, submiting: false }));
+      setState((state) => ({ ...state, submitting: false }));
     }
   }, []);
 
   const update = useCallback(async (templateId: string, template: TemplateInput) => {
-    setState((state) => ({ ...state, submiting: true }));
+    setState((state) => ({ ...state, submitting: true }));
     try {
       const res = await updateTemplate(templateId, template);
       await refetch();
       return res;
     } finally {
-      setState((state) => ({ ...state, submiting: false }));
+      setState((state) => ({ ...state, submitting: false }));
+    }
+  }, []);
+
+  const checkout = useCallback(async (templateId: string, hash: string) => {
+    setState((state) => ({ ...state, submitting: true }));
+    try {
+      const res = await checkoutTemplate({ templateId, hash });
+      await refetch();
+      return res;
+    } finally {
+      setState((state) => ({ ...state, submitting: false }));
     }
   }, []);
 
   const remove = useCallback(async (templateId: string) => {
-    setState((state) => ({ ...state, submiting: true }));
+    setState((state) => ({ ...state, submitting: true }));
     try {
       const res = await deleteTemplate(templateId);
       await refetch();
       return res;
     } finally {
-      setState((state) => ({ ...state, submiting: false }));
+      setState((state) => ({ ...state, submitting: false }));
     }
   }, []);
 
   const createFolder = useCallback(async (folder?: foldersApi.FolderInput) => {
-    setState((state) => ({ ...state, submiting: true }));
+    setState((state) => ({ ...state, submitting: true }));
     try {
       const res = await foldersApi.createFolder(folder);
       await refetch();
       return res;
     } finally {
-      setState((state) => ({ ...state, submiting: false }));
+      setState((state) => ({ ...state, submitting: false }));
     }
   }, []);
 
   const updateFolder = useCallback(async (folderId: string, folder: foldersApi.FolderInput) => {
-    setState((state) => ({ ...state, submiting: true }));
+    setState((state) => ({ ...state, submitting: true }));
     try {
       const res = await foldersApi.updateFolder(folderId, folder);
       await refetch();
       return res;
     } finally {
-      setState((state) => ({ ...state, submiting: false }));
+      setState((state) => ({ ...state, submitting: false }));
     }
   }, []);
 
   const removeFolder = useCallback(async (folderId: string) => {
-    setState((state) => ({ ...state, submiting: true }));
+    setState((state) => ({ ...state, submitting: true }));
     try {
       const res = await foldersApi.deleteFolder(folderId);
       await refetch();
       return res;
     } finally {
-      setState((state) => ({ ...state, submiting: false }));
+      setState((state) => ({ ...state, submitting: false }));
     }
   }, []);
 
   const importTemplatesFn = useCallback(
     async ({ folders, templates }: { folders?: Folder[]; templates?: Template[] }) => {
-      setState((state) => ({ ...state, submiting: true }));
+      setState((state) => ({ ...state, submitting: true }));
       try {
         await importTemplates({ folders, templates });
         await refetch();
       } finally {
-        setState((state) => ({ ...state, submiting: false }));
+        setState((state) => ({ ...state, submitting: false }));
       }
     },
     []
@@ -424,6 +435,7 @@ export function useTemplates() {
     updateFolder,
     removeFolder,
     importTemplates: importTemplatesFn,
+    checkout,
   };
 }
 

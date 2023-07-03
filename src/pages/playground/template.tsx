@@ -37,7 +37,6 @@ import { useComponent } from '../../contexts/component';
 import { ImageGenerationSize, callAI, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import { importBodySchema } from '../../libs/import';
-import { getTemplate } from '../../libs/templates';
 import useDialog from '../../utils/use-dialog';
 import usePickFile, { readFileAsText } from '../../utils/use-pick-file';
 
@@ -80,10 +79,10 @@ function TemplateView() {
       ),
   });
 
-  const { templates, treeRef, submiting, create, update, remove, importTemplates, removeFolder } = useTemplates();
+  const { templates, treeRef, submitting, create, update, remove, importTemplates, removeFolder, checkout } =
+    useTemplates();
   const [current, setCurrentTemplate] = useState<Template>();
   const [form, setForm] = useState<Template>();
-  const [hash, setHash] = useState<string>();
 
   // deleted branch templates, used to delete referred templates after saving.
   const deletedBranchTemplateIds = useRef<Set<string>>(new Set());
@@ -132,8 +131,8 @@ function TemplateView() {
   formChangedRef.current = formChanged;
 
   const setCurrent = useCallback(
-    (template: Template) => {
-      if (formChanged) {
+    (template: Template, force = false) => {
+      if (formChanged && !force) {
         showDialog({
           maxWidth: 'xs',
           fullWidth: true,
@@ -263,7 +262,6 @@ function TemplateView() {
         });
         setCurrentTemplate(template);
         setForm(template);
-        setHash(undefined);
         Toast.success(t('alert.saved'));
       }
     } catch (error) {
@@ -587,7 +585,7 @@ function TemplateView() {
       exists.unshift(
         <LoadingButton
           disabled={!formChanged}
-          loading={submiting}
+          loading={submitting}
           loadingPosition="start"
           startIcon={<Save />}
           onClick={save}>
@@ -613,7 +611,7 @@ function TemplateView() {
 
       return exists;
     },
-    [form, formChanged, onExport, onImport, save, submiting, t]
+    [form, formChanged, onExport, onImport, save, submitting, t]
   );
 
   return (
@@ -723,12 +721,11 @@ function TemplateView() {
             {form && (
               <TemplateFormView
                 value={form}
-                hash={hash}
                 onCommitSelect={async (commit) => {
+                  if (!(await requireSave())) return;
                   try {
-                    const template = await getTemplate(form._id, { hash: commit.oid });
-                    setFormValue(template);
-                    setHash(commit.oid);
+                    const template = await checkout(form._id, commit.oid);
+                    setCurrent(template, true);
                   } catch (error) {
                     Toast.error(getErrorMessage(error));
                     throw error;

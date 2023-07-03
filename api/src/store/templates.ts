@@ -1,4 +1,9 @@
 import Database from '@blocklet/sdk/lib/database';
+import { Worker } from 'snowflake-uuid';
+
+const idGenerator = new Worker();
+
+export const nextTemplateId = () => idGenerator.nextId().toString();
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -22,6 +27,7 @@ export interface Template {
   temperature?: number;
   model?: string;
   next?: { id?: string; name?: string; outputKey?: string };
+  hash?: string;
   versionNote?: string;
   createdAt: string;
   updatedAt: string;
@@ -82,7 +88,7 @@ export interface HoroscopeParameter extends BaseParameter {
 
 export default class Templates extends Database {
   constructor() {
-    super('templates', { timestampData: true });
+    super('templates', { timestampData: false });
   }
 }
 
