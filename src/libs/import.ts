@@ -1,17 +1,18 @@
 import Joi from 'joi';
 
-import { Folder } from '../../api/src/store/folders';
 import { Template } from '../../api/src/store/templates';
 import axios from './api';
 
 export async function importTemplates({
-  folders,
+  branch,
+  path,
   templates,
 }: {
-  folders?: Folder[];
-  templates?: Template[];
+  branch: string;
+  path: string;
+  templates: Template[];
 }): Promise<Template> {
-  return axios.post('/api/import', { folders, templates }).then((res) => res.data);
+  return axios.post('/api/import', { branch, path, templates }).then((res) => res.data);
 }
 
 const valueSchema = Joi.alternatives().conditional('type', {
@@ -102,7 +103,6 @@ export const templateSchema = Joi.object<Template>({
   }),
   model: Joi.string().empty(null),
   temperature: Joi.number().min(0).max(2).empty(null),
-  folderId: Joi.string().allow(null),
   next: Joi.object({
     id: Joi.string().empty(Joi.valid('', null)),
     name: Joi.string().empty(Joi.valid('', null)),
@@ -110,29 +110,16 @@ export const templateSchema = Joi.object<Template>({
   }),
 });
 
-export const importBodySchema = Joi.object<{
-  folders?: Folder[];
-  templates?: Template[];
-}>({
-  folders: Joi.array().items(
-    Joi.object({
-      _id: Joi.string().required(),
-      name: Joi.string().empty(Joi.valid(null, '')),
-      createdAt: Joi.string().empty(Joi.valid(null, '')),
-      updatedAt: Joi.string().empty(Joi.valid(null, '')),
-      createdBy: Joi.string().empty(Joi.valid(null, '')),
-      updatedBy: Joi.string().empty(Joi.valid(null, '')),
-    })
-  ),
+export const importBodySchema = Joi.object<{ templates?: Template[] }>({
   templates: Joi.array().items(
     templateSchema.concat(
       Joi.object({
-        _id: Joi.string().required(),
+        id: Joi.string().required(),
         createdAt: Joi.string().empty(Joi.valid(null, '')),
         updatedAt: Joi.string().empty(Joi.valid(null, '')),
         createdBy: Joi.string().empty(Joi.valid(null, '')),
         updatedBy: Joi.string().empty(Joi.valid(null, '')),
-      })
+      }).rename('_id', 'id', { ignoreUndefined: true })
     )
   ),
 });

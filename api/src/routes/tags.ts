@@ -1,30 +1,33 @@
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 
-import { ensureAdmin } from '../libs/security';
-import { templates } from '../store/templates';
+import { ensureComponentCallOrAdmin } from '../libs/security';
+import Templates from '../store/time-machine';
 
 const router = Router();
 
-const paginationSchema = Joi.object<{ offset: number; limit: number; sort?: string; search?: string; type?: 'image' }>({
+const getTagsQuerySchema = Joi.object<{ search?: string; type?: 'image' }>({
   search: Joi.string().empty(''),
   type: Joi.string().valid('image').empty(''),
 });
 
-export async function getTags(req: Request, res: Response) {
-  const { search, type } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
+router.get('/', ensureComponentCallOrAdmin(), async (req: Request, res: Response) => {
+  const { search, type } = await getTagsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const filter = type ? { type } : undefined;
-  const list = await templates.cursor(filter).projection({ tags: 1 }).exec();
-  let tags = [...new Set(list.flatMap<string>((i) => i.tags ?? []))];
+  let tags = (await Templates.root.getTemplates())
+    .flatMap((i) => i.files)
+    .flatMap((i) => i.tags?.map((tag) => ({ type: i.type, tag })) ?? []);
+
   if (search) {
     const regex = new RegExp(search, 'i');
-    tags = tags.filter((i) => regex.test(i));
+    tags = tags.filter((i) => regex.test(i.tag));
   }
 
-  res.json({ tags: tags.map((name) => ({ name })) });
-}
+  if (type) {
+    tags = tags.filter((i) => i.type === type);
+  }
 
-router.get('/', ensureAdmin, getTags);
+  res.json({ tags: tags.map((i) => ({ name: i.tag })) });
+});
 
 export default router;

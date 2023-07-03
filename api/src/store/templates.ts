@@ -10,8 +10,7 @@ export type Role = 'system' | 'user' | 'assistant';
 export const roles: Role[] = ['system', 'user', 'assistant'];
 
 export interface Template {
-  _id: string;
-  folderId?: string;
+  id: string;
   type?: 'branch' | 'image';
   mode?: 'default' | 'chat';
   name?: string;
@@ -27,7 +26,6 @@ export interface Template {
   temperature?: number;
   model?: string;
   next?: { id?: string; name?: string; outputKey?: string };
-  hash?: string;
   versionNote?: string;
   createdAt: string;
   updatedAt: string;

@@ -1,55 +1,51 @@
+import { join } from 'path';
+
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
+import { stringify } from 'yaml';
 
-import { ensureAdmin } from '../libs/security';
-import { Folder, folders } from '../store/folders';
-import { Template, templates } from '../store/templates';
+import { ensureComponentCallOrAdmin } from '../libs/security';
+import { Template } from '../store/templates';
+import Templates from '../store/time-machine';
 import { templateSchema } from './templates';
 
 const router = Router();
 
-export const importBodySchema = Joi.object<{
-  folders?: Folder[];
-  templates?: Template[];
-}>({
-  folders: Joi.array().items(
-    Joi.object({
-      _id: Joi.string().required(),
-      name: Joi.string().empty(Joi.valid(null, '')),
-      createdAt: Joi.string().empty(Joi.valid(null, '')),
-      updatedAt: Joi.string().empty(Joi.valid(null, '')),
-      createdBy: Joi.string().empty(Joi.valid(null, '')),
-      updatedBy: Joi.string().empty(Joi.valid(null, '')),
-    })
-  ),
-  templates: Joi.array().items(
-    templateSchema.concat(
-      Joi.object({
-        _id: Joi.string().required(),
-        createdAt: Joi.string().empty(Joi.valid(null, '')),
-        updatedAt: Joi.string().empty(Joi.valid(null, '')),
-        createdBy: Joi.string().empty(Joi.valid(null, '')),
-        updatedBy: Joi.string().empty(Joi.valid(null, '')),
-      })
+export const importBodySchema = Joi.object<{ branch: string; path: string; templates?: Template[] }>({
+  branch: Joi.string().required(),
+  path: Joi.string().allow('').required(),
+  templates: Joi.array()
+    .items(
+      templateSchema.concat(
+        Joi.object({
+          id: Joi.string().required(),
+          createdAt: Joi.string().empty(Joi.valid(null, '')),
+          updatedAt: Joi.string().empty(Joi.valid(null, '')),
+          createdBy: Joi.string().empty(Joi.valid(null, '')),
+          updatedBy: Joi.string().empty(Joi.valid(null, '')),
+        })
+      )
     )
-  ),
+    .required(),
 });
 
-router.post('/', user(), ensureAdmin, async (req, res) => {
-  const body = await importBodySchema.validateAsync(req.body, { stripUnknown: true });
+router.post('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  const { did } = req.user!;
 
-  await Promise.all(
-    (body.folders ?? []).map(async (folder) => {
-      await folders.update({ _id: folder._id }, folder, { upsert: true });
-    })
-  );
+  const { branch, path, templates } = await importBodySchema.validateAsync(req.body, { stripUnknown: true });
 
-  await Promise.all(
-    (body.templates ?? []).map(async (template) => {
-      await templates.update({ _id: template._id }, template, { upsert: true });
-    })
-  );
+  if (templates?.length) {
+    await Templates.root.run(async (tx) => {
+      await tx.checkout({ ref: branch });
+
+      for (const template of templates) {
+        await tx.write({ path: join(path, `${template.id}.json`), data: stringify(template) });
+      }
+
+      await tx.commit({ message: 'Import templates', author: { name: did, email: did } });
+    });
+  }
 
   res.json({});
 });

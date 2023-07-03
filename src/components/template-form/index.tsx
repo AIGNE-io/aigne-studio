@@ -5,36 +5,21 @@ import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
 import {
   Box,
   Button,
-  CircularProgress,
-  ClickAwayListener,
   FormControl,
   FormControlLabel,
   FormLabel,
   Grid,
   IconButton,
   InputAdornment,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   MenuItem,
-  Tooltip as MuiTooltip,
   Radio,
   RadioGroup,
   TextField,
-  TooltipProps,
   Typography,
-  alpha,
-  listItemButtonClasses,
-  listItemTextClasses,
-  styled,
-  tooltipClasses,
 } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
-import { ReactElement, cloneElement, useState } from 'react';
-import { useAsync } from 'react-use';
+import { useState } from 'react';
 
 import {
   HoroscopeParameter,
@@ -45,9 +30,9 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
-import { Commit, getTemplateCommits } from '../../libs/templates';
-import Avatar from '../avatar';
+import { Commit } from '../../libs/templates';
 import Branches from './branches';
+import CommitsTip from './commits-tip';
 import Datasets from './datasets';
 import Next from './next';
 import Parameters, { matchParams } from './parameters';
@@ -58,7 +43,7 @@ const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-0301'];
 
 export type TemplateForm = Pick<
   Template,
-  | '_id'
+  | 'id'
   | 'mode'
   | 'type'
   | 'name'
@@ -73,12 +58,14 @@ export type TemplateForm = Pick<
 >;
 
 export default function TemplateFormView({
+  hash,
   value: form,
   onCommitSelect,
   onChange,
   onExecute,
   onTemplateClick,
 }: {
+  hash?: string;
   value: Template;
   onCommitSelect: (commit: Commit) => any;
   onChange: (update: Template | ((update: WritableDraft<Template>) => void)) => void;
@@ -198,7 +185,7 @@ export default function TemplateFormView({
             {t('alert.updatedAt')}:
           </Typography>
 
-          <CommitsTip key={form.updatedAt} templateId={form._id} hash={form.hash} onCommitSelect={onCommitSelect}>
+          <CommitsTip key={form.updatedAt} templateId={form.id} hash={hash} onCommitSelect={onCommitSelect}>
             <Button
               sx={{ ml: 1 }}
               color="inherit"
@@ -376,127 +363,3 @@ export default function TemplateFormView({
     </Grid>
   );
 }
-
-function CommitsTip({
-  templateId,
-  hash,
-  children,
-  onCommitSelect: onCommitClick,
-}: {
-  templateId: string;
-  hash?: string;
-  children: ReactElement;
-  onCommitSelect: (commit: Commit) => any;
-}) {
-  const { t, locale } = useLocaleContext();
-
-  const [open, setOpen] = useState(false);
-
-  const handleTooltipClose = () => {
-    setOpen(false);
-  };
-
-  const handleTooltipOpen = () => {
-    setOpen(true);
-  };
-
-  const { value, loading, error } = useAsync(() => getTemplateCommits(templateId), [templateId]);
-  if (error) console.error(error);
-
-  const [loadingItemHash, setLoadingItemHash] = useState<string>();
-
-  return (
-    <ClickAwayListener onClickAway={handleTooltipClose}>
-      <div>
-        <Tooltip
-          PopperProps={{
-            disablePortal: true,
-          }}
-          onClose={handleTooltipClose}
-          open={open}
-          disableFocusListener
-          disableHoverListener
-          disableTouchListener
-          sx={{
-            [`.${tooltipClasses.tooltip}`]: {
-              minWidth: 200,
-            },
-          }}
-          title={
-            <List disablePadding dense>
-              {value?.commits.map((item, index) => (
-                <ListItem disablePadding key={item.oid}>
-                  <ListItemButton
-                    selected={hash === item.oid || (!hash && index === 0)}
-                    onClick={async () => {
-                      try {
-                        setLoadingItemHash(item.oid);
-                        await onCommitClick(item);
-                        handleTooltipClose();
-                      } finally {
-                        setLoadingItemHash(undefined);
-                      }
-                    }}>
-                    <ListItemIcon>
-                      <Box
-                        component={Avatar}
-                        src={item.commit.author.avatar}
-                        did={item.commit.author.did}
-                        variant="circle"
-                      />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.commit.message}
-                      secondary={<RelativeTime locale={locale} value={item.commit.author.timestamp * 1000} />}
-                      primaryTypographyProps={{ noWrap: true }}
-                      secondaryTypographyProps={{ noWrap: true }}
-                    />
-                    <Box width={20} ml={1} display="flex" alignItems="center">
-                      {loadingItemHash === item.oid && <CircularProgress size={16} />}
-                    </Box>
-                  </ListItemButton>
-                </ListItem>
-              ))}
-              {loading ? (
-                <ListItem sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <CircularProgress size={20} />
-                </ListItem>
-              ) : (
-                !value?.commits.length && (
-                  <ListItem>
-                    <ListItemText primary={t('alert.noCommits')} primaryTypographyProps={{ textAlign: 'center' }} />
-                  </ListItem>
-                )
-              )}
-            </List>
-          }>
-          {cloneElement(children, { onClick: handleTooltipOpen })}
-        </Tooltip>
-      </div>
-    </ClickAwayListener>
-  );
-}
-
-const Tooltip = styled(({ className, ...props }: TooltipProps) => (
-  <MuiTooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-  [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: theme.palette.background.paper,
-    color: theme.palette.text.primary,
-    boxShadow: theme.shadows[1],
-    borderRadius: 6,
-    padding: 4,
-  },
-
-  [`.${listItemButtonClasses.root}`]: {
-    borderRadius: 6,
-
-    [`.${listItemTextClasses.primary}`]: {
-      fontSize: 16,
-    },
-
-    '&.active': {
-      backgroundColor: alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
-    },
-  },
-}));

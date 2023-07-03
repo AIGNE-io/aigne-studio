@@ -1,14 +1,11 @@
-import { user } from '@blocklet/sdk/lib/middlewares';
-import { Request, Response, Router } from 'express';
+import { Router } from 'express';
 import Joi from 'joi';
-import { omit } from 'lodash';
-import { nanoid } from 'nanoid';
+import { stringify } from 'yaml';
 
-import { ensureAdmin } from '../libs/security';
-import timeMachine from '../libs/time-machine';
+import { ensureAdmin, ensureComponentCallOrAdmin } from '../libs/security';
 import { getUsers } from '../libs/user';
-import { tags } from '../store/tags';
-import { Template, nextTemplateId, roles, templates } from '../store/templates';
+import { Template, nextTemplateId, roles } from '../store/templates';
+import Templates, { Transaction } from '../store/time-machine';
 
 const router = Router();
 
@@ -26,7 +23,6 @@ export interface TemplateInput
     | 'branch'
     | 'model'
     | 'temperature'
-    | 'folderId'
     | 'datasets'
     | 'next'
     | 'versionNote'
@@ -123,7 +119,6 @@ export const templateSchema = Joi.object<TemplateInput>({
   model: Joi.string().empty(null),
   temperature: Joi.number().min(0).max(2).empty(null),
   deleteEmptyTemplates: Joi.array().items(Joi.string()),
-  folderId: Joi.string().allow(null),
   datasets: Joi.array().items(
     Joi.object({
       id: Joi.string().required(),
@@ -145,133 +140,8 @@ export const templateSchema = Joi.object<TemplateInput>({
   versionNote: Joi.string().allow(''),
 });
 
-const paginationSchema = Joi.object<{
-  offset: number;
-  limit: number;
-  sort?: string;
-  search?: string;
-  tag?: string;
-  type?: 'image';
-}>({
-  offset: Joi.number().integer().min(0).default(0),
-  limit: Joi.number().integer().min(1).max(100).default(20),
-  sort: Joi.string().empty(''),
-  search: Joi.string().empty(''),
-  tag: Joi.string().empty(''),
-  type: Joi.string().valid('image').empty(''),
-});
-
-const templateSortableFields: (keyof Template)[] = ['name', 'createdAt', 'updatedAt'];
-
-const getTemplateSort = (sort: any) => {
-  if (typeof sort !== 'string') {
-    return null;
-  }
-  const field = sort.replace(/^[+-]?/, '');
-  if (!templateSortableFields.includes(field as any)) {
-    return null;
-  }
-  return { [field]: sort[0] === '-' ? -1 : 1 };
-};
-
-export async function getTemplates(req: Request, res: Response) {
-  const { offset, limit, tag, type, ...query } = await paginationSchema.validateAsync(req.query, {
-    stripUnknown: true,
-  });
-  const sort = getTemplateSort(query.sort) ?? { updatedAt: -1 };
-
-  const filter = [];
-
-  if (type) {
-    filter.push({ type });
-  }
-  if (query.search) {
-    const regex = new RegExp(query.search, 'i');
-    filter.push({ name: { $regex: regex } }, { description: { $regex: regex } });
-  }
-  if (tag) {
-    filter.push({ tags: { $in: [tag] } });
-  }
-
-  const list = await templates
-    .cursor(filter.length ? { $or: filter } : undefined)
-    .sort(sort)
-    .skip(offset)
-    .limit(limit)
-    .exec();
-
-  res.json({ templates: list.map((template) => migrateTemplateToPrompts(template as any)) });
-}
-
-router.get('/', ensureAdmin, getTemplates);
-
-export async function getTemplate(req: Request, res: Response) {
-  const { templateId } = req.params;
-  if (!templateId) throw new Error('Missing required params `templateId`');
-
-  const template = await templates.findOne({ _id: templateId });
-  if (!template) {
-    res.status(404).json({ error: 'No such template' });
-    return;
-  }
-
-  res.json(migrateTemplateToPrompts(template as any));
-}
-
-function migrateTemplateToPrompts(template: Template): Template {
-  let res = template;
-
-  const prompt: string | undefined = (template as any).template;
-  if (template.prompts || !prompt) {
-    res = omit(template, 'template');
-  } else {
-    res = { ...omit(template), prompts: [{ id: nanoid(), role: 'system', content: prompt }] };
-  }
-
-  if (res.branch?.branches) {
-    for (const i of res.branch.branches) {
-      if (!i.id) {
-        i.id = nanoid();
-      }
-    }
-  }
-
-  return res;
-}
-
-router.get('/:templateId', ensureAdmin, getTemplate);
-
-const checkoutTemplateQuerySchema = Joi.object<{ hash: string }>({
-  hash: Joi.string().required(),
-});
-
-router.post('/:templateId/checkout', ensureAdmin, async (req, res) => {
-  const { templateId } = req.params;
-  if (!templateId) throw new Error('Missing required params `templateId`');
-  const { hash } = await checkoutTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-  const template = await timeMachine.getTemplate(hash, templateId);
-  const [, doc] = (await templates.update(
-    { _id: template._id },
-    { $set: { ...template, hash } },
-
-    { returnUpdatedDocs: true }
-  )) as any as [number, Template];
-
-  res.json(doc);
-});
-
-router.get('/:templateId/commits', ensureAdmin, async (req, res) => {
-  const { templateId } = req.params;
-  if (!templateId) throw new Error('Missing required params `templateId`');
-
-  const commits = (await timeMachine.getTemplateCommits(templateId)).map((i) => ({
-    ...i,
-    commit: {
-      ...i.commit,
-      message: i.commit.message.replace(/\n$/, ''),
-    },
-  }));
+router.get('/commits', ensureAdmin, async (_, res) => {
+  const commits = await Templates.root.getCommits();
 
   const dids = [...new Set(commits.map((i) => i.commit.author.email))];
   const users = await getUsers(dids);
@@ -284,7 +154,70 @@ router.get('/:templateId/commits', ensureAdmin, async (req, res) => {
   res.json({ commits });
 });
 
-async function createBranches(branch: Template['branch'], did: string): Promise<Template['branch']> {
+const getTemplatesSchema = Joi.object<{
+  tag?: string;
+  type?: 'image';
+}>({
+  tag: Joi.string().empty(''),
+  type: Joi.string().valid('image').empty(''),
+});
+
+router.get('/', ensureComponentCallOrAdmin(), async (req, res) => {
+  const { tag, type } = await getTemplatesSchema.validateAsync(req.query, { stripUnknown: true });
+
+  const list = await Templates.root.getTemplates();
+
+  let templates = list.flatMap((i) => i.files);
+  if (tag) {
+    templates = templates.filter((i) => i.tags?.includes(tag));
+  }
+  if (type) {
+    templates = templates.filter((i) => i.type === type);
+  }
+
+  res.json({ templates });
+});
+
+const getTemplateQuerySchema = Joi.object<{ hash?: string }>({
+  hash: Joi.string().empty(''),
+});
+
+router.get('/:templateId', ensureComponentCallOrAdmin(), async (req, res) => {
+  const { templateId } = req.params;
+  if (!templateId) throw new Error('Missing required params `templateId`');
+
+  const { hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  const template = await Templates.root.getTemplate({ oid: hash, templateId });
+
+  res.json(template);
+});
+
+router.get('/:templateId/commits', ensureAdmin, async (req, res) => {
+  const { templateId } = req.params;
+  if (!templateId) throw new Error('Missing required params `templateId`');
+
+  const commits = await Templates.root.getTemplateCommits({ templateId });
+
+  const dids = [...new Set(commits.map((i) => i.commit.author.email))];
+  const users = await getUsers(dids);
+
+  commits.forEach((i) => {
+    const user = users[i.commit.author.email];
+    if (user) Object.assign(i.commit.author, user);
+  });
+
+  res.json({ commits });
+});
+
+export default router;
+
+export async function createBranches(
+  tx: Transaction,
+  project: string,
+  branch: Template['branch'],
+  did: string
+): Promise<Template['branch']> {
   if (!branch) {
     return branch;
   }
@@ -293,116 +226,22 @@ async function createBranches(branch: Template['branch'], did: string): Promise<
     branches: await Promise.all(
       branch.branches.map(async (i) => {
         if (!i.template || i.template.id) return i;
-        const template = await templates.insert({
+
+        const id = nextTemplateId();
+
+        const template: Template = {
+          id,
           name: i.template.name,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           createdBy: did,
           updatedBy: did,
-        });
-        return { ...i, template: { id: template._id!, name: i.template.name } };
+        };
+
+        await tx.write({ path: project, data: stringify(template) });
+
+        return { ...i, template: { id, name: template.name } };
       })
     ),
   };
-}
-
-router.post('/', user(), ensureAdmin, async (req, res) => {
-  const input = await templateSchema.validateAsync(req.body, { stripUnknown: true });
-  const { did } = req.user!;
-
-  if (input.tags) {
-    await tags.createIfNotExists({ tags: input.tags, did });
-  }
-
-  const template: Template = {
-    ...input,
-    _id: nextTemplateId(),
-    branch: input.branch && (await createBranches(input.branch, did)),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    createdBy: did,
-    updatedBy: did,
-  };
-
-  const hash = await timeMachine.writeTemplate(template);
-
-  const doc = (await templates.insert({ ...template, hash })) as Template;
-
-  res.json(doc);
-});
-
-router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
-  const { templateId } = req.params;
-
-  const template: Template = (await templates.findOne({ _id: templateId })) as Template;
-  if (!template) {
-    res.status(404).json({ error: 'No such template' });
-    return;
-  }
-
-  const { deleteEmptyTemplates, ...input } = await templateSchema.validateAsync(req.body, { stripUnknown: true });
-
-  const { did } = req.user!;
-
-  if (input.tags) {
-    await tags.createIfNotExists({ tags: input.tags, did });
-  }
-
-  const update = {
-    ...input,
-    branch: input.branch && (await createBranches(input.branch, did)),
-    updatedAt: new Date().toISOString(),
-    updatedBy: did,
-  };
-
-  const hash = await timeMachine.writeTemplate({
-    ...template,
-    ...update,
-  });
-
-  const [, doc] = (await templates.update(
-    { _id: templateId },
-    {
-      $set: {
-        ...update,
-        hash,
-      },
-    },
-    { returnUpdatedDocs: true }
-  )) as any as [number, Template];
-
-  if (deleteEmptyTemplates?.length) {
-    const ts: Template[] = (await templates.find({ _id: { $in: deleteEmptyTemplates } })) as any;
-    const ids = ts.filter(isTemplateEmpty).map((i) => i._id);
-    if (ids.length) {
-      await templates.remove({ _id: { $in: ids } }, { multi: true });
-    }
-  }
-
-  res.json(doc);
-});
-
-router.delete('/:templateId', ensureAdmin, async (req, res) => {
-  const { templateId } = req.params;
-
-  const template = await templates.findOne({ _id: templateId });
-  if (!template) {
-    res.status(404).json({ error: 'No such template' });
-    return;
-  }
-
-  await templates.remove({ _id: templateId });
-  res.json(template);
-});
-
-export default router;
-
-function isTemplateEmpty(template: Template) {
-  if (template.branch?.branches.some((i) => !!i.template)) {
-    return false;
-  }
-  if (template.prompts?.some((i) => i.content?.trim())) {
-    return false;
-  }
-  return true;
 }

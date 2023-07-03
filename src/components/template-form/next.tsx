@@ -2,10 +2,11 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Construction, Delete } from '@mui/icons-material';
 import { Box, Button, TextField } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 
 import { isTemplateEmpty } from '../../libs/templates';
-import { useTemplates } from '../template-list';
+import { useProjectState } from '../../pages/project/state';
 import TemplateAutocomplete from './template-autocomplete';
 import type { TemplateForm } from '.';
 
@@ -18,12 +19,22 @@ export default function Next({
   onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
+  const { ref, '*': path } = useParams();
+  if (!ref) throw new Error('Missing required params `ref`');
+
   const { t } = useLocaleContext();
-  const { templates, create } = useTemplates();
+  const {
+    state: { files },
+    createFile,
+  } = useProjectState(ref);
+
+  const templates = useMemo(() => {
+    return files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file').map((i) => i.meta);
+  }, [files]);
 
   const isTemplateWarning = useCallback(
     ({ id }: { id: string }) => {
-      const t = templates.find((i) => i._id === id);
+      const t = templates.find((i) => i.id === id);
       return !t || isTemplateEmpty(t);
     },
     [templates]
@@ -48,7 +59,7 @@ export default function Next({
           }
           renderInput={(params) => <TextField {...params} label={t('form.next')} />}
           options={templates}
-          createTemplate={create}
+          createTemplate={(data) => createFile({ branch: ref, path: path || '', input: { type: 'file', data } })}
         />
 
         <TextField

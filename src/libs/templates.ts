@@ -4,26 +4,25 @@ import { TemplateInput } from '../../api/src/routes/templates';
 import { Template } from '../../api/src/store/templates';
 import axios from './api';
 
-export async function getTemplates({
-  offset,
-  limit,
-  sort,
-  search,
-}: {
-  offset?: number;
-  limit?: number;
-  sort?: string;
-  search?: string;
-} = {}): Promise<{ templates: Template[] }> {
-  return axios.get('/api/templates', { params: { offset, limit, sort, search } }).then((res) => res.data);
+export interface Project {
+  dir: string;
+  files: Template[];
 }
 
-export async function getTemplate(templateId: string): Promise<Template> {
-  return axios.get(`/api/templates/${templateId}`).then((res) => res.data);
+export async function createProject({ name }: { name: string }): Promise<{ name: string }> {
+  return axios.post('/api/projects', { name }).then((res) => res.data);
 }
 
-export async function checkoutTemplate({ templateId, hash }: { templateId: string; hash: string }): Promise<Template> {
-  return axios.post(`/api/templates/${templateId}/checkout`, undefined, { params: { hash } }).then((res) => res.data);
+export async function deleteProject(name: string): Promise<{ name: string }> {
+  return axios.delete(`/api/projects/${name}`).then((res) => res.data);
+}
+
+export async function renameProject({ oldName, name }: { oldName: string; name: string }): Promise<{ name: string }> {
+  return axios.put(`/api/projects/${oldName}`, { name }).then((res) => res.data);
+}
+
+export async function getTemplate(templateId: string, hash?: string): Promise<Template> {
+  return axios.get(`/api/templates/${templateId}`, { params: { hash } }).then((res) => res.data);
 }
 
 export type Commit = ReadCommitResult & {
@@ -42,15 +41,22 @@ export async function getTemplateCommits(templateId: string): Promise<{
   return axios.get(`/api/templates/${templateId}/commits`).then((res) => res.data);
 }
 
-export async function createTemplate(template: TemplateInput): Promise<Template> {
-  return axios.post('/api/templates', template).then((res) => res.data);
+export async function getCommits(): Promise<{ commits: Commit[] }> {
+  return axios.get('/api/templates/commits').then((res) => res.data);
+}
+
+export async function createTemplate(
+  template: TemplateInput,
+  { project }: { project?: string } = {}
+): Promise<Template> {
+  return axios.post('/api/templates', template, { params: { project } }).then((res) => res.data);
 }
 
 export async function updateTemplate(templateId: string, template: TemplateInput): Promise<Template> {
   return axios.put(`/api/templates/${templateId}`, template).then((res) => res.data);
 }
 
-export async function deleteTemplate(templateId: string): Promise<Template> {
+export async function deleteTemplate(templateId: string): Promise<{}> {
   return axios.delete(`/api/templates/${templateId}`).then((res) => res.data);
 }
 
