@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.65",
+  "version": "0.1.66",
   "scripts": {
     "dev": "COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
     "eject": "vite eject",
@@ -40,16 +40,16 @@
     ]
   },
   "dependencies": {
-    "@abtnode/timemachine": "^1.16.13-beta-3479d2f83",
+    "@abtnode/timemachine": "^1.16.13",
     "@arcblock/did-auth": "^1.18.84",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
-    "@arcblock/did-connect": "^2.5.55",
-    "@arcblock/ux": "^2.5.55",
+    "@arcblock/did-connect": "^2.5.58",
+    "@arcblock/ux": "^2.5.58",
     "@beskar-labs/gpt-encoder": "^1.0.6",
     "@blocklet/ai-kit": "^0.0.62",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
-    "@blocklet/sdk": "^1.16.12",
-    "@blocklet/ui-react": "^2.5.55",
+    "@blocklet/sdk": "^1.16.13",
+    "@blocklet/ui-react": "^2.5.58",
     "@emotion/css": "^11.10.5",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
@@ -118,6 +118,7 @@
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
     "@types/tz-lookup": "^6.1.0",
+    "@types/url-join": "^4.0.1",
     "@vitejs/plugin-react": "^2.2.0",
     "bumpp": "^8.2.1",
     "cross-env": "^7.0.3",
