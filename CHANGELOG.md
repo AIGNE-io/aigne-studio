@@ -1,3 +1,8 @@
+## 0.1.66 (2023-7-5)
+
+- chore: update deps
+- fix: correct join api url
+
 ## 0.1.65 (2023-6-29)
 
 - fix: init time machine repo for all templates
