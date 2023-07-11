@@ -237,11 +237,11 @@ export class Transaction {
     message: string;
     author: { name: string; email: string; timestamp?: number; timezoneOffset?: number };
   }) {
+    await Promise.all(this.removeFilepath.map((filepath) => git.remove({ fs, dir: this.repo.dir, filepath })));
+
     if (this.addFilepath.length) {
       await git.add({ fs, dir: this.repo.dir, filepath: this.addFilepath });
     }
-
-    await Promise.all(this.removeFilepath.map((filepath) => git.remove({ fs, dir: this.repo.dir, filepath })));
 
     return git.commit({
       fs,

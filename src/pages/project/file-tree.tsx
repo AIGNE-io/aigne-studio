@@ -416,6 +416,7 @@ function FolderTreeItem({
       {!editing && actions && (
         <Box
           component="span"
+          className="hover-visible"
           sx={{ position: 'absolute', right: 4, opacity: open ? 1 : 0 }}
           onClick={(e) => e.stopPropagation()}>
           <Tooltip

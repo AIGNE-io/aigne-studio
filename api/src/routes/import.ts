@@ -39,6 +39,9 @@ router.post('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
       await tx.checkout({ ref: branch });
 
       for (const template of templates) {
+        const old = await defaultRepository.findFile(`${template.id}.yaml`, { ref: branch, rejectIfNotFound: false });
+        if (old) await tx.rm({ path: old });
+
         await tx.write({ path: join(path, `${template.id}.yaml`), data: stringify(template) });
       }
 

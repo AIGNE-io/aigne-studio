@@ -315,7 +315,8 @@ export default function ProjectPage() {
           onOk: async () => {
             try {
               await importTemplates({ branch: ref, path: path?.join('/') || '', templates });
-              await Promise.all([refetch(), editor.current?.reload()]);
+              editor.current?.reload();
+              await refetch();
               Toast.success(t('alert.imported'));
             } catch (error) {
               Toast.error(getErrorMessage(error));
