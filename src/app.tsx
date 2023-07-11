@@ -79,9 +79,12 @@ function AppRoutes({ basename }: { basename: string }) {
               <Navigate to="/" />
             )
           }>
-          <Route path="projects/*">
-            <Route index element={<Navigate to="default" />} />
-            <Route path="default/*" element={<ProjectPage />} />
+          <Route path="projects">
+            <Route index element={<Navigate to="default" replace />} />
+            <Route path="default">
+              <Route index element={<Navigate to="main" replace />} />
+              <Route path=":ref/*" element={<ProjectPage />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Route>
           <Route path="datasets/*" element={<DatasetsRoutes />} />

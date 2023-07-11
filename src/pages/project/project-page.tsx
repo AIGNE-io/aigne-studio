@@ -37,15 +37,7 @@ import {
   useState,
 } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import {
-  Navigate,
-  Route,
-  Routes,
-  unstable_useBlocker,
-  useBeforeUnload,
-  useNavigate,
-  useParams,
-} from 'react-router-dom';
+import { unstable_useBlocker, useBeforeUnload, useNavigate, useParams } from 'react-router-dom';
 import { useUpdate } from 'react-use';
 import joinUrl from 'url-join';
 import { parse, stringify } from 'yaml';
@@ -69,15 +61,6 @@ import { useProjectState } from './state';
 const PREVIOUS_FILE_PATH = 'ai-studio.previousFilePath';
 
 export default function ProjectPage() {
-  return (
-    <Routes>
-      <Route index element={<Navigate to="main" />} />
-      <Route path=":ref/*" element={<ProjectWithBranch />} />
-    </Routes>
-  );
-}
-
-function ProjectWithBranch() {
   const { ref, '*': filepath } = useParams();
   if (!ref) throw new Error('Missing required params `ref`');
 
