@@ -2,17 +2,19 @@ import { useCallback } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 import { EntryWithMeta } from '../../../api/src/routes/tree';
+import { getBranches } from '../../libs/branches';
 import * as api from '../../libs/tree';
 
 export interface ProjectState {
   files: EntryWithMeta[];
+  branches: string[];
   loading?: boolean;
   error?: Error;
 }
 
 const projectState = atom<ProjectState>({
   key: 'projectState',
-  default: { files: [] },
+  default: { files: [], branches: [] },
 });
 
 export const useProjectState = (ref: string) => {
@@ -21,8 +23,8 @@ export const useProjectState = (ref: string) => {
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
-      const { files } = await api.getTree({ ref });
-      setState((v) => ({ ...v, ref, files, error: undefined }));
+      const [{ files }, { branches }] = await Promise.all([api.getTree({ ref }), getBranches()]);
+      setState((v) => ({ ...v, ref, files, branches, error: undefined }));
       return { files };
     } catch (error) {
       setState((v) => ({ ...v, error }));

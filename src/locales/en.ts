@@ -85,5 +85,6 @@ export default flat({
     search: 'Search',
     noCommits: 'No Commits',
     updatedAt: 'Updated At',
+    history: 'History',
   },
 });

@@ -85,5 +85,6 @@ export default flat({
     search: '搜索',
     noCommits: '暂无记录',
     updatedAt: '更新于',
+    history: '历史记录',
   },
 });

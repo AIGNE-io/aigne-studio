@@ -6,6 +6,7 @@ import Dashboard from '@blocklet/ui-react/lib/Dashboard';
 import styled from '@emotion/styled';
 import {
   ArrowDropDown,
+  CallSplit,
   Download,
   DragIndicator,
   Fullscreen,
@@ -17,7 +18,20 @@ import {
   Upload,
 } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Alert, Box, BoxProps, Button, CircularProgress, IconButton, Tooltip, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  BoxProps,
+  Button,
+  CircularProgress,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { useAsyncEffect, useLocalStorageState } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce from 'immer';
@@ -44,6 +58,7 @@ import { Template } from '../../../api/src/store/templates';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView from '../../components/template-form';
 import CommitsTip from '../../components/template-form/commits-tip';
+import Dropdown from '../../components/template-form/dropdown';
 import { useComponent } from '../../contexts/component';
 import { useAddon, useAddonsState } from '../../contexts/dashboard';
 import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
@@ -301,15 +316,28 @@ export default function ProjectPage() {
           onCommitSelect={(commit) => {
             navigate(joinUrl('..', commit.oid));
           }}>
-          <Button endIcon={<ArrowDropDown fontSize="small" />}>History</Button>
+          <Button endIcon={<ArrowDropDown fontSize="small" />}>{t('alert.history')}</Button>
         </CommitsTip>
+      );
+
+      exists.unshift(
+        <Dropdown
+          dropdown={
+            <BranchList _ref={ref} onItemClick={(branch) => branch !== ref && navigate(joinUrl('..', branch))} />
+          }>
+          <Button startIcon={<CallSplit />} endIcon={<ArrowDropDown fontSize="small" />}>
+            <Box component="span" sx={{ display: 'block', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {ref}
+            </Box>
+          </Button>
+        </Dropdown>
       );
 
       exists.unshift(<ToggleFullscreen />);
 
       return exists;
     },
-    [addons]
+    [addons, navigate, onExport, onImport, ref, t]
   );
 
   return (
@@ -449,6 +477,24 @@ export default function ProjectPage() {
         </Box>
       </Box>
     </Root>
+  );
+}
+
+function BranchList({ _ref: ref, onItemClick }: { _ref: string; onItemClick?: (branch: string) => any }) {
+  const {
+    state: { branches },
+  } = useProjectState(ref);
+
+  return (
+    <List disablePadding dense>
+      {branches.map((branch) => (
+        <ListItem disablePadding key={branch}>
+          <ListItemButton selected={branch === ref} onClick={() => onItemClick?.(branch)}>
+            <ListItemText primary={branch} primaryTypographyProps={{ noWrap: true }} />
+          </ListItemButton>
+        </ListItem>
+      ))}
+    </List>
   );
 }
 
