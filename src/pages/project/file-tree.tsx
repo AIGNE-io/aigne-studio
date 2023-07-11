@@ -110,7 +110,7 @@ export default function FileTree({
         )}
       </Box>
 
-      {!files?.length &&
+      {!files.length &&
         (loading ? (
           <Box textAlign="center">
             <CircularProgress size={20} />

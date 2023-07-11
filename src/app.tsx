@@ -5,14 +5,7 @@ import Header from '@blocklet/ui-react/lib/Header';
 import { Global, css } from '@emotion/react';
 import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { ReactNode, Suspense, lazy, useMemo } from 'react';
-import {
-  Navigate,
-  Outlet,
-  Route,
-  RouterProvider,
-  createBrowserRouter,
-  createRoutesFromElements,
-} from 'react-router-dom';
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
 
 import Loading from './components/loading';
@@ -50,9 +43,13 @@ export default function App() {
         <RecoilRoot>
           <ToastProvider>
             <LocaleProvider translations={translations}>
-              <SessionProvider serviceHost={basename}>
-                <AppRoutes basename={basename} />
-              </SessionProvider>
+              <BrowserRouter basename={basename}>
+                <SessionProvider serviceHost={basename}>
+                  <Suspense fallback={<Loading />}>
+                    <AppRoutes />
+                  </Suspense>
+                </SessionProvider>
+              </BrowserRouter>
             </LocaleProvider>
           </ToastProvider>
         </RecoilRoot>
@@ -61,44 +58,35 @@ export default function App() {
   );
 }
 
-function AppRoutes({ basename }: { basename: string }) {
+function AppRoutes() {
   const isAdmin = useIsRole('owner', 'admin');
 
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-      <Route>
-        <Route index element={<HomeLazy />} />
-        <Route
-          path="*"
-          element={
-            isAdmin ? (
-              <DatasetsProvider>
-                <Outlet />
-              </DatasetsProvider>
-            ) : (
-              <Navigate to="/" />
-            )
-          }>
-          <Route path="projects">
-            <Route index element={<Navigate to="default" replace />} />
-            <Route path="default">
-              <Route index element={<Navigate to="main" replace />} />
-              <Route path=":ref/*" element={<ProjectPage />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Route>
-          <Route path="datasets/*" element={<DatasetsRoutes />} />
-        </Route>
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    ),
-    { basename }
-  );
-
   return (
-    <Suspense fallback={<Loading />}>
-      <RouterProvider router={router} />
-    </Suspense>
+    <Routes>
+      <Route index element={<HomeLazy />} />
+      <Route
+        path="*"
+        element={
+          isAdmin ? (
+            <DatasetsProvider>
+              <Outlet />
+            </DatasetsProvider>
+          ) : (
+            <Navigate to="/" />
+          )
+        }>
+        <Route path="projects">
+          <Route index element={<Navigate to="default" replace />} />
+          <Route path="default">
+            <Route index element={<Navigate to="main" replace />} />
+            <Route path=":ref/*" element={<ProjectPage />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Route>
+        <Route path="datasets/*" element={<DatasetsRoutes />} />
+      </Route>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 

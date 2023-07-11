@@ -25,7 +25,6 @@ import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
 import { omit, uniqBy } from 'lodash';
 import {
-  MutableRefObject,
   ReactNode,
   forwardRef,
   useCallback,
@@ -37,7 +36,7 @@ import {
   useState,
 } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { unstable_useBlocker, useBeforeUnload, useNavigate, useParams } from 'react-router-dom';
+import { useBeforeUnload, useNavigate, useParams } from 'react-router-dom';
 import { useUpdate } from 'react-use';
 import joinUrl from 'url-join';
 import { parse, stringify } from 'yaml';
@@ -477,7 +476,8 @@ export default function ProjectPage() {
                 },
               });
             }}
-            onClick={(_, p) => {
+            onClick={async (_, p) => {
+              if (editor.current && !(await editor.current.requireSave())) return;
               const to = p.join('/');
               if (to !== filepath) navigate(to);
             }}
@@ -611,7 +611,14 @@ const TemplateEditor = forwardRef<
 
   useSaveShortcut(save);
 
-  usePrompt(formChanged, t('alert.discardChanges'));
+  useBeforeUnload(
+    useCallback(
+      (e) => {
+        if (formChanged.current) e.returnValue = t('alert.discardChanges');
+      },
+      [formChanged.current, t]
+    )
+  );
 
   useAddon(
     'save',
@@ -749,36 +756,6 @@ function useFormState() {
   }, [f, o]);
 
   return { form, original, formChanged, deletedBranchTemplateIds, setForm, resetForm };
-}
-
-function usePrompt(formChanged: MutableRefObject<boolean>, message: string) {
-  const blocker = unstable_useBlocker(() => !!formChanged.current);
-
-  useEffect(() => {
-    if (blocker.state === 'blocked' && !formChanged.current) {
-      blocker.reset();
-    }
-  }, [blocker, formChanged.current]);
-
-  useEffect(() => {
-    if (blocker.state === 'blocked') {
-      const proceed = window.confirm(message);
-      if (proceed) {
-        setTimeout(blocker.proceed, 0);
-      } else {
-        blocker.reset();
-      }
-    }
-  }, [blocker, message]);
-
-  useBeforeUnload(
-    useCallback(
-      (e) => {
-        if (formChanged.current) e.returnValue = message;
-      },
-      [formChanged.current, message]
-    )
-  );
 }
 
 function useSaveShortcut(save: () => any) {
