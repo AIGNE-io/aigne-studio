@@ -4,6 +4,7 @@ import ai from './ai';
 import datasetItems from './dataset-items';
 import datasets from './datasets';
 import importRouter from './import';
+import logs from './logs';
 import tags from './tags';
 import templates from './templates';
 import tree from './tree';
@@ -17,5 +18,6 @@ router.use('/import', importRouter);
 router.use('/datasets', datasets);
 router.use('/datasets', datasetItems);
 router.use('/tree', tree);
+router.use('/logs', logs);
 
 export default router;

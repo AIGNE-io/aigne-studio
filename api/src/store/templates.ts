@@ -1,5 +1,11 @@
+import path from 'path';
+
 import Database from '@blocklet/sdk/lib/database';
 import { Worker } from 'snowflake-uuid';
+import { parse } from 'yaml';
+
+import env from '../libs/env';
+import Repository from './repository';
 
 const idGenerator = new Worker();
 
@@ -91,3 +97,25 @@ export default class Templates extends Database {
 }
 
 export const templates = new Templates();
+
+export const defaultRepository = new Repository(path.join(env.dataDir, 'repositories/default'));
+
+export async function getTemplate({
+  ref,
+  templateId,
+  path,
+}: { ref?: string } & (
+  | { templateId: string; path?: undefined }
+  | { path: string; templateId?: undefined }
+)): Promise<Template> {
+  return parse(
+    Buffer.from(
+      (
+        await defaultRepository.getFile({
+          ref,
+          path: path ?? (await defaultRepository.findFile(templateId, { ref })),
+        })
+      ).blob
+    ).toString()
+  );
+}

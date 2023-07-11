@@ -22,5 +22,6 @@ module.exports = {
     '@typescript-eslint/comma-dangle': 'off',
     'require-await': 'off',
     'max-classes-per-file': 'off',
+    'no-param-reassign': 'off',
   },
 };

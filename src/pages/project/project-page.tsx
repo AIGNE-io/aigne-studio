@@ -59,7 +59,7 @@ import { useAddon, useAddonsState } from '../../contexts/dashboard';
 import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import { importBodySchema, importTemplates } from '../../libs/import';
-import { Commit } from '../../libs/templates';
+import { Commit } from '../../libs/logs';
 import { getFile } from '../../libs/tree';
 import useDialog from '../../utils/use-dialog';
 import usePickFile, { readFileAsText } from '../../utils/use-pick-file';
@@ -369,6 +369,7 @@ function ProjectWithBranch() {
 
       exists.unshift(
         <CommitsTip
+          _ref={ref}
           onCommitSelect={(commit) => {
             navigate(joinUrl('..', commit.oid));
           }}>
@@ -405,7 +406,7 @@ function ProjectWithBranch() {
                   path: path?.join('/') || '',
                   input: { type: 'file', data: data ?? {} },
                 });
-                navigate(joinUrl('.', ...(path ?? []), `${res.id}.json`));
+                navigate(joinUrl('.', ...(path ?? []), `${res.id}.yaml`));
               } catch (error) {
                 Toast.error(getErrorMessage(error));
                 throw error;
@@ -678,6 +679,8 @@ const TemplateEditor = forwardRef<
       {dialog}
 
       <TemplateFormView
+        _ref={ref}
+        path={path}
         hash={hash}
         value={form.current}
         onChange={setForm}

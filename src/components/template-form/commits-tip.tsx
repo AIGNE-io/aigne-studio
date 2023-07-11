@@ -20,16 +20,18 @@ import {
 import { ReactElement, cloneElement, useState } from 'react';
 import { useAsync } from 'react-use';
 
-import { Commit, getCommits, getTemplateCommits } from '../../libs/templates';
+import { Commit, getLogs } from '../../libs/logs';
 import Avatar from '../avatar';
 
 export default function CommitsTip({
-  templateId,
+  _ref: ref,
+  path,
   hash,
   children,
   onCommitSelect: onCommitClick,
 }: {
-  templateId?: string;
+  _ref: string;
+  path?: string;
   hash?: string;
   children: ReactElement;
   onCommitSelect: (commit: Commit) => any;
@@ -46,10 +48,7 @@ export default function CommitsTip({
     setOpen(true);
   };
 
-  const { value, loading, error } = useAsync(
-    () => (templateId ? getTemplateCommits(templateId) : getCommits()),
-    [templateId]
-  );
+  const { value, loading, error } = useAsync(() => getLogs({ ref, path }), [path]);
   if (error) console.error(error);
 
   const [loadingItemHash, setLoadingItemHash] = useState<string>();

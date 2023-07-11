@@ -30,7 +30,7 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
-import { Commit } from '../../libs/templates';
+import { Commit } from '../../libs/logs';
 import Branches from './branches';
 import CommitsTip from './commits-tip';
 import Datasets from './datasets';
@@ -58,6 +58,8 @@ export type TemplateForm = Pick<
 >;
 
 export default function TemplateFormView({
+  _ref: ref,
+  path,
   hash,
   value: form,
   onCommitSelect,
@@ -65,6 +67,8 @@ export default function TemplateFormView({
   onExecute,
   onTemplateClick,
 }: {
+  _ref: string;
+  path: string;
   hash?: string;
   value: Template;
   onCommitSelect: (commit: Commit) => any;
@@ -185,7 +189,7 @@ export default function TemplateFormView({
             {t('alert.updatedAt')}:
           </Typography>
 
-          <CommitsTip key={form.updatedAt} templateId={form.id} hash={hash} onCommitSelect={onCommitSelect}>
+          <CommitsTip key={form.updatedAt} _ref={ref} path={path} hash={hash} onCommitSelect={onCommitSelect}>
             <Button
               sx={{ ml: 1 }}
               color="inherit"

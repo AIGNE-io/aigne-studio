@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
-import { Entry } from '../../../api/src/store/time-machine';
+import { EntryWithMeta } from '../../../api/src/routes/tree';
 import * as api from '../../libs/tree';
 
 export interface ProjectState {
-  files: Entry[];
+  files: EntryWithMeta[];
   loading?: boolean;
   error?: Error;
 }

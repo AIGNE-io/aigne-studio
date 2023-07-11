@@ -8,8 +8,7 @@ import { stringify } from 'yaml';
 import env from '../libs/env';
 import logger from '../libs/logger';
 import { folders } from '../store/folders';
-import { Template, templates } from '../store/templates';
-import Templates from '../store/time-machine';
+import { Template, defaultRepository, templates } from '../store/templates';
 
 const { name } = require('../../../package.json');
 
@@ -20,13 +19,13 @@ async function migrate() {
     rmSync(oldTimeMachineDir, { force: true, recursive: true });
   }
 
-  if (!existsSync(Templates.root.dir)) {
+  if (!existsSync(defaultRepository.dir)) {
     const folderMap = Object.fromEntries(folders.getAllData().map((folder) => [folder._id!, folder.name]));
     const list = (await templates.find()) as Template[];
     if (list.length) {
       const did = list[0]!.createdBy;
 
-      await Templates.root.run(async (tx) => {
+      await defaultRepository.run(async (tx) => {
         for (const t of list) {
           t.id ??= (t as any)._id;
 

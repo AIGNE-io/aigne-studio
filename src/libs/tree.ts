@@ -1,12 +1,11 @@
 import joinUrl from 'url-join';
 
 import { TemplateInput } from '../../api/src/routes/templates';
-import { CreateFileInput } from '../../api/src/routes/tree';
+import { CreateFileInput, EntryWithMeta } from '../../api/src/routes/tree';
 import { Template } from '../../api/src/store/templates';
-import { Entry } from '../../api/src/store/time-machine';
 import axios from './api';
 
-export async function getTree({ ref }: { ref: string }): Promise<{ files: Entry[] }> {
+export async function getTree({ ref }: { ref: string }): Promise<{ files: EntryWithMeta[] }> {
   return axios.get(joinUrl('/api/tree', ref || '')).then((res) => res.data);
 }
 

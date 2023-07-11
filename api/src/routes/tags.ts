@@ -1,8 +1,10 @@
+import { join } from 'path';
+
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrAdmin } from '../libs/security';
-import Templates from '../store/time-machine';
+import { defaultRepository, getTemplate } from '../store/templates';
 
 const router = Router();
 
@@ -14,9 +16,17 @@ const getTagsQuerySchema = Joi.object<{ search?: string; type?: 'image' }>({
 router.get('/', ensureComponentCallOrAdmin(), async (req: Request, res: Response) => {
   const { search, type } = await getTagsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  let tags = (await Templates.root.getTemplates())
-    .flatMap((i) => i.files)
-    .flatMap((i) => i.tags?.map((tag) => ({ type: i.type, tag })) ?? []);
+  let tags = (
+    await Promise.all(
+      (await defaultRepository.getFiles())
+        .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
+        .map((i) =>
+          getTemplate({ path: join(...i.parent, i.name) }).then((template) =>
+            template.tags?.map((tag) => ({ tag, type: template.type }))
+          )
+        )
+    )
+  ).flatMap((i) => i ?? []);
 
   if (search) {
     const regex = new RegExp(search, 'i');

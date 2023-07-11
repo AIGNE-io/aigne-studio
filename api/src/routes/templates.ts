@@ -1,11 +1,12 @@
+import { join } from 'path';
+
 import { Router } from 'express';
 import Joi from 'joi';
 import { stringify } from 'yaml';
 
-import { ensureAdmin, ensureComponentCallOrAdmin } from '../libs/security';
-import { getUsers } from '../libs/user';
-import { Template, nextTemplateId, roles } from '../store/templates';
-import Templates, { Transaction } from '../store/time-machine';
+import { ensureComponentCallOrAdmin } from '../libs/security';
+import { Transaction } from '../store/repository';
+import { Template, defaultRepository, getTemplate, nextTemplateId, roles } from '../store/templates';
 
 const router = Router();
 
@@ -140,20 +141,6 @@ export const templateSchema = Joi.object<TemplateInput>({
   versionNote: Joi.string().allow(''),
 });
 
-router.get('/commits', ensureAdmin, async (_, res) => {
-  const commits = await Templates.root.getCommits();
-
-  const dids = [...new Set(commits.map((i) => i.commit.author.email))];
-  const users = await getUsers(dids);
-
-  commits.forEach((i) => {
-    const user = users[i.commit.author.email];
-    if (user) Object.assign(i.commit.author, user);
-  });
-
-  res.json({ commits });
-});
-
 const getTemplatesSchema = Joi.object<{
   tag?: string;
   type?: 'image';
@@ -165,9 +152,12 @@ const getTemplatesSchema = Joi.object<{
 router.get('/', ensureComponentCallOrAdmin(), async (req, res) => {
   const { tag, type } = await getTemplatesSchema.validateAsync(req.query, { stripUnknown: true });
 
-  const list = await Templates.root.getTemplates();
+  let templates = await Promise.all(
+    (await defaultRepository.getFiles())
+      .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
+      .map((i) => getTemplate({ path: join(...i.parent, i.name) }))
+  );
 
-  let templates = list.flatMap((i) => i.files);
   if (tag) {
     templates = templates.filter((i) => i.tags?.includes(tag));
   }
@@ -188,26 +178,9 @@ router.get('/:templateId', ensureComponentCallOrAdmin(), async (req, res) => {
 
   const { hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const template = await Templates.root.getTemplate({ oid: hash, templateId });
+  const template = await getTemplate({ ref: hash, templateId });
 
   res.json(template);
-});
-
-router.get('/:templateId/commits', ensureAdmin, async (req, res) => {
-  const { templateId } = req.params;
-  if (!templateId) throw new Error('Missing required params `templateId`');
-
-  const commits = await Templates.root.getTemplateCommits({ templateId });
-
-  const dids = [...new Set(commits.map((i) => i.commit.author.email))];
-  const users = await getUsers(dids);
-
-  commits.forEach((i) => {
-    const user = users[i.commit.author.email];
-    if (user) Object.assign(i.commit.author, user);
-  });
-
-  res.json({ commits });
 });
 
 export default router;

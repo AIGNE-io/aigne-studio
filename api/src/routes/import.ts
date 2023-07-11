@@ -6,8 +6,7 @@ import Joi from 'joi';
 import { stringify } from 'yaml';
 
 import { ensureComponentCallOrAdmin } from '../libs/security';
-import { Template } from '../store/templates';
-import Templates from '../store/time-machine';
+import { Template, defaultRepository } from '../store/templates';
 import { templateSchema } from './templates';
 
 const router = Router();
@@ -36,11 +35,11 @@ router.post('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
   const { branch, path, templates } = await importBodySchema.validateAsync(req.body, { stripUnknown: true });
 
   if (templates?.length) {
-    await Templates.root.run(async (tx) => {
+    await defaultRepository.run(async (tx) => {
       await tx.checkout({ ref: branch });
 
       for (const template of templates) {
-        await tx.write({ path: join(path, `${template.id}.json`), data: stringify(template) });
+        await tx.write({ path: join(path, `${template.id}.yaml`), data: stringify(template) });
       }
 
       await tx.commit({ message: 'Import templates', author: { name: did, email: did } });

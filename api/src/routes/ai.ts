@@ -15,8 +15,7 @@ import { ChatCompletionRequestMessage, ImagesResponseDataInner } from 'openai';
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
 import { ensureComponentCallOrAdmin } from '../libs/security';
-import { Template } from '../store/templates';
-import Templates from '../store/time-machine';
+import { Template, getTemplate } from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
 
@@ -89,7 +88,7 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const template = input.template ?? (await Templates.root.getTemplate({ templateId: input.templateId }));
+  const template = input.template ?? (await getTemplate({ templateId: input.templateId }));
   const emit = (response: { type: 'delta'; delta: string } | typeof result) => {
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'text/event-stream');
@@ -150,7 +149,7 @@ async function runTemplate(
   let result: Awaited<ReturnType<typeof runTemplate>> | undefined;
 
   while (current) {
-    next = current.next?.id ? await Templates.root.getTemplate({ templateId: current.next.id }) : undefined;
+    next = current.next?.id ? await getTemplate({ templateId: current.next.id }) : undefined;
     // avoid recursive call
     if (next?.id === current.id) {
       next = undefined;
@@ -289,7 +288,7 @@ Question: ${question}\
     if (current.type === 'branch') {
       const branchId = text && /Branch_(\w+)/s.exec(text)?.[1]?.trim();
       if (branchId && current.branch?.branches.some((i) => i.template?.id === branchId)) {
-        current = await Templates.root.getTemplate({ templateId: branchId });
+        current = await getTemplate({ templateId: branchId });
         continue;
       }
     }

@@ -1,4 +1,4 @@
-import { join } from 'path';
+import path from 'path';
 
 import { user } from '@blocklet/sdk/lib/middlewares';
 import dayjs from 'dayjs';
@@ -7,55 +7,72 @@ import Joi from 'joi';
 import { parse, stringify } from 'yaml';
 
 import { ensureComponentCallOrAdmin } from '../libs/security';
-import { Template, nextTemplateId } from '../store/templates';
-import Templates from '../store/time-machine';
+import { Entry, File } from '../store/repository';
+import { Template, defaultRepository, getTemplate, nextTemplateId } from '../store/templates';
 import { TemplateInput, createBranches, templateSchema } from './templates';
 
 const router = Router();
 
+export type EntryWithMeta = Exclude<Entry, File> | (File & { meta: Template });
+
 router.get('/:ref', ensureComponentCallOrAdmin(), async (req, res) => {
   const { ref } = req.params;
-  const files = await Templates.root.getFiles({ ref });
+  const files = await Promise.all(
+    (
+      await defaultRepository.getFiles({ ref })
+    ).map(async (file) => {
+      if (file.type === 'file') {
+        return {
+          ...file,
+          meta: await getTemplate({ ref, path: path.join(...file.parent, file.name) }),
+        };
+      }
+      return file;
+    })
+  );
   res.json({ files });
 });
 
-router.get('/:ref/:path(*.json)', ensureComponentCallOrAdmin(), async (req, res) => {
-  const { ref, path } = req.params;
-  if (!ref || !path) throw new Error('Missing required params `ref` or `path`');
+router.get('/:ref/:path(*.yaml)', ensureComponentCallOrAdmin(), async (req, res) => {
+  const { ref, path: filepath } = req.params;
+  if (!ref || !filepath) throw new Error('Missing required params `ref` or `path`');
 
-  const file = await Templates.root.getFile({ ref, path });
+  const file = await defaultRepository.getFile({ ref, path: filepath });
   const data = parse(Buffer.from(file.blob).toString());
 
   res.json(data);
 });
 
-router.put('/:ref/:path(*.json)', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const { ref, path } = req.params;
-  if (!ref || !path) throw new Error('Missing required params `ref` or `path`');
+router.put('/:ref/:path(*.yaml)', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  const { ref, path: filepath } = req.params;
+  if (!ref || !filepath) throw new Error('Missing required params `ref` or `path`');
 
   const { deleteEmptyTemplates, ...input } = await templateSchema.validateAsync(req.body, { stripUnknown: true });
 
   const { did } = req.user!;
 
-  const template = await Templates.root.run(async (tx) => {
+  const template = await defaultRepository.run(async (tx) => {
     await tx.checkout({ ref });
 
-    const { dir, templateId } = await Templates.root.findTemplate(path);
+    const p = path.parse(await defaultRepository.findFile(filepath));
+    const templateId = p.name;
 
     const template = {
       ...input,
       id: templateId,
-      branch: input.branch && (await createBranches(tx, dir, input.branch, did)),
+      branch: input.branch && (await createBranches(tx, p.dir, input.branch, did)),
       updatedAt: new Date().toISOString(),
       updatedBy: did,
     };
 
-    await tx.write({ path, data: stringify(template) });
+    await tx.write({ path: filepath, data: stringify(template) });
 
     if (deleteEmptyTemplates) {
       for (const templateId of deleteEmptyTemplates) {
-        const p = await Templates.root.findTemplate(templateId, { rejectIfNotFound: false });
-        if (p) await tx.rm({ path: join(p.dir, `${templateId}.json`) });
+        const p = await defaultRepository.findFile(templateId, { rejectIfNotFound: false });
+        if (p) {
+          await tx.rm({ path: path.join(path.dirname(p), `${templateId}.yaml`) });
+        }
       }
     }
 
@@ -87,12 +104,12 @@ const createFileInputSchema = Joi.object<CreateFileInput>({
 
 router.post('/:branch/:path(*)?', user(), ensureComponentCallOrAdmin(), async (req, res) => {
   const { did } = req.user!;
-  const { branch, path } = req.params;
+  const { branch, path: filepath } = req.params;
   if (!branch) throw new Error('Missing required params `branch`');
 
   const input = await createFileInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const result = await Templates.root.run(async (tx) => {
+  const result = await defaultRepository.run(async (tx) => {
     await tx.checkout({ ref: branch });
 
     const author = {
@@ -104,8 +121,8 @@ router.post('/:branch/:path(*)?', user(), ensureComponentCallOrAdmin(), async (r
 
     switch (input.type) {
       case 'folder': {
-        await tx.mkdir({ path: join(path || '', input.data.name) });
-        await tx.commit({ message: `Create ${join(path || '', input.data.name)}`, author });
+        await tx.mkdir({ path: path.join(filepath || '', input.data.name) });
+        await tx.commit({ message: `Create ${path.join(filepath || '', input.data.name)}`, author });
         return input.data;
       }
       case 'file': {
@@ -116,14 +133,14 @@ router.post('/:branch/:path(*)?', user(), ensureComponentCallOrAdmin(), async (r
         const template: Template = {
           ...data,
           id,
-          branch: data.branch && (await createBranches(tx, path || '', data.branch, did)),
+          branch: data.branch && (await createBranches(tx, filepath || '', data.branch, did)),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           createdBy: did,
           updatedBy: did,
         };
 
-        await tx.write({ path: join(path || '', `${id}.json`), data: stringify(template) });
+        await tx.write({ path: path.join(filepath || '', `${id}.yaml`), data: stringify(template) });
 
         await tx.commit({ message: `Create ${template.name || id}`, author });
 
@@ -142,7 +159,7 @@ router.delete('/:branch/:path(*)', user(), ensureComponentCallOrAdmin(), async (
   const { branch, path } = req.params;
   if (!branch || !path) throw new Error('Missing required params `branch` or `path`');
 
-  await Templates.root.run(async (tx) => {
+  await defaultRepository.run(async (tx) => {
     await tx.checkout({ ref: branch });
 
     await tx.rm({ path });
@@ -176,7 +193,7 @@ router.patch('/:branch/:path(*)/path', user(), ensureComponentCallOrAdmin(), asy
 
   const input = await patchFileInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-  await Templates.root.run(async (tx) => {
+  await defaultRepository.run(async (tx) => {
     await tx.checkout({ ref: branch });
 
     await tx.mv({ src: path, dst: input.path });

@@ -23,12 +23,12 @@ import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 
 import { TemplateInput } from '../../../api/src/routes/templates';
+import { EntryWithMeta } from '../../../api/src/routes/tree';
 import { Template } from '../../../api/src/store/templates';
-import { Entry } from '../../../api/src/store/time-machine';
 import { getErrorMessage } from '../../libs/api';
 import { useProjectState } from './state';
 
-export type TreeNode = NodeModel<Entry>;
+export type TreeNode = NodeModel<EntryWithMeta>;
 
 export default function FileTree({
   _ref: ref,
