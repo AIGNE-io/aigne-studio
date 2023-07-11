@@ -20,7 +20,6 @@ import { LoadingButton } from '@mui/lab';
 import { Alert, Box, BoxProps, Button, CircularProgress, IconButton, Tooltip, Typography } from '@mui/material';
 import { useAsyncEffect, useLocalStorageState } from 'ahooks';
 import equal from 'fast-deep-equal';
-import saveAs from 'file-saver';
 import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
 import { omit, uniqBy } from 'lodash';
@@ -39,7 +38,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useBeforeUnload, useNavigate, useParams } from 'react-router-dom';
 import { useUpdate } from 'react-use';
 import joinUrl from 'url-join';
-import { parse, stringify } from 'yaml';
+import { parse } from 'yaml';
 
 import { Template } from '../../../api/src/store/templates';
 import { parameterToStringValue } from '../../components/parameter-field';
@@ -54,6 +53,7 @@ import { Commit } from '../../libs/logs';
 import { getFile } from '../../libs/tree';
 import useDialog from '../../utils/use-dialog';
 import usePickFile, { readFileAsText } from '../../utils/use-pick-file';
+import { useExportFiles } from './export-files';
 import FileTree, { TreeNode } from './file-tree';
 import { useProjectState } from './state';
 
@@ -166,70 +166,15 @@ export default function ProjectPage() {
     [assistant]
   );
 
+  const { exporter, exportFiles } = useExportFiles();
+
   const onExport = useCallback(
     async (node?: TreeNode | string, { quiet }: { quiet?: boolean } = {}) => {
       if (!(await editor.current?.requireSave())) return;
 
-      const list = !node
-        ? files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
-        : typeof node === 'string'
-        ? files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file' && i.meta.id === node)
-        : node.data?.type === 'folder'
-        ? files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file' && i.parent.join('-') === node.id)
-        : files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file' && i.name === node.id);
-
-      for (let i = 0; i < list.length; i++) {
-        const current = list[i]!;
-        if (current.meta.branch?.branches.length) {
-          for (const { template } of current.meta.branch.branches) {
-            if (template && !list.some((i) => i.meta.id === template.id)) {
-              const t = files.find(
-                (i): i is typeof i & { type: 'file' } => i.type === 'file' && i.meta.id === template.id
-              );
-              if (t) list.push(t);
-            }
-          }
-        }
-      }
-
-      if (!list.length) {
-        Toast.error('No templates to export');
-        return;
-      }
-
-      const doExport = () => {
-        const str = stringify({ templates: list.map((i) => i.meta) });
-        const first = list[0];
-        const filename = list.length === 1 && first ? first.meta.name || first.meta.id : `templates-${Date.now()}`;
-        saveAs(new Blob([str]), `${filename}.yml`);
-      };
-
-      if (quiet) {
-        doExport();
-        return;
-      }
-      showDialog({
-        fullWidth: true,
-        maxWidth: 'sm',
-        title: t('alert.export'),
-        content: (
-          <Box>
-            <Typography>{t('alert.exportTip')}</Typography>
-            <Box component="ul" sx={{ pl: 2 }}>
-              {list.map((template) => (
-                <Box key={template.meta.id} component="li">
-                  {template.meta.name || template.meta.id}
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        ),
-        cancelText: t('alert.cancel'),
-        okText: t('alert.export'),
-        onOk: () => doExport(),
-      });
+      exportFiles(ref, node, { quiet });
     },
-    [files, showDialog, t]
+    [exportFiles, ref]
   );
 
   const pickFile = usePickFile();
@@ -370,6 +315,7 @@ export default function ProjectPage() {
   return (
     <Root footerProps={{ className: 'dashboard-footer' }} headerAddons={headerAddons}>
       {dialog}
+      {exporter}
 
       <Box
         component={PanelGroup}
