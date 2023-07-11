@@ -10,7 +10,7 @@ router.get('/:ref/:path(*)?', ensureComponentCallOrAdmin(), async (req, res) => 
   const { ref, path: filepath } = req.params;
   if (!ref) throw new Error('Missing required params `ref`');
 
-  const commits = await defaultRepository.getCommits({ ref, path: filepath });
+  const commits = await defaultRepository.log({ ref, path: filepath });
 
   const dids = [...new Set(commits.map((i) => i.commit.author.email))];
   const users = await getUsers(dids);

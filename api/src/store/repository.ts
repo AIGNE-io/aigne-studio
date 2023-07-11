@@ -124,7 +124,7 @@ export default class Repository {
     await git.deleteBranch({ fs, dir: this.dir, ref });
   }
 
-  async getCommits({ ref, path: filepath }: { ref?: string; path?: string } = {}) {
+  async log({ ref, path: filepath }: { ref?: string; path?: string } = {}) {
     if (await this.isEmpty({ ref })) return [];
 
     ref ||= defaultBranch;
