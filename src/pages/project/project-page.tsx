@@ -29,6 +29,7 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  TextField,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -98,10 +99,11 @@ export default function ProjectPage() {
   const { dialog, showDialog } = useDialog();
 
   const {
-    state: { files },
+    state: { files, branches },
     refetch,
     createFile,
     deleteFile,
+    createBranch,
   } = useProjectState(ref);
 
   const conversation = useRef<ConversationRef>(null);
@@ -313,6 +315,7 @@ export default function ProjectPage() {
       exists.unshift(
         <CommitsTip
           _ref={ref}
+          hash={ref}
           onCommitSelect={(commit) => {
             navigate(joinUrl('..', commit.oid));
           }}>
@@ -462,6 +465,46 @@ export default function ProjectPage() {
         <ResizeHandle />
         <Box component={Panel} minSize={30}>
           <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
+            {branches.length > 0 && !branches.includes(ref) && (
+              <Box sx={{ position: 'sticky', zIndex: 10, top: 0, mb: 2, bgcolor: 'background.paper' }}>
+                <Alert color="warning">
+                  <Typography>You must be on a branch to make or propose changes to this file</Typography>
+                  <Box textAlign="right">
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        let name = '';
+
+                        showDialog({
+                          maxWidth: 'sm',
+                          fullWidth: true,
+                          title: 'New Branch',
+                          content: (
+                            <Box>
+                              <TextField label="Branch Name" onChange={(e) => (name = e.target.value)} />
+                            </Box>
+                          ),
+                          okText: 'Create',
+                          onOk: async () => {
+                            const n = name.trim();
+                            try {
+                              await createBranch({ ref: n, oid: ref });
+                              navigate(joinUrl('..', n));
+                              Toast.success(t('alert.branchCreated'));
+                            } catch (error) {
+                              Toast.error(getErrorMessage(error));
+                              throw error;
+                            }
+                          },
+                        });
+                      }}>
+                      New Branch
+                    </Button>
+                  </Box>
+                </Alert>
+              </Box>
+            )}
+
             {filepath && <TemplateEditor ref={editor} _ref={ref} path={filepath} onExecute={onExecute} />}
           </Box>
         </Box>

@@ -86,5 +86,6 @@ export default flat({
     noCommits: 'No Commits',
     updatedAt: 'Updated At',
     history: 'History',
+    branchCreated: 'Branch created',
   },
 });

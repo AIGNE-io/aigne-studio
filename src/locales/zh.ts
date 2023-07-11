@@ -86,5 +86,6 @@ export default flat({
     noCommits: '暂无记录',
     updatedAt: '更新于',
     history: '历史记录',
+    branchCreated: '创建分支成功',
   },
 });

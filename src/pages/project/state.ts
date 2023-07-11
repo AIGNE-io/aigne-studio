@@ -3,6 +3,7 @@ import { atom, useRecoilState } from 'recoil';
 
 import { EntryWithMeta } from '../../../api/src/routes/tree';
 import { getBranches } from '../../libs/branches';
+import * as branchApi from '../../libs/branches';
 import * as api from '../../libs/tree';
 
 export interface ProjectState {
@@ -68,5 +69,14 @@ export const useProjectState = (ref: string) => {
     [refetch]
   );
 
-  return { state, refetch, createFile, deleteFile, moveFile, putFile };
+  const createBranch = useCallback(
+    async (...args: Parameters<typeof branchApi.createBranch>) => {
+      const { branches } = await branchApi.createBranch(...args);
+      setState((v) => ({ ...v, branches }));
+      return { branches };
+    },
+    [setState]
+  );
+
+  return { state, refetch, createFile, deleteFile, moveFile, putFile, createBranch };
 };
