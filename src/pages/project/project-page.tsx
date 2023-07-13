@@ -50,7 +50,7 @@ import {
   useState,
 } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { useBeforeUnload, useNavigate, useParams } from 'react-router-dom';
+import { useBeforeUnload, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useUpdate } from 'react-use';
 import joinUrl from 'url-join';
 import { parse } from 'yaml';
@@ -79,6 +79,14 @@ export default function ProjectPage() {
   const { ref, '*': filepath } = useParams();
   if (!ref) throw new Error('Missing required params `ref`');
 
+  const {
+    state: { files, branches, commits },
+    refetch,
+    createFile,
+    deleteFile,
+  } = useProjectState(ref);
+
+  const location = useLocation();
   const navigate = useNavigate();
 
   const [previousFilePath, setPreviousFilePath] = useLocalStorageState<{ [key: string]: string } | undefined>(
@@ -86,9 +94,16 @@ export default function ProjectPage() {
   );
 
   useEffect(() => {
-    const previous = previousFilePath?.[ref];
-    if (!filepath && previous) navigate(joinUrl('.', previous));
-  }, [ref]);
+    if (filepath) return;
+
+    const p = location.state?.filepath || (ref === 'main' ? previousFilePath?.[ref] : undefined);
+
+    if (p && typeof p === 'string') {
+      const name = p.split('/').slice(-1)[0];
+      const file = files.find((i): i is typeof i & { type: 'file' } => i.type === 'file' && i.name === name);
+      if (file) navigate(joinUrl(...file.parent, file.name));
+    }
+  }, [ref, files, location]);
 
   useEffect(() => {
     if (filepath) setPreviousFilePath((v) => ({ ...v, [ref]: filepath }));
@@ -97,14 +112,6 @@ export default function ProjectPage() {
   const { t } = useLocaleContext();
 
   const { dialog, showDialog } = useDialog();
-
-  const {
-    state: { files, branches },
-    refetch,
-    createFile,
-    deleteFile,
-    createBranch,
-  } = useProjectState(ref);
 
   const conversation = useRef<ConversationRef>(null);
   const editor = useRef<TemplateEditorInstance>(null);
@@ -314,10 +321,11 @@ export default function ProjectPage() {
 
       exists.unshift(
         <CommitsTip
-          _ref={ref}
+          loading={!commits.length}
+          commits={commits}
           hash={ref}
           onCommitSelect={(commit) => {
-            navigate(joinUrl('..', commit.oid));
+            navigate(joinUrl('..', commit.oid), { state: { filepath } });
           }}>
           <Button endIcon={<ArrowDropDown fontSize="small" />}>{t('alert.history')}</Button>
         </CommitsTip>
@@ -326,10 +334,21 @@ export default function ProjectPage() {
       exists.unshift(
         <Dropdown
           dropdown={
-            <BranchList _ref={ref} onItemClick={(branch) => branch !== ref && navigate(joinUrl('..', branch))} />
+            <BranchList
+              _ref={ref}
+              onItemClick={(branch) => branch !== ref && navigate(joinUrl('..', branch), { state: { filepath } })}
+            />
           }>
           <Button startIcon={<CallSplit />} endIcon={<ArrowDropDown fontSize="small" />}>
-            <Box component="span" sx={{ display: 'block', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <Box
+              component="span"
+              sx={{
+                display: 'block',
+                maxWidth: 80,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>
               {ref}
             </Box>
           </Button>
@@ -340,7 +359,7 @@ export default function ProjectPage() {
 
       return exists;
     },
-    [addons, navigate, onExport, onImport, ref, t]
+    [addons, commits, filepath, navigate, onExport, onImport, ref, t]
   );
 
   return (
@@ -467,41 +486,7 @@ export default function ProjectPage() {
           <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
             {branches.length > 0 && !branches.includes(ref) && (
               <Box sx={{ position: 'sticky', zIndex: 10, top: 0, mb: 2, bgcolor: 'background.paper' }}>
-                <Alert color="warning">
-                  <Typography>You must be on a branch to make or propose changes to this file</Typography>
-                  <Box textAlign="right">
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        let name = '';
-
-                        showDialog({
-                          maxWidth: 'sm',
-                          fullWidth: true,
-                          title: 'New Branch',
-                          content: (
-                            <Box>
-                              <TextField label="Branch Name" onChange={(e) => (name = e.target.value)} />
-                            </Box>
-                          ),
-                          okText: 'Create',
-                          onOk: async () => {
-                            const n = name.trim();
-                            try {
-                              await createBranch({ ref: n, oid: ref });
-                              navigate(joinUrl('..', n));
-                              Toast.success(t('alert.branchCreated'));
-                            } catch (error) {
-                              Toast.error(getErrorMessage(error));
-                              throw error;
-                            }
-                          },
-                        });
-                      }}>
-                      New Branch
-                    </Button>
-                  </Box>
-                </Alert>
+                <Alert color="warning">You must be on a branch to make or propose changes to this file</Alert>
               </Box>
             )}
 
@@ -555,6 +540,7 @@ const TemplateEditor = forwardRef<
   const navigate = useNavigate();
 
   const { dialog, showDialog } = useDialog();
+  const { dialog: createBranchDialog, showDialog: showCreateBranchDialog } = useDialog();
 
   const [error, setError] = useState<Error>();
 
@@ -562,15 +548,41 @@ const TemplateEditor = forwardRef<
 
   const { form, original, formChanged, deletedBranchTemplateIds, setForm, resetForm } = useFormState();
 
-  const { state: projectState, putFile } = useProjectState(ref);
+  const { state: projectState, putFile, createBranch } = useProjectState(ref);
 
   const save = useCallback(async () => {
     if (!formChanged.current) return;
 
+    const branch = projectState.branches.includes(ref)
+      ? ref
+      : await new Promise<string>((resolve) => {
+          let name = '';
+
+          showCreateBranchDialog({
+            maxWidth: 'sm',
+            fullWidth: true,
+            title: 'Create a branch',
+            content: (
+              <Box>
+                <TextField label="Branch Name" onChange={(e) => (name = e.target.value)} />
+              </Box>
+            ),
+            onOk: async () => {
+              try {
+                await createBranch({ ref: name, oid: ref });
+                resolve(name);
+              } catch (error) {
+                Toast.error(getErrorMessage(error));
+                throw error;
+              }
+            },
+          });
+        });
+
     try {
       setSubmitting(true);
       const res = await putFile({
-        ref,
+        ref: branch,
         path,
         data: {
           ...form.current,
@@ -579,7 +591,9 @@ const TemplateEditor = forwardRef<
       });
 
       resetForm(res);
+      setHash(undefined);
       Toast.success(t('alert.saved'));
+      navigate(joinUrl('..', branch, path));
     } catch (error) {
       Toast.error(getErrorMessage(error));
       throw error;
@@ -703,6 +717,7 @@ const TemplateEditor = forwardRef<
   return (
     <>
       {dialog}
+      {createBranchDialog}
 
       <TemplateFormView
         _ref={ref}

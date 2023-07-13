@@ -4,18 +4,20 @@ import { atom, useRecoilState } from 'recoil';
 import { EntryWithMeta } from '../../../api/src/routes/tree';
 import { getBranches } from '../../libs/branches';
 import * as branchApi from '../../libs/branches';
+import { Commit, getLogs } from '../../libs/logs';
 import * as api from '../../libs/tree';
 
 export interface ProjectState {
   files: EntryWithMeta[];
   branches: string[];
+  commits: Commit[];
   loading?: boolean;
   error?: Error;
 }
 
 const projectState = atom<ProjectState>({
   key: 'projectState',
-  default: { files: [], branches: [] },
+  default: { files: [], branches: [], commits: [] },
 });
 
 export const useProjectState = (ref: string) => {
@@ -24,8 +26,12 @@ export const useProjectState = (ref: string) => {
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
-      const [{ files }, { branches }] = await Promise.all([api.getTree({ ref }), getBranches()]);
-      setState((v) => ({ ...v, ref, files, branches, error: undefined }));
+      const [{ files }, { branches }, { commits }] = await Promise.all([
+        api.getTree({ ref }),
+        getBranches(),
+        getLogs({ ref }),
+      ]);
+      setState((v) => ({ ...v, ref, files, branches, commits, error: undefined }));
       return { files };
     } catch (error) {
       setState((v) => ({ ...v, error }));

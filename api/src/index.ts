@@ -40,7 +40,7 @@ if (isProduction) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
-  logger.error(error.stack);
+  logger.error(error);
 
   if (error instanceof Errors.NotFoundError) {
     res.status(404).json({ error: { message: 'Not Found' } });

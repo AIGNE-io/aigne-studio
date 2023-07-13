@@ -110,17 +110,6 @@ export default function FileTree({
         )}
       </Box>
 
-      {!files.length &&
-        (loading ? (
-          <Box textAlign="center">
-            <CircularProgress size={20} />
-          </Box>
-        ) : (
-          <Box color="text.secondary" textAlign="center">
-            {t('alert.noTemplates')}
-          </Box>
-        ))}
-
       {showNewProject && (
         <FolderTreeItem
           key={showNewProject.toString()}
@@ -134,6 +123,18 @@ export default function FileTree({
           onCancel={() => setShowNewProject(false)}
         />
       )}
+
+      {!files.length &&
+        !showNewProject &&
+        (loading ? (
+          <Box textAlign="center">
+            <CircularProgress size={20} />
+          </Box>
+        ) : (
+          <Box color="text.secondary" textAlign="center">
+            {t('alert.noTemplates')}
+          </Box>
+        ))}
 
       <DndProvider backend={MultiBackend} options={getBackendOptions()}>
         <Tree

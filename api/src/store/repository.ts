@@ -169,14 +169,15 @@ export class Transaction {
   private removeFilepath: string[] = [];
 
   async checkout({ ref }: { ref: string }) {
+    if (await this.repo.isEmpty({ ref })) {
+      return;
+    }
     if (!(await git.listBranches({ fs, dir: this.repo.dir })).includes(ref)) {
       throw new Error('only support checkout a branch');
     }
 
     await git.resetIndex({ fs, dir: this.repo.dir, filepath: '.' });
-    if (!(await this.repo.isEmpty({ ref }))) {
-      await git.checkout({ fs, dir: this.repo.dir, ref, force: true });
-    }
+    await git.checkout({ fs, dir: this.repo.dir, ref, force: true });
   }
 
   async mkdir({ path: p }: { path: string }): Promise<this> {

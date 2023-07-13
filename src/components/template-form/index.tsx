@@ -19,7 +19,8 @@ import {
 } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
-import { useState } from 'react';
+import { ComponentProps, useState } from 'react';
+import { useAsync } from 'react-use';
 
 import {
   HoroscopeParameter,
@@ -30,7 +31,7 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
-import { Commit } from '../../libs/logs';
+import { Commit, getLogs } from '../../libs/logs';
 import Branches from './branches';
 import CommitsTip from './commits-tip';
 import Datasets from './datasets';
@@ -189,14 +190,14 @@ export default function TemplateFormView({
             {t('alert.updatedAt')}:
           </Typography>
 
-          <CommitsTip key={form.updatedAt} _ref={ref} path={path} hash={hash} onCommitSelect={onCommitSelect}>
+          <Commits key={form.updatedAt} _ref={ref} path={path} hash={hash} onCommitSelect={onCommitSelect}>
             <Button
               sx={{ ml: 1 }}
               color="inherit"
               endIcon={<ArrowDropDown fontSize="small" sx={{ color: 'text.secondary' }} />}>
               <RelativeTime locale={locale} value={form.updatedAt} />
             </Button>
-          </CommitsTip>
+          </Commits>
         </Box>
       </Grid>
 
@@ -366,4 +367,18 @@ export default function TemplateFormView({
       </Grid>
     </Grid>
   );
+}
+
+function Commits({
+  _ref: ref,
+  path,
+  ...props
+}: {
+  _ref: string;
+  path?: string;
+} & Omit<ComponentProps<typeof CommitsTip>, 'commits' | 'loading'>) {
+  const { value, loading, error } = useAsync(() => getLogs({ ref, path }), [path]);
+  if (error) console.error(error);
+
+  return <CommitsTip {...props} loading={loading} commits={value?.commits} />;
 }

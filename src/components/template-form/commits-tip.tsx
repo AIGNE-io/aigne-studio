@@ -18,20 +18,19 @@ import {
   tooltipClasses,
 } from '@mui/material';
 import { ReactElement, cloneElement, useState } from 'react';
-import { useAsync } from 'react-use';
 
-import { Commit, getLogs } from '../../libs/logs';
+import { Commit } from '../../libs/logs';
 import Avatar from '../avatar';
 
 export default function CommitsTip({
-  _ref: ref,
-  path,
+  loading,
+  commits,
   hash,
   children,
   onCommitSelect: onCommitClick,
 }: {
-  _ref: string;
-  path?: string;
+  loading?: boolean;
+  commits?: Commit[];
   hash?: string;
   children: ReactElement;
   onCommitSelect: (commit: Commit) => any;
@@ -47,9 +46,6 @@ export default function CommitsTip({
   const handleTooltipOpen = () => {
     setOpen(true);
   };
-
-  const { value, loading, error } = useAsync(() => getLogs({ ref, path }), [path]);
-  if (error) console.error(error);
 
   const [loadingItemHash, setLoadingItemHash] = useState<string>();
 
@@ -74,7 +70,7 @@ export default function CommitsTip({
           }}
           title={
             <List disablePadding dense>
-              {value?.commits.map((item) => (
+              {commits?.map((item) => (
                 <ListItem disablePadding key={item.oid}>
                   <ListItemButton
                     selected={hash === item.oid}
@@ -112,7 +108,7 @@ export default function CommitsTip({
                   <CircularProgress size={20} />
                 </ListItem>
               ) : (
-                !value?.commits.length && (
+                !commits?.length && (
                   <ListItem>
                     <ListItemText primary={t('alert.noCommits')} primaryTypographyProps={{ textAlign: 'center' }} />
                   </ListItem>
