@@ -205,7 +205,7 @@ export default function ProjectPage() {
 
   const onImport = useCallback(
     async (path?: string[]) => {
-      if (!(await editor.current?.requireSave())) return;
+      if (editor.current && !(await editor.current?.requireSave())) return;
 
       try {
         const list = await pickFile({ accept: '.yaml,.yml', multiple: true }).then((files) =>
