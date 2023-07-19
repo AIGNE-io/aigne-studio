@@ -600,7 +600,7 @@ const TemplateEditor = forwardRef<
     } finally {
       setSubmitting(false);
     }
-  }, [path, putFile, ref, resetForm, t]);
+  }, [createBranch, navigate, path, projectState.branches, putFile, ref, resetForm, showCreateBranchDialog, t]);
 
   const requireSave = useCallback(async () => {
     if (!formChanged.current) return true;
