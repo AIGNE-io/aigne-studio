@@ -135,7 +135,10 @@ class StaticPromptTemplate extends PromptTemplate {
 
 async function runTemplate(
   template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>,
-  parameters?: { [key: string]: string | number },
+  parameters?: {
+    $history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
+    [key: string]: any;
+  },
   callbacks?: Callbacks
 ): Promise<
   | { type: 'text'; text: string }
@@ -179,8 +182,10 @@ async function runTemplate(
       await Promise.all(datasets.map(async (dataset) => dataset.similaritySearch(messagesString, 4)))
     ).flat();
 
+    const history = (parameters?.$history ?? []).filter((i) => !!i.role && !!i.content);
+
     const prompt = ChatPromptTemplate.fromPromptMessages(
-      messages.map(({ role, content }) => {
+      history.concat(messages).map(({ role, content }) => {
         const Message = {
           system: SystemMessagePromptTemplate,
           user: HumanMessagePromptTemplate,
