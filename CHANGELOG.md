@@ -1,3 +1,5 @@
+## 0.1.68 (2023-7-19)
+
 ## 0.1.67 (2023-7-19)
 
 - fix: support pass history to AI by variable $history

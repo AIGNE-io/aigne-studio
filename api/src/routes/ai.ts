@@ -58,7 +58,7 @@ router.post('/image/generations', ensureComponentCallOrAdmin(), async (req, res)
 
 const callInputSchema = Joi.object<
   {
-    parameters?: { [key: string]: string | number };
+    parameters?: { [key: string]: any };
   } & (
     | {
         templateId: string;
@@ -80,7 +80,7 @@ const callInputSchema = Joi.object<
     branch: templateSchema.extract('branch'),
     next: templateSchema.extract('next'),
   }),
-  parameters: Joi.object().pattern(Joi.string(), Joi.alternatives().try(Joi.string(), Joi.number()).allow('', null)),
+  parameters: Joi.object().pattern(Joi.string(), Joi.any()),
 }).xor('templateId', 'template');
 
 router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
