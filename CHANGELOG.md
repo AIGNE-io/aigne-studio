@@ -1,3 +1,7 @@
+## 0.1.67 (2023-7-19)
+
+- fix: support pass history to AI by variable $history
+
 ## 0.1.66 (2023-7-5)
 
 - chore: update deps
