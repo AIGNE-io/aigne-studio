@@ -80,7 +80,7 @@ function Exporter({
           <Typography>{t('alert.exportTip')}</Typography>
           <Box component="ul" sx={{ pl: 2 }}>
             {list.map((template) => (
-              <Box key={template.meta.id} component="li">
+              <Box key={template.meta.id} component="li" sx={{ wordWrap: 'break-word' }}>
                 {template.meta.name || template.meta.id}
               </Box>
             ))}

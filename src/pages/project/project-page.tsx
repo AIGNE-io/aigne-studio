@@ -8,6 +8,7 @@ import {
   Download,
   DragIndicator,
   HighlightOff,
+  History,
   InfoOutlined,
   Save,
   Start,
@@ -376,7 +377,9 @@ export default function ProjectPage() {
           onCommitSelect={(commit) => {
             navigate(joinUrl('..', commit.oid), { state: { filepath } });
           }}>
-          <Button endIcon={<ArrowDropDown fontSize="small" />}>{t('alert.history')}</Button>
+          <Button startIcon={<History />} endIcon={<ArrowDropDown fontSize="small" />}>
+            {t('alert.history')}
+          </Button>
         </CommitsTip>
       ),
       [commits, filepath, navigate, ref, t]
@@ -445,8 +448,8 @@ export default function ProjectPage() {
 
                         <Box component="ul">
                           {children.map((item) => (
-                            <Box key={item.id} component="li">
-                              {item.text}
+                            <Box key={item.id} component="li" sx={{ wordWrap: 'break-word' }}>
+                              {(item.data?.type === 'file' && item.data.meta.name) || item.text}
                             </Box>
                           ))}
                         </Box>
@@ -482,7 +485,11 @@ export default function ProjectPage() {
               showDialog({
                 maxWidth: 'xs',
                 fullWidth: true,
-                title: t('alert.deleteTemplate', { template: template.name || template.id }),
+                title: (
+                  <Box sx={{ wordWrap: 'break-word' }}>
+                    {t('alert.deleteTemplate', { template: template.name || template.id })}
+                  </Box>
+                ),
                 content: referrers.length ? (
                   <>
                     {t('alert.deleteTemplateContent', { references: referrers.length })}
