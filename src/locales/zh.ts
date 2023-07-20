@@ -75,6 +75,7 @@ export default flat({
     deleteTemplates: '下列模版将会被删除',
     cancel: '取消',
     delete: '删除',
+    edit: '编辑',
     ok: '确定',
     saved: '保存成功',
     deleted: '删除成功',
@@ -88,5 +89,6 @@ export default flat({
     updatedAt: '更新于',
     history: '历史记录',
     branchCreated: '创建分支成功',
+    deleteProject: '删除项目“{project}”？\n删除之后不可找回！',
   },
 });

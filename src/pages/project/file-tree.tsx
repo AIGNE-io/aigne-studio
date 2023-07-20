@@ -414,7 +414,7 @@ function FolderTreeItem({
             onBlur={submit}
           />
         ) : (
-          text || 'Untitled'
+          text || t('alert.unnamed')
         )}
       </Box>
 
@@ -476,6 +476,8 @@ function TemplateTreeItem({
   actions,
   ...props
 }: { template: Template; depth: number; actions?: ReactNode } & BoxProps) {
+  const { t } = useLocaleContext();
+
   const { icon, color } = (template.type &&
     {
       branch: { icon: 'fluent:branch-16-regular', color: 'secondary.main' },
@@ -506,7 +508,7 @@ function TemplateTreeItem({
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         }}>
-        {template.name || 'Untitled'}
+        {template.name || t('alert.unnamed')}
       </Box>
       {actions && (
         <Box

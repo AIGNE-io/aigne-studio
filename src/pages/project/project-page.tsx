@@ -30,6 +30,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  tooltipClasses,
 } from '@mui/material';
 import { useAsyncEffect, useLocalStorageState } from 'ahooks';
 import equal from 'fast-deep-equal';
@@ -99,7 +100,7 @@ export default function ProjectPage() {
     if (p && typeof p === 'string') {
       const name = p.split('/').slice(-1)[0];
       const file = files.find((i): i is typeof i & { type: 'file' } => i.type === 'file' && i.name === name);
-      if (file) navigate(joinUrl(...file.parent, file.name));
+      if (file) navigate(joinUrl(...file.parent, file.name), { replace: true });
     }
   }, [ref, files, location]);
 
@@ -346,6 +347,13 @@ export default function ProjectPage() {
     useMemo(
       () => (
         <Dropdown
+          sx={{
+            [`.${tooltipClasses.tooltip}`]: {
+              minWidth: 200,
+              maxHeight: '60vh',
+              overflow: 'auto',
+            },
+          }}
           dropdown={
             <BranchList
               projectId={projectId}
@@ -504,7 +512,7 @@ export default function ProjectPage() {
               const to = p.join('/');
               if (to !== filepath) navigate(to);
             }}
-            onLaunch={onLaunch}
+            onLaunch={assistant && onLaunch}
           />
         </Box>
         <ResizeHandle />
@@ -597,12 +605,14 @@ const TemplateEditor = forwardRef<
           showCreateBranchDialog({
             maxWidth: 'sm',
             fullWidth: true,
-            title: 'Create a branch',
+            title: `${t('form.new')} ${t('form.branch')}`,
             content: (
               <Box>
-                <TextField label="Branch Name" onChange={(e) => (name = e.target.value)} />
+                <TextField label={t('form.name')} onChange={(e) => (name = e.target.value)} />
               </Box>
             ),
+            okText: t('form.save'),
+            cancelText: t('alert.cancel'),
             onOk: async () => {
               try {
                 await createBranch({ projectId, input: { ref: name, oid: ref } });

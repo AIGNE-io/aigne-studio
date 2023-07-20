@@ -75,6 +75,7 @@ export default flat({
     deleteTemplates: 'The following templates will be deleted',
     cancel: 'Cancel',
     delete: 'Delete',
+    edit: 'Edit',
     ok: 'Ok',
     saved: 'Saved',
     deleted: 'Deleted',
@@ -88,5 +89,6 @@ export default flat({
     updatedAt: 'Updated At',
     history: 'History',
     branchCreated: 'Branch created',
+    deleteProject: 'Delete project "{project}"?\nIt cannot be retrieved after deletion!',
   },
 });

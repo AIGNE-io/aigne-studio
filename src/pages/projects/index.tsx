@@ -3,9 +3,10 @@ import Dashboard from '@blocklet/ui-react/lib/Dashboard';
 import styled from '@emotion/styled';
 import { Fullscreen, FullscreenExit } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
-import { ReactNode, Suspense, lazy, useCallback } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { ReactNode, Suspense, lazy, useCallback, useEffect, useRef } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
+import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
 import { useAddonsState } from '../../contexts/dashboard';
 
@@ -23,17 +24,26 @@ export default function ProjectsRoutes() {
     [addons]
   );
 
+  const errorBoundary = useRef<ErrorBoundary>(null);
+
+  const location = useLocation();
+  useEffect(() => {
+    errorBoundary.current?.reset();
+  }, [location]);
+
   return (
     <AdminLayout footerProps={{ className: 'dashboard-footer' }} headerAddons={headerAddons}>
-      <Suspense fallback={<Loading />}>
-        <Routes>
-          <Route index element={<ProjectsPage />} />
-          <Route path=":projectId">
-            <Route index element={<Navigate to="main" replace />} />
-            <Route path=":ref/*" element={<ProjectPage />} />
-          </Route>
-        </Routes>
-      </Suspense>
+      <ErrorBoundary ref={errorBoundary}>
+        <Suspense fallback={<Loading />}>
+          <Routes>
+            <Route index element={<ProjectsPage />} />
+            <Route path=":projectId">
+              <Route index element={<Navigate to="main" replace />} />
+              <Route path=":ref/*" element={<ProjectPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </AdminLayout>
   );
 }

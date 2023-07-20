@@ -37,7 +37,7 @@ export default function useDialog() {
       onOk?: () => Promise<any> | any;
       onMiddleClick?: () => Promise<any> | any;
       onCancel?: () => Promise<any> | any;
-    } & Omit<DialogProps, 'open'>) => {
+    } & Omit<DialogProps, 'title' | 'open'>) => {
       setProps({
         ...props,
         open: true,

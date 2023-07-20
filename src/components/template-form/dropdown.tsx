@@ -11,7 +11,14 @@ import {
 } from '@mui/material';
 import { ReactElement, ReactNode, cloneElement, useState } from 'react';
 
-export default function Dropdown({ children, dropdown }: { children: ReactElement; dropdown: ReactNode }) {
+export default function Dropdown({
+  children,
+  dropdown,
+  ...props
+}: {
+  children: ReactElement;
+  dropdown: ReactNode;
+} & Pick<TooltipProps, 'PopperProps' | 'placement' | 'sx'>) {
   const [open, setOpen] = useState(false);
 
   const handleTooltipClose = () => {
@@ -26,19 +33,12 @@ export default function Dropdown({ children, dropdown }: { children: ReactElemen
     <ClickAwayListener onClickAway={handleTooltipClose}>
       <div>
         <Tooltip
-          PopperProps={{ disablePortal: true }}
+          {...props}
           onClose={handleTooltipClose}
           open={open}
           disableFocusListener
           disableHoverListener
           disableTouchListener
-          sx={{
-            [`.${tooltipClasses.tooltip}`]: {
-              minWidth: 200,
-              maxHeight: '60vh',
-              overflow: 'auto',
-            },
-          }}
           title={<Box onClick={handleTooltipClose}>{dropdown}</Box>}>
           {cloneElement(children, { onClick: handleTooltipOpen })}
         </Tooltip>
