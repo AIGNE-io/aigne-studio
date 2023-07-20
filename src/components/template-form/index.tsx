@@ -31,7 +31,7 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
-import { Commit, getLogs } from '../../libs/logs';
+import { Commit, getLogs } from '../../libs/log';
 import Branches from './branches';
 import CommitsTip from './commits-tip';
 import Datasets from './datasets';
@@ -59,6 +59,7 @@ export type TemplateForm = Pick<
 >;
 
 export default function TemplateFormView({
+  projectId,
   _ref: ref,
   path,
   hash,
@@ -68,6 +69,7 @@ export default function TemplateFormView({
   onExecute,
   onTemplateClick,
 }: {
+  projectId: string;
   _ref: string;
   path: string;
   hash?: string;
@@ -190,7 +192,13 @@ export default function TemplateFormView({
             {t('alert.updatedAt')}:
           </Typography>
 
-          <Commits key={form.updatedAt} _ref={ref} path={path} hash={hash} onCommitSelect={onCommitSelect}>
+          <Commits
+            key={form.updatedAt}
+            projectId={projectId}
+            _ref={ref}
+            path={path}
+            hash={hash}
+            onCommitSelect={onCommitSelect}>
             <Button
               sx={{ ml: 1 }}
               color="inherit"
@@ -330,6 +338,7 @@ export default function TemplateFormView({
       </Grid>
       <Grid item xs={12}>
         <TagsAutoComplete
+          projectId={projectId}
           label={t('form.tag')}
           value={form.tags ?? []}
           onChange={(_, value) => onChange((form) => (form.tags = value))}
@@ -342,7 +351,7 @@ export default function TemplateFormView({
 
       {form.type === 'branch' && (
         <Grid item xs={12}>
-          <Branches value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+          <Branches projectId={projectId} value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 
@@ -356,7 +365,7 @@ export default function TemplateFormView({
 
       {form.type !== 'image' && (
         <Grid item xs={12}>
-          <Next value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+          <Next projectId={projectId} value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 
@@ -370,14 +379,16 @@ export default function TemplateFormView({
 }
 
 function Commits({
+  projectId,
   _ref: ref,
   path,
   ...props
 }: {
+  projectId: string;
   _ref: string;
   path?: string;
 } & Omit<ComponentProps<typeof CommitsTip>, 'commits' | 'loading'>) {
-  const { value, loading, error } = useAsync(() => getLogs({ ref, path }), [path]);
+  const { value, loading, error } = useAsync(() => getLogs({ projectId, ref, path }), [path]);
   if (error) console.error(error);
 
   return <CommitsTip {...props} loading={loading} commits={value?.commits} />;

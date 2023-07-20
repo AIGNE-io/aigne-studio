@@ -1,13 +1,16 @@
 import { useCallback } from 'react';
-import { atom, useRecoilState } from 'recoil';
+import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import { EntryWithMeta } from '../../../api/src/routes/tree';
-import { getBranches } from '../../libs/branches';
-import * as branchApi from '../../libs/branches';
-import { Commit, getLogs } from '../../libs/logs';
+import { Project } from '../../../api/src/store/projects';
+import { getBranches } from '../../libs/branche';
+import * as branchApi from '../../libs/branche';
+import { Commit, getLogs } from '../../libs/log';
+import { getProject } from '../../libs/project';
 import * as api from '../../libs/tree';
 
 export interface ProjectState {
+  project?: Project;
   files: EntryWithMeta[];
   branches: string[];
   commits: Commit[];
@@ -15,23 +18,30 @@ export interface ProjectState {
   error?: Error;
 }
 
-const projectState = atom<ProjectState>({
-  key: 'projectState',
-  default: { files: [], branches: [], commits: [] },
-});
+const projectStates: { [key: string]: RecoilState<ProjectState> } = {};
 
-export const useProjectState = (ref: string) => {
-  const [state, setState] = useRecoilState(projectState);
+const projectState = (projectId: string) => {
+  projectStates[projectId] ??= atom<ProjectState>({
+    key: `projectState-${projectId}`,
+    default: { files: [], branches: [], commits: [] },
+  });
+
+  return projectStates[projectId]!;
+};
+
+export const useProjectState = (projectId: string, ref: string) => {
+  const [state, setState] = useRecoilState(projectState(projectId));
 
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
-      const [{ files }, { branches }, { commits }] = await Promise.all([
-        api.getTree({ ref }),
-        getBranches(),
-        getLogs({ ref }),
+      const [project, { files }, { branches }, { commits }] = await Promise.all([
+        getProject(projectId),
+        api.getTree({ projectId, ref }),
+        getBranches({ projectId }),
+        getLogs({ projectId, ref }),
       ]);
-      setState((v) => ({ ...v, ref, files, branches, commits, error: undefined }));
+      setState((v) => ({ ...v, project, ref, files, branches, commits, error: undefined }));
       return { files };
     } catch (error) {
       setState((v) => ({ ...v, error }));
@@ -39,7 +49,7 @@ export const useProjectState = (ref: string) => {
     } finally {
       setState((v) => ({ ...v, loading: false }));
     }
-  }, [ref, setState]);
+  }, [projectId, ref, setState]);
 
   const createFile: typeof api.createFile = useCallback(
     async (args) => {

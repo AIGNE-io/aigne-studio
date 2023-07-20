@@ -5,16 +5,18 @@ import { WritableDraft } from 'immer/dist/internal';
 import { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { isTemplateEmpty } from '../../libs/templates';
+import { isTemplateEmpty } from '../../libs/template';
 import { useProjectState } from '../../pages/project/state';
 import TemplateAutocomplete from './template-autocomplete';
 import type { TemplateForm } from '.';
 
 export default function Next({
+  projectId,
   value,
   onChange,
   onTemplateClick,
 }: {
+  projectId: string;
   value: Pick<TemplateForm, 'next'>;
   onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
   onTemplateClick?: (template: { id: string }) => void;
@@ -26,7 +28,7 @@ export default function Next({
   const {
     state: { files },
     createFile,
-  } = useProjectState(ref);
+  } = useProjectState(projectId, ref);
 
   const templates = useMemo(() => {
     return files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file').map((i) => i.meta);
@@ -59,7 +61,9 @@ export default function Next({
           }
           renderInput={(params) => <TextField {...params} label={t('form.next')} />}
           options={templates}
-          createTemplate={(data) => createFile({ branch: ref, path: path || '', input: { type: 'file', data } })}
+          createTemplate={(data) =>
+            createFile({ projectId, branch: ref, path: path || '', input: { type: 'file', data } })
+          }
         />
 
         <TextField

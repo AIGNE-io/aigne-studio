@@ -1,18 +1,21 @@
 import Joi from 'joi';
+import joinUrl from 'url-join';
 
 import { Template } from '../../api/src/store/templates';
 import axios from './api';
 
 export async function importTemplates({
+  projectId,
   branch,
   path,
   templates,
 }: {
+  projectId: string;
   branch: string;
   path: string;
   templates: Template[];
 }): Promise<Template> {
-  return axios.post('/api/import', { branch, path, templates }).then((res) => res.data);
+  return axios.post(joinUrl('/api/projects', projectId, 'import'), { branch, path, templates }).then((res) => res.data);
 }
 
 const valueSchema = Joi.alternatives().conditional('type', {

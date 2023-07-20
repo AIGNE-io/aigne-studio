@@ -16,6 +16,7 @@ export default flat({
     prompt: 'Prompt',
     branch: 'Branch',
     dataset: 'Dataset',
+    project: 'Project',
     add: 'Add',
     type: 'Type',
     mode: 'Mode',

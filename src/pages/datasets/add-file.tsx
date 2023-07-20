@@ -25,7 +25,7 @@ import { CreateItem } from '../../../api/src/routes/dataset-items';
 import { useComponent } from '../../contexts/component';
 import { useDataset } from '../../contexts/dataset-items';
 import { getErrorMessage } from '../../libs/api';
-import { createDatasetItem } from '../../libs/datasets';
+import { createDatasetItem } from '../../libs/dataset';
 import { DiscussionItem, searchDiscussions } from '../../libs/discussion';
 
 export default function AddFilePage() {

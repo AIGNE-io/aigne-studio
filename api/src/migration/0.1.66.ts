@@ -8,7 +8,8 @@ import { stringify } from 'yaml';
 import env from '../libs/env';
 import logger from '../libs/logger';
 import { folders } from '../store/folders';
-import { Template, defaultRepository, templates } from '../store/templates';
+import { getRepository } from '../store/projects';
+import { Template, templates } from '../store/templates';
 
 const { name } = require('../../../package.json');
 
@@ -18,6 +19,8 @@ async function migrate() {
   if (existsSync(oldTimeMachineDir)) {
     rmSync(oldTimeMachineDir, { force: true, recursive: true });
   }
+
+  const defaultRepository = getRepository();
 
   if (!existsSync(defaultRepository.dir)) {
     const folderMap = Object.fromEntries(folders.getAllData().map((folder) => [folder._id!, folder.name]));

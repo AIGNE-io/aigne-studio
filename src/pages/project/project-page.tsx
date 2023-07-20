@@ -1,16 +1,12 @@
-import { useFullPage } from '@arcblock/ux/lib/Layout/dashboard/full-page';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
-import Dashboard from '@blocklet/ui-react/lib/Dashboard';
-import styled from '@emotion/styled';
 import {
+  ArrowBackIosNew,
   ArrowDropDown,
   CallSplit,
   Download,
   DragIndicator,
-  Fullscreen,
-  FullscreenExit,
   HighlightOff,
   InfoOutlined,
   Save,
@@ -22,9 +18,11 @@ import {
   Alert,
   Box,
   BoxProps,
+  Breadcrumbs,
   Button,
   CircularProgress,
-  IconButton,
+  Divider,
+  Link,
   List,
   ListItem,
   ListItemButton,
@@ -50,7 +48,7 @@ import {
   useState,
 } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { useBeforeUnload, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link as RouterLink, useBeforeUnload, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useUpdate } from 'react-use';
 import joinUrl from 'url-join';
 import { parse } from 'yaml';
@@ -61,11 +59,11 @@ import TemplateFormView from '../../components/template-form';
 import CommitsTip from '../../components/template-form/commits-tip';
 import Dropdown from '../../components/template-form/dropdown';
 import { useComponent } from '../../contexts/component';
-import { useAddon, useAddonsState } from '../../contexts/dashboard';
+import { useAddon } from '../../contexts/dashboard';
 import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import { importBodySchema, importTemplates } from '../../libs/import';
-import { Commit } from '../../libs/logs';
+import { Commit } from '../../libs/log';
 import { getFile } from '../../libs/tree';
 import useDialog from '../../utils/use-dialog';
 import usePickFile, { readFileAsText } from '../../utils/use-pick-file';
@@ -73,24 +71,24 @@ import { useExportFiles } from './export-files';
 import FileTree, { TreeNode } from './file-tree';
 import { useProjectState } from './state';
 
-const PREVIOUS_FILE_PATH = 'ai-studio.previousFilePath';
+const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
 
 export default function ProjectPage() {
-  const { ref, '*': filepath } = useParams();
-  if (!ref) throw new Error('Missing required params `ref`');
+  const { projectId, ref, '*': filepath } = useParams();
+  if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
 
   const {
-    state: { files, branches, commits },
+    state: { project, files, branches, commits },
     refetch,
     createFile,
     deleteFile,
-  } = useProjectState(ref);
+  } = useProjectState(projectId, ref);
 
   const location = useLocation();
   const navigate = useNavigate();
 
   const [previousFilePath, setPreviousFilePath] = useLocalStorageState<{ [key: string]: string } | undefined>(
-    PREVIOUS_FILE_PATH
+    PREVIOUS_FILE_PATH(projectId)
   );
 
   useEffect(() => {
@@ -196,9 +194,9 @@ export default function ProjectPage() {
     async (node?: TreeNode | string, { quiet }: { quiet?: boolean } = {}) => {
       if (!(await editor.current?.requireSave())) return;
 
-      exportFiles(ref, node, { quiet });
+      exportFiles(projectId, ref, node, { quiet });
     },
-    [exportFiles, ref]
+    [exportFiles, projectId, ref]
   );
 
   const pickFile = usePickFile();
@@ -283,7 +281,7 @@ export default function ProjectPage() {
           okText: t('alert.import'),
           onOk: async () => {
             try {
-              await importTemplates({ branch: ref, path: path?.join('/') || '', templates });
+              await importTemplates({ projectId, branch: ref, path: path?.join('/') || '', templates });
               editor.current?.reload();
               await refetch();
               Toast.success(t('alert.imported'));
@@ -298,28 +296,37 @@ export default function ProjectPage() {
         throw error;
       }
     },
-    [files, pickFile, ref, refetch, showDialog, t]
+    [files, onExport, pickFile, projectId, ref, refetch, showDialog, t]
   );
 
-  const [{ addons }] = useAddonsState();
-
-  const headerAddons = useCallback(
-    ([...exists]: ReactNode[]) => {
-      exists.unshift(...Object.values(addons));
-
-      exists.unshift(
+  useAddon(
+    'import',
+    useMemo(
+      () => (
         <Button startIcon={<Upload />} onClick={() => onImport()}>
           {t('alert.import')}
         </Button>
-      );
+      ),
+      [onImport, t]
+    )
+  );
 
-      exists.unshift(
+  useAddon(
+    'export',
+    useMemo(
+      () => (
         <Button startIcon={<Download />} onClick={() => onExport()}>
           {t('alert.export')}
         </Button>
-      );
+      ),
+      [onExport, t]
+    )
+  );
 
-      exists.unshift(
+  useAddon(
+    'commits',
+    useMemo(
+      () => (
         <CommitsTip
           loading={!commits.length}
           commits={commits}
@@ -329,12 +336,19 @@ export default function ProjectPage() {
           }}>
           <Button endIcon={<ArrowDropDown fontSize="small" />}>{t('alert.history')}</Button>
         </CommitsTip>
-      );
+      ),
+      [commits, filepath, navigate, ref, t]
+    )
+  );
 
-      exists.unshift(
+  useAddon(
+    'branches',
+    useMemo(
+      () => (
         <Dropdown
           dropdown={
             <BranchList
+              projectId={projectId}
               _ref={ref}
               onItemClick={(branch) => branch !== ref && navigate(joinUrl('..', branch), { state: { filepath } })}
             />
@@ -353,17 +367,13 @@ export default function ProjectPage() {
             </Box>
           </Button>
         </Dropdown>
-      );
-
-      exists.unshift(<ToggleFullscreen />);
-
-      return exists;
-    },
-    [addons, commits, filepath, navigate, onExport, onImport, ref, t]
+      ),
+      [filepath, navigate, projectId, ref]
+    )
   );
 
   return (
-    <Root footerProps={{ className: 'dashboard-footer' }} headerAddons={headerAddons}>
+    <>
       {dialog}
       {exporter}
 
@@ -373,14 +383,30 @@ export default function ProjectPage() {
         direction="horizontal"
         sx={{ height: '100%' }}>
         <Box component={Panel} defaultSize={10} minSize={10}>
+          <Box py={2} px={1}>
+            <Breadcrumbs>
+              <Link component={RouterLink} underline="hover" to="../.." sx={{ display: 'flex', alignItems: 'center' }}>
+                <ArrowBackIosNew sx={{ mr: 0.5, fontSize: 18 }} />
+                {t('form.project')}
+              </Link>
+              <Typography color="text.primary">
+                {project ? project.name || 'Unnamed' : <CircularProgress size={14} />}
+              </Typography>
+            </Breadcrumbs>
+          </Box>
+
+          <Divider />
+
           <FileTree
             current={filepath}
+            projectId={projectId}
             _ref={ref}
             sx={{ height: '100%', overflow: 'auto' }}
             className="list"
             onCreate={async (data, path) => {
               try {
                 const res = await createFile({
+                  projectId,
                   branch: ref,
                   path: path?.join('/') || '',
                   input: { type: 'file', data: data ?? {} },
@@ -421,7 +447,7 @@ export default function ProjectPage() {
                 cancelText: t('alert.cancel'),
                 onOk: async () => {
                   try {
-                    await deleteFile({ branch: ref, path: path.join('/') });
+                    await deleteFile({ projectId, branch: ref, path: path.join('/') });
                     if (children.some((i) => i.data && i.data.parent.concat(i.data.name).join('/') === filepath)) {
                       navigate('.');
                     }
@@ -463,7 +489,7 @@ export default function ProjectPage() {
                 onOk: async () => {
                   try {
                     const p = joinUrl(...path);
-                    await deleteFile({ branch: ref, path: p });
+                    await deleteFile({ projectId, branch: ref, path: p });
                     if (p === filepath) navigate('.');
                     Toast.success(t('alert.deleted'));
                   } catch (error) {
@@ -490,7 +516,9 @@ export default function ProjectPage() {
               </Box>
             )}
 
-            {filepath && <TemplateEditor ref={editor} _ref={ref} path={filepath} onExecute={onExecute} />}
+            {filepath && (
+              <TemplateEditor projectId={projectId} ref={editor} _ref={ref} path={filepath} onExecute={onExecute} />
+            )}
           </Box>
         </Box>
         <ResizeHandle />
@@ -504,14 +532,22 @@ export default function ProjectPage() {
           />
         </Box>
       </Box>
-    </Root>
+    </>
   );
 }
 
-function BranchList({ _ref: ref, onItemClick }: { _ref: string; onItemClick?: (branch: string) => any }) {
+function BranchList({
+  projectId,
+  _ref: ref,
+  onItemClick,
+}: {
+  projectId: string;
+  _ref: string;
+  onItemClick?: (branch: string) => any;
+}) {
   const {
     state: { branches },
-  } = useProjectState(ref);
+  } = useProjectState(projectId, ref);
 
   return (
     <List disablePadding dense>
@@ -533,8 +569,8 @@ interface TemplateEditorInstance {
 
 const TemplateEditor = forwardRef<
   TemplateEditorInstance,
-  { _ref: string; path: string; onExecute: (template: Template) => any }
->(({ _ref: ref, path, onExecute }, _ref) => {
+  { projectId: string; _ref: string; path: string; onExecute: (template: Template) => any }
+>(({ projectId, _ref: ref, path, onExecute }, _ref) => {
   const { t } = useLocaleContext();
 
   const navigate = useNavigate();
@@ -548,7 +584,7 @@ const TemplateEditor = forwardRef<
 
   const { form, original, formChanged, deletedBranchTemplateIds, setForm, resetForm } = useFormState();
 
-  const { state: projectState, putFile, createBranch } = useProjectState(ref);
+  const { state: projectState, putFile, createBranch } = useProjectState(projectId, ref);
 
   const save = useCallback(async () => {
     if (!formChanged.current) return;
@@ -569,7 +605,7 @@ const TemplateEditor = forwardRef<
             ),
             onOk: async () => {
               try {
-                await createBranch({ ref: name, oid: ref });
+                await createBranch({ projectId, input: { ref: name, oid: ref } });
                 resolve(name);
               } catch (error) {
                 Toast.error(getErrorMessage(error));
@@ -582,6 +618,7 @@ const TemplateEditor = forwardRef<
     try {
       setSubmitting(true);
       const res = await putFile({
+        projectId,
         ref: branch,
         path,
         data: {
@@ -600,7 +637,18 @@ const TemplateEditor = forwardRef<
     } finally {
       setSubmitting(false);
     }
-  }, [createBranch, navigate, path, projectState.branches, putFile, ref, resetForm, showCreateBranchDialog, t]);
+  }, [
+    projectId,
+    createBranch,
+    navigate,
+    path,
+    projectState.branches,
+    putFile,
+    ref,
+    resetForm,
+    showCreateBranchDialog,
+    t,
+  ]);
 
   const requireSave = useCallback(async () => {
     if (!formChanged.current) return true;
@@ -644,7 +692,7 @@ const TemplateEditor = forwardRef<
     try {
       resetForm();
       setError(undefined);
-      const res = await getFile({ ref, path });
+      const res = await getFile({ projectId, ref, path });
       resetForm(res);
       return res;
     } catch (error) {
@@ -691,7 +739,7 @@ const TemplateEditor = forwardRef<
   const onCommitSelect = useCallback(
     async (commit: Commit) => {
       try {
-        const res = await getFile({ ref: commit.oid, path });
+        const res = await getFile({ projectId, ref: commit.oid, path });
         setHash(commit.oid);
         setForm(res);
       } catch (error) {
@@ -720,6 +768,7 @@ const TemplateEditor = forwardRef<
       {createBranchDialog}
 
       <TemplateFormView
+        projectId={projectId}
         _ref={ref}
         path={path}
         hash={hash}
@@ -826,20 +875,6 @@ function useSaveShortcut(save: () => any) {
   }, [save]);
 }
 
-const Root = styled(Dashboard)`
-  > .dashboard-body > .dashboard-main {
-    > .dashboard-content {
-      overflow: hidden;
-      padding: 0;
-    }
-
-    > .dashboard-footer {
-      margin-top: 0;
-      padding: 0;
-    }
-  }
-`;
-
 function ResizeHandle() {
   return (
     <Box
@@ -859,10 +894,4 @@ function ResizeHandle() {
       <DragIndicator sx={{ fontSize: 14 }} />
     </Box>
   );
-}
-
-function ToggleFullscreen() {
-  const { inFullPage, toggleFullPage } = useFullPage();
-
-  return <IconButton onClick={toggleFullPage}>{inFullPage ? <FullscreenExit /> : <Fullscreen />}</IconButton>;
 }

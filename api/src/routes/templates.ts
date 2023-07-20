@@ -5,8 +5,9 @@ import Joi from 'joi';
 import { stringify } from 'yaml';
 
 import { ensureComponentCallOrAdmin } from '../libs/security';
+import { getRepository } from '../store/projects';
 import { Transaction } from '../store/repository';
-import { Template, defaultRepository, getTemplate, nextTemplateId, roles } from '../store/templates';
+import { Template, getTemplate, nextTemplateId, roles } from '../store/templates';
 
 const router = Router();
 
@@ -142,20 +143,23 @@ export const templateSchema = Joi.object<TemplateInput>({
 });
 
 const getTemplatesSchema = Joi.object<{
+  projectId?: string;
   tag?: string;
   type?: 'image';
 }>({
+  projectId: Joi.string().empty(''),
   tag: Joi.string().empty(''),
   type: Joi.string().valid('image').empty(''),
 });
 
 router.get('/', ensureComponentCallOrAdmin(), async (req, res) => {
-  const { tag, type } = await getTemplatesSchema.validateAsync(req.query, { stripUnknown: true });
+  const { projectId, tag, type } = await getTemplatesSchema.validateAsync(req.query, { stripUnknown: true });
+  const repository = getRepository(projectId);
 
   let templates = await Promise.all(
-    (await defaultRepository.getFiles())
+    (await repository.getFiles())
       .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
-      .map((i) => getTemplate({ path: join(...i.parent, i.name) }))
+      .map((i) => getTemplate({ repository, path: join(...i.parent, i.name) }))
   );
 
   if (tag) {
@@ -168,7 +172,8 @@ router.get('/', ensureComponentCallOrAdmin(), async (req, res) => {
   res.json({ templates });
 });
 
-const getTemplateQuerySchema = Joi.object<{ hash?: string }>({
+const getTemplateQuerySchema = Joi.object<{ projectId?: string; hash?: string }>({
+  projectId: Joi.string().empty(''),
   hash: Joi.string().empty(''),
 });
 
@@ -176,9 +181,13 @@ router.get('/:templateId', ensureComponentCallOrAdmin(), async (req, res) => {
   const { templateId } = req.params;
   if (!templateId) throw new Error('Missing required params `templateId`');
 
-  const { hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  const { projectId, hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const template = await getTemplate({ ref: hash, templateId });
+  const template = await getTemplate({
+    repository: getRepository(projectId),
+    ref: hash,
+    templateId,
+  });
 
   res.json(template);
 });

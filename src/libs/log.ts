@@ -13,6 +13,14 @@ export type Commit = ReadCommitResult & {
   };
 };
 
-export async function getLogs({ ref, path }: { ref?: string; path?: string } = {}): Promise<{ commits: Commit[] }> {
-  return axios.get(joinUrl('/api/logs', ref || '', path || '')).then((res) => res.data);
+export async function getLogs({
+  projectId,
+  ref,
+  path,
+}: {
+  projectId: string;
+  ref?: string;
+  path?: string;
+}): Promise<{ commits: Commit[] }> {
+  return axios.get(joinUrl('/api/projects', projectId, 'logs', ref || '', path || '')).then((res) => res.data);
 }

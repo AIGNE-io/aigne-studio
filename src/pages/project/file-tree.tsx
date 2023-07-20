@@ -31,6 +31,7 @@ import { useProjectState } from './state';
 export type TreeNode = NodeModel<EntryWithMeta>;
 
 export default function FileTree({
+  projectId,
   _ref: ref,
   current,
   onCreate,
@@ -42,6 +43,7 @@ export default function FileTree({
   onRemoveFolder,
   ...props
 }: {
+  projectId: string;
   _ref: string;
   current?: string;
   onCreate?: (input?: TemplateInput, path?: string[]) => any;
@@ -59,7 +61,7 @@ export default function FileTree({
     refetch,
     createFile,
     moveFile,
-  } = useProjectState(ref);
+  } = useProjectState(projectId, ref);
   if (error) throw error;
 
   const tree = useMemo<TreeNode[]>(() => {
@@ -117,7 +119,8 @@ export default function FileTree({
           defaultEditing
           onSubmit={async (value) => {
             const name = value.trim();
-            if (name) await createFile({ branch: 'main', path: '', input: { type: 'folder', data: { name } } });
+            if (name)
+              await createFile({ projectId, branch: 'main', path: '', input: { type: 'folder', data: { name } } });
             setShowNewProject(false);
           }}
           onCancel={() => setShowNewProject(false)}
@@ -152,7 +155,7 @@ export default function FileTree({
                 .concat(source.name)
                 .join('/');
 
-              await moveFile({ branch: 'main', path: src, to: dst });
+              await moveFile({ projectId, branch: 'main', path: src, to: dst });
               if (dropTarget && !openIds.includes(dropTarget.id)) {
                 setOpenIds((ids) => (ids ?? []).concat(dropTarget.id));
               }
@@ -193,6 +196,7 @@ export default function FileTree({
                     const { data } = node;
                     if (!data || name === data.name) return;
                     await moveFile({
+                      projectId,
                       branch: 'main',
                       path: data.parent.concat(data.name).join('/'),
                       to: data.parent.concat(name).join('/'),

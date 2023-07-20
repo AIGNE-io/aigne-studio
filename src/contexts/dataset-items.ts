@@ -3,7 +3,7 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import { DatasetItem } from '../../api/src/store/dataset-items';
 import { Dataset } from '../../api/src/store/datasets';
-import { getDataset, getDatasetItems } from '../libs/datasets';
+import { getDataset, getDatasetItems } from '../libs/dataset';
 
 interface DatasetState {
   dataset?: Dataset;

@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { ReactElement, cloneElement, useState } from 'react';
 
-import { Commit } from '../../libs/logs';
+import { Commit } from '../../libs/log';
 import Avatar from '../avatar';
 
 export default function CommitsTip({

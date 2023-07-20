@@ -6,12 +6,15 @@ import Joi from 'joi';
 import { stringify } from 'yaml';
 
 import { ensureComponentCallOrAdmin } from '../libs/security';
-import { Template, defaultRepository } from '../store/templates';
+import { getRepository } from '../store/projects';
+import { Template } from '../store/templates';
 import { templateSchema } from './templates';
 
-const router = Router();
-
-export const importBodySchema = Joi.object<{ branch: string; path: string; templates?: Template[] }>({
+export const importBodySchema = Joi.object<{
+  branch: string;
+  path: string;
+  templates?: Template[];
+}>({
   branch: Joi.string().required(),
   path: Joi.string().allow('').required(),
   templates: Joi.array()
@@ -28,28 +31,31 @@ export const importBodySchema = Joi.object<{ branch: string; path: string; templ
     )
     .required(),
 });
+export function importRoutes(router: Router) {
+  router.post('/projects/:projectId/import', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+    const { did } = req.user!;
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
 
-router.post('/', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-  const { did } = req.user!;
+    const { branch, path, templates } = await importBodySchema.validateAsync(req.body, { stripUnknown: true });
 
-  const { branch, path, templates } = await importBodySchema.validateAsync(req.body, { stripUnknown: true });
+    const repository = getRepository(projectId);
 
-  if (templates?.length) {
-    await defaultRepository.run(async (tx) => {
-      await tx.checkout({ ref: branch });
+    if (templates?.length) {
+      await repository.run(async (tx) => {
+        await tx.checkout({ ref: branch });
 
-      for (const template of templates) {
-        const old = await defaultRepository.findFile(`${template.id}.yaml`, { ref: branch, rejectIfNotFound: false });
-        if (old) await tx.rm({ path: old });
+        for (const template of templates) {
+          const old = await repository.findFile(`${template.id}.yaml`, { ref: branch, rejectIfNotFound: false });
+          if (old) await tx.rm({ path: old });
 
-        await tx.write({ path: join(path, `${template.id}.yaml`), data: stringify(template) });
-      }
+          await tx.write({ path: join(path, `${template.id}.yaml`), data: stringify(template) });
+        }
 
-      await tx.commit({ message: 'Import templates', author: { name: did, email: did } });
-    });
-  }
+        await tx.commit({ message: 'Import templates', author: { name: did, email: did } });
+      });
+    }
 
-  res.json({});
-});
-
-export default router;
+    res.json({});
+  });
+}

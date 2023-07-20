@@ -1,25 +1,29 @@
 import { Router } from 'express';
 
 import ai from './ai';
-import branches from './branches';
+import { branchRoutes } from './branch';
 import datasetItems from './dataset-items';
 import datasets from './datasets';
-import importRouter from './import';
-import logs from './logs';
-import tags from './tags';
+import { importRoutes } from './import';
+import { logRoutes } from './log';
+import { projectRoutes } from './project';
+import { templateTagRoutes } from './template-tag';
 import templates from './templates';
-import tree from './tree';
+import { treeRoutes } from './tree';
 
 const router = Router();
 
+projectRoutes(router);
+treeRoutes(router);
+logRoutes(router);
+importRoutes(router);
+branchRoutes(router);
+templateTagRoutes(router);
+
 router.use('/templates', templates);
+
 router.use('/ai', ai);
-router.use('/tags', tags);
-router.use('/import', importRouter);
 router.use('/datasets', datasets);
 router.use('/datasets', datasetItems);
-router.use('/tree', tree);
-router.use('/logs', logs);
-router.use('/branches', branches);
 
 export default router;

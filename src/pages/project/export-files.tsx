@@ -10,11 +10,13 @@ import { TreeNode } from './file-tree';
 import { useProjectState } from './state';
 
 function Exporter({
+  projectId,
   _ref: ref,
   node,
   quiet,
   onFinish,
 }: {
+  projectId: string;
   _ref: string;
   node?: TreeNode | string;
   quiet?: boolean;
@@ -26,7 +28,7 @@ function Exporter({
 
   const {
     state: { files },
-  } = useProjectState(ref);
+  } = useProjectState(projectId, ref);
 
   useEffect(() => {
     const list = !node
@@ -98,9 +100,14 @@ function Exporter({
 export function useExportFiles() {
   const [exporter, setExporter] = useState<ReactNode>();
 
-  const exportFiles = useCallback((ref: string, node?: TreeNode | string, { quiet }: { quiet?: boolean } = {}) => {
-    setExporter(<Exporter _ref={ref} node={node} quiet={quiet} onFinish={() => setExporter(undefined)} />);
-  }, []);
+  const exportFiles = useCallback(
+    (projectId: string, ref: string, node?: TreeNode | string, { quiet }: { quiet?: boolean } = {}) => {
+      setExporter(
+        <Exporter projectId={projectId} _ref={ref} node={node} quiet={quiet} onFinish={() => setExporter(undefined)} />
+      );
+    },
+    []
+  );
 
   return { exporter, exportFiles };
 }

@@ -16,6 +16,7 @@ export default flat({
     prompt: '提示',
     branch: '分支',
     dataset: '数据集',
+    project: '项目',
     add: '添加',
     type: '类型',
     mode: '模式',

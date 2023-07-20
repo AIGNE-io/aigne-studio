@@ -75,14 +75,7 @@ function AppRoutes() {
             <Navigate to="/" />
           )
         }>
-        <Route path="projects">
-          <Route index element={<Navigate to="default" replace />} />
-          <Route path="default">
-            <Route index element={<Navigate to="main" replace />} />
-            <Route path=":ref/*" element={<ProjectPage />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Route>
+        <Route path="projects/*" element={<ProjectsRoutes />} />
         <Route path="datasets/*" element={<DatasetsRoutes />} />
       </Route>
       <Route path="*" element={<NotFound />} />
@@ -90,9 +83,9 @@ function AppRoutes() {
   );
 }
 
-const DatasetsRoutes = lazy(() => import('./pages/datasets'));
+const ProjectsRoutes = lazy(() => import('./pages/projects'));
 
-const ProjectPage = lazy(() => import('./pages/project/project-page'));
+const DatasetsRoutes = lazy(() => import('./pages/datasets'));
 
 function Layout({ children }: { children: ReactNode }) {
   return (
