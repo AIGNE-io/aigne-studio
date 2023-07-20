@@ -369,7 +369,7 @@ export default function TemplateFormView({
         </Grid>
       )}
 
-      <Grid item xs={12}>
+      <Grid item xs={12} sx={{ position: 'sticky', bottom: 0, zIndex: 1 }}>
         <Button fullWidth variant="contained" onClick={submit}>
           {t('form.execute')}
         </Button>
