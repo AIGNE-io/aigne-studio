@@ -90,6 +90,6 @@ export default flat({
     history: '历史记录',
     branchCreated: '创建分支成功',
     deleteProject: '删除项目“{project}”？\n删除之后不可找回！',
-    onBranchTip: '你现在在历史记录中，保存更改时需要创建分支！',
+    onBranchTip: '你现在处于历史记录中，保存更改时需要创建分支！',
   },
 });

@@ -305,11 +305,11 @@ export default function ProjectPage() {
     'import',
     useMemo(
       () => (
-        <Button startIcon={<Upload />} onClick={() => onImport()}>
+        <Button disabled={!branches.includes(ref)} startIcon={<Upload />} onClick={() => onImport()}>
           {t('alert.import')}
         </Button>
       ),
-      [onImport, t]
+      [branches, onImport, ref, t]
     ),
     10
   );
@@ -318,11 +318,11 @@ export default function ProjectPage() {
     'export',
     useMemo(
       () => (
-        <Button startIcon={<Download />} onClick={() => onExport()}>
+        <Button disabled={!branches.includes(ref)} startIcon={<Download />} onClick={() => onExport()}>
           {t('alert.export')}
         </Button>
       ),
-      [onExport, t]
+      [branches, onExport, ref, t]
     ),
     11
   );
@@ -413,6 +413,7 @@ export default function ProjectPage() {
           <Divider />
 
           <FileTree
+            disabled={!branches.includes(ref)}
             current={filepath}
             projectId={projectId}
             _ref={ref}
@@ -606,7 +607,7 @@ const TemplateEditor = forwardRef<
   const { state: projectState, putFile, createBranch } = useProjectState(projectId, ref);
 
   const save = useCallback(async () => {
-    if (!formChanged.current) return;
+    if (projectState.branches.includes(ref) && !formChanged.current) return;
 
     const branch = projectState.branches.includes(ref)
       ? ref
@@ -659,16 +660,19 @@ const TemplateEditor = forwardRef<
       setSubmitting(false);
     }
   }, [
-    projectId,
-    createBranch,
-    navigate,
-    path,
     projectState.branches,
-    putFile,
     ref,
-    resetForm,
+    formChanged,
     showCreateBranchDialog,
     t,
+    createBranch,
+    projectId,
+    putFile,
+    path,
+    form,
+    deletedBranchTemplateIds,
+    resetForm,
+    navigate,
   ]);
 
   const requireSave = useCallback(async () => {
@@ -707,7 +711,7 @@ const TemplateEditor = forwardRef<
     });
 
     return res;
-  }, [save, resetForm, showDialog, t]);
+  }, [projectState.branches, ref, save, resetForm, showDialog, t]);
 
   const reload = useCallback(async () => {
     try {
@@ -744,7 +748,7 @@ const TemplateEditor = forwardRef<
     useMemo(() => {
       return (
         <LoadingButton
-          disabled={!formChanged.current}
+          disabled={projectState.branches.includes(ref) && !formChanged.current}
           loading={submitting}
           loadingPosition="start"
           startIcon={<Save />}
@@ -752,7 +756,7 @@ const TemplateEditor = forwardRef<
           {t('form.save')}
         </LoadingButton>
       );
-    }, [formChanged.current, save, submitting, t]),
+    }, [formChanged.current, projectState.branches, ref, save, submitting, t]),
     0
   );
 

@@ -34,6 +34,7 @@ export default function FileTree({
   projectId,
   _ref: ref,
   current,
+  disabled,
   onCreate,
   onDelete,
   onClick,
@@ -46,6 +47,7 @@ export default function FileTree({
   projectId: string;
   _ref: string;
   current?: string;
+  disabled?: boolean;
   onCreate?: (input?: TemplateInput, path?: string[]) => any;
   onDelete?: (template: Template, path: string[]) => void;
   onClick?: (template: Template, path: string[]) => void;
@@ -101,12 +103,12 @@ export default function FileTree({
           {t('main.templates')}
         </Typography>
 
-        <IconButton size="small" color="primary" onClick={() => setShowNewProject(true)}>
+        <IconButton disabled={disabled} size="small" color="primary" onClick={() => setShowNewProject(true)}>
           <CreateNewFolderOutlined fontSize="small" />
         </IconButton>
 
         {onCreate && (
-          <IconButton size="small" color="primary" onClick={() => onCreate({}, [])}>
+          <IconButton disabled={disabled} size="small" color="primary" onClick={() => onCreate({}, [])}>
             <Add fontSize="small" />
           </IconButton>
         )}
@@ -145,7 +147,7 @@ export default function FileTree({
           rootId=""
           initialOpen={openIds}
           onChangeOpen={setOpenIds}
-          canDrag={(node) => node?.data?.type === 'file'}
+          canDrag={(node) => !disabled && node?.data?.type === 'file'}
           onDrop={async (_, { dragSource, dropTarget }) => {
             const source = dragSource?.data;
             if (source) {
@@ -188,6 +190,7 @@ export default function FileTree({
               return (
                 <FolderTreeItem
                   key={node.id}
+                  disabled={disabled}
                   text={node.text}
                   depth={depth}
                   isOpen={isOpen}
@@ -216,7 +219,7 @@ export default function FileTree({
                       {onImport && (
                         <Tooltip title={t('alert.import')}>
                           <span>
-                            <Button size="small" onClick={() => onImport(path)}>
+                            <Button disabled={disabled} size="small" onClick={() => onImport(path)}>
                               <Upload fontSize="small" />
                             </Button>
                           </span>
@@ -225,6 +228,7 @@ export default function FileTree({
                       {onCreate && (
                         <Tooltip title={`${t('form.add')} ${t('form.template')}`}>
                           <Button
+                            disabled={disabled}
                             size="small"
                             onClick={() => {
                               onCreate({}, path);
@@ -237,6 +241,7 @@ export default function FileTree({
                       {onRemoveFolder && (
                         <Tooltip title={t('alert.delete')}>
                           <Button
+                            disabled={disabled}
                             size="small"
                             onClick={() =>
                               onRemoveFolder(
@@ -285,6 +290,7 @@ export default function FileTree({
                     {onCreate && (
                       <Tooltip title={t('alert.duplicate')}>
                         <Button
+                          disabled={disabled}
                           size="small"
                           onClick={() =>
                             onCreate({
@@ -299,7 +305,7 @@ export default function FileTree({
 
                     {onDelete && (
                       <Tooltip title={t('alert.delete')}>
-                        <Button size="small" onClick={() => onDelete(meta, path)}>
+                        <Button disabled={disabled} size="small" onClick={() => onDelete(meta, path)}>
                           <DeleteForever fontSize="small" />
                         </Button>
                       </Tooltip>
@@ -316,6 +322,7 @@ export default function FileTree({
 }
 
 function FolderTreeItem({
+  disabled,
   text,
   isOpen,
   depth = 0,
@@ -325,6 +332,7 @@ function FolderTreeItem({
   onSubmit,
   onCancel,
 }: {
+  disabled?: boolean;
   text: string;
   isOpen?: boolean;
   depth?: number;
@@ -452,7 +460,7 @@ function FolderTreeItem({
                   setOpen(false);
                 }}>
                 <Tooltip title={t('form.rename')}>
-                  <Button size="small" onClick={() => setEditing(true)}>
+                  <Button disabled={disabled} size="small" onClick={() => setEditing(true)}>
                     <Edit fontSize="small" />
                   </Button>
                 </Tooltip>
