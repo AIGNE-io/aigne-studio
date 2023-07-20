@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import * as git from 'isomorphic-git';
+import Queue from 'queue';
 
 const defaultBranch = 'main';
 
@@ -22,12 +23,23 @@ export type Entry = File | Folder;
 export default class Repository {
   constructor(public dir: string) {}
 
+  private queue = new Queue({ autostart: true, concurrency: 1 });
+
   async run<T extends (tx: Transaction) => any>(cb: T): Promise<Awaited<ReturnType<T>>> {
-    await this.init();
+    return new Promise<Awaited<ReturnType<T>>>((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          await this.init();
 
-    const tx = new Transaction(this);
+          const tx = new Transaction(this);
 
-    return cb(tx);
+          const res = await cb(tx);
+          resolve(res);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
   }
 
   private initPromise?: Promise<void>;

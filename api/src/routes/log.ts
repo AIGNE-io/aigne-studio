@@ -1,3 +1,5 @@
+import path from 'path';
+
 import { Router } from 'express';
 
 import { ensureComponentCallOrAdmin } from '../libs/security';
@@ -6,10 +8,18 @@ import { getRepository } from '../store/projects';
 
 export function logRoutes(router: Router) {
   router.get('/projects/:projectId/logs/:ref/:path(*)?', ensureComponentCallOrAdmin(), async (req, res) => {
-    const { projectId, ref, path: filepath } = req.params;
+    const { projectId, ref, path: p } = req.params;
     if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
 
-    const commits = await getRepository(projectId).log({ ref, path: filepath });
+    const repository = getRepository(projectId);
+
+    const filepath = p && (await repository.findFile(path.parse(p).name, { ref }));
+    if (p && !filepath) {
+      res.json({ commits: [] });
+      return;
+    }
+
+    const commits = await repository.log({ ref, path: filepath });
 
     const dids = [...new Set(commits.map((i) => i.commit.author.email))];
     const users = await getUsers(dids);
