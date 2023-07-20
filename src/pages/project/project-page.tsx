@@ -309,7 +309,8 @@ export default function ProjectPage() {
         </Button>
       ),
       [onImport, t]
-    )
+    ),
+    10
   );
 
   useAddon(
@@ -321,25 +322,8 @@ export default function ProjectPage() {
         </Button>
       ),
       [onExport, t]
-    )
-  );
-
-  useAddon(
-    'commits',
-    useMemo(
-      () => (
-        <CommitsTip
-          loading={!commits.length}
-          commits={commits}
-          hash={ref}
-          onCommitSelect={(commit) => {
-            navigate(joinUrl('..', commit.oid), { state: { filepath } });
-          }}>
-          <Button endIcon={<ArrowDropDown fontSize="small" />}>{t('alert.history')}</Button>
-        </CommitsTip>
-      ),
-      [commits, filepath, navigate, ref, t]
-    )
+    ),
+    11
   );
 
   useAddon(
@@ -377,7 +361,27 @@ export default function ProjectPage() {
         </Dropdown>
       ),
       [filepath, navigate, projectId, ref]
-    )
+    ),
+    2
+  );
+
+  useAddon(
+    'commits',
+    useMemo(
+      () => (
+        <CommitsTip
+          loading={!commits.length}
+          commits={commits}
+          hash={ref}
+          onCommitSelect={(commit) => {
+            navigate(joinUrl('..', commit.oid), { state: { filepath } });
+          }}>
+          <Button endIcon={<ArrowDropDown fontSize="small" />}>{t('alert.history')}</Button>
+        </CommitsTip>
+      ),
+      [commits, filepath, navigate, ref, t]
+    ),
+    3
   );
 
   return (
@@ -741,7 +745,8 @@ const TemplateEditor = forwardRef<
           {t('form.save')}
         </LoadingButton>
       );
-    }, [formChanged.current, save, submitting, t])
+    }, [formChanged.current, save, submitting, t]),
+    0
   );
 
   const [hash, setHash] = useState<string>();

@@ -3,6 +3,7 @@ import Dashboard from '@blocklet/ui-react/lib/Dashboard';
 import styled from '@emotion/styled';
 import { Fullscreen, FullscreenExit } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
+import { orderBy } from 'lodash';
 import { ReactNode, Suspense, lazy, useCallback, useEffect, useRef } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
@@ -15,7 +16,7 @@ export default function ProjectsRoutes() {
 
   const headerAddons = useCallback(
     ([...exists]: ReactNode[]) => {
-      exists.unshift(...Object.values(addons));
+      exists.unshift(...orderBy(Object.values(addons), 'order').map((i) => i.element));
 
       exists.unshift(<ToggleFullscreen />);
 

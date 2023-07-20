@@ -3,26 +3,24 @@ import { ReactNode, useCallback, useEffect } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 export interface AddonsState {
-  addons: { [key: string]: ReactNode };
+  addons: { [key: string]: { element: ReactNode; order?: number } };
 }
 
 const addonsState = atom<AddonsState>({
   key: 'addonsState',
-  default: {
-    addons: {},
-  },
+  default: { addons: {} },
 });
 
 export const useAddonsState = () => useRecoilState(addonsState);
 
-export const useAddon = (key: string, element: ReactNode) => {
+export const useAddon = (key: string, element: ReactNode, order?: number) => {
   const [, setState] = useAddonsState();
 
   const setAddon = useCallback(
-    (key: string, element?: ReactNode | null) => {
+    (key: string, element?: ReactNode | null, order?: number) => {
       setState((state) =>
         produce(state, (state) => {
-          if (element) state.addons[key] = element;
+          if (element) state.addons[key] = { element, order };
           else delete state.addons[key];
         })
       );
@@ -31,7 +29,7 @@ export const useAddon = (key: string, element: ReactNode) => {
   );
 
   useEffect(() => {
-    setAddon(key, element);
+    setAddon(key, element, order);
     return () => setAddon(key, null);
-  }, [element, key, setAddon]);
+  }, [element, key, setAddon, order]);
 };
