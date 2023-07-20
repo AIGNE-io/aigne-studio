@@ -531,7 +531,7 @@ export default function ProjectPage() {
           <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
             {branches.length > 0 && !branches.includes(ref) && (
               <Box sx={{ position: 'sticky', zIndex: 10, top: 0, mb: 2, bgcolor: 'background.paper' }}>
-                <Alert color="warning">You must be on a branch to make or propose changes to this file</Alert>
+                <Alert color="warning">{t('alert.onBranchTip')}</Alert>
               </Box>
             )}
 

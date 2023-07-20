@@ -90,5 +90,6 @@ export default flat({
     history: 'History',
     branchCreated: 'Branch created',
     deleteProject: 'Delete project "{project}"?\nIt cannot be retrieved after deletion!',
+    onBranchTip: 'You are now in history, you need to create a branch to save your changes!',
   },
 });
