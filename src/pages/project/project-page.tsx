@@ -86,7 +86,7 @@ export default function ProjectPage() {
   if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
 
   const {
-    state: { project, files, branches, commits },
+    state: { project, files, branches, commits, loading },
     refetch,
     createFile,
     deleteFile,
@@ -386,7 +386,7 @@ export default function ProjectPage() {
     useMemo(
       () => (
         <CommitsTip
-          loading={!commits.length}
+          loading={loading}
           commits={commits}
           hash={ref}
           onCommitSelect={(commit) => {
