@@ -125,6 +125,10 @@ export default class Repository {
   async getBranches() {
     await this.init();
 
+    if (await this.isEmpty({ ref: defaultBranch })) {
+      return [defaultBranch];
+    }
+
     return git.listBranches({ fs, dir: this.dir });
   }
 
