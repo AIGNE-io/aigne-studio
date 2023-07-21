@@ -27,7 +27,7 @@ export default function CommitsTip({
   commits,
   hash,
   children,
-  onCommitSelect: onCommitClick,
+  onCommitSelect,
 }: {
   loading?: boolean;
   commits?: Commit[];
@@ -35,8 +35,6 @@ export default function CommitsTip({
   children: ReactElement;
   onCommitSelect: (commit: Commit) => any;
 }) {
-  const { t, locale } = useLocaleContext();
-
   const [open, setOpen] = useState(false);
 
   const handleTooltipClose = () => {
@@ -46,8 +44,6 @@ export default function CommitsTip({
   const handleTooltipOpen = () => {
     setOpen(true);
   };
-
-  const [loadingItemHash, setLoadingItemHash] = useState<string>();
 
   return (
     <ClickAwayListener onClickAway={handleTooltipClose}>
@@ -69,52 +65,15 @@ export default function CommitsTip({
             },
           }}
           title={
-            <List disablePadding dense>
-              {commits?.map((item) => (
-                <ListItem disablePadding key={item.oid}>
-                  <ListItemButton
-                    selected={hash === item.oid}
-                    onClick={async () => {
-                      try {
-                        setLoadingItemHash(item.oid);
-                        await onCommitClick(item);
-                        handleTooltipClose();
-                      } finally {
-                        setLoadingItemHash(undefined);
-                      }
-                    }}>
-                    <ListItemIcon>
-                      <Box
-                        component={Avatar}
-                        src={item.commit.author.avatar}
-                        did={item.commit.author.did}
-                        variant="circle"
-                      />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.commit.message}
-                      secondary={<RelativeTime locale={locale} value={item.commit.author.timestamp * 1000} />}
-                      primaryTypographyProps={{ noWrap: true }}
-                      secondaryTypographyProps={{ noWrap: true }}
-                    />
-                    <Box width={20} ml={1} display="flex" alignItems="center">
-                      {loadingItemHash === item.oid && <CircularProgress size={16} />}
-                    </Box>
-                  </ListItemButton>
-                </ListItem>
-              ))}
-              {loading ? (
-                <ListItem sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <CircularProgress size={20} />
-                </ListItem>
-              ) : (
-                !commits?.length && (
-                  <ListItem>
-                    <ListItemText primary={t('alert.noCommits')} primaryTypographyProps={{ textAlign: 'center' }} />
-                  </ListItem>
-                )
-              )}
-            </List>
+            <CommitListView
+              loading={loading}
+              selected={hash}
+              commits={commits}
+              onClick={async (commit) => {
+                await onCommitSelect(commit);
+                handleTooltipClose();
+              }}
+            />
           }>
           {cloneElement(children, { onClick: handleTooltipOpen })}
         </Tooltip>
@@ -146,3 +105,61 @@ const Tooltip = styled(({ className, ...props }: TooltipProps) => (
     },
   },
 }));
+
+export function CommitListView({
+  commits,
+  loading,
+  selected,
+  onClick,
+}: {
+  commits?: Commit[];
+  loading?: boolean;
+  selected?: string;
+  onClick?: (commit: Commit) => any;
+}) {
+  const { t, locale } = useLocaleContext();
+  const [loadingItemHash, setLoadingItemHash] = useState<string>();
+
+  return (
+    <List disablePadding dense>
+      {commits?.map((item) => (
+        <ListItem disablePadding key={item.oid}>
+          <ListItemButton
+            selected={selected === item.oid}
+            onClick={async () => {
+              try {
+                setLoadingItemHash(item.oid);
+                await onClick?.(item);
+              } finally {
+                setLoadingItemHash(undefined);
+              }
+            }}>
+            <ListItemIcon>
+              <Box component={Avatar} src={item.commit.author.avatar} did={item.commit.author.did} variant="circle" />
+            </ListItemIcon>
+            <ListItemText
+              primary={item.commit.message}
+              secondary={<RelativeTime locale={locale} value={item.commit.author.timestamp * 1000} />}
+              primaryTypographyProps={{ noWrap: true }}
+              secondaryTypographyProps={{ noWrap: true }}
+            />
+            <Box width={20} ml={1} display="flex" alignItems="center">
+              {loadingItemHash === item.oid && <CircularProgress size={16} />}
+            </Box>
+          </ListItemButton>
+        </ListItem>
+      ))}
+      {loading ? (
+        <ListItem sx={{ display: 'flex', justifyContent: 'center' }}>
+          <CircularProgress size={20} />
+        </ListItem>
+      ) : (
+        !commits?.length && (
+          <ListItem>
+            <ListItemText primary={t('alert.noCommits')} primaryTypographyProps={{ textAlign: 'center' }} />
+          </ListItem>
+        )
+      )}
+    </List>
+  );
+}

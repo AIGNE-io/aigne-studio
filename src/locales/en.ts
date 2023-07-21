@@ -94,5 +94,6 @@ export default flat({
     deleteBranch: 'Delete branch "{branch}"?',
     showAllBranches: 'Show all branches',
     close: 'Close',
+    pickFromBranch: 'Pick from branch',
   },
 });

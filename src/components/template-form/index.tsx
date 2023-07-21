@@ -32,7 +32,10 @@ import {
   Template,
 } from '../../../api/src/store/templates';
 import { Commit, getLogs } from '../../libs/log';
+import { getFile } from '../../libs/tree';
+import useDialog from '../../utils/use-dialog';
 import Branches from './branches';
+import CommitSelect from './commit-select';
 import CommitsTip from './commits-tip';
 import Datasets from './datasets';
 import Next from './next';
@@ -80,6 +83,8 @@ export default function TemplateFormView({
   onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { t, locale } = useLocaleContext();
+
+  const { dialog, showDialog, closeDialog } = useDialog();
 
   const [, setError] = useState<Joi.ValidationError>();
 
@@ -186,6 +191,8 @@ export default function TemplateFormView({
 
   return (
     <Grid container spacing={2}>
+      {dialog}
+
       <Grid item xs={12}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography color="text.secondary" component="span">
@@ -206,6 +213,32 @@ export default function TemplateFormView({
               <RelativeTime locale={locale} value={form.updatedAt} />
             </Button>
           </Commits>
+
+          <Box flex={1} />
+
+          <Button
+            onClick={() =>
+              showDialog({
+                maxWidth: 'sm',
+                fullWidth: true,
+                title: t('alert.pickFromBranch'),
+                content: (
+                  <CommitSelect
+                    projectId={projectId}
+                    _ref={ref}
+                    path={path}
+                    onSelect={async (commit) => {
+                      const template = await getFile({ projectId, ref: commit.oid, path });
+                      onChange(template);
+                      closeDialog();
+                    }}
+                  />
+                ),
+                cancelText: t('alert.cancel'),
+              })
+            }>
+            {t('alert.pickFromBranch')}
+          </Button>
         </Box>
       </Grid>
 

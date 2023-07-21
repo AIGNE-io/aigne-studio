@@ -94,5 +94,6 @@ export default flat({
     deleteBranch: '删除分支“{branch}”？',
     showAllBranches: '显示所有分支',
     close: '关闭',
+    pickFromBranch: '从其它分支选择',
   },
 });
