@@ -1,26 +1,7 @@
 ## 0.1.69 (2023-7-20)
 
-- fix: sticky execute button
-- fix: translate tips
-- fix: text wrap
-- fix: sort addons
-- fix: support delete and edit project
-- feat: support projects
-- fix: can not save in main branch
-- fix: import button is not responding
-- fix: new a branch before saving if needed
-- feat: support create a branch from any commit point
-- refactor: rename getCommits to log
-- fix: only support checkout a branch
-- feat: support switch branch
-- fix: export latest updated files
-- fix: overwrite file on import
-- fix: use `BrowserRouter` instead of data router
-- fix: merge routes
-- fix: clean unused code
-- fix: switch to git repository
-- fix: checkout template from git repo to database
-- fix: save all templates in a git repository
+- feat: switch to git repository
+- feat: support multiple projects
 
 ## 0.1.68 (2023-7-19)
 
