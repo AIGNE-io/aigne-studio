@@ -47,7 +47,9 @@ export function treeRoutes(router: Router) {
     const { projectId, ref, path: filepath } = req.params;
     if (!projectId || !ref || !filepath) throw new Error('Missing required params `projectId` or `ref` or `path`');
 
-    const file = await getRepository(projectId).getFile({ ref, path: filepath });
+    const repository = getRepository(projectId);
+
+    const file = await repository.getFile({ ref, path: await repository.findFile(path.parse(filepath).name, { ref }) });
     const data = parse(Buffer.from(file.blob).toString());
 
     res.json(data);
