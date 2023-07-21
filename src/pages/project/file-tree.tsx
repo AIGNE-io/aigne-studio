@@ -157,7 +157,7 @@ export default function FileTree({
                 .join('/');
 
               await moveFile({ projectId, branch: ref, path: src, to: dst });
-              if (dropTarget && !openIds.includes(dropTarget.id)) {
+              if (dropTarget && !openIds?.includes(dropTarget.id)) {
                 setOpenIds((ids) => (ids ?? []).concat(dropTarget.id));
               }
             }
