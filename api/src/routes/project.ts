@@ -1,9 +1,11 @@
+import { rmSync } from 'fs';
+
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrAdmin } from '../libs/security';
-import { projects } from '../store/projects';
+import { getRepository, projects } from '../store/projects';
 
 export function projectRoutes(router: Router) {
   const projectSchema = Joi.object<{ name?: string }>({
@@ -86,6 +88,7 @@ export function projectRoutes(router: Router) {
     }
 
     await projects.remove({ _id: projectId });
+    rmSync(getRepository(projectId).dir, { recursive: true });
 
     res.json(project);
   });
