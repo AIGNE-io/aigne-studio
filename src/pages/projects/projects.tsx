@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Add, Delete, Edit, MoreVert } from '@mui/icons-material';
+import { Add, Delete, Edit, MoreVert, WarningRounded } from '@mui/icons-material';
 import {
   Box,
   Card,
@@ -80,7 +80,10 @@ export default function ProjectsPage() {
       maxWidth: 'sm',
       fullWidth: true,
       content: (
-        <Typography variant="h6">{t('alert.deleteProject', { project: project.name || project._id })}</Typography>
+        <Typography variant="h6">
+          <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
+          {t('alert.deleteProject', { project: project.name || project._id })}
+        </Typography>
       ),
       okColor: 'warning',
       okText: t('alert.delete'),

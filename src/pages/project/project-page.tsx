@@ -13,6 +13,7 @@ import {
   Save,
   Start,
   Upload,
+  WarningRounded,
 } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -439,24 +440,27 @@ export default function ProjectPage() {
               showDialog({
                 maxWidth: 'xs',
                 fullWidth: true,
-                title: t('alert.delete'),
-                content: (
-                  <>
-                    <Box>{t('alert.deleteTemplates')}</Box>
-                    <Box component="ul" sx={{ pl: 2 }}>
-                      <Box component="li">
-                        <Box>{path.join('/')}</Box>
+                title: (
+                  <Box>
+                    <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
 
-                        <Box component="ul">
-                          {children.map((item) => (
-                            <Box key={item.id} component="li" sx={{ wordWrap: 'break-word' }}>
-                              {(item.data?.type === 'file' && item.data.meta.name) || item.text}
-                            </Box>
-                          ))}
-                        </Box>
+                    {t('alert.deleteTemplates')}
+                  </Box>
+                ),
+                content: (
+                  <Box component="ul" sx={{ pl: 2, my: 0 }}>
+                    <Box component="li">
+                      <Box>{path.join('/')}</Box>
+
+                      <Box component="ul">
+                        {children.map((item) => (
+                          <Box key={item.id} component="li" sx={{ wordWrap: 'break-word' }}>
+                            {(item.data?.type === 'file' && item.data.meta.name) || item.text}
+                          </Box>
+                        ))}
                       </Box>
                     </Box>
-                  </>
+                  </Box>
                 ),
                 okText: t('alert.delete'),
                 okColor: 'error',
@@ -488,6 +492,8 @@ export default function ProjectPage() {
                 fullWidth: true,
                 title: (
                   <Box sx={{ wordWrap: 'break-word' }}>
+                    <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
+
                     {t('alert.deleteTemplate', { template: template.name || template.id })}
                   </Box>
                 ),
