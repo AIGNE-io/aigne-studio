@@ -121,8 +121,7 @@ export default function FileTree({
           defaultEditing
           onSubmit={async (value) => {
             const name = value.trim();
-            if (name)
-              await createFile({ projectId, branch: 'main', path: '', input: { type: 'folder', data: { name } } });
+            if (name) await createFile({ projectId, branch: ref, path: '', input: { type: 'folder', data: { name } } });
             setShowNewProject(false);
           }}
           onCancel={() => setShowNewProject(false)}
@@ -157,7 +156,7 @@ export default function FileTree({
                 .concat(source.name)
                 .join('/');
 
-              await moveFile({ projectId, branch: 'main', path: src, to: dst });
+              await moveFile({ projectId, branch: ref, path: src, to: dst });
               if (dropTarget && !openIds.includes(dropTarget.id)) {
                 setOpenIds((ids) => (ids ?? []).concat(dropTarget.id));
               }
@@ -200,7 +199,7 @@ export default function FileTree({
                     if (!data || name === data.name) return;
                     await moveFile({
                       projectId,
-                      branch: 'main',
+                      branch: ref,
                       path: data.parent.concat(data.name).join('/'),
                       to: data.parent.concat(name).join('/'),
                     });

@@ -94,5 +94,23 @@ export const useProjectState = (projectId: string, ref: string) => {
     [setState]
   );
 
-  return { state, refetch, createFile, deleteFile, moveFile, putFile, createBranch };
+  const updateBranch = useCallback(
+    async (...args: Parameters<typeof branchApi.updateBranch>) => {
+      const { branches } = await branchApi.updateBranch(...args);
+      setState((v) => ({ ...v, branches }));
+      return { branches };
+    },
+    [setState]
+  );
+
+  const deleteBranch = useCallback(
+    async (...args: Parameters<typeof branchApi.deleteBranch>) => {
+      const { branches } = await branchApi.deleteBranch(...args);
+      setState((v) => ({ ...v, branches }));
+      return { branches };
+    },
+    [setState]
+  );
+
+  return { state, refetch, createFile, deleteFile, moveFile, putFile, createBranch, updateBranch, deleteBranch };
 };

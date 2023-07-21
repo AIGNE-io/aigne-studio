@@ -16,3 +16,25 @@ export async function createBranch({
 }): Promise<{ branches: string[] }> {
   return axios.post(joinUrl('/api/projects', projectId, 'branches'), input).then((res) => res.data);
 }
+
+export async function updateBranch({
+  projectId,
+  branch,
+  input,
+}: {
+  projectId: string;
+  branch: string;
+  input: { name: string };
+}): Promise<{ branches: string[] }> {
+  return axios.put(joinUrl('/api/projects', projectId, 'branches', branch), input).then((res) => res.data);
+}
+
+export async function deleteBranch({
+  projectId,
+  branch,
+}: {
+  projectId: string;
+  branch: string;
+}): Promise<{ branches: string[] }> {
+  return axios.delete(joinUrl('/api/projects', projectId, 'branches', branch)).then((res) => res.data);
+}

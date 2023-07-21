@@ -4,7 +4,7 @@ import path from 'path';
 import * as git from 'isomorphic-git';
 import Queue from 'queue';
 
-const defaultBranch = 'main';
+export const defaultBranch = 'main';
 
 export interface File {
   type: 'file';
@@ -134,6 +134,10 @@ export default class Repository {
 
   async createBranch({ ref, oid }: { ref: string; oid?: string }) {
     await git.branch({ fs, dir: this.dir, ref, object: oid });
+  }
+
+  async renameBranch({ ref, oldRef }: { ref: string; oldRef: string }) {
+    await git.renameBranch({ fs, dir: this.dir, ref, oldref: oldRef });
   }
 
   async deleteBranch({ ref }: { ref: string }) {
