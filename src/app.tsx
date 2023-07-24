@@ -84,6 +84,7 @@ function AppRoutes() {
               <Navigate to="/" />
             )
           }>
+          <Route path="playground/*" element={<Navigate to="../projects" replace />} />
           <Route path="projects/*" element={<ProjectsRoutes />} />
           <Route path="datasets/*" element={<DatasetsRoutes />} />
         </Route>
