@@ -1,3 +1,7 @@
+## 0.1.70 (2023-7-24)
+
+- fix: auto redirect to projects from old path
+
 ## 0.1.69 (2023-7-20)
 
 - feat: switch to git repository
