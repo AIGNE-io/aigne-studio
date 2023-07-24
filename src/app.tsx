@@ -4,16 +4,16 @@ import Footer from '@blocklet/ui-react/lib/Footer';
 import Header from '@blocklet/ui-react/lib/Header';
 import { Global, css } from '@emotion/react';
 import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { ReactNode, Suspense, lazy, useMemo } from 'react';
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { ReactNode, Suspense, lazy, useEffect, useMemo, useRef } from 'react';
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
 
+import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
 import { DatasetsProvider } from './contexts/datasets';
 import { SessionProvider, useIsRole } from './contexts/session';
 import { translations } from './locales';
 import { HomeLazy } from './pages/home';
-import { TemplatePageLazy } from './pages/playground';
 
 export default function App() {
   const basename = window.blocklet?.prefix || '/';
@@ -42,17 +42,17 @@ export default function App() {
         />
 
         <RecoilRoot>
-          <BrowserRouter basename={basename}>
-            <ToastProvider>
-              <LocaleProvider translations={translations}>
+          <ToastProvider>
+            <LocaleProvider translations={translations}>
+              <BrowserRouter basename={basename}>
                 <SessionProvider serviceHost={basename}>
                   <Suspense fallback={<Loading />}>
                     <AppRoutes />
                   </Suspense>
                 </SessionProvider>
-              </LocaleProvider>
-            </ToastProvider>
-          </BrowserRouter>
+              </BrowserRouter>
+            </LocaleProvider>
+          </ToastProvider>
         </RecoilRoot>
       </CssBaseline>
     </ThemeProvider>
@@ -62,37 +62,38 @@ export default function App() {
 function AppRoutes() {
   const isAdmin = useIsRole('owner', 'admin');
 
+  const errorBoundary = useRef<ErrorBoundary>(null);
+
+  const location = useLocation();
+  useEffect(() => {
+    errorBoundary.current?.reset();
+  }, [location]);
+
   return (
-    <Routes>
-      <Route index element={<HomeLazy />} />
-      <Route
-        path="playground"
-        element={
-          isAdmin ? (
-            <DatasetsProvider>
-              <Outlet />
-            </DatasetsProvider>
-          ) : (
-            <Navigate to="/" />
-          )
-        }>
-        <Route index element={<Navigate to="/playground/template" />} />
-        <Route path="template" element={<TemplatePageLazy />} />
-        <Route path="datasets/*" element={<DatasetsRoutes />} />
-      </Route>
-      <Route
-        path="*"
-        element={
-          <Layout>
-            <Box flexGrow={1} textAlign="center">
-              <div>Not Found.</div>
-            </Box>
-          </Layout>
-        }
-      />
-    </Routes>
+    <ErrorBoundary ref={errorBoundary}>
+      <Routes>
+        <Route index element={<HomeLazy />} />
+        <Route
+          path="*"
+          element={
+            isAdmin ? (
+              <DatasetsProvider>
+                <Outlet />
+              </DatasetsProvider>
+            ) : (
+              <Navigate to="/" />
+            )
+          }>
+          <Route path="projects/*" element={<ProjectsRoutes />} />
+          <Route path="datasets/*" element={<DatasetsRoutes />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
+
+const ProjectsRoutes = lazy(() => import('./pages/projects'));
 
 const DatasetsRoutes = lazy(() => import('./pages/datasets'));
 
@@ -105,5 +106,15 @@ function Layout({ children }: { children: ReactNode }) {
 
       <Footer />
     </>
+  );
+}
+
+function NotFound() {
+  return (
+    <Layout>
+      <Box flexGrow={1} textAlign="center">
+        <div>Not Found.</div>
+      </Box>
+    </Layout>
   );
 }

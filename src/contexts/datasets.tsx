@@ -4,7 +4,7 @@ import { WritableDraft } from 'immer/dist/internal';
 import { ReactNode, createContext, useCallback, useContext, useRef } from 'react';
 
 import { Dataset } from '../../api/src/store/datasets';
-import { createDataset, getDatasets } from '../libs/datasets';
+import { createDataset, getDatasets } from '../libs/dataset';
 
 export interface DatasetsContext {
   datasets: Dataset[];

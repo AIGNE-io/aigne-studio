@@ -5,35 +5,21 @@ import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
 import {
   Box,
   Button,
-  CircularProgress,
-  ClickAwayListener,
   FormControl,
   FormControlLabel,
   FormLabel,
   Grid,
   IconButton,
   InputAdornment,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   MenuItem,
-  Tooltip as MuiTooltip,
   Radio,
   RadioGroup,
   TextField,
-  TooltipProps,
   Typography,
-  alpha,
-  listItemButtonClasses,
-  listItemTextClasses,
-  styled,
-  tooltipClasses,
 } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
-import { ReactElement, cloneElement, useState } from 'react';
+import { ComponentProps, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import {
@@ -45,9 +31,12 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
-import { Commit, getTemplateCommits } from '../../libs/templates';
-import Avatar from '../avatar';
+import { Commit, getLogs } from '../../libs/log';
+import { getFile } from '../../libs/tree';
+import useDialog from '../../utils/use-dialog';
 import Branches from './branches';
+import CommitSelect from './commit-select';
+import CommitsTip from './commits-tip';
 import Datasets from './datasets';
 import Next from './next';
 import Parameters, { matchParams } from './parameters';
@@ -58,7 +47,7 @@ const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-0301'];
 
 export type TemplateForm = Pick<
   Template,
-  | '_id'
+  | 'id'
   | 'mode'
   | 'type'
   | 'name'
@@ -73,21 +62,29 @@ export type TemplateForm = Pick<
 >;
 
 export default function TemplateFormView({
-  value: form,
+  projectId,
+  _ref: ref,
+  path,
   hash,
+  value: form,
   onCommitSelect,
   onChange,
   onExecute,
   onTemplateClick,
 }: {
-  value: Template;
+  projectId: string;
+  _ref: string;
+  path: string;
   hash?: string;
+  value: Template;
   onCommitSelect: (commit: Commit) => any;
   onChange: (update: Template | ((update: WritableDraft<Template>) => void)) => void;
   onExecute?: (template: Template) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { t, locale } = useLocaleContext();
+
+  const { dialog, showDialog, closeDialog } = useDialog();
 
   const [, setError] = useState<Joi.ValidationError>();
 
@@ -194,20 +191,54 @@ export default function TemplateFormView({
 
   return (
     <Grid container spacing={2}>
+      {dialog}
+
       <Grid item xs={12}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography color="text.secondary" component="span">
             {t('alert.updatedAt')}:
           </Typography>
 
-          <CommitsTip key={form.updatedAt} templateId={form._id} hash={hash} onCommitSelect={onCommitSelect}>
+          <Commits
+            key={form.updatedAt}
+            projectId={projectId}
+            _ref={ref}
+            path={path}
+            hash={hash}
+            onCommitSelect={onCommitSelect}>
             <Button
               sx={{ ml: 1 }}
               color="inherit"
               endIcon={<ArrowDropDown fontSize="small" sx={{ color: 'text.secondary' }} />}>
               <RelativeTime locale={locale} value={form.updatedAt} />
             </Button>
-          </CommitsTip>
+          </Commits>
+
+          <Box flex={1} />
+
+          <Button
+            onClick={() =>
+              showDialog({
+                maxWidth: 'sm',
+                fullWidth: true,
+                title: t('alert.pickFromBranch'),
+                content: (
+                  <CommitSelect
+                    projectId={projectId}
+                    _ref={ref}
+                    path={path}
+                    onSelect={async (commit) => {
+                      const template = await getFile({ projectId, ref: commit.oid, path });
+                      onChange(template);
+                      closeDialog();
+                    }}
+                  />
+                ),
+                cancelText: t('alert.cancel'),
+              })
+            }>
+            {t('alert.pickFromBranch')}
+          </Button>
         </Box>
       </Grid>
 
@@ -340,6 +371,7 @@ export default function TemplateFormView({
       </Grid>
       <Grid item xs={12}>
         <TagsAutoComplete
+          projectId={projectId}
           label={t('form.tag')}
           value={form.tags ?? []}
           onChange={(_, value) => onChange((form) => (form.tags = value))}
@@ -352,7 +384,7 @@ export default function TemplateFormView({
 
       {form.type === 'branch' && (
         <Grid item xs={12}>
-          <Branches value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+          <Branches projectId={projectId} value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 
@@ -366,11 +398,11 @@ export default function TemplateFormView({
 
       {form.type !== 'image' && (
         <Grid item xs={12}>
-          <Next value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+          <Next projectId={projectId} value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 
-      <Grid item xs={12}>
+      <Grid item xs={12} sx={{ position: 'sticky', bottom: 0, zIndex: 1 }}>
         <Button fullWidth variant="contained" onClick={submit}>
           {t('form.execute')}
         </Button>
@@ -379,121 +411,18 @@ export default function TemplateFormView({
   );
 }
 
-function CommitsTip({
-  templateId,
-  hash,
-  children,
-  onCommitSelect: onCommitClick,
+function Commits({
+  projectId,
+  _ref: ref,
+  path,
+  ...props
 }: {
-  templateId: string;
-  hash?: string;
-  children: ReactElement;
-  onCommitSelect: (commit: Commit) => any;
-}) {
-  const { t, locale } = useLocaleContext();
+  projectId: string;
+  _ref: string;
+  path?: string;
+} & Omit<ComponentProps<typeof CommitsTip>, 'commits' | 'loading'>) {
+  const { value, loading, error } = useAsync(() => getLogs({ projectId, ref, path }), [path]);
+  if (error) console.error(error);
 
-  const [open, setOpen] = useState(false);
-
-  const handleTooltipClose = () => {
-    setOpen(false);
-  };
-
-  const handleTooltipOpen = () => {
-    setOpen(true);
-  };
-
-  const { value, loading, error } = useAsync(() => getTemplateCommits(templateId), [templateId]);
-  if (error) throw error;
-
-  const [loadingItemHash, setLoadingItemHash] = useState<string>();
-
-  return (
-    <ClickAwayListener onClickAway={handleTooltipClose}>
-      <div>
-        <Tooltip
-          PopperProps={{
-            disablePortal: true,
-          }}
-          onClose={handleTooltipClose}
-          open={open}
-          disableFocusListener
-          disableHoverListener
-          disableTouchListener
-          sx={{
-            [`.${tooltipClasses.tooltip}`]: {
-              minWidth: 200,
-            },
-          }}
-          title={
-            <List disablePadding dense>
-              {value?.commits.map((commit, index) => (
-                <ListItem disablePadding key={commit.hash}>
-                  <ListItemButton
-                    selected={hash === commit.hash || (!hash && index === 0)}
-                    onClick={async () => {
-                      try {
-                        setLoadingItemHash(commit.hash);
-                        await onCommitClick(commit);
-                        handleTooltipClose();
-                      } finally {
-                        setLoadingItemHash(undefined);
-                      }
-                    }}>
-                    <ListItemIcon>
-                      <Box component={Avatar} src={commit.author.avatar} did={commit.author.did} variant="circle" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={commit.message}
-                      secondary={<RelativeTime locale={locale} value={commit.author.date.seconds * 1000} />}
-                      primaryTypographyProps={{ noWrap: true }}
-                      secondaryTypographyProps={{ noWrap: true }}
-                    />
-                    <Box width={20} ml={1} display="flex" alignItems="center">
-                      {loadingItemHash === commit.hash && <CircularProgress size={16} />}
-                    </Box>
-                  </ListItemButton>
-                </ListItem>
-              ))}
-              {loading ? (
-                <ListItem sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <CircularProgress size={20} />
-                </ListItem>
-              ) : (
-                !value?.commits.length && (
-                  <ListItem>
-                    <ListItemText primary={t('alert.noCommits')} primaryTypographyProps={{ textAlign: 'center' }} />
-                  </ListItem>
-                )
-              )}
-            </List>
-          }>
-          {cloneElement(children, { onClick: handleTooltipOpen })}
-        </Tooltip>
-      </div>
-    </ClickAwayListener>
-  );
+  return <CommitsTip {...props} loading={loading} commits={value?.commits} />;
 }
-
-const Tooltip = styled(({ className, ...props }: TooltipProps) => (
-  <MuiTooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-  [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: theme.palette.background.paper,
-    color: theme.palette.text.primary,
-    boxShadow: theme.shadows[1],
-    borderRadius: 6,
-    padding: 4,
-  },
-
-  [`.${listItemButtonClasses.root}`]: {
-    borderRadius: 6,
-
-    [`.${listItemTextClasses.primary}`]: {
-      fontSize: 16,
-    },
-
-    '&.active': {
-      backgroundColor: alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
-    },
-  },
-}));

@@ -14,7 +14,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.68
+version: 0.1.69
 logo: logo.png
 files:
   - dist
@@ -65,7 +65,7 @@ navigation:
       en: Template
       zh: 提示模版
     icon: fluent:design-ideas-16-regular
-    link: /playground/template
+    link: /projects
     section:
       - sessionManager
       - dashboard
@@ -77,7 +77,7 @@ navigation:
       en: Datasets
       zh: 数据集
     icon: icon-park-outline:data
-    link: /playground/datasets
+    link: /datasets
     section:
       - dashboard
     role:

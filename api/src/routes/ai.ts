@@ -15,7 +15,9 @@ import { ChatCompletionRequestMessage, ImagesResponseDataInner } from 'openai';
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
 import { ensureComponentCallOrAdmin } from '../libs/security';
-import { Template, templates } from '../store/templates';
+import { getRepository } from '../store/projects';
+import Repository from '../store/repository';
+import { Template, getTemplate } from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
 
@@ -61,15 +63,18 @@ const callInputSchema = Joi.object<
     parameters?: { [key: string]: any };
   } & (
     | {
+        projectId?: string;
         templateId: string;
         template: undefined;
       }
     | {
+        projectId: undefined;
         templateId: undefined;
         template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>;
       }
   )
 >({
+  projectId: Joi.string(),
   templateId: Joi.string(),
   template: Joi.object({
     type: templateSchema.extract('type'),
@@ -88,7 +93,9 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const template = input.template ?? ((await templates.findOne({ _id: input.templateId })) as Template);
+  const repository = getRepository(input.projectId);
+
+  const template = input.template ?? (await getTemplate({ repository, templateId: input.templateId }));
   const emit = (response: { type: 'delta'; delta: string } | typeof result) => {
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'text/event-stream');
@@ -100,6 +107,7 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
   };
 
   const result = await runTemplate(
+    repository,
     template,
     input.parameters,
     stream
@@ -134,6 +142,7 @@ class StaticPromptTemplate extends PromptTemplate {
 }
 
 async function runTemplate(
+  repository: Repository,
   template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>,
   parameters?: {
     $history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
@@ -149,9 +158,9 @@ async function runTemplate(
   let result: Awaited<ReturnType<typeof runTemplate>> | undefined;
 
   while (current) {
-    next = current.next && ((await templates.findOne({ _id: current.next.id })) as Template);
+    next = current.next?.id ? await getTemplate({ repository, templateId: current.next.id }) : undefined;
     // avoid recursive call
-    if (next?._id === current.id) {
+    if (next?.id === current.id) {
       next = undefined;
     }
 
@@ -288,7 +297,7 @@ Question: ${question}\
     if (current.type === 'branch') {
       const branchId = text && /Branch_(\w+)/s.exec(text)?.[1]?.trim();
       if (branchId && current.branch?.branches.some((i) => i.template?.id === branchId)) {
-        current = (await templates.findOne({ _id: branchId })) as any;
+        current = await getTemplate({ repository, templateId: branchId });
         continue;
       }
     }

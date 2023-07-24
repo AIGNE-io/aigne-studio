@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
-import { getDatasets } from '../../libs/datasets';
+import { getDatasets } from '../../libs/dataset';
 import type { TemplateForm } from '.';
 
 export default function Datasets({

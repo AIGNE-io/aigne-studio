@@ -18,6 +18,7 @@ export async function callAI(
     parameters?: { [key: string]: string | number };
   } & (
     | {
+        projectId: string;
         templateId: string;
         template?: undefined;
       }

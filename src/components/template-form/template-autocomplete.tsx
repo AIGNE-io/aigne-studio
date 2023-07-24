@@ -45,7 +45,7 @@ export default function TemplateAutocomplete<
 }: TemplateAutocompleteProps<Multiple, DisableClearable, FreeSolo> & {}) {
   const { t } = useLocaleContext();
 
-  const options = useMemo(() => templates.map((i) => ({ id: i._id, name: i.name })), [templates]);
+  const options = useMemo(() => templates.map((i) => ({ id: i.id, name: i.name })), [templates]);
 
   const { renderInput = (params) => <TextField {...params} /> } = props;
 
@@ -63,7 +63,7 @@ export default function TemplateAutocomplete<
           }
 
           createTemplate?.({ name: inputValue }).then((template) => {
-            props.onChange?.(e, { id: template._id, name: template.name } as any, reason);
+            props.onChange?.(e, { id: template.id, name: template.name } as any, reason);
           });
         } else {
           props.onChange?.(e, newValue, reason);

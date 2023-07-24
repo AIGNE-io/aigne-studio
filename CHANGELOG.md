@@ -1,3 +1,8 @@
+## 0.1.69 (2023-7-20)
+
+- feat: switch to git repository
+- feat: support multiple projects
+
 ## 0.1.68 (2023-7-19)
 
 ## 0.1.67 (2023-7-19)

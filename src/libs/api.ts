@@ -14,7 +14,7 @@ const api = axios.create({
 if (import.meta.env.DEV) {
   api.interceptors.request.use(async (config) => {
     await new Promise((resolve) => {
-      setTimeout(resolve, 1500);
+      setTimeout(resolve, 500);
     });
     return config;
   });
