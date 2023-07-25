@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.70",
+  "version": "0.1.71",
   "scripts": {
     "dev": "COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
     "eject": "vite eject",
@@ -42,13 +42,13 @@
   "dependencies": {
     "@arcblock/did-auth": "^1.18.87",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
-    "@arcblock/did-connect": "^2.6.3",
-    "@arcblock/ux": "^2.6.3",
+    "@arcblock/did-connect": "^2.6.6",
+    "@arcblock/ux": "^2.6.6",
     "@beskar-labs/gpt-encoder": "^1.0.6",
     "@blocklet/ai-kit": "^0.0.62",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
     "@blocklet/sdk": "^1.16.13",
-    "@blocklet/ui-react": "^2.6.3",
+    "@blocklet/ui-react": "^2.6.6",
     "@emotion/css": "^11.10.5",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",

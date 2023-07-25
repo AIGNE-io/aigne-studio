@@ -1,3 +1,7 @@
+## 0.1.71 (2023-7-25)
+
+- fix: fallback locale to en
+
 ## 0.1.70 (2023-7-24)
 
 - fix: auto redirect to projects from old path
