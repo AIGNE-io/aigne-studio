@@ -1,6 +1,6 @@
 import { join } from 'path';
 
-import { Router } from 'express';
+import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 import { stringify } from 'yaml';
 
@@ -8,8 +8,6 @@ import { ensureComponentCallOrAdmin } from '../libs/security';
 import { getRepository } from '../store/projects';
 import { Transaction } from '../store/repository';
 import { Template, getTemplate, nextTemplateId, roles } from '../store/templates';
-
-const router = Router();
 
 export interface TemplateInput
   extends Pick<
@@ -152,47 +150,53 @@ const getTemplatesSchema = Joi.object<{
   type: Joi.string().valid('image').empty(''),
 });
 
-router.get('/', ensureComponentCallOrAdmin(), async (req, res) => {
-  const { projectId, tag, type } = await getTemplatesSchema.validateAsync(req.query, { stripUnknown: true });
-  const repository = getRepository(projectId);
-
-  let templates = await Promise.all(
-    (await repository.getFiles())
-      .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
-      .map((i) => getTemplate({ repository, path: join(...i.parent, i.name) }))
-  );
-
-  if (tag) {
-    templates = templates.filter((i) => i.tags?.includes(tag));
-  }
-  if (type) {
-    templates = templates.filter((i) => i.type === type);
-  }
-
-  res.json({ templates });
-});
-
 const getTemplateQuerySchema = Joi.object<{ projectId?: string; hash?: string }>({
   projectId: Joi.string().empty(''),
   hash: Joi.string().empty(''),
 });
 
-router.get('/:templateId', ensureComponentCallOrAdmin(), async (req, res) => {
-  const { templateId } = req.params;
-  if (!templateId) throw new Error('Missing required params `templateId`');
+export function templateRoutes(router: Router) {
+  async function handleTemplates(req: Request, res: Response) {
+    const { projectId, tag, type } = await getTemplatesSchema.validateAsync(req.query, { stripUnknown: true });
+    const repository = getRepository(projectId);
 
-  const { projectId, hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+    let templates = await Promise.all(
+      (await repository.getFiles())
+        .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
+        .map((i) => getTemplate({ repository, path: join(...i.parent, i.name) }))
+    );
 
-  const template = await getTemplate({
-    repository: getRepository(projectId),
-    ref: hash,
-    templateId,
-  });
+    if (tag) {
+      templates = templates.filter((i) => i.tags?.includes(tag));
+    }
+    if (type) {
+      templates = templates.filter((i) => i.type === type);
+    }
 
-  res.json(template);
-});
+    res.json({ templates });
+  }
 
-export default router;
+  router.get('/templates', ensureComponentCallOrAdmin(), handleTemplates);
+  router.get('/sdk/templates', ensureComponentCallOrAdmin(), handleTemplates);
+
+  async function handleTemplate(req: Request, res: Response) {
+    const { templateId } = req.params;
+    if (!templateId) throw new Error('Missing required params `templateId`');
+
+    const { projectId, hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+    const template = await getTemplate({
+      repository: getRepository(projectId),
+      ref: hash,
+      templateId,
+    });
+
+    res.json(template);
+  }
+
+  router.get('/templates/:templateId', ensureComponentCallOrAdmin(), handleTemplate);
+  router.get('/sdk/templates/:templateId', ensureComponentCallOrAdmin(), handleTemplate);
+}
 
 export async function createBranches(
   tx: Transaction,
