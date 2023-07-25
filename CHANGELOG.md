@@ -1,3 +1,7 @@
+## 0.1.72 (2023-7-25)
+
+- fix: add sdk api
+
 ## 0.1.71 (2023-7-25)
 
 - fix: fallback locale to en
