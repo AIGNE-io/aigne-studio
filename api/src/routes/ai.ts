@@ -1,4 +1,5 @@
 import { call } from '@blocklet/sdk/lib/component';
+import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import { Callbacks } from 'langchain/callbacks';
@@ -88,7 +89,7 @@ const callInputSchema = Joi.object<
   parameters: Joi.object().pattern(Joi.string(), Joi.any()),
 }).xor('templateId', 'template');
 
-router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/call', compression(), ensureComponentCallOrAdmin(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
