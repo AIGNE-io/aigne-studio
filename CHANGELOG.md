@@ -1,3 +1,7 @@
+## 0.1.73 (2023-7-31)
+
+- fix: move compression middleware to the required api
+
 ## 0.1.72 (2023-7-25)
 
 - fix: add sdk api

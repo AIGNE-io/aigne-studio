@@ -3,7 +3,6 @@ import 'express-async-errors';
 import path from 'path';
 
 import { isAxiosError } from 'axios';
-import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -25,8 +24,6 @@ app.use(cookieParser());
 app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
-
-app.use(compression());
 
 app.use('/api', routes);
 
