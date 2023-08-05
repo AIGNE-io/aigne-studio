@@ -66,6 +66,7 @@ import CommitsTip from '../../components/template-form/commits-tip';
 import Dropdown from '../../components/template-form/dropdown';
 import { useComponent } from '../../contexts/component';
 import { useAddon } from '../../contexts/dashboard';
+import { useIsAdmin } from '../../contexts/session';
 import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import { importBodySchema, importTemplates } from '../../libs/import';
@@ -91,6 +92,9 @@ export default function ProjectPage() {
     createFile,
     deleteFile,
   } = useProjectState(projectId, ref);
+
+  const isAdmin = useIsAdmin();
+  const disableMutation = ref === defaultBranch && !isAdmin;
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -311,11 +315,11 @@ export default function ProjectPage() {
     'import',
     useMemo(
       () => (
-        <Button disabled={!branches.includes(ref)} startIcon={<Upload />} onClick={() => onImport()}>
+        <Button disabled={!branches.includes(ref) || disableMutation} startIcon={<Upload />} onClick={() => onImport()}>
           {t('alert.import')}
         </Button>
       ),
-      [branches, onImport, ref, t]
+      [disableMutation, branches, onImport, ref, t]
     ),
     10
   );
@@ -434,113 +438,127 @@ export default function ProjectPage() {
             _ref={ref}
             sx={{ height: '100%', overflow: 'auto' }}
             className="list"
-            onCreate={async (data, path) => {
-              try {
-                const res = await createFile({
-                  projectId,
-                  branch: ref,
-                  path: path?.join('/') || '',
-                  input: { type: 'file', data: data ?? {} },
-                });
-                navigate(joinUrl('.', ...(path ?? []), `${res.id}.yaml`));
-              } catch (error) {
-                Toast.error(getErrorMessage(error));
-                throw error;
-              }
-            }}
-            onExport={onExport}
-            onImport={onImport}
-            onRemoveFolder={(path, children) => {
-              showDialog({
-                maxWidth: 'xs',
-                fullWidth: true,
-                title: (
-                  <Box>
-                    <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
-
-                    {t('alert.deleteTemplates')}
-                  </Box>
-                ),
-                content: (
-                  <Box component="ul" sx={{ pl: 2, my: 0 }}>
-                    <Box component="li">
-                      <Box>{path.join('/')}</Box>
-
-                      <Box component="ul">
-                        {children.map((item) => (
-                          <Box key={item.id} component="li" sx={{ wordWrap: 'break-word' }}>
-                            {(item.data?.type === 'file' && item.data.meta.name) || item.text}
-                          </Box>
-                        ))}
-                      </Box>
-                    </Box>
-                  </Box>
-                ),
-                okText: t('alert.delete'),
-                okColor: 'error',
-                cancelText: t('alert.cancel'),
-                onOk: async () => {
-                  try {
-                    await deleteFile({ projectId, branch: ref, path: path.join('/') });
-                    if (children.some((i) => i.data && i.data.parent.concat(i.data.name).join('/') === filepath)) {
-                      navigate('.');
+            onCreate={
+              disableMutation
+                ? undefined
+                : async (data, path) => {
+                    try {
+                      const res = await createFile({
+                        projectId,
+                        branch: ref,
+                        path: path?.join('/') || '',
+                        input: { type: 'file', data: data ?? {} },
+                      });
+                      navigate(joinUrl('.', ...(path ?? []), `${res.id}.yaml`));
+                    } catch (error) {
+                      Toast.error(getErrorMessage(error));
+                      throw error;
                     }
-                    Toast.success(t('alert.deleted'));
-                  } catch (error) {
-                    Toast.error(getErrorMessage(error));
-                    throw error;
                   }
-                },
-              });
-            }}
-            onDelete={(template, path) => {
-              const referrers = files.filter(
-                (i): i is typeof i & { type: 'file' } =>
-                  i.type === 'file' &&
-                  i.meta.type === 'branch' &&
-                  !!i.meta.branch?.branches.some((j) => j.template?.id === template.id)
-              );
+            }
+            onExport={onExport}
+            onImport={disableMutation ? undefined : onImport}
+            onRemoveFolder={
+              disableMutation
+                ? undefined
+                : (path, children) => {
+                    showDialog({
+                      maxWidth: 'xs',
+                      fullWidth: true,
+                      title: (
+                        <Box>
+                          <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
 
-              showDialog({
-                maxWidth: 'xs',
-                fullWidth: true,
-                title: (
-                  <Box sx={{ wordWrap: 'break-word' }}>
-                    <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
-
-                    {t('alert.deleteTemplate', { template: template.name || template.id })}
-                  </Box>
-                ),
-                content: referrers.length ? (
-                  <>
-                    {t('alert.deleteTemplateContent', { references: referrers.length })}
-                    <ul>
-                      {referrers.map((file) => (
-                        <Box key={file.meta.id} component="li">
-                          {file.meta.name || file.meta.id}
+                          {t('alert.deleteTemplates')}
                         </Box>
-                      ))}
-                    </ul>
-                  </>
-                ) : undefined,
-                okText: t('alert.delete'),
-                okColor: 'error',
-                cancelText: t('alert.cancel'),
-                onOk: async () => {
-                  try {
-                    const p = joinUrl(...path);
-                    await deleteFile({ projectId, branch: ref, path: p });
-                    if (p === filepath) navigate('.');
-                    Toast.success(t('alert.deleted'));
-                  } catch (error) {
-                    Toast.error(getErrorMessage(error));
-                    throw error;
+                      ),
+                      content: (
+                        <Box component="ul" sx={{ pl: 2, my: 0 }}>
+                          <Box component="li">
+                            <Box>{path.join('/')}</Box>
+
+                            <Box component="ul">
+                              {children.map((item) => (
+                                <Box key={item.id} component="li" sx={{ wordWrap: 'break-word' }}>
+                                  {(item.data?.type === 'file' && item.data.meta.name) || item.text}
+                                </Box>
+                              ))}
+                            </Box>
+                          </Box>
+                        </Box>
+                      ),
+                      okText: t('alert.delete'),
+                      okColor: 'error',
+                      cancelText: t('alert.cancel'),
+                      onOk: async () => {
+                        try {
+                          await deleteFile({ projectId, branch: ref, path: path.join('/') });
+                          if (
+                            children.some((i) => i.data && i.data.parent.concat(i.data.name).join('/') === filepath)
+                          ) {
+                            navigate('.');
+                          }
+                          Toast.success(t('alert.deleted'));
+                        } catch (error) {
+                          Toast.error(getErrorMessage(error));
+                          throw error;
+                        }
+                      },
+                    });
                   }
-                },
-              });
-            }}
+            }
+            onDelete={
+              disableMutation
+                ? undefined
+                : (template, path) => {
+                    const referrers = files.filter(
+                      (i): i is typeof i & { type: 'file' } =>
+                        i.type === 'file' &&
+                        i.meta.type === 'branch' &&
+                        !!i.meta.branch?.branches.some((j) => j.template?.id === template.id)
+                    );
+
+                    showDialog({
+                      maxWidth: 'xs',
+                      fullWidth: true,
+                      title: (
+                        <Box sx={{ wordWrap: 'break-word' }}>
+                          <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
+
+                          {t('alert.deleteTemplate', { template: template.name || template.id })}
+                        </Box>
+                      ),
+                      content: referrers.length ? (
+                        <>
+                          {t('alert.deleteTemplateContent', { references: referrers.length })}
+                          <ul>
+                            {referrers.map((file) => (
+                              <Box key={file.meta.id} component="li">
+                                {file.meta.name || file.meta.id}
+                              </Box>
+                            ))}
+                          </ul>
+                        </>
+                      ) : undefined,
+                      okText: t('alert.delete'),
+                      okColor: 'error',
+                      cancelText: t('alert.cancel'),
+                      onOk: async () => {
+                        try {
+                          const p = joinUrl(...path);
+                          await deleteFile({ projectId, branch: ref, path: p });
+                          if (p === filepath) navigate('.');
+                          Toast.success(t('alert.deleted'));
+                        } catch (error) {
+                          Toast.error(getErrorMessage(error));
+                          throw error;
+                        }
+                      },
+                    });
+                  }
+            }
             onClick={async (_, p) => {
-              if (editor.current && !(await editor.current.requireSave())) return;
+              if (!disableMutation && editor.current && !(await editor.current.requireSave())) return;
               const to = p.join('/');
               if (to !== filepath) navigate(to);
             }}

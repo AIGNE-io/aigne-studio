@@ -9,7 +9,7 @@ import { omit } from 'lodash';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import logger from '../libs/logger';
-import { ensureAdmin } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { DatasetItem, datasetItems } from '../store/dataset-items';
 import { embeddingHistories } from '../store/embedding-history';
 import VectorStore from '../store/vector-store';
@@ -21,7 +21,7 @@ const paginationSchema = Joi.object<{ page: number; size: number }>({
   size: Joi.number().integer().min(1).max(100).default(20),
 });
 
-router.get('/:datasetId/items', ensureAdmin, async (req, res) => {
+router.get('/:datasetId/items', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId } = req.params;
   if (!datasetId) throw new Error('Missing required params `datasetId`');
 
@@ -42,7 +42,7 @@ router.get('/:datasetId/items', ensureAdmin, async (req, res) => {
 
 const sse = new SSE();
 
-router.get('/:datasetId/embeddings', ensureAdmin, (req, res) => {
+router.get('/:datasetId/embeddings', ensureComponentCallOrPromptsEditor(), (req, res) => {
   sse.init(req, res);
 
   sse.send(
@@ -79,7 +79,7 @@ const createItemInputSchema = Joi.alternatives<CreateItemInput>().try(
   createItemSchema
 );
 
-router.post('/:datasetId/items', user(), ensureAdmin, async (req, res) => {
+router.post('/:datasetId/items', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId } = req.params;
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
@@ -104,7 +104,7 @@ router.post('/:datasetId/items', user(), ensureAdmin, async (req, res) => {
   res.json(Array.isArray(input) ? docs : docs[0]);
 });
 
-router.delete('/:datasetId/items/:itemId', user(), ensureAdmin, async (req, res) => {
+router.delete('/:datasetId/items/:itemId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId, itemId } = req.params;
   if (!datasetId || !itemId) {
     throw new Error('Missing required params `datasetId` or `itemId`');
@@ -187,7 +187,7 @@ const embeddingHandler: {
   },
 };
 
-router.post('/:datasetId/items/:itemId/embedding', ensureAdmin, async (req, res) => {
+router.post('/:datasetId/items/:itemId/embedding', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId, itemId } = req.params;
   if (!datasetId || !itemId) {
     throw new Error('Missing required params `datasetId` or `itemId`');

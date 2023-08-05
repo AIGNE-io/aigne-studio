@@ -13,3 +13,5 @@ export function useIsRole(...roles: string[]) {
   const { session } = useSessionContext();
   return roles.includes(session.user?.role);
 }
+
+export const useIsAdmin = () => useIsRole('owner', 'admin');

@@ -4,7 +4,7 @@ import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
-import { ensureComponentCallOrAdmin } from '../libs/security';
+import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getRepository, projects } from '../store/projects';
 
 export function projectRoutes(router: Router) {
@@ -12,13 +12,13 @@ export function projectRoutes(router: Router) {
     name: Joi.string().empty(null),
   });
 
-  router.get('/projects', ensureComponentCallOrAdmin(), async (_req, res) => {
+  router.get('/projects', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
     const list = await projects.cursor().sort({ createdAt: 1 }).exec();
 
     res.json({ projects: list });
   });
 
-  router.get('/projects/:projectId', ensureComponentCallOrAdmin(), async (req, res) => {
+  router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
 
     const project = await projects.findOne({ _id: projectId });

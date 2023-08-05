@@ -103,9 +103,11 @@ export default function FileTree({
           {t('main.templates')}
         </Typography>
 
-        <IconButton disabled={disabled} size="small" color="primary" onClick={() => setShowNewProject(true)}>
-          <CreateNewFolderOutlined fontSize="small" />
-        </IconButton>
+        {onCreate && (
+          <IconButton disabled={disabled} size="small" color="primary" onClick={() => setShowNewProject(true)}>
+            <CreateNewFolderOutlined fontSize="small" />
+          </IconButton>
+        )}
 
         {onCreate && (
           <IconButton disabled={disabled} size="small" color="primary" onClick={() => onCreate({}, [])}>

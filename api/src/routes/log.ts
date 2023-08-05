@@ -2,12 +2,12 @@ import path from 'path';
 
 import { Router } from 'express';
 
-import { ensureComponentCallOrAdmin } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getUsers } from '../libs/user';
 import { getRepository } from '../store/projects';
 
 export function logRoutes(router: Router) {
-  router.get('/projects/:projectId/logs/:ref/:path(*)?', ensureComponentCallOrAdmin(), async (req, res) => {
+  router.get('/projects/:projectId/logs/:ref/:path(*)?', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId, ref, path: p } = req.params;
     if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
 

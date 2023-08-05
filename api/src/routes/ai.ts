@@ -15,7 +15,7 @@ import { ChatCompletionRequestMessage, ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
-import { ensureComponentCallOrAdmin } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getRepository } from '../store/projects';
 import { Template, getTemplate } from '../store/templates';
 import VectorStore from '../store/vector-store';
@@ -23,7 +23,7 @@ import { templateSchema } from './templates';
 
 const router = Router();
 
-router.get('/status', ensureComponentCallOrAdmin(), async (_, res) => {
+router.get('/status', ensureComponentCallOrPromptsEditor(), async (_, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/status',
@@ -34,7 +34,7 @@ router.get('/status', ensureComponentCallOrAdmin(), async (_, res) => {
   response.data.pipe(res);
 });
 
-router.post('/completions', ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/completions', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/completions',
@@ -46,7 +46,7 @@ router.post('/completions', ensureComponentCallOrAdmin(), async (req, res) => {
   response.data.pipe(res);
 });
 
-router.post('/image/generations', ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/image/generations', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/image/generations',
@@ -91,7 +91,7 @@ const callInputSchema = Joi.object<
   parameters: Joi.object().pattern(Joi.string(), Joi.any()),
 }).xor('templateId', 'template');
 
-router.post('/call', compression(), ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
