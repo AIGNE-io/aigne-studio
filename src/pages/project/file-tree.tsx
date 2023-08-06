@@ -228,30 +228,34 @@ export default function FileTree({
                       )}
                       {onCreate && (
                         <Tooltip title={`${t('form.add')} ${t('form.template')}`}>
-                          <Button
-                            disabled={disabled}
-                            size="small"
-                            onClick={() => {
-                              onCreate({}, path);
-                              setOpenIds((ids) => (ids ?? []).concat(node.id));
-                            }}>
-                            <Add fontSize="small" />
-                          </Button>
+                          <span>
+                            <Button
+                              disabled={disabled}
+                              size="small"
+                              onClick={() => {
+                                onCreate({}, path);
+                                setOpenIds((ids) => (ids ?? []).concat(node.id));
+                              }}>
+                              <Add fontSize="small" />
+                            </Button>
+                          </span>
                         </Tooltip>
                       )}
                       {onRemoveFolder && (
                         <Tooltip title={t('alert.delete')}>
-                          <Button
-                            disabled={disabled}
-                            size="small"
-                            onClick={() =>
-                              onRemoveFolder(
-                                path,
-                                tree.filter((i) => i.parent === node.id)
-                              )
-                            }>
-                            <DeleteForever fontSize="small" />
-                          </Button>
+                          <span>
+                            <Button
+                              disabled={disabled}
+                              size="small"
+                              onClick={() =>
+                                onRemoveFolder(
+                                  path,
+                                  tree.filter((i) => i.parent === node.id)
+                                )
+                              }>
+                              <DeleteForever fontSize="small" />
+                            </Button>
+                          </span>
                         </Tooltip>
                       )}
                     </>
@@ -274,41 +278,49 @@ export default function FileTree({
                   <>
                     {onLaunch && (
                       <Tooltip title={t('alert.openInAssistant')}>
-                        <Button size="small" onClick={() => onLaunch(meta)}>
-                          <Launch fontSize="small" />
-                        </Button>
+                        <span>
+                          <Button size="small" onClick={() => onLaunch(meta)}>
+                            <Launch fontSize="small" />
+                          </Button>
+                        </span>
                       </Tooltip>
                     )}
 
                     {onExport && (
                       <Tooltip title={t('alert.export')}>
-                        <Button size="small" onClick={() => onExport(node)}>
-                          <Download fontSize="small" />
-                        </Button>
+                        <span>
+                          <Button size="small" onClick={() => onExport(node)}>
+                            <Download fontSize="small" />
+                          </Button>
+                        </span>
                       </Tooltip>
                     )}
 
                     {onCreate && (
                       <Tooltip title={t('alert.duplicate')}>
-                        <Button
-                          disabled={disabled}
-                          size="small"
-                          onClick={() =>
-                            onCreate({
-                              ...omit(meta, '_id', 'createdAt', 'updatedAt'),
-                              name: `${meta.name || meta.id} Copy`,
-                            })
-                          }>
-                          <CopyAll fontSize="small" />
-                        </Button>
+                        <span>
+                          <Button
+                            disabled={disabled}
+                            size="small"
+                            onClick={() =>
+                              onCreate({
+                                ...omit(meta, '_id', 'createdAt', 'updatedAt'),
+                                name: `${meta.name || meta.id} Copy`,
+                              })
+                            }>
+                            <CopyAll fontSize="small" />
+                          </Button>
+                        </span>
                       </Tooltip>
                     )}
 
                     {onDelete && (
                       <Tooltip title={t('alert.delete')}>
-                        <Button disabled={disabled} size="small" onClick={() => onDelete(meta, path)}>
-                          <DeleteForever fontSize="small" />
-                        </Button>
+                        <span>
+                          <Button disabled={disabled} size="small" onClick={() => onDelete(meta, path)}>
+                            <DeleteForever fontSize="small" />
+                          </Button>
+                        </span>
                       </Tooltip>
                     )}
                   </>
@@ -461,9 +473,11 @@ function FolderTreeItem({
                   setOpen(false);
                 }}>
                 <Tooltip title={t('form.rename')}>
-                  <Button disabled={disabled} size="small" onClick={() => setEditing(true)}>
-                    <Edit fontSize="small" />
-                  </Button>
+                  <span>
+                    <Button disabled={disabled} size="small" onClick={() => setEditing(true)}>
+                      <Edit fontSize="small" />
+                    </Button>
+                  </span>
                 </Tooltip>
 
                 {actions}

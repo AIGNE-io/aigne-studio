@@ -328,7 +328,7 @@ export default function ProjectPage() {
     'export',
     useMemo(
       () => (
-        <Button disabled={!branches.includes(ref)} startIcon={<Download />} onClick={() => onExport()}>
+        <Button startIcon={<Download />} onClick={() => onExport()}>
           {t('alert.export')}
         </Button>
       ),
