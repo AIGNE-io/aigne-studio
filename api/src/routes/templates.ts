@@ -4,7 +4,7 @@ import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 import { stringify } from 'yaml';
 
-import { ensureComponentCallOrAdmin } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getRepository } from '../store/projects';
 import { Transaction } from '../store/repository';
 import { Template, getTemplate, nextTemplateId, roles } from '../store/templates';
@@ -176,8 +176,8 @@ export function templateRoutes(router: Router) {
     res.json({ templates });
   }
 
-  router.get('/templates', ensureComponentCallOrAdmin(), handleTemplates);
-  router.get('/sdk/templates', ensureComponentCallOrAdmin(), handleTemplates);
+  router.get('/templates', ensureComponentCallOrPromptsEditor(), handleTemplates);
+  router.get('/sdk/templates', ensureComponentCallOrPromptsEditor(), handleTemplates);
 
   async function handleTemplate(req: Request, res: Response) {
     const { templateId } = req.params;
@@ -194,8 +194,8 @@ export function templateRoutes(router: Router) {
     res.json(template);
   }
 
-  router.get('/templates/:templateId', ensureComponentCallOrAdmin(), handleTemplate);
-  router.get('/sdk/templates/:templateId', ensureComponentCallOrAdmin(), handleTemplate);
+  router.get('/templates/:templateId', ensureComponentCallOrPromptsEditor(), handleTemplate);
+  router.get('/sdk/templates/:templateId', ensureComponentCallOrPromptsEditor(), handleTemplate);
 }
 
 export async function createBranches(

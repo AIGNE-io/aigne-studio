@@ -2,7 +2,7 @@ import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
-import { ensureAdmin } from '../libs/security';
+import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { datasets } from '../store/datasets';
 
 const router = Router();
@@ -11,7 +11,7 @@ const datasetSchema = Joi.object<{ name?: string }>({
   name: Joi.string().empty(null),
 });
 
-router.get('/', ensureAdmin, async (_req, res) => {
+router.get('/', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
   const list = await datasets.cursor().sort({ createdAt: 1 }).exec();
 
   res.json({
@@ -19,7 +19,7 @@ router.get('/', ensureAdmin, async (_req, res) => {
   });
 });
 
-router.get('/:datasetId', ensureAdmin, async (req, res) => {
+router.get('/:datasetId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId } = req.params;
 
   const dataset = await datasets.findOne({ _id: datasetId });
@@ -31,7 +31,7 @@ router.get('/:datasetId', ensureAdmin, async (req, res) => {
   res.json(dataset);
 });
 
-router.post('/', user(), ensureAdmin, async (req, res) => {
+router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
 
@@ -47,7 +47,7 @@ router.post('/', user(), ensureAdmin, async (req, res) => {
   res.json(doc);
 });
 
-router.put('/:datasetId', user(), ensureAdmin, async (req, res) => {
+router.put('/:datasetId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
   const { datasetId } = req.params;
 
   const dataset = await datasets.findOne({ _id: datasetId });
@@ -78,7 +78,7 @@ router.put('/:datasetId', user(), ensureAdmin, async (req, res) => {
   res.json(doc);
 });
 
-router.delete('/:datasetId', ensureAdmin, async (req, res) => {
+router.delete('/:datasetId', ensureComponentCallOrAdmin(), async (req, res) => {
   const { datasetId } = req.params;
 
   const dataset = await datasets.findOne({ $or: [{ _id: datasetId }, { name: datasetId }] });

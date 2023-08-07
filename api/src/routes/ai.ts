@@ -15,16 +15,15 @@ import { ChatCompletionRequestMessage, ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
-import { ensureComponentCallOrAdmin } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getRepository } from '../store/projects';
-import Repository from '../store/repository';
 import { Template, getTemplate } from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
 
 const router = Router();
 
-router.get('/status', ensureComponentCallOrAdmin(), async (_, res) => {
+router.get('/status', ensureComponentCallOrPromptsEditor(), async (_, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/status',
@@ -35,7 +34,7 @@ router.get('/status', ensureComponentCallOrAdmin(), async (_, res) => {
   response.data.pipe(res);
 });
 
-router.post('/completions', ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/completions', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/completions',
@@ -47,7 +46,7 @@ router.post('/completions', ensureComponentCallOrAdmin(), async (req, res) => {
   response.data.pipe(res);
 });
 
-router.post('/image/generations', ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/image/generations', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/image/generations',
@@ -64,17 +63,20 @@ const callInputSchema = Joi.object<
     parameters?: { [key: string]: any };
   } & (
     | {
+        ref?: string;
         projectId?: string;
         templateId: string;
         template: undefined;
       }
     | {
+        ref: undefined;
         projectId: undefined;
         templateId: undefined;
         template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>;
       }
   )
 >({
+  ref: Joi.string(),
   projectId: Joi.string(),
   templateId: Joi.string(),
   template: Joi.object({
@@ -89,14 +91,16 @@ const callInputSchema = Joi.object<
   parameters: Joi.object().pattern(Joi.string(), Joi.any()),
 }).xor('templateId', 'template');
 
-router.post('/call', compression(), ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
 
   const repository = getRepository(input.projectId);
 
-  const template = input.template ?? (await getTemplate({ repository, templateId: input.templateId }));
+  const getTemplateById = (templateId: string) => getTemplate({ repository, ref: input.ref, templateId });
+
+  const template = input.template ?? (await getTemplateById(input.templateId));
   const emit = (response: { type: 'delta'; delta: string } | typeof result) => {
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'text/event-stream');
@@ -108,7 +112,7 @@ router.post('/call', compression(), ensureComponentCallOrAdmin(), async (req, re
   };
 
   const result = await runTemplate(
-    repository,
+    getTemplateById,
     template,
     input.parameters,
     stream
@@ -143,7 +147,7 @@ class StaticPromptTemplate extends PromptTemplate {
 }
 
 async function runTemplate(
-  repository: Repository,
+  getTemplate: (templateId: string) => Promise<Template>,
   template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>,
   parameters?: {
     $history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
@@ -159,7 +163,7 @@ async function runTemplate(
   let result: Awaited<ReturnType<typeof runTemplate>> | undefined;
 
   while (current) {
-    next = current.next?.id ? await getTemplate({ repository, templateId: current.next.id }) : undefined;
+    next = current.next?.id ? await getTemplate(current.next.id) : undefined;
     // avoid recursive call
     if (next?.id === current.id) {
       next = undefined;
@@ -298,7 +302,7 @@ Question: ${question}\
     if (current.type === 'branch') {
       const branchId = text && /Branch_(\w+)/s.exec(text)?.[1]?.trim();
       if (branchId && current.branch?.branches.some((i) => i.template?.id === branchId)) {
-        current = await getTemplate({ repository, templateId: branchId });
+        current = await getTemplate(branchId);
         continue;
       }
     }

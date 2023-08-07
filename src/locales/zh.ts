@@ -95,5 +95,7 @@ export default flat({
     showAllBranches: '显示所有分支',
     close: '关闭',
     pickFromBranch: '从其它分支选择',
+    saveInNewBranch: '保存到新的分支',
+    newBranch: '新建分支',
   },
 });

@@ -13,6 +13,7 @@ import {
   History,
   InfoOutlined,
   Save,
+  SaveAs,
   Start,
   Upload,
   WarningRounded,
@@ -66,6 +67,7 @@ import CommitsTip from '../../components/template-form/commits-tip';
 import Dropdown from '../../components/template-form/dropdown';
 import { useComponent } from '../../contexts/component';
 import { useAddon } from '../../contexts/dashboard';
+import { useIsAdmin } from '../../contexts/session';
 import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
 import { importBodySchema, importTemplates } from '../../libs/import';
@@ -91,6 +93,9 @@ export default function ProjectPage() {
     createFile,
     deleteFile,
   } = useProjectState(projectId, ref);
+
+  const isAdmin = useIsAdmin();
+  const disableMutation = ref === defaultBranch && !isAdmin;
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -311,11 +316,11 @@ export default function ProjectPage() {
     'import',
     useMemo(
       () => (
-        <Button disabled={!branches.includes(ref)} startIcon={<Upload />} onClick={() => onImport()}>
+        <Button disabled={!branches.includes(ref) || disableMutation} startIcon={<Upload />} onClick={() => onImport()}>
           {t('alert.import')}
         </Button>
       ),
-      [branches, onImport, ref, t]
+      [disableMutation, branches, onImport, ref, t]
     ),
     10
   );
@@ -324,7 +329,7 @@ export default function ProjectPage() {
     'export',
     useMemo(
       () => (
-        <Button disabled={!branches.includes(ref)} startIcon={<Download />} onClick={() => onExport()}>
+        <Button startIcon={<Download />} onClick={() => onExport()}>
           {t('alert.export')}
         </Button>
       ),
@@ -434,113 +439,127 @@ export default function ProjectPage() {
             _ref={ref}
             sx={{ height: '100%', overflow: 'auto' }}
             className="list"
-            onCreate={async (data, path) => {
-              try {
-                const res = await createFile({
-                  projectId,
-                  branch: ref,
-                  path: path?.join('/') || '',
-                  input: { type: 'file', data: data ?? {} },
-                });
-                navigate(joinUrl('.', ...(path ?? []), `${res.id}.yaml`));
-              } catch (error) {
-                Toast.error(getErrorMessage(error));
-                throw error;
-              }
-            }}
-            onExport={onExport}
-            onImport={onImport}
-            onRemoveFolder={(path, children) => {
-              showDialog({
-                maxWidth: 'xs',
-                fullWidth: true,
-                title: (
-                  <Box>
-                    <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
-
-                    {t('alert.deleteTemplates')}
-                  </Box>
-                ),
-                content: (
-                  <Box component="ul" sx={{ pl: 2, my: 0 }}>
-                    <Box component="li">
-                      <Box>{path.join('/')}</Box>
-
-                      <Box component="ul">
-                        {children.map((item) => (
-                          <Box key={item.id} component="li" sx={{ wordWrap: 'break-word' }}>
-                            {(item.data?.type === 'file' && item.data.meta.name) || item.text}
-                          </Box>
-                        ))}
-                      </Box>
-                    </Box>
-                  </Box>
-                ),
-                okText: t('alert.delete'),
-                okColor: 'error',
-                cancelText: t('alert.cancel'),
-                onOk: async () => {
-                  try {
-                    await deleteFile({ projectId, branch: ref, path: path.join('/') });
-                    if (children.some((i) => i.data && i.data.parent.concat(i.data.name).join('/') === filepath)) {
-                      navigate('.');
+            onCreate={
+              disableMutation
+                ? undefined
+                : async (data, path) => {
+                    try {
+                      const res = await createFile({
+                        projectId,
+                        branch: ref,
+                        path: path?.join('/') || '',
+                        input: { type: 'file', data: data ?? {} },
+                      });
+                      navigate(joinUrl('.', ...(path ?? []), `${res.id}.yaml`));
+                    } catch (error) {
+                      Toast.error(getErrorMessage(error));
+                      throw error;
                     }
-                    Toast.success(t('alert.deleted'));
-                  } catch (error) {
-                    Toast.error(getErrorMessage(error));
-                    throw error;
                   }
-                },
-              });
-            }}
-            onDelete={(template, path) => {
-              const referrers = files.filter(
-                (i): i is typeof i & { type: 'file' } =>
-                  i.type === 'file' &&
-                  i.meta.type === 'branch' &&
-                  !!i.meta.branch?.branches.some((j) => j.template?.id === template.id)
-              );
+            }
+            onExport={onExport}
+            onImport={disableMutation ? undefined : onImport}
+            onRemoveFolder={
+              disableMutation
+                ? undefined
+                : (path, children) => {
+                    showDialog({
+                      maxWidth: 'xs',
+                      fullWidth: true,
+                      title: (
+                        <Box>
+                          <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
 
-              showDialog({
-                maxWidth: 'xs',
-                fullWidth: true,
-                title: (
-                  <Box sx={{ wordWrap: 'break-word' }}>
-                    <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
-
-                    {t('alert.deleteTemplate', { template: template.name || template.id })}
-                  </Box>
-                ),
-                content: referrers.length ? (
-                  <>
-                    {t('alert.deleteTemplateContent', { references: referrers.length })}
-                    <ul>
-                      {referrers.map((file) => (
-                        <Box key={file.meta.id} component="li">
-                          {file.meta.name || file.meta.id}
+                          {t('alert.deleteTemplates')}
                         </Box>
-                      ))}
-                    </ul>
-                  </>
-                ) : undefined,
-                okText: t('alert.delete'),
-                okColor: 'error',
-                cancelText: t('alert.cancel'),
-                onOk: async () => {
-                  try {
-                    const p = joinUrl(...path);
-                    await deleteFile({ projectId, branch: ref, path: p });
-                    if (p === filepath) navigate('.');
-                    Toast.success(t('alert.deleted'));
-                  } catch (error) {
-                    Toast.error(getErrorMessage(error));
-                    throw error;
+                      ),
+                      content: (
+                        <Box component="ul" sx={{ pl: 2, my: 0 }}>
+                          <Box component="li">
+                            <Box>{path.join('/')}</Box>
+
+                            <Box component="ul">
+                              {children.map((item) => (
+                                <Box key={item.id} component="li" sx={{ wordWrap: 'break-word' }}>
+                                  {(item.data?.type === 'file' && item.data.meta.name) || item.text}
+                                </Box>
+                              ))}
+                            </Box>
+                          </Box>
+                        </Box>
+                      ),
+                      okText: t('alert.delete'),
+                      okColor: 'error',
+                      cancelText: t('alert.cancel'),
+                      onOk: async () => {
+                        try {
+                          await deleteFile({ projectId, branch: ref, path: path.join('/') });
+                          if (
+                            children.some((i) => i.data && i.data.parent.concat(i.data.name).join('/') === filepath)
+                          ) {
+                            navigate('.');
+                          }
+                          Toast.success(t('alert.deleted'));
+                        } catch (error) {
+                          Toast.error(getErrorMessage(error));
+                          throw error;
+                        }
+                      },
+                    });
                   }
-                },
-              });
-            }}
+            }
+            onDelete={
+              disableMutation
+                ? undefined
+                : (template, path) => {
+                    const referrers = files.filter(
+                      (i): i is typeof i & { type: 'file' } =>
+                        i.type === 'file' &&
+                        i.meta.type === 'branch' &&
+                        !!i.meta.branch?.branches.some((j) => j.template?.id === template.id)
+                    );
+
+                    showDialog({
+                      maxWidth: 'xs',
+                      fullWidth: true,
+                      title: (
+                        <Box sx={{ wordWrap: 'break-word' }}>
+                          <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
+
+                          {t('alert.deleteTemplate', { template: template.name || template.id })}
+                        </Box>
+                      ),
+                      content: referrers.length ? (
+                        <>
+                          {t('alert.deleteTemplateContent', { references: referrers.length })}
+                          <ul>
+                            {referrers.map((file) => (
+                              <Box key={file.meta.id} component="li">
+                                {file.meta.name || file.meta.id}
+                              </Box>
+                            ))}
+                          </ul>
+                        </>
+                      ) : undefined,
+                      okText: t('alert.delete'),
+                      okColor: 'error',
+                      cancelText: t('alert.cancel'),
+                      onOk: async () => {
+                        try {
+                          const p = joinUrl(...path);
+                          await deleteFile({ projectId, branch: ref, path: p });
+                          if (p === filepath) navigate('.');
+                          Toast.success(t('alert.deleted'));
+                        } catch (error) {
+                          Toast.error(getErrorMessage(error));
+                          throw error;
+                        }
+                      },
+                    });
+                  }
+            }
             onClick={async (_, p) => {
-              if (editor.current && !(await editor.current.requireSave())) return;
+              if (!disableMutation && editor.current && !(await editor.current.requireSave())) return;
               const to = p.join('/');
               if (to !== filepath) navigate(to);
             }}
@@ -621,6 +640,9 @@ const TemplateEditor = forwardRef<
   TemplateEditorInstance,
   { projectId: string; _ref: string; path: string; onExecute: (template: Template) => any }
 >(({ projectId, _ref: ref, path, onExecute }, _ref) => {
+  const isAdmin = useIsAdmin();
+  const disableMutation = ref === defaultBranch && !isAdmin;
+
   const { t } = useLocaleContext();
 
   const navigate = useNavigate();
@@ -636,74 +658,84 @@ const TemplateEditor = forwardRef<
 
   const { state: projectState, putFile, createBranch } = useProjectState(projectId, ref);
 
-  const save = useCallback(async () => {
-    if (projectState.branches.includes(ref) && !formChanged.current) return;
+  const showCreateBranch = useCallback(async () => {
+    return new Promise<string | null>((resolve) => {
+      let name = '';
 
-    const branch = projectState.branches.includes(ref)
-      ? ref
-      : await new Promise<string>((resolve) => {
-          let name = '';
+      showCreateBranchDialog({
+        maxWidth: 'sm',
+        fullWidth: true,
+        title: `${t('form.new')} ${t('form.branch')}`,
+        content: (
+          <Box>
+            <TextField label={t('form.name')} onChange={(e) => (name = e.target.value)} />
+          </Box>
+        ),
+        okText: t('form.save'),
+        cancelText: t('alert.cancel'),
+        onOk: async () => {
+          try {
+            await createBranch({ projectId, input: { name, oid: ref } });
+            resolve(name);
+          } catch (error) {
+            Toast.error(getErrorMessage(error));
+            throw error;
+          }
+        },
+        onCancel: () => resolve(null),
+      });
+    });
+  }, [createBranch, projectId, ref, showCreateBranchDialog, t]);
 
-          showCreateBranchDialog({
-            maxWidth: 'sm',
-            fullWidth: true,
-            title: `${t('form.new')} ${t('form.branch')}`,
-            content: (
-              <Box>
-                <TextField label={t('form.name')} onChange={(e) => (name = e.target.value)} />
-              </Box>
-            ),
-            okText: t('form.save'),
-            cancelText: t('alert.cancel'),
-            onOk: async () => {
-              try {
-                await createBranch({ projectId, input: { name, oid: ref } });
-                resolve(name);
-              } catch (error) {
-                Toast.error(getErrorMessage(error));
-                throw error;
-              }
+  const save = useCallback(
+    async ({ newBranch }: { newBranch?: boolean } = {}) => {
+      if (!newBranch && projectState.branches.includes(ref) && !formChanged.current) return;
+
+      try {
+        setSubmitting(true);
+        const branch =
+          !disableMutation && !newBranch && projectState.branches.includes(ref) ? ref : await showCreateBranch();
+        if (!branch) return;
+
+        if (formChanged.current) {
+          const res = await putFile({
+            projectId,
+            ref: branch,
+            path,
+            data: {
+              ...form.current,
+              deleteEmptyTemplates: [...deletedBranchTemplateIds.current],
             },
           });
-        });
 
-    try {
-      setSubmitting(true);
-      const res = await putFile({
-        projectId,
-        ref: branch,
-        path,
-        data: {
-          ...form.current,
-          deleteEmptyTemplates: [...deletedBranchTemplateIds.current],
-        },
-      });
-
-      resetForm(res);
-      setHash(undefined);
-      Toast.success(t('alert.saved'));
-      navigate(joinUrl('..', branch, path));
-    } catch (error) {
-      Toast.error(getErrorMessage(error));
-      throw error;
-    } finally {
-      setSubmitting(false);
-    }
-  }, [
-    projectState.branches,
-    ref,
-    formChanged,
-    showCreateBranchDialog,
-    t,
-    createBranch,
-    projectId,
-    putFile,
-    path,
-    form,
-    deletedBranchTemplateIds,
-    resetForm,
-    navigate,
-  ]);
+          resetForm(res);
+          setHash(undefined);
+        }
+        Toast.success(t('alert.saved'));
+        if (branch !== ref) navigate(joinUrl('..', branch, path));
+      } catch (error) {
+        Toast.error(getErrorMessage(error));
+        throw error;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [
+      disableMutation,
+      projectState.branches,
+      ref,
+      formChanged,
+      showCreateBranch,
+      putFile,
+      projectId,
+      path,
+      form,
+      deletedBranchTemplateIds,
+      resetForm,
+      t,
+      navigate,
+    ]
+  );
 
   const requireSave = useCallback(async () => {
     if (!formChanged.current) return true;
@@ -778,16 +810,29 @@ const TemplateEditor = forwardRef<
     useMemo(() => {
       return (
         <LoadingButton
-          disabled={projectState.branches.includes(ref) && !formChanged.current}
+          disabled={disableMutation || (projectState.branches.includes(ref) && !formChanged.current)}
           loading={submitting}
           loadingPosition="start"
           startIcon={<Save />}
-          onClick={save}>
+          onClick={() => save()}>
           {t('form.save')}
         </LoadingButton>
       );
-    }, [formChanged.current, projectState.branches, ref, save, submitting, t]),
+    }, [disableMutation, formChanged.current, projectState.branches, ref, save, submitting, t]),
     0
+  );
+
+  useAddon(
+    'new-branch',
+    useMemo(
+      () => (
+        <Button startIcon={<SaveAs />} onClick={() => save({ newBranch: true })}>
+          {formChanged.current ? t('alert.saveInNewBranch') : t('alert.newBranch')}
+        </Button>
+      ),
+      [formChanged.current, save, t]
+    ),
+    1
   );
 
   const [hash, setHash] = useState<string>();

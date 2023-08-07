@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import Joi from 'joi';
 
-import { ensureComponentCallOrAdmin } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getRepository } from '../store/projects';
 import { defaultBranch } from '../store/repository';
 
@@ -11,7 +11,7 @@ export interface CreateBranchInput {
 }
 
 export function branchRoutes(router: Router) {
-  router.get('/projects/:projectId/branches', ensureComponentCallOrAdmin(), async (req, res) => {
+  router.get('/projects/:projectId/branches', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -23,7 +23,7 @@ export function branchRoutes(router: Router) {
     oid: Joi.string().required(),
   });
 
-  router.post('/projects/:projectId/branches', ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/:projectId/branches', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -40,7 +40,7 @@ export function branchRoutes(router: Router) {
     name: Joi.string().required(),
   });
 
-  router.put('/projects/:projectId/branches/:branch', ensureComponentCallOrAdmin(), async (req, res) => {
+  router.put('/projects/:projectId/branches/:branch', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId, branch } = req.params;
     if (!projectId || !branch) throw new Error('Missing required params `projectId` or `branch`');
     if (branch === defaultBranch) throw new Error('Can not rename default branch');
@@ -54,7 +54,7 @@ export function branchRoutes(router: Router) {
     res.json({ branches: await repository.getBranches() });
   });
 
-  router.delete('/projects/:projectId/branches/:branch', ensureComponentCallOrAdmin(), async (req, res) => {
+  router.delete('/projects/:projectId/branches/:branch', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId, branch } = req.params;
     if (!projectId || !branch) throw new Error('Missing required params `projectId` or `branch`');
 

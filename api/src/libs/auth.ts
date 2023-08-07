@@ -18,3 +18,11 @@ export const handlers = new WalletHandler({
 });
 
 export const authClient = new AuthService();
+
+export const customRoles = [
+  {
+    name: 'promptsEditor',
+    title: 'Prompts Editor',
+    description: 'Someone with the Prompts Editor role can create and edit prompts',
+  },
+];

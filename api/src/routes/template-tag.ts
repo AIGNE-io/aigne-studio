@@ -4,7 +4,7 @@ import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 import { uniqBy } from 'lodash';
 
-import { ensureComponentCallOrAdmin } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getRepository } from '../store/projects';
 import { getTemplate } from '../store/templates';
 
@@ -15,7 +15,7 @@ export function templateTagRoutes(router: Router) {
     type: Joi.string().valid('image').empty(''),
   });
 
-  router.get('/tags', ensureComponentCallOrAdmin(), async (req: Request, res: Response) => {
+  router.get('/tags', ensureComponentCallOrPromptsEditor(), async (req: Request, res: Response) => {
     const { projectId, search, type } = await getTagsQuerySchema.validateAsync(req.query, { stripUnknown: true });
     const repository = getRepository(projectId);
 

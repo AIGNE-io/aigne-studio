@@ -5,8 +5,9 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { stringify } from 'yaml';
 
-import { ensureComponentCallOrAdmin } from '../libs/security';
+import { ADMIN_ROLES, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getRepository } from '../store/projects';
+import { defaultBranch } from '../store/repository';
 import { Template } from '../store/templates';
 import { templateSchema } from './templates';
 
@@ -31,13 +32,19 @@ export const importBodySchema = Joi.object<{
     )
     .required(),
 });
+
 export function importRoutes(router: Router) {
-  router.post('/projects/:projectId/import', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-    const { did } = req.user!;
+  router.post('/projects/:projectId/import', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { did, role } = req.user!;
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const { branch, path, templates } = await importBodySchema.validateAsync(req.body, { stripUnknown: true });
+
+    if (branch === defaultBranch && !ADMIN_ROLES.includes(role)) {
+      res.status(403).json({ message: 'You do not have permission to modify the main branch' });
+      return;
+    }
 
     const repository = getRepository(projectId);
 

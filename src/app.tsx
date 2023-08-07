@@ -7,11 +7,12 @@ import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { ReactNode, Suspense, lazy, useEffect, useMemo, useRef } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
+import joinUrl from 'url-join';
 
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
 import { DatasetsProvider } from './contexts/datasets';
-import { SessionProvider, useIsRole } from './contexts/session';
+import { SessionProvider } from './contexts/session';
 import { translations } from './locales';
 import { HomeLazy } from './pages/home';
 
@@ -45,7 +46,9 @@ export default function App() {
           <ToastProvider>
             <LocaleProvider translations={translations} fallbackLocale="en">
               <BrowserRouter basename={basename}>
-                <SessionProvider serviceHost={basename}>
+                <SessionProvider
+                  serviceHost={basename}
+                  protectedRoutes={[`${joinUrl(basename, 'projects')}/*`, `${joinUrl(basename, 'datasets')}/*`]}>
                   <Suspense fallback={<Loading />}>
                     <AppRoutes />
                   </Suspense>
@@ -60,8 +63,6 @@ export default function App() {
 }
 
 function AppRoutes() {
-  const isAdmin = useIsRole('owner', 'admin');
-
   const errorBoundary = useRef<ErrorBoundary>(null);
 
   const location = useLocation();
@@ -76,13 +77,9 @@ function AppRoutes() {
         <Route
           path="*"
           element={
-            isAdmin ? (
-              <DatasetsProvider>
-                <Outlet />
-              </DatasetsProvider>
-            ) : (
-              <Navigate to="/" />
-            )
+            <DatasetsProvider>
+              <Outlet />
+            </DatasetsProvider>
           }>
           <Route path="playground/*" element={<Navigate to="../projects" replace />} />
           <Route path="projects/*" element={<ProjectsRoutes />} />

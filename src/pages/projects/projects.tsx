@@ -22,6 +22,7 @@ import { Link } from 'react-router-dom';
 import { Project } from '../../../api/src/store/projects';
 import Dropdown from '../../components/template-form/dropdown';
 import { useProjectsState } from '../../contexts/projects';
+import { useIsAdmin } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
 
@@ -130,6 +131,8 @@ export default function ProjectsPage() {
     });
   };
 
+  const isAdmin = useIsAdmin();
+
   return (
     <Box>
       <Grid container spacing={2} p={2}>
@@ -151,44 +154,46 @@ export default function ProjectsPage() {
                 }}>
                 <Typography>{item.name || t('alert.unnamed')}</Typography>
 
-                <Box sx={{ position: 'absolute', right: 8, top: 8 }} onClick={(e) => e.preventDefault()}>
-                  <Dropdown
-                    placement="bottom-end"
-                    dropdown={
-                      <List
-                        disablePadding
-                        sx={{
-                          [`.${listItemIconClasses.root}`]: {
-                            minWidth: 32,
-                          },
-                        }}>
-                        <ListItemButton onClick={() => onEdit(item)}>
-                          <ListItemIcon>
-                            <Edit />
-                          </ListItemIcon>
-                          <ListItemText primary={t('alert.edit')} />
-                        </ListItemButton>
-                        <Divider sx={{ my: 0.5 }} />
-                        <ListItemButton sx={{ color: 'warning.main' }} onClick={() => onDelete(item)}>
-                          <ListItemIcon>
-                            <Delete color="warning" />
-                          </ListItemIcon>
-                          <ListItemText primary={t('alert.delete')} />
-                        </ListItemButton>
-                      </List>
-                    }>
-                    <IconButton>
-                      <MoreVert />
-                    </IconButton>
-                  </Dropdown>
-                </Box>
+                {isAdmin && (
+                  <Box sx={{ position: 'absolute', right: 8, top: 8 }} onClick={(e) => e.preventDefault()}>
+                    <Dropdown
+                      placement="bottom-end"
+                      dropdown={
+                        <List
+                          disablePadding
+                          sx={{
+                            [`.${listItemIconClasses.root}`]: {
+                              minWidth: 32,
+                            },
+                          }}>
+                          <ListItemButton onClick={() => onEdit(item)}>
+                            <ListItemIcon>
+                              <Edit />
+                            </ListItemIcon>
+                            <ListItemText primary={t('alert.edit')} />
+                          </ListItemButton>
+                          <Divider sx={{ my: 0.5 }} />
+                          <ListItemButton sx={{ color: 'warning.main' }} onClick={() => onDelete(item)}>
+                            <ListItemIcon>
+                              <Delete color="warning" />
+                            </ListItemIcon>
+                            <ListItemText primary={t('alert.delete')} />
+                          </ListItemButton>
+                        </List>
+                      }>
+                      <IconButton>
+                        <MoreVert />
+                      </IconButton>
+                    </Dropdown>
+                  </Box>
+                )}
 
                 <Box sx={{ height: '2em' }} />
               </Card>
             </Box>
           </Grid>
         ))}
-        {(projects.length > 0 || !loading) && initialized && (
+        {isAdmin && (projects.length > 0 || !loading) && initialized && (
           <Grid item xs={4}>
             <Card
               elevation={0}
