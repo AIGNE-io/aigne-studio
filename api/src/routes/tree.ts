@@ -1,7 +1,6 @@
 import path from 'path';
 
 import { user } from '@blocklet/sdk/lib/middlewares';
-import dayjs from 'dayjs';
 import { Router } from 'express';
 import Joi from 'joi';
 import { parse, stringify } from 'yaml';
@@ -146,8 +145,6 @@ export function treeRoutes(router: Router) {
         const author = {
           name: did,
           email: did,
-          timestamp: dayjs().unix(),
-          timezoneOffset: -dayjs().utcOffset(),
         };
 
         switch (input.type) {
@@ -207,12 +204,7 @@ export function treeRoutes(router: Router) {
 
         await tx.commit({
           message: `Delete ${path}`,
-          author: {
-            name: did,
-            email: did,
-            timestamp: dayjs().unix(),
-            timezoneOffset: -dayjs().utcOffset(),
-          },
+          author: { name: did, email: did },
         });
       });
 
@@ -247,12 +239,7 @@ export function treeRoutes(router: Router) {
 
         await tx.commit({
           message: `Move ${path} to ${input.path}`,
-          author: {
-            name: did,
-            email: did,
-            timestamp: dayjs().unix(),
-            timezoneOffset: -dayjs().utcOffset(),
-          },
+          author: { name: did, email: did },
         });
       });
 
