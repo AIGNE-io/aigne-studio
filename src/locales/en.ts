@@ -95,5 +95,7 @@ export default flat({
     showAllBranches: 'Show all branches',
     close: 'Close',
     pickFromBranch: 'Pick from branch',
+    saveInNewBranch: 'Save in new branch',
+    newBranch: 'New branch',
   },
 });

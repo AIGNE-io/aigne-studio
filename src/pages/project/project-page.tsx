@@ -13,6 +13,7 @@ import {
   History,
   InfoOutlined,
   Save,
+  SaveAs,
   Start,
   Upload,
   WarningRounded,
@@ -639,6 +640,9 @@ const TemplateEditor = forwardRef<
   TemplateEditorInstance,
   { projectId: string; _ref: string; path: string; onExecute: (template: Template) => any }
 >(({ projectId, _ref: ref, path, onExecute }, _ref) => {
+  const isAdmin = useIsAdmin();
+  const disableMutation = ref === defaultBranch && !isAdmin;
+
   const { t } = useLocaleContext();
 
   const navigate = useNavigate();
@@ -654,74 +658,84 @@ const TemplateEditor = forwardRef<
 
   const { state: projectState, putFile, createBranch } = useProjectState(projectId, ref);
 
-  const save = useCallback(async () => {
-    if (projectState.branches.includes(ref) && !formChanged.current) return;
+  const showCreateBranch = useCallback(async () => {
+    return new Promise<string | null>((resolve) => {
+      let name = '';
 
-    const branch = projectState.branches.includes(ref)
-      ? ref
-      : await new Promise<string>((resolve) => {
-          let name = '';
+      showCreateBranchDialog({
+        maxWidth: 'sm',
+        fullWidth: true,
+        title: `${t('form.new')} ${t('form.branch')}`,
+        content: (
+          <Box>
+            <TextField label={t('form.name')} onChange={(e) => (name = e.target.value)} />
+          </Box>
+        ),
+        okText: t('form.save'),
+        cancelText: t('alert.cancel'),
+        onOk: async () => {
+          try {
+            await createBranch({ projectId, input: { name, oid: ref } });
+            resolve(name);
+          } catch (error) {
+            Toast.error(getErrorMessage(error));
+            throw error;
+          }
+        },
+        onCancel: () => resolve(null),
+      });
+    });
+  }, [createBranch, projectId, ref, showCreateBranchDialog, t]);
 
-          showCreateBranchDialog({
-            maxWidth: 'sm',
-            fullWidth: true,
-            title: `${t('form.new')} ${t('form.branch')}`,
-            content: (
-              <Box>
-                <TextField label={t('form.name')} onChange={(e) => (name = e.target.value)} />
-              </Box>
-            ),
-            okText: t('form.save'),
-            cancelText: t('alert.cancel'),
-            onOk: async () => {
-              try {
-                await createBranch({ projectId, input: { name, oid: ref } });
-                resolve(name);
-              } catch (error) {
-                Toast.error(getErrorMessage(error));
-                throw error;
-              }
+  const save = useCallback(
+    async ({ newBranch }: { newBranch?: boolean } = {}) => {
+      if (!newBranch && projectState.branches.includes(ref) && !formChanged.current) return;
+
+      try {
+        setSubmitting(true);
+        const branch =
+          !disableMutation && !newBranch && projectState.branches.includes(ref) ? ref : await showCreateBranch();
+        if (!branch) return;
+
+        if (formChanged.current) {
+          const res = await putFile({
+            projectId,
+            ref: branch,
+            path,
+            data: {
+              ...form.current,
+              deleteEmptyTemplates: [...deletedBranchTemplateIds.current],
             },
           });
-        });
 
-    try {
-      setSubmitting(true);
-      const res = await putFile({
-        projectId,
-        ref: branch,
-        path,
-        data: {
-          ...form.current,
-          deleteEmptyTemplates: [...deletedBranchTemplateIds.current],
-        },
-      });
-
-      resetForm(res);
-      setHash(undefined);
-      Toast.success(t('alert.saved'));
-      navigate(joinUrl('..', branch, path));
-    } catch (error) {
-      Toast.error(getErrorMessage(error));
-      throw error;
-    } finally {
-      setSubmitting(false);
-    }
-  }, [
-    projectState.branches,
-    ref,
-    formChanged,
-    showCreateBranchDialog,
-    t,
-    createBranch,
-    projectId,
-    putFile,
-    path,
-    form,
-    deletedBranchTemplateIds,
-    resetForm,
-    navigate,
-  ]);
+          resetForm(res);
+          setHash(undefined);
+        }
+        Toast.success(t('alert.saved'));
+        if (branch !== ref) navigate(joinUrl('..', branch, path));
+      } catch (error) {
+        Toast.error(getErrorMessage(error));
+        throw error;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [
+      disableMutation,
+      projectState.branches,
+      ref,
+      formChanged,
+      showCreateBranch,
+      putFile,
+      projectId,
+      path,
+      form,
+      deletedBranchTemplateIds,
+      resetForm,
+      t,
+      navigate,
+    ]
+  );
 
   const requireSave = useCallback(async () => {
     if (!formChanged.current) return true;
@@ -796,16 +810,29 @@ const TemplateEditor = forwardRef<
     useMemo(() => {
       return (
         <LoadingButton
-          disabled={projectState.branches.includes(ref) && !formChanged.current}
+          disabled={disableMutation || (projectState.branches.includes(ref) && !formChanged.current)}
           loading={submitting}
           loadingPosition="start"
           startIcon={<Save />}
-          onClick={save}>
+          onClick={() => save()}>
           {t('form.save')}
         </LoadingButton>
       );
-    }, [formChanged.current, projectState.branches, ref, save, submitting, t]),
+    }, [disableMutation, formChanged.current, projectState.branches, ref, save, submitting, t]),
     0
+  );
+
+  useAddon(
+    'new-branch',
+    useMemo(
+      () => (
+        <Button startIcon={<SaveAs />} onClick={() => save({ newBranch: true })}>
+          {formChanged.current ? t('alert.saveInNewBranch') : t('alert.newBranch')}
+        </Button>
+      ),
+      [formChanged.current, save, t]
+    ),
+    1
   );
 
   const [hash, setHash] = useState<string>();
