@@ -96,7 +96,7 @@ After developing a blocklet, you may need to bundle it. Use `npm run bundle` com
   Get a `accessToken` by using this command.
 
   > Why we need a `accessToken`?
-  > A `accessToken` is genrate by blocklet store, which help us upload our blocklet to any store.
+  > A `accessToken` is generate by blocklet store, which help us upload our blocklet to any store.
 
   Set `accessToken` to blocklet config
 
