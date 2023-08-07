@@ -1,3 +1,11 @@
+## 0.1.74 (2023-8-7)
+
+- fix: use system date and timezone when committing
+- fix: support creating new branch from any history
+- fix: support export templates from histories
+- fix: allow users of promptsEditor passport to modify data in non-main branches
+- fix: support call template by commit hash
+
 ## 0.1.73 (2023-7-31)
 
 - fix: move compression middleware to the required api
