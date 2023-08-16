@@ -12,6 +12,7 @@ namespace Express {
       did: string;
       role: string;
       fullName: string;
+      provider: string;
     };
   }
 }
