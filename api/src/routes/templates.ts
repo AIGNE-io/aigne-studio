@@ -141,14 +141,33 @@ export const templateSchema = Joi.object<TemplateInput>({
 });
 
 const getTemplatesSchema = Joi.object<{
+  offset: number;
+  limit?: number;
+  sort?: string;
   projectId?: string;
   tag?: string;
   type?: 'image';
 }>({
+  offset: Joi.number().integer().min(0).default(0),
+  limit: Joi.number().integer().min(1).empty(null),
+  sort: Joi.string().empty(''),
   projectId: Joi.string().empty(''),
   tag: Joi.string().empty(''),
   type: Joi.string().valid('image').empty(''),
 });
+
+const templateSortableFields: (keyof Template)[] = ['name', 'createdAt', 'updatedAt'];
+
+const getTemplateSort = (sort: any): { field: keyof Template; direction: 1 | -1 } | null => {
+  if (typeof sort !== 'string') {
+    return null;
+  }
+  const field: any = sort.replace(/^[+-]?/, '');
+  if (!templateSortableFields.includes(field)) {
+    return null;
+  }
+  return { field, direction: sort[0] === '-' ? -1 : 1 };
+};
 
 const getTemplateQuerySchema = Joi.object<{ projectId?: string; hash?: string }>({
   projectId: Joi.string().empty(''),
@@ -157,7 +176,12 @@ const getTemplateQuerySchema = Joi.object<{ projectId?: string; hash?: string }>
 
 export function templateRoutes(router: Router) {
   async function handleTemplates(req: Request, res: Response) {
-    const { projectId, tag, type } = await getTemplatesSchema.validateAsync(req.query, { stripUnknown: true });
+    const { offset, limit, projectId, tag, type, ...query } = await getTemplatesSchema.validateAsync(req.query, {
+      stripUnknown: true,
+    });
+
+    const sort = getTemplateSort(query.sort) ?? { field: 'updatedAt', direction: -1 };
+
     const repository = getRepository(projectId);
 
     let templates = await Promise.all(
@@ -173,7 +197,16 @@ export function templateRoutes(router: Router) {
       templates = templates.filter((i) => i.type === type);
     }
 
-    res.json({ templates });
+    templates.sort((a, b) => {
+      const left = a[sort.field];
+      const right = b[sort.field];
+
+      if (typeof left !== 'string' || typeof right !== 'string') return b.updatedAt.localeCompare(a.updatedAt);
+
+      return sort.direction === -1 ? right.localeCompare(left) : left.localeCompare(right);
+    });
+
+    res.json({ templates: templates.slice(offset, limit ? offset + limit : undefined) });
   }
 
   router.get('/templates', ensureComponentCallOrPromptsEditor(), handleTemplates);

@@ -1,3 +1,9 @@
+## 0.1.75 (2023-8-16)
+
+- fix: use smaller favicon
+- chore: update deps
+- docs: correct typo
+
 ## 0.1.74 (2023-8-7)
 
 - fix: use system date and timezone when committing
@@ -89,7 +95,7 @@
 
 ## 0.1.54 (2023-5-30)
 
-- fix: use AIKitEmbeddigns intead of OpenAIEmbeddings
+- fix: use AIKitEmbeddings instead of OpenAIEmbeddings
 
 ## 0.1.53 (2023-5-30)
 
@@ -157,7 +163,7 @@
 
 ## 0.1.41 (2023-5-9)
 
-- fix: RouterProvider must be an ancestor of the sessionProvder
+- fix: RouterProvider must be an ancestor of the sessionProvider
 
 ## 0.1.40 (2023-5-7)
 
@@ -256,7 +262,7 @@
 ## 0.1.19 (2023-3-21)
 
 - feat: support custom timezone
-- refactor: spliting parameter components
+- refactor: splitting parameter components
 
 ## 0.1.18 (2023-3-17)
 
@@ -295,7 +301,7 @@
 
 ## 0.1.11 (2023-2-28)
 
-- fix: trnaslate admin menu
+- fix: translate admin menu
 
 ## 0.1.10 (2023-2-27)
 
