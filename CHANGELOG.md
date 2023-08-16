@@ -1,3 +1,9 @@
+## 0.1.75 (2023-8-16)
+
+- fix: use smaller favicon
+- chore: update deps
+- docs: correct typo
+
 ## 0.1.74 (2023-8-7)
 
 - fix: use system date and timezone when committing

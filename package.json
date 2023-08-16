@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.74",
+  "version": "0.1.75",
   "scripts": {
     "dev": "COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
     "eject": "vite eject",
