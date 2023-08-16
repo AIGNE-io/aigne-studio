@@ -1,14 +1,13 @@
-import { user } from '@blocklet/sdk/lib/middlewares';
+import { join } from 'path';
+
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
-import { omit } from 'lodash';
-import { nanoid } from 'nanoid';
+import { stringify } from 'yaml';
 
-import { ensureAdmin } from '../libs/security';
-import { tags } from '../store/tags';
-import { Template, roles, templates } from '../store/templates';
-
-const router = Router();
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { getRepository } from '../store/projects';
+import { Transaction } from '../store/repository';
+import { Template, getTemplate, nextTemplateId, roles } from '../store/templates';
 
 export interface TemplateInput
   extends Pick<
@@ -24,9 +23,9 @@ export interface TemplateInput
     | 'branch'
     | 'model'
     | 'temperature'
-    | 'folderId'
     | 'datasets'
     | 'next'
+    | 'versionNote'
   > {
   deleteEmptyTemplates?: string[];
 }
@@ -120,7 +119,6 @@ export const templateSchema = Joi.object<TemplateInput>({
   model: Joi.string().empty(null),
   temperature: Joi.number().min(0).max(2).empty(null),
   deleteEmptyTemplates: Joi.array().items(Joi.string()),
-  folderId: Joi.string().allow(null),
   datasets: Joi.array().items(
     Joi.object({
       id: Joi.string().required(),
@@ -139,104 +137,106 @@ export const templateSchema = Joi.object<TemplateInput>({
     name: Joi.string().empty(Joi.valid('', null)),
     outputKey: Joi.string().empty(Joi.valid('', null)),
   }),
+  versionNote: Joi.string().allow(''),
 });
 
-const paginationSchema = Joi.object<{
+const getTemplatesSchema = Joi.object<{
   offset: number;
-  limit: number;
+  limit?: number;
   sort?: string;
-  search?: string;
+  projectId?: string;
   tag?: string;
   type?: 'image';
 }>({
   offset: Joi.number().integer().min(0).default(0),
-  limit: Joi.number().integer().min(1).max(100).default(20),
+  limit: Joi.number().integer().min(1).empty(null),
   sort: Joi.string().empty(''),
-  search: Joi.string().empty(''),
+  projectId: Joi.string().empty(''),
   tag: Joi.string().empty(''),
   type: Joi.string().valid('image').empty(''),
 });
 
 const templateSortableFields: (keyof Template)[] = ['name', 'createdAt', 'updatedAt'];
 
-const getTemplateSort = (sort: any) => {
+const getTemplateSort = (sort: any): { field: keyof Template; direction: 1 | -1 } | null => {
   if (typeof sort !== 'string') {
     return null;
   }
-  const field = sort.replace(/^[+-]?/, '');
-  if (!templateSortableFields.includes(field as any)) {
+  const field: any = sort.replace(/^[+-]?/, '');
+  if (!templateSortableFields.includes(field)) {
     return null;
   }
-  return { [field]: sort[0] === '-' ? -1 : 1 };
+  return { field, direction: sort[0] === '-' ? -1 : 1 };
 };
 
-export async function getTemplates(req: Request, res: Response) {
-  const { offset, limit, tag, type, ...query } = await paginationSchema.validateAsync(req.query, {
-    stripUnknown: true,
-  });
-  const sort = getTemplateSort(query.sort) ?? { updatedAt: -1 };
+const getTemplateQuerySchema = Joi.object<{ projectId?: string; hash?: string }>({
+  projectId: Joi.string().empty(''),
+  hash: Joi.string().empty(''),
+});
 
-  const filter = [];
+export function templateRoutes(router: Router) {
+  async function handleTemplates(req: Request, res: Response) {
+    const { offset, limit, projectId, tag, type, ...query } = await getTemplatesSchema.validateAsync(req.query, {
+      stripUnknown: true,
+    });
 
-  if (type) {
-    filter.push({ type });
-  }
-  if (query.search) {
-    const regex = new RegExp(query.search, 'i');
-    filter.push({ name: { $regex: regex } }, { description: { $regex: regex } });
-  }
-  if (tag) {
-    filter.push({ tags: { $in: [tag] } });
-  }
+    const sort = getTemplateSort(query.sort) ?? { field: 'updatedAt', direction: -1 };
 
-  const list = await templates
-    .cursor(filter.length ? { $or: filter } : undefined)
-    .sort(sort)
-    .skip(offset)
-    .limit(limit)
-    .exec();
+    const repository = getRepository(projectId);
 
-  res.json({ templates: list.map((template) => migrateTemplateToPrompts(template as any)) });
-}
+    let templates = await Promise.all(
+      (await repository.getFiles())
+        .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
+        .map((i) => getTemplate({ repository, path: join(...i.parent, i.name) }))
+    );
 
-router.get('/', ensureAdmin, getTemplates);
-
-export async function getTemplate(req: Request, res: Response) {
-  const { templateId } = req.params;
-
-  const template = await templates.findOne({ _id: templateId });
-  if (!template) {
-    res.status(404).json({ error: 'No such template' });
-    return;
-  }
-
-  res.json(migrateTemplateToPrompts(template as any));
-}
-
-function migrateTemplateToPrompts(template: Template): Template {
-  let res = template;
-
-  const prompt: string | undefined = (template as any).template;
-  if (template.prompts || !prompt) {
-    res = omit(template, 'template');
-  } else {
-    res = { ...omit(template), prompts: [{ id: nanoid(), role: 'system', content: prompt }] };
-  }
-
-  if (res.branch?.branches) {
-    for (const i of res.branch.branches) {
-      if (!i.id) {
-        i.id = nanoid();
-      }
+    if (tag) {
+      templates = templates.filter((i) => i.tags?.includes(tag));
     }
+    if (type) {
+      templates = templates.filter((i) => i.type === type);
+    }
+
+    templates.sort((a, b) => {
+      const left = a[sort.field];
+      const right = b[sort.field];
+
+      if (typeof left !== 'string' || typeof right !== 'string') return b.updatedAt.localeCompare(a.updatedAt);
+
+      return sort.direction === -1 ? right.localeCompare(left) : left.localeCompare(right);
+    });
+
+    res.json({ templates: templates.slice(offset, limit ? offset + limit : undefined) });
   }
 
-  return res;
+  router.get('/templates', ensureComponentCallOrPromptsEditor(), handleTemplates);
+  router.get('/sdk/templates', ensureComponentCallOrPromptsEditor(), handleTemplates);
+
+  async function handleTemplate(req: Request, res: Response) {
+    const { templateId } = req.params;
+    if (!templateId) throw new Error('Missing required params `templateId`');
+
+    const { projectId, hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+    const template = await getTemplate({
+      repository: getRepository(projectId),
+      ref: hash,
+      templateId,
+    });
+
+    res.json(template);
+  }
+
+  router.get('/templates/:templateId', ensureComponentCallOrPromptsEditor(), handleTemplate);
+  router.get('/sdk/templates/:templateId', ensureComponentCallOrPromptsEditor(), handleTemplate);
 }
 
-router.get('/:templateId', ensureAdmin, getTemplate);
-
-async function createBranches(branch: Template['branch'], did: string): Promise<Template['branch']> {
+export async function createBranches(
+  tx: Transaction,
+  project: string,
+  branch: Template['branch'],
+  did: string
+): Promise<Template['branch']> {
   if (!branch) {
     return branch;
   }
@@ -245,100 +245,22 @@ async function createBranches(branch: Template['branch'], did: string): Promise<
     branches: await Promise.all(
       branch.branches.map(async (i) => {
         if (!i.template || i.template.id) return i;
-        const template = await templates.insert({
+
+        const id = nextTemplateId();
+
+        const template: Template = {
+          id,
           name: i.template.name,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           createdBy: did,
           updatedBy: did,
-        });
-        return { ...i, template: { id: template._id!, name: i.template.name } };
+        };
+
+        await tx.write({ path: project, data: stringify(template) });
+
+        return { ...i, template: { id, name: template.name } };
       })
     ),
   };
-}
-
-router.post('/', user(), ensureAdmin, async (req, res) => {
-  const template = await templateSchema.validateAsync(req.body, { stripUnknown: true });
-  const { did } = req.user!;
-
-  if (template.tags) {
-    await tags.createIfNotExists({ tags: template.tags, did });
-  }
-
-  const doc = await templates.insert({
-    ...template,
-    branch: template.branch && (await createBranches(template.branch, did)),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    createdBy: did,
-    updatedBy: did,
-  });
-  res.json(doc);
-});
-
-router.put('/:templateId', user(), ensureAdmin, async (req, res) => {
-  const { templateId } = req.params;
-
-  const template = await templates.findOne({ _id: templateId });
-  if (!template) {
-    res.status(404).json({ error: 'No such template' });
-    return;
-  }
-
-  const { deleteEmptyTemplates, ...update } = await templateSchema.validateAsync(req.body, { stripUnknown: true });
-
-  const { did } = req.user!;
-
-  if (update.tags) {
-    await tags.createIfNotExists({ tags: update.tags, did });
-  }
-
-  const [, doc] = await templates.update(
-    { _id: templateId },
-    {
-      $set: {
-        ...update,
-        branch: update.branch && (await createBranches(update.branch, did)),
-        updatedAt: new Date().toISOString(),
-        updatedBy: did,
-      },
-    },
-    { returnUpdatedDocs: true }
-  );
-
-  if (deleteEmptyTemplates?.length) {
-    const ts: Template[] = (await templates.find({ _id: { $in: deleteEmptyTemplates } })) as any;
-    const ids = ts.filter(isTemplateEmpty).map((i) => i._id);
-    if (ids.length) {
-      await templates.remove({ _id: { $in: ids } }, { multi: true });
-    }
-  }
-
-  res.json(doc);
-});
-
-router.delete('/:templateId', ensureAdmin, async (req, res) => {
-  const { templateId } = req.params;
-
-  const template = await templates.findOne({ _id: templateId });
-  if (!template) {
-    res.status(404).json({ error: 'No such template' });
-    return;
-  }
-
-  await templates.remove({ _id: templateId });
-  res.json(template);
-});
-
-export default router;
-
-function isTemplateEmpty(template: Template) {
-  if (template.branch?.branches.some((i) => !!i.template)) {
-    return false;
-  }
-  if (template.prompts?.some((i) => i.content?.trim())) {
-    return false;
-  }
-  return true;
 }

@@ -1,7 +1,9 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import { Icon } from '@iconify-icon/react';
-import { TravelExplore } from '@mui/icons-material';
+import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
 import {
+  Box,
   Button,
   FormControl,
   FormControlLabel,
@@ -13,10 +15,12 @@ import {
   Radio,
   RadioGroup,
   TextField,
+  Typography,
 } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
-import { useState } from 'react';
+import { ComponentProps, useState } from 'react';
+import { useAsync } from 'react-use';
 
 import {
   HoroscopeParameter,
@@ -27,7 +31,12 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
+import { Commit, getLogs } from '../../libs/log';
+import { getFile } from '../../libs/tree';
+import useDialog from '../../utils/use-dialog';
 import Branches from './branches';
+import CommitSelect from './commit-select';
+import CommitsTip from './commits-tip';
 import Datasets from './datasets';
 import Next from './next';
 import Parameters, { matchParams } from './parameters';
@@ -38,7 +47,7 @@ const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-0301'];
 
 export type TemplateForm = Pick<
   Template,
-  | '_id'
+  | 'id'
   | 'mode'
   | 'type'
   | 'name'
@@ -53,17 +62,29 @@ export type TemplateForm = Pick<
 >;
 
 export default function TemplateFormView({
+  projectId,
+  _ref: ref,
+  path,
+  hash,
   value: form,
+  onCommitSelect,
   onChange,
   onExecute,
   onTemplateClick,
 }: {
+  projectId: string;
+  _ref: string;
+  path: string;
+  hash?: string;
   value: Template;
+  onCommitSelect: (commit: Commit) => any;
   onChange: (update: Template | ((update: WritableDraft<Template>) => void)) => void;
   onExecute?: (template: Template) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
+
+  const { dialog, showDialog, closeDialog } = useDialog();
 
   const [, setError] = useState<Joi.ValidationError>();
 
@@ -170,6 +191,67 @@ export default function TemplateFormView({
 
   return (
     <Grid container spacing={2}>
+      {dialog}
+
+      <Grid item xs={12}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography color="text.secondary" component="span">
+            {t('alert.updatedAt')}:
+          </Typography>
+
+          <Commits
+            key={form.updatedAt}
+            projectId={projectId}
+            _ref={ref}
+            path={path}
+            hash={hash}
+            onCommitSelect={onCommitSelect}>
+            <Button
+              sx={{ ml: 1 }}
+              color="inherit"
+              endIcon={<ArrowDropDown fontSize="small" sx={{ color: 'text.secondary' }} />}>
+              <RelativeTime locale={locale} value={form.updatedAt} />
+            </Button>
+          </Commits>
+
+          <Box flex={1} />
+
+          <Button
+            onClick={() =>
+              showDialog({
+                maxWidth: 'sm',
+                fullWidth: true,
+                title: t('alert.pickFromBranch'),
+                content: (
+                  <CommitSelect
+                    projectId={projectId}
+                    _ref={ref}
+                    path={path}
+                    onSelect={async (commit) => {
+                      const template = await getFile({ projectId, ref: commit.oid, path });
+                      onChange(template);
+                      closeDialog();
+                    }}
+                  />
+                ),
+                cancelText: t('alert.cancel'),
+              })
+            }>
+            {t('alert.pickFromBranch')}
+          </Button>
+        </Box>
+      </Grid>
+
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('form.versionNote')}
+          size="small"
+          value={form.versionNote ?? ''}
+          onChange={(e) => onChange((form) => (form.versionNote = e.target.value))}
+        />
+      </Grid>
+
       <Grid item xs={12}>
         <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           <FormLabel sx={{ width: 60 }}>{t('form.mode')}</FormLabel>
@@ -289,6 +371,7 @@ export default function TemplateFormView({
       </Grid>
       <Grid item xs={12}>
         <TagsAutoComplete
+          projectId={projectId}
           label={t('form.tag')}
           value={form.tags ?? []}
           onChange={(_, value) => onChange((form) => (form.tags = value))}
@@ -301,7 +384,7 @@ export default function TemplateFormView({
 
       {form.type === 'branch' && (
         <Grid item xs={12}>
-          <Branches value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+          <Branches projectId={projectId} value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 
@@ -315,15 +398,31 @@ export default function TemplateFormView({
 
       {form.type !== 'image' && (
         <Grid item xs={12}>
-          <Next value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+          <Next projectId={projectId} value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 
-      <Grid item xs={12}>
+      <Grid item xs={12} sx={{ position: 'sticky', bottom: 0, zIndex: 1 }}>
         <Button fullWidth variant="contained" onClick={submit}>
           {t('form.execute')}
         </Button>
       </Grid>
     </Grid>
   );
+}
+
+function Commits({
+  projectId,
+  _ref: ref,
+  path,
+  ...props
+}: {
+  projectId: string;
+  _ref: string;
+  path?: string;
+} & Omit<ComponentProps<typeof CommitsTip>, 'commits' | 'loading'>) {
+  const { value, loading, error } = useAsync(() => getLogs({ projectId, ref, path }), [path]);
+  if (error) console.error(error);
+
+  return <CommitsTip {...props} loading={loading} commits={value?.commits} />;
 }

@@ -1,4 +1,5 @@
 import { call } from '@blocklet/sdk/lib/component';
+import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import { Callbacks } from 'langchain/callbacks';
@@ -14,14 +15,15 @@ import { ChatCompletionRequestMessage, ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
-import { ensureComponentCallOrAdmin } from '../libs/security';
-import { Template, templates } from '../store/templates';
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { getRepository } from '../store/projects';
+import { Template, getTemplate } from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
 
 const router = Router();
 
-router.get('/status', ensureComponentCallOrAdmin(), async (_, res) => {
+router.get('/status', ensureComponentCallOrPromptsEditor(), async (_, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/status',
@@ -32,7 +34,7 @@ router.get('/status', ensureComponentCallOrAdmin(), async (_, res) => {
   response.data.pipe(res);
 });
 
-router.post('/completions', ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/completions', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/completions',
@@ -44,7 +46,7 @@ router.post('/completions', ensureComponentCallOrAdmin(), async (req, res) => {
   response.data.pipe(res);
 });
 
-router.post('/image/generations', ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/image/generations', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const response = await call({
     name: 'ai-kit',
     path: '/api/v1/sdk/image/generations',
@@ -58,18 +60,24 @@ router.post('/image/generations', ensureComponentCallOrAdmin(), async (req, res)
 
 const callInputSchema = Joi.object<
   {
-    parameters?: { [key: string]: string | number };
+    parameters?: { [key: string]: any };
   } & (
     | {
+        ref?: string;
+        projectId?: string;
         templateId: string;
         template: undefined;
       }
     | {
+        ref: undefined;
+        projectId: undefined;
         templateId: undefined;
         template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>;
       }
   )
 >({
+  ref: Joi.string(),
+  projectId: Joi.string(),
   templateId: Joi.string(),
   template: Joi.object({
     type: templateSchema.extract('type'),
@@ -80,15 +88,19 @@ const callInputSchema = Joi.object<
     branch: templateSchema.extract('branch'),
     next: templateSchema.extract('next'),
   }),
-  parameters: Joi.object().pattern(Joi.string(), Joi.alternatives().try(Joi.string(), Joi.number()).allow('', null)),
+  parameters: Joi.object().pattern(Joi.string(), Joi.any()),
 }).xor('templateId', 'template');
 
-router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
+router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const template = input.template ?? ((await templates.findOne({ _id: input.templateId })) as Template);
+  const repository = getRepository(input.projectId);
+
+  const getTemplateById = (templateId: string) => getTemplate({ repository, ref: input.ref, templateId });
+
+  const template = input.template ?? (await getTemplateById(input.templateId));
   const emit = (response: { type: 'delta'; delta: string } | typeof result) => {
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'text/event-stream');
@@ -100,6 +112,7 @@ router.post('/call', ensureComponentCallOrAdmin(), async (req, res) => {
   };
 
   const result = await runTemplate(
+    getTemplateById,
     template,
     input.parameters,
     stream
@@ -134,8 +147,12 @@ class StaticPromptTemplate extends PromptTemplate {
 }
 
 async function runTemplate(
+  getTemplate: (templateId: string) => Promise<Template>,
   template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>,
-  parameters?: { [key: string]: string | number },
+  parameters?: {
+    $history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
+    [key: string]: any;
+  },
   callbacks?: Callbacks
 ): Promise<
   | { type: 'text'; text: string }
@@ -146,9 +163,9 @@ async function runTemplate(
   let result: Awaited<ReturnType<typeof runTemplate>> | undefined;
 
   while (current) {
-    next = current.next && ((await templates.findOne({ _id: current.next.id })) as Template);
+    next = current.next?.id ? await getTemplate(current.next.id) : undefined;
     // avoid recursive call
-    if (next?._id === current.id) {
+    if (next?.id === current.id) {
       next = undefined;
     }
 
@@ -179,8 +196,10 @@ async function runTemplate(
       await Promise.all(datasets.map(async (dataset) => dataset.similaritySearch(messagesString, 4)))
     ).flat();
 
+    const history = (parameters?.$history ?? []).filter((i) => !!i.role && !!i.content);
+
     const prompt = ChatPromptTemplate.fromPromptMessages(
-      messages.map(({ role, content }) => {
+      history.concat(messages).map(({ role, content }) => {
         const Message = {
           system: SystemMessagePromptTemplate,
           user: HumanMessagePromptTemplate,
@@ -283,7 +302,7 @@ Question: ${question}\
     if (current.type === 'branch') {
       const branchId = text && /Branch_(\w+)/s.exec(text)?.[1]?.trim();
       if (branchId && current.branch?.branches.some((i) => i.template?.id === branchId)) {
-        current = (await templates.findOne({ _id: branchId })) as any;
+        current = await getTemplate(branchId);
         continue;
       }
     }

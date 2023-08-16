@@ -1,3 +1,61 @@
+## 0.1.75 (2023-8-16)
+
+- fix: use smaller favicon
+- chore: update deps
+- docs: correct typo
+
+## 0.1.74 (2023-8-7)
+
+- fix: use system date and timezone when committing
+- fix: support creating new branch from any history
+- fix: support export templates from histories
+- fix: allow users of promptsEditor passport to modify data in non-main branches
+- fix: support call template by commit hash
+
+## 0.1.73 (2023-7-31)
+
+- fix: move compression middleware to the required api
+
+## 0.1.72 (2023-7-25)
+
+- fix: add sdk api
+
+## 0.1.71 (2023-7-25)
+
+- fix: fallback locale to en
+
+## 0.1.70 (2023-7-24)
+
+- fix: auto redirect to projects from old path
+
+## 0.1.69 (2023-7-20)
+
+- feat: switch to git repository
+- feat: support multiple projects
+
+## 0.1.68 (2023-7-19)
+
+## 0.1.67 (2023-7-19)
+
+- fix: support pass history to AI by variable $history
+
+## 0.1.66 (2023-7-5)
+
+- chore: update deps
+- fix: correct join api url
+
+## 0.1.65 (2023-6-29)
+
+- fix: init time machine repo for all templates
+
+## 0.1.64 (2023-6-29)
+
+- feat: support commit history
+
+## 0.1.63 (2023-6-25)
+
+- chore: bundle with dynamic store url
+
 ## 0.1.62 (2023-6-25)
 
 - chore: add ai-kit dependency
@@ -37,7 +95,7 @@
 
 ## 0.1.54 (2023-5-30)
 
-- fix: use AIKitEmbeddigns intead of OpenAIEmbeddings
+- fix: use AIKitEmbeddings instead of OpenAIEmbeddings
 
 ## 0.1.53 (2023-5-30)
 
@@ -105,7 +163,7 @@
 
 ## 0.1.41 (2023-5-9)
 
-- fix: RouterProvider must be an ancestor of the sessionProvder
+- fix: RouterProvider must be an ancestor of the sessionProvider
 
 ## 0.1.40 (2023-5-7)
 
@@ -204,7 +262,7 @@
 ## 0.1.19 (2023-3-21)
 
 - feat: support custom timezone
-- refactor: spliting parameter components
+- refactor: splitting parameter components
 
 ## 0.1.18 (2023-3-17)
 
@@ -243,7 +301,7 @@
 
 ## 0.1.11 (2023-2-28)
 
-- fix: trnaslate admin menu
+- fix: translate admin menu
 
 ## 0.1.10 (2023-2-27)
 

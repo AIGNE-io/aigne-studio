@@ -2,14 +2,16 @@ import { Autocomplete, AutocompleteProps, CircularProgress, TextField, TextField
 import { useReactive, useThrottleEffect } from 'ahooks';
 import { useState } from 'react';
 
-import { getTags } from '../../libs/tags';
+import { getTemplateTags } from '../../libs/template-tag';
 
 const SEARCH_PAGE_SIZE = 50;
 
 export default function TagsAutoComplete({
+  projectId,
   label,
   ...props
-}: Pick<AutocompleteProps<string, true, false, true>, 'value' | 'onChange'> & Pick<TextFieldProps, 'label'>) {
+}: { projectId: string } & Pick<AutocompleteProps<string, true, false, true>, 'value' | 'onChange'> &
+  Pick<TextFieldProps, 'label'>) {
   const [search, setSearch] = useState('');
   const state = useReactive<{ open: boolean; loading: boolean; options: string[] }>({
     open: false,
@@ -26,7 +28,7 @@ export default function TagsAutoComplete({
       (async () => {
         state.loading = true;
         try {
-          const { tags } = await getTags({ limit: SEARCH_PAGE_SIZE, search });
+          const { tags } = await getTemplateTags({ projectId, limit: SEARCH_PAGE_SIZE, search });
           state.options = tags.map((i) => i.name);
         } finally {
           state.loading = false;

@@ -4,9 +4,13 @@ import { NextFunction, Request, Response } from 'express';
 
 import logger from './logger';
 
-export const ensureAdmin = auth({ roles: ['owner', 'admin'] });
+export const ADMIN_ROLES = ['owner', 'admin'];
 
-export function ensureComponentCallOrAdmin() {
+export const ensureAdmin = auth({ roles: ADMIN_ROLES });
+
+export const ensurePromptsEditor = auth({ roles: ['owner', 'admin', 'promptsEditor'] });
+
+export function ensureComponentCallOr(fallback: (req: Request, res: Response, next: NextFunction) => any) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const sig = req.get('x-component-sig');
@@ -18,11 +22,19 @@ export function ensureComponentCallOrAdmin() {
           res.status(401).json({ error: 'verify sig failed' });
         }
       } else {
-        ensureAdmin(req, res, next);
+        fallback(req, res, next);
       }
     } catch (error) {
       logger.error(error);
       res.status(401).json({ error: 'verify sig failed' });
     }
   };
+}
+
+export function ensureComponentCallOrAdmin() {
+  return ensureComponentCallOr(ensureAdmin);
+}
+
+export function ensureComponentCallOrPromptsEditor() {
+  return ensureComponentCallOr(ensurePromptsEditor);
 }

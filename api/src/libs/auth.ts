@@ -1,6 +1,7 @@
 import path from 'path';
 
 import AuthStorage from '@arcblock/did-auth-storage-nedb';
+import AuthService from '@blocklet/sdk/lib/service/auth';
 import getWallet from '@blocklet/sdk/lib/wallet';
 import WalletAuthenticator from '@blocklet/sdk/lib/wallet-authenticator';
 import WalletHandler from '@blocklet/sdk/lib/wallet-handler';
@@ -15,3 +16,13 @@ export const handlers = new WalletHandler({
     dbPath: path.join(env.dataDir, 'auth.db'),
   }),
 });
+
+export const authClient = new AuthService();
+
+export const customRoles = [
+  {
+    name: 'promptsEditor',
+    title: 'Prompts Editor',
+    description: 'Someone with the Prompts Editor role can create and edit prompts',
+  },
+];

@@ -37,7 +37,7 @@ export default function useDialog() {
       onOk?: () => Promise<any> | any;
       onMiddleClick?: () => Promise<any> | any;
       onCancel?: () => Promise<any> | any;
-    } & Omit<DialogProps, 'open'>) => {
+    } & Omit<DialogProps, 'title' | 'open'>) => {
       setProps({
         ...props,
         open: true,
@@ -68,16 +68,18 @@ export default function useDialog() {
                   {middleText}
                 </Button>
               ) : null}
-              <PromiseLoadingButton
-                variant="contained"
-                color={okColor}
-                onClick={async () => {
-                  await onOk?.();
-                  closeDialog();
-                }}
-                type="submit">
-                {okText}
-              </PromiseLoadingButton>
+              {onOk && (
+                <PromiseLoadingButton
+                  variant="contained"
+                  color={okColor}
+                  onClick={async () => {
+                    await onOk?.();
+                    closeDialog();
+                  }}
+                  type="submit">
+                  {okText}
+                </PromiseLoadingButton>
+              )}
             </DialogActions>
           </form>
         ),

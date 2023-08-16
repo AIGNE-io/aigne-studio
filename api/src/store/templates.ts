@@ -1,12 +1,19 @@
 import Database from '@blocklet/sdk/lib/database';
+import { Worker } from 'snowflake-uuid';
+import { parse } from 'yaml';
+
+import Repository from './repository';
+
+const idGenerator = new Worker();
+
+export const nextTemplateId = () => idGenerator.nextId().toString();
 
 export type Role = 'system' | 'user' | 'assistant';
 
 export const roles: Role[] = ['system', 'user', 'assistant'];
 
 export interface Template {
-  _id: string;
-  folderId?: string;
+  id: string;
   type?: 'branch' | 'image';
   mode?: 'default' | 'chat';
   name?: string;
@@ -22,6 +29,7 @@ export interface Template {
   temperature?: number;
   model?: string;
   next?: { id?: string; name?: string; outputKey?: string };
+  versionNote?: string;
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -81,8 +89,29 @@ export interface HoroscopeParameter extends BaseParameter {
 
 export default class Templates extends Database {
   constructor() {
-    super('templates', { timestampData: true });
+    super('templates', { timestampData: false });
   }
 }
 
 export const templates = new Templates();
+
+export async function getTemplate({
+  repository,
+  ref,
+  templateId,
+  path,
+}: { repository: Repository; ref?: string } & (
+  | { templateId: string; path?: undefined }
+  | { path: string; templateId?: undefined }
+)): Promise<Template> {
+  return parse(
+    Buffer.from(
+      (
+        await repository.getFile({
+          ref,
+          path: path ?? (await repository.findFile(templateId, { ref })),
+        })
+      ).blob
+    ).toString()
+  );
+}

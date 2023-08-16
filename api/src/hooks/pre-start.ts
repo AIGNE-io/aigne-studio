@@ -6,11 +6,26 @@ import { dirname, join } from 'path';
 
 import dotenv from 'dotenv-flow';
 
+import { authClient, customRoles } from '../libs/auth';
 import logger from '../libs/logger';
 
 dotenv.config();
 
 const { name } = require('../../../package.json');
+
+async function ensureRolesCreated() {
+  const { roles } = await authClient.getRoles();
+  await Promise.all(
+    customRoles.map(async (role) => {
+      if (roles.some((item) => item.name === role.name)) {
+        logger.info(`The role "${role.name}" already exists.`);
+      } else {
+        await authClient.createRole(role);
+        logger.info(`The role "${role.name}" has been created successfully.`);
+      }
+    })
+  );
+}
 
 const hnswlib = '@blocklet/hnswlib-node';
 
@@ -62,6 +77,7 @@ async function ensureHNSWLIBBinaryFile() {
 
 (async () => {
   try {
+    await ensureRolesCreated();
     await ensureHNSWLIBBinaryFile();
     process.exit(0);
   } catch (err) {

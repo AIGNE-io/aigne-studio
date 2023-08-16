@@ -3,12 +3,12 @@ import 'express-async-errors';
 import path from 'path';
 
 import { isAxiosError } from 'axios';
-import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
 import express, { ErrorRequestHandler } from 'express';
 import fallback from 'express-history-api-fallback';
+import { Errors } from 'isomorphic-git';
 
 import logger from './libs/logger';
 import routes from './routes';
@@ -25,11 +25,7 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 
-app.use(compression());
-
-const router = express.Router();
-router.use('/api', routes);
-app.use(router);
+app.use('/api', routes);
 
 const isProduction = process.env.NODE_ENV === 'production' || process.env.ABT_NODE_SERVICE_ENV === 'production';
 
@@ -41,7 +37,12 @@ if (isProduction) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
-  logger.error(error.stack);
+  logger.error(error);
+
+  if (error instanceof Errors.NotFoundError) {
+    res.status(404).json({ error: { message: 'Not Found' } });
+    return;
+  }
 
   if (isAxiosError(error)) {
     const { response } = error;

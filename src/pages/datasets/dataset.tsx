@@ -12,7 +12,7 @@ import { DatasetItem } from '../../../api/src/store/dataset-items';
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDataset } from '../../contexts/dataset-items';
 import { getErrorMessage } from '../../libs/api';
-import { processDatasetItem, watchDatasetEmbeddings } from '../../libs/datasets';
+import { processDatasetItem, watchDatasetEmbeddings } from '../../libs/dataset';
 
 export default function DatasetPage() {
   const { datasetId } = useParams();

@@ -14,13 +14,15 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.62
+version: 0.1.75
 logo: logo.png
 files:
   - dist
   - logo.png
   - screenshots
   - api/hooks/pre-start.js
+  - migration
+  - api/dist/migration
 interfaces:
   - type: web
     name: publicUrl
@@ -55,7 +57,6 @@ components:
   - name: ai-kit
     mountPoint: /ai-kit
     source:
-      store: https://store.blocklet.dev
       name: ai-kit
       version: latest
 navigation:
@@ -64,21 +65,22 @@ navigation:
       en: Template
       zh: 提示模版
     icon: fluent:design-ideas-16-regular
-    link: /playground/template
+    link: /projects
     section:
-      - sessionManager
       - dashboard
     role:
       - admin
       - owner
+      - promptsEditor
   - id: datasets
     title:
       en: Datasets
       zh: 数据集
     icon: icon-park-outline:data
-    link: /playground/datasets
+    link: /datasets
     section:
       - dashboard
     role:
       - admin
       - owner
+      - promptsEditor
