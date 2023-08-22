@@ -1,3 +1,7 @@
+## 0.1.76 (2023-8-22)
+
+- fix: include nanoid into bundel
+
 ## 0.1.75 (2023-8-16)
 
 - fix: use smaller favicon
