@@ -1,62 +1,35 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
+import { ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
+import Header from '@blocklet/ui-react/lib/Header';
 import {
-  ArrowBackIosNew,
   ArrowDropDown,
-  CallSplit,
-  Delete,
   Download,
   DragIndicator,
-  Edit,
   HighlightOff,
   History,
   InfoOutlined,
-  Save,
-  SaveAs,
   Start,
   Upload,
-  WarningRounded,
 } from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
 import {
   Alert,
   Box,
   BoxProps,
-  Breadcrumbs,
   Button,
   CircularProgress,
-  Divider,
-  IconButton,
-  Link,
-  List,
-  ListItemButton,
-  ListItemText,
+  Stack,
   TextField,
   Tooltip,
   Typography,
-  tooltipClasses,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
-import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useAsyncEffect, useLocalStorageState } from 'ahooks';
-import equal from 'fast-deep-equal';
-import produce from 'immer';
-import { WritableDraft } from 'immer/dist/internal';
-import { omit, uniqBy } from 'lodash';
-import {
-  ReactNode,
-  forwardRef,
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { uniqBy } from 'lodash';
+import { ReactNode, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { Link as RouterLink, useBeforeUnload, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useUpdate } from 'react-use';
+import { useBeforeUnload, useLocation, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
 import { parse } from 'yaml';
 
@@ -64,9 +37,7 @@ import { Template } from '../../../api/src/store/templates';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView from '../../components/template-form';
 import CommitsTip from '../../components/template-form/commits-tip';
-import Dropdown from '../../components/template-form/dropdown';
 import { useComponent } from '../../contexts/component';
-import { useAddon } from '../../contexts/dashboard';
 import { useIsAdmin } from '../../contexts/session';
 import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
@@ -75,11 +46,116 @@ import { Commit } from '../../libs/log';
 import { getFile } from '../../libs/tree';
 import useDialog from '../../utils/use-dialog';
 import usePickFile, { readFileAsText } from '../../utils/use-pick-file';
+import BranchButton from './branch-button';
 import { useExportFiles } from './export-files';
-import FileTree, { TreeNode } from './file-tree';
-import { useProjectState } from './state';
+import { TreeNode } from './file-tree';
+import MenuButton from './menu-button';
+import SaveButton from './save-button';
+import { FormState, defaultBranch, useFormState, useProjectState } from './state';
+import TemplateRunner from './template-runner';
+import TemplateToolbar from './template-toolbar';
+import { useSaveShortcut } from './utils';
 
-const defaultBranch = 'main';
+// const submit = () => {
+//   const getValueSchema = (parameter: Parameter) => {
+//     return {
+//       string: (parameter: StringParameter) => {
+//         let s = Joi.string();
+//         if (parameter.required) {
+//           s = s.required();
+//         } else {
+//           s = s.allow('');
+//         }
+//         if (typeof parameter.minLength === 'number') {
+//           s = s.min(parameter.minLength);
+//         }
+//         if (typeof parameter.maxLength === 'number') {
+//           s = s.max(parameter.maxLength);
+//         }
+//         return s;
+//       },
+//       number: (parameter: NumberParameter) => {
+//         let s = Joi.number();
+//         if (parameter.required) {
+//           s = s.required();
+//         }
+//         if (typeof parameter.min === 'number') {
+//           s = s.min(parameter.min);
+//         }
+//         if (typeof parameter.max === 'number') {
+//           s = s.max(parameter.max);
+//         }
+//         return s;
+//       },
+//       select: (parameter: SelectParameter) => {
+//         let s = Joi.string();
+//         if (parameter.required) {
+//           s = s.required();
+//         }
+//         return s;
+//       },
+//       language: (parameter: LanguageParameter) => {
+//         let s = Joi.string();
+//         if (parameter.required) {
+//           s = s.required();
+//         }
+//         return s;
+//       },
+//       horoscope: (parameter: HoroscopeParameter) => {
+//         let s = Joi.object({
+//           time: Joi.string().required(),
+//           offset: Joi.number().integer(),
+//           location: Joi.object({
+//             id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+//             latitude: Joi.number().required(),
+//             longitude: Joi.number().required(),
+//             name: Joi.string().required(),
+//           }).required(),
+//         });
+//         if (parameter.required) {
+//           s = s.required();
+//         }
+//         return s;
+//       },
+//     }[parameter.type || 'string'](parameter as any);
+//   };
+
+//   const params = form.prompts?.flatMap((i) => matchParams(i.content ?? '')) ?? [];
+
+//   const schema = Joi.object(
+//     Object.fromEntries(
+//       params.map((param) => {
+//         const parameter = form.parameters?.[param];
+//         return [param, parameter ? getValueSchema(parameter) : undefined];
+//       })
+//     )
+//   );
+
+//   setError(undefined);
+//   const { error, value } = schema.validate(
+//     Object.fromEntries(
+//       Object.entries(form.parameters ?? {}).map(([key, { value, defaultValue }]) => [key, value ?? defaultValue])
+//     ),
+//     { allowUnknown: true, abortEarly: false }
+//   );
+//   if (error) {
+//     setError(error);
+//     return;
+//   }
+//   onExecute?.(
+//     JSON.parse(
+//       JSON.stringify({
+//         ...form,
+//         parameters: Object.fromEntries(
+//           Object.entries(form.parameters ?? {}).map(([param, parameter]) => [
+//             param,
+//             { ...parameter, value: value[param] },
+//           ])
+//         ),
+//       })
+//     )
+//   );
+// };
 
 const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
 
@@ -88,10 +164,8 @@ export default function ProjectPage() {
   if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
 
   const {
-    state: { project, files, branches, commits, loading },
+    state: { files, branches, commits, loading },
     refetch,
-    createFile,
-    deleteFile,
   } = useProjectState(projectId, ref);
 
   const isAdmin = useIsAdmin();
@@ -177,14 +251,23 @@ export default function ProjectPage() {
     [cancel, navigate]
   );
 
-  const onExecute = async (template: Template) => {
-    const { parameters } = template;
-    const question = parameters?.question?.value;
+  // const onExecute = async (template: Template) => {
+  //   const { parameters } = template;
+  //   const question = parameters?.question?.value;
 
-    add(question?.toString() || '', { template, path: filepath });
-  };
+  //   add(question?.toString() || '', { template, path: filepath });
+  // };
 
   const assistant = useComponent('ai-assistant');
+
+  const onTemplateClick = useCallback(
+    async (_: Template, p: string[]) => {
+      if (!disableMutation && editor.current && !(await editor.current.requireSave())) return;
+      const to = p.join('/');
+      if (to !== filepath) navigate(to);
+    },
+    [disableMutation, filepath, navigate]
+  );
 
   const onLaunch = useCallback(
     async (template: Template) => {
@@ -342,99 +425,69 @@ export default function ProjectPage() {
     [files, onExport, pickFile, projectId, ref, refetch, showDialog, t]
   );
 
-  useAddon(
-    'import',
-    useMemo(
-      () => (
-        <Button disabled={!branches.includes(ref) || disableMutation} startIcon={<Upload />} onClick={() => onImport()}>
-          {t('alert.import')}
+  const theme = useTheme();
+
+  const formState = useFormState();
+
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+
+  const addons = ([...addons]: ReactNode[]) => {
+    addons.unshift(
+      <BranchButton />,
+
+      <CommitsTip
+        loading={loading}
+        commits={commits}
+        hash={ref}
+        onCommitSelect={(commit) => {
+          navigate(joinUrl('..', commit.oid), { state: { filepath } });
+        }}>
+        <Button startIcon={<History />} endIcon={<ArrowDropDown fontSize="small" />}>
+          {t('alert.history')}
         </Button>
-      ),
-      [disableMutation, branches, onImport, ref, t]
-    ),
-    10
-  );
+      </CommitsTip>,
 
-  useAddon(
-    'export',
-    useMemo(
-      () => (
-        <Button startIcon={<Download />} onClick={() => onExport()}>
-          {t('alert.export')}
-        </Button>
-      ),
-      [branches, onExport, ref, t]
-    ),
-    11
-  );
+      <SaveButton
+        disabled={disableMutation || (branches.includes(ref) && !formState.current.formChanged)}
+        loading={formState.current.saving}
+        changed={formState.current.formChanged}
+        onSave={editor.current?.save}
+      />,
 
-  useAddon(
-    'branches',
-    useMemo(
-      () => (
-        <Dropdown
-          sx={{
-            [`.${tooltipClasses.tooltip}`]: {
-              minWidth: 200,
-              maxHeight: '60vh',
-              overflow: 'auto',
-            },
-          }}
-          dropdown={
-            <BranchList
-              projectId={projectId}
-              _ref={ref}
-              onItemClick={(branch) => branch !== ref && navigate(joinUrl('..', branch), { state: { filepath } })}
-              onShowAllClick={() => {
-                showDialog({
-                  maxWidth: 'sm',
-                  fullWidth: true,
-                  title: t('form.branch'),
-                  content: <AllBranches projectId={projectId} _ref={ref} filepath={filepath} />,
-                  cancelText: t('alert.close'),
-                });
-              }}
-            />
-          }>
-          <Button startIcon={<CallSplit />} endIcon={<ArrowDropDown fontSize="small" />}>
-            <Box
-              component="span"
-              sx={{
-                display: 'block',
-                maxWidth: 80,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}>
-              {ref}
-            </Box>
-          </Button>
-        </Dropdown>
-      ),
-      [filepath, navigate, projectId, ref]
-    ),
-    2
-  );
+      <MenuButton
+        menus={[
+          {
+            icon: <Upload />,
+            title: t('alert.import'),
+            disabled: !branches.includes(ref) || disableMutation,
+            onClick: () => onImport(),
+          },
+          {
+            icon: <Download />,
+            title: t('alert.export'),
+            onClick: () => onExport(),
+          },
+        ]}
+      />
+    );
 
-  useAddon(
-    'commits',
-    useMemo(
-      () => (
-        <CommitsTip
-          loading={loading}
-          commits={commits}
-          hash={ref}
-          onCommitSelect={(commit) => {
-            navigate(joinUrl('..', commit.oid), { state: { filepath } });
-          }}>
-          <Button startIcon={<History />} endIcon={<ArrowDropDown fontSize="small" />}>
-            {t('alert.history')}
-          </Button>
-        </CommitsTip>
-      ),
-      [commits, filepath, navigate, ref, t]
-    ),
-    3
+    return addons;
+  };
+
+  const child = (
+    <Box height="100%" overflow="auto" pb={10}>
+      <Box ml={{ xs: 2, sm: 3 }} mr={2}>
+        {branches.length > 0 && !branches.includes(ref) && (
+          <Box sx={{ position: 'sticky', zIndex: 10, top: 0, mb: 2, bgcolor: 'background.paper' }}>
+            <Alert color="warning">{t('alert.onBranchTip')}</Alert>
+          </Box>
+        )}
+
+        {filepath && (
+          <TemplateEditor projectId={projectId} ref={editor} _ref={ref} path={filepath} formState={formState} />
+        )}
+      </Box>
+    </Box>
   );
 
   return (
@@ -442,234 +495,80 @@ export default function ProjectPage() {
       {dialog}
       {exporter}
 
+      <Header
+        maxWidth="none"
+        sx={{
+          zIndex: theme.zIndex.drawer + 1,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          '.header-addons > *': { ml: 1 },
+        }}
+        addons={addons}
+      />
+
       <Box
-        component={PanelGroup}
-        autoSaveId="ai-studio-template-layouts"
-        direction="horizontal"
-        sx={{ height: '100%' }}>
-        <Box component={Panel} defaultSize={10} minSize={10}>
-          <Box py={2} px={1}>
-            <Breadcrumbs>
-              <Link component={RouterLink} underline="hover" to="../.." sx={{ display: 'flex', alignItems: 'center' }}>
-                <ArrowBackIosNew sx={{ mr: 0.5, fontSize: 18 }} />
-                {t('form.project')}
-              </Link>
-              <Typography color="text.primary">
-                {project ? project.name || 'Unnamed' : <CircularProgress size={14} />}
-              </Typography>
-            </Breadcrumbs>
-          </Box>
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 0,
+          top: 64,
+          right: 0,
+          bottom: 0,
+        }}>
+        <TemplateToolbar
+          projectId={projectId}
+          formState={formState}
+          TemplateListProps={{
+            projectId,
+            _ref: ref,
+            filepath,
+            disableMutation,
+            onImport,
+            onExport,
+            onLaunch,
+            onClick: onTemplateClick,
+          }}
+        />
 
-          <Divider />
+        {isSmallScreen ? (
+          child
+        ) : (
+          <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal" sx={{ flex: 1 }}>
+            <Box component={Panel} minSize={30}>
+              {child}
+            </Box>
 
-          <FileTree
-            disabled={!branches.includes(ref)}
-            current={filepath}
-            projectId={projectId}
-            _ref={ref}
-            sx={{ height: '100%', overflow: 'auto' }}
-            className="list"
-            onCreate={
-              disableMutation
-                ? undefined
-                : async (data, path) => {
-                    try {
-                      const res = await createFile({
-                        projectId,
-                        branch: ref,
-                        path: path?.join('/') || '',
-                        input: { type: 'file', data: data ?? {} },
-                      });
-                      navigate(joinUrl('.', ...(path ?? []), `${res.id}.yaml`));
-                    } catch (error) {
-                      Toast.error(getErrorMessage(error));
-                      throw error;
-                    }
-                  }
-            }
-            onExport={onExport}
-            onImport={disableMutation ? undefined : onImport}
-            onRemoveFolder={
-              disableMutation
-                ? undefined
-                : (path, children) => {
-                    showDialog({
-                      maxWidth: 'xs',
-                      fullWidth: true,
-                      title: (
-                        <Box>
-                          <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
+            <ResizeHandle />
 
-                          {t('alert.deleteTemplates')}
-                        </Box>
-                      ),
-                      content: (
-                        <Box component="ul" sx={{ pl: 2, my: 0 }}>
-                          <Box component="li">
-                            <Box>{path.join('/')}</Box>
-
-                            <Box component="ul">
-                              {children.map((item) => (
-                                <Box key={item.id} component="li" sx={{ wordWrap: 'break-word' }}>
-                                  {(item.data?.type === 'file' && item.data.meta.name) || item.text}
-                                </Box>
-                              ))}
-                            </Box>
-                          </Box>
-                        </Box>
-                      ),
-                      okText: t('alert.delete'),
-                      okColor: 'error',
-                      cancelText: t('alert.cancel'),
-                      onOk: async () => {
-                        try {
-                          await deleteFile({ projectId, branch: ref, path: path.join('/') });
-                          if (
-                            children.some((i) => i.data && i.data.parent.concat(i.data.name).join('/') === filepath)
-                          ) {
-                            navigate('.');
-                          }
-                          Toast.success(t('alert.deleted'));
-                        } catch (error) {
-                          Toast.error(getErrorMessage(error));
-                          throw error;
-                        }
-                      },
-                    });
-                  }
-            }
-            onDelete={
-              disableMutation
-                ? undefined
-                : (template, path) => {
-                    const referrers = files.filter(
-                      (i): i is typeof i & { type: 'file' } =>
-                        i.type === 'file' &&
-                        i.meta.type === 'branch' &&
-                        !!i.meta.branch?.branches.some((j) => j.template?.id === template.id)
-                    );
-
-                    showDialog({
-                      maxWidth: 'xs',
-                      fullWidth: true,
-                      title: (
-                        <Box sx={{ wordWrap: 'break-word' }}>
-                          <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
-
-                          {t('alert.deleteTemplate', { template: template.name || template.id })}
-                        </Box>
-                      ),
-                      content: referrers.length ? (
-                        <>
-                          {t('alert.deleteTemplateContent', { references: referrers.length })}
-                          <ul>
-                            {referrers.map((file) => (
-                              <Box key={file.meta.id} component="li">
-                                {file.meta.name || file.meta.id}
-                              </Box>
-                            ))}
-                          </ul>
-                        </>
-                      ) : undefined,
-                      okText: t('alert.delete'),
-                      okColor: 'error',
-                      cancelText: t('alert.cancel'),
-                      onOk: async () => {
-                        try {
-                          const p = joinUrl(...path);
-                          await deleteFile({ projectId, branch: ref, path: p });
-                          if (p === filepath) navigate('.');
-                          Toast.success(t('alert.deleted'));
-                        } catch (error) {
-                          Toast.error(getErrorMessage(error));
-                          throw error;
-                        }
-                      },
-                    });
-                  }
-            }
-            onClick={async (_, p) => {
-              if (!disableMutation && editor.current && !(await editor.current.requireSave())) return;
-              const to = p.join('/');
-              if (to !== filepath) navigate(to);
-            }}
-            onLaunch={assistant && onLaunch}
-          />
-        </Box>
-        <ResizeHandle />
-        <Box component={Panel} minSize={30}>
-          <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
-            {branches.length > 0 && !branches.includes(ref) && (
-              <Box sx={{ position: 'sticky', zIndex: 10, top: 0, mb: 2, bgcolor: 'background.paper' }}>
-                <Alert color="warning">{t('alert.onBranchTip')}</Alert>
+            <Box component={Panel} defaultSize={45} minSize={20}>
+              <Box height="100%" overflow="auto">
+                <Box mr={{ xs: 2, sm: 3 }} ml={2}>
+                  {formState.current.form && <TemplateRunner template={formState.current.form} />}
+                </Box>
               </Box>
-            )}
-
-            {filepath && (
-              <TemplateEditor projectId={projectId} ref={editor} _ref={ref} path={filepath} onExecute={onExecute} />
-            )}
+            </Box>
           </Box>
-        </Box>
-        <ResizeHandle />
-        <Box component={Panel} defaultSize={45} minSize={20}>
-          <Conversation
-            ref={conversation}
-            messages={messages}
-            sx={{ height: '100%', overflow: 'auto' }}
-            onSubmit={(prompt) => add(prompt)}
-            customActions={customActions}
-          />
-        </Box>
+        )}
       </Box>
     </>
   );
 }
 
-function BranchList({
-  projectId,
-  _ref: ref,
-  onItemClick,
-  onShowAllClick,
-}: {
-  projectId: string;
-  _ref: string;
-  onItemClick?: (branch: string) => any;
-  onShowAllClick?: () => any;
-}) {
-  const { t } = useLocaleContext();
-
-  const {
-    state: { branches },
-  } = useProjectState(projectId, ref);
-
-  return (
-    <List disablePadding dense>
-      {branches.map((branch) => (
-        <ListItemButton key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
-          <ListItemText primary={branch} primaryTypographyProps={{ noWrap: true }} />
-        </ListItemButton>
-      ))}
-      {onShowAllClick && (
-        <ListItemButton onClick={onShowAllClick}>
-          <ListItemText
-            primary={t('alert.showAllBranches')}
-            primaryTypographyProps={{ noWrap: true, textAlign: 'center', color: 'primary.main' }}
-          />
-        </ListItemButton>
-      )}
-    </List>
-  );
-}
-
 interface TemplateEditorInstance {
+  save: (options?: { newBranch?: boolean }) => Promise<void>;
   requireSave: () => Promise<boolean>;
   reload: () => Promise<Template>;
 }
 
 const TemplateEditor = forwardRef<
   TemplateEditorInstance,
-  { projectId: string; _ref: string; path: string; onExecute: (template: Template) => any }
->(({ projectId, _ref: ref, path, onExecute }, _ref) => {
+  {
+    formState: FormState;
+    projectId: string;
+    _ref: string;
+    path: string;
+  }
+>(({ formState, projectId, _ref: ref, path }, _ref) => {
   const isAdmin = useIsAdmin();
   const disableMutation = ref === defaultBranch && !isAdmin;
 
@@ -681,10 +580,6 @@ const TemplateEditor = forwardRef<
   const { dialog: createBranchDialog, showDialog: showCreateBranchDialog } = useDialog();
 
   const [error, setError] = useState<Error>();
-
-  const [submitting, setSubmitting] = useState(false);
-
-  const { form, original, formChanged, deletedBranchTemplateIds, setForm, resetForm } = useFormState();
 
   const { state: projectState, putFile, createBranch } = useProjectState(projectId, ref);
 
@@ -719,26 +614,26 @@ const TemplateEditor = forwardRef<
 
   const save = useCallback(
     async ({ newBranch }: { newBranch?: boolean } = {}) => {
-      if (!newBranch && projectState.branches.includes(ref) && !formChanged.current) return;
+      if (!newBranch && projectState.branches.includes(ref) && !formState.current.formChanged) return;
 
       try {
-        setSubmitting(true);
+        formState.current.saving = true;
         const branch =
           !disableMutation && !newBranch && projectState.branches.includes(ref) ? ref : await showCreateBranch();
         if (!branch) return;
 
-        if (formChanged.current) {
+        if (formState.current.formChanged) {
           const res = await putFile({
             projectId,
             ref: branch,
             path,
             data: {
-              ...form.current,
-              deleteEmptyTemplates: [...deletedBranchTemplateIds.current],
+              ...formState.current.form,
+              deleteEmptyTemplates: [...formState.current.deletedBranchTemplateIds],
             },
           });
 
-          resetForm(res);
+          formState.current.resetForm(res);
           setHash(undefined);
         }
         Toast.success(t('alert.saved'));
@@ -747,28 +642,27 @@ const TemplateEditor = forwardRef<
         Toast.error(getErrorMessage(error));
         throw error;
       } finally {
-        setSubmitting(false);
+        formState.current.saving = false;
       }
     },
     [
       disableMutation,
       projectState.branches,
       ref,
-      formChanged,
+      formState.current.formChanged,
       showCreateBranch,
       putFile,
       projectId,
       path,
-      form,
-      deletedBranchTemplateIds,
-      resetForm,
+      formState.current.form,
+      formState.current.deletedBranchTemplateIds,
       t,
       navigate,
     ]
   );
 
   const requireSave = useCallback(async () => {
-    if (!formChanged.current) return true;
+    if (!formState.current.formChanged) return true;
 
     const res = await new Promise<boolean>((resolve, reject) => {
       showDialog({
@@ -789,7 +683,7 @@ const TemplateEditor = forwardRef<
           }
         },
         onMiddleClick: () => {
-          resetForm(original.current);
+          formState.current.resetForm(formState.current.original);
           resolve(true);
         },
         onCancel: () => {
@@ -803,66 +697,36 @@ const TemplateEditor = forwardRef<
     });
 
     return res;
-  }, [projectState.branches, ref, save, resetForm, showDialog, t]);
+  }, [projectState.branches, ref, save, showDialog, t]);
 
   const reload = useCallback(async () => {
     try {
-      resetForm();
+      formState.current.resetForm();
       setError(undefined);
       const res = await getFile({ projectId, ref, path });
-      resetForm(res);
+      formState.current.resetForm(res);
       return res;
     } catch (error) {
       setError(error);
       throw error;
     }
-  }, [path, ref, resetForm]);
+  }, [path, ref]);
 
   useAsyncEffect(async () => {
     reload();
   }, [reload]);
 
-  useImperativeHandle(_ref, () => ({ requireSave, reload }), [requireSave, reload]);
+  useImperativeHandle(_ref, () => ({ save, requireSave, reload }), [requireSave, reload]);
 
   useSaveShortcut(save);
 
   useBeforeUnload(
     useCallback(
       (e) => {
-        if (formChanged.current) e.returnValue = t('alert.discardChanges');
+        if (formState.current.formChanged) e.returnValue = t('alert.discardChanges');
       },
-      [formChanged.current, t]
+      [formState.current.formChanged, t]
     )
-  );
-
-  useAddon(
-    'save',
-    useMemo(() => {
-      return (
-        <LoadingButton
-          disabled={disableMutation || (projectState.branches.includes(ref) && !formChanged.current)}
-          loading={submitting}
-          loadingPosition="start"
-          startIcon={<Save />}
-          onClick={() => save()}>
-          {t('form.save')}
-        </LoadingButton>
-      );
-    }, [disableMutation, formChanged.current, projectState.branches, ref, save, submitting, t]),
-    0
-  );
-
-  useAddon(
-    'new-branch',
-    useMemo(
-      () => (
-        <Button startIcon={<SaveAs />} onClick={() => save({ newBranch: true })}>
-          {formChanged.current ? t('alert.saveInNewBranch') : t('alert.newBranch')}
-        </Button>
-      ),
-      [formChanged.current, save, t]
-    ),
-    1
   );
 
   const [hash, setHash] = useState<string>();
@@ -872,7 +736,7 @@ const TemplateEditor = forwardRef<
       try {
         const res = await getFile({ projectId, ref: commit.oid, path });
         setHash(commit.oid);
-        setForm(res);
+        formState.current.setForm(res);
       } catch (error) {
         Toast.error(getErrorMessage(error));
         throw error;
@@ -885,7 +749,7 @@ const TemplateEditor = forwardRef<
     return <Alert color="error">{getErrorMessage(error)}</Alert>;
   }
 
-  if (!form.current) {
+  if (!formState.current.form) {
     return (
       <Box textAlign="center" my={10}>
         <CircularProgress size={20} />
@@ -903,10 +767,9 @@ const TemplateEditor = forwardRef<
         _ref={ref}
         path={path}
         hash={hash}
-        value={form.current}
-        onChange={setForm}
+        value={formState.current.form}
+        onChange={formState.current.setForm}
         onCommitSelect={onCommitSelect}
-        onExecute={onExecute}
         onTemplateClick={async (template) => {
           const file = projectState.files.find((i) => i.type === 'file' && i.meta.id === template.id);
           if (file) {
@@ -919,207 +782,24 @@ const TemplateEditor = forwardRef<
   );
 });
 
-function useFormState() {
-  const update = useUpdate();
-  const original = useRef<Template>();
-  const form = useRef<Template>();
-
-  // deleted branch templates, used to delete referred templates after saving.
-  const deletedBranchTemplateIds = useRef<Set<string>>(new Set());
-
-  const setForm = useCallback(
-    (recipe: Template | ((value: WritableDraft<Template>) => void)) => {
-      if (typeof recipe === 'function' && !form.current) throw new Error('form not initialized');
-
-      const branches =
-        form.current?.branch?.branches.map((i) => i.template?.id).filter((i): i is NonNullable<typeof i> => !!i) ?? [];
-
-      const newForm =
-        typeof recipe === 'function'
-          ? produce(form.current!, (draft) => {
-              recipe(draft);
-            })
-          : recipe;
-
-      const newBranches =
-        newForm?.branch?.branches.map((i) => i.template?.id).filter((i): i is NonNullable<typeof i> => !!i) ?? [];
-
-      for (const i of branches.filter((i) => !newBranches.includes(i))) {
-        deletedBranchTemplateIds.current.add(i);
-      }
-
-      form.current = newForm;
-
-      update();
-    },
-    [update]
-  );
-
-  const resetForm = useCallback(
-    (template?: Template) => {
-      form.current = template;
-      original.current = template;
-      deletedBranchTemplateIds.current.clear();
-      update();
-    },
-    [update]
-  );
-
-  const formChanged = useRef(false);
-
-  const f = useDeferredValue(form.current);
-  const o = useDeferredValue(original.current);
-
-  useEffect(() => {
-    if (!f || !o) {
-      formChanged.current = false;
-      return;
-    }
-
-    const omitParameterValue = (v: Template) => ({
-      ...v,
-      parameters: Object.fromEntries(
-        Object.entries(v?.parameters ?? {}).map(([key, val]) => [key, omit(val, 'value')])
-      ),
-    });
-
-    formChanged.current = !equal(omitParameterValue(f), omitParameterValue(o));
-  }, [f, o]);
-
-  return { form, original, formChanged, deletedBranchTemplateIds, setForm, resetForm };
-}
-
-function useSaveShortcut(save: () => any) {
-  useEffect(() => {
-    const onKeydown = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey) {
-        if (e.key === 's') {
-          e.preventDefault();
-          save();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', onKeydown);
-
-    return () => window.removeEventListener('keydown', onKeydown);
-  }, [save]);
-}
-
 function ResizeHandle() {
   return (
-    <Box
+    <Stack
       component={PanelResizeHandle}
+      alignSelf="center"
+      alignItems="center"
+      justifyContent="center"
+      width={12}
+      height={30}
+      borderRadius={100}
+      bgcolor="grey.200"
       sx={{
-        width: 10,
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'grey.200',
         opacity: 0.6,
-        ':hover': {
-          opacity: 1,
-        },
+        transition: 'all 0.3s ease-in-out',
+        ':hover': { height: 100, opacity: 1 },
+        '&[data-resize-handle-active="pointer"]': { height: 100, opacity: 1 },
       }}>
-      <DragIndicator sx={{ fontSize: 14 }} />
-    </Box>
-  );
-}
-
-function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _ref: string; filepath?: string }) {
-  const { t } = useLocaleContext();
-  const navigate = useNavigate();
-
-  const dataGrid = useGridApiRef();
-
-  const { dialog, showDialog } = useDialog();
-
-  const { state, updateBranch, deleteBranch } = useProjectState(projectId, ref);
-
-  const rows = useMemo(() => {
-    return state.branches.map((branch) => ({ branch }));
-  }, [state.branches]);
-
-  const onDelete = useCallback(
-    (branch: string) => {
-      showDialog({
-        maxWidth: 'sm',
-        fullWidth: true,
-        title: (
-          <Box sx={{ wordWrap: 'break-word' }}>
-            <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
-
-            {t('alert.deleteBranch', { branch })}
-          </Box>
-        ),
-        okText: t('alert.delete'),
-        okColor: 'error',
-        cancelText: t('alert.cancel'),
-        onOk: async () => {
-          try {
-            await deleteBranch({ projectId, branch });
-            if (branch === ref) navigate(joinUrl('../main', filepath || ''));
-            Toast.success(t('alert.deleted'));
-          } catch (error) {
-            Toast.error(getErrorMessage(error));
-            throw error;
-          }
-        },
-      });
-    },
-    [deleteBranch, filepath, navigate, projectId, ref, showDialog, t]
-  );
-
-  const columns = useMemo<GridColDef<{ branch: string }>[]>(() => {
-    return [
-      { flex: 1, field: 'branch', headerName: t('form.branch'), sortable: false, editable: true },
-      {
-        field: '',
-        headerName: t('form.actions'),
-        sortable: false,
-        align: 'center',
-        renderCell: ({ row }) => (
-          <>
-            <IconButton
-              disabled={row.branch === defaultBranch}
-              onClick={() => dataGrid.current.startCellEditMode({ id: row.branch, field: 'branch' })}>
-              <Edit />
-            </IconButton>
-            <IconButton disabled={row.branch === defaultBranch} onClick={() => onDelete(row.branch)}>
-              <Delete />
-            </IconButton>
-          </>
-        ),
-      },
-    ];
-  }, [dataGrid, onDelete, t]);
-
-  return (
-    <Box sx={{ height: '50vh' }}>
-      {dialog}
-
-      <DataGrid
-        apiRef={dataGrid}
-        getRowId={(v) => v.branch}
-        rows={rows}
-        columns={columns}
-        hideFooterSelectedRowCount
-        disableColumnMenu
-        autoHeight
-        isCellEditable={(p) => p.row.branch !== defaultBranch}
-        pageSizeOptions={[10]}
-        initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-        processRowUpdate={(updated, old) => {
-          const newName = updated.branch.trim();
-          if (newName === old.branch) return old;
-          return updateBranch({ projectId, branch: old.branch, input: { name: newName } }).then(() => {
-            if (ref === old.branch) navigate(joinUrl('..', newName, filepath || ''));
-            return { branch: newName };
-          });
-        }}
-        onProcessRowUpdateError={(error) => Toast.error(getErrorMessage(error))}
-      />
-    </Box>
+      <DragIndicator sx={{ fontSize: 14, touchAction: 'none' }} />
+    </Stack>
   );
 }

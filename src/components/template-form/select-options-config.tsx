@@ -9,7 +9,7 @@ import { nanoid } from 'nanoid';
 import { memo, useEffect, useState } from 'react';
 
 import { SelectParameter } from '../../../api/src/store/templates';
-import ReorderableList from '../reorderable-list';
+import ReorderList from '../reorder-list';
 
 export default function SelectOptionsConfig({
   options = [],
@@ -62,7 +62,7 @@ const Options = memo(
     onChange: (options: NonNullable<SelectParameter['options']>) => void;
   }) => {
     return (
-      <ReorderableList
+      <ReorderList
         list={options}
         onChange={onChange}
         itemKey="id"

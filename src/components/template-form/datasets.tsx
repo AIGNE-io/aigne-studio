@@ -1,19 +1,19 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Add, Delete } from '@mui/icons-material';
-import { Autocomplete, Box, Button, TextField } from '@mui/material';
+import { Autocomplete, Box, Button, IconButton, TextField } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import { nanoid } from 'nanoid';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
+import { Template } from '../../../api/src/store/templates';
 import { getDatasets } from '../../libs/dataset';
-import type { TemplateForm } from '.';
 
 export default function Datasets({
   value,
   onChange,
 }: {
-  value: Pick<TemplateForm, 'datasets'>;
+  value: Pick<Template, 'datasets'>;
   onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
 }) {
   const { t } = useLocaleContext();
@@ -24,7 +24,7 @@ export default function Datasets({
   return (
     <>
       {value.datasets?.map((item, index) => (
-        <Box key={item.id} sx={{ display: 'flex', my: 2 }}>
+        <Box key={item.id} sx={{ display: 'flex', my: 2, gap: 1 }}>
           <Autocomplete
             fullWidth
             size="small"
@@ -36,16 +36,17 @@ export default function Datasets({
             getOptionLabel={(v) => v.name || 'Unnamed'}
           />
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>
-            <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onChange((v) => v.datasets!.splice(index, 1))}>
-              <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
-            </Button>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <IconButton size="small" onClick={() => onChange((v) => v.datasets!.splice(index, 1))}>
+              <Delete fontSize="small" />
+            </IconButton>
           </Box>
         </Box>
       ))}
 
       <Button
-        fullWidth
+        sx={{ mt: 2 }}
+        variant="contained"
         size="small"
         startIcon={<Add />}
         onClick={() => {

@@ -1,12 +1,22 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Add, Delete } from '@mui/icons-material';
-import { Box, Button, MenuItem, Select, SelectProps, TextField } from '@mui/material';
+import { Add, Delete, DragIndicator } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  Input,
+  MenuItem,
+  Select,
+  SelectProps,
+  Stack,
+  inputClasses,
+} from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import { nanoid } from 'nanoid';
 
 import { Role, Template } from '../../../api/src/store/templates';
-import ReorderableList from '../reorderable-list';
-import TokenCounter from './token-counter';
+import ReorderList from '../reorder-list';
 
 export default function Prompts({
   value,
@@ -20,86 +30,102 @@ export default function Prompts({
   return (
     <>
       {value.prompts && (
-        <Box sx={{ py: 1 }}>
-          <ReorderableList
+        <Box sx={{ bgcolor: 'grey.100', borderRadius: 2, overflow: 'hidden' }}>
+          <ReorderList
+            customDragControl
             list={value.prompts}
             itemKey="id"
             onChange={(prompts) => onChange((v) => (v.prompts = prompts))}
-            renderItem={(prompt, index) => (
-              <>
-                <Box sx={{ flex: 1, mt: 1, position: 'relative' }}>
-                  <Box
+            renderItem={(prompt, index, ctrl) => (
+              <Box sx={{ flex: 1, position: 'relative' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    height: 20,
+                    lineHeight: '20px',
+                    position: 'absolute',
+                    zIndex: 1,
+                    left: 4,
+                    top: 4,
+                    bgcolor: 'grey.300',
+                    borderRadius: 1,
+                  }}>
+                  <RoleSelector
                     sx={{
-                      position: 'absolute',
-                      zIndex: 1,
-                      right: 12,
-                      transform: 'translateY(-50%)',
-                      bgcolor: 'background.paper',
-                    }}>
-                    <RoleSelector
-                      sx={{
-                        '.MuiSelect-select': {
-                          fontSize: 12,
-                          height: 18,
-                          lineHeight: '18px',
-                          pl: 1,
-                          pr: '16px !important',
-                          py: 0,
-                          ':focus': { bgcolor: 'transparent' },
-                        },
-                        svg: {
-                          fontSize: 18,
-                        },
-                      }}
-                      variant="standard"
-                      disableUnderline
-                      size="small"
-                      value={prompt.role ?? 'system'}
-                      onChange={(e) =>
-                        onChange((v) => {
-                          v.prompts![index]!.role = e.target.value as any;
-                        })
-                      }
-                    />
-                  </Box>
-
-                  <TextField
-                    fullWidth
-                    label={`${t('form.prompt')} ${index + 1}`}
+                      '.MuiSelect-select': {
+                        fontSize: 14,
+                        height: 20,
+                        lineHeight: '20px',
+                        pl: 1,
+                        pr: '16px !important',
+                        py: 0,
+                        ':focus': { bgcolor: 'transparent' },
+                      },
+                      svg: {
+                        fontSize: 20,
+                      },
+                    }}
+                    variant="standard"
+                    disableUnderline
                     size="small"
-                    multiline
-                    minRows={2}
-                    maxRows={10}
-                    value={prompt.content ?? ''}
+                    value={prompt.role ?? 'system'}
                     onChange={(e) =>
                       onChange((v) => {
-                        v.prompts![index]!.content = e.target.value;
+                        v.prompts![index]!.role = e.target.value as any;
                       })
                     }
-                    helperText={<TokenCounter value={prompt.content ?? ''} />}
-                    FormHelperTextProps={{ sx: { textAlign: 'right', mt: 0 } }}
                   />
                 </Box>
 
-                <Box sx={{ ml: 0.5 }}>
-                  <Button
-                    sx={{ minWidth: 0, p: 0.2 }}
-                    onClick={() =>
-                      onChange((v) => {
-                        v.prompts?.splice(index, 1);
-                      })
-                    }>
-                    <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
-                  </Button>
-                </Box>
-              </>
+                <Input
+                  disableUnderline
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  value={prompt.content ?? ''}
+                  sx={{
+                    lineHeight: '24px',
+                    p: 2,
+                    pr: '38px',
+                    pt: 3,
+                    [`&.${inputClasses.focused}`]: { bgcolor: 'grey.200' },
+                  }}
+                  onChange={(e) =>
+                    onChange((v) => {
+                      v.prompts![index]!.content = e.target.value;
+                    })
+                  }
+                />
+
+                {index !== value.prompts!.length - 1 && <Divider />}
+
+                <Stack sx={{ position: 'absolute', right: 0, top: 0, zIndex: 1000 }}>
+                  <IconButton
+                    size="small"
+                    disableRipple
+                    sx={{ cursor: 'grab', userSelect: 'none', color: 'grey.500' }}
+                    onPointerDown={(e) => ctrl.start(e)}>
+                    <DragIndicator fontSize="small" />
+                  </IconButton>
+
+                  <IconButton
+                    size="small"
+                    disableRipple
+                    sx={{ color: 'grey.500' }}
+                    onClick={() => onChange((v) => v.prompts?.splice(index, 1))}>
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Stack>
+              </Box>
             )}
           />
         </Box>
       )}
 
       <Button
-        fullWidth
+        sx={{ mt: 2 }}
+        variant="contained"
         size="small"
         startIcon={<Add />}
         onClick={() =>

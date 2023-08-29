@@ -1,15 +1,15 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Construction, Delete } from '@mui/icons-material';
-import { Box, Button, TextField } from '@mui/material';
+import { Box, Button, IconButton, TextField } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { Template } from '../../../api/src/store/templates';
 import { isTemplateEmpty } from '../../libs/template';
 import { useProjectState } from '../../pages/project/state';
 import dirname from '../../utils/path';
 import TemplateAutocomplete from './template-autocomplete';
-import type { TemplateForm } from '.';
 
 export default function Next({
   projectId,
@@ -18,7 +18,7 @@ export default function Next({
   onTemplateClick,
 }: {
   projectId: string;
-  value: Pick<TemplateForm, 'next'>;
+  value: Pick<Template, 'next'>;
   onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
@@ -46,7 +46,7 @@ export default function Next({
   const { next } = value;
 
   return (
-    <Box sx={{ mt: 2, display: 'flex' }}>
+    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
         <TemplateAutocomplete
           freeSolo
@@ -81,7 +81,7 @@ export default function Next({
         />
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
         {onTemplateClick && value.next?.id && (
           <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onTemplateClick({ id: value.next!.id! })}>
             <Construction
@@ -93,9 +93,9 @@ export default function Next({
           </Button>
         )}
 
-        <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onChange((v) => (v.next = {}))}>
-          <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
-        </Button>
+        <IconButton size="small" onClick={() => onChange((v) => (v.next = {}))}>
+          <Delete fontSize="small" />
+        </IconButton>
       </Box>
     </Box>
   );

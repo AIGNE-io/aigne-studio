@@ -1,17 +1,17 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Add, Construction, Delete } from '@mui/icons-material';
-import { Box, Button, TextField } from '@mui/material';
+import { Add, Construction, Delete, DragIndicator } from '@mui/icons-material';
+import { Box, Button, IconButton, Stack, TextField } from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import { nanoid } from 'nanoid';
 import { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { Template } from '../../../api/src/store/templates';
 import { isTemplateEmpty } from '../../libs/template';
 import { useProjectState } from '../../pages/project/state';
 import dirname from '../../utils/path';
-import ReorderableList from '../reorderable-list';
+import ReorderList from '../reorder-list';
 import TemplateAutocomplete from './template-autocomplete';
-import type { TemplateForm } from '.';
 
 export default function Branches({
   projectId,
@@ -20,7 +20,7 @@ export default function Branches({
   onTemplateClick,
 }: {
   projectId: string;
-  value: Pick<TemplateForm, 'branch' | 'parameters'>;
+  value: Pick<Template, 'branch' | 'parameters'>;
   onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
@@ -50,7 +50,8 @@ export default function Branches({
   return (
     <>
       {branches && (
-        <ReorderableList
+        <ReorderList
+          customDragControl
           list={branches}
           itemKey="id"
           onChange={(branches) =>
@@ -58,9 +59,9 @@ export default function Branches({
               v.branch!.branches = branches;
             })
           }
-          renderItem={(branch, index) => (
-            <>
-              <Box sx={{ flex: 1, mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          renderItem={(branch, index, ctrl) => (
+            <Stack flex={1} direction="row" sx={{ position: 'relative', mb: 2, gap: 1 }}>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <TemplateAutocomplete
                   freeSolo
                   fullWidth
@@ -91,7 +92,14 @@ export default function Branches({
                 />
               </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', ml: 1 }}>
+                <IconButton
+                  size="small"
+                  sx={{ cursor: 'grab', userSelect: 'none' }}
+                  onPointerDown={(e) => ctrl.start(e)}>
+                  <DragIndicator fontSize="small" sx={{ color: 'grey.700' }} />
+                </IconButton>
+
                 {onTemplateClick && branch.template && (
                   <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onTemplateClick(branch.template!)}>
                     <Construction
@@ -103,19 +111,17 @@ export default function Branches({
                   </Button>
                 )}
 
-                <Button
-                  sx={{ minWidth: 0, p: 0.2 }}
-                  onClick={() => onChange((v) => v.branch!.branches.splice(index, 1))}>
-                  <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
-                </Button>
+                <IconButton size="small" onClick={() => onChange((v) => v.branch!.branches.splice(index, 1))}>
+                  <Delete fontSize="small" />
+                </IconButton>
               </Box>
-            </>
+            </Stack>
           )}
         />
       )}
 
       <Button
-        fullWidth
+        variant="contained"
         size="small"
         startIcon={<Add />}
         onClick={() => {

@@ -16,7 +16,17 @@ import {
   MoreVert,
   Upload,
 } from '@mui/icons-material';
-import { Box, BoxProps, Button, CircularProgress, IconButton, Input, Tooltip, Typography } from '@mui/material';
+import {
+  Box,
+  BoxProps,
+  Button,
+  CircularProgress,
+  IconButton,
+  Input,
+  Toolbar,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { omit } from 'lodash';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
@@ -32,6 +42,7 @@ import { useProjectState } from './state';
 export type TreeNode = NodeModel<EntryWithMeta>;
 
 export default function FileTree({
+  title,
   projectId,
   _ref: ref,
   current,
@@ -45,6 +56,7 @@ export default function FileTree({
   onRemoveFolder,
   ...props
 }: {
+  title?: ReactNode;
   projectId: string;
   _ref: string;
   current?: string;
@@ -56,7 +68,7 @@ export default function FileTree({
   onExport?: (node: TreeNode) => void;
   onImport?: (path: string[]) => void;
   onRemoveFolder?: (path: string[], children: TreeNode[]) => void;
-} & Omit<BoxProps, 'onClick'>) {
+} & Omit<BoxProps, 'onClick' | 'title'>) {
   const { t } = useLocaleContext();
 
   const {
@@ -89,20 +101,21 @@ export default function FileTree({
 
   return (
     <Box {...props}>
-      <Box
+      <Toolbar
+        disableGutters
         sx={{
           display: 'flex',
           alignItems: 'center',
-          px: 2,
-          py: 1,
           position: 'sticky',
           top: 0,
           zIndex: 1,
           bgcolor: 'background.paper',
         }}>
-        <Typography variant="subtitle1" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {t('main.templates')}
-        </Typography>
+        {title ?? (
+          <Typography variant="h6" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {t('main.templates')}
+          </Typography>
+        )}
 
         {onCreate && (
           <IconButton disabled={disabled} size="small" color="primary" onClick={() => setShowNewProject(true)}>
@@ -115,7 +128,7 @@ export default function FileTree({
             <Add fontSize="small" />
           </IconButton>
         )}
-      </Box>
+      </Toolbar>
 
       {showNewProject && (
         <FolderTreeItem

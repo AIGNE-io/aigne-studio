@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import Header from '@blocklet/ui-react/lib/Header';
 import { Add, Delete, Edit, MoreVert, WarningRounded } from '@mui/icons-material';
 import {
   Box,
@@ -134,102 +135,120 @@ export default function ProjectsPage() {
   const isAdmin = useIsAdmin();
 
   return (
-    <Box>
-      <Grid container spacing={2} p={2}>
-        {projects.map((item) => (
-          <Grid key={item._id} item xs={4}>
-            <Box component={Link} to={item._id!} sx={{ textDecoration: 'none' }}>
-              <Card
-                elevation={0}
-                sx={{
-                  position: 'relative',
-                  p: 2,
-                  border: 1,
-                  borderColor: 'grey.200',
-                  cursor: 'pointer',
-                  borderRadius: 2,
-                  ':hover': {
-                    boxShadow: 1,
-                  },
-                }}>
-                <Typography>{item.name || t('alert.unnamed')}</Typography>
+    <>
+      <Header maxWidth="none" sx={{ position: 'sticky', top: 0 }} />
 
-                {isAdmin && (
-                  <Box sx={{ position: 'absolute', right: 8, top: 8 }} onClick={(e) => e.preventDefault()}>
-                    <Dropdown
-                      placement="bottom-end"
-                      dropdown={
-                        <List
-                          disablePadding
-                          sx={{
-                            [`.${listItemIconClasses.root}`]: {
-                              minWidth: 32,
-                            },
-                          }}>
-                          <ListItemButton onClick={() => onEdit(item)}>
-                            <ListItemIcon>
-                              <Edit />
-                            </ListItemIcon>
-                            <ListItemText primary={t('alert.edit')} />
-                          </ListItemButton>
-                          <Divider sx={{ my: 0.5 }} />
-                          <ListItemButton sx={{ color: 'warning.main' }} onClick={() => onDelete(item)}>
-                            <ListItemIcon>
-                              <Delete color="warning" />
-                            </ListItemIcon>
-                            <ListItemText primary={t('alert.delete')} />
-                          </ListItemButton>
-                        </List>
-                      }>
-                      <IconButton>
-                        <MoreVert />
-                      </IconButton>
-                    </Dropdown>
-                  </Box>
-                )}
-
-                <Box sx={{ height: '2em' }} />
-              </Card>
-            </Box>
-          </Grid>
-        ))}
-        {isAdmin && (projects.length > 0 || !loading) && initialized && (
-          <Grid item xs={4}>
-            <Card
-              elevation={0}
+      <Box mx={{ xs: 2, sm: 3 }} mt={{ xs: 2, sm: 3 }}>
+        <Box maxWidth="lg" mx="auto" width="100%">
+          <Grid container spacing={{ xs: 2, sm: 3 }}>
+            <Grid
+              item
+              xs={12}
               sx={{
-                p: 2,
-                border: 1,
-                borderColor: 'grey.200',
-                cursor: 'pointer',
-                bgcolor: 'grey.100',
-                borderRadius: 2,
-                ':hover': {
-                  boxShadow: 1,
-                },
-              }}
-              onClick={onCreate}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ mr: 1 }}>
-                  <Add sx={{ display: 'block', verticalAlign: 'baseline' }} />
-                </Box>
-                <Typography variant="button" noWrap sx={{ flex: 1, overflow: 'hidden' }}>
-                  {`${t('form.new')} ${t('form.project')}`}
-                </Typography>
-              </Box>
-              <Box sx={{ height: '2em' }} />
-            </Card>
-          </Grid>
-        )}
+                position: 'sticky',
+                top: 64,
+                bgcolor: 'background.paper',
+                zIndex: (theme) => theme.zIndex.appBar,
+              }}>
+              <Typography variant="h5">Projects</Typography>
+            </Grid>
 
-        {loading && (
-          <Grid item xs={12} textAlign="center">
-            <CircularProgress size={20} />
+            {projects.map((item) => (
+              <Grid key={item._id} item xs={12} sm={5} md={4}>
+                <Box component={Link} to={item._id!} sx={{ textDecoration: 'none' }}>
+                  <Card
+                    elevation={0}
+                    sx={{
+                      position: 'relative',
+                      p: 2,
+                      border: 1,
+                      borderColor: 'grey.200',
+                      cursor: 'pointer',
+                      borderRadius: 2,
+                      ':hover': {
+                        boxShadow: 1,
+                      },
+                    }}>
+                    <Typography>{item.name || t('alert.unnamed')}</Typography>
+
+                    {isAdmin && (
+                      <Box sx={{ position: 'absolute', right: 8, top: 8 }} onClick={(e) => e.preventDefault()}>
+                        <Dropdown
+                          placement="bottom-end"
+                          dropdown={
+                            <List
+                              disablePadding
+                              sx={{
+                                [`.${listItemIconClasses.root}`]: {
+                                  minWidth: 32,
+                                },
+                              }}>
+                              <ListItemButton onClick={() => onEdit(item)}>
+                                <ListItemIcon>
+                                  <Edit />
+                                </ListItemIcon>
+                                <ListItemText primary={t('alert.edit')} />
+                              </ListItemButton>
+                              <Divider sx={{ my: 0.5 }} />
+                              <ListItemButton sx={{ color: 'warning.main' }} onClick={() => onDelete(item)}>
+                                <ListItemIcon>
+                                  <Delete color="warning" />
+                                </ListItemIcon>
+                                <ListItemText primary={t('alert.delete')} />
+                              </ListItemButton>
+                            </List>
+                          }>
+                          <IconButton>
+                            <MoreVert />
+                          </IconButton>
+                        </Dropdown>
+                      </Box>
+                    )}
+
+                    <Box sx={{ height: '2em' }} />
+                  </Card>
+                </Box>
+              </Grid>
+            ))}
+            {isAdmin && (projects.length > 0 || !loading) && initialized && (
+              <Grid item xs={12} sm={5} md={4}>
+                <Card
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    border: 1,
+                    borderColor: 'grey.200',
+                    cursor: 'pointer',
+                    bgcolor: 'grey.100',
+                    borderRadius: 2,
+                    ':hover': {
+                      boxShadow: 1,
+                    },
+                  }}
+                  onClick={onCreate}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ mr: 1 }}>
+                      <Add sx={{ display: 'block', verticalAlign: 'baseline' }} />
+                    </Box>
+                    <Typography variant="button" noWrap sx={{ flex: 1, overflow: 'hidden' }}>
+                      {`${t('form.new')} ${t('form.project')}`}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ height: '2em' }} />
+                </Card>
+              </Grid>
+            )}
+
+            {loading && (
+              <Grid item xs={12} textAlign="center">
+                <CircularProgress size={20} />
+              </Grid>
+            )}
           </Grid>
-        )}
-      </Grid>
+        </Box>
+      </Box>
 
       {dialog}
-    </Box>
+    </>
   );
 }

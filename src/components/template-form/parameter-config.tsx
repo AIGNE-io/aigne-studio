@@ -81,7 +81,11 @@ export default function ParameterConfig({
       </Grid>
       {value.type === 'select' && (
         <Grid item xs={12}>
-          <SelectOptionsConfig options={value.options} onChange={(options) => onChange({ ...value, options })} />
+          <SelectOptionsConfig
+            key={value.options?.length}
+            options={value.options}
+            onChange={(options) => onChange({ ...value, options })}
+          />
         </Grid>
       )}
       <Grid item xs={12}>

@@ -1,13 +1,21 @@
-import { useCallback } from 'react';
+import { useUpdate } from 'ahooks';
+import equal from 'fast-deep-equal';
+import produce from 'immer';
+import { WritableDraft } from 'immer/dist/internal';
+import { omit } from 'lodash';
+import { useCallback, useDeferredValue, useEffect, useRef } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import { EntryWithMeta } from '../../../api/src/routes/tree';
 import { Project } from '../../../api/src/store/projects';
+import { Template } from '../../../api/src/store/templates';
 import { getBranches } from '../../libs/branche';
 import * as branchApi from '../../libs/branche';
 import { Commit, getLogs } from '../../libs/log';
 import { getProject } from '../../libs/project';
 import * as api from '../../libs/tree';
+
+export const defaultBranch = 'main';
 
 export interface ProjectState {
   project?: Project;
@@ -114,3 +122,75 @@ export const useProjectState = (projectId: string, ref: string) => {
 
   return { state, refetch, createFile, deleteFile, moveFile, putFile, createBranch, updateBranch, deleteBranch };
 };
+
+export type FormState = ReturnType<typeof useFormState>;
+
+export function useFormState() {
+  const update = useUpdate();
+
+  const state = useRef<{
+    original?: Template;
+    form?: Template;
+    deletedBranchTemplateIds: Set<string>;
+    formChanged: boolean;
+    saving?: boolean;
+    setForm: (recipe: Template | ((value: WritableDraft<Template>) => void)) => void;
+    resetForm: (template?: Template) => void;
+  }>({
+    deletedBranchTemplateIds: new Set(),
+    formChanged: false,
+    setForm: (recipe: Template | ((value: WritableDraft<Template>) => void)) => {
+      if (typeof recipe === 'function' && !state.current.form) throw new Error('form not initialized');
+
+      const branches =
+        state.current.form?.branch?.branches
+          .map((i) => i.template?.id)
+          .filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+
+      const newForm =
+        typeof recipe === 'function'
+          ? produce(state.current.form!, (draft) => {
+              recipe(draft);
+            })
+          : recipe;
+
+      const newBranches =
+        newForm?.branch?.branches.map((i) => i.template?.id).filter((i): i is NonNullable<typeof i> => !!i) ?? [];
+
+      for (const i of branches.filter((i) => !newBranches.includes(i))) {
+        state.current.deletedBranchTemplateIds.add(i);
+      }
+
+      state.current.form = newForm;
+
+      update();
+    },
+    resetForm: (template?: Template) => {
+      state.current.form = template;
+      state.current.original = template;
+      state.current.deletedBranchTemplateIds.clear();
+      update();
+    },
+  });
+
+  const f = useDeferredValue(state.current.form);
+  const o = useDeferredValue(state.current.original);
+
+  useEffect(() => {
+    if (!f || !o) {
+      state.current.formChanged = false;
+      return;
+    }
+
+    const omitParameterValue = (v: Template) => ({
+      ...v,
+      parameters: Object.fromEntries(
+        Object.entries(v?.parameters ?? {}).map(([key, val]) => [key, omit(val, 'value')])
+      ),
+    });
+
+    state.current.formChanged = !equal(omitParameterValue(f), omitParameterValue(o));
+  }, [f, o]);
+
+  return state;
+}

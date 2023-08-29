@@ -1,12 +1,21 @@
-import { Settings } from '@mui/icons-material';
-import { Box, ClickAwayListener, Grid, IconButton, Paper, Popper } from '@mui/material';
+import { SettingsOutlined } from '@mui/icons-material';
+import {
+  Box,
+  ClickAwayListener,
+  IconButton,
+  Paper,
+  Popper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from '@mui/material';
 import { WritableDraft } from 'immer/dist/internal';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Parameter, Template } from '../../../api/src/store/templates';
-import ParameterField from '../parameter-field';
 import ParameterConfig from './parameter-config';
-import TokenCounter from './token-counter';
 
 export default function Parameters({
   value,
@@ -61,44 +70,42 @@ export default function Parameters({
 
   return (
     <>
-      <Grid container spacing={2}>
-        {params.map((param) => {
-          const parameter = value.parameters?.[param];
-          if (!parameter) {
-            return null;
-          }
+      <Box sx={{ border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Variable</TableCell>
+              <TableCell>Label</TableCell>
+              <TableCell align="right" width={80}>
+                Actions
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody sx={{ 'tr:last-of-type > td': { borderBottom: 'none' } }}>
+            {params.map((param) => {
+              const parameter = value.parameters?.[param];
+              if (!parameter) {
+                return null;
+              }
 
-          return (
-            <Grid item xs={12} key={param}>
-              <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                <ParameterField
-                  key={param}
-                  sx={{ flex: 1 }}
-                  size="small"
-                  label={parameter.label || param}
-                  parameter={parameter}
-                  helperText={
-                    <Box component="span" sx={{ display: 'flex' }}>
-                      <Box component="span" sx={{ flex: 1, overflow: 'hidden' }}>
-                        {parameter.helper}
-                      </Box>
-                      <TokenCounter value={parameter} />
-                    </Box>
-                  }
-                  value={parameter.value ?? parameter.defaultValue ?? ''}
-                  onChange={(value) => onChange((v) => (v.parameters![param]!.value = value))}
-                />
-                <IconButton
-                  sx={{ ml: 2, mt: 0.5 }}
-                  size="small"
-                  onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
-                  <Settings fontSize="small" />
-                </IconButton>
-              </Box>
-            </Grid>
-          );
-        })}
-      </Grid>
+              return (
+                <TableRow key={param}>
+                  <TableCell>{param}</TableCell>
+                  <TableCell>{parameter.label}</TableCell>
+                  <TableCell align="center">
+                    <IconButton
+                      sx={{ m: 0, p: 0.5 }}
+                      size="small"
+                      onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
+                      <SettingsOutlined sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Box>
 
       <Popper
         open={Boolean(paramConfig)}
