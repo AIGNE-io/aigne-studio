@@ -1,3 +1,8 @@
+## 0.1.77 (2023-8-30)
+
+- fix: update gpt models
+- fix: pass projectId to call next prompt
+
 ## 0.1.76 (2023-8-22)
 
 - fix: include nanoid into bundel
