@@ -137,6 +137,7 @@ export default function ProjectPage() {
         });
       }
       return callAI({
+        projectId,
         template: meta.template,
         parameters: Object.fromEntries(
           Object.entries(meta.template.parameters ?? {}).map(([key, val]) => [key, parameterToStringValue(val)])

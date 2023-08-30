@@ -60,17 +60,16 @@ router.post('/image/generations', ensureComponentCallOrPromptsEditor(), async (r
 
 const callInputSchema = Joi.object<
   {
+    projectId?: string;
     parameters?: { [key: string]: any };
   } & (
     | {
         ref?: string;
-        projectId?: string;
         templateId: string;
         template: undefined;
       }
     | {
         ref: undefined;
-        projectId: undefined;
         templateId: undefined;
         template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>;
       }

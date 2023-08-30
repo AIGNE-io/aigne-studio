@@ -15,10 +15,10 @@ export const imageGenerations = createImageGenerationApi({ axios, path: '/api/ai
 
 export async function callAI(
   input: {
+    projectId: string;
     parameters?: { [key: string]: string | number };
   } & (
     | {
-        projectId: string;
         templateId: string;
         template?: undefined;
       }
