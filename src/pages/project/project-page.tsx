@@ -223,7 +223,32 @@ export default function ProjectPage() {
         const list = await pickFile({ accept: '.yaml,.yml', multiple: true }).then((files) =>
           Promise.all(
             files.map((i) =>
-              readFileAsText(i).then((i) => importBodySchema.validateAsync(parse(i), { stripUnknown: true }))
+              readFileAsText(i).then((i) => {
+                const obj = parse(i);
+
+                // 用于兼容比较旧的导出数据
+                // {
+                //   templates: {
+                //     folderId?: string
+                //   }[]
+                //   folders: {
+                //     _id: string
+                //     name?: string
+                //   }[]
+                // }
+                if (Array.isArray(obj?.templates) && Array.isArray(obj?.folders)) {
+                  obj.templates.forEach((template: any) => {
+                    if (template.folderId) {
+                      const folder = obj.folders.find((f: any) => f._id === template.folderId);
+                      if (folder.name) {
+                        template.path = folder.name;
+                      }
+                    }
+                  });
+                }
+
+                return importBodySchema.validateAsync(obj, { stripUnknown: true });
+              })
             )
           )
         );
@@ -237,11 +262,15 @@ export default function ProjectPage() {
           files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file').map((i) => i.meta.id)
         );
 
-        const renderTemplateItem = ({ template, ...props }: { template: Template } & BoxProps) => {
+        const renderTemplateItem = ({ template, ...props }: { template: Template & { path?: string } } & BoxProps) => {
           return (
             <Box {...props}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Box sx={{ flexShrink: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <Typography color="text.secondary" component="span">
+                    {template.path ? `${template.path}/` : ''}
+                  </Typography>
+
                   {template.name || template.id}
                 </Box>
 

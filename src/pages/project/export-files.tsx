@@ -60,7 +60,7 @@ function Exporter({
     }
 
     const doExport = () => {
-      const str = stringify({ templates: list.map((i) => i.meta) });
+      const str = stringify({ templates: list.map((i) => ({ ...i.meta, path: i.parent.join('/') })) });
       const first = list[0];
       const filename = list.length === 1 && first ? first.meta.name || first.meta.id : `templates-${Date.now()}`;
       saveAs(new Blob([str]), `${filename}.yml`);

@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom';
 
 import { isTemplateEmpty } from '../../libs/template';
 import { useProjectState } from '../../pages/project/state';
+import dirname from '../../utils/path';
 import TemplateAutocomplete from './template-autocomplete';
 import type { TemplateForm } from '.';
 
@@ -62,7 +63,7 @@ export default function Next({
           renderInput={(params) => <TextField {...params} label={t('form.next')} />}
           options={templates}
           createTemplate={(data) =>
-            createFile({ projectId, branch: ref, path: path || '', input: { type: 'file', data } })
+            createFile({ projectId, branch: ref, path: dirname(path || ''), input: { type: 'file', data } })
           }
         />
 

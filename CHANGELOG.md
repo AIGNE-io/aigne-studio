@@ -1,3 +1,8 @@
+## 0.1.78 (2023-8-31)
+
+- fix: correct path to create a file
+- fix: import/export file tree
+
 ## 0.1.77 (2023-8-30)
 
 - fix: update gpt models
