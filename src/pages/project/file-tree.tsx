@@ -21,6 +21,7 @@ import { useLocalStorageState } from 'ahooks';
 import { omit } from 'lodash';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { DndProvider } from 'react-dnd';
+import joinUrl from 'url-join';
 
 import { TemplateInput } from '../../../api/src/routes/templates';
 import { EntryWithMeta } from '../../../api/src/routes/tree';
@@ -70,8 +71,8 @@ export default function FileTree({
     if (!files) return [];
 
     return files.map((item) => ({
-      id: item.name,
-      parent: item.parent.join('-'),
+      id: joinUrl(...item.parent, item.name),
+      parent: item.parent.join('/'),
       text: item.name,
       droppable: item.type === 'folder',
       data: item,

@@ -122,6 +122,7 @@ export const importBodySchema = Joi.object<{ templates?: Template[] }>({
         updatedAt: Joi.string().empty(Joi.valid(null, '')),
         createdBy: Joi.string().empty(Joi.valid(null, '')),
         updatedBy: Joi.string().empty(Joi.valid(null, '')),
+        path: Joi.string().trim().empty(Joi.valid(null, '')),
       }).rename('_id', 'id', { ignoreUndefined: true })
     )
   ),

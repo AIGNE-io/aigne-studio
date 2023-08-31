@@ -14,7 +14,7 @@ import { templateSchema } from './templates';
 export const importBodySchema = Joi.object<{
   branch: string;
   path: string;
-  templates?: Template[];
+  templates?: (Template & { path?: string })[];
 }>({
   branch: Joi.string().required(),
   path: Joi.string().allow('').required(),
@@ -27,6 +27,7 @@ export const importBodySchema = Joi.object<{
           updatedAt: Joi.string().empty(Joi.valid(null, '')),
           createdBy: Joi.string().empty(Joi.valid(null, '')),
           updatedBy: Joi.string().empty(Joi.valid(null, '')),
+          path: Joi.string().empty(Joi.valid(null, '')),
         })
       )
     )
@@ -56,7 +57,7 @@ export function importRoutes(router: Router) {
           const old = await repository.findFile(`${template.id}.yaml`, { ref: branch, rejectIfNotFound: false });
           if (old) await tx.rm({ path: old });
 
-          await tx.write({ path: join(path, `${template.id}.yaml`), data: stringify(template) });
+          await tx.write({ path: join(path, template.path || '', `${template.id}.yaml`), data: stringify(template) });
         }
 
         await tx.commit({ message: 'Import templates', author: { name: did, email: did } });
