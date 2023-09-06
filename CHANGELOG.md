@@ -1,3 +1,7 @@
+## 0.1.79 (2023-9-6)
+
+- chore: update deps
+
 ## 0.1.78 (2023-8-31)
 
 - fix: correct path to create a file
