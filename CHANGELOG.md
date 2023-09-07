@@ -1,3 +1,7 @@
+## 0.1.80 (2023-9-7)
+
+- fix: all templates, if no projectId
+
 ## 0.1.79 (2023-9-6)
 
 - chore: update deps
