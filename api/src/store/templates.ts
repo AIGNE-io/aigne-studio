@@ -117,7 +117,7 @@ export async function getTemplate({
 
   const [projectId] = (repository.dir || '').split('/').slice(-1) || [];
 
-  template.projectId = projectId;
+  template.projectId = projectId || '';
   template.ref = ref || 'main';
 
   return template;
