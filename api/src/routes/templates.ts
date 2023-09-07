@@ -2,7 +2,6 @@ import { join } from 'path';
 
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
-import { flattenDeep } from 'lodash';
 import { stringify } from 'yaml';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
@@ -183,32 +182,23 @@ export function templateRoutes(router: Router) {
 
     const sort = getTemplateSort(query.sort) ?? { field: 'updatedAt', direction: -1 };
 
-    let templates = [];
+    const projectIds = projectId
+      ? [projectId]
+      : (await projects.cursor().sort({ createdAt: 1 }).exec()).map((i) => i._id);
 
-    if (projectId) {
-      const repository = getRepository(projectId);
+    let templates = (
+      await Promise.all(
+        projectIds.map(async (projectId) => {
+          const repository = getRepository(projectId);
 
-      templates = await Promise.all(
-        (await repository.getFiles())
-          .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
-          .map((i) => getTemplate({ repository, path: join(...i.parent, i.name) }))
-      );
-    } else {
-      const list = await projects.cursor().sort({ createdAt: 1 }).exec();
-      const fns = list.map(async (project) => {
-        const repository = getRepository(project._id);
-        const files = await repository.getFiles();
-
-        return Promise.all(
-          files
-            .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
-            .map((i) => getTemplate({ repository, path: join(...i.parent, i.name) }))
-        );
-      });
-
-      const res = await Promise.all(fns);
-      templates = flattenDeep(res);
-    }
+          return Promise.all(
+            (await repository.getFiles())
+              .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
+              .map((i) => getTemplate({ repository, path: join(...i.parent, i.name) }))
+          );
+        })
+      )
+    ).flat();
 
     if (tag) {
       templates = templates.filter((i) => i.tags?.includes(tag));
