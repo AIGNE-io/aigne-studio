@@ -183,7 +183,7 @@ export function templateRoutes(router: Router) {
 
     const sort = getTemplateSort(query.sort) ?? { field: 'updatedAt', direction: -1 };
 
-    let templates: Template[] = [];
+    let templates = [];
 
     if (projectId) {
       const repository = getRepository(projectId);
