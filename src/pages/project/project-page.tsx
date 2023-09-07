@@ -194,12 +194,18 @@ export default function ProjectPage() {
 
       if (!(await editor.current?.requireSave())) return;
 
+      if (template.mode === 'chat') {
+        window.open(`${assistant.mountPoint}/chat/${template.id}?source=studio`, '_blank');
+
+        return;
+      }
+
       window.open(
-        `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${template.id}?source=studio`,
+        `${assistant.mountPoint}/projects/${projectId}/${ref}/templates/${template.id}?source=studio`,
         '_blank'
       );
     },
-    [assistant]
+    [assistant, projectId, ref]
   );
 
   const { exporter, exportFiles } = useExportFiles();
