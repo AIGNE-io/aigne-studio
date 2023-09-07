@@ -194,14 +194,10 @@ export default function ProjectPage() {
 
       if (!(await editor.current?.requireSave())) return;
 
-      if (template.mode === 'chat') {
-        window.open(`${assistant.mountPoint}/chat/${template.id}?source=studio`, '_blank');
-
-        return;
-      }
+      const mode = `${template.mode === 'chat' ? 'chat' : 'templates'}`;
 
       window.open(
-        `${assistant.mountPoint}/projects/${projectId}/${ref}/templates/${template.id}?source=studio`,
+        `${assistant.mountPoint}/projects/${projectId}/${ref}/${mode}/${template.id}?source=studio`,
         '_blank'
       );
     },
