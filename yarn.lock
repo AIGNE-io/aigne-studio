@@ -268,11 +268,6 @@
   resolved "https://registry.yarnpkg.com/@arcblock/icons/-/icons-2.7.16.tgz#58c45bb2c895c8068b36b5e18568f208d07f1c7e"
   integrity sha512-UtR64gsqcrOrb/OCDS/r75CgmywymXurOeMSgpHdyTtlzTxG1zC3jifWFlWOod7ZAe2YK7moz27ub7Yaorcddg==
 
-"@arcblock/icons@^2.7.8":
-  version "2.7.8"
-  resolved "https://registry.yarnpkg.com/@arcblock/icons/-/icons-2.7.8.tgz#f0063c2f35826c3e66944ca7656d640776e645fe"
-  integrity sha512-FSyjyDuPumM0xbcov6OzvOdNAJwPbuwsdSD14aKV1jcar8oQA85Ch3EqTq1yOgxZniSOndjVmoFOaqPd+YHK2w==
-
 "@arcblock/jwt@1.18.89", "@arcblock/jwt@^1.18.87":
   version "1.18.89"
   resolved "https://registry.yarnpkg.com/@arcblock/jwt/-/jwt-1.18.89.tgz#89f6ef83fa9c171a5f6a92e0f17df95b26160617"
@@ -289,15 +284,6 @@
   version "2.7.16"
   resolved "https://registry.yarnpkg.com/@arcblock/react-hooks/-/react-hooks-2.7.16.tgz#faaba93abbdbd245db5bdaf9f613ff1b8ecfdd26"
   integrity sha512-5XA/jghkOZpY+r8cphS5oY+xUMW+OH6plkOupNIlmq8vCRLrEZL3G/+zQql12aX0LT7QGzCqC8MtjcYfzycJxw==
-  dependencies:
-    core-js "^3.25.5"
-    event-target-shim "^5.0.1"
-    ismobilejs "^1.1.1"
-
-"@arcblock/react-hooks@^2.7.8":
-  version "2.7.8"
-  resolved "https://registry.yarnpkg.com/@arcblock/react-hooks/-/react-hooks-2.7.8.tgz#540e9460689a7df8dfe6e3627933a142d0501be6"
-  integrity sha512-V7dn4bpvo+vSm26HAj5qjJZJduwX4FR3HtfmevxOZZMOPwsEC1M1X0TWhRkDGAsNLl+UGqaJ1L2cOMbyxjvMeQ==
   dependencies:
     core-js "^3.25.5"
     event-target-shim "^5.0.1"
@@ -351,52 +337,6 @@
     mui-datatables "^4.2.2"
     notistack "^2.0.5"
     pako "^2.1.0"
-    react-cookie-consent "^6.4.1"
-    react-error-boundary "^3.1.4"
-    react-helmet "^6.1.0"
-    react-intersection-observer "^8.34.0"
-    react-lottie-player "^1.4.3"
-    react-player "^1.15.3"
-    react-router-dom "^6.4.2"
-    react-shadow "^19.0.3"
-    react-svg "^16.1.18"
-    react-use "^17.4.0"
-    rebound "^0.1.0"
-    topojson-client "^3.1.0"
-    versor "^0.0.4"
-
-"@arcblock/ux@^2.7.8":
-  version "2.7.8"
-  resolved "https://registry.yarnpkg.com/@arcblock/ux/-/ux-2.7.8.tgz#60e866ff14cfa2a191b5c84c8e79457f8b73c9eb"
-  integrity sha512-gvK6qw7Zl8WS/y7FO2nfoY+cAp+DpmQVrpOLK+p2Gdb+/1zIwB6HN8XJ/wHJTJRRk6JKfnyvcvGV5OPf3OmMhA==
-  dependencies:
-    "@arcblock/did-motif" "^1.1.13"
-    "@arcblock/icons" "^2.7.8"
-    "@arcblock/react-hooks" "^2.7.8"
-    "@babel/plugin-syntax-dynamic-import" "^7.8.3"
-    "@emotion/react" "^11.10.4"
-    "@emotion/styled" "^11.10.4"
-    "@fontsource/lato" "^4.5.10"
-    "@fontsource/ubuntu-mono" "^4.5.11"
-    "@mui/icons-material" "^5.10.6"
-    "@mui/material" "^5.10.8"
-    "@solana/qr-code-styling" "^1.6.0-beta.0"
-    "@testing-library/react" "^14.0.0"
-    ahooks "^3.7.8"
-    axios "^0.27.2"
-    base64-url "^2.3.3"
-    copy-to-clipboard "^3.3.2"
-    core-js "^3.25.5"
-    d3-geo "^1.12.1"
-    dayjs "^1.11.5"
-    devices.css "^0.1.15"
-    highlight.js "^11.6.0"
-    is-svg "^4.3.2"
-    js-cookie "^2.2.1"
-    lodash "^4.17.21"
-    mdi-material-ui "^7.5.0"
-    mui-datatables "^4.2.2"
-    notistack "^2.0.5"
     react-cookie-consent "^6.4.1"
     react-error-boundary "^3.1.4"
     react-helmet "^6.1.0"
@@ -719,12 +659,12 @@
   resolved "https://registry.yarnpkg.com/@beskar-labs/gpt-encoder/-/gpt-encoder-1.0.6.tgz#a4d65cfb89c04b51736d52e43cdc7b30fd092ca8"
   integrity sha512-7gLHHDJA2+rb1U62XHy8ym3PThqF8bN7v2VzUep/4BfcxBHKLH3LnNwSU6uLgpqBuI7zYfnN1VFiDXeeG93LXg==
 
-"@blocklet/ai-kit@^0.0.67":
-  version "0.0.67"
-  resolved "https://registry.yarnpkg.com/@blocklet/ai-kit/-/ai-kit-0.0.67.tgz#25ec10c832529d0926180f5f46769eb08738f701"
-  integrity sha512-H3cqn70Q2CYuP3xL1qlbyVxptOgI1AGJEfWT+I3moCOcZ20XrSWXkvmeNonAQ1VDEMWMWB5QVvyXOhwjyBTBDQ==
+"@blocklet/ai-kit@^0.0.69":
+  version "0.0.69"
+  resolved "https://registry.yarnpkg.com/@blocklet/ai-kit/-/ai-kit-0.0.69.tgz#5828d6fd15efb54c11b2ed6584020da7c36b7e28"
+  integrity sha512-L9mkd8z2Y52t6c0bBx+lcXOblQ3yZQz/WedWVkN17PyX7BjUJQ88MyH8dA+yAJ51mHhBa2UVJrnnmpKvv5amxw==
   dependencies:
-    "@arcblock/ux" "^2.7.8"
+    "@arcblock/ux" "^2.7.16"
     "@emotion/css" "^11.10.6"
     "@emotion/react" "^11.10.6"
     "@emotion/styled" "^11.10.6"

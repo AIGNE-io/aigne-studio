@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.79",
+  "version": "0.1.80",
   "scripts": {
     "dev": "COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
     "eject": "vite eject",
@@ -45,7 +45,7 @@
     "@arcblock/did-connect": "^2.7.16",
     "@arcblock/ux": "^2.7.16",
     "@beskar-labs/gpt-encoder": "^1.0.6",
-    "@blocklet/ai-kit": "^0.0.67",
+    "@blocklet/ai-kit": "^0.0.69",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
     "@blocklet/sdk": "^1.16.15",
     "@blocklet/ui-react": "^2.7.16",

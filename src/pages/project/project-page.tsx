@@ -194,12 +194,14 @@ export default function ProjectPage() {
 
       if (!(await editor.current?.requireSave())) return;
 
+      const mode = `${template.mode === 'chat' ? 'chat' : 'templates'}`;
+
       window.open(
-        `${assistant.mountPoint}/${template.mode === 'chat' ? 'chat' : 'templates'}/${template.id}?source=studio`,
+        `${assistant.mountPoint}/projects/${projectId}/${ref}/${mode}/${template.id}?source=studio`,
         '_blank'
       );
     },
-    [assistant]
+    [assistant, projectId, ref]
   );
 
   const { exporter, exportFiles } = useExportFiles();
