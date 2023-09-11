@@ -407,38 +407,6 @@ export function parameterToStringValue(parameter: Parameter): string {
         }),
       });
 
-      const zh: Record<string, string> = {
-        sun: '太阳',
-        moon: '月亮',
-        mercury: '水星',
-        venus: '金星',
-        mars: '火星',
-        jupiter: '木星',
-        saturn: '土星',
-        uranus: '天王星',
-        neptune: '海王星',
-        pluto: '冥王星',
-        chiron: '凯龙星',
-        sirius: '天狼星',
-        aries: '白羊座',
-        taurus: '金牛座',
-        gemini: '双子座',
-        cancer: '巨蟹座',
-        leo: '狮子座',
-        virgo: '处女座',
-        libra: '天秤座',
-        scorpio: '天蝎座',
-        sagittarius: '射手座',
-        capricorn: '摩羯座',
-        aquarius: '水瓶座',
-        pisces: '双鱼座',
-        ophiuchus: '蛇夫座',
-        ascendant: '上升',
-        midheaven: '中天',
-        northnode: '北交',
-        southnode: '南交',
-      };
-
       const allBodies: {
         key: string;
         Sign?: { key: string };
@@ -446,21 +414,21 @@ export function parameterToStringValue(parameter: Parameter): string {
         isRetrograde?: true;
       }[] = horoscope.CelestialBodies.all;
 
-      const houses: { id: number; Sign: { key: string } }[] = horoscope.Houses;
-
       const bodies = allBodies.filter((i) => !['chiron', 'sirius'].includes(i.key));
 
-      return bodies
-        .concat([horoscope.CelestialPoints.northnode, horoscope.Ascendant, horoscope.Midheaven])
-        .map((i) => (i.Sign ? `${zh[i.key]}${zh[i.Sign.key]}${i.isRetrograde ? '(逆行)' : ''}` : undefined))
-        .concat(houses.map((i) => `${i.id}宫${zh[i.Sign.key]}`))
-        .concat(
-          bodies
-            .concat(horoscope.CelestialPoints.northnode)
-            .map((i) => (i.House ? `${zh[i.key]}落入${i.House.id}宫` : undefined))
-        )
-        .filter(Boolean)
-        .join('，');
+      const stars = ['sun', 'moon', 'ascendant', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
+
+      return JSON.stringify(
+        bodies
+          .concat([horoscope.Ascendant])
+          .filter((i) => stars.includes(i.key))
+          .map((i) => ({
+            star: i.key,
+            sign: i.Sign?.key,
+            house: i.House?.id,
+            isRetrograde: i.isRetrograde ? true : undefined,
+          }))
+      );
     }
     default:
       throw new Error(`Unsupported parameter to string value ${parameter}`);
