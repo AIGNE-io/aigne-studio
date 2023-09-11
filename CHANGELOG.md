@@ -1,3 +1,7 @@
+## 0.1.81 (2023-9-11)
+
+- fix: horoscope parameter output json stars
+
 ## 0.1.80 (2023-9-7)
 
 - fix: all templates, if no projectId
