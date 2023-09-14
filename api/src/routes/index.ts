@@ -4,6 +4,7 @@ import ai from './ai';
 import { branchRoutes } from './branch';
 import datasetItems from './dataset-items';
 import datasets from './datasets';
+import exportRoutes from './export';
 import { importRoutes } from './import';
 import { logRoutes } from './log';
 import { projectRoutes } from './project';
@@ -20,6 +21,7 @@ importRoutes(router);
 branchRoutes(router);
 templateTagRoutes(router);
 templateRoutes(router);
+exportRoutes(router);
 
 router.use('/ai', ai);
 router.use('/datasets', datasets);
