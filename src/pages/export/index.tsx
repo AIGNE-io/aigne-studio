@@ -164,10 +164,6 @@ export default function ImportRoutes() {
             refetch({ projectId: state.projectId, ref: newValue });
           }}
         />
-
-        <Button variant="contained" onClick={onConfirm} disabled={disabled || loading}>
-          {t('alert.export')}
-        </Button>
       </Box>
 
       {state.loading ? (
@@ -194,34 +190,22 @@ export default function ImportRoutes() {
             const getBackground = (text: string) => (isAdded(text) ? '#e6ffec' : isRemoved(text) ? '#ffebe9' : '');
 
             return (
-              <Stack key={item.id}>
+              <Stack key={item.id} pl={1} mb={0.25}>
                 <FormControlLabel
                   sx={{
-                    position: 'relative',
                     pl: 0,
-                    pr: 2,
-                    py: 0.5,
                     background: getBackground(item.text),
                   }}
                   disabled={item.type === 'folder'}
                   label={name}
                   control={
-                    <>
-                      {isAdded(item.text) ? (
-                        <Box width={10} bgcolor="#abf2bc" />
-                      ) : isRemoved(item.text) ? (
-                        <Box width={10} bgcolor="rgba(255,129,130,0.4)" />
-                      ) : (
-                        ''
-                      )}
-
-                      <Checkbox
-                        checked={Boolean(checked[item.text])}
-                        onChange={(e) => {
-                          handleChange(item.text, e.target.checked);
-                        }}
-                      />
-                    </>
+                    <Checkbox
+                      size="small"
+                      checked={Boolean(checked[item.text])}
+                      onChange={(e) => {
+                        handleChange(item.text, e.target.checked);
+                      }}
+                    />
                   }
                 />
 
@@ -230,30 +214,18 @@ export default function ImportRoutes() {
                     <Stack key={children.id}>
                       <FormControlLabel
                         sx={{
-                          position: 'relative',
                           pl: 4,
-                          pr: 2,
-                          py: 0.5,
                           background: getBackground(children.text),
                         }}
                         label={children?.data?.meta?.name || t('alert.unnamed')}
                         control={
-                          <>
-                            {isAdded(children.text) ? (
-                              <Box width={10} bgcolor="#abf2bc" />
-                            ) : isRemoved(children.text) ? (
-                              <Box width={10} bgcolor="rgba(255,129,130,0.4)" />
-                            ) : (
-                              ''
-                            )}
-
-                            <Checkbox
-                              checked={Boolean(checked[children.text])}
-                              onChange={(e) => {
-                                handleChange(children.text, e.target.checked);
-                              }}
-                            />
-                          </>
+                          <Checkbox
+                            size="small"
+                            checked={Boolean(checked[children.text])}
+                            onChange={(e) => {
+                              handleChange(children.text, e.target.checked);
+                            }}
+                          />
                         }
                       />
                     </Stack>
@@ -264,6 +236,12 @@ export default function ImportRoutes() {
           })}
         </Box>
       )}
+
+      <Box sx={{ position: 'sticky', bottom: 40 }}>
+        <Button variant="contained" onClick={onConfirm} disabled={disabled || loading} sx={{ width: 1 }}>
+          {t('alert.export')}
+        </Button>
+      </Box>
 
       {dialog}
     </Container>
