@@ -14,7 +14,7 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
-import _ from 'lodash';
+import groupBy from 'lodash/groupBy';
 import { useCallback, useMemo, useState } from 'react';
 import joinUrl from 'url-join';
 
@@ -26,14 +26,15 @@ import useRequest from './state';
 type TreeNode = NodeModel<EntryWithMeta>;
 
 function mergeByParent(data: (TreeNode & { children?: any[]; type: string })[]) {
-  const grouped = _.groupBy(data, 'parent');
-  return _.map(grouped[''], (item) => {
+  const grouped = groupBy(data, 'parent');
+
+  return (grouped[''] || []).map((item) => {
     item.children = grouped[item.id] || [];
     return item;
   });
 }
 
-export default function ImportRoutes() {
+export default function ExportRoutes() {
   const { t } = useLocaleContext();
 
   const [state, setState, { init, exported, removed, refetch }] = useRequest();
