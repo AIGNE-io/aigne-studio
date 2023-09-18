@@ -67,6 +67,18 @@ export default function ImportRoutes() {
     return { ...exported, ...selected };
   }, [exported, selected]);
 
+  const checkedList = useMemo(() => {
+    return mergedData.map((item) => {
+      const children = (item.children || []).map((x) => ({ ...x, checked: checked[x.text] }));
+      const hasChecked = children.some((x) => x.checked);
+      return {
+        ...item,
+        checked: hasChecked || checked[item.text],
+        children,
+      };
+    });
+  }, [mergedData, checked]);
+
   const onExport = async () => {
     setLoading(true);
     try {
@@ -84,13 +96,6 @@ export default function ImportRoutes() {
   };
 
   const onConfirm = () => {
-    const templates = Object.keys(checked).filter((key: string): boolean => Boolean(checked[key]));
-
-    const list: any[] = state.files.filter((f) => {
-      const found = templates.find((t) => t === f.name);
-      return found;
-    });
-
     showDialog({
       fullWidth: true,
       maxWidth: 'sm',
@@ -100,11 +105,33 @@ export default function ImportRoutes() {
           <Box component="h3">{t('export.confirmTip', { projectName: projectValue?.name, refName: state?.ref })}</Box>
 
           <Box component="ul" sx={{ pl: 2 }}>
-            {list.map((template) => (
-              <Box key={template.meta.id} component="li" sx={{ wordWrap: 'break-word' }}>
-                {template.meta.name || template.meta.id}
-              </Box>
-            ))}
+            {checkedList.map((template) => {
+              if (template.checked) {
+                // @ts-ignore
+                const meta = template.data?.meta || {};
+                const children = (template.children || []).filter((x) => x.checked);
+
+                return (
+                  <>
+                    <Box key={meta.id} component="li" sx={{ wordWrap: 'break-word' }}>
+                      {children?.length ? template.text || template.id : meta.name || meta.id}
+                    </Box>
+
+                    {children.map((child: any) => {
+                      // @ts-ignore
+                      const meta1 = child.data?.meta || {};
+                      return (
+                        <Box key={meta1.id} component="li" sx={{ wordWrap: 'break-word' }} ml={4}>
+                          {meta1.name || meta1.id}
+                        </Box>
+                      );
+                    })}
+                  </>
+                );
+              }
+
+              return null;
+            })}
           </Box>
         </Box>
       ),
@@ -189,6 +216,28 @@ export default function ImportRoutes() {
             const name = item.type === 'file' ? item?.data?.meta?.name || t('alert.unnamed') : item.text;
             const getBackground = (text: string) => (isAdded(text) ? '#e6ffec' : isRemoved(text) ? '#ffebe9' : '');
 
+            const isChecked = () => {
+              if (item.type === 'folder') {
+                return (item.children || [])
+                  .map((x): any => {
+                    return Boolean(checked[x.text]);
+                  })
+                  .every((x) => Boolean(x));
+              }
+
+              return Boolean(checked[item.text]);
+            };
+
+            const onChangeParent = (item: any, checked: boolean) => {
+              if (item.type === 'folder') {
+                (item.children || []).forEach((x: any) => {
+                  handleChange(x.text, checked);
+                });
+              } else {
+                handleChange(item.text, checked);
+              }
+            };
+
             return (
               <Stack key={item.id} pl={1} mb={0.25}>
                 <FormControlLabel
@@ -196,14 +245,14 @@ export default function ImportRoutes() {
                     pl: 0,
                     background: getBackground(item.text),
                   }}
-                  disabled={item.type === 'folder'}
+                  disabled={item.type === 'folder' && !item.children?.length}
                   label={name}
                   control={
                     <Checkbox
                       size="small"
-                      checked={Boolean(checked[item.text])}
+                      checked={isChecked()}
                       onChange={(e) => {
-                        handleChange(item.text, e.target.checked);
+                        onChangeParent(item, e.target.checked);
                       }}
                     />
                   }
