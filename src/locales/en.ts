@@ -98,4 +98,11 @@ export default flat({
     saveInNewBranch: 'Save in new branch',
     newBranch: 'New branch',
   },
+  export: {
+    confirmTip: 'Confirm exporting the templates data for the {projectName} project {refName} branch',
+    selectProject: 'Select Project',
+    selectBranch: 'Select Branch',
+    alert: 'The {templates} template selected last time has been removed',
+    templates: 'Templates',
+  },
 });

@@ -62,6 +62,8 @@ export default function App() {
   );
 }
 
+const ExportRoutes = lazy(() => import('./pages/export'));
+
 function AppRoutes() {
   const errorBoundary = useRef<ErrorBoundary>(null);
 
@@ -85,6 +87,7 @@ function AppRoutes() {
           <Route path="projects/*" element={<ProjectsRoutes />} />
           <Route path="datasets/*" element={<DatasetsRoutes />} />
         </Route>
+        <Route path="/admin/resource/component/export" element={<ExportRoutes />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </ErrorBoundary>

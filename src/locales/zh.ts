@@ -98,4 +98,11 @@ export default flat({
     saveInNewBranch: '保存到新的分支',
     newBranch: '新建分支',
   },
+  export: {
+    confirmTip: '确认导出 {projectName} 项目 {refName} 分支的模板数据',
+    selectProject: '选择项目',
+    selectBranch: '选择分支',
+    alert: '上次选择的 {templates} 模板已经被删除',
+    templates: '模板数据',
+  },
 });
