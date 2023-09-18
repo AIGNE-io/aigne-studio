@@ -1,0 +1,7 @@
+{
+  "version": "independent",
+  "private": true,
+  "useWorkspaces": true,
+  "npmClient": "yarn",
+  "packages": ["blocklets/*", "packages/*"]
+}

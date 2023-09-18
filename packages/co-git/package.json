@@ -1,0 +1,47 @@
+{
+  "name": "@blocklet/co-git",
+  "version": "0.0.1",
+  "description": "The cooperative component library for AI Studio",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
+  "homepage": "https://github.com/blocklet/ai-studio#readme",
+  "license": "ISC",
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "typings": "./lib/types/index.d.ts",
+  "files": [
+    "lib",
+    "LICENSE",
+    "package.json",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blocklet/ai-studio.git"
+  },
+  "scripts": {
+    "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "build": "tsc --module commonjs --outDir lib/cjs && tsc --module es2022 --outDir lib/esm && tsc --declaration --emitDeclarationOnly --outDir lib/types",
+    "build:watch": "tsc --module commonjs --outDir lib/cjs -w & tsc --module es2022 --outDir lib/esm -w & tsc --declaration --emitDeclarationOnly --outDir lib/types -w",
+    "dev": "npm run storybook & npm run watch",
+    "clean": "rimraf lib",
+    "start": "npm run storybook",
+    "prepublishOnly": "npm run build",
+    "preview": "npm run storybook",
+    "storybook": "set NODE_OPTIONS=--openssl-legacy-provider && start-storybook -p 6009",
+    "build-storybook": "build-storybook",
+    "prepare": "npm run build",
+    "update:deps": "npx taze -n '/arcblock|ocap|abtnode|blocklet|did-connect|did-comment|nedb/' -w && npm run deduplicate && yarn",
+    "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "rimraf": "^5.0.1",
+    "typescript": "^4.9.4"
+  }
+}
