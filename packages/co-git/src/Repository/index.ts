@@ -1,7 +1,4 @@
-export interface RepositoryOptions {
-  root: string;
-}
+export * from './repository';
+export { default as Repository } from './repository';
 
-export default class Repository {
-  constructor(readonly options: RepositoryOptions) {}
-}
+export { default as Working } from './working';

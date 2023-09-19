@@ -1,30 +1,23 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Add, Delete } from '@mui/icons-material';
 import { Box, Button, MenuItem, Select, SelectProps, TextField } from '@mui/material';
-import { WritableDraft } from 'immer/dist/internal';
 import { nanoid } from 'nanoid';
 
 import { Role, Template } from '../../../api/src/store/templates';
 import ReorderableList from '../reorderable-list';
 import TokenCounter from './token-counter';
 
-export default function Prompts({
-  value,
-  onChange,
-}: {
-  value: Pick<Template, 'prompts'>;
-  onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
-}) {
+export default function Prompts({ value: form }: { value: Pick<Template, 'prompts'> }) {
   const { t } = useLocaleContext();
 
   return (
     <>
-      {value.prompts && (
+      {form.prompts && (
         <Box sx={{ py: 1 }}>
           <ReorderableList
-            list={value.prompts}
+            list={form.prompts}
             itemKey="id"
-            onChange={(prompts) => onChange((v) => (v.prompts = prompts))}
+            onChange={(prompts) => (form.prompts = prompts)}
             renderItem={(prompt, index) => (
               <>
                 <Box sx={{ flex: 1, mt: 1, position: 'relative' }}>
@@ -55,11 +48,9 @@ export default function Prompts({
                       disableUnderline
                       size="small"
                       value={prompt.role ?? 'system'}
-                      onChange={(e) =>
-                        onChange((v) => {
-                          v.prompts![index]!.role = e.target.value as any;
-                        })
-                      }
+                      onChange={(e) => {
+                        form.prompts![index]!.role = e.target.value as any;
+                      }}
                     />
                   </Box>
 
@@ -71,11 +62,9 @@ export default function Prompts({
                     minRows={2}
                     maxRows={10}
                     value={prompt.content ?? ''}
-                    onChange={(e) =>
-                      onChange((v) => {
-                        v.prompts![index]!.content = e.target.value;
-                      })
-                    }
+                    onChange={(e) => {
+                      form.prompts![index]!.content = e.target.value;
+                    }}
                     helperText={<TokenCounter value={prompt.content ?? ''} />}
                     FormHelperTextProps={{ sx: { textAlign: 'right', mt: 0 } }}
                   />
@@ -84,11 +73,9 @@ export default function Prompts({
                 <Box sx={{ ml: 0.5 }}>
                   <Button
                     sx={{ minWidth: 0, p: 0.2 }}
-                    onClick={() =>
-                      onChange((v) => {
-                        v.prompts?.splice(index, 1);
-                      })
-                    }>
+                    onClick={() => {
+                      form.prompts?.splice(index, 1);
+                    }}>
                     <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
                   </Button>
                 </Box>
@@ -102,12 +89,10 @@ export default function Prompts({
         fullWidth
         size="small"
         startIcon={<Add />}
-        onClick={() =>
-          onChange((v) => {
-            v.prompts ??= [];
-            v.prompts.push({ id: nanoid(), content: '', role: 'system' });
-          })
-        }>
+        onClick={() => {
+          form.prompts ??= [];
+          form.prompts.push({ id: nanoid(), content: '', role: 'system' });
+        }}>
         {t('form.add')} {t('form.prompt')}
       </Button>
     </>

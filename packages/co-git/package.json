@@ -10,7 +10,20 @@
   "license": "ISC",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
-  "typings": "./lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
+    },
+    "./repository": {
+      "import": "./lib/esm/repository/index.js",
+      "require": "./lib/cjs/repository/index.js"
+    },
+    "./yjs": {
+      "import": "./lib/esm/yjs.js",
+      "require": "./lib/cjs/yjs.js"
+    }
+  },
   "files": [
     "lib",
     "LICENSE",
@@ -23,8 +36,8 @@
   },
   "scripts": {
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
-    "build": "tsc --module commonjs --outDir lib/cjs && tsc --module es2022 --outDir lib/esm && tsc --declaration --emitDeclarationOnly --outDir lib/types",
-    "build:watch": "tsc --module commonjs --outDir lib/cjs -w & tsc --module es2022 --outDir lib/esm -w & tsc --declaration --emitDeclarationOnly --outDir lib/types -w",
+    "build": "tsc --module commonjs --outDir lib/cjs && tsc --module es2022 --outDir lib/esm  && tsc --declaration --emitDeclarationOnly --outDir .",
+    "build:watch": "tsc --module commonjs --outDir lib/cjs -w & tsc --module es2022 --outDir lib/esm -w & tsc --declaration --emitDeclarationOnly --outDir . -w",
     "dev": "npm run storybook & npm run watch",
     "clean": "rimraf lib",
     "start": "npm run storybook",
@@ -39,8 +52,20 @@
   "peerDependencies": {
     "react": "^18.2.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@syncedstore/core": "^0.6.0-alpha.0",
+    "@syncedstore/react": "^0.6.0-alpha.0",
+    "isomorphic-git": "^1.24.5",
+    "lib0": "^0.2.85",
+    "lodash": "^4.17.21",
+    "queue": "^7.0.0",
+    "ws": "^8.14.1",
+    "y-protocols": "^1.0.6",
+    "yaml": "^2.3.2",
+    "yjs": "^13.6.7"
+  },
   "devDependencies": {
+    "@types/lodash": "^4.14.198",
     "rimraf": "^5.0.1",
     "typescript": "^4.9.4"
   }

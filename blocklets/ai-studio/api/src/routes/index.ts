@@ -10,6 +10,7 @@ import { projectRoutes } from './project';
 import { templateTagRoutes } from './template-tag';
 import { templateRoutes } from './templates';
 import { treeRoutes } from './tree';
+import ws from './ws';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ templateRoutes(router);
 router.use('/ai', ai);
 router.use('/datasets', datasets);
 router.use('/datasets', datasetItems);
+router.use(ws);
 
 export default router;

@@ -1,7 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Construction, Delete } from '@mui/icons-material';
 import { Box, Button, TextField } from '@mui/material';
-import { WritableDraft } from 'immer/dist/internal';
 import { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -13,13 +12,11 @@ import type { TemplateForm } from '.';
 
 export default function Next({
   projectId,
-  value,
-  onChange,
+  value: form,
   onTemplateClick,
 }: {
   projectId: string;
   value: Pick<TemplateForm, 'next'>;
-  onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { ref, '*': path } = useParams();
@@ -43,7 +40,7 @@ export default function Next({
     [templates]
   );
 
-  const { next } = value;
+  const { next } = form;
 
   return (
     <Box sx={{ mt: 2, display: 'flex' }}>
@@ -53,13 +50,11 @@ export default function Next({
           fullWidth
           size="small"
           value={next?.id ? (next as { id: string }) : null}
-          onChange={(_, value) =>
-            onChange((v) => {
-              v.next ??= {};
-              v.next.id = typeof value === 'object' ? value?.id : undefined;
-              v.next.name = typeof value === 'object' ? value?.name : undefined;
-            })
-          }
+          onChange={(_, value) => {
+            form.next ??= {};
+            form.next.id = typeof value === 'object' ? value?.id : undefined;
+            form.next.name = typeof value === 'object' ? value?.name : undefined;
+          }}
           renderInput={(params) => <TextField {...params} label={t('form.next')} />}
           options={templates}
           createTemplate={(data) =>
@@ -71,29 +66,27 @@ export default function Next({
           fullWidth
           size="small"
           label={t('form.outputKey')}
-          value={value.next?.outputKey || ''}
-          onChange={(e) =>
-            onChange((v) => {
-              v.next ??= {};
-              v.next.outputKey = e.target.value;
-            })
-          }
+          value={form.next?.outputKey || ''}
+          onChange={(e) => {
+            form.next ??= {};
+            form.next.outputKey = e.target.value;
+          }}
         />
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>
-        {onTemplateClick && value.next?.id && (
-          <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onTemplateClick({ id: value.next!.id! })}>
+        {onTemplateClick && form.next?.id && (
+          <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onTemplateClick({ id: form.next!.id! })}>
             <Construction
               sx={{
                 fontSize: 16,
-                color: isTemplateWarning({ id: value.next!.id }) ? 'warning.main' : 'grey.500',
+                color: isTemplateWarning({ id: form.next!.id }) ? 'warning.main' : 'grey.500',
               }}
             />
           </Button>
         )}
 
-        <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => onChange((v) => (v.next = {}))}>
+        <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => (form.next = {})}>
           <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
         </Button>
       </Box>

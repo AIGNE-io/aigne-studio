@@ -8,84 +8,139 @@ import {
   CopyAll,
   CreateNewFolderOutlined,
   DeleteForever,
-  Download,
   Edit,
   KeyboardArrowDown,
   KeyboardArrowRight,
-  Launch,
   MoreVert,
-  Upload,
 } from '@mui/icons-material';
-import { Box, BoxProps, Button, CircularProgress, IconButton, Input, Tooltip, Typography } from '@mui/material';
+import { Box, BoxProps, Button, IconButton, Input, Tooltip, Typography } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import { omit } from 'lodash';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { uniqBy } from 'lodash';
+import { ComponentProps, ReactNode, useCallback, useMemo, useState } from 'react';
 import { DndProvider } from 'react-dnd';
+import { useNavigate } from 'react-router-dom';
 import joinUrl from 'url-join';
 
-import { TemplateInput } from '../../../api/src/routes/templates';
-import { EntryWithMeta } from '../../../api/src/routes/tree';
 import { Template } from '../../../api/src/store/templates';
 import { getErrorMessage } from '../../libs/api';
-import { useProjectState } from './state';
+import { createFile, createFolder, deleteFile, isTemplate, moveFile, nextTemplateId, useStore } from './yjs-state';
+
+export type EntryWithMeta =
+  | {
+      type: 'file';
+      name: string;
+      filename: string;
+      parent: string[];
+      path: string[];
+      meta: Template;
+    }
+  | {
+      type: 'folder';
+      name: string;
+      filename: string;
+      parent: string[];
+      path: string[];
+    };
 
 export type TreeNode = NodeModel<EntryWithMeta>;
 
 export default function FileTree({
-  projectId,
-  _ref: ref,
   current,
-  disabled,
-  onCreate,
-  onDelete,
-  onClick,
-  onLaunch,
-  onExport,
-  onImport,
-  onRemoveFolder,
+  mutable,
   ...props
 }: {
-  projectId: string;
-  _ref: string;
   current?: string;
-  disabled?: boolean;
-  onCreate?: (input?: TemplateInput, path?: string[]) => any;
-  onDelete?: (template: Template, path: string[]) => void;
-  onClick?: (template: Template, path: string[]) => void;
-  onLaunch?: (template: Template) => void;
-  onExport?: (node: TreeNode) => void;
-  onImport?: (path: string[]) => void;
-  onRemoveFolder?: (path: string[], children: TreeNode[]) => void;
+  mutable?: boolean;
 } & Omit<BoxProps, 'onClick'>) {
   const { t } = useLocaleContext();
+  const navigate = useNavigate();
 
-  const {
-    state: { files, loading, error },
-    refetch,
-    createFile,
-    moveFile,
-  } = useProjectState(projectId, ref);
-  if (error) throw error;
+  const { store } = useStore();
 
-  const tree = useMemo<TreeNode[]>(() => {
-    if (!files) return [];
-
-    return files.map((item) => ({
-      id: joinUrl(...item.parent, item.name),
-      parent: item.parent.join('/'),
-      text: item.name,
-      droppable: item.type === 'folder',
-      data: item,
-    }));
-  }, [files]);
+  const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
   const [showNewProject, setShowNewProject] = useState(false);
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const onCreateFile = useCallback(
+    ({ parent, meta }: { parent?: string[]; meta?: Template } = {}) => {
+      const filepath = createFile({ store, parent, meta });
+      if (parent) setOpenIds((ids) => (ids ?? []).concat(parent.join('/')));
+      navigate(filepath);
+    },
+    [navigate, setOpenIds, store]
+  );
 
-  const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
+  const onMoveFile = useCallback(
+    ({ from, to }: { from: string[]; to: string[] }) => {
+      moveFile({ store, from, to });
+
+      setOpenIds((ids) => [...new Set((ids ?? []).concat(to.slice(0, -1)))]);
+
+      const filename = current?.split('/').slice(-1)[0];
+      const filepath = filename ? Object.values(store.tree).find((i) => i?.endsWith(filename)) : undefined;
+
+      if (filepath?.endsWith('.yaml')) navigate(filepath, { replace: true });
+    },
+    [current, navigate, setOpenIds, store]
+  );
+
+  const onDeleteFile = useCallback(
+    ({ path }: { path: string[] }) => {
+      deleteFile({ store, path });
+
+      if (current && path.join('/').startsWith(current)) navigate('.', { replace: true });
+    },
+    [current, navigate, store]
+  );
+
+  const folders = uniqBy(
+    [...new Set(Object.values(store.tree).map((filepath) => filepath?.split('/').slice(0, -1).join('/')))].flatMap(
+      (filepath) => {
+        if (!filepath) return [];
+        const parent = filepath.split('/');
+        return parent.map((name, index) => {
+          return {
+            type: 'folder' as const,
+            name,
+            parent: parent.slice(0, index),
+          };
+        });
+      }
+    ),
+    (a) => a.parent.concat(a.name).join('/')
+  );
+
+  const files = Object.entries(store.tree)
+    .map(([key, filepath]) => {
+      const template = store.files[key];
+      if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
+        const paths = filepath.split('/');
+        return {
+          type: 'file' as const,
+          name: template.name || '',
+          parent: paths.slice(0, -1),
+          meta: template,
+        };
+      }
+
+      return undefined;
+    })
+    .filter((i): i is NonNullable<typeof i> => !!i);
+
+  const tree = useMemo<TreeNode[]>(() => {
+    return [...folders, ...files].map((item) => {
+      const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
+      const path = item.parent.concat(filename);
+
+      return {
+        id: joinUrl(...path),
+        text: item.name,
+        parent: item.parent.join('/'),
+        droppable: item.type === 'folder',
+        data: { ...item, path, filename },
+      };
+    });
+  }, [files, folders]);
 
   return (
     <Box {...props}>
@@ -104,44 +159,34 @@ export default function FileTree({
           {t('main.templates')}
         </Typography>
 
-        {onCreate && (
-          <IconButton disabled={disabled} size="small" color="primary" onClick={() => setShowNewProject(true)}>
-            <CreateNewFolderOutlined fontSize="small" />
-          </IconButton>
-        )}
+        <IconButton disabled={!mutable} size="small" color="primary" onClick={() => setShowNewProject(true)}>
+          <CreateNewFolderOutlined fontSize="small" />
+        </IconButton>
 
-        {onCreate && (
-          <IconButton disabled={disabled} size="small" color="primary" onClick={() => onCreate({}, [])}>
-            <Add fontSize="small" />
-          </IconButton>
-        )}
+        <IconButton disabled={!mutable} size="small" color="primary" onClick={() => onCreateFile()}>
+          <Add fontSize="small" />
+        </IconButton>
       </Box>
 
       {showNewProject && (
-        <FolderTreeItem
+        <EditableTreeItem
+          icon={<KeyboardArrowRight fontSize="small" />}
           key={showNewProject.toString()}
-          text=""
           defaultEditing
           onSubmit={async (value) => {
             const name = value.trim();
-            if (name) await createFile({ projectId, branch: ref, path: '', input: { type: 'folder', data: { name } } });
+            if (name) createFolder({ store, parent: [], name });
             setShowNewProject(false);
           }}
           onCancel={() => setShowNewProject(false)}
         />
       )}
 
-      {!files.length &&
-        !showNewProject &&
-        (loading ? (
-          <Box textAlign="center">
-            <CircularProgress size={20} />
-          </Box>
-        ) : (
-          <Box color="text.secondary" textAlign="center">
-            {t('alert.noTemplates')}
-          </Box>
-        ))}
+      {!tree.length && !showNewProject && (
+        <Box color="text.secondary" textAlign="center">
+          {t('alert.noTemplates')}
+        </Box>
+      )}
 
       <DndProvider backend={MultiBackend} options={getBackendOptions()}>
         <Tree
@@ -149,20 +194,14 @@ export default function FileTree({
           rootId=""
           initialOpen={openIds}
           onChangeOpen={setOpenIds}
-          canDrag={(node) => !disabled && node?.data?.type === 'file'}
+          canDrag={() => !!mutable}
           onDrop={async (_, { dragSource, dropTarget }) => {
             const source = dragSource?.data;
+            const target = dropTarget?.data;
             if (source) {
-              const src = source.parent.concat(source.name).join('/');
-              const dst = (dropTarget?.data?.parent ?? [])
-                .concat(dropTarget?.data?.name || '')
-                .concat(source.name)
-                .join('/');
+              const to = (target?.path ?? []).concat(source.filename);
 
-              await moveFile({ projectId, branch: ref, path: src, to: dst });
-              if (dropTarget && !openIds?.includes(dropTarget.id)) {
-                setOpenIds((ids) => (ids ?? []).concat(dropTarget.id));
-              }
+              onMoveFile({ from: source.path, to });
             }
           }}
           classes={{
@@ -180,153 +219,62 @@ export default function FileTree({
           }}
           listComponent="div"
           listItemComponent="div"
-          render={(node, { depth, isOpen, onToggle, hasChild }) => {
+          render={(node, { depth, isOpen, onToggle }) => {
             if (!node.data) {
               return <Box />;
             }
 
-            const { parent, name } = node.data;
-            const path = parent.concat(name);
+            const actions = (
+              <TreeItemMenus
+                mutable={mutable}
+                item={node.data}
+                onCreateFile={onCreateFile}
+                onDeleteFile={onDeleteFile}
+              />
+            );
+
+            const { parent } = node.data;
+            const filepath = parent.concat(node.data.type === 'file' ? `${node.data.meta.id}.yaml` : node.data.name);
 
             if (node.data.type === 'folder') {
               return (
-                <FolderTreeItem
+                <EditableTreeItem
                   key={node.id}
-                  disabled={disabled}
-                  text={node.text}
+                  icon={isOpen ? <KeyboardArrowDown fontSize="small" /> : <KeyboardArrowRight fontSize="small" />}
+                  mutable={mutable}
                   depth={depth}
-                  isOpen={isOpen}
-                  onToggle={onToggle}
+                  onClick={onToggle}
                   onSubmit={async (name) => {
                     const { data } = node;
                     if (!data || name === data.name) return;
-                    await moveFile({
-                      projectId,
-                      branch: ref,
-                      path: data.parent.concat(data.name).join('/'),
-                      to: data.parent.concat(name).join('/'),
-                    });
+                    onMoveFile({ from: data.parent.concat(data.name), to: data.parent.concat(name) });
                   }}
-                  actions={
-                    <>
-                      {onExport && (
-                        <Tooltip title={t('alert.export')}>
-                          <span>
-                            <Button disabled={!hasChild} size="small" onClick={() => onExport(node)}>
-                              <Download fontSize="small" />
-                            </Button>
-                          </span>
-                        </Tooltip>
-                      )}
-                      {onImport && (
-                        <Tooltip title={t('alert.import')}>
-                          <span>
-                            <Button disabled={disabled} size="small" onClick={() => onImport(path)}>
-                              <Upload fontSize="small" />
-                            </Button>
-                          </span>
-                        </Tooltip>
-                      )}
-                      {onCreate && (
-                        <Tooltip title={`${t('form.add')} ${t('form.template')}`}>
-                          <span>
-                            <Button
-                              disabled={disabled}
-                              size="small"
-                              onClick={() => {
-                                onCreate({}, path);
-                                setOpenIds((ids) => (ids ?? []).concat(node.id));
-                              }}>
-                              <Add fontSize="small" />
-                            </Button>
-                          </span>
-                        </Tooltip>
-                      )}
-                      {onRemoveFolder && (
-                        <Tooltip title={t('alert.delete')}>
-                          <span>
-                            <Button
-                              disabled={disabled}
-                              size="small"
-                              onClick={() =>
-                                onRemoveFolder(
-                                  path,
-                                  tree.filter((i) => i.parent === node.id)
-                                )
-                              }>
-                              <DeleteForever fontSize="small" />
-                            </Button>
-                          </span>
-                        </Tooltip>
-                      )}
-                    </>
-                  }
-                />
+                  actions={actions}>
+                  {node.text}
+                </EditableTreeItem>
               );
             }
 
             const { meta } = node.data;
+            const name = `${meta.id}.yaml`;
             const selected = current && current.endsWith(name);
 
+            const { icon, color } = (meta.type &&
+              {
+                branch: { icon: 'fluent:branch-16-regular', color: 'secondary.main' },
+                image: { icon: 'fluent:draw-image-20-regular', color: 'success.main' },
+              }[meta.type]) || { icon: 'tabler:prompt', color: 'primary.main' };
+
             return (
-              <TemplateTreeItem
+              <TreeItem
                 key={node.id}
+                icon={<Box component={Icon} icon={icon} color={color} />}
                 depth={depth}
-                template={meta}
                 sx={{ bgcolor: selected ? 'rgba(0,0,0,0.05)' : undefined }}
-                onClick={() => onClick?.(meta, path)}
-                actions={
-                  <>
-                    {onLaunch && (
-                      <Tooltip title={t('alert.openInAssistant')}>
-                        <span>
-                          <Button size="small" onClick={() => onLaunch(meta)}>
-                            <Launch fontSize="small" />
-                          </Button>
-                        </span>
-                      </Tooltip>
-                    )}
-
-                    {onExport && (
-                      <Tooltip title={t('alert.export')}>
-                        <span>
-                          <Button size="small" onClick={() => onExport(node)}>
-                            <Download fontSize="small" />
-                          </Button>
-                        </span>
-                      </Tooltip>
-                    )}
-
-                    {onCreate && (
-                      <Tooltip title={t('alert.duplicate')}>
-                        <span>
-                          <Button
-                            disabled={disabled}
-                            size="small"
-                            onClick={() =>
-                              onCreate({
-                                ...omit(meta, '_id', 'createdAt', 'updatedAt'),
-                                name: `${meta.name || meta.id} Copy`,
-                              })
-                            }>
-                            <CopyAll fontSize="small" />
-                          </Button>
-                        </span>
-                      </Tooltip>
-                    )}
-
-                    {onDelete && (
-                      <Tooltip title={t('alert.delete')}>
-                        <span>
-                          <Button disabled={disabled} size="small" onClick={() => onDelete(meta, path)}>
-                            <DeleteForever fontSize="small" />
-                          </Button>
-                        </span>
-                      </Tooltip>
-                    )}
-                  </>
-                }
-              />
+                onClick={() => navigate(filepath.join('/'))}
+                actions={actions}>
+                {meta.name || t('alert.unnamed')}
+              </TreeItem>
             );
           }}
         />
@@ -335,37 +283,121 @@ export default function FileTree({
   );
 }
 
-function FolderTreeItem({
-  disabled,
-  text,
-  isOpen,
-  depth = 0,
-  actions,
-  defaultEditing,
-  onToggle,
-  onSubmit,
-  onCancel,
+function TreeItemMenus({
+  mutable,
+  item,
+  onCreateFile,
+  onDeleteFile,
 }: {
-  disabled?: boolean;
-  text: string;
-  isOpen?: boolean;
-  depth?: number;
-  actions?: ReactNode;
-  defaultEditing?: boolean;
-  onToggle?: () => void;
-  onSubmit?: (name: string) => any;
-  onCancel?: () => any;
+  mutable?: boolean;
+  item: EntryWithMeta;
+  onCreateFile?: (options?: { parent?: string[]; meta?: Template }) => any;
+  onDeleteFile?: (options: { path: string[] }) => any;
 }) {
   const { t } = useLocaleContext();
-  const [editing, setEditing] = useState(defaultEditing);
-  const [value, setValue] = useState(text);
 
-  const [open, setOpen] = useState(false);
+  return (
+    <>
+      {/* TODO: */}
+      {/* {onLaunch && (
+        <Tooltip title={t('alert.openInAssistant')}>
+          <span>
+            <Button size="small" onClick={() => onLaunch(meta)}>
+              <Launch fontSize="small" />
+            </Button>
+          </span>
+        </Tooltip>
+      )}
+
+      {onExport && (
+        <Tooltip title={t('alert.export')}>
+          <span>
+            <Button size="small" onClick={() => onExport(node)}>
+              <Download fontSize="small" />
+            </Button>
+          </span>
+        </Tooltip>
+      )} */}
+
+      {/* TODO: */}
+      {/* {onImport && (
+        <Tooltip title={t('alert.import')}>
+          <span>
+            <Button disabled={!mutable} size="small" onClick={() => onImport(path)}>
+              <Upload fontSize="small" />
+            </Button>
+          </span>
+        </Tooltip>
+      )} */}
+
+      {item.type === 'folder' && onCreateFile && (
+        <Tooltip title={`${t('form.add')} ${t('form.template')}`}>
+          <span>
+            <Button disabled={!mutable} size="small" onClick={() => onCreateFile({ parent: item.path })}>
+              <Add fontSize="small" />
+            </Button>
+          </span>
+        </Tooltip>
+      )}
+
+      {item.type === 'file' && onCreateFile && (
+        <Tooltip title={t('alert.duplicate')}>
+          <span>
+            <Button
+              disabled={!mutable}
+              size="small"
+              onClick={() =>
+                onCreateFile({
+                  parent: item.parent,
+                  meta: {
+                    ...JSON.parse(JSON.stringify(item.meta)),
+                    id: nextTemplateId(),
+                    name: item.meta.name && `${item.meta.name} Copy`,
+                  },
+                })
+              }>
+              <CopyAll fontSize="small" />
+            </Button>
+          </span>
+        </Tooltip>
+      )}
+
+      {onDeleteFile && (
+        <Tooltip title={t('alert.delete')}>
+          <span>
+            <Button disabled={!mutable} size="small" onClick={() => onDeleteFile(item)}>
+              <DeleteForever fontSize="small" />
+            </Button>
+          </span>
+        </Tooltip>
+      )}
+    </>
+  );
+}
+
+function EditableTreeItem({
+  mutable,
+  defaultEditing,
+  children,
+  onCancel,
+  onSubmit,
+  ...props
+}: Omit<ComponentProps<typeof TreeItem>, 'children' | 'onSubmit'> & {
+  mutable?: boolean;
+  defaultEditing?: boolean;
+  children?: string;
+  onCancel?: () => any;
+  onSubmit?: (text: string) => any;
+}) {
+  const { t } = useLocaleContext();
+
+  const [editing, setEditing] = useState(defaultEditing);
+  const [value, setValue] = useState(children);
 
   const submit = async () => {
     if (!value) {
       setEditing(false);
-      setValue(text);
+      setValue(children);
       onCancel?.();
       return;
     }
@@ -375,139 +407,84 @@ function FolderTreeItem({
       setEditing(false);
     } catch (error) {
       setEditing(false);
-      setValue(text);
+      setValue(children);
       Toast.error(getErrorMessage(error));
       throw error;
     }
   };
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        pl: depth * 2 + 1,
-        py: 0.5,
-        pr: 2,
-        display: 'flex',
-        alignItems: 'center',
-        cursor: 'pointer',
-        ':hover': { bgcolor: 'grey.100', '.hover-visible': { opacity: 1 } },
-      }}
-      onClick={onToggle}>
-      <Box sx={{ height: 20, mr: 0.5 }}>
-        {isOpen ? <KeyboardArrowDown fontSize="small" /> : <KeyboardArrowRight fontSize="small" />}
-      </Box>
-      <Box sx={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {editing ? (
-          <Input
-            disableUnderline
-            fullWidth
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            sx={{
-              height: 24,
-              lineHeight: '24px',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-            classes={{
-              focused: css`
-                outline: 1px solid #1976d2;
-                outline-offset: -1px;
-              `,
-            }}
-            autoFocus
-            inputProps={{ style: { height: '100%', padding: 0 } }}
-            onKeyDown={(e) => {
-              if (e.keyCode === 229) {
-                return;
-              }
-              if (e.key === 'Escape') {
-                setValue(text);
-                setEditing(false);
-                onCancel?.();
-                return;
-              }
-              if (!e.shiftKey && e.key === 'Enter') {
-                e.preventDefault();
-                submit();
-              }
-            }}
-            onBlur={submit}
-          />
-        ) : (
-          text || t('alert.unnamed')
-        )}
-      </Box>
-
-      {!editing && actions && (
-        <Box
-          component="span"
-          className="hover-visible"
-          sx={{ position: 'absolute', right: 4, opacity: open ? 1 : 0 }}
-          onClick={(e) => e.stopPropagation()}>
-          <Tooltip
-            open={open}
-            placement="right"
-            onOpen={() => setOpen(true)}
-            onClose={() => setOpen(false)}
-            disableTouchListener
-            disableFocusListener
-            componentsProps={{
-              tooltip: {
-                sx: {
-                  bgcolor: 'grey.100',
-                  boxShadow: 1,
-                },
-              },
-            }}
-            title={
-              <Box
-                sx={{
-                  '.MuiButtonBase-root': {
-                    px: 0.5,
-                    minWidth: 0,
-                  },
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setOpen(false);
-                }}>
-                <Tooltip title={t('form.rename')}>
-                  <span>
-                    <Button disabled={disabled} size="small" onClick={() => setEditing(true)}>
-                      <Edit fontSize="small" />
-                    </Button>
-                  </span>
-                </Tooltip>
-
-                {actions}
-              </Box>
-            }>
-            <Button sx={{ padding: 0.5, minWidth: 0 }}>
-              <MoreVert sx={{ fontSize: 16 }} />
-            </Button>
+    <TreeItem
+      {...props}
+      actions={
+        <>
+          <Tooltip title={t('form.rename')}>
+            <span>
+              <Button disabled={!mutable} size="small" onClick={() => setEditing(true)}>
+                <Edit fontSize="small" />
+              </Button>
+            </span>
           </Tooltip>
-        </Box>
+
+          {props.actions}
+        </>
+      }>
+      {editing ? (
+        <Input
+          disableUnderline
+          fullWidth
+          value={value || ''}
+          onChange={(e) => setValue(e.target.value)}
+          sx={{
+            height: 24,
+            lineHeight: '24px',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+          classes={{
+            focused: css`
+              outline: 1px solid #1976d2;
+              outline-offset: -1px;
+            `,
+          }}
+          autoFocus
+          inputProps={{ style: { height: '100%', padding: 0 } }}
+          onKeyDown={(e) => {
+            if (e.keyCode === 229) {
+              return;
+            }
+            if (e.key === 'Escape') {
+              setValue(children);
+              setEditing(false);
+              onCancel?.();
+              return;
+            }
+            if (!e.shiftKey && e.key === 'Enter') {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          onBlur={submit}
+        />
+      ) : (
+        children
       )}
-    </Box>
+    </TreeItem>
   );
 }
 
-function TemplateTreeItem({
-  template,
-  depth,
+function TreeItem({
+  icon,
+  children,
+  depth = 0,
   actions,
   ...props
-}: { template: Template; depth: number; actions?: ReactNode } & BoxProps) {
-  const { t } = useLocaleContext();
-
-  const { icon, color } = (template.type &&
-    {
-      branch: { icon: 'fluent:branch-16-regular', color: 'secondary.main' },
-      image: { icon: 'fluent:draw-image-20-regular', color: 'success.main' },
-    }[template.type]) || { icon: 'tabler:prompt', color: 'primary.main' };
-
+}: {
+  icon?: ReactNode;
+  children?: ReactNode;
+  depth?: number;
+  actions?: ReactNode;
+} & BoxProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -524,7 +501,8 @@ function TemplateTreeItem({
         ':hover': { bgcolor: 'grey.100', '.hover-visible': { opacity: 1 } },
         ...props.sx,
       }}>
-      <Box component={Icon} icon={icon} sx={{ fontSize: 20, color, mr: 0.5 }} />
+      <Box sx={{ width: 32, display: 'flex', alignItems: 'center' }}>{icon}</Box>
+
       <Box
         sx={{
           flex: 1,
@@ -532,8 +510,9 @@ function TemplateTreeItem({
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         }}>
-        {template.name || t('alert.unnamed')}
+        {children}
       </Box>
+
       {actions && (
         <Box
           component="span"

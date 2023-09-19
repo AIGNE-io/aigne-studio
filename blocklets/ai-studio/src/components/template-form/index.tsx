@@ -17,7 +17,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { WritableDraft } from 'immer/dist/internal';
 import Joi from 'joi';
 import { ComponentProps, useState } from 'react';
 import { useAsync } from 'react-use';
@@ -31,7 +30,7 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
-import { Commit, getLogs } from '../../libs/log';
+import { getLogs } from '../../libs/log';
 import { getFile } from '../../libs/tree';
 import useDialog from '../../utils/use-dialog';
 import Branches from './branches';
@@ -67,8 +66,6 @@ export default function TemplateFormView({
   path,
   hash,
   value: form,
-  onCommitSelect,
-  onChange,
   onExecute,
   onTemplateClick,
 }: {
@@ -77,8 +74,6 @@ export default function TemplateFormView({
   path: string;
   hash?: string;
   value: Template;
-  onCommitSelect: (commit: Commit) => any;
-  onChange: (update: Template | ((update: WritableDraft<Template>) => void)) => void;
   onExecute?: (template: Template) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
@@ -205,7 +200,9 @@ export default function TemplateFormView({
             _ref={ref}
             path={path}
             hash={hash}
-            onCommitSelect={onCommitSelect}>
+            onCommitSelect={() => {
+              // TODO:
+            }}>
             <Button
               sx={{ ml: 1 }}
               color="inherit"
@@ -229,7 +226,10 @@ export default function TemplateFormView({
                     path={path}
                     onSelect={async (commit) => {
                       const template = await getFile({ projectId, ref: commit.oid, path });
-                      onChange(template);
+                      for (const key of Object.keys(form)) {
+                        delete (form as any)[key];
+                      }
+                      Object.assign(form, template);
                       closeDialog();
                     }}
                   />
@@ -248,17 +248,14 @@ export default function TemplateFormView({
           label={t('form.versionNote')}
           size="small"
           value={form.versionNote ?? ''}
-          onChange={(e) => onChange((form) => (form.versionNote = e.target.value))}
+          onChange={(e) => (form.versionNote = e.target.value)}
         />
       </Grid>
 
       <Grid item xs={12}>
         <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           <FormLabel sx={{ width: 60 }}>{t('form.mode')}</FormLabel>
-          <RadioGroup
-            row
-            value={form.mode ?? 'default'}
-            onChange={(_, value) => onChange((f) => (f.mode = value as any))}>
+          <RadioGroup row value={form.mode ?? 'default'} onChange={(_, value) => (form.mode = value as any)}>
             <FormControlLabel value="default" control={<Radio />} label={t('form.form')} />
             <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
           </RadioGroup>
@@ -270,15 +267,13 @@ export default function TemplateFormView({
           <RadioGroup
             row
             value={form.type ?? 'prompt'}
-            onChange={(_, type) =>
-              onChange((form) => {
-                if (type === 'prompt') {
-                  delete form.type;
-                } else {
-                  form.type = type as any;
-                }
-              })
-            }>
+            onChange={(_, type) => {
+              if (type === 'prompt') {
+                delete form.type;
+              } else {
+                form.type = type as any;
+              }
+            }}>
             <FormControlLabel value="prompt" control={<Radio />} label={t('form.prompt')} />
             <FormControlLabel value="branch" control={<Radio />} label={t('form.branch')} />
             <FormControlLabel value="image" control={<Radio />} label={t('form.image')} />
@@ -291,7 +286,7 @@ export default function TemplateFormView({
           label={t('form.name')}
           size="small"
           value={form.name ?? ''}
-          onChange={(e) => onChange((form) => (form.name = e.target.value))}
+          onChange={(e) => (form.name = e.target.value)}
         />
       </Grid>
       {form.type !== 'image' && (
@@ -303,7 +298,7 @@ export default function TemplateFormView({
               size="small"
               value={form.model ?? ''}
               select
-              onChange={(e) => onChange((form) => (form.model = e.target.value))}>
+              onChange={(e) => (form.model = e.target.value)}>
               {MODELS.map((model) => (
                 <MenuItem key={model} value={model}>
                   {model}
@@ -318,17 +313,15 @@ export default function TemplateFormView({
               label={t('form.temperature')}
               inputProps={{ type: 'number', min: 0, max: 2, step: 0.1 }}
               value={form.temperature ?? ''}
-              onChange={(e) =>
-                onChange((f) => {
-                  const v = e.target.value;
-                  if (!v) {
-                    f.temperature = undefined;
-                  } else {
-                    const n = Math.max(Math.min(2, Number(v)), 0);
-                    f.temperature = n;
-                  }
-                })
-              }
+              onChange={(e) => {
+                const v = e.target.value;
+                if (!v) {
+                  form.temperature = undefined;
+                } else {
+                  const n = Math.max(Math.min(2, Number(v)), 0);
+                  form.temperature = n;
+                }
+              }}
             />
           </Grid>
         </>
@@ -339,7 +332,7 @@ export default function TemplateFormView({
           label={t('form.icon')}
           size="small"
           value={form.icon ?? ''}
-          onChange={(e) => onChange((form) => (form.icon = e.target.value))}
+          onChange={(e) => (form.icon = e.target.value)}
           InputProps={{
             startAdornment: form.icon && (
               <InputAdornment position="start">
@@ -364,7 +357,7 @@ export default function TemplateFormView({
           label={t('form.description')}
           size="small"
           value={form.description ?? ''}
-          onChange={(e) => onChange((form) => (form.description = e.target.value))}
+          onChange={(e) => (form.description = e.target.value)}
           multiline
           minRows={2}
         />
@@ -374,31 +367,31 @@ export default function TemplateFormView({
           projectId={projectId}
           label={t('form.tag')}
           value={form.tags ?? []}
-          onChange={(_, value) => onChange((form) => (form.tags = value))}
+          onChange={(_, value) => (form.tags = value)}
         />
       </Grid>
 
       <Grid item xs={12}>
-        <Prompts value={form} onChange={onChange} />
+        <Prompts value={form} />
       </Grid>
 
       {form.type === 'branch' && (
         <Grid item xs={12}>
-          <Branches projectId={projectId} value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+          <Branches projectId={projectId} value={form} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 
       <Grid item xs={12}>
-        <Datasets value={form} onChange={onChange} />
+        <Datasets value={form} />
       </Grid>
 
       <Grid item xs={12}>
-        <Parameters value={form} onChange={onChange} />
+        <Parameters value={form} />
       </Grid>
 
       {form.type !== 'image' && (
         <Grid item xs={12}>
-          <Next projectId={projectId} value={form} onChange={onChange} onTemplateClick={onTemplateClick} />
+          <Next projectId={projectId} value={form} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 

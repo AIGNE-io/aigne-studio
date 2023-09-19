@@ -1,28 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
-import {
-  ArrowBackIosNew,
-  ArrowDropDown,
-  CallSplit,
-  Delete,
-  Download,
-  DragIndicator,
-  Edit,
-  HighlightOff,
-  History,
-  InfoOutlined,
-  Save,
-  SaveAs,
-  Start,
-  Upload,
-  WarningRounded,
-} from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
+import { ArrowBackIosNew, Delete, DragIndicator, Edit, HighlightOff, Start, WarningRounded } from '@mui/icons-material';
 import {
   Alert,
   Box,
-  BoxProps,
   Breadcrumbs,
   Button,
   CircularProgress,
@@ -32,52 +14,35 @@ import {
   List,
   ListItemButton,
   ListItemText,
-  TextField,
   Tooltip,
   Typography,
-  tooltipClasses,
 } from '@mui/material';
 import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
-import { useAsyncEffect, useLocalStorageState } from 'ahooks';
+import { useLocalStorageState } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce from 'immer';
 import { WritableDraft } from 'immer/dist/internal';
-import { omit, uniqBy } from 'lodash';
-import {
-  ReactNode,
-  forwardRef,
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { omit } from 'lodash';
+import { ReactNode, forwardRef, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { Link as RouterLink, useBeforeUnload, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useUpdate } from 'react-use';
+import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useAsync, useUpdate } from 'react-use';
 import joinUrl from 'url-join';
-import { parse } from 'yaml';
 
 import { Template } from '../../../api/src/store/templates';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView from '../../components/template-form';
-import CommitsTip from '../../components/template-form/commits-tip';
-import Dropdown from '../../components/template-form/dropdown';
 import { useComponent } from '../../contexts/component';
-import { useAddon } from '../../contexts/dashboard';
 import { useIsAdmin } from '../../contexts/session';
 import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
 import { getErrorMessage } from '../../libs/api';
-import { importBodySchema, importTemplates } from '../../libs/import';
-import { Commit } from '../../libs/log';
-import { getFile } from '../../libs/tree';
+import { getProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
-import usePickFile, { readFileAsText } from '../../utils/use-pick-file';
+import usePickFile from '../../utils/use-pick-file';
 import { useExportFiles } from './export-files';
 import FileTree, { TreeNode } from './file-tree';
 import { useProjectState } from './state';
+import { StoreProvider, isTemplate, useStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -87,15 +52,27 @@ export default function ProjectPage() {
   const { projectId, ref, '*': filepath } = useParams();
   if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
 
-  const {
-    state: { project, files, branches, commits, loading },
-    refetch,
-    createFile,
-    deleteFile,
-  } = useProjectState(projectId, ref);
+  return (
+    <StoreProvider projectId={projectId} gitRef={ref}>
+      <ProjectView projectId={projectId} gitRef={ref} filepath={filepath} />
+    </StoreProvider>
+  );
+}
+
+function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRef: string; filepath?: string }) {
+  const projectState = useAsync(() => getProject(projectId), [projectId]);
+
+  const { store } = useStore();
+
+  // const {
+  //   state: { project, files, branches, commits, loading },
+  //   refetch,
+  //   createFile,
+  //   deleteFile,
+  // } = useProjectState(projectId, ref);
 
   const isAdmin = useIsAdmin();
-  const disableMutation = ref === defaultBranch && !isAdmin;
+  const disableMutation = gitRef === defaultBranch && !isAdmin;
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -107,18 +84,16 @@ export default function ProjectPage() {
   useEffect(() => {
     if (filepath) return;
 
-    const p = location.state?.filepath || (ref === defaultBranch ? previousFilePath?.[ref] : undefined);
+    const p = location.state?.filepath || (gitRef === defaultBranch ? previousFilePath?.[gitRef] : undefined);
 
     if (p && typeof p === 'string') {
-      const name = p.split('/').slice(-1)[0];
-      const file = files.find((i): i is typeof i & { type: 'file' } => i.type === 'file' && i.name === name);
-      if (file) navigate(joinUrl(...file.parent, file.name), { replace: true });
+      if (Object.values(store.tree).includes(p)) navigate(p, { replace: true });
     }
-  }, [ref, files, location]);
+  }, [gitRef, location]);
 
   useEffect(() => {
-    if (filepath) setPreviousFilePath((v) => ({ ...v, [ref]: filepath }));
-  }, [ref, filepath, setPreviousFilePath]);
+    if (filepath) setPreviousFilePath((v) => ({ ...v, [gitRef]: filepath }));
+  }, [gitRef, filepath, setPreviousFilePath]);
 
   const { t } = useLocaleContext();
 
@@ -197,11 +172,11 @@ export default function ProjectPage() {
       const mode = `${template.mode === 'chat' ? 'chat' : 'templates'}`;
 
       window.open(
-        `${assistant.mountPoint}/projects/${projectId}/${ref}/${mode}/${template.id}?source=studio`,
+        `${assistant.mountPoint}/projects/${projectId}/${gitRef}/${mode}/${template.id}?source=studio`,
         '_blank'
       );
     },
-    [assistant, projectId, ref]
+    [assistant, projectId, gitRef]
   );
 
   const { exporter, exportFiles } = useExportFiles();
@@ -210,234 +185,237 @@ export default function ProjectPage() {
     async (node?: TreeNode | string, { quiet }: { quiet?: boolean } = {}) => {
       if (!(await editor.current?.requireSave())) return;
 
-      exportFiles(projectId, ref, node, { quiet });
+      exportFiles(projectId, gitRef, node, { quiet });
     },
-    [exportFiles, projectId, ref]
+    [exportFiles, projectId, gitRef]
   );
 
   const pickFile = usePickFile();
 
-  const onImport = useCallback(
-    async (path?: string[]) => {
-      if (editor.current && !(await editor.current?.requireSave())) return;
+  // const onImport = useCallback(
+  //   async (path?: string[]) => {
+  //     if (editor.current && !(await editor.current?.requireSave())) return;
 
-      try {
-        const list = await pickFile({ accept: '.yaml,.yml', multiple: true }).then((files) =>
-          Promise.all(
-            files.map((i) =>
-              readFileAsText(i).then((i) => {
-                const obj = parse(i);
+  //     try {
+  //       const list = await pickFile({ accept: '.yaml,.yml', multiple: true }).then((files) =>
+  //         Promise.all(
+  //           files.map((i) =>
+  //             readFileAsText(i).then((i) => {
+  //               const obj = parse(i);
 
-                // 用于兼容比较旧的导出数据
-                // {
-                //   templates: {
-                //     folderId?: string
-                //   }[]
-                //   folders: {
-                //     _id: string
-                //     name?: string
-                //   }[]
-                // }
-                if (Array.isArray(obj?.templates) && Array.isArray(obj?.folders)) {
-                  obj.templates.forEach((template: any) => {
-                    if (template.folderId) {
-                      const folder = obj.folders.find((f: any) => f._id === template.folderId);
-                      if (folder.name) {
-                        template.path = folder.name;
-                      }
-                    }
-                  });
-                }
+  //               // 用于兼容比较旧的导出数据
+  //               // {
+  //               //   templates: {
+  //               //     folderId?: string
+  //               //   }[]
+  //               //   folders: {
+  //               //     _id: string
+  //               //     name?: string
+  //               //   }[]
+  //               // }
+  //               if (Array.isArray(obj?.templates) && Array.isArray(obj?.folders)) {
+  //                 obj.templates.forEach((template: any) => {
+  //                   if (template.folderId) {
+  //                     const folder = obj.folders.find((f: any) => f._id === template.folderId);
+  //                     if (folder.name) {
+  //                       template.path = folder.name;
+  //                     }
+  //                   }
+  //                 });
+  //               }
 
-                return importBodySchema.validateAsync(obj, { stripUnknown: true });
-              })
-            )
-          )
-        );
+  //               return importBodySchema.validateAsync(obj, { stripUnknown: true });
+  //             })
+  //           )
+  //         )
+  //       );
 
-        const templates = uniqBy(
-          list.flatMap((i) => i.templates ?? []),
-          'id'
-        );
+  //       const templates = uniqBy(
+  //         list.flatMap((i) => i.templates ?? []),
+  //         'id'
+  //       );
 
-        const existedTemplateIds = new Set(
-          files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file').map((i) => i.meta.id)
-        );
+  //       const existedTemplateIds = new Set(
+  //         files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file').map((i) => i.meta.id)
+  //       );
 
-        const renderTemplateItem = ({ template, ...props }: { template: Template & { path?: string } } & BoxProps) => {
-          return (
-            <Box {...props}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ flexShrink: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  <Typography color="text.secondary" component="span">
-                    {template.path ? `${template.path}/` : ''}
-                  </Typography>
+  //       const renderTemplateItem = ({ template, ...props }: { template: Template & { path?: string } } & BoxProps) => {
+  //         return (
+  //           <Box {...props}>
+  //             <Box sx={{ display: 'flex', alignItems: 'center' }}>
+  //               <Box sx={{ flexShrink: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+  //                 <Typography color="text.secondary" component="span">
+  //                   {template.path ? `${template.path}/` : ''}
+  //                 </Typography>
 
-                  {template.name || template.id}
-                </Box>
+  //                 {template.name || template.id}
+  //               </Box>
 
-                {existedTemplateIds.has(template.id) && (
-                  <Tooltip
-                    title={
-                      <>
-                        <Box component="span">{t('alert.overwrittenTip')}</Box>
-                        <Box
-                          component="a"
-                          sx={{
-                            ml: 1,
-                            userSelect: 'none',
-                            color: 'white',
-                            textDecoration: 'underline',
-                            cursor: 'pointer',
-                            ':hover': { opacity: 0.6 },
-                          }}
-                          onClick={() => onExport(template.id, { quiet: true })}>
-                          {t('alert.downloadBackup')}
-                        </Box>
-                      </>
-                    }>
-                    <InfoOutlined color="warning" fontSize="small" sx={{ mx: 1 }} />
-                  </Tooltip>
-                )}
-              </Box>
-            </Box>
-          );
-        };
+  //               {existedTemplateIds.has(template.id) && (
+  //                 <Tooltip
+  //                   title={
+  //                     <>
+  //                       <Box component="span">{t('alert.overwrittenTip')}</Box>
+  //                       <Box
+  //                         component="a"
+  //                         sx={{
+  //                           ml: 1,
+  //                           userSelect: 'none',
+  //                           color: 'white',
+  //                           textDecoration: 'underline',
+  //                           cursor: 'pointer',
+  //                           ':hover': { opacity: 0.6 },
+  //                         }}
+  //                         onClick={() => onExport(template.id, { quiet: true })}>
+  //                         {t('alert.downloadBackup')}
+  //                       </Box>
+  //                     </>
+  //                   }>
+  //                   <InfoOutlined color="warning" fontSize="small" sx={{ mx: 1 }} />
+  //                 </Tooltip>
+  //               )}
+  //             </Box>
+  //           </Box>
+  //         );
+  //       };
 
-        showDialog({
-          fullWidth: true,
-          maxWidth: 'sm',
-          title: t('alert.import'),
-          content: (
-            <Box>
-              <Typography>{t('alert.importTip')}</Typography>
-              <Box component="ul" sx={{ pl: 2 }}>
-                {templates.map((template) =>
-                  renderTemplateItem({
-                    key: template.id,
-                    component: 'li',
-                    template,
-                  })
-                )}
-              </Box>
-            </Box>
-          ),
-          cancelText: t('alert.cancel'),
-          okText: t('alert.import'),
-          onOk: async () => {
-            try {
-              await importTemplates({ projectId, branch: ref, path: path?.join('/') || '', templates });
-              editor.current?.reload();
-              await refetch();
-              Toast.success(t('alert.imported'));
-            } catch (error) {
-              Toast.error(getErrorMessage(error));
-              throw error;
-            }
-          },
-        });
-      } catch (error) {
-        Toast.error(getErrorMessage(error));
-        throw error;
-      }
-    },
-    [files, onExport, pickFile, projectId, ref, refetch, showDialog, t]
-  );
+  //       showDialog({
+  //         fullWidth: true,
+  //         maxWidth: 'sm',
+  //         title: t('alert.import'),
+  //         content: (
+  //           <Box>
+  //             <Typography>{t('alert.importTip')}</Typography>
+  //             <Box component="ul" sx={{ pl: 2 }}>
+  //               {templates.map((template) =>
+  //                 renderTemplateItem({
+  //                   key: template.id,
+  //                   component: 'li',
+  //                   template,
+  //                 })
+  //               )}
+  //             </Box>
+  //           </Box>
+  //         ),
+  //         cancelText: t('alert.cancel'),
+  //         okText: t('alert.import'),
+  //         onOk: async () => {
+  //           try {
+  //             await importTemplates({ projectId, branch: gitRef, path: path?.join('/') || '', templates });
+  //             editor.current?.reload();
+  //             await refetch();
+  //             Toast.success(t('alert.imported'));
+  //           } catch (error) {
+  //             Toast.error(getErrorMessage(error));
+  //             throw error;
+  //           }
+  //         },
+  //       });
+  //     } catch (error) {
+  //       Toast.error(getErrorMessage(error));
+  //       throw error;
+  //     }
+  //   },
+  //   [files, onExport, pickFile, projectId, gitRef, refetch, showDialog, t]
+  // );
 
-  useAddon(
-    'import',
-    useMemo(
-      () => (
-        <Button disabled={!branches.includes(ref) || disableMutation} startIcon={<Upload />} onClick={() => onImport()}>
-          {t('alert.import')}
-        </Button>
-      ),
-      [disableMutation, branches, onImport, ref, t]
-    ),
-    10
-  );
+  // useAddon(
+  //   'import',
+  //   useMemo(
+  //     () => (
+  //       <Button
+  //         disabled={!branches.includes(gitRef) || disableMutation}
+  //         startIcon={<Upload />}
+  //         onClick={() => onImport()}>
+  //         {t('alert.import')}
+  //       </Button>
+  //     ),
+  //     [disableMutation, branches, onImport, gitRef, t]
+  //   ),
+  //   10
+  // );
 
-  useAddon(
-    'export',
-    useMemo(
-      () => (
-        <Button startIcon={<Download />} onClick={() => onExport()}>
-          {t('alert.export')}
-        </Button>
-      ),
-      [branches, onExport, ref, t]
-    ),
-    11
-  );
+  // useAddon(
+  //   'export',
+  //   useMemo(
+  //     () => (
+  //       <Button startIcon={<Download />} onClick={() => onExport()}>
+  //         {t('alert.export')}
+  //       </Button>
+  //     ),
+  //     [branches, onExport, gitRef, t]
+  //   ),
+  //   11
+  // );
 
-  useAddon(
-    'branches',
-    useMemo(
-      () => (
-        <Dropdown
-          sx={{
-            [`.${tooltipClasses.tooltip}`]: {
-              minWidth: 200,
-              maxHeight: '60vh',
-              overflow: 'auto',
-            },
-          }}
-          dropdown={
-            <BranchList
-              projectId={projectId}
-              _ref={ref}
-              onItemClick={(branch) => branch !== ref && navigate(joinUrl('..', branch), { state: { filepath } })}
-              onShowAllClick={() => {
-                showDialog({
-                  maxWidth: 'sm',
-                  fullWidth: true,
-                  title: t('form.branch'),
-                  content: <AllBranches projectId={projectId} _ref={ref} filepath={filepath} />,
-                  cancelText: t('alert.close'),
-                });
-              }}
-            />
-          }>
-          <Button startIcon={<CallSplit />} endIcon={<ArrowDropDown fontSize="small" />}>
-            <Box
-              component="span"
-              sx={{
-                display: 'block',
-                maxWidth: 80,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}>
-              {ref}
-            </Box>
-          </Button>
-        </Dropdown>
-      ),
-      [filepath, navigate, projectId, ref]
-    ),
-    2
-  );
+  // useAddon(
+  //   'branches',
+  //   useMemo(
+  //     () => (
+  //       <Dropdown
+  //         sx={{
+  //           [`.${tooltipClasses.tooltip}`]: {
+  //             minWidth: 200,
+  //             maxHeight: '60vh',
+  //             overflow: 'auto',
+  //           },
+  //         }}
+  //         dropdown={
+  //           <BranchList
+  //             projectId={projectId}
+  //             _ref={gitRef}
+  //             onItemClick={(branch) => branch !== gitRef && navigate(joinUrl('..', branch), { state: { filepath } })}
+  //             onShowAllClick={() => {
+  //               showDialog({
+  //                 maxWidth: 'sm',
+  //                 fullWidth: true,
+  //                 title: t('form.branch'),
+  //                 content: <AllBranches projectId={projectId} _ref={gitRef} filepath={filepath} />,
+  //                 cancelText: t('alert.close'),
+  //               });
+  //             }}
+  //           />
+  //         }>
+  //         <Button startIcon={<CallSplit />} endIcon={<ArrowDropDown fontSize="small" />}>
+  //           <Box
+  //             component="span"
+  //             sx={{
+  //               display: 'block',
+  //               maxWidth: 80,
+  //               whiteSpace: 'nowrap',
+  //               overflow: 'hidden',
+  //               textOverflow: 'ellipsis',
+  //             }}>
+  //             {gitRef}
+  //           </Box>
+  //         </Button>
+  //       </Dropdown>
+  //     ),
+  //     [filepath, navigate, projectId, gitRef]
+  //   ),
+  //   2
+  // );
 
-  useAddon(
-    'commits',
-    useMemo(
-      () => (
-        <CommitsTip
-          loading={loading}
-          commits={commits}
-          hash={ref}
-          onCommitSelect={(commit) => {
-            navigate(joinUrl('..', commit.oid), { state: { filepath } });
-          }}>
-          <Button startIcon={<History />} endIcon={<ArrowDropDown fontSize="small" />}>
-            {t('alert.history')}
-          </Button>
-        </CommitsTip>
-      ),
-      [commits, filepath, navigate, ref, t]
-    ),
-    3
-  );
+  // useAddon(
+  //   'commits',
+  //   useMemo(
+  //     () => (
+  //       <CommitsTip
+  //         loading={loading}
+  //         commits={commits}
+  //         hash={gitRef}
+  //         onCommitSelect={(commit) => {
+  //           navigate(joinUrl('..', commit.oid), { state: { filepath } });
+  //         }}>
+  //         <Button startIcon={<History />} endIcon={<ArrowDropDown fontSize="small" />}>
+  //           {t('alert.history')}
+  //         </Button>
+  //       </CommitsTip>
+  //     ),
+  //     [commits, filepath, navigate, gitRef, t]
+  //   ),
+  //   3
+  // );
 
   return (
     <>
@@ -457,158 +435,26 @@ export default function ProjectPage() {
                 {t('form.project')}
               </Link>
               <Typography color="text.primary">
-                {project ? project.name || 'Unnamed' : <CircularProgress size={14} />}
+                {projectState.loading ? <CircularProgress size={14} /> : projectState.value?.name || 'Unnamed'}
               </Typography>
             </Breadcrumbs>
           </Box>
 
           <Divider />
 
-          <FileTree
-            disabled={!branches.includes(ref)}
-            current={filepath}
-            projectId={projectId}
-            _ref={ref}
-            sx={{ height: '100%', overflow: 'auto' }}
-            className="list"
-            onCreate={
-              disableMutation
-                ? undefined
-                : async (data, path) => {
-                    try {
-                      const res = await createFile({
-                        projectId,
-                        branch: ref,
-                        path: path?.join('/') || '',
-                        input: { type: 'file', data: data ?? {} },
-                      });
-                      navigate(joinUrl('.', ...(path ?? []), `${res.id}.yaml`));
-                    } catch (error) {
-                      Toast.error(getErrorMessage(error));
-                      throw error;
-                    }
-                  }
-            }
-            onExport={onExport}
-            onImport={disableMutation ? undefined : onImport}
-            onRemoveFolder={
-              disableMutation
-                ? undefined
-                : (path, children) => {
-                    showDialog({
-                      maxWidth: 'xs',
-                      fullWidth: true,
-                      title: (
-                        <Box>
-                          <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
-
-                          {t('alert.deleteTemplates')}
-                        </Box>
-                      ),
-                      content: (
-                        <Box component="ul" sx={{ pl: 2, my: 0 }}>
-                          <Box component="li">
-                            <Box>{path.join('/')}</Box>
-
-                            <Box component="ul">
-                              {children.map((item) => (
-                                <Box key={item.id} component="li" sx={{ wordWrap: 'break-word' }}>
-                                  {(item.data?.type === 'file' && item.data.meta.name) || item.text}
-                                </Box>
-                              ))}
-                            </Box>
-                          </Box>
-                        </Box>
-                      ),
-                      okText: t('alert.delete'),
-                      okColor: 'error',
-                      cancelText: t('alert.cancel'),
-                      onOk: async () => {
-                        try {
-                          await deleteFile({ projectId, branch: ref, path: path.join('/') });
-                          if (
-                            children.some((i) => i.data && i.data.parent.concat(i.data.name).join('/') === filepath)
-                          ) {
-                            navigate('.');
-                          }
-                          Toast.success(t('alert.deleted'));
-                        } catch (error) {
-                          Toast.error(getErrorMessage(error));
-                          throw error;
-                        }
-                      },
-                    });
-                  }
-            }
-            onDelete={
-              disableMutation
-                ? undefined
-                : (template, path) => {
-                    const referrers = files.filter(
-                      (i): i is typeof i & { type: 'file' } =>
-                        i.type === 'file' &&
-                        i.meta.type === 'branch' &&
-                        !!i.meta.branch?.branches.some((j) => j.template?.id === template.id)
-                    );
-
-                    showDialog({
-                      maxWidth: 'xs',
-                      fullWidth: true,
-                      title: (
-                        <Box sx={{ wordWrap: 'break-word' }}>
-                          <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
-
-                          {t('alert.deleteTemplate', { template: template.name || template.id })}
-                        </Box>
-                      ),
-                      content: referrers.length ? (
-                        <>
-                          {t('alert.deleteTemplateContent', { references: referrers.length })}
-                          <ul>
-                            {referrers.map((file) => (
-                              <Box key={file.meta.id} component="li">
-                                {file.meta.name || file.meta.id}
-                              </Box>
-                            ))}
-                          </ul>
-                        </>
-                      ) : undefined,
-                      okText: t('alert.delete'),
-                      okColor: 'error',
-                      cancelText: t('alert.cancel'),
-                      onOk: async () => {
-                        try {
-                          const p = joinUrl(...path);
-                          await deleteFile({ projectId, branch: ref, path: p });
-                          if (p === filepath) navigate('.');
-                          Toast.success(t('alert.deleted'));
-                        } catch (error) {
-                          Toast.error(getErrorMessage(error));
-                          throw error;
-                        }
-                      },
-                    });
-                  }
-            }
-            onClick={async (_, p) => {
-              if (!disableMutation && editor.current && !(await editor.current.requireSave())) return;
-              const to = p.join('/');
-              if (to !== filepath) navigate(to);
-            }}
-            onLaunch={assistant && onLaunch}
-          />
+          <FileTree mutable={!disableMutation} current={filepath} sx={{ height: '100%', overflow: 'auto' }} />
         </Box>
         <ResizeHandle />
         <Box component={Panel} minSize={30}>
           <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
-            {branches.length > 0 && !branches.includes(ref) && (
+            {/* {branches.length > 0 && !branches.includes(gitRef) && (
               <Box sx={{ position: 'sticky', zIndex: 10, top: 0, mb: 2, bgcolor: 'background.paper' }}>
                 <Alert color="warning">{t('alert.onBranchTip')}</Alert>
               </Box>
-            )}
+            )} */}
 
             {filepath && (
-              <TemplateEditor projectId={projectId} ref={editor} _ref={ref} path={filepath} onExecute={onExecute} />
+              <TemplateEditor projectId={projectId} ref={editor} _ref={gitRef} path={filepath} onExecute={onExecute} />
             )}
           </Box>
         </Box>
@@ -686,214 +532,220 @@ const TemplateEditor = forwardRef<
 
   const [submitting, setSubmitting] = useState(false);
 
-  const { form, original, formChanged, deletedBranchTemplateIds, setForm, resetForm } = useFormState();
+  // const { form, original, formChanged, deletedBranchTemplateIds, setForm, resetForm } = useFormState();
 
   const { state: projectState, putFile, createBranch } = useProjectState(projectId, ref);
 
-  const showCreateBranch = useCallback(async () => {
-    return new Promise<string | null>((resolve) => {
-      let name = '';
+  // const showCreateBranch = useCallback(async () => {
+  //   return new Promise<string | null>((resolve) => {
+  //     let name = '';
 
-      showCreateBranchDialog({
-        maxWidth: 'sm',
-        fullWidth: true,
-        title: `${t('form.new')} ${t('form.branch')}`,
-        content: (
-          <Box>
-            <TextField label={t('form.name')} onChange={(e) => (name = e.target.value)} />
-          </Box>
-        ),
-        okText: t('form.save'),
-        cancelText: t('alert.cancel'),
-        onOk: async () => {
-          try {
-            await createBranch({ projectId, input: { name, oid: ref } });
-            resolve(name);
-          } catch (error) {
-            Toast.error(getErrorMessage(error));
-            throw error;
-          }
-        },
-        onCancel: () => resolve(null),
-      });
-    });
-  }, [createBranch, projectId, ref, showCreateBranchDialog, t]);
+  //     showCreateBranchDialog({
+  //       maxWidth: 'sm',
+  //       fullWidth: true,
+  //       title: `${t('form.new')} ${t('form.branch')}`,
+  //       content: (
+  //         <Box>
+  //           <TextField label={t('form.name')} onChange={(e) => (name = e.target.value)} />
+  //         </Box>
+  //       ),
+  //       okText: t('form.save'),
+  //       cancelText: t('alert.cancel'),
+  //       onOk: async () => {
+  //         try {
+  //           await createBranch({ projectId, input: { name, oid: ref } });
+  //           resolve(name);
+  //         } catch (error) {
+  //           Toast.error(getErrorMessage(error));
+  //           throw error;
+  //         }
+  //       },
+  //       onCancel: () => resolve(null),
+  //     });
+  //   });
+  // }, [createBranch, projectId, ref, showCreateBranchDialog, t]);
 
-  const save = useCallback(
-    async ({ newBranch }: { newBranch?: boolean } = {}) => {
-      if (!newBranch && projectState.branches.includes(ref) && !formChanged.current) return;
+  // const save = useCallback(
+  //   async ({ newBranch }: { newBranch?: boolean } = {}) => {
+  //     if (!newBranch && projectState.branches.includes(ref) && !formChanged.current) return;
 
-      try {
-        setSubmitting(true);
-        const branch =
-          !disableMutation && !newBranch && projectState.branches.includes(ref) ? ref : await showCreateBranch();
-        if (!branch) return;
+  //     try {
+  //       setSubmitting(true);
+  //       const branch =
+  //         !disableMutation && !newBranch && projectState.branches.includes(ref) ? ref : await showCreateBranch();
+  //       if (!branch) return;
 
-        if (formChanged.current) {
-          const res = await putFile({
-            projectId,
-            ref: branch,
-            path,
-            data: {
-              ...form.current,
-              deleteEmptyTemplates: [...deletedBranchTemplateIds.current],
-            },
-          });
+  //       if (formChanged.current) {
+  //         const res = await putFile({
+  //           projectId,
+  //           ref: branch,
+  //           path,
+  //           data: {
+  //             ...form.current,
+  //             deleteEmptyTemplates: [...deletedBranchTemplateIds.current],
+  //           },
+  //         });
 
-          resetForm(res);
-          setHash(undefined);
-        }
-        Toast.success(t('alert.saved'));
-        if (branch !== ref) navigate(joinUrl('..', branch, path));
-      } catch (error) {
-        Toast.error(getErrorMessage(error));
-        throw error;
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [
-      disableMutation,
-      projectState.branches,
-      ref,
-      formChanged,
-      showCreateBranch,
-      putFile,
-      projectId,
-      path,
-      form,
-      deletedBranchTemplateIds,
-      resetForm,
-      t,
-      navigate,
-    ]
-  );
+  //         resetForm(res);
+  //         setHash(undefined);
+  //       }
+  //       Toast.success(t('alert.saved'));
+  //       if (branch !== ref) navigate(joinUrl('..', branch, path));
+  //     } catch (error) {
+  //       Toast.error(getErrorMessage(error));
+  //       throw error;
+  //     } finally {
+  //       setSubmitting(false);
+  //     }
+  //   },
+  //   [
+  //     disableMutation,
+  //     projectState.branches,
+  //     ref,
+  //     formChanged,
+  //     showCreateBranch,
+  //     putFile,
+  //     projectId,
+  //     path,
+  //     form,
+  //     deletedBranchTemplateIds,
+  //     resetForm,
+  //     t,
+  //     navigate,
+  //   ]
+  // );
 
-  const requireSave = useCallback(async () => {
-    if (!formChanged.current) return true;
+  // const requireSave = useCallback(async () => {
+  //   if (!formChanged.current) return true;
 
-    const res = await new Promise<boolean>((resolve, reject) => {
-      showDialog({
-        maxWidth: 'xs',
-        fullWidth: true,
-        title: t('alert.saveChanges'),
-        okText: t('form.save'),
-        okColor: 'primary',
-        cancelText: t('alert.cancel'),
-        middleText: t('alert.discard'),
-        middleColor: 'error',
-        onOk: async () => {
-          try {
-            await save();
-            resolve(true);
-          } catch (error) {
-            reject(error);
-          }
-        },
-        onMiddleClick: () => {
-          resetForm(original.current);
-          resolve(true);
-        },
-        onCancel: () => {
-          resolve(false);
-        },
-      });
-    });
+  //   const res = await new Promise<boolean>((resolve, reject) => {
+  //     showDialog({
+  //       maxWidth: 'xs',
+  //       fullWidth: true,
+  //       title: t('alert.saveChanges'),
+  //       okText: t('form.save'),
+  //       okColor: 'primary',
+  //       cancelText: t('alert.cancel'),
+  //       middleText: t('alert.discard'),
+  //       middleColor: 'error',
+  //       onOk: async () => {
+  //         try {
+  //           await save();
+  //           resolve(true);
+  //         } catch (error) {
+  //           reject(error);
+  //         }
+  //       },
+  //       onMiddleClick: () => {
+  //         resetForm(original.current);
+  //         resolve(true);
+  //       },
+  //       onCancel: () => {
+  //         resolve(false);
+  //       },
+  //     });
+  //   });
 
-    await new Promise((resolve) => {
-      setTimeout(resolve, 500);
-    });
+  //   await new Promise((resolve) => {
+  //     setTimeout(resolve, 500);
+  //   });
 
-    return res;
-  }, [projectState.branches, ref, save, resetForm, showDialog, t]);
+  //   return res;
+  // }, [projectState.branches, ref, save, resetForm, showDialog, t]);
 
-  const reload = useCallback(async () => {
-    try {
-      resetForm();
-      setError(undefined);
-      const res = await getFile({ projectId, ref, path });
-      resetForm(res);
-      return res;
-    } catch (error) {
-      setError(error);
-      throw error;
-    }
-  }, [path, ref, resetForm]);
+  // const reload = useCallback(async () => {
+  //   try {
+  //     resetForm();
+  //     setError(undefined);
+  //     const res = await getFile({ projectId, ref, path });
+  //     resetForm(res);
+  //     return res;
+  //   } catch (error) {
+  //     setError(error);
+  //     throw error;
+  //   }
+  // }, [path, ref, resetForm]);
 
-  useAsyncEffect(async () => {
-    reload();
-  }, [reload]);
+  // useAsyncEffect(async () => {
+  //   reload();
+  // }, [reload]);
 
-  useImperativeHandle(_ref, () => ({ requireSave, reload }), [requireSave, reload]);
+  // useImperativeHandle(_ref, () => ({ requireSave, reload }), [requireSave, reload]);
 
-  useSaveShortcut(save);
+  // useSaveShortcut(save);
 
-  useBeforeUnload(
-    useCallback(
-      (e) => {
-        if (formChanged.current) e.returnValue = t('alert.discardChanges');
-      },
-      [formChanged.current, t]
-    )
-  );
+  // useBeforeUnload(
+  //   useCallback(
+  //     (e) => {
+  //       if (formChanged.current) e.returnValue = t('alert.discardChanges');
+  //     },
+  //     [formChanged.current, t]
+  //   )
+  // );
 
-  useAddon(
-    'save',
-    useMemo(() => {
-      return (
-        <LoadingButton
-          disabled={disableMutation || (projectState.branches.includes(ref) && !formChanged.current)}
-          loading={submitting}
-          loadingPosition="start"
-          startIcon={<Save />}
-          onClick={() => save()}>
-          {t('form.save')}
-        </LoadingButton>
-      );
-    }, [disableMutation, formChanged.current, projectState.branches, ref, save, submitting, t]),
-    0
-  );
+  // useAddon(
+  //   'save',
+  //   useMemo(() => {
+  //     return (
+  //       <LoadingButton
+  //         disabled={disableMutation || (projectState.branches.includes(ref) && !formChanged.current)}
+  //         loading={submitting}
+  //         loadingPosition="start"
+  //         startIcon={<Save />}
+  //         onClick={() => save()}>
+  //         {t('form.save')}
+  //       </LoadingButton>
+  //     );
+  //   }, [disableMutation, formChanged.current, projectState.branches, ref, save, submitting, t]),
+  //   0
+  // );
 
-  useAddon(
-    'new-branch',
-    useMemo(
-      () => (
-        <Button startIcon={<SaveAs />} onClick={() => save({ newBranch: true })}>
-          {formChanged.current ? t('alert.saveInNewBranch') : t('alert.newBranch')}
-        </Button>
-      ),
-      [formChanged.current, save, t]
-    ),
-    1
-  );
+  // useAddon(
+  //   'new-branch',
+  //   useMemo(
+  //     () => (
+  //       <Button startIcon={<SaveAs />} onClick={() => save({ newBranch: true })}>
+  //         {formChanged.current ? t('alert.saveInNewBranch') : t('alert.newBranch')}
+  //       </Button>
+  //     ),
+  //     [formChanged.current, save, t]
+  //   ),
+  //   1
+  // );
 
   const [hash, setHash] = useState<string>();
 
-  const onCommitSelect = useCallback(
-    async (commit: Commit) => {
-      try {
-        const res = await getFile({ projectId, ref: commit.oid, path });
-        setHash(commit.oid);
-        setForm(res);
-      } catch (error) {
-        Toast.error(getErrorMessage(error));
-        throw error;
-      }
-    },
-    [path]
-  );
+  // const onCommitSelect = useCallback(
+  //   async (commit: Commit) => {
+  //     try {
+  //       const res = await getFile({ projectId, ref: commit.oid, path });
+  //       setHash(commit.oid);
+  //       setForm(res);
+  //     } catch (error) {
+  //       Toast.error(getErrorMessage(error));
+  //       throw error;
+  //     }
+  //   },
+  //   [path]
+  // );
+
+  const { store } = useStore();
 
   if (error) {
     return <Alert color="error">{getErrorMessage(error)}</Alert>;
   }
 
-  if (!form.current) {
-    return (
-      <Box textAlign="center" my={10}>
-        <CircularProgress size={20} />
-      </Box>
-    );
-  }
+  // if (!form.current) {
+  //   return (
+  //     <Box textAlign="center" my={10}>
+  //       <CircularProgress size={20} />
+  //     </Box>
+  //   );
+  // }
+
+  const id = Object.entries(store.tree).find((i) => i[1] === path)?.[0];
+  const template = id ? store.files[id] : undefined;
+  if (!template || !isTemplate(template)) return <Alert color="error">Not Found</Alert>;
 
   return (
     <>
@@ -905,16 +757,11 @@ const TemplateEditor = forwardRef<
         _ref={ref}
         path={path}
         hash={hash}
-        value={form.current}
-        onChange={setForm}
-        onCommitSelect={onCommitSelect}
+        value={template}
         onExecute={onExecute}
         onTemplateClick={async (template) => {
-          const file = projectState.files.find((i) => i.type === 'file' && i.meta.id === template.id);
-          if (file) {
-            if (!(await requireSave())) return;
-            navigate(joinUrl('.', ...file.parent, file.name));
-          }
+          const filepath = Object.values(store.tree).find((i) => i?.endsWith(`${template.id}.yaml`));
+          if (filepath) navigate(filepath);
         }}
       />
     </>

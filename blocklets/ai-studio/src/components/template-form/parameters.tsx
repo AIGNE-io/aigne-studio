@@ -1,6 +1,5 @@
 import { Settings } from '@mui/icons-material';
 import { Box, ClickAwayListener, Grid, IconButton, Paper, Popper } from '@mui/material';
-import { WritableDraft } from 'immer/dist/internal';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Parameter, Template } from '../../../api/src/store/templates';
@@ -9,13 +8,11 @@ import ParameterConfig from './parameter-config';
 import TokenCounter from './token-counter';
 
 export default function Parameters({
-  value,
-  onChange,
+  value: form,
 }: {
   value: Pick<Template, 'type' | 'name' | 'prompts' | 'parameters'>;
-  onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
 }) {
-  const deferredValue = useDeferredValue(value);
+  const deferredValue = useDeferredValue(form);
 
   const params = useMemo(() => {
     const params = deferredValue.prompts?.flatMap((i) => matchParams(i.content ?? '')) ?? [];
@@ -34,36 +31,34 @@ export default function Parameters({
   const parametersHistory = useRef<Record<string, Parameter>>({});
 
   useEffect(() => {
-    onChange((template) => {
-      if (!template.parameters && params.length === 0) {
-        return;
-      }
+    if (!form.parameters && params.length === 0) {
+      return;
+    }
 
-      template.parameters ??= {};
-      for (const param of params) {
-        const history = parametersHistory.current[param];
-        template.parameters[param] ??= history ?? {};
+    form.parameters ??= {};
+    for (const param of params) {
+      const history = parametersHistory.current[param];
+      form.parameters[param] ??= history ?? {};
+    }
+    for (const [key, val] of Object.entries(form.parameters)) {
+      if (form.type === 'branch' && key === 'question') {
+        continue;
       }
-      for (const [key, val] of Object.entries(template.parameters)) {
-        if (value.type === 'branch' && key === 'question') {
-          continue;
-        }
-        if (value.type === 'image' && ['size', 'number'].includes(key)) {
-          continue;
-        }
-        if (!params.includes(key)) {
-          delete template.parameters[key];
-          parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
-        }
+      if (form.type === 'image' && ['size', 'number'].includes(key)) {
+        continue;
       }
-    });
+      if (!params.includes(key)) {
+        delete form.parameters[key];
+        parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
+      }
+    }
   }, [params]);
 
   return (
     <>
       <Grid container spacing={2}>
         {params.map((param) => {
-          const parameter = value.parameters?.[param];
+          const parameter = form.parameters?.[param];
           if (!parameter) {
             return null;
           }
@@ -86,7 +81,7 @@ export default function Parameters({
                     </Box>
                   }
                   value={parameter.value ?? parameter.defaultValue ?? ''}
-                  onChange={(value) => onChange((v) => (v.parameters![param]!.value = value))}
+                  onChange={(value) => (form.parameters![param]!.value = value)}
                 />
                 <IconButton
                   sx={{ ml: 2, mt: 0.5 }}
@@ -128,8 +123,8 @@ export default function Parameters({
           <Paper elevation={11} sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             {paramConfig && (
               <ParameterConfig
-                value={value.parameters![paramConfig.param]!}
-                onChange={(parameter) => onChange((v) => (v.parameters![paramConfig.param] = parameter))}
+                value={form.parameters![paramConfig.param]!}
+                onChange={(parameter) => (form.parameters![paramConfig.param] = parameter)}
               />
             )}
           </Paper>

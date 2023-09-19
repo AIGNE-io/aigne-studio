@@ -1,7 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Add, Construction, Delete } from '@mui/icons-material';
 import { Box, Button, TextField } from '@mui/material';
-import { WritableDraft } from 'immer/dist/internal';
 import { nanoid } from 'nanoid';
 import { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -15,13 +14,11 @@ import type { TemplateForm } from '.';
 
 export default function Branches({
   projectId,
-  value,
-  onChange,
+  value: form,
   onTemplateClick,
 }: {
   projectId: string;
   value: Pick<TemplateForm, 'branch' | 'parameters'>;
-  onChange: (update: (v: WritableDraft<typeof value>) => void) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { ref, '*': path } = useParams();
@@ -45,7 +42,7 @@ export default function Branches({
     [templates]
   );
 
-  const branches = value.branch?.branches;
+  const branches = form.branch?.branches;
 
   return (
     <>
@@ -53,11 +50,9 @@ export default function Branches({
         <ReorderableList
           list={branches}
           itemKey="id"
-          onChange={(branches) =>
-            onChange((v) => {
-              v.branch!.branches = branches;
-            })
-          }
+          onChange={(branches) => {
+            form.branch!.branches = branches;
+          }}
           renderItem={(branch, index) => (
             <>
               <Box sx={{ flex: 1, mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -67,11 +62,8 @@ export default function Branches({
                   size="small"
                   value={branch.template ?? null}
                   onChange={(_, value) =>
-                    onChange(
-                      (v) =>
-                        (v.branch!.branches[index]!.template =
-                          (typeof value === 'string' ? { id: '', name: value } : value) ?? undefined)
-                    )
+                    (form.branch!.branches[index]!.template =
+                      (typeof value === 'string' ? { id: '', name: value } : value) ?? undefined)
                   }
                   renderInput={(params) => <TextField {...params} label={t('form.name')} />}
                   options={templates}
@@ -87,7 +79,7 @@ export default function Branches({
                   maxRows={5}
                   label={t('form.description')}
                   value={branch.description}
-                  onChange={(e) => onChange((v) => (v.branch!.branches[index]!.description = e.target.value))}
+                  onChange={(e) => (form.branch!.branches[index]!.description = e.target.value)}
                 />
               </Box>
 
@@ -103,9 +95,7 @@ export default function Branches({
                   </Button>
                 )}
 
-                <Button
-                  sx={{ minWidth: 0, p: 0.2 }}
-                  onClick={() => onChange((v) => v.branch!.branches.splice(index, 1))}>
+                <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => form.branch!.branches.splice(index, 1)}>
                   <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
                 </Button>
               </Box>
@@ -120,10 +110,8 @@ export default function Branches({
         startIcon={<Add />}
         onClick={() => {
           const id = nanoid();
-          onChange((v) => {
-            v.branch ??= { branches: [] };
-            v.branch?.branches.push({ id, description: '' });
-          });
+          form.branch ??= { branches: [] };
+          form.branch?.branches.push({ id, description: '' });
           setTimeout(() => document.getElementById(`option-label-${id}`)?.focus());
         }}>
         {t('form.add')} {t('form.branch')}
