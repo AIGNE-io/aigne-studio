@@ -5,7 +5,7 @@ import Joi from 'joi';
 import { stringify } from 'yaml';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { getRepository } from '../store/projects';
+import { getRepository, projects } from '../store/projects';
 import { Transaction } from '../store/repository';
 import { Template, getTemplate, nextTemplateId, roles } from '../store/templates';
 
@@ -182,13 +182,23 @@ export function templateRoutes(router: Router) {
 
     const sort = getTemplateSort(query.sort) ?? { field: 'updatedAt', direction: -1 };
 
-    const repository = getRepository(projectId);
+    const projectIds = projectId
+      ? [projectId]
+      : (await projects.cursor().sort({ createdAt: 1 }).exec()).map((i) => i._id);
 
-    let templates = await Promise.all(
-      (await repository.getFiles())
-        .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
-        .map((i) => getTemplate({ repository, path: join(...i.parent, i.name) }))
-    );
+    let templates = (
+      await Promise.all(
+        projectIds.map(async (projectId) => {
+          const repository = getRepository(projectId);
+
+          return Promise.all(
+            (await repository.getFiles())
+              .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
+              .map((i) => getTemplate({ repository, path: join(...i.parent, i.name) }))
+          );
+        })
+      )
+    ).flat();
 
     if (tag) {
       templates = templates.filter((i) => i.tags?.includes(tag));

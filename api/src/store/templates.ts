@@ -104,7 +104,7 @@ export async function getTemplate({
   | { templateId: string; path?: undefined }
   | { path: string; templateId?: undefined }
 )): Promise<Template> {
-  return parse(
+  const template = parse(
     Buffer.from(
       (
         await repository.getFile({
@@ -114,4 +114,11 @@ export async function getTemplate({
       ).blob
     ).toString()
   );
+
+  const [projectId] = (repository.dir || '').split('/').slice(-1) || [];
+
+  template.projectId = projectId || '';
+  template.ref = ref || 'main';
+
+  return template;
 }
