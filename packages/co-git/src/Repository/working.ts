@@ -98,12 +98,17 @@ export default class Working<T> extends Doc {
   }) {
     const res = await this.repo.run(async (tx) => {
       if (branch && branch !== ref) {
-        await this.repo.branch({ ref: branch, object: ref });
+        await this.repo.branch({ ref: branch, object: ref, checkout: true, force: true });
       } else {
-        if (!(await this.repo.listBranches()).includes(ref)) {
-          throw new Error('branch is required when committing from a history');
+        const branches = await this.repo.listBranches();
+        if (branches.length) {
+          if (!branches.includes(ref)) {
+            throw new Error('branch is required when committing from a history');
+          }
+          await tx.checkout({ ref });
+        } else {
+          await this.repo.branch({ ref, checkout: true, force: true });
         }
-        await tx.checkout({ ref });
       }
 
       const originalFiles = await this.repo.listFiles({ ref });

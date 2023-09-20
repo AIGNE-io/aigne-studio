@@ -21,7 +21,7 @@ export default class Repository<T> {
   static async init<T>(options: RepositoryOptions<T>) {
     if (!fs.existsSync(path.join(options.root, '.git'))) {
       fs.mkdirSync(path.dirname(options.root), { recursive: true });
-      await git.init({ fs, dir: options.root });
+      await git.init({ fs, dir: options.root, defaultBranch: defaultBranchName });
     }
     return new Repository(options);
   }
@@ -73,8 +73,8 @@ export default class Repository<T> {
     return git.resolveRef({ fs, dir: this.options.root, ref });
   }
 
-  async branch({ ref, object, checkout = true }: { ref: string; object: string; checkout?: boolean }) {
-    return git.branch({ fs, dir: this.options.root, ref, object, checkout });
+  async branch(options: Omit<Parameters<typeof git.branch>[0], 'fs' | 'dir' | '.gitdir'>) {
+    return git.branch({ fs, dir: this.options.root, ...options });
   }
 
   async listBranches() {
