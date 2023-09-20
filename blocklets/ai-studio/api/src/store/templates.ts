@@ -1,8 +1,7 @@
+import { Repository } from '@blocklet/co-git';
 import Database from '@blocklet/sdk/lib/database';
 import { Worker } from 'snowflake-uuid';
 import { parse } from 'yaml';
-
-import Repository from './repository';
 
 const idGenerator = new Worker();
 
@@ -99,23 +98,23 @@ export async function getTemplate({
   repository,
   ref,
   templateId,
-  path,
-}: { repository: Repository; ref?: string } & (
-  | { templateId: string; path?: undefined }
-  | { path: string; templateId?: undefined }
+  filepath,
+}: { repository: Repository<any>; ref: string } & (
+  | { templateId: string; filepath?: undefined }
+  | { filepath: string; templateId?: undefined }
 )): Promise<Template> {
   const template = parse(
     Buffer.from(
       (
-        await repository.getFile({
+        await repository.readBlob({
           ref,
-          path: path ?? (await repository.findFile(templateId, { ref })),
+          filepath: filepath ?? (await repository.findFile(templateId, { ref })),
         })
       ).blob
     ).toString()
   );
 
-  const [projectId] = (repository.dir || '').split('/').slice(-1) || [];
+  const [projectId] = (repository.options.root || '').split('/').slice(-1) || [];
 
   template.projectId = projectId || '';
   template.ref = ref || 'main';

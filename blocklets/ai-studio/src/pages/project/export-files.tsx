@@ -6,47 +6,42 @@ import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { stringify } from 'yaml';
 
 import useDialog from '../../utils/use-dialog';
-import { TreeNode } from './file-tree';
-import { useProjectState } from './state';
+import { isTemplate, useStore } from './yjs-state';
 
-function Exporter({
-  projectId,
-  _ref: ref,
-  node,
-  quiet,
-  onFinish,
-}: {
-  projectId: string;
-  _ref: string;
-  node?: TreeNode | string;
-  quiet?: boolean;
-  onFinish: () => any;
-}) {
+function ExportFiles({ path = [], quiet, onFinish }: { path?: string[]; quiet?: boolean; onFinish: () => any }) {
   const { t } = useLocaleContext();
-
   const { dialog, showDialog } = useDialog();
 
-  const {
-    state: { files },
-  } = useProjectState(projectId, ref);
+  const { store } = useStore();
 
   useEffect(() => {
-    const list = !node
-      ? files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
-      : typeof node === 'string'
-      ? files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file' && i.meta.id === node)
-      : node.data?.type === 'folder'
-      ? files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file' && i.parent.join('-') === node.id)
-      : files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file' && i.name === node.id);
+    const files = Object.entries(store.tree)
+      .map(([key, filepath]) => {
+        const template = store.files[key];
+        if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
+          const paths = filepath.split('/');
+          return {
+            name: template.name || '',
+            filename: paths.slice(-1)[0]!,
+            parent: paths.slice(0, -1).join('/'),
+            filepath,
+            template,
+          };
+        }
+
+        return undefined;
+      })
+      .filter((i): i is NonNullable<typeof i> => !!i);
+
+    const p = path.join('/');
+    const list = files.filter((i) => i.filepath.startsWith(p));
 
     for (let i = 0; i < list.length; i++) {
       const current = list[i]!;
-      if (current.meta.branch?.branches.length) {
-        for (const { template } of current.meta.branch.branches) {
-          if (template && !list.some((i) => i.meta.id === template.id)) {
-            const t = files.find(
-              (i): i is typeof i & { type: 'file' } => i.type === 'file' && i.meta.id === template.id
-            );
+      if (current.template.branch?.branches.length) {
+        for (const { template } of current.template.branch.branches) {
+          if (template && !list.some((i) => i.template.id === template.id)) {
+            const t = files.find((i) => i.template.id === template.id);
             if (t) list.push(t);
           }
         }
@@ -59,10 +54,24 @@ function Exporter({
       return;
     }
 
+    list.sort((a, b) => {
+      const aName = a.template.name || '';
+      const bName = b.template.name || '';
+
+      if (a.parent && b.parent) {
+        return a.parent !== b.parent ? a.parent.localeCompare(b.parent) : aName.localeCompare(bName);
+      }
+      if (!a.parent && !b.parent) {
+        return aName.localeCompare(bName);
+      }
+      return a.parent ? -1 : 1;
+    });
+
     const doExport = () => {
-      const str = stringify({ templates: list.map((i) => ({ ...i.meta, path: i.parent.join('/') })) });
+      const str = stringify({ templates: list.map((i) => ({ ...i.template, path: i.parent })) });
       const first = list[0];
-      const filename = list.length === 1 && first ? first.meta.name || first.meta.id : `templates-${Date.now()}`;
+      const filename =
+        list.length === 1 && first ? first.template.name || first.template.id : `templates-${Date.now()}`;
       saveAs(new Blob([str]), `${filename}.yml`);
       onFinish();
     };
@@ -71,6 +80,7 @@ function Exporter({
       doExport();
       return;
     }
+
     showDialog({
       fullWidth: true,
       maxWidth: 'sm',
@@ -79,9 +89,13 @@ function Exporter({
         <Box>
           <Typography>{t('alert.exportTip')}</Typography>
           <Box component="ul" sx={{ pl: 2 }}>
-            {list.map((template) => (
-              <Box key={template.meta.id} component="li" sx={{ wordWrap: 'break-word' }}>
-                {template.meta.name || template.meta.id}
+            {list.map((file) => (
+              <Box key={file.template.id} component="li" sx={{ wordWrap: 'break-word' }}>
+                <Typography color="text.secondary" component="span">
+                  {file.parent ? `${file.parent}/` : ''}
+                </Typography>
+
+                {file.template.name || t('alert.unnamed')}
               </Box>
             ))}
           </Box>
@@ -100,14 +114,9 @@ function Exporter({
 export function useExportFiles() {
   const [exporter, setExporter] = useState<ReactNode>();
 
-  const exportFiles = useCallback(
-    (projectId: string, ref: string, node?: TreeNode | string, { quiet }: { quiet?: boolean } = {}) => {
-      setExporter(
-        <Exporter projectId={projectId} _ref={ref} node={node} quiet={quiet} onFinish={() => setExporter(undefined)} />
-      );
-    },
-    []
-  );
+  const exportFiles = useCallback((path?: string[], { quiet }: { quiet?: boolean } = {}) => {
+    setExporter(<ExportFiles path={path} quiet={quiet} onFinish={() => setExporter(undefined)} />);
+  }, []);
 
   return { exporter, exportFiles };
 }

@@ -1,12 +1,9 @@
-import { join } from 'path';
-
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 import { uniqBy } from 'lodash';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { getRepository } from '../store/projects';
-import { getTemplate } from '../store/templates';
+import { defaultBranch, getTemplatesFromRepository } from '../store/projects';
 
 export function templateTagRoutes(router: Router) {
   const getTagsQuerySchema = Joi.object<{ projectId: string; search?: string; type?: 'image' }>({
@@ -17,20 +14,11 @@ export function templateTagRoutes(router: Router) {
 
   router.get('/tags', ensureComponentCallOrPromptsEditor(), async (req: Request, res: Response) => {
     const { projectId, search, type } = await getTagsQuerySchema.validateAsync(req.query, { stripUnknown: true });
-    const repository = getRepository(projectId);
 
     let tags = uniqBy(
-      (
-        await Promise.all(
-          (await repository.getFiles())
-            .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
-            .map((i) =>
-              getTemplate({ repository, path: join(...i.parent, i.name) }).then((template) =>
-                template.tags?.map((tag) => ({ tag, type: template.type }))
-              )
-            )
-        )
-      ).flatMap((i) => i ?? []),
+      (await getTemplatesFromRepository({ projectId, ref: defaultBranch }))
+        .map((i) => i.tags?.map((tag) => ({ tag, type: i.type })))
+        .flatMap((i) => i ?? []),
       'tag'
     );
 

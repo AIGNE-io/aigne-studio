@@ -1,11 +1,19 @@
-import { getYjsDoc, syncedStore, useSyncedStore } from '@blocklet/co-git/yjs';
-import type { MappedTypeDescription } from '@syncedstore/core/types/doc';
+import {
+  Doc,
+  createEncoder,
+  getYjsDoc,
+  syncProtocols,
+  syncedStore,
+  toUint8Array,
+  useSyncedStore,
+  writeVarUint,
+} from '@blocklet/co-git/yjs';
 import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
 import { nanoid } from 'nanoid';
 import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import joinUrl from 'url-join';
-import { WebsocketProvider } from 'y-websocket';
+import { WebsocketProvider, messageSync } from 'y-websocket';
 
 import { Template } from '../../../api/src/store/templates';
 import { PREFIX } from '../../libs/api';
@@ -15,12 +23,13 @@ export type State = {
   tree: { [key: string]: string };
 };
 
-export function isTemplate(value: State['files'][string]): value is Template {
-  return typeof (value as any).id === 'string';
+export function isTemplate(value?: State['files'][string]): value is Template {
+  return typeof (value as any)?.id === 'string';
 }
 
 export interface StoreContext {
-  store: MappedTypeDescription<State>;
+  ready: boolean;
+  store: ReturnType<typeof syncedStore<State>>;
 }
 
 const storeContext = createContext<StoreContext | null>(null);
@@ -34,7 +43,7 @@ export function StoreProvider({
   gitRef: string;
   children: ReactNode;
 }) {
-  const [synced, setSynced] = useState(false);
+  const [ready, setReady] = useState(false);
 
   const url = useMemo(() => {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -43,30 +52,41 @@ export function StoreProvider({
     return wsUrl.toString();
   }, [projectId]);
 
-  const store = useMemo(() => syncedStore<State>({ files: {}, tree: {} }), []);
-  const doc = useMemo(() => getYjsDoc(store), [store]);
-  const provider = useMemo(() => {
-    return new WebsocketProvider(url, gitRef, doc, { params: { token: Cookies.get('login_token')! } });
+  const doc = useMemo(() => new Doc(), [projectId, gitRef]);
+
+  useEffect(() => {
+    return () => doc.destroy();
+  }, [doc]);
+
+  useEffect(() => {
+    setReady(false);
+
+    const provider = new WebsocketProvider(url, gitRef, doc, { params: { token: Cookies.get('login_token')! } });
+
+    // NOTE: 修复第一次连接时由于 server 端初始化 state 耗时导致没有同步成功的问题
+    const interval = setInterval(() => {
+      if (provider.ws && provider.ws.readyState === WebSocket.OPEN) {
+        const encoder = createEncoder();
+        writeVarUint(encoder, messageSync);
+        syncProtocols.writeSyncStep1(encoder, doc);
+        provider.ws.send(toUint8Array(encoder));
+      }
+    }, 1000);
+
+    provider.once('synced', () => {
+      setReady(true);
+      clearInterval(interval);
+    });
+
+    return () => {
+      clearInterval(interval);
+      provider.destroy();
+    };
   }, [url, doc, gitRef]);
 
-  useEffect(() => {
-    return () => provider.destroy();
-  }, [provider]);
+  const store = useMemo(() => syncedStore<State>({ files: {}, tree: {} }, doc), [doc]);
 
-  useEffect(() => {
-    provider.once('synced', () => setSynced(true));
-  }, [doc, provider]);
-
-  const ctx = useMemo<StoreContext>(
-    () => ({
-      store,
-    }),
-    [store]
-  );
-
-  if (!synced) {
-    return null;
-  }
+  const ctx = useMemo<StoreContext>(() => ({ store, ready }), [store, ready]);
 
   return <storeContext.Provider value={ctx}>{children}</storeContext.Provider>;
 }
@@ -74,8 +94,10 @@ export function StoreProvider({
 export function useStore() {
   const store = useContext(storeContext);
   if (!store) throw new Error('Missing required context storeContext');
+
   return {
-    store: useSyncedStore(store.store),
+    ...store,
+    store: useSyncedStore(store.store, [store.store]),
   };
 }
 
@@ -105,7 +127,7 @@ export function createFile({
 }: {
   store: StoreContext['store'];
   parent?: string[];
-  meta?: Template;
+  meta?: Partial<Template>;
 }) {
   const id = meta?.id || nextTemplateId();
   const filename = `${id}.yaml`;
@@ -113,12 +135,16 @@ export function createFile({
   const key = nanoid(32);
   const now = new Date().toISOString();
 
+  const template = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };
   getYjsDoc(store).transact(() => {
     store.tree[key] = filepath;
-    store.files[key] = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };
+    store.files[key] = template;
   });
 
-  return filepath;
+  return {
+    filepath,
+    template,
+  };
 }
 
 export function moveFile({ store, from, to }: { store: StoreContext['store']; from: string[]; to: string[] }) {
@@ -141,6 +167,33 @@ export function deleteFile({ store, path }: { store: StoreContext['store']; path
         store.tree[key] = undefined;
         store.files[key] = undefined;
       }
+    }
+  });
+}
+
+export function importFiles({
+  store,
+  parent = [],
+  files,
+}: {
+  store: StoreContext['store'];
+  parent?: string[];
+  files: (Template & { path?: string[] })[];
+}) {
+  getYjsDoc(store).transact(() => {
+    for (const file of files) {
+      const path = parent
+        .concat(file.path ?? [])
+        .concat(`${file.id}.yaml`)
+        .join('/');
+      const key =
+        Object.keys(store.tree).find((key) => {
+          const f = store.files[key];
+          return isTemplate(f) && f.id === file.id;
+        }) || nanoid(32);
+
+      store.files[key] = file;
+      store.tree[key] = path;
     }
   });
 }

@@ -2,8 +2,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { getRepository } from '../store/projects';
-import { defaultBranch } from '../store/repository';
+import { defaultBranch, getRepository } from '../store/projects';
 
 export interface CreateBranchInput {
   name: string;
@@ -15,7 +14,9 @@ export function branchRoutes(router: Router) {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
-    res.json({ branches: await getRepository(projectId).getBranches() });
+    const repository = await getRepository({ projectId });
+
+    res.json({ branches: await repository.getBranches() });
   });
 
   const createBranchInputSchema = Joi.object<CreateBranchInput>({
@@ -29,7 +30,7 @@ export function branchRoutes(router: Router) {
 
     const input = await createBranchInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-    const repository = getRepository(projectId);
+    const repository = await getRepository({ projectId });
 
     await repository.createBranch({ ref: input.name, oid: input.oid });
 
@@ -47,7 +48,7 @@ export function branchRoutes(router: Router) {
 
     const input = await updateBranchInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-    const repository = getRepository(projectId);
+    const repository = await getRepository({ projectId });
 
     await repository.renameBranch({ ref: input.name, oldRef: branch });
 
@@ -60,7 +61,7 @@ export function branchRoutes(router: Router) {
 
     if (branch === defaultBranch) throw new Error('Can not delete default branch');
 
-    const repository = getRepository(projectId);
+    const repository = await getRepository({ projectId });
 
     await repository.deleteBranch({ ref: branch });
 

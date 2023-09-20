@@ -1,36 +1,29 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Construction, Delete } from '@mui/icons-material';
 import { Box, Button, TextField } from '@mui/material';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { isTemplateEmpty } from '../../libs/template';
-import { useProjectState } from '../../pages/project/state';
+import { createFile, isTemplate, useStore } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
 import TemplateAutocomplete from './template-autocomplete';
 import type { TemplateForm } from '.';
 
 export default function Next({
-  projectId,
-  value: form,
+  form,
   onTemplateClick,
 }: {
-  projectId: string;
-  value: Pick<TemplateForm, 'next'>;
+  form: Pick<TemplateForm, 'next'>;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { ref, '*': path } = useParams();
   if (!ref) throw new Error('Missing required params `ref`');
 
   const { t } = useLocaleContext();
-  const {
-    state: { files },
-    createFile,
-  } = useProjectState(projectId, ref);
 
-  const templates = useMemo(() => {
-    return files.filter((i): i is typeof i & { type: 'file' } => i.type === 'file').map((i) => i.meta);
-  }, [files]);
+  const { store } = useStore();
+  const templates = Object.values(store.files).filter(isTemplate);
 
   const isTemplateWarning = useCallback(
     ({ id }: { id: string }) => {
@@ -57,8 +50,12 @@ export default function Next({
           }}
           renderInput={(params) => <TextField {...params} label={t('form.next')} />}
           options={templates}
-          createTemplate={(data) =>
-            createFile({ projectId, branch: ref, path: dirname(path || ''), input: { type: 'file', data } })
+          createTemplate={async (data) =>
+            createFile({
+              store,
+              parent: dirname(path || '').split('/'),
+              meta: data,
+            }).template
           }
         />
 

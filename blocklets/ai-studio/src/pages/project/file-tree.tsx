@@ -8,10 +8,13 @@ import {
   CopyAll,
   CreateNewFolderOutlined,
   DeleteForever,
+  Download,
   Edit,
   KeyboardArrowDown,
   KeyboardArrowRight,
+  Launch,
   MoreVert,
+  Upload,
 } from '@mui/icons-material';
 import { Box, BoxProps, Button, IconButton, Input, Tooltip, Typography } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
@@ -47,10 +50,16 @@ export type TreeNode = NodeModel<EntryWithMeta>;
 export default function FileTree({
   current,
   mutable,
+  onExport,
+  onImport,
+  onLaunch,
   ...props
 }: {
   current?: string;
   mutable?: boolean;
+  onExport?: (path: string[]) => any;
+  onImport?: (path: string[]) => any;
+  onLaunch?: (template: Template) => any;
 } & Omit<BoxProps, 'onClick'>) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
@@ -63,7 +72,7 @@ export default function FileTree({
 
   const onCreateFile = useCallback(
     ({ parent, meta }: { parent?: string[]; meta?: Template } = {}) => {
-      const filepath = createFile({ store, parent, meta });
+      const { filepath } = createFile({ store, parent, meta });
       if (parent) setOpenIds((ids) => (ids ?? []).concat(parent.join('/')));
       navigate(filepath);
     },
@@ -230,6 +239,9 @@ export default function FileTree({
                 item={node.data}
                 onCreateFile={onCreateFile}
                 onDeleteFile={onDeleteFile}
+                onExport={onExport}
+                onLaunch={onLaunch}
+                onImport={onImport}
               />
             );
 
@@ -288,21 +300,26 @@ function TreeItemMenus({
   item,
   onCreateFile,
   onDeleteFile,
+  onExport,
+  onLaunch,
+  onImport,
 }: {
   mutable?: boolean;
   item: EntryWithMeta;
   onCreateFile?: (options?: { parent?: string[]; meta?: Template }) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
+  onExport?: (path: string[]) => any;
+  onLaunch?: (template: Template) => any;
+  onImport?: (path: string[]) => any;
 }) {
   const { t } = useLocaleContext();
 
   return (
     <>
-      {/* TODO: */}
-      {/* {onLaunch && (
+      {onLaunch && item.type === 'file' && (
         <Tooltip title={t('alert.openInAssistant')}>
           <span>
-            <Button size="small" onClick={() => onLaunch(meta)}>
+            <Button size="small" onClick={() => onLaunch(item.meta)}>
               <Launch fontSize="small" />
             </Button>
           </span>
@@ -312,23 +329,22 @@ function TreeItemMenus({
       {onExport && (
         <Tooltip title={t('alert.export')}>
           <span>
-            <Button size="small" onClick={() => onExport(node)}>
+            <Button size="small" onClick={() => onExport(item.path)}>
               <Download fontSize="small" />
             </Button>
           </span>
         </Tooltip>
-      )} */}
+      )}
 
-      {/* TODO: */}
-      {/* {onImport && (
+      {onImport && item.type === 'folder' && (
         <Tooltip title={t('alert.import')}>
           <span>
-            <Button disabled={!mutable} size="small" onClick={() => onImport(path)}>
+            <Button disabled={!mutable} size="small" onClick={() => onImport(item.path)}>
               <Upload fontSize="small" />
             </Button>
           </span>
         </Tooltip>
-      )} */}
+      )}
 
       {item.type === 'folder' && onCreateFile && (
         <Tooltip title={`${t('form.add')} ${t('form.template')}`}>

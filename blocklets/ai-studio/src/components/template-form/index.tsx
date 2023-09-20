@@ -31,7 +31,6 @@ import {
   Template,
 } from '../../../api/src/store/templates';
 import { getLogs } from '../../libs/log';
-import { getFile } from '../../libs/tree';
 import useDialog from '../../utils/use-dialog';
 import Branches from './branches';
 import CommitSelect from './commit-select';
@@ -79,7 +78,7 @@ export default function TemplateFormView({
 }) {
   const { t, locale } = useLocaleContext();
 
-  const { dialog, showDialog, closeDialog } = useDialog();
+  const { dialog, showDialog } = useDialog();
 
   const [, setError] = useState<Joi.ValidationError>();
 
@@ -224,13 +223,14 @@ export default function TemplateFormView({
                     projectId={projectId}
                     _ref={ref}
                     path={path}
-                    onSelect={async (commit) => {
-                      const template = await getFile({ projectId, ref: commit.oid, path });
-                      for (const key of Object.keys(form)) {
-                        delete (form as any)[key];
-                      }
-                      Object.assign(form, template);
-                      closeDialog();
+                    onSelect={async () => {
+                      // TODO:
+                      // const template = await getFile({ projectId, ref: commit.oid, path });
+                      // for (const key of Object.keys(form)) {
+                      //   delete (form as any)[key];
+                      // }
+                      // Object.assign(form, template);
+                      // closeDialog();
                     }}
                   />
                 ),
@@ -377,21 +377,21 @@ export default function TemplateFormView({
 
       {form.type === 'branch' && (
         <Grid item xs={12}>
-          <Branches projectId={projectId} value={form} onTemplateClick={onTemplateClick} />
+          <Branches form={form} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 
       <Grid item xs={12}>
-        <Datasets value={form} />
+        <Datasets form={form} />
       </Grid>
 
       <Grid item xs={12}>
-        <Parameters value={form} />
+        <Parameters form={form} />
       </Grid>
 
       {form.type !== 'image' && (
         <Grid item xs={12}>
-          <Next projectId={projectId} value={form} onTemplateClick={onTemplateClick} />
+          <Next form={form} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 

@@ -80,6 +80,7 @@ export function projectRoutes(router: Router) {
 
   router.delete('/projects/:projectId', ensureComponentCallOrAdmin(), async (req, res) => {
     const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
 
     const project = await projects.findOne({ _id: projectId });
     if (!project) {
@@ -88,7 +89,7 @@ export function projectRoutes(router: Router) {
     }
 
     await projects.remove({ _id: projectId });
-    rmSync(getRepository(projectId).dir, { recursive: true });
+    rmSync((await getRepository({ projectId })).options.root, { recursive: true });
 
     res.json(project);
   });

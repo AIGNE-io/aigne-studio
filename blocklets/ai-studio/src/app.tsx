@@ -2,19 +2,16 @@ import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import Header from '@blocklet/ui-react/lib/Header';
-import { Global, css } from '@emotion/react';
 import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { ReactNode, Suspense, lazy, useEffect, useMemo, useRef } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
-import joinUrl from 'url-join';
 
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
 import { DatasetsProvider } from './contexts/datasets';
 import { SessionProvider } from './contexts/session';
 import { translations } from './locales';
-import { HomeLazy } from './pages/home';
 
 export default function App() {
   const basename = window.blocklet?.prefix || '/';
@@ -32,23 +29,11 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline>
-        <Global
-          styles={css`
-            #app {
-              min-height: 100vh;
-              display: flex;
-              flex-direction: column;
-            }
-          `}
-        />
-
         <RecoilRoot>
           <ToastProvider>
             <LocaleProvider translations={translations} fallbackLocale="en">
               <BrowserRouter basename={basename}>
-                <SessionProvider
-                  serviceHost={basename}
-                  protectedRoutes={[`${joinUrl(basename, 'projects')}/*`, `${joinUrl(basename, 'datasets')}/*`]}>
+                <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
                   <Suspense fallback={<Loading />}>
                     <AppRoutes />
                   </Suspense>
@@ -73,7 +58,7 @@ function AppRoutes() {
   return (
     <ErrorBoundary ref={errorBoundary}>
       <Routes>
-        <Route index element={<HomeLazy />} />
+        <Route index element={<Navigate to="projects" replace />} />
         <Route
           path="*"
           element={

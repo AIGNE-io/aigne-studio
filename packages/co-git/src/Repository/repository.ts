@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import * as git from 'isomorphic-git';
-import difference from 'lodash/difference';
+import Queue from 'queue';
 
 import Working from './working';
 
@@ -32,6 +32,27 @@ export default class Repository<T> {
     }
   }
 
+  get root() {
+    return this.options.root;
+  }
+
+  private queue = new Queue({ autostart: true, concurrency: 1 });
+
+  async run<F extends (tx: Transaction<T>) => any>(cb: F): Promise<Awaited<ReturnType<F>>> {
+    return new Promise<Awaited<ReturnType<F>>>((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          const tx = new Transaction(this);
+
+          const res = await cb(tx);
+          resolve(res);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+  }
+
   get gitdir() {
     return path.join(this.options.root, '.git');
   }
@@ -40,64 +61,25 @@ export default class Repository<T> {
     return this.getOrInitWorking({ ref });
   }
 
-  async commit({
-    ref,
-    message,
-    author,
-  }: {
-    ref: string;
-    message: string;
-    author: {
-      name: string;
-      email?: string;
-      timestamp?: number;
-      timezoneOffset?: number;
-    };
-  }) {
-    const { base, dir } = path.parse(this.options.root);
-    const tmpdir = fs.mkdtempSync(path.join(dir, base));
+  async listFiles({ ref }: { ref: string }) {
+    if (await this.isEmpty({ ref })) return [];
 
-    try {
-      const working = await this.getOrInitWorking({ ref });
-
-      const originalFiles = await this.listFiles({ ref });
-
-      await git.checkout({ fs, gitdir: this.gitdir, dir: tmpdir, ref, force: true });
-
-      const files = working.files();
-
-      const deletedFiles = difference(
-        originalFiles,
-        files.map((i) => i[0])
-      );
-
-      for (const filepath of deletedFiles) {
-        fs.rmSync(filepath, { recursive: true, force: true });
-        await git.add({ fs, gitdir: this.gitdir, dir: tmpdir, filepath });
-      }
-
-      for (const [filepath, file] of files) {
-        const p = path.join(tmpdir, filepath);
-        fs.mkdirSync(path.dirname(p), { recursive: true });
-
-        fs.writeFileSync(p, await this.options.stringify(filepath, file));
-
-        await git.add({ fs, gitdir: this.gitdir, dir: tmpdir, filepath });
-      }
-
-      await git.commit({ fs, gitdir: this.gitdir, dir: tmpdir, message, author });
-
-      await git.checkout({ fs, dir: this.options.root, ref: defaultBranchName, force: true });
-    } finally {
-      fs.rmSync(tmpdir, { recursive: true, force: true });
-    }
-  }
-
-  private async listFiles({ ref }: { ref: string }) {
     return git.listFiles({ fs, gitdir: this.gitdir, ref });
   }
 
   private workingMap: { [key: string]: Promise<Working<T>> } = {};
+
+  async resolveRef({ ref }: { ref: string }) {
+    return git.resolveRef({ fs, dir: this.options.root, ref });
+  }
+
+  async branch({ ref, object, checkout = true }: { ref: string; object: string; checkout?: boolean }) {
+    return git.branch({ fs, dir: this.options.root, ref, object, checkout });
+  }
+
+  async listBranches() {
+    return git.listBranches({ fs, dir: this.options.root });
+  }
 
   private async getOrInitWorking({ ref }: { ref: string }) {
     this.workingMap[ref] ??= (async () => {
@@ -106,24 +88,11 @@ export default class Repository<T> {
 
       const exists = fs.existsSync(workingRoot);
 
-      const working = new Working<T>({ root: workingRoot });
+      const working = new Working(this, { ref, root: workingRoot });
 
       if (!exists) {
         fs.mkdirSync(workingRoot, { recursive: true });
-
-        const files = await this.listFiles({ ref });
-
-        await working.reset({
-          files,
-          readFile: async (filepath) => {
-            const oid = await git.resolveRef({ fs, gitdir: this.gitdir, ref });
-
-            const content = (await git.readBlob({ fs, gitdir: this.gitdir, oid, filepath })).blob;
-
-            return this.options.parse(filepath, content);
-          },
-        });
-
+        await working.reset();
         working.save({ flush: true });
       }
 
@@ -131,5 +100,87 @@ export default class Repository<T> {
     })();
 
     return this.workingMap[ref]!;
+  }
+
+  async isEmpty({ ref }: { ref: string }) {
+    try {
+      await git.log({ fs, gitdir: this.gitdir, ref });
+      return false;
+    } catch (error) {
+      if (error instanceof git.Errors.NotFoundError) {
+        return true;
+      }
+      throw error;
+    }
+  }
+
+  async getBranches() {
+    if (await this.isEmpty({ ref: defaultBranchName })) {
+      return [defaultBranchName];
+    }
+
+    return git.listBranches({ fs, gitdir: this.gitdir });
+  }
+
+  async createBranch({ ref, oid }: { ref: string; oid: string }) {
+    await git.branch({ fs, gitdir: this.gitdir, ref, object: oid });
+  }
+
+  async renameBranch({ ref, oldRef }: { ref: string; oldRef: string }) {
+    await git.renameBranch({ fs, gitdir: this.gitdir, ref, oldref: oldRef });
+  }
+
+  async deleteBranch({ ref }: { ref: string }) {
+    await git.deleteBranch({ fs, gitdir: this.gitdir, ref });
+  }
+
+  async log({ ref, filepath }: { ref: string; filepath?: string }) {
+    if (await this.isEmpty({ ref })) return [];
+
+    return git.log({ fs, gitdir: this.gitdir, ref, filepath, force: true, follow: true });
+  }
+
+  async readBlob({ ref, filepath }: { ref: string; filepath: string }) {
+    const oid = await git.resolveRef({ fs, gitdir: this.gitdir, ref });
+
+    return git.readBlob({ fs, gitdir: this.gitdir, oid, filepath });
+  }
+
+  async findFile(filenameOrPath: string, options: { ref: string; rejectIfNotFound: false }): Promise<string | null>;
+  async findFile(filenameOrPath: string, options: { ref: string; rejectIfNotFound?: boolean }): Promise<string>;
+  async findFile(
+    filenameOrPath: string,
+    { ref, rejectIfNotFound = true }: { ref: string; rejectIfNotFound?: boolean }
+  ) {
+    if ((await this.isEmpty({ ref })) && !rejectIfNotFound) return null;
+
+    const filepath = (await git.listFiles({ fs, gitdir: this.gitdir, ref })).find((i) => {
+      if (i === filenameOrPath) return true;
+      const p = path.parse(i);
+      return p.name === filenameOrPath || p.base === filenameOrPath;
+    });
+    if (!filepath) {
+      if (!rejectIfNotFound) return null;
+
+      throw new Error(`No such file ${filenameOrPath}`);
+    }
+
+    return filepath;
+  }
+}
+
+export class Transaction<T> {
+  constructor(private readonly repo: Repository<T>) {}
+
+  async checkout(options: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir' | '.gitdir'>) {
+    await git.checkout({ fs, dir: this.repo.root, ...options });
+  }
+
+  async add({ filepath }: { filepath: string | string[] }) {
+    return git.add({ fs, dir: this.repo.root, filepath });
+  }
+
+  async commit(options: Omit<Parameters<typeof git.commit>[0], 'fs' | 'dir' | '.gitdir'>) {
+    return git.commit({ fs, dir: this.repo.root, ...options });
   }
 }

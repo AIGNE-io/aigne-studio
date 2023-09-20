@@ -16,7 +16,7 @@ import { ChatCompletionRequestMessage, ImagesResponseDataInner } from 'openai';
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { getRepository } from '../store/projects';
+import { defaultBranch, getRepository } from '../store/projects';
 import { Template, getTemplate } from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
@@ -95,9 +95,10 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const repository = getRepository(input.projectId);
+  const repository = await getRepository({ projectId: input.projectId || 'default' });
 
-  const getTemplateById = (templateId: string) => getTemplate({ repository, ref: input.ref, templateId });
+  const getTemplateById = (templateId: string) =>
+    getTemplate({ repository, ref: input.ref || defaultBranch, templateId });
 
   const template = input.template ?? (await getTemplateById(input.templateId));
   const emit = (response: { type: 'delta'; delta: string } | typeof result) => {

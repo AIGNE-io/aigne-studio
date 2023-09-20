@@ -1,17 +1,16 @@
 import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import { EntryWithMeta } from '../../../api/src/routes/tree';
 import { Project } from '../../../api/src/store/projects';
 import { getBranches } from '../../libs/branche';
 import * as branchApi from '../../libs/branche';
 import { Commit, getLogs } from '../../libs/log';
 import { getProject } from '../../libs/project';
-import * as api from '../../libs/tree';
+
+export const defaultBranch = 'main';
 
 export interface ProjectState {
   project?: Project;
-  files: EntryWithMeta[];
   branches: string[];
   commits: Commit[];
   loading?: boolean;
@@ -20,70 +19,36 @@ export interface ProjectState {
 
 const projectStates: { [key: string]: RecoilState<ProjectState> } = {};
 
-const projectState = (projectId: string) => {
-  projectStates[projectId] ??= atom<ProjectState>({
-    key: `projectState-${projectId}`,
-    default: { files: [], branches: [], commits: [] },
+const projectState = (projectId: string, gitRef: string) => {
+  const key = `${projectId}-${gitRef}`;
+
+  projectStates[key] ??= atom<ProjectState>({
+    key: `projectState-${key}`,
+    default: { branches: [], commits: [] },
   });
 
-  return projectStates[projectId]!;
+  return projectStates[key]!;
 };
 
-export const useProjectState = (projectId: string, ref: string) => {
-  const [state, setState] = useRecoilState(projectState(projectId));
+export const useProjectState = (projectId: string, gitRef: string) => {
+  const [state, setState] = useRecoilState(projectState(projectId, gitRef));
 
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
-      const [project, { files }, { branches }, { commits }] = await Promise.all([
+      const [project, { branches }, { commits }] = await Promise.all([
         getProject(projectId),
-        api.getTree({ projectId, ref }),
         getBranches({ projectId }),
-        getLogs({ projectId, ref }),
+        getLogs({ projectId, ref: gitRef }),
       ]);
-      setState((v) => ({ ...v, project, ref, files, branches, commits, error: undefined }));
-      return { files };
+      setState((v) => ({ ...v, project, branches, commits, error: undefined }));
     } catch (error) {
       setState((v) => ({ ...v, error }));
       throw error;
     } finally {
       setState((v) => ({ ...v, loading: false }));
     }
-  }, [projectId, ref, setState]);
-
-  const createFile: typeof api.createFile = useCallback(
-    async (args) => {
-      const res = await api.createFile(args as any);
-      await refetch();
-      return res as any;
-    },
-    [refetch]
-  );
-
-  const deleteFile = useCallback(
-    async (...args: Parameters<typeof api.deleteFile>) => {
-      await api.deleteFile(...args);
-      await refetch();
-    },
-    [refetch]
-  );
-
-  const moveFile = useCallback(
-    async (...args: Parameters<typeof api.moveFile>) => {
-      await api.moveFile(...args);
-      await refetch();
-    },
-    [refetch]
-  );
-
-  const putFile = useCallback(
-    async (...args: Parameters<typeof api.putFile>) => {
-      const res = await api.putFile(...args);
-      await refetch();
-      return res;
-    },
-    [refetch]
-  );
+  }, [projectId, gitRef, setState]);
 
   const createBranch = useCallback(
     async (...args: Parameters<typeof branchApi.createBranch>) => {
@@ -112,5 +77,5 @@ export const useProjectState = (projectId: string, ref: string) => {
     [setState]
   );
 
-  return { state, refetch, createFile, deleteFile, moveFile, putFile, createBranch, updateBranch, deleteBranch };
+  return { state, refetch, createBranch, updateBranch, deleteBranch };
 };

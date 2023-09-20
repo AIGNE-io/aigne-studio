@@ -625,7 +625,7 @@
   dependencies:
     regenerator-runtime "^0.13.11"
 
-"@babel/runtime@^7.22.15":
+"@babel/runtime@^7.20.6", "@babel/runtime@^7.22.15":
   version "7.22.15"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.22.15.tgz#38f46494ccf6cf020bd4eed7124b425e83e523b8"
   integrity sha512-T0O+aa+4w0u06iNmapipJXMV4HoUir03hpx3/YqXXhu9xim3w+dVphjFWl1OH8NbZHw5Lbm9k45drDkgq2VNNA==
@@ -1525,7 +1525,7 @@
     prop-types "^15.8.1"
     react-is "^18.2.0"
 
-"@mui/material@^5.10.8", "@mui/material@^5.11.10", "@mui/material@^5.11.11", "@mui/material@^5.11.12":
+"@mui/material@^5.0.0", "@mui/material@^5.10.8", "@mui/material@^5.11.10", "@mui/material@^5.11.11", "@mui/material@^5.11.12":
   version "5.14.10"
   resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.14.10.tgz#b8c6ba17c25c0df54053cb0f1bb35083bc91dace"
   integrity sha512-ejFMppnO+lzBXpzju+N4SSz0Mhmi5sihXUGcr5FxpgB6bfUP0Lpe32O0Sw/3s8xlmLEvG1fqVT0rRyAVMlCA+A==
@@ -3660,6 +3660,11 @@ cjk-length@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/cjk-length/-/cjk-length-1.0.0.tgz#00f3d8562e2232ccd304b538e35cb7e5b9de2eb4"
   integrity sha512-T+26t6k2oZfC/t7VdW/vFXxjx4k0flrchg3HNcHdv2NGxFK02Hup0U7VDarsMLy+V8x26mPvhdyB/hHTbhVvcQ==
+
+classnames@^2.2.6:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.2.tgz#351d813bf0137fcc6a76a16b88208d2560a0d924"
+  integrity sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==
 
 clean-git-ref@^2.0.1:
   version "2.0.1"
@@ -7424,6 +7429,16 @@ map-stream@~0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/map-stream/-/map-stream-0.1.0.tgz#e56aa94c4c8055a16404a0674b78f215f7c8e194"
   integrity sha512-CkYQrPYZfWnu/DAmVCpTSX/xHpKZ80eKh2lAkyA6AJTef6bW+6JpbQZN5rofum7da+SyN1bi5ctTm+lTfcCW3g==
+
+material-ui-popup-state@^5.0.9:
+  version "5.0.9"
+  resolved "https://registry.yarnpkg.com/material-ui-popup-state/-/material-ui-popup-state-5.0.9.tgz#c4a1054b3ee8457fe1952fc32ad7604f238eca17"
+  integrity sha512-NjTm7zdEzOY1CHu+a2to6h1Jr1Y8ra24rZ2JF5teO/+g0wTNiKWwNT04v3oW3McHsLcTfG46yYcqf1iznjst8Q==
+  dependencies:
+    "@babel/runtime" "^7.20.6"
+    "@mui/material" "^5.0.0"
+    classnames "^2.2.6"
+    prop-types "^15.7.2"
 
 md5.js@^1.3.4:
   version "1.3.5"

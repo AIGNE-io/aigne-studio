@@ -8,7 +8,7 @@ import { useAsync } from 'react-use';
 import { getDatasets } from '../../libs/dataset';
 import type { TemplateForm } from '.';
 
-export default function Datasets({ value: form }: { value: Pick<TemplateForm, 'datasets'> }) {
+export default function Datasets({ form }: { form: Pick<TemplateForm, 'datasets'> }) {
   const { t } = useLocaleContext();
 
   const { value: datasetsRes } = useAsync(() => getDatasets(), []);

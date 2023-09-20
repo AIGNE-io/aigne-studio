@@ -7,10 +7,13 @@ import * as decoding from 'lib0/decoding';
 import * as encoding from 'lib0/encoding';
 import { uuidv4 } from 'lib0/random';
 import debounce from 'lodash/debounce';
+import difference from 'lodash/difference';
 import type { WebSocket } from 'ws';
 import { Awareness, applyAwarenessUpdate, encodeAwarenessUpdate, removeAwarenessStates } from 'y-protocols/awareness';
 import { readSyncMessage, writeSyncStep1, writeUpdate } from 'y-protocols/sync';
 import { Doc, applyUpdate, encodeStateAsUpdate } from 'yjs';
+
+import type Repository from './repository';
 
 const autoSaveTimeout = 10000;
 const pingTimeout = 30000;
@@ -20,6 +23,7 @@ const wsReadyStateConnecting = 0;
 const wsReadyStateOpen = 1;
 
 export interface WorkingOptions {
+  ref: string;
   root: string;
 }
 
@@ -29,7 +33,7 @@ export type WorkingStore<T> = {
 };
 
 export default class Working<T> extends Doc {
-  constructor(readonly options: WorkingOptions) {
+  constructor(readonly repo: Repository<T>, readonly options: WorkingOptions) {
     super();
 
     try {
@@ -55,13 +59,82 @@ export default class Working<T> extends Doc {
     return path.join(this.options.root, 'root.yjs');
   }
 
-  async reset({ files: filepaths, readFile }: { files: string[]; readFile: (filepath: string) => Promise<T> | T }) {
-    for (const filepath of filepaths) {
-      const key = uuidv4();
-      const file = await readFile(filepath);
-      this.syncedStore.files[key] = file;
-      this.syncedStore.tree[key] = filepath;
-    }
+  async reset() {
+    const files = await Promise.all(
+      (
+        await this.repo.listFiles({ ref: this.options.ref })
+      ).map(async (filepath) => {
+        const content = (await this.repo.readBlob({ ref: this.options.ref, filepath })).blob;
+        return { filepath, file: await this.repo.options.parse(filepath, content) };
+      })
+    );
+
+    this.transact(() => {
+      this.getMap('files').clear();
+      this.getMap('tree').clear();
+      for (const { filepath, file } of files) {
+        const key = uuidv4();
+        this.syncedStore.files[key] = file;
+        this.syncedStore.tree[key] = filepath;
+      }
+    });
+  }
+
+  async commit({
+    ref,
+    branch,
+    message,
+    author,
+  }: {
+    ref: string;
+    branch?: string;
+    message: string;
+    author: {
+      name: string;
+      email?: string;
+      timestamp?: number;
+      timezoneOffset?: number;
+    };
+  }) {
+    const res = await this.repo.run(async (tx) => {
+      if (branch && branch !== ref) {
+        await this.repo.branch({ ref: branch, object: ref });
+      } else {
+        if (!(await this.repo.listBranches()).includes(ref)) {
+          throw new Error('branch is required when committing from a history');
+        }
+        await tx.checkout({ ref });
+      }
+
+      const originalFiles = await this.repo.listFiles({ ref });
+
+      const files = this.files();
+
+      const deletedFiles = difference(
+        originalFiles,
+        files.map((i) => i[0])
+      );
+
+      for (const filepath of deletedFiles) {
+        fs.rmSync(filepath, { recursive: true, force: true });
+        await tx.add({ filepath });
+      }
+
+      for (const [filepath, file] of files) {
+        const p = path.join(this.repo.options.root, filepath);
+        fs.mkdirSync(path.dirname(p), { recursive: true });
+
+        fs.writeFileSync(p, await this.repo.options.stringify(filepath, file));
+
+        await tx.add({ filepath });
+      }
+
+      return tx.commit({ message, author });
+    });
+
+    await this.reset();
+
+    return res;
   }
 
   files(): [string, T][] {
@@ -69,7 +142,7 @@ export default class Working<T> extends Doc {
       .map(([key, filepath]) => {
         return [filepath, this.syncedStore.files[key]] as const;
       })
-      .filter((i): i is [string, T] => typeof i === 'string');
+      .filter((i): i is [string, T] => typeof i[0] === 'string');
   }
 
   file(filepath: string): Doc | undefined {
@@ -134,7 +207,6 @@ export default class Working<T> extends Doc {
       return;
     }
 
-    conn.binaryType = 'arraybuffer';
     this.conns.set(conn, new Set());
     conn.on('message', (message) => this.messageListener(conn, new Uint8Array(message as ArrayBuffer)));
 

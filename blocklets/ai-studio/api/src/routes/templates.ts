@@ -1,13 +1,9 @@
-import { join } from 'path';
-
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
-import { stringify } from 'yaml';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { getRepository, projects } from '../store/projects';
-import { Transaction } from '../store/repository';
-import { Template, getTemplate, nextTemplateId, roles } from '../store/templates';
+import { defaultBranch, getRepository, getTemplatesFromRepository, projects } from '../store/projects';
+import { Template, getTemplate, roles } from '../store/templates';
 
 export interface TemplateInput
   extends Pick<
@@ -169,9 +165,9 @@ const getTemplateSort = (sort: any): { field: keyof Template; direction: 1 | -1 
   return { field, direction: sort[0] === '-' ? -1 : 1 };
 };
 
-const getTemplateQuerySchema = Joi.object<{ projectId?: string; hash?: string }>({
-  projectId: Joi.string().empty(''),
-  hash: Joi.string().empty(''),
+const getTemplateQuerySchema = Joi.object<{ projectId: string; hash: string }>({
+  projectId: Joi.string().empty('').default('default'),
+  hash: Joi.string().empty('').default(defaultBranch),
 });
 
 export function templateRoutes(router: Router) {
@@ -184,19 +180,11 @@ export function templateRoutes(router: Router) {
 
     const projectIds = projectId
       ? [projectId]
-      : (await projects.cursor().sort({ createdAt: 1 }).exec()).map((i) => i._id);
+      : (await projects.cursor().sort({ createdAt: 1 }).exec()).map((i) => i._id!);
 
     let templates = (
       await Promise.all(
-        projectIds.map(async (projectId) => {
-          const repository = getRepository(projectId);
-
-          return Promise.all(
-            (await repository.getFiles())
-              .filter((i): i is typeof i & { type: 'file' } => i.type === 'file')
-              .map((i) => getTemplate({ repository, path: join(...i.parent, i.name) }))
-          );
-        })
+        projectIds.map(async (projectId) => getTemplatesFromRepository({ projectId, ref: defaultBranch }))
       )
     ).flat();
 
@@ -229,7 +217,7 @@ export function templateRoutes(router: Router) {
     const { projectId, hash } = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
     const template = await getTemplate({
-      repository: getRepository(projectId),
+      repository: await getRepository({ projectId }),
       ref: hash,
       templateId,
     });
@@ -239,38 +227,4 @@ export function templateRoutes(router: Router) {
 
   router.get('/templates/:templateId', ensureComponentCallOrPromptsEditor(), handleTemplate);
   router.get('/sdk/templates/:templateId', ensureComponentCallOrPromptsEditor(), handleTemplate);
-}
-
-export async function createBranches(
-  tx: Transaction,
-  project: string,
-  branch: Template['branch'],
-  did: string
-): Promise<Template['branch']> {
-  if (!branch) {
-    return branch;
-  }
-  return {
-    ...branch,
-    branches: await Promise.all(
-      branch.branches.map(async (i) => {
-        if (!i.template || i.template.id) return i;
-
-        const id = nextTemplateId();
-
-        const template: Template = {
-          id,
-          name: i.template.name,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          createdBy: did,
-          updatedBy: did,
-        };
-
-        await tx.write({ path: project, data: stringify(template) });
-
-        return { ...i, template: { id, name: template.name } };
-      })
-    ),
-  };
 }

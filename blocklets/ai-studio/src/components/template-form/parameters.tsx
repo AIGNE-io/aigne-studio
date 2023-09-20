@@ -7,11 +7,7 @@ import ParameterField from '../parameter-field';
 import ParameterConfig from './parameter-config';
 import TokenCounter from './token-counter';
 
-export default function Parameters({
-  value: form,
-}: {
-  value: Pick<Template, 'type' | 'name' | 'prompts' | 'parameters'>;
-}) {
+export default function Parameters({ form }: { form: Pick<Template, 'type' | 'name' | 'prompts' | 'parameters'> }) {
   const deferredValue = useDeferredValue(form);
 
   const params = useMemo(() => {

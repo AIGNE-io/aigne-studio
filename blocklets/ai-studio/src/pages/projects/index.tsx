@@ -1,30 +1,10 @@
-import { useFullPage } from '@arcblock/ux/lib/Layout/dashboard/full-page';
-import Dashboard from '@blocklet/ui-react/lib/Dashboard';
-import styled from '@emotion/styled';
-import { Fullscreen, FullscreenExit } from '@mui/icons-material';
-import { IconButton } from '@mui/material';
-import { orderBy } from 'lodash';
-import { ReactNode, Suspense, lazy, useCallback, useEffect, useRef } from 'react';
+import { Suspense, lazy, useEffect, useRef } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
-import { useAddonsState } from '../../contexts/dashboard';
 
 export default function ProjectsRoutes() {
-  const [{ addons }] = useAddonsState();
-
-  const headerAddons = useCallback(
-    ([...exists]: ReactNode[]) => {
-      exists.unshift(...orderBy(Object.values(addons), 'order').map((i) => i.element));
-
-      exists.unshift(<ToggleFullscreen />);
-
-      return exists;
-    },
-    [addons]
-  );
-
   const errorBoundary = useRef<ErrorBoundary>(null);
 
   const location = useLocation();
@@ -33,40 +13,18 @@ export default function ProjectsRoutes() {
   }, [location]);
 
   return (
-    <AdminLayout footerProps={{ className: 'dashboard-footer' }} headerAddons={headerAddons}>
-      <ErrorBoundary ref={errorBoundary}>
-        <Suspense fallback={<Loading />}>
-          <Routes>
-            <Route index element={<ProjectsPage />} />
-            <Route path=":projectId">
-              <Route index element={<Navigate to="main" replace />} />
-              <Route path=":ref/*" element={<ProjectPage />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </ErrorBoundary>
-    </AdminLayout>
+    <ErrorBoundary ref={errorBoundary}>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route index element={<ProjectsPage />} />
+          <Route path=":projectId">
+            <Route index element={<Navigate to="main" replace />} />
+            <Route path=":ref/*" element={<ProjectPage />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
-}
-
-const AdminLayout = styled(Dashboard)`
-  > .dashboard-body > .dashboard-main {
-    > .dashboard-content {
-      overflow: auto;
-      padding: 0;
-    }
-
-    > .dashboard-footer {
-      margin-top: 0;
-      padding: 0;
-    }
-  }
-`;
-
-function ToggleFullscreen() {
-  const { inFullPage, toggleFullPage } = useFullPage();
-
-  return <IconButton onClick={toggleFullPage}>{inFullPage ? <FullscreenExit /> : <Fullscreen />}</IconButton>;
 }
 
 const ProjectsPage = lazy(() => import('./projects'));
