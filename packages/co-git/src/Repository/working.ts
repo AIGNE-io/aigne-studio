@@ -56,7 +56,7 @@ export default class Working<T> extends Doc {
   syncedStore: MappedTypeDescription<WorkingStore<T>>;
 
   private get yjsPath() {
-    return path.join(this.options.root, 'root.yjs');
+    return path.join(this.options.root, 'state.yjs');
   }
 
   async reset() {

@@ -84,7 +84,7 @@ export default class Repository<T> {
   private async getOrInitWorking({ ref }: { ref: string }) {
     this.workingMap[ref] ??= (async () => {
       const { base, dir } = path.parse(this.options.root);
-      const workingRoot = path.join(dir, `${base}-${ref}`);
+      const workingRoot = path.join(dir, `${base}.cooperative`, ref);
 
       const exists = fs.existsSync(workingRoot);
 
