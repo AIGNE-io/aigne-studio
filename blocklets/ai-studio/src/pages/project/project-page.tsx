@@ -35,6 +35,7 @@ import joinUrl from 'url-join';
 import { parse } from 'yaml';
 
 import { Template } from '../../../api/src/store/templates';
+import WithAwareness from '../../components/awareness/with-awareness';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView from '../../components/template-form';
 import CommitsTip from '../../components/template-form/commits-tip';
@@ -70,7 +71,7 @@ export default function ProjectPage() {
 }
 
 function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRef: string; filepath?: string }) {
-  const { store, ready } = useStore();
+  const { store, synced } = useStore();
 
   const {
     state: { branches, loading, project, commits },
@@ -105,7 +106,7 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
     const path = filename && Object.values(store.tree).find((i) => i?.endsWith(filename));
 
     if (path) navigate(path, { replace: true });
-  }, [gitRef, ready, location]);
+  }, [gitRef, synced, location]);
 
   useEffect(() => {
     if (filepath) setPreviousFilePath((v) => ({ ...v, [gitRef]: filepath }));
@@ -518,25 +519,32 @@ function TemplateEditor({
 }) {
   const navigate = useNavigate();
 
-  const { store, ready } = useStore();
-  if (!ready) return null;
+  const { store, synced } = useStore();
+  if (!synced)
+    return (
+      <Box sx={{ textAlign: 'center', mt: 10 }}>
+        <CircularProgress size={32} />
+      </Box>
+    );
 
   const id = Object.entries(store.tree).find((i) => i[1] === path)?.[0];
   const template = id ? store.files[id] : undefined;
   if (!template || !isTemplate(template)) return <Alert color="error">Not Found</Alert>;
 
   return (
-    <TemplateFormView
-      projectId={projectId}
-      _ref={ref}
-      path={path}
-      value={template}
-      onExecute={onExecute}
-      onTemplateClick={async (template) => {
-        const filepath = Object.values(store.tree).find((i) => i?.endsWith(`${template.id}.yaml`));
-        if (filepath) navigate(filepath);
-      }}
-    />
+    <WithAwareness path={[template.id]} onMount>
+      <TemplateFormView
+        projectId={projectId}
+        _ref={ref}
+        path={path}
+        value={template}
+        onExecute={onExecute}
+        onTemplateClick={async (template) => {
+          const filepath = Object.values(store.tree).find((i) => i?.endsWith(`${template.id}.yaml`));
+          if (filepath) navigate(filepath);
+        }}
+      />
+    </WithAwareness>
   );
 }
 

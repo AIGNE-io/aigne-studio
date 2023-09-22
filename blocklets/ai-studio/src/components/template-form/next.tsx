@@ -7,6 +7,8 @@ import { useParams } from 'react-router-dom';
 import { isTemplateEmpty } from '../../libs/template';
 import { createFile, isTemplate, useStore } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
+import AwarenessIndicator from '../awareness/awareness-indicator';
+import WithAwareness from '../awareness/with-awareness';
 import TemplateAutocomplete from './template-autocomplete';
 import type { TemplateForm } from '.';
 
@@ -14,7 +16,7 @@ export default function Next({
   form,
   onTemplateClick,
 }: {
-  form: Pick<TemplateForm, 'next'>;
+  form: Pick<TemplateForm, 'id' | 'next'>;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { ref, '*': path } = useParams();
@@ -59,16 +61,22 @@ export default function Next({
           }
         />
 
-        <TextField
-          fullWidth
-          size="small"
-          label={t('form.outputKey')}
-          value={form.next?.outputKey || ''}
-          onChange={(e) => {
-            form.next ??= {};
-            form.next.outputKey = e.target.value;
-          }}
-        />
+        <Box position="relative">
+          <WithAwareness path={[form.id, 'next.outputKey']}>
+            <TextField
+              fullWidth
+              size="small"
+              label={t('form.outputKey')}
+              value={form.next?.outputKey || ''}
+              onChange={(e) => {
+                form.next ??= {};
+                form.next.outputKey = e.target.value;
+              }}
+            />
+          </WithAwareness>
+
+          <AwarenessIndicator path={[form.id, 'next.outputKey']} sx={{ position: 'absolute', right: -16, top: 16 }} />
+        </Box>
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>

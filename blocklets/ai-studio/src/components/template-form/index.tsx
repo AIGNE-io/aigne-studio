@@ -32,6 +32,8 @@ import {
 } from '../../../api/src/store/templates';
 import { getLogs } from '../../libs/log';
 import useDialog from '../../utils/use-dialog';
+import AwarenessIndicator from '../awareness/awareness-indicator';
+import WithAwareness from '../awareness/with-awareness';
 import Branches from './branches';
 import CommitSelect from './commit-select';
 import CommitsTip from './commits-tip';
@@ -242,14 +244,18 @@ export default function TemplateFormView({
         </Box>
       </Grid>
 
-      <Grid item xs={12}>
-        <TextField
-          fullWidth
-          label={t('form.versionNote')}
-          size="small"
-          value={form.versionNote ?? ''}
-          onChange={(e) => (form.versionNote = e.target.value)}
-        />
+      <Grid item xs={12} position="relative">
+        <WithAwareness path={[form.id, 'versionNote']}>
+          <TextField
+            fullWidth
+            label={t('form.versionNote')}
+            size="small"
+            value={form.versionNote ?? ''}
+            onChange={(e) => (form.versionNote = e.target.value)}
+          />
+        </WithAwareness>
+
+        <AwarenessIndicator path={[form.id, 'versionNote']} sx={{ position: 'absolute', right: -16, top: 16 }} />
       </Grid>
 
       <Grid item xs={12}>
@@ -280,88 +286,111 @@ export default function TemplateFormView({
           </RadioGroup>
         </FormControl>
       </Grid>
-      <Grid item xs={12}>
-        <TextField
-          fullWidth
-          label={t('form.name')}
-          size="small"
-          value={form.name ?? ''}
-          onChange={(e) => (form.name = e.target.value)}
-        />
+      <Grid item xs={12} position="relative">
+        <WithAwareness path={[form.id, 'name']}>
+          <TextField
+            fullWidth
+            label={t('form.name')}
+            size="small"
+            value={form.name ?? ''}
+            onChange={(e) => (form.name = e.target.value)}
+          />
+        </WithAwareness>
+
+        <AwarenessIndicator path={[form.id, 'name']} sx={{ position: 'absolute', right: -16, top: 16 }} />
       </Grid>
       {form.type !== 'image' && (
         <>
-          <Grid item xs={6}>
-            <TextField
-              fullWidth
-              label={t('form.model')}
-              size="small"
-              value={form.model ?? ''}
-              select
-              onChange={(e) => (form.model = e.target.value)}>
-              {MODELS.map((model) => (
-                <MenuItem key={model} value={model}>
-                  {model}
-                </MenuItem>
-              ))}
-            </TextField>
+          <Grid item xs={6} position="relative">
+            <WithAwareness path={[form.id, 'model']}>
+              <TextField
+                fullWidth
+                label={t('form.model')}
+                size="small"
+                value={form.model ?? ''}
+                select
+                onChange={(e) => (form.model = e.target.value)}>
+                {MODELS.map((model) => (
+                  <MenuItem key={model} value={model}>
+                    {model}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </WithAwareness>
+
+            <AwarenessIndicator path={[form.id, 'model']} sx={{ position: 'absolute', right: -16, top: 16 }} />
           </Grid>
-          <Grid item xs={6}>
-            <TextField
-              size="small"
-              fullWidth
-              label={t('form.temperature')}
-              inputProps={{ type: 'number', min: 0, max: 2, step: 0.1 }}
-              value={form.temperature ?? ''}
-              onChange={(e) => {
-                const v = e.target.value;
-                if (!v) {
-                  form.temperature = undefined;
-                } else {
-                  const n = Math.max(Math.min(2, Number(v)), 0);
-                  form.temperature = n;
-                }
-              }}
-            />
+
+          <Grid item xs={6} position="relative">
+            <WithAwareness path={[form.id, 'temperature']}>
+              <TextField
+                size="small"
+                fullWidth
+                label={t('form.temperature')}
+                inputProps={{ type: 'number', min: 0, max: 2, step: 0.1 }}
+                value={form.temperature ?? ''}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (!v) {
+                    form.temperature = undefined;
+                  } else {
+                    const n = Math.max(Math.min(2, Number(v)), 0);
+                    form.temperature = n;
+                  }
+                }}
+              />
+            </WithAwareness>
+
+            <AwarenessIndicator path={[form.id, 'temperature']} sx={{ position: 'absolute', right: -16, top: 16 }} />
           </Grid>
         </>
       )}
-      <Grid item xs={12}>
-        <TextField
-          fullWidth
-          label={t('form.icon')}
-          size="small"
-          value={form.icon ?? ''}
-          onChange={(e) => (form.icon = e.target.value)}
-          InputProps={{
-            startAdornment: form.icon && (
-              <InputAdornment position="start">
-                <Icon icon={form.icon} />
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  size="small"
-                  onClick={() => window.open('https://icon-sets.iconify.design/?query=', '_blank')}>
-                  <TravelExplore fontSize="small" />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+      <Grid item xs={12} position="relative">
+        <WithAwareness path={[form.id, 'icon']}>
+          <TextField
+            fullWidth
+            label={t('form.icon')}
+            size="small"
+            value={form.icon ?? ''}
+            onChange={(e) => (form.icon = e.target.value)}
+            InputProps={{
+              startAdornment: form.icon && (
+                <InputAdornment position="start">
+                  <Icon icon={form.icon} />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    onClick={() => window.open('https://icon-sets.iconify.design/?query=', '_blank')}>
+                    <TravelExplore fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </WithAwareness>
+
+        <AwarenessIndicator path={[form.id, 'icon']} sx={{ position: 'absolute', right: -16, top: 16 }} />
       </Grid>
-      <Grid item xs={12}>
-        <TextField
-          fullWidth
-          label={t('form.description')}
-          size="small"
-          value={form.description ?? ''}
-          onChange={(e) => (form.description = e.target.value)}
-          multiline
-          minRows={2}
-        />
+
+      <Grid item xs={12} position="relative">
+        <WithAwareness path={[form.id, 'description']}>
+          <TextField
+            fullWidth
+            label={t('form.description')}
+            size="small"
+            value={form.description ?? ''}
+            onChange={(e) => (form.description = e.target.value)}
+            multiline
+            minRows={2}
+          />
+        </WithAwareness>
+
+        <AwarenessIndicator path={[form.id, 'description']} sx={{ position: 'absolute', right: -16, top: 16 }} />
       </Grid>
+
       <Grid item xs={12}>
         <TagsAutoComplete
           projectId={projectId}

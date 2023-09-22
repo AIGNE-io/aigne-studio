@@ -10,12 +10,14 @@ import {
 } from '@blocklet/co-git/yjs';
 import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
+import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import joinUrl from 'url-join';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
 import { Template } from '../../../api/src/store/templates';
+import { useSessionContext } from '../../contexts/session';
 import { PREFIX } from '../../libs/api';
 
 export type State = {
@@ -28,8 +30,25 @@ export function isTemplate(value?: State['files'][string]): value is Template {
 }
 
 export interface StoreContext {
-  ready: boolean;
+  synced: boolean;
   store: ReturnType<typeof syncedStore<State>>;
+  awareness: {
+    clients: {
+      [key: number]: { avatar?: string; did: string; fullName: string };
+    };
+    files: {
+      [key: string]: {
+        clients: { clientId: number }[];
+
+        fields: {
+          [key: string]: {
+            clients: { clientId: number }[];
+          };
+        };
+      };
+    };
+  };
+  provider: WebsocketProvider;
 }
 
 const storeContext = createContext<StoreContext | null>(null);
@@ -43,7 +62,7 @@ export function StoreProvider({
   gitRef: string;
   children: ReactNode;
 }) {
-  const [ready, setReady] = useState(false);
+  const [synced, setSynced] = useState(false);
 
   const url = useMemo(() => {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -58,35 +77,82 @@ export function StoreProvider({
     return () => doc.destroy();
   }, [doc]);
 
+  const [awareness, setAwareness] = useState<StoreContext['awareness']>({ clients: {}, files: {} });
+
+  const provider = useMemo(
+    () => new WebsocketProvider(url, gitRef, doc, { params: { token: Cookies.get('login_token')! } }),
+    [url, gitRef, doc]
+  );
+
+  const { session } = useSessionContext();
   useEffect(() => {
-    setReady(false);
+    provider.awareness.setLocalStateField('user', session.user);
+  }, [session, provider]);
 
-    const provider = new WebsocketProvider(url, gitRef, doc, { params: { token: Cookies.get('login_token')! } });
+  useEffect(() => {
+    let interval: number;
 
-    // NOTE: 修复第一次连接时由于 server 端初始化 state 耗时导致没有同步成功的问题
-    const interval = setInterval(() => {
-      if (provider.ws && provider.ws.readyState === WebSocket.OPEN) {
-        const encoder = createEncoder();
-        writeVarUint(encoder, messageSync);
-        syncProtocols.writeSyncStep1(encoder, doc);
-        provider.ws.send(toUint8Array(encoder));
+    setSynced(provider.synced);
+
+    if (!provider.synced) {
+      provider.once('synced', () => {
+        setSynced(true);
+        clearInterval(interval);
+      });
+
+      // NOTE: 修复第一次连接时由于 server 端初始化 state 耗时导致没有同步成功的问题
+      interval = window.setInterval(() => {
+        if (provider.ws && provider.ws.readyState === WebSocket.OPEN) {
+          const encoder = createEncoder();
+          writeVarUint(encoder, messageSync);
+          syncProtocols.writeSyncStep1(encoder, provider.doc);
+          provider.ws.send(toUint8Array(encoder));
+        }
+      }, 1000);
+    }
+
+    provider.awareness.on('change', () => {
+      const states = provider.awareness.getStates();
+
+      const awareness: StoreContext['awareness'] = {
+        clients: {},
+        files: {},
+      };
+
+      for (const [clientId, state] of states.entries()) {
+        if (clientId === provider.awareness.clientID) continue;
+        awareness.clients[clientId] = pick(state.user, 'did', 'fullName', 'avatar');
+
+        const path: (string | number)[] = state.focus?.path;
+        if (path && path.length >= 1) {
+          const file = path[0]!;
+
+          awareness.files[file] ??= { clients: [], fields: {} };
+          awareness.files[file]!.clients.push({ clientId });
+
+          if (path.length >= 2) {
+            const field = path.slice(1).join('.');
+            awareness.files[file]!.fields[field] ??= { clients: [] };
+            awareness.files[file]!.fields[field]!.clients.push({ clientId });
+          }
+        }
       }
-    }, 1000);
 
-    provider.once('synced', () => {
-      setReady(true);
-      clearInterval(interval);
+      setAwareness(awareness);
     });
 
     return () => {
       clearInterval(interval);
       provider.destroy();
     };
-  }, [url, doc, gitRef]);
+  }, [provider]);
 
   const store = useMemo(() => syncedStore<State>({ files: {}, tree: {} }, doc), [doc]);
 
-  const ctx = useMemo<StoreContext>(() => ({ store, ready }), [store, ready]);
+  const ctx = useMemo<StoreContext>(
+    () => ({ store, synced, awareness, provider }),
+    [store, synced, awareness, provider]
+  );
 
   return <storeContext.Provider value={ctx}>{children}</storeContext.Provider>;
 }

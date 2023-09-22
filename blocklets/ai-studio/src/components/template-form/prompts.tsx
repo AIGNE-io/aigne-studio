@@ -4,10 +4,12 @@ import { Box, Button, MenuItem, Select, SelectProps, TextField } from '@mui/mate
 import { nanoid } from 'nanoid';
 
 import { Role, Template } from '../../../api/src/store/templates';
+import AwarenessIndicator from '../awareness/awareness-indicator';
+import WithAwareness from '../awareness/with-awareness';
 import ReorderableList from '../reorderable-list';
 import TokenCounter from './token-counter';
 
-export default function Prompts({ value: form }: { value: Pick<Template, 'prompts'> }) {
+export default function Prompts({ value: form }: { value: Pick<Template, 'id' | 'prompts'> }) {
   const { t } = useLocaleContext();
 
   return (
@@ -19,7 +21,7 @@ export default function Prompts({ value: form }: { value: Pick<Template, 'prompt
             itemKey="id"
             onChange={(prompts) => (form.prompts = prompts)}
             renderItem={(prompt, index) => (
-              <>
+              <Box sx={{ position: 'relative', display: 'flex', flex: 1 }}>
                 <Box sx={{ flex: 1, mt: 1, position: 'relative' }}>
                   <Box
                     sx={{
@@ -54,20 +56,22 @@ export default function Prompts({ value: form }: { value: Pick<Template, 'prompt
                     />
                   </Box>
 
-                  <TextField
-                    fullWidth
-                    label={`${t('form.prompt')} ${index + 1}`}
-                    size="small"
-                    multiline
-                    minRows={2}
-                    maxRows={10}
-                    value={prompt.content ?? ''}
-                    onChange={(e) => {
-                      form.prompts![index]!.content = e.target.value;
-                    }}
-                    helperText={<TokenCounter value={prompt.content ?? ''} />}
-                    FormHelperTextProps={{ sx: { textAlign: 'right', mt: 0 } }}
-                  />
+                  <WithAwareness path={[form.id, 'prompts', index]}>
+                    <TextField
+                      fullWidth
+                      label={`${t('form.prompt')} ${index + 1}`}
+                      size="small"
+                      multiline
+                      minRows={2}
+                      maxRows={10}
+                      value={prompt.content ?? ''}
+                      onChange={(e) => {
+                        form.prompts![index]!.content = e.target.value;
+                      }}
+                      helperText={<TokenCounter value={prompt.content ?? ''} />}
+                      FormHelperTextProps={{ sx: { textAlign: 'right', mt: 0 } }}
+                    />
+                  </WithAwareness>
                 </Box>
 
                 <Box sx={{ ml: 0.5 }}>
@@ -78,8 +82,10 @@ export default function Prompts({ value: form }: { value: Pick<Template, 'prompt
                     }}>
                     <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
                   </Button>
+
+                  <AwarenessIndicator path={[form.id, 'prompts', index]} />
                 </Box>
-              </>
+              </Box>
             )}
           />
         </Box>

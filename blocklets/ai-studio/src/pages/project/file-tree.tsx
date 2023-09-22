@@ -16,7 +16,7 @@ import {
   MoreVert,
   Upload,
 } from '@mui/icons-material';
-import { Box, BoxProps, Button, IconButton, Input, Tooltip, Typography } from '@mui/material';
+import { Box, BoxProps, Button, CircularProgress, IconButton, Input, Tooltip, Typography } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { uniqBy } from 'lodash';
 import { ComponentProps, ReactNode, useCallback, useMemo, useState } from 'react';
@@ -25,6 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import joinUrl from 'url-join';
 
 import { Template } from '../../../api/src/store/templates';
+import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
 import { createFile, createFolder, deleteFile, isTemplate, moveFile, nextTemplateId, useStore } from './yjs-state';
 
@@ -64,7 +65,7 @@ export default function FileTree({
   const { t } = useLocaleContext();
   const navigate = useNavigate();
 
-  const { store } = useStore();
+  const { store, synced } = useStore();
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
@@ -150,6 +151,13 @@ export default function FileTree({
       };
     });
   }, [files, folders]);
+
+  if (!synced)
+    return (
+      <Box sx={{ textAlign: 'center', mt: 4 }}>
+        <CircularProgress size={24} />
+      </Box>
+    );
 
   return (
     <Box {...props}>
@@ -286,6 +294,11 @@ export default function FileTree({
                 onClick={() => navigate(filepath.join('/'))}
                 actions={actions}>
                 {meta.name || t('alert.unnamed')}
+
+                <AwarenessIndicator
+                  path={[meta.id]}
+                  sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
+                />
               </TreeItem>
             );
           }}
