@@ -16,7 +16,7 @@ export function branchRoutes(router: Router) {
 
     const repository = await getRepository({ projectId });
 
-    res.json({ branches: await repository.getBranches() });
+    res.json({ branches: await repository.listBranches() });
   });
 
   const createBranchInputSchema = Joi.object<CreateBranchInput>({
@@ -32,9 +32,9 @@ export function branchRoutes(router: Router) {
 
     const repository = await getRepository({ projectId });
 
-    await repository.createBranch({ ref: input.name, oid: input.oid });
+    await repository.branch({ ref: input.name, object: input.oid });
 
-    res.json({ branches: await repository.getBranches() });
+    res.json({ branches: await repository.listBranches() });
   });
 
   const updateBranchInputSchema = Joi.object<{ name: string }>({
@@ -52,7 +52,7 @@ export function branchRoutes(router: Router) {
 
     await repository.renameBranch({ ref: input.name, oldRef: branch });
 
-    res.json({ branches: await repository.getBranches() });
+    res.json({ branches: await repository.listBranches() });
   });
 
   router.delete('/projects/:projectId/branches/:branch', ensureComponentCallOrPromptsEditor(), async (req, res) => {
@@ -65,6 +65,6 @@ export function branchRoutes(router: Router) {
 
     await repository.deleteBranch({ ref: branch });
 
-    res.json({ branches: await repository.getBranches() });
+    res.json({ branches: await repository.listBranches() });
   });
 }
