@@ -1,3 +1,7 @@
+## 0.1.83 (2023-9-25)
+
+- chore: get source dir by sdk
+
 ## 0.1.82 (2023-9-14)
 
 - chore: support export resource-based blocklets
