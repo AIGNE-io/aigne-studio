@@ -53,7 +53,7 @@ export default class Working<T> extends Doc {
     this.syncedStore = syncedStore({ files: {}, tree: {} }, this);
   }
 
-  syncedStore: MappedTypeDescription<WorkingStore<T>>;
+  readonly syncedStore: MappedTypeDescription<WorkingStore<T>>;
 
   private get yjsPath() {
     return path.join(this.options.root, 'state.yjs');
@@ -96,7 +96,7 @@ export default class Working<T> extends Doc {
       timezoneOffset?: number;
     };
   }) {
-    const res = await this.repo.run(async (tx) => {
+    const res = await this.repo.transact(async (tx) => {
       if (branch && branch !== ref) {
         await this.repo.branch({ ref: branch, object: ref, checkout: true, force: true });
       } else {

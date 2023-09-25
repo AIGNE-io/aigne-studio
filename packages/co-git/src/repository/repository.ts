@@ -15,7 +15,7 @@ export interface RepositoryOptions<T> {
   ) => Promise<string | NodeJS.ArrayBufferView> | string | NodeJS.ArrayBufferView;
 }
 
-const defaultBranchName = 'main';
+export const defaultBranchName = 'main';
 
 export default class Repository<T> {
   static async init<T>(options: RepositoryOptions<T>) {
@@ -28,7 +28,7 @@ export default class Repository<T> {
 
   constructor(readonly options: RepositoryOptions<T>) {
     if (!fs.existsSync(this.gitdir)) {
-      throw new Error(`repository ${this.options.root} is not initialized`);
+      throw new Error(`repository ${this.root} is not initialized`);
     }
   }
 
@@ -38,7 +38,7 @@ export default class Repository<T> {
 
   private queue = new Queue({ autostart: true, concurrency: 1 });
 
-  async run<F extends (tx: Transaction<T>) => any>(cb: F): Promise<Awaited<ReturnType<F>>> {
+  async transact<F extends (tx: Transaction<T>) => any>(cb: F): Promise<Awaited<ReturnType<F>>> {
     return new Promise<Awaited<ReturnType<F>>>((resolve, reject) => {
       this.queue.push(async () => {
         try {
@@ -54,36 +54,14 @@ export default class Repository<T> {
   }
 
   get gitdir() {
-    return path.join(this.options.root, '.git');
-  }
-
-  async working({ ref }: { ref: string }) {
-    return this.getOrInitWorking({ ref });
-  }
-
-  async listFiles({ ref }: { ref: string }) {
-    if (await this.isEmpty({ ref })) return [];
-
-    return git.listFiles({ fs, gitdir: this.gitdir, ref });
+    return path.join(this.root, '.git');
   }
 
   private workingMap: { [key: string]: Promise<Working<T>> } = {};
 
-  async resolveRef({ ref }: { ref: string }) {
-    return git.resolveRef({ fs, dir: this.options.root, ref });
-  }
-
-  async branch(options: Omit<Parameters<typeof git.branch>[0], 'fs' | 'dir' | '.gitdir'>) {
-    return git.branch({ fs, dir: this.options.root, ...options });
-  }
-
-  async listBranches() {
-    return git.listBranches({ fs, dir: this.options.root });
-  }
-
-  private async getOrInitWorking({ ref }: { ref: string }) {
+  async working({ ref }: { ref: string }) {
     this.workingMap[ref] ??= (async () => {
-      const { base, dir } = path.parse(this.options.root);
+      const { base, dir } = path.parse(this.root);
       const workingRoot = path.join(dir, `${base}.cooperative`, ref);
 
       const exists = fs.existsSync(workingRoot);
@@ -102,7 +80,7 @@ export default class Repository<T> {
     return this.workingMap[ref]!;
   }
 
-  async isEmpty({ ref }: { ref: string }) {
+  private async isEmpty({ ref }: { ref: string }) {
     try {
       await git.log({ fs, gitdir: this.gitdir, ref });
       return false;
@@ -114,16 +92,26 @@ export default class Repository<T> {
     }
   }
 
-  async getBranches() {
+  async listFiles({ ref }: { ref: string }) {
+    if (await this.isEmpty({ ref })) return [];
+
+    return git.listFiles({ fs, gitdir: this.gitdir, ref });
+  }
+
+  async resolveRef({ ref }: { ref: string }) {
+    return git.resolveRef({ fs, dir: this.root, ref });
+  }
+
+  async listBranches() {
     if (await this.isEmpty({ ref: defaultBranchName })) {
       return [defaultBranchName];
     }
 
-    return git.listBranches({ fs, gitdir: this.gitdir });
+    return git.listBranches({ fs, dir: this.root });
   }
 
-  async createBranch({ ref, oid }: { ref: string; oid: string }) {
-    await git.branch({ fs, gitdir: this.gitdir, ref, object: oid });
+  async branch(options: Omit<Parameters<typeof git.branch>[0], 'fs' | 'dir' | '.gitdir'>) {
+    return git.branch({ fs, dir: this.root, ...options });
   }
 
   async renameBranch({ ref, oldRef }: { ref: string; oldRef: string }) {
@@ -176,8 +164,8 @@ export class Transaction<T> {
     await git.checkout({ fs, dir: this.repo.root, ...options });
   }
 
-  async add({ filepath }: { filepath: string | string[] }) {
-    return git.add({ fs, dir: this.repo.root, filepath });
+  async add(options: Omit<Parameters<typeof git.add>[0], 'fs' | 'dir' | '.gitdir'>) {
+    return git.add({ fs, dir: this.repo.root, ...options });
   }
 
   async commit(options: Omit<Parameters<typeof git.commit>[0], 'fs' | 'dir' | '.gitdir'>) {
