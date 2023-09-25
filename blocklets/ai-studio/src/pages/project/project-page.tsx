@@ -509,7 +509,7 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
               current={filepath}
               sx={{ height: '100%', overflow: 'auto' }}
               onExport={exportFiles}
-              onLaunch={onLaunch}
+              onLaunch={assistant ? onLaunch : undefined}
               onImport={onImport}
             />
           </Box>

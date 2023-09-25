@@ -7,7 +7,7 @@ import { defaultBranch, getTemplatesFromRepository } from '../store/projects';
 
 export function templateTagRoutes(router: Router) {
   const getTagsQuerySchema = Joi.object<{ projectId: string; search?: string; type?: 'image' }>({
-    projectId: Joi.string(),
+    projectId: Joi.string().empty('').default('default'),
     search: Joi.string().empty(''),
     type: Joi.string().valid('image').empty(''),
   });
