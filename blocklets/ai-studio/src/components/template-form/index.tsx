@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
+import { getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
 import {
@@ -18,8 +19,10 @@ import {
   Typography,
 } from '@mui/material';
 import Joi from 'joi';
+import omit from 'lodash/omit';
 import { ComponentProps, useState } from 'react';
 import { useAsync } from 'react-use';
+import type { Map } from 'yjs';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import {
@@ -31,7 +34,8 @@ import {
   StringParameter,
   Template,
 } from '../../../api/src/store/templates';
-import { getLogs } from '../../libs/log';
+import { Commit, getLogs } from '../../libs/log';
+import { getFile } from '../../libs/tree';
 import useDialog from '../../utils/use-dialog';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
@@ -81,7 +85,7 @@ export default function TemplateFormView({
 }) {
   const { t, locale } = useLocaleContext();
 
-  const { dialog, showDialog } = useDialog();
+  const { dialog, showDialog, closeDialog } = useDialog();
 
   const [, setError] = useState<Joi.ValidationError>();
 
@@ -187,6 +191,40 @@ export default function TemplateFormView({
     );
   };
 
+  const onCommitSelect = async (commit: Commit) => {
+    const template = await getFile({ projectId, ref: commit.oid, path });
+    const templateYjs: TemplateYjs = {
+      ...omit(template, 'path'),
+      prompts:
+        template.prompts &&
+        Object.fromEntries(
+          template.prompts?.map((prompt, index) => [
+            prompt.id,
+            {
+              index,
+              data: prompt,
+            },
+          ])
+        ),
+      branch: template.branch && {
+        branches: Object.fromEntries(
+          template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
+        ),
+      },
+      datasets:
+        template.datasets &&
+        Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+    };
+
+    const map: Map<any> = getYjsValue(form) as any;
+    map.doc!.transact(() => {
+      map.clear();
+      Object.assign(form, templateYjs);
+    });
+
+    closeDialog();
+  };
+
   return (
     <Grid container spacing={2}>
       {dialog}
@@ -203,9 +241,7 @@ export default function TemplateFormView({
             _ref={ref}
             path={path}
             hash={hash}
-            onCommitSelect={() => {
-              // TODO:
-            }}>
+            onCommitSelect={onCommitSelect}>
             <Button
               sx={{ ml: 1 }}
               color="inherit"
@@ -222,22 +258,7 @@ export default function TemplateFormView({
                 maxWidth: 'sm',
                 fullWidth: true,
                 title: t('alert.pickFromBranch'),
-                content: (
-                  <CommitSelect
-                    projectId={projectId}
-                    _ref={ref}
-                    path={path}
-                    onSelect={async () => {
-                      // TODO:
-                      // const template = await getFile({ projectId, ref: commit.oid, path });
-                      // for (const key of Object.keys(form)) {
-                      //   delete (form as any)[key];
-                      // }
-                      // Object.assign(form, template);
-                      // closeDialog();
-                    }}
-                  />
-                ),
+                content: <CommitSelect projectId={projectId} _ref={ref} path={path} onSelect={onCommitSelect} />,
                 cancelText: t('alert.cancel'),
               })
             }>

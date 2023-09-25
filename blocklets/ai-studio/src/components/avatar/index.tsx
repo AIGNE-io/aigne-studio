@@ -1,4 +1,5 @@
 import DidAvatar from '@arcblock/ux/lib/Avatar';
+import { Avatar as MuiAvatar } from '@mui/material';
 
 export interface Props {
   src?: string;
@@ -11,5 +12,8 @@ export default function Avatar({ src, ...rest }: Props) {
     // eslint-disable-next-line no-param-reassign
     src = src.replace(/\s/g, encodeURIComponent(' '));
   }
+
+  if (!rest.did) return <MuiAvatar src={src} {...rest} />;
+
   return <DidAvatar src={src} {...rest} />;
 }

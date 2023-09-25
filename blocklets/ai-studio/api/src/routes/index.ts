@@ -8,6 +8,7 @@ import { logRoutes } from './log';
 import { projectRoutes } from './project';
 import { templateTagRoutes } from './template-tag';
 import { templateRoutes } from './templates';
+import { treeRoutes } from './tree';
 import { workingRoutes } from './working';
 import ws from './ws';
 
@@ -19,6 +20,7 @@ branchRoutes(router);
 templateTagRoutes(router);
 templateRoutes(router);
 workingRoutes(router);
+treeRoutes(router);
 
 router.use('/ai', ai);
 router.use('/datasets', datasets);
