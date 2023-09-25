@@ -97,5 +97,6 @@ export default flat({
     pickFromBranch: '从其它分支选择',
     saveInNewBranch: '保存到新的分支',
     newBranch: '新建分支',
+    message: '备注',
   },
 });

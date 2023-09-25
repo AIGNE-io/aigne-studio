@@ -374,12 +374,40 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
         const branch = !newBranch ? gitRef : await showCreateBranch();
         if (!branch) return;
 
+        const message = await new Promise<string | null>((resolve) => {
+          let message = '';
+
+          showDialog({
+            maxWidth: 'sm',
+            fullWidth: true,
+            title: t('form.save'),
+            content: (
+              <Box>
+                <TextField
+                  fullWidth
+                  multiline
+                  label={t('alert.message')}
+                  onChange={(e) => (message = e.target.value)}
+                />
+              </Box>
+            ),
+            okText: t('form.save'),
+            cancelText: t('alert.cancel'),
+            onOk: async () => {
+              resolve(message.trim());
+            },
+            onCancel: () => resolve(null),
+          });
+        });
+
+        if (typeof message !== 'string') return;
+
         await commitFromWorking({
           projectId,
           ref: gitRef,
           input: {
             branch,
-            message: new Date().toLocaleString(),
+            message: message || new Date().toLocaleString(),
           },
         });
 

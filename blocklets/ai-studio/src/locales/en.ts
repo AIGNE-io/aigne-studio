@@ -97,5 +97,6 @@ export default flat({
     pickFromBranch: 'Pick from branch',
     saveInNewBranch: 'Save in new branch',
     newBranch: 'New branch',
+    message: 'Message',
   },
 });
