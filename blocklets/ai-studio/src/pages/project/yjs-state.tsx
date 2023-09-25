@@ -2,7 +2,6 @@ import {
   Doc,
   createEncoder,
   getYjsDoc,
-  syncProtocols,
   syncedStore,
   toUint8Array,
   useSyncedStore,
@@ -14,6 +13,7 @@ import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import joinUrl from 'url-join';
+import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -106,7 +106,7 @@ export function StoreProvider({
         if (provider.ws && provider.ws.readyState === WebSocket.OPEN) {
           const encoder = createEncoder();
           writeVarUint(encoder, messageSync);
-          syncProtocols.writeSyncStep1(encoder, provider.doc);
+          writeSyncStep1(encoder, provider.doc);
           provider.ws.send(toUint8Array(encoder));
         }
       }, 1000);

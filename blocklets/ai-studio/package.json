@@ -98,6 +98,7 @@
     "tz-lookup": "^6.1.25",
     "url-join": "^4.0.1",
     "y-indexeddb": "^9.0.11",
+    "y-protocols": "^1.0.6",
     "y-websocket": "^1.5.0",
     "yaml": "^2.2.1"
   },
