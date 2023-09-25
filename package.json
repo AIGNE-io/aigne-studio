@@ -11,7 +11,7 @@
     "email": "liyechao@yechao.xyz"
   },
   "scripts": {
-    "dev": "yarn workspace @blocklet/co-git build:watch & yarn workspace ai-studio dev",
+    "dev": "yarn workspace @blocklet/co-git dev & yarn workspace ai-studio dev",
     "bundle": "yarn workspace @blocklet/co-git build && yarn workspace ai-studio bundle",
     "lint": "yarn workspace @blocklet/co-git build && yarn workspaces run lint",
     "build": "yarn workspace @blocklet/co-git build && yarn workspace ai-studio build",
@@ -47,6 +47,7 @@
     "husky": "^8.0.2",
     "import-sort-style-module": "^6.0.0",
     "lint-staged": "^12.5.0",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.8.4",
     "prettier-plugin-import-sort": "^0.0.7",
     "rimraf": "^3.0.2",
