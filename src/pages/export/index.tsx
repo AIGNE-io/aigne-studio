@@ -1,7 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { NodeModel } from '@minoru/react-dnd-treeview';
-// import styled from '@emotion/styled';
 import {
   Alert,
   Autocomplete,
@@ -9,13 +8,13 @@ import {
   Button,
   Checkbox,
   CircularProgress,
-  Container,
   FormControlLabel,
   Stack,
   TextField,
 } from '@mui/material';
 import groupBy from 'lodash/groupBy';
 import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import joinUrl from 'url-join';
 
 import { EntryWithMeta } from '../../../api/src/routes/tree';
@@ -36,11 +35,24 @@ function mergeByParent(data: (TreeNode & { children?: any[]; type: string })[]) 
 
 export default function ExportRoutes() {
   const { t } = useLocaleContext();
+  const [searchParams] = useSearchParams();
 
-  const [state, setState, { init, exported, removed, refetch }] = useRequest();
+  const readonly = searchParams.get('readonly');
+  const projectId = searchParams.get('projectId');
+  const releaseId = searchParams.get('releaseId');
+
+  const [state, setState, { init, exported, removed, refetch }] = useRequest({
+    projectId: projectId || '',
+    releaseId: releaseId || '',
+  });
+
   const [selected, setSelected] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState(false);
   const { dialog, showDialog, closeDialog } = useDialog();
+
+  const isReadonly = useMemo(() => {
+    return String(readonly) === '1';
+  }, [readonly]);
 
   const handleChange = (id: string, checked: boolean) => {
     setSelected((r) => ({ ...r, [id]: checked }));
@@ -84,7 +96,15 @@ export default function ExportRoutes() {
     setLoading(true);
     try {
       const templates = Object.keys(checked).filter((key: string): boolean => Boolean(checked[key]));
-      await createExport({ projectId: state.projectId, ref: state.ref, templates });
+      await createExport({
+        projectId: state.projectId,
+        ref: state.ref,
+        templates,
+        iframe: {
+          projectId: projectId || '',
+          releaseId: releaseId || '',
+        },
+      });
 
       init();
 
@@ -160,46 +180,52 @@ export default function ExportRoutes() {
   const disabled = !Object.keys(checked).filter((key: string): boolean => Boolean(checked[key])).length;
 
   return (
-    <Container sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Box display="flex" alignItems="center" pt={2} gap={2}>
-        <Autocomplete
-          style={{ flex: 1 }}
-          disableClearable
-          // @ts-ignore
-          value={projectValue || ''}
-          options={state.projects}
-          renderInput={(params) => <TextField {...params} size="small" label={t('export.selectProject')} />}
-          isOptionEqualToValue={(o, v) => o?._id === v?._id}
-          getOptionLabel={(v) => v?.name || ''}
-          onChange={(_e, newValue) => {
-            setSelected({});
-            setState((r: any) => ({ ...r, projectId: newValue._id, ref: 'main' }));
-            refetch({ projectId: newValue._id, ref: 'main' });
-          }}
-        />
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {!isReadonly && (
+        <Box display="flex" alignItems="center" pt={2} gap={2}>
+          <Autocomplete
+            style={{ flex: 1 }}
+            disableClearable
+            // @ts-ignore
+            value={projectValue || ''}
+            options={state.projects}
+            renderInput={(params) => (
+              <TextField {...params} size="small" label={t('export.selectProject')} disabled={isReadonly} />
+            )}
+            isOptionEqualToValue={(o, v) => o?._id === v?._id}
+            getOptionLabel={(v) => v?.name || ''}
+            onChange={(_e, newValue) => {
+              setSelected({});
+              setState((r: any) => ({ ...r, projectId: newValue._id, ref: 'main' }));
+              refetch({ projectId: newValue._id, ref: 'main' });
+            }}
+          />
 
-        <Autocomplete
-          style={{ flex: 1 }}
-          disableClearable
-          value={state.ref}
-          options={state.branches}
-          renderInput={(params) => <TextField {...params} size="small" label={t('export.selectBranch')} />}
-          isOptionEqualToValue={(o, v) => o === v}
-          getOptionLabel={(v) => v}
-          onChange={(_e, newValue) => {
-            setSelected({});
-            setState((r: any) => ({ ...r, ref: newValue }));
-            refetch({ projectId: state.projectId, ref: newValue });
-          }}
-        />
-      </Box>
+          <Autocomplete
+            style={{ flex: 1 }}
+            disableClearable
+            value={state.ref}
+            options={state.branches}
+            renderInput={(params) => (
+              <TextField {...params} size="small" label={t('export.selectBranch')} disabled={isReadonly} />
+            )}
+            isOptionEqualToValue={(o, v) => o === v}
+            getOptionLabel={(v) => v}
+            onChange={(_e, newValue) => {
+              setSelected({});
+              setState((r: any) => ({ ...r, ref: newValue }));
+              refetch({ projectId: state.projectId, ref: newValue });
+            }}
+          />
+        </Box>
+      )}
 
       {state.loading ? (
         <Box flex={1} display="center" justifyContent="center" alignItems="center" width={1} height={1}>
           <CircularProgress size={30} />
         </Box>
       ) : (
-        <Box flex={1} height={0} overflow="auto">
+        <Box flex={1} height={0} overflow="auto" mt={2} mb={7}>
           {!!removed.length && (
             <Box my={2}>
               <Alert severity="warning">
@@ -246,7 +272,7 @@ export default function ExportRoutes() {
                     pl: 0,
                     background: getBackground(item.text),
                   }}
-                  disabled={item.type === 'folder' && !item.children?.length}
+                  disabled={(item.type === 'folder' && !item.children?.length) || isReadonly}
                   label={name}
                   control={
                     <Checkbox
@@ -268,6 +294,7 @@ export default function ExportRoutes() {
                           background: getBackground(children.text),
                         }}
                         label={children?.data?.meta?.name || t('alert.unnamed')}
+                        disabled={isReadonly}
                         control={
                           <Checkbox
                             size="small"
@@ -288,12 +315,14 @@ export default function ExportRoutes() {
       )}
 
       <Box sx={{ position: 'sticky', bottom: 40 }}>
-        <Button variant="contained" onClick={onConfirm} disabled={disabled || loading} sx={{ width: 1 }}>
-          {t('alert.export')}
-        </Button>
+        {!isReadonly && (
+          <Button variant="contained" onClick={onConfirm} disabled={disabled || loading} sx={{ width: 1 }}>
+            {t('alert.export')}
+          </Button>
+        )}
       </Box>
 
       {dialog}
-    </Container>
+    </Box>
   );
 }
