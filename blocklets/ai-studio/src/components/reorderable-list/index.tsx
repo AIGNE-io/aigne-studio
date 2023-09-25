@@ -1,9 +1,40 @@
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css } from '@emotion/css';
 import { DragIndicator } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import { Reorder, useDragControls } from 'framer-motion';
-import { get } from 'lodash';
+import get from 'lodash/get';
+import sortBy from 'lodash/sortBy';
 import { ComponentProps, Key, ReactNode, memo } from 'react';
+
+export function ReorderableListYjs<T>({
+  list,
+  renderItem,
+  ...props
+}: {
+  list: { [key: string]: { index: number; data: T } };
+  renderItem: (item: T, index: number) => ReactNode;
+} & Omit<ComponentProps<typeof Reorder.Group>, 'onChange' | 'onReorder' | 'values'>) {
+  const mapKeys = sortBy(Object.entries(list), (i) => i[1].index).map((i) => i[0]);
+
+  return (
+    <Reorder.Group
+      as="div"
+      values={mapKeys}
+      onReorder={(keys) => {
+        (getYjsValue(list) as Map<any>).doc!.transact(() => {
+          keys.forEach((key, index) => (list[key]!.index = index));
+        });
+      }}
+      {...props}>
+      {mapKeys.map((key, index) => (
+        <Item key={key} value={key}>
+          {renderItem(list[key]!.data, index)}
+        </Item>
+      ))}
+    </Reorder.Group>
+  );
+}
 
 export default function ReorderableList<T>({
   list,

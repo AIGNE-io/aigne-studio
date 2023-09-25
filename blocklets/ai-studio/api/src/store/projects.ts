@@ -1,11 +1,12 @@
 import path from 'path';
 
-import { Repository } from '@blocklet/co-git';
+import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
+import { sortBy } from 'lodash';
 import { parse, stringify } from 'yaml';
 
 import env from '../libs/env';
-import { Template } from './templates';
+import { Role, Template } from './templates';
 
 export interface Project {
   _id?: string;
@@ -26,28 +27,93 @@ export const projects = new Projects();
 
 export const defaultBranch = 'main';
 
-const repositories: { [key: string]: Promise<Repository<Template | { $base64: string }>> } = {};
+export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'datasets'> {
+  prompts?: {
+    [key: string]: {
+      index: number;
+      data: {
+        id: string;
+        content?: string;
+        role?: Role;
+      };
+    };
+  };
+
+  branch?: {
+    branches: {
+      [key: string]: {
+        index: number;
+        data: { id: string; template?: { id: string; name?: string }; description: string };
+      };
+    };
+  };
+
+  datasets?: {
+    [key: string]: {
+      index: number;
+      data: { id: string; type: 'vectorStore'; vectorStore?: { id: string; name?: string } };
+    };
+  };
+}
+
+type FileType = TemplateYjs | { $base64: string };
+
+function isTemplate(file: FileType): file is TemplateYjs {
+  return typeof (file as any).id === 'string';
+}
+
+const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
 
 export async function getRepository({ projectId }: { projectId: string }) {
   repositories[projectId] ??= (async () => {
-    const repository = await Repository.init<Template | { $base64: string }>({
+    const repository = await Repository.init<TemplateYjs | { $base64: string }>({
       root: path.join(env.dataDir, 'repositories', projectId),
       parse: async (filepath, content) => {
         if (path.extname(filepath) === '.yaml') {
-          return parse(Buffer.from(content).toString());
+          const template: Template = parse(Buffer.from(content).toString());
+          return {
+            ...template,
+            prompts:
+              template.prompts &&
+              Object.fromEntries(
+                template.prompts?.map((prompt, index) => [
+                  prompt.id,
+                  {
+                    index,
+                    data: prompt,
+                  },
+                ])
+              ),
+            branch: template.branch && {
+              branches: Object.fromEntries(
+                template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
+              ),
+            },
+            datasets:
+              template.datasets &&
+              Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+          };
         }
 
-        // FIXME: type checkout not working for next line
         return {
           $base64: Buffer.from(content).toString('base64'),
         };
       },
-      stringify: async (filepath, content) => {
-        if (path.extname(filepath) === '.yaml') {
-          return stringify(content);
+      stringify: async (_, content) => {
+        if (isTemplate(content)) {
+          const template: Template = {
+            ...content,
+            prompts: content.prompts && sortBy(Object.values(content.prompts), 'index').map(({ data }) => data),
+            branch: content.branch && {
+              branches: sortBy(Object.values(content.branch.branches), 'index').map(({ data }) => data),
+            },
+            datasets: content.datasets && sortBy(Object.values(content.datasets), 'index').map(({ data }) => data),
+          };
+
+          return stringify(template);
         }
 
-        const base64 = (content as any).$base64;
+        const base64 = content.$base64;
 
         return typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
       },

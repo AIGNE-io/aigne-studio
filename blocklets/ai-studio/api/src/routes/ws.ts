@@ -11,8 +11,6 @@ router.use(ensurePromptsEditor).ws('/ws/:projectId/:ref', async (conn, req) => {
   const { projectId, ref } = req.params;
   if (!projectId || !ref) throw new Error('Missing required params projectId or ref');
 
-  conn.binaryType = 'arraybuffer';
-
   const repository = await getRepository({ projectId });
   const working = await repository.working({ ref });
   working.addConnection(conn);

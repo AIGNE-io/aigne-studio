@@ -2,16 +2,17 @@ import { Settings } from '@mui/icons-material';
 import { Box, ClickAwayListener, Grid, IconButton, Paper, Popper } from '@mui/material';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Parameter, Template } from '../../../api/src/store/templates';
+import { TemplateYjs } from '../../../api/src/store/projects';
+import { Parameter } from '../../../api/src/store/templates';
 import ParameterField from '../parameter-field';
 import ParameterConfig from './parameter-config';
 import TokenCounter from './token-counter';
 
-export default function Parameters({ form }: { form: Pick<Template, 'type' | 'name' | 'prompts' | 'parameters'> }) {
+export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 'name' | 'prompts' | 'parameters'> }) {
   const deferredValue = useDeferredValue(form);
 
   const params = useMemo(() => {
-    const params = deferredValue.prompts?.flatMap((i) => matchParams(i.content ?? '')) ?? [];
+    const params = Object.values(deferredValue.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
     if (deferredValue.type === 'branch') {
       params.push('question');
     }

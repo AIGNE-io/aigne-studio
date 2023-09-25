@@ -21,6 +21,7 @@ import Joi from 'joi';
 import { ComponentProps, useState } from 'react';
 import { useAsync } from 'react-use';
 
+import { TemplateYjs } from '../../../api/src/store/projects';
 import {
   HoroscopeParameter,
   LanguageParameter,
@@ -74,7 +75,7 @@ export default function TemplateFormView({
   _ref: string;
   path: string;
   hash?: string;
-  value: Template;
+  value: TemplateYjs;
   onExecute?: (template: Template) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
@@ -148,7 +149,8 @@ export default function TemplateFormView({
       }[parameter.type || 'string'](parameter as any);
     };
 
-    const params = form.prompts?.flatMap((i) => matchParams(i.content ?? '')) ?? [];
+    const params =
+      (form.prompts && Object.values(form.prompts).flatMap((i) => matchParams(i.data.content ?? ''))) ?? [];
 
     const schema = Joi.object(
       Object.fromEntries(

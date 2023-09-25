@@ -9,17 +9,16 @@ import {
 } from '@mui/material';
 import { useMemo } from 'react';
 
-import { TemplateInput } from '../../../api/src/routes/templates';
 import { Template } from '../../../api/src/store/templates';
 
-const filter = createFilterOptions<Pick<Template, 'name'> & { id: string }>();
+const filter = createFilterOptions<Pick<Template, 'id' | 'name'>>();
 
 export interface TemplateAutocompleteProps<
   Multiple extends boolean | undefined,
   DisableClearable extends boolean | undefined,
   FreeSolo extends boolean | undefined
 > extends Omit<
-    AutocompleteProps<Pick<Template, 'name'> & { id: string }, Multiple, DisableClearable, FreeSolo>,
+    AutocompleteProps<Pick<Template, 'id' | 'name'>, Multiple, DisableClearable, FreeSolo>,
     | 'inputValue'
     | 'onInputChange'
     | 'getOptionLabel'
@@ -29,8 +28,8 @@ export interface TemplateAutocompleteProps<
     | 'loading'
     | 'renderInput'
   > {
-  options: Template[];
-  createTemplate?: (input: TemplateInput) => Promise<Template>;
+  options: Pick<Template, 'id' | 'name'>[];
+  createTemplate?: (input: Pick<Template, 'name'>) => Promise<Pick<Template, 'id' | 'name'>>;
   renderInput?: (params: AutocompleteRenderInputParams) => React.ReactNode;
 }
 

@@ -1,4 +1,4 @@
-import { Repository } from '@blocklet/co-git';
+import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
 import { Worker } from 'snowflake-uuid';
 import { parse } from 'yaml';

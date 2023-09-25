@@ -34,6 +34,7 @@ import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-r
 import joinUrl from 'url-join';
 import { parse } from 'yaml';
 
+import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
 import WithAwareness from '../../components/awareness/with-awareness';
 import { parameterToStringValue } from '../../components/parameter-field';
@@ -178,7 +179,7 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
   const assistant = useComponent('ai-assistant');
 
   const onLaunch = useCallback(
-    async (template: Template) => {
+    async (template: TemplateYjs) => {
       if (!assistant) {
         return;
       }

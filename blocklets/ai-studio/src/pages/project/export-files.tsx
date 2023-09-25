@@ -2,9 +2,11 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Box, Typography } from '@mui/material';
 import saveAs from 'file-saver';
+import sortBy from 'lodash/sortBy';
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { stringify } from 'yaml';
 
+import { Template } from '../../../api/src/store/templates';
 import useDialog from '../../utils/use-dialog';
 import { isTemplate, useStore } from './yjs-state';
 
@@ -39,7 +41,9 @@ function ExportFiles({ path = [], quiet, onFinish }: { path?: string[]; quiet?: 
     for (let i = 0; i < list.length; i++) {
       const current = list[i]!;
       if (current.template.branch?.branches.length) {
-        for (const { template } of current.template.branch.branches) {
+        for (const {
+          data: { template },
+        } of Object.values(current.template.branch.branches)) {
           if (template && !list.some((i) => i.template.id === template.id)) {
             const t = files.find((i) => i.template.id === template.id);
             if (t) list.push(t);
@@ -68,7 +72,20 @@ function ExportFiles({ path = [], quiet, onFinish }: { path?: string[]; quiet?: 
     });
 
     const doExport = () => {
-      const str = stringify({ templates: list.map((i) => ({ ...i.template, path: i.parent })) });
+      const templates: (Template & { path: string })[] = list.map((i) => {
+        const { template } = i;
+        return {
+          ...template,
+          prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
+          branch: template.branch && {
+            branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
+          },
+          datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
+          path: i.parent,
+        };
+      });
+
+      const str = stringify({ templates });
       const first = list[0];
       const filename =
         list.length === 1 && first ? first.template.name || first.template.id : `templates-${Date.now()}`;

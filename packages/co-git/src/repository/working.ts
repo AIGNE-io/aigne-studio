@@ -208,6 +208,8 @@ export default class Working<T> extends Doc {
   };
 
   addConnection(conn: WebSocket) {
+    conn.binaryType = 'arraybuffer';
+
     if (this.conns.has(conn)) {
       return;
     }

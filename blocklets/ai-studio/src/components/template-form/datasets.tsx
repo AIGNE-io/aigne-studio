@@ -1,14 +1,15 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Add, Delete } from '@mui/icons-material';
 import { Autocomplete, Box, Button, TextField } from '@mui/material';
 import { nanoid } from 'nanoid';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
+import { TemplateYjs } from '../../../api/src/store/projects';
 import { getDatasets } from '../../libs/dataset';
-import type { TemplateForm } from '.';
 
-export default function Datasets({ form }: { form: Pick<TemplateForm, 'datasets'> }) {
+export default function Datasets({ form }: { form: Pick<TemplateYjs, 'datasets'> }) {
   const { t } = useLocaleContext();
 
   const { value: datasetsRes } = useAsync(() => getDatasets(), []);
@@ -16,26 +17,27 @@ export default function Datasets({ form }: { form: Pick<TemplateForm, 'datasets'
 
   return (
     <>
-      {form.datasets?.map((item, index) => (
-        <Box key={item.id} sx={{ display: 'flex', my: 2 }}>
-          <Autocomplete
-            fullWidth
-            size="small"
-            value={item.vectorStore ?? null}
-            onChange={(_, value) => (form.datasets![index]!.vectorStore = value ?? undefined)}
-            renderInput={(params) => <TextField {...params} label={t('form.dataset')} />}
-            options={datasets}
-            isOptionEqualToValue={(o, v) => o.id === v.id}
-            getOptionLabel={(v) => v.name || 'Unnamed'}
-          />
+      {form.datasets &&
+        Object.values(form.datasets).map(({ data: item }) => (
+          <Box key={item.id} sx={{ display: 'flex', my: 2 }}>
+            <Autocomplete
+              fullWidth
+              size="small"
+              value={item.vectorStore ?? null}
+              onChange={(_, value) => (item.vectorStore = value ?? undefined)}
+              renderInput={(params) => <TextField {...params} label={t('form.dataset')} />}
+              options={datasets}
+              isOptionEqualToValue={(o, v) => o.id === v.id}
+              getOptionLabel={(v) => v.name || 'Unnamed'}
+            />
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>
-            <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => form.datasets!.splice(index, 1)}>
-              <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
-            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>
+              <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => delete form.datasets![item.id]}>
+                <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      ))}
+        ))}
 
       <Button
         fullWidth
@@ -43,8 +45,10 @@ export default function Datasets({ form }: { form: Pick<TemplateForm, 'datasets'
         startIcon={<Add />}
         onClick={() => {
           const id = nanoid();
-          form.datasets ??= [];
-          form.datasets.push({ id, type: 'vectorStore' });
+          (getYjsValue(form) as Map<any>).doc!.transact(() => {
+            form.datasets ??= {};
+            form.datasets[id] = { index: Object.keys(form.datasets).length, data: { id, type: 'vectorStore' } };
+          });
           setTimeout(() => document.getElementById(`option-label-${id}`)?.focus());
         }}>
         {t('form.add')} {t('form.dataset')}

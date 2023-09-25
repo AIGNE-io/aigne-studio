@@ -1,10 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Construction, Delete } from '@mui/icons-material';
 import { Box, Button, TextField } from '@mui/material';
 import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { isTemplateEmpty } from '../../libs/template';
+import { isTemplateYjsEmpty } from '../../libs/template';
 import { createFile, isTemplate, useStore } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
 import AwarenessIndicator from '../awareness/awareness-indicator';
@@ -30,7 +31,7 @@ export default function Next({
   const isTemplateWarning = useCallback(
     ({ id }: { id: string }) => {
       const t = templates.find((i) => i.id === id);
-      return !t || isTemplateEmpty(t);
+      return !t || isTemplateYjsEmpty(t);
     },
     [templates]
   );
@@ -69,8 +70,10 @@ export default function Next({
               label={t('form.outputKey')}
               value={form.next?.outputKey || ''}
               onChange={(e) => {
-                form.next ??= {};
-                form.next.outputKey = e.target.value;
+                (getYjsValue(form) as Map<any>).doc!.transact(() => {
+                  form.next ??= {};
+                  form.next.outputKey = e.target.value;
+                });
               }}
             />
           </WithAwareness>

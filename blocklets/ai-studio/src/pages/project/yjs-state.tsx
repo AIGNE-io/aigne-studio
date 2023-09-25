@@ -16,16 +16,17 @@ import { ReactNode, createContext, useContext, useEffect, useMemo, useState } fr
 import joinUrl from 'url-join';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
+import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
 import { useSessionContext } from '../../contexts/session';
 import { PREFIX } from '../../libs/api';
 
 export type State = {
-  files: { [key: string]: Template | { $base64: string } };
+  files: { [key: string]: TemplateYjs | { $base64: string } };
   tree: { [key: string]: string };
 };
 
-export function isTemplate(value?: State['files'][string]): value is Template {
+export function isTemplate(value?: State['files'][string]): value is TemplateYjs {
   return typeof (value as any)?.id === 'string';
 }
 
@@ -193,7 +194,7 @@ export function createFile({
 }: {
   store: StoreContext['store'];
   parent?: string[];
-  meta?: Partial<Template>;
+  meta?: Partial<TemplateYjs>;
 }) {
   const id = meta?.id || nextTemplateId();
   const filename = `${id}.yaml`;
@@ -247,9 +248,9 @@ export function importFiles({
   files: (Template & { path?: string[] })[];
 }) {
   getYjsDoc(store).transact(() => {
-    for (const file of files) {
-      const path = parent
-        .concat(file.path ?? [])
+    for (const { path, ...file } of files) {
+      const p = parent
+        .concat(path ?? [])
         .concat(`${file.id}.yaml`)
         .join('/');
       const key =
@@ -258,8 +259,29 @@ export function importFiles({
           return isTemplate(f) && f.id === file.id;
         }) || nanoid(32);
 
-      store.files[key] = file;
-      store.tree[key] = path;
+      store.files[key] = {
+        ...file,
+        prompts:
+          file.prompts &&
+          Object.fromEntries(
+            file.prompts?.map((prompt, index) => [
+              prompt.id,
+              {
+                index,
+                data: prompt,
+              },
+            ])
+          ),
+        branch: file.branch && {
+          branches: Object.fromEntries(
+            file.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
+          ),
+        },
+        datasets:
+          file.datasets &&
+          Object.fromEntries(file.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+      };
+      store.tree[key] = p;
     }
   });
 }

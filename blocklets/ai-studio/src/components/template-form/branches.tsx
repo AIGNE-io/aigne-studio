@@ -1,22 +1,23 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Add, Construction, Delete } from '@mui/icons-material';
 import { Box, Button, TextField } from '@mui/material';
 import { nanoid } from 'nanoid';
 import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { isTemplateEmpty } from '../../libs/template';
+import { TemplateYjs } from '../../../api/src/store/projects';
+import { isTemplateYjsEmpty } from '../../libs/template';
 import { createFile, isTemplate, useStore } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
-import ReorderableList from '../reorderable-list';
+import { ReorderableListYjs } from '../reorderable-list';
 import TemplateAutocomplete from './template-autocomplete';
-import type { TemplateForm } from '.';
 
 export default function Branches({
   form,
   onTemplateClick,
 }: {
-  form: Pick<TemplateForm, 'branch' | 'parameters'>;
+  form: Pick<TemplateYjs, 'branch' | 'parameters'>;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { ref, '*': path } = useParams();
@@ -30,7 +31,7 @@ export default function Branches({
   const isTemplateWarning = useCallback(
     ({ id }: { id: string }) => {
       const t = templates.find((i) => i.id === id);
-      return !t || isTemplateEmpty(t);
+      return !t || isTemplateYjsEmpty(t);
     },
     [templates]
   );
@@ -40,13 +41,9 @@ export default function Branches({
   return (
     <>
       {branches && (
-        <ReorderableList
+        <ReorderableListYjs
           list={branches}
-          itemKey="id"
-          onChange={(branches) => {
-            form.branch!.branches = branches;
-          }}
-          renderItem={(branch, index) => (
+          renderItem={(branch) => (
             <>
               <Box sx={{ flex: 1, mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <TemplateAutocomplete
@@ -55,8 +52,7 @@ export default function Branches({
                   size="small"
                   value={branch.template ?? null}
                   onChange={(_, value) =>
-                    (form.branch!.branches[index]!.template =
-                      (typeof value === 'string' ? { id: '', name: value } : value) ?? undefined)
+                    (branch.template = (typeof value === 'string' ? { id: '', name: value } : value) ?? undefined)
                   }
                   renderInput={(params) => <TextField {...params} label={t('form.name')} />}
                   options={templates}
@@ -76,7 +72,7 @@ export default function Branches({
                   maxRows={5}
                   label={t('form.description')}
                   value={branch.description}
-                  onChange={(e) => (form.branch!.branches[index]!.description = e.target.value)}
+                  onChange={(e) => (branch.description = e.target.value)}
                 />
               </Box>
 
@@ -92,7 +88,7 @@ export default function Branches({
                   </Button>
                 )}
 
-                <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => form.branch!.branches.splice(index, 1)}>
+                <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => delete form.branch!.branches[branch.id]}>
                   <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
                 </Button>
               </Box>
@@ -107,8 +103,13 @@ export default function Branches({
         startIcon={<Add />}
         onClick={() => {
           const id = nanoid();
-          form.branch ??= { branches: [] };
-          form.branch?.branches.push({ id, description: '' });
+          (getYjsValue(form) as Map<any>).doc!.transact(() => {
+            form.branch ??= { branches: {} };
+            form.branch!.branches[id] = {
+              index: Object.keys(form.branch.branches).length,
+              data: { id, description: '' },
+            };
+          });
           setTimeout(() => document.getElementById(`option-label-${id}`)?.focus());
         }}>
         {t('form.add')} {t('form.branch')}

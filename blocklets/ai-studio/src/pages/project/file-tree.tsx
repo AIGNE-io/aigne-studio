@@ -24,7 +24,7 @@ import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import joinUrl from 'url-join';
 
-import { Template } from '../../../api/src/store/templates';
+import { TemplateYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
 import { createFile, createFolder, deleteFile, isTemplate, moveFile, nextTemplateId, useStore } from './yjs-state';
@@ -36,7 +36,7 @@ export type EntryWithMeta =
       filename: string;
       parent: string[];
       path: string[];
-      meta: Template;
+      meta: TemplateYjs;
     }
   | {
       type: 'folder';
@@ -60,7 +60,7 @@ export default function FileTree({
   mutable?: boolean;
   onExport?: (path: string[]) => any;
   onImport?: (path: string[]) => any;
-  onLaunch?: (template: Template) => any;
+  onLaunch?: (template: TemplateYjs) => any;
 } & Omit<BoxProps, 'onClick'>) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
@@ -72,7 +72,7 @@ export default function FileTree({
   const [showNewProject, setShowNewProject] = useState(false);
 
   const onCreateFile = useCallback(
-    ({ parent, meta }: { parent?: string[]; meta?: Template } = {}) => {
+    ({ parent, meta }: { parent?: string[]; meta?: TemplateYjs } = {}) => {
       const { filepath } = createFile({ store, parent, meta });
       if (parent) setOpenIds((ids) => (ids ?? []).concat(parent.join('/')));
       navigate(filepath);
@@ -319,10 +319,10 @@ function TreeItemMenus({
 }: {
   mutable?: boolean;
   item: EntryWithMeta;
-  onCreateFile?: (options?: { parent?: string[]; meta?: Template }) => any;
+  onCreateFile?: (options?: { parent?: string[]; meta?: TemplateYjs }) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
   onExport?: (path: string[]) => any;
-  onLaunch?: (template: Template) => any;
+  onLaunch?: (template: TemplateYjs) => any;
   onImport?: (path: string[]) => any;
 }) {
   const { t } = useLocaleContext();
