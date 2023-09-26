@@ -1,6 +1,7 @@
 {
   "name": "ai-studio",
   "version": "0.1.83",
+  "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
     "eject": "vite eject",

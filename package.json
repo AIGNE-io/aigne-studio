@@ -6,10 +6,7 @@
     "blocklets/*",
     "packages/*"
   ],
-  "author": {
-    "name": "Yechao Li",
-    "email": "liyechao@yechao.xyz"
-  },
+  "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "yarn workspace @blocklet/co-git dev & yarn workspace ai-studio dev",
     "bundle": "yarn workspace @blocklet/co-git build && yarn workspace ai-studio bundle",
