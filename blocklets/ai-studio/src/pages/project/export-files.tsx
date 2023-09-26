@@ -2,13 +2,12 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Box, Typography } from '@mui/material';
 import saveAs from 'file-saver';
-import sortBy from 'lodash/sortBy';
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { stringify } from 'yaml';
 
 import { Template } from '../../../api/src/store/templates';
 import useDialog from '../../utils/use-dialog';
-import { isTemplate, useStore } from './yjs-state';
+import { isTemplate, templateYjsToTemplate, useStore } from './yjs-state';
 
 function ExportFiles({ path = [], quiet, onFinish }: { path?: string[]; quiet?: boolean; onFinish: () => any }) {
   const { t } = useLocaleContext();
@@ -75,12 +74,7 @@ function ExportFiles({ path = [], quiet, onFinish }: { path?: string[]; quiet?: 
       const templates: (Template & { path: string })[] = list.map((i) => {
         const { template } = i;
         return {
-          ...template,
-          prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
-          branch: template.branch && {
-            branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
-          },
-          datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
+          ...templateYjsToTemplate(template),
           path: i.parent,
         };
       });
