@@ -32,24 +32,26 @@ export function treeRoutes(router: Router) {
 
     const repository = await getRepository({ projectId });
 
-    const files = await Promise.all(
-      (
-        await repository.listFiles({ ref })
-      ).map(async (filepath) => {
-        const { dir, base } = path.parse(filepath);
-        const parent = dir.split(path.sep);
+    const files = (
+      await Promise.all(
+        (
+          await repository.listFiles({ ref })
+        ).map(async (filepath) => {
+          const { dir, base } = path.parse(filepath);
+          const parent = dir.split(path.sep);
 
-        if (filepath.endsWith('.yaml')) {
-          return {
-            type: 'file',
-            name: base,
-            parent,
-            meta: await getTemplate({ repository, ref, filepath }),
-          };
-        }
-        return filepath;
-      })
-    );
+          if (filepath.endsWith('.yaml')) {
+            return {
+              type: 'file',
+              name: base,
+              parent,
+              meta: await getTemplate({ repository, ref, filepath }),
+            };
+          }
+          return undefined;
+        })
+      )
+    ).filter((i): i is NonNullable<typeof i> => !!i);
     res.json({ files });
   });
 
