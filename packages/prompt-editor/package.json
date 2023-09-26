@@ -20,10 +20,9 @@
   },
   "scripts": {
     "dev": "vite --host",
-    "build-dev": "vite build",
-    "build-prod": "vite build --config vite.prod.config.js",
     "preview": "vite preview",
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "build": "vite build",
     "clean": "rimraf lib",
     "update:deps": "npx taze -n '/arcblock|ocap|abtnode|blocklet|did-connect|did-comment|nedb/' -w && npm run deduplicate && yarn",
     "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
@@ -57,8 +56,9 @@
   "devDependencies": {
     "@rollup/plugin-babel": "5.3.0",
     "@types/lodash-es": "^4.17.9",
-    "@vitejs/plugin-react": "^4.1.0",
+    "@vitejs/plugin-react": "1.0.7",
     "vite": "^4.4.9",
-    "vite-plugin-replace": "^0.1.1"
+    "vite-plugin-replace": "^0.1.1",
+    "vite-plugin-svgr": "^4.0.0"
   }
 }
