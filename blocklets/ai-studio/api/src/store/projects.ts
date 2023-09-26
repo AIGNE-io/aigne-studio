@@ -5,6 +5,7 @@ import Database from '@blocklet/sdk/lib/database';
 import { sortBy } from 'lodash';
 import { parse, stringify } from 'yaml';
 
+import { wallet } from '../libs/auth';
 import env from '../libs/env';
 import { Role, Template } from './templates';
 
@@ -68,6 +69,7 @@ export async function getRepository({ projectId }: { projectId: string }) {
   repositories[projectId] ??= (async () => {
     const repository = await Repository.init<TemplateYjs | { $base64: string }>({
       root: path.join(env.dataDir, 'repositories', projectId),
+      initialCommit: { message: 'init', author: { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content) => {
         if (path.extname(filepath) === '.yaml') {
           const template: Template = parse(Buffer.from(content).toString());
