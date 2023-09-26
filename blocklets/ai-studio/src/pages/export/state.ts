@@ -45,7 +45,14 @@ const useRequest: UseRequest = ({ projectId, releaseId }) => {
           api.getTree({ projectId, ref }),
           getBranches({ projectId }),
         ]);
-        setState((v) => ({ ...v, projectId, ref, files, branches, error: undefined }));
+        setState((v) => ({
+          ...v,
+          projectId,
+          ref,
+          files: files.filter((x) => typeof x === 'object'),
+          branches,
+          error: undefined,
+        }));
         return { files };
       } catch (error) {
         setState((v) => ({ ...v, error }));

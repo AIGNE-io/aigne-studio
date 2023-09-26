@@ -52,9 +52,15 @@ capabilities:
   clusterMode: false
   component: true
   navigation: true
+  resourceExportPage: /admin/resource/component/export
 screenshots:
   - studio.gif
-components: []
+components:
+  - name: ai-kit
+    mountPoint: /ai-kit
+    source:
+      name: ai-kit
+      version: latest
 navigation:
   - id: template
     title:
