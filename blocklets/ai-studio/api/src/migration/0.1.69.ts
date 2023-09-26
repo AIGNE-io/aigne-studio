@@ -1,5 +1,5 @@
-import { existsSync, rmSync } from 'fs';
-import { join } from 'path';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
 
 import { omit } from 'lodash';
 import { nanoid } from 'nanoid';
@@ -21,27 +21,30 @@ async function migrate() {
     rmSync(oldTimeMachineDir, { force: true, recursive: true });
   }
 
-  const defaultRepository = getRepository();
+  const defaultRepoDir = join(env.dataDir, 'repositories', 'default');
 
-  if (!existsSync(defaultRepository.dir)) {
+  if (!existsSync(defaultRepoDir)) {
     // Create default project
     await projects.insert({ _id: 'default', name: 'Default', createdBy: wallet.address, updatedBy: wallet.address });
 
     const folderMap = Object.fromEntries(folders.getAllData().map((folder) => [folder._id!, folder.name]));
     const list = (await templates.find()) as Template[];
     if (list.length) {
+      const defaultRepository = await getRepository({ projectId: 'default' });
       const did = list[0]!.createdBy;
 
-      await defaultRepository.run(async (tx) => {
+      await defaultRepository.transact(async (tx) => {
         for (const t of list) {
           t.id ??= (t as any)._id;
 
           const template = migrateTemplateToPrompts(t);
           const dir = folderMap[(template as any).folderId] || undefined;
-          await tx.write({
-            path: join(dir || '', `${template.id}.yaml`),
-            data: stringify(omit(template, '_id', 'folderId')),
-          });
+          const filepath = join(dir || '', `${template.id}.yaml`);
+          const path = join(defaultRepoDir, filepath);
+          mkdirSync(dirname(path), { recursive: true });
+          writeFileSync(path, stringify(omit(template, '_id', 'folderId')));
+
+          await tx.add({ filepath });
         }
 
         await tx.commit({ message: 'Migrate from v0.1', author: { name: did, email: did } });
