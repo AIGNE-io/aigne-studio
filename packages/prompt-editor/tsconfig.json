@@ -4,8 +4,7 @@
     "moduleResolution": "Node",
     "declaration": true,
     "noEmit": false,
-    "outDir": "lib",
-    "declarationDir": "types"
+    "outDir": "lib"
   },
   "exclude": ["./**/*.d.ts"]
 }

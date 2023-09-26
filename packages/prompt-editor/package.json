@@ -34,7 +34,8 @@
     "build": "rm -rf lib && run-p build:*",
     "build:cjs": "tsc --module commonjs --outDir lib/cjs",
     "build:esm": "tsc --module es2022 --outDir lib/esm",
-    "build:types": "tsc --declaration --emitDeclarationOnly --outDir ./types",
+    "build:types-cjs": "tsc --declaration --emitDeclarationOnly --outDir ./lib/cjs",
+    "build:types-esm": "tsc --declaration --emitDeclarationOnly --outDir ./lib/esm",
     "build:css-cjs": "copyfiles -u 1 './src/**/*.css' lib/cjs/",
     "build:css-esm": "copyfiles -u 1 './src/**/*.css' lib/esm/",
     "build-watch": "tsc --build --watch"
