@@ -36,6 +36,7 @@ import {
 } from '../../../api/src/store/templates';
 import { Commit, getLogs } from '../../libs/log';
 import { getFile } from '../../libs/tree';
+import { useProjectState } from '../../pages/project/state';
 import useDialog from '../../utils/use-dialog';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
@@ -267,20 +268,6 @@ export default function TemplateFormView({
         </Box>
       </Grid>
 
-      <Grid item xs={12} position="relative">
-        <WithAwareness path={[form.id, 'versionNote']}>
-          <TextField
-            fullWidth
-            label={t('form.versionNote')}
-            size="small"
-            value={form.versionNote ?? ''}
-            onChange={(e) => (form.versionNote = e.target.value)}
-          />
-        </WithAwareness>
-
-        <AwarenessIndicator path={[form.id, 'versionNote']} sx={{ position: 'absolute', right: -16, top: 16 }} />
-      </Grid>
-
       <Grid item xs={12}>
         <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           <FormLabel sx={{ width: 60 }}>{t('form.mode')}</FormLabel>
@@ -466,7 +453,9 @@ function Commits({
   _ref: string;
   path?: string;
 } & Omit<ComponentProps<typeof CommitsTip>, 'commits' | 'loading'>) {
-  const { value, loading, error } = useAsync(() => getLogs({ projectId, ref, path }), [path]);
+  const { state } = useProjectState(projectId, ref);
+
+  const { value, loading, error } = useAsync(() => getLogs({ projectId, ref, path }), [path, state.commits[0]?.oid]);
   if (error) console.error(error);
 
   return <CommitsTip {...props} loading={loading} commits={value?.commits} />;

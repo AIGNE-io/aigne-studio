@@ -411,6 +411,7 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
           },
         });
 
+        refetch();
         Toast.success(t('alert.saved'));
         if (branch !== gitRef) navigate(joinUrl('..', branch), { replace: true });
       } catch (error) {
