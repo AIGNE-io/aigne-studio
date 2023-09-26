@@ -1,0 +1,127 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { mergeRegister } from '@lexical/utils';
+import {
+  $getSelection,
+  $isLineBreakNode,
+  $isRangeSelection,
+  $isTextNode,
+  COMMAND_PRIORITY_CRITICAL,
+  KEY_DOWN_COMMAND,
+} from 'lexical';
+import { useEffect } from 'react';
+
+import { IS_APPLE } from '../../utils/environment';
+import replaceNodes from '../VariablePlugin/utils/replace-nodes';
+import { $isVariableTextNode } from '../VariablePlugin/variable-text-node';
+import { $createCommentNode, $isCommentNode, CommentNode } from './comment-node';
+import useTransformVariableNode from './user-transform-node';
+
+export function isCommentKey(keyCode: number, metaKey: boolean, ctrlKey: boolean): boolean {
+  return keyCode === 191 && (IS_APPLE ? metaKey : ctrlKey);
+}
+
+export default function VarContextPlugin(): JSX.Element | null {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    if (!editor.hasNodes([CommentNode])) {
+      throw new Error('CommentNode: CommentNode not registered on editor');
+    }
+    return mergeRegister(
+      editor.registerCommand(
+        KEY_DOWN_COMMAND,
+        (event) => {
+          const { keyCode, ctrlKey, metaKey } = event;
+          const selection = $getSelection();
+
+          if (isCommentKey(keyCode, metaKey, ctrlKey)) {
+            if ($isRangeSelection(selection)) {
+              const anchorNode = selection.anchor.getNode();
+
+              if ($isTextNode(anchorNode) || $isCommentNode(anchorNode) || $isVariableTextNode(anchorNode)) {
+                if ($isCommentNode(anchorNode)) {
+                  const text = anchorNode.getTextContent();
+
+                  let curOffset = selection.anchor.offset - 3;
+
+                  replaceNodes({
+                    fn: (_nodes) => {
+                      // 替换光标位置
+                      for (let i = 0; i < _nodes.length; i++) {
+                        const _node = _nodes[i];
+                        if (_node) {
+                          const _len = _node.getTextContentSize();
+
+                          if (_len >= curOffset) {
+                            _node.select(curOffset, curOffset);
+                            break;
+                          } else {
+                            curOffset -= _len;
+                          }
+                        }
+                      }
+                    },
+                    node: anchorNode,
+                    text: text.slice(3),
+                  });
+                } else {
+                  const preNodes = anchorNode.getPreviousSiblings();
+                  // @ts-ignore
+                  const preIndex = (preNodes || []).findLastIndex((_node: any) => {
+                    return $isLineBreakNode(_node);
+                  });
+                  const transformPreNodes = preIndex === -1 ? preNodes : preNodes.slice(preIndex + 1);
+
+                  const len = transformPreNodes.reduce((pre, cur) => {
+                    return pre + cur.getTextContentSize();
+                  }, 0);
+
+                  const newOffset = len + selection.anchor.offset + 3;
+
+                  const nextNodes = anchorNode.getNextSiblings();
+                  const index = nextNodes.findIndex((_node) => {
+                    return $isLineBreakNode(_node);
+                  });
+                  const transformNextNodes = index === -1 ? nextNodes : nextNodes.slice(0, index);
+
+                  const nodes = [...transformPreNodes, anchorNode, ...transformNextNodes];
+
+                  const texts = nodes
+                    .map((_node) => {
+                      return _node.getTextContent();
+                    })
+                    .join('');
+
+                  // 替换当前节点，其他节点全部删除
+                  for (let j = 0; j < nodes.length; j++) {
+                    const _node = nodes[j];
+                    if (_node) {
+                      if (j === 0) {
+                        const newNode = $createCommentNode(`// ${texts}`);
+                        anchorNode.replace(newNode);
+                        // 替换光标位置
+                        newNode.select(newOffset, newOffset);
+                      } else {
+                        _node.remove();
+                      }
+                    }
+                  }
+                }
+
+                return true;
+              }
+            }
+          }
+
+          return false;
+        },
+        COMMAND_PRIORITY_CRITICAL
+      )
+    );
+  }, [editor]);
+
+  useTransformVariableNode(editor);
+
+  return null;
+}
