@@ -1,3 +1,8 @@
+## 0.1.83 (2023-9-26)
+
+- feat: cooperative editor
+- chore: change to monorepo
+
 ## 0.1.82 (2023-9-14)
 
 - chore: support export resource-based blocklets
@@ -26,7 +31,7 @@
 
 ## 0.1.76 (2023-8-22)
 
-- fix: include nanoid into bundel
+- fix: include nanoid into bundle
 
 ## 0.1.75 (2023-8-16)
 
