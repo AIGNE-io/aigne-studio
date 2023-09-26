@@ -22,7 +22,7 @@ type State = {
   templateRef: string;
 };
 
-const useRequest: () => [State, any, any] = () => {
+const useRequest = ({ projectId, releaseId }: { projectId: string; releaseId: string }): [State, any, any] => {
   const [state, setState] = useState<State>({
     loading: true,
     projectId: '',
@@ -43,7 +43,15 @@ const useRequest: () => [State, any, any] = () => {
           api.getTree({ projectId, ref }),
           getBranches({ projectId }),
         ]);
-        setState((v) => ({ ...v, projectId, ref, files, branches, error: undefined }));
+
+        setState((v) => ({
+          ...v,
+          projectId,
+          ref,
+          files: files.filter((x) => typeof x === 'object'),
+          branches,
+          error: undefined,
+        }));
         return { files };
       } catch (error) {
         setState((v) => ({ ...v, error }));
@@ -63,9 +71,13 @@ const useRequest: () => [State, any, any] = () => {
 
   const init = async () => {
     try {
-      const result: any = await getExportTemplates();
+      const result = await getExportTemplates({
+        projectId,
+        releaseId,
+      });
+      const templates = result?.templates;
 
-      if (result?.templates?.length > 0) {
+      if (templates?.length > 0) {
         setState((v) => ({
           ...v,
           templates: result.templates,
@@ -73,7 +85,7 @@ const useRequest: () => [State, any, any] = () => {
           templateRef: result.ref,
         }));
 
-        await Promise.all([projectFn(), refetch(result.templates[0])]);
+        await Promise.all([projectFn(), refetch(templates[0] as any)]);
       } else {
         const projects = await projectFn();
         await refetch({ projectId: projects[0]?._id || '', ref: 'main' });
@@ -115,7 +127,7 @@ const useRequest: () => [State, any, any] = () => {
   useEffect(() => {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [projectId, releaseId]);
 
   return [state, setState, { init, derived, removed, exported, isSameProject, refetch }];
 };
