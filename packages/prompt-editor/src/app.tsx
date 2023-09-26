@@ -105,6 +105,7 @@ function EditorShell({
 
   useEffect(() => {
     editor.setEditable(editable ?? true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editable]);
 
   const shellRef = useRef<HTMLDivElement>(null);
@@ -112,6 +113,7 @@ function EditorShell({
     if (e.target === shellRef.current) {
       editor.focus();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -130,4 +132,7 @@ function EditorShell({
   );
 }
 
-const EditorRoot = styled.div``;
+const EditorRoot = styled.div`
+  border-radius: 2px;
+  background: #fff;
+`;
