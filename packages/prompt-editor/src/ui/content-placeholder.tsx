@@ -1,4 +1,4 @@
-import './placeholder.css';
+import './content-placeholder.css';
 
 import { ReactNode } from 'react';
 

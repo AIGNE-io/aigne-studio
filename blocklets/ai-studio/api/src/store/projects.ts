@@ -76,13 +76,15 @@ export async function getRepository({ projectId }: { projectId: string }) {
             prompts:
               template.prompts &&
               Object.fromEntries(
-                template.prompts?.map((prompt, index) => [
-                  prompt.id,
-                  {
-                    index,
-                    data: prompt,
-                  },
-                ])
+                template.prompts?.map((prompt, index) => {
+                  return [
+                    prompt.id,
+                    {
+                      index,
+                      data: prompt,
+                    },
+                  ];
+                })
               ),
             branch: template.branch && {
               branches: Object.fromEntries(

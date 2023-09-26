@@ -40,6 +40,7 @@
     "@blocklet/co-git": "^0.1.84",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
     "@blocklet/sdk": "^1.16.16",
+    "@blocklet/prompt-editor": "^1.0.0",
     "@blocklet/ui-react": "^2.7.24",
     "@emotion/css": "^11.10.5",
     "@emotion/react": "^11.10.5",

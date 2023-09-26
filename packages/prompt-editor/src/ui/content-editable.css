@@ -4,8 +4,7 @@
   display: block;
   position: relative;
   outline: 0;
-  padding: 8px 16px;
-  min-height: 150px;
+  min-height: 64px;
 }
 
 @media (max-width: 1025px) {

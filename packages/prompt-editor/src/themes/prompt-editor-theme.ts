@@ -6,7 +6,7 @@
  *
  */
 
-import './PromptEditorEditorTheme.css';
+import './index.css';
 
 import type { EditorThemeClasses } from 'lexical';
 

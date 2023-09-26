@@ -1,4 +1,0 @@
-import './placeholder.css';
-
-import { ReactNode } from 'react';
-export default function Placeholder({ children, className }: { children: ReactNode; className?: string }): JSX.Element;

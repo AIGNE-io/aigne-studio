@@ -133,6 +133,9 @@ function EditorShell({
 }
 
 const EditorRoot = styled.div`
-  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.23);
   background: #fff;
+  padding: 8.5px 14px;
+  border-radius: 4px;
+  position: relative;
 `;

@@ -2,9 +2,10 @@
   "extends": "../../tsconfig",
   "compilerOptions": {
     "moduleResolution": "Node",
-    "declaration": false,
+    "declaration": true,
     "noEmit": false,
-    "outDir": "lib"
+    "outDir": "lib",
+    "declarationDir": "types"
   },
   "exclude": ["./**/*.d.ts"]
 }
