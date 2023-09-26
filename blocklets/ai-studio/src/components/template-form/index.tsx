@@ -81,7 +81,7 @@ export default function TemplateFormView({
   path: string;
   hash?: string;
   value: TemplateYjs;
-  onExecute?: (template: Template) => void;
+  onExecute?: (template: TemplateYjs) => void;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
   const { t, locale } = useLocaleContext();

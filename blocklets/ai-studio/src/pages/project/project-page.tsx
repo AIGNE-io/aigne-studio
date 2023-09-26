@@ -54,7 +54,7 @@ import FileTree from './file-tree';
 import MenuButton from './menu-button';
 import SaveButton from './save-button';
 import { useProjectState } from './state';
-import { StoreProvider, importFiles, isTemplate, useStore } from './yjs-state';
+import { StoreProvider, importFiles, isTemplate, templateYjsToTemplate, useStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -169,11 +169,11 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
     [cancel, navigate]
   );
 
-  const onExecute = async (template: Template) => {
+  const onExecute = async (template: TemplateYjs) => {
     const { parameters } = template;
     const question = parameters?.question?.value;
 
-    add(question?.toString() || '', { template, path: filepath });
+    add(question?.toString() || '', { template: templateYjsToTemplate(template), path: filepath });
   };
 
   const assistant = useComponent('ai-assistant');
@@ -545,7 +545,7 @@ function TemplateEditor({
   projectId: string;
   _ref: string;
   path: string;
-  onExecute: (template: Template) => any;
+  onExecute: (template: TemplateYjs) => any;
 }) {
   const navigate = useNavigate();
 

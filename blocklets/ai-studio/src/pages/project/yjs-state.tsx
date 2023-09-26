@@ -10,6 +10,7 @@ import {
 import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
 import pick from 'lodash/pick';
+import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import joinUrl from 'url-join';
@@ -259,29 +260,42 @@ export function importFiles({
           return isTemplate(f) && f.id === file.id;
         }) || nanoid(32);
 
-      store.files[key] = {
-        ...file,
-        prompts:
-          file.prompts &&
-          Object.fromEntries(
-            file.prompts?.map((prompt, index) => [
-              prompt.id,
-              {
-                index,
-                data: prompt,
-              },
-            ])
-          ),
-        branch: file.branch && {
-          branches: Object.fromEntries(
-            file.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
-          ),
-        },
-        datasets:
-          file.datasets &&
-          Object.fromEntries(file.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
-      };
+      store.files[key] = templateYjsFromTemplate(file);
       store.tree[key] = p;
     }
   });
+}
+
+export function templateYjsToTemplate(template: TemplateYjs): Template {
+  return {
+    ...template,
+    prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
+    branch: template.branch && {
+      branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
+    },
+    datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
+  };
+}
+
+export function templateYjsFromTemplate(file: Template): TemplateYjs {
+  return {
+    ...file,
+    prompts:
+      file.prompts &&
+      Object.fromEntries(
+        file.prompts?.map((prompt, index) => [
+          prompt.id,
+          {
+            index,
+            data: prompt,
+          },
+        ])
+      ),
+    branch: file.branch && {
+      branches: Object.fromEntries(file.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])),
+    },
+    datasets:
+      file.datasets &&
+      Object.fromEntries(file.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+  };
 }
