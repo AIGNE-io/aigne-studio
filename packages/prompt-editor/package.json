@@ -1,15 +1,24 @@
 {
-  "name": "prompt-editor",
+  "name": "@blocklet/prompt-editor",
   "version": "1.0.0",
   "private": true,
   "description": "> TODO: description",
   "author": "leermao <447552708@qq.com>",
   "license": "ISC",
-  "directories": {
-    "lib": "lib"
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "exports": {
+    ".": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
+    }
   },
   "files": [
-    "lib"
+    "lib",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "**/*.d.ts"
   ],
   "repository": {
     "type": "git",
@@ -20,12 +29,13 @@
   },
   "scripts": {
     "dev": "vite --host",
-    "preview": "vite preview",
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
-    "build": "vite build",
-    "clean": "rimraf lib",
-    "update:deps": "npx taze -n '/arcblock|ocap|abtnode|blocklet|did-connect|did-comment|nedb/' -w && npm run deduplicate && yarn",
-    "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
+    "lint:fix": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx --fix",
+    "build": "rm -rf lib && run-p build:*",
+    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
+    "build:esm": "tsc --module es2022 --outDir lib/esm",
+    "build:types": "tsc --declaration --emitDeclarationOnly --outDir ./types",
+    "build-watch": "tsc --build --watch"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",

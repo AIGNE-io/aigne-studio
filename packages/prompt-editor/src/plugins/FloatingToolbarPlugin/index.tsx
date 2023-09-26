@@ -248,7 +248,7 @@ export default function FloatingTextFormatToolbarPlugin({
   floatItems,
 }: {
   anchorElem?: HTMLElement;
-  floatItems?: (data: { editor: LexicalEditor }) => void;
+  floatItems?: (data: { editor: LexicalEditor }) => any;
 }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
   return useFloatingTextFormatToolbar(editor, anchorElem, floatItems);

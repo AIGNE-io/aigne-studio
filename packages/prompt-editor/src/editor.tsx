@@ -17,9 +17,13 @@ import { CAN_USE_DOM } from './utils/environment';
 export default function Editor({
   useRole = false,
   useVariable = false,
+  DEBUG = false,
+  floatItems,
 }: {
   useRole: boolean;
   useVariable: boolean;
+  DEBUG: boolean;
+  floatItems?: (data: { editor: LexicalEditor }) => any;
 }): JSX.Element {
   const text = 'Enter some plain text...';
   const placeholder = <Placeholder>{text}</Placeholder>;
@@ -42,32 +46,6 @@ export default function Editor({
     };
   }, [isSmallWidthViewport]);
 
-  const fns = ({ editor }: { editor: LexicalEditor }) => {
-    return (
-      <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
-        <button
-          type="button"
-          className="popup-item spaced insert-comment"
-          onClick={() => {
-            editor.getEditorState().read(() => {});
-          }}
-          aria-label="Insert comment">
-          Copy
-        </button>
-
-        <button
-          type="button"
-          className="popup-item spaced insert-comment"
-          onClick={() => {
-            editor.getEditorState().read(() => {});
-          }}
-          aria-label="Insert comment">
-          Cover to variable
-        </button>
-      </div>
-    );
-  };
-
   return (
     <>
       <div className="editor-container tree-view plain-text">
@@ -79,10 +57,10 @@ export default function Editor({
       </div>
       <CommentPlugin />
 
-      <TreeViewPlugin />
+      {DEBUG && <TreeViewPlugin />}
       {useRole && <RoleSelectPlugin />}
       {useVariable && <VariablePlugin />}
-      <FloatingToolbarPlugin floatItems={fns} />
+      <FloatingToolbarPlugin floatItems={floatItems} />
       <HistoryPlugin externalHistoryState={historyState} />
     </>
   );
