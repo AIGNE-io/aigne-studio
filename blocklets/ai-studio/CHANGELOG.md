@@ -1,3 +1,7 @@
+## 0.1.84 (2023-9-26)
+
+- fix: transform yjs state to template when executing
+
 ## 0.1.83 (2023-9-26)
 
 - feat: cooperative editor
