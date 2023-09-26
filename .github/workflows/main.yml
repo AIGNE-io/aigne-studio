@@ -21,6 +21,13 @@ jobs:
       - name: Install dependencies
         run: yarn
 
+      - name: Publish to NPM
+        run: |
+          npm config set '//registry.npmjs.org/:_authToken' "${{ secrets.NPM_TOKEN }}"
+          VERSION=$(cat version | awk '{$1=$1;print}')
+          echo "publish version ${VERSION}"
+          cd packages/co-git && npm publish --access public --no-git-checks
+
       - name: Blocklet workflow
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
@@ -28,6 +35,7 @@ jobs:
         with:
           skip-upload: false
           skip-deploy: true
+          working-directory: blocklets/ai-studio
           bundle-command: yarn bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}
           store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_TEST }}
