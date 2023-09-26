@@ -13,6 +13,7 @@ namespace Express {
       role: string;
       fullName: string;
       provider: string;
+      walletOS: string;
     };
   }
 }
