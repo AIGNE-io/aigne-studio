@@ -60,13 +60,11 @@ export default function Editor({
 
   return (
     <>
-      <div className="editor-container tree-view plain-text">
-        <PlainTextPlugin
-          contentEditable={<ContentEditable />}
-          placeholder={placeholderNode}
-          ErrorBoundary={LexicalErrorBoundary}
-        />
-      </div>
+      <PlainTextPlugin
+        contentEditable={<ContentEditable />}
+        placeholder={placeholderNode}
+        ErrorBoundary={LexicalErrorBoundary}
+      />
 
       <CommentPlugin />
       {autoFocus && <AutoFocusPlugin defaultSelection="rootStart" />}

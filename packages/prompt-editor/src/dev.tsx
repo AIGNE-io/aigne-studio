@@ -1,24 +1,10 @@
 import './index.css';
 
-import { $createParagraphNode, $createTextNode, $getRoot } from 'lexical';
+import { EditorState } from 'lexical';
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 
 import PromptEditor from './app';
-import { $createRoleSelectNode } from './plugins/RolePlugin/role-select-node';
-
-function customText() {
-  const root = $getRoot();
-  if (root.getFirstChild() === null) {
-    const paragraph = $createParagraphNode();
-    paragraph.append(
-      $createRoleSelectNode('system'),
-      $createTextNode('The playground is a demo environment built with ')
-    );
-
-    root.append(paragraph);
-  }
-}
 
 // Handle runtime errors
 const showErrorOverlay = (err: Event) => {
@@ -38,6 +24,12 @@ window.addEventListener('unhandledrejection', ({ reason }) => showErrorOverlay(r
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <PromptEditor editorState={customText} />
+    <PromptEditor
+      value=""
+      onChange={(state: EditorState) => {
+        // eslint-disable-next-line no-console
+        console.log(state.toJSON());
+      }}
+    />
   </React.StrictMode>
 );

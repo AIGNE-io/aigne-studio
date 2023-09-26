@@ -1,6 +1,11 @@
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, '.SFNSText-Regular', sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    '.SFNSText-Regular',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: #eee;
@@ -42,23 +47,6 @@ header h1 {
   position: relative;
   line-height: 1.7;
   font-weight: 400;
-}
-
-.editor-shell .editor-container {
-  background: #fff;
-  position: relative;
-  display: block;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-.editor-shell .editor-container.tree-view {
-  border-radius: 0;
-}
-
-.editor-shell .editor-container.plain-text {
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
 }
 
 pre {
