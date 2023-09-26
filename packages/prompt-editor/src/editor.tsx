@@ -1,8 +1,11 @@
+import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
+import { EditorRefPlugin } from '@lexical/react/LexicalEditorRefPlugin';
 import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
-import { LexicalEditor } from 'lexical';
-import { useEffect, useState } from 'react';
+import { EditorState, LexicalEditor } from 'lexical';
+import { MutableRefObject, useEffect, useState } from 'react';
 
 import { useSharedHistoryContext } from './context/shared-history-context';
 import CommentPlugin from './plugins/CommentPlugin';
@@ -15,25 +18,34 @@ import Placeholder from './ui/content-placeholder';
 import { CAN_USE_DOM } from './utils/environment';
 
 export default function Editor({
-  useRole = false,
-  useVariable = false,
-  DEBUG = false,
+  useRoleNode = false,
+  useVariableNode = false,
+  isDebug = false,
   floatItems,
+  children,
+  placeholder,
+  onChange,
+  autoFocus = true,
+  editorRef,
 }: {
-  useRole: boolean;
-  useVariable: boolean;
-  DEBUG: boolean;
+  useRoleNode?: boolean;
+  useVariableNode?: boolean;
+  isDebug?: boolean;
   floatItems?: (data: { editor: LexicalEditor }) => any;
+  children: any;
+  placeholder?: string;
+  onChange?: (editorState: EditorState, editor: LexicalEditor) => void;
+  autoFocus?: boolean;
+  editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
 }): JSX.Element {
   const text = 'Enter some plain text...';
-  const placeholder = <Placeholder>{text}</Placeholder>;
+  const placeholderNode = <Placeholder>{placeholder || text}</Placeholder>;
   const [isSmallWidthViewport, setIsSmallWidthViewport] = useState<boolean>(false);
   const { historyState } = useSharedHistoryContext();
 
   useEffect(() => {
     const updateViewPortWidth = () => {
       const isNextSmallWidthViewport = CAN_USE_DOM && window.matchMedia('(max-width: 1025px)').matches;
-
       if (isNextSmallWidthViewport !== isSmallWidthViewport) {
         setIsSmallWidthViewport(isNextSmallWidthViewport);
       }
@@ -51,17 +63,22 @@ export default function Editor({
       <div className="editor-container tree-view plain-text">
         <PlainTextPlugin
           contentEditable={<ContentEditable />}
-          placeholder={placeholder}
+          placeholder={placeholderNode}
           ErrorBoundary={LexicalErrorBoundary}
         />
       </div>
-      <CommentPlugin />
 
-      {DEBUG && <TreeViewPlugin />}
-      {useRole && <RoleSelectPlugin />}
-      {useVariable && <VariablePlugin />}
+      <CommentPlugin />
+      {autoFocus && <AutoFocusPlugin defaultSelection="rootStart" />}
+      {isDebug && <TreeViewPlugin />}
+      {useRoleNode && <RoleSelectPlugin />}
+      {useVariableNode && <VariablePlugin />}
       <FloatingToolbarPlugin floatItems={floatItems} />
       <HistoryPlugin externalHistoryState={historyState} />
+      {onChange && <OnChangePlugin onChange={onChange} />}
+      {editorRef !== undefined && <EditorRefPlugin editorRef={editorRef} />}
+
+      {children}
     </>
   );
 }
