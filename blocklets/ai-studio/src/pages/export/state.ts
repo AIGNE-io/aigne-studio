@@ -22,9 +22,7 @@ type State = {
   templateRef: string;
 };
 
-type UseRequest = (data: { projectId: string; releaseId: string }) => [State, any, any];
-
-const useRequest: UseRequest = ({ projectId, releaseId }) => {
+const useRequest = ({ projectId, releaseId }: { projectId: string; releaseId: string }): [State, any, any] => {
   const [state, setState] = useState<State>({
     loading: true,
     projectId: '',
@@ -45,6 +43,7 @@ const useRequest: UseRequest = ({ projectId, releaseId }) => {
           api.getTree({ projectId, ref }),
           getBranches({ projectId }),
         ]);
+
         setState((v) => ({
           ...v,
           projectId,
@@ -72,9 +71,13 @@ const useRequest: UseRequest = ({ projectId, releaseId }) => {
 
   const init = async () => {
     try {
-      const result: any = await getExportTemplates({ projectId, releaseId });
+      const result = await getExportTemplates({
+        projectId,
+        releaseId,
+      });
+      const templates = result?.templates;
 
-      if (result?.templates?.length > 0) {
+      if (templates?.length > 0) {
         setState((v) => ({
           ...v,
           templates: result.templates,
@@ -82,7 +85,7 @@ const useRequest: UseRequest = ({ projectId, releaseId }) => {
           templateRef: result.ref,
         }));
 
-        await Promise.all([projectFn(), refetch(result.templates[0])]);
+        await Promise.all([projectFn(), refetch(templates[0] as any)]);
       } else {
         const projects = await projectFn();
         await refetch({ projectId: projects[0]?._id || '', ref: 'main' });

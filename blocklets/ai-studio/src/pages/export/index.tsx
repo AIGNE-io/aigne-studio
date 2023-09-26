@@ -100,7 +100,7 @@ export default function ExportRoutes() {
         projectId: state.projectId,
         ref: state.ref,
         templates,
-        iframe: {
+        resource: {
           projectId: projectId || '',
           releaseId: releaseId || '',
         },

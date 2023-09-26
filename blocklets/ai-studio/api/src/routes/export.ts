@@ -12,9 +12,9 @@ import { ensurePromptsEditor } from '../libs/security';
 import { getRepository } from '../store/projects';
 import { Template, getTemplate } from '../store/templates';
 
-const templatesSchema = Joi.object({
+const templatesSchema = Joi.object<{ templates: string[]; projectId: string; releaseId: string }>({
   templates: Joi.array().items(Joi.string()).unique().required(),
-  projectId: Joi.string(),
+  projectId: Joi.string().required(),
   releaseId: Joi.string().allow(''),
 });
 

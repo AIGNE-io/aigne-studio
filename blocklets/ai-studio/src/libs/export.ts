@@ -1,26 +1,27 @@
 import joinUrl from 'url-join';
 
+import { Template } from '../../api/src/store/templates';
 import axios from './api';
 
 export async function createExport({
   projectId,
   ref,
   templates,
-  iframe,
+  resource,
 }: {
   projectId: string;
   ref: string;
   templates: string[];
-  iframe: {
+  resource: {
     projectId: string;
     releaseId: string;
   };
-}): Promise<{ templates: any[] }> {
+}): Promise<{ templates: Template[] }> {
   return axios
     .post(joinUrl('/api/export', projectId, ref), {
       templates,
-      projectId: iframe.projectId,
-      releaseId: iframe.releaseId,
+      projectId: resource.projectId,
+      releaseId: resource.releaseId,
     })
     .then((res) => res.data);
 }
@@ -31,7 +32,7 @@ export async function getExportTemplates({
 }: {
   projectId: string;
   releaseId: string;
-}): Promise<{ templates: any[] }> {
+}): Promise<{ templates: Template[]; projectId: string; ref: string }> {
   return axios
     .get(joinUrl('/api/export/file'), {
       params: {
