@@ -1,17 +1,32 @@
 import styled from '@emotion/styled';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { EditorState, LexicalEditor } from 'lexical';
-import React, { MutableRefObject, ReactNode, useCallback, useEffect, useRef } from 'react';
+import { $createParagraphNode, $createTextNode, $getRoot, EditorState, LexicalEditor } from 'lexical';
+import React, { MutableRefObject, ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { SharedHistoryContext } from './context/shared-history-context';
 import Editor from './editor';
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
+import { $createRoleSelectNode } from './plugins/RolePlugin/role-select-node';
 import PromptEditorEditorTheme from './themes/prompt-editor-theme';
+
+function EmptyEditor(isRole: boolean) {
+  const root = $getRoot();
+  if (root.getFirstChild() === null) {
+    const paragraph = $createParagraphNode();
+
+    if (isRole) {
+      paragraph.append($createRoleSelectNode('system'));
+    } else {
+      const text = $createTextNode(String.fromCharCode(0xfeff));
+      paragraph.append(text);
+    }
+  }
+}
 
 interface PromptEditorProps {
   placeholder?: string;
-  editorState?: string;
+  value?: string;
   children?: ReactNode;
   onChange?: (editorState: EditorState, editor: LexicalEditor) => void;
   useRoleNode?: boolean;
@@ -29,11 +44,24 @@ export default function PromptEditor({
   editable = true,
   autoFocus = true,
 
-  editorState,
+  value,
   children,
 
   ...props
 }: PromptEditorProps): JSX.Element {
+  const editorState = useMemo(() => {
+    if (value) {
+      try {
+        JSON.parse(value);
+        return value;
+      } catch (error) {
+        return () => EmptyEditor(useRoleNode);
+      }
+    }
+
+    return () => EmptyEditor(useRoleNode);
+  }, []);
+
   const initialConfig = {
     editorState,
     editable,
@@ -87,7 +115,7 @@ function EditorShell({
   }, []);
 
   return (
-    <EditorRoot className="be-shell" ref={shellRef} onClick={onShellClick}>
+    <EditorRoot className="editor-shell" ref={shellRef} onClick={onShellClick}>
       <Editor
         autoFocus={autoFocus}
         onChange={onChange}
