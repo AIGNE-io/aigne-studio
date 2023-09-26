@@ -22,7 +22,9 @@ type State = {
   templateRef: string;
 };
 
-const useRequest: () => [State, any, any] = () => {
+type UseRequest = (data: { projectId: string; releaseId: string }) => [State, any, any];
+
+const useRequest: UseRequest = ({ projectId, releaseId }) => {
   const [state, setState] = useState<State>({
     loading: true,
     projectId: '',
@@ -63,7 +65,7 @@ const useRequest: () => [State, any, any] = () => {
 
   const init = async () => {
     try {
-      const result: any = await getExportTemplates();
+      const result: any = await getExportTemplates({ projectId, releaseId });
 
       if (result?.templates?.length > 0) {
         setState((v) => ({
@@ -115,7 +117,7 @@ const useRequest: () => [State, any, any] = () => {
   useEffect(() => {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [projectId, releaseId]);
 
   return [state, setState, { init, derived, removed, exported, isSameProject, refetch }];
 };
