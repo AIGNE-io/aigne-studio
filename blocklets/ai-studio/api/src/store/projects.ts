@@ -35,6 +35,7 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
       data: {
         id: string;
         content?: string;
+        contentLexicalJson?: {};
         role?: Role;
       };
     };
@@ -83,7 +84,9 @@ export async function getRepository({ projectId }: { projectId: string }) {
                     prompt.id,
                     {
                       index,
-                      data: prompt,
+                      data: {
+                        ...prompt,
+                      },
                     },
                   ];
                 })
@@ -105,14 +108,22 @@ export async function getRepository({ projectId }: { projectId: string }) {
       },
       stringify: async (_, content) => {
         if (isTemplate(content)) {
+          console.log(JSON.stringify(content));
+
           const template: Template = {
             ...content,
-            prompts: content.prompts && sortBy(Object.values(content.prompts), 'index').map(({ data }) => data),
+            prompts:
+              content.prompts &&
+              sortBy(Object.values(content.prompts), 'index').map(({ data }) => {
+                return { ...data };
+              }),
             branch: content.branch && {
               branches: sortBy(Object.values(content.branch.branches), 'index').map(({ data }) => data),
             },
             datasets: content.datasets && sortBy(Object.values(content.datasets), 'index').map(({ data }) => data),
           };
+
+          console.log(template);
 
           return stringify(template);
         }

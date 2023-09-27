@@ -99,7 +99,7 @@ export default function VarContextPlugin(): JSX.Element | null {
                     if (_node) {
                       if (j === 0) {
                         const newNode = $createCommentNode(`// ${texts}`);
-                        anchorNode.replace(newNode);
+                        _node.replace(newNode);
                         // 替换光标位置
                         newNode.select(newOffset, newOffset);
                       } else {

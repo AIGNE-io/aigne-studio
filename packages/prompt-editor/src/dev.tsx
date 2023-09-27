@@ -25,6 +25,7 @@ window.addEventListener('unhandledrejection', ({ reason }) => showErrorOverlay(r
 createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <PromptEditor
+      isDebug
       value=""
       onChange={(state: EditorState) => {
         // eslint-disable-next-line no-console
