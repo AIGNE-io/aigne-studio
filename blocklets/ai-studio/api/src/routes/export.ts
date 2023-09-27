@@ -1,28 +1,42 @@
+/* eslint-disable no-await-in-loop */
 import fs from 'fs';
 import path from 'path';
 
+import component from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import Joi from 'joi';
 import { parse, stringify } from 'yaml';
 
-import env from '../libs/env';
 import logger from '../libs/logger';
 import { ensurePromptsEditor } from '../libs/security';
 import { getRepository } from '../store/projects';
 import { Template, getTemplate } from '../store/templates';
 
-const templatesSchema = Joi.object({
+const templatesSchema = Joi.object<{ templates: string[]; projectId: string; releaseId: string }>({
   templates: Joi.array().items(Joi.string()).unique().required(),
+  projectId: Joi.string().required(),
+  releaseId: Joi.string().allow(''),
 });
 
 const TARGET_DIR = 'ai.templates';
 
-const getTemplateDir = () => {
-  const templateDir = path.join(env.dataDir, TARGET_DIR);
-  fs.mkdirSync(templateDir, { recursive: true });
+const getTemplateDir = ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
+  const exportDir = component.getResourceExportDir({ projectId, releaseId });
+  const templateDir = path.join(exportDir, TARGET_DIR);
+  if (!fs.existsSync(templateDir)) {
+    fs.mkdirSync(templateDir, { recursive: true });
+  }
 
   return templateDir;
 };
+
+const resourceConfigSchema = Joi.object<{
+  projectId: string;
+  releaseId?: string;
+}>({
+  projectId: Joi.string().required(),
+  releaseId: Joi.string().allow(''),
+});
 
 export default function exportRoutes(router: Router) {
   router.post('/export/:projectId/:ref', ensurePromptsEditor, async (req, res) => {
@@ -41,7 +55,7 @@ export default function exportRoutes(router: Router) {
     const templates: Template[] = await Promise.all(fns);
     const result = stringify({ templates });
 
-    const templateDir = getTemplateDir();
+    const templateDir = getTemplateDir({ projectId: input.projectId, releaseId: input.releaseId || '' });
     const templateFolder = fs.existsSync(templateDir);
     if (templateFolder) {
       fs.rmSync(templateDir, { force: true, recursive: true });
@@ -54,9 +68,9 @@ export default function exportRoutes(router: Router) {
     res.json({ templates });
   });
 
-  router.get('/export/file', ensurePromptsEditor, async (_req, res) => {
-    // sdk 去 path projectId => ??
-    const templateDir = getTemplateDir();
+  router.get('/export/file', ensurePromptsEditor, async (req, res) => {
+    const input = await resourceConfigSchema.validateAsync(req.query);
+    const templateDir = getTemplateDir({ projectId: input.projectId, releaseId: input.releaseId || '' });
     const templateFolder = fs.existsSync(templateDir);
 
     let result = { templates: [], projectId: '', ref: '' };

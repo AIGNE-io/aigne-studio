@@ -15,15 +15,29 @@ export interface RepositoryOptions<T> {
   ) => Promise<string | NodeJS.ArrayBufferView> | string | NodeJS.ArrayBufferView;
 }
 
-export const defaultBranchName = 'main';
-
 export default class Repository<T> {
-  static async init<T>(options: RepositoryOptions<T>) {
+  static async init<T>({
+    initialCommit,
+    defaultBranch = 'main',
+    ...options
+  }: RepositoryOptions<T> & {
+    initialCommit?: Pick<Parameters<typeof git.commit>[0], 'message' | 'author'>;
+    defaultBranch?: string;
+  }) {
     if (!fs.existsSync(path.join(options.root, '.git'))) {
       fs.mkdirSync(path.dirname(options.root), { recursive: true });
-      await git.init({ fs, dir: options.root, defaultBranch: defaultBranchName });
+      await git.init({ fs, dir: options.root, defaultBranch });
     }
-    return new Repository(options);
+
+    const repo = new Repository(options);
+
+    if (initialCommit) {
+      if (!(await ignoreNotFoundError(repo.log({ ref: defaultBranch })))?.length) {
+        await repo.transact((tx) => tx.commit(initialCommit));
+      }
+    }
+
+    return repo;
   }
 
   constructor(readonly options: RepositoryOptions<T>) {
@@ -80,21 +94,7 @@ export default class Repository<T> {
     return this.workingMap[ref]!;
   }
 
-  private async isEmpty({ ref }: { ref: string }) {
-    try {
-      await git.log({ fs, gitdir: this.gitdir, ref });
-      return false;
-    } catch (error) {
-      if (error instanceof git.Errors.NotFoundError) {
-        return true;
-      }
-      throw error;
-    }
-  }
-
   async listFiles({ ref }: { ref: string }) {
-    if (await this.isEmpty({ ref })) return [];
-
     return git.listFiles({ fs, gitdir: this.gitdir, ref });
   }
 
@@ -103,10 +103,6 @@ export default class Repository<T> {
   }
 
   async listBranches() {
-    if (await this.isEmpty({ ref: defaultBranchName })) {
-      return [defaultBranchName];
-    }
-
     return git.listBranches({ fs, dir: this.root });
   }
 
@@ -123,8 +119,6 @@ export default class Repository<T> {
   }
 
   async log({ ref, filepath }: { ref: string; filepath?: string }) {
-    if (await this.isEmpty({ ref })) return [];
-
     return git.log({ fs, gitdir: this.gitdir, ref, filepath, force: true, follow: true });
   }
 
@@ -140,8 +134,6 @@ export default class Repository<T> {
     filenameOrPath: string,
     { ref, rejectIfNotFound = true }: { ref: string; rejectIfNotFound?: boolean }
   ) {
-    if ((await this.isEmpty({ ref })) && !rejectIfNotFound) return null;
-
     const filepath = (await git.listFiles({ fs, gitdir: this.gitdir, ref })).find((i) => {
       if (i === filenameOrPath) return true;
       const p = path.parse(i);
@@ -170,5 +162,16 @@ export class Transaction<T> {
 
   async commit(options: Omit<Parameters<typeof git.commit>[0], 'fs' | 'dir' | '.gitdir'>) {
     return git.commit({ fs, dir: this.repo.root, ...options });
+  }
+}
+
+export async function ignoreNotFoundError<T>(value: Promise<T>): Promise<T | undefined> {
+  try {
+    return await value;
+  } catch (error) {
+    if (error instanceof git.Errors.NotFoundError) {
+      return undefined;
+    }
+    throw error;
   }
 }
