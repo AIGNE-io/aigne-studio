@@ -1,3 +1,7 @@
+## 0.1.87 (2023-9-27)
+
+- chore: add resourceExportPage path
+
 ## 0.1.86 (2023-9-27)
 
 - fix: generate parameters after prompts changed
