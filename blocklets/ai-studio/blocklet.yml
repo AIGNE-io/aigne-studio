@@ -52,6 +52,7 @@ capabilities:
   clusterMode: false
   component: true
   navigation: true
+  resourceExportPage: /admin/resource/component/export
 screenshots:
   - studio.gif
 components:
