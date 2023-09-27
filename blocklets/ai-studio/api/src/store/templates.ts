@@ -19,7 +19,7 @@ export interface Template {
   tags?: string[];
   icon?: string;
   description?: string;
-  prompts?: { id: string; content?: string; role?: Role }[];
+  prompts?: { id: string; content?: string; contentLexicalJson?: {}; role?: Role }[];
   branch?: {
     branches: { id: string; template?: { id: string; name?: string }; description: string }[];
   };

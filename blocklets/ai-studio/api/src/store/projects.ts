@@ -1,6 +1,7 @@
 import path from 'path';
 
 import { Repository } from '@blocklet/co-git/repository';
+import { $lexical2text, $text2lexical, tryParseJSONObject } from '@blocklet/prompt-editor/utils';
 import Database from '@blocklet/sdk/lib/database';
 import { sortBy } from 'lodash';
 import { parse, stringify } from 'yaml';
@@ -35,7 +36,7 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
       data: {
         id: string;
         content?: string;
-        contentLexicalJson?: {};
+        contentLexicalJson?: string;
         role?: Role;
       };
     };
@@ -74,23 +75,26 @@ export async function getRepository({ projectId }: { projectId: string }) {
       parse: async (filepath, content) => {
         if (path.extname(filepath) === '.yaml') {
           const template: Template = parse(Buffer.from(content).toString());
+
+          let prompts;
+          if (template.prompts) {
+            const list = template.prompts?.map(async (prompt) => {
+              const contentLexicalJson = await $text2lexical(prompt.content || '', prompt.role);
+              return { ...prompt, contentLexicalJson };
+            });
+
+            const result = await Promise.all(list);
+
+            prompts = Object.fromEntries(
+              result.map((prompt, index) => {
+                return [prompt.id, { index, data: prompt }];
+              })
+            );
+          }
+
           return {
             ...template,
-            prompts:
-              template.prompts &&
-              Object.fromEntries(
-                template.prompts?.map((prompt, index) => {
-                  return [
-                    prompt.id,
-                    {
-                      index,
-                      data: {
-                        ...prompt,
-                      },
-                    },
-                  ];
-                })
-              ),
+            prompts,
             branch: template.branch && {
               branches: Object.fromEntries(
                 template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
@@ -108,7 +112,17 @@ export async function getRepository({ projectId }: { projectId: string }) {
       },
       stringify: async (_, content) => {
         if (isTemplate(content)) {
-          console.log(JSON.stringify(content));
+          if (content.prompts) {
+            const arr = sortBy(Object.values(content.prompts), 'index').map(async ({ data }) => {
+              if (data.contentLexicalJson && tryParseJSONObject(data.contentLexicalJson)) {
+                const res = await $lexical2text(data.contentLexicalJson);
+                console.log(res);
+              }
+              return { ...data };
+            });
+
+            await Promise.all(arr);
+          }
 
           const template: Template = {
             ...content,
@@ -122,8 +136,6 @@ export async function getRepository({ projectId }: { projectId: string }) {
             },
             datasets: content.datasets && sortBy(Object.values(content.datasets), 'index').map(({ data }) => data),
           };
-
-          console.log(template);
 
           return stringify(template);
         }

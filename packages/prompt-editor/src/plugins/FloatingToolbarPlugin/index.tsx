@@ -6,8 +6,7 @@
  *
  */
 
-import './index.css';
-
+import styled from '@emotion/styled';
 import { $isCodeHighlightNode } from '@lexical/code';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
@@ -146,11 +145,23 @@ function TextFormatFloatingToolbar({
   }, [editor, updateTextFormatFloatingToolbar]);
 
   return (
-    <Paper ref={popupCharStylesEditorRef} className="floating-text-format-popup">
+    <Container ref={popupCharStylesEditorRef} className="floating-text-format-popup">
       {editor.isEditable() && floatItems && <>{floatItems(state)}</>}
-    </Paper>
+    </Container>
   );
 }
+
+const Container = styled(Paper)`
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.5s;
+  will-change: transform;
+  padding: 16px;
+`;
 
 function useFloatingTextFormatToolbar(
   editor: LexicalEditor,
