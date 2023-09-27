@@ -1,3 +1,7 @@
+## 0.1.86 (2023-9-27)
+
+- fix: generate parameters after prompts changed
+
 ## 0.1.85 (2023-9-26)
 
 - chore: get source path

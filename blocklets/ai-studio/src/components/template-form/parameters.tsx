@@ -1,6 +1,6 @@
 import { Settings } from '@mui/icons-material';
 import { Box, ClickAwayListener, Grid, IconButton, Paper, Popper } from '@mui/material';
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useDeferredValue, useEffect, useRef, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Parameter } from '../../../api/src/store/templates';
@@ -11,7 +11,7 @@ import TokenCounter from './token-counter';
 export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 'name' | 'prompts' | 'parameters'> }) {
   const deferredValue = useDeferredValue(form);
 
-  const params = useMemo(() => {
+  const params = (() => {
     const params = Object.values(deferredValue.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
     if (deferredValue.type === 'branch') {
       params.push('question');
@@ -21,7 +21,7 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
       params.push('number');
     }
     return [...new Set(params)];
-  }, [deferredValue]);
+  })();
 
   const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
 
