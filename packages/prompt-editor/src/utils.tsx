@@ -49,6 +49,7 @@ export function $text2lexical(content?: string, role?: Role): Promise<string> {
 
       if (content) {
         const rows = content.split(/\n/);
+
         rows.forEach((row) => {
           if (row) {
             const list = splitText(row);
@@ -69,8 +70,6 @@ export function $text2lexical(content?: string, role?: Role): Promise<string> {
 
           paragraph.append($createLineBreakNode());
         });
-      } else {
-        paragraph.append($createLineBreakNode());
       }
 
       root.append(paragraph);
@@ -83,6 +82,9 @@ export function $text2lexical(content?: string, role?: Role): Promise<string> {
 }
 
 export function $lexical2text(editorState: string): Promise<{ content: string; role?: Role }> {
+  // 为了触发文本变化事件
+  const TEMP_TEXT = 'TEMP_TEXT';
+
   return new Promise((resolve, reject) => {
     const editor = createHeadlessEditor({
       nodes: [...PromptEditorNodes],
@@ -105,7 +107,7 @@ export function $lexical2text(editorState: string): Promise<{ content: string; r
           role = roleNode.__text as Role;
         }
 
-        const temp = $createTextNode(String.fromCharCode(0xfeff));
+        const temp = $createTextNode(TEMP_TEXT);
         children.append(temp);
       } else {
         reject(new Error('The data format is incorrect'));
@@ -113,7 +115,7 @@ export function $lexical2text(editorState: string): Promise<{ content: string; r
     });
 
     editor.registerTextContentListener((textContent) => {
-      resolve({ content: textContent, role });
+      resolve({ content: textContent.slice(0, -`${TEMP_TEXT.length}`), role });
     });
   });
 }

@@ -21,6 +21,8 @@ function EmptyEditor(isRole: boolean) {
       const text = $createTextNode(String.fromCharCode(0xfeff));
       paragraph.append(text);
     }
+
+    root.append(paragraph);
   }
 }
 
@@ -60,7 +62,8 @@ export default function PromptEditor({
     }
 
     return () => EmptyEditor(useRoleNode);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useRoleNode]);
 
   const initialConfig = {
     editorState,

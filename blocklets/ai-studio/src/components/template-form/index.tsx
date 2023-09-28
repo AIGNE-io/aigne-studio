@@ -1,7 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import { getYjsValue } from '@blocklet/co-git/yjs';
-import PromptEditor from '@blocklet/prompt-editor';
 import { Icon } from '@iconify-icon/react';
 import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
 import {
@@ -400,10 +399,6 @@ export default function TemplateFormView({
         </WithAwareness>
 
         <AwarenessIndicator path={[form.id, 'description']} sx={{ position: 'absolute', right: -16, top: 16 }} />
-      </Grid>
-
-      <Grid item xs={12}>
-        <PromptEditor />
       </Grid>
 
       <Grid item xs={12}>

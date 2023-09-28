@@ -3,7 +3,7 @@ import path from 'path';
 import { Repository } from '@blocklet/co-git/repository';
 import { $lexical2text, $text2lexical, tryParseJSONObject } from '@blocklet/prompt-editor/utils';
 import Database from '@blocklet/sdk/lib/database';
-import { sortBy } from 'lodash';
+import { omit, sortBy } from 'lodash';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
@@ -61,7 +61,7 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
 
 type FileType = TemplateYjs | { $base64: string };
 
-function isTemplate(file: FileType): file is TemplateYjs {
+export function isTemplate(file: FileType): file is TemplateYjs {
   return typeof (file as any).id === 'string';
 }
 
@@ -84,12 +84,8 @@ export async function getRepository({ projectId }: { projectId: string }) {
             });
 
             const result = await Promise.all(list);
-
-            prompts = Object.fromEntries(
-              result.map((prompt, index) => {
-                return [prompt.id, { index, data: prompt }];
-              })
-            );
+            const format = result.map((prompt, index) => [prompt.id, { index, data: prompt }]);
+            prompts = Object.fromEntries(format);
           }
 
           return {
@@ -112,25 +108,23 @@ export async function getRepository({ projectId }: { projectId: string }) {
       },
       stringify: async (_, content) => {
         if (isTemplate(content)) {
+          let prompts;
           if (content.prompts) {
             const arr = sortBy(Object.values(content.prompts), 'index').map(async ({ data }) => {
               if (data.contentLexicalJson && tryParseJSONObject(data.contentLexicalJson)) {
                 const res = await $lexical2text(data.contentLexicalJson);
-                console.log(res);
+                return { ...omit(data, 'contentLexicalJson'), ...res };
               }
-              return { ...data };
+
+              return { ...omit(data, 'contentLexicalJson') };
             });
 
-            await Promise.all(arr);
+            prompts = await Promise.all(arr);
           }
 
           const template: Template = {
             ...content,
-            prompts:
-              content.prompts &&
-              sortBy(Object.values(content.prompts), 'index').map(({ data }) => {
-                return { ...data };
-              }),
+            prompts,
             branch: content.branch && {
               branches: sortBy(Object.values(content.branch.branches), 'index').map(({ data }) => data),
             },

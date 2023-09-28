@@ -1,6 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $insertNodeToNearestRoot, mergeRegister } from '@lexical/utils';
 import {
+  $createParagraphNode,
   $createTextNode,
   $getRoot,
   $getSelection,
@@ -110,6 +111,18 @@ export default function RoleSelectPlugin(): JSX.Element | null {
         editor.update(() => {
           const children = getRoleSelectChildren();
           if (!children) {
+            // 如果不存在节点，创建节点
+            const root = $getRoot();
+            const children = root.getFirstChild();
+            const paragraph = $createParagraphNode();
+            paragraph.append($createRoleSelectNode('system'));
+
+            if (children === null) {
+              root.append(paragraph);
+            } else {
+              children.replace(paragraph);
+            }
+
             return;
           }
 
@@ -119,7 +132,7 @@ export default function RoleSelectPlugin(): JSX.Element | null {
 
             if (isRoot && selection.anchor.offset < 2) {
               const next = children.getNextSibling();
-              if (next) {
+              if (next?.select) {
                 next?.select(0, 0);
               } else {
                 const text = $createTextNode(String.fromCharCode(0xfeff));
