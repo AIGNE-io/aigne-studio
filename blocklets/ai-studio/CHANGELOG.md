@@ -1,3 +1,7 @@
+## 0.1.89 (2023-9-28)
+
+- chore: bump version
+
 ## 0.1.88 (2023-9-28)
 
 - fix: return projectId/ref in templates api
