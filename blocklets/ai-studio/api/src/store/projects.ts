@@ -3,7 +3,8 @@ import path from 'path';
 import { Repository } from '@blocklet/co-git/repository';
 import { $lexical2text, $text2lexical, tryParseJSONObject } from '@blocklet/prompt-editor/utils';
 import Database from '@blocklet/sdk/lib/database';
-import { omit, sortBy } from 'lodash';
+import omit from 'lodash/omit';
+import sortBy from 'lodash/sortBy';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
