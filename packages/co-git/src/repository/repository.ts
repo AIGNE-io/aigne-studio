@@ -32,8 +32,13 @@ export default class Repository<T> {
     const repo = new Repository(options);
 
     if (initialCommit) {
-      if (!(await ignoreNotFoundError(repo.log({ ref: defaultBranch })))?.length) {
-        await repo.transact((tx) => tx.commit(initialCommit));
+      const defaultBranchExists = !!(await ignoreNotFoundError(repo.listBranches()))?.includes(defaultBranch);
+      if (!defaultBranchExists || !(await ignoreNotFoundError(repo.log({ ref: defaultBranch })))?.length) {
+        await repo.transact(async (tx) => {
+          if (!defaultBranchExists) await repo.branch({ ref: defaultBranch });
+          await tx.checkout({ ref: defaultBranch, force: true });
+          await tx.commit(initialCommit);
+        });
       }
     }
 
