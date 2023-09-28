@@ -1,6 +1,6 @@
 import { Settings } from '@mui/icons-material';
 import { Box, ClickAwayListener, Grid, IconButton, Paper, Popper } from '@mui/material';
-import { useDeferredValue, useEffect, useRef, useState } from 'react';
+import { useDeferredValue, useMemo, useRef, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Parameter } from '../../../api/src/store/templates';
@@ -27,16 +27,13 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
 
   const parametersHistory = useRef<Record<string, Parameter>>({});
 
-  useEffect(() => {
-    if (!form.parameters && params.length === 0) {
-      return;
-    }
-
+  const variables = useMemo(() => {
     form.parameters ??= {};
     for (const param of params) {
       const history = parametersHistory.current[param];
       form.parameters[param] ??= history ?? {};
     }
+
     for (const [key, val] of Object.entries(form.parameters)) {
       if (form.type === 'branch' && key === 'question') {
         continue;
@@ -44,22 +41,29 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
       if (form.type === 'image' && ['size', 'number'].includes(key)) {
         continue;
       }
+
+      parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
+
       if (!params.includes(key)) {
         delete form.parameters[key];
-        parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
       }
     }
-  }, [params]);
+
+    return params
+      .map((param): { param: string; parameter: Parameter } => {
+        return {
+          param,
+          // @ts-ignore
+          parameter: form.parameters[param] || '',
+        };
+      })
+      .filter((x) => x.parameter);
+  }, [params, form, parametersHistory]);
 
   return (
     <>
       <Grid container spacing={2}>
-        {params.map((param) => {
-          const parameter = form.parameters?.[param];
-          if (!parameter) {
-            return null;
-          }
-
+        {variables.map(({ param, parameter }) => {
           return (
             <Grid item xs={12} key={param}>
               <Box display="flex" justifyContent="space-between" alignItems="flex-start">

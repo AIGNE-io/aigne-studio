@@ -119,7 +119,7 @@ export function $lexical2text(editorState: string): Promise<{ content: string; r
     });
 
     editor.registerTextContentListener((textContent) => {
-      resolve({ content: textContent.slice(0, -`${TEMP_TEXT.length}`), role });
+      resolve({ content: textContent.slice(0, -`${TEMP_TEXT.length}`).replace(/\n+/g, '\n'), role });
     });
   });
 }

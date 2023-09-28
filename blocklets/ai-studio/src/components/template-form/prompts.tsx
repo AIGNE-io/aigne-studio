@@ -45,16 +45,18 @@ export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id'
                               paragraph.children.forEach((x: any) => {
                                 if (x.type === 'role') {
                                   prompt.role = x.text;
-                                } else if (x.type === 'linebreak') {
-                                  content += '\n';
-                                } else {
-                                  content += x.text || '';
+                                } else if (x.type !== 'comment') {
+                                  if (x.type === 'linebreak') {
+                                    content += '\n';
+                                  } else {
+                                    content += x.text || '';
+                                  }
                                 }
                               });
                             }
                           }
 
-                          prompt.content = content;
+                          prompt.content = content.replace(/\n+/g, '\n');
                           prompt.contentLexicalJson = JSON.stringify(state);
                         }}
                       />

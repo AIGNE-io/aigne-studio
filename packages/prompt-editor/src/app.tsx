@@ -16,9 +16,10 @@ function EmptyEditor(isRole: boolean) {
     const paragraph = $createParagraphNode();
 
     if (isRole) {
-      paragraph.append($createRoleSelectNode('system'));
+      const role = $createRoleSelectNode('system');
+      paragraph.append(role);
     } else {
-      const text = $createTextNode(String.fromCharCode(0xfeff));
+      const text = $createTextNode(' ');
       paragraph.append(text);
     }
 

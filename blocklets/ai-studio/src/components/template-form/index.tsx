@@ -177,6 +177,7 @@ export default function TemplateFormView({
       setError(error);
       return;
     }
+
     onExecute?.(
       JSON.parse(
         JSON.stringify({
