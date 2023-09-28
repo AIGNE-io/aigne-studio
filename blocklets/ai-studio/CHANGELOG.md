@@ -1,3 +1,7 @@
+## 0.1.88 (2023-9-28)
+
+- fix: return projectId/ref in templates api
+
 ## 0.1.87 (2023-9-27)
 
 - chore: add resourceExportPage path
