@@ -9,15 +9,13 @@ import { LexicalEditor, TextNode } from 'lexical';
 import { useEffect } from 'react';
 
 import replaceNodes from '../VariablePlugin/utils/replace-nodes';
-import { $createCommentNode, CommentNode } from './comment-node';
-
-const COMMENT_ID = '// ';
+import { $createCommentNode, COMMENT_PREFIX, CommentNode } from './comment-node';
 
 export default function useTransformNode(editor: LexicalEditor) {
   const nodeTextTransform = (node: TextNode) => {
     const text = node.getTextContent();
 
-    if (text.startsWith(COMMENT_ID)) {
+    if (text.startsWith(COMMENT_PREFIX)) {
       node.replace($createCommentNode(text));
     }
   };
@@ -25,7 +23,7 @@ export default function useTransformNode(editor: LexicalEditor) {
   const nodeCommentTransform = (node: CommentNode) => {
     const text = node.getTextContent();
 
-    if (!text.startsWith(COMMENT_ID)) {
+    if (!text.startsWith(COMMENT_PREFIX)) {
       replaceNodes({ node, text });
     }
   };

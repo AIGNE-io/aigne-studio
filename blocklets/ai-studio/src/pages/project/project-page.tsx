@@ -173,7 +173,7 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
     const { parameters } = template;
     const question = parameters?.question?.value;
 
-    add(question?.toString() || '', { template: templateYjsToTemplate(template), path: filepath });
+    add(question?.toString() || '', { template: await templateYjsToTemplate(template), path: filepath });
   };
 
   const assistant = useComponent('ai-assistant');

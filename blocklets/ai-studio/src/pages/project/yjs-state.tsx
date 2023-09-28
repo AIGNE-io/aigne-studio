@@ -7,8 +7,10 @@ import {
   useSyncedStore,
   writeVarUint,
 } from '@blocklet/co-git/yjs';
+import { $lexical2text, $text2lexical, tryParseJSONObject } from '@blocklet/prompt-editor/utils';
 import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
+import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
@@ -248,7 +250,7 @@ export function importFiles({
   parent?: string[];
   files: (Template & { path?: string[] })[];
 }) {
-  getYjsDoc(store).transact(() => {
+  getYjsDoc(store).transact(async () => {
     for (const { path, ...file } of files) {
       const p = parent
         .concat(path ?? [])
@@ -260,16 +262,30 @@ export function importFiles({
           return isTemplate(f) && f.id === file.id;
         }) || nanoid(32);
 
-      store.files[key] = templateYjsFromTemplate(file);
+      store.files[key] = await templateYjsFromTemplate(file);
       store.tree[key] = p;
     }
   });
 }
 
-export function templateYjsToTemplate(template: TemplateYjs): Template {
+export async function templateYjsToTemplate(template: TemplateYjs): Promise<Template> {
+  let prompts;
+  if (template.prompts) {
+    const arr = sortBy(Object.values(template.prompts), 'index').map(async ({ data }) => {
+      if (data.contentLexicalJson && tryParseJSONObject(data.contentLexicalJson)) {
+        const res = await $lexical2text(data.contentLexicalJson);
+        return { ...omit(data, 'contentLexicalJson'), ...res };
+      }
+
+      return { ...omit(data, 'contentLexicalJson') };
+    });
+
+    prompts = await Promise.all(arr);
+  }
+
   return {
     ...template,
-    prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
+    prompts,
     branch: template.branch && {
       branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
     },
@@ -277,20 +293,22 @@ export function templateYjsToTemplate(template: TemplateYjs): Template {
   };
 }
 
-export function templateYjsFromTemplate(file: Template): TemplateYjs {
+export async function templateYjsFromTemplate(file: Template): Promise<TemplateYjs> {
+  let prompts;
+  if (file.prompts) {
+    const list = file.prompts?.map(async (prompt) => {
+      const contentLexicalJson = await $text2lexical(prompt.content || '', prompt.role);
+      return { ...prompt, contentLexicalJson };
+    });
+
+    const result = await Promise.all(list);
+    const format = result.map((prompt, index) => [prompt.id, { index, data: prompt }]);
+    prompts = Object.fromEntries(format);
+  }
+
   return {
     ...file,
-    prompts:
-      file.prompts &&
-      Object.fromEntries(
-        file.prompts?.map((prompt, index) => [
-          prompt.id,
-          {
-            index,
-            data: prompt,
-          },
-        ])
-      ),
+    prompts,
     branch: file.branch && {
       branches: Object.fromEntries(file.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])),
     },

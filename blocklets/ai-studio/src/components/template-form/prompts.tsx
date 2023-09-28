@@ -29,7 +29,6 @@ export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id'
                   <Box sx={{ flex: 1, mt: 1, position: 'relative' }}>
                     <WithAwareness path={[form.id, 'prompts', index]}>
                       <PromptEditor
-                        useRoleNode
                         placeholder={`${t('form.prompt')} ${index + 1}`}
                         value={prompt.contentLexicalJson}
                         onChange={async (state) => {

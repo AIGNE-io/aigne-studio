@@ -10,7 +10,7 @@ import {
 } from 'lexical';
 
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
-import { $createCommentNode, $isCommentNode } from './plugins/CommentPlugin/comment-node';
+import { $createCommentNode, $isCommentNode, COMMENT_PREFIX } from './plugins/CommentPlugin/comment-node';
 import { $createRoleSelectNode, $isRoleSelectNode } from './plugins/RolePlugin/role-select-node';
 import { isBracketStartAndEnd, splitText } from './plugins/VariablePlugin/utils/util';
 import { $createVariableNode, $isVariableTextNode } from './plugins/VariablePlugin/variable-text-node';
@@ -52,19 +52,23 @@ export function $text2lexical(content?: string, role?: Role): Promise<string> {
 
         rows.forEach((row) => {
           if (row) {
-            const list = splitText(row);
-            if (list && list.length) {
-              const nodes = list.filter(Boolean).map((item) => {
-                const isBracket = isBracketStartAndEnd(item);
-                if (isBracket) {
-                  return $createVariableNode(item.trim());
-                }
-                return $createTextNode(item);
-              });
+            if (row.startsWith(COMMENT_PREFIX)) {
+              paragraph.append($createCommentNode(row));
+            } else {
+              const list = splitText(row);
+              if (list && list.length) {
+                const nodes = list.filter(Boolean).map((item) => {
+                  const isBracket = isBracketStartAndEnd(item);
+                  if (isBracket) {
+                    return $createVariableNode(item.trim());
+                  }
+                  return $createTextNode(item);
+                });
 
-              nodes.forEach((_node) => {
-                paragraph.append(_node);
-              });
+                nodes.forEach((_node) => {
+                  paragraph.append(_node);
+                });
+              }
             }
           }
 

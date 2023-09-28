@@ -15,6 +15,8 @@ type Type = 'comment';
 export const TYPE = 'comment';
 const attr = `data-lexical-${TYPE}`;
 
+export const COMMENT_PREFIX = '// ';
+
 export interface CommentInfo {
   type: string;
   text: string;
