@@ -131,7 +131,14 @@ export async function getTemplatesFromRepository({ projectId, ref }: { projectId
   const files = await repository.listFiles({ ref }).then((files) => files.filter((i) => i.endsWith('.yaml')));
   return Promise.all(
     files.map((filepath) =>
-      repository.readBlob({ ref, filepath }).then(({ blob }) => parse(Buffer.from(blob).toString()) as Template)
+      repository.readBlob({ ref, filepath }).then(
+        ({ blob }) =>
+          ({
+            projectId,
+            ref,
+            ...parse(Buffer.from(blob).toString()),
+          } as Template)
+      )
     )
   );
 }

@@ -67,27 +67,3 @@ export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
 });
-
-// (async function test() {
-//   const repo = new Repository({
-//     root: '/Users/chao/.blocklet-server/data/zNKd7u2hqCbEpKMcQtwecez98abdZpLadvwF/ai-studio/repositories/w3rCdbXORBethEIL',
-//     parse: (text) => {
-//       const doc = new Doc();
-//       const store = syncedStore({ state: {} }, doc);
-
-//       Object.assign(store.state, parse(text));
-
-//       return doc;
-//     },
-//     stringify: (doc) => {
-//       const store = syncedStore({ state: {} }, doc);
-//       return stringify(store.state);
-//     },
-//   });
-
-//   const working = await repo.working({ ref: 'main' });
-//   const file = working.file('352363830208102400.yaml')!;
-//   const store = syncedStore<{ state: Partial<Template> }>({ state: {} }, file);
-//   store.state.name = 'foo';
-//   await repo.commit({ ref: 'main', message: 'test 123', author: { name: 'foo' } });
-// })();
