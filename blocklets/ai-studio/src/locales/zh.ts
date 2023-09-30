@@ -114,4 +114,6 @@ export default flat({
   delete: '删除',
   open: '打开',
   unnamed: '未命名',
+  blank: '空白',
+  create: '创建',
 });

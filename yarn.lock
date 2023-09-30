@@ -1642,6 +1642,20 @@
     prop-types "^15.8.1"
     react-is "^18.2.0"
 
+"@mui/lab@^5.0.0-alpha.146":
+  version "5.0.0-alpha.146"
+  resolved "https://registry.yarnpkg.com/@mui/lab/-/lab-5.0.0-alpha.146.tgz#45623ffb856378654ec0b08099a9ce5b45b7d0a4"
+  integrity sha512-azkSNz/F4VAzXdXG1Yu/pdWiMQY8dRpwHycLCQCK7oql5AOVh1pVEmw5+nMT161oc5bOzxBkIsNGPCBwXIZ7Ww==
+  dependencies:
+    "@babel/runtime" "^7.22.15"
+    "@mui/base" "5.0.0-beta.17"
+    "@mui/system" "^5.14.11"
+    "@mui/types" "^7.2.4"
+    "@mui/utils" "^5.14.11"
+    "@mui/x-tree-view" "6.0.0-alpha.1"
+    clsx "^2.0.0"
+    prop-types "^15.8.1"
+
 "@mui/material@^5.0.0", "@mui/material@^5.11.10", "@mui/material@^5.11.11", "@mui/material@^5.11.12", "@mui/material@^5.14.11", "@mui/material@^5.14.8":
   version "5.14.11"
   resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.14.11.tgz#7537f07c383a6cfa32a00fabc9959593478bc5c4"
@@ -1741,7 +1755,7 @@
     prop-types "^15.8.1"
     react-is "^18.2.0"
 
-"@mui/utils@^5.14.11":
+"@mui/utils@^5.14.11", "@mui/utils@^5.14.3":
   version "5.14.11"
   resolved "https://registry.yarnpkg.com/@mui/utils/-/utils-5.14.11.tgz#d19a1d8725ffd16c6c6817f00b5172931958fb9a"
   integrity sha512-fmkIiCPKyDssYrJ5qk+dime1nlO3dmWfCtaPY/uVBqCRMBZ11JhddB9m8sjI2mgqQQwRJG5bq3biaosNdU/s4Q==
@@ -1779,6 +1793,18 @@
     "@mui/utils" "^5.11.7"
     "@types/react-transition-group" "^4.4.5"
     clsx "^1.2.1"
+    prop-types "^15.8.1"
+    react-transition-group "^4.4.5"
+
+"@mui/x-tree-view@6.0.0-alpha.1":
+  version "6.0.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@mui/x-tree-view/-/x-tree-view-6.0.0-alpha.1.tgz#fe499f8c43c01d28aca95cfb17491746ffcc3080"
+  integrity sha512-JUG3HmBrmGEALbCFg1b+i7h726e1dWYZs4db3syO1j+Q++E3nbvE4Lehp5yGTFm+8esH0Tny50tuJaa4WX6VSA==
+  dependencies:
+    "@babel/runtime" "^7.22.6"
+    "@mui/utils" "^5.14.3"
+    "@types/react-transition-group" "^4.4.6"
+    clsx "^2.0.0"
     prop-types "^15.8.1"
     react-transition-group "^4.4.5"
 

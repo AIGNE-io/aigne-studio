@@ -1,20 +1,9 @@
-import { CreateProjectInput, UpdateProjectInput } from '../../api/src/routes/project';
+import { CreateProjectInput, GetProjectsQuery, UpdateProjectInput } from '../../api/src/routes/project';
 import { Project } from '../../api/src/store/projects';
 import axios from './api';
 
-export interface ProjectTemplate {
-  _id: string;
-  name: string;
-}
-
-export async function getProjectTemplates(): Promise<{ templates: ProjectTemplate[] }> {
-  return {
-    templates: [{ _id: '1', name: 'Blank' }],
-  };
-}
-
-export async function getProjects(): Promise<{ projects: Project[] }> {
-  return axios.get('/api/projects').then((res) => res.data);
+export async function getProjects(query?: GetProjectsQuery): Promise<{ projects: Project[] }> {
+  return axios.get('/api/projects', { params: query }).then((res) => res.data);
 }
 
 export async function getProject(projectId: string): Promise<Project> {

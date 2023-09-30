@@ -1,8 +1,9 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Dashboard } from '@blocklet/studio-ui';
+import { Dashboard, LoadingButton } from '@blocklet/studio-ui';
 import { cx } from '@emotion/css';
 import {
+  Add,
   ContentCopyOutlined,
   DeleteOutline,
   ExpandMore,
@@ -32,31 +33,62 @@ import {
   styled,
 } from '@mui/material';
 import { MouseEvent, ReactNode, useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import { Project } from '../../../api/src/store/projects';
 import Loading from '../../components/loading';
 import { useProjectsState } from '../../contexts/projects';
 import { getErrorMessage } from '../../libs/api';
-import { ProjectTemplate } from '../../libs/project';
+import { createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
-  const { dialog, showDialog } = useDialog();
 
   const {
-    state: { loading, templates, projects, menuAnchor },
+    state: { loading, templates, projects },
     refetch,
-    createProject,
-    deleteProject,
-    updateProject,
-    setMenuAnchor,
   } = useProjectsState();
 
   useEffect(() => {
     refetch();
   }, []);
+
+  return (
+    <Dashboard>
+      <ProjectMenu />
+
+      <Box maxWidth="lg" mx="auto" width="100%">
+        {templates.length > 0 && (
+          <Section enableCollapse title={t('newFromTemplates')}>
+            <ProjectList section="templates" list={templates} />
+          </Section>
+        )}
+
+        {projects.length > 0 ? (
+          <Section title={t('myProjects')}>
+            <ProjectList section="projects" list={projects} />
+          </Section>
+        ) : (
+          loading && <Loading fixed />
+        )}
+      </Box>
+    </Dashboard>
+  );
+}
+
+function ProjectMenu() {
+  const { t } = useLocaleContext();
+
+  const { dialog, showDialog } = useDialog();
+
+  const {
+    state: { menuAnchor },
+    createProject,
+    deleteProject,
+    updateProject,
+    setMenuAnchor,
+  } = useProjectsState();
 
   const onDelete = (project: Project) => {
     showDialog({
@@ -83,7 +115,9 @@ export default function ProjectsPage() {
   };
 
   return (
-    <Dashboard>
+    <>
+      {dialog}
+
       <Popper
         key={menuAnchor?.item._id}
         open={Boolean(menuAnchor)}
@@ -133,7 +167,7 @@ export default function ProjectsPage() {
               <MenuItem
                 sx={{ color: 'error.main' }}
                 onClick={() => {
-                  onDelete(menuAnchor!.item as Project);
+                  onDelete(menuAnchor!.item);
                   setMenuAnchor(undefined);
                 }}>
                 <ListItemIcon sx={{ color: 'inherit' }}>
@@ -145,25 +179,7 @@ export default function ProjectsPage() {
           </Paper>
         </ClickAwayListener>
       </Popper>
-
-      <Box maxWidth="lg" mx="auto" width="100%">
-        {templates.length > 0 && (
-          <Section enableCollapse title={t('newFromTemplates')}>
-            <ProjectList section="templates" list={templates} />
-          </Section>
-        )}
-
-        {projects.length > 0 ? (
-          <Section title={t('myProjects')}>
-            <ProjectList section="projects" list={projects} />
-          </Section>
-        ) : (
-          loading && <Loading fixed />
-        )}
-
-        {dialog}
-      </Box>
-    </Dashboard>
+    </>
   );
 }
 
@@ -215,8 +231,9 @@ function Section({
 function ProjectList({
   section,
   list,
-}: { section: 'templates'; list: ProjectTemplate[] } | { section: 'projects'; list: Project[] }) {
+}: { section: 'templates'; list: Project[] } | { section: 'projects'; list: Project[] }) {
   const { t } = useLocaleContext();
+  const navigate = useNavigate();
 
   const {
     state: { selected, menuAnchor },
@@ -232,19 +249,37 @@ function ProjectList({
         return (
           <ProjectItem
             key={item._id}
-            pinned={!!(item as Project).pinnedAt}
+            pinned={!!item.pinnedAt}
             width={{ xs: 'calc(33.33% - 12px)', sm: 'calc(25% - 18px)', md: 160 }}
             maxWidth={{ xs: '100%', md: 160 }}
             selected={selected?.section === section && selected.item._id === item._id}
-            name={item.name}
-            onClick={() => setSelected({ section, item: item as any })}
+            name={section === 'templates' && item.name ? t(item.name) : item.name}
+            onClick={() => setSelected({ section, item })}
             mainActions={
               item._id &&
-              section === 'projects' && (
+              (section === 'projects' ? (
                 <Button component={RouterLink} to={item._id} className="hover-visible" size="small" variant="contained">
                   {t('open')}
                 </Button>
-              )
+              ) : section === 'templates' ? (
+                <LoadingButton
+                  className="hover-visible"
+                  size="small"
+                  variant="contained"
+                  startIcon={<Add />}
+                  loadingPosition="start"
+                  onClick={async () => {
+                    try {
+                      const project = await createProject({ templateId: item._id! });
+                      navigate(project._id!);
+                    } catch (error) {
+                      Toast.error(getErrorMessage(error));
+                      throw error;
+                    }
+                  }}>
+                  {t('create')}
+                </LoadingButton>
+              ) : null)
             }
             actions={
               section === 'projects' && (
@@ -254,7 +289,7 @@ function ProjectList({
                   sx={menuOpen ? { bgcolor: 'grey.100' } : undefined}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setMenuAnchor({ section, anchor: e.currentTarget, item: item as any });
+                    setMenuAnchor({ section, anchor: e.currentTarget, item });
                   }}>
                   <MoreHoriz fontSize="small" />
                 </IconButton>

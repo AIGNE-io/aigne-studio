@@ -114,4 +114,6 @@ export default flat({
   delete: 'Delete',
   open: 'Open',
   unnamed: 'Unnamed',
+  blank: 'Blank',
+  create: 'Create',
 });

@@ -3,11 +3,16 @@ import path from 'path';
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
 import { sortBy } from 'lodash';
+import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
 import env from '../libs/env';
 import { Role, Template } from './templates';
+
+const idGenerator = new Worker();
+
+export const nextProjectId = () => idGenerator.nextId().toString();
 
 export interface Project {
   _id?: string;
@@ -26,6 +31,17 @@ export default class Projects extends Database<Project> {
 }
 
 export const projects = new Projects();
+
+export const projectTemplates: Project[] = [
+  {
+    _id: '363299428078977024',
+    name: 'blank',
+    createdBy: wallet.address,
+    updatedBy: wallet.address,
+    createdAt: '2023-09-30T12:23:04.603Z',
+    updatedAt: '2023-09-30T12:23:04.603Z',
+  },
+];
 
 export const defaultBranch = 'main';
 

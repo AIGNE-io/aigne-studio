@@ -7,11 +7,11 @@ import * as api from '../libs/project';
 export type ProjectsSection = 'templates' | 'projects' | 'samples';
 
 export interface ProjectsState {
-  templates: api.ProjectTemplate[];
+  templates: Project[];
   projects: Project[];
   loading: boolean;
   error?: Error;
-  selected?: { section: 'templates'; item: api.ProjectTemplate } | { section: 'projects'; item: Project };
+  selected?: { section: ProjectsSection; item: Project };
   menuAnchor?: ProjectsState['selected'] & { anchor: HTMLElement };
 }
 
@@ -30,7 +30,10 @@ export const useProjectsState = () => {
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
-      const [{ templates }, { projects }] = await Promise.all([api.getProjectTemplates(), api.getProjects()]);
+      const [{ projects: templates }, { projects }] = await Promise.all([
+        api.getProjects({ type: 'templates' }),
+        api.getProjects(),
+      ]);
       setState((v) => ({ ...v, templates, projects, error: undefined }));
       return { projects };
     } catch (error) {
