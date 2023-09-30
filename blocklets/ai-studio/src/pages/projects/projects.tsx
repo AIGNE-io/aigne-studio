@@ -375,21 +375,6 @@ function ProjectItem({
           <InsertPhotoOutlined sx={{ color: 'grey.400', fontSize: 56 }} />
         </Stack>
 
-        {pinned && (
-          <Tooltip title={t('pin')} placement="top">
-            <PushPinOutlined
-              sx={{
-                position: 'absolute',
-                right: 8,
-                top: 8,
-                transform: 'rotateZ(45deg)',
-                color: 'grey.500',
-                fontSize: 16,
-              }}
-            />
-          </Tooltip>
-        )}
-
         {mainActions && (
           <Stack
             sx={{
@@ -411,6 +396,21 @@ function ProjectItem({
           <Stack direction="row" sx={{ position: 'absolute', right: 0, bottom: 0, p: 1, gap: 1, alignItems: 'center' }}>
             {actions}
           </Stack>
+        )}
+
+        {pinned && (
+          <Tooltip title={t('pin')} placement="top">
+            <PushPinOutlined
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                transform: 'rotateZ(45deg)',
+                color: 'grey.500',
+                fontSize: 16,
+              }}
+            />
+          </Tooltip>
         )}
       </Box>
 
