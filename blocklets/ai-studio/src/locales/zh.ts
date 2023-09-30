@@ -116,4 +116,5 @@ export default flat({
   unnamed: '未命名',
   blank: '空白',
   create: '创建',
+  createdAt: '创建于',
 });

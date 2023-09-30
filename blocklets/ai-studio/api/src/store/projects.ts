@@ -17,6 +17,7 @@ export const nextProjectId = () => idGenerator.nextId().toString();
 export interface Project {
   _id?: string;
   name?: string;
+  description?: string;
   createdAt?: string;
   updatedAt?: string;
   createdBy: string;

@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Dashboard, LoadingButton } from '@blocklet/studio-ui';
 import { cx } from '@emotion/css';
@@ -8,6 +9,7 @@ import {
   DeleteOutline,
   ExpandMore,
   InsertPhotoOutlined,
+  LaunchOutlined,
   MoreHoriz,
   PushPinOutlined,
   WarningRounded,
@@ -55,10 +57,10 @@ export default function ProjectsPage() {
   }, []);
 
   return (
-    <Dashboard>
+    <Dashboard ContentProps={{ sx: { px: { xs: 2, sm: 3 } } }} footer={<FooterInfo />}>
       <ProjectMenu />
 
-      <Box maxWidth="lg" mx="auto" width="100%">
+      <Box maxWidth="xl" mx="auto" width="100%">
         {templates.length > 0 && (
           <Section enableCollapse title={t('newFromTemplates')}>
             <ProjectList section="templates" list={templates} />
@@ -74,6 +76,40 @@ export default function ProjectsPage() {
         )}
       </Box>
     </Dashboard>
+  );
+}
+
+function FooterInfo() {
+  const { t, locale } = useLocaleContext();
+
+  const {
+    state: { selected },
+  } = useProjectsState();
+
+  if (!selected) return null;
+
+  return (
+    <Box
+      sx={{
+        position: 'sticky',
+        bottom: 0,
+        bgcolor: 'background.paper',
+        zIndex: (theme) => theme.zIndex.appBar,
+        borderTop: 1,
+        borderTopColor: (theme) => theme.palette.divider,
+        px: { xs: 2, sm: 3 },
+        py: 2,
+      }}>
+      <Box maxWidth="xl" mx="auto">
+        <Typography variant="h6">
+          {(selected.section === 'templates' && selected.item.name && t(selected.item.name)) || t('unnamed')}
+        </Typography>
+        <Typography variant="body1">{selected.item.description}</Typography>
+        <Typography variant="caption">
+          {t('createdAt')} <RelativeTime value={selected.item.createdAt} locale={locale} />
+        </Typography>
+      </Box>
+    </Box>
   );
 }
 
@@ -203,7 +239,6 @@ function Section({
         sx={{ cursor: enableCollapse ? 'pointer' : 'default' }}
         mt={{ xs: 2, sm: 3 }}
         mb={{ xs: 1, sm: 2 }}
-        px={{ xs: 2, sm: 3 }}
         onClick={() => setTemplatesVisible(!templatesVisible)}>
         <Typography variant="h6" fontWeight="bold">
           {title}
@@ -221,7 +256,7 @@ function Section({
         )}
       </Stack>
 
-      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ px: { xs: 2, sm: 3 }, py: 0.5 }}>
+      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ py: 0.5 }}>
         {children}
       </Collapse>
     </>
@@ -258,7 +293,13 @@ function ProjectList({
             mainActions={
               item._id &&
               (section === 'projects' ? (
-                <Button component={RouterLink} to={item._id} className="hover-visible" size="small" variant="contained">
+                <Button
+                  component={RouterLink}
+                  to={item._id}
+                  className="hover-visible"
+                  size="small"
+                  variant="contained"
+                  startIcon={<LaunchOutlined />}>
                   {t('open')}
                 </Button>
               ) : section === 'templates' ? (

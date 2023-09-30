@@ -13,21 +13,25 @@ export interface CreateProjectInput {
   duplicateFrom?: string;
   templateId?: string;
   name?: string;
+  description?: string;
 }
 
 const createProjectSchema = Joi.object<CreateProjectInput>({
   duplicateFrom: Joi.string().empty([null, '']),
   templateId: Joi.string().empty([null, '']),
   name: Joi.string().empty([null, '']),
+  description: Joi.string().empty([null, '']),
 });
 
 export interface UpdateProjectInput {
   name?: string;
+  description?: string;
   pinned?: boolean;
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
   name: Joi.string().empty([null, '']),
+  description: Joi.string().empty([null, '']),
   pinned: Joi.boolean().empty([null]),
 });
 

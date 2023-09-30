@@ -1,5 +1,5 @@
 import Header from '@blocklet/ui-react/lib/Header';
-import { Box, BoxProps } from '@mui/material';
+import { Box, BoxProps, Stack } from '@mui/material';
 import { ReactNode } from 'react';
 
 export interface DashboardProps {
@@ -11,12 +11,14 @@ export interface DashboardProps {
     addons?: ReactNode | ((builtin: ReactNode[]) => ReactNode[] | ReactNode);
     sx: BoxProps['sx'];
   };
+  ContentProps?: BoxProps;
   children?: ReactNode;
+  footer?: ReactNode;
 }
 
-export default function Dashboard({ HeaderProps, children }: DashboardProps) {
+export default function Dashboard({ HeaderProps, ContentProps, children, footer }: DashboardProps) {
   return (
-    <Box>
+    <Stack sx={{ minHeight: '100vh' }}>
       <Box
         component={Header}
         {...HeaderProps}
@@ -29,7 +31,11 @@ export default function Dashboard({ HeaderProps, children }: DashboardProps) {
         }}
       />
 
-      <Box component="main">{children}</Box>
-    </Box>
+      <Box flexGrow={1} component="main" {...ContentProps}>
+        {children}
+      </Box>
+
+      {footer}
+    </Stack>
   );
 }
