@@ -89,7 +89,6 @@ export default flat({
     updatedAt: 'Updated At',
     history: 'History',
     branchCreated: 'Branch created',
-    deleteProject: 'Delete project "{project}"?\nIt cannot be retrieved after deletion!',
     onBranchTip: 'You are now in history, you need to create a branch to save your changes!',
     deleteBranch: 'Delete branch "{branch}"?',
     showAllBranches: 'Show all branches',
@@ -117,4 +116,5 @@ export default flat({
   blank: 'Blank',
   create: 'Create',
   createdAt: 'Created at',
+  deleteProject: 'Delete project "{project}"?\nIt cannot be retrieved after deletion!',
 });

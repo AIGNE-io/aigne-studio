@@ -89,7 +89,6 @@ export default flat({
     updatedAt: '更新于',
     history: '历史记录',
     branchCreated: '创建分支成功',
-    deleteProject: '删除项目“{project}”？\n删除之后不可找回！',
     onBranchTip: '你现在处于历史记录中，保存更改时需要创建分支！',
     deleteBranch: '删除分支“{branch}”？',
     showAllBranches: '显示所有分支',
@@ -117,4 +116,5 @@ export default flat({
   blank: '空白',
   create: '创建',
   createdAt: '创建于',
+  deleteProject: '删除项目“{project}”？\n删除之后不可找回！',
 });

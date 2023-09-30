@@ -130,11 +130,15 @@ function ProjectMenu() {
     showDialog({
       maxWidth: 'sm',
       fullWidth: true,
+      title: t('delete'),
       content: (
-        <Typography variant="h6">
-          <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
-          {t('alert.deleteProject', { project: project.name || project._id })}
-        </Typography>
+        <Stack direction="row">
+          <WarningRounded color="warning" fontSize="large" sx={{ verticalAlign: 'text-bottom', mr: 2 }} />
+
+          <Typography flex={1} whiteSpace="pre-wrap">
+            {t('deleteProject', { project: project.name || project._id })}
+          </Typography>
+        </Stack>
       ),
       okColor: 'warning',
       okText: t('alert.delete'),
@@ -201,7 +205,7 @@ function ProjectMenu() {
               <Divider />
 
               <MenuItem
-                sx={{ color: 'error.main' }}
+                sx={{ color: 'warning.main' }}
                 onClick={() => {
                   onDelete(menuAnchor!.item);
                   setMenuAnchor(undefined);
