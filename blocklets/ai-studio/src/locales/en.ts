@@ -106,4 +106,12 @@ export default flat({
     alert: 'The {templates} template selected last time has been removed',
     templates: 'Templates',
   },
+  newFromTemplates: 'New from Templates',
+  myProjects: 'My Projects',
+  duplicate: 'Duplicate',
+  pin: 'Pin',
+  unpin: 'Unpin',
+  delete: 'Delete',
+  open: 'Open',
+  unnamed: 'Unnamed',
 });

@@ -1,30 +1,44 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import Header from '@blocklet/ui-react/lib/Header';
-import { Add, Delete, Edit, MoreVert, WarningRounded } from '@mui/icons-material';
+import { Dashboard } from '@blocklet/studio-ui';
+import { cx } from '@emotion/css';
+import {
+  ContentCopyOutlined,
+  DeleteOutline,
+  ExpandMore,
+  InsertPhotoOutlined,
+  MoreHoriz,
+  PushPinOutlined,
+  WarningRounded,
+} from '@mui/icons-material';
 import {
   Box,
-  Card,
+  Button,
   CircularProgress,
+  ClickAwayListener,
+  Collapse,
   Divider,
-  Grid,
   IconButton,
   List,
-  ListItemButton,
   ListItemIcon,
-  ListItemText,
-  TextField,
+  MenuItem,
+  MenuItemProps,
+  Paper,
+  Popper,
+  Stack,
+  StackProps,
+  Tooltip,
   Typography,
-  listItemIconClasses,
+  styled,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { MouseEvent, ReactNode, useEffect, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
 import { Project } from '../../../api/src/store/projects';
-import Dropdown from '../../components/template-form/dropdown';
+import Loading from '../../components/loading';
 import { useProjectsState } from '../../contexts/projects';
-import { useIsAdmin } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
+import { ProjectTemplate } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 
 export default function ProjectsPage() {
@@ -32,50 +46,17 @@ export default function ProjectsPage() {
   const { dialog, showDialog } = useDialog();
 
   const {
-    state: { loading, projects },
+    state: { loading, templates, projects, menuAnchor },
     refetch,
     createProject,
     deleteProject,
     updateProject,
+    setMenuAnchor,
   } = useProjectsState();
-
-  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     refetch();
-    setInitialized(true);
   }, []);
-
-  const onCreate = () => {
-    let name = '';
-
-    showDialog({
-      fullWidth: true,
-      maxWidth: 'sm',
-      title: `${t('form.new')} ${t('form.project')}`,
-      content: (
-        <Box sx={{ maxWidth: 300 }}>
-          <TextField
-            autoFocus
-            fullWidth
-            label={t('form.name')}
-            defaultValue={name}
-            onChange={(e) => (name = e.target.value)}
-          />
-        </Box>
-      ),
-      okText: t('form.new'),
-      cancelText: t('alert.cancel'),
-      onOk: async () => {
-        try {
-          await createProject({ name: name.trim() || null });
-        } catch (error) {
-          Toast.error(getErrorMessage(error));
-          throw error;
-        }
-      },
-    });
-  };
 
   const onDelete = (project: Project) => {
     showDialog({
@@ -101,152 +82,347 @@ export default function ProjectsPage() {
     });
   };
 
-  const onEdit = (project: Project) => {
-    let { name } = project;
-
-    showDialog({
-      fullWidth: true,
-      maxWidth: 'sm',
-      title: `${t('alert.edit')} ${t('form.project')}`,
-      content: (
-        <Box sx={{ maxWidth: 300 }}>
-          <TextField
-            autoFocus
-            fullWidth
-            label={t('form.name')}
-            defaultValue={name}
-            onChange={(e) => (name = e.target.value)}
-          />
-        </Box>
-      ),
-      okText: t('form.save'),
-      cancelText: t('alert.cancel'),
-      onOk: async () => {
-        try {
-          await updateProject(project._id!, { name: name?.trim() || null });
-        } catch (error) {
-          Toast.error(getErrorMessage(error));
-          throw error;
-        }
-      },
-    });
-  };
-
-  const isAdmin = useIsAdmin();
-
   return (
-    <>
-      <Box
-        component={Header}
-        sx={{
-          position: 'sticky',
-          top: 0,
-          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-          '>.header-container': { maxWidth: 'none' },
-        }}
-      />
+    <Dashboard>
+      <Popper
+        key={menuAnchor?.item._id}
+        open={Boolean(menuAnchor)}
+        anchorEl={menuAnchor?.anchor}
+        placement="right-start">
+        <ClickAwayListener onClickAway={() => setMenuAnchor(undefined)}>
+          <Paper>
+            <List dense>
+              <LoadingMenuItem
+                onClick={() =>
+                  createProject({ duplicateFrom: menuAnchor!.item._id! })
+                    .catch((error) => {
+                      Toast.error(getErrorMessage(error));
+                      throw error;
+                    })
+                    .finally(() => {
+                      setMenuAnchor(undefined);
+                    })
+                }>
+                <ListItemIcon>
+                  <ContentCopyOutlined />
+                </ListItemIcon>
+                {t('duplicate')}
+              </LoadingMenuItem>
+
+              {menuAnchor?.section === 'projects' && (
+                <LoadingMenuItem
+                  onClick={() =>
+                    updateProject(menuAnchor.item._id!, { pinned: !menuAnchor.item.pinnedAt })
+                      .catch((error) => {
+                        Toast.error(getErrorMessage(error));
+                        throw error;
+                      })
+                      .finally(() => {
+                        setMenuAnchor(undefined);
+                      })
+                  }>
+                  <ListItemIcon>
+                    <PushPinOutlined />
+                  </ListItemIcon>
+                  {menuAnchor.item.pinnedAt ? t('unpin') : t('pin')}
+                </LoadingMenuItem>
+              )}
+
+              <Divider />
+
+              <MenuItem
+                sx={{ color: 'error.main' }}
+                onClick={() => {
+                  onDelete(menuAnchor!.item as Project);
+                  setMenuAnchor(undefined);
+                }}>
+                <ListItemIcon sx={{ color: 'inherit' }}>
+                  <DeleteOutline color="inherit" />
+                </ListItemIcon>
+                {t('delete')}
+              </MenuItem>
+            </List>
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
 
       <Box maxWidth="lg" mx="auto" width="100%">
-        <Grid container spacing={2} p={2}>
-          <Grid item xs={12}>
-            <Typography variant="h5">Projects</Typography>
-          </Grid>
+        {templates.length > 0 && (
+          <Section enableCollapse title={t('newFromTemplates')}>
+            <ProjectList section="templates" list={templates} />
+          </Section>
+        )}
 
-          {projects.map((item) => (
-            <Grid key={item._id} item xs={12} sm={6} md={4} lg={3}>
-              <Box component={Link} to={item._id!} sx={{ textDecoration: 'none' }}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    position: 'relative',
-                    p: 2,
-                    border: 1,
-                    borderColor: 'grey.200',
-                    cursor: 'pointer',
-                    borderRadius: 2,
-                    ':hover': {
-                      boxShadow: 1,
-                    },
-                  }}>
-                  <Typography>{item.name || t('alert.unnamed')}</Typography>
-
-                  {isAdmin && (
-                    <Box sx={{ position: 'absolute', right: 8, top: 8 }} onClick={(e) => e.preventDefault()}>
-                      <Dropdown
-                        placement="bottom-end"
-                        dropdown={
-                          <List
-                            disablePadding
-                            sx={{
-                              [`.${listItemIconClasses.root}`]: {
-                                minWidth: 32,
-                              },
-                            }}>
-                            <ListItemButton onClick={() => onEdit(item)}>
-                              <ListItemIcon>
-                                <Edit />
-                              </ListItemIcon>
-                              <ListItemText primary={t('alert.edit')} />
-                            </ListItemButton>
-                            <Divider sx={{ my: 0.5 }} />
-                            <ListItemButton sx={{ color: 'warning.main' }} onClick={() => onDelete(item)}>
-                              <ListItemIcon>
-                                <Delete color="warning" />
-                              </ListItemIcon>
-                              <ListItemText primary={t('alert.delete')} />
-                            </ListItemButton>
-                          </List>
-                        }>
-                        <IconButton>
-                          <MoreVert />
-                        </IconButton>
-                      </Dropdown>
-                    </Box>
-                  )}
-
-                  <Box sx={{ height: '2em' }} />
-                </Card>
-              </Box>
-            </Grid>
-          ))}
-          {isAdmin && (projects.length > 0 || !loading) && initialized && (
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <Card
-                elevation={0}
-                sx={{
-                  p: 2,
-                  border: 1,
-                  borderColor: 'grey.200',
-                  cursor: 'pointer',
-                  bgcolor: 'grey.100',
-                  borderRadius: 2,
-                  ':hover': {
-                    boxShadow: 1,
-                  },
-                }}
-                onClick={onCreate}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Box sx={{ mr: 1 }}>
-                    <Add sx={{ display: 'block', verticalAlign: 'baseline' }} />
-                  </Box>
-                  <Typography variant="button" noWrap sx={{ flex: 1, overflow: 'hidden' }}>
-                    {`${t('form.new')} ${t('form.project')}`}
-                  </Typography>
-                </Box>
-                <Box sx={{ height: '2em' }} />
-              </Card>
-            </Grid>
-          )}
-
-          {loading && (
-            <Grid item xs={12} textAlign="center">
-              <CircularProgress size={20} />
-            </Grid>
-          )}
-        </Grid>
+        {projects.length > 0 ? (
+          <Section title={t('myProjects')}>
+            <ProjectList section="projects" list={projects} />
+          </Section>
+        ) : (
+          loading && <Loading fixed />
+        )}
 
         {dialog}
       </Box>
+    </Dashboard>
+  );
+}
+
+function Section({
+  enableCollapse,
+  title,
+  children,
+}: {
+  enableCollapse?: boolean;
+  title: ReactNode;
+  children?: ReactNode;
+}) {
+  const [templatesVisible, setTemplatesVisible] = useState(true);
+
+  return (
+    <>
+      <Stack
+        direction="row"
+        alignItems="center"
+        gap={1}
+        sx={{ cursor: enableCollapse ? 'pointer' : 'default' }}
+        mt={{ xs: 2, sm: 3 }}
+        mb={{ xs: 1, sm: 2 }}
+        px={{ xs: 2, sm: 3 }}
+        onClick={() => setTemplatesVisible(!templatesVisible)}>
+        <Typography variant="h6" fontWeight="bold">
+          {title}
+        </Typography>
+
+        {enableCollapse && (
+          <IconButton size="small">
+            <ExpandMore
+              sx={{
+                transform: `rotateZ(${templatesVisible ? '-180deg' : '0deg'})`,
+                transition: (theme) => theme.transitions.create('all'),
+              }}
+            />
+          </IconButton>
+        )}
+      </Stack>
+
+      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ px: { xs: 2, sm: 3 }, py: 0.5 }}>
+        {children}
+      </Collapse>
     </>
+  );
+}
+
+function ProjectList({
+  section,
+  list,
+}: { section: 'templates'; list: ProjectTemplate[] } | { section: 'projects'; list: Project[] }) {
+  const { t } = useLocaleContext();
+
+  const {
+    state: { selected, menuAnchor },
+    setSelected,
+    setMenuAnchor,
+  } = useProjectsState();
+
+  return (
+    <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
+      {list.map((item) => {
+        const menuOpen = menuAnchor?.section === section && menuAnchor?.item._id === item._id;
+
+        return (
+          <ProjectItem
+            key={item._id}
+            pinned={!!(item as Project).pinnedAt}
+            width={{ xs: 'calc(33.33% - 12px)', sm: 'calc(25% - 18px)', md: 160 }}
+            maxWidth={{ xs: '100%', md: 160 }}
+            selected={selected?.section === section && selected.item._id === item._id}
+            name={item.name}
+            onClick={() => setSelected({ section, item: item as any })}
+            mainActions={
+              item._id &&
+              section === 'projects' && (
+                <Button component={RouterLink} to={item._id} className="hover-visible" size="small" variant="contained">
+                  {t('open')}
+                </Button>
+              )
+            }
+            actions={
+              section === 'projects' && (
+                <IconButton
+                  className={cx(!menuOpen && 'hover-visible')}
+                  size="small"
+                  sx={menuOpen ? { bgcolor: 'grey.100' } : undefined}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuAnchor({ section, anchor: e.currentTarget, item: item as any });
+                  }}>
+                  <MoreHoriz fontSize="small" />
+                </IconButton>
+              )
+            }
+          />
+        );
+      })}
+    </Stack>
+  );
+}
+
+function ProjectItem({
+  pinned,
+  image,
+  name,
+  selected,
+  actions,
+  mainActions,
+  ...props
+}: {
+  pinned?: boolean;
+  image?: string;
+  name?: string;
+  selected?: boolean;
+  actions?: ReactNode;
+  mainActions?: ReactNode;
+} & StackProps) {
+  const { t } = useLocaleContext();
+
+  return (
+    <ProjectItemRoot {...props} alignItems="center" className={cx(props.className, selected && 'selected')}>
+      <Box className="logo">
+        <Stack
+          alignItems="center"
+          justifyContent="center"
+          sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}>
+          <InsertPhotoOutlined sx={{ color: 'grey.400', fontSize: 56 }} />
+        </Stack>
+
+        {pinned && (
+          <Tooltip title={t('pin')} placement="top">
+            <PushPinOutlined
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                transform: 'rotateZ(45deg)',
+                color: 'grey.500',
+                fontSize: 16,
+              }}
+            />
+          </Tooltip>
+        )}
+
+        {mainActions && (
+          <Stack
+            sx={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              p: 1,
+              gap: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            {mainActions}
+          </Stack>
+        )}
+
+        {actions && (
+          <Stack direction="row" sx={{ position: 'absolute', right: 0, bottom: 0, p: 1, gap: 1, alignItems: 'center' }}>
+            {actions}
+          </Stack>
+        )}
+      </Box>
+
+      <Typography className="name" variant="subtitle1" noWrap>
+        {name || t('unnamed')}
+      </Typography>
+    </ProjectItemRoot>
+  );
+}
+
+const ProjectItemRoot = styled(Stack)`
+  width: 100%;
+  max-width: 160px;
+  cursor: pointer;
+
+  .logo {
+    position: relative;
+    border-width: 1px;
+    border-style: solid;
+    border-color: ${({ theme }) => theme.palette.divider};
+    border-radius: 16px;
+    width: 100%;
+
+    &:before {
+      content: '';
+      display: block;
+      padding-bottom: 100%;
+    }
+  }
+
+  .name {
+    width: 100%;
+    min-height: 1.75em;
+    margin: 4px 0;
+    text-align: center;
+  }
+
+  .hover-visible {
+    display: none;
+  }
+
+  :hover {
+    .name {
+      color: ${({ theme }) => theme.palette.primary.main};
+    }
+
+    .logo {
+      border-color: ${({ theme }) => theme.palette.primary.main};
+    }
+
+    .hover-visible {
+      display: flex;
+    }
+  }
+
+  &.selected {
+    .name {
+      color: ${({ theme }) => theme.palette.primary.dark};
+      font-weight: bold;
+    }
+
+    .logo {
+      border-color: transparent;
+      outline-style: solid;
+      outline-width: 2;
+      outline-color: ${({ theme }) => theme.palette.primary.dark};
+    }
+  }
+`;
+
+function LoadingMenuItem({ ...props }: MenuItemProps) {
+  const [loading, setLoading] = useState(false);
+
+  const onClick = (e: MouseEvent<HTMLLIElement>) => {
+    if (loading) return;
+
+    const res: Promise<any> | undefined = props.onClick?.(e) as any;
+    if (typeof res?.finally === 'function') {
+      setLoading(true);
+      res.finally(() => {
+        setLoading(false);
+      });
+    }
+  };
+
+  return (
+    <MenuItem {...props} onClick={onClick}>
+      {props.children}
+
+      <Box flex={1} width={16} height={16} textAlign="right" ml={1}>
+        {loading && <CircularProgress size={16} />}
+      </Box>
+    </MenuItem>
   );
 }

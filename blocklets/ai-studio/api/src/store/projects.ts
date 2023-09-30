@@ -16,6 +16,7 @@ export interface Project {
   updatedAt?: string;
   createdBy: string;
   updatedBy: string;
+  pinnedAt?: string;
 }
 
 export default class Projects extends Database<Project> {
@@ -65,10 +66,12 @@ function isTemplate(file: FileType): file is TemplateYjs {
 
 const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
 
+export const repositoryRoot = (projectId: string) => path.join(env.dataDir, 'repositories', projectId);
+
 export async function getRepository({ projectId }: { projectId: string }) {
   repositories[projectId] ??= (async () => {
     const repository = await Repository.init<TemplateYjs | { $base64: string }>({
-      root: path.join(env.dataDir, 'repositories', projectId),
+      root: repositoryRoot(projectId),
       initialCommit: { message: 'init', author: { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content) => {
         if (path.extname(filepath) === '.yaml') {

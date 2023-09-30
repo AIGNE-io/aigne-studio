@@ -14,7 +14,7 @@ export default function ProjectsRoutes() {
 
   return (
     <ErrorBoundary ref={errorBoundary}>
-      <Suspense fallback={<Loading />}>
+      <Suspense fallback={<Loading fixed />}>
         <Routes>
           <Route index element={<ProjectsPage />} />
           <Route path=":projectId">

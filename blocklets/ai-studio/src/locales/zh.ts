@@ -106,4 +106,12 @@ export default flat({
     alert: '上次选择的 {templates} 模板已经被删除',
     templates: '模板数据',
   },
+  newFromTemplates: '从模板创建',
+  myProjects: '我的项目',
+  duplicate: '复制',
+  pin: '置顶',
+  unpin: '取消置顶',
+  delete: '删除',
+  open: '打开',
+  unnamed: '未命名',
 });

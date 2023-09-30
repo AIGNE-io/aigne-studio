@@ -2,7 +2,7 @@ import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import Header from '@blocklet/ui-react/lib/Header';
-import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { Box, CssBaseline, GlobalStyles, ThemeProvider, createTheme } from '@mui/material';
 import { ReactNode, Suspense, lazy, useEffect, useMemo, useRef } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
@@ -29,12 +29,20 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline>
+        <GlobalStyles
+          styles={{
+            '*': {
+              WebkitTapHighlightColor: 'transparent',
+            },
+          }}
+        />
+
         <RecoilRoot>
           <ToastProvider>
             <LocaleProvider translations={translations} fallbackLocale="en">
               <BrowserRouter basename={basename}>
                 <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
-                  <Suspense fallback={<Loading />}>
+                  <Suspense fallback={<Loading fixed />}>
                     <AppRoutes />
                   </Suspense>
                 </SessionProvider>
