@@ -9,7 +9,7 @@ export interface DashboardProps {
     description?: ReactNode;
     brandAddon?: ReactNode;
     addons?: ReactNode | ((builtin: ReactNode[]) => ReactNode[] | ReactNode);
-    sx: BoxProps['sx'];
+    sx?: BoxProps['sx'];
   };
   ContentProps?: BoxProps;
   children?: ReactNode;

@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
-import Header from '@blocklet/ui-react/lib/Header';
+import { Dashboard } from '@blocklet/studio-ui';
 import {
   ArrowBackIosNew,
   ArrowDropDown,
@@ -468,18 +468,16 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
   };
 
   return (
-    <>
-      <Box
-        component={Header}
-        sx={{
-          position: 'sticky',
-          top: 0,
-          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-          '>.header-container': { maxWidth: 'none' },
-        }}
-        addons={addons}
-      />
-
+    <Dashboard
+      HeaderProps={{
+        addons,
+        sx: { borderBottom: (theme) => `1px solid ${theme.palette.divider}` },
+        brandAddon: project && (
+          <Typography>
+            <Typography variant="h6">{project.name || t('unnamed')}</Typography>
+          </Typography>
+        ),
+      }}>
       {createBranchDialog}
       {dialog}
       {exporter}
@@ -532,7 +530,7 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
           </Box>
         </Box>
       </Box>
-    </>
+    </Dashboard>
   );
 }
 
