@@ -130,14 +130,19 @@ function ProjectMenu() {
     showDialog({
       maxWidth: 'sm',
       fullWidth: true,
-      title: t('delete'),
       content: (
         <Stack direction="row">
           <WarningRounded color="warning" fontSize="large" sx={{ verticalAlign: 'text-bottom', mr: 2 }} />
 
-          <Typography flex={1} whiteSpace="pre-wrap">
-            {t('deleteProject', { project: project.name || project._id })}
-          </Typography>
+          <Stack flex={1}>
+            <Typography my={0.5} variant="h6" whiteSpace="pre-wrap">
+              {t('deleteProjectTitle', { project: project.name || t('unnamed') })}
+            </Typography>
+
+            <Typography my={2} variant="body2" whiteSpace="pre-wrap">
+              {t('deleteProjectTips')}
+            </Typography>
+          </Stack>
         </Stack>
       ),
       okColor: 'warning',

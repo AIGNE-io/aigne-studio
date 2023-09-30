@@ -116,5 +116,6 @@ export default flat({
   blank: '空白',
   create: '创建',
   createdAt: '创建于',
-  deleteProject: '删除项目“{project}”？\n删除之后不可找回！',
+  deleteProjectTitle: '删除项目“{project}”？',
+  deleteProjectTips: '删除之后不可找回！',
 });

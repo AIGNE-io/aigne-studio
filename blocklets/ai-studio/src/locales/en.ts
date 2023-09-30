@@ -116,5 +116,6 @@ export default flat({
   blank: 'Blank',
   create: 'Create',
   createdAt: 'Created at',
-  deleteProject: 'Delete project "{project}"?\nIt cannot be retrieved after deletion!',
+  deleteProjectTitle: 'Delete project "{project}"?',
+  deleteProjectTips: 'It cannot be retrieved after deletion!',
 });
