@@ -33,7 +33,7 @@ export function FooterInfo() {
         bgcolor: 'background.paper',
         borderTop: 1,
         zIndex: (theme) => theme.zIndex.appBar,
-        borderTopColor: (theme) => theme.palette.divider,
+        borderTopColor: (theme) => theme.palette.grey[200],
         px: { xs: 2, sm: 3 },
         py: 2,
       }}>

@@ -18,7 +18,7 @@ export interface DashboardProps {
   footer?: ReactNode;
 }
 
-const menuBarWidth = 72;
+const menuBarWidth = 87;
 
 export default function Dashboard({ HeaderProps, ContentProps, FooterProps, menus, children, footer }: DashboardProps) {
   const hasMenus = !!menus;
@@ -35,7 +35,7 @@ export default function Dashboard({ HeaderProps, ContentProps, FooterProps, menu
             top: 0,
             right: 0,
             zIndex: (theme) => theme.zIndex.appBar,
-            borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+            borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
             '.header-container': {
               maxWidth: 'none',
               paddingLeft: 0,
@@ -64,7 +64,7 @@ export default function Dashboard({ HeaderProps, ContentProps, FooterProps, menu
             left: 0,
             bottom: 0,
             width: menuBarWidth,
-            borderRight: (theme) => `1px solid ${theme.palette.divider}`,
+            borderRight: (theme) => `1px solid ${theme.palette.grey[200]}`,
             overflow: 'hidden auto',
             '::-webkit-scrollbar': {
               display: 'none',

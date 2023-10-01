@@ -133,8 +133,10 @@ const StyledList = styled(List)`
     margin-right: 16px;
     padding-left: 16px;
     padding-right: 16px;
-    border-radius: 6px;
+    border-radius: 8px;
     overflow: hidden;
+    padding-top: 8px;
+    padding-bottom: 8px;
 
     .${listItemIconClasses.root} {
       margin-right: 16px;
@@ -169,17 +171,17 @@ const StyledList = styled(List)`
   }
 
   &.collapsed {
-    padding-top: 0px;
-    padding-bottom: 0px;
+    padding-top: 0;
+    padding-bottom: 0;
 
     .${listItemClasses.root} {
-      margin-top: 8px;
-      margin-bottom: 8px;
+      margin-top: 4px;
+      margin-bottom: 4px;
 
       .${listItemButtonClasses.root} {
         flex-direction: column;
-        margin-left: 8px;
-        margin-right: 8px;
+        margin-left: 4px;
+        margin-right: 4px;
         padding-left: 4px;
         padding-right: 4px;
 
