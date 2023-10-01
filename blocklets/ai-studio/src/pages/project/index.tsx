@@ -5,10 +5,10 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
-import { defaultBranch } from '../project/state';
 import { FooterInfo } from './projects-page';
+import { defaultBranch } from './state';
 
-export default function ProjectsRoutes() {
+export default function ProjectRoutes() {
   const errorBoundary = useRef<ErrorBoundary>(null);
 
   const location = useLocation();
@@ -70,4 +70,4 @@ function FooterView() {
 
 const ProjectsPage = lazy(() => import('./projects-page'));
 
-const ProjectPage = lazy(() => import('../project/project-page'));
+const ProjectPage = lazy(() => import('./project-page'));

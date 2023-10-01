@@ -111,7 +111,7 @@ function AppRoutes() {
 
 const Home = lazy(() => import('./pages/home/home'));
 
-const ProjectsRoutes = lazy(() => import('./pages/projects'));
+const ProjectsRoutes = lazy(() => import('./pages/project'));
 
 const DatasetsRoutes = lazy(() => import('./pages/datasets'));
 
