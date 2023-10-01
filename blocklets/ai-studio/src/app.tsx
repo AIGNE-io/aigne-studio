@@ -31,6 +31,18 @@ export default function App() {
       <CssBaseline>
         <GlobalStyles
           styles={{
+            html: {
+              height: '100%',
+              width: '100%',
+            },
+            body: {
+              height: '100%',
+              width: '100%',
+            },
+            '#app': {
+              height: '100%',
+              width: '100%',
+            },
             '*': {
               WebkitTapHighlightColor: 'transparent',
             },

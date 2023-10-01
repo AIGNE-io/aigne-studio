@@ -1,7 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
-import { Dashboard } from '@blocklet/studio-ui';
 import {
   ArrowBackIosNew,
   ArrowDropDown,
@@ -22,6 +21,7 @@ import {
   CircularProgress,
   Divider,
   Link,
+  Stack,
   TextField,
   Tooltip,
   Typography,
@@ -424,113 +424,95 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
     [gitRef, navigate, projectId, showCreateBranch, t]
   );
 
-  const addons = ([...addons]: ReactNode[]) => {
-    addons.unshift(
-      <BranchButton projectId={projectId} gitRef={gitRef} filepath={filepath} />,
-
-      <CommitsTip
-        loading={loading}
-        commits={commits}
-        hash={gitRef}
-        onCommitSelect={(commit) => {
-          navigate(joinUrl('..', commit.oid), { state: { filepath } });
-        }}>
-        <Button startIcon={<History />} endIcon={<ArrowDropDown fontSize="small" />}>
-          {t('alert.history')}
-        </Button>
-      </CommitsTip>,
-
-      <SaveButton
-        disabled={disableMutation || !branches.includes(gitRef)}
-        loading={committing}
-        changed
-        onSave={save}
-      />,
-
-      <MenuButton
-        menus={[
-          {
-            icon: <Upload />,
-            title: t('alert.import'),
-            disabled: disableMutation,
-            onClick: () => onImport(),
-          },
-          {
-            icon: <Download />,
-            title: t('alert.export'),
-            onClick: () => exportFiles(),
-          },
-        ]}
-      />
-    );
-
-    return addons;
-  };
-
   return (
-    <Dashboard
-      HeaderProps={{
-        addons,
-        sx: { borderBottom: (theme) => `1px solid ${theme.palette.divider}` },
-        brandAddon: project && (
-          <Typography>
-            <Typography variant="h6">{project.name || t('unnamed')}</Typography>
-          </Typography>
-        ),
-      }}>
+    <Box height="100%">
       {createBranchDialog}
       {dialog}
       {exporter}
 
-      <Box sx={{ position: 'absolute', left: 0, top: 64, right: 0, bottom: 0 }}>
-        <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
-          <Box component={Panel} defaultSize={10} minSize={10}>
-            <Box py={2} px={1}>
-              <Breadcrumbs>
-                <Link
-                  component={RouterLink}
-                  underline="hover"
-                  to="../.."
-                  sx={{ display: 'flex', alignItems: 'center' }}>
-                  <ArrowBackIosNew sx={{ mr: 0.5, fontSize: 18 }} />
-                  {t('form.project')}
-                </Link>
-                <Typography color="text.primary">
-                  {loading ? <CircularProgress size={14} /> : project?.name || t('alert.unnamed')}
-                </Typography>
-              </Breadcrumbs>
-            </Box>
-
-            <Divider />
-
-            <FileTree
-              mutable={!disableMutation}
-              current={filepath}
-              sx={{ height: '100%', overflow: 'auto' }}
-              onExport={exportFiles}
-              onLaunch={assistant ? onLaunch : undefined}
-              onImport={onImport}
-            />
+      <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
+        <Box component={Panel} defaultSize={10} minSize={10}>
+          <Box py={2} px={1}>
+            <Breadcrumbs>
+              <Link component={RouterLink} underline="hover" to="../.." sx={{ display: 'flex', alignItems: 'center' }}>
+                <ArrowBackIosNew sx={{ mr: 0.5, fontSize: 18 }} />
+                {t('form.project')}
+              </Link>
+              <Typography color="text.primary">
+                {loading ? <CircularProgress size={14} /> : project?.name || t('alert.unnamed')}
+              </Typography>
+            </Breadcrumbs>
           </Box>
-          <ResizeHandle />
-          <Box component={Panel} minSize={30}>
-            <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
-              {filepath && <TemplateEditor projectId={projectId} _ref={gitRef} path={filepath} onExecute={onExecute} />}
-            </Box>
+
+          <Divider />
+
+          <FileTree
+            mutable={!disableMutation}
+            current={filepath}
+            sx={{ height: '100%', overflow: 'auto' }}
+            onExport={exportFiles}
+            onLaunch={assistant ? onLaunch : undefined}
+            onImport={onImport}
+          />
+        </Box>
+        <ResizeHandle />
+        <Box component={Panel} minSize={30}>
+          <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
+            {filepath && <TemplateEditor projectId={projectId} _ref={gitRef} path={filepath} onExecute={onExecute} />}
           </Box>
-          <ResizeHandle />
-          <Box component={Panel} defaultSize={45} minSize={20}>
+        </Box>
+
+        <ResizeHandle />
+
+        <Box component={Panel} defaultSize={45} minSize={20}>
+          <Stack height="100%">
+            <Stack direction="row" justifyContent="flex-end" my={2}>
+              <BranchButton projectId={projectId} gitRef={gitRef} filepath={filepath} />
+              <CommitsTip
+                loading={loading}
+                commits={commits}
+                hash={gitRef}
+                onCommitSelect={(commit) => {
+                  navigate(joinUrl('..', commit.oid), { state: { filepath } });
+                }}>
+                <Button startIcon={<History />} endIcon={<ArrowDropDown fontSize="small" />}>
+                  {t('alert.history')}
+                </Button>
+              </CommitsTip>
+              <SaveButton
+                disabled={disableMutation || !branches.includes(gitRef)}
+                loading={committing}
+                changed
+                onSave={save}
+              />
+              <MenuButton
+                menus={[
+                  {
+                    icon: <Upload />,
+                    title: t('alert.import'),
+                    disabled: disableMutation,
+                    onClick: () => onImport(),
+                  },
+                  {
+                    icon: <Download />,
+                    title: t('alert.export'),
+                    onClick: () => exportFiles(),
+                  },
+                ]}
+              />
+            </Stack>
+
             <Conversation
               ref={conversation}
               messages={messages}
-              sx={{ height: '100%', overflow: 'auto' }}
+              sx={{ flex: 1, height: '100%', overflow: 'auto' }}
               onSubmit={(prompt) => add(prompt)}
               customActions={customActions}
             />
-          </Box>
+          </Stack>
         </Box>
       </Box>
-    </Dashboard>
+    </Box>
   );
 }
 

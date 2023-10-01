@@ -12,30 +12,89 @@ export interface DashboardProps {
     sx?: BoxProps['sx'];
   };
   ContentProps?: BoxProps;
+  FooterProps?: BoxProps;
+  menus?: ReactNode;
   children?: ReactNode;
   footer?: ReactNode;
 }
 
-export default function Dashboard({ HeaderProps, ContentProps, children, footer }: DashboardProps) {
-  return (
-    <Stack sx={{ minHeight: '100vh' }}>
-      <Box
-        component={Header}
-        {...HeaderProps}
-        sx={{
-          position: 'sticky',
-          top: 0,
-          zIndex: (theme) => theme.zIndex.appBar,
-          '.header-container': { maxWidth: 'none' },
-          ...HeaderProps?.sx,
-        }}
-      />
+const menuBarWidth = 72;
 
-      <Box flexGrow={1} component="main" {...ContentProps}>
-        {children}
+export default function Dashboard({ HeaderProps, ContentProps, FooterProps, menus, children, footer }: DashboardProps) {
+  const hasMenus = !!menus;
+
+  return (
+    <Stack sx={{ height: '100%' }}>
+      <Box height={64} flexShrink={0}>
+        <Box
+          component={Header}
+          {...HeaderProps}
+          sx={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            right: 0,
+            zIndex: (theme) => theme.zIndex.appBar,
+            borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+            '.header-container': {
+              maxWidth: 'none',
+              paddingLeft: 0,
+              '.header-brand-wrapper': hasMenus
+                ? {
+                    width: menuBarWidth,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    '.header-logo': {
+                      mr: 0,
+                    },
+                  }
+                : undefined,
+            },
+            ...HeaderProps?.sx,
+          }}
+        />
       </Box>
 
-      {footer}
+      {hasMenus && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 64,
+            left: 0,
+            bottom: 0,
+            width: menuBarWidth,
+            borderRight: (theme) => `1px solid ${theme.palette.divider}`,
+            overflow: 'hidden auto',
+            '::-webkit-scrollbar': {
+              display: 'none',
+            },
+          }}>
+          {menus}
+        </Box>
+      )}
+
+      <Stack
+        component="main"
+        {...ContentProps}
+        sx={{
+          flexGrow: 1,
+          ml: hasMenus ? `${menuBarWidth}px` : 0,
+          ...ContentProps?.sx,
+        }}>
+        {children}
+      </Stack>
+
+      {footer && (
+        <Box
+          {...FooterProps}
+          sx={{
+            ml: hasMenus ? `${menuBarWidth}px` : 0,
+            ...FooterProps?.sx,
+          }}>
+          {footer}
+        </Box>
+      )}
     </Stack>
   );
 }

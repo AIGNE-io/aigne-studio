@@ -1,7 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Dashboard, LoadingButton } from '@blocklet/studio-ui';
+import { LoadingButton } from '@blocklet/studio-ui';
 import { cx } from '@emotion/css';
 import {
   Add,
@@ -36,6 +35,7 @@ import {
 } from '@mui/material';
 import { MouseEvent, ReactNode, useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import joinUrl from 'url-join';
 
 import { Project } from '../../../api/src/store/projects';
 import Loading from '../../components/loading';
@@ -44,7 +44,7 @@ import { getErrorMessage } from '../../libs/api';
 import { createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 
-export default function ProjectsPage() {
+export default function Projects() {
   const { t } = useLocaleContext();
 
   const {
@@ -57,58 +57,22 @@ export default function ProjectsPage() {
   }, []);
 
   return (
-    <Dashboard ContentProps={{ sx: { px: { xs: 2, sm: 3 } } }} footer={<FooterInfo />}>
+    <Box mx={{ xs: 2, sm: 3 }}>
       <ProjectMenu />
 
-      <Box maxWidth="xl" mx="auto" width="100%">
-        {templates.length > 0 && (
-          <Section enableCollapse title={t('newFromTemplates')}>
-            <ProjectList section="templates" list={templates} />
-          </Section>
-        )}
+      {templates.length > 0 && (
+        <Section enableCollapse title={t('newFromTemplates')}>
+          <ProjectList section="templates" list={templates} />
+        </Section>
+      )}
 
-        {projects.length > 0 ? (
-          <Section title={t('myProjects')}>
-            <ProjectList section="projects" list={projects} />
-          </Section>
-        ) : (
-          loading && <Loading fixed />
-        )}
-      </Box>
-    </Dashboard>
-  );
-}
-
-function FooterInfo() {
-  const { t, locale } = useLocaleContext();
-
-  const {
-    state: { selected },
-  } = useProjectsState();
-
-  if (!selected) return null;
-
-  return (
-    <Box
-      sx={{
-        position: 'sticky',
-        bottom: 0,
-        bgcolor: 'background.paper',
-        zIndex: (theme) => theme.zIndex.appBar,
-        borderTop: 1,
-        borderTopColor: (theme) => theme.palette.divider,
-        px: { xs: 2, sm: 3 },
-        py: 2,
-      }}>
-      <Box maxWidth="xl" mx="auto">
-        <Typography variant="h6">
-          {(selected.section === 'templates' && selected.item.name && t(selected.item.name)) || t('unnamed')}
-        </Typography>
-        <Typography variant="body1">{selected.item.description}</Typography>
-        <Typography variant="caption">
-          {t('createdAt')} <RelativeTime value={selected.item.createdAt} locale={locale} />
-        </Typography>
-      </Box>
+      {projects.length > 0 ? (
+        <Section title={t('myProjects')}>
+          <ProjectList section="projects" list={projects} />
+        </Section>
+      ) : (
+        loading && <Loading fixed />
+      )}
     </Box>
   );
 }
@@ -304,7 +268,7 @@ function ProjectList({
               (section === 'projects' ? (
                 <Button
                   component={RouterLink}
-                  to={item._id}
+                  to={joinUrl('/projects', item._id)}
                   className="hover-visible"
                   size="small"
                   variant="contained"
