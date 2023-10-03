@@ -1,11 +1,10 @@
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
-import { ArrowBackIosNew, DragIndicator, HighlightOff, Start } from '@mui/icons-material';
-import { Alert, Box, Breadcrumbs, Button, CircularProgress, Divider, Link, Tooltip, Typography } from '@mui/material';
+import { DragIndicator, HighlightOff, Start } from '@mui/icons-material';
+import { Alert, Box, Button, CircularProgress, Tooltip } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { ReactNode, useCallback, useEffect, useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -30,10 +29,7 @@ export default function ProjectPage() {
 
   const { store, synced } = useStore(projectId, gitRef, true);
 
-  const {
-    state: { loading, project },
-    refetch,
-  } = useProjectState(projectId, gitRef);
+  const { refetch } = useProjectState(projectId, gitRef);
 
   useEffect(() => {
     refetch();
@@ -68,8 +64,6 @@ export default function ProjectPage() {
   useEffect(() => {
     if (filepath) setPreviousFilePath((v) => ({ ...v, [gitRef]: filepath }));
   }, [gitRef, filepath, setPreviousFilePath]);
-
-  const { t } = useLocaleContext();
 
   const conversation = useRef<ConversationRef>(null);
 
@@ -152,20 +146,6 @@ export default function ProjectPage() {
     <Box height="100%">
       <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
         <Box component={Panel} defaultSize={10} minSize={10}>
-          <Box py={2} px={1}>
-            <Breadcrumbs>
-              <Link component={RouterLink} underline="hover" to="../.." sx={{ display: 'flex', alignItems: 'center' }}>
-                <ArrowBackIosNew sx={{ mr: 0.5, fontSize: 18 }} />
-                {t('form.project')}
-              </Link>
-              <Typography color="text.primary">
-                {loading ? <CircularProgress size={14} /> : project?.name || t('alert.unnamed')}
-              </Typography>
-            </Breadcrumbs>
-          </Box>
-
-          <Divider />
-
           <FileTree
             projectId={projectId}
             gitRef={gitRef}
