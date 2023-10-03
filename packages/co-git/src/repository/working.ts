@@ -121,8 +121,8 @@ export default class Working<T> extends Doc {
       );
 
       for (const filepath of deletedFiles) {
-        fs.rmSync(filepath, { recursive: true, force: true });
-        await tx.add({ filepath });
+        fs.rmSync(path.join(this.repo.root, filepath), { recursive: true, force: true });
+        await tx.remove({ filepath });
       }
 
       for (const [filepath, file] of files) {
