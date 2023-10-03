@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useLocation, useRoutes } from 'react-router-do
 
 import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
+import HeaderActions from './header-actions';
 import MainMenus from './main-menus';
 import { defaultBranch } from './state';
 
@@ -19,7 +20,7 @@ export default function ProjectRoutes() {
     <ErrorBoundary ref={errorBoundary}>
       <Dashboard
         ContentProps={{ sx: { pr: { xs: 2, sm: 3 } } }}
-        HeaderProps={{ brandAddon: <BrandRoutes /> }}
+        HeaderProps={{ brandAddon: <BrandRoutes />, addons: (exists) => [<AddonsRoutes />, ...exists] }}
         menus={<MenuRoutes />}
         footer={<RooterRoutes />}>
         <Suspense fallback={<Loading fixed />}>
@@ -45,6 +46,34 @@ function BrandRoutes() {
   return <Suspense>{element}</Suspense>;
 }
 
+function AddonsRoutes() {
+  const element = useRoutes([
+    {
+      path: ':projectId/*',
+      children: [
+        {
+          path: 'prompts',
+          children: [
+            {
+              path: ':ref/*',
+              element: <HeaderActions />,
+            },
+            {
+              path: '*',
+              element: null,
+            },
+          ],
+        },
+        {
+          path: '*',
+          element: null,
+        },
+      ],
+    },
+  ]);
+  return <Suspense>{element}</Suspense>;
+}
+
 function MenuRoutes({ ...props }: ComponentProps<typeof MainMenus>) {
   const element = useRoutes([{ path: ':projectId?/*', element: <MainMenus {...props} /> }]);
 
@@ -52,16 +81,12 @@ function MenuRoutes({ ...props }: ComponentProps<typeof MainMenus>) {
 }
 
 function RooterRoutes() {
-  return (
-    <Suspense>
-      <Routes>
-        <Route index element={<ProjectsFooter />} />
-        <Route path=":projectId/*">
-          <Route path="home" element={<ProjectsFooter />} />
-        </Route>
-      </Routes>
-    </Suspense>
-  );
+  const element = useRoutes([
+    { index: true, element: <ProjectsFooter /> },
+    { path: ':projectId/home', element: <ProjectsFooter /> },
+  ]);
+
+  return <Suspense>{element}</Suspense>;
 }
 
 const ProjectsPage = lazy(() => import('./projects-page'));

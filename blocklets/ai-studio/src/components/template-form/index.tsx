@@ -69,7 +69,7 @@ export type TemplateForm = Pick<
 
 export default function TemplateFormView({
   projectId,
-  _ref: ref,
+  gitRef,
   path,
   hash,
   value: form,
@@ -77,7 +77,7 @@ export default function TemplateFormView({
   onTemplateClick,
 }: {
   projectId: string;
-  _ref: string;
+  gitRef: string;
   path: string;
   hash?: string;
   value: TemplateYjs;
@@ -239,7 +239,7 @@ export default function TemplateFormView({
           <Commits
             key={form.updatedAt}
             projectId={projectId}
-            _ref={ref}
+            _ref={gitRef}
             path={path}
             hash={hash}
             onCommitSelect={onCommitSelect}>
@@ -259,7 +259,7 @@ export default function TemplateFormView({
                 maxWidth: 'sm',
                 fullWidth: true,
                 title: t('alert.pickFromBranch'),
-                content: <CommitSelect projectId={projectId} _ref={ref} path={path} onSelect={onCommitSelect} />,
+                content: <CommitSelect projectId={projectId} _ref={gitRef} path={path} onSelect={onCommitSelect} />,
                 cancelText: t('alert.cancel'),
               })
             }>
@@ -297,7 +297,7 @@ export default function TemplateFormView({
         </FormControl>
       </Grid>
       <Grid item xs={12} position="relative">
-        <WithAwareness path={[form.id, 'name']}>
+        <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'name']}>
           <TextField
             fullWidth
             label={t('form.name')}
@@ -307,12 +307,17 @@ export default function TemplateFormView({
           />
         </WithAwareness>
 
-        <AwarenessIndicator path={[form.id, 'name']} sx={{ position: 'absolute', right: -16, top: 16 }} />
+        <AwarenessIndicator
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[form.id, 'name']}
+          sx={{ position: 'absolute', right: -16, top: 16 }}
+        />
       </Grid>
       {form.type !== 'image' && (
         <>
           <Grid item xs={6} position="relative">
-            <WithAwareness path={[form.id, 'model']}>
+            <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'model']}>
               <TextField
                 fullWidth
                 label={t('form.model')}
@@ -328,11 +333,16 @@ export default function TemplateFormView({
               </TextField>
             </WithAwareness>
 
-            <AwarenessIndicator path={[form.id, 'model']} sx={{ position: 'absolute', right: -16, top: 16 }} />
+            <AwarenessIndicator
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[form.id, 'model']}
+              sx={{ position: 'absolute', right: -16, top: 16 }}
+            />
           </Grid>
 
           <Grid item xs={6} position="relative">
-            <WithAwareness path={[form.id, 'temperature']}>
+            <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'temperature']}>
               <TextField
                 size="small"
                 fullWidth
@@ -351,12 +361,17 @@ export default function TemplateFormView({
               />
             </WithAwareness>
 
-            <AwarenessIndicator path={[form.id, 'temperature']} sx={{ position: 'absolute', right: -16, top: 16 }} />
+            <AwarenessIndicator
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[form.id, 'temperature']}
+              sx={{ position: 'absolute', right: -16, top: 16 }}
+            />
           </Grid>
         </>
       )}
       <Grid item xs={12} position="relative">
-        <WithAwareness path={[form.id, 'icon']}>
+        <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'icon']}>
           <TextField
             fullWidth
             label={t('form.icon')}
@@ -382,11 +397,16 @@ export default function TemplateFormView({
           />
         </WithAwareness>
 
-        <AwarenessIndicator path={[form.id, 'icon']} sx={{ position: 'absolute', right: -16, top: 16 }} />
+        <AwarenessIndicator
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[form.id, 'icon']}
+          sx={{ position: 'absolute', right: -16, top: 16 }}
+        />
       </Grid>
 
       <Grid item xs={12} position="relative">
-        <WithAwareness path={[form.id, 'description']}>
+        <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'description']}>
           <TextField
             fullWidth
             label={t('form.description')}
@@ -398,7 +418,12 @@ export default function TemplateFormView({
           />
         </WithAwareness>
 
-        <AwarenessIndicator path={[form.id, 'description']} sx={{ position: 'absolute', right: -16, top: 16 }} />
+        <AwarenessIndicator
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[form.id, 'description']}
+          sx={{ position: 'absolute', right: -16, top: 16 }}
+        />
       </Grid>
 
       <Grid item xs={12}>
@@ -411,12 +436,12 @@ export default function TemplateFormView({
       </Grid>
 
       <Grid item xs={12}>
-        <Prompts value={form} />
+        <Prompts projectId={projectId} gitRef={gitRef} value={form} />
       </Grid>
 
       {form.type === 'branch' && (
         <Grid item xs={12}>
-          <Branches form={form} onTemplateClick={onTemplateClick} />
+          <Branches projectId={projectId} gitRef={gitRef} form={form} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 
@@ -430,7 +455,7 @@ export default function TemplateFormView({
 
       {form.type !== 'image' && (
         <Grid item xs={12}>
-          <Next form={form} onTemplateClick={onTemplateClick} />
+          <Next projectId={projectId} gitRef={gitRef} form={form} onTemplateClick={onTemplateClick} />
         </Grid>
       )}
 

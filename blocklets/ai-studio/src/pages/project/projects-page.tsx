@@ -285,7 +285,7 @@ function ProjectList({
                   onClick={async () => {
                     try {
                       const project = await createProject({ templateId: item._id! });
-                      navigate(project._id!);
+                      navigate(joinUrl('/projects', project._id!));
                     } catch (error) {
                       Toast.error(getErrorMessage(error));
                       throw error;

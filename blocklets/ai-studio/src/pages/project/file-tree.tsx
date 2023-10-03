@@ -49,6 +49,8 @@ export type EntryWithMeta =
 export type TreeNode = NodeModel<EntryWithMeta>;
 
 export default function FileTree({
+  projectId,
+  gitRef,
   current,
   mutable,
   onExport,
@@ -56,6 +58,8 @@ export default function FileTree({
   onLaunch,
   ...props
 }: {
+  projectId: string;
+  gitRef: string;
   current?: string;
   mutable?: boolean;
   onExport?: (path: string[]) => any;
@@ -65,7 +69,7 @@ export default function FileTree({
   const { t } = useLocaleContext();
   const navigate = useNavigate();
 
-  const { store, synced } = useStore();
+  const { store, synced } = useStore(projectId, gitRef);
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
@@ -296,6 +300,8 @@ export default function FileTree({
                 {meta.name || t('alert.unnamed')}
 
                 <AwarenessIndicator
+                  projectId={projectId}
+                  gitRef={gitRef}
                   path={[meta.id]}
                   sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
                 />

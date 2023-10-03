@@ -11,7 +11,15 @@ import WithAwareness from '../awareness/with-awareness';
 import { ReorderableListYjs } from '../reorderable-list';
 import TokenCounter from './token-counter';
 
-export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id' | 'prompts'> }) {
+export default function Prompts({
+  projectId,
+  gitRef,
+  value: form,
+}: {
+  projectId: string;
+  gitRef: string;
+  value: Pick<TemplateYjs, 'id' | 'prompts'>;
+}) {
   const { t } = useLocaleContext();
 
   return (
@@ -56,7 +64,7 @@ export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id'
                     />
                   </Box>
 
-                  <WithAwareness path={[form.id, 'prompts', index]}>
+                  <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
                     <TextField
                       fullWidth
                       label={`${t('form.prompt')} ${index + 1}`}
@@ -83,7 +91,7 @@ export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id'
                     <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
                   </Button>
 
-                  <AwarenessIndicator path={[form.id, 'prompts', index]} />
+                  <AwarenessIndicator projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]} />
                 </Box>
               </Box>
             )}

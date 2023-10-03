@@ -1,81 +1,37 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import Toast from '@arcblock/ux/lib/Toast';
 import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
-import {
-  ArrowBackIosNew,
-  ArrowDropDown,
-  Download,
-  DragIndicator,
-  HighlightOff,
-  History,
-  InfoOutlined,
-  Start,
-  Upload,
-} from '@mui/icons-material';
-import {
-  Alert,
-  Box,
-  BoxProps,
-  Breadcrumbs,
-  Button,
-  CircularProgress,
-  Divider,
-  Link,
-  Stack,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@mui/material';
+import { ArrowBackIosNew, DragIndicator, HighlightOff, Start } from '@mui/icons-material';
+import { Alert, Box, Breadcrumbs, Button, CircularProgress, Divider, Link, Tooltip, Typography } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import uniqBy from 'lodash/uniqBy';
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
-import { parse } from 'yaml';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
 import WithAwareness from '../../components/awareness/with-awareness';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView from '../../components/template-form';
-import CommitsTip from '../../components/template-form/commits-tip';
 import { useComponent } from '../../contexts/component';
 import { useIsAdmin } from '../../contexts/session';
 import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
-import { getErrorMessage } from '../../libs/api';
-import { importBodySchema } from '../../libs/import';
-import { commitFromWorking } from '../../libs/working';
-import useDialog from '../../utils/use-dialog';
-import usePickFile, { readFileAsText } from '../../utils/use-pick-file';
-import BranchButton from './branch-button';
-import { useExportFiles } from './export-files';
 import FileTree from './file-tree';
-import MenuButton from './menu-button';
-import SaveButton from './save-button';
 import { useProjectState } from './state';
-import { StoreProvider, importFiles, isTemplate, templateYjsToTemplate, useStore } from './yjs-state';
+import { isTemplate, templateYjsToTemplate, useStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
 const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
 
 export default function ProjectPage() {
-  const { projectId, ref, '*': filepath } = useParams();
-  if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
+  const { projectId, ref: gitRef, '*': filepath } = useParams();
+  if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
-  return (
-    <StoreProvider projectId={projectId} gitRef={ref}>
-      <ProjectView projectId={projectId} gitRef={ref} filepath={filepath} />
-    </StoreProvider>
-  );
-}
-
-function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRef: string; filepath?: string }) {
-  const { store, synced } = useStore();
+  const { store, synced } = useStore(projectId, gitRef, true);
 
   const {
-    state: { branches, loading, project, commits },
+    state: { loading, project },
     refetch,
   } = useProjectState(projectId, gitRef);
 
@@ -114,8 +70,6 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
   }, [gitRef, filepath, setPreviousFilePath]);
 
   const { t } = useLocaleContext();
-
-  const { dialog, showDialog } = useDialog();
 
   const conversation = useRef<ConversationRef>(null);
 
@@ -194,242 +148,8 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
     [assistant, projectId, gitRef]
   );
 
-  const { exporter, exportFiles } = useExportFiles();
-
-  const pickFile = usePickFile();
-
-  const onImport = useCallback(
-    async (path?: string[]) => {
-      try {
-        const list = await pickFile({ accept: '.yaml,.yml', multiple: true }).then((files) =>
-          Promise.all(
-            files.map((i) =>
-              readFileAsText(i).then((i) => {
-                const obj = parse(i);
-
-                // 用于兼容比较旧的导出数据
-                // {
-                //   templates: {
-                //     folderId?: string
-                //   }[]
-                //   folders: {
-                //     _id: string
-                //     name?: string
-                //   }[]
-                // }
-                if (Array.isArray(obj?.templates) && Array.isArray(obj?.folders)) {
-                  obj.templates.forEach((template: any) => {
-                    if (template.folderId) {
-                      const folder = obj.folders.find((f: any) => f._id === template.folderId);
-                      if (folder.name) {
-                        template.path = folder.name;
-                      }
-                    }
-                  });
-                }
-
-                return importBodySchema.validateAsync(obj, { stripUnknown: true });
-              })
-            )
-          )
-        );
-
-        const templates = uniqBy(
-          list.flatMap((i) => i.templates ?? []),
-          'id'
-        ).map((i) => ({ ...i, path: i.path?.split('/') }));
-
-        const existedTemplateIds = new Set(
-          Object.values(store.files)
-            .filter(isTemplate)
-            .map((i) => i.id)
-        );
-
-        const renderTemplateItem = ({
-          template,
-          ...props
-        }: { template: Template & { path?: string[] } } & BoxProps) => {
-          return (
-            <Box {...props}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ flexShrink: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  <Typography color="text.secondary" component="span">
-                    {template.path?.length ? `${template.path.join('/')}/` : ''}
-                  </Typography>
-
-                  {template.name || t('alert.unnamed')}
-                </Box>
-
-                {existedTemplateIds.has(template.id) && (
-                  <Tooltip
-                    title={
-                      <>
-                        <Box component="span">{t('alert.overwrittenTip')}</Box>
-                        <Box
-                          component="a"
-                          sx={{
-                            ml: 1,
-                            userSelect: 'none',
-                            color: 'white',
-                            textDecoration: 'underline',
-                            cursor: 'pointer',
-                            ':hover': { opacity: 0.6 },
-                          }}
-                          onClick={() => {
-                            const path = Object.values(store.tree).find(
-                              (i) => i?.split('/').slice(-1)[0] === `${template.id}.yaml`
-                            );
-                            if (path) {
-                              exportFiles(path.split('/'), { quiet: true });
-                            }
-                          }}>
-                          {t('alert.downloadBackup')}
-                        </Box>
-                      </>
-                    }>
-                    <InfoOutlined color="warning" fontSize="small" sx={{ mx: 1 }} />
-                  </Tooltip>
-                )}
-              </Box>
-            </Box>
-          );
-        };
-
-        showDialog({
-          fullWidth: true,
-          maxWidth: 'sm',
-          title: t('alert.import'),
-          content: (
-            <Box>
-              <Typography>{t('alert.importTip')}</Typography>
-              <Box component="ul" sx={{ pl: 2 }}>
-                {templates.map((template) =>
-                  renderTemplateItem({
-                    key: template.id,
-                    component: 'li',
-                    template,
-                  })
-                )}
-              </Box>
-            </Box>
-          ),
-          cancelText: t('alert.cancel'),
-          okText: t('alert.import'),
-          onOk: async () => {
-            try {
-              importFiles({ store, parent: path, files: templates });
-              // await importTemplates({ projectId, branch: gitRef, path: path?.join('/') || '', templates });
-
-              Toast.success(t('alert.imported'));
-            } catch (error) {
-              Toast.error(getErrorMessage(error));
-              throw error;
-            }
-          },
-        });
-      } catch (error) {
-        Toast.error(getErrorMessage(error));
-        throw error;
-      }
-    },
-    [pickFile, store, showDialog, t, exportFiles]
-  );
-
-  const { dialog: createBranchDialog, showDialog: showCreateBranchDialog } = useDialog();
-
-  const showCreateBranch = useCallback(async () => {
-    return new Promise<string | null>((resolve) => {
-      let name = '';
-
-      showCreateBranchDialog({
-        maxWidth: 'sm',
-        fullWidth: true,
-        title: `${t('form.new')} ${t('form.branch')}`,
-        content: (
-          <Box>
-            <TextField label={t('form.name')} onChange={(e) => (name = e.target.value)} />
-          </Box>
-        ),
-        okText: t('form.save'),
-        cancelText: t('alert.cancel'),
-        onOk: async () => {
-          try {
-            resolve(name);
-          } catch (error) {
-            Toast.error(getErrorMessage(error));
-            throw error;
-          }
-        },
-        onCancel: () => resolve(null),
-      });
-    });
-  }, [showCreateBranchDialog, t]);
-
-  const [committing, setCommitting] = useState(false);
-
-  const save = useCallback(
-    async ({ newBranch }: { newBranch?: boolean } = {}) => {
-      setCommitting(true);
-      try {
-        const branch = !newBranch ? gitRef : await showCreateBranch();
-        if (!branch) return;
-
-        const message = await new Promise<string | null>((resolve) => {
-          let message = '';
-
-          showDialog({
-            maxWidth: 'sm',
-            fullWidth: true,
-            title: t('form.save'),
-            content: (
-              <Box>
-                <TextField
-                  fullWidth
-                  multiline
-                  label={t('alert.message')}
-                  onChange={(e) => (message = e.target.value)}
-                />
-              </Box>
-            ),
-            okText: t('form.save'),
-            cancelText: t('alert.cancel'),
-            onOk: async () => {
-              resolve(message.trim());
-            },
-            onCancel: () => resolve(null),
-          });
-        });
-
-        if (typeof message !== 'string') return;
-
-        await commitFromWorking({
-          projectId,
-          ref: gitRef,
-          input: {
-            branch,
-            message: message || new Date().toLocaleString(),
-          },
-        });
-
-        refetch();
-        Toast.success(t('alert.saved'));
-        if (branch !== gitRef) navigate(joinUrl('..', branch), { replace: true });
-      } catch (error) {
-        Toast.error(getErrorMessage(error));
-        throw error;
-      } finally {
-        setCommitting(false);
-      }
-    },
-    [gitRef, navigate, projectId, showCreateBranch, t]
-  );
-
   return (
     <Box height="100%">
-      {createBranchDialog}
-      {dialog}
-      {exporter}
-
       <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
         <Box component={Panel} defaultSize={10} minSize={10}>
           <Box py={2} px={1}>
@@ -447,69 +167,31 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
           <Divider />
 
           <FileTree
+            projectId={projectId}
+            gitRef={gitRef}
             mutable={!disableMutation}
             current={filepath}
             sx={{ height: '100%', overflow: 'auto' }}
-            onExport={exportFiles}
             onLaunch={assistant ? onLaunch : undefined}
-            onImport={onImport}
           />
         </Box>
         <ResizeHandle />
         <Box component={Panel} minSize={30}>
           <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
-            {filepath && <TemplateEditor projectId={projectId} _ref={gitRef} path={filepath} onExecute={onExecute} />}
+            {filepath && <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} onExecute={onExecute} />}
           </Box>
         </Box>
 
         <ResizeHandle />
 
         <Box component={Panel} defaultSize={45} minSize={20}>
-          <Stack height="100%">
-            <Stack direction="row" justifyContent="flex-end" my={2}>
-              <BranchButton projectId={projectId} gitRef={gitRef} filepath={filepath} />
-              <CommitsTip
-                loading={loading}
-                commits={commits}
-                hash={gitRef}
-                onCommitSelect={(commit) => {
-                  navigate(joinUrl('..', commit.oid), { state: { filepath } });
-                }}>
-                <Button startIcon={<History />} endIcon={<ArrowDropDown fontSize="small" />}>
-                  {t('alert.history')}
-                </Button>
-              </CommitsTip>
-              <SaveButton
-                disabled={disableMutation || !branches.includes(gitRef)}
-                loading={committing}
-                changed
-                onSave={save}
-              />
-              <MenuButton
-                menus={[
-                  {
-                    icon: <Upload />,
-                    title: t('alert.import'),
-                    disabled: disableMutation,
-                    onClick: () => onImport(),
-                  },
-                  {
-                    icon: <Download />,
-                    title: t('alert.export'),
-                    onClick: () => exportFiles(),
-                  },
-                ]}
-              />
-            </Stack>
-
-            <Conversation
-              ref={conversation}
-              messages={messages}
-              sx={{ flex: 1, height: '100%', overflow: 'auto' }}
-              onSubmit={(prompt) => add(prompt)}
-              customActions={customActions}
-            />
-          </Stack>
+          <Conversation
+            ref={conversation}
+            messages={messages}
+            sx={{ height: '100%', overflow: 'auto' }}
+            onSubmit={(prompt) => add(prompt)}
+            customActions={customActions}
+          />
         </Box>
       </Box>
     </Box>
@@ -518,18 +200,18 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
 
 function TemplateEditor({
   projectId,
-  _ref: ref,
+  gitRef,
   path,
   onExecute,
 }: {
   projectId: string;
-  _ref: string;
+  gitRef: string;
   path: string;
   onExecute: (template: TemplateYjs) => any;
 }) {
   const navigate = useNavigate();
 
-  const { store, synced } = useStore();
+  const { store, synced } = useStore(projectId, gitRef);
   if (!synced)
     return (
       <Box sx={{ textAlign: 'center', mt: 10 }}>
@@ -542,10 +224,10 @@ function TemplateEditor({
   if (!template || !isTemplate(template)) return <Alert color="error">Not Found</Alert>;
 
   return (
-    <WithAwareness path={[template.id]} onMount>
+    <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id]} onMount>
       <TemplateFormView
         projectId={projectId}
-        _ref={ref}
+        gitRef={gitRef}
         path={path}
         value={template}
         onExecute={onExecute}
