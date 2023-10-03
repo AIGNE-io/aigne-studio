@@ -19,7 +19,6 @@ export default function ProjectRoutes() {
   return (
     <ErrorBoundary ref={errorBoundary}>
       <Dashboard
-        ContentProps={{ sx: { pr: { xs: 2, sm: 3 } } }}
         HeaderProps={{ brandAddon: <BrandRoutes />, addons: (exists) => [<AddonsRoutes />, ...exists] }}
         menus={<MenuRoutes />}
         footer={<FooterRoutes />}>

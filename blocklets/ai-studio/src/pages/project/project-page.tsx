@@ -1,9 +1,9 @@
 import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
-import { DragIndicator, HighlightOff, Start } from '@mui/icons-material';
-import { Alert, Box, Button, CircularProgress, Tooltip } from '@mui/material';
+import { DragIndicator, HighlightOff, MenuOpenRounded, Start } from '@mui/icons-material';
+import { Alert, Box, Button, CircularProgress, Stack, Toolbar, Tooltip } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import { ReactNode, useCallback, useEffect, useRef } from 'react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
 
@@ -142,36 +142,130 @@ export default function ProjectPage() {
     [assistant, projectId, gitRef]
   );
 
+  const [fileTreeCollapsed, setFileTreeCollapsed] = useState(false);
+  const [rightCollapsed, setRightCollapsed] = useState(false);
+  const fileTreePanel = useRef<ImperativePanelHandle>();
+  const rightPanel = useRef<ImperativePanelHandle>();
+
   return (
     <Box height="100%">
       <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
-        <Box component={Panel} defaultSize={10} minSize={10}>
-          <FileTree
-            projectId={projectId}
-            gitRef={gitRef}
-            mutable={!disableMutation}
-            current={filepath}
-            sx={{ height: '100%', overflow: 'auto' }}
-            onLaunch={assistant ? onLaunch : undefined}
-          />
-        </Box>
-        <ResizeHandle />
-        <Box component={Panel} minSize={30}>
-          <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
-            {filepath && <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} onExecute={onExecute} />}
+        <Box
+          component={Panel}
+          ref={fileTreePanel}
+          defaultSize={10}
+          minSize={10}
+          collapsible
+          onCollapse={setFileTreeCollapsed}>
+          <Box sx={{ height: '100%', overflow: 'auto' }}>
+            <Box
+              sx={{
+                position: 'sticky',
+                top: 0,
+                bgcolor: 'background.paper',
+                zIndex: (theme) => theme.zIndex.appBar,
+                borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
+              }}>
+              <Toolbar>
+                <Box flex={1} />
+
+                <Button
+                  startIcon={<MenuOpenRounded />}
+                  onClick={() =>
+                    fileTreeCollapsed ? fileTreePanel.current?.expand() : fileTreePanel.current?.collapse()
+                  }>
+                  Files
+                </Button>
+              </Toolbar>
+            </Box>
+
+            <FileTree
+              projectId={projectId}
+              gitRef={gitRef}
+              mutable={!disableMutation}
+              current={filepath}
+              onLaunch={assistant ? onLaunch : undefined}
+            />
           </Box>
         </Box>
 
         <ResizeHandle />
 
-        <Box component={Panel} defaultSize={45} minSize={20}>
-          <Conversation
-            ref={conversation}
-            messages={messages}
-            sx={{ height: '100%', overflow: 'auto' }}
-            onSubmit={(prompt) => add(prompt)}
-            customActions={customActions}
-          />
+        <Box component={Panel} minSize={30}>
+          <Box sx={{ height: '100%', overflow: 'auto' }}>
+            <Box
+              sx={{
+                position: 'sticky',
+                top: 0,
+                bgcolor: 'background.paper',
+                zIndex: (theme) => theme.zIndex.appBar,
+                borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
+              }}>
+              <Toolbar>
+                {fileTreeCollapsed && (
+                  <Button
+                    startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
+                    onClick={() =>
+                      fileTreeCollapsed ? fileTreePanel.current?.expand() : fileTreePanel.current?.collapse()
+                    }>
+                    Files
+                  </Button>
+                )}
+                <Box flex={1} />
+
+                {rightCollapsed && (
+                  <Button
+                    startIcon={<MenuOpenRounded />}
+                    onClick={() => (rightCollapsed ? rightPanel.current?.expand() : rightPanel.current?.collapse())}>
+                    Aside
+                  </Button>
+                )}
+              </Toolbar>
+            </Box>
+
+            <Box p={2}>
+              {filepath && (
+                <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} onExecute={onExecute} />
+              )}
+            </Box>
+          </Box>
+        </Box>
+
+        <ResizeHandle />
+
+        <Box
+          component={Panel}
+          ref={rightPanel}
+          defaultSize={45}
+          minSize={20}
+          collapsible
+          onCollapse={setRightCollapsed}>
+          <Stack sx={{ height: '100%' }}>
+            <Box
+              sx={{
+                position: 'sticky',
+                top: 0,
+                bgcolor: 'background.paper',
+                zIndex: (theme) => theme.zIndex.appBar,
+                borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
+              }}>
+              <Toolbar>
+                <Button
+                  startIcon={<MenuOpenRounded sx={{ transform: 'rotate(180deg)' }} />}
+                  onClick={() => (rightCollapsed ? rightPanel.current?.expand() : rightPanel.current?.collapse())}>
+                  Collapse
+                </Button>
+              </Toolbar>
+            </Box>
+
+            <Conversation
+              ref={conversation}
+              messages={messages}
+              sx={{ flex: 1, overflow: 'auto' }}
+              onSubmit={(prompt) => add(prompt)}
+              customActions={customActions}
+            />
+          </Stack>
         </Box>
       </Box>
     </Box>

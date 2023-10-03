@@ -79,9 +79,7 @@ export default function Dashboard({
         />
       </Box>
 
-      <Box height={64} flexShrink={0} />
-
-      <Stack flex={1} direction="row">
+      <Stack height="100%" pt={8} direction="row">
         <Box
           sx={{
             flexShrink: 0,
@@ -106,6 +104,7 @@ export default function Dashboard({
             component="main"
             {...ContentProps}
             sx={{
+              height: '100%',
               flexGrow: 1,
               ...ContentProps?.sx,
             }}>
