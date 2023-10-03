@@ -1,3 +1,7 @@
+## 0.1.91 (2023-10-3)
+
+- fix: delete file not working
+
 ## 0.1.90 (2023-9-28)
 
 - chore: bump version
