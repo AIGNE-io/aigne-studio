@@ -127,45 +127,52 @@ export function MenuItem({ menu, collapsed }: { menu: MenuItemConfig; collapsed?
 const StyledList = styled(List)`
   max-width: 100%;
   overflow: hidden auto;
+  padding-top: 16px;
+  padding-bottom: 16px;
 
-  .${listItemButtonClasses.root} {
-    margin-left: 16px;
-    margin-right: 16px;
-    padding-left: 16px;
-    padding-right: 16px;
-    border-radius: 8px;
-    overflow: hidden;
-    padding-top: 8px;
-    padding-bottom: 8px;
+  .${listItemClasses.root} {
+    margin-top: 4px;
+    margin-bottom: 4px;
 
-    .${listItemIconClasses.root} {
+    .${listItemButtonClasses.root} {
+      margin-left: 16px;
       margin-right: 16px;
-      min-width: 24px;
-      width: 24px;
-      height: 24px;
-      font-size: 24px;
-    }
+      padding-left: 16px;
+      padding-right: 16px;
+      border-radius: 8px;
+      overflow: hidden;
+      padding-top: 8px;
+      padding-bottom: 8px;
 
-    .${listItemTextClasses.root} {
-      max-width: 100%;
-      margin-top: 0;
-      margin-bottom: 0;
-
-      .${listItemTextClasses.primary} {
-        white-space: nowrap;
-        font-size: 16px;
-        width: 100%;
-        overflow: hidden;
+      .${listItemIconClasses.root} {
+        margin-right: 16px;
+        min-width: 24px;
+        width: 24px;
+        height: 24px;
+        font-size: 24px;
       }
-    }
 
-    .expand-icon {
-      font-size: 18px;
-      color: ${(props) => props.theme.palette.text.secondary};
-      transition: transform ${(props) => props.theme.transitions.duration.short}ms ease-in-out;
+      .${listItemTextClasses.root} {
+        max-width: 100%;
+        margin-top: 0;
+        margin-bottom: 0;
 
-      &.open {
-        transform: rotate(-90deg);
+        .${listItemTextClasses.primary} {
+          white-space: nowrap;
+          font-size: 16px;
+          width: 100%;
+          overflow: hidden;
+        }
+      }
+
+      .expand-icon {
+        font-size: 18px;
+        color: ${(props) => props.theme.palette.text.secondary};
+        transition: transform ${(props) => props.theme.transitions.duration.short}ms ease-in-out;
+
+        &.open {
+          transform: rotate(-90deg);
+        }
       }
     }
   }
@@ -175,9 +182,6 @@ const StyledList = styled(List)`
     padding-bottom: 0;
 
     .${listItemClasses.root} {
-      margin-top: 4px;
-      margin-bottom: 4px;
-
       .${listItemButtonClasses.root} {
         flex-direction: column;
         margin-left: 4px;
