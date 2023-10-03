@@ -118,4 +118,6 @@ export default flat({
   createdAt: '创建于',
   deleteProjectTitle: '删除项目“{project}”？',
   deleteProjectTips: '删除之后不可找回！',
+  home: '首页',
+  prompts: '提示',
 });

@@ -118,4 +118,6 @@ export default flat({
   createdAt: 'Created at',
   deleteProjectTitle: 'Delete project "{project}"?',
   deleteProjectTips: 'It cannot be retrieved after deletion!',
+  home: 'Home',
+  prompts: 'Prompts',
 });

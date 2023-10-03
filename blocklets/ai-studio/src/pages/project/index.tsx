@@ -22,7 +22,7 @@ export default function ProjectRoutes() {
         ContentProps={{ sx: { pr: { xs: 2, sm: 3 } } }}
         HeaderProps={{ brandAddon: <BrandRoutes />, addons: (exists) => [<AddonsRoutes />, ...exists] }}
         menus={<MenuRoutes />}
-        footer={<RooterRoutes />}>
+        footer={<FooterRoutes />}>
         <Suspense fallback={<Loading fixed />}>
           <Routes>
             <Route index element={<ProjectsPage />} />
@@ -80,7 +80,7 @@ function MenuRoutes({ ...props }: ComponentProps<typeof MainMenus>) {
   return <Suspense>{element}</Suspense>;
 }
 
-function RooterRoutes() {
+function FooterRoutes() {
   const element = useRoutes([
     { index: true, element: <ProjectsFooter /> },
     { path: ':projectId/home', element: <ProjectsFooter /> },
