@@ -1,6 +1,8 @@
 import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
 import { cx } from '@emotion/css';
 import {
+  AddRounded,
+  CreateNewFolderOutlined,
   DragIndicator,
   HighlightOff,
   KeyboardDoubleArrowLeftRounded,
@@ -15,6 +17,7 @@ import {
   Button,
   CircularProgress,
   Drawer,
+  IconButton,
   Stack,
   Toolbar,
   Tooltip,
@@ -37,7 +40,7 @@ import TemplateFormView from '../../components/template-form';
 import { useComponent } from '../../contexts/component';
 import { useIsAdmin } from '../../contexts/session';
 import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
-import FileTree from './file-tree';
+import FileTree, { ImperativeFileTree } from './file-tree';
 import { useProjectState } from './state';
 import { isTemplate, templateYjsToTemplate, useStore } from './yjs-state';
 
@@ -165,6 +168,7 @@ export default function ProjectPage() {
   );
 
   const layout = useRef<ImperativeLayout>(null);
+  const fileTree = useRef<ImperativeFileTree>(null);
 
   return (
     <Layout
@@ -180,15 +184,27 @@ export default function ProjectPage() {
               borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
             <Toolbar variant="dense">
-              <Box flex={1} />
-
-              <Button startIcon={<MenuOpenRounded />} onClick={() => layout.current?.collapseLeft()}>
+              <Button
+                startIcon={<MenuOpenRounded />}
+                onClick={() => layout.current?.collapseLeft()}
+                sx={{ [`.${buttonClasses.startIcon}`]: { ml: 0 }, flexShrink: 0 }}>
                 Files
               </Button>
+
+              <Box flex={1} />
+
+              <IconButton disabled={disableMutation} color="primary" onClick={() => fileTree.current?.newFolder()}>
+                <CreateNewFolderOutlined fontSize="small" />
+              </IconButton>
+
+              <IconButton disabled={disableMutation} color="primary" onClick={() => fileTree.current?.newFile()}>
+                <AddRounded fontSize="small" />
+              </IconButton>
             </Toolbar>
           </Box>
 
           <FileTree
+            ref={fileTree}
             projectId={projectId}
             gitRef={gitRef}
             mutable={!disableMutation}

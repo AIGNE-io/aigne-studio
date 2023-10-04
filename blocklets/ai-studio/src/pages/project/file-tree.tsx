@@ -1,25 +1,26 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { css } from '@emotion/css';
-import { Icon } from '@iconify-icon/react';
 import { MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
   Add,
+  ArticleRounded,
+  ChevronRightRounded,
   CopyAll,
-  CreateNewFolderOutlined,
   DeleteForever,
   Download,
   Edit,
-  KeyboardArrowDown,
+  ForkLeftRounded,
+  ImageRounded,
   KeyboardArrowRight,
   Launch,
   MoreVert,
   Upload,
 } from '@mui/icons-material';
-import { Box, BoxProps, Button, CircularProgress, IconButton, Input, Tooltip, Typography } from '@mui/material';
+import { Box, BoxProps, Button, CircularProgress, Input, Tooltip } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { uniqBy } from 'lodash';
-import { ComponentProps, ReactNode, useCallback, useMemo, useState } from 'react';
+import { ComponentProps, ReactNode, forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import joinUrl from 'url-join';
@@ -48,24 +49,23 @@ export type EntryWithMeta =
 
 export type TreeNode = NodeModel<EntryWithMeta>;
 
-export default function FileTree({
-  projectId,
-  gitRef,
-  current,
-  mutable,
-  onExport,
-  onImport,
-  onLaunch,
-  ...props
-}: {
-  projectId: string;
-  gitRef: string;
-  current?: string;
-  mutable?: boolean;
-  onExport?: (path: string[]) => any;
-  onImport?: (path: string[]) => any;
-  onLaunch?: (template: TemplateYjs) => any;
-} & Omit<BoxProps, 'onClick'>) {
+export interface ImperativeFileTree {
+  newFolder: () => void;
+  newFile: () => void;
+}
+
+const FileTree = forwardRef<
+  ImperativeFileTree,
+  {
+    projectId: string;
+    gitRef: string;
+    current?: string;
+    mutable?: boolean;
+    onExport?: (path: string[]) => any;
+    onImport?: (path: string[]) => any;
+    onLaunch?: (template: TemplateYjs) => any;
+  } & Omit<BoxProps, 'onClick'>
+>(({ projectId, gitRef, current, mutable, onExport, onImport, onLaunch, ...props }, ref) => {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
 
@@ -82,6 +82,15 @@ export default function FileTree({
       navigate(filepath);
     },
     [navigate, setOpenIds, store]
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      newFolder: () => setShowNewProject(true),
+      newFile: () => onCreateFile(),
+    }),
+    [onCreateFile]
   );
 
   const onMoveFile = useCallback(
@@ -165,30 +174,6 @@ export default function FileTree({
 
   return (
     <Box {...props}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          px: 2,
-          py: 1,
-          position: 'sticky',
-          top: 0,
-          zIndex: 1,
-          bgcolor: 'background.paper',
-        }}>
-        <Typography variant="subtitle1" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {t('main.templates')}
-        </Typography>
-
-        <IconButton disabled={!mutable} size="small" color="primary" onClick={() => setShowNewProject(true)}>
-          <CreateNewFolderOutlined fontSize="small" />
-        </IconButton>
-
-        <IconButton disabled={!mutable} size="small" color="primary" onClick={() => onCreateFile()}>
-          <Add fontSize="small" />
-        </IconButton>
-      </Box>
-
       {showNewProject && (
         <EditableTreeItem
           icon={<KeyboardArrowRight fontSize="small" />}
@@ -264,7 +249,16 @@ export default function FileTree({
               return (
                 <EditableTreeItem
                   key={node.id}
-                  icon={isOpen ? <KeyboardArrowDown fontSize="small" /> : <KeyboardArrowRight fontSize="small" />}
+                  icon={
+                    <ChevronRightRounded
+                      fontSize="small"
+                      sx={{
+                        color: 'text.secondary',
+                        transform: isOpen ? 'rotate(90deg)' : 'none',
+                        transition: (theme) => theme.transitions.create('transform'),
+                      }}
+                    />
+                  }
                   mutable={mutable}
                   depth={depth}
                   onClick={onToggle}
@@ -283,16 +277,16 @@ export default function FileTree({
             const name = `${meta.id}.yaml`;
             const selected = current && current.endsWith(name);
 
-            const { icon, color } = (meta.type &&
+            const icon = (meta.type &&
               {
-                branch: { icon: 'fluent:branch-16-regular', color: 'secondary.main' },
-                image: { icon: 'fluent:draw-image-20-regular', color: 'success.main' },
-              }[meta.type]) || { icon: 'tabler:prompt', color: 'primary.main' };
+                branch: <ForkLeftRounded fontSize="small" sx={{ color: 'text.secondary' }} />,
+                image: <ImageRounded fontSize="small" sx={{ color: 'text.secondary' }} />,
+              }[meta.type]) || <ArticleRounded fontSize="small" sx={{ color: 'text.secondary' }} />;
 
             return (
               <TreeItem
                 key={node.id}
-                icon={<Box component={Icon} icon={icon} color={color} />}
+                icon={icon}
                 depth={depth}
                 sx={{ bgcolor: selected ? 'rgba(0,0,0,0.05)' : undefined }}
                 onClick={() => navigate(filepath.join('/'))}
@@ -312,7 +306,9 @@ export default function FileTree({
       </DndProvider>
     </Box>
   );
-}
+});
+
+export default FileTree;
 
 function TreeItemMenus({
   mutable,
@@ -527,8 +523,8 @@ function TreeItem({
       {...props}
       sx={{
         position: 'relative',
-        pl: depth * 2 + 1,
-        pr: 2,
+        pl: { xs: depth * 2 + 3, sm: depth * 2 + 4 },
+        pr: { xs: 3, md: 4 },
         py: 0.5,
         display: 'flex',
         alignItems: 'center',
