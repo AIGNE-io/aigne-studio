@@ -4,8 +4,8 @@ import { Box, Typography } from '@mui/material';
 
 export default function Home() {
   return (
-    <Dashboard footer={<Footer />}>
-      <Box mx="auto" my={4} maxWidth={800}>
+    <Dashboard>
+      <Box mx="auto" flexGrow={1} my={4} maxWidth={800}>
         {blocklet && (
           <Box textAlign="center">
             <Box component="img" src={blocklet.appLogo} width={80} />
@@ -19,6 +19,8 @@ export default function Home() {
           </Box>
         )}
       </Box>
+
+      <Footer />
     </Dashboard>
   );
 }

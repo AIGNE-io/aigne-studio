@@ -209,14 +209,19 @@ function Section({
   const [templatesVisible, setTemplatesVisible] = useState(true);
 
   return (
-    <>
+    <Box>
       <Stack
         direction="row"
-        alignItems="center"
-        gap={1}
-        sx={{ cursor: enableCollapse ? 'pointer' : 'default' }}
-        mt={{ xs: 2, sm: 3 }}
-        mb={{ xs: 1, sm: 2 }}
+        sx={{
+          position: 'sticky',
+          top: 64,
+          bgcolor: 'background.paper',
+          zIndex: 1,
+          cursor: enableCollapse ? 'pointer' : 'default',
+          my: 1,
+          alignItems: 'center',
+          gap: 1,
+        }}
         onClick={() => setTemplatesVisible(!templatesVisible)}>
         <Typography variant="h6" fontWeight="bold">
           {title}
@@ -234,10 +239,10 @@ function Section({
         )}
       </Stack>
 
-      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ py: 0.5 }}>
+      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ py: 0.5, position: 'relative' }}>
         {children}
       </Collapse>
-    </>
+    </Box>
   );
 }
 

@@ -116,7 +116,7 @@ const ProjectsRoutes = lazy(() => import('./pages/project'));
 const DatasetsRoutes = lazy(() => import('./pages/datasets'));
 
 function Layout({ children }: { children: ReactNode }) {
-  return <Dashboard footer={<Footer />}>{children}</Dashboard>;
+  return <Dashboard>{children}</Dashboard>;
 }
 
 function NotFound() {
@@ -125,6 +125,8 @@ function NotFound() {
       <Box flexGrow={1} textAlign="center">
         <div>Not Found.</div>
       </Box>
+
+      <Footer />
     </Layout>
   );
 }

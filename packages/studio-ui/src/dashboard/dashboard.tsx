@@ -79,27 +79,28 @@ export default function Dashboard({
       </Box>
 
       <Stack className="dashboard-body" direction="row" sx={{ height: '100%' }}>
-        <Box
-          className="dashboard-aside"
-          sx={{
-            height: '100%',
-            flexShrink: 0,
-            width: { [collapseBreakpoint]: open ? drawerWidth : miniDrawerWidth },
-            transition: (theme) => transition(theme, 'width', open),
-          }}>
-          <MenusDrawer
-            {...MenusDrawerProps}
-            variant={isPermanent ? 'permanent' : 'temporary'}
-            open={open}
-            collapsed={isMiniMenu}
-            onClose={() => setOpen(false)}>
-            {menus &&
-              cloneElement(menus, {
+        {menus && (
+          <Box
+            className="dashboard-aside"
+            sx={{
+              height: '100%',
+              flexShrink: 0,
+              width: { [collapseBreakpoint]: open ? drawerWidth : miniDrawerWidth },
+              transition: (theme) => transition(theme, 'width', open),
+            }}>
+            <MenusDrawer
+              {...MenusDrawerProps}
+              variant={isPermanent ? 'permanent' : 'temporary'}
+              open={open}
+              collapsed={isMiniMenu}
+              onClose={() => setOpen(false)}>
+              {cloneElement(menus, {
                 collapsed: isMiniMenu,
                 onClick: isPermanent ? undefined : () => setOpen(false),
               })}
-          </MenusDrawer>
-        </Box>
+            </MenusDrawer>
+          </Box>
+        )}
 
         <Stack className="dashboard-content" sx={{ height: '100%', flex: 1 }}>
           {children}

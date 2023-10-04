@@ -447,7 +447,7 @@ const ResizeHandleRoot = styled(Box)`
   width: 0;
   height: 100%;
   position: relative;
-  z-index: ${({ theme }) => theme.zIndex.tooltip};
+  z-index: 10;
   overflow: visible;
   border-right: ${({ theme }) => `1px dashed ${theme.palette.grey[200]}`};
 
