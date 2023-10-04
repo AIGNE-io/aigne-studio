@@ -1,6 +1,17 @@
 import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
 import { DragIndicator, HighlightOff, MenuOpenRounded, Start } from '@mui/icons-material';
-import { Alert, Box, Button, CircularProgress, Stack, Toolbar, Tooltip } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Drawer,
+  Stack,
+  Toolbar,
+  Tooltip,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
@@ -146,6 +157,88 @@ export default function ProjectPage() {
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const fileTreePanel = useRef<ImperativePanelHandle>();
   const rightPanel = useRef<ImperativePanelHandle>();
+
+  const theme = useTheme();
+  const isUpMd = useMediaQuery(theme.breakpoints.up('md'));
+
+  const [leftOpen, setLeftOpen] = useState(false);
+  const [rightOpen, setRightOpen] = useState(false);
+
+  if (!isUpMd) {
+    return (
+      <Box height="100%" overflow="auto">
+        <Box
+          sx={{
+            position: 'sticky',
+            top: 0,
+            bgcolor: 'background.paper',
+            zIndex: (theme) => theme.zIndex.appBar,
+            borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
+          }}>
+          <Toolbar>
+            <Button
+              startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
+              onClick={() => setLeftOpen(!leftOpen)}>
+              Files
+            </Button>
+            <Box flex={1} />
+            <Button startIcon={<MenuOpenRounded />} onClick={() => setRightOpen(!rightOpen)}>
+              Debug
+            </Button>
+          </Toolbar>
+        </Box>
+
+        <Drawer
+          open={leftOpen}
+          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
+          PaperProps={{ sx: { width: 300, pt: 8 } }}
+          onClose={() => setLeftOpen(false)}>
+          <Toolbar>
+            <Box flex={1} />
+
+            <Button startIcon={<MenuOpenRounded />} onClick={() => setLeftOpen(!leftOpen)}>
+              Files
+            </Button>
+          </Toolbar>
+
+          <FileTree
+            projectId={projectId}
+            gitRef={gitRef}
+            mutable={!disableMutation}
+            current={filepath}
+            onLaunch={assistant ? onLaunch : undefined}
+          />
+        </Drawer>
+
+        <Box p={2}>
+          {filepath && <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} onExecute={onExecute} />}
+        </Box>
+
+        <Drawer
+          anchor="right"
+          open={rightOpen}
+          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
+          PaperProps={{ sx: { width: 'calc(100% - 16px)', pt: 8 } }}
+          onClose={() => setRightOpen(false)}>
+          <Toolbar>
+            <Button
+              startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
+              onClick={() => setRightOpen(!rightOpen)}>
+              Debug
+            </Button>
+          </Toolbar>
+
+          <Conversation
+            ref={conversation}
+            messages={messages}
+            sx={{ flex: 1, overflow: 'auto' }}
+            onSubmit={(prompt) => add(prompt)}
+            customActions={customActions}
+          />
+        </Drawer>
+      </Box>
+    );
+  }
 
   return (
     <Box height="100%">
