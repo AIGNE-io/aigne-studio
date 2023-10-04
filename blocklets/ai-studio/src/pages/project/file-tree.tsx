@@ -3,21 +3,36 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { css } from '@emotion/css';
 import { MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
-  Add,
+  AddRounded,
   ArticleRounded,
   ChevronRightRounded,
-  CopyAll,
-  DeleteForever,
-  Download,
-  Edit,
+  CopyAllRounded,
+  DeleteForeverRounded,
+  DownloadRounded,
+  EditRounded,
   ForkLeftRounded,
   ImageRounded,
-  KeyboardArrowRight,
-  Launch,
-  MoreVert,
-  Upload,
+  KeyboardArrowRightRounded,
+  LaunchRounded,
+  MoreVertRounded,
+  UploadRounded,
 } from '@mui/icons-material';
-import { Box, BoxProps, Button, CircularProgress, Input, Tooltip } from '@mui/material';
+import {
+  Box,
+  BoxProps,
+  Button,
+  CircularProgress,
+  ClickAwayListener,
+  Input,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+  Tooltip,
+  listItemButtonClasses,
+  listItemIconClasses,
+} from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { uniqBy } from 'lodash';
 import { ComponentProps, ReactNode, forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
@@ -176,7 +191,7 @@ const FileTree = forwardRef<
     <Box {...props}>
       {showNewProject && (
         <EditableTreeItem
-          icon={<KeyboardArrowRight fontSize="small" />}
+          icon={<KeyboardArrowRightRounded fontSize="small" />}
           key={showNewProject.toString()}
           defaultEditing
           onSubmit={async (value) => {
@@ -332,75 +347,68 @@ function TreeItemMenus({
   return (
     <>
       {onLaunch && item.type === 'file' && (
-        <Tooltip title={t('alert.openInAssistant')}>
-          <span>
-            <Button size="small" onClick={() => onLaunch(item.meta)}>
-              <Launch fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
+        <ListItemButton onClick={() => onLaunch(item.meta)}>
+          <ListItemIcon>
+            <LaunchRounded fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.openInAssistant')} />
+        </ListItemButton>
       )}
 
       {onExport && (
-        <Tooltip title={t('alert.export')}>
-          <span>
-            <Button size="small" onClick={() => onExport(item.path)}>
-              <Download fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
+        <ListItemButton onClick={() => onExport(item.path)}>
+          <ListItemIcon>
+            <DownloadRounded fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.export')} />
+        </ListItemButton>
       )}
 
       {onImport && item.type === 'folder' && (
-        <Tooltip title={t('alert.import')}>
-          <span>
-            <Button disabled={!mutable} size="small" onClick={() => onImport(item.path)}>
-              <Upload fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
+        <ListItemButton disabled={!mutable} onClick={() => onImport(item.path)}>
+          <ListItemIcon>
+            <UploadRounded fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.import')} />
+        </ListItemButton>
       )}
 
       {item.type === 'folder' && onCreateFile && (
-        <Tooltip title={`${t('form.add')} ${t('form.template')}`}>
-          <span>
-            <Button disabled={!mutable} size="small" onClick={() => onCreateFile({ parent: item.path })}>
-              <Add fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
+        <ListItemButton disabled={!mutable} onClick={() => onCreateFile({ parent: item.path })}>
+          <ListItemIcon>
+            <AddRounded fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('form.new')} />
+        </ListItemButton>
       )}
 
       {item.type === 'file' && onCreateFile && (
-        <Tooltip title={t('alert.duplicate')}>
-          <span>
-            <Button
-              disabled={!mutable}
-              size="small"
-              onClick={() =>
-                onCreateFile({
-                  parent: item.parent,
-                  meta: {
-                    ...JSON.parse(JSON.stringify(item.meta)),
-                    id: nextTemplateId(),
-                    name: item.meta.name && `${item.meta.name} Copy`,
-                  },
-                })
-              }>
-              <CopyAll fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
+        <ListItemButton
+          disabled={!mutable}
+          onClick={() =>
+            onCreateFile({
+              parent: item.parent,
+              meta: {
+                ...JSON.parse(JSON.stringify(item.meta)),
+                id: nextTemplateId(),
+                name: item.meta.name && `${item.meta.name} Copy`,
+              },
+            })
+          }>
+          <ListItemIcon>
+            <CopyAllRounded fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.duplicate')} />
+        </ListItemButton>
       )}
 
       {onDeleteFile && (
-        <Tooltip title={t('alert.delete')}>
-          <span>
-            <Button disabled={!mutable} size="small" onClick={() => onDeleteFile(item)}>
-              <DeleteForever fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
+        <ListItemButton disabled={!mutable} onClick={() => onDeleteFile(item)}>
+          <ListItemIcon>
+            <DeleteForeverRounded fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.delete')} />
+        </ListItemButton>
       )}
     </>
   );
@@ -449,13 +457,13 @@ function EditableTreeItem({
       {...props}
       actions={
         <>
-          <Tooltip title={t('form.rename')}>
-            <span>
-              <Button disabled={!mutable} size="small" onClick={() => setEditing(true)}>
-                <Edit fontSize="small" />
-              </Button>
-            </span>
-          </Tooltip>
+          <ListItemButton disabled={!mutable} onClick={() => setEditing(true)}>
+            <ListItemIcon>
+              <EditRounded fontSize="small" />
+            </ListItemIcon>
+
+            <ListItemText primary={t('form.rename')} />
+          </ListItemButton>
 
           {props.actions}
         </>
@@ -520,68 +528,89 @@ function TreeItem({
 
   return (
     <Box
-      {...props}
       sx={{
+        my: 0.5,
         position: 'relative',
-        pl: { xs: depth * 2 + 3, sm: depth * 2 + 4 },
-        pr: { xs: 3, md: 4 },
-        py: 0.5,
-        display: 'flex',
-        alignItems: 'center',
-        cursor: 'pointer',
-        ':hover': { bgcolor: 'grey.100', '.hover-visible': { opacity: 1 } },
-        ...props.sx,
+        ':hover': {
+          '.item': { bgcolor: 'grey.100' },
+          '.hover-visible': { opacity: 1 },
+        },
       }}>
-      <Box sx={{ width: 32, display: 'flex', alignItems: 'center' }}>{icon}</Box>
-
       <Box
+        className="item"
+        {...props}
         sx={{
-          flex: 1,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
+          borderRadius: 1,
+          mx: 0.5,
+          position: 'relative',
+          pl: { xs: depth * 2 + 2.5, sm: depth * 2 + 3.5 },
+          pr: { xs: 2.5, md: 3.5 },
+          py: 0.5,
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'pointer',
+          ...props.sx,
+          bgcolor: open ? 'grey.100' : (props.sx as any)?.bgcolor,
         }}>
-        {children}
+        <Box sx={{ width: 32, display: 'flex', alignItems: 'center' }}>{icon}</Box>
+
+        <Box
+          sx={{
+            flex: 1,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}>
+          {children}
+        </Box>
       </Box>
 
       {actions && (
-        <Box
+        <Stack
           component="span"
           className="hover-visible"
-          sx={{ position: 'absolute', right: 4, opacity: open ? 1 : 0 }}
-          onClick={(e) => e.stopPropagation()}>
+          justifyContent="center"
+          sx={{ position: 'absolute', right: 8, top: 0, bottom: 0, opacity: open ? 1 : 0 }}>
           <Tooltip
             open={open}
-            placement="right"
-            onOpen={() => setOpen(true)}
+            placement="right-start"
             onClose={() => setOpen(false)}
-            disableTouchListener
             disableFocusListener
+            disableHoverListener
+            disableTouchListener
             componentsProps={{
-              tooltip: {
-                sx: {
-                  bgcolor: 'grey.100',
-                  boxShadow: 1,
-                },
-              },
+              tooltip: { sx: { bgcolor: 'grey.100', boxShadow: 1, m: 0, p: 0.5 } },
             }}
             title={
-              <Box
-                sx={{
-                  '.MuiButtonBase-root': {
-                    px: 0.5,
-                    minWidth: 0,
-                  },
-                }}
-                onClick={() => setOpen(false)}>
-                {actions}
-              </Box>
+              <ClickAwayListener onClickAway={() => setOpen(false)}>
+                <List
+                  disablePadding
+                  dense
+                  sx={{
+                    color: 'text.primary',
+                    [`.${listItemButtonClasses.root}`]: {
+                      borderRadius: 1,
+                      px: 1,
+                      py: '2px',
+                    },
+                    [`.${listItemIconClasses.root}`]: {
+                      minWidth: 32,
+
+                      '> *': {
+                        fontSize: 18,
+                      },
+                    },
+                  }}
+                  onClick={() => setOpen(false)}>
+                  {actions}
+                </List>
+              </ClickAwayListener>
             }>
-            <Button sx={{ padding: 0.5, minWidth: 0 }}>
-              <MoreVert sx={{ fontSize: 16 }} />
+            <Button onClick={() => setOpen(true)} sx={{ padding: 0.5, minWidth: 0, bgcolor: 'grey.200' }}>
+              <MoreVertRounded sx={{ fontSize: 16 }} />
             </Button>
           </Tooltip>
-        </Box>
+        </Stack>
       )}
     </Box>
   );

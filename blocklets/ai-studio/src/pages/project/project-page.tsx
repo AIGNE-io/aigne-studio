@@ -174,7 +174,7 @@ export default function ProjectPage() {
     <Layout
       ref={layout}
       left={
-        <Box sx={{ height: '100%', overflow: 'auto' }}>
+        <Stack sx={{ height: '100%', overflow: 'auto' }}>
           <Box
             sx={{
               position: 'sticky',
@@ -210,8 +210,9 @@ export default function ProjectPage() {
             mutable={!disableMutation}
             current={filepath}
             onLaunch={assistant ? onLaunch : undefined}
+            sx={{ flexGrow: 1 }}
           />
-        </Box>
+        </Stack>
       }
       right={
         <Stack sx={{ height: '100%' }}>
