@@ -1,4 +1,5 @@
 import { Dashboard } from '@blocklet/studio-ui';
+import { backdropClasses, drawerClasses } from '@mui/material';
 import { ComponentProps, Suspense, lazy, useEffect, useRef } from 'react';
 import { Navigate, Route, Routes, useLocation, useRoutes } from 'react-router-dom';
 
@@ -21,7 +22,25 @@ export default function ProjectRoutes() {
       <Dashboard
         HeaderProps={{ brandAddon: <BrandRoutes />, addons: (exists) => [<AddonsRoutes />, ...exists] }}
         menus={<MenuRoutes />}
-        footer={<FooterRoutes />}>
+        MenusDrawerProps={{
+          sx: {
+            [`.${backdropClasses.root}`]: {
+              top: 64,
+            },
+
+            [`> .${drawerClasses.paper}`]: {
+              borderRightStyle: 'dashed',
+            },
+          },
+        }}
+        sx={{
+          '.dashboard-header': {
+            border: 'none',
+            bgcolor: 'grey.200',
+            borderBottomLeftRadius: 8,
+            borderBottomRightRadius: 8,
+          },
+        }}>
         <Suspense fallback={<Loading fixed />}>
           <Routes>
             <Route index element={<ProjectsPage />} />
@@ -79,19 +98,8 @@ function MenuRoutes({ ...props }: ComponentProps<typeof MainMenus>) {
   return <Suspense>{element}</Suspense>;
 }
 
-function FooterRoutes() {
-  const element = useRoutes([
-    { index: true, element: <ProjectsFooter /> },
-    { path: ':projectId/home', element: <ProjectsFooter /> },
-  ]);
-
-  return <Suspense>{element}</Suspense>;
-}
-
 const ProjectsPage = lazy(() => import('./projects-page'));
 
 const ProjectPage = lazy(() => import('./project-page'));
-
-const ProjectsFooter = lazy(() => import('./projects-footer'));
 
 const ProjectBrand = lazy(() => import('./project-brand'));

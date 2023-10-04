@@ -7,6 +7,7 @@ import {
   DrawerProps,
   IconButton,
   Stack,
+  StackProps,
   Theme,
   styled,
   useMediaQuery,
@@ -14,7 +15,7 @@ import {
 } from '@mui/material';
 import { ReactElement, ReactNode, cloneElement, useMemo, useState } from 'react';
 
-export interface DashboardProps {
+export interface DashboardProps extends StackProps {
   HeaderProps?: {
     prepend?: ReactNode;
     logo?: ReactNode;
@@ -24,25 +25,22 @@ export interface DashboardProps {
     addons?: ReactNode | ((builtin: ReactNode[]) => ReactNode[] | ReactNode);
     sx?: BoxProps['sx'];
   };
-  ContentProps?: BoxProps;
-  FooterProps?: BoxProps;
+  MenusDrawerProps?: DrawerProps;
   menus?: ReactElement<{ collapsed?: boolean; onClick?: () => void }> | null;
   children?: ReactNode;
-  footer?: ReactNode;
   collapseBreakpoint?: 'sm' | 'md';
 }
 
 const miniDrawerWidth = 87;
-const drawerWidth = 200;
+const drawerWidth = 300;
 
 export default function Dashboard({
   HeaderProps,
-  ContentProps,
-  FooterProps,
+  MenusDrawerProps,
   menus,
   children,
-  footer,
   collapseBreakpoint = 'md',
+  ...props
 }: DashboardProps) {
   const theme = useTheme();
 
@@ -60,10 +58,11 @@ export default function Dashboard({
   const isMiniMenu = !open && isPermanent;
 
   return (
-    <Root sx={{ height: '100%' }}>
-      <Box component="header">
+    <Root {...props} sx={{ height: '100%', pt: 8, ...props.sx }}>
+      <Box className="dashboard-header" component="header">
         <Box
           {...HeaderProps}
+          sx={{ bgcolor: 'transparent', ...HeaderProps?.sx }}
           component={Header}
           prepend={
             <>
@@ -79,14 +78,17 @@ export default function Dashboard({
         />
       </Box>
 
-      <Stack height="100%" pt={8} direction="row">
+      <Stack className="dashboard-body" direction="row" sx={{ height: '100%' }}>
         <Box
+          className="dashboard-aside"
           sx={{
+            height: '100%',
             flexShrink: 0,
             width: { [collapseBreakpoint]: open ? drawerWidth : miniDrawerWidth },
             transition: (theme) => transition(theme, 'width', open),
           }}>
           <MenusDrawer
+            {...MenusDrawerProps}
             variant={isPermanent ? 'permanent' : 'temporary'}
             open={open}
             collapsed={isMiniMenu}
@@ -99,23 +101,8 @@ export default function Dashboard({
           </MenusDrawer>
         </Box>
 
-        <Stack flex={1}>
-          <Stack
-            component="main"
-            {...ContentProps}
-            sx={{
-              height: '100%',
-              flexGrow: 1,
-              ...ContentProps?.sx,
-            }}>
-            {children}
-          </Stack>
-
-          {footer && (
-            <Box {...FooterProps} component="footer">
-              {footer}
-            </Box>
-          )}
+        <Stack className="dashboard-content" sx={{ height: '100%', flex: 1 }}>
+          {children}
         </Stack>
       </Stack>
     </Root>
@@ -123,13 +110,14 @@ export default function Dashboard({
 }
 
 const Root = styled(Stack)`
-  > header {
+  > .dashboard-header {
     position: fixed;
     left: 0;
     top: 0;
     right: 0;
     z-index: ${({ theme }) => theme.zIndex.appBar + 2};
     border-bottom: ${({ theme }) => `1px solid ${theme.palette.grey[200]}`};
+    background-color: ${({ theme }) => theme.palette.background.paper};
 
     .header-container {
       max-width: none;
@@ -147,22 +135,27 @@ function MenusDrawer({ collapsed, ...props }: DrawerProps & { collapsed?: boolea
   return (
     <Drawer
       {...props}
-      sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
+      sx={{ height: '100%', zIndex: (theme) => theme.zIndex.appBar + 1, ...props.sx }}
       PaperProps={{
+        ...props.PaperProps,
         sx: {
+          top: 64,
+          bottom: 0,
+          height: 'auto',
           width: collapsed ? miniDrawerWidth : drawerWidth,
           transition: (theme) => transition(theme, 'width', props.open),
+          borderRightWidth: props.variant === 'permanent' ? 1 : 0,
           borderRightStyle: props.variant === 'permanent' ? 'solid' : 'none',
-          borderRightColor: (theme) => theme.palette.grey[200],
+          borderRightColor: (theme) => (props.variant === 'permanent' ? theme.palette.grey[200] : 'transparent'),
           zIndex: (theme) => theme.zIndex.appBar + 1,
 
           '*::-webkit-scrollbar': {
             display: 'none',
           },
+
+          ...props.PaperProps?.sx,
         },
       }}>
-      <Box height={64} flexShrink={0} />
-
       {props.children}
     </Drawer>
   );

@@ -1,14 +1,24 @@
 import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
-import { DragIndicator, HighlightOff, MenuOpenRounded, Start } from '@mui/icons-material';
+import { cx } from '@emotion/css';
+import {
+  DragIndicator,
+  HighlightOff,
+  KeyboardDoubleArrowLeftRounded,
+  KeyboardDoubleArrowRightRounded,
+  MenuOpenRounded,
+  Start,
+} from '@mui/icons-material';
 import {
   Alert,
   Box,
+  BoxProps,
   Button,
   CircularProgress,
   Drawer,
   Stack,
   Toolbar,
   Tooltip,
+  styled,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -173,9 +183,9 @@ export default function ProjectPage() {
             top: 0,
             bgcolor: 'background.paper',
             zIndex: (theme) => theme.zIndex.appBar,
-            borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
+            borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
           }}>
-          <Toolbar>
+          <Toolbar variant="dense">
             <Button
               startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
               onClick={() => setLeftOpen(!leftOpen)}>
@@ -183,7 +193,7 @@ export default function ProjectPage() {
             </Button>
             <Box flex={1} />
             <Button startIcon={<MenuOpenRounded />} onClick={() => setRightOpen(!rightOpen)}>
-              Debug
+              Tools
             </Button>
           </Toolbar>
         </Box>
@@ -193,7 +203,7 @@ export default function ProjectPage() {
           sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
           PaperProps={{ sx: { width: 300, pt: 8 } }}
           onClose={() => setLeftOpen(false)}>
-          <Toolbar>
+          <Toolbar variant="dense">
             <Box flex={1} />
 
             <Button startIcon={<MenuOpenRounded />} onClick={() => setLeftOpen(!leftOpen)}>
@@ -210,7 +220,7 @@ export default function ProjectPage() {
           />
         </Drawer>
 
-        <Box p={2}>
+        <Box mx={{ xs: 3, sm: 4 }} my={{ xs: 1, sm: 2 }}>
           {filepath && <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} onExecute={onExecute} />}
         </Box>
 
@@ -220,11 +230,11 @@ export default function ProjectPage() {
           sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
           PaperProps={{ sx: { width: 'calc(100% - 16px)', pt: 8 } }}
           onClose={() => setRightOpen(false)}>
-          <Toolbar>
+          <Toolbar variant="dense">
             <Button
               startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
               onClick={() => setRightOpen(!rightOpen)}>
-              Debug
+              Tools
             </Button>
           </Toolbar>
 
@@ -257,9 +267,9 @@ export default function ProjectPage() {
                 top: 0,
                 bgcolor: 'background.paper',
                 zIndex: (theme) => theme.zIndex.appBar,
-                borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
+                borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
               }}>
-              <Toolbar>
+              <PanelToolbar>
                 <Box flex={1} />
 
                 <Button
@@ -269,7 +279,7 @@ export default function ProjectPage() {
                   }>
                   Files
                 </Button>
-              </Toolbar>
+              </PanelToolbar>
             </Box>
 
             <FileTree
@@ -282,7 +292,11 @@ export default function ProjectPage() {
           </Box>
         </Box>
 
-        <ResizeHandle />
+        <ResizeHandle
+          collapsed={fileTreeCollapsed}
+          icon={fileTreeCollapsed ? <KeyboardDoubleArrowRightRounded /> : undefined}
+          onClick={() => fileTreeCollapsed && fileTreePanel.current?.expand()}
+        />
 
         <Box component={Panel} minSize={30}>
           <Box sx={{ height: '100%', overflow: 'auto' }}>
@@ -292,9 +306,9 @@ export default function ProjectPage() {
                 top: 0,
                 bgcolor: 'background.paper',
                 zIndex: (theme) => theme.zIndex.appBar,
-                borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
+                borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
               }}>
-              <Toolbar>
+              <PanelToolbar>
                 {fileTreeCollapsed && (
                   <Button
                     startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
@@ -310,10 +324,10 @@ export default function ProjectPage() {
                   <Button
                     startIcon={<MenuOpenRounded />}
                     onClick={() => (rightCollapsed ? rightPanel.current?.expand() : rightPanel.current?.collapse())}>
-                    Aside
+                    Tools
                   </Button>
                 )}
-              </Toolbar>
+              </PanelToolbar>
             </Box>
 
             <Box p={2}>
@@ -324,7 +338,11 @@ export default function ProjectPage() {
           </Box>
         </Box>
 
-        <ResizeHandle />
+        <ResizeHandle
+          collapsed={rightCollapsed}
+          icon={rightCollapsed ? <KeyboardDoubleArrowLeftRounded /> : undefined}
+          onClick={() => rightCollapsed && rightPanel.current?.expand()}
+        />
 
         <Box
           component={Panel}
@@ -340,15 +358,15 @@ export default function ProjectPage() {
                 top: 0,
                 bgcolor: 'background.paper',
                 zIndex: (theme) => theme.zIndex.appBar,
-                borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
+                borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
               }}>
-              <Toolbar>
+              <PanelToolbar>
                 <Button
                   startIcon={<MenuOpenRounded sx={{ transform: 'rotate(180deg)' }} />}
                   onClick={() => (rightCollapsed ? rightPanel.current?.expand() : rightPanel.current?.collapse())}>
-                  Collapse
+                  Tools
                 </Button>
-              </Toolbar>
+              </PanelToolbar>
             </Box>
 
             <Conversation
@@ -364,6 +382,14 @@ export default function ProjectPage() {
     </Box>
   );
 }
+
+const PanelToolbar = styled(Stack)`
+  padding-left: 8px;
+  padding-right: 8px;
+  min-height: 48px;
+  flex-direction: row;
+  align-items: center;
+`;
 
 function TemplateEditor({
   projectId,
@@ -407,23 +433,59 @@ function TemplateEditor({
   );
 }
 
-function ResizeHandle() {
+function ResizeHandle({ icon, collapsed, ...props }: { collapsed?: boolean; icon?: ReactNode } & BoxProps) {
   return (
-    <Box
-      component={PanelResizeHandle}
-      sx={{
-        width: 10,
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'grey.200',
-        opacity: 0.6,
-        ':hover': {
-          opacity: 1,
-        },
-      }}>
-      <DragIndicator sx={{ fontSize: 14 }} />
-    </Box>
+    <ResizeHandleRoot component={PanelResizeHandle} className={cx(collapsed && 'collapsed')}>
+      <Box {...props} className="handler">
+        {icon || <DragIndicator />}
+      </Box>
+    </ResizeHandleRoot>
   );
 }
+
+const ResizeHandleRoot = styled(Box)`
+  width: 0;
+  height: 100%;
+  position: relative;
+  z-index: ${({ theme }) => theme.zIndex.tooltip};
+  overflow: visible;
+  border-right: ${({ theme }) => `1px dashed ${theme.palette.grey[200]}`};
+
+  &.collapsed {
+    border-color: transparent;
+  }
+
+  .handler {
+    position: absolute;
+    left: -5px;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    height: 100px;
+    border-radius: 5px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: ${({ theme }) => theme.palette.grey[100]};
+    transition: ${({ theme }) =>
+      theme.transitions.create('all', {
+        easing: theme.transitions.easing.sharp,
+      })};
+
+    svg {
+      font-size: 14px;
+    }
+  }
+
+  :hover,
+  &[data-resize-handle-active] {
+    .handler {
+      left: -5px;
+      height: calc(100% - 128px);
+      width: 10px;
+      background-color: ${({ theme }) => theme.palette.grey[100]};
+      border-radius: 5px;
+    }
+  }
+`;

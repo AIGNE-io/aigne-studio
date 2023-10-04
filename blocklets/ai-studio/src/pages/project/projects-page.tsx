@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { LoadingButton } from '@blocklet/studio-ui';
 import { cx } from '@emotion/css';
@@ -57,23 +58,27 @@ export default function ProjectsPage() {
   }, []);
 
   return (
-    <Box mx={{ xs: 2, sm: 3 }}>
-      <ProjectMenu />
+    <Stack minHeight="100%">
+      <Box mx={{ xs: 2, sm: 3 }} flexGrow={1}>
+        <ProjectMenu />
 
-      {templates.length > 0 && (
-        <Section enableCollapse title={t('newFromTemplates')}>
-          <ProjectList section="templates" list={templates} />
-        </Section>
-      )}
+        {templates.length > 0 && (
+          <Section enableCollapse title={t('newFromTemplates')}>
+            <ProjectList section="templates" list={templates} />
+          </Section>
+        )}
 
-      {projects.length > 0 ? (
-        <Section title={t('myProjects')}>
-          <ProjectList section="projects" list={projects} />
-        </Section>
-      ) : (
-        loading && <Loading fixed />
-      )}
-    </Box>
+        {projects.length > 0 ? (
+          <Section title={t('myProjects')}>
+            <ProjectList section="projects" list={projects} />
+          </Section>
+        ) : (
+          loading && <Loading fixed />
+        )}
+      </Box>
+
+      <ProjectsFooter />
+    </Stack>
   );
 }
 
@@ -473,5 +478,38 @@ function LoadingMenuItem({ ...props }: MenuItemProps) {
         {loading && <CircularProgress size={16} />}
       </Box>
     </MenuItem>
+  );
+}
+
+function ProjectsFooter() {
+  const { t, locale } = useLocaleContext();
+
+  const {
+    state: { selected },
+  } = useProjectsState();
+
+  if (!selected) return null;
+
+  return (
+    <Box
+      sx={{
+        position: 'sticky',
+        bottom: 0,
+        bgcolor: 'background.paper',
+        zIndex: (theme) => theme.zIndex.appBar,
+        borderTopWidth: 1,
+        borderTopStyle: 'dashed',
+        borderTopColor: (theme) => theme.palette.grey[200],
+        px: { xs: 2, sm: 3 },
+        py: 2,
+      }}>
+      <Typography variant="h6">
+        {(selected.section === 'templates' && selected.item.name && t(selected.item.name)) || t('unnamed')}
+      </Typography>
+      <Typography variant="body1">{selected.item.description}</Typography>
+      <Typography variant="caption">
+        {t('createdAt')} <RelativeTime value={selected.item.createdAt} locale={locale} />
+      </Typography>
+    </Box>
   );
 }
