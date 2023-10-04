@@ -18,12 +18,13 @@ import {
   Stack,
   Toolbar,
   Tooltip,
+  buttonClasses,
   styled,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactNode, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
@@ -163,53 +164,29 @@ export default function ProjectPage() {
     [assistant, projectId, gitRef]
   );
 
-  const [fileTreeCollapsed, setFileTreeCollapsed] = useState(false);
-  const [rightCollapsed, setRightCollapsed] = useState(false);
-  const fileTreePanel = useRef<ImperativePanelHandle>();
-  const rightPanel = useRef<ImperativePanelHandle>();
+  const layout = useRef<ImperativeLayout>(null);
 
-  const theme = useTheme();
-  const isUpMd = useMediaQuery(theme.breakpoints.up('md'));
+  return (
+    <Layout
+      ref={layout}
+      left={
+        <Box sx={{ height: '100%', overflow: 'auto' }}>
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 0,
+              bgcolor: 'background.paper',
+              zIndex: (theme) => theme.zIndex.appBar,
+              borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
+            }}>
+            <Toolbar variant="dense">
+              <Box flex={1} />
 
-  const [leftOpen, setLeftOpen] = useState(false);
-  const [rightOpen, setRightOpen] = useState(false);
-
-  if (!isUpMd) {
-    return (
-      <Box height="100%" overflow="auto">
-        <Box
-          sx={{
-            position: 'sticky',
-            top: 0,
-            bgcolor: 'background.paper',
-            zIndex: (theme) => theme.zIndex.appBar,
-            borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
-          }}>
-          <Toolbar variant="dense">
-            <Button
-              startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
-              onClick={() => setLeftOpen(!leftOpen)}>
-              Files
-            </Button>
-            <Box flex={1} />
-            <Button startIcon={<MenuOpenRounded />} onClick={() => setRightOpen(!rightOpen)}>
-              Tools
-            </Button>
-          </Toolbar>
-        </Box>
-
-        <Drawer
-          open={leftOpen}
-          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
-          PaperProps={{ sx: { width: 300, pt: 8 } }}
-          onClose={() => setLeftOpen(false)}>
-          <Toolbar variant="dense">
-            <Box flex={1} />
-
-            <Button startIcon={<MenuOpenRounded />} onClick={() => setLeftOpen(!leftOpen)}>
-              Files
-            </Button>
-          </Toolbar>
+              <Button startIcon={<MenuOpenRounded />} onClick={() => layout.current?.collapseLeft()}>
+                Files
+              </Button>
+            </Toolbar>
+          </Box>
 
           <FileTree
             projectId={projectId}
@@ -218,25 +195,26 @@ export default function ProjectPage() {
             current={filepath}
             onLaunch={assistant ? onLaunch : undefined}
           />
-        </Drawer>
-
-        <Box mx={{ xs: 3, sm: 4 }} my={{ xs: 1, sm: 2 }}>
-          {filepath && <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} onExecute={onExecute} />}
         </Box>
-
-        <Drawer
-          anchor="right"
-          open={rightOpen}
-          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
-          PaperProps={{ sx: { width: 'calc(100% - 16px)', pt: 8 } }}
-          onClose={() => setRightOpen(false)}>
-          <Toolbar variant="dense">
-            <Button
-              startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
-              onClick={() => setRightOpen(!rightOpen)}>
-              Tools
-            </Button>
-          </Toolbar>
+      }
+      right={
+        <Stack sx={{ height: '100%' }}>
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 0,
+              bgcolor: 'background.paper',
+              zIndex: (theme) => theme.zIndex.appBar,
+              borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
+            }}>
+            <Toolbar variant="dense">
+              <Button
+                startIcon={<MenuOpenRounded sx={{ transform: 'rotate(180deg)' }} />}
+                onClick={() => layout.current?.collapseRight()}>
+                Tools
+              </Button>
+            </Toolbar>
+          </Box>
 
           <Conversation
             ref={conversation}
@@ -245,6 +223,127 @@ export default function ProjectPage() {
             onSubmit={(prompt) => add(prompt)}
             customActions={customActions}
           />
+        </Stack>
+      }>
+      {({ leftOpen, rightOpen }) => (
+        <Box sx={{ height: '100%', overflow: 'auto' }}>
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 0,
+              bgcolor: 'background.paper',
+              zIndex: (theme) => theme.zIndex.appBar,
+              borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
+            }}>
+            <Toolbar variant="dense">
+              {!leftOpen && (
+                <Button
+                  startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
+                  onClick={() => (leftOpen ? layout.current?.collapseLeft() : layout.current?.expandLeft())}
+                  sx={{ [`.${buttonClasses.startIcon}`]: { ml: 0 } }}>
+                  Files
+                </Button>
+              )}
+
+              <Box flex={1} />
+
+              {!rightOpen && (
+                <Button
+                  startIcon={<MenuOpenRounded />}
+                  onClick={() => (rightOpen ? layout.current?.collapseRight() : layout.current?.expandRight())}>
+                  Tools
+                </Button>
+              )}
+            </Toolbar>
+          </Box>
+
+          <Box mx={{ xs: 3, sm: 4 }} my={{ xs: 1, sm: 2 }}>
+            {filepath && <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} onExecute={onExecute} />}
+          </Box>
+        </Box>
+      )}
+    </Layout>
+  );
+}
+
+interface ImperativeLayout {
+  collapseLeft: () => void;
+  expandLeft: () => void;
+  collapseRight: () => void;
+  expandRight: () => void;
+}
+
+const Layout = forwardRef<
+  ImperativeLayout,
+  {
+    left?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
+    right?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
+    children?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
+    onLeftCollapse?: (collapsed: boolean) => void;
+    onRightCollapse?: (collapsed: boolean) => void;
+  }
+>(({ onLeftCollapse, onRightCollapse, ...props }, ref) => {
+  const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
+  const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
+
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+
+  const leftPanel = useRef<ImperativePanelHandle>();
+  const rightPanel = useRef<ImperativePanelHandle>();
+
+  const theme = useTheme();
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
+
+  useEffect(() => {
+    if (isLargeScreen) {
+      if (leftDrawerOpen) setTimeout(() => leftPanel.current?.expand());
+      if (rightDrawerOpen) setTimeout(() => rightPanel.current?.expand());
+
+      setLeftDrawerOpen(false);
+      setRightDrawerOpen(false);
+    }
+  }, [isLargeScreen]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      collapseLeft: () => (isLargeScreen ? leftPanel.current?.collapse() : setLeftDrawerOpen(false)),
+      expandLeft: () => (isLargeScreen ? leftPanel.current?.expand() : setLeftDrawerOpen(true)),
+      collapseRight: () => (isLargeScreen ? rightPanel.current?.collapse() : setRightDrawerOpen(false)),
+      expandRight: () => (isLargeScreen ? rightPanel.current?.expand() : setRightDrawerOpen(true)),
+    }),
+    [isLargeScreen]
+  );
+
+  const leftOpen = isLargeScreen ? !leftPanelCollapsed : leftDrawerOpen;
+  const rightOpen = isLargeScreen ? !rightPanelCollapsed : rightDrawerOpen;
+
+  const left = typeof props.left === 'function' ? props.left({ isLargeScreen, leftOpen, rightOpen }) : props.left;
+  const right = typeof props.right === 'function' ? props.right({ isLargeScreen, leftOpen, rightOpen }) : props.right;
+  const children =
+    typeof props.children === 'function' ? props.children({ isLargeScreen, leftOpen, rightOpen }) : props.children;
+
+  if (!isLargeScreen) {
+    return (
+      <Box height="100%" overflow="auto">
+        {children}
+
+        <Drawer
+          open={leftDrawerOpen}
+          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
+          PaperProps={{ sx: { width: 300, pt: 8 } }}
+          onClose={() => setLeftDrawerOpen(false)}>
+          {left}
+        </Drawer>
+
+        <Drawer
+          anchor="right"
+          open={rightDrawerOpen}
+          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
+          PaperProps={{ sx: { width: 'calc(100% - 16px)', pt: 8 } }}
+          onClose={() => setRightDrawerOpen(false)}>
+          {right}
         </Drawer>
       </Box>
     );
@@ -255,93 +354,31 @@ export default function ProjectPage() {
       <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
         <Box
           component={Panel}
-          ref={fileTreePanel}
+          ref={leftPanel}
           defaultSize={10}
           minSize={10}
           collapsible
-          onCollapse={setFileTreeCollapsed}>
-          <Box sx={{ height: '100%', overflow: 'auto' }}>
-            <Box
-              sx={{
-                position: 'sticky',
-                top: 0,
-                bgcolor: 'background.paper',
-                zIndex: (theme) => theme.zIndex.appBar,
-                borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
-              }}>
-              <PanelToolbar>
-                <Box flex={1} />
-
-                <Button
-                  startIcon={<MenuOpenRounded />}
-                  onClick={() =>
-                    fileTreeCollapsed ? fileTreePanel.current?.expand() : fileTreePanel.current?.collapse()
-                  }>
-                  Files
-                </Button>
-              </PanelToolbar>
-            </Box>
-
-            <FileTree
-              projectId={projectId}
-              gitRef={gitRef}
-              mutable={!disableMutation}
-              current={filepath}
-              onLaunch={assistant ? onLaunch : undefined}
-            />
-          </Box>
+          onCollapse={(collapsed) => {
+            onLeftCollapse?.(collapsed);
+            setLeftPanelCollapsed(collapsed);
+          }}>
+          {left}
         </Box>
 
         <ResizeHandle
-          collapsed={fileTreeCollapsed}
-          icon={fileTreeCollapsed ? <KeyboardDoubleArrowRightRounded /> : undefined}
-          onClick={() => fileTreeCollapsed && fileTreePanel.current?.expand()}
+          collapsed={leftPanelCollapsed}
+          icon={leftPanelCollapsed ? <KeyboardDoubleArrowRightRounded /> : undefined}
+          onClick={() => leftPanelCollapsed && leftPanel.current?.expand()}
         />
 
         <Box component={Panel} minSize={30}>
-          <Box sx={{ height: '100%', overflow: 'auto' }}>
-            <Box
-              sx={{
-                position: 'sticky',
-                top: 0,
-                bgcolor: 'background.paper',
-                zIndex: (theme) => theme.zIndex.appBar,
-                borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
-              }}>
-              <PanelToolbar>
-                {fileTreeCollapsed && (
-                  <Button
-                    startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
-                    onClick={() =>
-                      fileTreeCollapsed ? fileTreePanel.current?.expand() : fileTreePanel.current?.collapse()
-                    }>
-                    Files
-                  </Button>
-                )}
-                <Box flex={1} />
-
-                {rightCollapsed && (
-                  <Button
-                    startIcon={<MenuOpenRounded />}
-                    onClick={() => (rightCollapsed ? rightPanel.current?.expand() : rightPanel.current?.collapse())}>
-                    Tools
-                  </Button>
-                )}
-              </PanelToolbar>
-            </Box>
-
-            <Box p={2}>
-              {filepath && (
-                <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} onExecute={onExecute} />
-              )}
-            </Box>
-          </Box>
+          {children}
         </Box>
 
         <ResizeHandle
-          collapsed={rightCollapsed}
-          icon={rightCollapsed ? <KeyboardDoubleArrowLeftRounded /> : undefined}
-          onClick={() => rightCollapsed && rightPanel.current?.expand()}
+          collapsed={rightPanelCollapsed}
+          icon={rightPanelCollapsed ? <KeyboardDoubleArrowLeftRounded /> : undefined}
+          onClick={() => rightPanelCollapsed && rightPanel.current?.expand()}
         />
 
         <Box
@@ -350,46 +387,16 @@ export default function ProjectPage() {
           defaultSize={45}
           minSize={20}
           collapsible
-          onCollapse={setRightCollapsed}>
-          <Stack sx={{ height: '100%' }}>
-            <Box
-              sx={{
-                position: 'sticky',
-                top: 0,
-                bgcolor: 'background.paper',
-                zIndex: (theme) => theme.zIndex.appBar,
-                borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
-              }}>
-              <PanelToolbar>
-                <Button
-                  startIcon={<MenuOpenRounded sx={{ transform: 'rotate(180deg)' }} />}
-                  onClick={() => (rightCollapsed ? rightPanel.current?.expand() : rightPanel.current?.collapse())}>
-                  Tools
-                </Button>
-              </PanelToolbar>
-            </Box>
-
-            <Conversation
-              ref={conversation}
-              messages={messages}
-              sx={{ flex: 1, overflow: 'auto' }}
-              onSubmit={(prompt) => add(prompt)}
-              customActions={customActions}
-            />
-          </Stack>
+          onCollapse={(collapsed) => {
+            onRightCollapse?.(collapsed);
+            setRightPanelCollapsed(collapsed);
+          }}>
+          {right}
         </Box>
       </Box>
     </Box>
   );
-}
-
-const PanelToolbar = styled(Stack)`
-  padding-left: 8px;
-  padding-right: 8px;
-  min-height: 48px;
-  flex-direction: row;
-  align-items: center;
-`;
+});
 
 function TemplateEditor({
   projectId,
