@@ -69,7 +69,7 @@ export default function Editor({
       />
 
       <CommentPlugin />
-      {autoFocus && <AutoFocusPlugin defaultSelection="rootStart" />}
+      {autoFocus && <AutoFocusPlugin />}
       {isDebug && <TreeViewPlugin />}
       {useRoleNode && <RoleSelectPlugin />}
       {useVariableNode && <VariablePlugin popperElement={popperElement} />}
