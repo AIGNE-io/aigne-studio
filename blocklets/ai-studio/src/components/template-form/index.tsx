@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import { getYjsValue } from '@blocklet/co-git/yjs';
+import { getAllVariables } from '@blocklet/prompt-editor/utils';
 import { Icon } from '@iconify-icon/react';
 import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
 import {
@@ -155,7 +156,11 @@ export default function TemplateFormView({
     };
 
     const params =
-      (form.prompts && Object.values(form.prompts).flatMap((i) => matchParams(i.data.content ?? ''))) ?? [];
+      (form.prompts &&
+        Object.values(form.prompts).flatMap((i) =>
+          matchParams(getAllVariables(i.data.contentLexicalJson ?? '').join(''))
+        )) ??
+      [];
 
     const schema = Joi.object(
       Object.fromEntries(
