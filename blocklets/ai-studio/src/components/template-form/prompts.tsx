@@ -1,8 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import PromptEditor from '@blocklet/prompt-editor';
+import { $lexical2text } from '@blocklet/prompt-editor/utils';
 import { Add, Delete } from '@mui/icons-material';
 import { Box, Button } from '@mui/material';
+import debounce from 'lodash/debounce';
 import { nanoid } from 'nanoid';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -22,7 +24,13 @@ export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id'
           <ReorderableListYjs
             list={form.prompts}
             renderItem={(prompt, index) => {
-              let content: string = '';
+              const onChange = debounce(async (state) => {
+                prompt.contentLexicalJson = JSON.stringify(state);
+
+                const res = await $lexical2text(prompt.contentLexicalJson);
+                prompt.role = res.role;
+                prompt.content = res.content.replace(/\n+/g, '\n');
+              }, 500);
 
               return (
                 <Box sx={{ position: 'relative', display: 'flex', flex: 1 }}>
@@ -31,34 +39,7 @@ export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id'
                       <PromptEditor
                         placeholder={`${t('form.prompt')} ${index + 1}`}
                         value={prompt.contentLexicalJson}
-                        onChange={async (state) => {
-                          const json = state.toJSON();
-
-                          if (json.root) {
-                            const paragraph = json.root.children[0] as unknown as {
-                              type: string;
-                              text: string;
-                              children: any;
-                            };
-
-                            if (paragraph && paragraph?.type === 'paragraph' && paragraph?.children?.length) {
-                              paragraph.children.forEach((x: any) => {
-                                if (x.type === 'role') {
-                                  prompt.role = x.text;
-                                } else if (x.type !== 'comment') {
-                                  if (x.type === 'linebreak') {
-                                    content += '\n';
-                                  } else {
-                                    content += x.text || '';
-                                  }
-                                }
-                              });
-                            }
-                          }
-
-                          prompt.content = content.replace(/\n+/g, '\n');
-                          prompt.contentLexicalJson = JSON.stringify(state);
-                        }}
+                        onChange={onChange}
                       />
                     </WithAwareness>
                   </Box>

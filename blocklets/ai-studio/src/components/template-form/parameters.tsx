@@ -1,3 +1,4 @@
+import { getAllVariables } from '@blocklet/prompt-editor/utils';
 import { Settings } from '@mui/icons-material';
 import { Box, ClickAwayListener, Grid, IconButton, Paper, Popper } from '@mui/material';
 import { useDeferredValue, useMemo, useRef, useState } from 'react';
@@ -12,7 +13,11 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
   const deferredValue = useDeferredValue(form);
 
   const params = (() => {
-    const params = Object.values(deferredValue.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
+    const params =
+      Object.values(deferredValue.prompts ?? {})?.flatMap((i) =>
+        matchParams(getAllVariables(i.data.contentLexicalJson ?? '').join(''))
+      ) ?? [];
+
     if (deferredValue.type === 'branch') {
       params.push('question');
     }
@@ -28,6 +33,10 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
   const parametersHistory = useRef<Record<string, Parameter>>({});
 
   const variables = useMemo(() => {
+    if (!form.parameters && params.length === 0) {
+      return [];
+    }
+
     form.parameters ??= {};
     for (const param of params) {
       const history = parametersHistory.current[param];
@@ -42,10 +51,9 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
         continue;
       }
 
-      parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
-
       if (!params.includes(key)) {
         delete form.parameters[key];
+        parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
       }
     }
 

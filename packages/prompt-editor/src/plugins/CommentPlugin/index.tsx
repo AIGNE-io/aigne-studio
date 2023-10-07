@@ -4,6 +4,7 @@ import { mergeRegister } from '@lexical/utils';
 import {
   $getSelection,
   $isLineBreakNode,
+  $isParagraphNode,
   $isRangeSelection,
   $isTextNode,
   COMMAND_PRIORITY_CRITICAL,
@@ -12,6 +13,7 @@ import {
 import { useEffect } from 'react';
 
 import { IS_APPLE } from '../../utils/environment';
+import { $isRoleSelectNode } from '../RolePlugin/role-select-node';
 import replaceNodes from '../VariablePlugin/utils/replace-nodes';
 import { $isVariableTextNode } from '../VariablePlugin/variable-text-node';
 import { $createCommentNode, $isCommentNode, CommentNode } from './comment-node';
@@ -38,10 +40,13 @@ export default function VarContextPlugin(): JSX.Element | null {
           if (isCommentKey(keyCode, metaKey, ctrlKey)) {
             if ($isRangeSelection(selection)) {
               const anchorNode = selection.anchor.getNode();
+              // const focusNode = selection.focus.getNode();
 
-              if ($isTextNode(anchorNode) || $isCommentNode(anchorNode) || $isVariableTextNode(anchorNode)) {
-                if ($isCommentNode(anchorNode)) {
-                  const text = anchorNode.getTextContent();
+              const node = $isParagraphNode(anchorNode) ? anchorNode : anchorNode;
+
+              if ($isTextNode(node) || $isCommentNode(node) || $isVariableTextNode(node)) {
+                if ($isCommentNode(node)) {
+                  const text = node.getTextContent();
 
                   let curOffset = selection.anchor.offset - 3;
 
@@ -62,16 +67,19 @@ export default function VarContextPlugin(): JSX.Element | null {
                         }
                       }
                     },
-                    node: anchorNode,
+                    node,
                     text: text.slice(3),
                   });
                 } else {
-                  const preNodes = anchorNode.getPreviousSiblings();
+                  const preNodes = node.getPreviousSiblings();
                   // @ts-ignore
                   const preIndex = (preNodes || []).findLastIndex((_node: any) => {
                     return $isLineBreakNode(_node);
                   });
-                  const transformPreNodes = preIndex === -1 ? preNodes : preNodes.slice(preIndex + 1);
+
+                  const transformPreNodes = (preIndex === -1 ? preNodes : preNodes.slice(preIndex + 1)).filter(
+                    (x) => !$isRoleSelectNode(x)
+                  );
 
                   const len = transformPreNodes.reduce((pre, cur) => {
                     return pre + cur.getTextContentSize();
@@ -79,13 +87,13 @@ export default function VarContextPlugin(): JSX.Element | null {
 
                   const newOffset = len + selection.anchor.offset + 3;
 
-                  const nextNodes = anchorNode.getNextSiblings();
+                  const nextNodes = node.getNextSiblings();
                   const index = nextNodes.findIndex((_node) => {
                     return $isLineBreakNode(_node);
                   });
                   const transformNextNodes = index === -1 ? nextNodes : nextNodes.slice(0, index);
 
-                  const nodes = [...transformPreNodes, anchorNode, ...transformNextNodes];
+                  const nodes = [...transformPreNodes, node, ...transformNextNodes];
 
                   const texts = nodes
                     .map((_node) => {

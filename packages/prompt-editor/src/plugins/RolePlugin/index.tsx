@@ -7,6 +7,7 @@ import {
   $getSelection,
   $isRangeSelection,
   $isRootNode,
+  COMMAND_PRIORITY_CRITICAL,
   COMMAND_PRIORITY_EDITOR,
   KEY_DOWN_COMMAND,
   LexicalCommand,
@@ -14,14 +15,19 @@ import {
 } from 'lexical';
 import { useEffect } from 'react';
 
+import { IS_APPLE } from '../../utils/environment';
 import { $createRoleSelectNode, $isRoleSelectNode, RoleSelectNode } from './role-select-node';
 
 const DELETE_CODE = ['Backspace', 'Delete'].map((key) => {
   return key.toLocaleLowerCase();
 });
 
-const isDeleteCode = (code: string) => {
+const isDeleteCode = ({ code }: { code: string }) => {
   return DELETE_CODE.includes(code.toLocaleLowerCase());
+};
+
+const isSelectAllCode = ({ keyCode, metaKey, ctrlKey }: { keyCode: number; metaKey: boolean; ctrlKey: boolean }) => {
+  return keyCode === 65 && (IS_APPLE ? metaKey : ctrlKey);
 };
 
 export const INSERT_ROLE_SELECT_COMMAND: LexicalCommand<string> = createCommand('INSERT_ROLE_SELECT_COMMAND');
@@ -80,8 +86,8 @@ export default function RoleSelectPlugin(): JSX.Element | null {
                 return true;
               }
 
-              // 处理回车键
-              if (isDeleteCode(event.code)) {
+              // 处理删除键
+              if (isDeleteCode(event)) {
                 const checkPrevNode = !prev || $isRoleSelectNode(prev);
                 const anchor = checkPrevNode && selection.anchor.offset === 0;
 
@@ -130,7 +136,7 @@ export default function RoleSelectPlugin(): JSX.Element | null {
             const anchorNode = selection.anchor.getNode();
             const isRoot = $isRootNode(anchorNode.getParent());
 
-            if (isRoot && selection.anchor.offset < 2) {
+            if (isRoot && selection.anchor.offset === 0) {
               const next = children.getNextSibling();
               if (next?.select) {
                 next?.select(0, 0);
@@ -142,7 +148,42 @@ export default function RoleSelectPlugin(): JSX.Element | null {
             }
           }
         });
-      })
+      }),
+      editor.registerCommand<KeyboardEvent>(
+        KEY_DOWN_COMMAND,
+        (event) => {
+          // 处理全选键位
+          if (isSelectAllCode(event)) {
+            event.preventDefault();
+
+            editor.update(() => {
+              const selection = $getSelection();
+
+              if ($isRangeSelection(selection)) {
+                const root = $getRoot();
+                const p = root?.getFirstChild?.();
+
+                if (p) {
+                  const lastDescendant = p.getLastDescendant();
+                  let firstDescendant = p.getFirstDescendant();
+                  if ($isRoleSelectNode(firstDescendant)) {
+                    firstDescendant = firstDescendant.getNextSibling();
+                  }
+
+                  const { anchor, focus } = selection;
+                  anchor.set(firstDescendant.getKey(), 0, 'text');
+                  focus.set(lastDescendant.getKey(), lastDescendant.getTextContentSize(), 'text');
+                }
+              }
+            });
+
+            return false;
+          }
+
+          return false;
+        },
+        COMMAND_PRIORITY_CRITICAL
+      )
     );
   }, [editor]);
 

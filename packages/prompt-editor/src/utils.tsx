@@ -15,6 +15,29 @@ import { $createRoleSelectNode, $isRoleSelectNode } from './plugins/RolePlugin/r
 import { isBracketStartAndEnd, splitText } from './plugins/VariablePlugin/utils/util';
 import { $createVariableNode, $isVariableTextNode } from './plugins/VariablePlugin/variable-text-node';
 
+interface Node {
+  text: string;
+  type: string;
+  version: number;
+  children?: Node[];
+}
+
+function getAllVariablesFn(nodes: Node[]): string[] {
+  let variables: string[] = [];
+
+  for (const node of nodes) {
+    if (node.type === 'variable') {
+      variables.push(node.text);
+    }
+
+    if (node.children) {
+      variables = [...variables, ...getAllVariablesFn(node.children)];
+    }
+  }
+
+  return variables;
+}
+
 export type Role = 'system' | 'user' | 'assistant';
 
 export function tryParseJSONObject(str: string) {
@@ -124,7 +147,17 @@ export function $lexical2text(editorState: string): Promise<{ content: string; r
   });
 }
 
+export function getAllVariables(editorState: string) {
+  if (tryParseJSONObject(editorState)) {
+    const editorStateObj = JSON.parse(editorState);
+    return getAllVariablesFn(editorStateObj?.root?.children || []);
+  }
+
+  return [];
+}
+
 export { $createCommentNode, $isCommentNode };
 export { $createVariableNode, $isVariableTextNode };
 export { $createRoleSelectNode, $isRoleSelectNode };
 export { $createParagraphNode, $createLineBreakNode, $createTextNode, $isParagraphNode, $isTextNode };
+export { COMMENT_PREFIX };

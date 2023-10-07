@@ -1,3 +1,4 @@
+import { COMMENT_PREFIX } from '@blocklet/prompt-editor/utils';
 import { call } from '@blocklet/sdk/lib/component';
 import compression from 'compression';
 import { Router } from 'express';
@@ -182,7 +183,13 @@ async function runTemplate(
           content = content.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameters?.[param]?.toString() || '');
         }
 
-        return { role: item.role, content };
+        // 过滤注释节点
+        const rows = content
+          .split(/\n/)
+          .filter((x) => !x.startsWith(COMMENT_PREFIX))
+          .join('\n');
+
+        return { role: item.role, content: rows };
       });
 
     const datasets = await Promise.all(

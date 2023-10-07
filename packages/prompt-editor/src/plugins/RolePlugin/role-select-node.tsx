@@ -83,6 +83,10 @@ export class RoleSelectNode extends DecoratorNode<JSX.Element | null> {
   override isIsolated(): true {
     return true;
   }
+
+  override isSelected() {
+    return false;
+  }
 }
 
 export function $createRoleSelectNode(data: string): RoleSelectNode {
