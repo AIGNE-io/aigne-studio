@@ -1,11 +1,15 @@
 # `@blocklet/prompt-editor`
 
-> TODO: description
+> An editor that supports rich text
 
 ## Usage
 
 ```
-const promptEditor = require('@blocklet/prompt-editor');
+import PromptEditor from '@blocklet/prompt-editor';
 
-// TODO: DEMONSTRATE API
+<PromptEditor
+  placeholder={`${t('form.prompt')} ${index + 1}`}
+  value={prompt.contentLexicalJson}
+  onChange={onChange}
+/>
 ```

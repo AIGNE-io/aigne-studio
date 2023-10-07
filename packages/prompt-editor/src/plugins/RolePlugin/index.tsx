@@ -5,6 +5,7 @@ import {
   $createTextNode,
   $getRoot,
   $getSelection,
+  $isParagraphNode,
   $isRangeSelection,
   $isRootNode,
   COMMAND_PRIORITY_CRITICAL,
@@ -136,7 +137,7 @@ export default function RoleSelectPlugin(): JSX.Element | null {
             const anchorNode = selection.anchor.getNode();
             const isRoot = $isRootNode(anchorNode.getParent());
 
-            if (isRoot && selection.anchor.offset === 0) {
+            if (isRoot && selection.anchor.offset <= 1) {
               const next = children.getNextSibling();
               if (next?.select) {
                 next?.select(0, 0);
@@ -163,7 +164,7 @@ export default function RoleSelectPlugin(): JSX.Element | null {
                 const root = $getRoot();
                 const p = root?.getFirstChild?.();
 
-                if (p) {
+                if (p && $isParagraphNode(p)) {
                   const lastDescendant = p.getLastDescendant();
                   let firstDescendant = p.getFirstDescendant();
                   if ($isRoleSelectNode(firstDescendant)) {
@@ -171,8 +172,10 @@ export default function RoleSelectPlugin(): JSX.Element | null {
                   }
 
                   const { anchor, focus } = selection;
-                  anchor.set(firstDescendant.getKey(), 0, 'text');
-                  focus.set(lastDescendant.getKey(), lastDescendant.getTextContentSize(), 'text');
+                  if (firstDescendant && lastDescendant) {
+                    anchor.set(firstDescendant.getKey(), 0, 'text');
+                    focus.set(lastDescendant.getKey(), lastDescendant.getTextContentSize(), 'text');
+                  }
                 }
               }
             });
