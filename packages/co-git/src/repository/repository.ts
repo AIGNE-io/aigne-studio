@@ -165,6 +165,10 @@ export class Transaction<T> {
     return git.add({ fs, dir: this.repo.root, ...options });
   }
 
+  async remove(options: Omit<Parameters<typeof git.remove>[0], 'fs' | 'dir' | '.gitdir'>) {
+    return git.remove({ fs, dir: this.repo.root, ...options });
+  }
+
   async commit(options: Omit<Parameters<typeof git.commit>[0], 'fs' | 'dir' | '.gitdir'>) {
     return git.commit({ fs, dir: this.repo.root, ...options });
   }

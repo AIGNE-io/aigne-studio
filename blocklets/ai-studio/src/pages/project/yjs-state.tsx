@@ -234,8 +234,8 @@ export function deleteFile({ store, path }: { store: StoreContext['store']; path
     const p = path.join('/');
     for (const [key, filepath] of Object.entries(store.tree)) {
       if (filepath?.startsWith(p)) {
-        store.tree[key] = undefined;
-        store.files[key] = undefined;
+        delete store.tree[key];
+        delete store.files[key];
       }
     }
   });

@@ -15,6 +15,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
+      - name: Prepare @blocklet/cli deps
+        run: yarn global add @blocklet/cli@beta
+        shell: bash
+
       - name: Set yarn cache
         uses: c-hive/gha-yarn-cache@v2
 
@@ -33,6 +37,7 @@ jobs:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
         uses: blocklet/action-workflow@v1
         with:
+          skip-deps: true
           skip-upload: false
           skip-deploy: true
           working-directory: blocklets/ai-studio
