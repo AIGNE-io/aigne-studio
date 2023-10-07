@@ -11,8 +11,7 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import { ReorderableListYjs } from '../reorderable-list';
-
-// import TokenCounter from './token-counter';
+import TokenCounter from './token-counter';
 
 export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id' | 'prompts'> }) {
   const { t } = useLocaleContext();
@@ -42,6 +41,9 @@ export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id'
                         onChange={onChange}
                       />
                     </WithAwareness>
+                    <Box sx={{ textAlign: 'right' }}>
+                      <TokenCounter value={prompt.content ?? ''} style={{ fontSize: 12 }} />
+                    </Box>
                   </Box>
 
                   <Box sx={{ ml: 0.5 }}>
