@@ -1,6 +1,13 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
-import { $getSelection, $isRangeSelection, $isTextNode, COMMAND_PRIORITY_CRITICAL, KEY_DOWN_COMMAND } from 'lexical';
+import {
+  $getSelection,
+  $isRangeSelection,
+  $isTextNode,
+  COMMAND_PRIORITY_CRITICAL,
+  KEY_DOWN_COMMAND,
+  LexicalEditor,
+} from 'lexical';
 import { useEffect } from 'react';
 
 import PopperVariableNode from './hover-popper/component';
@@ -8,7 +15,11 @@ import useHoverPopper from './hover-popper/use-hover-popper';
 import useTransformVariableNode from './user-transform-node';
 import { $createVariableNode, $isVariableTextNode, VariableTextNode } from './variable-text-node';
 
-export default function VarContextPlugin(): JSX.Element | null {
+export default function VarContextPlugin({
+  popperElement,
+}: {
+  popperElement?: (editor: LexicalEditor) => any;
+}): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
   const [
     element,
@@ -76,8 +87,8 @@ export default function VarContextPlugin(): JSX.Element | null {
 
   useTransformVariableNode(editor);
 
-  if (element) {
-    return <PopperVariableNode element={element} />;
+  if (element && popperElement && typeof popperElement === 'function') {
+    return <PopperVariableNode element={element} editor={editor} popperElement={popperElement} />;
   }
 
   return null;

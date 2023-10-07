@@ -30,11 +30,11 @@ import { $isVariableTextNode } from '../VariablePlugin/variable-text-node';
 function TextFormatFloatingToolbar({
   editor,
   anchorElem,
-  floatItems,
+  floatElement,
 }: {
   editor: LexicalEditor;
   anchorElem: HTMLElement;
-  floatItems?: (data: { editor: LexicalEditor }) => void;
+  floatElement?: (data: { editor: LexicalEditor }) => void;
 }): JSX.Element {
   const popupCharStylesEditorRef = useRef<HTMLDivElement | null>(null);
   const [state, setState] = useState({ editor });
@@ -146,7 +146,7 @@ function TextFormatFloatingToolbar({
 
   return (
     <Container ref={popupCharStylesEditorRef} className="floating-text-format-popup">
-      {editor.isEditable() && floatItems && <>{floatItems(state)}</>}
+      {editor.isEditable() && floatElement && <>{floatElement(state)}</>}
     </Container>
   );
 }
@@ -166,7 +166,7 @@ const Container = styled(Paper)`
 function useFloatingTextFormatToolbar(
   editor: LexicalEditor,
   anchorElem: HTMLElement,
-  floatItems?: (data: { editor: LexicalEditor }) => void
+  floatElement?: (data: { editor: LexicalEditor }) => void
 ): JSX.Element | null {
   const [isText, setIsText] = useState(false);
 
@@ -244,23 +244,23 @@ function useFloatingTextFormatToolbar(
     return null;
   }
 
-  if (!floatItems) {
+  if (!floatElement) {
     return null;
   }
 
   return createPortal(
-    <TextFormatFloatingToolbar editor={editor} anchorElem={anchorElem} floatItems={floatItems} />,
+    <TextFormatFloatingToolbar editor={editor} anchorElem={anchorElem} floatElement={floatElement} />,
     anchorElem
   );
 }
 
 export default function FloatingTextFormatToolbarPlugin({
   anchorElem = document.body,
-  floatItems,
+  floatElement,
 }: {
   anchorElem?: HTMLElement;
-  floatItems?: (data: { editor: LexicalEditor }) => any;
+  floatElement?: (data: { editor: LexicalEditor }) => any;
 }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
-  return useFloatingTextFormatToolbar(editor, anchorElem, floatItems);
+  return useFloatingTextFormatToolbar(editor, anchorElem, floatElement);
 }

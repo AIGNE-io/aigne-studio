@@ -63,7 +63,11 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
   return (
     <>
       <Grid container spacing={2}>
-        {variables.map(({ param, parameter }) => {
+        {variables.map(({ param }) => {
+          const parameter = form.parameters?.[param];
+          if (!parameter) {
+            return null;
+          }
           return (
             <Grid item xs={12} key={param}>
               <Box display="flex" justifyContent="space-between" alignItems="flex-start">

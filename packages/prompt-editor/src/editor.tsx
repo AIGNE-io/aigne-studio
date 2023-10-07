@@ -21,22 +21,24 @@ export default function Editor({
   useRoleNode = false,
   useVariableNode = false,
   isDebug = false,
-  floatItems,
+  floatElement,
   children,
   placeholder,
   onChange,
   autoFocus = true,
   editorRef,
+  popperElement,
 }: {
   useRoleNode?: boolean;
   useVariableNode?: boolean;
   isDebug?: boolean;
-  floatItems?: (data: { editor: LexicalEditor }) => any;
+  floatElement?: (data: { editor: LexicalEditor }) => any;
   children: any;
   placeholder?: string;
   onChange?: (editorState: EditorState, editor: LexicalEditor) => void;
   autoFocus?: boolean;
   editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
+  popperElement?: (editor: LexicalEditor) => any;
 }): JSX.Element {
   const text = 'Enter some plain text...';
   const placeholderNode = <Placeholder>{placeholder || text}</Placeholder>;
@@ -70,8 +72,8 @@ export default function Editor({
       {autoFocus && <AutoFocusPlugin defaultSelection="rootStart" />}
       {isDebug && <TreeViewPlugin />}
       {useRoleNode && <RoleSelectPlugin />}
-      {useVariableNode && <VariablePlugin />}
-      <FloatingToolbarPlugin floatItems={floatItems} />
+      {useVariableNode && <VariablePlugin popperElement={popperElement} />}
+      <FloatingToolbarPlugin floatElement={floatElement} />
       <HistoryPlugin externalHistoryState={historyState} />
       {onChange && <OnChangePlugin onChange={onChange} />}
       {editorRef !== undefined && <EditorRefPlugin editorRef={editorRef} />}
