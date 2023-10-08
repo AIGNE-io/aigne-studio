@@ -35,8 +35,6 @@ function convertCommentElement(domNode: HTMLElement): DOMConversionOutput | null
   return null;
 }
 
-const style = 'color: slategray';
-
 export class CommentNode extends TextNode {
   static override getType(): string {
     return TYPE;
@@ -67,7 +65,6 @@ export class CommentNode extends TextNode {
 
   override createDOM(config: EditorConfig): HTMLElement {
     const dom = super.createDOM(config);
-    dom.style.cssText = style;
     dom.className = 'comment-dom';
     dom.setAttribute('data-node-id', String(+new Date()));
 

@@ -1,19 +1,17 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
-import {
-  $getSelection,
-  $isRangeSelection,
-  $isTextNode,
-  COMMAND_PRIORITY_CRITICAL,
-  KEY_DOWN_COMMAND,
-  LexicalEditor,
-} from 'lexical';
+import { $getSelection, $isRangeSelection, COMMAND_PRIORITY_CRITICAL, KEY_DOWN_COMMAND, LexicalEditor } from 'lexical';
 import { useEffect } from 'react';
 
+import { $isCommentNode } from '../CommentPlugin/comment-node';
 import PopperVariableNode from './hover-popper/component';
 import useHoverPopper from './hover-popper/use-hover-popper';
 import useTransformVariableNode from './user-transform-node';
 import { $createVariableNode, $isVariableTextNode, VariableTextNode } from './variable-text-node';
+
+const isBracketCode = ({ keyCode, shiftKey }: { keyCode: number; shiftKey: boolean }) => {
+  return keyCode === 219 && shiftKey;
+};
 
 export default function VarContextPlugin({
   popperElement,
@@ -35,30 +33,28 @@ export default function VarContextPlugin({
         KEY_DOWN_COMMAND,
         (event) => {
           const selection = $getSelection();
+
+          if (!$isRangeSelection(selection)) {
+            return false;
+          }
+
           // 识别 BracketLeft Code "{",进行唤起
-          const on = true;
-
-          if (event.shiftKey && event.keyCode === 219 && on) {
-            if ($isRangeSelection(selection)) {
-              try {
-                const anchorNode = selection.anchor.getNode();
-                if ($isVariableTextNode(anchorNode)) {
-                  return true;
-                }
-
-                if ($isTextNode(anchorNode)) {
-                  event.preventDefault();
-
-                  const node = $createVariableNode('{{  }}');
-                  selection.insertNodes([node], true);
-                  node.select(3, 3);
-                }
-
+          if (isBracketCode(event)) {
+            try {
+              const anchorNode = selection.anchor.getNode();
+              if ($isVariableTextNode(anchorNode) || $isCommentNode(anchorNode)) {
                 return true;
-              } catch (error) {
-                console.error(error);
-                return false;
               }
+
+              event.preventDefault();
+              const node = $createVariableNode('{{  }}');
+              selection.insertNodes([node], true);
+              node.select(3, 3);
+
+              return true;
+            } catch (error) {
+              console.error(error);
+              return false;
             }
           }
 

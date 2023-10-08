@@ -1,3 +1,5 @@
+import './index.css';
+
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { EditorRefPlugin } from '@lexical/react/LexicalEditorRefPlugin';
 import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';

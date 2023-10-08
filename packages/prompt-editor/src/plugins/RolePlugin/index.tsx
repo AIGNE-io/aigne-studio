@@ -8,8 +8,8 @@ import {
   $isParagraphNode,
   $isRangeSelection,
   $isRootNode,
-  COMMAND_PRIORITY_CRITICAL,
   COMMAND_PRIORITY_EDITOR,
+  COMMAND_PRIORITY_HIGH,
   KEY_DOWN_COMMAND,
   LexicalCommand,
   createCommand,
@@ -185,7 +185,7 @@ export default function RoleSelectPlugin(): JSX.Element | null {
 
           return false;
         },
-        COMMAND_PRIORITY_CRITICAL
+        COMMAND_PRIORITY_HIGH
       )
     );
   }, [editor]);

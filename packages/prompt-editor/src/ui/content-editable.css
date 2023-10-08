@@ -7,6 +7,10 @@
   min-height: 64px;
 }
 
+.ContentEditable__root span {
+  word-break: break-all;
+}
+
 @media (max-width: 1025px) {
   .ContentEditable__root {
     padding-left: 8px;

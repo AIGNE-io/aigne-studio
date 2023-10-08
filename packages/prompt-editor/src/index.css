@@ -13,3 +13,8 @@ pre {
 .debug-timetravel-button {
   display: none;
 }
+
+.comment-dom {
+  color: slategray;
+  word-break: break-all;
+}

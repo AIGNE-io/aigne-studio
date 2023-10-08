@@ -7,7 +7,7 @@ import {
   $isParagraphNode,
   $isRangeSelection,
   $isTextNode,
-  COMMAND_PRIORITY_CRITICAL,
+  COMMAND_PRIORITY_HIGH,
   KEY_DOWN_COMMAND,
 } from 'lexical';
 import { useEffect } from 'react';
@@ -124,7 +124,7 @@ export default function VarContextPlugin(): JSX.Element | null {
 
           return false;
         },
-        COMMAND_PRIORITY_CRITICAL
+        COMMAND_PRIORITY_HIGH
       )
     );
   }, [editor]);
