@@ -10,7 +10,7 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import { isTemplateYjsEmpty } from '../../libs/template';
 import { createFile, isTemplate, useStore } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
-import { ReorderableListYjs } from '../reorderable-list';
+import { ReorderableListYjs } from '../drag-sort-list';
 import TemplateAutocomplete from './template-autocomplete';
 
 export default function Branches({

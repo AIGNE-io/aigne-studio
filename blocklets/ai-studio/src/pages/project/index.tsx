@@ -1,6 +1,8 @@
 import { Dashboard } from '@blocklet/studio-ui';
 import { backdropClasses, drawerClasses } from '@mui/material';
 import { ComponentProps, Suspense, lazy, useEffect, useRef } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Navigate, Route, Routes, useLocation, useRoutes } from 'react-router-dom';
 
 import ErrorBoundary from '../../components/error/error-boundary';
@@ -18,44 +20,46 @@ export default function ProjectRoutes() {
   }, [location]);
 
   return (
-    <ErrorBoundary ref={errorBoundary}>
-      <Dashboard
-        HeaderProps={{ brandAddon: <BrandRoutes />, addons: (exists) => [<AddonsRoutes />, ...exists] }}
-        menus={<MenuRoutes />}
-        MenusDrawerProps={{
-          sx: {
-            [`.${backdropClasses.root}`]: {
-              top: 64,
-            },
+    <DndProvider backend={HTML5Backend}>
+      <ErrorBoundary ref={errorBoundary}>
+        <Dashboard
+          HeaderProps={{ brandAddon: <BrandRoutes />, addons: (exists) => [<AddonsRoutes />, ...exists] }}
+          menus={<MenuRoutes />}
+          MenusDrawerProps={{
+            sx: {
+              [`.${backdropClasses.root}`]: {
+                top: 64,
+              },
 
-            [`> .${drawerClasses.paper}`]: {
-              borderRightStyle: 'dashed',
+              [`> .${drawerClasses.paper}`]: {
+                borderRightStyle: 'dashed',
+              },
             },
-          },
-        }}
-        sx={{
-          '.dashboard-header': {
-            border: 'none',
-            bgcolor: 'grey.200',
-            borderBottomLeftRadius: 8,
-            borderBottomRightRadius: 8,
-          },
-        }}>
-        <Suspense fallback={<Loading fixed />}>
-          <Routes>
-            <Route index element={<ProjectsPage />} />
-            <Route path=":projectId/*">
-              <Route index element={<Navigate to="prompts" replace />} />
-              <Route path="home" element={<ProjectsPage />} />
-              <Route path="prompts">
-                <Route index element={<Navigate to={defaultBranch} replace />} />
-                <Route path=":ref/*" element={<ProjectPage />} />
+          }}
+          sx={{
+            '.dashboard-header': {
+              border: 'none',
+              bgcolor: 'grey.200',
+              borderBottomLeftRadius: 8,
+              borderBottomRightRadius: 8,
+            },
+          }}>
+          <Suspense fallback={<Loading fixed />}>
+            <Routes>
+              <Route index element={<ProjectsPage />} />
+              <Route path=":projectId/*">
+                <Route index element={<Navigate to="prompts" replace />} />
+                <Route path="home" element={<ProjectsPage />} />
+                <Route path="prompts">
+                  <Route index element={<Navigate to={defaultBranch} replace />} />
+                  <Route path=":ref/*" element={<ProjectPage />} />
+                </Route>
               </Route>
-            </Route>
-          </Routes>
-        </Suspense>
-      </Dashboard>
-    </ErrorBoundary>
+            </Routes>
+          </Suspense>
+        </Dashboard>
+      </ErrorBoundary>
+    </DndProvider>
   );
 }
 

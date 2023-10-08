@@ -9,7 +9,7 @@ import { nanoid } from 'nanoid';
 import { memo, useEffect, useState } from 'react';
 
 import { SelectParameter } from '../../../api/src/store/templates';
-import ReorderableList from '../reorderable-list';
+import ReorderableList from '../drag-sort-list';
 
 export default function SelectOptionsConfig({
   options = [],

@@ -9,6 +9,7 @@ import {
   KeyboardDoubleArrowRightRounded,
   MenuOpenRounded,
   Start,
+  TuneRounded,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -18,6 +19,7 @@ import {
   CircularProgress,
   Drawer,
   IconButton,
+  Paper,
   Stack,
   Toolbar,
   Tooltip,
@@ -27,6 +29,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
+import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { ReactNode, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -37,12 +40,14 @@ import { Template } from '../../../api/src/store/templates';
 import WithAwareness from '../../components/awareness/with-awareness';
 import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView from '../../components/template-form';
+import Popper from '../../components/template-form/popper';
+import TemplateSettings from '../../components/template-form/template-settings';
 import { useComponent } from '../../contexts/component';
 import { useIsAdmin } from '../../contexts/session';
 import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
 import FileTree, { ImperativeFileTree } from './file-tree';
 import { useProjectState } from './state';
-import { isTemplate, templateYjsToTemplate, useStore } from './yjs-state';
+import { isTemplate, useStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -53,6 +58,10 @@ export default function ProjectPage() {
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
   const { store, synced } = useStore(projectId, gitRef, true);
+
+  const id = Object.entries(store.tree).find((i) => i[1] === filepath)?.[0];
+  const file = id ? store.files[id] : undefined;
+  const template = isTemplate(file) ? file : undefined;
 
   const { refetch } = useProjectState(projectId, gitRef);
 
@@ -142,12 +151,12 @@ export default function ProjectPage() {
     [cancel, navigate]
   );
 
-  const onExecute = async (template: TemplateYjs) => {
-    const { parameters } = template;
-    const question = parameters?.question?.value;
+  // const onExecute = async (template: TemplateYjs) => {
+  //   const { parameters } = template;
+  //   const question = parameters?.question?.value;
 
-    add(question?.toString() || '', { template: templateYjsToTemplate(template), path: filepath });
-  };
+  //   add(question?.toString() || '', { template: templateYjsToTemplate(template), path: filepath });
+  // };
 
   const assistant = useComponent('ai-assistant');
 
@@ -169,6 +178,8 @@ export default function ProjectPage() {
 
   const layout = useRef<ImperativeLayout>(null);
   const fileTree = useRef<ImperativeFileTree>(null);
+
+  const settings = usePopupState({ variant: 'popper' });
 
   return (
     <Layout
@@ -264,6 +275,20 @@ export default function ProjectPage() {
 
               <Box flex={1} />
 
+              <IconButton
+                {...bindTrigger(settings)}
+                sx={{ bgcolor: settings.isOpen ? (theme) => theme.palette.action.selected : undefined }}>
+                <TuneRounded />
+              </IconButton>
+
+              {template && (
+                <Popper {...bindPopper(settings)} onClose={settings.close}>
+                  <Paper elevation={3} sx={{ mt: -1, p: 4, maxWidth: 'sm', borderRadius: 3 }}>
+                    <TemplateSettings projectId={projectId} gitRef={gitRef} value={template} />
+                  </Paper>
+                </Popper>
+              )}
+
               {!rightOpen && (
                 <Button
                   startIcon={<MenuOpenRounded />}
@@ -275,7 +300,7 @@ export default function ProjectPage() {
           </Box>
 
           <Box mx={{ xs: 3, sm: 4 }} my={{ xs: 1, sm: 2 }}>
-            {filepath && <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} onExecute={onExecute} />}
+            {filepath && <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} />}
           </Box>
         </Box>
       )}
@@ -415,19 +440,7 @@ const Layout = forwardRef<
   );
 });
 
-function TemplateEditor({
-  projectId,
-  gitRef,
-  path,
-  onExecute,
-}: {
-  projectId: string;
-  gitRef: string;
-  path: string;
-  onExecute: (template: TemplateYjs) => any;
-}) {
-  const navigate = useNavigate();
-
+function TemplateEditor({ projectId, gitRef, path }: { projectId: string; gitRef: string; path: string }) {
   const { store, synced } = useStore(projectId, gitRef);
   if (!synced)
     return (
@@ -442,17 +455,7 @@ function TemplateEditor({
 
   return (
     <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id]} onMount>
-      <TemplateFormView
-        projectId={projectId}
-        gitRef={gitRef}
-        path={path}
-        value={template}
-        onExecute={onExecute}
-        onTemplateClick={async (template) => {
-          const filepath = Object.values(store.tree).find((i) => i?.endsWith(`${template.id}.yaml`));
-          if (filepath) navigate(filepath);
-        }}
-      />
+      <TemplateFormView projectId={projectId} gitRef={gitRef} value={template} />
     </WithAwareness>
   );
 }

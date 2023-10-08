@@ -1,55 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import RelativeTime from '@arcblock/ux/lib/RelativeTime';
-import { getYjsValue } from '@blocklet/co-git/yjs';
-import { Icon } from '@iconify-icon/react';
-import { ArrowDropDown, TravelExplore } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Grid,
-  IconButton,
-  InputAdornment,
-  MenuItem,
-  Radio,
-  RadioGroup,
-  TextField,
-  Typography,
-} from '@mui/material';
-import Joi from 'joi';
-import omit from 'lodash/omit';
-import { ComponentProps, useState } from 'react';
-import { useAsync } from 'react-use';
-import type { Map } from 'yjs';
+import { Box, Input, Stack, Typography, inputClasses, styled } from '@mui/material';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import {
-  HoroscopeParameter,
-  LanguageParameter,
-  NumberParameter,
-  Parameter,
-  SelectParameter,
-  StringParameter,
-  Template,
-} from '../../../api/src/store/templates';
-import { Commit, getLogs } from '../../libs/log';
-import { getFile } from '../../libs/tree';
-import { useProjectState } from '../../pages/project/state';
-import useDialog from '../../utils/use-dialog';
+import { Template } from '../../../api/src/store/templates';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
-import Branches from './branches';
-import CommitSelect from './commit-select';
-import CommitsTip from './commits-tip';
-import Datasets from './datasets';
-import Next from './next';
-import Parameters, { matchParams } from './parameters';
+import Parameters from './parameters';
 import Prompts from './prompts';
 import TagsAutoComplete from './tags-autocomplete';
-
-const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613'];
 
 export type TemplateForm = Pick<
   Template,
@@ -70,418 +28,107 @@ export type TemplateForm = Pick<
 export default function TemplateFormView({
   projectId,
   gitRef,
-  path,
-  hash,
-  value: form,
-  onExecute,
-  onTemplateClick,
+  value,
 }: {
   projectId: string;
   gitRef: string;
-  path: string;
-  hash?: string;
   value: TemplateYjs;
-  onExecute?: (template: TemplateYjs) => void;
-  onTemplateClick?: (template: { id: string }) => void;
 }) {
-  const { t, locale } = useLocaleContext();
-
-  const { dialog, showDialog, closeDialog } = useDialog();
-
-  const [, setError] = useState<Joi.ValidationError>();
-
-  const submit = () => {
-    const getValueSchema = (parameter: Parameter) => {
-      return {
-        string: (parameter: StringParameter) => {
-          let s = Joi.string();
-          if (parameter.required) {
-            s = s.required();
-          } else {
-            s = s.allow('');
-          }
-          if (typeof parameter.minLength === 'number') {
-            s = s.min(parameter.minLength);
-          }
-          if (typeof parameter.maxLength === 'number') {
-            s = s.max(parameter.maxLength);
-          }
-          return s;
-        },
-        number: (parameter: NumberParameter) => {
-          let s = Joi.number();
-          if (parameter.required) {
-            s = s.required();
-          }
-          if (typeof parameter.min === 'number') {
-            s = s.min(parameter.min);
-          }
-          if (typeof parameter.max === 'number') {
-            s = s.max(parameter.max);
-          }
-          return s;
-        },
-        select: (parameter: SelectParameter) => {
-          let s = Joi.string();
-          if (parameter.required) {
-            s = s.required();
-          }
-          return s;
-        },
-        language: (parameter: LanguageParameter) => {
-          let s = Joi.string();
-          if (parameter.required) {
-            s = s.required();
-          }
-          return s;
-        },
-        horoscope: (parameter: HoroscopeParameter) => {
-          let s = Joi.object({
-            time: Joi.string().required(),
-            offset: Joi.number().integer(),
-            location: Joi.object({
-              id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
-              latitude: Joi.number().required(),
-              longitude: Joi.number().required(),
-              name: Joi.string().required(),
-            }).required(),
-          });
-          if (parameter.required) {
-            s = s.required();
-          }
-          return s;
-        },
-      }[parameter.type || 'string'](parameter as any);
-    };
-
-    const params =
-      (form.prompts && Object.values(form.prompts).flatMap((i) => matchParams(i.data.content ?? ''))) ?? [];
-
-    const schema = Joi.object(
-      Object.fromEntries(
-        params.map((param) => {
-          const parameter = form.parameters?.[param];
-          return [param, parameter ? getValueSchema(parameter) : undefined];
-        })
-      )
-    );
-
-    setError(undefined);
-    const { error, value } = schema.validate(
-      Object.fromEntries(
-        Object.entries(form.parameters ?? {}).map(([key, { value, defaultValue }]) => [key, value ?? defaultValue])
-      ),
-      { allowUnknown: true, abortEarly: false }
-    );
-    if (error) {
-      setError(error);
-      return;
-    }
-    onExecute?.(
-      JSON.parse(
-        JSON.stringify({
-          ...form,
-          parameters: Object.fromEntries(
-            Object.entries(form.parameters ?? {}).map(([param, parameter]) => [
-              param,
-              { ...parameter, value: value[param] },
-            ])
-          ),
-        })
-      )
-    );
-  };
-
-  const onCommitSelect = async (commit: Commit) => {
-    const template = await getFile({ projectId, ref: commit.oid, path });
-    const templateYjs: TemplateYjs = {
-      ...omit(template, 'path'),
-      prompts:
-        template.prompts &&
-        Object.fromEntries(
-          template.prompts?.map((prompt, index) => [
-            prompt.id,
-            {
-              index,
-              data: prompt,
-            },
-          ])
-        ),
-      branch: template.branch && {
-        branches: Object.fromEntries(
-          template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
-        ),
-      },
-      datasets:
-        template.datasets &&
-        Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
-    };
-
-    const map: Map<any> = getYjsValue(form) as any;
-    map.doc!.transact(() => {
-      map.clear();
-      Object.assign(form, templateYjs);
-    });
-
-    closeDialog();
-  };
+  const { t } = useLocaleContext();
 
   return (
-    <Grid container spacing={2}>
-      {dialog}
+    <Stack>
+      <Box position="relative">
+        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
+          <StyledInput
+            fullWidth
+            disableUnderline
+            placeholder={t('unnamed')}
+            value={value.name ?? ''}
+            onChange={(e) => (value.name = e.target.value)}
+            sx={{ fontSize: 18, fontWeight: 'bold' }}
+          />
+        </WithAwareness>
 
-      <Grid item xs={12}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography color="text.secondary" component="span">
-            {t('alert.updatedAt')}:
-          </Typography>
+        <AwarenessIndicator
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, 'name']}
+          sx={{ position: 'absolute', right: -16, top: 0 }}
+        />
+      </Box>
 
-          <Commits
-            key={form.updatedAt}
+      <Box position="relative">
+        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'description']}>
+          <StyledInput
+            fullWidth
+            disableUnderline
+            placeholder="Description"
+            value={value.description ?? ''}
+            onChange={(e) => (value.description = e.target.value)}
+            sx={{ fontSize: 14 }}
+          />
+        </WithAwareness>
+
+        <AwarenessIndicator
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, 'description']}
+          sx={{ position: 'absolute', right: -16, top: 0 }}
+        />
+      </Box>
+
+      <Box mb={2} position="relative">
+        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
+          <TagsAutoComplete
             projectId={projectId}
-            _ref={gitRef}
-            path={path}
-            hash={hash}
-            onCommitSelect={onCommitSelect}>
-            <Button
-              sx={{ ml: 1 }}
-              color="inherit"
-              endIcon={<ArrowDropDown fontSize="small" sx={{ color: 'text.secondary' }} />}>
-              <RelativeTime locale={locale} value={form.updatedAt} />
-            </Button>
-          </Commits>
+            value={value.tags ?? []}
+            onChange={(_, tags) => (value.tags = tags)}
+            renderInput={({ InputLabelProps, InputProps, ...params }) => (
+              <StyledInput disableUnderline placeholder={`+ ${t('form.tag')}`} {...InputProps} {...params} />
+            )}
+            sx={{ [`.${inputClasses.root},.${inputClasses.root}.${inputClasses.focused}`]: { py: 0.5 } }}
+          />
+        </WithAwareness>
 
-          <Box flex={1} />
+        <AwarenessIndicator
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, 'tag']}
+          sx={{ position: 'absolute', right: -16, top: 0 }}
+        />
+      </Box>
 
-          <Button
-            onClick={() =>
-              showDialog({
-                maxWidth: 'sm',
-                fullWidth: true,
-                title: t('alert.pickFromBranch'),
-                content: <CommitSelect projectId={projectId} _ref={gitRef} path={path} onSelect={onCommitSelect} />,
-                cancelText: t('alert.cancel'),
-              })
-            }>
-            {t('alert.pickFromBranch')}
-          </Button>
+      <Box>
+        <Typography variant="h6" sx={{ px: 1, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
+          Prompts
+        </Typography>
+
+        <Box mb={2}>
+          <Prompts projectId={projectId} gitRef={gitRef} value={value} />
         </Box>
-      </Grid>
+      </Box>
 
-      <Grid item xs={12}>
-        <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-          <FormLabel sx={{ width: 60 }}>{t('form.mode')}</FormLabel>
-          <RadioGroup row value={form.mode ?? 'default'} onChange={(_, value) => (form.mode = value as any)}>
-            <FormControlLabel value="default" control={<Radio />} label={t('form.form')} />
-            <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
-          </RadioGroup>
-        </FormControl>
-      </Grid>
-      <Grid mt={-1} item xs={12}>
-        <FormControl size="small" fullWidth sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-          <FormLabel sx={{ width: 60 }}>{t('form.type')}</FormLabel>
-          <RadioGroup
-            row
-            value={form.type ?? 'prompt'}
-            onChange={(_, type) => {
-              if (type === 'prompt') {
-                delete form.type;
-              } else {
-                form.type = type as any;
-              }
-            }}>
-            <FormControlLabel value="prompt" control={<Radio />} label={t('form.prompt')} />
-            <FormControlLabel value="branch" control={<Radio />} label={t('form.branch')} />
-            <FormControlLabel value="image" control={<Radio />} label={t('form.image')} />
-          </RadioGroup>
-        </FormControl>
-      </Grid>
-      <Grid item xs={12} position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'name']}>
-          <TextField
-            fullWidth
-            label={t('form.name')}
-            size="small"
-            value={form.name ?? ''}
-            onChange={(e) => (form.name = e.target.value)}
-          />
-        </WithAwareness>
+      <Box>
+        <Typography variant="h6" sx={{ px: 1, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
+          Parameters
+        </Typography>
 
-        <AwarenessIndicator
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[form.id, 'name']}
-          sx={{ position: 'absolute', right: -16, top: 16 }}
-        />
-      </Grid>
-      {form.type !== 'image' && (
-        <>
-          <Grid item xs={6} position="relative">
-            <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'model']}>
-              <TextField
-                fullWidth
-                label={t('form.model')}
-                size="small"
-                value={form.model ?? ''}
-                select
-                onChange={(e) => (form.model = e.target.value)}>
-                {MODELS.map((model) => (
-                  <MenuItem key={model} value={model}>
-                    {model}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </WithAwareness>
-
-            <AwarenessIndicator
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[form.id, 'model']}
-              sx={{ position: 'absolute', right: -16, top: 16 }}
-            />
-          </Grid>
-
-          <Grid item xs={6} position="relative">
-            <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'temperature']}>
-              <TextField
-                size="small"
-                fullWidth
-                label={t('form.temperature')}
-                inputProps={{ type: 'number', min: 0, max: 2, step: 0.1 }}
-                value={form.temperature ?? ''}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (!v) {
-                    form.temperature = undefined;
-                  } else {
-                    const n = Math.max(Math.min(2, Number(v)), 0);
-                    form.temperature = n;
-                  }
-                }}
-              />
-            </WithAwareness>
-
-            <AwarenessIndicator
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[form.id, 'temperature']}
-              sx={{ position: 'absolute', right: -16, top: 16 }}
-            />
-          </Grid>
-        </>
-      )}
-      <Grid item xs={12} position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'icon']}>
-          <TextField
-            fullWidth
-            label={t('form.icon')}
-            size="small"
-            value={form.icon ?? ''}
-            onChange={(e) => (form.icon = e.target.value)}
-            InputProps={{
-              startAdornment: form.icon && (
-                <InputAdornment position="start">
-                  <Icon icon={form.icon} />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    onClick={() => window.open('https://icon-sets.iconify.design/?query=', '_blank')}>
-                    <TravelExplore fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </WithAwareness>
-
-        <AwarenessIndicator
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[form.id, 'icon']}
-          sx={{ position: 'absolute', right: -16, top: 16 }}
-        />
-      </Grid>
-
-      <Grid item xs={12} position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'description']}>
-          <TextField
-            fullWidth
-            label={t('form.description')}
-            size="small"
-            value={form.description ?? ''}
-            onChange={(e) => (form.description = e.target.value)}
-            multiline
-            minRows={2}
-          />
-        </WithAwareness>
-
-        <AwarenessIndicator
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[form.id, 'description']}
-          sx={{ position: 'absolute', right: -16, top: 16 }}
-        />
-      </Grid>
-
-      <Grid item xs={12}>
-        <TagsAutoComplete
-          projectId={projectId}
-          label={t('form.tag')}
-          value={form.tags ?? []}
-          onChange={(_, value) => (form.tags = value)}
-        />
-      </Grid>
-
-      <Grid item xs={12}>
-        <Prompts projectId={projectId} gitRef={gitRef} value={form} />
-      </Grid>
-
-      {form.type === 'branch' && (
-        <Grid item xs={12}>
-          <Branches projectId={projectId} gitRef={gitRef} form={form} onTemplateClick={onTemplateClick} />
-        </Grid>
-      )}
-
-      <Grid item xs={12}>
-        <Datasets form={form} />
-      </Grid>
-
-      <Grid item xs={12}>
-        <Parameters form={form} />
-      </Grid>
-
-      {form.type !== 'image' && (
-        <Grid item xs={12}>
-          <Next projectId={projectId} gitRef={gitRef} form={form} onTemplateClick={onTemplateClick} />
-        </Grid>
-      )}
-
-      <Grid item xs={12} sx={{ position: 'sticky', bottom: 0, zIndex: 1 }}>
-        <Button fullWidth variant="contained" onClick={submit}>
-          {t('form.execute')}
-        </Button>
-      </Grid>
-    </Grid>
+        <Box mb={2}>
+          <Parameters form={value} />
+        </Box>
+      </Box>
+    </Stack>
   );
 }
 
-function Commits({
-  projectId,
-  _ref: ref,
-  path,
-  ...props
-}: {
-  projectId: string;
-  _ref: string;
-  path?: string;
-} & Omit<ComponentProps<typeof CommitsTip>, 'commits' | 'loading'>) {
-  const { state } = useProjectState(projectId, ref);
+const StyledInput = styled(Input)`
+  border-radius: ${({ theme }) => theme.shape.borderRadius * 2}px;
+  padding-left: ${({ theme }) => theme.spacing(1)};
+  padding-right: ${({ theme }) => theme.spacing(1)};
 
-  const { value, loading, error } = useAsync(() => getLogs({ projectId, ref, path }), [path, state.commits[0]?.oid]);
-  if (error) console.error(error);
-
-  return <CommitsTip {...props} loading={loading} commits={value?.commits} />;
-}
+  &.${inputClasses.focused} {
+    background-color: ${({ theme }) => theme.palette.grey[100]};
+    padding: ${({ theme }) => theme.spacing(0, 1)};
+  }
+`;

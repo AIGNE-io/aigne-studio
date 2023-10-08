@@ -1,12 +1,21 @@
-import { Settings } from '@mui/icons-material';
-import { Box, ClickAwayListener, Grid, IconButton, Paper, Popper } from '@mui/material';
+import { SettingsRounded } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  ClickAwayListener,
+  Paper,
+  Popper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from '@mui/material';
 import { useDeferredValue, useEffect, useRef, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Parameter } from '../../../api/src/store/templates';
-import ParameterField from '../parameter-field';
 import ParameterConfig from './parameter-config';
-import TokenCounter from './token-counter';
 
 export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 'name' | 'prompts' | 'parameters'> }) {
   const deferredValue = useDeferredValue(form);
@@ -53,44 +62,65 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
 
   return (
     <>
-      <Grid container spacing={2}>
-        {params.map((param) => {
-          const parameter = form.parameters?.[param];
-          if (!parameter) {
-            return null;
-          }
+      <Box
+        sx={{
+          border: (theme) => `1px solid ${theme.palette.grey[200]}`,
+          borderRadius: 2,
+          overflow: 'hidden',
+          table: {
+            tableLayout: 'fixed',
+          },
+          th: {
+            color: 'text.secondary',
+          },
+          'tbody > tr:last-of-type > td': {
+            border: 'none',
+          },
+          'th,td': {
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            borderColor: 'grey.200',
 
-          return (
-            <Grid item xs={12} key={param}>
-              <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                <ParameterField
-                  key={param}
-                  sx={{ flex: 1 }}
-                  size="small"
-                  label={parameter.label || param}
-                  parameter={parameter}
-                  helperText={
-                    <Box component="span" sx={{ display: 'flex' }}>
-                      <Box component="span" sx={{ flex: 1, overflow: 'hidden' }}>
-                        {parameter.helper}
-                      </Box>
-                      <TokenCounter value={parameter} />
-                    </Box>
-                  }
-                  value={parameter.value ?? parameter.defaultValue ?? ''}
-                  onChange={(value) => (form.parameters![param]!.value = value)}
-                />
-                <IconButton
-                  sx={{ ml: 2, mt: 0.5 }}
-                  size="small"
-                  onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
-                  <Settings fontSize="small" />
-                </IconButton>
-              </Box>
-            </Grid>
-          );
-        })}
-      </Grid>
+            '&:nth-of-type(3), &:nth-of-type(4)': {
+              textAlign: 'center',
+            },
+          },
+        }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Variable</TableCell>
+              <TableCell>Label</TableCell>
+              <TableCell width="100">Type</TableCell>
+              <TableCell width="80">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {params.map((param) => {
+              const parameter = form.parameters?.[param];
+              if (!parameter) {
+                return null;
+              }
+
+              return (
+                <TableRow key={param}>
+                  <TableCell>{param}</TableCell>
+                  <TableCell>{parameter.label}</TableCell>
+                  <TableCell>{parameter.type || 'string'}</TableCell>
+                  <TableCell>
+                    <Button
+                      sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+                      onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
+                      <SettingsRounded sx={{ fontSize: 14, color: 'text.secondary' }} />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Box>
 
       <Popper
         open={Boolean(paramConfig)}

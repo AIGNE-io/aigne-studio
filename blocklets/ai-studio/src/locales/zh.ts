@@ -120,4 +120,19 @@ export default flat({
   deleteProjectTips: '删除之后不可找回！',
   home: '首页',
   prompts: '提示',
+  model: '模型',
+  temperature: '随机性 temperature',
+  temperatureTip:
+    '调整 temperature 可以控制生成文本的多样性。低 temperature 会使生成的文本更加一致和可预测，而高 temperature 会增加文本的随机性和创造性。',
+  topP: '核采样 top_p',
+  topPTip:
+    '调整 top_p 可以控制生成文本的长度和多样性。较低的 top_p 值会缩小模型的选择范围，产生更连贯的文本，而较高的 top_p 值会引入更多的选择，增加文本的多样性。',
+  presencePenalty: '话题新鲜度 presence_penalty',
+  presencePenaltyTip:
+    '调整 presence_penalty 可以影响生成文本中重复话题的频率。较高的 presence_penalty 值会减少重复话题的出现，产生更多新鲜和丰富的内容，而较低的 presence_penalty 值可能会出现更多话题的重复。',
+  frequencyPenalty: '重复惩罚度 frequency_penalty',
+  frequencyPenaltyTip:
+    '调整 frequency_penalty 可以控制生成文本中重复单词和短语的频率。较高的 frequency_penalty 值会降低重复的发生，而较低的 frequency_penalty 值可能会增加一些从先前生成文本中学到的短语和单词的重复。',
+  text: '文字',
+  image: '图片',
 });
