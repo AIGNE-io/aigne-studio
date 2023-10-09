@@ -46,7 +46,7 @@ export default function TemplateFormView({
             placeholder={t('unnamed')}
             value={value.name ?? ''}
             onChange={(e) => (value.name = e.target.value)}
-            sx={{ fontSize: 18, fontWeight: 'bold' }}
+            sx={{ fontSize: 18 }}
           />
         </WithAwareness>
 
@@ -87,7 +87,7 @@ export default function TemplateFormView({
             renderInput={({ InputLabelProps, InputProps, ...params }) => (
               <StyledInput disableUnderline placeholder={`+ ${t('form.tag')}`} {...InputProps} {...params} />
             )}
-            sx={{ [`.${inputClasses.root},.${inputClasses.root}.${inputClasses.focused}`]: { py: 0.5 } }}
+            sx={{ [`.${inputClasses.root}`]: { py: 0.5 } }}
           />
         </WithAwareness>
 
@@ -129,6 +129,5 @@ const StyledInput = styled(Input)`
 
   &.${inputClasses.focused} {
     background-color: ${({ theme }) => theme.palette.grey[100]};
-    padding: ${({ theme }) => theme.spacing(0, 1)};
   }
 `;

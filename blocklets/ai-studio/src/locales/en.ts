@@ -133,6 +133,10 @@ export default flat({
   frequencyPenalty: 'frequency_penalty',
   frequencyPenaltyTip:
     'Adjusting the frequency_penalty allows for control over the occurrence of repeated words and phrases in the generated text. A higher frequency_penalty value will reduce the likelihood of repetitions, while a lower frequency_penalty value may increase the repetition of learned phrases and words from previously generated text.',
+  type: 'Type',
   text: 'Text',
   image: 'Image',
+  mode: 'Mode',
+  formMode: 'Form',
+  chatMode: 'Chat',
 });

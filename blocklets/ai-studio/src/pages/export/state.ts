@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { EntryWithMeta } from '../../../api/src/routes/tree';
 import { Project } from '../../../api/src/store/projects';
 import { getErrorMessage } from '../../libs/api';
-import { getBranches } from '../../libs/branche';
+import { getBranches } from '../../libs/branch';
 import { getExportTemplates } from '../../libs/export';
 import { getProjects } from '../../libs/project';
 import * as api from '../../libs/tree';

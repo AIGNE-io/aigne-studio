@@ -1,50 +1,31 @@
-import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
-import { cx } from '@emotion/css';
-import {
-  AddRounded,
-  CreateNewFolderOutlined,
-  DragIndicator,
-  HighlightOff,
-  KeyboardDoubleArrowLeftRounded,
-  KeyboardDoubleArrowRightRounded,
-  MenuOpenRounded,
-  Start,
-  TuneRounded,
-} from '@mui/icons-material';
+import { AddRounded, CreateNewFolderOutlined, MenuOpenRounded, TuneRounded } from '@mui/icons-material';
 import {
   Alert,
   Box,
-  BoxProps,
   Button,
   CircularProgress,
-  Drawer,
   IconButton,
   Paper,
   Stack,
+  Tab,
+  Tabs,
   Toolbar,
-  Tooltip,
   buttonClasses,
-  styled,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { ReactNode, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import joinUrl from 'url-join';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { Template } from '../../../api/src/store/templates';
 import WithAwareness from '../../components/awareness/with-awareness';
-import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView from '../../components/template-form';
 import Popper from '../../components/template-form/popper';
 import TemplateSettings from '../../components/template-form/template-settings';
 import { useComponent } from '../../contexts/component';
 import { useIsAdmin } from '../../contexts/session';
-import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
+import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
+import DebugView from './debug-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
 import { useProjectState } from './state';
 import { isTemplate, useStore } from './yjs-state';
@@ -99,65 +80,6 @@ export default function ProjectPage() {
     if (filepath) setPreviousFilePath((v) => ({ ...v, [gitRef]: filepath }));
   }, [gitRef, filepath, setPreviousFilePath]);
 
-  const conversation = useRef<ConversationRef>(null);
-
-  const { messages, add, cancel } = useConversation({
-    scrollToBottom: (o) => conversation.current?.scrollToBottom(o),
-    textCompletions: async (prompt, { meta }: { meta?: { template: Template; path: string } } = {}) => {
-      if (!meta) {
-        return textCompletions({
-          ...(typeof prompt === 'string' ? { prompt } : { messages: prompt }),
-          stream: true,
-        });
-      }
-      return callAI({
-        projectId,
-        template: meta.template,
-        parameters: Object.fromEntries(
-          Object.entries(meta.template.parameters ?? {}).map(([key, val]) => [key, parameterToStringValue(val)])
-        ),
-      });
-    },
-    imageGenerations: (prompt) =>
-      imageGenerations({ ...prompt, size: prompt.size as ImageGenerationSize, response_format: 'b64_json' }).then(
-        (res) => res.data.map((i) => ({ url: `data:image/png;base64,${i.b64_json}` }))
-      ),
-  });
-
-  const customActions = useCallback(
-    (msg: Omit<MessageItem, 'meta'> & { meta?: { template: Template; path: string } }): [ReactNode[], ReactNode[]] => {
-      const { meta } = msg;
-
-      return [
-        [],
-        [
-          meta?.template.id && (
-            <Tooltip key="template" title="Use current template" placement="top">
-              <Button size="small" onClick={() => navigate(joinUrl('.', meta.path))}>
-                <Start fontSize="small" />
-              </Button>
-            </Tooltip>
-          ),
-          msg.loading && (
-            <Tooltip key="stop" title="Stop" placement="top">
-              <Button size="small" onClick={() => cancel(msg)}>
-                <HighlightOff fontSize="small" />
-              </Button>
-            </Tooltip>
-          ),
-        ],
-      ];
-    },
-    [cancel, navigate]
-  );
-
-  // const onExecute = async (template: TemplateYjs) => {
-  //   const { parameters } = template;
-  //   const question = parameters?.question?.value;
-
-  //   add(question?.toString() || '', { template: templateYjsToTemplate(template), path: filepath });
-  // };
-
   const assistant = useComponent('ai-assistant');
 
   const onLaunch = useCallback(
@@ -176,13 +98,13 @@ export default function ProjectPage() {
     [assistant, projectId, gitRef]
   );
 
-  const layout = useRef<ImperativeLayout>(null);
+  const layout = useRef<ImperativeColumnsLayout>(null);
   const fileTree = useRef<ImperativeFileTree>(null);
 
   const settings = usePopupState({ variant: 'popper' });
 
   return (
-    <Layout
+    <ColumnsLayout
       ref={layout}
       left={
         <Stack sx={{ height: '100%', overflow: 'auto' }}>
@@ -235,7 +157,15 @@ export default function ProjectPage() {
               zIndex: (theme) => theme.zIndex.appBar,
               borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
-            <Toolbar variant="dense">
+            <Toolbar variant="dense" sx={{ gap: 1 }}>
+              <Tabs variant="fullWidth" value={0}>
+                <Tab label="Debug" />
+                <Tab label="Test" disabled />
+                <Tab label="Discuss" disabled />
+              </Tabs>
+
+              <Box flex={1} />
+
               <Button
                 startIcon={<MenuOpenRounded sx={{ transform: 'rotate(180deg)' }} />}
                 onClick={() => layout.current?.collapseRight()}>
@@ -244,13 +174,7 @@ export default function ProjectPage() {
             </Toolbar>
           </Box>
 
-          <Conversation
-            ref={conversation}
-            messages={messages}
-            sx={{ flex: 1, overflow: 'auto' }}
-            onSubmit={(prompt) => add(prompt)}
-            customActions={customActions}
-          />
+          {template && <DebugView projectId={projectId} gitRef={gitRef} template={template} />}
         </Stack>
       }>
       {({ leftOpen, rightOpen }) => (
@@ -300,219 +224,20 @@ export default function ProjectPage() {
           </Box>
 
           <Box mx={{ xs: 3, sm: 4 }} my={{ xs: 1, sm: 2 }}>
-            {filepath && <TemplateEditor projectId={projectId} gitRef={gitRef} path={filepath} />}
+            {!synced ? (
+              <Box sx={{ textAlign: 'center', mt: 10 }}>
+                <CircularProgress size={32} />
+              </Box>
+            ) : template ? (
+              <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id]} onMount>
+                <TemplateFormView projectId={projectId} gitRef={gitRef} value={template} />
+              </WithAwareness>
+            ) : id ? (
+              <Alert color="error">Not Found</Alert>
+            ) : null}
           </Box>
         </Box>
       )}
-    </Layout>
+    </ColumnsLayout>
   );
 }
-
-interface ImperativeLayout {
-  collapseLeft: () => void;
-  expandLeft: () => void;
-  collapseRight: () => void;
-  expandRight: () => void;
-}
-
-const Layout = forwardRef<
-  ImperativeLayout,
-  {
-    left?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
-    right?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
-    children?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
-    onLeftCollapse?: (collapsed: boolean) => void;
-    onRightCollapse?: (collapsed: boolean) => void;
-  }
->(({ onLeftCollapse, onRightCollapse, ...props }, ref) => {
-  const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
-  const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
-
-  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
-  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
-
-  const leftPanel = useRef<ImperativePanelHandle>();
-  const rightPanel = useRef<ImperativePanelHandle>();
-
-  const theme = useTheme();
-  const isLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
-
-  useEffect(() => {
-    if (isLargeScreen) {
-      if (leftDrawerOpen) setTimeout(() => leftPanel.current?.expand());
-      if (rightDrawerOpen) setTimeout(() => rightPanel.current?.expand());
-
-      setLeftDrawerOpen(false);
-      setRightDrawerOpen(false);
-    }
-  }, [isLargeScreen]);
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      collapseLeft: () => (isLargeScreen ? leftPanel.current?.collapse() : setLeftDrawerOpen(false)),
-      expandLeft: () => (isLargeScreen ? leftPanel.current?.expand() : setLeftDrawerOpen(true)),
-      collapseRight: () => (isLargeScreen ? rightPanel.current?.collapse() : setRightDrawerOpen(false)),
-      expandRight: () => (isLargeScreen ? rightPanel.current?.expand() : setRightDrawerOpen(true)),
-    }),
-    [isLargeScreen]
-  );
-
-  const leftOpen = isLargeScreen ? !leftPanelCollapsed : leftDrawerOpen;
-  const rightOpen = isLargeScreen ? !rightPanelCollapsed : rightDrawerOpen;
-
-  const left = typeof props.left === 'function' ? props.left({ isLargeScreen, leftOpen, rightOpen }) : props.left;
-  const right = typeof props.right === 'function' ? props.right({ isLargeScreen, leftOpen, rightOpen }) : props.right;
-  const children =
-    typeof props.children === 'function' ? props.children({ isLargeScreen, leftOpen, rightOpen }) : props.children;
-
-  if (!isLargeScreen) {
-    return (
-      <Box height="100%" overflow="auto">
-        {children}
-
-        <Drawer
-          open={leftDrawerOpen}
-          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
-          PaperProps={{ sx: { width: 300, pt: 8 } }}
-          onClose={() => setLeftDrawerOpen(false)}>
-          {left}
-        </Drawer>
-
-        <Drawer
-          anchor="right"
-          open={rightDrawerOpen}
-          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
-          PaperProps={{ sx: { width: 'calc(100% - 16px)', pt: 8 } }}
-          onClose={() => setRightDrawerOpen(false)}>
-          {right}
-        </Drawer>
-      </Box>
-    );
-  }
-
-  return (
-    <Box height="100%">
-      <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
-        <Box
-          component={Panel}
-          ref={leftPanel}
-          defaultSize={10}
-          minSize={10}
-          collapsible
-          onCollapse={(collapsed) => {
-            onLeftCollapse?.(collapsed);
-            setLeftPanelCollapsed(collapsed);
-          }}>
-          {left}
-        </Box>
-
-        <ResizeHandle
-          collapsed={leftPanelCollapsed}
-          icon={leftPanelCollapsed ? <KeyboardDoubleArrowRightRounded /> : undefined}
-          onClick={() => leftPanelCollapsed && leftPanel.current?.expand()}
-        />
-
-        <Box component={Panel} minSize={30}>
-          {children}
-        </Box>
-
-        <ResizeHandle
-          collapsed={rightPanelCollapsed}
-          icon={rightPanelCollapsed ? <KeyboardDoubleArrowLeftRounded /> : undefined}
-          onClick={() => rightPanelCollapsed && rightPanel.current?.expand()}
-        />
-
-        <Box
-          component={Panel}
-          ref={rightPanel}
-          defaultSize={45}
-          minSize={20}
-          collapsible
-          onCollapse={(collapsed) => {
-            onRightCollapse?.(collapsed);
-            setRightPanelCollapsed(collapsed);
-          }}>
-          {right}
-        </Box>
-      </Box>
-    </Box>
-  );
-});
-
-function TemplateEditor({ projectId, gitRef, path }: { projectId: string; gitRef: string; path: string }) {
-  const { store, synced } = useStore(projectId, gitRef);
-  if (!synced)
-    return (
-      <Box sx={{ textAlign: 'center', mt: 10 }}>
-        <CircularProgress size={32} />
-      </Box>
-    );
-
-  const id = Object.entries(store.tree).find((i) => i[1] === path)?.[0];
-  const template = id ? store.files[id] : undefined;
-  if (!template || !isTemplate(template)) return <Alert color="error">Not Found</Alert>;
-
-  return (
-    <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id]} onMount>
-      <TemplateFormView projectId={projectId} gitRef={gitRef} value={template} />
-    </WithAwareness>
-  );
-}
-
-function ResizeHandle({ icon, collapsed, ...props }: { collapsed?: boolean; icon?: ReactNode } & BoxProps) {
-  return (
-    <ResizeHandleRoot component={PanelResizeHandle} className={cx(collapsed && 'collapsed')}>
-      <Box {...props} className="handler">
-        {icon || <DragIndicator />}
-      </Box>
-    </ResizeHandleRoot>
-  );
-}
-
-const ResizeHandleRoot = styled(Box)`
-  width: 0;
-  height: 100%;
-  position: relative;
-  z-index: 10;
-  overflow: visible;
-  border-right: ${({ theme }) => `1px dashed ${theme.palette.grey[200]}`};
-
-  &.collapsed {
-    border-color: transparent;
-  }
-
-  .handler {
-    position: absolute;
-    left: -5px;
-    top: 0;
-    bottom: 0;
-    width: 10px;
-    height: 100px;
-    border-radius: 5px;
-    margin: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: ${({ theme }) => theme.palette.grey[100]};
-    transition: ${({ theme }) =>
-      theme.transitions.create('all', {
-        easing: theme.transitions.easing.sharp,
-      })};
-
-    svg {
-      font-size: 14px;
-    }
-  }
-
-  :hover,
-  &[data-resize-handle-active] {
-    .handler {
-      left: -5px;
-      height: calc(100% - 128px);
-      width: 10px;
-      background-color: ${({ theme }) => theme.palette.grey[100]};
-      border-radius: 5px;
-    }
-  }
-`;

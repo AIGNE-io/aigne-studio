@@ -59,7 +59,20 @@ export default function TemplateSettings({
       <TableBody>
         <TableRow>
           <TableCell>
-            <FormLabel>{t('form.type')}</FormLabel>
+            <FormLabel sx={{ width: 60 }}>{t('mode')}</FormLabel>
+          </TableCell>
+
+          <TableCell>
+            <RadioGroup row value={value.mode ?? 'default'} onChange={(_, mode) => (value.mode = mode as any)}>
+              <FormControlLabel value="default" control={<Radio />} label={t('formMode')} />
+              <FormControlLabel value="chat" control={<Radio />} label={t('chatMode')} />
+            </RadioGroup>
+          </TableCell>
+        </TableRow>
+
+        <TableRow>
+          <TableCell>
+            <FormLabel>{t('type')}</FormLabel>
           </TableCell>
 
           <TableCell>
@@ -307,7 +320,7 @@ function SliderNumberField({
 
           onChange?.(e, v);
         }}
-        sx={{ width: 50, border: 'none', bgcolor: 'grey.100', lineHeight: 1.5, px: 1, py: 0.5, borderRadius: 2 }}
+        sx={{ width: 60, border: 'none', bgcolor: 'grey.100', lineHeight: 1.5, px: 1, py: 0.5, borderRadius: 2 }}
       />
     </Stack>
   );

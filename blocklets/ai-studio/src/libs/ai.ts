@@ -16,6 +16,8 @@ export const imageGenerations = createImageGenerationApi({ axios, path: '/api/ai
 export async function callAI(
   input: {
     projectId: string;
+    ref?: string;
+    working?: boolean;
     parameters?: { [key: string]: string | number };
   } & (
     | {

@@ -133,6 +133,10 @@ export default flat({
   frequencyPenalty: '重复惩罚度 frequency_penalty',
   frequencyPenaltyTip:
     '调整 frequency_penalty 可以控制生成文本中重复单词和短语的频率。较高的 frequency_penalty 值会降低重复的发生，而较低的 frequency_penalty 值可能会增加一些从先前生成文本中学到的短语和单词的重复。',
+  type: '类型',
   text: '文字',
   image: '图片',
+  mode: '模式',
+  formMode: '表单',
+  chatMode: '会话',
 });
