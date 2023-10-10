@@ -412,17 +412,19 @@ function EditableTreeItem({
     <TreeItem
       {...props}
       actions={
-        <>
-          <ListItemButton disabled={!mutable} onClick={() => setEditing(true)}>
-            <ListItemIcon>
-              <Pen />
-            </ListItemIcon>
+        editing ? null : (
+          <>
+            <ListItemButton disabled={!mutable} onClick={() => setEditing(true)}>
+              <ListItemIcon>
+                <Pen />
+              </ListItemIcon>
 
-            <ListItemText primary={t('form.rename')} />
-          </ListItemButton>
+              <ListItemText primary={t('form.rename')} />
+            </ListItemButton>
 
-          {props.actions}
-        </>
+            {props.actions}
+          </>
+        )
       }>
       {editing ? (
         <Input
@@ -499,8 +501,8 @@ function TreeItem({
           borderRadius: 1,
           mx: 1,
           position: 'relative',
-          pl: depth * 2 + 1.5,
-          pr: 1.5,
+          pl: depth * 2 + 1,
+          pr: 1,
           py: 0.5,
           display: 'flex',
           alignItems: 'center',

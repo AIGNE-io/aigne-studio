@@ -200,21 +200,26 @@ export default function ProjectPage() {
 
               <Box flex={1} />
 
-              <Tooltip title={t('settings')}>
-                <Button
-                  {...bindTrigger(settings)}
-                  color="inherit"
-                  sx={{ minWidth: 0, bgcolor: settings.isOpen ? (theme) => theme.palette.action.selected : undefined }}>
-                  <Filtering />
-                </Button>
-              </Tooltip>
-
               {template && (
-                <Popper {...bindPopper(settings)} onClose={settings.close}>
-                  <Paper elevation={3} sx={{ mt: -1, p: 4, maxWidth: 'sm', borderRadius: 3 }}>
-                    <TemplateSettings projectId={projectId} gitRef={gitRef} value={template} />
-                  </Paper>
-                </Popper>
+                <>
+                  <Tooltip title={t('settings')}>
+                    <Button
+                      {...bindTrigger(settings)}
+                      color="inherit"
+                      sx={{
+                        minWidth: 0,
+                        bgcolor: settings.isOpen ? (theme) => theme.palette.action.selected : undefined,
+                      }}>
+                      <Filtering />
+                    </Button>
+                  </Tooltip>
+
+                  <Popper {...bindPopper(settings)} onClose={settings.close}>
+                    <Paper elevation={3} sx={{ mt: -1, p: 4, maxWidth: 'sm', borderRadius: 3 }}>
+                      <TemplateSettings projectId={projectId} gitRef={gitRef} value={template} />
+                    </Paper>
+                  </Popper>
+                </>
               )}
 
               {!rightOpen && (
