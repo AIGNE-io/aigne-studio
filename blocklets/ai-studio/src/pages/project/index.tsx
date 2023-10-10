@@ -26,7 +26,16 @@ export default function ProjectRoutes() {
           HeaderProps={{
             brandAddon: <BrandRoutes />,
             addons: (exists) => [<AddonsRoutes />, ...exists],
-            sx: { '.header-container': { px: { md: 3, xs: 1 } } },
+            sx: {
+              '.header-container': {
+                px: { md: 3, xs: 1 },
+                '.locales': {
+                  borderRadius: 1,
+                  boxShadow: 1,
+                  mt: 1.5,
+                },
+              },
+            },
           }}
           menus={<MenuRoutes />}
           MenusDrawerProps={{
