@@ -4,14 +4,15 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { LoadingButton } from '@blocklet/studio-ui';
 import { cx } from '@emotion/css';
 import {
-  Add,
-  ContentCopyOutlined,
-  DeleteOutline,
+  AddRounded,
+  ContentCopyRounded,
+  DeleteOutlineRounded,
   ExpandMore,
-  InsertPhotoOutlined,
-  LaunchOutlined,
-  MoreHoriz,
+  InsertPhotoRounded,
+  LaunchRounded,
+  MoreHorizRounded,
   PushPinOutlined,
+  PushPinRounded,
   WarningRounded,
 } from '@mui/icons-material';
 import {
@@ -68,7 +69,7 @@ export default function ProjectsPage() {
           </Section>
         )}
 
-        {projects.length > 0 ? (
+        {projects.length ? (
           <Section title={t('myProjects')}>
             <ProjectList section="projects" list={projects} />
           </Section>
@@ -116,6 +117,7 @@ function ProjectMenu() {
       ),
       okColor: 'warning',
       okText: t('alert.delete'),
+      okIcon: <DeleteOutlineRounded />,
       cancelText: t('alert.cancel'),
       onOk: async () => {
         try {
@@ -152,7 +154,7 @@ function ProjectMenu() {
                     })
                 }>
                 <ListItemIcon>
-                  <ContentCopyOutlined />
+                  <ContentCopyRounded />
                 </ListItemIcon>
                 {t('duplicate')}
               </LoadingMenuItem>
@@ -170,7 +172,7 @@ function ProjectMenu() {
                       })
                   }>
                   <ListItemIcon>
-                    <PushPinOutlined />
+                    <PushPinRounded />
                   </ListItemIcon>
                   {menuAnchor.item.pinnedAt ? t('unpin') : t('pin')}
                 </LoadingMenuItem>
@@ -185,7 +187,7 @@ function ProjectMenu() {
                   setMenuAnchor(undefined);
                 }}>
                 <ListItemIcon sx={{ color: 'inherit' }}>
-                  <DeleteOutline color="inherit" />
+                  <DeleteOutlineRounded color="inherit" />
                 </ListItemIcon>
                 {t('delete')}
               </MenuItem>
@@ -268,8 +270,8 @@ function ProjectList({
           <ProjectItem
             key={item._id}
             pinned={!!item.pinnedAt}
-            width={{ xs: 'calc(33.33% - 12px)', sm: 'calc(25% - 18px)', md: 160 }}
-            maxWidth={{ xs: '100%', md: 160 }}
+            width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
+            maxWidth={180}
             selected={selected?.section === section && selected.item._id === item._id}
             name={section === 'templates' && item.name ? t(item.name) : item.name}
             onClick={() => setSelected({ section, item })}
@@ -282,7 +284,7 @@ function ProjectList({
                   className="hover-visible"
                   size="small"
                   variant="contained"
-                  startIcon={<LaunchOutlined />}>
+                  startIcon={<LaunchRounded />}>
                   {t('open')}
                 </Button>
               ) : section === 'templates' ? (
@@ -290,7 +292,7 @@ function ProjectList({
                   className="hover-visible"
                   size="small"
                   variant="contained"
-                  startIcon={<Add />}
+                  startIcon={<AddRounded />}
                   loadingPosition="start"
                   onClick={async () => {
                     try {
@@ -315,7 +317,7 @@ function ProjectList({
                     e.stopPropagation();
                     setMenuAnchor({ section, anchor: e.currentTarget, item });
                   }}>
-                  <MoreHoriz fontSize="small" />
+                  <MoreHorizRounded fontSize="small" />
                 </IconButton>
               )
             }
@@ -351,28 +353,13 @@ function ProjectItem({
           alignItems="center"
           justifyContent="center"
           sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}>
-          <InsertPhotoOutlined sx={{ color: 'grey.400', fontSize: 56 }} />
+          <InsertPhotoRounded sx={{ color: 'grey.400', fontSize: 56 }} />
         </Stack>
 
-        {mainActions && (
-          <Stack
-            sx={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              p: 1,
-              gap: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            {mainActions}
-          </Stack>
-        )}
-
-        {actions && (
+        {(actions || mainActions) && (
           <Stack direction="row" sx={{ position: 'absolute', right: 0, bottom: 0, p: 1, gap: 1, alignItems: 'center' }}>
+            {mainActions}
+
             {actions}
           </Stack>
         )}
@@ -402,7 +389,7 @@ function ProjectItem({
 
 const ProjectItemRoot = styled(Stack)`
   width: 100%;
-  max-width: 160px;
+  min-width: 140px;
   cursor: pointer;
 
   .logo {

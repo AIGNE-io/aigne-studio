@@ -21,6 +21,7 @@ export default function useDialog() {
       middleText,
       middleColor,
       okText = 'Ok',
+      okIcon,
       okColor,
       onOk,
       onMiddleClick,
@@ -31,6 +32,7 @@ export default function useDialog() {
       content?: ReactNode;
       cancelText?: string;
       okText?: string;
+      okIcon?: ReactNode;
       okColor?: ButtonProps['color'];
       middleText?: string;
       middleColor?: ButtonProps['color'];
@@ -72,6 +74,7 @@ export default function useDialog() {
                 <PromiseLoadingButton
                   variant="contained"
                   color={okColor}
+                  startIcon={okIcon}
                   onClick={async () => {
                     await onOk?.();
                     closeDialog();

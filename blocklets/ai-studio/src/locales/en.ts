@@ -1,16 +1,8 @@
 import flat from 'flat';
 
 export default flat({
-  main: {
-    templates: 'Templates',
-  },
   form: {
     name: 'Name',
-    icon: 'Icon',
-    description: 'Description',
-    template: 'Prompt Template',
-    execute: 'Execute',
-    save: 'Save',
     new: 'New',
     copy: 'Copy',
     prompt: 'Prompt',
@@ -113,13 +105,16 @@ export default flat({
   delete: 'Delete',
   open: 'Open',
   unnamed: 'Unnamed',
+  description: 'Description',
   blank: 'Blank',
   create: 'Create',
+  newObject: 'New {object}',
   createdAt: 'Created at',
   deleteProjectTitle: 'Delete project "{project}"?',
   deleteProjectTips: 'It cannot be retrieved after deletion!',
   home: 'Home',
   prompts: 'Prompts',
+  parameters: 'Parameters',
   model: 'Model',
   temperature: 'temperature',
   temperatureTip:
@@ -139,4 +134,18 @@ export default flat({
   mode: 'Mode',
   formMode: 'Form',
   chatMode: 'Chat',
+  showSidebar: 'Show sidebar',
+  hideSidebar: 'Hide sidebar',
+  folder: 'folder',
+  file: 'file',
+  noFiles: 'No files',
+  add: 'Add {object}',
+  prompt: 'Prompt',
+  send: 'Send',
+  stop: 'Stop',
+  session: 'Session',
+  settings: 'Settings',
+  chat: 'Chat',
+  debug: 'Debug',
+  save: 'Save',
 });

@@ -39,7 +39,7 @@ export default function SaveButton({
           disabled={disabled || loading}
           startIcon={loading ? <CircularProgress size={18} /> : <Save />}
           onClick={() => onSave?.()}>
-          {t('form.save')}
+          {t('save')}
         </Button>
 
         <Button {...bindTrigger(popperState)} sx={{ px: 0 }}>

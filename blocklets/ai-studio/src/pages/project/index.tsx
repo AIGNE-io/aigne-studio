@@ -23,14 +23,17 @@ export default function ProjectRoutes() {
     <DndProvider backend={HTML5Backend}>
       <ErrorBoundary ref={errorBoundary}>
         <Dashboard
-          HeaderProps={{ brandAddon: <BrandRoutes />, addons: (exists) => [<AddonsRoutes />, ...exists] }}
+          HeaderProps={{
+            brandAddon: <BrandRoutes />,
+            addons: (exists) => [<AddonsRoutes />, ...exists],
+            sx: { '.header-container': { px: { md: 3, xs: 1 } } },
+          }}
           menus={<MenuRoutes />}
           MenusDrawerProps={{
             sx: {
               [`.${backdropClasses.root}`]: {
                 top: 64,
               },
-
               [`> .${drawerClasses.paper}`]: {
                 borderRightStyle: 'dashed',
               },

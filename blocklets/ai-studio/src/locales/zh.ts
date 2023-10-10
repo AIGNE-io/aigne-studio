@@ -1,16 +1,8 @@
 import flat from 'flat';
 
 export default flat({
-  main: {
-    templates: '模版',
-  },
   form: {
     name: '名称',
-    icon: '图标',
-    description: '描述',
-    template: '提示模版',
-    execute: '执行',
-    save: '保存',
     new: '新建',
     copy: '拷贝',
     prompt: '提示',
@@ -113,13 +105,16 @@ export default flat({
   delete: '删除',
   open: '打开',
   unnamed: '未命名',
+  description: '描述',
   blank: '空白',
   create: '创建',
+  newObject: '新建{object}',
   createdAt: '创建于',
   deleteProjectTitle: '删除项目“{project}”？',
   deleteProjectTips: '删除之后不可找回！',
   home: '首页',
   prompts: '提示',
+  parameters: '变量',
   model: '模型',
   temperature: '随机性 temperature',
   temperatureTip:
@@ -139,4 +134,18 @@ export default flat({
   mode: '模式',
   formMode: '表单',
   chatMode: '会话',
+  showSidebar: '显示侧栏',
+  hideSidebar: '隐藏侧栏',
+  folder: '文件夹',
+  file: '文件',
+  noFiles: '暂无文件',
+  add: '添加{object}',
+  prompt: '提示',
+  send: '发送',
+  stop: '停止',
+  session: '会话',
+  settings: '设置',
+  chat: '对话',
+  debug: '调试',
+  save: '保存',
 });

@@ -1,6 +1,6 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit';
 import { css } from '@emotion/css';
-import { DeleteOutlineRounded, PlayCircleRounded, SendRounded, StopCircleRounded } from '@mui/icons-material';
 import {
   Alert,
   Avatar,
@@ -28,6 +28,9 @@ import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import ParameterField from '../../components/parameter-field';
 import { matchParams } from '../../components/template-form/parameters';
+import Trash from './icons/trash';
+import PaperPlane from './paper-plane';
+import Record from './record';
 import { SessionItem, useDebugState } from './state';
 
 export default function DebugView(props: { projectId: string; gitRef: string; template: TemplateYjs }) {
@@ -77,6 +80,8 @@ function DebugViewContent({
   gitRef: string;
   template: TemplateYjs;
 }) {
+  const { t } = useLocaleContext();
+
   const { state, setSession } = useDebugState({
     projectId,
     templateId: template.id,
@@ -118,8 +123,8 @@ function DebugViewContent({
                 session.chatType = v;
               })
             }>
-            <ToggleButton value="chat">Text</ToggleButton>
-            <ToggleButton value="debug">Prompt</ToggleButton>
+            <ToggleButton value="chat">{t('chat')}</ToggleButton>
+            <ToggleButton value="debug">{t('debug')}</ToggleButton>
           </ToggleButtonGroup>
         </Box>
       </Stack>
@@ -128,6 +133,7 @@ function DebugViewContent({
 }
 
 function SessionSelect({ projectId, templateId }: { projectId: string; templateId: string }) {
+  const { t } = useLocaleContext();
   const { state, newSession, deleteSession, setCurrentSession } = useDebugState({ projectId, templateId });
 
   return (
@@ -135,7 +141,7 @@ function SessionSelect({ projectId, templateId }: { projectId: string; templateI
       value={state.currentSessionIndex}
       MenuProps={{ elevation: 1 }}
       size="small"
-      placeholder="New Session"
+      placeholder={t('newObject', { object: t('session') })}
       fullWidth
       sx={{
         [`.${selectClasses.select}`]: {
@@ -145,11 +151,13 @@ function SessionSelect({ projectId, templateId }: { projectId: string; templateI
           borderRadius: 100,
         },
       }}
-      renderValue={(value) => `Session ${value}`}
+      renderValue={(value) => `${t('session')} ${value}`}
       onChange={(e) => setCurrentSession(e.target.value as number)}>
       {state.sessions.map((session) => (
         <MenuItem key={session.index} value={session.index}>
-          <Typography flex={1}>Session {session.index}</Typography>
+          <Typography flex={1}>
+            {t('session')} {session.index}
+          </Typography>
 
           <Button
             sx={{ minWidth: 0, p: 0.25 }}
@@ -157,7 +165,7 @@ function SessionSelect({ projectId, templateId }: { projectId: string; templateI
               e.stopPropagation();
               deleteSession(session.index);
             }}>
-            <DeleteOutlineRounded sx={{ fontSize: 14, color: 'text.secondary' }} />
+            <Trash sx={{ fontSize: 14, color: 'text.secondary' }} />
           </Button>
         </MenuItem>
       ))}
@@ -168,7 +176,7 @@ function SessionSelect({ projectId, templateId }: { projectId: string; templateI
           newSession();
         }}
         sx={{ justifyContent: 'center', color: 'primary.main', fontSize: 'button.fontSize' }}>
-        New Session
+        {t('newObject', { object: t('session') })}
       </MenuItem>
     </Select>
   );
@@ -244,6 +252,8 @@ const StyledInput = styled(Input)`
 `;
 
 function ChatModeForm({ projectId, templateId }: { projectId: string; templateId: string }) {
+  const { t } = useLocaleContext();
+
   const { state, sendMessage, cancelMessage } = useDebugState({ projectId, templateId });
 
   const scrollToBottom = useScrollToBottom();
@@ -290,7 +300,7 @@ function ChatModeForm({ projectId, templateId }: { projectId: string; templateId
         }}
       />
 
-      <Tooltip title={lastMessage?.loading ? 'Stop' : 'Send'} placement="top">
+      <Tooltip title={lastMessage?.loading ? t('stop') : t('send')} placement="top">
         <Button
           type="submit"
           sx={{
@@ -310,10 +320,10 @@ function ChatModeForm({ projectId, templateId }: { projectId: string; templateId
                 size={24}
                 sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, margin: 'auto' }}
               />
-              <StopCircleRounded fontSize="small" />
+              <Record />
             </>
           ) : (
-            <SendRounded />
+            <PaperPlane />
           )}
         </Button>
       </Tooltip>
@@ -322,6 +332,8 @@ function ChatModeForm({ projectId, templateId }: { projectId: string; templateId
 }
 
 function DebugModeForm({ projectId, gitRef, template }: { projectId: string; gitRef: string; template: TemplateYjs }) {
+  const { t } = useLocaleContext();
+
   const { state, sendMessage, setSession, cancelMessage } = useDebugState({
     projectId,
     templateId: template.id,
@@ -402,7 +414,9 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
 
       <Stack gap={1} direction="row">
         <Box flex={1} />
+
         <Button
+          size="small"
           type="submit"
           variant="contained"
           endIcon={
@@ -413,14 +427,14 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
                   color="inherit"
                   sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, margin: 'auto' }}
                 />
-                <StopCircleRounded sx={{ fontSize: 16 }} />
+                <Record />
               </Stack>
             ) : (
-              <PlayCircleRounded />
+              <PaperPlane />
             )
           }
           onClick={submit}>
-          {lastMessage?.loading ? 'Stop' : 'Execute'}
+          {lastMessage?.loading ? t('stop') : t('send')}
         </Button>
       </Stack>
     </Stack>

@@ -1,6 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Add, Delete, DragIndicatorRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -18,6 +17,9 @@ import { nanoid } from 'nanoid';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Role } from '../../../api/src/store/templates';
+import Add from '../../pages/project/icons/add';
+import DragVertical from '../../pages/project/icons/drag-vertical';
+import Trash from '../../pages/project/icons/trash';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
@@ -75,7 +77,7 @@ export default function Prompts({
 
                   <Stack sx={{ p: 0.5 }}>
                     <Button
-                      sx={{ minWidth: 0, p: 0.2 }}
+                      sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}
                       onClick={() => {
                         const doc = (getYjsValue(form.prompts) as Map<any>).doc!;
                         doc.transact(() => {
@@ -87,11 +89,11 @@ export default function Prompts({
                           }
                         });
                       }}>
-                      <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
+                      <Trash sx={{ fontSize: 20, color: 'grey.500' }} />
                     </Button>
 
-                    <Button ref={params.drag} sx={{ minWidth: 0, p: 0.2 }}>
-                      <DragIndicatorRounded sx={{ fontSize: 16, color: 'grey.500' }} />
+                    <Button ref={params.drag} sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}>
+                      <DragVertical sx={{ color: 'grey.500' }} />
                     </Button>
                   </Stack>
 
@@ -123,7 +125,7 @@ export default function Prompts({
             };
           });
         }}>
-        {t('form.add')} {t('form.prompt')}
+        {t('add', { object: t('prompt') })}
       </Button>
     </Box>
   );
@@ -133,6 +135,12 @@ function RoleSelector({ ...props }: SelectProps<Role>) {
   return (
     <Select
       {...props}
+      size="small"
+      variant="outlined"
+      MenuProps={{
+        elevation: 1,
+        slotProps: { paper: { sx: { mt: 0.5 } } },
+      }}
       sx={{
         [`.${selectClasses.select}`]: {
           fontSize: 12,
@@ -149,9 +157,7 @@ function RoleSelector({ ...props }: SelectProps<Role>) {
           border: 'none',
         },
         ...props.sx,
-      }}
-      variant="outlined"
-      size="small">
+      }}>
       <MenuItem value="system">System</MenuItem>
       <MenuItem value="user">User</MenuItem>
       <MenuItem value="assistant">Assistant</MenuItem>

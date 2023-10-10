@@ -1,4 +1,3 @@
-import { SettingsRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -15,6 +14,7 @@ import { useDeferredValue, useEffect, useRef, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Parameter } from '../../../api/src/store/templates';
+import Settings from '../../pages/project/icons/settings';
 import ParameterConfig from './parameter-config';
 
 export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 'name' | 'prompts' | 'parameters'> }) {
@@ -112,7 +112,7 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
                     <Button
                       sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
                       onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
-                      <SettingsRounded sx={{ fontSize: 14, color: 'text.secondary' }} />
+                      <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
                     </Button>
                   </TableCell>
                 </TableRow>

@@ -3,21 +3,6 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { css } from '@emotion/css';
 import { MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
-  AddRounded,
-  ArticleRounded,
-  ChevronRightRounded,
-  CopyAllRounded,
-  DeleteForeverRounded,
-  DownloadRounded,
-  EditRounded,
-  ForkLeftRounded,
-  ImageRounded,
-  KeyboardArrowRightRounded,
-  LaunchRounded,
-  MoreVertRounded,
-  UploadRounded,
-} from '@mui/icons-material';
-import {
   Box,
   BoxProps,
   Button,
@@ -43,6 +28,16 @@ import joinUrl from 'url-join';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
+import Add from './icons/add';
+import Duplicate from './icons/duplicate';
+import External from './icons/external';
+import File from './icons/file';
+import FolderClose from './icons/folder-close';
+import FolderOpen from './icons/folder-open';
+import MenuVertical from './icons/menu-vertical';
+import Pen from './icons/pen';
+import Picture from './icons/picture';
+import Trash from './icons/trash';
 import { createFile, createFolder, deleteFile, isTemplate, moveFile, nextTemplateId, useStore } from './yjs-state';
 
 export type EntryWithMeta =
@@ -76,11 +71,9 @@ const FileTree = forwardRef<
     gitRef: string;
     current?: string;
     mutable?: boolean;
-    onExport?: (path: string[]) => any;
-    onImport?: (path: string[]) => any;
     onLaunch?: (template: TemplateYjs) => any;
   } & Omit<BoxProps, 'onClick'>
->(({ projectId, gitRef, current, mutable, onExport, onImport, onLaunch, ...props }, ref) => {
+>(({ projectId, gitRef, current, mutable, onLaunch, ...props }, ref) => {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
 
@@ -191,7 +184,7 @@ const FileTree = forwardRef<
     <Box {...props}>
       {showNewProject && (
         <EditableTreeItem
-          icon={<KeyboardArrowRightRounded fontSize="small" />}
+          icon={<FolderClose />}
           key={showNewProject.toString()}
           defaultEditing
           onSubmit={async (value) => {
@@ -204,8 +197,8 @@ const FileTree = forwardRef<
       )}
 
       {!tree.length && !showNewProject && (
-        <Box color="text.secondary" textAlign="center">
-          {t('alert.noTemplates')}
+        <Box color="text.secondary" textAlign="center" fontSize={14} lineHeight="32px" m={0.5}>
+          {t('noFiles')}
         </Box>
       )}
 
@@ -251,9 +244,7 @@ const FileTree = forwardRef<
                 item={node.data}
                 onCreateFile={onCreateFile}
                 onDeleteFile={onDeleteFile}
-                onExport={onExport}
                 onLaunch={onLaunch}
-                onImport={onImport}
               />
             );
 
@@ -264,16 +255,7 @@ const FileTree = forwardRef<
               return (
                 <EditableTreeItem
                   key={node.id}
-                  icon={
-                    <ChevronRightRounded
-                      fontSize="small"
-                      sx={{
-                        color: 'text.secondary',
-                        transform: isOpen ? 'rotate(90deg)' : 'none',
-                        transition: (theme) => theme.transitions.create('transform'),
-                      }}
-                    />
-                  }
+                  icon={isOpen ? <FolderOpen /> : <FolderClose />}
                   mutable={mutable}
                   depth={depth}
                   onClick={onToggle}
@@ -292,11 +274,7 @@ const FileTree = forwardRef<
             const name = `${meta.id}.yaml`;
             const selected = current && current.endsWith(name);
 
-            const icon = (meta.type &&
-              {
-                branch: <ForkLeftRounded fontSize="small" sx={{ color: 'text.secondary' }} />,
-                image: <ImageRounded fontSize="small" sx={{ color: 'text.secondary' }} />,
-              }[meta.type]) || <ArticleRounded fontSize="small" sx={{ color: 'text.secondary' }} />;
+            const icon = meta.type === 'image' ? <Picture /> : <File />;
 
             return (
               <TreeItem
@@ -330,17 +308,13 @@ function TreeItemMenus({
   item,
   onCreateFile,
   onDeleteFile,
-  onExport,
   onLaunch,
-  onImport,
 }: {
   mutable?: boolean;
   item: EntryWithMeta;
   onCreateFile?: (options?: { parent?: string[]; meta?: TemplateYjs }) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
-  onExport?: (path: string[]) => any;
   onLaunch?: (template: TemplateYjs) => any;
-  onImport?: (path: string[]) => any;
 }) {
   const { t } = useLocaleContext();
 
@@ -349,34 +323,16 @@ function TreeItemMenus({
       {onLaunch && item.type === 'file' && (
         <ListItemButton onClick={() => onLaunch(item.meta)}>
           <ListItemIcon>
-            <LaunchRounded fontSize="small" />
+            <External />
           </ListItemIcon>
           <ListItemText primary={t('alert.openInAssistant')} />
-        </ListItemButton>
-      )}
-
-      {onExport && (
-        <ListItemButton onClick={() => onExport(item.path)}>
-          <ListItemIcon>
-            <DownloadRounded fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={t('alert.export')} />
-        </ListItemButton>
-      )}
-
-      {onImport && item.type === 'folder' && (
-        <ListItemButton disabled={!mutable} onClick={() => onImport(item.path)}>
-          <ListItemIcon>
-            <UploadRounded fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={t('alert.import')} />
         </ListItemButton>
       )}
 
       {item.type === 'folder' && onCreateFile && (
         <ListItemButton disabled={!mutable} onClick={() => onCreateFile({ parent: item.path })}>
           <ListItemIcon>
-            <AddRounded fontSize="small" />
+            <Add />
           </ListItemIcon>
           <ListItemText primary={t('form.new')} />
         </ListItemButton>
@@ -396,7 +352,7 @@ function TreeItemMenus({
             })
           }>
           <ListItemIcon>
-            <CopyAllRounded fontSize="small" />
+            <Duplicate />
           </ListItemIcon>
           <ListItemText primary={t('alert.duplicate')} />
         </ListItemButton>
@@ -405,7 +361,7 @@ function TreeItemMenus({
       {onDeleteFile && (
         <ListItemButton disabled={!mutable} onClick={() => onDeleteFile(item)}>
           <ListItemIcon>
-            <DeleteForeverRounded fontSize="small" />
+            <Trash />
           </ListItemIcon>
           <ListItemText primary={t('alert.delete')} />
         </ListItemButton>
@@ -459,7 +415,7 @@ function EditableTreeItem({
         <>
           <ListItemButton disabled={!mutable} onClick={() => setEditing(true)}>
             <ListItemIcon>
-              <EditRounded fontSize="small" />
+              <Pen />
             </ListItemIcon>
 
             <ListItemText primary={t('form.rename')} />
@@ -541,10 +497,10 @@ function TreeItem({
         {...props}
         sx={{
           borderRadius: 1,
-          mx: 0.5,
+          mx: 1,
           position: 'relative',
-          pl: { xs: depth * 2 + 2.5, sm: depth * 2 + 3.5 },
-          pr: { xs: 2.5, md: 3.5 },
+          pl: depth * 2 + 1.5,
+          pr: 1.5,
           py: 0.5,
           display: 'flex',
           alignItems: 'center',
@@ -606,8 +562,8 @@ function TreeItem({
                 </List>
               </ClickAwayListener>
             }>
-            <Button onClick={() => setOpen(true)} sx={{ padding: 0.5, minWidth: 0, bgcolor: 'grey.200' }}>
-              <MoreVertRounded sx={{ fontSize: 16 }} />
+            <Button onClick={() => setOpen(true)} sx={{ padding: 0.5, minWidth: 0 }}>
+              <MenuVertical sx={{ fontSize: 20 }} />
             </Button>
           </Tooltip>
         </Stack>

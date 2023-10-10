@@ -1,16 +1,16 @@
-import { AddRounded, CreateNewFolderOutlined, MenuOpenRounded, TuneRounded } from '@mui/icons-material';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   Alert,
   Box,
   Button,
+  ButtonProps,
   CircularProgress,
-  IconButton,
   Paper,
   Stack,
   Tab,
   Tabs,
   Toolbar,
-  buttonClasses,
+  Tooltip,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
@@ -27,6 +27,11 @@ import { useIsAdmin } from '../../contexts/session';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
+import Add from './icons/add';
+import Filtering from './icons/Filtering';
+import FolderAdd from './icons/folder-add';
+import PanelLeft from './icons/panel-left';
+import PanelRight from './icons/panel-right';
 import { useProjectState } from './state';
 import { isTemplate, useStore } from './yjs-state';
 
@@ -37,6 +42,8 @@ const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${
 export default function ProjectPage() {
   const { projectId, ref: gitRef, '*': filepath } = useParams();
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
+
+  const { t } = useLocaleContext();
 
   const { store, synced } = useStore(projectId, gitRef, true);
 
@@ -116,23 +123,22 @@ export default function ProjectPage() {
               zIndex: (theme) => theme.zIndex.appBar,
               borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
-            <Toolbar variant="dense">
-              <Button
-                startIcon={<MenuOpenRounded />}
-                onClick={() => layout.current?.collapseLeft()}
-                sx={{ [`.${buttonClasses.startIcon}`]: { ml: 0 }, flexShrink: 0 }}>
-                Files
-              </Button>
+            <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
+              <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
 
               <Box flex={1} />
 
-              <IconButton disabled={disableMutation} color="primary" onClick={() => fileTree.current?.newFolder()}>
-                <CreateNewFolderOutlined fontSize="small" />
-              </IconButton>
+              <Tooltip title={t('newObject', { object: t('folder') })}>
+                <Button disabled={disableMutation} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFolder()}>
+                  <FolderAdd />
+                </Button>
+              </Tooltip>
 
-              <IconButton disabled={disableMutation} color="primary" onClick={() => fileTree.current?.newFile()}>
-                <AddRounded fontSize="small" />
-              </IconButton>
+              <Tooltip title={t('newObject', { object: t('file') })}>
+                <Button disabled={disableMutation} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFile()}>
+                  <Add />
+                </Button>
+              </Tooltip>
             </Toolbar>
           </Box>
 
@@ -157,7 +163,7 @@ export default function ProjectPage() {
               zIndex: (theme) => theme.zIndex.appBar,
               borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
-            <Toolbar variant="dense" sx={{ gap: 1 }}>
+            <Toolbar variant="dense" sx={{ gap: 1, px: { xs: 1 } }}>
               <Tabs variant="fullWidth" value={0}>
                 <Tab label="Debug" />
                 <Tab label="Test" disabled />
@@ -166,11 +172,7 @@ export default function ProjectPage() {
 
               <Box flex={1} />
 
-              <Button
-                startIcon={<MenuOpenRounded sx={{ transform: 'rotate(180deg)' }} />}
-                onClick={() => layout.current?.collapseRight()}>
-                Tools
-              </Button>
+              <PanelToggleButton placement="right" collapsed={false} onClick={() => layout.current?.collapseRight()} />
             </Toolbar>
           </Box>
 
@@ -187,23 +189,25 @@ export default function ProjectPage() {
               zIndex: (theme) => theme.zIndex.appBar,
               borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
-            <Toolbar variant="dense">
+            <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
               {!leftOpen && (
-                <Button
-                  startIcon={<MenuOpenRounded sx={{ transform: 'rotate(-180deg)' }} />}
+                <PanelToggleButton
+                  placement="left"
+                  collapsed
                   onClick={() => (leftOpen ? layout.current?.collapseLeft() : layout.current?.expandLeft())}
-                  sx={{ [`.${buttonClasses.startIcon}`]: { ml: 0 } }}>
-                  Files
-                </Button>
+                />
               )}
 
               <Box flex={1} />
 
-              <IconButton
-                {...bindTrigger(settings)}
-                sx={{ bgcolor: settings.isOpen ? (theme) => theme.palette.action.selected : undefined }}>
-                <TuneRounded />
-              </IconButton>
+              <Tooltip title={t('settings')}>
+                <Button
+                  {...bindTrigger(settings)}
+                  color="inherit"
+                  sx={{ minWidth: 0, bgcolor: settings.isOpen ? (theme) => theme.palette.action.selected : undefined }}>
+                  <Filtering />
+                </Button>
+              </Tooltip>
 
               {template && (
                 <Popper {...bindPopper(settings)} onClose={settings.close}>
@@ -214,16 +218,16 @@ export default function ProjectPage() {
               )}
 
               {!rightOpen && (
-                <Button
-                  startIcon={<MenuOpenRounded />}
-                  onClick={() => (rightOpen ? layout.current?.collapseRight() : layout.current?.expandRight())}>
-                  Tools
-                </Button>
+                <PanelToggleButton
+                  placement="right"
+                  collapsed
+                  onClick={() => (rightOpen ? layout.current?.collapseRight() : layout.current?.expandRight())}
+                />
               )}
             </Toolbar>
           </Box>
 
-          <Box mx={{ xs: 3, sm: 4 }} my={{ xs: 1, sm: 2 }}>
+          <Box m={{ xs: 1 }}>
             {!synced ? (
               <Box sx={{ textAlign: 'center', mt: 10 }}>
                 <CircularProgress size={32} />
@@ -239,5 +243,21 @@ export default function ProjectPage() {
         </Box>
       )}
     </ColumnsLayout>
+  );
+}
+
+function PanelToggleButton({
+  placement,
+  collapsed,
+  ...props
+}: ButtonProps & { placement: 'left' | 'right'; collapsed?: boolean }) {
+  const { t } = useLocaleContext();
+
+  return (
+    <Tooltip title={collapsed ? t('showSidebar') : t('hideSidebar')}>
+      <Button {...props} sx={{ minWidth: 0, flexShrink: 0, ...props.sx }}>
+        {placement === 'left' ? <PanelLeft /> : <PanelRight />}
+      </Button>
+    </Tooltip>
   );
 }

@@ -58,7 +58,7 @@ export default function HeaderActions() {
             <TextField label={t('form.name')} onChange={(e) => (name = e.target.value)} />
           </Box>
         ),
-        okText: t('form.save'),
+        okText: t('save'),
         cancelText: t('alert.cancel'),
         onOk: async () => {
           try {
@@ -86,7 +86,7 @@ export default function HeaderActions() {
           showDialog({
             maxWidth: 'sm',
             fullWidth: true,
-            title: t('form.save'),
+            title: t('save'),
             content: (
               <Box>
                 <TextField
@@ -97,7 +97,7 @@ export default function HeaderActions() {
                 />
               </Box>
             ),
-            okText: t('form.save'),
+            okText: t('save'),
             cancelText: t('alert.cancel'),
             onOk: async () => {
               resolve(message.trim());

@@ -74,7 +74,7 @@ export default function Branches({
                   size="small"
                   multiline
                   maxRows={5}
-                  label={t('form.description')}
+                  label={t('description')}
                   value={branch.description}
                   onChange={(e) => (branch.description = e.target.value)}
                 />

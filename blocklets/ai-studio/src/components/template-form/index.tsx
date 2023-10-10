@@ -63,7 +63,7 @@ export default function TemplateFormView({
           <StyledInput
             fullWidth
             disableUnderline
-            placeholder="Description"
+            placeholder={t('description')}
             value={value.description ?? ''}
             onChange={(e) => (value.description = e.target.value)}
             sx={{ fontSize: 14 }}
@@ -85,9 +85,9 @@ export default function TemplateFormView({
             value={value.tags ?? []}
             onChange={(_, tags) => (value.tags = tags)}
             renderInput={({ InputLabelProps, InputProps, ...params }) => (
-              <StyledInput disableUnderline placeholder={`+ ${t('form.tag')}`} {...InputProps} {...params} />
+              <StyledInput disableUnderline placeholder={t('form.tag')} {...InputProps} {...params} />
             )}
-            sx={{ [`.${inputClasses.root}`]: { py: 0.5 } }}
+            sx={{ [`.${inputClasses.root}`]: { py: 0.5, fontSize: 14 } }}
           />
         </WithAwareness>
 
@@ -101,7 +101,7 @@ export default function TemplateFormView({
 
       <Box>
         <Typography variant="h6" sx={{ px: 1, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
-          Prompts
+          {t('prompts')}
         </Typography>
 
         <Box mb={2}>
@@ -111,7 +111,7 @@ export default function TemplateFormView({
 
       <Box>
         <Typography variant="h6" sx={{ px: 1, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
-          Parameters
+          {t('parameters')}
         </Typography>
 
         <Box mb={2}>

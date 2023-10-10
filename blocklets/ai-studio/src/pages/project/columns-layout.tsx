@@ -161,7 +161,7 @@ const ResizeHandleRoot = styled(Box)`
   border-right: ${({ theme }) => `1px dashed ${theme.palette.grey[200]}`};
 
   &.collapsed {
-    border-color: transparent;
+    border-width: 0;
   }
 
   .handler {
@@ -195,6 +195,10 @@ const ResizeHandleRoot = styled(Box)`
       width: 10px;
       background-color: ${({ theme }) => theme.palette.grey[100]};
       border-radius: 5px;
+
+      svg {
+        opacity: 0.7;
+      }
     }
   }
 `;
