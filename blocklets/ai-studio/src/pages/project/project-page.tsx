@@ -28,7 +28,7 @@ import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
 import Add from './icons/add';
-import Filtering from './icons/Filtering';
+import Filtering from './icons/filtering';
 import FolderAdd from './icons/folder-add';
 import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
