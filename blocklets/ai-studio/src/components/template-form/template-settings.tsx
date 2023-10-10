@@ -11,12 +11,10 @@ import {
   Slider,
   Stack,
   StackProps,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
   Tooltip,
-  outlinedInputClasses,
+  radioClasses,
+  selectClasses,
+  styled,
 } from '@mui/material';
 import { ChangeEvent } from 'react';
 
@@ -40,42 +38,27 @@ export default function TemplateSettings({
   const { t } = useLocaleContext();
 
   return (
-    <Table
-      sx={{
-        td: {
-          px: 0,
-          py: 1,
-          border: 'none',
-          ':first-of-type': {
-            whiteSpace: 'nowrap',
-          },
-          ':nth-of-type(2)': {
-            pl: 2,
-            width: '100%',
-            position: 'relative',
-          },
-        },
-      }}>
-      <TableBody>
-        <TableRow>
-          <TableCell>
-            <FormLabel sx={{ width: 60 }}>{t('mode')}</FormLabel>
-          </TableCell>
+    <Box>
+      <FormLayout sx={{ [`.${radioClasses.root}`]: { px: 0.5, py: 0 } }}>
+        <Box className="prefer-inline">
+          <Box>
+            <FormLabel>{t('mode')}</FormLabel>
+          </Box>
 
-          <TableCell>
+          <Box>
             <RadioGroup row value={value.mode ?? 'default'} onChange={(_, mode) => (value.mode = mode as any)}>
-              <FormControlLabel value="default" control={<Radio />} label={t('formMode')} />
-              <FormControlLabel value="chat" control={<Radio />} label={t('chatMode')} />
+              <FormControlLabel value="default" control={<Radio size="small" />} label={t('formMode')} />
+              <FormControlLabel value="chat" control={<Radio size="small" />} label={t('chatMode')} />
             </RadioGroup>
-          </TableCell>
-        </TableRow>
+          </Box>
+        </Box>
 
-        <TableRow>
-          <TableCell>
+        <Box className="prefer-inline">
+          <Box>
             <FormLabel>{t('type')}</FormLabel>
-          </TableCell>
+          </Box>
 
-          <TableCell>
+          <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
               <RadioGroup
                 row
@@ -87,8 +70,8 @@ export default function TemplateSettings({
                     value.type = type as any;
                   }
                 }}>
-                <FormControlLabel value="text" control={<Radio />} label={t('text')} />
-                <FormControlLabel value="image" control={<Radio />} label={t('image')} />
+                <FormControlLabel value="text" control={<Radio size="small" />} label={t('text')} />
+                <FormControlLabel value="image" control={<Radio size="small" />} label={t('image')} />
               </RadioGroup>
             </WithAwareness>
 
@@ -98,24 +81,27 @@ export default function TemplateSettings({
               path={[value.id, 'name']}
               sx={{ position: 'absolute', right: -16, top: 16 }}
             />
-          </TableCell>
-        </TableRow>
+          </Box>
+        </Box>
 
-        <TableRow>
-          <TableCell>
+        <Box className="prefer-inline">
+          <Box>
             <FormLabel>{t('model')}</FormLabel>
-          </TableCell>
+          </Box>
 
-          <TableCell colSpan={2}>
+          <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
               <Select
-                size="small"
+                variant="filled"
                 fullWidth
                 value={value.model ?? ''}
                 onChange={(e) => (value.model = e.target.value)}
+                disableUnderline
                 sx={{
-                  [`.${outlinedInputClasses.notchedOutline}`]: { border: 'none' },
-                  bgcolor: 'grey.100',
+                  [`.${selectClasses.select}`]: {
+                    py: 0.5,
+                    ':focus': { borderRadius: 2 },
+                  },
                   borderRadius: 2,
                 }}>
                 {MODELS.map((model) => (
@@ -132,20 +118,20 @@ export default function TemplateSettings({
               path={[value.id, 'model']}
               sx={{ position: 'absolute', right: -16, top: 16 }}
             />
-          </TableCell>
-        </TableRow>
+          </Box>
+        </Box>
 
-        <TableRow>
-          <TableCell>
+        <Box>
+          <Box>
             <Tooltip title={t('temperatureTip')} placement="top" disableInteractive>
               <FormLabel>
                 {t('temperature')}
                 <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
               </FormLabel>
             </Tooltip>
-          </TableCell>
+          </Box>
 
-          <TableCell>
+          <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'temperature']}>
               <SliderNumberField
                 min={0}
@@ -163,20 +149,20 @@ export default function TemplateSettings({
               path={[value.id, 'temperature']}
               sx={{ position: 'absolute', right: -16, top: 16 }}
             />
-          </TableCell>
-        </TableRow>
+          </Box>
+        </Box>
 
-        <TableRow>
-          <TableCell>
+        <Box>
+          <Box>
             <Tooltip title={t('topPTip')} placement="top" disableInteractive>
               <FormLabel>
                 {t('topP')}
                 <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
               </FormLabel>
             </Tooltip>
-          </TableCell>
+          </Box>
 
-          <TableCell>
+          <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'topP']}>
               <SliderNumberField
                 min={0.1}
@@ -194,20 +180,20 @@ export default function TemplateSettings({
               path={[value.id, 'topP']}
               sx={{ position: 'absolute', right: -16, top: 16 }}
             />
-          </TableCell>
-        </TableRow>
+          </Box>
+        </Box>
 
-        <TableRow>
-          <TableCell>
+        <Box>
+          <Box>
             <Tooltip title={t('presencePenaltyTip')} placement="top" disableInteractive>
               <FormLabel>
                 {t('presencePenalty')}
                 <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
               </FormLabel>
             </Tooltip>
-          </TableCell>
+          </Box>
 
-          <TableCell>
+          <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'presencePenalty']}>
               <SliderNumberField
                 min={-2}
@@ -225,20 +211,20 @@ export default function TemplateSettings({
               path={[value.id, 'presencePenalty']}
               sx={{ position: 'absolute', right: -16, top: 16 }}
             />
-          </TableCell>
-        </TableRow>
+          </Box>
+        </Box>
 
-        <TableRow>
-          <TableCell>
+        <Box>
+          <Box>
             <Tooltip title={t('frequencyPenaltyTip')} placement="top" disableInteractive>
               <FormLabel>
                 {t('frequencyPenalty')}
                 <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
               </FormLabel>
             </Tooltip>
-          </TableCell>
+          </Box>
 
-          <TableCell>
+          <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'frequencyPenalty']}>
               <SliderNumberField
                 min={-2}
@@ -256,24 +242,24 @@ export default function TemplateSettings({
               path={[value.id, 'frequencyPenalty']}
               sx={{ position: 'absolute', right: -16, top: 16 }}
             />
-          </TableCell>
-        </TableRow>
+          </Box>
+        </Box>
+      </FormLayout>
 
-        <TableRow>
-          <TableCell colSpan={2}>
-            <Datasets form={value} />
-          </TableCell>
-        </TableRow>
+      <Box>
+        <Box>
+          <Datasets form={value} />
+        </Box>
+      </Box>
 
-        {value.type !== 'image' && (
-          <TableRow>
-            <TableCell colSpan={2}>
-              <Next projectId={projectId} gitRef={gitRef} form={value} />
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+      {value.type !== 'image' && (
+        <Box>
+          <Box>
+            <Next projectId={projectId} gitRef={gitRef} form={value} />
+          </Box>
+        </Box>
+      )}
+    </Box>
   );
 }
 
@@ -298,7 +284,7 @@ function SliderNumberField({
         max={max}
         step={step}
         size="small"
-        sx={{ flex: 1, mr: 2, ml: 1 }}
+        sx={{ flex: 1, mr: 2 }}
         value={value}
         onChange={(e, v) => {
           if (!Array.isArray(v)) onChange?.(e, v);
@@ -325,3 +311,54 @@ function SliderNumberField({
     </Stack>
   );
 }
+
+const FormLayout = styled(Box)`
+  @media (max-width: 900px) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    > .prefer-inline {
+      flex-direction: row;
+
+      > div {
+        :first-of-type {
+          min-width: 80px;
+        }
+
+        :nth-of-type(2) {
+          flex: 1;
+        }
+      }
+    }
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  @media (min-width: 900px) {
+    display: table;
+
+    > div {
+      display: table-row;
+
+      > div {
+        display: table-cell;
+        padding: 8px;
+        vertical-align: middle;
+
+        :first-of-type {
+          white-space: nowrap;
+        }
+
+        :nth-of-type(2) {
+          width: 100%;
+          position: relative;
+        }
+      }
+    }
+  }
+`;

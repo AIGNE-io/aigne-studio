@@ -215,7 +215,16 @@ export default function ProjectPage() {
                   </Tooltip>
 
                   <Popper {...bindPopper(settings)} onClose={settings.close}>
-                    <Paper elevation={3} sx={{ mt: -1, p: 4, maxWidth: 'sm', borderRadius: 3 }}>
+                    <Paper
+                      elevation={1}
+                      sx={{
+                        mt: -1,
+                        p: { xs: 2, md: 4 },
+                        maxWidth: 'sm',
+                        maxHeight: '90vh',
+                        overflow: 'auto',
+                        borderRadius: 3,
+                      }}>
                       <TemplateSettings projectId={projectId} gitRef={gitRef} value={template} />
                     </Paper>
                   </Popper>
