@@ -66,6 +66,7 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
         sx={{
           border: (theme) => `1px solid ${theme.palette.grey[200]}`,
           borderRadius: 2,
+          borderBottomWidth: params?.length ? 1 : 0,
           overflow: 'hidden',
           table: {
             tableLayout: 'fixed',

@@ -181,7 +181,7 @@ const FileTree = forwardRef<
     );
 
   return (
-    <Box {...props}>
+    <Box overflow="hidden" {...props}>
       {showNewProject && (
         <EditableTreeItem
           icon={<FolderClose />}
