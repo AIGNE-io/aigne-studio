@@ -148,4 +148,7 @@ export default flat({
   chat: '对话',
   debug: '调试',
   save: '保存',
+  cancel: '取消',
+  branch: '分支',
+  commitMessage: '备注',
 });

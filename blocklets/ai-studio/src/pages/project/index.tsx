@@ -1,5 +1,5 @@
 import { Dashboard } from '@blocklet/studio-ui';
-import { backdropClasses, drawerClasses } from '@mui/material';
+import { backdropClasses, circularProgressClasses, drawerClasses, styled } from '@mui/material';
 import { ComponentProps, Suspense, lazy, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -22,20 +22,10 @@ export default function ProjectRoutes() {
   return (
     <DndProvider backend={HTML5Backend}>
       <ErrorBoundary ref={errorBoundary}>
-        <Dashboard
+        <StyledDashboard
           HeaderProps={{
             brandAddon: <BrandRoutes />,
             addons: (exists) => [<AddonsRoutes />, ...exists],
-            sx: {
-              '.header-container': {
-                px: { md: 3, xs: 1 },
-                '.locales': {
-                  borderRadius: 1,
-                  boxShadow: 1,
-                  mt: 1.5,
-                },
-              },
-            },
           }}
           menus={<MenuRoutes />}
           MenusDrawerProps={{
@@ -69,7 +59,7 @@ export default function ProjectRoutes() {
               </Route>
             </Routes>
           </Suspense>
-        </Dashboard>
+        </StyledDashboard>
       </ErrorBoundary>
     </DndProvider>
   );
@@ -119,3 +109,32 @@ const ProjectsPage = lazy(() => import('./projects-page'));
 const ProjectPage = lazy(() => import('./project-page'));
 
 const ProjectBrand = lazy(() => import('./project-brand'));
+
+const StyledDashboard = styled(Dashboard)`
+  .header-container {
+    padding-left: ${({ theme }) => theme.spacing(3)};
+    padding-right: ${({ theme }) => theme.spacing(3)};
+
+    ${({ theme }) => theme.breakpoints.down('md')} {
+      padding-left: ${({ theme }) => theme.spacing(1)};
+      padding-right: ${({ theme }) => theme.spacing(1)};
+
+      .header-addons {
+        button {
+          svg,
+          .${circularProgressClasses.root} {
+            font-size: 1.25rem !important;
+            width: 1.25rem !important;
+            height: 1.25rem !important;
+          }
+        }
+      }
+    }
+
+    .locales {
+      border-radius: ${({ theme }) => theme.shape.borderRadius}px;
+      box-shadow: ${({ theme }) => theme.shadows[1]};
+      margin-top: ${({ theme }) => theme.spacing(1.5)}px;
+    }
+  }
+`;

@@ -148,4 +148,7 @@ export default flat({
   chat: 'Chat',
   debug: 'Debug',
   save: 'Save',
+  cancel: 'Cancel',
+  branch: 'Branch',
+  commitMessage: 'Note',
 });
