@@ -159,7 +159,7 @@ export const useStore = (projectId: string, gitRef: string, connect?: boolean) =
 
   return {
     ...store,
-    store: useSyncedStore(store.store),
+    store: useSyncedStore(store.store, [store.store]),
   };
 };
 

@@ -250,7 +250,7 @@ export default function ProjectPage() {
               <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id]} onMount>
                 <TemplateFormView projectId={projectId} gitRef={gitRef} value={template} />
               </WithAwareness>
-            ) : id ? (
+            ) : filepath ? (
               <Alert color="error">Not Found</Alert>
             ) : null}
           </Box>
