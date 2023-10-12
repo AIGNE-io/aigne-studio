@@ -127,7 +127,6 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
                       <TextField
                         {...params}
                         label={t('branch')}
-                        variant="filled"
                         error={Boolean(form.formState.errors.branch)}
                         helperText={form.formState.errors.branch?.message}
                       />
@@ -142,7 +141,6 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
 
             <Box>
               <TextField
-                variant="filled"
                 label={t('commitMessage')}
                 fullWidth
                 multiline

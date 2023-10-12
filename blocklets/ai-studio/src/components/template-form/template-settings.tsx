@@ -11,9 +11,9 @@ import {
   Slider,
   Stack,
   StackProps,
+  TextField,
   Tooltip,
   radioClasses,
-  selectClasses,
   styled,
 } from '@mui/material';
 import { ChangeEvent } from 'react';
@@ -47,8 +47,8 @@ export default function TemplateSettings({
 
           <Box>
             <RadioGroup row value={value.mode ?? 'default'} onChange={(_, mode) => (value.mode = mode as any)}>
-              <FormControlLabel value="default" control={<Radio size="small" />} label={t('formMode')} />
-              <FormControlLabel value="chat" control={<Radio size="small" />} label={t('chatMode')} />
+              <FormControlLabel value="default" control={<Radio />} label={t('formMode')} />
+              <FormControlLabel value="chat" control={<Radio />} label={t('chatMode')} />
             </RadioGroup>
           </Box>
         </Box>
@@ -70,8 +70,8 @@ export default function TemplateSettings({
                     value.type = type as any;
                   }
                 }}>
-                <FormControlLabel value="text" control={<Radio size="small" />} label={t('text')} />
-                <FormControlLabel value="image" control={<Radio size="small" />} label={t('image')} />
+                <FormControlLabel value="text" control={<Radio />} label={t('text')} />
+                <FormControlLabel value="image" control={<Radio />} label={t('image')} />
               </RadioGroup>
             </WithAwareness>
 
@@ -91,19 +91,7 @@ export default function TemplateSettings({
 
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
-              <Select
-                variant="filled"
-                fullWidth
-                value={value.model ?? ''}
-                onChange={(e) => (value.model = e.target.value)}
-                disableUnderline
-                sx={{
-                  [`.${selectClasses.select}`]: {
-                    py: 0.5,
-                    ':focus': { borderRadius: 2 },
-                  },
-                  borderRadius: 2,
-                }}>
+              <Select fullWidth value={value.model ?? ''} onChange={(e) => (value.model = e.target.value)}>
                 {MODELS.map((model) => (
                   <MenuItem key={model} value={model}>
                     {model}
@@ -283,7 +271,6 @@ function SliderNumberField({
         min={min}
         max={max}
         step={step}
-        size="small"
         sx={{ flex: 1, mr: 2 }}
         value={value}
         onChange={(e, v) => {
@@ -291,12 +278,11 @@ function SliderNumberField({
         }}
       />
 
-      <Box
-        component="input"
+      <TextField
+        hiddenLabel
+        size="small"
         type="number"
-        min={min}
-        max={max}
-        step={step}
+        inputProps={{ min, max, step }}
         value={value}
         onChange={(e) => {
           let v = Number(e.target.value);
@@ -304,9 +290,9 @@ function SliderNumberField({
           if (typeof min === 'number') v = Math.max(min, v);
           if (typeof max === 'number') v = Math.min(max, v);
 
-          onChange?.(e, v);
+          onChange?.(e as any, v);
         }}
-        sx={{ width: 60, border: 'none', bgcolor: 'grey.100', lineHeight: 1.5, px: 1, py: 0.5, borderRadius: 2 }}
+        sx={{ width: 60 }}
       />
     </Stack>
   );

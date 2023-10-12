@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, Input, Stack, Typography, inputClasses, styled } from '@mui/material';
+import { Box, Stack, TextField, Typography, inputBaseClasses, inputClasses, styled } from '@mui/material';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
@@ -40,13 +40,13 @@ export default function TemplateFormView({
     <Stack>
       <Box position="relative">
         <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
-          <StyledInput
+          <HoverBackgroundTextField
+            hiddenLabel
             fullWidth
-            disableUnderline
             placeholder={t('unnamed')}
             value={value.name ?? ''}
             onChange={(e) => (value.name = e.target.value)}
-            sx={{ fontSize: 18 }}
+            InputProps={{ sx: { fontSize: 18 } }}
           />
         </WithAwareness>
 
@@ -60,13 +60,13 @@ export default function TemplateFormView({
 
       <Box position="relative">
         <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'description']}>
-          <StyledInput
+          <HoverBackgroundTextField
+            hiddenLabel
             fullWidth
-            disableUnderline
             placeholder={t('description')}
             value={value.description ?? ''}
             onChange={(e) => (value.description = e.target.value)}
-            sx={{ fontSize: 14 }}
+            InputProps={{ sx: { fontSize: 14 } }}
           />
         </WithAwareness>
 
@@ -84,10 +84,17 @@ export default function TemplateFormView({
             projectId={projectId}
             value={value.tags ?? []}
             onChange={(_, tags) => (value.tags = tags)}
-            renderInput={({ InputLabelProps, InputProps, ...params }) => (
-              <StyledInput disableUnderline placeholder={t('form.tag')} {...InputProps} {...params} />
+            renderInput={(params) => (
+              <HoverBackgroundTextField
+                {...params}
+                hiddenLabel
+                placeholder={t('form.tag')}
+                InputProps={{
+                  ...params.InputProps,
+                  sx: { fontSize: 14, [`.${inputBaseClasses.input}`]: { py: 0 } },
+                }}
+              />
             )}
-            sx={{ [`.${inputClasses.root}`]: { py: 0.5, fontSize: 14 } }}
           />
         </WithAwareness>
 
@@ -122,12 +129,14 @@ export default function TemplateFormView({
   );
 }
 
-const StyledInput = styled(Input)`
-  border-radius: ${({ theme }) => theme.shape.borderRadius * 2}px;
-  padding-left: ${({ theme }) => theme.spacing(1)};
-  padding-right: ${({ theme }) => theme.spacing(1)};
+const HoverBackgroundTextField = styled(TextField)(({ theme }) =>
+  theme.unstable_sx({
+    [`.${inputBaseClasses.root}`]: {
+      bgcolor: 'transparent',
 
-  &.${inputClasses.focused} {
-    background-color: ${({ theme }) => theme.palette.grey[100]};
-  }
-`;
+      [`&.${inputClasses.focused}`]: {
+        bgcolor: 'rgba(0,0,0,0.06)',
+      },
+    },
+  })
+);

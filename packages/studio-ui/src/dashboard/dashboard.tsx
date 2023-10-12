@@ -2,7 +2,6 @@ import Header from '@blocklet/ui-react/lib/Header';
 import { MenuOpenRounded, MenuRounded } from '@mui/icons-material';
 import {
   Box,
-  BoxProps,
   Drawer,
   DrawerProps,
   IconButton,
@@ -23,7 +22,6 @@ export interface DashboardProps extends StackProps {
     description?: ReactNode;
     brandAddon?: ReactNode;
     addons?: ReactNode | ((builtin: ReactNode[]) => ReactNode[] | ReactNode);
-    sx?: BoxProps['sx'];
   };
   MenusDrawerProps?: DrawerProps;
   menus?: ReactElement<{ collapsed?: boolean; onClick?: () => void }> | null;
@@ -60,10 +58,10 @@ export default function Dashboard({
   return (
     <Root {...props} sx={{ height: '100%', pt: 8, ...props.sx }}>
       <Box className="dashboard-header" component="header">
-        <Box
+        <Header
+          className="blocklet-header"
+          theme={theme}
           {...HeaderProps}
-          sx={{ bgcolor: 'transparent', ...HeaderProps?.sx }}
-          component={Header}
           prepend={
             <>
               {isPermanent ? null : (
@@ -119,6 +117,10 @@ const Root = styled(Stack)`
     z-index: ${({ theme }) => theme.zIndex.appBar + 2};
     border-bottom: ${({ theme }) => `1px solid ${theme.palette.grey[200]}`};
     background-color: ${({ theme }) => theme.palette.background.paper};
+
+    .blocklet-header {
+      background-color: transparent;
+    }
 
     .header-container {
       max-width: none;

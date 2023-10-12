@@ -2,8 +2,8 @@ import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
-import { Box, CssBaseline, GlobalStyles, ThemeProvider, createTheme } from '@mui/material';
-import { ReactNode, Suspense, lazy, useEffect, useMemo, useRef } from 'react';
+import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
+import { ReactNode, Suspense, lazy, useEffect, useRef } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
 
@@ -12,19 +12,10 @@ import Loading from './components/loading';
 import { DatasetsProvider } from './contexts/datasets';
 import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
 import { translations } from './locales';
+import { theme } from './theme/theme';
 
 export default function App() {
   const basename = window.blocklet?.prefix || '/';
-
-  const theme = useMemo(() => {
-    return createTheme({
-      typography: {
-        button: {
-          textTransform: 'none',
-        },
-      },
-    });
-  }, []);
 
   return (
     <ThemeProvider theme={theme}>

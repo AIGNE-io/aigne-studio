@@ -7,10 +7,10 @@ import {
   Box,
   Button,
   CircularProgress,
-  Input,
   MenuItem,
   Select,
   Stack,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
@@ -116,7 +116,6 @@ function DebugViewContent({
           <ToggleButtonGroup
             exclusive
             value={currentSession.chatType ?? 'chat'}
-            size="small"
             sx={{ button: { py: 0.25 } }}
             onChange={(_, v) =>
               setSession(currentSession.index, (session) => {
@@ -138,9 +137,9 @@ function SessionSelect({ projectId, templateId }: { projectId: string; templateI
 
   return (
     <Select
+      variant="outlined"
       value={state.currentSessionIndex}
       MenuProps={{ elevation: 1 }}
-      size="small"
       placeholder={t('newObject', { object: t('session') })}
       fullWidth
       sx={{
@@ -244,13 +243,6 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
   );
 }
 
-const StyledInput = styled(Input)`
-  border-radius: ${({ theme }) => theme.shape.borderRadius * 2}px;
-  padding-left: ${({ theme }) => theme.spacing(1)};
-  padding-right: ${({ theme }) => theme.spacing(1)};
-  background-color: ${({ theme }) => theme.palette.grey[100]};
-`;
-
 function ChatModeForm({ projectId, templateId }: { projectId: string; templateId: string }) {
   const { t } = useLocaleContext();
 
@@ -281,8 +273,8 @@ function ChatModeForm({ projectId, templateId }: { projectId: string; templateId
 
   return (
     <Stack component="form" onSubmit={(e) => e.preventDefault()} direction="row" alignItems="flex-end" px={1} gap={1}>
-      <StyledInput
-        disableUnderline
+      <TextField
+        hiddenLabel
         fullWidth
         value={question}
         multiline
@@ -391,18 +383,7 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
             <Box key={param}>
               <ParameterField
                 label={parameter.label || param}
-                size="small"
                 fullWidth
-                sx={{
-                  bgcolor: 'grey.100',
-                  borderRadius: 2,
-
-                  [`.${outlinedInputClasses.notchedOutline}`]: {
-                    pl: 1,
-                    pr: 1,
-                    border: 'none',
-                  },
-                }}
                 parameter={parameter}
                 value={form[param] ?? ''}
                 onChange={(v) => (form[param] = v)}
@@ -416,7 +397,6 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
         <Box flex={1} />
 
         <Button
-          size="small"
           type="submit"
           variant="contained"
           endIcon={

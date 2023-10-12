@@ -1,17 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import {
-  Box,
-  Button,
-  Input,
-  MenuItem,
-  Select,
-  SelectProps,
-  Stack,
-  inputClasses,
-  outlinedInputClasses,
-  selectClasses,
-} from '@mui/material';
+import { Box, Button, Input, MenuItem, Select, SelectProps, Stack, inputClasses, selectClasses } from '@mui/material';
 import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
 
@@ -41,7 +30,7 @@ export default function Prompts({
         <Box
           sx={{
             border: (theme) => `1px solid ${theme.palette.grey[200]}`,
-            borderRadius: 2,
+            borderRadius: 1,
             borderWidth: Object.keys(form.prompts)?.length ? 1 : 0,
           }}>
           <DragSortListYjs
@@ -66,7 +55,6 @@ export default function Prompts({
                   <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
                     <Input
                       ref={params.preview}
-                      disableUnderline
                       fullWidth
                       multiline
                       minRows={2}
@@ -74,7 +62,7 @@ export default function Prompts({
                       onChange={(e) => (prompt.content = e.target.value)}
                       sx={{
                         bgcolor: 'background.paper',
-                        borderRadius: 2,
+                        borderRadius: 1,
                         [`.${inputClasses.input}`]: { px: 1, textIndent: indentWidth(prompt.role) },
                       }}
                     />
@@ -141,7 +129,6 @@ function RoleSelector({ ...props }: SelectProps<Role>) {
     <Select
       {...props}
       size="small"
-      variant="outlined"
       MenuProps={{
         elevation: 1,
         slotProps: { paper: { sx: { mt: 0.5 } } },
@@ -149,17 +136,12 @@ function RoleSelector({ ...props }: SelectProps<Role>) {
       sx={{
         [`.${selectClasses.select}`]: {
           fontSize: 12,
-          py: 0,
           px: 1,
           pr: '18px !important',
-          bgcolor: 'grey.100',
         },
         [`.${selectClasses.icon}`]: {
           fontSize: 16,
           right: 2,
-        },
-        [`.${outlinedInputClasses.notchedOutline}`]: {
-          border: 'none',
         },
         ...props.sx,
       }}>
