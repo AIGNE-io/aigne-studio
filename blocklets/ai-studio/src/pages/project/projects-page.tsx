@@ -24,7 +24,7 @@ import {
   styled,
 } from '@mui/material';
 import { MouseEvent, ReactNode, useEffect, useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
 
 import { Project } from '../../../api/src/store/projects';
@@ -82,6 +82,10 @@ export default function ProjectsPage() {
 }
 
 function ProjectMenu() {
+  const { projectId } = useParams();
+
+  const navigate = useNavigate();
+
   const { t } = useLocaleContext();
 
   const { dialog, showDialog } = useDialog();
@@ -120,6 +124,9 @@ function ProjectMenu() {
       onOk: async () => {
         try {
           await deleteProject(project._id!);
+          if (projectId === project._id) {
+            navigate('/projects', { replace: true });
+          }
         } catch (error) {
           Toast.error(getErrorMessage(error));
           throw error;
