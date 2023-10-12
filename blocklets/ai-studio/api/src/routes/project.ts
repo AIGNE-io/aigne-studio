@@ -1,4 +1,4 @@
-import { cpSync, rmSync } from 'fs';
+import { cpSync, existsSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -105,7 +105,9 @@ export function projectRoutes(router: Router) {
 
       const parent = dirname(repo.root);
       cpSync(repo.root, join(parent, project._id!), { recursive: true });
-      cpSync(`${repo.root}.cooperative`, join(parent, `${project._id}.cooperative`), { recursive: true });
+      if (existsSync(`${repo.root}.cooperative`)) {
+        cpSync(`${repo.root}.cooperative`, join(parent, `${project._id}.cooperative`), { recursive: true });
+      }
       res.json(project);
       return;
     }

@@ -51,7 +51,11 @@ export default function ProjectPage() {
   const file = id ? store.files[id] : undefined;
   const template = isTemplate(file) ? file : undefined;
 
-  const { refetch } = useProjectState(projectId, gitRef);
+  const {
+    state: { error },
+    refetch,
+  } = useProjectState(projectId, gitRef);
+  if (error) throw error;
 
   useEffect(() => {
     refetch();
@@ -216,14 +220,12 @@ export default function ProjectPage() {
 
                   <Popper {...bindPopper(settings)} onClose={settings.close}>
                     <Paper
-                      elevation={1}
                       sx={{
                         mt: -1,
                         p: { xs: 2, md: 4 },
                         maxWidth: 'sm',
                         maxHeight: '90vh',
                         overflow: 'auto',
-                        borderRadius: 3,
                       }}>
                       <TemplateSettings projectId={projectId} gitRef={gitRef} value={template} />
                     </Paper>

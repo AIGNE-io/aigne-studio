@@ -176,6 +176,19 @@ export const theme = createTheme({
         },
       ],
     },
+    MuiFilledInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'rgba(0, 0, 0, 0.03)',
+          '&:hover': {
+            backgroundColor: 'rgb(0, 0, 0, 0.06)',
+            '@media (hover: none)': {
+              backgroundColor: 'rgba(0, 0, 0, 0.03)',
+            },
+          },
+        },
+      },
+    },
     MuiSelect: {
       defaultProps: { variant: 'filled', IconComponent: ArrowDropDownRounded },
       variants: [

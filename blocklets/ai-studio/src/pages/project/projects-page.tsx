@@ -4,18 +4,6 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { LoadingButton } from '@blocklet/studio-ui';
 import { cx } from '@emotion/css';
 import {
-  AddRounded,
-  ContentCopyRounded,
-  DeleteOutlineRounded,
-  ExpandMore,
-  InsertPhotoRounded,
-  LaunchRounded,
-  MoreHorizRounded,
-  PushPinOutlined,
-  PushPinRounded,
-  WarningRounded,
-} from '@mui/icons-material';
-import {
   Box,
   Button,
   CircularProgress,
@@ -36,7 +24,7 @@ import {
   styled,
 } from '@mui/material';
 import { MouseEvent, ReactNode, useEffect, useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
 
 import { Project } from '../../../api/src/store/projects';
@@ -45,6 +33,16 @@ import { useProjectsState } from '../../contexts/projects';
 import { getErrorMessage } from '../../libs/api';
 import { createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
+import Add from './icons/add';
+import ChevronDown from './icons/chevron-down';
+import Duplicate from './icons/duplicate';
+import External from './icons/external';
+import MenuVertical from './icons/menu-vertical';
+import Picture from './icons/picture';
+import Pin from './icons/pin';
+import PinOff from './icons/pin-off';
+import Trash from './icons/trash';
+import WarningCircle from './icons/warning-circle';
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
@@ -84,6 +82,10 @@ export default function ProjectsPage() {
 }
 
 function ProjectMenu() {
+  const { projectId } = useParams();
+
+  const navigate = useNavigate();
+
   const { t } = useLocaleContext();
 
   const { dialog, showDialog } = useDialog();
@@ -102,7 +104,7 @@ function ProjectMenu() {
       fullWidth: true,
       content: (
         <Stack direction="row">
-          <WarningRounded color="warning" fontSize="large" sx={{ verticalAlign: 'text-bottom', mr: 2 }} />
+          <WarningCircle color="warning" fontSize="large" sx={{ verticalAlign: 'text-bottom', mr: 2 }} />
 
           <Stack flex={1}>
             <Typography my={0.5} variant="h6" whiteSpace="pre-wrap">
@@ -117,11 +119,14 @@ function ProjectMenu() {
       ),
       okColor: 'warning',
       okText: t('alert.delete'),
-      okIcon: <DeleteOutlineRounded />,
+      okIcon: <Trash />,
       cancelText: t('alert.cancel'),
       onOk: async () => {
         try {
           await deleteProject(project._id!);
+          if (projectId === project._id) {
+            navigate('/projects', { replace: true });
+          }
         } catch (error) {
           Toast.error(getErrorMessage(error));
           throw error;
@@ -154,7 +159,7 @@ function ProjectMenu() {
                     })
                 }>
                 <ListItemIcon>
-                  <ContentCopyRounded />
+                  <Duplicate />
                 </ListItemIcon>
                 {t('duplicate')}
               </LoadingMenuItem>
@@ -171,9 +176,7 @@ function ProjectMenu() {
                         setMenuAnchor(undefined);
                       })
                   }>
-                  <ListItemIcon>
-                    <PushPinRounded />
-                  </ListItemIcon>
+                  <ListItemIcon>{menuAnchor.item.pinnedAt ? <PinOff /> : <Pin />}</ListItemIcon>
                   {menuAnchor.item.pinnedAt ? t('unpin') : t('pin')}
                 </LoadingMenuItem>
               )}
@@ -187,7 +190,7 @@ function ProjectMenu() {
                   setMenuAnchor(undefined);
                 }}>
                 <ListItemIcon sx={{ color: 'inherit' }}>
-                  <DeleteOutlineRounded color="inherit" />
+                  <Trash color="inherit" />
                 </ListItemIcon>
                 {t('delete')}
               </MenuItem>
@@ -231,7 +234,7 @@ function Section({
 
         {enableCollapse && (
           <IconButton size="small">
-            <ExpandMore
+            <ChevronDown
               sx={{
                 transform: `rotateZ(${templatesVisible ? '-180deg' : '0deg'})`,
                 transition: (theme) => theme.transitions.create('all'),
@@ -284,7 +287,7 @@ function ProjectList({
                   className="hover-visible"
                   size="small"
                   variant="contained"
-                  startIcon={<LaunchRounded />}>
+                  startIcon={<External />}>
                   {t('open')}
                 </Button>
               ) : section === 'templates' ? (
@@ -292,7 +295,7 @@ function ProjectList({
                   className="hover-visible"
                   size="small"
                   variant="contained"
-                  startIcon={<AddRounded />}
+                  startIcon={<Add />}
                   loadingPosition="start"
                   onClick={async () => {
                     try {
@@ -317,7 +320,7 @@ function ProjectList({
                     e.stopPropagation();
                     setMenuAnchor({ section, anchor: e.currentTarget, item });
                   }}>
-                  <MoreHorizRounded fontSize="small" />
+                  <MenuVertical fontSize="small" />
                 </IconButton>
               )
             }
@@ -353,7 +356,7 @@ function ProjectItem({
           alignItems="center"
           justifyContent="center"
           sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}>
-          <InsertPhotoRounded sx={{ color: 'grey.400', fontSize: 56 }} />
+          <Picture sx={{ color: 'grey.400', fontSize: 56 }} />
         </Stack>
 
         {(actions || mainActions) && (
@@ -366,12 +369,11 @@ function ProjectItem({
 
         {pinned && (
           <Tooltip title={t('pin')} placement="top">
-            <PushPinOutlined
+            <Pin
               sx={{
                 position: 'absolute',
                 right: 8,
                 top: 8,
-                transform: 'rotateZ(45deg)',
                 color: 'grey.500',
                 fontSize: 16,
               }}

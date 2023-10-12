@@ -139,7 +139,6 @@ function SessionSelect({ projectId, templateId }: { projectId: string; templateI
     <Select
       variant="outlined"
       value={state.currentSessionIndex}
-      MenuProps={{ elevation: 1 }}
       placeholder={t('newObject', { object: t('session') })}
       fullWidth
       sx={{

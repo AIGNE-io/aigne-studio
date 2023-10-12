@@ -149,7 +149,7 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
             if (e.target === document.body) return;
             setParamConfig(undefined);
           }}>
-          <Paper elevation={11} sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
+          <Paper sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             {paramConfig && (
               <ParameterConfig
                 value={form.parameters![paramConfig.param]!}
