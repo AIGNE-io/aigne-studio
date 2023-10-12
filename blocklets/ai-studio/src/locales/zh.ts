@@ -151,4 +151,21 @@ export default flat({
   cancel: '取消',
   branch: '分支',
   commitMessage: '备注',
+  setting: {
+    name: '项目名称',
+    description: '项目描述',
+    gitType: {
+      title: '版本管理',
+      simple: {
+        title: '简单模式',
+        subTitle: '只需要简单的版本管理，或者不关系版本的问题。',
+      },
+      default: {
+        title: '专业模式 （熟悉Git）',
+        subTitle: '使用者熟悉 Git 版本管理的基础知识，需要完善的版本管理能力。',
+      },
+    },
+    baseInfo: '基础信息',
+    defaultModel: '默认模型',
+  },
 });

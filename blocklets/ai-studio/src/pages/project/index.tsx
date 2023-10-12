@@ -56,6 +56,9 @@ export default function ProjectRoutes() {
                   <Route index element={<Navigate to={defaultBranch} replace />} />
                   <Route path=":ref/*" element={<ProjectPage />} />
                 </Route>
+                <Route path="settings">
+                  <Route index element={<ProjectSettings />} />
+                </Route>
               </Route>
             </Routes>
           </Suspense>
@@ -109,6 +112,8 @@ const ProjectsPage = lazy(() => import('./projects-page'));
 const ProjectPage = lazy(() => import('./project-page'));
 
 const ProjectBrand = lazy(() => import('./project-brand'));
+
+const ProjectSettings = lazy(() => import('./settings'));
 
 const StyledDashboard = styled(Dashboard)`
   .header-container {

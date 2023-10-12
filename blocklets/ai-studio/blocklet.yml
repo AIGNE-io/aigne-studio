@@ -55,12 +55,7 @@ capabilities:
   resourceExportPage: /admin/resource/component/export
 screenshots:
   - studio.gif
-components:
-  - name: ai-kit
-    mountPoint: /ai-kit
-    source:
-      name: ai-kit
-      version: latest
+components: []
 navigation:
   - id: template
     title:

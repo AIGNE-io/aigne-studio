@@ -151,4 +151,22 @@ export default flat({
   cancel: 'Cancel',
   branch: 'Branch',
   commitMessage: 'Note',
+  setting: {
+    name: 'Project name',
+    description: 'Project description',
+    gitType: {
+      title: 'Git Version',
+      simple: {
+        title: 'Simple mode',
+        subTitle: "Just need simple version control, or don't care about version issues.",
+      },
+      default: {
+        title: 'Professional Mode (familiar with Git)',
+        subTitle:
+          'Users are familiar with the basic knowledge of Git version management and need perfect version management ability.',
+      },
+    },
+    baseInfo: 'Basic Information',
+    defaultModel: 'Default Model',
+  },
 });

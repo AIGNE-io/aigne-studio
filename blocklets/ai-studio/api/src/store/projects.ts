@@ -23,6 +23,13 @@ export interface Project {
   createdBy: string;
   updatedBy: string;
   pinnedAt?: string;
+  icon?: string;
+  model?: string;
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  gitType?: 'simple' | 'default';
 }
 
 export default class Projects extends Database<Project> {
@@ -41,6 +48,7 @@ export const projectTemplates: Project[] = [
     updatedBy: wallet.address,
     createdAt: '2023-09-30T12:23:04.603Z',
     updatedAt: '2023-09-30T12:23:04.603Z',
+    gitType: 'default',
   },
 ];
 

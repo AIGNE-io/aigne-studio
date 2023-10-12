@@ -251,7 +251,7 @@ export default function TemplateSettings({
   );
 }
 
-function SliderNumberField({
+export function SliderNumberField({
   value,
   min,
   max,
