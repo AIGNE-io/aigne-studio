@@ -1,3 +1,7 @@
+## 0.1.92 (2023-10-12)
+
+- feat: new design of projects page
+
 ## 0.1.91 (2023-10-3)
 
 - fix: delete file not working
