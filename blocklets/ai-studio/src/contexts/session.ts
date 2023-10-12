@@ -14,4 +14,8 @@ export function useIsRole(...roles: string[]) {
   return roles.includes(session.user?.role);
 }
 
+export const useInitialized = () => useSessionContext().session.initialized;
+
 export const useIsAdmin = () => useIsRole('owner', 'admin');
+
+export const useIsPromptEditor = () => useIsRole('owner', 'admin', 'promptsEditor');

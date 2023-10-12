@@ -61,21 +61,22 @@ router.post('/image/generations', ensureComponentCallOrPromptsEditor(), async (r
 const callInputSchema = Joi.object<
   {
     projectId?: string;
+    ref?: string;
+    working?: boolean;
     parameters?: { [key: string]: any };
   } & (
     | {
-        ref?: string;
         templateId: string;
         template: undefined;
       }
     | {
-        ref: undefined;
         templateId: undefined;
         template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>;
       }
   )
 >({
   ref: Joi.string(),
+  working: Joi.boolean().default(false),
   projectId: Joi.string(),
   templateId: Joi.string(),
   template: Joi.object({
@@ -98,7 +99,7 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
   const repository = await getRepository({ projectId: input.projectId || 'default' });
 
   const getTemplateById = (templateId: string) =>
-    getTemplate({ repository, ref: input.ref || defaultBranch, templateId });
+    getTemplate({ repository, ref: input.ref || defaultBranch, working: input.working, templateId });
 
   const template = input.template ?? (await getTemplateById(input.templateId));
   const emit = (response: { type: 'delta'; delta: string } | typeof result) => {
@@ -148,7 +149,7 @@ class StaticPromptTemplate extends PromptTemplate {
 
 async function runTemplate(
   getTemplate: (templateId: string) => Promise<Template>,
-  template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>,
+  template: Pick<Template, 'type' | 'mode' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>,
   parameters?: {
     $history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
     [key: string]: any;
@@ -209,6 +210,15 @@ async function runTemplate(
         return new Message(new StaticPromptTemplate(content));
       })
     );
+
+    const question = (parameters as any)?.question;
+    if (
+      current.mode === 'chat' &&
+      typeof question === 'string' &&
+      !current.prompts?.some((i) => i.content && /{{\s*question\s*}}/.test(i.content))
+    ) {
+      prompt.promptMessages.push(new HumanMessagePromptTemplate(new StaticPromptTemplate(question)));
+    }
 
     if (docs.length) {
       const contextTemplate = `Use the following pieces of context to answer the users question.

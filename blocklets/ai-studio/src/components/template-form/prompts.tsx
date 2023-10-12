@@ -1,90 +1,97 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Add, Delete } from '@mui/icons-material';
-import { Box, Button, MenuItem, Select, SelectProps, TextField } from '@mui/material';
+import { Box, Button, Input, MenuItem, Select, SelectProps, Stack, inputClasses, selectClasses } from '@mui/material';
+import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Role } from '../../../api/src/store/templates';
+import Add from '../../pages/project/icons/add';
+import DragVertical from '../../pages/project/icons/drag-vertical';
+import Trash from '../../pages/project/icons/trash';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
-import { ReorderableListYjs } from '../reorderable-list';
-import TokenCounter from './token-counter';
+import { DragSortListYjs } from '../drag-sort-list';
 
-export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id' | 'prompts'> }) {
+export default function Prompts({
+  projectId,
+  gitRef,
+  value: form,
+}: {
+  projectId: string;
+  gitRef: string;
+  value: Pick<TemplateYjs, 'id' | 'prompts'>;
+}) {
   const { t } = useLocaleContext();
 
   return (
-    <>
-      {form.prompts && (
-        <Box sx={{ py: 1 }}>
-          <ReorderableListYjs
+    <Box>
+      {form.prompts && Object.keys(form.prompts).length > 0 && (
+        <Box sx={{ border: (theme) => `1px solid ${theme.palette.grey[200]}`, borderRadius: 1 }}>
+          <DragSortListYjs
             list={form.prompts}
-            renderItem={(prompt, index) => (
-              <Box sx={{ position: 'relative', display: 'flex', flex: 1 }}>
-                <Box sx={{ flex: 1, mt: 1, position: 'relative' }}>
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      zIndex: 1,
-                      right: 12,
-                      transform: 'translateY(-50%)',
-                      bgcolor: 'background.paper',
-                    }}>
+            renderItem={(prompt, index, params) => (
+              <Box
+                ref={params.drop}
+                sx={{
+                  bgcolor: params.isDragging ? 'grey.100' : undefined,
+                  '&:not(:last-of-type)': {
+                    borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
+                  },
+                }}>
+                <Stack direction="row" sx={{ position: 'relative' }}>
+                  <Stack sx={{ position: 'absolute', zIndex: 1, top: 4, left: 4 }}>
                     <RoleSelector
-                      sx={{
-                        '.MuiSelect-select': {
-                          fontSize: 12,
-                          height: 18,
-                          lineHeight: '18px',
-                          pl: 1,
-                          pr: '16px !important',
-                          py: 0,
-                          ':focus': { bgcolor: 'transparent' },
-                        },
-                        svg: {
-                          fontSize: 18,
-                        },
-                      }}
-                      variant="standard"
-                      disableUnderline
-                      size="small"
                       value={prompt.role ?? 'system'}
-                      onChange={(e) => {
-                        prompt.role = e.target.value as any;
-                      }}
+                      onChange={(e) => (prompt.role = e.target.value as any)}
                     />
-                  </Box>
+                  </Stack>
 
-                  <WithAwareness path={[form.id, 'prompts', index]}>
-                    <TextField
+                  <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
+                    <Input
+                      ref={params.preview}
                       fullWidth
-                      label={`${t('form.prompt')} ${index + 1}`}
-                      size="small"
                       multiline
                       minRows={2}
-                      maxRows={10}
                       value={prompt.content ?? ''}
-                      onChange={(e) => {
-                        prompt.content = e.target.value;
+                      onChange={(e) => (prompt.content = e.target.value)}
+                      sx={{
+                        bgcolor: 'background.paper',
+                        borderRadius: 1,
+                        [`.${inputClasses.input}`]: { px: 1, textIndent: indentWidth(prompt.role) },
                       }}
-                      helperText={<TokenCounter value={prompt.content ?? ''} />}
-                      FormHelperTextProps={{ sx: { textAlign: 'right', mt: 0 } }}
                     />
                   </WithAwareness>
-                </Box>
 
-                <Box sx={{ ml: 0.5 }}>
-                  <Button
-                    sx={{ minWidth: 0, p: 0.2 }}
-                    onClick={() => {
-                      delete form.prompts?.[prompt.id];
-                    }}>
-                    <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
-                  </Button>
+                  <Stack sx={{ p: 0.5 }}>
+                    <Button
+                      sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}
+                      onClick={() => {
+                        const doc = (getYjsValue(form.prompts) as Map<any>).doc!;
+                        doc.transact(() => {
+                          if (form.prompts) {
+                            delete form.prompts[prompt.id];
+                            sortBy(Object.values(form.prompts), (i) => i.index).forEach(
+                              (i, index) => (i.index = index)
+                            );
+                          }
+                        });
+                      }}>
+                      <Trash sx={{ fontSize: 20, color: 'grey.500' }} />
+                    </Button>
 
-                  <AwarenessIndicator path={[form.id, 'prompts', index]} />
-                </Box>
+                    <Button ref={params.drag} sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}>
+                      <DragVertical sx={{ color: 'grey.500' }} />
+                    </Button>
+                  </Stack>
+
+                  <AwarenessIndicator
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[form.id, 'prompts', index]}
+                    sx={{ position: 'absolute', left: '100%', top: 0 }}
+                  />
+                </Stack>
               </Box>
             )}
           />
@@ -92,28 +99,58 @@ export default function Prompts({ value: form }: { value: Pick<TemplateYjs, 'id'
       )}
 
       <Button
-        fullWidth
+        sx={{ mt: 1 }}
         size="small"
         startIcon={<Add />}
         onClick={() => {
           const id = nanoid();
-          (getYjsValue(form) as Map<any>).doc!.transact(() => {
+          const doc = (getYjsValue(form) as Map<any>).doc!;
+          doc.transact(() => {
             form.prompts ??= {};
-            form.prompts[id] = { index: Object.keys(form.prompts).length, data: { id, content: '', role: 'system' } };
+            form.prompts[id] = {
+              index: Object.keys(form.prompts).length,
+              data: { id, content: '', role: 'user' },
+            };
           });
         }}>
-        {t('form.add')} {t('form.prompt')}
+        {t('add', { object: t('prompt') })}
       </Button>
-    </>
+    </Box>
   );
 }
 
 function RoleSelector({ ...props }: SelectProps<Role>) {
   return (
-    <Select {...props}>
+    <Select
+      {...props}
+      size="small"
+      MenuProps={{
+        slotProps: { paper: { sx: { mt: 0.5 } } },
+      }}
+      sx={{
+        [`.${selectClasses.select}`]: {
+          fontSize: 12,
+          px: 1,
+          pr: '18px !important',
+        },
+        [`.${selectClasses.icon}`]: {
+          fontSize: 16,
+          right: 2,
+        },
+        ...props.sx,
+      }}>
       <MenuItem value="system">System</MenuItem>
       <MenuItem value="user">User</MenuItem>
       <MenuItem value="assistant">Assistant</MenuItem>
     </Select>
   );
 }
+
+const indentWidth = (role?: Role) => {
+  const map = {
+    system: '72px',
+    user: '56px',
+    assistant: '81px',
+  };
+  return map[role!] || map.user;
+};

@@ -14,9 +14,13 @@ import TemplateAutocomplete from './template-autocomplete';
 import type { TemplateForm } from '.';
 
 export default function Next({
+  projectId,
+  gitRef,
   form,
   onTemplateClick,
 }: {
+  projectId: string;
+  gitRef: string;
   form: Pick<TemplateForm, 'id' | 'next'>;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
@@ -25,7 +29,7 @@ export default function Next({
 
   const { t } = useLocaleContext();
 
-  const { store } = useStore();
+  const { store } = useStore(projectId, gitRef);
   const templates = Object.values(store.files).filter(isTemplate);
 
   const isTemplateWarning = useCallback(
@@ -63,7 +67,7 @@ export default function Next({
         />
 
         <Box position="relative">
-          <WithAwareness path={[form.id, 'next.outputKey']}>
+          <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'next.outputKey']}>
             <TextField
               fullWidth
               size="small"
@@ -78,7 +82,12 @@ export default function Next({
             />
           </WithAwareness>
 
-          <AwarenessIndicator path={[form.id, 'next.outputKey']} sx={{ position: 'absolute', right: -16, top: 16 }} />
+          <AwarenessIndicator
+            projectId={projectId}
+            gitRef={gitRef}
+            path={[form.id, 'next.outputKey']}
+            sx={{ position: 'absolute', right: -16, top: 16 }}
+          />
         </Box>
       </Box>
 

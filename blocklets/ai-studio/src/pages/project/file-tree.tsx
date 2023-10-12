@@ -1,25 +1,26 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { css } from '@emotion/css';
-import { Icon } from '@iconify-icon/react';
 import { MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
-  Add,
-  CopyAll,
-  CreateNewFolderOutlined,
-  DeleteForever,
-  Download,
-  Edit,
-  KeyboardArrowDown,
-  KeyboardArrowRight,
-  Launch,
-  MoreVert,
-  Upload,
-} from '@mui/icons-material';
-import { Box, BoxProps, Button, CircularProgress, IconButton, Input, Tooltip, Typography } from '@mui/material';
+  Box,
+  BoxProps,
+  Button,
+  CircularProgress,
+  ClickAwayListener,
+  Input,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+  Tooltip,
+  listItemButtonClasses,
+  listItemIconClasses,
+} from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { uniqBy } from 'lodash';
-import { ComponentProps, ReactNode, useCallback, useMemo, useState } from 'react';
+import { ComponentProps, ReactNode, forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import joinUrl from 'url-join';
@@ -27,6 +28,16 @@ import joinUrl from 'url-join';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
+import Add from './icons/add';
+import Duplicate from './icons/duplicate';
+import External from './icons/external';
+import File from './icons/file';
+import FolderClose from './icons/folder-close';
+import FolderOpen from './icons/folder-open';
+import MenuVertical from './icons/menu-vertical';
+import Pen from './icons/pen';
+import Picture from './icons/picture';
+import Trash from './icons/trash';
 import { createFile, createFolder, deleteFile, isTemplate, moveFile, nextTemplateId, useStore } from './yjs-state';
 
 export type EntryWithMeta =
@@ -48,24 +59,25 @@ export type EntryWithMeta =
 
 export type TreeNode = NodeModel<EntryWithMeta>;
 
-export default function FileTree({
-  current,
-  mutable,
-  onExport,
-  onImport,
-  onLaunch,
-  ...props
-}: {
-  current?: string;
-  mutable?: boolean;
-  onExport?: (path: string[]) => any;
-  onImport?: (path: string[]) => any;
-  onLaunch?: (template: TemplateYjs) => any;
-} & Omit<BoxProps, 'onClick'>) {
+export interface ImperativeFileTree {
+  newFolder: () => void;
+  newFile: () => void;
+}
+
+const FileTree = forwardRef<
+  ImperativeFileTree,
+  {
+    projectId: string;
+    gitRef: string;
+    current?: string;
+    mutable?: boolean;
+    onLaunch?: (template: TemplateYjs) => any;
+  } & Omit<BoxProps, 'onClick'>
+>(({ projectId, gitRef, current, mutable, onLaunch, ...props }, ref) => {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
 
-  const { store, synced } = useStore();
+  const { store, synced } = useStore(projectId, gitRef);
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
@@ -78,6 +90,15 @@ export default function FileTree({
       navigate(filepath);
     },
     [navigate, setOpenIds, store]
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      newFolder: () => setShowNewProject(true),
+      newFile: () => onCreateFile(),
+    }),
+    [onCreateFile]
   );
 
   const onMoveFile = useCallback(
@@ -160,34 +181,10 @@ export default function FileTree({
     );
 
   return (
-    <Box {...props}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          px: 2,
-          py: 1,
-          position: 'sticky',
-          top: 0,
-          zIndex: 1,
-          bgcolor: 'background.paper',
-        }}>
-        <Typography variant="subtitle1" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {t('main.templates')}
-        </Typography>
-
-        <IconButton disabled={!mutable} size="small" color="primary" onClick={() => setShowNewProject(true)}>
-          <CreateNewFolderOutlined fontSize="small" />
-        </IconButton>
-
-        <IconButton disabled={!mutable} size="small" color="primary" onClick={() => onCreateFile()}>
-          <Add fontSize="small" />
-        </IconButton>
-      </Box>
-
+    <Box overflow="hidden" {...props}>
       {showNewProject && (
         <EditableTreeItem
-          icon={<KeyboardArrowRight fontSize="small" />}
+          icon={<FolderClose />}
           key={showNewProject.toString()}
           defaultEditing
           onSubmit={async (value) => {
@@ -200,8 +197,8 @@ export default function FileTree({
       )}
 
       {!tree.length && !showNewProject && (
-        <Box color="text.secondary" textAlign="center">
-          {t('alert.noTemplates')}
+        <Box color="text.secondary" textAlign="center" fontSize={14} lineHeight="32px" m={0.5}>
+          {t('noFiles')}
         </Box>
       )}
 
@@ -247,9 +244,7 @@ export default function FileTree({
                 item={node.data}
                 onCreateFile={onCreateFile}
                 onDeleteFile={onDeleteFile}
-                onExport={onExport}
                 onLaunch={onLaunch}
-                onImport={onImport}
               />
             );
 
@@ -260,7 +255,7 @@ export default function FileTree({
               return (
                 <EditableTreeItem
                   key={node.id}
-                  icon={isOpen ? <KeyboardArrowDown fontSize="small" /> : <KeyboardArrowRight fontSize="small" />}
+                  icon={isOpen ? <FolderOpen /> : <FolderClose />}
                   mutable={mutable}
                   depth={depth}
                   onClick={onToggle}
@@ -279,16 +274,12 @@ export default function FileTree({
             const name = `${meta.id}.yaml`;
             const selected = current && current.endsWith(name);
 
-            const { icon, color } = (meta.type &&
-              {
-                branch: { icon: 'fluent:branch-16-regular', color: 'secondary.main' },
-                image: { icon: 'fluent:draw-image-20-regular', color: 'success.main' },
-              }[meta.type]) || { icon: 'tabler:prompt', color: 'primary.main' };
+            const icon = meta.type === 'image' ? <Picture /> : <File />;
 
             return (
               <TreeItem
                 key={node.id}
-                icon={<Box component={Icon} icon={icon} color={color} />}
+                icon={icon}
                 depth={depth}
                 sx={{ bgcolor: selected ? 'rgba(0,0,0,0.05)' : undefined }}
                 onClick={() => navigate(filepath.join('/'))}
@@ -296,6 +287,8 @@ export default function FileTree({
                 {meta.name || t('alert.unnamed')}
 
                 <AwarenessIndicator
+                  projectId={projectId}
+                  gitRef={gitRef}
                   path={[meta.id]}
                   sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
                 />
@@ -306,99 +299,72 @@ export default function FileTree({
       </DndProvider>
     </Box>
   );
-}
+});
+
+export default FileTree;
 
 function TreeItemMenus({
   mutable,
   item,
   onCreateFile,
   onDeleteFile,
-  onExport,
   onLaunch,
-  onImport,
 }: {
   mutable?: boolean;
   item: EntryWithMeta;
   onCreateFile?: (options?: { parent?: string[]; meta?: TemplateYjs }) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
-  onExport?: (path: string[]) => any;
   onLaunch?: (template: TemplateYjs) => any;
-  onImport?: (path: string[]) => any;
 }) {
   const { t } = useLocaleContext();
 
   return (
     <>
       {onLaunch && item.type === 'file' && (
-        <Tooltip title={t('alert.openInAssistant')}>
-          <span>
-            <Button size="small" onClick={() => onLaunch(item.meta)}>
-              <Launch fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
-      )}
-
-      {onExport && (
-        <Tooltip title={t('alert.export')}>
-          <span>
-            <Button size="small" onClick={() => onExport(item.path)}>
-              <Download fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
-      )}
-
-      {onImport && item.type === 'folder' && (
-        <Tooltip title={t('alert.import')}>
-          <span>
-            <Button disabled={!mutable} size="small" onClick={() => onImport(item.path)}>
-              <Upload fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
+        <ListItemButton onClick={() => onLaunch(item.meta)}>
+          <ListItemIcon>
+            <External />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.openInAssistant')} />
+        </ListItemButton>
       )}
 
       {item.type === 'folder' && onCreateFile && (
-        <Tooltip title={`${t('form.add')} ${t('form.template')}`}>
-          <span>
-            <Button disabled={!mutable} size="small" onClick={() => onCreateFile({ parent: item.path })}>
-              <Add fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
+        <ListItemButton disabled={!mutable} onClick={() => onCreateFile({ parent: item.path })}>
+          <ListItemIcon>
+            <Add />
+          </ListItemIcon>
+          <ListItemText primary={t('form.new')} />
+        </ListItemButton>
       )}
 
       {item.type === 'file' && onCreateFile && (
-        <Tooltip title={t('alert.duplicate')}>
-          <span>
-            <Button
-              disabled={!mutable}
-              size="small"
-              onClick={() =>
-                onCreateFile({
-                  parent: item.parent,
-                  meta: {
-                    ...JSON.parse(JSON.stringify(item.meta)),
-                    id: nextTemplateId(),
-                    name: item.meta.name && `${item.meta.name} Copy`,
-                  },
-                })
-              }>
-              <CopyAll fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
+        <ListItemButton
+          disabled={!mutable}
+          onClick={() =>
+            onCreateFile({
+              parent: item.parent,
+              meta: {
+                ...JSON.parse(JSON.stringify(item.meta)),
+                id: nextTemplateId(),
+                name: item.meta.name && `${item.meta.name} Copy`,
+              },
+            })
+          }>
+          <ListItemIcon>
+            <Duplicate />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.duplicate')} />
+        </ListItemButton>
       )}
 
       {onDeleteFile && (
-        <Tooltip title={t('alert.delete')}>
-          <span>
-            <Button disabled={!mutable} size="small" onClick={() => onDeleteFile(item)}>
-              <DeleteForever fontSize="small" />
-            </Button>
-          </span>
-        </Tooltip>
+        <ListItemButton disabled={!mutable} onClick={() => onDeleteFile(item)}>
+          <ListItemIcon>
+            <Trash />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.delete')} />
+        </ListItemButton>
       )}
     </>
   );
@@ -446,17 +412,19 @@ function EditableTreeItem({
     <TreeItem
       {...props}
       actions={
-        <>
-          <Tooltip title={t('form.rename')}>
-            <span>
-              <Button disabled={!mutable} size="small" onClick={() => setEditing(true)}>
-                <Edit fontSize="small" />
-              </Button>
-            </span>
-          </Tooltip>
+        editing ? null : (
+          <>
+            <ListItemButton disabled={!mutable} onClick={() => setEditing(true)}>
+              <ListItemIcon>
+                <Pen />
+              </ListItemIcon>
 
-          {props.actions}
-        </>
+              <ListItemText primary={t('form.rename')} />
+            </ListItemButton>
+
+            {props.actions}
+          </>
+        )
       }>
       {editing ? (
         <Input
@@ -518,68 +486,89 @@ function TreeItem({
 
   return (
     <Box
-      {...props}
       sx={{
+        my: 0.5,
         position: 'relative',
-        pl: depth * 2 + 1,
-        pr: 2,
-        py: 0.5,
-        display: 'flex',
-        alignItems: 'center',
-        cursor: 'pointer',
-        ':hover': { bgcolor: 'grey.100', '.hover-visible': { opacity: 1 } },
-        ...props.sx,
+        ':hover': {
+          '.item': { bgcolor: 'grey.100' },
+          '.hover-visible': { opacity: 1 },
+        },
       }}>
-      <Box sx={{ width: 32, display: 'flex', alignItems: 'center' }}>{icon}</Box>
-
       <Box
+        className="item"
+        {...props}
         sx={{
-          flex: 1,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
+          borderRadius: 1,
+          mx: 1,
+          position: 'relative',
+          pl: depth * 2 + 1,
+          pr: 1,
+          py: 0.5,
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'pointer',
+          ...props.sx,
+          bgcolor: open ? 'grey.100' : (props.sx as any)?.bgcolor,
         }}>
-        {children}
+        <Box sx={{ width: 32, display: 'flex', alignItems: 'center' }}>{icon}</Box>
+
+        <Box
+          sx={{
+            flex: 1,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}>
+          {children}
+        </Box>
       </Box>
 
       {actions && (
-        <Box
+        <Stack
           component="span"
           className="hover-visible"
-          sx={{ position: 'absolute', right: 4, opacity: open ? 1 : 0 }}
-          onClick={(e) => e.stopPropagation()}>
+          justifyContent="center"
+          sx={{ position: 'absolute', right: 8, top: 0, bottom: 0, opacity: open ? 1 : 0 }}>
           <Tooltip
             open={open}
-            placement="right"
-            onOpen={() => setOpen(true)}
+            placement="right-start"
             onClose={() => setOpen(false)}
-            disableTouchListener
             disableFocusListener
+            disableHoverListener
+            disableTouchListener
             componentsProps={{
-              tooltip: {
-                sx: {
-                  bgcolor: 'grey.100',
-                  boxShadow: 1,
-                },
-              },
+              tooltip: { sx: { bgcolor: 'grey.100', boxShadow: 1, m: 0, p: 0.5 } },
             }}
             title={
-              <Box
-                sx={{
-                  '.MuiButtonBase-root': {
-                    px: 0.5,
-                    minWidth: 0,
-                  },
-                }}
-                onClick={() => setOpen(false)}>
-                {actions}
-              </Box>
+              <ClickAwayListener onClickAway={() => setOpen(false)}>
+                <List
+                  disablePadding
+                  dense
+                  sx={{
+                    color: 'text.primary',
+                    [`.${listItemButtonClasses.root}`]: {
+                      borderRadius: 1,
+                      px: 1,
+                      py: '2px',
+                    },
+                    [`.${listItemIconClasses.root}`]: {
+                      minWidth: 32,
+
+                      '> *': {
+                        fontSize: 18,
+                      },
+                    },
+                  }}
+                  onClick={() => setOpen(false)}>
+                  {actions}
+                </List>
+              </ClickAwayListener>
             }>
-            <Button sx={{ padding: 0.5, minWidth: 0 }}>
-              <MoreVert sx={{ fontSize: 16 }} />
+            <Button onClick={() => setOpen(true)} sx={{ padding: 0.5, minWidth: 0 }}>
+              <MenuVertical sx={{ fontSize: 20 }} />
             </Button>
           </Tooltip>
-        </Box>
+        </Stack>
       )}
     </Box>
   );

@@ -1,7 +1,11 @@
+import path from 'path';
+
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
 import { Worker } from 'snowflake-uuid';
 import { parse } from 'yaml';
+
+import { yjsToTemplate } from './projects';
 
 const idGenerator = new Worker();
 
@@ -26,6 +30,9 @@ export interface Template {
   parameters?: { [key: string]: Parameter };
   datasets?: { id: string; type: 'vectorStore'; vectorStore?: { id: string; name?: string } }[];
   temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
   model?: string;
   next?: { id?: string; name?: string; outputKey?: string };
   versionNote?: string;
@@ -97,12 +104,22 @@ export const templates = new Templates();
 export async function getTemplate({
   repository,
   ref,
+  working,
   templateId,
   filepath,
-}: { repository: Repository<any>; ref: string } & (
+}: { repository: Repository<any>; ref: string; working?: boolean } & (
   | { templateId: string; filepath?: undefined }
   | { filepath: string; templateId?: undefined }
 )): Promise<Template> {
+  if (working) {
+    const working = await repository.working({ ref });
+    const id = templateId ?? path.parse(filepath).name;
+    const key = Object.entries(working.syncedStore.tree).find(([, p]) => p && path.parse(p).name === id)?.[0];
+    const file = working.syncedStore.files[key!];
+    if (!file) throw new Error(`no such template ${templateId || filepath}`);
+    return yjsToTemplate(file);
+  }
+
   const template = parse(
     Buffer.from(
       (

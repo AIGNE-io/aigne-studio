@@ -3,19 +3,26 @@ import path from 'path';
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
 import { sortBy } from 'lodash';
+import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
 import env from '../libs/env';
-import { Role, Template } from './templates';
+import type { Role, Template } from './templates';
+
+const idGenerator = new Worker();
+
+export const nextProjectId = () => idGenerator.nextId().toString();
 
 export interface Project {
   _id?: string;
   name?: string;
+  description?: string;
   createdAt?: string;
   updatedAt?: string;
   createdBy: string;
   updatedBy: string;
+  pinnedAt?: string;
 }
 
 export default class Projects extends Database<Project> {
@@ -25,6 +32,17 @@ export default class Projects extends Database<Project> {
 }
 
 export const projects = new Projects();
+
+export const projectTemplates: Project[] = [
+  {
+    _id: '363299428078977024',
+    name: 'blank',
+    createdBy: wallet.address,
+    updatedBy: wallet.address,
+    createdAt: '2023-09-30T12:23:04.603Z',
+    updatedAt: '2023-09-30T12:23:04.603Z',
+  },
+];
 
 export const defaultBranch = 'main';
 
@@ -65,36 +83,16 @@ function isTemplate(file: FileType): file is TemplateYjs {
 
 const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
 
+export const repositoryRoot = (projectId: string) => path.join(env.dataDir, 'repositories', projectId);
+
 export async function getRepository({ projectId }: { projectId: string }) {
   repositories[projectId] ??= (async () => {
     const repository = await Repository.init<TemplateYjs | { $base64: string }>({
-      root: path.join(env.dataDir, 'repositories', projectId),
+      root: repositoryRoot(projectId),
       initialCommit: { message: 'init', author: { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content) => {
         if (path.extname(filepath) === '.yaml') {
-          const template: Template = parse(Buffer.from(content).toString());
-          return {
-            ...template,
-            prompts:
-              template.prompts &&
-              Object.fromEntries(
-                template.prompts?.map((prompt, index) => [
-                  prompt.id,
-                  {
-                    index,
-                    data: prompt,
-                  },
-                ])
-              ),
-            branch: template.branch && {
-              branches: Object.fromEntries(
-                template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
-              ),
-            },
-            datasets:
-              template.datasets &&
-              Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
-          };
+          return templateToYjs(parse(Buffer.from(content).toString()));
         }
 
         return {
@@ -103,16 +101,7 @@ export async function getRepository({ projectId }: { projectId: string }) {
       },
       stringify: async (_, content) => {
         if (isTemplate(content)) {
-          const template: Template = {
-            ...content,
-            prompts: content.prompts && sortBy(Object.values(content.prompts), 'index').map(({ data }) => data),
-            branch: content.branch && {
-              branches: sortBy(Object.values(content.branch.branches), 'index').map(({ data }) => data),
-            },
-            datasets: content.datasets && sortBy(Object.values(content.datasets), 'index').map(({ data }) => data),
-          };
-
-          return stringify(template);
+          return stringify(yjsToTemplate(content));
         }
 
         const base64 = content.$base64;
@@ -124,6 +113,42 @@ export async function getRepository({ projectId }: { projectId: string }) {
   })();
 
   return repositories[projectId]!;
+}
+
+export function templateToYjs(template: Template): TemplateYjs {
+  return {
+    ...template,
+    prompts:
+      template.prompts &&
+      Object.fromEntries(
+        template.prompts?.map((prompt, index) => [
+          prompt.id,
+          {
+            index,
+            data: prompt,
+          },
+        ])
+      ),
+    branch: template.branch && {
+      branches: Object.fromEntries(
+        template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
+      ),
+    },
+    datasets:
+      template.datasets &&
+      Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+  };
+}
+
+export function yjsToTemplate(template: TemplateYjs): Template {
+  return {
+    ...template,
+    prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
+    branch: template.branch && {
+      branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
+    },
+    datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
+  };
 }
 
 export async function getTemplatesFromRepository({ projectId, ref }: { projectId: string; ref: string }) {

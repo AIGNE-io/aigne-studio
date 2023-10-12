@@ -36,7 +36,7 @@ export default class Repository<T> {
       if (!defaultBranchExists || !(await ignoreNotFoundError(repo.log({ ref: defaultBranch })))?.length) {
         await repo.transact(async (tx) => {
           if (!defaultBranchExists) await repo.branch({ ref: defaultBranch });
-          await tx.checkout({ ref: defaultBranch, force: true });
+          else await tx.checkout({ ref: defaultBranch, force: true });
           await tx.commit(initialCommit);
         });
       }

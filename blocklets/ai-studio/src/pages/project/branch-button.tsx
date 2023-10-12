@@ -1,7 +1,16 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ArrowDropDown, CallSplit, Delete, Edit, WarningRounded } from '@mui/icons-material';
-import { Box, Button, IconButton, List, ListItemButton, ListItemText, tooltipClasses } from '@mui/material';
+import { ArrowDropDownRounded, CallSplitRounded, Delete, Edit, WarningRounded } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemText,
+  buttonClasses,
+  tooltipClasses,
+} from '@mui/material';
 import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -55,12 +64,19 @@ export default function BranchButton({
             }}
           />
         }>
-        <Button startIcon={<CallSplit />} endIcon={<ArrowDropDown fontSize="small" />}>
+        <Button
+          startIcon={<CallSplitRounded />}
+          endIcon={<ArrowDropDownRounded />}
+          sx={{
+            minHeight: 32,
+            [`.${buttonClasses.startIcon}`]: { mr: 0.25 },
+            [`.${buttonClasses.endIcon}`]: { ml: 0.25 },
+          }}>
           <Box
             component="span"
             sx={{
               display: 'block',
-              maxWidth: 80,
+              maxWidth: 40,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -91,7 +107,7 @@ function BranchList({
   } = useProjectState(projectId, ref);
 
   return (
-    <List disablePadding>
+    <List disablePadding dense>
       {branches.map((branch) => (
         <ListItemButton key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
           <ListItemText primary={branch} primaryTypographyProps={{ noWrap: true }} />

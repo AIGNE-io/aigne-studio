@@ -150,10 +150,6 @@ export default class Working<T> extends Doc {
       .filter((i): i is [string, T] => typeof i[0] === 'string');
   }
 
-  file(filepath: string): Doc | undefined {
-    return this.getMap<Doc>().get(filepath);
-  }
-
   private conns = new globalThis.Map<WebSocket, Set<number>>();
 
   private awareness: Awareness;

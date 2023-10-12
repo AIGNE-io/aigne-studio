@@ -1,19 +1,58 @@
-import { rmSync } from 'fs';
+import { cpSync, existsSync, rmSync } from 'fs';
+import { dirname, join } from 'path';
 
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
+import { omitBy } from 'lodash';
 
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { getRepository, projects } from '../store/projects';
+import { getRepository, nextProjectId, projectTemplates, projects, repositoryRoot } from '../store/projects';
+
+export interface CreateProjectInput {
+  duplicateFrom?: string;
+  templateId?: string;
+  name?: string;
+  description?: string;
+}
+
+const createProjectSchema = Joi.object<CreateProjectInput>({
+  duplicateFrom: Joi.string().empty([null, '']),
+  templateId: Joi.string().empty([null, '']),
+  name: Joi.string().empty([null, '']),
+  description: Joi.string().empty([null, '']),
+});
+
+export interface UpdateProjectInput {
+  name?: string;
+  description?: string;
+  pinned?: boolean;
+}
+
+const updateProjectSchema = Joi.object<UpdateProjectInput>({
+  name: Joi.string().empty([null, '']),
+  description: Joi.string().empty([null, '']),
+  pinned: Joi.boolean().empty([null]),
+});
+
+export interface GetProjectsQuery {
+  type?: 'templates';
+}
+
+const getProjectsQuerySchema = Joi.object<GetProjectsQuery>({
+  type: Joi.string().allow('templates').empty([null, '']),
+});
 
 export function projectRoutes(router: Router) {
-  const projectSchema = Joi.object<{ name?: string }>({
-    name: Joi.string().empty(null),
-  });
+  router.get('/projects', ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { type } = await getProjectsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  router.get('/projects', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
-    const list = await projects.cursor().sort({ createdAt: 1 }).exec();
+    if (type === 'templates') {
+      res.json({ projects: projectTemplates });
+      return;
+    }
+
+    const list = await projects.cursor().sort({ pinnedAt: -1, updatedAt: -1 }).exec();
 
     res.json({ projects: list });
   });
@@ -31,14 +70,54 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-    const { name } = await projectSchema.validateAsync(req.body, { stripUnknown: true });
+    const { duplicateFrom, templateId, name } = await createProjectSchema.validateAsync(req.body, {
+      stripUnknown: true,
+    });
     const { did } = req.user!;
+
+    if (duplicateFrom) {
+      const original = await projects.findOne({ _id: duplicateFrom });
+      if (!original) throw new Error(`Project ${duplicateFrom} not found`);
+
+      const repo = await getRepository({ projectId: original._id! });
+
+      const project = await projects.insert({
+        ...original,
+        _id: nextProjectId(),
+        name: original.name && `${original.name}-copy`,
+        createdBy: did,
+        updatedBy: did,
+      });
+
+      const parent = dirname(repo.root);
+      cpSync(repo.root, join(parent, project._id!), { recursive: true });
+      if (existsSync(`${repo.root}.cooperative`)) {
+        cpSync(`${repo.root}.cooperative`, join(parent, `${project._id}.cooperative`), { recursive: true });
+      }
+      res.json(project);
+      return;
+    }
+
+    if (templateId) {
+      const template = projectTemplates.find((i) => i._id === templateId);
+      if (!template) throw new Error(`Template project ${templateId} not found`);
+
+      const project = await projects.insert({
+        _id: nextProjectId(),
+        createdBy: did,
+        updatedBy: did,
+      });
+
+      res.json(project);
+      return;
+    }
 
     if (name && (await projects.findOne({ name }))) {
       throw new Error(`Duplicated project ${name}`);
     }
 
     const project = await projects.insert({
+      _id: nextProjectId(),
       name,
       createdBy: did,
       updatedBy: did,
@@ -47,7 +126,7 @@ export function projectRoutes(router: Router) {
     res.json(project);
   });
 
-  router.put('/projects/:projectId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.patch('/projects/:projectId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
     const { projectId } = req.params;
 
     const project = await projects.findOne({ _id: projectId });
@@ -56,7 +135,7 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    const { name } = await projectSchema.validateAsync(req.body, { stripUnknown: true });
+    const { name, pinned } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (name && (await projects.findOne({ name, _id: { $ne: project._id } }))) {
       throw new Error(`Duplicated project ${name}`);
@@ -67,10 +146,14 @@ export function projectRoutes(router: Router) {
     const [, doc] = await projects.update(
       { _id: projectId },
       {
-        $set: {
-          name,
-          updatedBy: did,
-        },
+        $set: omitBy(
+          {
+            name,
+            pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
+            updatedBy: did,
+          },
+          (v) => v === undefined
+        ),
       },
       { returnUpdatedDocs: true }
     );
@@ -89,7 +172,10 @@ export function projectRoutes(router: Router) {
     }
 
     await projects.remove({ _id: projectId });
-    rmSync((await getRepository({ projectId })).options.root, { recursive: true });
+
+    const root = repositoryRoot(projectId);
+    rmSync(root, { recursive: true, force: true });
+    rmSync(`${root}.cooperative`, { recursive: true, force: true });
 
     res.json(project);
   });

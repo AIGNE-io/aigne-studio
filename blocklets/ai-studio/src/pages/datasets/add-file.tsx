@@ -113,7 +113,7 @@ export default function AddFilePage() {
           variant="contained"
           disabled={input.length === 0}
           onClick={save}>
-          {t('form.save')}
+          {t('save')}
         </LoadingButton>
       </Box>
     </Box>

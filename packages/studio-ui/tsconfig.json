@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "moduleResolution": "Node",
+    "declaration": false,
+    "noEmit": false,
+    "outDir": "lib"
+  }
+}

@@ -1,9 +1,14 @@
+import produce, { Draft } from 'immer';
+import { debounce, omit } from 'lodash';
+import { nanoid } from 'nanoid';
 import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
+import { recoilPersist } from 'recoil-persist';
 
 import { Project } from '../../../api/src/store/projects';
-import { getBranches } from '../../libs/branche';
-import * as branchApi from '../../libs/branche';
+import { Role } from '../../../api/src/store/templates';
+import { callAI, textCompletions } from '../../libs/ai';
+import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import { getProject } from '../../libs/project';
 
@@ -38,7 +43,7 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     try {
       const [project, { branches }, { commits }] = await Promise.all([
         getProject(projectId),
-        getBranches({ projectId }),
+        branchApi.getBranches({ projectId }),
         getLogs({ projectId, ref: gitRef }),
       ]);
       setState((v) => ({ ...v, project, branches, commits, error: undefined }));
@@ -78,4 +83,269 @@ export const useProjectState = (projectId: string, gitRef: string) => {
   );
 
   return { state, refetch, createBranch, updateBranch, deleteBranch };
+};
+
+export interface SessionItem {
+  index: number;
+  createdAt: string;
+  updatedAt: string;
+  messages: {
+    id: string;
+    createdAt: string;
+    role: Role;
+    content: string;
+    gitRef?: string;
+    parameters?: { [key: string]: any };
+    images?: { url: string }[];
+    done?: boolean;
+    loading?: boolean;
+    cancelled?: boolean;
+    error?: { message: string };
+  }[];
+  chatType?: 'chat' | 'debug';
+  debugForm?: { [key: string]: any };
+}
+
+export interface DebugState {
+  projectId: string;
+  templateId: string;
+  sessions: SessionItem[];
+  nextSessionIndex: number;
+  currentSessionIndex?: number;
+}
+
+const debugStates: { [key: string]: RecoilState<DebugState> } = {};
+
+const debugState = (projectId: string, templateId: string) => {
+  const key = `debugState-${projectId}-${templateId}` as const;
+
+  debugStates[key] ??= atom<DebugState>({
+    key,
+    default: { projectId, templateId, sessions: [], nextSessionIndex: 1 },
+    effects: [
+      recoilPersist({
+        key,
+        converter: {
+          stringify: (state: { [k: typeof key]: DebugState }) => {
+            return JSON.stringify({
+              ...state,
+              [key]: {
+                ...state[key],
+                sessions: state[key]?.sessions.map((session) => ({
+                  ...session,
+                  messages: session.messages.map((i) => omit(i, 'loading')),
+                })),
+              },
+            });
+          },
+          parse: JSON.parse,
+        },
+        storage: {
+          getItem: (key) => localStorage.getItem(key),
+          setItem: (() => {
+            const setItem = debounce((k, v) => {
+              localStorage.setItem(k, v);
+            }, 1000);
+
+            window.addEventListener('beforeunload', () => setItem.flush());
+
+            return setItem;
+          })(),
+        },
+      }).persistAtom,
+    ],
+  });
+
+  return debugStates[key]!;
+};
+
+export const useDebugState = ({ projectId, templateId }: { projectId: string; templateId: string }) => {
+  const [state, setState] = useRecoilState(debugState(projectId, templateId));
+
+  const newSession = useCallback(() => {
+    setState((state) => {
+      const now = new Date().toISOString();
+      const index = state.nextSessionIndex;
+
+      return {
+        ...state,
+        sessions: [
+          ...state.sessions,
+          {
+            index,
+            createdAt: now,
+            updatedAt: now,
+            messages: [],
+          },
+        ],
+        nextSessionIndex: index + 1,
+        currentSessionIndex: index,
+      };
+    });
+  }, [setState]);
+
+  const setSession = useCallback(
+    (index: number, recipe: (session: Draft<SessionItem>) => void) => {
+      setState((state) =>
+        produce(state, (state) => {
+          const session = state.sessions.find((i) => i.index === index);
+          if (session) recipe(session);
+        })
+      );
+    },
+    [setState]
+  );
+
+  const setCurrentSession = useCallback(
+    (index?: number) => {
+      setState((state) => {
+        const session = state.sessions.find((i) => i.index === index) ?? state.sessions[state.sessions.length - 1];
+        return { ...state, currentSessionIndex: session?.index };
+      });
+    },
+    [setState]
+  );
+
+  const deleteSession = useCallback(
+    (index: number) => {
+      setState(({ sessions: [...sessions], ...state }) => {
+        const i = sessions.findIndex((i) => i.index === index);
+        if (i >= 0) sessions.splice(i, 1);
+        return {
+          ...state,
+          sessions,
+          currentSessionIndex:
+            index === state.currentSessionIndex ? sessions[sessions.length - 1]?.index : state.currentSessionIndex,
+        };
+      });
+    },
+    [setState]
+  );
+
+  const setMessage = useCallback(
+    (sessionIndex: number, messageId: string, recipe: (draft: Draft<SessionItem['messages'][number]>) => void) => {
+      setState((state) =>
+        produce(state, (state) => {
+          const session = state.sessions.find((i) => i.index === sessionIndex);
+          const message = session?.messages.find((i) => i.id === messageId);
+          if (message) recipe(message);
+          else console.error(`setMessage: message not found ${sessionIndex} ${messageId}`);
+        })
+      );
+    },
+    [setState]
+  );
+
+  const sendMessage = useCallback(
+    async ({
+      sessionIndex,
+      message,
+    }: {
+      sessionIndex: number;
+      message:
+        | { type: 'chat'; content: string }
+        | {
+            type: 'debug';
+            projectId: string;
+            templateId: string;
+            gitRef: string;
+            parameters: { [key: string]: string | number };
+          };
+    }) => {
+      const now = new Date();
+
+      const messageId = `${now.getTime()}-${nanoid(16)}`;
+      const responseId = `${messageId}-${1}`;
+
+      setState((state) =>
+        produce(state, (state) => {
+          const session = state.sessions.find((i) => i.index === sessionIndex);
+          session?.messages.push(
+            {
+              id: messageId,
+              createdAt: now.toISOString(),
+              role: 'user',
+              content: message.type === 'chat' ? message.content : '',
+              gitRef: message.type === 'debug' ? message.gitRef : undefined,
+              parameters: message.type === 'debug' ? message.parameters : undefined,
+            },
+            { id: responseId, createdAt: now.toISOString(), role: 'assistant', content: '', loading: true }
+          );
+        })
+      );
+
+      try {
+        const result =
+          message.type === 'chat'
+            ? await textCompletions({ stream: true, messages: [{ role: 'user', content: message.content }] })
+            : await callAI({
+                projectId: message.projectId,
+                ref: message.gitRef,
+                working: true,
+                templateId: message.templateId,
+                parameters: message.parameters,
+              });
+
+        const reader = result.getReader();
+        const decoder = new TextDecoder();
+
+        const isImages = (i: any): i is { type: 'images'; images: { url: string }[] } => i.type === 'images';
+
+        let response = '';
+
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (value) {
+            if (value instanceof Uint8Array) {
+              response += decoder.decode(value);
+            } else if (typeof value === 'string') {
+              response += value;
+            } else if (isImages(value)) {
+              setMessage(sessionIndex, responseId, (message) => {
+                if (!message.loading) return;
+                message.images = value.images;
+              });
+            } else {
+              console.error('Unknown AI response type', value);
+            }
+
+            setMessage(sessionIndex, responseId, (message) => {
+              if (message.cancelled) return;
+              message.content = response;
+            });
+          }
+
+          if (done) {
+            break;
+          }
+        }
+        setMessage(sessionIndex, responseId, (message) => {
+          if (message.cancelled) return;
+
+          message.done = true;
+          message.loading = false;
+        });
+      } catch (error) {
+        setMessage(sessionIndex, responseId, (message) => {
+          if (message.cancelled) return;
+
+          message.error = { message: error.message };
+          message.loading = false;
+        });
+      }
+    },
+    [setMessage, setState]
+  );
+
+  const cancelMessage = useCallback(
+    (sessionIndex: number, messageId: string) => {
+      setMessage(sessionIndex, messageId, (message) => {
+        message.cancelled = true;
+        message.loading = false;
+      });
+    },
+    [setMessage]
+  );
+
+  return { state, setSession, setCurrentSession, newSession, deleteSession, sendMessage, cancelMessage };
 };
