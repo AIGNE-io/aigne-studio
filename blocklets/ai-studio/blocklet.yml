@@ -22,6 +22,7 @@ files:
   - logo.png
   - screenshots
   - api/hooks/pre-start.js
+  - api/images
   - migration
   - api/dist/migration
 interfaces:

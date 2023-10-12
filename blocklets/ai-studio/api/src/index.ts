@@ -13,6 +13,7 @@ import { Errors } from 'isomorphic-git';
 
 import app from './app';
 import logger from './libs/logger';
+import initProjectIcons from './libs/project-icons';
 import routes from './routes';
 
 export { default as app } from './app';
@@ -66,4 +67,5 @@ const port = parseInt(process.env.BLOCKLET_PORT!, 10);
 export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);
+  initProjectIcons();
 });

@@ -1,34 +1,84 @@
-import { styled } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { Box, styled } from '@mui/material';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
-import { useResponsive } from 'ahooks';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { useRequest, useResponsive } from 'ahooks';
+import axios from 'axios';
+import uniqBy from 'lodash/uniqBy';
+import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
+import joinUrl from 'url-join';
 
 import { UploaderButton } from '../../contexts/uploader';
 
 export interface ImperativeImage {}
 
+const getMountPoint = (name: string) => {
+  const res = blocklet?.componentMountPoints.find((i) => i.name === name);
+
+  if (res) {
+    return res.mountPoint;
+  }
+
+  return '/';
+};
+
+export function createImageUrl(filename: string, width = 0, height = 0) {
+  const mountPoint = getMountPoint('image-bin');
+  // @ts-ignore
+  const { CDN_HOST = '' } = window?.blocklet || {};
+  const obj = new URL(CDN_HOST || window.location.origin);
+  obj.pathname = joinUrl(mountPoint, '/uploads/', filename);
+
+  const extension = filename.split('.').pop() || '';
+  if (['png', 'jpg', 'jpeg', 'webp'].includes(extension)) {
+    if (width) {
+      obj.searchParams.set('imageFilter', 'resize');
+      obj.searchParams.set('w', width.toString());
+    }
+    if (height) {
+      obj.searchParams.set('imageFilter', 'resize');
+      obj.searchParams.set('h', height.toString());
+    }
+  }
+
+  return obj.href;
+}
+
+function getImagesBin(): Promise<any> {
+  const mountPoint = getMountPoint('image-bin');
+  const url = joinUrl(mountPoint, '/api/uploads');
+  return axios.get(url, { params: { tags: 'default-project-icon' } }).then((res) => res.data);
+}
+
 const GalleryImageList = forwardRef<
   ImperativeImage,
-  { selected: string; onSelected: (data: string) => void; onChange: (data: string) => void }
->(({ selected, onChange, onSelected }: any, ref) => {
+  { onSelected: (data: string) => void; onChange: (data: string) => void }
+>(({ onChange, onSelected }: any, ref) => {
   const responsive = useResponsive();
-  const [selectedImage, onSelectedImage] = useState(selected);
+  const [selectedImage, onSelectedImage] = useState('');
+
+  const { data } = useRequest(() => getImagesBin());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const uploads = uniqBy(data?.uploads || [], 'filename');
 
   const cols = responsive.xl ? 4 : responsive.md ? 3 : 2;
-  const gap = 16;
+  const gap = 4;
 
   useImperativeHandle(ref, () => ({}), []);
 
+  const list = useMemo(() => {
+    return [{ add: true }, ...uploads.map((x: any) => ({ ...x, img: createImageUrl(x.filename) }))];
+  }, [uploads]);
+
   return (
-    <List cols={cols} gap={gap} sx={{ my: -1 }}>
-      {itemData.map((item) => {
+    <List cols={cols} gap={gap}>
+      {list.map((item) => {
         if (item.add) {
           return (
             <UploaderButton
               key="add"
               onChange={({ response }: any) => {
-                const url = response?.data?.url;
+                const url = response?.data?.url || response?.data?.fileUrl;
                 onChange(url);
               }}
             />
@@ -42,13 +92,18 @@ const GalleryImageList = forwardRef<
               onSelectedImage(item.img);
               onSelected(item.img);
             }}>
-            <img
-              className={selectedImage === item.img ? 'selected' : ''}
-              srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
-              src={`${item.img}?w=164&h=164&fit=crop&auto=format`}
-              alt={item.title}
-              loading="lazy"
-            />
+            <Box width={1} sx={{ overflow: 'hidden', position: 'relative' }}>
+              <img
+                className={selectedImage === item.img ? 'selected' : ''}
+                srcSet={`${item.img}`}
+                src={`${item.img}`}
+                alt={item.filename}
+                loading="lazy"
+              />
+              {selectedImage === item.img && (
+                <CheckCircleIcon sx={{ color: '#1976d2', position: 'absolute', bottom: 1, right: 1 }} />
+              )}
+            </Box>
           </ImageListItem>
         );
       })}
@@ -58,62 +113,13 @@ const GalleryImageList = forwardRef<
 
 const List = styled(ImageList)`
   .selected {
-    transform: scale(1.1);
+    transform: scale(1.2);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
   }
 `;
 
 export default GalleryImageList;
-
-const itemData = [
-  {
-    add: true,
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e',
-    title: 'Breakfast',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d',
-    title: 'Burger',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1522770179533-24471fcdba45',
-    title: 'Camera',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1444418776041-9c7e33cc5a9c',
-    title: 'Coffee',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1533827432537-70133748f5c8',
-    title: 'Hats',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62',
-    title: 'Honey',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1516802273409-68526ee1bdd6',
-    title: 'Basketball',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1518756131217-31eb79b20e8f',
-    title: 'Fern',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1597645587822-e99fa5d45d25',
-    title: 'Mushrooms',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1567306301408-9b74779a11af',
-    title: 'Tomato basil',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1471357674240-e1a485acb3e1',
-    title: 'Sea star',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1589118949245-7d38baf380d6',
-    title: 'Bike',
-  },
-];

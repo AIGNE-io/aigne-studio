@@ -151,6 +151,7 @@ export default flat({
   cancel: 'Cancel',
   branch: 'Branch',
   commitMessage: 'Note',
+  confirm: 'Confirm',
   setting: {
     name: 'Project name',
     description: 'Project description',
@@ -168,5 +169,6 @@ export default flat({
     },
     baseInfo: 'Basic Information',
     defaultModel: 'Default Model',
+    icon: 'Select or Upload Icon',
   },
 });

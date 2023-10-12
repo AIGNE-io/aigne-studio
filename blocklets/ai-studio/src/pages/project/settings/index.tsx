@@ -24,6 +24,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
+import Loading from '../../../components/loading';
 import Avatar from '../../../components/project-settings/avatar';
 import { SliderNumberField } from '../../../components/template-form/template-settings';
 import UploaderProvider from '../../../contexts/uploader';
@@ -118,7 +119,7 @@ export default function ProjectSettings() {
   }, [error]);
 
   if (loading) {
-    return null;
+    return <Loading fixed />;
   }
 
   if (error) {

@@ -151,6 +151,7 @@ export default flat({
   cancel: '取消',
   branch: '分支',
   commitMessage: '备注',
+  confirm: '确认',
   setting: {
     name: '项目名称',
     description: '项目描述',
@@ -167,5 +168,6 @@ export default flat({
     },
     baseInfo: '基础信息',
     defaultModel: '默认模型',
+    icon: '选择或上传图标',
   },
 });
