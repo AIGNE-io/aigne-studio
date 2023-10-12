@@ -1,3 +1,5 @@
+## 0.1.93 (2023-10-12)
+
 ## 0.1.92 (2023-10-12)
 
 - feat: new design of projects page
