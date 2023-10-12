@@ -125,7 +125,6 @@ function RoleSelector({ ...props }: SelectProps<Role>) {
       {...props}
       size="small"
       MenuProps={{
-        elevation: 1,
         slotProps: { paper: { sx: { mt: 0.5 } } },
       }}
       sx={{
