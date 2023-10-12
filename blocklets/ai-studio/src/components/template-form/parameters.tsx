@@ -65,23 +65,24 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
       <Box
         sx={{
           border: (theme) => `1px solid ${theme.palette.grey[200]}`,
-          borderRadius: 2,
-          borderBottomWidth: params?.length ? 1 : 0,
+          borderRadius: 1,
           overflow: 'hidden',
           table: {
             tableLayout: 'fixed',
           },
           th: {
             color: 'text.secondary',
-          },
-          'tbody > tr:last-of-type > td': {
             border: 'none',
+          },
+          td: {
+            borderTop: '1px solid transparent',
+            borderTopColor: 'grey.200',
+            borderBottom: 'none',
           },
           'th,td': {
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            borderColor: 'grey.200',
 
             '&:nth-of-type(3), &:nth-of-type(4)': {
               textAlign: 'center',

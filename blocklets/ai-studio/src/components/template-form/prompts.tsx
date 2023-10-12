@@ -26,13 +26,8 @@ export default function Prompts({
 
   return (
     <Box>
-      {form.prompts && (
-        <Box
-          sx={{
-            border: (theme) => `1px solid ${theme.palette.grey[200]}`,
-            borderRadius: 1,
-            borderWidth: Object.keys(form.prompts)?.length ? 1 : 0,
-          }}>
+      {form.prompts && Object.keys(form.prompts).length > 0 && (
+        <Box sx={{ border: (theme) => `1px solid ${theme.palette.grey[200]}`, borderRadius: 1 }}>
           <DragSortListYjs
             list={form.prompts}
             renderItem={(prompt, index, params) => (
