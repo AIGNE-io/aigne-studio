@@ -21,31 +21,31 @@ export default function ProjectRoutes() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <ErrorBoundary ref={errorBoundary}>
-        <StyledDashboard
-          HeaderProps={{
-            brandAddon: <BrandRoutes />,
-            addons: (exists) => [<AddonsRoutes />, ...exists],
-          }}
-          menus={<MenuRoutes />}
-          MenusDrawerProps={{
-            sx: {
-              [`.${backdropClasses.root}`]: {
-                top: 64,
-              },
-              [`> .${drawerClasses.paper}`]: {
-                borderRightStyle: 'dashed',
-              },
+      <StyledDashboard
+        HeaderProps={{
+          brandAddon: <BrandRoutes />,
+          addons: (exists) => [<AddonsRoutes />, ...exists],
+        }}
+        menus={<MenuRoutes />}
+        MenusDrawerProps={{
+          sx: {
+            [`.${backdropClasses.root}`]: {
+              top: 64,
             },
-          }}
-          sx={{
-            '.dashboard-header': {
-              border: 'none',
-              bgcolor: 'grey.200',
-              borderBottomLeftRadius: 8,
-              borderBottomRightRadius: 8,
+            [`> .${drawerClasses.paper}`]: {
+              borderRightStyle: 'dashed',
             },
-          }}>
+          },
+        }}
+        sx={{
+          '.dashboard-header': {
+            border: 'none',
+            bgcolor: 'grey.200',
+            borderBottomLeftRadius: 8,
+            borderBottomRightRadius: 8,
+          },
+        }}>
+        <ErrorBoundary ref={errorBoundary}>
           <Suspense fallback={<Loading fixed />}>
             <Routes>
               <Route index element={<ProjectsPage />} />
@@ -59,8 +59,8 @@ export default function ProjectRoutes() {
               </Route>
             </Routes>
           </Suspense>
-        </StyledDashboard>
-      </ErrorBoundary>
+        </ErrorBoundary>
+      </StyledDashboard>
     </DndProvider>
   );
 }
