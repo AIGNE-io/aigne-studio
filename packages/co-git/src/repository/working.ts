@@ -87,7 +87,7 @@ export default class Working<T> extends Doc {
     author,
   }: {
     ref: string;
-    branch?: string;
+    branch: string;
     message: string;
     author: {
       name: string;
@@ -97,21 +97,18 @@ export default class Working<T> extends Doc {
     };
   }) {
     const res = await this.repo.transact(async (tx) => {
-      if (branch && branch !== ref) {
-        await this.repo.branch({ ref: branch, object: ref, checkout: true, force: true });
-      } else {
-        const branches = await this.repo.listBranches();
-        if (branches.length) {
-          if (!branches.includes(ref)) {
-            throw new Error('branch is required when committing from a history');
-          }
-          await tx.checkout({ ref });
-        } else {
-          await this.repo.branch({ ref, checkout: true, force: true });
-        }
+      const object = await this.repo.resolveRef({ ref });
+
+      // Create branch if needed
+      const branches = await this.repo.listBranches();
+      if (!branches.includes(branch)) {
+        await this.repo.branch({ ref: branch, object });
       }
 
-      const originalFiles = await this.repo.listFiles({ ref });
+      // Checkout
+      await tx.checkout({ ref: branch, force: true });
+
+      const originalFiles = await this.repo.listFiles({ ref: branch });
 
       const files = this.files();
 
@@ -137,6 +134,7 @@ export default class Working<T> extends Doc {
       return tx.commit({ message, author });
     });
 
+    await this.repo.working({ ref: branch }).then((w) => w.reset());
     await this.reset();
 
     return res;
