@@ -4,12 +4,9 @@ import path from 'path';
 import { BlockletStatus } from '@blocklet/constant';
 import { call } from '@blocklet/sdk/lib/component';
 import { Events, components, events } from '@blocklet/sdk/lib/config';
-import { Worker } from 'snowflake-uuid';
+import { sha3_256 } from 'js-sha3';
 
 import logger from './logger';
-
-const idGenerator = new Worker();
-const nextId = () => idGenerator.nextId().toString();
 
 async function handleResource() {
   try {
@@ -22,15 +19,24 @@ async function handleResource() {
     const files = readdirSync(imageFolderPath);
 
     if (files && files.length > 0) {
-      const base64s = files.map((filepath: string) => {
+      const list = files.map((filepath: string) => {
         const exportFile = path.join(imageFolderPath, filepath);
         const data = readFileSync(exportFile, 'base64');
-        return data;
+        const filename = sha3_256(data);
+        return { base64: data, filename };
       });
 
-      const generateFilename = () => `${Date.now()}-${nextId()}`;
+      // // eslint-disable-next-line no-await-in-loop
+      // const found = await call({
+      //   name: 'image-bin',
+      //   path: '/api/uploads',
+      //   method: 'GET',
+      //   data: { tags: 'default-project-icon' },
+      // });
 
-      for (const base64 of base64s) {
+      // console.log(found);
+
+      for (const item of list) {
         // eslint-disable-next-line no-await-in-loop
         await call({
           name: 'image-bin',
@@ -38,8 +44,8 @@ async function handleResource() {
           method: 'POST',
           data: {
             type: 'base64',
-            filename: `${generateFilename()}.png`,
-            data: base64,
+            filename: `${item.filename}.png`,
+            data: item.base64,
             tags: 'default-project-icon',
           },
         });

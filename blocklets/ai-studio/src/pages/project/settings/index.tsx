@@ -15,7 +15,6 @@ import {
   Stack,
   TextField,
   Tooltip,
-  selectClasses,
   styled,
 } from '@mui/material';
 import { useReactive, useRequest } from 'ahooks';
@@ -173,14 +172,7 @@ export default function ProjectSettings() {
                     fullWidth
                     value={value.model ?? ''}
                     onChange={(e) => (value.model = e.target.value)}
-                    disableUnderline
-                    sx={{
-                      [`.${selectClasses.select}`]: {
-                        py: 0.5,
-                        ':focus': { borderRadius: 2 },
-                      },
-                      borderRadius: 2,
-                    }}>
+                    disableUnderline>
                     {MODELS.map((model) => (
                       <MenuItem key={model} value={model}>
                         {model}
