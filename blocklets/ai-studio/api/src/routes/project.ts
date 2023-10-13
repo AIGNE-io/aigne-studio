@@ -1,6 +1,7 @@
 import { cpSync, existsSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 
+import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -69,6 +70,18 @@ export function projectRoutes(router: Router) {
     const list = await projects.cursor().sort({ pinnedAt: -1, updatedAt: -1 }).exec();
 
     res.json({ projects: list });
+  });
+
+  router.get('/projects/icons', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
+    // eslint-disable-next-line no-await-in-loop
+    const { data } = await call({
+      name: 'image-bin',
+      path: '/api/sdk/uploads',
+      method: 'GET',
+      data: { pageSize: 100 },
+    });
+    const icons = (data?.uploads || []).filter((x: any) => (x?.tags || []).includes('default-project-icon'));
+    res.json({ icons });
   });
 
   router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
