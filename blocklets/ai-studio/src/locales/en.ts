@@ -170,5 +170,6 @@ export default flat({
     baseInfo: 'Basic Information',
     defaultModel: 'Default Model',
     icon: 'Select or Upload Icon',
+    selectedFail: 'Please select a picture first',
   },
 });

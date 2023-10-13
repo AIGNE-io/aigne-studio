@@ -45,9 +45,11 @@ export default function ProjectSettingsAvatar({ value, onChange }: { value: stri
             okText: t('confirm'),
             onOk: () => {
               if (!selected) {
-                Toast.error(t('请先选择一张图片'));
-                throw new Error('请先选择一张图片');
+                Toast.error(t('setting.selectedFail'));
+                throw new Error(t('setting.selectedFail'));
               }
+
+              onChange(selected);
             },
           });
         }}

@@ -169,5 +169,6 @@ export default flat({
     baseInfo: '基础信息',
     defaultModel: '默认模型',
     icon: '选择或上传图标',
+    selectedFail: '请先选择一张图片',
   },
 });

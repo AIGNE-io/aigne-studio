@@ -22,6 +22,4 @@ function copyFolderRecursive(source, destination) {
 const imageFolderPath = path.join(__dirname, '..', 'api/src/images');
 const targetFolderPath = path.join(__dirname, '..', 'api/dist/images');
 
-console.log(imageFolderPath);
-
 copyFolderRecursive(imageFolderPath, targetFolderPath);
