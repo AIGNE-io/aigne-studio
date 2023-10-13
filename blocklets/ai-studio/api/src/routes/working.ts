@@ -6,7 +6,7 @@ import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getRepository } from '../store/projects';
 
 export interface WorkingCommitInput {
-  branch?: string;
+  branch: string;
   message: string;
 }
 
