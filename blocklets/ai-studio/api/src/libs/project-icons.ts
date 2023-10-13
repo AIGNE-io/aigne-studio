@@ -26,17 +26,11 @@ async function handleResource() {
         return { base64: data, filename };
       });
 
-      // // eslint-disable-next-line no-await-in-loop
-      // const found = await call({
-      //   name: 'image-bin',
-      //   path: '/api/uploads',
-      //   method: 'GET',
-      //   data: { tags: 'default-project-icon' },
-      // });
-
       // console.log(found);
 
       for (const item of list) {
+        const originalname = `${item.filename}.png`;
+
         // eslint-disable-next-line no-await-in-loop
         await call({
           name: 'image-bin',
@@ -44,9 +38,10 @@ async function handleResource() {
           method: 'POST',
           data: {
             type: 'base64',
-            filename: `${item.filename}.png`,
+            filename: originalname,
             data: item.base64,
             tags: 'default-project-icon',
+            repeatInsert: false,
           },
         });
       }
