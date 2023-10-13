@@ -70,9 +70,8 @@ const GalleryImageList = forwardRef<
       {list.map((item) => {
         if (item.add) {
           return (
-            <Box className="image-container">
+            <Box className="image-container" key="add">
               <UploaderButton
-                key="add"
                 onChange={({ response }: any) => {
                   const url = response?.data?.url || response?.data?.fileUrl;
                   onChange(url);
@@ -89,16 +88,14 @@ const GalleryImageList = forwardRef<
               onSelectedImage(item.img);
               onSelected(item.img);
             }}>
-            <Box width={1} sx={{ overflow: 'hidden', position: 'relative' }}>
-              <Box className="image-container">
-                <img
-                  className={selectedImage === item.img ? 'selected' : ''}
-                  srcSet={`${item.img}`}
-                  src={`${item.img}`}
-                  alt={item.filename}
-                  loading="lazy"
-                />
-              </Box>
+            <Box className="image-container">
+              <img
+                className={selectedImage === item.img ? 'selected' : ''}
+                srcSet={`${item.img}`}
+                src={`${item.img}`}
+                alt={item.filename}
+                loading="lazy"
+              />
 
               {selectedImage === item.img && (
                 <CheckCircleIcon sx={{ color: '#1976d2', position: 'absolute', bottom: 1, right: 1 }} />
@@ -120,6 +117,7 @@ const List = styled(ImageList)`
     width: 100%;
     padding-bottom: 100%;
     position: relative;
+    overflow: hidden;
   }
 
   .image-container {
