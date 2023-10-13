@@ -32,6 +32,18 @@ async function handleResource() {
         const originalname = `${item.filename}.png`;
 
         // eslint-disable-next-line no-await-in-loop
+        const found = await call({
+          name: 'image-bin',
+          path: '/api/sdk/uploads/find',
+          method: 'GET',
+          params: { originalname },
+        });
+
+        if (found?.data) {
+          continue;
+        }
+
+        // eslint-disable-next-line no-await-in-loop
         await call({
           name: 'image-bin',
           path: '/api/sdk/uploads',

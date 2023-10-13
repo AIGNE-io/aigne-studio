@@ -1628,10 +1628,10 @@
     iconify-icon "^1.0.8"
     react-error-boundary "^3.1.4"
 
-"@blocklet/uploader@^0.0.28":
-  version "0.0.28"
-  resolved "https://registry.yarnpkg.com/@blocklet/uploader/-/uploader-0.0.28.tgz#9c920a0b55bd4462d98c77bf7e4ae60df5fa71c8"
-  integrity sha512-X7F3JqluCiJUON4Ln/qgQVVDvsl72z21R71X8ySvi5HpVoMIImQ0CSEUkirc/xkEGQG/+Mykk8pF6ZxF13rBZg==
+"@blocklet/uploader@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@blocklet/uploader/-/uploader-0.0.29.tgz#c32096e8781c66cfde63494b66e9761ca720d5e9"
+  integrity sha512-CnkiQ229023/x/ZFZ0jSl6De/Wy76bys7su9GEhGUIDFS4lqW98SlXJsDyTgY374e7kaIUm1MBqZg7wYFD89ng==
   dependencies:
     "@abtnode/cron" "^1.16.16"
     "@blocklet/sdk" "^1.16.16"
