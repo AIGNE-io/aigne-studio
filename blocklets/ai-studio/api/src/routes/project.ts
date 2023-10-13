@@ -78,10 +78,10 @@ export function projectRoutes(router: Router) {
       name: 'image-bin',
       path: '/api/sdk/uploads',
       method: 'GET',
-      data: { pageSize: 100 },
+      params: { pageSize: 100, tags: 'default-project-icon' },
     });
-    const icons = (data?.uploads || []).filter((x: any) => (x?.tags || []).includes('default-project-icon'));
-    res.json({ icons });
+
+    res.json({ icons: data?.uploads || [] });
   });
 
   router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
