@@ -55,11 +55,6 @@ export default function UploaderProvider({ children }: UploaderProviderProps) {
     const uploader = uploaderRef?.current?.getUploader();
 
     uploader.close();
-
-    setTimeout(() => {
-      // reset uploader state
-      uploader.setState({ files: {}, currentUploads: {} });
-    }, 200);
   };
 
   return (

@@ -62,6 +62,12 @@ components:
     source:
       name: ai-kit
       version: latest
+  - name: image-bin
+    required: true
+    mountPoint: /image-bin
+    source:
+      name: image-bin
+      version: latest
 navigation:
   - id: template
     title:
