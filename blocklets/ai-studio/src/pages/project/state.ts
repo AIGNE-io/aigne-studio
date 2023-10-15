@@ -39,7 +39,12 @@ export const useProjectState = (projectId: string, gitRef: string) => {
   const [state, setState] = useRecoilState(projectState(projectId, gitRef));
 
   const refetch = useCallback(async () => {
-    setState((v) => ({ ...v, loading: true }));
+    let loading: boolean | undefined = false;
+    setState((v) => {
+      loading = v.loading;
+      return { ...v, loading: true };
+    });
+    if (loading) return;
     try {
       const [project, { branches }, { commits }] = await Promise.all([
         getProject(projectId),

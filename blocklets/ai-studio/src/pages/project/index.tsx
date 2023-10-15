@@ -23,6 +23,7 @@ export default function ProjectRoutes() {
     <DndProvider backend={HTML5Backend}>
       <StyledDashboard
         HeaderProps={{
+          logo: <LogoRoutes />,
           brandAddon: <BrandRoutes />,
           addons: (exists) => [<AddonsRoutes />, ...exists],
         }}
@@ -73,6 +74,11 @@ function BrandRoutes() {
   return <Suspense>{element}</Suspense>;
 }
 
+function LogoRoutes() {
+  const element = useRoutes([{ path: ':projectId/*', element: <ProjectLogo /> }]);
+  return <Suspense>{element}</Suspense>;
+}
+
 function AddonsRoutes() {
   const element = useRoutes([
     {
@@ -112,6 +118,8 @@ const ProjectsPage = lazy(() => import('./projects-page'));
 const ProjectPage = lazy(() => import('./project-page'));
 
 const ProjectBrand = lazy(() => import('./project-brand'));
+
+const ProjectLogo = lazy(() => import('./project-logo'));
 
 const ProjectSettings = lazy(() => import('./settings'));
 
