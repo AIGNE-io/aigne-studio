@@ -138,7 +138,7 @@ export default flat({
   hideSidebar: '隐藏侧栏',
   folder: '文件夹',
   file: '文件',
-  noFiles: '暂无文件',
+  noFiles: '暂无文件，您可以点击 + 创建文件',
   add: '添加{object}',
   prompt: '提示',
   send: '发送',
@@ -151,4 +151,5 @@ export default flat({
   cancel: '取消',
   branch: '分支',
   commitMessage: '备注',
+  notOpenFile: '请先从左侧文件列表中打开文件！',
 });

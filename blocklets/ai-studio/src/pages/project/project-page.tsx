@@ -11,6 +11,7 @@ import {
   Tabs,
   Toolbar,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
@@ -28,6 +29,8 @@ import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
 import Add from './icons/add';
+import DeveloperTools from './icons/developer-tools';
+import Empty from './icons/empty';
 import Filtering from './icons/filtering';
 import FolderAdd from './icons/folder-add';
 import PanelLeft from './icons/panel-left';
@@ -180,7 +183,7 @@ export default function ProjectPage() {
             </Toolbar>
           </Box>
 
-          {template && <DebugView projectId={projectId} gitRef={gitRef} template={template} />}
+          {template ? <DebugView projectId={projectId} gitRef={gitRef} template={template} /> : <DebugEmptyView />}
         </Stack>
       }>
       {({ leftOpen, rightOpen }) => (
@@ -254,7 +257,9 @@ export default function ProjectPage() {
               </WithAwareness>
             ) : filepath ? (
               <Alert color="error">Not Found</Alert>
-            ) : null}
+            ) : (
+              <EmptyView />
+            )}
           </Box>
         </Box>
       )}
@@ -275,5 +280,27 @@ function PanelToggleButton({
         {placement === 'left' ? <PanelLeft /> : <PanelRight />}
       </Button>
     </Tooltip>
+  );
+}
+
+function EmptyView() {
+  const { t } = useLocaleContext();
+
+  return (
+    <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
+      <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+      <Typography variant="body2">{t('notOpenFile')}</Typography>
+    </Stack>
+  );
+}
+
+function DebugEmptyView() {
+  const { t } = useLocaleContext();
+
+  return (
+    <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
+      <DeveloperTools sx={{ fontSize: 54, color: 'grey.300' }} />
+      <Typography variant="body2">{t('notOpenFile')}</Typography>
+    </Stack>
   );
 }

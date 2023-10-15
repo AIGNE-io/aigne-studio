@@ -138,7 +138,7 @@ export default flat({
   hideSidebar: 'Hide sidebar',
   folder: 'folder',
   file: 'file',
-  noFiles: 'No files',
+  noFiles: 'No files yet, you can click + to create a file',
   add: 'Add {object}',
   prompt: 'Prompt',
   send: 'Send',
@@ -151,4 +151,5 @@ export default flat({
   cancel: 'Cancel',
   branch: 'Branch',
   commitMessage: 'Note',
+  notOpenFile: 'Please open the file from the file list on the left first!',
 });
