@@ -88,6 +88,10 @@ export default function ProjectPage() {
     const path = filename && Object.values(store.tree).find((i) => i?.endsWith(filename));
 
     if (path) navigate(path, { replace: true });
+    else {
+      const first = Object.values(store.tree)[0];
+      if (first) navigate(first, { replace: true });
+    }
   }, [gitRef, synced, location]);
 
   useEffect(() => {

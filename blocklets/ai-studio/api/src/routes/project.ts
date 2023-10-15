@@ -5,9 +5,19 @@ import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 import { omitBy } from 'lodash';
+import { nanoid } from 'nanoid';
 
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { getRepository, nextProjectId, projectTemplates, projects, repositoryRoot } from '../store/projects';
+import {
+  defaultBranch,
+  getRepository,
+  nextProjectId,
+  projectTemplates,
+  projects,
+  repositoryRoot,
+  templateToYjs,
+} from '../store/projects';
+import { nextTemplateId } from '../store/templates';
 
 export interface CreateProjectInput {
   duplicateFrom?: string;
@@ -73,7 +83,7 @@ export function projectRoutes(router: Router) {
     const { duplicateFrom, templateId, name } = await createProjectSchema.validateAsync(req.body, {
       stripUnknown: true,
     });
-    const { did } = req.user!;
+    const { did, fullName } = req.user!;
 
     if (duplicateFrom) {
       const original = await projects.findOne({ _id: duplicateFrom });
@@ -106,6 +116,21 @@ export function projectRoutes(router: Router) {
         _id: nextProjectId(),
         createdBy: did,
         updatedBy: did,
+      });
+
+      const repository = await getRepository({ projectId: project._id! });
+      const working = await repository.working({ ref: defaultBranch });
+      for (const { parent, ...file } of template.files) {
+        const id = nextTemplateId();
+        const key = nanoid(32);
+        working.syncedStore.files[key] = templateToYjs({ ...file, id });
+        working.syncedStore.tree[key] = parent.concat(`${id}.yaml`).join('/');
+      }
+      await working.commit({
+        ref: defaultBranch,
+        branch: defaultBranch,
+        message: 'First Prompt',
+        author: { name: fullName, email: did },
       });
 
       res.json(project);
