@@ -10,7 +10,7 @@ import logger from './logger';
 
 async function handleResource() {
   try {
-    const imageFolderPath = path.join(__dirname, '..', 'images');
+    const imageFolderPath = path.join(__dirname, '../..', 'images');
 
     if (!statSync(imageFolderPath).isDirectory()) {
       return;
