@@ -11,6 +11,8 @@ import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '
 import { createImageUrl } from '../libs/utils';
 import { getRepository, nextProjectId, projectTemplates, projects, repositoryRoot } from '../store/projects';
 
+let icons: { filename: string }[] = [];
+
 export interface CreateProjectInput {
   duplicateFrom?: string;
   templateId?: string;
@@ -130,20 +132,25 @@ export function projectRoutes(router: Router) {
       if (!template) throw new Error(`Template project ${templateId} not found`);
 
       let icon = '';
-      try {
-        const { data } = await call({
-          name: 'image-bin',
-          path: '/api/sdk/uploads',
-          method: 'GET',
-          params: { pageSize: 100, tags: 'default-project-icon' },
-        });
 
-        const item = sample(data?.uploads || []);
-        if (item?.filename) {
-          icon = createImageUrl(`${req.protocol}://${req.host}`, item.filename);
+      if (!icons.length) {
+        try {
+          const { data } = await call({
+            name: 'image-bin',
+            path: '/api/sdk/uploads',
+            method: 'GET',
+            params: { pageSize: 100, tags: 'default-project-icon' },
+          });
+
+          icons = data?.uploads || [];
+        } catch (error) {
+          // error
         }
-      } catch (error) {
-        // error
+      }
+
+      const item = sample(icons);
+      if (item?.filename) {
+        icon = createImageUrl(`${req.protocol}://${req.host}`, item.filename);
       }
 
       const project = await projects.insert({
