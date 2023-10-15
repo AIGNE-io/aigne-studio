@@ -63,26 +63,36 @@ export default function ProjectsPage() {
         <ProjectMenu />
 
         <Section enableCollapse title={t('newFromTemplates')}>
-          {loading ? (
-            <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
-              <ProjectItemSkeleton width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }} maxWidth={180} />
-              <ProjectItemSkeleton width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }} maxWidth={180} />
-              <ProjectItemSkeleton width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }} maxWidth={180} />
-            </Stack>
-          ) : (
+          {templates.length ? (
             <ProjectList section="templates" list={templates} />
+          ) : (
+            loading && (
+              <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
+                <ProjectItemSkeleton
+                  width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
+                  maxWidth={180}
+                />
+                <ProjectItemSkeleton
+                  width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
+                  maxWidth={180}
+                />
+                <ProjectItemSkeleton
+                  width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
+                  maxWidth={180}
+                />
+              </Stack>
+            )
           )}
         </Section>
 
         <Section title={t('myProjects')}>
-          {loading ? (
+          {projects.length ? (
+            <ProjectList section="projects" list={projects} />
+          ) : loading ? (
             <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
               <ProjectItemSkeleton width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }} maxWidth={180} />
               <ProjectItemSkeleton width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }} maxWidth={180} />
-              <ProjectItemSkeleton width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }} maxWidth={180} />
             </Stack>
-          ) : projects.length ? (
-            <ProjectList section="projects" list={projects} />
           ) : (
             <Stack alignItems="center" my={4}>
               <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
@@ -362,7 +372,7 @@ function ProjectItemSkeleton({ ...props }: StackProps) {
             height: '100%',
             transform: 'none',
             borderRadius: 2,
-            bgcolor: 'grey.200',
+            bgcolor: 'grey.100',
           }}
         />
       </Box>
