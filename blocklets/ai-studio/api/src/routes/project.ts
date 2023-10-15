@@ -47,9 +47,9 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   icon: Joi.string().allow('').empty([null, '']),
   model: Joi.string().empty([null, '']),
   temperature: Joi.number().min(0).max(2).empty(null),
-  topP: Joi.number().min(0).max(2).empty(null),
-  presencePenalty: Joi.number().min(0).max(2).empty(null),
-  frequencyPenalty: Joi.number().min(0).max(2).empty(null),
+  topP: Joi.number().min(0.1).max(1).empty(null),
+  presencePenalty: Joi.number().min(-2).max(2).empty(null),
+  frequencyPenalty: Joi.number().min(-2).max(2).empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
 });
 

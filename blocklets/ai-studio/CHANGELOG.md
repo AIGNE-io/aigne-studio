@@ -1,3 +1,7 @@
+## 0.1.95 (2023-10-15)
+
+- chore: init settings page
+
 ## 0.1.94 (2023-10-13)
 
 - fix: checkout workspace force
