@@ -273,6 +273,7 @@ function ProjectList({
           <ProjectItem
             key={item._id}
             pinned={!!item.pinnedAt}
+            icon={item.icon}
             width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
             maxWidth={180}
             selected={selected?.section === section && selected.item._id === item._id}
@@ -333,7 +334,7 @@ function ProjectList({
 
 function ProjectItem({
   pinned,
-  image,
+  icon,
   name,
   selected,
   actions,
@@ -341,7 +342,7 @@ function ProjectItem({
   ...props
 }: {
   pinned?: boolean;
-  image?: string;
+  icon?: string;
   name?: string;
   selected?: boolean;
   actions?: ReactNode;
@@ -356,7 +357,7 @@ function ProjectItem({
           alignItems="center"
           justifyContent="center"
           sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}>
-          <Picture sx={{ color: 'grey.400', fontSize: 56 }} />
+          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 56 }} />}
         </Stack>
 
         {(actions || mainActions) && (
@@ -399,13 +400,21 @@ const ProjectItemRoot = styled(Stack)`
     border-width: 1px;
     border-style: solid;
     border-color: ${({ theme }) => theme.palette.divider};
-    border-radius: 16px;
+    border-radius: ${({ theme }) => theme.shape.borderRadius * 2}px;
     width: 100%;
+    overflow: hidden;
 
     &:before {
       content: '';
       display: block;
       padding-bottom: 100%;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: ${({ theme }) => theme.shape.borderRadius * 2}px;
     }
   }
 

@@ -1,61 +1,29 @@
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import Toast from '@arcblock/ux/lib/Toast';
-import { Avatar, Box } from '@mui/material';
-import { useRef } from 'react';
+import { Avatar } from '@mui/material';
 
-import useDialog from '../../utils/use-dialog';
-import GalleryImageList, { ImperativeImage } from './image-list';
+import { useUploader } from '../../contexts/uploader';
 
 export default function ProjectSettingsAvatar({ value, onChange }: { value: string; onChange: any }) {
   const logoUrl = value || `${window.location.origin}/.well-known/service/static/images/logo.png`;
-  const { dialog, showDialog, closeDialog } = useDialog();
-  const { t } = useLocaleContext();
 
-  const gallery = useRef<ImperativeImage>(null);
+  const uploaderRef = useUploader();
 
   return (
-    <>
-      <Avatar
-        variant="square"
-        sx={{ width: 80, height: 80, cursor: 'pointer' }}
-        alt="Project Logo"
-        src={logoUrl}
-        onClick={() => {
-          let selected: any;
+    <Avatar
+      variant="square"
+      sx={{ width: 80, height: 80, cursor: 'pointer' }}
+      alt="Project Logo"
+      src={logoUrl}
+      onClick={() => {
+        // @ts-ignore
+        const uploader = uploaderRef?.current?.getUploader();
 
-          showDialog({
-            fullWidth: true,
-            maxWidth: 'sm',
-            title: t('setting.icon'),
-            content: (
-              <Box height={500} overflow="auto">
-                <GalleryImageList
-                  ref={gallery}
-                  onChange={(...arg) => {
-                    closeDialog();
-                    onChange(...arg);
-                  }}
-                  onSelected={(data) => {
-                    selected = data;
-                  }}
-                />
-              </Box>
-            ),
-            cancelText: t('alert.cancel'),
-            okText: t('confirm'),
-            onOk: () => {
-              if (!selected) {
-                Toast.error(t('setting.selectedFail'));
-                throw new Error(t('setting.selectedFail'));
-              }
+        uploader?.open('Uploaded');
 
-              onChange(selected);
-            },
-          });
-        }}
-      />
-
-      {dialog}
-    </>
+        uploader.onceUploadSuccess((args: any) => {
+          const url = args.response?.data?.url || args.response?.data?.fileUrl;
+          onChange(url);
+        });
+      }}
+    />
   );
 }
