@@ -86,3 +86,27 @@ export default function UploaderProvider({ children }: UploaderProviderProps) {
     </UploaderContext.Provider>
   );
 }
+
+export function getVideoSize(url: string) {
+  return new Promise<{ naturalWidth: number; naturalHeight: number }>((resolve, reject) => {
+    const video = document.createElement('video');
+    video.src = url;
+    video.onloadedmetadata = () => {
+      const { videoWidth: naturalWidth, videoHeight: naturalHeight } = video;
+      resolve({ naturalWidth, naturalHeight });
+    };
+    video.onerror = (e) => reject(e);
+  });
+}
+
+export function getImageSize(url: string) {
+  return new Promise<{ naturalWidth: number; naturalHeight: number }>((resolve, reject) => {
+    const img = new Image();
+    img.src = url;
+    img.onload = () => {
+      const { naturalWidth, naturalHeight } = img;
+      resolve({ naturalWidth, naturalHeight });
+    };
+    img.onerror = (e) => reject(e);
+  });
+}

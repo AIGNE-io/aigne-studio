@@ -44,7 +44,7 @@
     "@blocklet/sdk": "1.16.17-beta-7ec31a60",
     "@blocklet/studio-ui": "^0.1.90",
     "@blocklet/ui-react": "^2.7.25",
-    "@blocklet/uploader": "^0.0.30",
+    "@blocklet/uploader": "^0.0.29",
     "@emotion/css": "^11.10.5",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
