@@ -5,9 +5,10 @@ import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
-import { omitBy } from 'lodash';
+import { omitBy, sample } from 'lodash';
 
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { createImageUrl } from '../libs/utils';
 import { getRepository, nextProjectId, projectTemplates, projects, repositoryRoot } from '../store/projects';
 
 export interface CreateProjectInput {
@@ -128,8 +129,26 @@ export function projectRoutes(router: Router) {
       const template = projectTemplates.find((i) => i._id === templateId);
       if (!template) throw new Error(`Template project ${templateId} not found`);
 
+      let icon = '';
+      try {
+        const { data } = await call({
+          name: 'image-bin',
+          path: '/api/sdk/uploads',
+          method: 'GET',
+          params: { pageSize: 100, tags: 'default-project-icon' },
+        });
+
+        const item = sample(data?.uploads || []);
+        if (item?.filename) {
+          icon = createImageUrl(`${req.protocol}://${req.host}`, item.filename);
+        }
+      } catch (error) {
+        // error
+      }
+
       const project = await projects.insert({
         _id: nextProjectId(),
+        icon,
         createdBy: did,
         updatedBy: did,
       });
