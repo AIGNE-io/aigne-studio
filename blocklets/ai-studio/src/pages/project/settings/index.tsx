@@ -1,9 +1,9 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { InfoOutlined } from '@mui/icons-material';
+import { InfoOutlined, SaveRounded } from '@mui/icons-material';
+import { LoadingButton } from '@mui/lab';
 import {
   Box,
-  Button,
   Container,
   FormControl,
   FormControlLabel,
@@ -300,9 +300,14 @@ export default function ProjectSettings() {
           </Box>
 
           <Box display="flex" justifyContent="flex-end">
-            <Button size="small" variant="contained" onClick={onSubmit} disabled={submitLoading}>
+            <LoadingButton
+              variant="contained"
+              loadingIndicator="start"
+              loading={submitLoading}
+              startIcon={<SaveRounded />}
+              onClick={onSubmit}>
               {t('save')}
-            </Button>
+            </LoadingButton>
           </Box>
         </form>
       </SettingsContainer>
