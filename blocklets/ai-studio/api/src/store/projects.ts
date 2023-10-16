@@ -8,6 +8,7 @@ import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
 import env from '../libs/env';
+import { defaultModel } from '../libs/models';
 import type { Role, Template } from './templates';
 
 const idGenerator = new Worker();
@@ -15,10 +16,11 @@ const idGenerator = new Worker();
 export const nextProjectId = () => idGenerator.nextId().toString();
 
 export interface Project
-  extends Pick<Template, 'model' | 'temperature' | 'topP' | 'presencePenalty' | 'frequencyPenalty' | 'maxTokens'> {
+  extends Pick<Template, 'temperature' | 'topP' | 'presencePenalty' | 'frequencyPenalty' | 'maxTokens'> {
   _id?: string;
   name?: string;
   description?: string;
+  model: string;
   createdAt?: string;
   updatedAt?: string;
   createdBy: string;
@@ -42,6 +44,7 @@ export const projectTemplates: (Project & {
   {
     _id: '363299428078977024',
     name: 'blank',
+    model: defaultModel,
     createdBy: wallet.address,
     updatedBy: wallet.address,
     createdAt: '2023-09-30T12:23:04.603Z',

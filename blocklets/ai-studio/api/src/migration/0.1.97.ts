@@ -1,4 +1,5 @@
 import logger from '../libs/logger';
+import { defaultModel } from '../libs/models';
 import { projects } from '../store/projects';
 
 const { name } = require('../../../package.json');
@@ -6,7 +7,7 @@ const { name } = require('../../../package.json');
 async function migrate() {
   for await (const project of await projects.cursor().exec()) {
     if (!project.model) {
-      await projects.update({ _id: project._id! }, { $set: { model: 'gpt-3.5-turbo' } });
+      await projects.update({ _id: project._id! }, { $set: { model: defaultModel } });
     }
   }
 }

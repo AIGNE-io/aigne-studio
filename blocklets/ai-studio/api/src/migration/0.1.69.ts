@@ -8,6 +8,7 @@ import { stringify } from 'yaml';
 import { wallet } from '../libs/auth';
 import env from '../libs/env';
 import logger from '../libs/logger';
+import { defaultModel } from '../libs/models';
 import { folders } from '../store/folders';
 import { getRepository, projects } from '../store/projects';
 import { Template, templates } from '../store/templates';
@@ -25,7 +26,13 @@ async function migrate() {
 
   if (!existsSync(defaultRepoDir)) {
     // Create default project
-    await projects.insert({ _id: 'default', name: 'Default', createdBy: wallet.address, updatedBy: wallet.address });
+    await projects.insert({
+      _id: 'default',
+      name: 'Default',
+      model: defaultModel,
+      createdBy: wallet.address,
+      updatedBy: wallet.address,
+    });
 
     const folderMap = Object.fromEntries(folders.getAllData().map((folder) => [folder._id!, folder.name]));
     const list = (await templates.find()) as Template[];
