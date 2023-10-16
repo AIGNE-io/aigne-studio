@@ -22,7 +22,7 @@ export default function MainMenus({ ...props }: Omit<MenusProps, 'menus'>) {
     }
 
     if (projectId) {
-      menus.push({ icon: <Settings />, title: t('settings'), url: 'settings' });
+      menus.push({ icon: <Settings />, title: t('setting'), url: 'settings' });
     }
 
     return menus;

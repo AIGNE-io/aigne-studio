@@ -8,10 +8,8 @@ import {
   FormControl,
   FormControlLabel,
   FormLabel,
-  MenuItem,
   Radio,
   RadioGroup,
-  Select,
   Stack,
   TextField,
   Tooltip,
@@ -24,12 +22,11 @@ import { useParams } from 'react-router-dom';
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
 import Loading from '../../../components/loading';
 import Avatar from '../../../components/project-settings/avatar';
-import { SliderNumberField } from '../../../components/template-form/template-settings';
+import ModelSelectField from '../../../components/selector/model-select-field';
+import SliderNumberField from '../../../components/slider-number-field';
 import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
 import { defaultBranch, useProjectState } from '../state';
-
-const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613'];
 
 const init = {
   name: '',
@@ -168,18 +165,12 @@ export default function ProjectSettings() {
                 </Box>
 
                 <Box>
-                  <Select
-                    variant="filled"
+                  <ModelSelectField
+                    hiddenLabel
                     fullWidth
                     value={value.model ?? ''}
                     onChange={(e) => set('model', e.target.value)}
-                    disableUnderline>
-                    {MODELS.map((model) => (
-                      <MenuItem key={model} value={model}>
-                        {model}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                  />
                 </Box>
               </Box>
 
@@ -303,7 +294,7 @@ export default function ProjectSettings() {
           <Box display="flex" justifyContent="flex-end" mb={5}>
             <LoadingButton
               variant="contained"
-              loadingIndicator="start"
+              loadingPosition="start"
               loading={submitLoading}
               startIcon={<SaveRounded />}
               onClick={onSubmit}>
