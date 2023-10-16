@@ -499,9 +499,9 @@ const ProjectItemRoot = styled(Stack)`
     }
 
     .logo {
-      border-color: transparent;
+      border-color: ${({ theme }) => theme.palette.primary.dark};
       outline-style: solid;
-      outline-width: 2;
+      outline-width: 1px;
       outline-color: ${({ theme }) => theme.palette.primary.dark};
     }
   }
@@ -557,13 +557,32 @@ function ProjectsFooter() {
         px: { xs: 2, sm: 3 },
         py: 2,
       }}>
-      <Typography variant="h6">
-        {(selected.section === 'projects' ? item.name : item.name && t(item.name)) || t('unnamed')}
-      </Typography>
-      <Typography variant="body1">{item.description}</Typography>
-      <Typography variant="caption">
-        {t('createdAt')} <RelativeTime value={item.createdAt} locale={locale} />
-      </Typography>
+      <Stack direction="row" gap={1}>
+        <Box>
+          {item.icon ? (
+            <Box
+              component="img"
+              src={item.icon}
+              width={80}
+              height={80}
+              borderRadius={1}
+              sx={{ objectFit: 'contain' }}
+            />
+          ) : (
+            <Picture sx={{ fontSize: 56, color: 'grey.400' }} />
+          )}
+        </Box>
+
+        <Stack flex={1}>
+          <Typography variant="h6">
+            {(selected.section === 'projects' ? item.name : item.name && t(item.name)) || t('unnamed')}
+          </Typography>
+          <Typography variant="body1">{item.description}</Typography>
+          <Typography variant="caption">
+            {t('createdAt')} <RelativeTime value={item.createdAt} locale={locale} />
+          </Typography>
+        </Stack>
+      </Stack>
     </Box>
   );
 }
