@@ -15,10 +15,10 @@ async function migrate() {
 (async () => {
   try {
     await migrate();
-    logger.info('migration 0.1.69 success');
+    logger.info('migration 0.1.98 success');
     process.exit(0);
   } catch (err) {
-    logger.error(`${name} migration 0.1.69 error`, err);
+    logger.error(`${name} migration 0.1.98 error`, err);
     process.exit(1);
   }
 })();
