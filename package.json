@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.95",
+  "version": "0.1.96",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -53,6 +53,14 @@
     "zx": "^7.1.1"
   },
   "resolutions": {
+    "@arcblock/did-auth": "^1.18.92",
+    "@arcblock/did-util": "^1.18.92",
+    "@arcblock/did": "^1.18.92",
+    "@arcblock/ws": "^1.18.92",
+    "@arcblock/jwt": "^1.18.92",
+    "@ocap/asset": "^1.18.92",
+    "@arcblock/validator": "^1.18.92",
+    "@blocklet/sdk": "1.16.17-beta-7ec31a60",
     "@nedb/core": "^2.1.5",
     "@mui/material": "^5.11.11",
     "react-dnd": "^16.0.1",

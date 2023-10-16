@@ -119,14 +119,17 @@ function ProjectMenu() {
   const { dialog, showDialog } = useDialog();
 
   const {
-    state: { menuAnchor },
+    state: { menuAnchor, projects },
     createProject,
     deleteProject,
     updateProject,
     setMenuAnchor,
   } = useProjectsState();
 
-  const onDelete = (project: Project) => {
+  const item = menuAnchor && projects.find((i) => i._id === menuAnchor.id);
+
+  const onDelete = () => {
+    if (!item) return;
     showDialog({
       maxWidth: 'sm',
       fullWidth: true,
@@ -136,7 +139,7 @@ function ProjectMenu() {
 
           <Stack flex={1}>
             <Typography my={0.5} variant="h6" whiteSpace="pre-wrap">
-              {t('deleteProjectTitle', { project: project.name || t('unnamed') })}
+              {t('deleteProjectTitle', { project: item.name || t('unnamed') })}
             </Typography>
 
             <Typography my={2} variant="body2" whiteSpace="pre-wrap">
@@ -151,8 +154,8 @@ function ProjectMenu() {
       cancelText: t('alert.cancel'),
       onOk: async () => {
         try {
-          await deleteProject(project._id!);
-          if (projectId === project._id) {
+          await deleteProject(item._id!);
+          if (projectId === item._id) {
             navigate('/projects', { replace: true });
           }
         } catch (error) {
@@ -167,17 +170,13 @@ function ProjectMenu() {
     <>
       {dialog}
 
-      <Popper
-        key={menuAnchor?.item._id}
-        open={Boolean(menuAnchor)}
-        anchorEl={menuAnchor?.anchor}
-        placement="right-start">
+      <Popper key={menuAnchor?.id} open={Boolean(menuAnchor)} anchorEl={menuAnchor?.anchor} placement="right-start">
         <ClickAwayListener onClickAway={() => setMenuAnchor(undefined)}>
           <Paper>
             <List dense>
               <LoadingMenuItem
                 onClick={() =>
-                  createProject({ duplicateFrom: menuAnchor!.item._id! })
+                  createProject({ duplicateFrom: menuAnchor!.id })
                     .catch((error) => {
                       Toast.error(getErrorMessage(error));
                       throw error;
@@ -195,7 +194,7 @@ function ProjectMenu() {
               {menuAnchor?.section === 'projects' && (
                 <LoadingMenuItem
                   onClick={() =>
-                    updateProject(menuAnchor.item._id!, { pinned: !menuAnchor.item.pinnedAt })
+                    updateProject(menuAnchor.id, { pinned: !item?.pinnedAt })
                       .catch((error) => {
                         Toast.error(getErrorMessage(error));
                         throw error;
@@ -204,8 +203,8 @@ function ProjectMenu() {
                         setMenuAnchor(undefined);
                       })
                   }>
-                  <ListItemIcon>{menuAnchor.item.pinnedAt ? <PinOff /> : <Pin />}</ListItemIcon>
-                  {menuAnchor.item.pinnedAt ? t('unpin') : t('pin')}
+                  <ListItemIcon>{item?.pinnedAt ? <PinOff /> : <Pin />}</ListItemIcon>
+                  {item?.pinnedAt ? t('unpin') : t('pin')}
                 </LoadingMenuItem>
               )}
 
@@ -214,7 +213,7 @@ function ProjectMenu() {
               <MenuItem
                 sx={{ color: 'warning.main' }}
                 onClick={() => {
-                  onDelete(menuAnchor!.item);
+                  onDelete();
                   setMenuAnchor(undefined);
                 }}>
                 <ListItemIcon sx={{ color: 'inherit' }}>
@@ -295,17 +294,18 @@ function ProjectList({
   return (
     <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
       {list.map((item) => {
-        const menuOpen = menuAnchor?.section === section && menuAnchor?.item._id === item._id;
+        const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item._id;
 
         return (
           <ProjectItem
             key={item._id}
             pinned={!!item.pinnedAt}
+            icon={item.icon}
             width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
             maxWidth={180}
-            selected={selected?.section === section && selected.item._id === item._id}
+            selected={selected?.section === section && selected.id === item._id}
             name={section === 'templates' && item.name ? t(item.name) : item.name}
-            onClick={() => setSelected({ section, item })}
+            onClick={() => setSelected({ section, id: item._id! })}
             mainActions={
               item._id &&
               (section === 'projects' ? (
@@ -346,7 +346,7 @@ function ProjectList({
                   sx={menuOpen ? { bgcolor: 'grey.100' } : undefined}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setMenuAnchor({ section, anchor: e.currentTarget, item });
+                    setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
                   }}>
                   <MenuVertical fontSize="small" />
                 </IconButton>
@@ -384,7 +384,7 @@ function ProjectItemSkeleton({ ...props }: StackProps) {
 
 function ProjectItem({
   pinned,
-  image,
+  icon,
   name,
   selected,
   actions,
@@ -392,7 +392,7 @@ function ProjectItem({
   ...props
 }: {
   pinned?: boolean;
-  image?: string;
+  icon?: string;
   name?: string;
   selected?: boolean;
   actions?: ReactNode;
@@ -407,7 +407,7 @@ function ProjectItem({
           alignItems="center"
           justifyContent="center"
           sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}>
-          <Picture sx={{ color: 'grey.400', fontSize: 56 }} />
+          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 56 }} />}
         </Stack>
 
         {(actions || mainActions) && (
@@ -458,6 +458,13 @@ const ProjectItemRoot = styled(Stack)`
       display: block;
       padding-bottom: 100%;
     }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: ${({ theme }) => theme.shape.borderRadius * 2}px;
+    }
   }
 
   .name {
@@ -492,9 +499,9 @@ const ProjectItemRoot = styled(Stack)`
     }
 
     .logo {
-      border-color: transparent;
+      border-color: ${({ theme }) => theme.palette.primary.dark};
       outline-style: solid;
-      outline-width: 2;
+      outline-width: 1px;
       outline-color: ${({ theme }) => theme.palette.primary.dark};
     }
   }
@@ -530,10 +537,12 @@ function ProjectsFooter() {
   const { t, locale } = useLocaleContext();
 
   const {
-    state: { selected },
+    state: { selected, templates, projects },
   } = useProjectsState();
-
   if (!selected) return null;
+
+  const item = templates.find((i) => i._id === selected.id) ?? projects.find((i) => i._id === selected.id);
+  if (!item) return null;
 
   return (
     <Box
@@ -548,13 +557,32 @@ function ProjectsFooter() {
         px: { xs: 2, sm: 3 },
         py: 2,
       }}>
-      <Typography variant="h6">
-        {(selected.section === 'templates' && selected.item.name && t(selected.item.name)) || t('unnamed')}
-      </Typography>
-      <Typography variant="body1">{selected.item.description}</Typography>
-      <Typography variant="caption">
-        {t('createdAt')} <RelativeTime value={selected.item.createdAt} locale={locale} />
-      </Typography>
+      <Stack direction="row" gap={1}>
+        <Box>
+          {item.icon ? (
+            <Box
+              component="img"
+              src={item.icon}
+              width={80}
+              height={80}
+              borderRadius={1}
+              sx={{ objectFit: 'contain' }}
+            />
+          ) : (
+            <Picture sx={{ fontSize: 56, color: 'grey.400' }} />
+          )}
+        </Box>
+
+        <Stack flex={1}>
+          <Typography variant="h6">
+            {(selected.section === 'projects' ? item.name : item.name && t(item.name)) || t('unnamed')}
+          </Typography>
+          <Typography variant="body1">{item.description}</Typography>
+          <Typography variant="caption">
+            {t('createdAt')} <RelativeTime value={item.createdAt} locale={locale} />
+          </Typography>
+        </Stack>
+      </Stack>
     </Box>
   );
 }

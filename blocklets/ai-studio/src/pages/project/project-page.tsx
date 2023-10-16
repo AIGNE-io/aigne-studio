@@ -14,7 +14,7 @@ import {
   tabScrollButtonClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -39,6 +39,7 @@ import { isTemplate, useStore } from './yjs-state';
 const defaultBranch = 'main';
 
 const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
+const CURRENT_TAB = (projectId: string) => `ai-studio.currentTab.${projectId}`;
 
 export default function ProjectPage() {
   const { projectId, ref: gitRef, '*': filepath } = useParams();
@@ -67,6 +68,8 @@ export default function ProjectPage() {
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [currentTab, setCurrentTab] = useLocalStorageState(CURRENT_TAB(projectId), { defaultValue: 'debug' });
 
   const [previousFilePath, setPreviousFilePath] = useLocalStorageState<{ [key: string]: string } | undefined>(
     PREVIOUS_FILE_PATH(projectId)
@@ -116,8 +119,6 @@ export default function ProjectPage() {
 
   const layout = useRef<ImperativeColumnsLayout>(null);
   const fileTree = useRef<ImperativeFileTree>(null);
-
-  const [currentTab, setCurrentTab] = useState('setting');
 
   return (
     <ColumnsLayout

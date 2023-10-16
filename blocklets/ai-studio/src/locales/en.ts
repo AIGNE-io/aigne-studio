@@ -128,6 +128,9 @@ export default flat({
   frequencyPenalty: 'frequency_penalty',
   frequencyPenaltyTip:
     'Adjusting the frequency_penalty allows for control over the occurrence of repeated words and phrases in the generated text. A higher frequency_penalty value will reduce the likelihood of repetitions, while a lower frequency_penalty value may increase the repetition of learned phrases and words from previously generated text.',
+  maxTokens: 'max_tokens',
+  maxTokensTip:
+    "The maximum number of tokens to generate in the completion. The token count of your prompt plus max_tokens cannot exceed the model's context length.",
   type: 'Type',
   text: 'Text',
   image: 'Image',
@@ -151,6 +154,27 @@ export default flat({
   cancel: 'Cancel',
   branch: 'Branch',
   commitMessage: 'Note',
+  confirm: 'Confirm',
+  projectSetting: {
+    name: 'Project name',
+    description: 'Project description',
+    gitType: {
+      title: 'Git Version',
+      simple: {
+        title: 'Simple mode',
+        subTitle: "Just need simple version control, or don't care about version issues.",
+      },
+      default: {
+        title: 'Professional Mode (familiar with Git)',
+        subTitle:
+          'Users are familiar with the basic knowledge of Git version management and need perfect version management ability.',
+      },
+    },
+    baseInfo: 'Basic Information',
+    defaultModel: 'Default Model',
+    icon: 'Select or Upload Icon',
+    selectedFail: 'Please select a picture first',
+  },
   notOpenFile: 'Please open the file from the file list on the left first!',
   noProjectTip: "You haven't created any projects yet. You can create one from the template above!",
   aboutTokens: 'About {tokens} tokens',

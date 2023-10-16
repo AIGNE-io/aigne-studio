@@ -32,6 +32,7 @@ export interface Template {
   topP?: number;
   presencePenalty?: number;
   frequencyPenalty?: number;
+  maxTokens?: number;
   model?: string;
   next?: { id?: string; name?: string; outputKey?: string };
   versionNote?: string;

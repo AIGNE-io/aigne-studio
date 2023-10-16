@@ -11,7 +11,7 @@ export interface ProjectsState {
   projects: Project[];
   loading: boolean;
   error?: Error;
-  selected?: { section: ProjectsSection; item: Project };
+  selected?: { section: ProjectsSection; id: string };
   menuAnchor?: ProjectsState['selected'] & { anchor: HTMLElement };
 }
 

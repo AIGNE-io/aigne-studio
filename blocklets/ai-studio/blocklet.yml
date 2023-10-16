@@ -15,13 +15,14 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.95
+version: 0.1.96
 logo: logo.png
 files:
   - dist
   - logo.png
   - screenshots
   - api/hooks/pre-start.js
+  - api/images
   - migration
   - api/dist/migration
 interfaces:
@@ -60,6 +61,12 @@ components:
     mountPoint: /ai-kit
     source:
       name: ai-kit
+      version: latest
+  - name: image-bin
+    required: true
+    mountPoint: /image-bin
+    source:
+      name: image-bin
       version: latest
 navigation:
   - id: template

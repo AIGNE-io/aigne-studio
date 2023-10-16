@@ -19,6 +19,10 @@ export interface TemplateInput
     | 'branch'
     | 'model'
     | 'temperature'
+    | 'topP'
+    | 'presencePenalty'
+    | 'frequencyPenalty'
+    | 'maxTokens'
     | 'datasets'
     | 'next'
     | 'versionNote'
@@ -115,6 +119,10 @@ export const templateSchema = Joi.object<TemplateInput>({
   }),
   model: Joi.string().empty(null),
   temperature: Joi.number().min(0).max(2).empty(null),
+  topP: Joi.number().min(0.1).max(1).empty(null),
+  presencePenalty: Joi.number().min(-2).max(2).empty(null),
+  frequencyPenalty: Joi.number().min(-2).max(2).empty(null),
+  maxTokens: Joi.number().integer().empty(null),
   deleteEmptyTemplates: Joi.array().items(Joi.string()),
   datasets: Joi.array().items(
     Joi.object({

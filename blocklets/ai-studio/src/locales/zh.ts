@@ -127,6 +127,8 @@ export default flat({
   frequencyPenalty: '重复惩罚度 frequency_penalty',
   frequencyPenaltyTip:
     '调整 frequency_penalty 可以控制生成文本中重复单词和短语的频率。较高的 frequency_penalty 值会降低重复的发生，而较低的 frequency_penalty 值可能会增加一些从先前生成文本中学到的短语和单词的重复。',
+  maxTokens: '最大 token 数量 max_tokens',
+  maxTokensTip: '完成时生成的最大 token 数量。 提示的 token 数加上 max_tokens 不能超过模型的上下文长度。',
   type: '类型',
   text: '文字',
   image: '图片',
@@ -150,6 +152,26 @@ export default flat({
   cancel: '取消',
   branch: '分支',
   commitMessage: '备注',
+  confirm: '确认',
+  projectSetting: {
+    name: '项目名称',
+    description: '项目描述',
+    gitType: {
+      title: '版本管理',
+      simple: {
+        title: '简单模式',
+        subTitle: '只需要简单的版本管理，或者不关系版本的问题。',
+      },
+      default: {
+        title: '专业模式 （熟悉Git）',
+        subTitle: '使用者熟悉 Git 版本管理的基础知识，需要完善的版本管理能力。',
+      },
+    },
+    baseInfo: '基础信息',
+    defaultModel: '默认模型',
+    icon: '选择或上传图标',
+    selectedFail: '请先选择一张图片',
+  },
   notOpenFile: '请先从左侧文件列表中打开文件！',
   noProjectTip: '您还没有创建任何项目。 您可以从上面的模板创建项目！',
   aboutTokens: '大约 {tokens} token',
