@@ -65,11 +65,15 @@ export function resourcesRoutes(router: Router) {
     const fns = resources.map(async (_id: string) => {
       const [projectId = '', templateId = ''] = _id.split(separator);
       const repository = await getRepository({ projectId });
-      return getTemplate({ repository, ref: defaultBranch, templateId });
+      try {
+        return await getTemplate({ repository, ref: defaultBranch, templateId });
+      } catch (error) {
+        return null;
+      }
     });
 
-    const templates: Template[] = await Promise.all(fns);
-    const result = stringify({ templates });
+    const templates: (Template | null)[] = await Promise.all(fns);
+    const result = stringify({ templates: templates.filter(Boolean) });
 
     const templateDir = getTemplateDir({ projectId, releaseId: releaseId || '' });
     const templateFolder = fs.existsSync(templateDir);

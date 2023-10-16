@@ -1,3 +1,7 @@
+## 0.1.97 (2023-10-16)
+
+- chore: export resource data
+
 ## 0.1.96 (2023-10-16)
 
 - feat: project settings page
