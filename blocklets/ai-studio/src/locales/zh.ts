@@ -127,6 +127,8 @@ export default flat({
   frequencyPenalty: '重复惩罚度 frequency_penalty',
   frequencyPenaltyTip:
     '调整 frequency_penalty 可以控制生成文本中重复单词和短语的频率。较高的 frequency_penalty 值会降低重复的发生，而较低的 frequency_penalty 值可能会增加一些从先前生成文本中学到的短语和单词的重复。',
+  maxTokens: '最大 token 数量 max_tokens',
+  maxTokensTip: '完成时生成的最大 token 数量。 提示的 token 数加上 max_tokens 不能超过模型的上下文长度。',
   type: '类型',
   text: '文字',
   image: '图片',

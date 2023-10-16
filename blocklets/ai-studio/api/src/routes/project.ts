@@ -47,6 +47,7 @@ export interface UpdateProjectInput {
   topP?: number;
   presencePenalty?: number;
   frequencyPenalty?: number;
+  maxTokens?: number;
   gitType?: string;
 }
 
@@ -60,6 +61,7 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   topP: Joi.number().min(0.1).max(1).empty(null),
   presencePenalty: Joi.number().min(-2).max(2).empty(null),
   frequencyPenalty: Joi.number().min(-2).max(2).empty(null),
+  maxTokens: Joi.number().integer().empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
 });
 
@@ -212,8 +214,19 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    const { name, pinned, description, icon, model, temperature, topP, presencePenalty, frequencyPenalty, gitType } =
-      await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
+    const {
+      name,
+      pinned,
+      description,
+      icon,
+      model,
+      temperature,
+      topP,
+      presencePenalty,
+      frequencyPenalty,
+      maxTokens,
+      gitType,
+    } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (name && (await projects.findOne({ name, _id: { $ne: project._id } }))) {
       throw new Error(`Duplicated project ${name}`);
@@ -229,7 +242,6 @@ export function projectRoutes(router: Router) {
             name,
             pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
             updatedBy: did,
-
             description,
             icon,
             model,
@@ -237,6 +249,7 @@ export function projectRoutes(router: Router) {
             topP,
             presencePenalty,
             frequencyPenalty,
+            maxTokens,
             gitType,
           },
           (v) => v === undefined

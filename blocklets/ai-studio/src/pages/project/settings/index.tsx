@@ -16,8 +16,9 @@ import {
   styled,
 } from '@mui/material';
 import { cloneDeep, isNil, pick } from 'lodash';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAsync } from 'react-use';
 
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
 import Loading from '../../../components/loading';
@@ -26,6 +27,7 @@ import ModelSelectField from '../../../components/selector/model-select-field';
 import SliderNumberField from '../../../components/slider-number-field';
 import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
+import { getSupportedModels } from '../../../libs/common';
 import { defaultBranch, useProjectState } from '../state';
 
 const init = {
@@ -35,8 +37,9 @@ const init = {
   model: '',
   temperature: 1,
   topP: 1,
-  presencePenalty: 1,
-  frequencyPenalty: 1,
+  presencePenalty: 0,
+  frequencyPenalty: 0,
+  maxTokens: undefined,
   gitType: 'default',
 };
 
@@ -49,8 +52,13 @@ export default function ProjectSettings() {
   const [value, setValue] = useState<UpdateProjectInput>(init);
   const isSubmit = useRef(false);
 
+  const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
+  const model = useMemo(() => supportedModels?.find((i) => i.model === value.model), [value.model, supportedModels]);
+
   const { state, updateProject } = useProjectState(projectId, defaultBranch);
-  const { project, error, loading } = state;
+  const { project, error } = state;
+
+  const loading = state.loading || getSupportedModelsLoading;
 
   useEffect(() => {
     if (project) {
@@ -63,6 +71,7 @@ export default function ProjectSettings() {
         'topP',
         'presencePenalty',
         'frequencyPenalty',
+        'maxTokens',
         'gitType',
       ]);
 
@@ -174,93 +183,119 @@ export default function ProjectSettings() {
                 </Box>
               </Box>
 
-              <Box className="prefer-inline">
-                <Box>
-                  <Tooltip title={t('temperatureTip')} placement="top" disableInteractive>
-                    <FormLabel>
-                      {t('temperature')}
-                      <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
-                    </FormLabel>
-                  </Tooltip>
-                </Box>
+              {model && (
+                <>
+                  <Box className="prefer-inline">
+                    <Box>
+                      <Tooltip title={t('temperatureTip')} placement="top" disableInteractive>
+                        <FormLabel>
+                          {t('temperature')}
+                          <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
+                        </FormLabel>
+                      </Tooltip>
+                    </Box>
 
-                <Box>
-                  <SliderNumberField
-                    min={0}
-                    max={2}
-                    step={0.1}
-                    sx={{ flex: 1 }}
-                    value={value.temperature ?? 1}
-                    onChange={(_, v) => set('temperature', v)}
-                  />
-                </Box>
-              </Box>
+                    <Box>
+                      <SliderNumberField
+                        min={model.temperatureMin}
+                        max={model.temperatureMax}
+                        step={0.1}
+                        sx={{ flex: 1 }}
+                        value={value.temperature ?? model.temperatureDefault}
+                        onChange={(_, v) => set('temperature', v)}
+                      />
+                    </Box>
+                  </Box>
 
-              <Box className="prefer-inline">
-                <Box>
-                  <Tooltip title={t('topPTip')} placement="top" disableInteractive>
-                    <FormLabel>
-                      {t('topP')}
-                      <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
-                    </FormLabel>
-                  </Tooltip>
-                </Box>
+                  <Box className="prefer-inline">
+                    <Box>
+                      <Tooltip title={t('topPTip')} placement="top" disableInteractive>
+                        <FormLabel>
+                          {t('topP')}
+                          <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
+                        </FormLabel>
+                      </Tooltip>
+                    </Box>
 
-                <Box>
-                  <SliderNumberField
-                    min={0.1}
-                    max={1}
-                    step={0.1}
-                    value={value.topP ?? 1}
-                    onChange={(_, v) => set('topP', v)}
-                    sx={{ flex: 1 }}
-                  />
-                </Box>
-              </Box>
+                    <Box>
+                      <SliderNumberField
+                        min={model.topPMin}
+                        max={model.topPMax}
+                        step={0.1}
+                        value={value.topP ?? model.topPDefault}
+                        onChange={(_, v) => set('topP', v)}
+                        sx={{ flex: 1 }}
+                      />
+                    </Box>
+                  </Box>
 
-              <Box className="prefer-inline">
-                <Box>
-                  <Tooltip title={t('presencePenaltyTip')} placement="top" disableInteractive>
-                    <FormLabel>
-                      {t('presencePenalty')}
-                      <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
-                    </FormLabel>
-                  </Tooltip>
-                </Box>
+                  <Box className="prefer-inline">
+                    <Box>
+                      <Tooltip title={t('presencePenaltyTip')} placement="top" disableInteractive>
+                        <FormLabel>
+                          {t('presencePenalty')}
+                          <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
+                        </FormLabel>
+                      </Tooltip>
+                    </Box>
 
-                <Box>
-                  <SliderNumberField
-                    min={-2}
-                    max={2}
-                    step={0.1}
-                    sx={{ flex: 1 }}
-                    value={value.presencePenalty ?? 1}
-                    onChange={(_, v) => set('presencePenalty', v)}
-                  />
-                </Box>
-              </Box>
+                    <Box>
+                      <SliderNumberField
+                        min={model.presencePenaltyMin}
+                        max={model.presencePenaltyMax}
+                        step={0.1}
+                        sx={{ flex: 1 }}
+                        value={value.presencePenalty ?? model.presencePenaltyDefault}
+                        onChange={(_, v) => set('presencePenalty', v)}
+                      />
+                    </Box>
+                  </Box>
 
-              <Box className="prefer-inline">
-                <Box>
-                  <Tooltip title={t('frequencyPenaltyTip')} placement="top" disableInteractive>
-                    <FormLabel>
-                      {t('frequencyPenalty')}
-                      <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
-                    </FormLabel>
-                  </Tooltip>
-                </Box>
+                  <Box className="prefer-inline">
+                    <Box>
+                      <Tooltip title={t('frequencyPenaltyTip')} placement="top" disableInteractive>
+                        <FormLabel>
+                          {t('frequencyPenalty')}
+                          <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
+                        </FormLabel>
+                      </Tooltip>
+                    </Box>
 
-                <Box>
-                  <SliderNumberField
-                    min={-2}
-                    max={2}
-                    step={0.1}
-                    sx={{ flex: 1 }}
-                    value={value.frequencyPenalty ?? 1}
-                    onChange={(_, v) => set('frequencyPenalty', v)}
-                  />
-                </Box>
-              </Box>
+                    <Box>
+                      <SliderNumberField
+                        min={model.frequencyPenaltyMin}
+                        max={model.frequencyPenaltyMax}
+                        step={0.1}
+                        sx={{ flex: 1 }}
+                        value={value.frequencyPenalty ?? model.frequencyPenaltyDefault}
+                        onChange={(_, v) => set('frequencyPenalty', v)}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Box className="prefer-inline">
+                    <Box>
+                      <Tooltip title={t('maxTokensTip')} placement="top" disableInteractive>
+                        <FormLabel>
+                          {t('maxTokens')}
+                          <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
+                        </FormLabel>
+                      </Tooltip>
+                    </Box>
+
+                    <Box>
+                      <SliderNumberField
+                        min={model.maxTokensMin}
+                        max={model.maxTokensMax}
+                        step={1}
+                        sx={{ flex: 1 }}
+                        value={value.maxTokens ?? model.maxTokensDefault}
+                        onChange={(_, v) => set('maxTokens', v)}
+                      />
+                    </Box>
+                  </Box>
+                </>
+              )}
             </Box>
           </Box>
 

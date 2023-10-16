@@ -14,7 +14,8 @@ const idGenerator = new Worker();
 
 export const nextProjectId = () => idGenerator.nextId().toString();
 
-export interface Project {
+export interface Project
+  extends Pick<Template, 'model' | 'temperature' | 'topP' | 'presencePenalty' | 'frequencyPenalty' | 'maxTokens'> {
   _id?: string;
   name?: string;
   description?: string;
@@ -24,11 +25,6 @@ export interface Project {
   updatedBy: string;
   pinnedAt?: string;
   icon?: string;
-  model?: string;
-  temperature?: number;
-  topP?: number;
-  presencePenalty?: number;
-  frequencyPenalty?: number;
   gitType?: 'simple' | 'default';
 }
 
