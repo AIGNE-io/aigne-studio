@@ -26,7 +26,7 @@ export default function ProjectSettingsAvatar({ value, onChange }: { value: stri
           showDialog({
             fullWidth: true,
             maxWidth: 'sm',
-            title: t('setting.icon'),
+            title: t('projectSetting.icon'),
             content: (
               <Box height={500} overflow="auto">
                 <GalleryImageList
@@ -45,8 +45,8 @@ export default function ProjectSettingsAvatar({ value, onChange }: { value: stri
             okText: t('confirm'),
             onOk: () => {
               if (!selected) {
-                Toast.error(t('setting.selectedFail'));
-                throw new Error(t('setting.selectedFail'));
+                Toast.error(t('projectSetting.selectedFail'));
+                throw new Error(t('projectSetting.selectedFail'));
               }
 
               onChange(selected);

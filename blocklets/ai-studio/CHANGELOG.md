@@ -1,6 +1,12 @@
-## 0.1.95 (2023-10-15)
+## 0.1.95 (2023-10-16)
 
-- chore: init settings page
+- move settings to tab view
+- show token usage on footer
+- different skeleton count
+- empty projects tip
+- create a hello prompt for blank template
+- show tip when not open any file
+- disable select for resize handler
 
 ## 0.1.94 (2023-10-13)
 

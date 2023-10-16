@@ -2,14 +2,13 @@ import path from 'path';
 
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
-import { Worker } from 'snowflake-uuid';
+import dayjs from 'dayjs';
+import { nanoid } from 'nanoid';
 import { parse } from 'yaml';
 
 import { yjsToTemplate } from './projects';
 
-const idGenerator = new Worker();
-
-export const nextTemplateId = () => idGenerator.nextId().toString();
+export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
 
 export type Role = 'system' | 'user' | 'assistant';
 

@@ -17,6 +17,7 @@ import {
   MenuItemProps,
   Paper,
   Popper,
+  Skeleton,
   Stack,
   StackProps,
   Tooltip,
@@ -28,7 +29,6 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
 
 import { Project } from '../../../api/src/store/projects';
-import Loading from '../../components/loading';
 import { useProjectsState } from '../../contexts/projects';
 import { getErrorMessage } from '../../libs/api';
 import { createProject } from '../../libs/project';
@@ -36,6 +36,7 @@ import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
 import Duplicate from './icons/duplicate';
+import Empty from './icons/empty';
 import External from './icons/external';
 import MenuVertical from './icons/menu-vertical';
 import Picture from './icons/picture';
@@ -58,22 +59,49 @@ export default function ProjectsPage() {
 
   return (
     <Stack minHeight="100%">
-      <Box mx={{ xs: 2, sm: 3 }} flexGrow={1}>
+      <Box m={{ xs: 2, sm: 3 }} flexGrow={1}>
         <ProjectMenu />
 
-        {templates.length > 0 && (
-          <Section enableCollapse title={t('newFromTemplates')}>
+        <Section enableCollapse title={t('newFromTemplates')}>
+          {templates.length ? (
             <ProjectList section="templates" list={templates} />
-          </Section>
-        )}
+          ) : (
+            loading && (
+              <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
+                <ProjectItemSkeleton
+                  width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
+                  maxWidth={180}
+                />
+                <ProjectItemSkeleton
+                  width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
+                  maxWidth={180}
+                />
+                <ProjectItemSkeleton
+                  width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
+                  maxWidth={180}
+                />
+              </Stack>
+            )
+          )}
+        </Section>
 
-        {projects.length ? (
-          <Section title={t('myProjects')}>
+        <Section title={t('myProjects')}>
+          {projects.length ? (
             <ProjectList section="projects" list={projects} />
-          </Section>
-        ) : (
-          loading && <Loading fixed />
-        )}
+          ) : loading ? (
+            <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
+              <ProjectItemSkeleton width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }} maxWidth={180} />
+              <ProjectItemSkeleton width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }} maxWidth={180} />
+            </Stack>
+          ) : (
+            <Stack alignItems="center" my={4}>
+              <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+              <Typography color="text.disabled" my={2}>
+                {t('noProjectTip')}
+              </Typography>
+            </Stack>
+          )}
+        </Section>
       </Box>
 
       <ProjectsFooter />
@@ -329,6 +357,29 @@ function ProjectList({
         );
       })}
     </Stack>
+  );
+}
+
+function ProjectItemSkeleton({ ...props }: StackProps) {
+  return (
+    <ProjectItemRoot {...props} alignItems="center">
+      <Box className="logo" sx={{ borderWidth: '0 !important' }}>
+        <Skeleton
+          sx={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '100%',
+            transform: 'none',
+            borderRadius: 2,
+            bgcolor: 'grey.100',
+          }}
+        />
+      </Box>
+
+      <Skeleton width="100%" variant="text" sx={{ my: 0.5, bgcolor: 'grey.200' }} height={28} />
+    </ProjectItemRoot>
   );
 }
 

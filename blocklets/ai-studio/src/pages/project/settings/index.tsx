@@ -80,13 +80,13 @@ export default function ProjectSettings() {
   const versions = [
     {
       value: 'simple',
-      title: t('setting.gitType.simple.title'),
-      subTitle: t('setting.gitType.simple.subTitle'),
+      title: t('projectSetting.gitType.simple.title'),
+      subTitle: t('projectSetting.gitType.simple.subTitle'),
     },
     {
       value: 'default',
-      title: t('setting.gitType.default.title'),
-      subTitle: t('setting.gitType.default.subTitle'),
+      title: t('projectSetting.gitType.default.title'),
+      subTitle: t('projectSetting.gitType.default.subTitle'),
     },
   ];
 
@@ -131,7 +131,7 @@ export default function ProjectSettings() {
       <SettingsContainer sx={{ mt: 2 }} maxWidth="sm">
         <form onSubmit={(e) => e.preventDefault()}>
           <Box my={2}>
-            <Box component="h3">{t('setting.baseInfo')}</Box>
+            <Box component="h3">{t('projectSetting.baseInfo')}</Box>
 
             <Box display="flex" alignItems="center" p={1}>
               <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
@@ -139,7 +139,7 @@ export default function ProjectSettings() {
               <Stack spacing={1} flex={1} ml={4}>
                 <TextField
                   size="small"
-                  label={t('setting.name')}
+                  label={t('projectSetting.name')}
                   sx={{ flex: 1 }}
                   value={value.name ?? ''}
                   onChange={(e) => set('name', e.target.value)}
@@ -147,7 +147,7 @@ export default function ProjectSettings() {
 
                 <TextField
                   size="small"
-                  label={t('setting.description')}
+                  label={t('projectSetting.description')}
                   multiline
                   rows={4}
                   sx={{ width: 1 }}
@@ -159,7 +159,7 @@ export default function ProjectSettings() {
           </Box>
 
           <Box my={2}>
-            <Box component="h3">{t('setting.defaultModel')}</Box>
+            <Box component="h3">{t('projectSetting.defaultModel')}</Box>
 
             <Box>
               <Box className="prefer-inline">
@@ -274,7 +274,7 @@ export default function ProjectSettings() {
           </Box>
 
           <Box my={2}>
-            <Box component="h3">{t('setting.gitType.title')}</Box>
+            <Box component="h3">{t('projectSetting.gitType.title')}</Box>
 
             <Box>
               <FormControl className="version">

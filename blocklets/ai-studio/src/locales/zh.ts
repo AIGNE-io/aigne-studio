@@ -114,7 +114,6 @@ export default flat({
   deleteProjectTips: '删除之后不可找回！',
   home: '首页',
   prompts: '提示',
-  parameters: '变量',
   model: '模型',
   temperature: '随机性 temperature',
   temperatureTip:
@@ -138,13 +137,13 @@ export default flat({
   hideSidebar: '隐藏侧栏',
   folder: '文件夹',
   file: '文件',
-  noFiles: '暂无文件',
+  noFiles: '暂无文件，您可以点击 + 创建文件',
   add: '添加{object}',
   prompt: '提示',
   send: '发送',
   stop: '停止',
   session: '会话',
-  settings: '设置',
+  setting: '设置',
   chat: '对话',
   debug: '调试',
   save: '保存',
@@ -152,7 +151,7 @@ export default flat({
   branch: '分支',
   commitMessage: '备注',
   confirm: '确认',
-  setting: {
+  projectSetting: {
     name: '项目名称',
     description: '项目描述',
     gitType: {
@@ -171,4 +170,14 @@ export default flat({
     icon: '选择或上传图标',
     selectedFail: '请先选择一张图片',
   },
+  notOpenFile: '请先从左侧文件列表中打开文件！',
+  noProjectTip: '您还没有创建任何项目。 您可以从上面的模板创建项目！',
+  aboutTokens: '大约 {tokens} token',
+  test: '测试',
+  discuss: '讨论',
+  variable: '变量',
+  loading: '加载中...',
+  noData: '暂无数据',
+  dataset: '数据集',
+  next: '下一步',
 });

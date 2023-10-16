@@ -11,7 +11,7 @@ import {
   PromptTemplate,
   SystemMessagePromptTemplate,
 } from 'langchain/prompts';
-import { ChatCompletionRequestMessage, ImagesResponseDataInner } from 'openai';
+import { ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
@@ -174,7 +174,7 @@ async function runTemplate(
       ...new Set(Array.from(template.matchAll(/{{\s*(\w+)\s*}}/g)).map((i) => i[1]!)),
     ];
 
-    const messages: ChatCompletionRequestMessage[] = (current.prompts ?? [])
+    const messages = (current.prompts ?? [])
       .filter((i): i is Required<typeof i> => !!i.role && !!i.content)
       .map((item) => {
         const params = matchParams(item.content);
