@@ -75,6 +75,7 @@
     "file-saver": "^2.0.5",
     "flat": "^5.0.2",
     "framer-motion": "^10.12.2",
+    "gpt-tokens": "^1.1.2",
     "immer": "^9.0.19",
     "isomorphic-git": "^1.24.2",
     "joi": "^17.7.1",

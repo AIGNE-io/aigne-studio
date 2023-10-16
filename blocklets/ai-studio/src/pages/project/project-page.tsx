@@ -36,6 +36,7 @@ import FolderAdd from './icons/folder-add';
 import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
 import { useProjectState } from './state';
+import { TokenUsage } from './token-usage';
 import { isTemplate, useStore } from './yjs-state';
 
 const defaultBranch = 'main';
@@ -191,7 +192,7 @@ export default function ProjectPage() {
         </Stack>
       }>
       {({ leftOpen, rightOpen }) => (
-        <Box sx={{ height: '100%', overflow: 'auto' }}>
+        <Stack sx={{ height: '100%', overflow: 'auto' }}>
           <Box
             sx={{
               position: 'sticky',
@@ -250,7 +251,7 @@ export default function ProjectPage() {
             </Toolbar>
           </Box>
 
-          <Box m={{ xs: 1 }}>
+          <Box m={{ xs: 1 }} flexGrow={1}>
             {!synced ? (
               <Box sx={{ textAlign: 'center', mt: 10 }}>
                 <CircularProgress size={32} />
@@ -265,7 +266,23 @@ export default function ProjectPage() {
               <EmptyView />
             )}
           </Box>
-        </Box>
+
+          {template && (
+            <Box
+              sx={{
+                position: 'sticky',
+                bottom: 0,
+                bgcolor: 'background.paper',
+                zIndex: (theme) => theme.zIndex.appBar,
+                borderTop: (theme) => `1px dashed ${theme.palette.grey[200]}`,
+              }}>
+              <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
+                <TokenUsage template={template} />
+                <Box />
+              </Toolbar>
+            </Box>
+          )}
+        </Stack>
       )}
     </ColumnsLayout>
   );
