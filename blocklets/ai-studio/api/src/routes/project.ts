@@ -86,7 +86,6 @@ export function projectRoutes(router: Router) {
   });
 
   router.get('/projects/icons', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
-    // eslint-disable-next-line no-await-in-loop
     const { data } = await call({
       name: 'image-bin',
       path: '/api/sdk/uploads',
