@@ -33,7 +33,9 @@ export default class Projects extends Database<Project> {
 
 export const projects = new Projects();
 
-export const projectTemplates: Project[] = [
+export const projectTemplates: (Project & {
+  files: (Omit<Template, 'id'> & { parent: string[] })[];
+})[] = [
   {
     _id: '363299428078977024',
     name: 'blank',
@@ -41,6 +43,29 @@ export const projectTemplates: Project[] = [
     updatedBy: wallet.address,
     createdAt: '2023-09-30T12:23:04.603Z',
     updatedAt: '2023-09-30T12:23:04.603Z',
+
+    files: [
+      {
+        parent: [],
+        name: 'Hello World',
+        prompts: [
+          {
+            id: '1',
+            content: 'Say hello in {{language}}!',
+            role: 'user',
+          },
+        ],
+        parameters: {
+          language: {
+            defaultValue: 'English',
+          },
+        },
+        createdBy: wallet.address,
+        updatedBy: wallet.address,
+        createdAt: '2023-09-30T12:23:04.603Z',
+        updatedAt: '2023-09-30T12:23:04.603Z',
+      },
+    ],
   },
 ];
 

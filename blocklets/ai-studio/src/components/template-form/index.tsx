@@ -5,7 +5,6 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
-import Parameters from './parameters';
 import Prompts from './prompts';
 import TagsAutoComplete from './tags-autocomplete';
 
@@ -113,16 +112,6 @@ export default function TemplateFormView({
 
         <Box mb={2}>
           <Prompts projectId={projectId} gitRef={gitRef} value={value} />
-        </Box>
-      </Box>
-
-      <Box>
-        <Typography variant="h6" sx={{ px: 1, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
-          {t('parameters')}
-        </Typography>
-
-        <Box mb={2}>
-          <Parameters form={value} />
         </Box>
       </Box>
     </Stack>

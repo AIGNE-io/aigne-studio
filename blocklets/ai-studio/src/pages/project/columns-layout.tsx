@@ -159,6 +159,8 @@ const ResizeHandleRoot = styled(Box)`
   z-index: 10;
   overflow: visible;
   border-right: ${({ theme }) => `1px dashed ${theme.palette.grey[200]}`};
+  user-select: none;
+  outline: none;
 
   &.collapsed {
     border-width: 0;

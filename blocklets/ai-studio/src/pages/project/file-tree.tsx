@@ -197,7 +197,7 @@ const FileTree = forwardRef<
       )}
 
       {!tree.length && !showNewProject && (
-        <Box color="text.secondary" textAlign="center" fontSize={14} lineHeight="32px" m={0.5}>
+        <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="32px" m={0.5}>
           {t('noFiles')}
         </Box>
       )}
