@@ -17,9 +17,8 @@ import {
   Tooltip,
   styled,
 } from '@mui/material';
-import { useReactive, useRequest } from 'ahooks';
-import { isNil, pick } from 'lodash';
-import { useEffect, useState } from 'react';
+import { cloneDeep, isNil, pick } from 'lodash';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
@@ -28,7 +27,7 @@ import Avatar from '../../../components/project-settings/avatar';
 import { SliderNumberField } from '../../../components/template-form/template-settings';
 import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
-import * as api from '../../../libs/project';
+import { defaultBranch, useProjectState } from '../state';
 
 const MODELS = ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-3.5-turbo-0613', 'gpt-3.5-turbo-16k-0613'];
 
@@ -49,33 +48,34 @@ export default function ProjectSettings() {
   const { projectId = '' } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId`');
 
-  const value = useReactive<UpdateProjectInput>(init);
   const [submitLoading, setLoading] = useState(false);
+  const [value, setValue] = useState<UpdateProjectInput>(init);
+  const isSubmit = useRef(false);
 
-  const { error, loading } = useRequest(
-    async () => {
-      const res = await api.getProject(projectId);
-      if (res) {
-        const merge = pick({ ...init, ...res }, [
-          'name',
-          'description',
-          'icon',
-          'model',
-          'temperature',
-          'topP',
-          'presencePenalty',
-          'frequencyPenalty',
-          'gitType',
-        ]);
+  const { state, updateProject } = useProjectState(projectId, defaultBranch);
+  const { project, error, loading } = state;
 
-        // @ts-ignore
-        Object.keys(merge).forEach((t) => (value[t] = merge[t]));
-      }
+  useEffect(() => {
+    if (project) {
+      const merge = pick({ ...init, ...project }, [
+        'name',
+        'description',
+        'icon',
+        'model',
+        'temperature',
+        'topP',
+        'presencePenalty',
+        'frequencyPenalty',
+        'gitType',
+      ]);
 
-      return res;
-    },
-    [projectId] as any
-  );
+      setValue(merge);
+    }
+  }, [project]);
+
+  const set = (key: string, value: any) => {
+    setValue((r) => ({ ...r, [key]: value }));
+  };
 
   const versions = [
     {
@@ -91,7 +91,8 @@ export default function ProjectSettings() {
   ];
 
   const onSubmit = async () => {
-    const temp = JSON.parse(JSON.stringify(value));
+    const temp: any = cloneDeep(value);
+    isSubmit.current = true;
 
     Object.keys(temp).forEach((t: string) => {
       if (isNil(temp[t])) {
@@ -102,7 +103,7 @@ export default function ProjectSettings() {
     setLoading(true);
 
     try {
-      await api.updateProject(projectId, temp);
+      await updateProject(projectId, temp);
       Toast.success('Saved');
     } catch (error) {
       Toast.error(getErrorMessage(error));
@@ -117,7 +118,7 @@ export default function ProjectSettings() {
     }
   }, [error]);
 
-  if (loading) {
+  if (loading && !isSubmit.current) {
     return <Loading fixed />;
   }
 
@@ -133,7 +134,7 @@ export default function ProjectSettings() {
             <Box component="h3">{t('setting.baseInfo')}</Box>
 
             <Box display="flex" alignItems="center" p={1}>
-              <Avatar value={value.icon ?? ''} onChange={(d: any) => (value.icon = d)} />
+              <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
 
               <Stack spacing={1} flex={1} ml={4}>
                 <TextField
@@ -141,7 +142,7 @@ export default function ProjectSettings() {
                   label={t('setting.name')}
                   sx={{ flex: 1 }}
                   value={value.name ?? ''}
-                  onChange={(e) => (value.name = e.target.value)}
+                  onChange={(e) => set('name', e.target.value)}
                 />
 
                 <TextField
@@ -151,7 +152,7 @@ export default function ProjectSettings() {
                   rows={4}
                   sx={{ width: 1 }}
                   value={value.description ?? ''}
-                  onChange={(e) => (value.description = e.target.value)}
+                  onChange={(e) => set('description', e.target.value)}
                 />
               </Stack>
             </Box>
@@ -171,7 +172,7 @@ export default function ProjectSettings() {
                     variant="filled"
                     fullWidth
                     value={value.model ?? ''}
-                    onChange={(e) => (value.model = e.target.value)}
+                    onChange={(e) => set('model', e.target.value)}
                     disableUnderline>
                     {MODELS.map((model) => (
                       <MenuItem key={model} value={model}>
@@ -199,7 +200,7 @@ export default function ProjectSettings() {
                     step={0.1}
                     sx={{ flex: 1 }}
                     value={value.temperature ?? 1}
-                    onChange={(_, v) => (value.temperature = v)}
+                    onChange={(_, v) => set('temperature', v)}
                   />
                 </Box>
               </Box>
@@ -220,7 +221,7 @@ export default function ProjectSettings() {
                     max={1}
                     step={0.1}
                     value={value.topP ?? 1}
-                    onChange={(_, v) => (value.topP = v)}
+                    onChange={(_, v) => set('topP', v)}
                     sx={{ flex: 1 }}
                   />
                 </Box>
@@ -243,7 +244,7 @@ export default function ProjectSettings() {
                     step={0.1}
                     sx={{ flex: 1 }}
                     value={value.presencePenalty ?? 1}
-                    onChange={(_, v) => (value.presencePenalty = v)}
+                    onChange={(_, v) => set('presencePenalty', v)}
                   />
                 </Box>
               </Box>
@@ -265,7 +266,7 @@ export default function ProjectSettings() {
                     step={0.1}
                     sx={{ flex: 1 }}
                     value={value.frequencyPenalty ?? 1}
-                    onChange={(_, v) => (value.frequencyPenalty = v)}
+                    onChange={(_, v) => set('frequencyPenalty', v)}
                   />
                 </Box>
               </Box>
@@ -277,7 +278,7 @@ export default function ProjectSettings() {
 
             <Box>
               <FormControl className="version">
-                <RadioGroup value={value.gitType ?? 'default'} onChange={(e) => (value.gitType = e.target.value)}>
+                <RadioGroup value={value.gitType ?? 'default'} onChange={(e) => set('gitType', e.target.value)}>
                   {versions.map((version) => {
                     return (
                       <FormControlLabel
@@ -299,7 +300,7 @@ export default function ProjectSettings() {
             </Box>
           </Box>
 
-          <Box display="flex" justifyContent="flex-end">
+          <Box display="flex" justifyContent="flex-end" mb={5}>
             <LoadingButton
               variant="contained"
               loadingIndicator="start"
