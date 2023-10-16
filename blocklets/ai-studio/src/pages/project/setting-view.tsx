@@ -57,10 +57,10 @@ export default function SettingView({
           <Box>
             <RadioGroup
               row
-              value={template.status ?? 'private'}
-              onChange={(_, status) => (template.status = status as any)}>
-              <FormControlLabel value="public" control={<Radio />} label={t('publicStatus')} />
-              <FormControlLabel value="private" control={<Radio />} label={t('privateStatus')} />
+              value={template.public ?? false}
+              onChange={(_, status) => (template.public = status as any)}>
+              <FormControlLabel value control={<Radio />} label={t('publicStatus')} />
+              <FormControlLabel value={false} control={<Radio />} label={t('privateStatus')} />
             </RadioGroup>
           </Box>
         </Box>

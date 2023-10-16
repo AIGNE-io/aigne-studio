@@ -5,6 +5,7 @@ import path from 'path';
 import component from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import Joi from 'joi';
+import uniqBy from 'lodash/uniqBy';
 import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
@@ -35,7 +36,40 @@ const exportResourceSchema = Joi.object<{
   locale: Joi.string().allow(''),
 });
 
-const separator = '&&&';
+const separator = '/';
+
+const getDeepTemplate = async (projectId: string, templateId: string) => {
+  let templates: Template[] = [];
+
+  try {
+    const repository = await getRepository({ projectId });
+    const template = await getTemplate({ repository, ref: defaultBranch, templateId });
+
+    templates = [template];
+
+    if (template.next?.id) {
+      const nextTemplate = await getDeepTemplate(projectId, template.next?.id);
+      if (nextTemplate?.length) {
+        templates = [...templates, ...nextTemplate];
+      }
+    }
+
+    if (template.branch?.branches?.length) {
+      for (const branch of template.branch?.branches || []) {
+        if (branch.template?.id) {
+          const branchTemplate = await getDeepTemplate(projectId, branch.template?.id);
+          if (branchTemplate?.length) {
+            templates = [...templates, ...branchTemplate];
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // return templates
+  }
+
+  return templates;
+};
 
 export function resourcesRoutes(router: Router) {
   router.get('/resources/export', ensurePromptsEditor, async (_req, res) => {
@@ -47,7 +81,7 @@ export function resourcesRoutes(router: Router) {
       )
     )
       .flat()
-      .filter((x) => x.status === 'public');
+      .filter((x) => x.public);
 
     const resources = templates.map((x: any) => {
       return {
@@ -64,18 +98,13 @@ export function resourcesRoutes(router: Router) {
     const { resources, projectId, releaseId } = await exportResourceSchema.validateAsync(req.body);
 
     const fns = resources.map(async (_id: string) => {
-      try {
-        const [projectId = '', templateId = ''] = _id.split(separator);
-        const repository = await getRepository({ projectId });
-
-        return await getTemplate({ repository, ref: defaultBranch, templateId });
-      } catch (error) {
-        return null;
-      }
+      const [projectId = '', templateId = ''] = _id.split(separator);
+      const list = await getDeepTemplate(projectId, templateId);
+      return list;
     });
 
-    const templates: (Template | null)[] = await Promise.all(fns);
-    const result = stringify({ templates: templates.filter(Boolean) });
+    const templates = (await Promise.all(fns)).flat();
+    const result = stringify({ templates: uniqBy(templates, 'id') });
 
     const templateDir = getTemplateDir({ projectId, releaseId: releaseId || '' });
     const templateFolder = fs.existsSync(templateDir);
