@@ -58,8 +58,6 @@ export default function App() {
   );
 }
 
-const ExportRoutes = lazy(() => import('./pages/export'));
-
 function AppRoutes() {
   const errorBoundary = useRef<ErrorBoundary>(null);
 
@@ -89,7 +87,6 @@ function AppRoutes() {
                 </DatasetsProvider>
               }
             />
-            <Route path="/admin/resource/component/export" element={<ExportRoutes />} />
           </>
         ) : (
           <Route path="*" element={<Navigate to="/" />} />

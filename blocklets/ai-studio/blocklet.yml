@@ -52,6 +52,7 @@ capabilities:
   clusterMode: false
   component: true
   navigation: true
+  resourceExportApi: /api/resources/export
 screenshots:
   - studio.gif
 components:

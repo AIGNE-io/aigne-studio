@@ -36,6 +36,20 @@ export default function SettingView({
     <Stack py={2}>
       <Stack gap={2} sx={{ '> *:last-child': { mb: 2 }, [`.${formLabelClasses.root}`]: { fontSize: 14 } }}>
         <Box px={2} position="relative">
+          <FormLabel>{t('status')}</FormLabel>
+
+          <Box>
+            <RadioGroup
+              row
+              value={template.status ?? 'private'}
+              onChange={(_, status) => (template.status = status as any)}>
+              <FormControlLabel value="public" control={<Radio />} label={t('publicStatus')} />
+              <FormControlLabel value="private" control={<Radio />} label={t('privateStatus')} />
+            </RadioGroup>
+          </Box>
+        </Box>
+
+        <Box px={2} position="relative">
           <FormLabel>{t('mode')}</FormLabel>
 
           <Box>

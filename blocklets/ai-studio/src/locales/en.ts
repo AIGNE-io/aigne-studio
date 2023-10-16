@@ -161,4 +161,7 @@ export default flat({
   noData: 'No data',
   dataset: 'Dataset',
   next: 'Next',
+  publicStatus: 'Public',
+  privateStatus: 'Private',
+  status: 'Status',
 });

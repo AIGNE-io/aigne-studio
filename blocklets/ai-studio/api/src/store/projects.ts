@@ -64,6 +64,7 @@ export const projectTemplates: (Project & {
         updatedBy: wallet.address,
         createdAt: '2023-09-30T12:23:04.603Z',
         updatedAt: '2023-09-30T12:23:04.603Z',
+        status: 'private',
       },
     ],
   },

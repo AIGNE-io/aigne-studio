@@ -95,6 +95,7 @@ export const templateSchema = Joi.object<Template>({
     name: Joi.string().empty(Joi.valid('', null)),
     outputKey: Joi.string().empty(Joi.valid('', null)),
   }),
+  status: Joi.string().valid('public', 'private').empty(''),
 });
 
 export const importBodySchema = Joi.object<{ templates?: (Template & { path?: string })[] }>({

@@ -22,6 +22,7 @@ export interface TemplateInput
     | 'datasets'
     | 'next'
     | 'versionNote'
+    | 'status'
   > {
   deleteEmptyTemplates?: string[];
 }
@@ -134,6 +135,7 @@ export const templateSchema = Joi.object<TemplateInput>({
     outputKey: Joi.string().empty(Joi.valid('', null)),
   }),
   versionNote: Joi.string().allow(''),
+  status: Joi.string().valid('public', 'private').empty(''),
 });
 
 const getTemplatesSchema = Joi.object<{
