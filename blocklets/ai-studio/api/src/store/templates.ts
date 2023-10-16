@@ -40,6 +40,7 @@ export interface Template {
   updatedAt: string;
   createdBy: string;
   updatedBy: string;
+  public?: boolean;
 }
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | HoroscopeParameter;

@@ -182,4 +182,7 @@ export default flat({
   noData: '暂无数据',
   dataset: '数据集',
   next: '下一步',
+  publicStatus: '公开',
+  privateStatus: '私有',
+  status: '状态',
 });
