@@ -5,7 +5,6 @@ import {
   Button,
   ButtonProps,
   CircularProgress,
-  Paper,
   Stack,
   Tab,
   Tabs,
@@ -14,15 +13,12 @@ import {
   Typography,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import WithAwareness from '../../components/awareness/with-awareness';
 import TemplateFormView from '../../components/template-form';
-import Popper from '../../components/template-form/popper';
-import TemplateSettings from '../../components/template-form/template-settings';
 import { useComponent } from '../../contexts/component';
 import { useIsAdmin } from '../../contexts/session';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
@@ -31,10 +27,10 @@ import FileTree, { ImperativeFileTree } from './file-tree';
 import Add from './icons/add';
 import DeveloperTools from './icons/developer-tools';
 import Empty from './icons/empty';
-import Filtering from './icons/filtering';
 import FolderAdd from './icons/folder-add';
 import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
+import SettingView from './setting-view';
 import { useProjectState } from './state';
 import { TokenUsage } from './token-usage';
 import { isTemplate, useStore } from './yjs-state';
@@ -120,7 +116,7 @@ export default function ProjectPage() {
   const layout = useRef<ImperativeColumnsLayout>(null);
   const fileTree = useRef<ImperativeFileTree>(null);
 
-  const settings = usePopupState({ variant: 'popper' });
+  const [currentTab, setCurrentTab] = useState('setting');
 
   return (
     <ColumnsLayout
@@ -166,7 +162,7 @@ export default function ProjectPage() {
         </Stack>
       }
       right={
-        <Stack sx={{ height: '100%' }}>
+        <Stack sx={{ height: '100%', overflow: 'auto' }}>
           <Box
             sx={{
               position: 'sticky',
@@ -176,10 +172,11 @@ export default function ProjectPage() {
               borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
             <Toolbar variant="dense" sx={{ gap: 1, px: { xs: 1 } }}>
-              <Tabs variant="fullWidth" value={0}>
-                <Tab label="Debug" />
-                <Tab label="Test" disabled />
-                <Tab label="Discuss" disabled />
+              <Tabs variant="scrollable" scrollButtons value={currentTab} onChange={(_, tab) => setCurrentTab(tab)}>
+                <Tab value="setting" label={t('setting')} />
+                <Tab value="debug" label={t('debug')} />
+                <Tab value="test" label={t('test')} disabled />
+                <Tab value="discuss" label={t('discuss')} disabled />
               </Tabs>
 
               <Box flex={1} />
@@ -188,7 +185,13 @@ export default function ProjectPage() {
             </Toolbar>
           </Box>
 
-          {template ? <DebugView projectId={projectId} gitRef={gitRef} template={template} /> : <DebugEmptyView />}
+          {!template ? (
+            <DebugEmptyView />
+          ) : currentTab === 'setting' ? (
+            <SettingView projectId={projectId} gitRef={gitRef} template={template} />
+          ) : currentTab === 'debug' ? (
+            <DebugView projectId={projectId} gitRef={gitRef} template={template} />
+          ) : null}
         </Stack>
       }>
       {({ leftOpen, rightOpen }) => (
@@ -211,35 +214,6 @@ export default function ProjectPage() {
               )}
 
               <Box flex={1} />
-
-              {template && (
-                <>
-                  <Tooltip title={t('settings')}>
-                    <Button
-                      {...bindTrigger(settings)}
-                      color="inherit"
-                      sx={{
-                        minWidth: 0,
-                        bgcolor: settings.isOpen ? (theme) => theme.palette.action.selected : undefined,
-                      }}>
-                      <Filtering />
-                    </Button>
-                  </Tooltip>
-
-                  <Popper {...bindPopper(settings)} onClose={settings.close}>
-                    <Paper
-                      sx={{
-                        mt: -1,
-                        p: { xs: 2, md: 4 },
-                        maxWidth: 'sm',
-                        maxHeight: '90vh',
-                        overflow: 'auto',
-                      }}>
-                      <TemplateSettings projectId={projectId} gitRef={gitRef} value={template} />
-                    </Paper>
-                  </Popper>
-                </>
-              )}
 
               {!rightOpen && (
                 <PanelToggleButton

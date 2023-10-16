@@ -114,7 +114,6 @@ export default flat({
   deleteProjectTips: '删除之后不可找回！',
   home: '首页',
   prompts: '提示',
-  parameters: '变量',
   model: '模型',
   temperature: '随机性 temperature',
   temperatureTip:
@@ -144,7 +143,7 @@ export default flat({
   send: '发送',
   stop: '停止',
   session: '会话',
-  settings: '设置',
+  setting: '设置',
   chat: '对话',
   debug: '调试',
   save: '保存',
@@ -154,4 +153,11 @@ export default flat({
   notOpenFile: '请先从左侧文件列表中打开文件！',
   noProjectTip: '您还没有创建任何项目。 您可以从上面的模板创建项目！',
   aboutTokens: '大约 {tokens} token',
+  test: '测试',
+  discuss: '讨论',
+  variable: '变量',
+  loading: '加载中...',
+  noData: '暂无数据',
+  dataset: '数据集',
+  next: '下一步',
 });
