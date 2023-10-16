@@ -59,13 +59,15 @@ export function resourcesRoutes(router: Router) {
 
     res.json({ resources });
   });
+
   router.post('/resources/export', ensurePromptsEditor, async (req, res) => {
     const { resources, projectId, releaseId } = await exportResourceSchema.validateAsync(req.body);
 
     const fns = resources.map(async (_id: string) => {
-      const [projectId = '', templateId = ''] = _id.split(separator);
-      const repository = await getRepository({ projectId });
       try {
+        const [projectId = '', templateId = ''] = _id.split(separator);
+        const repository = await getRepository({ projectId });
+
         return await getTemplate({ repository, ref: defaultBranch, templateId });
       } catch (error) {
         return null;
