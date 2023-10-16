@@ -5,9 +5,10 @@ import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
-import { omitBy, sample } from 'lodash';
+import { omit, omitBy, sample } from 'lodash';
 import { nanoid } from 'nanoid';
 
+import { defaultModel } from '../libs/models';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { createImageUrl } from '../libs/utils';
 import {
@@ -124,6 +125,7 @@ export function projectRoutes(router: Router) {
 
       const project = await projects.insert({
         ...original,
+        model: original.model || defaultModel,
         _id: nextProjectId(),
         name: original.name && `${original.name}-copy`,
         createdBy: did,
@@ -166,6 +168,8 @@ export function projectRoutes(router: Router) {
       }
 
       const project = await projects.insert({
+        ...omit(template, 'files'),
+        model: template.model || defaultModel,
         _id: nextProjectId(),
         icon,
         createdBy: did,
@@ -197,6 +201,7 @@ export function projectRoutes(router: Router) {
 
     const project = await projects.insert({
       _id: nextProjectId(),
+      model: defaultModel,
       name,
       createdBy: did,
       updatedBy: did,
@@ -244,7 +249,7 @@ export function projectRoutes(router: Router) {
             updatedBy: did,
             description,
             icon,
-            model,
+            model: model || project.model || defaultModel,
             temperature,
             topP,
             presencePenalty,

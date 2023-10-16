@@ -1,3 +1,7 @@
+## 0.1.98 (2023-10-16)
+
+- fix: set default model for project
+
 ## 0.1.97 (2023-10-16)
 
 - chore: export resource data
