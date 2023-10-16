@@ -1,13 +1,10 @@
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { defaultBranch, useProjectState } from './state';
 
-export default function ProjectBrand() {
-  const { t } = useLocaleContext();
-
+export default function ProjectLogo() {
   const { projectId } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId');
 
@@ -22,5 +19,5 @@ export default function ProjectBrand() {
 
   if (!project) return null;
 
-  return <Typography variant="h6">{project.name || t('unnamed')}</Typography>;
+  return <Box component="img" src={project.icon || blocklet?.appLogo} sx={{ borderRadius: 1 }} />;
 }

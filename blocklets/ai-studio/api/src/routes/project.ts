@@ -1,13 +1,15 @@
 import { cpSync, existsSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 
+import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
-import { omitBy } from 'lodash';
+import { omitBy, sample } from 'lodash';
 import { nanoid } from 'nanoid';
 
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { createImageUrl } from '../libs/utils';
 import {
   defaultBranch,
   getRepository,
@@ -18,6 +20,8 @@ import {
   templateToYjs,
 } from '../store/projects';
 import { nextTemplateId } from '../store/templates';
+
+let icons: { filename: string }[] = [];
 
 export interface CreateProjectInput {
   duplicateFrom?: string;
@@ -37,12 +41,28 @@ export interface UpdateProjectInput {
   name?: string;
   description?: string;
   pinned?: boolean;
+  icon?: string;
+  model?: string;
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  maxTokens?: number;
+  gitType?: string;
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
   pinned: Joi.boolean().empty([null]),
+  icon: Joi.string().allow('').empty([null, '']),
+  model: Joi.string().empty([null, '']),
+  temperature: Joi.number().min(0).max(2).empty(null),
+  topP: Joi.number().min(0.1).max(1).empty(null),
+  presencePenalty: Joi.number().min(-2).max(2).empty(null),
+  frequencyPenalty: Joi.number().min(-2).max(2).empty(null),
+  maxTokens: Joi.number().integer().empty(null),
+  gitType: Joi.string().valid('simple', 'default').empty([null, '']),
 });
 
 export interface GetProjectsQuery {
@@ -65,6 +85,17 @@ export function projectRoutes(router: Router) {
     const list = await projects.cursor().sort({ pinnedAt: -1, updatedAt: -1 }).exec();
 
     res.json({ projects: list });
+  });
+
+  router.get('/projects/icons', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
+    const { data } = await call({
+      name: 'image-bin',
+      path: '/api/sdk/uploads',
+      method: 'GET',
+      params: { pageSize: 100, tags: 'default-project-icon' },
+    });
+
+    res.json({ icons: data?.uploads || [] });
   });
 
   router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
@@ -112,8 +143,31 @@ export function projectRoutes(router: Router) {
       const template = projectTemplates.find((i) => i._id === templateId);
       if (!template) throw new Error(`Template project ${templateId} not found`);
 
+      let icon = '';
+
+      if (!icons.length) {
+        try {
+          const { data } = await call({
+            name: 'image-bin',
+            path: '/api/sdk/uploads',
+            method: 'GET',
+            params: { pageSize: 100, tags: 'default-project-icon' },
+          });
+
+          icons = data?.uploads || [];
+        } catch (error) {
+          // error
+        }
+      }
+
+      const item = sample(icons);
+      if (item?.filename) {
+        icon = createImageUrl(`${req.protocol}://${req.host}`, item.filename);
+      }
+
       const project = await projects.insert({
         _id: nextProjectId(),
+        icon,
         createdBy: did,
         updatedBy: did,
       });
@@ -160,7 +214,19 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    const { name, pinned } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
+    const {
+      name,
+      pinned,
+      description,
+      icon,
+      model,
+      temperature,
+      topP,
+      presencePenalty,
+      frequencyPenalty,
+      maxTokens,
+      gitType,
+    } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (name && (await projects.findOne({ name, _id: { $ne: project._id } }))) {
       throw new Error(`Duplicated project ${name}`);
@@ -176,6 +242,15 @@ export function projectRoutes(router: Router) {
             name,
             pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
             updatedBy: did,
+            description,
+            icon,
+            model,
+            temperature,
+            topP,
+            presencePenalty,
+            frequencyPenalty,
+            maxTokens,
+            gitType,
           },
           (v) => v === undefined
         ),

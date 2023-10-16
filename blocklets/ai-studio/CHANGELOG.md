@@ -1,3 +1,7 @@
+## 0.1.96 (2023-10-16)
+
+- feat: project settings page
+
 ## 0.1.95 (2023-10-16)
 
 - move settings to tab view

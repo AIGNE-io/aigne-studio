@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 
 import DocumentStack from './icons/document-stack';
 import Home from './icons/home';
+import Settings from './icons/settings';
 
 export default function MainMenus({ ...props }: Omit<MenusProps, 'menus'>) {
   const { t } = useLocaleContext();
@@ -18,6 +19,10 @@ export default function MainMenus({ ...props }: Omit<MenusProps, 'menus'>) {
 
     if (projectId) {
       menus.push({ icon: <DocumentStack />, title: t('prompts'), url: 'prompts' });
+    }
+
+    if (projectId) {
+      menus.push({ icon: <Settings />, title: t('setting'), url: 'settings' });
     }
 
     return menus;

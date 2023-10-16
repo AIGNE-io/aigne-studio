@@ -11,6 +11,8 @@ import {
   Typography,
   formLabelClasses,
 } from '@mui/material';
+import { useMemo } from 'react';
+import { useAsync } from 'react-use';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
@@ -20,6 +22,8 @@ import SliderNumberField from '../../components/slider-number-field';
 import Datasets from '../../components/template-form/datasets';
 import Next from '../../components/template-form/next';
 import Parameters from '../../components/template-form/parameters';
+import { getSupportedModels } from '../../libs/common';
+import { useProjectState } from './state';
 
 export default function SettingView({
   projectId,
@@ -31,6 +35,18 @@ export default function SettingView({
   template: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
+
+  const {
+    state: { project },
+  } = useProjectState(projectId, gitRef);
+
+  const { value: supportedModels } = useAsync(() => getSupportedModels(), []);
+  const model = useMemo(
+    () => supportedModels?.find((i) => i.model === (template.model || project?.model)),
+    [template.model, project?.model, supportedModels]
+  );
+
+  if (!model) return null;
 
   return (
     <Stack py={2}>
@@ -84,7 +100,7 @@ export default function SettingView({
             <ModelSelectField
               fullWidth
               label={t('model')}
-              value={template.model ?? ''}
+              value={template.model || project?.model || ''}
               onChange={(e) => (template.model = e.target.value)}
             />
           </WithAwareness>
@@ -108,11 +124,11 @@ export default function SettingView({
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'temperature']}>
               <SliderNumberField
-                min={0}
-                max={2}
+                min={model.temperatureMin}
+                max={model.temperatureMax}
                 step={0.1}
                 sx={{ flex: 1 }}
-                value={template.temperature ?? 1}
+                value={template.temperature ?? project?.temperature ?? model.temperatureDefault}
                 onChange={(_, v) => (template.temperature = v)}
               />
             </WithAwareness>
@@ -137,10 +153,10 @@ export default function SettingView({
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'topP']}>
               <SliderNumberField
-                min={0.1}
-                max={1}
+                min={model.topPMin}
+                max={model.topPMax}
                 step={0.1}
-                value={template.topP ?? 1}
+                value={template.topP ?? project?.topP ?? model.topPDefault}
                 onChange={(_, v) => (template.topP = v)}
                 sx={{ flex: 1 }}
               />
@@ -166,11 +182,11 @@ export default function SettingView({
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'presencePenalty']}>
               <SliderNumberField
-                min={-2}
-                max={2}
+                min={model.presencePenaltyMin}
+                max={model.presencePenaltyMax}
                 step={0.1}
                 sx={{ flex: 1 }}
-                value={template.presencePenalty ?? 1}
+                value={template.presencePenalty ?? project?.presencePenalty ?? model.presencePenaltyDefault}
                 onChange={(_, v) => (template.presencePenalty = v)}
               />
             </WithAwareness>
@@ -195,11 +211,11 @@ export default function SettingView({
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'frequencyPenalty']}>
               <SliderNumberField
-                min={-2}
-                max={2}
+                min={model.frequencyPenaltyMin}
+                max={model.frequencyPenaltyMax}
                 step={0.1}
                 sx={{ flex: 1 }}
-                value={template.frequencyPenalty ?? 1}
+                value={template.frequencyPenalty ?? project?.frequencyPenalty ?? model.frequencyPenaltyDefault}
                 onChange={(_, v) => (template.frequencyPenalty = v)}
               />
             </WithAwareness>
@@ -208,6 +224,35 @@ export default function SettingView({
               projectId={projectId}
               gitRef={gitRef}
               path={[template.id, 'frequencyPenalty']}
+              sx={{ position: 'absolute', right: -16, top: 16 }}
+            />
+          </Box>
+        </Box>
+
+        <Box px={2} position="relative">
+          <Tooltip title={t('maxTokensTip')} placement="top" disableInteractive>
+            <FormLabel>
+              {t('maxToken')}
+              <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
+            </FormLabel>
+          </Tooltip>
+
+          <Box>
+            <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'maxTokens']}>
+              <SliderNumberField
+                min={model.maxTokensMin}
+                max={model.maxTokensMax}
+                step={1}
+                sx={{ flex: 1 }}
+                value={template.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault}
+                onChange={(_, v) => (template.maxTokens = v)}
+              />
+            </WithAwareness>
+
+            <AwarenessIndicator
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[template.id, 'maxTokens']}
               sx={{ position: 'absolute', right: -16, top: 16 }}
             />
           </Box>

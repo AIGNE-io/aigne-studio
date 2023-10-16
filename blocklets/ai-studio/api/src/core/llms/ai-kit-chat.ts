@@ -1,11 +1,7 @@
 import { call } from '@blocklet/sdk/lib/component';
 import { CallbackManagerForLLMRun } from 'langchain/callbacks';
 import { BaseLLMParams, LLM } from 'langchain/llms/base';
-import {
-  ChatCompletionRequestMessage,
-  ChatCompletionRequestMessageRoleEnum,
-  CreateChatCompletionRequest,
-} from 'openai';
+import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum } from 'openai';
 
 export class AIKitChat extends LLM {
   override get callKeys() {
@@ -14,22 +10,50 @@ export class AIKitChat extends LLM {
 
   temperature = 1;
 
+  topP = 1;
+
+  presencePenalty = 0;
+
+  frequencyPenalty = 0;
+
+  maxTokens?: number;
+
   modelName = 'gpt-3.5-turbo';
 
-  constructor(fields?: Partial<Pick<AIKitChat, 'temperature' | 'modelName'>> & BaseLLMParams) {
+  constructor(
+    fields?: Partial<
+      Pick<AIKitChat, 'temperature' | 'topP' | 'presencePenalty' | 'frequencyPenalty' | 'maxTokens' | 'modelName'>
+    > &
+      BaseLLMParams
+  ) {
     super(fields ?? {});
 
     this.modelName = fields?.modelName ?? this.modelName;
     this.temperature = fields?.temperature ?? this.temperature;
+    this.topP = fields?.topP ?? this.topP;
+    this.presencePenalty = fields?.presencePenalty ?? this.presencePenalty;
+    this.frequencyPenalty = fields?.frequencyPenalty ?? this.frequencyPenalty;
+    this.maxTokens = fields?.maxTokens ?? this.maxTokens;
   }
 
   /**
    * Get the parameters used to invoke the model
    */
-  override invocationParams(): Omit<CreateChatCompletionRequest, 'messages'> {
+  override invocationParams(): {
+    model: string;
+    temperature?: number;
+    topP?: number;
+    presencePenalty?: number;
+    frequencyPenalty?: number;
+    maxTokens?: number;
+  } {
     return {
       model: this.modelName,
       temperature: this.temperature,
+      topP: this.topP,
+      presencePenalty: this.presencePenalty,
+      frequencyPenalty: this.frequencyPenalty,
+      maxTokens: this.maxTokens,
     };
   }
 

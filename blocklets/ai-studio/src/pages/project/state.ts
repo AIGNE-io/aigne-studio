@@ -10,7 +10,7 @@ import { Role } from '../../../api/src/store/templates';
 import { callAI, textCompletions } from '../../libs/ai';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
-import { getProject } from '../../libs/project';
+import * as projectApi from '../../libs/project';
 
 export const defaultBranch = 'main';
 
@@ -39,10 +39,15 @@ export const useProjectState = (projectId: string, gitRef: string) => {
   const [state, setState] = useRecoilState(projectState(projectId, gitRef));
 
   const refetch = useCallback(async () => {
-    setState((v) => ({ ...v, loading: true }));
+    let loading: boolean | undefined = false;
+    setState((v) => {
+      loading = v.loading;
+      return { ...v, loading: true };
+    });
+    if (loading) return;
     try {
       const [project, { branches }, { commits }] = await Promise.all([
-        getProject(projectId),
+        projectApi.getProject(projectId),
         branchApi.getBranches({ projectId }),
         getLogs({ projectId, ref: gitRef }),
       ]);
@@ -82,7 +87,15 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     [setState]
   );
 
-  return { state, refetch, createBranch, updateBranch, deleteBranch };
+  const updateProject = useCallback(
+    async (...args: Parameters<typeof projectApi.updateProject>) => {
+      await projectApi.updateProject(...args);
+      refetch();
+    },
+    [setState]
+  );
+
+  return { state, refetch, createBranch, updateBranch, deleteBranch, updateProject };
 };
 
 export interface SessionItem {

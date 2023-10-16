@@ -23,6 +23,7 @@ export default function ProjectRoutes() {
     <DndProvider backend={HTML5Backend}>
       <StyledDashboard
         HeaderProps={{
+          logo: <LogoRoutes />,
           brandAddon: <BrandRoutes />,
           addons: (exists) => [<AddonsRoutes />, ...exists],
         }}
@@ -56,6 +57,9 @@ export default function ProjectRoutes() {
                   <Route index element={<Navigate to={defaultBranch} replace />} />
                   <Route path=":ref/*" element={<ProjectPage />} />
                 </Route>
+                <Route path="settings">
+                  <Route index element={<ProjectSettings />} />
+                </Route>
               </Route>
             </Routes>
           </Suspense>
@@ -67,6 +71,11 @@ export default function ProjectRoutes() {
 
 function BrandRoutes() {
   const element = useRoutes([{ path: ':projectId/*', element: <ProjectBrand /> }]);
+  return <Suspense>{element}</Suspense>;
+}
+
+function LogoRoutes() {
+  const element = useRoutes([{ path: ':projectId/*', element: <ProjectLogo /> }]);
   return <Suspense>{element}</Suspense>;
 }
 
@@ -109,6 +118,10 @@ const ProjectsPage = lazy(() => import('./projects-page'));
 const ProjectPage = lazy(() => import('./project-page'));
 
 const ProjectBrand = lazy(() => import('./project-brand'));
+
+const ProjectLogo = lazy(() => import('./project-logo'));
+
+const ProjectSettings = lazy(() => import('./settings'));
 
 const StyledDashboard = styled(Dashboard)`
   .header-container {

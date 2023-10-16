@@ -11,12 +11,12 @@ import {
   PromptTemplate,
   SystemMessagePromptTemplate,
 } from 'langchain/prompts';
-import { ChatCompletionRequestMessage, ImagesResponseDataInner } from 'openai';
+import { ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { defaultBranch, getRepository } from '../store/projects';
+import { Project, defaultBranch, getRepository, projects } from '../store/projects';
 import { Template, getTemplate } from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
@@ -71,7 +71,19 @@ const callInputSchema = Joi.object<
       }
     | {
         templateId: undefined;
-        template: Pick<Template, 'type' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>;
+        template: Pick<
+          Template,
+          | 'type'
+          | 'model'
+          | 'temperature'
+          | 'topP'
+          | 'presencePenalty'
+          | 'frequencyPenalty'
+          | 'prompts'
+          | 'datasets'
+          | 'branch'
+          | 'next'
+        >;
       }
   )
 >({
@@ -83,6 +95,10 @@ const callInputSchema = Joi.object<
     type: templateSchema.extract('type'),
     model: templateSchema.extract('model'),
     temperature: templateSchema.extract('temperature'),
+    topP: Joi.number().min(0.1).max(1).empty(null),
+    presencePenalty: Joi.number().min(-2).max(2).empty(null),
+    frequencyPenalty: Joi.number().min(-2).max(2).empty(null),
+    maxTokens: Joi.number().integer().empty(null),
     prompts: templateSchema.extract('prompts'),
     datasets: templateSchema.extract('datasets'),
     branch: templateSchema.extract('branch'),
@@ -95,6 +111,8 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
+
+  const project = input.projectId ? await projects.findOne({ _id: input.projectId }) : undefined;
 
   const repository = await getRepository({ projectId: input.projectId || 'default' });
 
@@ -113,6 +131,7 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
   };
 
   const result = await runTemplate(
+    project,
     getTemplateById,
     template,
     input.parameters,
@@ -148,8 +167,23 @@ class StaticPromptTemplate extends PromptTemplate {
 }
 
 async function runTemplate(
+  project: Project | undefined,
   getTemplate: (templateId: string) => Promise<Template>,
-  template: Pick<Template, 'type' | 'mode' | 'model' | 'temperature' | 'prompts' | 'datasets' | 'branch' | 'next'>,
+  template: Pick<
+    Template,
+    | 'type'
+    | 'mode'
+    | 'model'
+    | 'temperature'
+    | 'topP'
+    | 'presencePenalty'
+    | 'frequencyPenalty'
+    | 'maxTokens'
+    | 'prompts'
+    | 'datasets'
+    | 'branch'
+    | 'next'
+  >,
   parameters?: {
     $history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
     [key: string]: any;
@@ -174,7 +208,7 @@ async function runTemplate(
       ...new Set(Array.from(template.matchAll(/{{\s*(\w+)\s*}}/g)).map((i) => i[1]!)),
     ];
 
-    const messages: ChatCompletionRequestMessage[] = (current.prompts ?? [])
+    const messages = (current.prompts ?? [])
       .filter((i): i is Required<typeof i> => !!i.role && !!i.content)
       .map((item) => {
         const params = matchParams(item.content);
@@ -292,8 +326,12 @@ Question: ${question}\
     }
 
     const model = new AIKitChat({
-      modelName: current.model,
-      temperature: current.temperature,
+      modelName: current.model ?? project?.model,
+      temperature: current.temperature ?? project?.temperature,
+      topP: current.topP ?? project?.topP,
+      presencePenalty: current.presencePenalty ?? project?.presencePenalty,
+      frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
+      maxTokens: current.maxTokens ?? project?.maxTokens,
     });
 
     const chain = new LLMChain({

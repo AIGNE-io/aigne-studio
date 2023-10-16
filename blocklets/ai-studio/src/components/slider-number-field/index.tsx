@@ -2,6 +2,7 @@ import { Slider, Stack, StackProps, TextField } from '@mui/material';
 import { ChangeEvent } from 'react';
 
 export default function SliderNumberField({
+  disabled,
   value,
   min,
   max,
@@ -9,6 +10,7 @@ export default function SliderNumberField({
   onChange,
   ...props
 }: {
+  disabled?: boolean;
   value?: number;
   min?: number;
   max?: number;
@@ -18,6 +20,7 @@ export default function SliderNumberField({
   return (
     <Stack direction="row" alignItems="center" {...props}>
       <Slider
+        disabled={disabled}
         min={min}
         max={max}
         step={step}
@@ -29,6 +32,7 @@ export default function SliderNumberField({
       />
 
       <TextField
+        disabled={disabled}
         hiddenLabel
         size="small"
         type="number"
@@ -42,7 +46,7 @@ export default function SliderNumberField({
 
           onChange?.(e as any, v);
         }}
-        sx={{ width: 60 }}
+        sx={{ minWidth: 80 }}
       />
     </Stack>
   );
