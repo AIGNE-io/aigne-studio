@@ -11,6 +11,7 @@ import {
   Toolbar,
   Tooltip,
   Typography,
+  tabScrollButtonClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -172,7 +173,16 @@ export default function ProjectPage() {
               borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
             <Toolbar variant="dense" sx={{ gap: 1, px: { xs: 1 } }}>
-              <Tabs variant="scrollable" scrollButtons value={currentTab} onChange={(_, tab) => setCurrentTab(tab)}>
+              <Tabs
+                variant="scrollable"
+                value={currentTab}
+                onChange={(_, tab) => setCurrentTab(tab)}
+                sx={{
+                  [`.${tabScrollButtonClasses.disabled}`]: {
+                    opacity: 1,
+                    color: (theme) => theme.palette.action.disabled,
+                  },
+                }}>
                 <Tab value="setting" label={t('setting')} />
                 <Tab value="debug" label={t('debug')} />
                 <Tab value="test" label={t('test')} disabled />
