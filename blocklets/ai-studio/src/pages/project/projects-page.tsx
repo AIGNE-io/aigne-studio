@@ -30,6 +30,7 @@ import joinUrl from 'url-join';
 
 import { Project } from '../../../api/src/store/projects';
 import { useProjectsState } from '../../contexts/projects';
+import { useIsReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
@@ -44,6 +45,7 @@ import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
 import WarningCircle from './icons/warning-circle';
+import { defaultBranch } from './state';
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
@@ -116,6 +118,8 @@ function ProjectMenu() {
 
   const { t } = useLocaleContext();
 
+  const readOnly = useIsReadOnly({ ref: defaultBranch });
+
   const { dialog, showDialog } = useDialog();
 
   const {
@@ -175,6 +179,7 @@ function ProjectMenu() {
           <Paper>
             <List dense>
               <LoadingMenuItem
+                disabled={readOnly}
                 onClick={() =>
                   createProject({ duplicateFrom: menuAnchor!.id })
                     .catch((error) => {
@@ -193,6 +198,7 @@ function ProjectMenu() {
 
               {menuAnchor?.section === 'projects' && (
                 <LoadingMenuItem
+                  disabled={readOnly}
                   onClick={() =>
                     updateProject(menuAnchor.id, { pinned: !item?.pinnedAt })
                       .catch((error) => {
@@ -211,6 +217,7 @@ function ProjectMenu() {
               <Divider />
 
               <MenuItem
+                disabled={readOnly}
                 sx={{ color: 'warning.main' }}
                 onClick={() => {
                   onDelete();
@@ -283,6 +290,7 @@ function ProjectList({
   list,
 }: { section: 'templates'; list: Project[] } | { section: 'projects'; list: Project[] }) {
   const { t } = useLocaleContext();
+  const readOnly = useIsReadOnly({ ref: defaultBranch });
   const navigate = useNavigate();
 
   const {
@@ -320,6 +328,7 @@ function ProjectList({
                 </Button>
               ) : section === 'templates' ? (
                 <LoadingButton
+                  disabled={readOnly}
                   className="hover-visible"
                   size="small"
                   variant="contained"
