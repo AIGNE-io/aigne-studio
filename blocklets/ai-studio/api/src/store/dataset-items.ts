@@ -15,11 +15,11 @@ export interface DatasetItem {
         fullSite: true;
         id?: undefined;
       };
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   createdBy: string;
   updatedBy: string;
-  embeddedAt?: string;
+  embeddedAt?: string | Date;
   error?: string;
 }
 

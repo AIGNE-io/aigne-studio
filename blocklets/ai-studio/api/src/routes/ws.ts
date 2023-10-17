@@ -1,7 +1,8 @@
 import express from 'express';
 
 import { ensurePromptsEditor } from '../libs/security';
-import { getRepository, projects } from '../store/projects';
+import Projects from '../store/models/projects';
+import { getRepository } from '../store/projects';
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.use(ensurePromptsEditor).ws('/ws/:projectId/:ref', async (conn, req) => {
   const { projectId, ref } = req.params;
   if (!projectId || !ref) throw new Error('Missing required params projectId or ref');
 
-  const project = await projects.findOne({ _id: projectId });
+  const project = await Projects.findOne({ where: { _id: projectId } });
   if (!project) {
     conn.close(3001, `Project ${projectId} not found`);
     return;

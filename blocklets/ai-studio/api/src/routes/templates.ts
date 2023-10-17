@@ -2,7 +2,8 @@ import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { defaultBranch, getRepository, getTemplatesFromRepository, projects } from '../store/projects';
+import Projects from '../store/models/projects';
+import { defaultBranch, getRepository, getTemplatesFromRepository } from '../store/projects';
 import { Template, getTemplate, roles } from '../store/templates';
 
 export interface TemplateInput
@@ -190,7 +191,11 @@ export function templateRoutes(router: Router) {
 
     const projectIds = projectId
       ? [projectId]
-      : (await projects.cursor().sort({ createdAt: 1 }).exec()).map((i) => i._id!);
+      : (
+          await Projects.findAll({
+            order: [['createdAt', 'ASC']],
+          })
+        ).map((i) => i._id!);
 
     let templates = (
       await Promise.all(

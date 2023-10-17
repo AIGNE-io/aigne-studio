@@ -21,11 +21,11 @@ export interface Project
   name?: string;
   description?: string;
   model: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   createdBy: string;
   updatedBy: string;
-  pinnedAt?: string;
+  pinnedAt?: string | Date;
   icon?: string;
   gitType?: 'simple' | 'default';
 }
@@ -47,8 +47,8 @@ export const projectTemplates: (Project & {
     model: defaultModel,
     createdBy: wallet.address,
     updatedBy: wallet.address,
-    createdAt: '2023-09-30T12:23:04.603Z',
-    updatedAt: '2023-09-30T12:23:04.603Z',
+    createdAt: new Date('2023-09-30T12:23:04.603Z').toISOString(),
+    updatedAt: new Date('2023-09-30T12:23:04.603Z').toISOString(),
     files: [
       {
         parent: [],

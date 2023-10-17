@@ -9,7 +9,8 @@ import uniqBy from 'lodash/uniqBy';
 import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
-import { defaultBranch, getRepository, getTemplatesFromRepository, projects } from '../store/projects';
+import Projects from '../store/models/projects';
+import { defaultBranch, getRepository, getTemplatesFromRepository } from '../store/projects';
 import { Template, getTemplate } from '../store/templates';
 
 const TARGET_DIR = 'ai.templates';
@@ -73,7 +74,11 @@ const getDeepTemplate = async (projectId: string, templateId: string) => {
 
 export function resourcesRoutes(router: Router) {
   router.get('/resources/export', ensurePromptsEditor, async (_req, res) => {
-    const projectIds = (await projects.cursor().sort({ createdAt: 1 }).exec()).map((i) => i._id!);
+    const projectIds = (
+      await Projects.findAll({
+        order: [['createdAt', 'ASC']],
+      })
+    ).map((i) => i._id!);
 
     const templates = (
       await Promise.all(

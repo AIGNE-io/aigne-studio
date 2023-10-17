@@ -79,6 +79,8 @@ async function ensureHNSWLIBBinaryFile() {
   try {
     await ensureRolesCreated();
     await ensureHNSWLIBBinaryFile();
+    await import('../store/migrate').then((m) => m.default());
+
     process.exit(0);
   } catch (err) {
     logger.error(`${name} pre-start error`, err.message);
