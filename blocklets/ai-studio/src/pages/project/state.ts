@@ -1,6 +1,7 @@
 import produce, { Draft } from 'immer';
 import { debounce, omit } from 'lodash';
 import { nanoid } from 'nanoid';
+import { ChatCompletionRequestMessage } from 'openai';
 import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { recoilPersist } from 'recoil-persist';
@@ -295,7 +296,7 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
             ? await textCompletions({
                 stream: true,
                 messages: (
-                  (session?.messages.slice(-15).filter((i) => i.content) ?? []) as { role: string; content: string }[]
+                  (session?.messages.slice(-15).filter((i) => i.content) ?? []) as ChatCompletionRequestMessage[]
                 ).concat({
                   role: 'user',
                   content: message.content,
