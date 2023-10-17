@@ -25,6 +25,7 @@ import Loading from '../../../components/loading';
 import Avatar from '../../../components/project-settings/avatar';
 import ModelSelectField from '../../../components/selector/model-select-field';
 import SliderNumberField from '../../../components/slider-number-field';
+import { useReadOnly } from '../../../contexts/session';
 import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
 import { getSupportedModels } from '../../../libs/common';
@@ -47,6 +48,8 @@ export default function ProjectSettings() {
   const { t } = useLocaleContext();
   const { projectId = '' } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId`');
+
+  const readOnly = useReadOnly({ ref: defaultBranch });
 
   const [submitLoading, setLoading] = useState(false);
   const [value, setValue] = useState<UpdateProjectInput>(init);
@@ -144,21 +147,21 @@ export default function ProjectSettings() {
 
               <Stack spacing={1} flex={1} ml={4}>
                 <TextField
-                  size="small"
                   label={t('projectSetting.name')}
                   sx={{ flex: 1 }}
                   value={value.name ?? ''}
                   onChange={(e) => set('name', e.target.value)}
+                  InputProps={{ readOnly }}
                 />
 
                 <TextField
-                  size="small"
                   label={t('projectSetting.description')}
                   multiline
                   rows={4}
                   sx={{ width: 1 }}
                   value={value.description ?? ''}
                   onChange={(e) => set('description', e.target.value)}
+                  InputProps={{ readOnly }}
                 />
               </Stack>
             </Box>
@@ -179,6 +182,7 @@ export default function ProjectSettings() {
                     fullWidth
                     value={value.model ?? ''}
                     onChange={(e) => set('model', e.target.value)}
+                    InputProps={{ readOnly }}
                   />
                 </Box>
               </Box>
@@ -197,6 +201,7 @@ export default function ProjectSettings() {
 
                     <Box>
                       <SliderNumberField
+                        readOnly={readOnly}
                         min={model.temperatureMin}
                         max={model.temperatureMax}
                         step={0.1}
@@ -219,6 +224,7 @@ export default function ProjectSettings() {
 
                     <Box>
                       <SliderNumberField
+                        readOnly={readOnly}
                         min={model.topPMin}
                         max={model.topPMax}
                         step={0.1}
@@ -241,6 +247,7 @@ export default function ProjectSettings() {
 
                     <Box>
                       <SliderNumberField
+                        readOnly={readOnly}
                         min={model.presencePenaltyMin}
                         max={model.presencePenaltyMax}
                         step={0.1}
@@ -263,6 +270,7 @@ export default function ProjectSettings() {
 
                     <Box>
                       <SliderNumberField
+                        readOnly={readOnly}
                         min={model.frequencyPenaltyMin}
                         max={model.frequencyPenaltyMax}
                         step={0.1}
@@ -285,6 +293,7 @@ export default function ProjectSettings() {
 
                     <Box>
                       <SliderNumberField
+                        readOnly={readOnly}
                         min={model.maxTokensMin}
                         max={model.maxTokensMax}
                         step={1}
@@ -304,7 +313,9 @@ export default function ProjectSettings() {
 
             <Box>
               <FormControl className="version">
-                <RadioGroup value={value.gitType ?? 'default'} onChange={(e) => set('gitType', e.target.value)}>
+                <RadioGroup
+                  value={value.gitType ?? 'default'}
+                  onChange={(e) => !readOnly && set('gitType', e.target.value)}>
                   {versions.map((version) => {
                     return (
                       <FormControlLabel
@@ -328,6 +339,7 @@ export default function ProjectSettings() {
 
           <Box display="flex" justifyContent="flex-end" mb={5}>
             <LoadingButton
+              disabled={readOnly}
               variant="contained"
               loadingPosition="start"
               loading={submitLoading}
