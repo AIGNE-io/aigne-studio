@@ -246,7 +246,7 @@ export default function SettingView({
         <Box px={2} position="relative">
           <Tooltip title={t('maxTokensTip')} placement="top" disableInteractive>
             <FormLabel>
-              {t('maxToken')}
+              {t('maxTokens')}
               <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
             </FormLabel>
           </Tooltip>
