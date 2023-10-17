@@ -1,5 +1,6 @@
 import produce, { Draft } from 'immer';
-import { debounce, omit } from 'lodash';
+import debounce from 'lodash/debounce';
+import omit from 'lodash/omit';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
 import { useCallback } from 'react';

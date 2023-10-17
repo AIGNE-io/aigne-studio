@@ -2,7 +2,7 @@ import path from 'path';
 
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
-import { sortBy } from 'lodash';
+import sortBy from 'lodash/sortBy';
 import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
 

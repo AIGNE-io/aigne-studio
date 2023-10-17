@@ -21,7 +21,7 @@ import {
   styled,
 } from '@mui/material';
 import { useReactive } from 'ahooks';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import { useEffect, useMemo, useState } from 'react';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 

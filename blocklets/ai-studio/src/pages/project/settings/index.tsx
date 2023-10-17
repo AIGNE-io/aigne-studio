@@ -15,7 +15,9 @@ import {
   Tooltip,
   styled,
 } from '@mui/material';
-import { cloneDeep, isNil, pick } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import isNil from 'lodash/isNil';
+import pick from 'lodash/pick';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';

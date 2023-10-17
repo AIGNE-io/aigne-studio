@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Button, Input, MenuItem, Select, SelectProps, Stack, inputClasses, selectClasses } from '@mui/material';
-import { sortBy } from 'lodash';
+import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 
 import { TemplateYjs } from '../../../api/src/store/projects';

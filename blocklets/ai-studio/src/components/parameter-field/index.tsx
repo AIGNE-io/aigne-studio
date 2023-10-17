@@ -9,7 +9,8 @@ import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import equal from 'fast-deep-equal';
-import { isNil, sortBy } from 'lodash';
+import isNil from 'lodash/isNil';
+import sortBy from 'lodash/sortBy';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import tzlookup from 'tz-lookup';
 

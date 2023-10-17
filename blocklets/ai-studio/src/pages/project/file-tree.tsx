@@ -19,7 +19,7 @@ import {
   listItemIconClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import { uniqBy } from 'lodash';
+import uniqBy from 'lodash/uniqBy';
 import {
   ComponentProps,
   ReactNode,
