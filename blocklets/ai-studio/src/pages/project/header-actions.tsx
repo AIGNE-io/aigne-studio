@@ -15,8 +15,10 @@ export default function HeaderActions() {
   const navigate = useNavigate();
 
   const {
-    state: { loading, commits },
+    state: { loading, commits, project },
   } = useProjectState(projectId, gitRef);
+
+  const simpleMode = !project || project?.gitType === 'simple';
 
   // const { exporter, exportFiles } = useExportFiles({ projectId, gitRef });
 
@@ -161,7 +163,7 @@ export default function HeaderActions() {
 
   return (
     <>
-      <BranchButton projectId={projectId} gitRef={gitRef} filepath={filepath} />
+      {!simpleMode && <BranchButton projectId={projectId} gitRef={gitRef} filepath={filepath} />}
       <CommitsTip
         loading={loading}
         commits={commits}

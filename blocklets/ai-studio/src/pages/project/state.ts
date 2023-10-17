@@ -47,11 +47,12 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     });
     if (loading) return;
     try {
-      const [project, { branches }, { commits }] = await Promise.all([
+      const [project, { branches }] = await Promise.all([
         projectApi.getProject(projectId),
         branchApi.getBranches({ projectId }),
-        getLogs({ projectId, ref: gitRef }),
       ]);
+      const { commits } = await getLogs({ projectId, ref: project.gitType === 'simple' ? defaultBranch : gitRef });
+      if (commits.length) commits[0]!.oid = defaultBranch;
       setState((v) => ({ ...v, project, branches, commits, error: undefined }));
     } catch (error) {
       setState((v) => ({ ...v, error }));

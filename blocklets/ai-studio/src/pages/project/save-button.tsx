@@ -24,7 +24,7 @@ import joinUrl from 'url-join';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
-import { useProjectState } from './state';
+import { defaultBranch, useProjectState } from './state';
 
 interface CommitForm {
   branch: string;
@@ -38,9 +38,11 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const dialogState = usePopupState({ variant: 'dialog' });
 
   const {
-    state: { branches },
+    state: { branches, project },
     refetch,
   } = useProjectState(projectId, gitRef);
+
+  const simpleMode = !project || project?.gitType === 'simple';
 
   const form = useForm<CommitForm>({});
 
@@ -61,7 +63,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
           projectId,
           ref: gitRef,
           input: {
-            branch: input.branch,
+            branch: simpleMode ? defaultBranch : input.branch,
             message: input.message || new Date().toLocaleString(),
           },
         });
@@ -76,7 +78,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         throw error;
       }
     },
-    [gitRef, navigate, projectId, refetch, t]
+    [gitRef, navigate, projectId, refetch, t, simpleMode]
   );
 
   const submitting = form.formState.isSubmitting;
@@ -115,33 +117,35 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         <DialogTitle>{t('save')}</DialogTitle>
         <DialogContent>
           <Stack gap={1}>
-            <Box>
-              <Controller
-                control={form.control}
-                name="branch"
-                render={({ field }) => (
-                  <Autocomplete
-                    disableClearable
-                    freeSolo
-                    autoSelect
-                    options={branches}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label={t('branch')}
-                        error={Boolean(form.formState.errors.branch)}
-                        helperText={form.formState.errors.branch?.message}
-                      />
-                    )}
-                    {...form.register('branch', { required: true, maxLength: 50, pattern: /^\S+$/ })}
-                    value={field.value ?? ''}
-                    onChange={(_, branch) =>
-                      form.setValue('branch', branch, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
-                    }
-                  />
-                )}
-              />
-            </Box>
+            {!simpleMode && (
+              <Box>
+                <Controller
+                  control={form.control}
+                  name="branch"
+                  render={({ field }) => (
+                    <Autocomplete
+                      disableClearable
+                      freeSolo
+                      autoSelect
+                      options={branches}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label={t('branch')}
+                          error={Boolean(form.formState.errors.branch)}
+                          helperText={form.formState.errors.branch?.message}
+                        />
+                      )}
+                      {...form.register('branch', { required: true, maxLength: 50, pattern: /^\S+$/ })}
+                      value={field.value ?? ''}
+                      onChange={(_, branch) =>
+                        form.setValue('branch', branch, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
+                      }
+                    />
+                  )}
+                />
+              </Box>
+            )}
 
             <Box>
               <TextField
