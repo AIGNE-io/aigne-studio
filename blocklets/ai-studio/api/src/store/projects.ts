@@ -47,8 +47,8 @@ export const projectTemplates: (Project & {
     model: defaultModel,
     createdBy: wallet.address,
     updatedBy: wallet.address,
-    createdAt: new Date('2023-09-30T12:23:04.603Z').toISOString(),
-    updatedAt: new Date('2023-09-30T12:23:04.603Z').toISOString(),
+    createdAt: new Date('2023-09-30T12:23:04.603Z'),
+    updatedAt: new Date('2023-09-30T12:23:04.603Z'),
     files: [
       {
         parent: [],

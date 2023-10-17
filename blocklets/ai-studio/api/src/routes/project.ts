@@ -7,6 +7,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { omit, omitBy, sample } from 'lodash';
 import { nanoid } from 'nanoid';
+import { Op } from 'sequelize';
 
 import { defaultModel } from '../libs/models';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
@@ -238,7 +239,7 @@ export function projectRoutes(router: Router) {
       gitType,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
-    if (name && (await Projects.findOne({ where: { name, _id: { $ne: project._id } } }))) {
+    if (name && (await Projects.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
       throw new Error(`Duplicated project ${name}`);
     }
 

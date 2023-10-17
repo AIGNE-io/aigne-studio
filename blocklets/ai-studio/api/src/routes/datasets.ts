@@ -65,13 +65,7 @@ router.put('/:datasetId', user(), ensureComponentCallOrAdmin(), async (req, res)
 
   const { did } = req.user!;
 
-  await Datasets.update(
-    {
-      name,
-      updatedBy: did,
-    },
-    { where: { _id: datasetId } }
-  );
+  await Datasets.update({ name, updatedBy: did }, { where: { _id: datasetId } });
 
   const doc = await Datasets.findOne({ where: { _id: datasetId } });
 

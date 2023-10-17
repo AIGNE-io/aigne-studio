@@ -64,11 +64,9 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
     },
     createdBy: {
       type: DataTypes.STRING,
-      defaultValue: DataTypes.NOW,
     },
     updatedBy: {
       type: DataTypes.STRING,
-      defaultValue: DataTypes.NOW,
     },
     pinnedAt: {
       type: DataTypes.DATE,
