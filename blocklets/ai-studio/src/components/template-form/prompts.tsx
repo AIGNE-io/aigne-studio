@@ -14,10 +14,12 @@ import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
 
 export default function Prompts({
+  readOnly,
   projectId,
   gitRef,
   value: form,
 }: {
+  readOnly?: boolean;
   projectId: string;
   gitRef: string;
   value: Pick<TemplateYjs, 'id' | 'prompts'>;
@@ -29,6 +31,7 @@ export default function Prompts({
       {form.prompts && Object.keys(form.prompts).length > 0 && (
         <Box sx={{ border: (theme) => `1px solid ${theme.palette.grey[200]}`, borderRadius: 1 }}>
           <DragSortListYjs
+            disabled={readOnly}
             list={form.prompts}
             renderItem={(prompt, index, params) => (
               <Box
@@ -42,6 +45,7 @@ export default function Prompts({
                 <Stack direction="row" sx={{ position: 'relative' }}>
                   <Stack sx={{ position: 'absolute', zIndex: 1, top: 4, left: 4 }}>
                     <RoleSelector
+                      readOnly={readOnly}
                       value={prompt.role ?? 'system'}
                       onChange={(e) => (prompt.role = e.target.value as any)}
                     />
@@ -49,6 +53,7 @@ export default function Prompts({
 
                   <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
                     <Input
+                      readOnly={readOnly}
                       ref={params.preview}
                       fullWidth
                       multiline
@@ -63,27 +68,29 @@ export default function Prompts({
                     />
                   </WithAwareness>
 
-                  <Stack sx={{ p: 0.5 }}>
-                    <Button
-                      sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}
-                      onClick={() => {
-                        const doc = (getYjsValue(form.prompts) as Map<any>).doc!;
-                        doc.transact(() => {
-                          if (form.prompts) {
-                            delete form.prompts[prompt.id];
-                            sortBy(Object.values(form.prompts), (i) => i.index).forEach(
-                              (i, index) => (i.index = index)
-                            );
-                          }
-                        });
-                      }}>
-                      <Trash sx={{ fontSize: 20, color: 'grey.500' }} />
-                    </Button>
+                  {!readOnly && (
+                    <Stack sx={{ p: 0.5 }}>
+                      <Button
+                        sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}
+                        onClick={() => {
+                          const doc = (getYjsValue(form.prompts) as Map<any>).doc!;
+                          doc.transact(() => {
+                            if (form.prompts) {
+                              delete form.prompts[prompt.id];
+                              sortBy(Object.values(form.prompts), (i) => i.index).forEach(
+                                (i, index) => (i.index = index)
+                              );
+                            }
+                          });
+                        }}>
+                        <Trash sx={{ fontSize: 20, color: 'grey.500' }} />
+                      </Button>
 
-                    <Button ref={params.drag} sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}>
-                      <DragVertical sx={{ color: 'grey.500' }} />
-                    </Button>
-                  </Stack>
+                      <Button ref={params.drag} sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}>
+                        <DragVertical sx={{ color: 'grey.500' }} />
+                      </Button>
+                    </Stack>
+                  )}
 
                   <AwarenessIndicator
                     projectId={projectId}
@@ -98,23 +105,25 @@ export default function Prompts({
         </Box>
       )}
 
-      <Button
-        sx={{ mt: 1 }}
-        size="small"
-        startIcon={<Add />}
-        onClick={() => {
-          const id = nanoid();
-          const doc = (getYjsValue(form) as Map<any>).doc!;
-          doc.transact(() => {
-            form.prompts ??= {};
-            form.prompts[id] = {
-              index: Object.keys(form.prompts).length,
-              data: { id, content: '', role: 'user' },
-            };
-          });
-        }}>
-        {t('add', { object: t('prompt') })}
-      </Button>
+      {!readOnly && (
+        <Button
+          sx={{ mt: 1 }}
+          size="small"
+          startIcon={<Add />}
+          onClick={() => {
+            const id = nanoid();
+            const doc = (getYjsValue(form) as Map<any>).doc!;
+            doc.transact(() => {
+              form.prompts ??= {};
+              form.prompts[id] = {
+                index: Object.keys(form.prompts).length,
+                data: { id, content: '', role: 'user' },
+              };
+            });
+          }}>
+          {t('add', { object: t('prompt') })}
+        </Button>
+      )}
     </Box>
   );
 }

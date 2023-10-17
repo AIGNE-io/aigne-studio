@@ -64,7 +64,7 @@ export default function ProjectPage() {
   }, [refetch]);
 
   const isAdmin = useIsAdmin();
-  const disableMutation = gitRef === defaultBranch && !isAdmin;
+  const readOnly = gitRef === defaultBranch && !isAdmin;
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -140,7 +140,7 @@ export default function ProjectPage() {
 
               <Tooltip title={t('newObject', { object: t('folder') })}>
                 <span>
-                  <Button disabled={disableMutation} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFolder()}>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFolder()}>
                     <FolderAdd />
                   </Button>
                 </span>
@@ -148,7 +148,7 @@ export default function ProjectPage() {
 
               <Tooltip title={t('newObject', { object: t('file') })}>
                 <span>
-                  <Button disabled={disableMutation} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFile()}>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFile()}>
                     <Add />
                   </Button>
                 </span>
@@ -160,7 +160,7 @@ export default function ProjectPage() {
             ref={fileTree}
             projectId={projectId}
             gitRef={gitRef}
-            mutable={!disableMutation}
+            mutable={!readOnly}
             current={filepath}
             onLaunch={assistant ? onLaunch : undefined}
             sx={{ flexGrow: 1 }}

@@ -9,7 +9,7 @@ import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import equal from 'fast-deep-equal';
-import { isNil } from 'lodash';
+import { isNil, sortBy } from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import tzlookup from 'tz-lookup';
 
@@ -17,7 +17,9 @@ import {
   HoroscopeParameter,
   NumberParameter,
   Parameter,
+  ParameterYjs,
   SelectParameter,
+  SelectParameterYjs,
   StringParameter,
 } from '../../../api/src/store/templates';
 import NominatimLocationSearch from '../nominatim-location-search';
@@ -30,7 +32,8 @@ export default function ParameterField({
   parameter,
   ...props
 }: {
-  parameter: Parameter;
+  readOnly?: boolean;
+  parameter: ParameterYjs;
   onChange: (value: string | number | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
   const Field = {
@@ -45,10 +48,14 @@ export default function ParameterField({
 }
 
 function StringParameterField({
+  readOnly,
   parameter,
   onChange,
   ...props
-}: { parameter: StringParameter; onChange: (value: string) => void } & Omit<TextFieldProps, 'onChange'>) {
+}: { readOnly?: boolean; parameter: StringParameter; onChange: (value: string) => void } & Omit<
+  TextFieldProps,
+  'onChange'
+>) {
   return (
     <TextField
       required={parameter.required}
@@ -57,17 +64,23 @@ function StringParameterField({
       helperText={parameter.helper}
       multiline={parameter.multiline}
       minRows={parameter.multiline ? 2 : undefined}
-      inputProps={{ maxLength: parameter.maxLength }}
       onChange={(e) => onChange(e.target.value)}
       {...props}
+      InputProps={{
+        ...props.InputProps,
+        inputProps: { ...props.inputProps, maxLength: parameter.maxLength },
+        readOnly,
+      }}
     />
   );
 }
 
 function NumberParameterField({
+  readOnly,
   parameter,
   ...props
 }: {
+  readOnly?: boolean;
   parameter: NumberParameter;
   onChange: (value: number | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
@@ -80,16 +93,19 @@ function NumberParameterField({
       min={parameter.min}
       max={parameter.max}
       {...props}
+      InputProps={{ ...props.InputProps, readOnly }}
     />
   );
 }
 
 function SelectParameterField({
+  readOnly,
   parameter,
   onChange,
   ...props
 }: {
-  parameter: SelectParameter;
+  readOnly?: boolean;
+  parameter: SelectParameterYjs;
   onChange: (value: string | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
   return (
@@ -100,11 +116,12 @@ function SelectParameterField({
       helperText={parameter.helper}
       select
       onChange={(e) => onChange(e.target.value)}
-      {...props}>
+      {...props}
+      InputProps={{ ...props.InputProps, readOnly }}>
       <MenuItem value="">
         <em>None</em>
       </MenuItem>
-      {(parameter.options ?? []).map((option) => (
+      {sortBy(Object.values(parameter.options ?? {}), (i) => i.index).map(({ data: option }) => (
         <MenuItem key={option.id} value={option.value}>
           {option.label}
         </MenuItem>
@@ -147,10 +164,12 @@ const languages = [
 ];
 
 function LanguageParameterField({
+  readOnly,
   parameter,
   onChange,
   ...props
 }: {
+  readOnly?: boolean;
   parameter: SelectParameter;
   onChange: (value: string | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
@@ -164,7 +183,8 @@ function LanguageParameterField({
       helperText={parameter.helper}
       select
       onChange={(e) => onChange(e.target.value)}
-      {...props}>
+      {...props}
+      InputProps={{ ...props.InputProps, readOnly }}>
       <MenuItem value="">
         <em>None</em>
       </MenuItem>
@@ -178,11 +198,13 @@ function LanguageParameterField({
 }
 
 function HoroscopeParameterField({
+  readOnly,
   parameter,
   value,
   onChange,
   ...props
 }: {
+  readOnly?: boolean;
   parameter: HoroscopeParameter;
   value: HoroscopeParameter['value'];
   onChange: (value: HoroscopeParameter['value'] | undefined) => void;
@@ -232,6 +254,7 @@ function HoroscopeParameterField({
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Box sx={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: 1 }}>
         <DateStringPicker
+          readOnly={readOnly}
           slotProps={{ textField: { size: 'small' } }}
           label="Date"
           sx={{ flex: 1, minWidth: 200 }}
@@ -243,6 +266,7 @@ function HoroscopeParameterField({
         />
 
         <NominatimLocationSearch
+          readOnly={readOnly}
           sx={{ flex: 1, minWidth: 200 }}
           value={val?.location ?? null}
           onChange={(_, location) => {
@@ -253,6 +277,7 @@ function HoroscopeParameterField({
         />
 
         <UTCOffsetPicker
+          readOnly={readOnly}
           label="Timezone"
           sx={{ flex: 1, minWidth: 200 }}
           value={val.offset ?? null}

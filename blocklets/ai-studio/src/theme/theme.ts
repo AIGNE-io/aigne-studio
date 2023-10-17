@@ -94,6 +94,10 @@ export const theme = createTheme({
                   pt: 2,
                   px: 1,
 
+                  ':focus': {
+                    borderRadius: 1,
+                  },
+
                   [`&.${inputBaseClasses.inputSizeSmall}`]: {
                     pt: 1.5,
                     pb: 0.25,

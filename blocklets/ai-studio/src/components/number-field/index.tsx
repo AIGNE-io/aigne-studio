@@ -32,6 +32,7 @@ export default function NumberField({
 
   return (
     <TextField
+      {...props}
       onChange={(e) => onChange?.(correctValue(e))}
       inputProps={{
         type: 'number',
@@ -41,7 +42,6 @@ export default function NumberField({
         max,
         ...props.inputProps,
       }}
-      {...props}
     />
   );
 }

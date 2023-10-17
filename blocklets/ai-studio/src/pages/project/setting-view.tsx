@@ -22,8 +22,9 @@ import SliderNumberField from '../../components/slider-number-field';
 import Datasets from '../../components/template-form/datasets';
 import Next from '../../components/template-form/next';
 import Parameters from '../../components/template-form/parameters';
+import { useIsAdmin } from '../../contexts/session';
 import { getSupportedModels } from '../../libs/common';
-import { useProjectState } from './state';
+import { defaultBranch, useProjectState } from './state';
 
 export default function SettingView({
   projectId,
@@ -35,6 +36,9 @@ export default function SettingView({
   template: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
+
+  const isAdmin = useIsAdmin();
+  const readOnly = gitRef === defaultBranch && !isAdmin;
 
   const {
     state: { project },
@@ -52,15 +56,15 @@ export default function SettingView({
     <Stack py={2}>
       <Stack gap={2} sx={{ '> *:last-child': { mb: 2 }, [`.${formLabelClasses.root}`]: { fontSize: 14 } }}>
         <Box px={2} position="relative">
-          <FormLabel>{t('status')}</FormLabel>
+          <FormLabel>{t('public')}</FormLabel>
 
           <Box>
             <RadioGroup
               row
               value={template.public ?? false}
-              onChange={(_, status) => (template.public = status as any)}>
-              <FormControlLabel value control={<Radio />} label={t('publicStatus')} />
-              <FormControlLabel value={false} control={<Radio />} label={t('privateStatus')} />
+              onChange={(_, status) => !readOnly && (template.public = status as any)}>
+              <FormControlLabel value control={<Radio />} label={t('public')} />
+              <FormControlLabel value={false} control={<Radio />} label={t('nonPublic')} />
             </RadioGroup>
           </Box>
         </Box>
@@ -69,7 +73,10 @@ export default function SettingView({
           <FormLabel>{t('mode')}</FormLabel>
 
           <Box>
-            <RadioGroup row value={template.mode ?? 'default'} onChange={(_, mode) => (template.mode = mode as any)}>
+            <RadioGroup
+              row
+              value={template.mode ?? 'default'}
+              onChange={(_, mode) => !readOnly && (template.mode = mode as any)}>
               <FormControlLabel value="default" control={<Radio />} label={t('formMode')} />
               <FormControlLabel value="chat" control={<Radio />} label={t('chatMode')} />
             </RadioGroup>
@@ -85,6 +92,7 @@ export default function SettingView({
                 row
                 value={template.type ?? 'text'}
                 onChange={(_, type) => {
+                  if (readOnly) return;
                   if (type === 'text') {
                     delete template.type;
                   } else {
@@ -116,6 +124,7 @@ export default function SettingView({
               label={t('model')}
               value={template.model || project?.model || ''}
               onChange={(e) => (template.model = e.target.value)}
+              InputProps={{ readOnly }}
             />
           </WithAwareness>
 
@@ -138,6 +147,7 @@ export default function SettingView({
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'temperature']}>
               <SliderNumberField
+                readOnly={readOnly}
                 min={model.temperatureMin}
                 max={model.temperatureMax}
                 step={0.1}
@@ -167,6 +177,7 @@ export default function SettingView({
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'topP']}>
               <SliderNumberField
+                readOnly={readOnly}
                 min={model.topPMin}
                 max={model.topPMax}
                 step={0.1}
@@ -196,6 +207,7 @@ export default function SettingView({
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'presencePenalty']}>
               <SliderNumberField
+                readOnly={readOnly}
                 min={model.presencePenaltyMin}
                 max={model.presencePenaltyMax}
                 step={0.1}
@@ -225,6 +237,7 @@ export default function SettingView({
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'frequencyPenalty']}>
               <SliderNumberField
+                readOnly={readOnly}
                 min={model.frequencyPenaltyMin}
                 max={model.frequencyPenaltyMax}
                 step={0.1}
@@ -254,6 +267,7 @@ export default function SettingView({
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'maxTokens']}>
               <SliderNumberField
+                readOnly={readOnly}
                 min={model.maxTokensMin}
                 max={model.maxTokensMax}
                 step={1}
@@ -279,7 +293,7 @@ export default function SettingView({
         </Typography>
 
         <Box px={2}>
-          <Parameters form={template} />
+          <Parameters readOnly={readOnly} form={template} />
         </Box>
       </Stack>
 
@@ -289,7 +303,7 @@ export default function SettingView({
         </Typography>
 
         <Box px={2}>
-          <Datasets form={template} />
+          <Datasets readOnly={readOnly} form={template} />
         </Box>
       </Stack>
 
@@ -300,7 +314,7 @@ export default function SettingView({
           </Typography>
 
           <Box px={2}>
-            <Next projectId={projectId} gitRef={gitRef} form={template} />
+            <Next readOnly={readOnly} projectId={projectId} gitRef={gitRef} form={template} />
           </Box>
         </Stack>
       )}

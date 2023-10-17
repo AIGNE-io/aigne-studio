@@ -13,6 +13,7 @@ import {
   DialogTitle,
   Stack,
   TextField,
+  Tooltip,
 } from '@mui/material';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect } from 'react';
@@ -51,25 +52,27 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   }, [dialogState.isOpen]);
 
   const isAdmin = useIsAdmin();
-  const disableMutation = gitRef === defaultBranch && !isAdmin;
+  const branch = form.getValues('branch');
+  const readOnly = branch === defaultBranch && !isAdmin;
 
   const onSave = useCallback(
-    async (form: CommitForm) => {
+    async (input: CommitForm) => {
       try {
         await commitFromWorking({
           projectId,
           ref: gitRef,
           input: {
-            branch: form.branch,
-            message: form.message || new Date().toLocaleString(),
+            branch: input.branch,
+            message: input.message || new Date().toLocaleString(),
           },
         });
 
         dialogState.close();
         refetch();
         Toast.success(t('alert.saved'));
-        if (form.branch !== gitRef) navigate(joinUrl('..', form.branch), { replace: true });
+        if (input.branch !== gitRef) navigate(joinUrl('..', input.branch), { replace: true });
       } catch (error) {
+        form.reset(input);
         Toast.error(getErrorMessage(error));
         throw error;
       }
@@ -83,7 +86,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     <>
       <Button
         {...bindTrigger(dialogState)}
-        disabled={disableMutation || submitting}
+        disabled={submitting}
         sx={{ position: 'relative', minWidth: 32, minHeight: 32 }}>
         <SaveRounded sx={{ opacity: submitting ? 0 : 1 }} />
         {submitting && (
@@ -133,7 +136,9 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
                     )}
                     {...form.register('branch', { required: true, maxLength: 50, pattern: /^\S+$/ })}
                     value={field.value ?? ''}
-                    onChange={(_, branch) => form.setValue('branch', branch)}
+                    onChange={(_, branch) =>
+                      form.setValue('branch', branch, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
+                    }
                   />
                 )}
               />
@@ -154,14 +159,19 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         </DialogContent>
         <DialogActions>
           <Button onClick={dialogState.close}>{t('cancel')}</Button>
-          <LoadingButton
-            type="submit"
-            variant="contained"
-            startIcon={<SaveRounded />}
-            loadingPosition="start"
-            loading={form.formState.isSubmitting}>
-            {t('save')}
-          </LoadingButton>
+          <Tooltip title={readOnly ? t('noPermissionSaveToBranch', { branch }) : ''} placement="top">
+            <span>
+              <LoadingButton
+                disabled={readOnly}
+                type="submit"
+                variant="contained"
+                startIcon={<SaveRounded />}
+                loadingPosition="start"
+                loading={form.formState.isSubmitting}>
+                {t('save')}
+              </LoadingButton>
+            </span>
+          </Tooltip>
         </DialogActions>
       </Dialog>
     </>

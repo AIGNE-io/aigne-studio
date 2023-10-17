@@ -13,11 +13,17 @@ import {
 import { useDeferredValue, useEffect, useRef, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { Parameter } from '../../../api/src/store/templates';
+import { ParameterYjs } from '../../../api/src/store/templates';
 import Settings from '../../pages/project/icons/settings';
 import ParameterConfig from './parameter-config';
 
-export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 'name' | 'prompts' | 'parameters'> }) {
+export default function Parameters({
+  readOnly,
+  form,
+}: {
+  readOnly?: boolean;
+  form: Pick<TemplateYjs, 'type' | 'name' | 'prompts' | 'parameters'>;
+}) {
   const deferredValue = useDeferredValue(form);
 
   const params = (() => {
@@ -34,7 +40,7 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
 
   const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
 
-  const parametersHistory = useRef<Record<string, Parameter>>({});
+  const parametersHistory = useRef<Record<string, ParameterYjs>>({});
 
   useEffect(() => {
     if (!form.parameters && params.length === 0) {
@@ -124,38 +130,14 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
         </Table>
       </Box>
 
-      <Popper
-        open={Boolean(paramConfig)}
-        modifiers={[
-          {
-            name: 'preventOverflow',
-            enabled: true,
-            options: {
-              altAxis: true,
-              altBoundary: true,
-              tether: true,
-              rootBoundary: 'document',
-              padding: 8,
-            },
-          },
-        ]}
-        anchorEl={paramConfig?.anchorEl}
-        translate="no"
-        transition={false}
-        placement="bottom-end"
-        sx={{ zIndex: 1200 }}>
+      <Popper open={Boolean(paramConfig)} anchorEl={paramConfig?.anchorEl} placement="bottom-end" sx={{ zIndex: 1200 }}>
         <ClickAwayListener
           onClickAway={(e) => {
             if (e.target === document.body) return;
             setParamConfig(undefined);
           }}>
           <Paper sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
-            {paramConfig && (
-              <ParameterConfig
-                value={form.parameters![paramConfig.param]!}
-                onChange={(parameter) => (form.parameters![paramConfig.param] = parameter)}
-              />
-            )}
+            {paramConfig && <ParameterConfig readOnly={readOnly} value={form.parameters![paramConfig.param]!} />}
           </Paper>
         </ClickAwayListener>
       </Popper>

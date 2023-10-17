@@ -185,7 +185,7 @@ export default flat({
   noData: 'No data',
   dataset: 'Dataset',
   next: 'Next',
-  publicStatus: 'Public',
-  privateStatus: 'Private',
-  status: 'Status',
+  public: 'Public',
+  nonPublic: 'Non-public',
+  noPermissionSaveToBranch: 'You do not have permission to save data to branch {branch}',
 });
