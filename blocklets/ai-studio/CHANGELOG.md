@@ -1,3 +1,7 @@
+## 0.1.99 (2023-10-17)
+
+- chore: support send ai history messages
+
 ## 0.1.98 (2023-10-16)
 
 - fix: set default model for project
