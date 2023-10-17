@@ -1,3 +1,10 @@
+## 0.1.100 (2023-10-17)
+
+- fix: import lodash on demand
+- feat: simple git mode
+- fix: read only settings
+- fix: file tree scrollable & auto scroll into view
+
 ## 0.1.99 (2023-10-17)
 
 - chore: support send ai history messages
