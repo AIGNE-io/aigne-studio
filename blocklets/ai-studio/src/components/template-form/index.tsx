@@ -3,8 +3,7 @@ import { Box, Stack, TextField, Typography, inputBaseClasses, inputClasses, styl
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
-import { useIsAdmin } from '../../contexts/session';
-import { defaultBranch } from '../../pages/project/state';
+import { useReadOnly } from '../../contexts/session';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import Prompts from './prompts';
@@ -37,8 +36,7 @@ export default function TemplateFormView({
 }) {
   const { t } = useLocaleContext();
 
-  const isAdmin = useIsAdmin();
-  const readOnly = gitRef === defaultBranch && !isAdmin;
+  const readOnly = useReadOnly({ ref: gitRef });
 
   return (
     <Stack>

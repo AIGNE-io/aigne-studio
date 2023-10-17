@@ -30,7 +30,7 @@ import joinUrl from 'url-join';
 
 import { Project } from '../../../api/src/store/projects';
 import { useProjectsState } from '../../contexts/projects';
-import { useIsReadOnly } from '../../contexts/session';
+import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
@@ -118,7 +118,7 @@ function ProjectMenu() {
 
   const { t } = useLocaleContext();
 
-  const readOnly = useIsReadOnly({ ref: defaultBranch });
+  const readOnly = useReadOnly({ ref: defaultBranch });
 
   const { dialog, showDialog } = useDialog();
 
@@ -290,7 +290,7 @@ function ProjectList({
   list,
 }: { section: 'templates'; list: Project[] } | { section: 'projects'; list: Project[] }) {
   const { t } = useLocaleContext();
-  const readOnly = useIsReadOnly({ ref: defaultBranch });
+  const readOnly = useReadOnly({ ref: defaultBranch });
   const navigate = useNavigate();
 
   const {

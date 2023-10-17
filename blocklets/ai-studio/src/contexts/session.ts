@@ -22,4 +22,4 @@ export const useIsAdmin = () => useIsRole('owner', 'admin');
 
 export const useIsPromptEditor = () => useIsRole('owner', 'admin', 'promptsEditor');
 
-export const useIsReadOnly = ({ ref }: { ref: string }) => !useIsAdmin() && ref === defaultBranch;
+export const useReadOnly = ({ ref }: { ref: string }) => !useIsAdmin() && ref === defaultBranch;

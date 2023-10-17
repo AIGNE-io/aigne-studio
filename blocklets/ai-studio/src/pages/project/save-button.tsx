@@ -21,10 +21,10 @@ import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import joinUrl from 'url-join';
 
-import { useIsAdmin } from '../../contexts/session';
+import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
-import { defaultBranch, useProjectState } from './state';
+import { useProjectState } from './state';
 
 interface CommitForm {
   branch: string;
@@ -51,9 +51,8 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     }
   }, [dialogState.isOpen]);
 
-  const isAdmin = useIsAdmin();
   const branch = form.getValues('branch');
-  const readOnly = branch === defaultBranch && !isAdmin;
+  const readOnly = useReadOnly({ ref: branch });
 
   const onSave = useCallback(
     async (input: CommitForm) => {

@@ -22,9 +22,9 @@ import SliderNumberField from '../../components/slider-number-field';
 import Datasets from '../../components/template-form/datasets';
 import Next from '../../components/template-form/next';
 import Parameters from '../../components/template-form/parameters';
-import { useIsAdmin } from '../../contexts/session';
+import { useReadOnly } from '../../contexts/session';
 import { getSupportedModels } from '../../libs/common';
-import { defaultBranch, useProjectState } from './state';
+import { useProjectState } from './state';
 
 export default function SettingView({
   projectId,
@@ -37,8 +37,7 @@ export default function SettingView({
 }) {
   const { t } = useLocaleContext();
 
-  const isAdmin = useIsAdmin();
-  const readOnly = gitRef === defaultBranch && !isAdmin;
+  const readOnly = useReadOnly({ ref: gitRef });
 
   const {
     state: { project },

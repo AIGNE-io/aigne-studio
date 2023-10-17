@@ -21,7 +21,7 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import WithAwareness from '../../components/awareness/with-awareness';
 import TemplateFormView from '../../components/template-form';
 import { useComponent } from '../../contexts/component';
-import { useIsAdmin } from '../../contexts/session';
+import { useReadOnly } from '../../contexts/session';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
@@ -63,8 +63,7 @@ export default function ProjectPage() {
     refetch();
   }, [refetch]);
 
-  const isAdmin = useIsAdmin();
-  const readOnly = gitRef === defaultBranch && !isAdmin;
+  const readOnly = useReadOnly({ ref: gitRef });
 
   const location = useLocation();
   const navigate = useNavigate();
