@@ -139,15 +139,19 @@ export default function ProjectPage() {
               <Box flex={1} />
 
               <Tooltip title={t('newObject', { object: t('folder') })}>
-                <Button disabled={disableMutation} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFolder()}>
-                  <FolderAdd />
-                </Button>
+                <span>
+                  <Button disabled={disableMutation} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFolder()}>
+                    <FolderAdd />
+                  </Button>
+                </span>
               </Tooltip>
 
               <Tooltip title={t('newObject', { object: t('file') })}>
-                <Button disabled={disableMutation} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFile()}>
-                  <Add />
-                </Button>
+                <span>
+                  <Button disabled={disableMutation} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFile()}>
+                    <Add />
+                  </Button>
+                </span>
               </Tooltip>
             </Toolbar>
           </Box>
