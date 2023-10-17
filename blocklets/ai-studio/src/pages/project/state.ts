@@ -288,19 +288,19 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
       );
 
       const session = state.sessions.find((i) => i.index === sessionIndex);
-      let messages: any[] = [];
-      if (session?.messages) {
-        messages = [...session.messages].slice(-15);
-      }
-      if (message.type === 'chat') {
-        messages.push({ role: 'user', content: message?.content || '' });
-        messages = messages.filter((x) => x.content);
-      }
 
       try {
         const result =
           message.type === 'chat'
-            ? await textCompletions({ stream: true, messages })
+            ? await textCompletions({
+                stream: true,
+                messages: (
+                  (session?.messages.slice(-15).filter((i) => i.content) ?? []) as { role: string; content: string }[]
+                ).concat({
+                  role: 'user',
+                  content: message.content,
+                }),
+              })
             : await callAI({
                 projectId: message.projectId,
                 ref: message.gitRef,
