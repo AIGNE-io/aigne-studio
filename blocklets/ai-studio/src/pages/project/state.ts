@@ -257,8 +257,11 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
           const message = session?.messages.find((i) => i.id === messageId);
 
           if (checkCancelledStatus) {
-            const lastMessage = session?.messages.at(-1);
-            if (lastMessage?.cancelled) return;
+            const index = session?.messages.findIndex((i) => i.id === messageId);
+            if (index) {
+              const nextMessage = session?.messages[index + 1];
+              if (nextMessage?.cancelled) return;
+            }
           }
 
           if (message) recipe(message);
