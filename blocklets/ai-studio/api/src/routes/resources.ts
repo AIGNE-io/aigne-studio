@@ -9,8 +9,7 @@ import uniqBy from 'lodash/uniqBy';
 import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
-import { defaultBranch, getRepository, getTemplatesFromRepository, projects } from '../store/projects';
-import { Template, getTemplate } from '../store/templates';
+import { defaultBranch, getTemplatesFromRepository, projects } from '../store/projects';
 
 const TARGET_DIR = 'ai.templates';
 
@@ -36,57 +35,24 @@ const exportResourceSchema = Joi.object<{
   locale: Joi.string().allow(''),
 });
 
-const separator = '/';
-
-const getDeepTemplate = async (projectId: string, templateId: string) => {
-  let templates: Template[] = [];
-
-  try {
-    const repository = await getRepository({ projectId });
-    const template = await getTemplate({ repository, ref: defaultBranch, templateId });
-
-    templates = [template];
-
-    if (template.next?.id) {
-      const nextTemplate = await getDeepTemplate(projectId, template.next?.id);
-      if (nextTemplate?.length) {
-        templates = [...templates, ...nextTemplate];
-      }
-    }
-
-    if (template.branch?.branches?.length) {
-      for (const branch of template.branch?.branches || []) {
-        if (branch.template?.id) {
-          const branchTemplate = await getDeepTemplate(projectId, branch.template?.id);
-          if (branchTemplate?.length) {
-            templates = [...templates, ...branchTemplate];
-          }
-        }
-      }
-    }
-  } catch (error) {
-    // return templates
-  }
-
-  return templates;
+const locales: { [key: string]: any } = {
+  en: {
+    unnamed: 'Unnamed',
+  },
+  zh: {
+    unnamed: '未命名',
+  },
 };
 
 export function resourcesRoutes(router: Router) {
-  router.get('/resources/export', ensurePromptsEditor, async (_req, res) => {
-    const projectIds = (await projects.cursor().sort({ createdAt: 1 }).exec()).map((i) => i._id!);
+  router.get('/resources/export', ensurePromptsEditor, async (req, res) => {
+    const projectRows = await projects.cursor().sort({ createdAt: 1 }).exec();
+    const local = locales[req.body?.locale] || locales.zh;
 
-    const templates = (
-      await Promise.all(
-        projectIds.map(async (projectId) => getTemplatesFromRepository({ projectId, ref: defaultBranch }))
-      )
-    )
-      .flat()
-      .filter((x) => x.public);
-
-    const resources = templates.map((x: any) => {
+    const resources = projectRows.map((x: any) => {
       return {
-        id: `${x.projectId}${separator}${x.id}`,
-        name: x.name,
+        id: x._id,
+        name: x.name || local?.unnamed,
         description: x.description,
       };
     });
@@ -97,13 +63,12 @@ export function resourcesRoutes(router: Router) {
   router.post('/resources/export', ensurePromptsEditor, async (req, res) => {
     const { resources, projectId, releaseId } = await exportResourceSchema.validateAsync(req.body);
 
-    const fns = resources.map(async (_id: string) => {
-      const [projectId = '', templateId = ''] = _id.split(separator);
-      const list = await getDeepTemplate(projectId, templateId);
-      return list;
-    });
+    const templates = (
+      await Promise.all(
+        resources.map(async (projectId) => getTemplatesFromRepository({ projectId, ref: defaultBranch }))
+      )
+    ).flat();
 
-    const templates = (await Promise.all(fns)).flat();
     const result = stringify({ templates: uniqBy(templates, 'id') });
 
     const templateDir = getTemplateDir({ projectId, releaseId: releaseId || '' });
