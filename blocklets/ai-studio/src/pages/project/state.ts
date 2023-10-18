@@ -182,6 +182,8 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
 
   const newSession = useCallback(() => {
     setState((state) => {
+      const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
+
       const now = new Date().toISOString();
       const index = state.nextSessionIndex;
 
@@ -194,6 +196,7 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
             createdAt: now,
             updatedAt: now,
             messages: [],
+            chatType: currentSession?.chatType,
           },
         ],
         nextSessionIndex: index + 1,
