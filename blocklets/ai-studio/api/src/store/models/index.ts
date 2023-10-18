@@ -4,7 +4,7 @@ import 'mariadb';
 
 import { Sequelize } from 'sequelize';
 
-import { config } from '../../libs/env';
+import env from '../../libs/env';
 import logger from '../../libs/logger';
 import DatasetItems from './dataset-items';
 import Datasets from './datasets';
@@ -18,9 +18,10 @@ const models = {
   EmbeddingHistories,
 };
 
-export const sequelize = new Sequelize(config.database.url, {
-  logging: config.database.logging === false ? false : logger.log,
-  pool: config.database.pool,
+const url = `sqlite:${env.dataDir}/aistudio.db`;
+
+export const sequelize = new Sequelize(url, {
+  logging: env.verbose === false ? false : logger.log,
 });
 
 export function initialize() {
