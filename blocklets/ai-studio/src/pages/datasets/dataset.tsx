@@ -4,7 +4,7 @@ import { Add, ArrowBackIosNew, Error as ErrorIcon } from '@mui/icons-material';
 import { Box, Breadcrumbs, Button, Chip, CircularProgress, Link, Tooltip, Typography } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useReactive } from 'ahooks';
-import { omit } from 'lodash';
+import omit from 'lodash/omit';
 import { useEffect, useMemo } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 

@@ -3,6 +3,7 @@ import { Box, Stack, TextField, Typography, inputBaseClasses, inputClasses, styl
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
+import { useReadOnly } from '../../contexts/session';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import Prompts from './prompts';
@@ -35,6 +36,8 @@ export default function TemplateFormView({
 }) {
   const { t } = useLocaleContext();
 
+  const readOnly = useReadOnly({ ref: gitRef });
+
   return (
     <Stack>
       <Box position="relative">
@@ -45,7 +48,7 @@ export default function TemplateFormView({
             placeholder={t('unnamed')}
             value={value.name ?? ''}
             onChange={(e) => (value.name = e.target.value)}
-            InputProps={{ sx: { fontSize: 18 } }}
+            InputProps={{ readOnly, sx: { fontSize: 18 } }}
           />
         </WithAwareness>
 
@@ -65,7 +68,7 @@ export default function TemplateFormView({
             placeholder={t('description')}
             value={value.description ?? ''}
             onChange={(e) => (value.description = e.target.value)}
-            InputProps={{ sx: { fontSize: 14 } }}
+            InputProps={{ readOnly, sx: { fontSize: 14 } }}
           />
         </WithAwareness>
 
@@ -80,6 +83,7 @@ export default function TemplateFormView({
       <Box mb={2} position="relative">
         <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
           <TagsAutoComplete
+            readOnly={readOnly}
             projectId={projectId}
             value={value.tags ?? []}
             onChange={(_, tags) => (value.tags = tags)}
@@ -111,7 +115,7 @@ export default function TemplateFormView({
         </Typography>
 
         <Box mb={2}>
-          <Prompts projectId={projectId} gitRef={gitRef} value={value} />
+          <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} />
         </Box>
       </Box>
     </Stack>

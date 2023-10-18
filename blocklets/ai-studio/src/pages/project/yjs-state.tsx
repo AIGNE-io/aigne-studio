@@ -264,6 +264,20 @@ export function templateYjsToTemplate(template: TemplateYjs): Template {
   return {
     ...template,
     prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
+    parameters:
+      template.parameters &&
+      Object.fromEntries(
+        Object.entries(template.parameters).map(([param, parameter]) => [
+          param,
+          parameter.type === 'select'
+            ? {
+                ...parameter,
+                options:
+                  parameter.options && sortBy(Object.values(parameter.options), (i) => i.index).map((i) => i.data),
+              }
+            : parameter,
+        ])
+      ),
     branch: template.branch && {
       branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
     },
@@ -271,13 +285,13 @@ export function templateYjsToTemplate(template: TemplateYjs): Template {
   };
 }
 
-export function templateYjsFromTemplate(file: Template): TemplateYjs {
+export function templateYjsFromTemplate(template: Template): TemplateYjs {
   return {
-    ...file,
+    ...template,
     prompts:
-      file.prompts &&
+      template.prompts &&
       Object.fromEntries(
-        file.prompts?.map((prompt, index) => [
+        template.prompts?.map((prompt, index) => [
           prompt.id,
           {
             index,
@@ -285,11 +299,28 @@ export function templateYjsFromTemplate(file: Template): TemplateYjs {
           },
         ])
       ),
-    branch: file.branch && {
-      branches: Object.fromEntries(file.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])),
+    parameters:
+      template.parameters &&
+      Object.fromEntries(
+        Object.entries(template.parameters).map(([param, parameter]) => [
+          param,
+          parameter.type === 'select'
+            ? {
+                ...parameter,
+                options:
+                  parameter.options &&
+                  Object.fromEntries(parameter.options.map((option, index) => [option.id, { index, data: option }])),
+              }
+            : parameter,
+        ])
+      ),
+    branch: template.branch && {
+      branches: Object.fromEntries(
+        template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
+      ),
     },
     datasets:
-      file.datasets &&
-      Object.fromEntries(file.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+      template.datasets &&
+      Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
   };
 }

@@ -10,14 +10,20 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import { useDeferredValue, useEffect, useRef, useState } from 'react';
+import { useDeferredValue, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { Parameter } from '../../../api/src/store/templates';
 import Settings from '../../pages/project/icons/settings';
 import ParameterConfig from './parameter-config';
 
-export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 'name' | 'prompts' | 'parameters'> }) {
+export default function Parameters({
+  readOnly,
+  form,
+}: {
+  readOnly?: boolean;
+  form: Pick<TemplateYjs, 'type' | 'name' | 'prompts' | 'parameters'>;
+}) {
+  // TODO: parameters 支持自定义顺序，到时候可以去掉这个实时 match params 的逻辑，直接渲染 template.parameters 数据即可
   const deferredValue = useDeferredValue(form);
 
   const params = (() => {
@@ -33,32 +39,6 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
   })();
 
   const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
-
-  const parametersHistory = useRef<Record<string, Parameter>>({});
-
-  useEffect(() => {
-    if (!form.parameters && params.length === 0) {
-      return;
-    }
-
-    form.parameters ??= {};
-    for (const param of params) {
-      const history = parametersHistory.current[param];
-      form.parameters[param] ??= history ?? {};
-    }
-    for (const [key, val] of Object.entries(form.parameters)) {
-      if (form.type === 'branch' && key === 'question') {
-        continue;
-      }
-      if (form.type === 'image' && ['size', 'number'].includes(key)) {
-        continue;
-      }
-      if (!params.includes(key)) {
-        delete form.parameters[key];
-        parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
-      }
-    }
-  }, [params]);
 
   return (
     <>
@@ -124,38 +104,14 @@ export default function Parameters({ form }: { form: Pick<TemplateYjs, 'type' | 
         </Table>
       </Box>
 
-      <Popper
-        open={Boolean(paramConfig)}
-        modifiers={[
-          {
-            name: 'preventOverflow',
-            enabled: true,
-            options: {
-              altAxis: true,
-              altBoundary: true,
-              tether: true,
-              rootBoundary: 'document',
-              padding: 8,
-            },
-          },
-        ]}
-        anchorEl={paramConfig?.anchorEl}
-        translate="no"
-        transition={false}
-        placement="bottom-end"
-        sx={{ zIndex: 1200 }}>
+      <Popper open={Boolean(paramConfig)} anchorEl={paramConfig?.anchorEl} placement="bottom-end" sx={{ zIndex: 1200 }}>
         <ClickAwayListener
           onClickAway={(e) => {
             if (e.target === document.body) return;
             setParamConfig(undefined);
           }}>
           <Paper sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
-            {paramConfig && (
-              <ParameterConfig
-                value={form.parameters![paramConfig.param]!}
-                onChange={(parameter) => (form.parameters![paramConfig.param] = parameter)}
-              />
-            )}
+            {paramConfig && <ParameterConfig readOnly={readOnly} value={form.parameters![paramConfig.param]!} />}
           </Paper>
         </ClickAwayListener>
       </Popper>

@@ -1,18 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Checkbox, FormControl, FormControlLabel, Grid, MenuItem, Switch, TextField } from '@mui/material';
 
-import { Parameter } from '../../../api/src/store/templates';
+import { ParameterYjs } from '../../../api/src/store/templates';
 import NumberField from '../number-field';
 import ParameterField from '../parameter-field';
 import SelectOptionsConfig from './select-options-config';
 
-export default function ParameterConfig({
-  value,
-  onChange,
-}: {
-  value: Parameter;
-  onChange: (value: Parameter) => void;
-}) {
+export default function ParameterConfig({ readOnly, value }: { readOnly?: boolean; value: ParameterYjs }) {
   const { t } = useLocaleContext();
 
   return (
@@ -24,7 +18,8 @@ export default function ParameterConfig({
           size="small"
           select
           value={value.type ?? 'string'}
-          onChange={(e) => onChange({ ...value, type: e.target.value as any })}>
+          onChange={(e) => (value.type = e.target.value as any)}
+          InputProps={{ readOnly }}>
           <MenuItem value="string">{t('form.parameter.typeText')}</MenuItem>
           <MenuItem value="number">{t('form.parameter.typeNumber')}</MenuItem>
           <MenuItem value="select">{t('form.parameter.typeSelect')}</MenuItem>
@@ -38,7 +33,7 @@ export default function ParameterConfig({
             label={t('form.parameter.multiline')}
             control={<Checkbox />}
             checked={value.multiline ?? false}
-            onChange={(_, multiline) => onChange({ ...value, multiline })}
+            onChange={(_, multiline) => !readOnly && (value.multiline = multiline)}
           />
         </Grid>
       )}
@@ -48,7 +43,8 @@ export default function ParameterConfig({
           label={t('form.parameter.label')}
           size="small"
           value={value.label || ''}
-          onChange={(e) => onChange({ ...value, label: e.target.value })}
+          onChange={(e) => (value.label = e.target.value)}
+          InputProps={{ readOnly }}
         />
       </Grid>
       <Grid item xs={12}>
@@ -57,7 +53,8 @@ export default function ParameterConfig({
           label={t('form.parameter.placeholder')}
           size="small"
           value={value.placeholder || ''}
-          onChange={(e) => onChange({ ...value, placeholder: e.target.value })}
+          onChange={(e) => (value.placeholder = e.target.value)}
+          InputProps={{ readOnly }}
         />
       </Grid>
       <Grid item xs={12}>
@@ -66,22 +63,24 @@ export default function ParameterConfig({
           label={t('form.parameter.helper')}
           size="small"
           value={value.helper || ''}
-          onChange={(e) => onChange({ ...value, helper: e.target.value })}
+          onChange={(e) => (value.helper = e.target.value)}
+          InputProps={{ readOnly }}
         />
       </Grid>
       <Grid item xs={12}>
         <ParameterField
+          readOnly={readOnly}
           parameter={value}
           fullWidth
           label={t('form.parameter.defaultValue')}
           size="small"
           value={value.defaultValue ?? ''}
-          onChange={(defaultValue: any) => onChange({ ...value, defaultValue })}
+          onChange={(defaultValue: any) => (value.defaultValue = defaultValue)}
         />
       </Grid>
       {value.type === 'select' && (
         <Grid item xs={12}>
-          <SelectOptionsConfig options={value.options} onChange={(options) => onChange({ ...value, options })} />
+          <SelectOptionsConfig readOnly={readOnly} select={value} />
         </Grid>
       )}
       <Grid item xs={12}>
@@ -89,7 +88,10 @@ export default function ParameterConfig({
           <FormControlLabel
             label={t('form.parameter.required')}
             control={
-              <Switch checked={value.required || false} onChange={(_, required) => onChange({ ...value, required })} />
+              <Switch
+                checked={value.required || false}
+                onChange={(_, required) => !readOnly && (value.required = required)}
+              />
             }
           />
         </FormControl>
@@ -103,7 +105,8 @@ export default function ParameterConfig({
               size="small"
               min={1}
               value={value.minLength ?? ''}
-              onChange={(val) => onChange({ ...value, minLength: val })}
+              onChange={(minLength) => (value.minLength = minLength)}
+              InputProps={{ readOnly }}
             />
           </Grid>
           <Grid item xs={6}>
@@ -113,7 +116,8 @@ export default function ParameterConfig({
               size="small"
               min={1}
               value={value.maxLength ?? ''}
-              onChange={(val) => onChange({ ...value, maxLength: val })}
+              onChange={(maxLength) => (value.maxLength = maxLength)}
+              InputProps={{ readOnly }}
             />
           </Grid>
         </>
@@ -126,7 +130,8 @@ export default function ParameterConfig({
               label={t('form.parameter.min')}
               size="small"
               value={value.min ?? ''}
-              onChange={(min) => onChange({ ...value, min })}
+              onChange={(min) => (value.min = min)}
+              InputProps={{ readOnly }}
             />
           </Grid>
           <Grid item xs={6}>
@@ -135,7 +140,8 @@ export default function ParameterConfig({
               label={t('form.parameter.max')}
               size="small"
               value={value.max ?? ''}
-              onChange={(max) => onChange({ ...value, max })}
+              onChange={(max) => (value.max = max)}
+              InputProps={{ readOnly }}
             />
           </Grid>
         </>

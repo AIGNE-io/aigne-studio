@@ -21,7 +21,7 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import WithAwareness from '../../components/awareness/with-awareness';
 import TemplateFormView from '../../components/template-form';
 import { useComponent } from '../../contexts/component';
-import { useIsAdmin } from '../../contexts/session';
+import { useReadOnly } from '../../contexts/session';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
@@ -63,8 +63,7 @@ export default function ProjectPage() {
     refetch();
   }, [refetch]);
 
-  const isAdmin = useIsAdmin();
-  const disableMutation = gitRef === defaultBranch && !isAdmin;
+  const readOnly = useReadOnly({ ref: gitRef });
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -139,15 +138,19 @@ export default function ProjectPage() {
               <Box flex={1} />
 
               <Tooltip title={t('newObject', { object: t('folder') })}>
-                <Button disabled={disableMutation} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFolder()}>
-                  <FolderAdd />
-                </Button>
+                <span>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFolder()}>
+                    <FolderAdd />
+                  </Button>
+                </span>
               </Tooltip>
 
               <Tooltip title={t('newObject', { object: t('file') })}>
-                <Button disabled={disableMutation} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFile()}>
-                  <Add />
-                </Button>
+                <span>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFile()}>
+                    <Add />
+                  </Button>
+                </span>
               </Tooltip>
             </Toolbar>
           </Box>
@@ -156,7 +159,7 @@ export default function ProjectPage() {
             ref={fileTree}
             projectId={projectId}
             gitRef={gitRef}
-            mutable={!disableMutation}
+            mutable={!readOnly}
             current={filepath}
             onLaunch={assistant ? onLaunch : undefined}
             sx={{ flexGrow: 1 }}

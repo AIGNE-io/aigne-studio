@@ -2,6 +2,7 @@ import { Slider, Stack, StackProps, TextField } from '@mui/material';
 import { ChangeEvent } from 'react';
 
 export default function SliderNumberField({
+  readOnly,
   disabled,
   value,
   min,
@@ -10,6 +11,7 @@ export default function SliderNumberField({
   onChange,
   ...props
 }: {
+  readOnly?: boolean;
   disabled?: boolean;
   value?: number;
   min?: number;
@@ -27,7 +29,7 @@ export default function SliderNumberField({
         sx={{ flex: 1, mr: 2 }}
         value={value}
         onChange={(e, v) => {
-          if (!Array.isArray(v)) onChange?.(e, v);
+          if (!readOnly && !Array.isArray(v)) onChange?.(e, v);
         }}
       />
 
@@ -36,7 +38,7 @@ export default function SliderNumberField({
         hiddenLabel
         size="small"
         type="number"
-        inputProps={{ min, max, step }}
+        InputProps={{ readOnly, inputProps: { min, max, step } }}
         value={value}
         onChange={(e) => {
           let v = Number(e.target.value);
