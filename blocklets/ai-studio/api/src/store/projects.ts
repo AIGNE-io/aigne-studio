@@ -110,7 +110,7 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
 
 type FileType = TemplateYjs | { $base64: string };
 
-function isTemplate(file: FileType): file is TemplateYjs {
+export function isTemplate(file: FileType): file is TemplateYjs {
   return typeof (file as any).id === 'string';
 }
 
