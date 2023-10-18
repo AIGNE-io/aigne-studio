@@ -1,5 +1,5 @@
 import { Dashboard } from '@blocklet/studio-ui';
-import { backdropClasses, circularProgressClasses, drawerClasses, styled } from '@mui/material';
+import { Box, backdropClasses, circularProgressClasses, drawerClasses, styled } from '@mui/material';
 import { ComponentProps, Suspense, lazy, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -75,7 +75,10 @@ function BrandRoutes() {
 }
 
 function LogoRoutes() {
-  const element = useRoutes([{ path: ':projectId/*', element: <ProjectLogo /> }]);
+  const element = useRoutes([
+    { path: ':projectId/*', element: <ProjectLogo /> },
+    { path: '*', element: <Box component="img" src={blocklet?.appLogo} /> },
+  ]);
   return <Suspense>{element}</Suspense>;
 }
 
