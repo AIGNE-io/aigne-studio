@@ -51,10 +51,10 @@ async function migrate() {
 (async () => {
   try {
     await migrate();
-    logger.info('migration 0.1.100 success');
+    logger.info('migration 0.1.101 success');
     process.exit(0);
   } catch (err) {
-    logger.error(`${name} migration 0.1.100 error`, err);
+    logger.error(`${name} migration 0.1.101 error`, err);
     process.exit(1);
   }
 })();
