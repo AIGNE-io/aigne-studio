@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import Joi from 'joi';
-import { uniqBy } from 'lodash';
+import uniqBy from 'lodash/uniqBy';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { defaultBranch, getTemplatesFromRepository } from '../store/projects';

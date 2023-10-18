@@ -134,7 +134,9 @@ export default class Working<T> extends Doc {
       return tx.commit({ message, author });
     });
 
-    await this.repo.working({ ref: branch }).then((w) => w.reset());
+    if (this.options.ref !== branch) {
+      await this.repo.working({ ref: branch }).then((w) => w.reset());
+    }
     await this.reset();
 
     return res;
@@ -201,7 +203,7 @@ export default class Working<T> extends Doc {
     conn.close();
   };
 
-  addConnection(conn: WebSocket) {
+  addConnection(conn: WebSocket, { readOnly }: { readOnly?: boolean } = {}) {
     conn.binaryType = 'arraybuffer';
 
     if (this.conns.has(conn)) {
@@ -209,7 +211,11 @@ export default class Working<T> extends Doc {
     }
 
     this.conns.set(conn, new Set());
-    conn.on('message', (message) => this.messageListener(conn, new Uint8Array(message as ArrayBuffer)));
+    conn.on('message', (message) => {
+      const data = new Uint8Array(message as ArrayBuffer);
+      if (readOnly && data[0] === 0 && (data[1] === 1 || data[1] === 2)) return;
+      this.messageListener(conn, data);
+    });
 
     let pongReceived = true;
     const pingInterval = setInterval(() => {

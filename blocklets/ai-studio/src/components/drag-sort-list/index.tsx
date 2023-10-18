@@ -97,9 +97,11 @@ const Item = memo(({ value, children }: { value: Key; children: ReactNode }) => 
 });
 
 export function DragSortListYjs<T>({
+  disabled,
   list,
   renderItem,
 }: {
+  disabled?: boolean;
   list: { [key: string]: { index: number; data: T } };
   renderItem: (item: T, index: number, params: ItemRenderParams) => ReactNode;
 }) {
@@ -137,6 +139,7 @@ export function DragSortListYjs<T>({
     collect: (monitor) => ({
       isOver: monitor.isOver(),
     }),
+    canDrop: () => !disabled,
     drop: () => {
       const doc = (getYjsValue(list) as Map<any>).doc!;
       doc.transact(() => {
@@ -157,7 +160,14 @@ export function DragSortListYjs<T>({
   return (
     <Box ref={ref}>
       {ids.current.map((id, index) => (
-        <ItemDND type={type} key={id} id={id} index={index} itemIndex={(id) => ids.current.indexOf(id)} move={move}>
+        <ItemDND
+          key={id}
+          type={type}
+          disabled={disabled}
+          id={id}
+          index={index}
+          itemIndex={(id) => ids.current.indexOf(id)}
+          move={move}>
           {(params) => {
             const item = list[id];
             if (item) return renderItem(item.data, index, params);
@@ -177,6 +187,7 @@ type ItemRenderParams = {
 };
 
 function ItemDND({
+  disabled,
   id,
   index,
   type,
@@ -184,6 +195,7 @@ function ItemDND({
   itemIndex,
   move,
 }: {
+  disabled?: boolean;
   id: string;
   index: number;
   type: string;
@@ -196,11 +208,13 @@ function ItemDND({
   const [{ isDragging }, drag, preview] = useDrag<{ id: string }, undefined, { isDragging: boolean }>({
     type,
     item: () => ({ id }),
+    canDrag: () => !disabled,
     collect: (monitor) => ({ isDragging: monitor.isDragging() }),
   });
 
   const [, drop] = useDrop<{ id: string }>({
     accept: type,
+    canDrop: () => !disabled,
     hover(item, monitor) {
       if (!ref.current) {
         return;

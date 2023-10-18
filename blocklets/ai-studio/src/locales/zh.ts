@@ -182,7 +182,14 @@ export default flat({
   noData: '暂无数据',
   dataset: '数据集',
   next: '下一步',
-  publicStatus: '公开',
-  privateStatus: '私有',
-  status: '状态',
+  public: '公开',
+  nonPublic: '非公开',
+  noPermissionSaveToBranch: '您没有权限保存数据到 {branch} 分支',
+  validation: {
+    fieldRequired: '请输入该字段',
+    fieldMax: '请输入一个小于{max}的值',
+    fieldMin: '请输入一个大于{min}的值',
+    fieldMinLength: '请输入至少{minLength}个字符',
+    fieldMaxLength: '请输入少于{maxLength}个字符',
+  },
 });

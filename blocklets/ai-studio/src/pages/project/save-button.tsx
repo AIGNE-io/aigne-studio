@@ -13,6 +13,7 @@ import {
   DialogTitle,
   Stack,
   TextField,
+  Tooltip,
 } from '@mui/material';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect } from 'react';
@@ -20,7 +21,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import joinUrl from 'url-join';
 
-import { useIsAdmin } from '../../contexts/session';
+import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
 import { defaultBranch, useProjectState } from './state';
@@ -37,9 +38,11 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const dialogState = usePopupState({ variant: 'dialog' });
 
   const {
-    state: { branches },
+    state: { branches, project },
     refetch,
   } = useProjectState(projectId, gitRef);
+
+  const simpleMode = !project || project?.gitType === 'simple';
 
   const form = useForm<CommitForm>({});
 
@@ -50,31 +53,32 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     }
   }, [dialogState.isOpen]);
 
-  const isAdmin = useIsAdmin();
-  const disableMutation = gitRef === defaultBranch && !isAdmin;
+  const branch = form.getValues('branch');
+  const readOnly = useReadOnly({ ref: branch });
 
   const onSave = useCallback(
-    async (form: CommitForm) => {
+    async (input: CommitForm) => {
       try {
         await commitFromWorking({
           projectId,
           ref: gitRef,
           input: {
-            branch: form.branch,
-            message: form.message || new Date().toLocaleString(),
+            branch: simpleMode ? defaultBranch : input.branch,
+            message: input.message || new Date().toLocaleString(),
           },
         });
 
         dialogState.close();
         refetch();
         Toast.success(t('alert.saved'));
-        if (form.branch !== gitRef) navigate(joinUrl('..', form.branch), { replace: true });
+        if (input.branch !== gitRef) navigate(joinUrl('..', input.branch), { replace: true });
       } catch (error) {
+        form.reset(input);
         Toast.error(getErrorMessage(error));
         throw error;
       }
     },
-    [gitRef, navigate, projectId, refetch, t]
+    [gitRef, navigate, projectId, refetch, t, simpleMode]
   );
 
   const submitting = form.formState.isSubmitting;
@@ -83,7 +87,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     <>
       <Button
         {...bindTrigger(dialogState)}
-        disabled={disableMutation || submitting}
+        disabled={submitting}
         sx={{ position: 'relative', minWidth: 32, minHeight: 32 }}>
         <SaveRounded sx={{ opacity: submitting ? 0 : 1 }} />
         {submitting && (
@@ -113,31 +117,35 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         <DialogTitle>{t('save')}</DialogTitle>
         <DialogContent>
           <Stack gap={1}>
-            <Box>
-              <Controller
-                control={form.control}
-                name="branch"
-                render={({ field }) => (
-                  <Autocomplete
-                    disableClearable
-                    freeSolo
-                    autoSelect
-                    options={branches}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label={t('branch')}
-                        error={Boolean(form.formState.errors.branch)}
-                        helperText={form.formState.errors.branch?.message}
-                      />
-                    )}
-                    {...form.register('branch', { required: true, maxLength: 50, pattern: /^\S+$/ })}
-                    value={field.value ?? ''}
-                    onChange={(_, branch) => form.setValue('branch', branch)}
-                  />
-                )}
-              />
-            </Box>
+            {!simpleMode && (
+              <Box>
+                <Controller
+                  control={form.control}
+                  name="branch"
+                  render={({ field }) => (
+                    <Autocomplete
+                      disableClearable
+                      freeSolo
+                      autoSelect
+                      options={branches}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label={t('branch')}
+                          error={Boolean(form.formState.errors.branch)}
+                          helperText={form.formState.errors.branch?.message}
+                        />
+                      )}
+                      {...form.register('branch', { required: true, maxLength: 50, pattern: /^\S+$/ })}
+                      value={field.value ?? ''}
+                      onChange={(_, branch) =>
+                        form.setValue('branch', branch, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
+                      }
+                    />
+                  )}
+                />
+              </Box>
+            )}
 
             <Box>
               <TextField
@@ -154,14 +162,19 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         </DialogContent>
         <DialogActions>
           <Button onClick={dialogState.close}>{t('cancel')}</Button>
-          <LoadingButton
-            type="submit"
-            variant="contained"
-            startIcon={<SaveRounded />}
-            loadingPosition="start"
-            loading={form.formState.isSubmitting}>
-            {t('save')}
-          </LoadingButton>
+          <Tooltip title={readOnly ? t('noPermissionSaveToBranch', { branch }) : ''} placement="top">
+            <span>
+              <LoadingButton
+                disabled={readOnly}
+                type="submit"
+                variant="contained"
+                startIcon={<SaveRounded />}
+                loadingPosition="start"
+                loading={form.formState.isSubmitting}>
+                {t('save')}
+              </LoadingButton>
+            </span>
+          </Tooltip>
         </DialogActions>
       </Dialog>
     </>

@@ -20,13 +20,14 @@ import {
   selectClasses,
   styled,
 } from '@mui/material';
-import { useReactive } from 'ahooks';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import omit from 'lodash/omit';
 import { useEffect, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import ParameterField from '../../components/parameter-field';
+import { parameterFieldComponent } from '../../components/parameter-field';
 import { matchParams } from '../../components/template-form/parameters';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
@@ -335,16 +336,27 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
 
   const scrollToBottom = useScrollToBottom();
 
-  const initForm = useMemo(() => cloneDeep(currentSession?.debugForm ?? {}), [currentSession?.debugForm]);
+  const initForm = useMemo(
+    () =>
+      cloneDeep(
+        currentSession?.debugForm ??
+          Object.fromEntries(
+            Object.entries(template.parameters ?? {}).map(([param, parameter]) => [
+              param,
+              parameter.defaultValue ?? undefined,
+            ])
+          )
+      ),
+    [currentSession?.debugForm]
+  );
 
-  const form = useReactive<{ [key: string]: any }>(initForm);
+  const form = useForm<{ [key: string]: any }>({ defaultValues: initForm });
 
-  const submit = () => {
+  const submit = (form: { [key: string]: any }) => {
     if (lastMessage?.loading && currentSession) {
       cancelMessage(currentSession.index, lastMessage.id);
       return;
     }
-
     sendMessage({
       sessionIndex: state.currentSessionIndex!,
       message: { type: 'debug', projectId, templateId: template.id, gitRef, parameters: { ...form } },
@@ -369,7 +381,7 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
   })();
 
   return (
-    <Stack component="form" onSubmit={(e) => e.preventDefault()} px={1} gap={1}>
+    <Stack component="form" onSubmit={form.handleSubmit(submit)} px={1} gap={1}>
       <Stack gap={1}>
         {params.map((param) => {
           const parameter =
@@ -378,14 +390,51 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
             return null;
           }
 
+          const Field = parameterFieldComponent({ type: parameter.type });
+
           return (
             <Box key={param}>
-              <ParameterField
-                label={parameter.label || param}
-                fullWidth
-                parameter={parameter}
-                value={form[param] ?? ''}
-                onChange={(v) => (form[param] = v)}
+              <Controller
+                control={form.control}
+                name={param}
+                render={({ field, fieldState }) => {
+                  const { required, min, max, minLength, maxLength } = parameter as any;
+
+                  return (
+                    <Field
+                      label={parameter.label || param}
+                      fullWidth
+                      parameter={omit(parameter, 'min', 'max') as never}
+                      // TODO: 临时去掉 NumberField 的自动转 number 功能
+                      {...(parameter.type === 'number' ? { autoCorrectValue: false } : undefined)}
+                      {...form.register(param, {
+                        required: required ? t('validation.fieldRequired') : undefined,
+                        min:
+                          typeof min === 'number'
+                            ? { value: min, message: t('validation.fieldMin', { min }) }
+                            : undefined,
+                        max:
+                          typeof max === 'number'
+                            ? { value: max, message: t('validation.fieldMax', { max }) }
+                            : undefined,
+                        minLength:
+                          typeof minLength === 'number'
+                            ? { value: minLength, message: t('validation.fieldMinLength', { minLength }) }
+                            : undefined,
+                        maxLength:
+                          typeof maxLength === 'number'
+                            ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
+                            : undefined,
+                      })}
+                      value={field.value}
+                      onChange={(v) =>
+                        form.setValue(param, v, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
+                      }
+                      error={Boolean(fieldState.error)}
+                      helperText={fieldState.error?.message || parameter.helper}
+                    />
+                  );
+                }}
               />
             </Box>
           );
@@ -411,8 +460,7 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
             ) : (
               <PaperPlane />
             )
-          }
-          onClick={submit}>
+          }>
           {lastMessage?.loading ? t('stop') : t('send')}
         </Button>
       </Stack>

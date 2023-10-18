@@ -19,8 +19,18 @@ import {
   listItemIconClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import { uniqBy } from 'lodash';
-import { ComponentProps, ReactNode, forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
+import uniqBy from 'lodash/uniqBy';
+import {
+  ComponentProps,
+  ReactNode,
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import joinUrl from 'url-join';
@@ -181,7 +191,7 @@ const FileTree = forwardRef<
     );
 
   return (
-    <Box overflow="hidden" {...props}>
+    <Box {...props}>
       {showNewProject && (
         <EditableTreeItem
           icon={<FolderClose />}
@@ -272,7 +282,7 @@ const FileTree = forwardRef<
 
             const { meta } = node.data;
             const name = `${meta.id}.yaml`;
-            const selected = current && current.endsWith(name);
+            const selected = current?.endsWith(name);
 
             const icon = meta.type === 'image' ? <Picture /> : <File />;
 
@@ -281,7 +291,7 @@ const FileTree = forwardRef<
                 key={node.id}
                 icon={icon}
                 depth={depth}
-                sx={{ bgcolor: selected ? 'rgba(0,0,0,0.05)' : undefined }}
+                selected={selected}
                 onClick={() => navigate(filepath.join('/'))}
                 actions={actions}>
                 {meta.name || t('alert.unnamed')}
@@ -475,14 +485,25 @@ function TreeItem({
   children,
   depth = 0,
   actions,
+  selected,
   ...props
 }: {
   icon?: ReactNode;
   children?: ReactNode;
   depth?: number;
   actions?: ReactNode;
+  selected?: boolean;
 } & BoxProps) {
+  const ref = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (selected) {
+      setTimeout(() => {
+        ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    }
+  }, [selected]);
 
   return (
     <Box
@@ -495,6 +516,7 @@ function TreeItem({
         },
       }}>
       <Box
+        ref={ref}
         className="item"
         {...props}
         sx={{
@@ -508,7 +530,7 @@ function TreeItem({
           alignItems: 'center',
           cursor: 'pointer',
           ...props.sx,
-          bgcolor: open ? 'grey.100' : (props.sx as any)?.bgcolor,
+          bgcolor: open ? 'grey.100' : selected ? 'rgba(0,0,0,0.05)' : undefined,
         }}>
         <Box sx={{ width: 32, display: 'flex', alignItems: 'center' }}>{icon}</Box>
 
