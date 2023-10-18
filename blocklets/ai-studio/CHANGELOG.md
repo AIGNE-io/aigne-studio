@@ -1,9 +1,6 @@
-## 0.1.100 (2023-10-17)
+## 0.1.100 (2023-10-18)
 
-- fix: import lodash on demand
-- feat: simple git mode
-- fix: read only settings
-- fix: file tree scrollable & auto scroll into view
+- chore: export the resource as project
 
 ## 0.1.99 (2023-10-17)
 
