@@ -13,9 +13,7 @@ const datasetSchema = Joi.object<{ name?: string }>({
 });
 
 router.get('/', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
-  const list = await Datasets.findAll({
-    order: [['createdAt', 'ASC']],
-  });
+  const list = await Datasets.findAll({ order: [['createdAt', 'ASC']] });
 
   res.json({ datasets: list });
 });

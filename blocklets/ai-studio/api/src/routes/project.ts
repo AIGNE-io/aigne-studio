@@ -130,7 +130,7 @@ export function projectRoutes(router: Router) {
       const repo = await getRepository({ projectId: original._id! });
 
       const project = await Projects.create({
-        ...original,
+        ...original.dataValues,
         model: original.model || defaultModel,
         _id: nextProjectId(),
         name: original.name && `${original.name}-copy`,
