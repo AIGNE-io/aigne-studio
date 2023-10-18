@@ -1,17 +1,20 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Button, Input, MenuItem, Select, SelectProps, Stack, inputClasses, selectClasses } from '@mui/material';
+import { useCounter } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
+import { useDeferredValue, useEffect, useRef } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { Role } from '../../../api/src/store/templates';
+import { ParameterYjs, Role } from '../../../api/src/store/templates';
 import Add from '../../pages/project/icons/add';
 import DragVertical from '../../pages/project/icons/drag-vertical';
 import Trash from '../../pages/project/icons/trash';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
+import { matchParams } from './parameters';
 
 export default function Prompts({
   readOnly,
@@ -22,9 +25,52 @@ export default function Prompts({
   readOnly?: boolean;
   projectId: string;
   gitRef: string;
-  value: Pick<TemplateYjs, 'id' | 'prompts'>;
+  value: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
+
+  const parametersHistory = useRef<Record<string, ParameterYjs>>({});
+
+  // NOTE: 用来触发 parameters 更新
+  const [updateTrigger, { inc: triggerUpdate }] = useCounter();
+  const deferredTrigger = useDeferredValue(updateTrigger);
+
+  useEffect(() => {
+    const vars = Object.values(form.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
+    if (form.type === 'branch') {
+      vars.push('question');
+    }
+    if (form.type === 'image') {
+      vars.push('size');
+      vars.push('number');
+    }
+    const params = [...new Set(vars)];
+
+    if (!form.parameters && params.length === 0) {
+      return;
+    }
+
+    const doc = (getYjsValue(form) as Map<any>).doc!;
+    doc.transact(() => {
+      form.parameters ??= {};
+      for (const param of params) {
+        const history = parametersHistory.current[param];
+        form.parameters[param] ??= history ?? {};
+      }
+      for (const [key, val] of Object.entries(form.parameters)) {
+        if (form.type === 'branch' && key === 'question') {
+          continue;
+        }
+        if (form.type === 'image' && ['size', 'number'].includes(key)) {
+          continue;
+        }
+        if (!params.includes(key)) {
+          delete form.parameters[key];
+          parametersHistory.current[key] = JSON.parse(JSON.stringify(val));
+        }
+      }
+    });
+  }, [deferredTrigger]);
 
   return (
     <Box>
@@ -59,7 +105,10 @@ export default function Prompts({
                       multiline
                       minRows={2}
                       value={prompt.content ?? ''}
-                      onChange={(e) => (prompt.content = e.target.value)}
+                      onChange={(e) => {
+                        prompt.content = e.target.value;
+                        triggerUpdate();
+                      }}
                       sx={{
                         bgcolor: 'background.paper',
                         borderRadius: 1,
@@ -82,6 +131,7 @@ export default function Prompts({
                               );
                             }
                           });
+                          triggerUpdate();
                         }}>
                         <Trash sx={{ fontSize: 20, color: 'grey.500' }} />
                       </Button>

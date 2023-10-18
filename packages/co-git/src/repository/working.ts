@@ -134,7 +134,9 @@ export default class Working<T> extends Doc {
       return tx.commit({ message, author });
     });
 
-    await this.repo.working({ ref: branch }).then((w) => w.reset());
+    if (this.options.ref !== branch) {
+      await this.repo.working({ ref: branch }).then((w) => w.reset());
+    }
     await this.reset();
 
     return res;

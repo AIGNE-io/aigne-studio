@@ -52,8 +52,10 @@ export const useProjectState = (projectId: string, gitRef: string) => {
         projectApi.getProject(projectId),
         branchApi.getBranches({ projectId }),
       ]);
-      const { commits } = await getLogs({ projectId, ref: project.gitType === 'simple' ? defaultBranch : gitRef });
-      if (commits.length) commits[0]!.oid = defaultBranch;
+      const simpleMode = project.gitType === 'simple';
+      const { commits } = await getLogs({ projectId, ref: simpleMode ? defaultBranch : gitRef });
+      // NOTE: 简单模式下最新的记录始终指向 defaultBranch
+      if (simpleMode && commits.length) commits[0]!.oid = defaultBranch;
       setState((v) => ({ ...v, project, branches, commits, error: undefined }));
     } catch (error) {
       setState((v) => ({ ...v, error }));
