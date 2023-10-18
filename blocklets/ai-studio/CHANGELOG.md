@@ -1,3 +1,7 @@
+## 0.1.100 (2023-10-18)
+
+- chore: export the resource as project
+
 ## 0.1.99 (2023-10-17)
 
 - chore: support send ai history messages

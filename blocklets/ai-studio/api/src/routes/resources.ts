@@ -47,7 +47,7 @@ const locales: { [key: string]: any } = {
 export function resourcesRoutes(router: Router) {
   router.get('/resources/export', ensurePromptsEditor, async (req, res) => {
     const projectRows = await projects.cursor().sort({ createdAt: 1 }).exec();
-    const local = locales[req.body?.locale] || locales.zh;
+    const local = locales[(req.query as { local: string })?.local] || locales.zh;
 
     const resources = projectRows.map((x: any) => {
       return {
