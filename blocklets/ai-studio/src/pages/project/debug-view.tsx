@@ -335,7 +335,19 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
 
   const scrollToBottom = useScrollToBottom();
 
-  const initForm = useMemo(() => cloneDeep(currentSession?.debugForm ?? {}), [currentSession?.debugForm]);
+  const initForm = useMemo(
+    () =>
+      cloneDeep(
+        currentSession?.debugForm ??
+          Object.fromEntries(
+            Object.entries(template.parameters ?? {}).map(([param, parameter]) => [
+              param,
+              parameter.defaultValue ?? undefined,
+            ])
+          )
+      ),
+    [currentSession?.debugForm]
+  );
 
   const form = useReactive<{ [key: string]: any }>(initForm);
 
