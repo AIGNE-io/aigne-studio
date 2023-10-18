@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
-import { omit } from 'lodash';
+import omit from 'lodash/omit';
 import { nanoid } from 'nanoid';
 import { stringify } from 'yaml';
 

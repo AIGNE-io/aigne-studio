@@ -2,7 +2,7 @@ import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
-import { ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
 import { getRepository } from '../store/projects';
 
 export interface WorkingCommitInput {
@@ -21,12 +21,16 @@ export function workingRoutes(router: Router) {
     user(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
-      const { fullName, did: userId } = req.user!;
+      const { fullName, did: userId, role } = req.user!;
 
       const { projectId, ref } = req.params;
       if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
 
       const input = await createBranchInputSchema.validateAsync(req.body, { stripUnknown: true });
+
+      if (isRefReadOnly({ ref: input.branch, role })) {
+        throw new Error(`commit to read only branch ${input.branch} is forbidden`);
+      }
 
       const repository = await getRepository({ projectId });
       const working = await repository.working({ ref });

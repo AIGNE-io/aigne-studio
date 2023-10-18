@@ -5,7 +5,7 @@ import { Router } from 'express';
 import SSE from 'express-sse';
 import Joi from 'joi';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { omit } from 'lodash';
+import omit from 'lodash/omit';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import logger from '../libs/logger';

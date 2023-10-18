@@ -5,7 +5,9 @@ import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
-import { omit, omitBy, sample } from 'lodash';
+import omit from 'lodash/omit';
+import omitBy from 'lodash/omitBy';
+import sample from 'lodash/sample';
 import { nanoid } from 'nanoid';
 import { Op } from 'sequelize';
 

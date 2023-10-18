@@ -1,5 +1,6 @@
 import produce, { Draft } from 'immer';
-import { debounce, omit } from 'lodash';
+import debounce from 'lodash/debounce';
+import omit from 'lodash/omit';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
 import { useCallback } from 'react';
@@ -47,11 +48,14 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     });
     if (loading) return;
     try {
-      const [project, { branches }, { commits }] = await Promise.all([
+      const [project, { branches }] = await Promise.all([
         projectApi.getProject(projectId),
         branchApi.getBranches({ projectId }),
-        getLogs({ projectId, ref: gitRef }),
       ]);
+      const simpleMode = project.gitType === 'simple';
+      const { commits } = await getLogs({ projectId, ref: simpleMode ? defaultBranch : gitRef });
+      // NOTE: 简单模式下最新的记录始终指向 defaultBranch
+      if (simpleMode && commits.length) commits[0]!.oid = defaultBranch;
       setState((v) => ({ ...v, project, branches, commits, error: undefined }));
     } catch (error) {
       setState((v) => ({ ...v, error }));
@@ -178,6 +182,8 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
 
   const newSession = useCallback(() => {
     setState((state) => {
+      const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
+
       const now = new Date().toISOString();
       const index = state.nextSessionIndex;
 
@@ -190,6 +196,7 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
             createdAt: now,
             updatedAt: now,
             messages: [],
+            chatType: currentSession?.chatType,
           },
         ],
         nextSessionIndex: index + 1,

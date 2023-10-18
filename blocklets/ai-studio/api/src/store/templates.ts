@@ -45,6 +45,8 @@ export interface Template {
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | HoroscopeParameter;
 
+export type ParameterYjs = Exclude<Parameter, { type: 'select' }> | SelectParameterYjs;
+
 export type ParameterType = NonNullable<Parameter['type']>;
 
 export interface BaseParameter {
@@ -76,6 +78,13 @@ export interface SelectParameter extends BaseParameter {
   value?: string;
   defaultValue?: string;
   options?: { id: string; label: string; value: string }[];
+}
+
+export interface SelectParameterYjs extends BaseParameter {
+  type: 'select';
+  value?: string;
+  defaultValue?: string;
+  options?: { [id: string]: { index: number; data: { id: string; label: string; value: string } } };
 }
 
 export interface LanguageParameter extends BaseParameter {

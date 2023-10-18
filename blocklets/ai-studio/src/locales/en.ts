@@ -185,7 +185,14 @@ export default flat({
   noData: 'No data',
   dataset: 'Dataset',
   next: 'Next',
-  publicStatus: 'Public',
-  privateStatus: 'Private',
-  status: 'Status',
+  public: 'Public',
+  nonPublic: 'Non-public',
+  noPermissionSaveToBranch: 'You do not have permission to save data to branch {branch}',
+  validation: {
+    fieldRequired: 'Please fill out this field',
+    fieldMax: 'Please enter a value less than {max}',
+    fieldMin: 'Please enter a value greater than {min}',
+    fieldMinLength: 'Please enter at least {minLength} characters',
+    fieldMaxLength: 'Please enter fewer than {maxLength} characters',
+  },
 });

@@ -2,14 +2,14 @@ import path from 'path';
 
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
-import { sortBy } from 'lodash';
+import sortBy from 'lodash/sortBy';
 import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
 import env from '../libs/env';
 import { defaultModel } from '../libs/models';
-import type { Role, Template } from './templates';
+import type { ParameterYjs, Role, Template } from './templates';
 
 const idGenerator = new Worker();
 
@@ -77,7 +77,7 @@ export const projectTemplates: (Project & {
 
 export const defaultBranch = 'main';
 
-export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'datasets'> {
+export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'datasets' | 'parameters'> {
   prompts?: {
     [key: string]: {
       index: number;
@@ -88,6 +88,8 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
       };
     };
   };
+
+  parameters?: { [key: string]: ParameterYjs };
 
   branch?: {
     branches: {
@@ -108,7 +110,7 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
 
 type FileType = TemplateYjs | { $base64: string };
 
-function isTemplate(file: FileType): file is TemplateYjs {
+export function isTemplate(file: FileType): file is TemplateYjs {
   return typeof (file as any).id === 'string';
 }
 
@@ -160,6 +162,21 @@ export function templateToYjs(template: Template): TemplateYjs {
           },
         ])
       ),
+    parameters:
+      template.parameters &&
+      Object.fromEntries(
+        Object.entries(template.parameters).map(([param, parameter]) => [
+          param,
+          parameter.type === 'select'
+            ? {
+                ...parameter,
+                options:
+                  parameter.options &&
+                  Object.fromEntries(parameter.options.map((option, index) => [option.id, { index, data: option }])),
+              }
+            : parameter,
+        ])
+      ),
     branch: template.branch && {
       branches: Object.fromEntries(
         template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
@@ -175,6 +192,20 @@ export function yjsToTemplate(template: TemplateYjs): Template {
   return {
     ...template,
     prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
+    parameters:
+      template.parameters &&
+      Object.fromEntries(
+        Object.entries(template.parameters).map(([param, parameter]) => [
+          param,
+          parameter.type === 'select'
+            ? {
+                ...parameter,
+                options:
+                  parameter.options && sortBy(Object.values(parameter.options), (i) => i.index).map((i) => i.data),
+              }
+            : parameter,
+        ])
+      ),
     branch: template.branch && {
       branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
     },
