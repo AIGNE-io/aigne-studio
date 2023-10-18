@@ -31,7 +31,6 @@ async function migrate() {
         if (file && isTemplate(file) && file.parameters) {
           for (const parameter of Object.values(file.parameters)) {
             if (parameter.type === 'select' && Array.isArray(parameter.options)) {
-              console.log('transform select options');
               parameter.options = Object.fromEntries(
                 parameter.options.map((option, index) => [
                   option.id,
