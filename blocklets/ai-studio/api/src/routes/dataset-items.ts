@@ -30,7 +30,7 @@ router.get('/:datasetId/items', ensureComponentCallOrPromptsEditor(), async (req
 
   const [items, total] = await Promise.all([
     DatasetItems.findAll({
-      order: ['createdAt', 'ASC'],
+      order: [['createdAt', 'ASC']],
       where: { datasetId },
       offset: (page - 1) * size,
       limit: size,
@@ -95,8 +95,17 @@ router.post('/:datasetId/items', user(), ensureComponentCallOrPromptsEditor(), a
 
   const docs = await Promise.all(
     arr.map(async (item) => {
-      await DatasetItems.update({ ...item, createdBy: did, updatedBy: did }, { where: { datasetId, data: item.data } });
-      const doc = await DatasetItems.findOne({ where: { datasetId, data: item.data } });
+      const found = await DatasetItems.findOne({ where: { datasetId, data: item.data } });
+      if (found) {
+        await DatasetItems.update(
+          { ...item, createdBy: did, updatedBy: did },
+          { where: { datasetId, data: item.data } }
+        );
+        const doc = await DatasetItems.findOne({ where: { datasetId, data: item.data } });
+        return doc;
+      }
+
+      const doc = await DatasetItems.create({ ...item, datasetId, createdBy: did, updatedBy: did });
       return doc;
     })
   );
