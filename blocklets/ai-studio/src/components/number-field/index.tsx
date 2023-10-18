@@ -1,17 +1,19 @@
 import { TextField, TextFieldProps } from '@mui/material';
-import { ChangeEvent } from 'react';
+import { ChangeEvent, forwardRef } from 'react';
 
-export default function NumberField({
-  min,
-  max,
-  default: def,
-  onChange,
-  ...props
-}: { min?: number; max?: number; default?: number; onChange?: (value?: number) => void } & Omit<
-  TextFieldProps,
-  'onChange'
->) {
+const NumberField = forwardRef<
+  HTMLDivElement,
+  {
+    min?: number;
+    max?: number;
+    default?: number;
+    onChange?: (value?: number) => void;
+    autoCorrectValue?: boolean;
+  } & Omit<TextFieldProps, 'onChange'>
+>(({ min, max, default: def, onChange, autoCorrectValue = true, ...props }, ref) => {
   const correctValue = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!autoCorrectValue) return e.target.value as any;
+
     const value = e.target.value.trim();
     if (!value) {
       return def;
@@ -32,6 +34,7 @@ export default function NumberField({
 
   return (
     <TextField
+      ref={ref}
       {...props}
       onChange={(e) => onChange?.(correctValue(e))}
       inputProps={{
@@ -44,4 +47,6 @@ export default function NumberField({
       }}
     />
   );
-}
+});
+
+export default NumberField;

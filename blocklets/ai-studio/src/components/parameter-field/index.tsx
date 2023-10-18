@@ -11,7 +11,7 @@ import utc from 'dayjs/plugin/utc';
 import equal from 'fast-deep-equal';
 import isNil from 'lodash/isNil';
 import sortBy from 'lodash/sortBy';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 import tzlookup from 'tz-lookup';
 
 import {
@@ -48,17 +48,28 @@ export default function ParameterField({
   return <Field {...({ parameter } as any)} {...props} />;
 }
 
-function StringParameterField({
-  readOnly,
-  parameter,
-  onChange,
-  ...props
-}: { readOnly?: boolean; parameter: StringParameter; onChange: (value: string) => void } & Omit<
-  TextFieldProps,
-  'onChange'
->) {
+export function parameterFieldComponent({ type }: { type: ParameterYjs['type'] }) {
+  const Field = {
+    number: NumberParameterField,
+    string: StringParameterField,
+    select: SelectParameterField,
+    language: LanguageParameterField,
+    horoscope: HoroscopeParameterField,
+  }[type || 'string'];
+
+  return Field;
+}
+
+const StringParameterField = forwardRef<
+  HTMLDivElement,
+  { readOnly?: boolean; parameter: StringParameter; onChange: (value: string) => void } & Omit<
+    TextFieldProps,
+    'onChange'
+  >
+>(({ readOnly, parameter, onChange, ...props }, ref) => {
   return (
     <TextField
+      ref={ref}
       required={parameter.required}
       label={parameter.label}
       placeholder={parameter.placeholder}
@@ -74,19 +85,19 @@ function StringParameterField({
       }}
     />
   );
-}
+});
 
-function NumberParameterField({
-  readOnly,
-  parameter,
-  ...props
-}: {
-  readOnly?: boolean;
-  parameter: NumberParameter;
-  onChange: (value: number | undefined) => void;
-} & Omit<TextFieldProps, 'onChange'>) {
+const NumberParameterField = forwardRef<
+  HTMLDivElement,
+  {
+    readOnly?: boolean;
+    parameter: NumberParameter;
+    onChange: (value: number | undefined) => void;
+  } & Omit<TextFieldProps, 'onChange'>
+>(({ readOnly, parameter, ...props }, ref) => {
   return (
     <NumberField
+      ref={ref}
       required={parameter.required}
       label={parameter.label}
       placeholder={parameter.placeholder}
@@ -97,20 +108,19 @@ function NumberParameterField({
       InputProps={{ ...props.InputProps, readOnly }}
     />
   );
-}
+});
 
-function SelectParameterField({
-  readOnly,
-  parameter,
-  onChange,
-  ...props
-}: {
-  readOnly?: boolean;
-  parameter: SelectParameterYjs;
-  onChange: (value: string | undefined) => void;
-} & Omit<TextFieldProps, 'onChange'>) {
+const SelectParameterField = forwardRef<
+  HTMLDivElement,
+  {
+    readOnly?: boolean;
+    parameter: SelectParameterYjs;
+    onChange: (value: string | undefined) => void;
+  } & Omit<TextFieldProps, 'onChange'>
+>(({ readOnly, parameter, onChange, ...props }, ref) => {
   return (
     <TextField
+      ref={ref}
       required={parameter.required}
       label={parameter.label}
       placeholder={parameter.placeholder}
@@ -129,7 +139,7 @@ function SelectParameterField({
       ))}
     </TextField>
   );
-}
+});
 
 const languages = [
   { en: 'English', cn: '英语' },
@@ -164,20 +174,19 @@ const languages = [
   { en: 'Hindi', cn: '印地语' },
 ];
 
-function LanguageParameterField({
-  readOnly,
-  parameter,
-  onChange,
-  ...props
-}: {
-  readOnly?: boolean;
-  parameter: SelectParameter;
-  onChange: (value: string | undefined) => void;
-} & Omit<TextFieldProps, 'onChange'>) {
+const LanguageParameterField = forwardRef<
+  HTMLDivElement,
+  {
+    readOnly?: boolean;
+    parameter: SelectParameter;
+    onChange: (value: string | undefined) => void;
+  } & Omit<TextFieldProps, 'onChange'>
+>(({ readOnly, parameter, onChange, ...props }, ref) => {
   const { locale } = useLocaleContext();
 
   return (
     <TextField
+      ref={ref}
       required={parameter.required}
       label={parameter.label}
       placeholder={parameter.placeholder}
@@ -196,20 +205,17 @@ function LanguageParameterField({
       ))}
     </TextField>
   );
-}
+});
 
-function HoroscopeParameterField({
-  readOnly,
-  parameter,
-  value,
-  onChange,
-  ...props
-}: {
-  readOnly?: boolean;
-  parameter: HoroscopeParameter;
-  value: HoroscopeParameter['value'];
-  onChange: (value: HoroscopeParameter['value'] | undefined) => void;
-} & Pick<TextFieldProps, 'label' | 'placeholder' | 'helperText' | 'error'>) {
+const HoroscopeParameterField = forwardRef<
+  HTMLDivElement,
+  {
+    readOnly?: boolean;
+    parameter: HoroscopeParameter;
+    value: HoroscopeParameter['value'];
+    onChange: (value: HoroscopeParameter['value'] | undefined) => void;
+  } & Pick<TextFieldProps, 'label' | 'placeholder' | 'helperText' | 'error'>
+>(({ readOnly, parameter, value, onChange, ...props }, ref) => {
   const [val, setVal] = useState(() => ({ ...value }));
 
   useEffect(() => {
@@ -287,6 +293,7 @@ function HoroscopeParameterField({
         />
 
         <TextField
+          ref={ref}
           label={props.label}
           fullWidth
           size="small"
@@ -300,7 +307,7 @@ function HoroscopeParameterField({
       </Box>
     </LocalizationProvider>
   );
-}
+});
 
 function DateStringPicker({
   format = 'YYYY-MM-DD HH:mm:ss',
