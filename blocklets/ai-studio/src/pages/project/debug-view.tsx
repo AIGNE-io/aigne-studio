@@ -182,63 +182,84 @@ function SessionSelect({ projectId, templateId }: { projectId: string; templateI
 
 function MessageView({ message }: { message: SessionItem['messages'][number] }) {
   return (
-    <Stack p={1} direction="row" gap={1} position="relative">
-      <Box py={0.5}>
-        <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-      </Box>
+    <>
+      <Stack p={1} direction="row" gap={1} position="relative">
+        <Box py={0.5}>
+          <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
+        </Box>
 
-      <Box
-        flex={1}
-        sx={{
-          [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
-        }}>
-        {message.content || message.parameters || message.images?.length || message.loading ? (
-          <Box
-            sx={{
-              whiteSpace: 'pre-wrap',
-              px: 1,
-              py: 0.5,
-              borderRadius: 1,
-              wordBreak: 'break-word',
-              ':hover': {
-                bgcolor: 'grey.100',
-              },
-            }}>
-            {message.content ||
-              (message.parameters && (
-                <Box>
-                  {Object.entries(message.parameters).map(([key, val]) => (
-                    <Typography key={key}>
-                      <Typography component="span" color="text.secondary">
-                        {key}
+        <Box
+          flex={1}
+          sx={{
+            [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
+          }}>
+          {message.content || message.parameters || message.images?.length || message.loading ? (
+            <Box
+              sx={{
+                whiteSpace: 'pre-wrap',
+                px: 1,
+                py: 0.5,
+                borderRadius: 1,
+                wordBreak: 'break-word',
+                ':hover': {
+                  bgcolor: 'grey.100',
+                },
+              }}>
+              {message.content ||
+                (message.parameters && (
+                  <Box>
+                    {Object.entries(message.parameters).map(([key, val]) => (
+                      <Typography key={key}>
+                        <Typography component="span" color="text.secondary">
+                          {key}
+                        </Typography>
+                        : {val}
                       </Typography>
-                      : {val}
-                    </Typography>
-                  ))}
-                </Box>
-              ))}
+                    ))}
+                  </Box>
+                ))}
 
-            {message.images && message.images.length > 0 && (
-              <ImagePreview itemWidth={100} spacing={1} dataSource={message.images.map(({ url }) => ({ src: url }))} />
-            )}
+              {message.images && message.images.length > 0 && (
+                <ImagePreview
+                  itemWidth={100}
+                  spacing={1}
+                  dataSource={message.images.map(({ url }) => ({ src: url }))}
+                />
+              )}
 
-            {message.loading && <WritingIndicator />}
-          </Box>
-        ) : null}
+              {message.loading && <WritingIndicator />}
+            </Box>
+          ) : null}
 
-        {message.error ? (
-          <Alert variant="standard" color="error" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-            {message.error.message}
-          </Alert>
-        ) : (
-          message.cancelled && (
-            <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-              Cancelled
+          {message.error ? (
+            <Alert variant="standard" color="error" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+              {message.error.message}
             </Alert>
-          )
-        )}
-      </Box>
-    </Stack>
+          ) : (
+            message.cancelled && (
+              <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                Cancelled
+              </Alert>
+            )
+          )}
+        </Box>
+      </Stack>
+
+      {message.subMessages && (
+        <Box ml={6}>
+          {message.subMessages.map((item) => {
+            const content = item.templateName ? `${item.templateName} : ${item.content}` : item.content;
+
+            return (
+              <Box py={0.5} key={item.templateId} display="flex" alignItems="flex-start">
+                <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{content.slice(0, 1).toUpperCase()}</Avatar>
+                <Box ml={1}>{content}</Box>
+              </Box>
+            );
+          })}
+        </Box>
+      )}
+    </>
   );
 }
 

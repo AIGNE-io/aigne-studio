@@ -2,7 +2,6 @@ import { call } from '@blocklet/sdk/lib/component';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
-import { Callbacks } from 'langchain/callbacks';
 import { LLMChain } from 'langchain/chains';
 import {
   AIMessagePromptTemplate,
@@ -120,7 +119,12 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
     getTemplate({ repository, ref: input.ref || defaultBranch, working: input.working, templateId });
 
   const template = input.template ?? (await getTemplateById(input.templateId));
-  const emit = (response: { type: 'delta'; delta: string } | typeof result) => {
+  const emit = (
+    response:
+      | { type: 'delta'; delta: string }
+      | typeof result
+      | { type: 'next'; delta: string; templateId: string; templateName: string }
+  ) => {
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.flushHeaders();
@@ -136,13 +140,28 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
     template,
     input.parameters,
     stream
-      ? [
-          {
-            handleLLMNewToken(token) {
-              emit({ type: 'delta', delta: token });
-            },
-          },
-        ]
+      ? ({
+          token,
+          isFinalTemplate,
+          templateId,
+          templateName,
+        }: {
+          token: string;
+          isFinalTemplate: boolean;
+          templateId: string;
+          templateName: string;
+        }) => {
+          if (isFinalTemplate) {
+            emit({ type: 'delta', delta: token });
+          } else {
+            emit({
+              type: 'next',
+              delta: token,
+              templateName: templateName || '',
+              templateId: templateId || input.templateId || '',
+            });
+          }
+        }
       : undefined
   );
 
@@ -171,6 +190,7 @@ async function runTemplate(
   getTemplate: (templateId: string) => Promise<Template>,
   template: Pick<
     Template,
+    | 'name'
     | 'type'
     | 'mode'
     | 'model'
@@ -188,7 +208,7 @@ async function runTemplate(
     $history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
     [key: string]: any;
   },
-  callbacks?: Callbacks
+  callback?: (data: { token: string; isFinalTemplate: boolean; templateId: string; templateName: string }) => void
 ): Promise<
   | { type: 'text'; text: string }
   | { type: 'images'; images: ({ url: string; b64_json?: undefined } | { url?: undefined; b64_json?: string })[] }
@@ -341,9 +361,18 @@ Question: ${question}\
 
     const isFinalTemplate = current.type !== 'branch' && !next;
 
+    // eslint-disable-next-line no-await-in-loop
     const { text } = await chain.call(
       { context: docs.map((i) => i.pageContent).join('\n') },
-      isFinalTemplate ? callbacks : undefined
+      callback
+        ? [
+            {
+              handleLLMNewToken(token) {
+                callback({ isFinalTemplate, token, templateId: current?.id || '', templateName: current?.name || '' });
+              },
+            },
+          ]
+        : undefined
     );
     result = { type: 'text', text };
 
