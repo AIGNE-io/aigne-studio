@@ -1,6 +1,5 @@
 // NOTE: add next line to keep sqlite3 in the bundle
 import 'sqlite3';
-import 'mariadb';
 
 import { Sequelize } from 'sequelize';
 
