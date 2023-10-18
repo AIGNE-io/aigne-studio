@@ -1,3 +1,7 @@
+## 0.1.102 (2023-10-18)
+
+- chore: update the database to sqlite
+
 ## 0.1.101 (2023-10-18)
 
 - fix: import lodash on demand
