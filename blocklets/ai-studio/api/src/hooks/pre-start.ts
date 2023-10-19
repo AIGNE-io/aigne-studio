@@ -7,7 +7,6 @@ import { dirname, join } from 'path';
 import dotenv from 'dotenv-flow';
 
 import { authClient, customRoles } from '../libs/auth';
-import { ensureSqliteBinaryFile } from '../libs/ensure-sqlite';
 import logger from '../libs/logger';
 
 dotenv.config();
@@ -28,19 +27,19 @@ async function ensureRolesCreated() {
   );
 }
 
-const hnswlib = '@blocklet/hnswlib-node';
+const files = ['@blocklet/hnswlib-node', 'sqlite3'];
 
-async function ensureHNSWLIBBinaryFile() {
-  logger.info(`${name} ensure ${hnswlib}  installed`);
+async function ensureBinaryFile(packageName: string) {
+  logger.info(`${name} ensure ${packageName} installed`);
 
   try {
-    await import(hnswlib);
-    logger.info(`${name} ${hnswlib} already installed`);
+    await import(packageName);
+    logger.info(`${name} ${packageName} already installed`);
     return;
   } catch {
     /* empty */
   }
-  logger.info(`${name} try install ${hnswlib}`);
+  logger.info(`${name} try install ${packageName}`);
 
   const appDir = process.env.BLOCKLET_APP_DIR!;
 
@@ -58,18 +57,18 @@ async function ensureHNSWLIBBinaryFile() {
   }
 
   spawnSync('npm', ['run', 'install'], {
-    cwd: join(appDir, `node_modules/${hnswlib}`),
+    cwd: join(appDir, `node_modules/${packageName}`),
     stdio: 'inherit',
     shell: true,
   });
 
   // Force rebuild if binary not available
   try {
-    await import(hnswlib);
-    logger.info(`${name} ${hnswlib} already installed`);
+    await import(packageName);
+    logger.info(`${name} ${packageName} already installed`);
   } catch {
     spawnSync('npm', ['run', 'rebuild'], {
-      cwd: join(appDir, `node_modules/${hnswlib}`),
+      cwd: join(appDir, `node_modules/${packageName}`),
       stdio: 'inherit',
       shell: true,
     });
@@ -79,8 +78,12 @@ async function ensureHNSWLIBBinaryFile() {
 (async () => {
   try {
     await ensureRolesCreated();
-    await ensureHNSWLIBBinaryFile();
-    await ensureSqliteBinaryFile();
+
+    for (const file of files) {
+      // eslint-disable-next-line no-await-in-loop
+      await ensureBinaryFile(file);
+    }
+
     await import('../store/migrate').then((m) => m.default());
 
     process.exit(0);

@@ -25,6 +25,8 @@ files:
   - api/images
   - migration
   - api/dist/migration
+  - api/dist/store/migrate.js
+  - api/dist/store/migrations/*.js
 interfaces:
   - type: web
     name: publicUrl
