@@ -1,4 +1,4 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
 import { sequelize } from '../sequelize';
@@ -10,35 +10,35 @@ const nextId = () => idGenerator.nextId().toString();
 export default class Project extends Model<InferAttributes<Project>, InferCreationAttributes<Project>> {
   declare _id: string;
 
-  declare name?: CreationOptional<string>;
+  declare name?: string;
 
-  declare description?: CreationOptional<string>;
+  declare description?: string;
 
   declare model: string;
 
-  declare createdAt?: CreationOptional<Date>;
+  declare createdAt?: Date;
 
-  declare updatedAt?: CreationOptional<Date>;
+  declare updatedAt?: Date;
 
-  declare createdBy: CreationOptional<string>;
+  declare createdBy: string;
 
-  declare updatedBy: CreationOptional<string>;
+  declare updatedBy: string;
 
-  declare pinnedAt?: CreationOptional<Date>;
+  declare pinnedAt?: Date;
 
-  declare icon?: CreationOptional<string>;
+  declare icon?: string;
 
-  declare gitType?: CreationOptional<'simple' | 'default'>;
+  declare gitType?: 'simple' | 'default';
 
-  declare temperature?: CreationOptional<number>;
+  declare temperature?: number;
 
-  declare topP?: CreationOptional<number>;
+  declare topP?: number;
 
-  declare presencePenalty?: CreationOptional<number>;
+  declare presencePenalty?: number;
 
-  declare frequencyPenalty?: CreationOptional<number>;
+  declare frequencyPenalty?: number;
 
-  declare maxTokens?: CreationOptional<number>;
+  declare maxTokens?: number;
 
   public static readonly GENESIS_ATTRIBUTES = {
     _id: {
@@ -64,11 +64,9 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
     },
     createdBy: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     updatedBy: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     pinnedAt: {
       type: DataTypes.DATE,

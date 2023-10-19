@@ -4,14 +4,17 @@ import { datasetItems } from '../dataset-items';
 import { datasets } from '../datasets';
 import { embeddingHistories } from '../embedding-history';
 import type { Migration } from '../migrate';
-import models from '../models';
+import DatasetItems from '../models/dataset-items';
+import Datasets from '../models/datasets';
+import EmbeddingHistories from '../models/embedding-history';
+import Projects from '../models/projects';
 import { projects } from '../projects';
 
 export const up: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.createTable('Projects', models.Projects.GENESIS_ATTRIBUTES);
-  await queryInterface.createTable('EmbeddingHistories', models.EmbeddingHistories.GENESIS_ATTRIBUTES);
-  await queryInterface.createTable('Datasets', models.Datasets.GENESIS_ATTRIBUTES);
-  await queryInterface.createTable('DatasetItems', models.DatasetItems.GENESIS_ATTRIBUTES);
+  await queryInterface.createTable('Projects', Projects.GENESIS_ATTRIBUTES);
+  await queryInterface.createTable('EmbeddingHistories', EmbeddingHistories.GENESIS_ATTRIBUTES);
+  await queryInterface.createTable('Datasets', Datasets.GENESIS_ATTRIBUTES);
+  await queryInterface.createTable('DatasetItems', DatasetItems.GENESIS_ATTRIBUTES);
 
   const projectRows = await projects.cursor().sort({ updatedAt: -1 }).exec();
   if (projectRows.length) {
@@ -39,9 +42,4 @@ export const down: Migration = async ({ context: queryInterface }) => {
   await queryInterface.dropTable('EmbeddingHistories');
   await queryInterface.dropTable('Datasets');
   await queryInterface.dropTable('DatasetItems');
-
-  await queryInterface.bulkDelete('Projects', {});
-  await queryInterface.bulkDelete('Datasets', {});
-  await queryInterface.bulkDelete('DatasetItems', {});
-  await queryInterface.bulkDelete('EmbeddingHistories', {});
 };

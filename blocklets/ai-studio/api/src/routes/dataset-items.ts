@@ -97,16 +97,10 @@ router.post('/:datasetId/items', user(), ensureComponentCallOrPromptsEditor(), a
     arr.map(async (item) => {
       const found = await DatasetItems.findOne({ where: { datasetId, data: item.data } });
       if (found) {
-        await DatasetItems.update(
-          { ...item, createdBy: did, updatedBy: did },
-          { where: { datasetId, data: item.data } }
-        );
-        const doc = await DatasetItems.findOne({ where: { datasetId, data: item.data } });
-        return doc;
+        return found.update({ ...item, createdBy: did, updatedBy: did }, { where: { datasetId, data: item.data } });
       }
 
-      const doc = await DatasetItems.create({ ...item, datasetId, createdBy: did, updatedBy: did });
-      return doc;
+      return DatasetItems.create({ ...item, datasetId, createdBy: did, updatedBy: did });
     })
   );
 
@@ -131,7 +125,7 @@ async function embeddingDiscussionItem({ datasetId, discussionId }: { datasetId:
     const discussion = await getDiscussion(discussionId);
 
     const previousEmbedding = await EmbeddingHistories.findOne({ where: { targetId: discussionId } });
-    if (previousEmbedding) {
+    if (previousEmbedding?.targetVersion) {
       if (new Date(previousEmbedding?.targetVersion).toISOString() === new Date(discussion.updatedAt).toISOString()) {
         return;
       }

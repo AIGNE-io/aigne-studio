@@ -1,4 +1,4 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
 import { sequelize } from '../sequelize';
@@ -11,17 +11,17 @@ export default class EmbeddingHistory extends Model<
   InferAttributes<EmbeddingHistory>,
   InferCreationAttributes<EmbeddingHistory>
 > {
-  declare _id: CreationOptional<string>;
+  declare _id?: string;
 
-  declare targetId: CreationOptional<string>;
+  declare targetId?: string;
 
-  declare createdAt: CreationOptional<Date>;
+  declare createdAt?: Date;
 
-  declare updatedAt: CreationOptional<Date>;
+  declare updatedAt?: Date;
 
-  declare targetVersion: CreationOptional<Date>;
+  declare targetVersion?: Date;
 
-  declare error: CreationOptional<string>;
+  declare error?: string;
 
   public static readonly GENESIS_ATTRIBUTES = {
     _id: {
