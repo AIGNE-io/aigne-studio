@@ -1,4 +1,4 @@
-import { DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
 import { sequelize } from '../sequelize';
@@ -8,13 +8,13 @@ const idGenerator = new Worker();
 const nextId = () => idGenerator.nextId().toString();
 
 export default class Dataset extends Model<InferAttributes<Dataset>, InferCreationAttributes<Dataset>> {
-  declare _id?: string;
+  declare _id: CreationOptional<string>;
 
   declare name?: string;
 
-  declare createdAt?: Date;
+  declare createdAt: CreationOptional<Date>;
 
-  declare updatedAt?: Date;
+  declare updatedAt: CreationOptional<Date>;
 
   declare createdBy: string;
 
