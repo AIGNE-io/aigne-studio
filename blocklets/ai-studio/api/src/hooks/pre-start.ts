@@ -7,6 +7,7 @@ import { dirname, join } from 'path';
 import dotenv from 'dotenv-flow';
 
 import { authClient, customRoles } from '../libs/auth';
+import { ensureSqliteBinaryFile } from '../libs/ensure-sqlite';
 import logger from '../libs/logger';
 
 dotenv.config();
@@ -79,6 +80,7 @@ async function ensureHNSWLIBBinaryFile() {
   try {
     await ensureRolesCreated();
     await ensureHNSWLIBBinaryFile();
+    await ensureSqliteBinaryFile();
     await import('../store/migrate').then((m) => m.default());
 
     process.exit(0);
