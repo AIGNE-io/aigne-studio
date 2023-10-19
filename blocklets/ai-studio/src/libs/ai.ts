@@ -32,7 +32,12 @@ export async function callAI(
 ) {
   const prefix = blocklet?.prefix || '';
 
-  return new ReadableStream<string | { type: 'text'; text: string } | { type: 'images'; images: { url: string }[] }>({
+  return new ReadableStream<
+    | string
+    | { type: 'text'; text: string }
+    | { type: 'images'; images: { url: string }[] }
+    | { type: 'next'; delta: string; templateId: string; templateName: string }
+  >({
     async start(controller) {
       await fetchEventSource(joinUrl(prefix, '/api/ai/call'), {
         openWhenHidden: true,
@@ -43,6 +48,8 @@ export async function callAI(
           const data = JSON.parse(event.data);
           if (data.type === 'delta') {
             controller.enqueue(data.delta);
+          } else if (data.type === 'next') {
+            controller.enqueue(data);
           } else {
             controller.enqueue(data);
           }
