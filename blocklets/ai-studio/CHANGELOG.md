@@ -1,3 +1,7 @@
+## 0.1.104 (2023-10-19)
+
+- feat: record ai execution logs
+
 ## 0.1.103 (2023-10-19)
 
 - chore: update the database to sqlite
