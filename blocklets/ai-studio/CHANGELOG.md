@@ -1,3 +1,7 @@
+## 0.1.103 (2023-10-19)
+
+- chore: update the database to sqlite
+
 ## 0.1.102 (2023-10-18)
 
 - chore: debug out when multiple steps are executed

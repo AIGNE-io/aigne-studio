@@ -9,7 +9,8 @@ import uniqBy from 'lodash/uniqBy';
 import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
-import { defaultBranch, getTemplatesFromRepository, projects } from '../store/projects';
+import Projects from '../store/models/projects';
+import { defaultBranch, getTemplatesFromRepository } from '../store/projects';
 
 const TARGET_DIR = 'ai.templates';
 
@@ -46,7 +47,9 @@ const locales: { [key: string]: any } = {
 
 export function resourcesRoutes(router: Router) {
   router.get('/resources/export', ensurePromptsEditor, async (req, res) => {
-    const projectRows = await projects.cursor().sort({ updatedAt: -1 }).exec();
+    const projectRows = await Projects.findAll({
+      order: [['updatedAt', 'DESC']],
+    });
     const local = locales[(req.query as { local: string })?.local] || locales.zh;
 
     const resources = projectRows.map((x: any) => {

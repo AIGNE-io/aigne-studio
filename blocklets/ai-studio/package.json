@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.102",
+  "version": "0.1.103",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
@@ -37,7 +37,7 @@
     "@arcblock/ux": "^2.7.29",
     "@beskar-labs/gpt-encoder": "^1.0.6",
     "@blocklet/ai-kit": "^0.0.71",
-    "@blocklet/co-git": "^0.1.102",
+    "@blocklet/co-git": "^0.1.103",
     "@blocklet/constant": "1.16.17-beta-7ec31a60",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
     "@blocklet/sdk": "1.16.17-beta-7ec31a60",
@@ -104,8 +104,11 @@
     "recoil": "^0.7.7",
     "recoil-persist": "^5.1.0",
     "rimraf": "^3.0.2",
+    "sequelize": "^6.33.0",
     "snowflake-uuid": "^1.0.0",
+    "sqlite3": "^5.1.6",
     "tz-lookup": "^6.1.25",
+    "umzug": "^3.3.1",
     "url-join": "^4.0.1",
     "y-indexeddb": "^9.0.11",
     "y-protocols": "^1.0.6",

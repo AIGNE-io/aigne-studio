@@ -9,16 +9,17 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import sample from 'lodash/sample';
 import { nanoid } from 'nanoid';
+import { Op } from 'sequelize';
 
 import { defaultModel } from '../libs/models';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { createImageUrl } from '../libs/utils';
+import Projects from '../store/models/projects';
 import {
   defaultBranch,
   getRepository,
   nextProjectId,
   projectTemplates,
-  projects,
   repositoryRoot,
   templateToYjs,
 } from '../store/projects';
@@ -85,7 +86,12 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    const list = await projects.cursor().sort({ pinnedAt: -1, updatedAt: -1 }).exec();
+    const list = await Projects.findAll({
+      order: [
+        ['pinnedAt', 'DESC'],
+        ['updatedAt', 'DESC'],
+      ],
+    });
 
     res.json({ projects: list });
   });
@@ -104,7 +110,7 @@ export function projectRoutes(router: Router) {
   router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
 
-    const project = await projects.findOne({ _id: projectId });
+    const project = await Projects.findOne({ where: { _id: projectId } });
     if (!project) {
       res.status(404).json({ error: 'No such project' });
       return;
@@ -120,13 +126,13 @@ export function projectRoutes(router: Router) {
     const { did, fullName } = req.user!;
 
     if (duplicateFrom) {
-      const original = await projects.findOne({ _id: duplicateFrom });
+      const original = await Projects.findOne({ where: { _id: duplicateFrom } });
       if (!original) throw new Error(`Project ${duplicateFrom} not found`);
 
       const repo = await getRepository({ projectId: original._id! });
 
-      const project = await projects.insert({
-        ...original,
+      const project = await Projects.create({
+        ...original.dataValues,
         model: original.model || defaultModel,
         _id: nextProjectId(),
         name: original.name && `${original.name}-copy`,
@@ -169,8 +175,8 @@ export function projectRoutes(router: Router) {
         icon = createImageUrl(`${req.protocol}://${req.host}`, item.filename);
       }
 
-      const project = await projects.insert({
-        ...omit(template, 'files'),
+      const project = await Projects.create({
+        ...omit(template, 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
         model: template.model || defaultModel,
         _id: nextProjectId(),
         icon,
@@ -197,11 +203,11 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    if (name && (await projects.findOne({ name }))) {
+    if (name && (await Projects.findOne({ where: { name } }))) {
       throw new Error(`Duplicated project ${name}`);
     }
 
-    const project = await projects.insert({
+    const project = await Projects.create({
       _id: nextProjectId(),
       model: defaultModel,
       name,
@@ -215,7 +221,7 @@ export function projectRoutes(router: Router) {
   router.patch('/projects/:projectId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
     const { projectId } = req.params;
 
-    const project = await projects.findOne({ _id: projectId });
+    const project = await Projects.findOne({ where: { _id: projectId } });
     if (!project) {
       res.status(404).json({ error: 'No such project' });
       return;
@@ -235,35 +241,33 @@ export function projectRoutes(router: Router) {
       gitType,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
-    if (name && (await projects.findOne({ name, _id: { $ne: project._id } }))) {
+    if (name && (await Projects.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
       throw new Error(`Duplicated project ${name}`);
     }
 
     const { did } = req.user!;
 
-    const [, doc] = await projects.update(
-      { _id: projectId },
-      {
-        $set: omitBy(
-          {
-            name,
-            pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
-            updatedBy: did,
-            description,
-            icon,
-            model: model || project.model || defaultModel,
-            temperature,
-            topP,
-            presencePenalty,
-            frequencyPenalty,
-            maxTokens,
-            gitType,
-          },
-          (v) => v === undefined
-        ),
-      },
-      { returnUpdatedDocs: true }
+    await Projects.update(
+      omitBy(
+        {
+          name,
+          pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
+          updatedBy: did,
+          description,
+          icon,
+          model: model || project.model || defaultModel,
+          temperature,
+          topP,
+          presencePenalty,
+          frequencyPenalty,
+          maxTokens,
+          gitType,
+        },
+        (v) => v === undefined
+      ),
+      { where: { _id: projectId } }
     );
+    const doc = await Projects.findOne({ where: { _id: projectId } });
 
     res.json(doc);
   });
@@ -272,13 +276,13 @@ export function projectRoutes(router: Router) {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
-    const project = await projects.findOne({ _id: projectId });
+    const project = await Projects.findOne({ where: { _id: projectId } });
     if (!project) {
       res.status(404).json({ error: 'No such project' });
       return;
     }
 
-    await projects.remove({ _id: projectId });
+    await Projects.destroy({ where: { _id: projectId } });
 
     const root = repositoryRoot(projectId);
     rmSync(root, { recursive: true, force: true });

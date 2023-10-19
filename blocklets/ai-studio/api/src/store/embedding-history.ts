@@ -3,9 +3,9 @@ import Database from '@blocklet/sdk/lib/database';
 export interface EmbeddingHistory {
   _id?: string;
   targetId: string;
-  targetVersion?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  targetVersion?: string | Date;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   error?: string;
 }
 

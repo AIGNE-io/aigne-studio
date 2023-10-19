@@ -15,7 +15,8 @@ import { ImagesResponseDataInner } from 'openai';
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import { AIKitChat } from '../core/llms/ai-kit-chat';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { Project, defaultBranch, getRepository, projects } from '../store/projects';
+import Projects from '../store/models/projects';
+import { Project, defaultBranch, getRepository } from '../store/projects';
 import { Template, getTemplate } from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
@@ -111,7 +112,7 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const project = input.projectId ? await projects.findOne({ _id: input.projectId }) : undefined;
+  const project = input.projectId ? await Projects.findOne({ where: { _id: input.projectId } }) : undefined;
 
   const repository = await getRepository({ projectId: input.projectId || 'default' });
 
@@ -186,7 +187,7 @@ class StaticPromptTemplate extends PromptTemplate {
 }
 
 async function runTemplate(
-  project: Project | undefined,
+  project: Project | undefined | null,
   getTemplate: (templateId: string) => Promise<Template>,
   template: Pick<
     Template,
