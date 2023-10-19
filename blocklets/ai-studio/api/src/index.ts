@@ -15,13 +15,10 @@ import app from './app';
 import logger from './libs/logger';
 import initProjectIcons from './libs/project-icons';
 import routes from './routes';
-import { initialize } from './store/models';
 
 export { default as app } from './app';
 
 dotenv.config();
-
-initialize();
 
 const { name, version } = require('../../package.json');
 

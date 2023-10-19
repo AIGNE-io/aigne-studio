@@ -148,32 +148,17 @@ async function embeddingDiscussionItem({ datasetId, discussionId }: { datasetId:
 
     if (await EmbeddingHistories.findOne({ where: { targetId: discussionId } })) {
       await EmbeddingHistories.update(
-        {
-          updatedAt: new Date(),
-          targetVersion: new Date(discussion.updatedAt),
-        },
+        { targetVersion: new Date(discussion.updatedAt) },
         { where: { targetId: discussionId } }
       );
     } else {
-      await EmbeddingHistories.create({
-        updatedAt: new Date(),
-        targetVersion: new Date(discussion.updatedAt),
-      });
+      await EmbeddingHistories.create({ targetVersion: new Date(discussion.updatedAt) });
     }
   } catch (error) {
     if (await EmbeddingHistories.findOne({ where: { targetId: discussionId } })) {
-      await EmbeddingHistories.update(
-        {
-          updatedAt: new Date(),
-          error: error.message,
-        },
-        { where: { targetId: discussionId } }
-      );
+      await EmbeddingHistories.update({ error: error.message }, { where: { targetId: discussionId } });
     } else {
-      await EmbeddingHistories.create({
-        updatedAt: new Date(),
-        error: error.message,
-      });
+      await EmbeddingHistories.create({ error: error.message });
     }
   }
 }

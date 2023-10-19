@@ -1,6 +1,8 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
+import { sequelize } from '../sequelize';
+
 const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
@@ -33,11 +35,9 @@ export default class EmbeddingHistory extends Model<
     },
     createdAt: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
     },
     updatedAt: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
     },
     targetVersion: {
       type: DataTypes.DATE,
@@ -46,8 +46,6 @@ export default class EmbeddingHistory extends Model<
       type: DataTypes.STRING,
     },
   };
-
-  public static initialize(sequelize: any) {
-    this.init(EmbeddingHistory.GENESIS_ATTRIBUTES, { sequelize });
-  }
 }
+
+EmbeddingHistory.init(EmbeddingHistory.GENESIS_ATTRIBUTES, { sequelize });

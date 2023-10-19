@@ -1,6 +1,8 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
+import { sequelize } from '../sequelize';
+
 const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
@@ -53,20 +55,21 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
     },
     model: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
     createdAt: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
     },
     updatedAt: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
     },
     createdBy: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
     updatedBy: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
     pinnedAt: {
       type: DataTypes.DATE,
@@ -96,8 +99,6 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
       type: DataTypes.FLOAT,
     },
   };
-
-  public static initialize(sequelize: any) {
-    this.init(Project.GENESIS_ATTRIBUTES, { sequelize });
-  }
 }
+
+Project.init(Project.GENESIS_ATTRIBUTES, { sequelize });

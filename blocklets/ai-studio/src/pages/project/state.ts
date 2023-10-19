@@ -119,6 +119,7 @@ export interface SessionItem {
     loading?: boolean;
     cancelled?: boolean;
     error?: { message: string };
+    subMessages?: { content: string; templateId: string; templateName: string }[];
   }[];
   chatType?: 'chat' | 'debug';
   debugForm?: { [key: string]: any };
@@ -244,11 +245,25 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
   );
 
   const setMessage = useCallback(
-    (sessionIndex: number, messageId: string, recipe: (draft: Draft<SessionItem['messages'][number]>) => void) => {
+    (
+      sessionIndex: number,
+      messageId: string,
+      recipe: (draft: Draft<SessionItem['messages'][number]>) => void,
+      checkCancelledStatus?: boolean
+    ) => {
       setState((state) =>
         produce(state, (state) => {
           const session = state.sessions.find((i) => i.index === sessionIndex);
           const message = session?.messages.find((i) => i.id === messageId);
+
+          if (checkCancelledStatus) {
+            const index = session?.messages.findIndex((i) => i.id === messageId);
+            if (index) {
+              const nextMessage = session?.messages[index + 1];
+              if (nextMessage?.cancelled) return;
+            }
+          }
+
           if (message) recipe(message);
           else console.error(`setMessage: message not found ${sessionIndex} ${messageId}`);
         })
@@ -289,6 +304,7 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
               content: message.type === 'chat' ? message.content : '',
               gitRef: message.type === 'debug' ? message.gitRef : undefined,
               parameters: message.type === 'debug' ? message.parameters : undefined,
+              subMessages: [],
             },
             { id: responseId, createdAt: now.toISOString(), role: 'assistant', content: '', loading: true }
           );
@@ -321,8 +337,10 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
         const decoder = new TextDecoder();
 
         const isImages = (i: any): i is { type: 'images'; images: { url: string }[] } => i.type === 'images';
+        const isNext = (i: any): i is { type: 'next'; text: string } => i.type === 'next';
 
         let response = '';
+        const subResponses: { [key: string]: string } = {};
 
         for (;;) {
           const { value, done } = await reader.read();
@@ -336,6 +354,45 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
                 if (!message.loading) return;
                 message.images = value.images;
               });
+            } else if (isNext(value)) {
+              if (value.templateId) {
+                const key = `${messageId}-${value.templateId}`;
+                subResponses[key] = subResponses[key] ?? '';
+                subResponses[key] += value.delta;
+
+                setMessage(
+                  sessionIndex,
+                  messageId,
+                  (message) => {
+                    if (message.cancelled) return;
+
+                    if (message.subMessages?.length) {
+                      const found = message.subMessages.find((x) => x.templateId === value.templateId);
+                      if (found) {
+                        found.content = subResponses[key] ?? '';
+                      } else {
+                        message.subMessages = [
+                          ...message.subMessages,
+                          {
+                            content: subResponses[key] ?? '',
+                            templateId: value.templateId,
+                            templateName: value.templateName,
+                          },
+                        ];
+                      }
+                    } else {
+                      message.subMessages = [
+                        {
+                          content: subResponses[key] ?? '',
+                          templateId: value.templateId,
+                          templateName: value.templateName,
+                        },
+                      ];
+                    }
+                  },
+                  true
+                );
+              }
             } else {
               console.error('Unknown AI response type', value);
             }
