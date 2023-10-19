@@ -155,15 +155,15 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
           isFinalTemplate,
           templateId,
           templateName,
-          currentTimes,
+          currentLoop,
         }: {
           token: string;
           isFinalTemplate: boolean;
           templateId: string;
           templateName: string;
-          currentTimes: number;
+          currentLoop: number;
         }) => {
-          if (isFinalTemplate && currentTimes === 1) {
+          if (isFinalTemplate && currentLoop === 1) {
             emit({ type: 'delta', delta: token });
           } else {
             emit({
@@ -230,7 +230,7 @@ async function runTemplate(
     isFinalTemplate: boolean;
     templateId: string;
     templateName: string;
-    currentTimes: number;
+    currentLoop: number;
   }) => void,
   logId?: string
 ): Promise<
@@ -415,7 +415,7 @@ async function runTemplate(
                     token,
                     templateId: current?.id || '',
                     templateName: current?.name || '',
-                    currentTimes: currentLoop,
+                    currentLoop,
                   });
                 },
               },
@@ -451,13 +451,11 @@ async function runTemplate(
       current = next;
     }
 
-    if (logId) {
-      await Logs.updateWithCatch({ status: Status.SUCCESS, response: result }, logId);
+    await Logs.updateWithCatch({ status: Status.SUCCESS, response: result }, logId);
 
-      // 如果只执行一次，删除子记录
-      if (currentLoop === 1) {
-        await Logs.deleteWithCatch(logId);
-      }
+    // 如果只执行一次，删除子记录
+    if (currentLoop === 1) {
+      await Logs.deleteWithCatch(logId);
     }
 
     return result!;
