@@ -56,6 +56,7 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
     model: {
       type: DataTypes.STRING,
       allowNull: false,
+      defaultModel: 'gpt-3.5-turbo',
     },
     createdAt: {
       type: DataTypes.DATE,
