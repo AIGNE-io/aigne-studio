@@ -59,11 +59,12 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const onSave = useCallback(
     async (input: CommitForm) => {
       try {
+        const branch = simpleMode ? defaultBranch : input.branch;
         await commitFromWorking({
           projectId,
           ref: gitRef,
           input: {
-            branch: simpleMode ? defaultBranch : input.branch,
+            branch,
             message: input.message || new Date().toLocaleString(),
           },
         });
@@ -71,7 +72,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         dialogState.close();
         refetch();
         Toast.success(t('alert.saved'));
-        if (input.branch !== gitRef) navigate(joinUrl('..', input.branch), { replace: true });
+        if (branch !== gitRef) navigate(joinUrl('..', branch), { replace: true });
       } catch (error) {
         form.reset(input);
         Toast.error(getErrorMessage(error));
