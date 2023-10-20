@@ -90,11 +90,10 @@ export default flat({
     newBranch: 'New branch',
     message: 'Message',
   },
-  export: {
-    confirmTip: 'Confirm exporting the templates data for the {projectName} project {refName} branch',
+  import: {
+    title: 'Import Templates',
     selectProject: 'Select Project',
     selectBranch: 'Select Branch',
-    alert: 'The {templates} template selected last time has been removed',
     templates: 'Templates',
   },
   newFromTemplates: 'New from Templates',

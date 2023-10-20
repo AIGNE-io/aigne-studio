@@ -19,6 +19,7 @@ import {
   listItemIconClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
+import { omit } from 'lodash';
 import uniqBy from 'lodash/uniqBy';
 import {
   ComponentProps,
@@ -38,6 +39,8 @@ import joinUrl from 'url-join';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
+import { importTemplatesToProject } from '../../libs/project';
+import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import Duplicate from './icons/duplicate';
 import External from './icons/external';
@@ -48,7 +51,17 @@ import MenuVertical from './icons/menu-vertical';
 import Pen from './icons/pen';
 import Picture from './icons/picture';
 import Trash from './icons/trash';
-import { createFile, createFolder, deleteFile, isTemplate, moveFile, nextTemplateId, useStore } from './yjs-state';
+import ImportFrom from './import';
+import {
+  createFile,
+  createFolder,
+  deleteFile,
+  isTemplate,
+  moveFile,
+  nextTemplateId,
+  templateYjsFromTemplate,
+  useStore,
+} from './yjs-state';
 
 export type EntryWithMeta =
   | {
@@ -72,6 +85,7 @@ export type TreeNode = NodeModel<EntryWithMeta>;
 export interface ImperativeFileTree {
   newFolder: () => void;
   newFile: () => void;
+  importFrom: () => void;
 }
 
 const FileTree = forwardRef<
@@ -86,6 +100,7 @@ const FileTree = forwardRef<
 >(({ projectId, gitRef, current, mutable, onLaunch, ...props }, ref) => {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
+  const { dialog, showDialog } = useDialog();
 
   const { store, synced } = useStore(projectId, gitRef);
 
@@ -102,13 +117,63 @@ const FileTree = forwardRef<
     [navigate, setOpenIds, store]
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onImportFrom = () => {
+    const state: {
+      resources: string[];
+      projectId: string;
+      ref: string;
+    } = {
+      resources: [],
+      projectId: '',
+      ref: '',
+    };
+
+    showDialog({
+      fullWidth: true,
+      maxWidth: 'sm',
+      title: `${t('import.title')}`,
+      content: (
+        <Box maxHeight={500}>
+          <ImportFrom
+            projectId={projectId}
+            onChange={(data: { [key: string]: boolean }, projectId: string, ref: string) => {
+              state.resources = Object.keys(data).filter((key: string): boolean => Boolean(data[key]));
+              state.projectId = projectId;
+              state.ref = ref;
+            }}
+          />
+        </Box>
+      ),
+      onOk: async () => {
+        try {
+          const { templates } = await importTemplatesToProject(projectId, gitRef, state);
+
+          if (templates.length) {
+            for (const template of templates) {
+              createFile({
+                store,
+                parent: [],
+                meta: omit({ ...templateYjsFromTemplate(template) }, 'id'),
+              });
+            }
+          }
+        } catch (error) {
+          Toast.error(getErrorMessage(error));
+          throw error;
+        }
+      },
+    });
+  };
+
   useImperativeHandle(
     ref,
     () => ({
       newFolder: () => setShowNewProject(true),
       newFile: () => onCreateFile(),
+      importFrom: () => onImportFrom(),
     }),
-    [onCreateFile]
+    [onCreateFile, onImportFrom]
   );
 
   const onMoveFile = useCallback(
@@ -307,6 +372,8 @@ const FileTree = forwardRef<
           }}
         />
       </DndProvider>
+
+      {dialog}
     </Box>
   );
 });
