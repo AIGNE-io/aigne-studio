@@ -153,7 +153,7 @@ const FileTree = forwardRef<
             for (const template of templates) {
               createFile({
                 store,
-                parent: [],
+                parent: template.parent || [],
                 meta: omit({ ...templateYjsFromTemplate(template) }, 'id'),
               });
             }

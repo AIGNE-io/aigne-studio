@@ -27,6 +27,6 @@ export async function importTemplatesToProject(
   projectId: string,
   ref: string,
   data: { projectId: string; ref: string; resources: string[] }
-): Promise<{ templates: Template[] }> {
+): Promise<{ templates: (Template & { parent?: string[] })[] }> {
   return axios.post(`/api/projects/${projectId}/${ref}/import`, data).then((res) => res.data);
 }

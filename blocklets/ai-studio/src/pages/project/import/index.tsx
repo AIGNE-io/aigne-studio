@@ -1,7 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NodeModel } from '@minoru/react-dnd-treeview';
 import { Autocomplete, Box, Checkbox, CircularProgress, FormControlLabel, Stack, TextField } from '@mui/material';
-import groupBy from 'lodash/groupBy';
 import { useEffect, useMemo, useState } from 'react';
 import joinUrl from 'url-join';
 
@@ -9,15 +8,6 @@ import { EntryWithMeta } from '../../../../api/src/routes/tree';
 import useRequest from './state';
 
 type TreeNode = NodeModel<EntryWithMeta>;
-
-function mergeByParent(data: (TreeNode & { children?: any[]; type: string })[]) {
-  const grouped = groupBy(data, 'parent');
-
-  return (grouped[''] || []).map((item) => {
-    item.children = grouped[item.id] || [];
-    return item;
-  });
-}
 
 export default function ImportFrom({
   projectId,
@@ -45,14 +35,12 @@ export default function ImportFrom({
 
     return state.files.map((item) => ({
       id: joinUrl(...item.parent, item.name),
-      parent: item.parent.join('/') || '',
+      parent: item.parent.join(' / ') || '',
       text: item.name,
       data: item,
       type: item.type,
     }));
   }, [state.files]);
-
-  const mergedData = mergeByParent(tree);
 
   useEffect(() => {
     onChange(selected, state.projectId, state.ref);
@@ -106,38 +94,28 @@ export default function ImportFrom({
         <Box flex={1} height={0} overflow="auto" mb={7}>
           <Box component="h4">{t('import.templates')}</Box>
 
-          {mergedData.map((item) => {
+          {tree.map((item) => {
             // @ts-ignore
             const name = item.type === 'file' ? item?.data?.meta?.name || t('alert.unnamed') : item.text;
 
             const isChecked = () => {
-              if (item.type === 'folder') {
-                return (item.children || [])
-                  .map((x): any => {
-                    return Boolean(selected[x.text]);
-                  })
-                  .every((x) => Boolean(x));
-              }
-
               return Boolean(selected[item.text]);
             };
 
             const onChangeParent = (item: any, checked: boolean) => {
-              if (item.type === 'folder') {
-                (item.children || []).forEach((x: any) => {
-                  handleChange(x.text, checked);
-                });
-              } else {
-                handleChange(item.text, checked);
-              }
+              handleChange(item.text, checked);
             };
 
             return (
               <Stack key={item.id} pl={1} mb={0.25}>
                 <FormControlLabel
                   sx={{ pl: 0 }}
-                  disabled={item.type === 'folder' && !item.children?.length}
-                  label={name}
+                  label={
+                    <Box display="flex">
+                      {item.parent && <Box mr={1} sx={{ color: '#ccc' }}>{`${item.parent} / `}</Box>}
+                      <Box>{name}</Box>
+                    </Box>
+                  }
                   control={
                     <Checkbox
                       size="small"
@@ -148,26 +126,6 @@ export default function ImportFrom({
                     />
                   }
                 />
-
-                {item.children?.map((children) => {
-                  return (
-                    <Stack key={children.id}>
-                      <FormControlLabel
-                        sx={{ pl: 4 }}
-                        label={children?.data?.meta?.name || t('alert.unnamed')}
-                        control={
-                          <Checkbox
-                            size="small"
-                            checked={Boolean(selected[children.text])}
-                            onChange={(e) => {
-                              handleChange(children.text, e.target.checked);
-                            }}
-                          />
-                        }
-                      />
-                    </Stack>
-                  );
-                })}
               </Stack>
             );
           })}

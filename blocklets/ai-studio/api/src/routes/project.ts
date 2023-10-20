@@ -79,11 +79,14 @@ const getProjectsQuerySchema = Joi.object<GetProjectsQuery>({
 });
 
 const getDeepTemplate = async (projectId: string, ref: string, templateId: string) => {
-  let templates: Template[] = [];
+  let templates: (Template & { parent?: string[] })[] = [];
 
   try {
     const repository = await getRepository({ projectId });
-    const template = await getTemplate({ repository, ref, templateId });
+    const filepath = await repository.findFile(templateId, { ref });
+
+    const template = (await getTemplate({ repository, ref, templateId })) as Template & { parent?: string[] };
+    template.parent = filepath.split('/').slice(0, -1);
 
     templates = [template];
 
