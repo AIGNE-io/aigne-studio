@@ -5,6 +5,7 @@ import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
+import { uniqBy } from 'lodash';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import sample from 'lodash/sample';
@@ -23,7 +24,7 @@ import {
   repositoryRoot,
   templateToYjs,
 } from '../store/projects';
-import { nextTemplateId } from '../store/templates';
+import { Template, getTemplate, nextTemplateId } from '../store/templates';
 
 let icons: { filename: string }[] = [];
 
@@ -75,6 +76,52 @@ export interface GetProjectsQuery {
 
 const getProjectsQuerySchema = Joi.object<GetProjectsQuery>({
   type: Joi.string().allow('templates').empty([null, '']),
+});
+
+const getDeepTemplate = async (projectId: string, ref: string, templateId: string) => {
+  let templates: (Template & { parent?: string[] })[] = [];
+
+  try {
+    const repository = await getRepository({ projectId });
+    const filepath = await repository.findFile(templateId, { ref });
+
+    const template = (await getTemplate({ repository, ref, templateId })) as Template & { parent?: string[] };
+    template.parent = filepath.split('/').slice(0, -1);
+
+    templates = [template];
+
+    if (template.next?.id) {
+      const nextTemplate = await getDeepTemplate(projectId, ref, template.next?.id);
+      if (nextTemplate?.length) {
+        templates = [...templates, ...nextTemplate];
+      }
+    }
+
+    if (template.branch?.branches?.length) {
+      for (const branch of template.branch?.branches || []) {
+        if (branch.template?.id) {
+          const branchTemplate = await getDeepTemplate(projectId, ref, branch.template?.id);
+          if (branchTemplate?.length) {
+            templates = [...templates, ...branchTemplate];
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // return templates
+  }
+
+  return templates;
+};
+
+const exportImportSchema = Joi.object<{
+  projectId: string;
+  ref: string;
+  resources: string[];
+}>({
+  projectId: Joi.string().required().min(1),
+  ref: Joi.string(),
+  resources: Joi.array().items(Joi.string()).required(),
 });
 
 export function projectRoutes(router: Router) {
@@ -289,5 +336,18 @@ export function projectRoutes(router: Router) {
     rmSync(`${root}.cooperative`, { recursive: true, force: true });
 
     res.json(project);
+  });
+
+  router.post('/projects/:projectId/:ref/import', ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { resources, projectId, ref } = await exportImportSchema.validateAsync(req.body);
+
+    const fns = resources.map(async (_id: string) => {
+      const list = await getDeepTemplate(projectId, ref, _id);
+      return list;
+    });
+
+    const templates = (await Promise.all(fns)).flat();
+
+    return res.json({ templates: uniqBy(templates, 'id') });
   });
 }

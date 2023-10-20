@@ -29,6 +29,7 @@ import Add from './icons/add';
 import DeveloperTools from './icons/developer-tools';
 import Empty from './icons/empty';
 import FolderAdd from './icons/folder-add';
+import Import from './icons/import';
 import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
 import SettingView from './setting-view';
@@ -149,6 +150,14 @@ export default function ProjectPage() {
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFile()}>
                     <Add />
+                  </Button>
+                </span>
+              </Tooltip>
+
+              <Tooltip title={t('import.title')}>
+                <span>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
+                    <Import />
                   </Button>
                 </span>
               </Tooltip>

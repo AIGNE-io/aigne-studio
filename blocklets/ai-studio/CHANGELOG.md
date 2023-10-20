@@ -1,3 +1,7 @@
+## 0.1.106 (2023-10-20)
+
+- chore: import templates from other projects
+
 ## 0.1.105 (2023-10-20)
 
 - fix: correct navigation after saving
