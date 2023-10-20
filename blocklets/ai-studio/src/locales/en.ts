@@ -195,4 +195,5 @@ export default flat({
     fieldMinLength: 'Please enter at least {minLength} characters',
     fieldMaxLength: 'Please enter fewer than {maxLength} characters',
   },
+  dependents: 'dependents',
 });

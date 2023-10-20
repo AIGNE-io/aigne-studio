@@ -192,4 +192,5 @@ export default flat({
     fieldMinLength: '请输入至少{minLength}个字符',
     fieldMaxLength: '请输入少于{maxLength}个字符',
   },
+  dependents: '依赖',
 });

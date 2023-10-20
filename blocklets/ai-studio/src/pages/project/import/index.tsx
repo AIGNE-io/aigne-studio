@@ -1,13 +1,20 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { NodeModel } from '@minoru/react-dnd-treeview';
-import { Autocomplete, Box, Checkbox, CircularProgress, FormControlLabel, Stack, TextField } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import {
+  Autocomplete,
+  Box,
+  Checkbox,
+  CircularProgress,
+  FormControlLabel,
+  Stack,
+  TextField,
+  Tooltip,
+} from '@mui/material';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import joinUrl from 'url-join';
 
-import { EntryWithMeta } from '../../../../api/src/routes/tree';
+import Icon from '../icons/warning-circle';
 import useRequest from './state';
-
-type TreeNode = NodeModel<EntryWithMeta>;
+import getDepTemplates, { TreeNode } from './utils';
 
 export default function ImportFrom({
   projectId,
@@ -19,6 +26,8 @@ export default function ImportFrom({
   const { t } = useLocaleContext();
 
   const [state, setState, { refetch }] = useRequest(projectId);
+  const counts = useRef<{ [key: string]: number }>({});
+  const deps = useRef<{ [key: string]: any[] }>({});
 
   const [selected, setSelected] = useState<{ [key: string]: boolean }>({});
 
@@ -30,21 +39,49 @@ export default function ImportFrom({
     return state.projects.find((x) => x._id === state.projectId);
   }, [state.projects, state.projectId]);
 
-  const tree = useMemo<(TreeNode & { type: string })[]>(() => {
+  const tree = useMemo<TreeNode[]>(() => {
     if (!state.files) return [];
 
     return state.files.map((item) => ({
       id: joinUrl(...item.parent, item.name),
       parent: item.parent.join(' / ') || '',
       text: item.name,
-      data: item,
+      // @ts-ignore
+      data: item.meta,
       type: item.type,
     }));
   }, [state.files]);
 
+  const setDepCounts = (list: any, isChecked: boolean) => {
+    list.forEach((item: any) => {
+      counts.current[item.text] = counts.current[item.text] ?? 0;
+
+      if (isChecked) {
+        counts.current[item.text]++;
+      } else {
+        counts.current[item.text]--;
+      }
+    });
+  };
+
+  const ids = useMemo(() => {
+    const obj: { [key: string]: boolean } = {};
+
+    Object.keys(counts.current).forEach((key) => {
+      if (Number(counts.current[key]) > 0) {
+        obj[key] = true;
+      } else {
+        delete counts.current[key];
+      }
+    });
+
+    return { ...selected, ...obj };
+  }, [selected, counts]);
+
   useEffect(() => {
-    onChange(selected, state.projectId, state.ref);
-  }, [selected, state]);
+    onChange(ids, state.projectId, state.ref);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ids, state]);
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -95,14 +132,19 @@ export default function ImportFrom({
           <Box component="h4">{t('import.templates')}</Box>
 
           {tree.map((item) => {
-            // @ts-ignore
-            const name = item.type === 'file' ? item?.data?.meta?.name || t('alert.unnamed') : item.text;
+            const getName = (file: any) => {
+              return file.type === 'file' ? file?.data?.name || t('alert.unnamed') : file.text;
+            };
+
+            const name = getName(item);
 
             const isChecked = () => {
-              return Boolean(selected[item.text]);
+              return Boolean(ids[item.text]);
             };
 
             const onChangeParent = (item: any, checked: boolean) => {
+              deps.current[item.text] = getDepTemplates(tree, item.text);
+              setDepCounts(deps.current[item.text], checked);
               handleChange(item.text, checked);
             };
 
@@ -110,10 +152,24 @@ export default function ImportFrom({
               <Stack key={item.id} pl={1} mb={0.25}>
                 <FormControlLabel
                   sx={{ pl: 0 }}
+                  disabled={Boolean(Number(counts.current[item.text]) > 0)}
                   label={
-                    <Box display="flex">
+                    <Box display="flex" alignItems="center">
                       {item.parent && <Box mr={1} sx={{ color: '#ccc' }}>{`${item.parent} / `}</Box>}
+
                       <Box>{name}</Box>
+
+                      {Boolean(selected[item.text]) && !!(deps.current[item.text] || []).length && (
+                        <Tooltip
+                          title={[
+                            `${t('dependents')}: `,
+                            (deps.current[item.text] || []).map((item) => <Box pl={1}>{getName(item)}</Box>),
+                          ]}>
+                          <Box display="flex" color="primary.main" ml={1}>
+                            <Icon sx={{ fontSize: 18 }} />
+                          </Box>
+                        </Tooltip>
+                      )}
                     </Box>
                   }
                   control={
