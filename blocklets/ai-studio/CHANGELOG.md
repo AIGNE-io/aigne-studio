@@ -1,3 +1,7 @@
+## 0.1.105 (2023-10-20)
+
+- fix: correct navigation after saving
+
 ## 0.1.104 (2023-10-19)
 
 - feat: record ai execution logs
