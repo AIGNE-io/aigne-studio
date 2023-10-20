@@ -75,6 +75,11 @@ export default function ImportFrom({
             setState((r: any) => ({ ...r, projectId: newValue._id, ref: 'main' }));
             refetch({ projectId: newValue._id, ref: 'main' });
           }}
+          renderOption={(props, option) => (
+            <Box component="li" {...props} key={option._id}>
+              {option.name || t('unnamed')}
+            </Box>
+          )}
         />
 
         <Autocomplete
@@ -99,7 +104,7 @@ export default function ImportFrom({
         </Box>
       ) : (
         <Box flex={1} height={0} overflow="auto" mb={7}>
-          <Box component="h3">{t('import.templates')}</Box>
+          <Box component="h4">{t('import.templates')}</Box>
 
           {mergedData.map((item) => {
             // @ts-ignore
