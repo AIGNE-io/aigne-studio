@@ -95,6 +95,7 @@ export default flat({
     selectProject: 'Select Project',
     selectBranch: 'Select Branch',
     templates: 'Templates',
+    selectTemplates: 'Please select the template first',
   },
   newFromTemplates: 'New from Templates',
   myProjects: 'My Projects',

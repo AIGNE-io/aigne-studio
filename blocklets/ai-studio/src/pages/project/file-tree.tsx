@@ -19,7 +19,6 @@ import {
   listItemIconClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import { omit } from 'lodash';
 import uniqBy from 'lodash/uniqBy';
 import {
   ComponentProps,
@@ -59,6 +58,7 @@ import {
   isTemplate,
   moveFile,
   nextTemplateId,
+  resetTemplatesId,
   templateYjsFromTemplate,
   useStore,
 } from './yjs-state';
@@ -150,13 +150,12 @@ const FileTree = forwardRef<
           const { templates } = await importTemplatesToProject(projectId, gitRef, state);
 
           if (templates.length) {
-            for (const template of templates) {
-              createFile({
-                store,
-                parent: template.parent || [],
-                meta: omit({ ...templateYjsFromTemplate(template) }, 'id'),
-              });
+            const newTemplates = resetTemplatesId(templates);
+            for (const template of newTemplates) {
+              createFile({ store, parent: template.parent || [], meta: templateYjsFromTemplate(template) });
             }
+          } else {
+            Toast.error('import.selectTemplates');
           }
         } catch (error) {
           Toast.error(getErrorMessage(error));

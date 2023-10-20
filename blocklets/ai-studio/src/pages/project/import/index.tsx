@@ -55,7 +55,7 @@ export default function ImportFrom({
           // @ts-ignore
           value={projectValue || ''}
           options={state.projects}
-          renderInput={(params) => <TextField {...params} size="small" label={t('import.selectProject')} />}
+          renderInput={(params) => <TextField {...params} label={t('import.selectProject')} />}
           isOptionEqualToValue={(o, v) => o?._id === v?._id}
           getOptionLabel={(v) => v?.name || t('unnamed')}
           onChange={(_e, newValue) => {
@@ -75,7 +75,7 @@ export default function ImportFrom({
           disableClearable
           value={state.ref}
           options={state.branches}
-          renderInput={(params) => <TextField {...params} size="small" label={t('import.selectBranch')} />}
+          renderInput={(params) => <TextField {...params} label={t('import.selectBranch')} />}
           isOptionEqualToValue={(o, v) => o === v}
           getOptionLabel={(v) => v}
           onChange={(_e, newValue) => {
