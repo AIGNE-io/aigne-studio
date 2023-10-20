@@ -1,3 +1,7 @@
+## 0.1.107 (2023-10-20)
+
+- chore: update templates id
+
 ## 0.1.106 (2023-10-20)
 
 - chore: import templates from other projects
