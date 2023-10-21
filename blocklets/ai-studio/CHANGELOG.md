@@ -1,3 +1,7 @@
+## 0.1.107 (2023-10-22)
+
+- feat: support tests
+
 ## 0.1.106 (2023-10-20)
 
 - chore: import templates from other projects

@@ -181,30 +181,34 @@ const debugState = (projectId: string, templateId: string) => {
 export const useDebugState = ({ projectId, templateId }: { projectId: string; templateId: string }) => {
   const [state, setState] = useRecoilState(debugState(projectId, templateId));
 
-  const newSession = useCallback(() => {
-    setState((state) => {
-      const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
+  const newSession = useCallback(
+    (session?: Partial<SessionItem>) => {
+      setState((state) => {
+        const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
 
-      const now = new Date().toISOString();
-      const index = state.nextSessionIndex;
+        const now = new Date().toISOString();
+        const index = state.nextSessionIndex;
 
-      return {
-        ...state,
-        sessions: [
-          ...state.sessions,
-          {
-            index,
-            createdAt: now,
-            updatedAt: now,
-            messages: [],
-            chatType: currentSession?.chatType,
-          },
-        ],
-        nextSessionIndex: index + 1,
-        currentSessionIndex: index,
-      };
-    });
-  }, [setState]);
+        return {
+          ...state,
+          sessions: [
+            ...state.sessions,
+            {
+              ...session,
+              index,
+              createdAt: now,
+              updatedAt: now,
+              messages: [],
+              chatType: currentSession?.chatType,
+            },
+          ],
+          nextSessionIndex: index + 1,
+          currentSessionIndex: index,
+        };
+      });
+    },
+    [setState]
+  );
 
   const setSession = useCallback(
     (index: number, recipe: (session: Draft<SessionItem>) => void) => {
