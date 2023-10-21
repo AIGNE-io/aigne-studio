@@ -251,7 +251,7 @@ export default function ProjectPage() {
             </Toolbar>
           </Box>
 
-          <Box m={{ xs: 1 }} flexGrow={1}>
+          <Box m={{ xs: 2 }} flexGrow={1}>
             {!synced ? (
               <Box sx={{ textAlign: 'center', mt: 10 }}>
                 <CircularProgress size={32} />
