@@ -34,6 +34,7 @@ import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
 import SettingView from './setting-view';
 import { useProjectState } from './state';
+import TestView from './test-view';
 import { TokenUsage } from './token-usage';
 import { isTemplate, useStore } from './yjs-state';
 
@@ -198,7 +199,7 @@ export default function ProjectPage() {
                 }}>
                 <Tab value="setting" label={t('setting')} />
                 <Tab value="debug" label={t('debug')} />
-                <Tab value="test" label={t('test')} disabled />
+                <Tab value="test" label={t('test')} />
                 <Tab value="discuss" label={t('discuss')} disabled />
               </Tabs>
 
@@ -213,7 +214,9 @@ export default function ProjectPage() {
           ) : currentTab === 'setting' ? (
             <SettingView projectId={projectId} gitRef={gitRef} template={template} />
           ) : currentTab === 'debug' ? (
-            <DebugView projectId={projectId} gitRef={gitRef} template={template} />
+            <DebugView projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
+          ) : currentTab === 'test' ? (
+            <TestView projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
           ) : null}
         </Stack>
       }>
