@@ -525,6 +525,7 @@ function DebugModeForm({
 
                   return (
                     <Field
+                      maxRows={10}
                       label={parameter.label || param}
                       fullWidth
                       parameter={omit(parameter, 'min', 'max') as never}
