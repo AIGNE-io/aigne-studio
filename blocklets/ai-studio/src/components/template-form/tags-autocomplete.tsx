@@ -10,8 +10,7 @@ export default function TagsAutoComplete({
   projectId,
   label,
   ...props
-}: { projectId: string } & Pick<AutocompleteProps<string, true, false, true>, 'value' | 'onChange'> &
-  Pick<TextFieldProps, 'label'>) {
+}: { projectId: string } & Partial<AutocompleteProps<string, true, false, true> & Pick<TextFieldProps, 'label'>>) {
   const [search, setSearch] = useState('');
   const state = useReactive<{ open: boolean; loading: boolean; options: string[] }>({
     open: false,
@@ -41,7 +40,6 @@ export default function TagsAutoComplete({
 
   return (
     <Autocomplete
-      {...props}
       size="small"
       freeSolo
       autoSelect
@@ -59,6 +57,7 @@ export default function TagsAutoComplete({
         <TextField
           label={label}
           {...params}
+          placeholder={props.placeholder}
           InputProps={{
             ...params.InputProps,
             endAdornment: (
@@ -70,6 +69,7 @@ export default function TagsAutoComplete({
           }}
         />
       )}
+      {...props}
     />
   );
 }

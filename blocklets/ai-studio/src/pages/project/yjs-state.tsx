@@ -14,14 +14,14 @@ import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useEffect } from 'react';
+import { RecoilState, atom, useRecoilState } from 'recoil';
 import joinUrl from 'url-join';
 import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
-import { useSessionContext } from '../../contexts/session';
 import { PREFIX } from '../../libs/api';
 
 export type State = {
@@ -55,67 +55,69 @@ export interface StoreContext {
   provider: WebsocketProvider;
 }
 
-const storeContext = createContext<StoreContext | null>(null);
+const stores: Record<string, RecoilState<StoreContext>> = {};
 
-export function StoreProvider({
-  projectId,
-  gitRef,
-  children,
-}: {
-  projectId: string;
-  gitRef: string;
-  children: ReactNode;
-}) {
-  const [synced, setSynced] = useState(false);
+const createStore = (projectId: string, gitRef: string) => {
+  const key = `projectStore-${projectId}-${gitRef}`;
+  let s = stores[key];
+  if (!s) {
+    s = atom<StoreContext>({
+      key,
+      dangerouslyAllowMutability: true,
+      default: (() => {
+        const url = (() => {
+          const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+          const wsUrl = new URL(`${wsProtocol}://${window.location.hostname}`);
+          wsUrl.pathname = joinUrl(PREFIX, 'api/ws', projectId);
+          return wsUrl.toString();
+        })();
 
-  const url = useMemo(() => {
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const wsUrl = new URL(`${wsProtocol}://${window.location.hostname}`);
-    wsUrl.pathname = joinUrl(PREFIX, 'api/ws', projectId);
-    return wsUrl.toString();
-  }, [projectId]);
+        const doc = new Doc();
 
-  const doc = useMemo(() => new Doc(), [projectId, gitRef]);
+        const provider = new WebsocketProvider(url, gitRef, doc, {
+          connect: false,
+          params: { token: Cookies.get('login_token')! },
+        });
+
+        const store = syncedStore<State>({ files: {}, tree: {} }, doc);
+
+        return {
+          store,
+          awareness: { clients: {}, files: {} },
+          provider,
+          synced: provider.synced,
+        };
+      })(),
+    });
+    stores[key] = s;
+  }
+  return s;
+};
+
+export const useStore = (projectId: string, gitRef: string, connect?: boolean) => {
+  const [store, setStore] = useRecoilState(createStore(projectId, gitRef));
 
   useEffect(() => {
-    return () => doc.destroy();
-  }, [doc]);
+    if (!connect) return undefined;
 
-  const [awareness, setAwareness] = useState<StoreContext['awareness']>({ clients: {}, files: {} });
+    const { provider } = store;
 
-  const provider = useMemo(
-    () => new WebsocketProvider(url, gitRef, doc, { params: { token: Cookies.get('login_token')! } }),
-    [url, gitRef, doc]
-  );
+    // NOTE: 修复第一次连接时由于 server 端初始化 state 耗时导致没有同步成功的问题
+    const interval = window.setInterval(() => {
+      if (provider.ws && provider.ws.readyState === WebSocket.OPEN) {
+        const encoder = createEncoder();
+        writeVarUint(encoder, messageSync);
+        writeSyncStep1(encoder, provider.doc);
+        provider.ws.send(toUint8Array(encoder));
+      }
+    }, 1000);
 
-  const { session } = useSessionContext();
-  useEffect(() => {
-    provider.awareness.setLocalStateField('user', session.user);
-  }, [session, provider]);
+    const onSynced = () => {
+      setStore((v) => ({ ...v, synced: true }));
+      clearInterval(interval);
+    };
 
-  useEffect(() => {
-    let interval: number;
-
-    setSynced(provider.synced);
-
-    if (!provider.synced) {
-      provider.once('synced', () => {
-        setSynced(true);
-        clearInterval(interval);
-      });
-
-      // NOTE: 修复第一次连接时由于 server 端初始化 state 耗时导致没有同步成功的问题
-      interval = window.setInterval(() => {
-        if (provider.ws && provider.ws.readyState === WebSocket.OPEN) {
-          const encoder = createEncoder();
-          writeVarUint(encoder, messageSync);
-          writeSyncStep1(encoder, provider.doc);
-          provider.ws.send(toUint8Array(encoder));
-        }
-      }, 1000);
-    }
-
-    provider.awareness.on('change', () => {
+    const onAwarenessChange = () => {
       const states = provider.awareness.getStates();
 
       const awareness: StoreContext['awareness'] = {
@@ -142,34 +144,26 @@ export function StoreProvider({
         }
       }
 
-      setAwareness(awareness);
-    });
+      setStore((v) => ({ ...v, awareness }));
+    };
+
+    provider.on('synced', onSynced);
+    provider.awareness.on('change', onAwarenessChange);
+    provider.connect();
 
     return () => {
       clearInterval(interval);
-      provider.destroy();
+      provider.disconnect();
+      provider.off('synced', onSynced);
+      provider.awareness.off('change', onAwarenessChange);
     };
-  }, [provider]);
-
-  const store = useMemo(() => syncedStore<State>({ files: {}, tree: {} }, doc), [doc]);
-
-  const ctx = useMemo<StoreContext>(
-    () => ({ store, synced, awareness, provider }),
-    [store, synced, awareness, provider]
-  );
-
-  return <storeContext.Provider value={ctx}>{children}</storeContext.Provider>;
-}
-
-export function useStore() {
-  const store = useContext(storeContext);
-  if (!store) throw new Error('Missing required context storeContext');
+  }, [projectId, gitRef]);
 
   return {
     ...store,
     store: useSyncedStore(store.store, [store.store]),
   };
-}
+};
 
 export function createFolder({
   store,
@@ -269,51 +263,84 @@ export function importFiles({
 }
 
 export async function templateYjsToTemplate(template: TemplateYjs): Promise<Template> {
-  let prompts;
-  if (template.prompts) {
-    const arr = sortBy(Object.values(template.prompts), 'index').map(async ({ data }) => {
-      if (data.contentLexicalJson && tryParseJSONObject(data.contentLexicalJson)) {
-        const res = await $lexical2text(data.contentLexicalJson);
-        return { ...omit(data, 'contentLexicalJson'), ...res };
-      }
-
-      return { ...omit(data, 'contentLexicalJson') };
-    });
-
-    prompts = await Promise.all(arr);
-  }
-
   return {
     ...template,
-    prompts,
+    prompts:
+      template.prompts &&
+      (await Promise.all(
+        sortBy(Object.values(template.prompts), 'index').map(async ({ data }) => {
+          if (data.contentLexicalJson && tryParseJSONObject(data.contentLexicalJson)) {
+            const res = await $lexical2text(data.contentLexicalJson);
+            return { ...omit(data, 'contentLexicalJson'), ...res };
+          }
+
+          return { ...omit(data, 'contentLexicalJson') };
+        })
+      )),
+    parameters:
+      template.parameters &&
+      Object.fromEntries(
+        Object.entries(template.parameters).map(([param, parameter]) => [
+          param,
+          parameter.type === 'select'
+            ? {
+                ...parameter,
+                options:
+                  parameter.options && sortBy(Object.values(parameter.options), (i) => i.index).map((i) => i.data),
+              }
+            : parameter,
+        ])
+      ),
     branch: template.branch && {
       branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
     },
     datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
+    tests: template.tests && sortBy(Object.values(template.tests), 'index').map(({ data }) => data),
   };
 }
 
-export async function templateYjsFromTemplate(file: Template): Promise<TemplateYjs> {
-  let prompts;
-  if (file.prompts) {
-    const list = file.prompts?.map(async (prompt) => {
-      const contentLexicalJson = await $text2lexical(prompt.content || '', prompt.role);
-      return { ...prompt, contentLexicalJson };
-    });
-
-    const result = await Promise.all(list);
-    const format = result.map((prompt, index) => [prompt.id, { index, data: prompt }]);
-    prompts = Object.fromEntries(format);
-  }
-
+export async function templateYjsFromTemplate(template: Template): Promise<TemplateYjs> {
   return {
-    ...file,
-    prompts,
-    branch: file.branch && {
-      branches: Object.fromEntries(file.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])),
+    ...template,
+    prompts:
+      template.prompts &&
+      Object.fromEntries(
+        await Promise.all(
+          template.prompts?.map(async (prompt, index) => [
+            prompt.id,
+            {
+              index,
+              data: {
+                ...prompt,
+                contentLexicalJson: await $text2lexical(prompt.content || '', prompt.role),
+              },
+            },
+          ])
+        )
+      ),
+    parameters:
+      template.parameters &&
+      Object.fromEntries(
+        Object.entries(template.parameters).map(([param, parameter]) => [
+          param,
+          parameter.type === 'select'
+            ? {
+                ...parameter,
+                options:
+                  parameter.options &&
+                  Object.fromEntries(parameter.options.map((option, index) => [option.id, { index, data: option }])),
+              }
+            : parameter,
+        ])
+      ),
+    branch: template.branch && {
+      branches: Object.fromEntries(
+        template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
+      ),
     },
     datasets:
-      file.datasets &&
-      Object.fromEntries(file.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+      template.datasets &&
+      Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+    tests: template.tests && Object.fromEntries(template.tests.map((test, index) => [test.id, { index, data: test }])),
   };
 }

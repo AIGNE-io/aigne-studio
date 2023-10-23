@@ -1,11 +1,14 @@
+import path from 'path';
+
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
-import { Worker } from 'snowflake-uuid';
+import dayjs from 'dayjs';
+import { nanoid } from 'nanoid';
 import { parse } from 'yaml';
 
-const idGenerator = new Worker();
+import { yjsToTemplate } from './projects';
 
-export const nextTemplateId = () => idGenerator.nextId().toString();
+export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -26,6 +29,10 @@ export interface Template {
   parameters?: { [key: string]: Parameter };
   datasets?: { id: string; type: 'vectorStore'; vectorStore?: { id: string; name?: string } }[];
   temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  maxTokens?: number;
   model?: string;
   next?: { id?: string; name?: string; outputKey?: string };
   versionNote?: string;
@@ -33,9 +40,19 @@ export interface Template {
   updatedAt: string;
   createdBy: string;
   updatedBy: string;
+  public?: boolean;
+  tests?: {
+    id: string;
+    parameters: { [key: string]: any };
+    output?: string;
+    error?: { message: string };
+    createdBy: string;
+  }[];
 }
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | HoroscopeParameter;
+
+export type ParameterYjs = Exclude<Parameter, { type: 'select' }> | SelectParameterYjs;
 
 export type ParameterType = NonNullable<Parameter['type']>;
 
@@ -70,6 +87,13 @@ export interface SelectParameter extends BaseParameter {
   options?: { id: string; label: string; value: string }[];
 }
 
+export interface SelectParameterYjs extends BaseParameter {
+  type: 'select';
+  value?: string;
+  defaultValue?: string;
+  options?: { [id: string]: { index: number; data: { id: string; label: string; value: string } } };
+}
+
 export interface LanguageParameter extends BaseParameter {
   type: 'language';
   value?: string;
@@ -97,12 +121,22 @@ export const templates = new Templates();
 export async function getTemplate({
   repository,
   ref,
+  working,
   templateId,
   filepath,
-}: { repository: Repository<any>; ref: string } & (
+}: { repository: Repository<any>; ref: string; working?: boolean } & (
   | { templateId: string; filepath?: undefined }
   | { filepath: string; templateId?: undefined }
 )): Promise<Template> {
+  if (working) {
+    const working = await repository.working({ ref });
+    const id = templateId ?? path.parse(filepath).name;
+    const key = Object.entries(working.syncedStore.tree).find(([, p]) => p && path.parse(p).name === id)?.[0];
+    const file = working.syncedStore.files[key!];
+    if (!file) throw new Error(`no such template ${templateId || filepath}`);
+    return yjsToTemplate(file);
+  }
+
   const template = parse(
     Buffer.from(
       (

@@ -14,9 +14,15 @@ import TemplateAutocomplete from './template-autocomplete';
 import type { TemplateForm } from '.';
 
 export default function Next({
+  readOnly,
+  projectId,
+  gitRef,
   form,
   onTemplateClick,
 }: {
+  readOnly?: boolean;
+  projectId: string;
+  gitRef: string;
   form: Pick<TemplateForm, 'id' | 'next'>;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
@@ -25,7 +31,7 @@ export default function Next({
 
   const { t } = useLocaleContext();
 
-  const { store } = useStore();
+  const { store } = useStore(projectId, gitRef);
   const templates = Object.values(store.files).filter(isTemplate);
 
   const isTemplateWarning = useCallback(
@@ -42,6 +48,7 @@ export default function Next({
     <Box sx={{ mt: 2, display: 'flex' }}>
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
         <TemplateAutocomplete
+          readOnly={readOnly}
           freeSolo
           fullWidth
           size="small"
@@ -63,7 +70,7 @@ export default function Next({
         />
 
         <Box position="relative">
-          <WithAwareness path={[form.id, 'next.outputKey']}>
+          <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'next.outputKey']}>
             <TextField
               fullWidth
               size="small"
@@ -75,10 +82,16 @@ export default function Next({
                   form.next.outputKey = e.target.value;
                 });
               }}
+              InputProps={{ readOnly }}
             />
           </WithAwareness>
 
-          <AwarenessIndicator path={[form.id, 'next.outputKey']} sx={{ position: 'absolute', right: -16, top: 16 }} />
+          <AwarenessIndicator
+            projectId={projectId}
+            gitRef={gitRef}
+            path={[form.id, 'next.outputKey']}
+            sx={{ position: 'absolute', right: -16, top: 16 }}
+          />
         </Box>
       </Box>
 
@@ -94,9 +107,11 @@ export default function Next({
           </Button>
         )}
 
-        <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => (form.next = {})}>
-          <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
-        </Button>
+        {!readOnly && (
+          <Button sx={{ minWidth: 0, p: 0.2 }} onClick={() => (form.next = {})}>
+            <Delete sx={{ fontSize: 16, color: 'grey.500' }} />
+          </Button>
+        )}
       </Box>
     </Box>
   );

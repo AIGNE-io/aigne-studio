@@ -1,93 +1,77 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import Toast from '@arcblock/ux/lib/Toast';
-import { Conversation, ConversationRef, ImageGenerationSize, MessageItem, useConversation } from '@blocklet/ai-kit';
-import Header from '@blocklet/ui-react/lib/Header';
-import {
-  ArrowBackIosNew,
-  ArrowDropDown,
-  Download,
-  DragIndicator,
-  HighlightOff,
-  History,
-  InfoOutlined,
-  Start,
-  Upload,
-} from '@mui/icons-material';
 import {
   Alert,
   Box,
-  BoxProps,
-  Breadcrumbs,
   Button,
+  ButtonProps,
   CircularProgress,
-  Divider,
-  Link,
-  TextField,
+  Stack,
+  Tab,
+  Tabs,
+  Toolbar,
   Tooltip,
   Typography,
+  tabScrollButtonClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import uniqBy from 'lodash/uniqBy';
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom';
-import joinUrl from 'url-join';
-import { parse } from 'yaml';
+import { useCallback, useEffect, useRef } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { Template } from '../../../api/src/store/templates';
 import WithAwareness from '../../components/awareness/with-awareness';
-import { parameterToStringValue } from '../../components/parameter-field';
 import TemplateFormView from '../../components/template-form';
-import CommitsTip from '../../components/template-form/commits-tip';
 import { useComponent } from '../../contexts/component';
-import { useIsAdmin } from '../../contexts/session';
-import { callAI, imageGenerations, textCompletions } from '../../libs/ai';
-import { getErrorMessage } from '../../libs/api';
-import { importBodySchema } from '../../libs/import';
-import { commitFromWorking } from '../../libs/working';
-import useDialog from '../../utils/use-dialog';
-import usePickFile, { readFileAsText } from '../../utils/use-pick-file';
-import BranchButton from './branch-button';
-import { useExportFiles } from './export-files';
-import FileTree from './file-tree';
-import MenuButton from './menu-button';
-import SaveButton from './save-button';
+import { useReadOnly } from '../../contexts/session';
+import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
+import DebugView from './debug-view';
+import DiscussView from './discuss-view';
+import FileTree, { ImperativeFileTree } from './file-tree';
+import Add from './icons/add';
+import DeveloperTools from './icons/developer-tools';
+import Empty from './icons/empty';
+import FolderAdd from './icons/folder-add';
+import Import from './icons/import';
+import PanelLeft from './icons/panel-left';
+import PanelRight from './icons/panel-right';
+import SettingView from './setting-view';
 import { useProjectState } from './state';
-import { StoreProvider, importFiles, isTemplate, templateYjsToTemplate, useStore } from './yjs-state';
+import TestView from './test-view';
+import { TokenUsage } from './token-usage';
+import { isTemplate, useStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
 const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
+const CURRENT_TAB = (projectId: string) => `ai-studio.currentTab.${projectId}`;
 
 export default function ProjectPage() {
-  const { projectId, ref, '*': filepath } = useParams();
-  if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
+  const { projectId, ref: gitRef, '*': filepath } = useParams();
+  if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
-  return (
-    <StoreProvider projectId={projectId} gitRef={ref}>
-      <ProjectView projectId={projectId} gitRef={ref} filepath={filepath} />
-    </StoreProvider>
-  );
-}
+  const { t } = useLocaleContext();
 
-function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRef: string; filepath?: string }) {
-  const { store, synced } = useStore();
+  const { store, synced } = useStore(projectId, gitRef, true);
+
+  const id = Object.entries(store.tree).find((i) => i[1] === filepath)?.[0];
+  const file = id ? store.files[id] : undefined;
+  const template = isTemplate(file) ? file : undefined;
 
   const {
-    state: { branches, loading, project, commits },
+    state: { error },
     refetch,
   } = useProjectState(projectId, gitRef);
+  if (error) throw error;
 
   useEffect(() => {
     refetch();
   }, [refetch]);
 
-  const isAdmin = useIsAdmin();
-  const disableMutation = gitRef === defaultBranch && !isAdmin;
+  const readOnly = useReadOnly({ ref: gitRef });
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [currentTab, setCurrentTab] = useLocalStorageState(CURRENT_TAB(projectId), { defaultValue: 'debug' });
 
   const [previousFilePath, setPreviousFilePath] = useLocalStorageState<{ [key: string]: string } | undefined>(
     PREVIOUS_FILE_PATH(projectId)
@@ -107,74 +91,15 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
     const path = filename && Object.values(store.tree).find((i) => i?.endsWith(filename));
 
     if (path) navigate(path, { replace: true });
+    else {
+      const first = Object.values(store.tree)[0];
+      if (first) navigate(first, { replace: true });
+    }
   }, [gitRef, synced, location]);
 
   useEffect(() => {
     if (filepath) setPreviousFilePath((v) => ({ ...v, [gitRef]: filepath }));
   }, [gitRef, filepath, setPreviousFilePath]);
-
-  const { t } = useLocaleContext();
-
-  const { dialog, showDialog } = useDialog();
-
-  const conversation = useRef<ConversationRef>(null);
-
-  const { messages, add, cancel } = useConversation({
-    scrollToBottom: (o) => conversation.current?.scrollToBottom(o),
-    textCompletions: async (prompt, { meta }: { meta?: { template: Template; path: string } } = {}) => {
-      if (!meta) {
-        return textCompletions({
-          ...(typeof prompt === 'string' ? { prompt } : { messages: prompt }),
-          stream: true,
-        });
-      }
-      return callAI({
-        projectId,
-        template: meta.template,
-        parameters: Object.fromEntries(
-          Object.entries(meta.template.parameters ?? {}).map(([key, val]) => [key, parameterToStringValue(val)])
-        ),
-      });
-    },
-    imageGenerations: (prompt) =>
-      imageGenerations({ ...prompt, size: prompt.size as ImageGenerationSize, response_format: 'b64_json' }).then(
-        (res) => res.data.map((i) => ({ url: `data:image/png;base64,${i.b64_json}` }))
-      ),
-  });
-
-  const customActions = useCallback(
-    (msg: Omit<MessageItem, 'meta'> & { meta?: { template: Template; path: string } }): [ReactNode[], ReactNode[]] => {
-      const { meta } = msg;
-
-      return [
-        [],
-        [
-          meta?.template.id && (
-            <Tooltip key="template" title="Use current template" placement="top">
-              <Button size="small" onClick={() => navigate(joinUrl('.', meta.path))}>
-                <Start fontSize="small" />
-              </Button>
-            </Tooltip>
-          ),
-          msg.loading && (
-            <Tooltip key="stop" title="Stop" placement="top">
-              <Button size="small" onClick={() => cancel(msg)}>
-                <HighlightOff fontSize="small" />
-              </Button>
-            </Tooltip>
-          ),
-        ],
-      ];
-    },
-    [cancel, navigate]
-  );
-
-  const onExecute = async (template: TemplateYjs) => {
-    const { parameters } = template;
-    const question = parameters?.question?.value;
-
-    add(question?.toString() || '', { template: await templateYjsToTemplate(template), path: filepath });
-  };
 
   const assistant = useComponent('ai-assistant');
 
@@ -194,407 +119,212 @@ function ProjectView({ projectId, gitRef, filepath }: { projectId: string; gitRe
     [assistant, projectId, gitRef]
   );
 
-  const { exporter, exportFiles } = useExportFiles();
+  const layout = useRef<ImperativeColumnsLayout>(null);
+  const fileTree = useRef<ImperativeFileTree>(null);
 
-  const pickFile = usePickFile();
+  return (
+    <ColumnsLayout
+      ref={layout}
+      left={
+        <Stack sx={{ height: '100%', overflow: 'auto' }}>
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 0,
+              bgcolor: 'background.paper',
+              zIndex: (theme) => theme.zIndex.appBar,
+              borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
+            }}>
+            <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
+              <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
 
-  const onImport = useCallback(
-    async (path?: string[]) => {
-      try {
-        const list = await pickFile({ accept: '.yaml,.yml', multiple: true }).then((files) =>
-          Promise.all(
-            files.map((i) =>
-              readFileAsText(i).then((i) => {
-                const obj = parse(i);
+              <Box flex={1} />
 
-                // 用于兼容比较旧的导出数据
-                // {
-                //   templates: {
-                //     folderId?: string
-                //   }[]
-                //   folders: {
-                //     _id: string
-                //     name?: string
-                //   }[]
-                // }
-                if (Array.isArray(obj?.templates) && Array.isArray(obj?.folders)) {
-                  obj.templates.forEach((template: any) => {
-                    if (template.folderId) {
-                      const folder = obj.folders.find((f: any) => f._id === template.folderId);
-                      if (folder.name) {
-                        template.path = folder.name;
-                      }
-                    }
-                  });
-                }
+              <Tooltip title={t('newObject', { object: t('folder') })}>
+                <span>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFolder()}>
+                    <FolderAdd />
+                  </Button>
+                </span>
+              </Tooltip>
 
-                return importBodySchema.validateAsync(obj, { stripUnknown: true });
-              })
-            )
-          )
-        );
+              <Tooltip title={t('newObject', { object: t('file') })}>
+                <span>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFile()}>
+                    <Add />
+                  </Button>
+                </span>
+              </Tooltip>
 
-        const templates = uniqBy(
-          list.flatMap((i) => i.templates ?? []),
-          'id'
-        ).map((i) => ({ ...i, path: i.path?.split('/') }));
-
-        const existedTemplateIds = new Set(
-          Object.values(store.files)
-            .filter(isTemplate)
-            .map((i) => i.id)
-        );
-
-        const renderTemplateItem = ({
-          template,
-          ...props
-        }: { template: Template & { path?: string[] } } & BoxProps) => {
-          return (
-            <Box {...props}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ flexShrink: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  <Typography color="text.secondary" component="span">
-                    {template.path?.length ? `${template.path.join('/')}/` : ''}
-                  </Typography>
-
-                  {template.name || t('alert.unnamed')}
-                </Box>
-
-                {existedTemplateIds.has(template.id) && (
-                  <Tooltip
-                    title={
-                      <>
-                        <Box component="span">{t('alert.overwrittenTip')}</Box>
-                        <Box
-                          component="a"
-                          sx={{
-                            ml: 1,
-                            userSelect: 'none',
-                            color: 'white',
-                            textDecoration: 'underline',
-                            cursor: 'pointer',
-                            ':hover': { opacity: 0.6 },
-                          }}
-                          onClick={() => {
-                            const path = Object.values(store.tree).find(
-                              (i) => i?.split('/').slice(-1)[0] === `${template.id}.yaml`
-                            );
-                            if (path) {
-                              exportFiles(path.split('/'), { quiet: true });
-                            }
-                          }}>
-                          {t('alert.downloadBackup')}
-                        </Box>
-                      </>
-                    }>
-                    <InfoOutlined color="warning" fontSize="small" sx={{ mx: 1 }} />
-                  </Tooltip>
-                )}
-              </Box>
-            </Box>
-          );
-        };
-
-        showDialog({
-          fullWidth: true,
-          maxWidth: 'sm',
-          title: t('alert.import'),
-          content: (
-            <Box>
-              <Typography>{t('alert.importTip')}</Typography>
-              <Box component="ul" sx={{ pl: 2 }}>
-                {templates.map((template) =>
-                  renderTemplateItem({
-                    key: template.id,
-                    component: 'li',
-                    template,
-                  })
-                )}
-              </Box>
-            </Box>
-          ),
-          cancelText: t('alert.cancel'),
-          okText: t('alert.import'),
-          onOk: async () => {
-            try {
-              importFiles({ store, parent: path, files: templates });
-              // await importTemplates({ projectId, branch: gitRef, path: path?.join('/') || '', templates });
-
-              Toast.success(t('alert.imported'));
-            } catch (error) {
-              Toast.error(getErrorMessage(error));
-              throw error;
-            }
-          },
-        });
-      } catch (error) {
-        Toast.error(getErrorMessage(error));
-        throw error;
-      }
-    },
-    [pickFile, store, showDialog, t, exportFiles]
-  );
-
-  const { dialog: createBranchDialog, showDialog: showCreateBranchDialog } = useDialog();
-
-  const showCreateBranch = useCallback(async () => {
-    return new Promise<string | null>((resolve) => {
-      let name = '';
-
-      showCreateBranchDialog({
-        maxWidth: 'sm',
-        fullWidth: true,
-        title: `${t('form.new')} ${t('form.branch')}`,
-        content: (
-          <Box>
-            <TextField label={t('form.name')} onChange={(e) => (name = e.target.value)} />
+              <Tooltip title={t('import.title')}>
+                <span>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
+                    <Import />
+                  </Button>
+                </span>
+              </Tooltip>
+            </Toolbar>
           </Box>
-        ),
-        okText: t('form.save'),
-        cancelText: t('alert.cancel'),
-        onOk: async () => {
-          try {
-            resolve(name);
-          } catch (error) {
-            Toast.error(getErrorMessage(error));
-            throw error;
-          }
-        },
-        onCancel: () => resolve(null),
-      });
-    });
-  }, [showCreateBranchDialog, t]);
 
-  const [committing, setCommitting] = useState(false);
+          <FileTree
+            ref={fileTree}
+            projectId={projectId}
+            gitRef={gitRef}
+            mutable={!readOnly}
+            current={filepath}
+            onLaunch={assistant ? onLaunch : undefined}
+            sx={{ flexGrow: 1 }}
+          />
+        </Stack>
+      }
+      right={
+        <Stack sx={{ height: '100%', overflow: 'auto' }}>
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 0,
+              bgcolor: 'background.paper',
+              zIndex: (theme) => theme.zIndex.appBar,
+              borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
+            }}>
+            <Toolbar variant="dense" sx={{ gap: 1, px: { xs: 1 } }}>
+              <Tabs
+                variant="scrollable"
+                value={currentTab}
+                onChange={(_, tab) => setCurrentTab(tab)}
+                sx={{
+                  [`.${tabScrollButtonClasses.disabled}`]: {
+                    opacity: 1,
+                    color: (theme) => theme.palette.action.disabled,
+                  },
+                }}>
+                <Tab value="setting" label={t('setting')} />
+                <Tab value="debug" label={t('debug')} />
+                <Tab value="test" label={t('test')} />
+                <Tab value="discuss" label={t('discuss')} />
+              </Tabs>
 
-  const save = useCallback(
-    async ({ newBranch }: { newBranch?: boolean } = {}) => {
-      setCommitting(true);
-      try {
-        const branch = !newBranch ? gitRef : await showCreateBranch();
-        if (!branch) return;
+              <Box flex={1} />
 
-        const message = await new Promise<string | null>((resolve) => {
-          let message = '';
+              <PanelToggleButton placement="right" collapsed={false} onClick={() => layout.current?.collapseRight()} />
+            </Toolbar>
+          </Box>
 
-          showDialog({
-            maxWidth: 'sm',
-            fullWidth: true,
-            title: t('form.save'),
-            content: (
-              <Box>
-                <TextField
-                  fullWidth
-                  multiline
-                  label={t('alert.message')}
-                  onChange={(e) => (message = e.target.value)}
+          {!template ? (
+            <DebugEmptyView />
+          ) : currentTab === 'setting' ? (
+            <SettingView projectId={projectId} gitRef={gitRef} template={template} />
+          ) : currentTab === 'debug' ? (
+            <DebugView projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
+          ) : currentTab === 'test' ? (
+            <TestView projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
+          ) : currentTab === 'discuss' ? (
+            <DiscussView projectId={projectId} gitRef={gitRef} template={template} />
+          ) : null}
+        </Stack>
+      }>
+      {({ leftOpen, rightOpen }) => (
+        <Stack sx={{ height: '100%', overflow: 'auto' }}>
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 0,
+              bgcolor: 'background.paper',
+              zIndex: (theme) => theme.zIndex.appBar,
+              borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
+            }}>
+            <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
+              {!leftOpen && (
+                <PanelToggleButton
+                  placement="left"
+                  collapsed
+                  onClick={() => (leftOpen ? layout.current?.collapseLeft() : layout.current?.expandLeft())}
                 />
+              )}
+
+              <Box flex={1} />
+
+              {!rightOpen && (
+                <PanelToggleButton
+                  placement="right"
+                  collapsed
+                  onClick={() => (rightOpen ? layout.current?.collapseRight() : layout.current?.expandRight())}
+                />
+              )}
+            </Toolbar>
+          </Box>
+
+          <Box m={{ xs: 2 }} flexGrow={1}>
+            {!synced ? (
+              <Box sx={{ textAlign: 'center', mt: 10 }}>
+                <CircularProgress size={32} />
               </Box>
-            ),
-            okText: t('form.save'),
-            cancelText: t('alert.cancel'),
-            onOk: async () => {
-              resolve(message.trim());
-            },
-            onCancel: () => resolve(null),
-          });
-        });
+            ) : template ? (
+              <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id]} onMount>
+                <TemplateFormView projectId={projectId} gitRef={gitRef} value={template} />
+              </WithAwareness>
+            ) : filepath ? (
+              <Alert color="error">Not Found</Alert>
+            ) : (
+              <EmptyView />
+            )}
+          </Box>
 
-        if (typeof message !== 'string') return;
-
-        await commitFromWorking({
-          projectId,
-          ref: gitRef,
-          input: {
-            branch,
-            message: message || new Date().toLocaleString(),
-          },
-        });
-
-        refetch();
-        Toast.success(t('alert.saved'));
-        if (branch !== gitRef) navigate(joinUrl('..', branch), { replace: true });
-      } catch (error) {
-        Toast.error(getErrorMessage(error));
-        throw error;
-      } finally {
-        setCommitting(false);
-      }
-    },
-    [gitRef, navigate, projectId, showCreateBranch, t]
-  );
-
-  const addons = ([...addons]: ReactNode[]) => {
-    addons.unshift(
-      <BranchButton projectId={projectId} gitRef={gitRef} filepath={filepath} />,
-
-      <CommitsTip
-        loading={loading}
-        commits={commits}
-        hash={gitRef}
-        onCommitSelect={(commit) => {
-          navigate(joinUrl('..', commit.oid), { state: { filepath } });
-        }}>
-        <Button startIcon={<History />} endIcon={<ArrowDropDown fontSize="small" />}>
-          {t('alert.history')}
-        </Button>
-      </CommitsTip>,
-
-      <SaveButton
-        disabled={disableMutation || !branches.includes(gitRef)}
-        loading={committing}
-        changed
-        onSave={save}
-      />,
-
-      <MenuButton
-        menus={[
-          {
-            icon: <Upload />,
-            title: t('alert.import'),
-            disabled: disableMutation,
-            onClick: () => onImport(),
-          },
-          {
-            icon: <Download />,
-            title: t('alert.export'),
-            onClick: () => exportFiles(),
-          },
-        ]}
-      />
-    );
-
-    return addons;
-  };
-
-  return (
-    <>
-      <Box
-        component={Header}
-        sx={{
-          position: 'sticky',
-          top: 0,
-          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-          '>.header-container': { maxWidth: 'none' },
-        }}
-        addons={addons}
-      />
-
-      {createBranchDialog}
-      {dialog}
-      {exporter}
-
-      <Box sx={{ position: 'absolute', left: 0, top: 64, right: 0, bottom: 0 }}>
-        <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
-          <Box component={Panel} defaultSize={10} minSize={10}>
-            <Box py={2} px={1}>
-              <Breadcrumbs>
-                <Link
-                  component={RouterLink}
-                  underline="hover"
-                  to="../.."
-                  sx={{ display: 'flex', alignItems: 'center' }}>
-                  <ArrowBackIosNew sx={{ mr: 0.5, fontSize: 18 }} />
-                  {t('form.project')}
-                </Link>
-                <Typography color="text.primary">
-                  {loading ? <CircularProgress size={14} /> : project?.name || t('alert.unnamed')}
-                </Typography>
-              </Breadcrumbs>
+          {template && (
+            <Box
+              sx={{
+                position: 'sticky',
+                bottom: 0,
+                bgcolor: 'background.paper',
+                zIndex: (theme) => theme.zIndex.appBar,
+                borderTop: (theme) => `1px dashed ${theme.palette.grey[200]}`,
+              }}>
+              <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
+                <TokenUsage template={template} />
+                <Box />
+              </Toolbar>
             </Box>
-
-            <Divider />
-
-            <FileTree
-              mutable={!disableMutation}
-              current={filepath}
-              sx={{ height: '100%', overflow: 'auto' }}
-              onExport={exportFiles}
-              onLaunch={assistant ? onLaunch : undefined}
-              onImport={onImport}
-            />
-          </Box>
-          <ResizeHandle />
-          <Box component={Panel} minSize={30}>
-            <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
-              {filepath && <TemplateEditor projectId={projectId} _ref={gitRef} path={filepath} onExecute={onExecute} />}
-            </Box>
-          </Box>
-          <ResizeHandle />
-          <Box component={Panel} defaultSize={45} minSize={20}>
-            <Conversation
-              ref={conversation}
-              messages={messages}
-              sx={{ height: '100%', overflow: 'auto' }}
-              onSubmit={(prompt) => add(prompt)}
-              customActions={customActions}
-            />
-          </Box>
-        </Box>
-      </Box>
-    </>
+          )}
+        </Stack>
+      )}
+    </ColumnsLayout>
   );
 }
 
-function TemplateEditor({
-  projectId,
-  _ref: ref,
-  path,
-  onExecute,
-}: {
-  projectId: string;
-  _ref: string;
-  path: string;
-  onExecute: (template: TemplateYjs) => any;
-}) {
-  const navigate = useNavigate();
-
-  const { store, synced } = useStore();
-  if (!synced)
-    return (
-      <Box sx={{ textAlign: 'center', mt: 10 }}>
-        <CircularProgress size={32} />
-      </Box>
-    );
-
-  const id = Object.entries(store.tree).find((i) => i[1] === path)?.[0];
-  const template = id ? store.files[id] : undefined;
-  if (!template || !isTemplate(template)) return <Alert color="error">Not Found</Alert>;
+function PanelToggleButton({
+  placement,
+  collapsed,
+  ...props
+}: ButtonProps & { placement: 'left' | 'right'; collapsed?: boolean }) {
+  const { t } = useLocaleContext();
 
   return (
-    <WithAwareness path={[template.id]} onMount>
-      <TemplateFormView
-        projectId={projectId}
-        _ref={ref}
-        path={path}
-        value={template}
-        onExecute={onExecute}
-        onTemplateClick={async (template) => {
-          const filepath = Object.values(store.tree).find((i) => i?.endsWith(`${template.id}.yaml`));
-          if (filepath) navigate(filepath);
-        }}
-      />
-    </WithAwareness>
+    <Tooltip title={collapsed ? t('showSidebar') : t('hideSidebar')}>
+      <Button {...props} sx={{ minWidth: 0, flexShrink: 0, ...props.sx }}>
+        {placement === 'left' ? <PanelLeft /> : <PanelRight />}
+      </Button>
+    </Tooltip>
   );
 }
 
-function ResizeHandle() {
+function EmptyView() {
+  const { t } = useLocaleContext();
+
   return (
-    <Box
-      component={PanelResizeHandle}
-      sx={{
-        width: 10,
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'grey.200',
-        opacity: 0.6,
-        ':hover': {
-          opacity: 1,
-        },
-      }}>
-      <DragIndicator sx={{ fontSize: 14 }} />
-    </Box>
+    <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
+      <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+      <Typography variant="body2">{t('notOpenFile')}</Typography>
+    </Stack>
+  );
+}
+
+function DebugEmptyView() {
+  const { t } = useLocaleContext();
+
+  return (
+    <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
+      <DeveloperTools sx={{ fontSize: 54, color: 'grey.300' }} />
+      <Typography variant="body2">{t('notOpenFile')}</Typography>
+    </Stack>
   );
 }

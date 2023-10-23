@@ -1,6 +1,8 @@
 import { createAuthServiceSessionContext } from '@arcblock/did-connect/lib/Session';
 import { useContext } from 'react';
 
+import { defaultBranch } from '../pages/project/state';
+
 const { SessionProvider, SessionContext, SessionConsumer, withSession } = createAuthServiceSessionContext();
 
 export function useSessionContext(): any {
@@ -14,4 +16,10 @@ export function useIsRole(...roles: string[]) {
   return roles.includes(session.user?.role);
 }
 
+export const useInitialized = () => useSessionContext().session.initialized;
+
 export const useIsAdmin = () => useIsRole('owner', 'admin');
+
+export const useIsPromptEditor = () => useIsRole('owner', 'admin', 'promptsEditor');
+
+export const useReadOnly = ({ ref }: { ref: string }) => !useIsAdmin() && ref === defaultBranch;

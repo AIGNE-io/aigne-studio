@@ -9,11 +9,23 @@ import { Template } from '../../../api/src/store/templates';
 import useDialog from '../../utils/use-dialog';
 import { isTemplate, templateYjsToTemplate, useStore } from './yjs-state';
 
-function ExportFiles({ path = [], quiet, onFinish }: { path?: string[]; quiet?: boolean; onFinish: () => any }) {
+function ExportFiles({
+  projectId,
+  gitRef,
+  path = [],
+  quiet,
+  onFinish,
+}: {
+  projectId: string;
+  gitRef: string;
+  path?: string[];
+  quiet?: boolean;
+  onFinish: () => any;
+}) {
   const { t } = useLocaleContext();
   const { dialog, showDialog } = useDialog();
 
-  const { store } = useStore();
+  const { store } = useStore(projectId, gitRef);
 
   useEffect(() => {
     const files = Object.entries(store.tree)
@@ -125,11 +137,19 @@ function ExportFiles({ path = [], quiet, onFinish }: { path?: string[]; quiet?: 
   return dialog;
 }
 
-export function useExportFiles() {
+export function useExportFiles({ projectId, gitRef }: { projectId: string; gitRef: string }) {
   const [exporter, setExporter] = useState<ReactNode>();
 
   const exportFiles = useCallback((path?: string[], { quiet }: { quiet?: boolean } = {}) => {
-    setExporter(<ExportFiles path={path} quiet={quiet} onFinish={() => setExporter(undefined)} />);
+    setExporter(
+      <ExportFiles
+        projectId={projectId}
+        gitRef={gitRef}
+        path={path}
+        quiet={quiet}
+        onFinish={() => setExporter(undefined)}
+      />
+    );
   }, []);
 
   return { exporter, exportFiles };

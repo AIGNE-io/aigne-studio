@@ -1,17 +1,17 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.91",
+  "version": "0.1.109",
   "workspaces": [
     "blocklets/*",
     "packages/*"
   ],
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
-    "dev": "yarn workspace @blocklet/co-git dev & yarn workspace ai-studio dev",
-    "bundle": "yarn workspace @blocklet/co-git build && yarn workspace ai-studio bundle",
-    "lint": "yarn workspace @blocklet/co-git build && yarn workspaces run lint",
-    "build": "yarn workspace @blocklet/co-git build && yarn workspace ai-studio build",
+    "dev": "yarn workspace @blocklet/co-git dev & yarn workspace @blocklet/studio-ui dev & yarn workspace ai-studio dev",
+    "bundle": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspace ai-studio bundle",
+    "lint": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspaces run lint",
+    "build": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspace ai-studio build",
     "clean": "yarn workspaces run clean",
     "prepare": "husky install",
     "bump-version": "zx scripts/bump-version.mjs",
@@ -53,9 +53,19 @@
     "zx": "^7.1.1"
   },
   "resolutions": {
+    "@arcblock/did-auth": "^1.18.92",
+    "@arcblock/did-util": "^1.18.92",
+    "@arcblock/did": "^1.18.92",
+    "@arcblock/ws": "^1.18.92",
+    "@arcblock/jwt": "^1.18.92",
+    "@ocap/asset": "^1.18.92",
+    "@arcblock/validator": "^1.18.92",
+    "@blocklet/sdk": "1.16.17-beta-7ec31a60",
     "@nedb/core": "^2.1.5",
     "@mui/material": "^5.11.11",
     "react-dnd": "^16.0.1",
-    "react-dnd-html5-backend": "^16.0.1"
+    "react-dnd-html5-backend": "^16.0.1",
+    "@types/react": "^18.2.23",
+    "@types/react-dom": "^18.2.8"
   }
 }

@@ -9,6 +9,7 @@ module.exports = {
       join(__dirname, 'blocklets/ai-studio/tsconfig.json'),
       join(__dirname, 'packages/co-git/tsconfig.json'),
       join(__dirname, 'packages/prompt-editor/tsconfig.json'),
+      join(__dirname, 'packages/studio-ui/tsconfig.json'),
     ],
   },
   rules: {

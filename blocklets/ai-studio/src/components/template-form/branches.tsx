@@ -10,13 +10,17 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import { isTemplateYjsEmpty } from '../../libs/template';
 import { createFile, isTemplate, useStore } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
-import { ReorderableListYjs } from '../reorderable-list';
+import { ReorderableListYjs } from '../drag-sort-list';
 import TemplateAutocomplete from './template-autocomplete';
 
 export default function Branches({
+  projectId,
+  gitRef,
   form,
   onTemplateClick,
 }: {
+  projectId: string;
+  gitRef: string;
   form: Pick<TemplateYjs, 'branch' | 'parameters'>;
   onTemplateClick?: (template: { id: string }) => void;
 }) {
@@ -25,7 +29,7 @@ export default function Branches({
 
   const { t } = useLocaleContext();
 
-  const { store } = useStore();
+  const { store } = useStore(projectId, gitRef);
   const templates = Object.values(store.files).filter(isTemplate);
 
   const isTemplateWarning = useCallback(
@@ -70,7 +74,7 @@ export default function Branches({
                   size="small"
                   multiline
                   maxRows={5}
-                  label={t('form.description')}
+                  label={t('description')}
                   value={branch.description}
                   onChange={(e) => (branch.description = e.target.value)}
                 />

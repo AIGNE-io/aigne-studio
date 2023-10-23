@@ -5,13 +5,14 @@ import { Router } from 'express';
 import SSE from 'express-sse';
 import Joi from 'joi';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { omit } from 'lodash';
+import omit from 'lodash/omit';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import logger from '../libs/logger';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { DatasetItem, datasetItems } from '../store/dataset-items';
-import { embeddingHistories } from '../store/embedding-history';
+import { DatasetItem } from '../store/dataset-items';
+import DatasetItems from '../store/models/dataset-items';
+import EmbeddingHistories from '../store/models/embedding-history';
 import VectorStore from '../store/vector-store';
 
 const router = Router();
@@ -28,13 +29,15 @@ router.get('/:datasetId/items', ensureComponentCallOrPromptsEditor(), async (req
   const { page, size } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
 
   const [items, total] = await Promise.all([
-    datasetItems
-      .cursor({ datasetId })
-      .sort({ createdAt: 1 })
-      .skip((page - 1) * size)
-      .limit(size)
-      .exec(),
-    datasetItems.count({ datasetId }),
+    DatasetItems.findAll({
+      order: [['createdAt', 'ASC']],
+      where: { datasetId },
+      offset: (page - 1) * size,
+      limit: size,
+    }),
+    DatasetItems.count({
+      where: { datasetId },
+    }),
   ]);
 
   res.json({ items, total });
@@ -92,12 +95,12 @@ router.post('/:datasetId/items', user(), ensureComponentCallOrPromptsEditor(), a
 
   const docs = await Promise.all(
     arr.map(async (item) => {
-      const [, doc] = await datasetItems.update(
-        { datasetId, data: item.data },
-        { $set: { ...item, createdBy: did, updatedBy: did } },
-        { upsert: true, returnUpdatedDocs: true }
-      );
-      return doc;
+      const found = await DatasetItems.findOne({ where: { datasetId, data: item.data } });
+      if (found) {
+        return found.update({ ...item, createdBy: did, updatedBy: did }, { where: { datasetId, data: item.data } });
+      }
+
+      return DatasetItems.create({ ...item, datasetId, createdBy: did, updatedBy: did });
     })
   );
 
@@ -110,7 +113,8 @@ router.delete('/:datasetId/items/:itemId', user(), ensureComponentCallOrPromptsE
     throw new Error('Missing required params `datasetId` or `itemId`');
   }
 
-  await datasetItems.remove({ _id: itemId, datasetId });
+  await DatasetItems.destroy({ where: { _id: itemId, datasetId } });
+
   res.json({});
 });
 
@@ -120,9 +124,11 @@ async function embeddingDiscussionItem({ datasetId, discussionId }: { datasetId:
   try {
     const discussion = await getDiscussion(discussionId);
 
-    const previousEmbedding = await embeddingHistories.findOne({ targetId: discussionId });
-    if (previousEmbedding?.targetVersion === discussion.updatedAt) {
-      return;
+    const previousEmbedding = await EmbeddingHistories.findOne({ where: { targetId: discussionId } });
+    if (previousEmbedding?.targetVersion) {
+      if (new Date(previousEmbedding?.targetVersion).toISOString() === new Date(discussion.updatedAt).toISOString()) {
+        return;
+      }
     }
 
     const textSplitter = new RecursiveCharacterTextSplitter();
@@ -134,27 +140,20 @@ async function embeddingDiscussionItem({ datasetId, discussionId }: { datasetId:
     await store.addVectors(vectors, docs);
     await store.save();
 
-    await embeddingHistories.update(
-      { targetId: discussionId },
-      {
-        $set: {
-          updatedAt: new Date().toISOString(),
-          targetVersion: discussion.updatedAt,
-        },
-      },
-      { upsert: true }
-    );
+    if (await EmbeddingHistories.findOne({ where: { targetId: discussionId } })) {
+      await EmbeddingHistories.update(
+        { targetVersion: new Date(discussion.updatedAt) },
+        { where: { targetId: discussionId } }
+      );
+    } else {
+      await EmbeddingHistories.create({ targetVersion: new Date(discussion.updatedAt) });
+    }
   } catch (error) {
-    await embeddingHistories.update(
-      { targetId: discussionId },
-      {
-        $set: {
-          updatedAt: new Date().toISOString(),
-          error: error.message,
-        },
-      },
-      { upsert: true }
-    );
+    if (await EmbeddingHistories.findOne({ where: { targetId: discussionId } })) {
+      await EmbeddingHistories.update({ error: error.message }, { where: { targetId: discussionId } });
+    } else {
+      await EmbeddingHistories.create({ error: error.message });
+    }
   }
 }
 
@@ -197,7 +196,7 @@ router.post('/:datasetId/items/:itemId/embedding', ensureComponentCallOrPromptsE
   if (!task) {
     task = {
       promise: (async () => {
-        const item = await datasetItems.findOne({ _id: itemId });
+        const item = await DatasetItems.findOne({ where: { _id: itemId } });
         if (!item) throw new Error(`Dataset item ${itemId} not found`);
         if (!item.data) return;
 
@@ -206,25 +205,22 @@ router.post('/:datasetId/items/:itemId/embedding', ensureComponentCallOrPromptsE
 
         try {
           await handler(item as any);
-          await datasetItems.update(
-            { _id: itemId },
+          await DatasetItems.update(
             {
-              $set: {
-                embeddedAt: new Date().toISOString(),
-                error: null,
-              },
-            }
+              embeddedAt: new Date(),
+              error: '',
+            },
+            { where: { _id: itemId } }
           );
         } catch (error) {
-          await datasetItems.update(
-            { _id: itemId },
+          await DatasetItems.update(
             {
-              $set: {
-                embeddedAt: new Date().toISOString(),
-                error: error.message,
-              },
-            }
+              embeddedAt: new Date(),
+              error: error.message,
+            },
+            { where: { _id: itemId } }
           );
+
           throw error;
         } finally {
           embeddingTasks.delete(itemId);

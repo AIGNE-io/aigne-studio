@@ -2,7 +2,8 @@ import { Request, Response, Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { defaultBranch, getRepository, getTemplatesFromRepository, projects } from '../store/projects';
+import Projects from '../store/models/projects';
+import { defaultBranch, getRepository, getTemplatesFromRepository } from '../store/projects';
 import { Template, getTemplate, roles } from '../store/templates';
 
 export interface TemplateInput
@@ -19,9 +20,14 @@ export interface TemplateInput
     | 'branch'
     | 'model'
     | 'temperature'
+    | 'topP'
+    | 'presencePenalty'
+    | 'frequencyPenalty'
+    | 'maxTokens'
     | 'datasets'
     | 'next'
     | 'versionNote'
+    | 'public'
   > {
   deleteEmptyTemplates?: string[];
 }
@@ -114,6 +120,10 @@ export const templateSchema = Joi.object<TemplateInput>({
   }),
   model: Joi.string().empty(null),
   temperature: Joi.number().min(0).max(2).empty(null),
+  topP: Joi.number().min(0.1).max(1).empty(null),
+  presencePenalty: Joi.number().min(-2).max(2).empty(null),
+  frequencyPenalty: Joi.number().min(-2).max(2).empty(null),
+  maxTokens: Joi.number().integer().empty(null),
   deleteEmptyTemplates: Joi.array().items(Joi.string()),
   datasets: Joi.array().items(
     Joi.object({
@@ -134,6 +144,7 @@ export const templateSchema = Joi.object<TemplateInput>({
     outputKey: Joi.string().empty(Joi.valid('', null)),
   }),
   versionNote: Joi.string().allow(''),
+  public: Joi.boolean().valid(true, false).default(false),
 });
 
 const getTemplatesSchema = Joi.object<{
@@ -180,7 +191,11 @@ export function templateRoutes(router: Router) {
 
     const projectIds = projectId
       ? [projectId]
-      : (await projects.cursor().sort({ createdAt: 1 }).exec()).map((i) => i._id!);
+      : (
+          await Projects.findAll({
+            order: [['createdAt', 'ASC']],
+          })
+        ).map((i) => i._id!);
 
     let templates = (
       await Promise.all(

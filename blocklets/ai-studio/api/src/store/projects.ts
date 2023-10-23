@@ -5,19 +5,31 @@ import { $lexical2text, $text2lexical, tryParseJSONObject } from '@blocklet/prom
 import Database from '@blocklet/sdk/lib/database';
 import omit from 'lodash/omit';
 import sortBy from 'lodash/sortBy';
+import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
 import env from '../libs/env';
-import { Role, Template } from './templates';
+import { defaultModel } from '../libs/models';
+import type { ParameterYjs, Role, Template } from './templates';
 
-export interface Project {
+const idGenerator = new Worker();
+
+export const nextProjectId = () => idGenerator.nextId().toString();
+
+export interface Project
+  extends Pick<Template, 'temperature' | 'topP' | 'presencePenalty' | 'frequencyPenalty' | 'maxTokens'> {
   _id?: string;
   name?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  description?: string;
+  model: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   createdBy: string;
   updatedBy: string;
+  pinnedAt?: string | Date;
+  icon?: string;
+  gitType?: 'simple' | 'default';
 }
 
 export default class Projects extends Database<Project> {
@@ -28,9 +40,46 @@ export default class Projects extends Database<Project> {
 
 export const projects = new Projects();
 
+export const projectTemplates: (Project & {
+  files: (Omit<Template, 'id'> & { parent: string[] })[];
+})[] = [
+  {
+    _id: '363299428078977024',
+    name: 'blank',
+    model: defaultModel,
+    createdBy: wallet.address,
+    updatedBy: wallet.address,
+    createdAt: new Date('2023-09-30T12:23:04.603Z'),
+    updatedAt: new Date('2023-09-30T12:23:04.603Z'),
+    files: [
+      {
+        parent: [],
+        name: 'Hello World',
+        prompts: [
+          {
+            id: '1',
+            content: 'Say hello in {{language}}!',
+            role: 'user',
+          },
+        ],
+        parameters: {
+          language: {
+            defaultValue: 'English',
+          },
+        },
+        createdBy: wallet.address,
+        updatedBy: wallet.address,
+        createdAt: '2023-09-30T12:23:04.603Z',
+        updatedAt: '2023-09-30T12:23:04.603Z',
+        public: false,
+      },
+    ],
+  },
+];
+
 export const defaultBranch = 'main';
 
-export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'datasets'> {
+export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'datasets' | 'parameters' | 'tests'> {
   prompts?: {
     [key: string]: {
       index: number;
@@ -42,6 +91,8 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
       };
     };
   };
+
+  parameters?: { [key: string]: ParameterYjs };
 
   branch?: {
     branches: {
@@ -58,6 +109,13 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
       data: { id: string; type: 'vectorStore'; vectorStore?: { id: string; name?: string } };
     };
   };
+
+  tests?: {
+    [key: string]: {
+      index: number;
+      data: NonNullable<Template['tests']>[number];
+    };
+  };
 }
 
 type FileType = TemplateYjs | { $base64: string };
@@ -68,39 +126,16 @@ export function isTemplate(file: FileType): file is TemplateYjs {
 
 const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
 
+export const repositoryRoot = (projectId: string) => path.join(env.dataDir, 'repositories', projectId);
+
 export async function getRepository({ projectId }: { projectId: string }) {
   repositories[projectId] ??= (async () => {
     const repository = await Repository.init<TemplateYjs | { $base64: string }>({
-      root: path.join(env.dataDir, 'repositories', projectId),
+      root: repositoryRoot(projectId),
       initialCommit: { message: 'init', author: { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content) => {
         if (path.extname(filepath) === '.yaml') {
-          const template: Template = parse(Buffer.from(content).toString());
-
-          let prompts;
-          if (template.prompts) {
-            const list = template.prompts?.map(async (prompt) => {
-              const contentLexicalJson = await $text2lexical(prompt.content || '', prompt.role);
-              return { ...prompt, contentLexicalJson };
-            });
-
-            const result = await Promise.all(list);
-            const format = result.map((prompt, index) => [prompt.id, { index, data: prompt }]);
-            prompts = Object.fromEntries(format);
-          }
-
-          return {
-            ...template,
-            prompts,
-            branch: template.branch && {
-              branches: Object.fromEntries(
-                template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
-              ),
-            },
-            datasets:
-              template.datasets &&
-              Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
-          };
+          return templateToYjs(parse(Buffer.from(content).toString()));
         }
 
         return {
@@ -109,30 +144,7 @@ export async function getRepository({ projectId }: { projectId: string }) {
       },
       stringify: async (_, content) => {
         if (isTemplate(content)) {
-          let prompts;
-          if (content.prompts) {
-            const arr = sortBy(Object.values(content.prompts), 'index').map(async ({ data }) => {
-              if (data.contentLexicalJson && tryParseJSONObject(data.contentLexicalJson)) {
-                const res = await $lexical2text(data.contentLexicalJson);
-                return { ...omit(data, 'contentLexicalJson'), ...res };
-              }
-
-              return { ...omit(data, 'contentLexicalJson') };
-            });
-
-            prompts = await Promise.all(arr);
-          }
-
-          const template: Template = {
-            ...content,
-            prompts,
-            branch: content.branch && {
-              branches: sortBy(Object.values(content.branch.branches), 'index').map(({ data }) => data),
-            },
-            datasets: content.datasets && sortBy(Object.values(content.datasets), 'index').map(({ data }) => data),
-          };
-
-          return stringify(template);
+          return stringify(await yjsToTemplate(content));
         }
 
         const base64 = content.$base64;
@@ -144,6 +156,89 @@ export async function getRepository({ projectId }: { projectId: string }) {
   })();
 
   return repositories[projectId]!;
+}
+
+export async function templateToYjs(template: Template): Promise<TemplateYjs> {
+  return {
+    ...template,
+    prompts:
+      template.prompts &&
+      Object.fromEntries(
+        await Promise.all(
+          template.prompts?.map(async (prompt, index) => [
+            prompt.id,
+            {
+              index,
+              data: {
+                ...prompt,
+                contentLexicalJson: await $text2lexical(prompt.content || '', prompt.role),
+              },
+            },
+          ])
+        )
+      ),
+    parameters:
+      template.parameters &&
+      Object.fromEntries(
+        Object.entries(template.parameters).map(([param, parameter]) => [
+          param,
+          parameter.type === 'select'
+            ? {
+                ...parameter,
+                options:
+                  parameter.options &&
+                  Object.fromEntries(parameter.options.map((option, index) => [option.id, { index, data: option }])),
+              }
+            : parameter,
+        ])
+      ),
+    branch: template.branch && {
+      branches: Object.fromEntries(
+        template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
+      ),
+    },
+    datasets:
+      template.datasets &&
+      Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+    tests: template.tests && Object.fromEntries(template.tests.map((test, index) => [test.id, { index, data: test }])),
+  };
+}
+
+export async function yjsToTemplate(template: TemplateYjs): Promise<Template> {
+  return {
+    ...template,
+    prompts:
+      template.prompts &&
+      (await Promise.all(
+        sortBy(Object.values(template.prompts), 'index').map(async ({ data }) => {
+          if (data.contentLexicalJson && tryParseJSONObject(data.contentLexicalJson)) {
+            const res = await $lexical2text(data.contentLexicalJson);
+            return { ...omit(data, 'contentLexicalJson'), ...res };
+          }
+
+          return { ...omit(data, 'contentLexicalJson') };
+        })
+      )),
+    parameters:
+      template.parameters &&
+      Object.fromEntries(
+        Object.entries(template.parameters).map(([param, parameter]) => [
+          param,
+          parameter.type === 'select'
+            ? {
+                ...parameter,
+                options:
+                  parameter.options && sortBy(Object.values(parameter.options), (i) => i.index).map((i) => i.data),
+              }
+            : parameter,
+        ])
+      ),
+    branch: template.branch && {
+      branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
+    },
+    datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
+    tests: template.tests && sortBy(Object.values(template.tests), 'index').map(({ data }) => data),
+  };
 }
 
 export async function getTemplatesFromRepository({ projectId, ref }: { projectId: string; ref: string }) {

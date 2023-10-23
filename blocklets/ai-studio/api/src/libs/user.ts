@@ -1,5 +1,5 @@
 import type { UserInfo } from '@abtnode/client';
-import { pick } from 'lodash';
+import pick from 'lodash/pick';
 import { LRUCache } from 'lru-cache';
 
 import { authClient } from './auth';

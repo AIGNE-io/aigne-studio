@@ -3,8 +3,8 @@ import Database from '@blocklet/sdk/lib/database';
 export interface Dataset {
   _id?: string;
   name?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   createdBy: string;
   updatedBy: string;
 }

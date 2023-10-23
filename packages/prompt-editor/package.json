@@ -2,7 +2,7 @@
   "name": "@blocklet/prompt-editor",
   "version": "1.0.0",
   "private": true,
-  "description": "> TODO: description",
+  "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
   "main": "./lib/cjs/index.js",

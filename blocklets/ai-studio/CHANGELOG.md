@@ -1,3 +1,83 @@
+## 0.1.109 (2023-10-23)
+
+- chore: support discuss view
+
+## 0.1.108 (2023-10-23)
+
+- fix: dialog disable to get focus
+
+## 0.1.107 (2023-10-22)
+
+- feat: support tests
+
+## 0.1.106 (2023-10-20)
+
+- chore: import templates from other projects
+
+## 0.1.105 (2023-10-20)
+
+- fix: correct navigation after saving
+
+## 0.1.104 (2023-10-19)
+
+- feat: record ai execution logs
+
+## 0.1.103 (2023-10-19)
+
+- chore: update the database to sqlite
+
+## 0.1.102 (2023-10-18)
+
+- chore: debug out when multiple steps are executed
+
+## 0.1.101 (2023-10-18)
+
+- fix: import lodash on demand
+- feat: simple git mode
+- fix: read only settings
+- fix: file tree scrollable & auto scroll into view
+- fix: validate debug form
+
+## 0.1.100 (2023-10-18)
+
+- chore: export the resource as project
+
+## 0.1.99 (2023-10-17)
+
+- chore: support send ai history messages
+
+## 0.1.98 (2023-10-16)
+
+- fix: set default model for project
+
+## 0.1.97 (2023-10-16)
+
+- chore: export resource data
+
+## 0.1.96 (2023-10-16)
+
+- feat: project settings page
+
+## 0.1.95 (2023-10-16)
+
+- move settings to tab view
+- show token usage on footer
+- different skeleton count
+- empty projects tip
+- create a hello prompt for blank template
+- show tip when not open any file
+- disable select for resize handler
+
+## 0.1.94 (2023-10-13)
+
+- fix: checkout workspace force
+
+## 0.1.93 (2023-10-12)
+
+## 0.1.92 (2023-10-12)
+
+- feat: new design of projects page
+
 ## 0.1.91 (2023-10-3)
 
 - fix: delete file not working
