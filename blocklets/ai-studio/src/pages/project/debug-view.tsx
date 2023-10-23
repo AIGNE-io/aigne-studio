@@ -2,6 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css } from '@emotion/css';
+import { Add } from '@mui/icons-material';
 import {
   Alert,
   Avatar,
@@ -44,14 +45,13 @@ export default function DebugView(props: {
   template: TemplateYjs;
   setCurrentTab: (tab: string) => void;
 }) {
-  const { state, newSession, setCurrentSession } = useDebugState({
+  const { state, setCurrentSession } = useDebugState({
     projectId: props.projectId,
     templateId: props.template.id,
   });
 
   useEffect(() => {
     if (!state.sessions.length) {
-      newSession();
       return;
     }
 
@@ -69,6 +69,7 @@ export default function DebugView(props: {
       flexGrow={1}
       height="100%"
       overflow="auto"
+      position="relative"
       scrollViewClassName={css`
         display: flex;
         flex-direction: column;
@@ -77,6 +78,7 @@ export default function DebugView(props: {
         display: none;
       `}>
       <DebugViewContent {...props} />
+      {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.template.id} />}
     </Box>
   );
 }
@@ -535,6 +537,34 @@ function DebugModeForm({
         </Button>
       </Stack>
     </Stack>
+  );
+}
+
+function EmptySessions({ projectId, templateId }: { projectId: string; templateId: string }) {
+  const { newSession } = useDebugState({ projectId, templateId });
+  const { t } = useLocaleContext();
+
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+      <Button
+        startIcon={<Add />}
+        onClick={(e) => {
+          e.preventDefault();
+          newSession();
+        }}>
+        {t('newObject', { object: t('session') })}
+      </Button>
+    </Box>
   );
 }
 
