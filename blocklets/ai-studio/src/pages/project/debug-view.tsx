@@ -1,8 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { css } from '@emotion/css';
-import { Add } from '@mui/icons-material';
+import { css, cx } from '@emotion/css';
+import { Add, CopyAll } from '@mui/icons-material';
 import {
   Alert,
   Avatar,
@@ -208,7 +208,7 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
             [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
           }}>
           {message.content || message.parameters || message.images?.length || message.loading ? (
-            <Box
+            <MessageViewContent
               sx={{
                 whiteSpace: 'pre-wrap',
                 px: 1,
@@ -218,6 +218,7 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
                 ':hover': {
                   bgcolor: 'grey.100',
                 },
+                position: 'relative',
               }}>
               {message.content ||
                 (message.parameters && (
@@ -242,7 +243,11 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
               )}
 
               {message.loading && <WritingIndicator />}
-            </Box>
+
+              {message.role === 'assistant' && (
+                <Box className="actions">{message.content && <CopyButton key="copy" message={message.content} />}</Box>
+              )}
+            </MessageViewContent>
           ) : null}
 
           {message.error ? (
@@ -274,6 +279,56 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
         </Box>
       )}
     </>
+  );
+}
+
+const MessageViewContent = styled(Box)`
+  > .actions {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    border-radius: 4px;
+    opacity: 0;
+
+    &.active {
+      display: flex;
+    }
+
+    button {
+      min-width: 0;
+      padding: 0;
+      height: 24px;
+      width: 22px;
+      color: rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  &:hover {
+    > .actions {
+      opacity: 1;
+      background-color: rgba(240, 240, 240, 0.9);
+    }
+  }
+`;
+
+function CopyButton({ message }: { message: string }) {
+  const [copied, setCopied] = useState<'copied' | boolean>(false);
+
+  return (
+    <Tooltip title={copied === 'copied' ? 'Copied!' : 'Copy'} placement="top" open={Boolean(copied)}>
+      <Button
+        size="small"
+        className={cx('copy', copied && 'active')}
+        onMouseEnter={() => setCopied(true)}
+        onMouseLeave={() => setCopied(false)}
+        onClick={() => {
+          navigator.clipboard.writeText(message);
+          setCopied('copied');
+          setTimeout(() => setCopied(false), 1500);
+        }}>
+        <CopyAll fontSize="small" />
+      </Button>
+    </Tooltip>
   );
 }
 
