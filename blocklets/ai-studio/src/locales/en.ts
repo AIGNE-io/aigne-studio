@@ -96,6 +96,7 @@ export default flat({
     selectBranch: 'Select Branch',
     templates: 'Templates',
     selectTemplates: 'Please select the template first',
+    empty: 'No template projects available for import.',
   },
   newFromTemplates: 'New from Templates',
   myProjects: 'My Projects',

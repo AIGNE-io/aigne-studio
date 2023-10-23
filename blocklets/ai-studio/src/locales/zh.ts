@@ -96,6 +96,7 @@ export default flat({
     selectBranch: '选择分支',
     templates: '模板数据',
     selectTemplates: '请先选择模板',
+    empty: '当前没有可以导入的模板项目',
   },
   newFromTemplates: '从模板创建',
   myProjects: '我的项目',

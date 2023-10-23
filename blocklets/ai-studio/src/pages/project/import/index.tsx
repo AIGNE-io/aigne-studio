@@ -85,6 +85,7 @@ export default function ImportFrom({
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box display="flex" alignItems="center" pt={2} gap={2}>
         <Autocomplete
+          disabled={!state.projects?.length}
           style={{ flex: 1 }}
           disableClearable
           value={projectValue}
@@ -105,9 +106,10 @@ export default function ImportFrom({
         />
 
         <Autocomplete
+          disabled={!state.projects?.length}
           style={{ flex: 1 }}
           disableClearable
-          value={state.ref}
+          value={state.projects?.length ? state.ref : ''}
           options={state.branches}
           renderInput={(params) => <TextField {...params} label={t('import.selectBranch')} />}
           isOptionEqualToValue={(o, v) => o === v}
@@ -127,6 +129,8 @@ export default function ImportFrom({
       ) : (
         <Box flex={1} height={0} overflow="auto" mb={7}>
           <Box component="h4">{t('import.templates')}</Box>
+
+          {!tree.length && <Box fontSize={12}>{t('import.empty')}</Box>}
 
           {tree.map((item) => {
             const getName = (file: TreeNode) => {
