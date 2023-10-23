@@ -1,3 +1,7 @@
+## 0.1.108 (2023-10-23)
+
+- fix: dialog disable to get focus
+
 ## 0.1.107 (2023-10-22)
 
 - feat: support tests

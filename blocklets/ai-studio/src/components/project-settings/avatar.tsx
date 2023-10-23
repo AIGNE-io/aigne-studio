@@ -24,6 +24,7 @@ export default function ProjectSettingsAvatar({ value, onChange }: { value: stri
           let selected: any;
 
           showDialog({
+            disableEnforceFocus: true,
             fullWidth: true,
             maxWidth: 'sm',
             title: t('projectSetting.icon'),
