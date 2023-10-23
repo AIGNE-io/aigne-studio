@@ -201,4 +201,6 @@ export default flat({
   debugThisCase: 'Debug this case',
   deleteThisCase: 'Delete this case',
   runThisCase: 'Run this case',
+  label: 'Label',
+  actions: 'Actions',
 });

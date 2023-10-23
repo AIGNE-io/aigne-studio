@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   Box,
   Button,
@@ -10,7 +11,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import { useDeferredValue, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import Settings from '../../pages/project/icons/settings';
@@ -25,6 +26,7 @@ export default function Parameters({
 }) {
   // TODO: parameters 支持自定义顺序，到时候可以去掉这个实时 match params 的逻辑，直接渲染 template.parameters 数据即可
   const deferredValue = useDeferredValue(form);
+  const { t } = useLocaleContext();
 
   const params = (() => {
     const params = Object.values(deferredValue.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
@@ -39,6 +41,16 @@ export default function Parameters({
   })();
 
   const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
+
+  const MAP = useMemo(() => {
+    return {
+      string: t('form.parameter.typeText'),
+      number: t('form.parameter.typeNumber'),
+      select: t('form.parameter.typeSelect'),
+      language: t('form.parameter.typeLanguage'),
+      horoscope: t('form.parameter.typeHoroscope'),
+    };
+  }, []);
 
   return (
     <>
@@ -72,10 +84,10 @@ export default function Parameters({
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Variable</TableCell>
-              <TableCell>Label</TableCell>
-              <TableCell width="100">Type</TableCell>
-              <TableCell width="80">Actions</TableCell>
+              <TableCell>{t('variable')}</TableCell>
+              <TableCell>{t('label')}</TableCell>
+              <TableCell width="100">{t('type')}</TableCell>
+              <TableCell width="80">{t('actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -89,7 +101,7 @@ export default function Parameters({
                 <TableRow key={param}>
                   <TableCell>{param}</TableCell>
                   <TableCell>{parameter.label}</TableCell>
-                  <TableCell>{parameter.type || 'string'}</TableCell>
+                  <TableCell>{parameter.type ? MAP[parameter.type] || MAP.string : MAP.string}</TableCell>
                   <TableCell>
                     <Button
                       sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
