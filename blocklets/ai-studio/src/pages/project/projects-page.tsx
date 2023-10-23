@@ -359,7 +359,8 @@ function ProjectList({
                     boxShadow: (theme) => theme.shadows[1],
 
                     '&:hover': {
-                      bgcolor: (theme) => theme.palette.grey.A400,
+                      backgroundColor: (theme) => theme.palette.background.paper,
+                      boxShadow: (theme) => theme.shadows[3],
                     },
                   }}
                   onClick={(e) => {

@@ -196,7 +196,7 @@ const TestCaseView = forwardRef<
       <Table>
         {Object.entries(test.parameters).map(([key, value]) => (
           <Box key={key}>
-            <Box>{key}</Box>
+            <Box className="key">{key}</Box>
             <Box>
               <Box maxHeight={200} overflow="auto">
                 {value}
@@ -205,7 +205,7 @@ const TestCaseView = forwardRef<
           </Box>
         ))}
         <Box>
-          <Box>{t('output')}</Box>
+          <Box className="key">{t('output')}</Box>
           <Box>
             <Box maxHeight={200} overflow="auto">
               {test.output}
@@ -245,6 +245,10 @@ const Table = styled(Box)`
       border-bottom: 0.5px solid ${({ theme }) => theme.palette.divider};
       border-right: 0.5px solid ${({ theme }) => theme.palette.divider};
       word-break: break-all;
+
+      &.key {
+        padding: 4px 8px;
+      }
 
       > div {
         padding: 4px 8px;

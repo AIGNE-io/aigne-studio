@@ -391,9 +391,6 @@ const AccordionContainer = styled(Accordion)`
         padding-right: 8px;
 
         .content {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
           flex: 1;
           width: 0;
           color: ${({ theme }) => theme.palette.text.disabled};

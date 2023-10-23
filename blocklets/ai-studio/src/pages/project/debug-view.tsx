@@ -525,7 +525,7 @@ function DebugModeForm({
 
                   return (
                     <Field
-                      maxRows={10}
+                      maxRows={5}
                       label={parameter.label || param}
                       fullWidth
                       parameter={omit(parameter, 'min', 'max') as never}
@@ -609,8 +609,9 @@ function EmptySessions({ projectId, templateId }: { projectId: string; templateI
         top: 0,
         bottom: 0,
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
         alignItems: 'center',
+        marginTop: '100px',
       }}>
       <Button
         startIcon={<Add />}
