@@ -3,6 +3,7 @@ import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { LoadingButton } from '@blocklet/studio-ui';
 import { cx } from '@emotion/css';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
   Box,
   Button,
@@ -39,7 +40,6 @@ import ChevronDown from './icons/chevron-down';
 import Duplicate from './icons/duplicate';
 import Empty from './icons/empty';
 import External from './icons/external';
-import MenuVertical from './icons/menu-vertical';
 import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
@@ -352,12 +352,16 @@ function ProjectList({
                 <IconButton
                   className={cx(!menuOpen && 'hover-visible')}
                   size="small"
-                  sx={menuOpen ? { bgcolor: 'grey.100' } : undefined}
+                  sx={{
+                    bgcolor: (theme) => theme.palette.action.disabled,
+                    borderRadius: 1,
+                    color: (theme) => theme.palette.common.white,
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
                   }}>
-                  <MenuVertical fontSize="small" />
+                  <MoreVertIcon fontSize="small" />
                 </IconButton>
               )
             }
