@@ -193,4 +193,11 @@ export default flat({
     fieldMaxLength: '请输入少于{maxLength}个字符',
   },
   dependents: '依赖',
+  addToTest: '添加到测试',
+  testCaseCount: '{count} 个测试用例',
+  runAll: '运行全部',
+  output: '输出',
+  debugThisCase: '调试该用例',
+  deleteThisCase: '删除该用例',
+  runThisCase: '运行该用例',
 });

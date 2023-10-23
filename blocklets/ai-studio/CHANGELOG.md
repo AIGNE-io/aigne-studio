@@ -1,6 +1,6 @@
-## 0.1.107 (2023-10-20)
+## 0.1.107 (2023-10-22)
 
-- chore: update templates id
+- feat: support tests
 
 ## 0.1.106 (2023-10-20)
 

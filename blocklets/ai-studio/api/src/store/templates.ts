@@ -41,6 +41,13 @@ export interface Template {
   createdBy: string;
   updatedBy: string;
   public?: boolean;
+  tests?: {
+    id: string;
+    parameters: { [key: string]: any };
+    output?: string;
+    error?: { message: string };
+    createdBy: string;
+  }[];
 }
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | HoroscopeParameter;

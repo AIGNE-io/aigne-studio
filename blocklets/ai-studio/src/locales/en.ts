@@ -196,4 +196,11 @@ export default flat({
     fieldMaxLength: 'Please enter fewer than {maxLength} characters',
   },
   dependents: 'dependents',
+  addToTest: 'Add To Test',
+  testCaseCount: '{count} cases',
+  runAll: 'Run All',
+  output: 'Output',
+  debugThisCase: 'Debug this case',
+  deleteThisCase: 'Delete this case',
+  runThisCase: 'Run this case',
 });

@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css } from '@emotion/css';
 import {
   Alert,
@@ -20,8 +21,10 @@ import {
   selectClasses,
   styled,
 } from '@mui/material';
+import { pick } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import omit from 'lodash/omit';
+import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
@@ -29,12 +32,18 @@ import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { parameterFieldComponent } from '../../components/parameter-field';
 import { matchParams } from '../../components/template-form/parameters';
+import { useSessionContext } from '../../contexts/session';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
 import Record from './record';
 import { SessionItem, useDebugState } from './state';
 
-export default function DebugView(props: { projectId: string; gitRef: string; template: TemplateYjs }) {
+export default function DebugView(props: {
+  projectId: string;
+  gitRef: string;
+  template: TemplateYjs;
+  setCurrentTab: (tab: string) => void;
+}) {
   const { state, newSession, setCurrentSession } = useDebugState({
     projectId: props.projectId,
     templateId: props.template.id,
@@ -76,10 +85,12 @@ function DebugViewContent({
   projectId,
   gitRef,
   template,
+  setCurrentTab,
 }: {
   projectId: string;
   gitRef: string;
   template: TemplateYjs;
+  setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -110,7 +121,7 @@ function DebugViewContent({
         {currentSession.chatType !== 'debug' ? (
           <ChatModeForm projectId={projectId} templateId={template.id} />
         ) : (
-          <DebugModeForm projectId={projectId} gitRef={gitRef} template={template} />
+          <DebugModeForm projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
         )}
 
         <Box textAlign="center">
@@ -344,7 +355,17 @@ function ChatModeForm({ projectId, templateId }: { projectId: string; templateId
   );
 }
 
-function DebugModeForm({ projectId, gitRef, template }: { projectId: string; gitRef: string; template: TemplateYjs }) {
+function DebugModeForm({
+  projectId,
+  gitRef,
+  template,
+  setCurrentTab,
+}: {
+  projectId: string;
+  gitRef: string;
+  template: TemplateYjs;
+  setCurrentTab: (tab: string) => void;
+}) {
   const { t } = useLocaleContext();
 
   const { state, sendMessage, setSession, cancelMessage } = useDebugState({
@@ -357,16 +378,32 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
 
   const scrollToBottom = useScrollToBottom();
 
+  const params = (() => {
+    const params = Object.values(template.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
+    if (template.type === 'branch') {
+      params.push('question');
+    }
+    if (template.type === 'image') {
+      params.push('size');
+      params.push('number');
+    }
+    if (template.mode === 'chat') params.push('question');
+    return [...new Set(params)];
+  })();
+
   const initForm = useMemo(
     () =>
-      cloneDeep(
-        currentSession?.debugForm ??
-          Object.fromEntries(
-            Object.entries(template.parameters ?? {}).map(([param, parameter]) => [
-              param,
-              parameter.defaultValue ?? undefined,
-            ])
-          )
+      pick(
+        cloneDeep(
+          currentSession?.debugForm ??
+            Object.fromEntries(
+              Object.entries(template.parameters ?? {}).map(([param, parameter]) => [
+                param,
+                parameter.defaultValue ?? undefined,
+              ])
+            )
+        ),
+        ...params
       ),
     [currentSession?.debugForm]
   );
@@ -388,18 +425,26 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
     scrollToBottom({ behavior: 'smooth' });
   };
 
-  const params = (() => {
-    const params = Object.values(template.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
-    if (template.type === 'branch') {
-      params.push('question');
-    }
-    if (template.type === 'image') {
-      params.push('size');
-      params.push('number');
-    }
-    if (template.mode === 'chat') params.push('question');
-    return [...new Set(params)];
-  })();
+  const {
+    session: { user },
+  } = useSessionContext();
+
+  const addToTest = () => {
+    const doc = (getYjsValue(template) as Map<any>).doc!;
+    doc.transact(() => {
+      template.tests ??= {};
+      const id = `${Date.now()}-${nanoid(16)}`;
+      template.tests[id] = {
+        index: Object.values(template.tests).length,
+        data: {
+          id,
+          parameters: form.getValues(),
+          createdBy: user.did,
+        },
+      };
+    });
+    setCurrentTab('test');
+  };
 
   return (
     <Stack component="form" onSubmit={form.handleSubmit(submit)} px={1} gap={1}>
@@ -463,6 +508,10 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
       </Stack>
 
       <Stack gap={1} direction="row">
+        <Button variant="outlined" onClick={addToTest}>
+          {t('addToTest')}
+        </Button>
+
         <Box flex={1} />
 
         <Button
@@ -489,7 +538,7 @@ function DebugModeForm({ projectId, gitRef, template }: { projectId: string; git
   );
 }
 
-const WritingIndicator = styled('span')`
+export const WritingIndicator = styled('span')`
   &:after {
     content: '';
     display: inline-block;

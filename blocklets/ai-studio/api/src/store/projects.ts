@@ -77,7 +77,7 @@ export const projectTemplates: (Project & {
 
 export const defaultBranch = 'main';
 
-export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'datasets' | 'parameters'> {
+export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'datasets' | 'parameters' | 'tests'> {
   prompts?: {
     [key: string]: {
       index: number;
@@ -104,6 +104,13 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
     [key: string]: {
       index: number;
       data: { id: string; type: 'vectorStore'; vectorStore?: { id: string; name?: string } };
+    };
+  };
+
+  tests?: {
+    [key: string]: {
+      index: number;
+      data: NonNullable<Template['tests']>[number];
     };
   };
 }
@@ -185,6 +192,7 @@ export function templateToYjs(template: Template): TemplateYjs {
     datasets:
       template.datasets &&
       Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+    tests: template.tests && Object.fromEntries(template.tests.map((test, index) => [test.id, { index, data: test }])),
   };
 }
 
@@ -210,6 +218,7 @@ export function yjsToTemplate(template: TemplateYjs): Template {
       branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
     },
     datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
+    tests: template.tests && sortBy(Object.values(template.tests), 'index').map(({ data }) => data),
   };
 }
 
