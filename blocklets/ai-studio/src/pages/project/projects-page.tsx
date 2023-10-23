@@ -353,9 +353,14 @@ function ProjectList({
                   className={cx(!menuOpen && 'hover-visible')}
                   size="small"
                   sx={{
-                    bgcolor: (theme) => theme.palette.action.disabled,
+                    backgroundColor: (theme) => theme.palette.background.paper,
+                    color: (theme) => theme.palette.text.disabled,
                     borderRadius: 1,
-                    color: (theme) => theme.palette.common.white,
+                    boxShadow: (theme) => theme.shadows[1],
+
+                    '&:hover': {
+                      bgcolor: (theme) => theme.palette.grey.A400,
+                    },
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
