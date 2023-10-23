@@ -24,6 +24,7 @@ import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
+import DiscussView from './discuss-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
 import Add from './icons/add';
 import DeveloperTools from './icons/developer-tools';
@@ -200,7 +201,7 @@ export default function ProjectPage() {
                 <Tab value="setting" label={t('setting')} />
                 <Tab value="debug" label={t('debug')} />
                 <Tab value="test" label={t('test')} />
-                <Tab value="discuss" label={t('discuss')} disabled />
+                <Tab value="discuss" label={t('discuss')} />
               </Tabs>
 
               <Box flex={1} />
@@ -217,6 +218,8 @@ export default function ProjectPage() {
             <DebugView projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
           ) : currentTab === 'test' ? (
             <TestView projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
+          ) : currentTab === 'discuss' ? (
+            <DiscussView projectId={projectId} gitRef={gitRef} template={template} />
           ) : null}
         </Stack>
       }>

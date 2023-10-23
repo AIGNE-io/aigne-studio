@@ -12,6 +12,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import joinUrl from 'url-join';
 
+import { Template } from '../../../../api/src/store/templates';
 import Icon from '../icons/warning-circle';
 import useRequest from './state';
 import getDepTemplates, { TreeNode } from './utils';
@@ -27,7 +28,7 @@ export default function ImportFrom({
 
   const [state, setState, { refetch }] = useRequest(projectId);
   const counts = useRef<{ [key: string]: number }>({});
-  const deps = useRef<{ [key: string]: any[] }>({});
+  const deps = useRef<{ [key: string]: TreeNode[] }>({});
 
   const [selected, setSelected] = useState<{ [key: string]: boolean }>({});
 
@@ -46,14 +47,13 @@ export default function ImportFrom({
       id: joinUrl(...item.parent, item.name),
       parent: item.parent.join(' / ') || '',
       text: item.name,
-      // @ts-ignore
-      data: item.meta,
+      data: (item as { meta: Template }).meta,
       type: item.type,
     }));
   }, [state.files]);
 
-  const setDepCounts = (list: any, isChecked: boolean) => {
-    list.forEach((item: any) => {
+  const setDepCounts = (list: TreeNode[], isChecked: boolean) => {
+    list.forEach((item: TreeNode) => {
       counts.current[item.text] = counts.current[item.text] ?? 0;
 
       if (isChecked) {
@@ -80,7 +80,6 @@ export default function ImportFrom({
 
   useEffect(() => {
     onChange(ids, state.projectId, state.ref);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ids, state]);
 
   return (
@@ -89,15 +88,14 @@ export default function ImportFrom({
         <Autocomplete
           style={{ flex: 1 }}
           disableClearable
-          // @ts-ignore
-          value={projectValue || ''}
+          value={projectValue}
           options={state.projects}
           renderInput={(params) => <TextField {...params} label={t('import.selectProject')} />}
           isOptionEqualToValue={(o, v) => o?._id === v?._id}
           getOptionLabel={(v) => v?.name || t('unnamed')}
           onChange={(_e, newValue) => {
             setSelected({});
-            setState((r: any) => ({ ...r, projectId: newValue._id, ref: 'main' }));
+            setState((r: typeof state) => ({ ...r, projectId: newValue._id, ref: 'main' }));
             refetch({ projectId: newValue._id, ref: 'main' });
           }}
           renderOption={(props, option) => (
@@ -117,7 +115,7 @@ export default function ImportFrom({
           getOptionLabel={(v) => v}
           onChange={(_e, newValue) => {
             setSelected({});
-            setState((r: any) => ({ ...r, ref: newValue }));
+            setState((r: typeof state) => ({ ...r, ref: newValue }));
             refetch({ projectId: state.projectId, ref: newValue });
           }}
         />
@@ -132,7 +130,7 @@ export default function ImportFrom({
           <Box component="h4">{t('import.templates')}</Box>
 
           {tree.map((item) => {
-            const getName = (file: any) => {
+            const getName = (file: TreeNode) => {
               return file.type === 'file' ? file?.data?.name || t('alert.unnamed') : file.text;
             };
 
@@ -142,9 +140,10 @@ export default function ImportFrom({
               return Boolean(ids[item.text]);
             };
 
-            const onChangeParent = (item: any, checked: boolean) => {
-              deps.current[item.text] = getDepTemplates(tree, item.text);
-              setDepCounts(deps.current[item.text], checked);
+            const onChangeParent = (item: TreeNode, checked: boolean) => {
+              const temps = getDepTemplates(tree, item.text);
+              deps.current[item.text] = temps;
+              setDepCounts(temps, checked);
               handleChange(item.text, checked);
             };
 

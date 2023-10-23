@@ -39,6 +39,7 @@
     "@blocklet/ai-kit": "^0.0.71",
     "@blocklet/co-git": "^0.1.109",
     "@blocklet/constant": "1.16.17-beta-7ec31a60",
+    "@blocklet/discuss-kit": "^1.5.145",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
     "@blocklet/sdk": "1.16.17-beta-7ec31a60",
     "@blocklet/studio-ui": "^0.1.95",
