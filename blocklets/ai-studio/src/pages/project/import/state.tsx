@@ -21,7 +21,7 @@ type State = {
   templateRef: string;
 };
 
-const useRequest = (projectId: string): [State, any, any] => {
+const useRequest = (projectId: string) => {
   const [state, setState] = useState<State>({
     loading: true,
     projectId: '',
@@ -83,7 +83,7 @@ const useRequest = (projectId: string): [State, any, any] => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
-  return [state, setState, { init, refetch }];
+  return [state, setState, { init, refetch }] as const;
 };
 
 export default useRequest;

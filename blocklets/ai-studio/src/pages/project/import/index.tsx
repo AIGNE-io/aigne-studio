@@ -12,7 +12,6 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import joinUrl from 'url-join';
 
-import { Template } from '../../../../api/src/store/templates';
 import Icon from '../icons/warning-circle';
 import useRequest from './state';
 import getDepTemplates, { TreeNode } from './utils';
@@ -47,7 +46,7 @@ export default function ImportFrom({
       id: joinUrl(...item.parent, item.name),
       parent: item.parent.join(' / ') || '',
       text: item.name,
-      data: (item as { meta: Template }).meta,
+      data: item.type === 'file' ? item.meta : undefined,
       type: item.type,
     }));
   }, [state.files]);
@@ -95,8 +94,8 @@ export default function ImportFrom({
           getOptionLabel={(v) => v?.name || t('unnamed')}
           onChange={(_e, newValue) => {
             setSelected({});
-            setState((r: typeof state) => ({ ...r, projectId: newValue._id, ref: 'main' }));
-            refetch({ projectId: newValue._id, ref: 'main' });
+            setState((r) => ({ ...r, projectId: newValue._id!, ref: 'main' }));
+            refetch({ projectId: newValue._id!, ref: 'main' });
           }}
           renderOption={(props, option) => (
             <Box component="li" {...props} key={option._id}>
@@ -115,7 +114,7 @@ export default function ImportFrom({
           getOptionLabel={(v) => v}
           onChange={(_e, newValue) => {
             setSelected({});
-            setState((r: typeof state) => ({ ...r, ref: newValue }));
+            setState((r) => ({ ...r, ref: newValue }));
             refetch({ projectId: state.projectId, ref: newValue });
           }}
         />
@@ -131,7 +130,7 @@ export default function ImportFrom({
 
           {tree.map((item) => {
             const getName = (file: TreeNode) => {
-              return file.type === 'file' ? file?.data?.name || t('alert.unnamed') : file.text;
+              return file.type === 'file' ? file.data?.name || t('alert.unnamed') : file.text;
             };
 
             const name = getName(item);

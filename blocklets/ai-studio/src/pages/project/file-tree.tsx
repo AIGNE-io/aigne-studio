@@ -117,8 +117,7 @@ const FileTree = forwardRef<
     [navigate, setOpenIds, store]
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const onImportFrom = () => {
+  const onImportFrom = useCallback(() => {
     const state: {
       resources: string[];
       projectId: string;
@@ -163,7 +162,7 @@ const FileTree = forwardRef<
         }
       },
     });
-  };
+  }, [gitRef, projectId, showDialog, store, t]);
 
   useImperativeHandle(
     ref,

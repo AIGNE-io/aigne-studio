@@ -4,7 +4,7 @@ export type TreeNode = {
   id: string;
   parent: string;
   text: string;
-  data: Template;
+  data?: Template;
   type: string;
 };
 
