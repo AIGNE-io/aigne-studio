@@ -20,13 +20,19 @@ export default function DiscussView({
 
   return (
     <Views>
-      <Comments target={{ id: `${projectId}-${gitRef}-${template.id}`, owner: user.did }} displayReaction={false} />
+      <Comments
+        target={{ id: `${projectId}-${gitRef}-${template.id}`, owner: user.did }}
+        displayReaction={false}
+        flatView
+        autoCollapse
+      />
     </Views>
   );
 }
 
 const Views = styled(Box)`
   padding: 16px;
+
   .comment-editor {
     margin-top: 0;
   }
