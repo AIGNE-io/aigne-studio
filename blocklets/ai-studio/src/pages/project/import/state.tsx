@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -21,7 +22,9 @@ type State = {
   templateRef: string;
 };
 
-const useRequest = (projectId: string): [State, any, any] => {
+const useRequest = (projectId: string) => {
+  const { t } = useLocaleContext();
+
   const [state, setState] = useState<State>({
     loading: true,
     projectId: '',
@@ -64,14 +67,22 @@ const useRequest = (projectId: string): [State, any, any] => {
 
   const projectFn = useCallback(async () => {
     const [{ projects }] = await Promise.all([getProjects()]);
-    setState((v) => ({ ...v, projects, error: undefined }));
-    return projects;
+    const filterProjects = (projects || []).filter((x) => x._id !== projectId);
+    setState((v) => ({ ...v, projects: filterProjects, error: undefined }));
+    return filterProjects;
   }, [setState]);
 
   const init = async () => {
     try {
-      const projects = (await projectFn()).filter((x) => x._id !== projectId);
-      await refetch({ projectId: projects[0]?._id || '', ref: 'main' });
+      const projects = await projectFn();
+
+      if (projects.length) {
+        await refetch({ projectId: projects[0]?._id || '', ref: 'main' });
+        return;
+      }
+
+      setState((v) => ({ ...v, loading: false }));
+      Toast.warning(t('import.empty'));
     } catch (error) {
       setState((v) => ({ ...v, loading: false }));
       Toast.error(getErrorMessage(error));
@@ -83,7 +94,7 @@ const useRequest = (projectId: string): [State, any, any] => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
-  return [state, setState, { init, refetch }];
+  return [state, setState, { init, refetch }] as const;
 };
 
 export default useRequest;

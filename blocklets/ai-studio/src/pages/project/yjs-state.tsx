@@ -9,6 +9,7 @@ import {
 } from '@blocklet/co-git/yjs';
 import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
+import { cloneDeep } from 'lodash';
 import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
@@ -181,6 +182,24 @@ export function createFolder({
 }
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
+
+export const resetTemplatesId = (templates: (Template & { parent?: string[] })[]) => {
+  const list = cloneDeep(templates);
+
+  list.forEach((template) => {
+    const { id } = template;
+    const newId = nextTemplateId();
+
+    template.id = newId;
+    list.forEach((t) => {
+      if (t.next && t.next?.id === id) {
+        t.next.id = newId;
+      }
+    });
+  });
+
+  return list;
+};
 
 export function createFile({
   store,

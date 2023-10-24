@@ -90,23 +90,23 @@ const getDeepTemplate = async (projectId: string, ref: string, templateId: strin
 
     templates = [template];
 
-    if (template.next?.id) {
-      const nextTemplate = await getDeepTemplate(projectId, ref, template.next?.id);
-      if (nextTemplate?.length) {
-        templates = [...templates, ...nextTemplate];
-      }
-    }
+    // if (template.next?.id) {
+    //   const nextTemplate = await getDeepTemplate(projectId, ref, template.next?.id);
+    //   if (nextTemplate?.length) {
+    //     templates = [...templates, ...nextTemplate];
+    //   }
+    // }
 
-    if (template.branch?.branches?.length) {
-      for (const branch of template.branch?.branches || []) {
-        if (branch.template?.id) {
-          const branchTemplate = await getDeepTemplate(projectId, ref, branch.template?.id);
-          if (branchTemplate?.length) {
-            templates = [...templates, ...branchTemplate];
-          }
-        }
-      }
-    }
+    // if (template.branch?.branches?.length) {
+    //   for (const branch of template.branch?.branches || []) {
+    //     if (branch.template?.id) {
+    //       const branchTemplate = await getDeepTemplate(projectId, ref, branch.template?.id);
+    //       if (branchTemplate?.length) {
+    //         templates = [...templates, ...branchTemplate];
+    //       }
+    //     }
+    //   }
+    // }
   } catch (error) {
     // return templates
   }
