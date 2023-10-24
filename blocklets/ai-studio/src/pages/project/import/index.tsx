@@ -85,14 +85,15 @@ export default function ImportFrom({
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box display="flex" alignItems="center" pt={2} gap={2}>
         <Autocomplete
+          key={Boolean(projectValue).toString()}
           disabled={!state.projects?.length}
           style={{ flex: 1 }}
           disableClearable
           value={projectValue}
           options={state.projects}
           renderInput={(params) => <TextField {...params} label={t('import.selectProject')} />}
-          isOptionEqualToValue={(o, v) => o?._id === v?._id}
-          getOptionLabel={(v) => v?.name || t('unnamed')}
+          isOptionEqualToValue={(o, v) => o._id === v._id}
+          getOptionLabel={(v) => v.name || t('unnamed')}
           onChange={(_e, newValue) => {
             setSelected({});
             setState((r) => ({ ...r, projectId: newValue._id!, ref: 'main' }));
