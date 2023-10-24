@@ -32,7 +32,7 @@
     "url": "https://github.com/blocklet/ai-studio/issues"
   },
   "scripts": {
-    "dev": "vite --host",
+    "start": "vite --host",
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
     "lint:fix": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx --fix",
     "clean": "rm -rf lib && rm -rf */*.d.ts",
@@ -42,7 +42,7 @@
     "build:types": "tsc --declaration --emitDeclarationOnly --outDir .",
     "build:css-cjs": "copyfiles -u 1 './src/**/*.css' lib/cjs/",
     "build:css-esm": "copyfiles -u 1 './src/**/*.css' lib/esm/",
-    "build-watch": "tsc --build --watch"
+    "dev": "run-p 'build:* -- -w'"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
