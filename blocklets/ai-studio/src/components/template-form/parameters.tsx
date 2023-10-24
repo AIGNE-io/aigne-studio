@@ -28,7 +28,6 @@ export default function Parameters({
 
   const params = (() => {
     const params = Object.values(deferredValue.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
-
     if (deferredValue.type === 'branch') {
       params.push('question');
     }

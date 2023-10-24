@@ -82,17 +82,14 @@ function ExportFiles({
       return a.parent ? -1 : 1;
     });
 
-    const doExport = async () => {
-      const fns = list.map(async (i) => {
+    const doExport = () => {
+      const templates: (Template & { path: string })[] = list.map((i) => {
         const { template } = i;
-
-        const res = await templateYjsToTemplate(template);
         return {
-          ...res,
+          ...templateYjsToTemplate(template),
           path: i.parent,
         };
       });
-      const templates: (Template & { path: string })[] = await Promise.all(fns);
 
       const str = stringify({ templates });
       const first = list[0];

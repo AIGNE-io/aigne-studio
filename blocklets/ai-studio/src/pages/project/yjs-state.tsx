@@ -242,7 +242,7 @@ export function importFiles({
   parent?: string[];
   files: (Template & { path?: string[] })[];
 }) {
-  getYjsDoc(store).transact(async () => {
+  getYjsDoc(store).transact(() => {
     for (const { path, ...file } of files) {
       const p = parent
         .concat(path ?? [])
@@ -254,13 +254,13 @@ export function importFiles({
           return isTemplate(f) && f.id === file.id;
         }) || nanoid(32);
 
-      store.files[key] = await templateYjsFromTemplate(file);
+      store.files[key] = templateYjsFromTemplate(file);
       store.tree[key] = p;
     }
   });
 }
 
-export async function templateYjsToTemplate(template: TemplateYjs): Promise<Template> {
+export function templateYjsToTemplate(template: TemplateYjs): Template {
   return {
     ...template,
     prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
@@ -286,7 +286,7 @@ export async function templateYjsToTemplate(template: TemplateYjs): Promise<Temp
   };
 }
 
-export async function templateYjsFromTemplate(template: Template): Promise<TemplateYjs> {
+export function templateYjsFromTemplate(template: Template): TemplateYjs {
   return {
     ...template,
     prompts:

@@ -162,8 +162,4 @@ function EditorShell({
 
 const EditorRoot = styled(Box)`
   position: relative;
-
-  .ContentEditable__root {
-    word-break: break-all !important;
-  }
 `;
