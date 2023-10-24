@@ -1,18 +1,19 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.109",
+  "version": "0.1.115",
   "workspaces": [
     "blocklets/*",
     "packages/*"
   ],
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
-    "dev": "yarn workspace @blocklet/co-git dev & yarn workspace @blocklet/studio-ui dev & yarn workspace ai-studio dev",
-    "bundle": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspace ai-studio bundle",
-    "lint": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspaces run lint",
-    "build": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspace ai-studio build",
+    "dev": "yarn workspace @blocklet/co-git dev & yarn workspace @blocklet/studio-ui dev & yarn workspace @blocklet/prompt-editor dev & yarn workspace ai-studio dev",
+    "bundle": "npm run build:libs && yarn workspace ai-studio bundle",
+    "lint": "npm run build:libs && yarn workspaces run lint",
+    "build": "npm run build:libs && yarn workspace ai-studio build",
     "clean": "yarn workspaces run clean",
+    "build:libs": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspace @blocklet/prompt-editor build",
     "prepare": "husky install",
     "bump-version": "zx scripts/bump-version.mjs",
     "update:deps": "yarn workspaces run update:deps"

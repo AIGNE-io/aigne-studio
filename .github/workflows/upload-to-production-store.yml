@@ -1,5 +1,8 @@
 name: upload-to-production-store
 
+env:
+  NODE_OPTIONS: '--max_old_space_size=6144'
+
 on:
   push:
     branches:
@@ -28,7 +31,7 @@ jobs:
         run: yarn
 
       - name: Build packages
-        run: yarn workspace @blocklet/co-git build
+        run: yarn build
 
       - name: Prepare @blocklet/cli deps
         run: yarn global add @blocklet/cli@beta

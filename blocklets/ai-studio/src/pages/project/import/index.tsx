@@ -1,13 +1,20 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { NodeModel } from '@minoru/react-dnd-treeview';
-import { Autocomplete, Box, Checkbox, CircularProgress, FormControlLabel, Stack, TextField } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import {
+  Autocomplete,
+  Box,
+  Checkbox,
+  CircularProgress,
+  FormControlLabel,
+  Stack,
+  TextField,
+  Tooltip,
+} from '@mui/material';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import joinUrl from 'url-join';
 
-import { EntryWithMeta } from '../../../../api/src/routes/tree';
+import Icon from '../icons/warning-circle';
 import useRequest from './state';
-
-type TreeNode = NodeModel<EntryWithMeta>;
+import getDepTemplates, { TreeNode } from './utils';
 
 export default function ImportFrom({
   projectId,
@@ -19,6 +26,8 @@ export default function ImportFrom({
   const { t } = useLocaleContext();
 
   const [state, setState, { refetch }] = useRequest(projectId);
+  const counts = useRef<{ [key: string]: number }>({});
+  const deps = useRef<{ [key: string]: TreeNode[] }>({});
 
   const [selected, setSelected] = useState<{ [key: string]: boolean }>({});
 
@@ -30,38 +39,65 @@ export default function ImportFrom({
     return state.projects.find((x) => x._id === state.projectId);
   }, [state.projects, state.projectId]);
 
-  const tree = useMemo<(TreeNode & { type: string })[]>(() => {
+  const tree = useMemo<TreeNode[]>(() => {
     if (!state.files) return [];
 
     return state.files.map((item) => ({
       id: joinUrl(...item.parent, item.name),
       parent: item.parent.join(' / ') || '',
       text: item.name,
-      data: item,
+      data: item.type === 'file' ? item.meta : undefined,
       type: item.type,
     }));
   }, [state.files]);
 
+  const setDepCounts = (list: TreeNode[], isChecked: boolean) => {
+    list.forEach((item: TreeNode) => {
+      counts.current[item.text] = counts.current[item.text] ?? 0;
+
+      if (isChecked) {
+        counts.current[item.text]++;
+      } else {
+        counts.current[item.text]--;
+      }
+    });
+  };
+
+  const ids = useMemo(() => {
+    const obj: { [key: string]: boolean } = {};
+
+    Object.keys(counts.current).forEach((key) => {
+      if (Number(counts.current[key]) > 0) {
+        obj[key] = true;
+      } else {
+        delete counts.current[key];
+      }
+    });
+
+    return { ...selected, ...obj };
+  }, [selected, counts]);
+
   useEffect(() => {
-    onChange(selected, state.projectId, state.ref);
-  }, [selected, state]);
+    onChange(ids, state.projectId, state.ref);
+  }, [ids, state]);
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box display="flex" alignItems="center" pt={2} gap={2}>
         <Autocomplete
+          key={Boolean(projectValue).toString()}
+          disabled={!state.projects?.length}
           style={{ flex: 1 }}
           disableClearable
-          // @ts-ignore
-          value={projectValue || ''}
+          value={projectValue}
           options={state.projects}
-          renderInput={(params) => <TextField {...params} size="small" label={t('import.selectProject')} />}
-          isOptionEqualToValue={(o, v) => o?._id === v?._id}
-          getOptionLabel={(v) => v?.name || t('unnamed')}
+          renderInput={(params) => <TextField {...params} label={t('import.selectProject')} />}
+          isOptionEqualToValue={(o, v) => o._id === v._id}
+          getOptionLabel={(v) => v.name || t('unnamed')}
           onChange={(_e, newValue) => {
             setSelected({});
-            setState((r: any) => ({ ...r, projectId: newValue._id, ref: 'main' }));
-            refetch({ projectId: newValue._id, ref: 'main' });
+            setState((r) => ({ ...r, projectId: newValue._id!, ref: 'main' }));
+            refetch({ projectId: newValue._id!, ref: 'main' });
           }}
           renderOption={(props, option) => (
             <Box component="li" {...props} key={option._id}>
@@ -71,16 +107,17 @@ export default function ImportFrom({
         />
 
         <Autocomplete
+          disabled={!state.projects?.length}
           style={{ flex: 1 }}
           disableClearable
-          value={state.ref}
+          value={state.projects?.length ? state.ref : ''}
           options={state.branches}
-          renderInput={(params) => <TextField {...params} size="small" label={t('import.selectBranch')} />}
+          renderInput={(params) => <TextField {...params} label={t('import.selectBranch')} />}
           isOptionEqualToValue={(o, v) => o === v}
           getOptionLabel={(v) => v}
           onChange={(_e, newValue) => {
             setSelected({});
-            setState((r: any) => ({ ...r, ref: newValue }));
+            setState((r) => ({ ...r, ref: newValue }));
             refetch({ projectId: state.projectId, ref: newValue });
           }}
         />
@@ -94,15 +131,27 @@ export default function ImportFrom({
         <Box flex={1} height={0} overflow="auto" mb={7}>
           <Box component="h4">{t('import.templates')}</Box>
 
-          {tree.map((item) => {
-            // @ts-ignore
-            const name = item.type === 'file' ? item?.data?.meta?.name || t('alert.unnamed') : item.text;
+          {!tree.length && (
+            <Box fontSize={12} color={(theme) => theme.palette.text.disabled}>
+              {t('import.empty')}
+            </Box>
+          )}
 
-            const isChecked = () => {
-              return Boolean(selected[item.text]);
+          {tree.map((item) => {
+            const getName = (file: TreeNode) => {
+              return file.type === 'file' ? file.data?.name || t('alert.unnamed') : file.text;
             };
 
-            const onChangeParent = (item: any, checked: boolean) => {
+            const name = getName(item);
+
+            const isChecked = () => {
+              return Boolean(ids[item.text]);
+            };
+
+            const onChangeParent = (item: TreeNode, checked: boolean) => {
+              const temps = getDepTemplates(tree, item.text);
+              deps.current[item.text] = temps;
+              setDepCounts(temps, checked);
               handleChange(item.text, checked);
             };
 
@@ -110,10 +159,24 @@ export default function ImportFrom({
               <Stack key={item.id} pl={1} mb={0.25}>
                 <FormControlLabel
                   sx={{ pl: 0 }}
+                  disabled={Boolean(Number(counts.current[item.text]) > 0)}
                   label={
-                    <Box display="flex">
+                    <Box display="flex" alignItems="center">
                       {item.parent && <Box mr={1} sx={{ color: '#ccc' }}>{`${item.parent} / `}</Box>}
+
                       <Box>{name}</Box>
+
+                      {Boolean(selected[item.text]) && !!(deps.current[item.text] || []).length && (
+                        <Tooltip
+                          title={[
+                            `${t('dependents')}: `,
+                            (deps.current[item.text] || []).map((item) => <Box pl={1}>{getName(item)}</Box>),
+                          ]}>
+                          <Box display="flex" color="primary.main" ml={1}>
+                            <Icon sx={{ fontSize: 18 }} />
+                          </Box>
+                        </Tooltip>
+                      )}
                     </Box>
                   }
                   control={

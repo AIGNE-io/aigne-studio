@@ -1,13 +1,14 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Box, Button, Input, MenuItem, Select, SelectProps, Stack, inputClasses, selectClasses } from '@mui/material';
+import PromptEditor from '@blocklet/prompt-editor';
+import { Box, Button, Stack } from '@mui/material';
 import { useCounter } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { useDeferredValue, useEffect, useRef } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { ParameterYjs, Role } from '../../../api/src/store/templates';
+import { ParameterYjs } from '../../../api/src/store/templates';
 import Add from '../../pages/project/icons/add';
 import DragVertical from '../../pages/project/icons/drag-vertical';
 import Trash from '../../pages/project/icons/trash';
@@ -79,78 +80,73 @@ export default function Prompts({
           <DragSortListYjs
             disabled={readOnly}
             list={form.prompts}
-            renderItem={(prompt, index, params) => (
-              <Box
-                ref={params.drop}
-                sx={{
-                  bgcolor: params.isDragging ? 'grey.100' : undefined,
-                  '&:not(:last-of-type)': {
-                    borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
-                  },
-                }}>
-                <Stack direction="row" sx={{ position: 'relative' }}>
-                  <Stack sx={{ position: 'absolute', zIndex: 1, top: 4, left: 4 }}>
-                    <RoleSelector
-                      readOnly={readOnly}
-                      value={prompt.role ?? 'system'}
-                      onChange={(e) => (prompt.role = e.target.value as any)}
+            renderItem={(prompt, index, params) => {
+              const doc = (getYjsValue(prompt) as Map<any>).doc!;
+              return (
+                <Box
+                  ref={params.drop}
+                  sx={{
+                    bgcolor: params.isDragging ? 'grey.100' : undefined,
+                    '&:not(:last-of-type)': {
+                      borderBottom: (theme) => `1px solid ${theme.palette.grey[200]}`,
+                    },
+                  }}>
+                  <Stack direction="row" sx={{ position: 'relative' }}>
+                    <Box
+                      ref={params.preview}
+                      sx={{ flex: 1, borderRadius: 1, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                      <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
+                        <PromptEditor
+                          p={1}
+                          editable={!readOnly}
+                          content={prompt.content}
+                          role={prompt.role}
+                          onChange={(content, role) => {
+                            doc.transact(() => {
+                              prompt.content = content;
+                              prompt.role = role;
+                            });
+                            triggerUpdate();
+                          }}
+                        />
+                      </WithAwareness>
+                    </Box>
+
+                    {!readOnly && (
+                      <Stack sx={{ p: 0.5 }}>
+                        <Button
+                          sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}
+                          onClick={() => {
+                            const doc = (getYjsValue(form.prompts) as Map<any>).doc!;
+                            doc.transact(() => {
+                              if (form.prompts) {
+                                delete form.prompts[prompt.id];
+                                sortBy(Object.values(form.prompts), (i) => i.index).forEach(
+                                  (i, index) => (i.index = index)
+                                );
+                              }
+                            });
+                            triggerUpdate();
+                          }}>
+                          <Trash sx={{ fontSize: 20, color: 'grey.500' }} />
+                        </Button>
+
+                        <Button ref={params.drag} sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}>
+                          <DragVertical sx={{ color: 'grey.500' }} />
+                        </Button>
+                      </Stack>
+                    )}
+
+                    <AwarenessIndicator
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      path={[form.id, 'prompts', index]}
+                      sx={{ position: 'absolute', left: '100%', top: 0 }}
                     />
                   </Stack>
-
-                  <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
-                    <Input
-                      readOnly={readOnly}
-                      ref={params.preview}
-                      fullWidth
-                      multiline
-                      minRows={2}
-                      value={prompt.content ?? ''}
-                      onChange={(e) => {
-                        prompt.content = e.target.value;
-                        triggerUpdate();
-                      }}
-                      sx={{
-                        bgcolor: 'background.paper',
-                        borderRadius: 1,
-                        [`.${inputClasses.input}`]: { px: 1, textIndent: indentWidth(prompt.role) },
-                      }}
-                    />
-                  </WithAwareness>
-
-                  {!readOnly && (
-                    <Stack sx={{ p: 0.5 }}>
-                      <Button
-                        sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}
-                        onClick={() => {
-                          const doc = (getYjsValue(form.prompts) as Map<any>).doc!;
-                          doc.transact(() => {
-                            if (form.prompts) {
-                              delete form.prompts[prompt.id];
-                              sortBy(Object.values(form.prompts), (i) => i.index).forEach(
-                                (i, index) => (i.index = index)
-                              );
-                            }
-                          });
-                          triggerUpdate();
-                        }}>
-                        <Trash sx={{ fontSize: 20, color: 'grey.500' }} />
-                      </Button>
-
-                      <Button ref={params.drag} sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}>
-                        <DragVertical sx={{ color: 'grey.500' }} />
-                      </Button>
-                    </Stack>
-                  )}
-
-                  <AwarenessIndicator
-                    projectId={projectId}
-                    gitRef={gitRef}
-                    path={[form.id, 'prompts', index]}
-                    sx={{ position: 'absolute', left: '100%', top: 0 }}
-                  />
-                </Stack>
-              </Box>
-            )}
+                </Box>
+              );
+            }}
           />
         </Box>
       )}
@@ -177,39 +173,3 @@ export default function Prompts({
     </Box>
   );
 }
-
-function RoleSelector({ ...props }: SelectProps<Role>) {
-  return (
-    <Select
-      {...props}
-      size="small"
-      MenuProps={{
-        slotProps: { paper: { sx: { mt: 0.5 } } },
-      }}
-      sx={{
-        [`.${selectClasses.select}`]: {
-          fontSize: 12,
-          px: 1,
-          pr: '18px !important',
-        },
-        [`.${selectClasses.icon}`]: {
-          fontSize: 16,
-          right: 2,
-        },
-        ...props.sx,
-      }}>
-      <MenuItem value="system">System</MenuItem>
-      <MenuItem value="user">User</MenuItem>
-      <MenuItem value="assistant">Assistant</MenuItem>
-    </Select>
-  );
-}
-
-const indentWidth = (role?: Role) => {
-  const map = {
-    system: '72px',
-    user: '56px',
-    assistant: '81px',
-  };
-  return map[role!] || map.user;
-};

@@ -457,7 +457,10 @@ function DebugModeForm({
             Object.fromEntries(
               Object.entries(template.parameters ?? {}).map(([param, parameter]) => [
                 param,
-                parameter.defaultValue ?? undefined,
+                parameter.defaultValue ??
+                  (!parameter.type || ['string', 'select', 'number', 'language'].includes(parameter.type)
+                    ? ''
+                    : undefined),
               ])
             )
         ),
