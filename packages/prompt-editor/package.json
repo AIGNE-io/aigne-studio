@@ -1,0 +1,82 @@
+{
+  "name": "@blocklet/prompt-editor",
+  "version": "0.1.112",
+  "private": true,
+  "description": "prompt editor for ai studio",
+  "author": "arcblock",
+  "license": "ISC",
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "exports": {
+    ".": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
+    },
+    "./utils": {
+      "import": "./lib/esm/utils.js",
+      "require": "./lib/cjs/utils.js"
+    }
+  },
+  "files": [
+    "lib",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "**/*.d.ts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blocklet/ai-studio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/blocklet/ai-studio/issues"
+  },
+  "scripts": {
+    "start": "vite --host",
+    "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx --fix",
+    "clean": "rm -rf lib && rm -rf */*.d.ts",
+    "build": "npm run clean && run-p build:*",
+    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
+    "build:esm": "tsc --module es2022 --outDir lib/esm",
+    "build:types": "tsc --declaration --emitDeclarationOnly --outDir .",
+    "build:css-cjs": "copyfiles -u 1 './src/**/*.css' lib/cjs/",
+    "build:css-esm": "copyfiles -u 1 './src/**/*.css' lib/esm/",
+    "dev": "run-p 'build:* -- -w'"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@lexical/clipboard": "^0.12.2",
+    "@lexical/code": "^0.12.2",
+    "@lexical/file": "^0.12.2",
+    "@lexical/hashtag": "^0.12.2",
+    "@lexical/headless": "^0.12.2",
+    "@lexical/link": "^0.12.2",
+    "@lexical/list": "^0.12.2",
+    "@lexical/mark": "^0.12.2",
+    "@lexical/overflow": "^0.12.2",
+    "@lexical/plain-text": "^0.12.2",
+    "@lexical/react": "^0.12.2",
+    "@lexical/selection": "^0.12.2",
+    "@lexical/utils": "^0.12.2",
+    "@mui/material": "^5.14.10",
+    "ahooks": "^3.7.8",
+    "lexical": "^0.12.2",
+    "lodash-es": "^4.17.21",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-error-boundary": "^4.0.11",
+    "y-websocket": "^1.5.0",
+    "yjs": "^13.6.8"
+  },
+  "devDependencies": {
+    "@rollup/plugin-babel": "5.3.0",
+    "@types/lodash-es": "^4.17.9",
+    "@vitejs/plugin-react": "1.0.7",
+    "copyfiles": "^2.4.1",
+    "vite": "^4.4.9",
+    "vite-plugin-replace": "^0.1.1",
+    "vite-plugin-svgr": "^4.0.0"
+  }
+}
