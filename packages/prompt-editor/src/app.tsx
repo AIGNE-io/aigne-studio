@@ -6,7 +6,6 @@ import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import { $createParagraphNode, $createTextNode, $getRoot, EditorState, LexicalEditor } from 'lexical';
 import React, { MutableRefObject, ReactNode, useCallback, useEffect, useRef } from 'react';
 
-import { SharedHistoryContext } from './context/shared-history-context';
 import Editor from './editor';
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
 import { $createRoleSelectNode } from './plugins/RolePlugin/role-select-node';
@@ -67,17 +66,15 @@ export default function PromptEditor({
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <SharedHistoryContext>
-        <EditorShell
-          useRoleNode={useRoleNode}
-          useVariableNode={useVariableNode}
-          autoFocus={autoFocus}
-          isDebug={isDebug}
-          editable={editable}
-          {...props}>
-          {children}
-        </EditorShell>
-      </SharedHistoryContext>
+      <EditorShell
+        useRoleNode={useRoleNode}
+        useVariableNode={useVariableNode}
+        autoFocus={autoFocus}
+        isDebug={isDebug}
+        editable={editable}
+        {...props}>
+        {children}
+      </EditorShell>
     </LexicalComposer>
   );
 }

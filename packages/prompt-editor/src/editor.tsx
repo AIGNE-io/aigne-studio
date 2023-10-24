@@ -9,7 +9,6 @@ import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { EditorState, LexicalEditor } from 'lexical';
 import { MutableRefObject, useEffect, useState } from 'react';
 
-import { useSharedHistoryContext } from './context/shared-history-context';
 import CommentPlugin from './plugins/CommentPlugin';
 import FloatingToolbarPlugin from './plugins/FloatingToolbarPlugin';
 import RoleSelectPlugin from './plugins/RolePlugin';
@@ -45,7 +44,6 @@ export default function Editor({
   const text = 'Enter some plain text...';
   const placeholderNode = <Placeholder>{placeholder || text}</Placeholder>;
   const [isSmallWidthViewport, setIsSmallWidthViewport] = useState<boolean>(false);
-  const { historyState } = useSharedHistoryContext();
 
   useEffect(() => {
     const updateViewPortWidth = () => {
@@ -76,7 +74,7 @@ export default function Editor({
       {useRoleNode && <RoleSelectPlugin />}
       {useVariableNode && <VariablePlugin popperElement={popperElement} />}
       <FloatingToolbarPlugin floatElement={floatElement} />
-      <HistoryPlugin externalHistoryState={historyState} />
+      <HistoryPlugin />
       {onChange && <OnChangePlugin onChange={onChange} />}
       {editorRef !== undefined && <EditorRefPlugin editorRef={editorRef} />}
 
