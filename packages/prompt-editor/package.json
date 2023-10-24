@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.1.112",
+  "version": "0.1.113",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
@@ -41,7 +41,11 @@
     "build:types": "tsc --declaration --emitDeclarationOnly --outDir .",
     "build:css-cjs": "copyfiles -u 1 './src/**/*.css' lib/cjs/",
     "build:css-esm": "copyfiles -u 1 './src/**/*.css' lib/esm/",
-    "dev": "run-p 'build:* -- -w'"
+    "dev": "run-p 'build:* -- -w'",
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
+    "update:deps": "npx taze -n '/arcblock|ocap|abtnode|blocklet|did-connect|did-comment|nedb/' -w && npm run deduplicate && yarn",
+    "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
