@@ -94,9 +94,23 @@ export default function SettingView({
 
   return (
     <Stack py={2}>
-      <Stack gap={2} sx={{ '> *:last-child': { mb: 2 }, [`.${formLabelClasses.root}`]: { fontSize: 14 } }}>
-        <Box px={2} position="relative">
-          <FormLabel>{t('public')}</FormLabel>
+      <Stack sx={{ '> *:last-child': { mb: 4 } }}>
+        <Typography variant="h6" sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
+          {t('variable')}
+        </Typography>
+
+        <Box px={2}>
+          <Parameters readOnly={readOnly} form={template} />
+        </Box>
+      </Stack>
+
+      <Stack sx={{ '> *:last-child': { mb: 4 }, [`.${formLabelClasses.root}`]: { fontSize: 14 } }}>
+        <Typography variant="h6" sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
+          {t('setting')}
+        </Typography>
+
+        <Stack direction="row" alignItems="center" px={3} position="relative">
+          <FormLabel sx={{ minWidth: 60 }}>{t('public')}</FormLabel>
 
           <Box>
             <RadioGroup
@@ -107,10 +121,10 @@ export default function SettingView({
               <FormControlLabel value={false} control={<Radio />} label={t('nonPublic')} />
             </RadioGroup>
           </Box>
-        </Box>
+        </Stack>
 
-        <Box px={2} position="relative">
-          <FormLabel>{t('mode')}</FormLabel>
+        <Stack direction="row" alignItems="center" px={3} position="relative">
+          <FormLabel sx={{ minWidth: 60 }}>{t('mode')}</FormLabel>
 
           <Box>
             <RadioGroup
@@ -121,10 +135,10 @@ export default function SettingView({
               <FormControlLabel value="chat" control={<Radio />} label={t('chatMode')} />
             </RadioGroup>
           </Box>
-        </Box>
+        </Stack>
 
-        <Box px={2} position="relative">
-          <FormLabel>{t('type')}</FormLabel>
+        <Stack direction="row" alignItems="center" px={3} position="relative">
+          <FormLabel sx={{ minWidth: 60 }}>{t('type')}</FormLabel>
 
           <Box>
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'name']}>
@@ -151,20 +165,10 @@ export default function SettingView({
               sx={{ position: 'absolute', right: -16, top: 16 }}
             />
           </Box>
-        </Box>
+        </Stack>
       </Stack>
 
-      <Stack sx={{ '> *:last-child': { mb: 2 } }}>
-        <Typography variant="h6" sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
-          {t('variable')}
-        </Typography>
-
-        <Box px={2}>
-          <Parameters readOnly={readOnly} form={template} />
-        </Box>
-      </Stack>
-
-      <Stack sx={{ '> *:last-child': { mb: 2 } }}>
+      <Stack sx={{ '> *:last-child': { mb: 4 } }}>
         <Typography variant="h6" sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('model')}
         </Typography>
@@ -347,7 +351,7 @@ export default function SettingView({
         </AccordionContainer>
       </Stack>
 
-      <Stack sx={{ '> *:last-child': { mb: 2 } }}>
+      <Stack sx={{ '> *:last-child': { mb: 4 } }}>
         <Typography variant="h6" sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('dataset')}
         </Typography>

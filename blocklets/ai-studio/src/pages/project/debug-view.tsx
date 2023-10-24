@@ -34,6 +34,7 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import { parameterFieldComponent } from '../../components/parameter-field';
 import { matchParams } from '../../components/template-form/parameters';
 import { useSessionContext } from '../../contexts/session';
+import Empty from './icons/empty';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
 import Record from './record';
@@ -69,7 +70,6 @@ export default function DebugView(props: {
       flexGrow={1}
       height="100%"
       overflow="auto"
-      position="relative"
       scrollViewClassName={css`
         display: flex;
         flex-direction: column;
@@ -529,10 +529,10 @@ function DebugModeForm({
 
                   return (
                     <Field
-                      maxRows={5}
                       label={parameter.label || param}
                       fullWidth
                       parameter={omit(parameter, 'min', 'max') as never}
+                      maxRows={!parameter.type || parameter.type === 'string' ? 5 : undefined}
                       // TODO: 临时去掉 NumberField 的自动转 number 功能
                       {...(parameter.type === 'number' ? { autoCorrectValue: false } : undefined)}
                       {...form.register(param, {
@@ -605,18 +605,9 @@ function EmptySessions({ projectId, templateId }: { projectId: string; templateI
   const { t } = useLocaleContext();
 
   return (
-    <Box
-      sx={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        marginTop: '100px',
-      }}>
+    <Stack mt={10} gap={2} alignItems="center">
+      <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+
       <Button
         startIcon={<Add />}
         onClick={(e) => {
@@ -625,7 +616,7 @@ function EmptySessions({ projectId, templateId }: { projectId: string; templateI
         }}>
         {t('newObject', { object: t('session') })}
       </Button>
-    </Box>
+    </Stack>
   );
 }
 

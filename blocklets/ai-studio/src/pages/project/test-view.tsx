@@ -196,18 +196,20 @@ const TestCaseView = forwardRef<
       <Table>
         {Object.entries(test.parameters).map(([key, value]) => (
           <Box key={key}>
-            <Box className="key">{key}</Box>
             <Box>
-              <Box maxHeight={200} overflow="auto">
-                {value}
-              </Box>
+              <Box>{key}</Box>
+            </Box>
+            <Box>
+              <Box>{value}</Box>
             </Box>
           </Box>
         ))}
         <Box>
-          <Box className="key">{t('output')}</Box>
           <Box>
-            <Box maxHeight={200} overflow="auto">
+            <Box>{t('output')}</Box>
+          </Box>
+          <Box>
+            <Box>
               {test.output}
 
               {loading && <WritingIndicator />}
@@ -244,14 +246,13 @@ const Table = styled(Box)`
       display: table-cell;
       border-bottom: 0.5px solid ${({ theme }) => theme.palette.divider};
       border-right: 0.5px solid ${({ theme }) => theme.palette.divider};
-      word-break: break-all;
-
-      &.key {
-        padding: 4px 8px;
-      }
 
       > div {
+        max-height: 200px;
+        overflow-x: hidden;
+        overflow-y: auto;
         padding: 4px 8px;
+        word-break: break-word;
       }
 
       &:first-of-type {
