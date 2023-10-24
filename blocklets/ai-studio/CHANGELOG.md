@@ -1,3 +1,10 @@
+## 0.1.116 (2023-10-24)
+
+- fix: in test mode, the input field completely supports the display field #259
+- feat: add copy button for answer content
+- fix: consistent variable names
+- fix: create a new session #255
+
 ## 0.1.115 (2023-10-24)
 
 - chore: update templates id
