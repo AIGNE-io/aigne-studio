@@ -88,7 +88,8 @@ export default function ImportFrom({
           disabled={!state.projects?.length}
           style={{ flex: 1 }}
           disableClearable
-          value={projectValue}
+          // @ts-ignore
+          value={projectValue || ''}
           options={state.projects}
           renderInput={(params) => <TextField {...params} label={t('import.selectProject')} />}
           isOptionEqualToValue={(o, v) => o?._id === v?._id}
