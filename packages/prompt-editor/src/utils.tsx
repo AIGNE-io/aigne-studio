@@ -73,7 +73,7 @@ export function $text2lexical(content?: string, role?: Role): Promise<string> {
       if (content) {
         const rows = content.split(/\n/);
 
-        rows.forEach((row) => {
+        rows.forEach((row, index) => {
           if (row) {
             if (row.startsWith(COMMENT_PREFIX)) {
               paragraph.append($createCommentNode(row));
@@ -93,6 +93,9 @@ export function $text2lexical(content?: string, role?: Role): Promise<string> {
                 });
               }
             }
+          }
+          if (index < rows.length - 1) {
+            paragraph.append($createLineBreakNode());
           }
         });
       }
@@ -140,7 +143,7 @@ export function $lexical2text(editorState: string): Promise<{ content: string; r
     });
 
     editor.registerTextContentListener((textContent) => {
-      resolve({ content: textContent.slice(0, -`${TEMP_TEXT.length}`).replace(/\n+/g, '\n'), role });
+      resolve({ content: textContent.slice(0, -TEMP_TEXT.length), role });
     });
   });
 }

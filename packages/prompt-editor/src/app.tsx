@@ -107,7 +107,7 @@ function EditorShell({
       const { content, role = 'user' } = await $lexical2text(json);
       if (cache.current?.content !== content || cache.current.role !== role) {
         cache.current = { content, role };
-        onChange?.(content.replace(/\n+/g, '\n'), role);
+        onChange?.(content, role);
       }
     },
     { wait: 500 }
