@@ -1,3 +1,7 @@
+## 0.1.110 (2023-10-24)
+
+- feat: rich prompt editor
+
 ## 0.1.109 (2023-10-23)
 
 - chore: support discuss view
