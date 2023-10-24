@@ -14,7 +14,15 @@ import {
   tabScrollButtonClasses,
 } from '@mui/material';
 import { useLocalStorageState, useRequest } from 'ahooks';
-import { useCallback, useEffect, useRef } from 'react';
+import equal from 'fast-deep-equal';
+import cloneDeep from 'lodash/cloneDeep';
+import differenceBy from 'lodash/differenceBy';
+import intersectionBy from 'lodash/intersectionBy';
+import isUndefined from 'lodash/isUndefined';
+import omit from 'lodash/omit';
+import omitBy from 'lodash/omitBy';
+import pick from 'lodash/pick';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -46,9 +54,58 @@ const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${
 const CURRENT_TAB = (projectId: string) => `ai-studio.currentTab.${projectId}`;
 
 const useProjects = (projectId: string, ref: string) => {
-  const { data } = useRequest(() => getTemplates(projectId, ref));
-  const templates = (data?.templates || []).map((i) => templateYjsFromTemplate(i));
-  console.log(templates);
+  const { data } = useRequest(() => getTemplates(projectId, ref), { refreshDeps: [projectId, ref] });
+  const templates = (data?.templates || []).map((i) =>
+    omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
+  );
+
+  const { store } = useStore(projectId, ref, true);
+
+  const files = Object.values(cloneDeep(store.files)).filter((x) => (x as TemplateYjs)?.id);
+
+  const news = useMemo(() => {
+    return differenceBy(files, templates, 'id');
+  }, [files, templates]);
+
+  const deleted = useMemo(() => {
+    return differenceBy(templates, files, 'id');
+  }, [files, templates]);
+
+  const modify = useMemo(() => {
+    const duplicateItems = intersectionBy(templates, files, 'id');
+
+    const keys = [
+      'id',
+      'createdBy',
+      'updatedBy',
+      'name',
+      'description',
+      'tags',
+      'prompts',
+      'parameters',
+      'mode',
+      'status',
+      'public',
+      'datasets',
+      'next',
+      'tests',
+    ];
+
+    return duplicateItems.filter((i) => {
+      const item = omitBy(pick(i, ...keys), isUndefined);
+      const found = files.find((f) => item.id === (f as TemplateYjs)?.id);
+      if (!found) {
+        return false;
+      }
+      const file = omitBy(pick(found, ...keys), isUndefined);
+
+      return !equal(item, file);
+    });
+  }, [files, templates]);
+
+  console.log({ news, deleted, modify });
+
+  return { news, deleted, modify };
 };
 
 export default function ProjectPage() {
@@ -58,7 +115,6 @@ export default function ProjectPage() {
   const { t } = useLocaleContext();
 
   const { store, synced } = useStore(projectId, gitRef, true);
-  console.log(store);
 
   useProjects(projectId, gitRef);
 
