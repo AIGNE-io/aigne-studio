@@ -1,7 +1,6 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.1.112",
-  "private": true,
+  "version": "0.1.113",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
