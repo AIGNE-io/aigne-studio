@@ -86,7 +86,7 @@ export default function SettingView({
       .join(', ');
   };
 
-  const handleChange = (panel: string) => (event: SyntheticEvent, isExpanded: boolean) => {
+  const handleChange = (panel: string) => (_e: SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
 
