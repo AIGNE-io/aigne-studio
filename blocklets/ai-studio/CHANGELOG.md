@@ -1,3 +1,10 @@
+## 0.1.116 (2023-10-25)
+
+- fix: remove unnecessary code
+- fix: remove default placeholder
+- fix: support ctrl/cmd+z undo
+- fix: keep linebreaks of prompt
+
 ## 0.1.115 (2023-10-24)
 
 - chore: update templates id
