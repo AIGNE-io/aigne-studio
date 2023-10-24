@@ -33,6 +33,7 @@ jobs:
           pwd=$(pwd)
           cd $pwd/packages/co-git && npm publish --access public --no-git-checks
           cd $pwd/packages/studio-ui && npm publish --access public --no-git-checks
+          cd $pwd/packages/prompt-editor && npm publish --access public --no-git-checks
 
       - name: Blocklet workflow
         env:
