@@ -13,7 +13,7 @@ import {
   Typography,
   tabScrollButtonClasses,
 } from '@mui/material';
-import { useLocalStorageState } from 'ahooks';
+import { useLocalStorageState, useRequest } from 'ahooks';
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -22,6 +22,7 @@ import WithAwareness from '../../components/awareness/with-awareness';
 import TemplateFormView from '../../components/template-form';
 import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
+import { getTemplates } from '../../libs/template';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import DiscussView from './discuss-view';
@@ -37,12 +38,18 @@ import SettingView from './setting-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
-import { isTemplate, useStore } from './yjs-state';
+import { isTemplate, templateYjsFromTemplate, useStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
 const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
 const CURRENT_TAB = (projectId: string) => `ai-studio.currentTab.${projectId}`;
+
+const useProjects = (projectId: string, ref: string) => {
+  const { data } = useRequest(() => getTemplates(projectId, ref));
+  const templates = (data?.templates || []).map((i) => templateYjsFromTemplate(i));
+  console.log(templates);
+};
 
 export default function ProjectPage() {
   const { projectId, ref: gitRef, '*': filepath } = useParams();
@@ -51,6 +58,9 @@ export default function ProjectPage() {
   const { t } = useLocaleContext();
 
   const { store, synced } = useStore(projectId, gitRef, true);
+  console.log(store);
+
+  useProjects(projectId, gitRef);
 
   const id = Object.entries(store.tree).find((i) => i[1] === filepath)?.[0];
   const file = id ? store.files[id] : undefined;

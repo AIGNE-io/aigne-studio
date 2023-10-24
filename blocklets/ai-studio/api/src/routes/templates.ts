@@ -154,6 +154,7 @@ const getTemplatesSchema = Joi.object<{
   projectId?: string;
   tag?: string;
   type?: 'image';
+  ref?: string;
 }>({
   offset: Joi.number().integer().min(0).default(0),
   limit: Joi.number().integer().min(1).empty(null),
@@ -161,6 +162,7 @@ const getTemplatesSchema = Joi.object<{
   projectId: Joi.string().empty(''),
   tag: Joi.string().empty(''),
   type: Joi.string().valid('image').empty(''),
+  ref: Joi.string().empty(''),
 });
 
 const templateSortableFields: (keyof Template)[] = ['name', 'createdAt', 'updatedAt'];
@@ -183,7 +185,7 @@ const getTemplateQuerySchema = Joi.object<{ projectId: string; hash: string }>({
 
 export function templateRoutes(router: Router) {
   async function handleTemplates(req: Request, res: Response) {
-    const { offset, limit, projectId, tag, type, ...query } = await getTemplatesSchema.validateAsync(req.query, {
+    const { offset, limit, projectId, tag, type, ref, ...query } = await getTemplatesSchema.validateAsync(req.query, {
       stripUnknown: true,
     });
 
@@ -199,7 +201,7 @@ export function templateRoutes(router: Router) {
 
     let templates = (
       await Promise.all(
-        projectIds.map(async (projectId) => getTemplatesFromRepository({ projectId, ref: defaultBranch }))
+        projectIds.map(async (projectId) => getTemplatesFromRepository({ projectId, ref: ref || defaultBranch }))
       )
     ).flat();
 
