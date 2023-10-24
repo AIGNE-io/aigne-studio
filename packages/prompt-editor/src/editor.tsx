@@ -41,8 +41,7 @@ export default function Editor({
   editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
   popperElement?: (editor: LexicalEditor) => any;
 }): JSX.Element {
-  const text = 'Enter some plain text...';
-  const placeholderNode = <Placeholder>{placeholder || text}</Placeholder>;
+  const placeholderNode = <Placeholder>{placeholder}</Placeholder>;
   const [isSmallWidthViewport, setIsSmallWidthViewport] = useState<boolean>(false);
 
   useEffect(() => {
