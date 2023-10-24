@@ -94,8 +94,6 @@ export function $text2lexical(content?: string, role?: Role): Promise<string> {
               }
             }
           }
-
-          paragraph.append($createLineBreakNode());
         });
       }
 

@@ -236,7 +236,7 @@ export function projectRoutes(router: Router) {
       for (const { parent, ...file } of template.files) {
         const id = nextTemplateId();
         const key = nanoid(32);
-        working.syncedStore.files[key] = await templateToYjs({ ...file, id });
+        working.syncedStore.files[key] = templateToYjs({ ...file, id });
         working.syncedStore.tree[key] = parent.concat(`${id}.yaml`).join('/');
       }
       await working.commit({

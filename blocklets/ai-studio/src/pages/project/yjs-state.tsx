@@ -7,10 +7,8 @@ import {
   useSyncedStore,
   writeVarUint,
 } from '@blocklet/co-git/yjs';
-import { $lexical2text, $text2lexical, tryParseJSONObject } from '@blocklet/prompt-editor/utils';
 import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
-import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
@@ -265,18 +263,7 @@ export function importFiles({
 export async function templateYjsToTemplate(template: TemplateYjs): Promise<Template> {
   return {
     ...template,
-    prompts:
-      template.prompts &&
-      (await Promise.all(
-        sortBy(Object.values(template.prompts), 'index').map(async ({ data }) => {
-          if (data.contentLexicalJson && tryParseJSONObject(data.contentLexicalJson)) {
-            const res = await $lexical2text(data.contentLexicalJson);
-            return { ...omit(data, 'contentLexicalJson'), ...res };
-          }
-
-          return { ...omit(data, 'contentLexicalJson') };
-        })
-      )),
+    prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
     parameters:
       template.parameters &&
       Object.fromEntries(
@@ -305,18 +292,13 @@ export async function templateYjsFromTemplate(template: Template): Promise<Templ
     prompts:
       template.prompts &&
       Object.fromEntries(
-        await Promise.all(
-          template.prompts?.map(async (prompt, index) => [
-            prompt.id,
-            {
-              index,
-              data: {
-                ...prompt,
-                contentLexicalJson: await $text2lexical(prompt.content || '', prompt.role),
-              },
-            },
-          ])
-        )
+        template.prompts?.map((prompt, index) => [
+          prompt.id,
+          {
+            index,
+            data: prompt,
+          },
+        ])
       ),
     parameters:
       template.parameters &&

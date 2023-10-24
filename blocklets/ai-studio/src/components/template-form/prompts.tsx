@@ -1,10 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import PromptEditor from '@blocklet/prompt-editor';
-import { $lexical2text } from '@blocklet/prompt-editor/utils';
 import { Box, Button, Stack } from '@mui/material';
 import { useCounter } from 'ahooks';
-import debounce from 'lodash/debounce';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { useDeferredValue, useEffect, useRef } from 'react';
@@ -83,14 +81,7 @@ export default function Prompts({
             disabled={readOnly}
             list={form.prompts}
             renderItem={(prompt, index, params) => {
-              const onChange = debounce(async (state) => {
-                prompt.contentLexicalJson = JSON.stringify(state);
-
-                const res = await $lexical2text(prompt.contentLexicalJson);
-                prompt.role = res.role;
-                prompt.content = res.content.replace(/\n+/g, '\n');
-              }, 500);
-
+              const doc = (getYjsValue(prompt) as Map<any>).doc!;
               return (
                 <Box
                   ref={params.drop}
@@ -101,40 +92,25 @@ export default function Prompts({
                     },
                   }}>
                   <Stack direction="row" sx={{ position: 'relative' }}>
-                    {/* <Stack sx={{ position: 'absolute', zIndex: 1, top: 4, left: 4 }}>
-                      <RoleSelector
-                        readOnly={readOnly}
-                        value={prompt.role ?? 'system'}
-                        onChange={(e) => (prompt.role = e.target.value as any)}
-                      />
-                    </Stack> */}
-
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
-                      <Box sx={{ flex: 1 }}>
-                        <PromptEditor
-                          placeholder={`${t('form.prompt')} ${index + 1}`}
-                          value={prompt.contentLexicalJson}
-                          onChange={onChange}
-                        />
-                      </Box>
-                      {/* <Input
-                      readOnly={readOnly}
+                    <Box
                       ref={params.preview}
-                      fullWidth
-                      multiline
-                      minRows={2}
-                      value={prompt.content ?? ''}
-                      onChange={(e) => {
-                        prompt.content = e.target.value;
-                        triggerUpdate();
-                      }}
-                      sx={{
-                        bgcolor: 'background.paper',
-                        borderRadius: 1,
-                        [`.${inputClasses.input}`]: { px: 1, textIndent: indentWidth(prompt.role) },
-                      }}
-                    /> */}
-                    </WithAwareness>
+                      sx={{ flex: 1, borderRadius: 1, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                      <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
+                        <PromptEditor
+                          p={1}
+                          editable={!readOnly}
+                          content={prompt.content}
+                          role={prompt.role}
+                          onChange={(content, role) => {
+                            doc.transact(() => {
+                              prompt.content = content;
+                              prompt.role = role;
+                            });
+                            triggerUpdate();
+                          }}
+                        />
+                      </WithAwareness>
+                    </Box>
 
                     {!readOnly && (
                       <Stack sx={{ p: 0.5 }}>

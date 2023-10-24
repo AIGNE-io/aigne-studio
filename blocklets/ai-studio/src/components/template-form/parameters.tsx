@@ -1,4 +1,3 @@
-import { getAllVariables } from '@blocklet/prompt-editor/utils';
 import {
   Box,
   Button,
@@ -28,10 +27,7 @@ export default function Parameters({
   const deferredValue = useDeferredValue(form);
 
   const params = (() => {
-    const params =
-      Object.values(deferredValue.prompts ?? {})?.flatMap((i) =>
-        matchParams(getAllVariables(i.data.contentLexicalJson ?? '').join(''))
-      ) ?? [];
+    const params = Object.values(deferredValue.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
 
     if (deferredValue.type === 'branch') {
       params.push('question');

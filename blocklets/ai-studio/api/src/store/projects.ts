@@ -1,9 +1,7 @@
 import path from 'path';
 
 import { Repository } from '@blocklet/co-git/repository';
-import { $lexical2text, $text2lexical, tryParseJSONObject } from '@blocklet/prompt-editor/utils';
 import Database from '@blocklet/sdk/lib/database';
-import omit from 'lodash/omit';
 import sortBy from 'lodash/sortBy';
 import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
@@ -86,7 +84,6 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
       data: {
         id: string;
         content?: string;
-        contentLexicalJson?: string;
         role?: Role;
       };
     };
@@ -144,7 +141,7 @@ export async function getRepository({ projectId }: { projectId: string }) {
       },
       stringify: async (_, content) => {
         if (isTemplate(content)) {
-          return stringify(await yjsToTemplate(content));
+          return stringify(yjsToTemplate(content));
         }
 
         const base64 = content.$base64;
@@ -158,24 +155,19 @@ export async function getRepository({ projectId }: { projectId: string }) {
   return repositories[projectId]!;
 }
 
-export async function templateToYjs(template: Template): Promise<TemplateYjs> {
+export function templateToYjs(template: Template): TemplateYjs {
   return {
     ...template,
     prompts:
       template.prompts &&
       Object.fromEntries(
-        await Promise.all(
-          template.prompts?.map(async (prompt, index) => [
-            prompt.id,
-            {
-              index,
-              data: {
-                ...prompt,
-                contentLexicalJson: await $text2lexical(prompt.content || '', prompt.role),
-              },
-            },
-          ])
-        )
+        template.prompts?.map((prompt, index) => [
+          prompt.id,
+          {
+            index,
+            data: prompt,
+          },
+        ])
       ),
     parameters:
       template.parameters &&
@@ -204,21 +196,10 @@ export async function templateToYjs(template: Template): Promise<TemplateYjs> {
   };
 }
 
-export async function yjsToTemplate(template: TemplateYjs): Promise<Template> {
+export function yjsToTemplate(template: TemplateYjs): Template {
   return {
     ...template,
-    prompts:
-      template.prompts &&
-      (await Promise.all(
-        sortBy(Object.values(template.prompts), 'index').map(async ({ data }) => {
-          if (data.contentLexicalJson && tryParseJSONObject(data.contentLexicalJson)) {
-            const res = await $lexical2text(data.contentLexicalJson);
-            return { ...omit(data, 'contentLexicalJson'), ...res };
-          }
-
-          return { ...omit(data, 'contentLexicalJson') };
-        })
-      )),
+    prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
     parameters:
       template.parameters &&
       Object.fromEntries(

@@ -77,7 +77,14 @@ export class RoleSelectNode extends DecoratorNode<JSX.Element | null> {
       });
     };
 
-    return <RoleSelect text={this.__text} onChange={handleOnChange} />;
+    return (
+      <RoleSelect
+        size="small"
+        disabled={!editor.isEditable()}
+        value={this.__text}
+        onChange={(e) => handleOnChange(e.target.value)}
+      />
+    );
   }
 
   override isIsolated(): true {

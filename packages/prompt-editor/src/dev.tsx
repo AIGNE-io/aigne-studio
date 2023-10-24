@@ -1,6 +1,5 @@
 import './index.css';
 
-import { EditorState } from 'lexical';
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -26,10 +25,9 @@ createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <PromptEditor
       isDebug
-      value=""
-      onChange={(state: EditorState) => {
+      onChange={(content, role) => {
         // eslint-disable-next-line no-console
-        console.log(state.toJSON());
+        console.log({ content, role });
       }}
     />
   </React.StrictMode>
