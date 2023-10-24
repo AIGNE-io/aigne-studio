@@ -7,7 +7,7 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { EditorState, LexicalEditor } from 'lexical';
-import { MutableRefObject, useEffect, useState } from 'react';
+import { MutableRefObject } from 'react';
 
 import CommentPlugin from './plugins/CommentPlugin';
 import FloatingToolbarPlugin from './plugins/FloatingToolbarPlugin';
@@ -16,7 +16,6 @@ import TreeViewPlugin from './plugins/TreeViewPlugin';
 import VariablePlugin from './plugins/VariablePlugin';
 import ContentEditable from './ui/content-editable';
 import Placeholder from './ui/content-placeholder';
-import { CAN_USE_DOM } from './utils/environment';
 
 export default function Editor({
   useRoleNode = false,
@@ -42,22 +41,6 @@ export default function Editor({
   popperElement?: (editor: LexicalEditor) => any;
 }): JSX.Element {
   const placeholderNode = <Placeholder>{placeholder}</Placeholder>;
-  const [isSmallWidthViewport, setIsSmallWidthViewport] = useState<boolean>(false);
-
-  useEffect(() => {
-    const updateViewPortWidth = () => {
-      const isNextSmallWidthViewport = CAN_USE_DOM && window.matchMedia('(max-width: 1025px)').matches;
-      if (isNextSmallWidthViewport !== isSmallWidthViewport) {
-        setIsSmallWidthViewport(isNextSmallWidthViewport);
-      }
-    };
-    updateViewPortWidth();
-    window.addEventListener('resize', updateViewPortWidth);
-
-    return () => {
-      window.removeEventListener('resize', updateViewPortWidth);
-    };
-  }, [isSmallWidthViewport]);
 
   return (
     <>
