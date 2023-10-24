@@ -313,9 +313,10 @@ const MessageViewContent = styled(Box)`
 
 function CopyButton({ message }: { message: string }) {
   const [copied, setCopied] = useState<'copied' | boolean>(false);
+  const { t } = useLocaleContext();
 
   return (
-    <Tooltip title={copied === 'copied' ? 'Copied!' : 'Copy'} placement="top" open={Boolean(copied)}>
+    <Tooltip title={copied === 'copied' ? t('copied') : t('copy')} placement="top" open={Boolean(copied)}>
       <Button
         size="small"
         className={cx('copy', copied && 'active')}

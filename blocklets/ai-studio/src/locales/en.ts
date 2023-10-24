@@ -203,4 +203,6 @@ export default flat({
   runThisCase: 'Run this case',
   label: 'Label',
   actions: 'Actions',
+  copy: 'Copy',
+  copied: 'Copied',
 });
