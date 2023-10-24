@@ -130,7 +130,11 @@ export default function ImportFrom({
         <Box flex={1} height={0} overflow="auto" mb={7}>
           <Box component="h4">{t('import.templates')}</Box>
 
-          {!tree.length && <Box fontSize={12}>{t('import.empty')}</Box>}
+          {!tree.length && (
+            <Box fontSize={12} color={(theme) => theme.palette.text.disabled}>
+              {t('import.empty')}
+            </Box>
+          )}
 
           {tree.map((item) => {
             const getName = (file: TreeNode) => {
