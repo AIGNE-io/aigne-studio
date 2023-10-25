@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import PromptEditor from '@blocklet/prompt-editor';
-import { Box, Button, Stack } from '@mui/material';
+import { Box, Button, Stack, Tooltip } from '@mui/material';
 import { useCounter } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
@@ -11,6 +11,8 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import { ParameterYjs } from '../../../api/src/store/templates';
 import Add from '../../pages/project/icons/add';
 import DragVertical from '../../pages/project/icons/drag-vertical';
+import Eye from '../../pages/project/icons/eye';
+import EyeNo from '../../pages/project/icons/eye-no';
 import Trash from '../../pages/project/icons/trash';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
@@ -82,6 +84,7 @@ export default function Prompts({
             list={form.prompts}
             renderItem={(prompt, index, params) => {
               const doc = (getYjsValue(prompt) as Map<any>).doc!;
+              const hidden = prompt.visibility === 'hidden';
               return (
                 <Box
                   ref={params.drop}
@@ -94,7 +97,13 @@ export default function Prompts({
                   <Stack direction="row" sx={{ position: 'relative' }}>
                     <Box
                       ref={params.preview}
-                      sx={{ flex: 1, borderRadius: 1, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                      sx={{
+                        flex: 1,
+                        borderRadius: 1,
+                        bgcolor: hidden ? 'grey.100' : 'background.paper',
+                        opacity: hidden ? (theme) => theme.palette.action.disabledOpacity : 1,
+                        overflow: 'hidden',
+                      }}>
                       <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
                         <PromptEditor
                           p={1}
@@ -114,26 +123,52 @@ export default function Prompts({
 
                     {!readOnly && (
                       <Stack sx={{ p: 0.5 }}>
-                        <Button
-                          sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}
-                          onClick={() => {
-                            const doc = (getYjsValue(form.prompts) as Map<any>).doc!;
-                            doc.transact(() => {
-                              if (form.prompts) {
-                                delete form.prompts[prompt.id];
-                                sortBy(Object.values(form.prompts), (i) => i.index).forEach(
-                                  (i, index) => (i.index = index)
-                                );
-                              }
-                            });
-                            triggerUpdate();
-                          }}>
-                          <Trash sx={{ fontSize: 20, color: 'grey.500' }} />
-                        </Button>
+                        <Tooltip title={t('deleteMessageTip')} disableInteractive placement="top">
+                          <Button
+                            sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}
+                            onClick={() => {
+                              const doc = (getYjsValue(form.prompts) as Map<any>).doc!;
+                              doc.transact(() => {
+                                if (form.prompts) {
+                                  delete form.prompts[prompt.id];
+                                  sortBy(Object.values(form.prompts), (i) => i.index).forEach(
+                                    (i, index) => (i.index = index)
+                                  );
+                                }
+                              });
+                              triggerUpdate();
+                            }}>
+                            <Trash sx={{ fontSize: 20, color: 'grey.500' }} />
+                          </Button>
+                        </Tooltip>
 
-                        <Button ref={params.drag} sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}>
-                          <DragVertical sx={{ color: 'grey.500' }} />
-                        </Button>
+                        <Tooltip
+                          title={hidden ? t('activeMessageTip') : t('hideMessageTip')}
+                          disableInteractive
+                          placement="top">
+                          <Button
+                            sx={{
+                              minWidth: 24,
+                              width: 24,
+                              height: 24,
+                              p: 0,
+                              color: 'grey.500',
+                              bgcolor: hidden ? 'action.hover' : undefined,
+                            }}
+                            onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')}>
+                            {prompt.visibility === 'hidden' ? (
+                              <EyeNo sx={{ fontSize: 20 }} />
+                            ) : (
+                              <Eye sx={{ fontSize: 20 }} />
+                            )}
+                          </Button>
+                        </Tooltip>
+
+                        <Tooltip title={t('dragMessageTip')} disableInteractive placement="top">
+                          <Button ref={params.drag} sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}>
+                            <DragVertical sx={{ color: 'grey.500' }} />
+                          </Button>
+                        </Tooltip>
                       </Stack>
                     )}
 

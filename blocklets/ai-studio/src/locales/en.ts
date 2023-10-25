@@ -208,4 +208,8 @@ export default flat({
   actions: 'Actions',
   copy: 'Copy',
   copied: 'Copied',
+  activeMessageTip: 'Active this message',
+  hideMessageTip: 'Hide this message',
+  deleteMessageTip: 'Delete this message',
+  dragMessageTip: 'Drag sort this message',
 });
