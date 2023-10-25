@@ -13,16 +13,8 @@ import {
   Typography,
   tabScrollButtonClasses,
 } from '@mui/material';
-import { useLocalStorageState, useRequest } from 'ahooks';
-import equal from 'fast-deep-equal';
-import cloneDeep from 'lodash/cloneDeep';
-import differenceBy from 'lodash/differenceBy';
-import intersectionBy from 'lodash/intersectionBy';
-import isUndefined from 'lodash/isUndefined';
-import omit from 'lodash/omit';
-import omitBy from 'lodash/omitBy';
-import pick from 'lodash/pick';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useLocalStorageState } from 'ahooks';
+import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -30,7 +22,6 @@ import WithAwareness from '../../components/awareness/with-awareness';
 import TemplateFormView from '../../components/template-form';
 import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
-import { getTemplates } from '../../libs/template';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import DiscussView from './discuss-view';
