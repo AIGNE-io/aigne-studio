@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { useRequest, useThrottleEffect } from 'ahooks';
+import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
 import cloneDeep from 'lodash/cloneDeep';
@@ -463,6 +463,8 @@ export interface TemplatesState {
   modifiedMap: { [key: string]: TemplateYjs };
   deletedMap: { [key: string]: TemplateYjs };
   disabled: boolean;
+  loading: boolean;
+  templates: TemplateYjsWithParent[];
 }
 
 const templatesStates: { [key: string]: RecoilState<TemplatesState> } = {};
@@ -472,7 +474,17 @@ const templatesState = (projectId: string, gitRef: string) => {
 
   templatesStates[key] ??= atom<TemplatesState>({
     key: `templatesState-${key}`,
-    default: { news: [], deleted: [], modified: [], disabled: true, newsMap: {}, modifiedMap: {}, deletedMap: {} },
+    default: {
+      news: [],
+      deleted: [],
+      modified: [],
+      disabled: true,
+      newsMap: {},
+      modifiedMap: {},
+      deletedMap: {},
+      loading: false,
+      templates: [],
+    },
   });
 
   return templatesStates[key]!;
@@ -482,13 +494,24 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   const { t } = useLocaleContext();
   const [state, setState] = useRecoilState(templatesState(projectId, ref));
 
-  const { data, loading, run } = useRequest(() => getTemplates(projectId, ref), { manual: true });
+  const run = async () => {
+    try {
+      setState((r) => ({ ...r, loading: true }));
 
-  const templates = (data?.templates || []).map((i) =>
-    omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
-  ) as (TemplateYjs & { parent: string[] })[];
+      const data = await getTemplates(projectId, ref);
+      const templates = (data?.templates || []).map((i) =>
+        omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
+      ) as TemplateYjsWithParent[];
 
-  const { store } = useStore(projectId, ref, true);
+      setState((r) => ({ ...r, templates }));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setState((r) => ({ ...r, loading: false }));
+    }
+  };
+
+  const { store } = useStore(projectId, ref);
 
   const files = useMemo(() => {
     return Object.entries(store.tree)
@@ -517,9 +540,9 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
 
   useThrottleEffect(
     () => {
-      if (loading) return;
+      if (state.loading) return;
 
-      const duplicateItems = intersectionBy(templates, files, 'id');
+      const duplicateItems = intersectionBy(state.templates, files, 'id');
 
       const keys = [
         'id',
@@ -539,8 +562,8 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
         'parent',
       ];
 
-      const news = differenceBy(files, templates, 'id');
-      const deleted = differenceBy(templates, files, 'id');
+      const news = differenceBy(files, state.templates, 'id');
+      const deleted = differenceBy(state.templates, files, 'id');
       const modified = duplicateItems.filter((i) => {
         const item = omitBy(pick(i, ...keys), (x) => !x);
 
@@ -564,7 +587,7 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
         deletedMap: arrToObj(deleted),
       }));
     },
-    [templates, files, loading],
+    [state.templates, files, state.loading],
     { wait: 1000 }
   );
 
