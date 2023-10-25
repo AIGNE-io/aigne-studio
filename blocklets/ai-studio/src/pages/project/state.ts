@@ -1,18 +1,30 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { getYjsDoc } from '@blocklet/co-git/yjs';
+import { useThrottleEffect } from 'ahooks';
+import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
+import cloneDeep from 'lodash/cloneDeep';
 import debounce from 'lodash/debounce';
+import differenceBy from 'lodash/differenceBy';
+import intersectionBy from 'lodash/intersectionBy';
+import isUndefined from 'lodash/isUndefined';
 import omit from 'lodash/omit';
+import omitBy from 'lodash/omitBy';
+import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { recoilPersist } from 'recoil-persist';
 
-import { Project } from '../../../api/src/store/projects';
+import { Project, TemplateYjs } from '../../../api/src/store/projects';
 import { Role } from '../../../api/src/store/templates';
 import { callAI, textCompletions } from '../../libs/ai';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
+import { getTemplates } from '../../libs/template';
+import { isTemplate, templateYjsFromTemplate, useStore } from './yjs-state';
 
 export const defaultBranch = 'main';
 
@@ -440,4 +452,185 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
   );
 
   return { state, setSession, setCurrentSession, newSession, deleteSession, sendMessage, cancelMessage };
+};
+
+type TemplateYjsWithParent = TemplateYjs & { parent: string[] };
+
+export interface TemplatesState {
+  created: TemplateYjsWithParent[];
+  deleted: TemplateYjsWithParent[];
+  modified: TemplateYjsWithParent[];
+  createdMap: { [key: string]: TemplateYjs };
+  modifiedMap: { [key: string]: TemplateYjs };
+  deletedMap: { [key: string]: TemplateYjs };
+  disabled: boolean;
+  loading: boolean;
+  templates: TemplateYjsWithParent[];
+  files: TemplateYjsWithParent[];
+}
+
+const templatesStates: { [key: string]: RecoilState<TemplatesState> } = {};
+
+const templatesState = (projectId: string, gitRef: string) => {
+  const key = `${projectId}-${gitRef}`;
+
+  templatesStates[key] ??= atom<TemplatesState>({
+    key: `templatesState-${key}`,
+    default: {
+      created: [],
+      deleted: [],
+      modified: [],
+      disabled: true,
+      createdMap: {},
+      modifiedMap: {},
+      deletedMap: {},
+      loading: false,
+      templates: [],
+      files: [],
+    },
+  });
+
+  return templatesStates[key]!;
+};
+
+export const useTemplatesChangesState = (projectId: string, ref: string) => {
+  const { t } = useLocaleContext();
+  const [state, setState] = useRecoilState(templatesState(projectId, ref));
+
+  const { store } = useStore(projectId, ref);
+
+  useThrottleEffect(
+    () => {
+      if (state.loading) return;
+
+      const duplicateItems = intersectionBy(state.templates, state.files, 'id');
+      const keys = [
+        'id',
+        'createdBy',
+        'updatedBy',
+        'name',
+        'description',
+        'tags',
+        'prompts',
+        'parameters',
+        'mode',
+        'status',
+        'public',
+        'datasets',
+        'next',
+        'tests',
+        'parent',
+      ];
+
+      const news = differenceBy(state.files, state.templates, 'id');
+      const deleted = differenceBy(state.templates, state.files, 'id');
+
+      const modified = duplicateItems.filter((i) => {
+        const item = omitBy(pick(i, ...keys), (x) => !x);
+
+        const found = state.files.find((f) => item.id === f.id);
+        if (!found) {
+          return false;
+        }
+
+        const file = omitBy(pick(found, ...keys), (x) => !x);
+        return !equal(item, file);
+      });
+
+      const arrToObj = (list: TemplateYjsWithParent[]) => Object.fromEntries(list.map((i) => [i.id, i]));
+
+      setState((v) => ({
+        ...v,
+        created: news,
+        deleted,
+        modified,
+        disabled: news.length + deleted.length + modified.length === 0,
+        createdMap: arrToObj(news),
+        modifiedMap: arrToObj(modified),
+        deletedMap: arrToObj(deleted),
+      }));
+    },
+    [state.templates, state.files, state.loading],
+    { wait: 1000 }
+  );
+
+  useEffect(() => {
+    const getFile = () => {
+      const files = Object.entries(store.tree)
+        .map(([key, filepath]) => {
+          const template = store.files[key];
+
+          if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
+            const paths = filepath.split('/');
+            return { ...template, parent: paths.slice(0, -1) };
+          }
+
+          return undefined;
+        })
+        .filter((i): i is NonNullable<typeof i> => !!i);
+
+      setState((r) => ({ ...r, files: cloneDeep(files) }));
+    };
+
+    getYjsDoc(store).getMap('files').observeDeep(getFile);
+    getYjsDoc(store).getMap('tree').observeDeep(getFile);
+
+    return () => {
+      getYjsDoc(store).getMap('files').unobserveDeep(getFile);
+      getYjsDoc(store).getMap('tree').unobserveDeep(getFile);
+    };
+  }, []);
+
+  const run = async () => {
+    try {
+      setState((r) => ({ ...r, loading: true }));
+
+      const data = await getTemplates(projectId, ref);
+      const templates = (data?.templates || []).map((i) =>
+        omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
+      ) as TemplateYjsWithParent[];
+
+      setState((r) => ({ ...r, templates }));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setState((r) => ({ ...r, loading: false }));
+    }
+  };
+
+  const changes = (item: TemplateYjs) => {
+    if (state.createdMap[item.id]) {
+      return {
+        key: 'N',
+        color: 'success.main',
+        tips: t('diff.created'),
+      };
+    }
+
+    if (state.modifiedMap[item.id]) {
+      return {
+        key: 'M',
+        color: 'warning.main',
+        tips: t('diff.modified'),
+      };
+    }
+
+    if (state.deletedMap[item.id]) {
+      return {
+        key: 'D',
+        color: 'error.main',
+        tips: t('diff.deleted'),
+      };
+    }
+
+    return null;
+  };
+
+  useEffect(() => {
+    if (projectId && ref) {
+      run();
+    }
+  }, [projectId, ref]);
+
+  return { ...state, changes, run };
 };

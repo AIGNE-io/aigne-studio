@@ -87,7 +87,8 @@ export default flat({
     close: 'Close',
     pickFromBranch: 'Pick from branch',
     saveInNewBranch: 'Save in new branch',
-    newBranch: 'New branch',
+    newBranchRequired: 'New branch is required',
+    currentBranch: 'Current branch',
     message: 'Message',
   },
   import: {
@@ -204,6 +205,12 @@ export default flat({
   debugThisCase: 'Debug this case',
   deleteThisCase: 'Delete this case',
   runThisCase: 'Run this case',
+  diff: {
+    created: 'New file',
+    deleted: 'Deleted',
+    modified: 'Modified',
+  },
+  restore: 'Restore',
   label: 'Label',
   actions: 'Actions',
   copy: 'Copy',
@@ -212,4 +219,5 @@ export default flat({
   hideMessageTip: 'Hide this message',
   deleteMessageTip: 'Delete this message',
   dragMessageTip: 'Drag sort this message',
+  sourceBranch: 'Source branch',
 });

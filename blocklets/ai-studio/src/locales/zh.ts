@@ -87,7 +87,8 @@ export default flat({
     close: '关闭',
     pickFromBranch: '从其它分支选择',
     saveInNewBranch: '保存到新的分支',
-    newBranch: '新建分支',
+    newBranchRequired: '分支名称不能为空',
+    currentBranch: '当前分支',
     message: '备注',
   },
   import: {
@@ -201,6 +202,12 @@ export default flat({
   debugThisCase: '调试该用例',
   deleteThisCase: '删除该用例',
   runThisCase: '运行该用例',
+  diff: {
+    created: '新文件',
+    deleted: '已删除',
+    modified: '被修改',
+  },
+  restore: '还原',
   label: '标签',
   actions: '操作',
   copy: '复制',
@@ -209,4 +216,5 @@ export default flat({
   hideMessageTip: '隐藏该提示',
   deleteMessageTip: '删除该提示',
   dragMessageTip: '拖拽排序该提示',
+  sourceBranch: '来源分支',
 });
