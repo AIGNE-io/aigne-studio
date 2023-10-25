@@ -53,7 +53,6 @@ export default function ProjectsPage() {
 
   const {
     state: { loading, templates, projects, selected },
-    setSelected,
     refetch,
   } = useProjectsState();
   const navigate = useNavigate();
@@ -63,41 +62,17 @@ export default function ProjectsPage() {
   }, []);
 
   useKeyPress(['leftarrow', 'uparrow'], () => {
-    if (!projects.length) {
-      return;
-    }
-
-    if (!selected) {
-      setSelected({ section: 'projects', id: projects[0]?._id || '' });
-      return;
-    }
-
-    const index = projects.findIndex((i) => i._id === selected.id);
-    if (index <= 0) {
-      setSelected({ section: 'projects', id: projects[0]?._id || '' });
-      return;
-    }
-
-    setSelected({ section: 'projects', id: projects[index - 1]?._id || '' });
+    const list = [...document.getElementsByClassName('project-item')];
+    const current = list.findIndex((i) => i.id === selected?.id);
+    const next = list[current - 1] ?? list.at(-1);
+    if (next) (next as HTMLElement).focus();
   });
 
   useKeyPress(['rightarrow', 'downarrow'], () => {
-    if (!projects.length) {
-      return;
-    }
-
-    if (!selected) {
-      setSelected({ section: 'projects', id: projects[0]?._id || '' });
-      return;
-    }
-
-    const index = projects.findIndex((i) => i._id === selected.id);
-    if (index >= projects.length - 1) {
-      setSelected({ section: 'projects', id: projects[projects.length - 1]?._id || '' });
-      return;
-    }
-
-    setSelected({ section: 'projects', id: projects[index + 1]?._id || '' });
+    const list = [...document.getElementsByClassName('project-item')];
+    const current = list.findIndex((i) => i.id === selected?.id);
+    const next = list[current + 1] ?? list[0];
+    if (next) (next as HTMLElement).focus();
   });
 
   useKeyPress('enter', () => {
@@ -349,12 +324,14 @@ function ProjectList({
 
   return (
     <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
-      {list.map((item, index) => {
+      {list.map((item) => {
         const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item._id;
 
         return (
           <ProjectItem
-            tabIndex={index + 10}
+            className="project-item"
+            id={item._id!}
+            tabIndex={0}
             key={item._id}
             pinned={!!item.pinnedAt}
             icon={item.icon}
@@ -362,12 +339,8 @@ function ProjectList({
             maxWidth={180}
             selected={selected?.section === section && selected.id === item._id}
             name={section === 'templates' && item.name ? t(item.name) : item.name}
-            onMouseEnter={() => {
-              if (section === 'projects') {
-                setSelected({ section, id: item._id! });
-              }
-            }}
-            onClick={() => setSelected({ section, id: item._id! })}
+            onMouseEnter={(e) => e.currentTarget.focus()}
+            onClick={(e) => e.currentTarget.focus()}
             onFocus={() => setSelected({ section, id: item._id! })}
             mainActions={
               item._id &&
