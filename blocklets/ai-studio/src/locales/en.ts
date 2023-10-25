@@ -211,4 +211,8 @@ export default flat({
     delete: 'Delete Template',
     modify: 'Modify Template',
   },
+  label: 'Label',
+  actions: 'Actions',
+  copy: 'Copy',
+  copied: 'Copied',
 });

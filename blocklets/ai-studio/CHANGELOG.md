@@ -1,3 +1,17 @@
+## 0.1.117 (2023-10-25)
+
+- fix: in test mode, the input field completely supports the display field #259
+- feat: add copy button for answer content
+- fix: consistent variable names
+- fix: create a new session #255
+
+## 0.1.116 (2023-10-25)
+
+- fix: remove unnecessary code
+- fix: remove default placeholder
+- fix: support ctrl/cmd+z undo
+- fix: keep linebreaks of prompt
+
 ## 0.1.115 (2023-10-24)
 
 - chore: update templates id
