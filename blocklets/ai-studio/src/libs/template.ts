@@ -1,5 +1,6 @@
 import { TemplateYjs } from '../../api/src/store/projects';
 import { Template } from '../../api/src/store/templates';
+import axios from './api';
 
 export function isTemplateEmpty(template: Template) {
   if (template.branch?.branches.some((i) => !!i.template)) {
@@ -19,4 +20,8 @@ export function isTemplateYjsEmpty(template: TemplateYjs) {
     return false;
   }
   return true;
+}
+
+export async function getTemplates(projectId: string, ref: string): Promise<{ templates: Template[] }> {
+  return axios.get('/api/templates', { params: { projectId, ref } }).then((res) => res.data);
 }

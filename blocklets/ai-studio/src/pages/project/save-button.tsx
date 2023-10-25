@@ -24,7 +24,7 @@ import joinUrl from 'url-join';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
-import { defaultBranch, useProjectState } from './state';
+import { defaultBranch, useProjectState, useTemplatesChangesState } from './state';
 
 interface CommitForm {
   branch: string;
@@ -41,6 +41,8 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     state: { branches, project },
     refetch,
   } = useProjectState(projectId, gitRef);
+
+  const { disabled, run } = useTemplatesChangesState(projectId, gitRef);
 
   const simpleMode = !project || project?.gitType === 'simple';
 
@@ -71,6 +73,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
 
         dialogState.close();
         refetch();
+        run();
         Toast.success(t('alert.saved'));
         if (branch !== gitRef) navigate(joinUrl('..', branch), { replace: true });
       } catch (error) {
@@ -88,7 +91,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     <>
       <Button
         {...bindTrigger(dialogState)}
-        disabled={submitting}
+        disabled={submitting || disabled}
         sx={{ position: 'relative', minWidth: 32, minHeight: 32 }}>
         <SaveRounded sx={{ opacity: submitting ? 0 : 1 }} />
         {submitting && (

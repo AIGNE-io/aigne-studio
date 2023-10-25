@@ -252,7 +252,7 @@ const Table = styled(Box)`
         overflow-x: hidden;
         overflow-y: auto;
         padding: 4px 8px;
-        word-break: break-word;
+        word-break: break-all;
       }
 
       &:first-of-type {

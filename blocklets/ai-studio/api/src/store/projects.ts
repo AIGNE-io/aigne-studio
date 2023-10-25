@@ -9,7 +9,7 @@ import { parse, stringify } from 'yaml';
 import { wallet } from '../libs/auth';
 import env from '../libs/env';
 import { defaultModel } from '../libs/models';
-import type { ParameterYjs, Role, Template } from './templates';
+import type { ParameterYjs, Template } from './templates';
 
 const idGenerator = new Worker();
 
@@ -81,11 +81,7 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
   prompts?: {
     [key: string]: {
       index: number;
-      data: {
-        id: string;
-        content?: string;
-        role?: Role;
-      };
+      data: NonNullable<Template['prompts']>[number];
     };
   };
 
@@ -232,6 +228,7 @@ export async function getTemplatesFromRepository({ projectId, ref }: { projectId
           ({
             projectId,
             ref,
+            parent: filepath.split('/').slice(0, -1),
             ...parse(Buffer.from(blob).toString()),
           } as Template)
       )

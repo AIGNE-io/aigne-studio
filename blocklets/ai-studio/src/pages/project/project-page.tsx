@@ -135,7 +135,7 @@ export default function ProjectPage() {
               zIndex: (theme) => theme.zIndex.appBar,
               borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
-            <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
+            <Toolbar variant="dense" sx={{ px: { xs: 1 }, overflow: 'hidden' }}>
               <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
 
               <Box flex={1} />
