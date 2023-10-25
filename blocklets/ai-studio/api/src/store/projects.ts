@@ -232,6 +232,7 @@ export async function getTemplatesFromRepository({ projectId, ref }: { projectId
           ({
             projectId,
             ref,
+            parent: filepath.split('/').slice(0, -1),
             ...parse(Buffer.from(blob).toString()),
           } as Template)
       )

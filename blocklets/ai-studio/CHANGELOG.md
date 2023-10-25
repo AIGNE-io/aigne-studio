@@ -1,3 +1,7 @@
+## 0.1.119 (2023-10-25)
+
+- feat: show file changes
+
 ## 0.1.118 (2023-10-25)
 
 - chore: create new branch

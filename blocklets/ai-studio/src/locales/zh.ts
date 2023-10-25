@@ -202,6 +202,12 @@ export default flat({
   debugThisCase: '调试该用例',
   deleteThisCase: '删除该用例',
   runThisCase: '运行该用例',
+  diff: {
+    created: '新文件',
+    deleted: '已删除',
+    modified: '被修改',
+  },
+  restore: '还原',
   label: '标签',
   actions: '操作',
   copy: '复制',
