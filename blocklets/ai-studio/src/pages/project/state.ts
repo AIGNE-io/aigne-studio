@@ -457,10 +457,10 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
 type TemplateYjsWithParent = TemplateYjs & { parent: string[] };
 
 export interface TemplatesState {
-  news: TemplateYjsWithParent[];
+  created: TemplateYjsWithParent[];
   deleted: TemplateYjsWithParent[];
   modified: TemplateYjsWithParent[];
-  newsMap: { [key: string]: TemplateYjs };
+  createdMap: { [key: string]: TemplateYjs };
   modifiedMap: { [key: string]: TemplateYjs };
   deletedMap: { [key: string]: TemplateYjs };
   disabled: boolean;
@@ -477,11 +477,11 @@ const templatesState = (projectId: string, gitRef: string) => {
   templatesStates[key] ??= atom<TemplatesState>({
     key: `templatesState-${key}`,
     default: {
-      news: [],
+      created: [],
       deleted: [],
       modified: [],
       disabled: true,
-      newsMap: {},
+      createdMap: {},
       modifiedMap: {},
       deletedMap: {},
       loading: false,
@@ -498,29 +498,6 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   const [state, setState] = useRecoilState(templatesState(projectId, ref));
 
   const { store } = useStore(projectId, ref);
-
-  const getFile = () => {
-    const files = Object.entries(store.tree)
-      .map(([key, filepath]) => {
-        const template = store.files[key];
-
-        if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
-          const paths = filepath.split('/');
-          return { ...template, parent: paths.slice(0, -1) };
-        }
-
-        return undefined;
-      })
-      .filter((i): i is NonNullable<typeof i> => !!i);
-
-    setState((r) => ({ ...r, files: cloneDeep(files) }));
-  };
-
-  const arrToObj = (list: TemplateYjsWithParent[]): { [key: string]: TemplateYjs } => {
-    return list.reduce((pre, cur) => {
-      return { ...pre, [cur.id]: cur };
-    }, {});
-  };
 
   useThrottleEffect(
     () => {
@@ -560,13 +537,15 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
         return !equal(item, file);
       });
 
+      const arrToObj = (list: TemplateYjsWithParent[]) => Object.fromEntries(list.map((i) => [i.id, i]));
+
       setState((v) => ({
         ...v,
-        news,
+        created: news,
         deleted,
         modified,
         disabled: news.length + deleted.length + modified.length === 0,
-        newsMap: arrToObj(news),
+        createdMap: arrToObj(news),
         modifiedMap: arrToObj(modified),
         deletedMap: arrToObj(deleted),
       }));
@@ -576,6 +555,23 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   );
 
   useEffect(() => {
+    const getFile = () => {
+      const files = Object.entries(store.tree)
+        .map(([key, filepath]) => {
+          const template = store.files[key];
+
+          if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
+            const paths = filepath.split('/');
+            return { ...template, parent: paths.slice(0, -1) };
+          }
+
+          return undefined;
+        })
+        .filter((i): i is NonNullable<typeof i> => !!i);
+
+      setState((r) => ({ ...r, files: cloneDeep(files) }));
+    };
+
     getYjsDoc(store).getMap('files').observeDeep(getFile);
     getYjsDoc(store).getMap('tree').observeDeep(getFile);
 
@@ -603,27 +599,27 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   };
 
   const changes = (item: TemplateYjs) => {
-    if (state.newsMap[item.id]) {
+    if (state.createdMap[item.id]) {
       return {
         key: 'N',
-        color: 'green',
-        tips: t('templates.add'),
+        color: 'success.main',
+        tips: t('diff.created'),
       };
     }
 
     if (state.modifiedMap[item.id]) {
       return {
         key: 'M',
-        color: 'orange',
-        tips: t('templates.modify'),
+        color: 'warning.main',
+        tips: t('diff.modified'),
       };
     }
 
     if (state.deletedMap[item.id]) {
       return {
         key: 'D',
-        color: 'red',
-        tips: t('templates.delete'),
+        color: 'error.main',
+        tips: t('diff.deleted'),
       };
     }
 

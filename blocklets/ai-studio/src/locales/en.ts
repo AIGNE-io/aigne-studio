@@ -204,13 +204,12 @@ export default flat({
   debugThisCase: 'Debug this case',
   deleteThisCase: 'Delete this case',
   runThisCase: 'Run this case',
-  restoreFile: 'Confirm restore file {file}?',
-  deleted: 'deleted',
-  templates: {
-    add: 'Add Template',
-    delete: 'Delete Template',
-    modify: 'Modify Template',
+  diff: {
+    created: 'New file',
+    deleted: 'Deleted',
+    modified: 'Modified',
   },
+  restore: 'Restore',
   label: 'Label',
   actions: 'Actions',
   copy: 'Copy',
