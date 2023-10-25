@@ -87,7 +87,8 @@ export default flat({
     close: '关闭',
     pickFromBranch: '从其它分支选择',
     saveInNewBranch: '保存到新的分支',
-    newBranch: '新建分支',
+    newBranchRequired: '分支名称不能为空',
+    currentBranch: '当前分支',
     message: '备注',
   },
   import: {
@@ -211,4 +212,5 @@ export default flat({
   actions: '操作',
   copy: '复制',
   copied: '已复制',
+  sourceBranch: '来源分支',
 });
