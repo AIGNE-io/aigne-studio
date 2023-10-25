@@ -174,7 +174,12 @@ function ProjectMenu() {
     <>
       {dialog}
 
-      <Popper key={menuAnchor?.id} open={Boolean(menuAnchor)} anchorEl={menuAnchor?.anchor} placement="right-start">
+      <Popper
+        key={menuAnchor?.id}
+        open={Boolean(menuAnchor)}
+        anchorEl={menuAnchor?.anchor}
+        placement="right-start"
+        sx={{ ml: '4px !important' }}>
         <ClickAwayListener onClickAway={() => setMenuAnchor(undefined)}>
           <Paper>
             <List dense>
@@ -430,7 +435,9 @@ function ProjectItem({
         </Stack>
 
         {(actions || mainActions) && (
-          <Stack direction="row" sx={{ position: 'absolute', right: 0, bottom: 0, p: 1, gap: 1, alignItems: 'center' }}>
+          <Stack
+            direction="row"
+            sx={{ position: 'absolute', right: 0, bottom: 0, p: 1, gap: 1, alignItems: 'flex-end' }}>
             {mainActions}
 
             {actions}

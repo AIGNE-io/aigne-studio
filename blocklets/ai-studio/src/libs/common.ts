@@ -1,6 +1,7 @@
 export async function getSupportedModels() {
   return [
     {
+      brand: 'OpenAI',
       model: 'gpt-3.5-turbo',
       temperatureMin: 0,
       temperatureMax: 2,
@@ -19,6 +20,7 @@ export async function getSupportedModels() {
       maxTokensDefault: 4096,
     },
     {
+      brand: 'OpenAI',
       model: 'gpt-3.5-turbo-16k',
       temperatureMin: 0,
       temperatureMax: 2,
@@ -37,6 +39,7 @@ export async function getSupportedModels() {
       maxTokensDefault: 16385,
     },
     {
+      brand: 'OpenAI',
       model: 'gpt-3.5-turbo-0613',
       temperatureMin: 0,
       temperatureMax: 2,
@@ -55,6 +58,7 @@ export async function getSupportedModels() {
       maxTokensDefault: 4096,
     },
     {
+      brand: 'OpenAI',
       model: 'gpt-3.5-turbo-16k-0613',
       temperatureMin: 0,
       temperatureMax: 2,
@@ -71,6 +75,26 @@ export async function getSupportedModels() {
       maxTokensMin: 1,
       maxTokensMax: 16385,
       maxTokensDefault: 16385,
+    },
+    {
+      brand: 'Hugging Face',
+      model: 'Hugging Face',
+      disabled: true,
+    },
+    {
+      brand: 'Azure OpenAI',
+      model: 'Azure OpenAI',
+      disabled: true,
+    },
+    {
+      brand: 'Replicate',
+      model: 'Replicate',
+      disabled: true,
+    },
+    {
+      brand: 'Vertex AI',
+      model: 'Vertex AI',
+      disabled: true,
     },
   ];
 }

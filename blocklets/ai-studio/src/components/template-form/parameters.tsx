@@ -50,7 +50,7 @@ export default function Parameters({
       language: t('form.parameter.typeLanguage'),
       horoscope: t('form.parameter.typeHoroscope'),
     };
-  }, []);
+  }, [t]);
 
   return (
     <>
@@ -101,7 +101,7 @@ export default function Parameters({
                 <TableRow key={param}>
                   <TableCell>{param}</TableCell>
                   <TableCell>{parameter.label}</TableCell>
-                  <TableCell>{parameter.type ? MAP[parameter.type] || MAP.string : MAP.string}</TableCell>
+                  <TableCell>{(parameter.type && MAP[parameter.type]) || MAP.string}</TableCell>
                   <TableCell>
                     <Button
                       sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
