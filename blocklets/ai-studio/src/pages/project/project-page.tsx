@@ -46,67 +46,12 @@ import SettingView from './setting-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
-import { isTemplate, templateYjsFromTemplate, useStore } from './yjs-state';
+import { isTemplate, useStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
 const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
 const CURRENT_TAB = (projectId: string) => `ai-studio.currentTab.${projectId}`;
-
-const useProjects = (projectId: string, ref: string) => {
-  const { data } = useRequest(() => getTemplates(projectId, ref), { refreshDeps: [projectId, ref] });
-  const templates = (data?.templates || []).map((i) =>
-    omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
-  );
-
-  const { store } = useStore(projectId, ref, true);
-
-  const files = Object.values(cloneDeep(store.files)).filter((x) => (x as TemplateYjs)?.id);
-
-  const news = useMemo(() => {
-    return differenceBy(files, templates, 'id');
-  }, [files, templates]);
-
-  const deleted = useMemo(() => {
-    return differenceBy(templates, files, 'id');
-  }, [files, templates]);
-
-  const modify = useMemo(() => {
-    const duplicateItems = intersectionBy(templates, files, 'id');
-
-    const keys = [
-      'id',
-      'createdBy',
-      'updatedBy',
-      'name',
-      'description',
-      'tags',
-      'prompts',
-      'parameters',
-      'mode',
-      'status',
-      'public',
-      'datasets',
-      'next',
-      'tests',
-    ];
-
-    return duplicateItems.filter((i) => {
-      const item = omitBy(pick(i, ...keys), isUndefined);
-      const found = files.find((f) => item.id === (f as TemplateYjs)?.id);
-      if (!found) {
-        return false;
-      }
-      const file = omitBy(pick(found, ...keys), isUndefined);
-
-      return !equal(item, file);
-    });
-  }, [files, templates]);
-
-  console.log({ news, deleted, modify });
-
-  return { news, deleted, modify };
-};
 
 export default function ProjectPage() {
   const { projectId, ref: gitRef, '*': filepath } = useParams();
@@ -115,8 +60,6 @@ export default function ProjectPage() {
   const { t } = useLocaleContext();
 
   const { store, synced } = useStore(projectId, gitRef, true);
-
-  useProjects(projectId, gitRef);
 
   const id = Object.entries(store.tree).find((i) => i[1] === filepath)?.[0];
   const file = id ? store.files[id] : undefined;

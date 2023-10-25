@@ -1,18 +1,29 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { useRequest, useThrottleEffect } from 'ahooks';
+import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
+import cloneDeep from 'lodash/cloneDeep';
 import debounce from 'lodash/debounce';
+import differenceBy from 'lodash/differenceBy';
+import intersectionBy from 'lodash/intersectionBy';
+import isUndefined from 'lodash/isUndefined';
 import omit from 'lodash/omit';
+import omitBy from 'lodash/omitBy';
+import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { recoilPersist } from 'recoil-persist';
 
-import { Project } from '../../../api/src/store/projects';
+import { Project, TemplateYjs } from '../../../api/src/store/projects';
 import { Role } from '../../../api/src/store/templates';
 import { callAI, textCompletions } from '../../libs/ai';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
+import { getTemplates } from '../../libs/template';
+import { isTemplate, templateYjsFromTemplate, useStore } from './yjs-state';
 
 export const defaultBranch = 'main';
 
@@ -440,4 +451,156 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
   );
 
   return { state, setSession, setCurrentSession, newSession, deleteSession, sendMessage, cancelMessage };
+};
+
+type TemplateYjsWithParent = TemplateYjs & { parent: string[] };
+
+export interface TemplatesState {
+  news: TemplateYjsWithParent[];
+  deleted: TemplateYjsWithParent[];
+  modified: TemplateYjsWithParent[];
+  newsMap: { [key: string]: TemplateYjs };
+  modifiedMap: { [key: string]: TemplateYjs };
+  deletedMap: { [key: string]: TemplateYjs };
+  disabled: boolean;
+}
+
+const templatesStates: { [key: string]: RecoilState<TemplatesState> } = {};
+
+const templatesState = (projectId: string, gitRef: string) => {
+  const key = `${projectId}-${gitRef}`;
+
+  templatesStates[key] ??= atom<TemplatesState>({
+    key: `templatesState-${key}`,
+    default: { news: [], deleted: [], modified: [], disabled: true, newsMap: {}, modifiedMap: {}, deletedMap: {} },
+  });
+
+  return templatesStates[key]!;
+};
+
+export const useTemplatesChangesState = (projectId: string, ref: string) => {
+  const { t } = useLocaleContext();
+  const [state, setState] = useRecoilState(templatesState(projectId, ref));
+
+  const { data, loading, run } = useRequest(() => getTemplates(projectId, ref), { manual: true });
+
+  const templates = (data?.templates || []).map((i) =>
+    omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
+  ) as (TemplateYjs & { parent: string[] })[];
+
+  const { store } = useStore(projectId, ref, true);
+
+  const files = useMemo(() => {
+    return Object.entries(store.tree)
+      .map(([key, filepath]) => {
+        const template = cloneDeep(store.files)[key];
+
+        if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
+          const paths = filepath.split('/');
+
+          return {
+            ...template,
+            parent: paths.slice(0, -1),
+          };
+        }
+
+        return undefined;
+      })
+      .filter((i): i is NonNullable<typeof i> => !!i);
+  }, [cloneDeep(store.files), cloneDeep(store.tree)]);
+
+  const arrToObj = (list: TemplateYjsWithParent[]): { [key: string]: TemplateYjs } => {
+    return list.reduce((pre, cur) => {
+      return { ...pre, [cur.id]: cur };
+    }, {});
+  };
+
+  useThrottleEffect(
+    () => {
+      if (loading) return;
+
+      const duplicateItems = intersectionBy(templates, files, 'id');
+
+      const keys = [
+        'id',
+        'createdBy',
+        'updatedBy',
+        'name',
+        'description',
+        'tags',
+        'prompts',
+        'parameters',
+        'mode',
+        'status',
+        'public',
+        'datasets',
+        'next',
+        'tests',
+        'parent',
+      ];
+
+      const news = differenceBy(files, templates, 'id');
+      const deleted = differenceBy(templates, files, 'id');
+      const modified = duplicateItems.filter((i) => {
+        const item = omitBy(pick(i, ...keys), (x) => !x);
+
+        const found = files.find((f) => item.id === f.id);
+        if (!found) {
+          return false;
+        }
+        const file = omitBy(pick(found, ...keys), (x) => !x);
+
+        return !equal(item, file);
+      });
+
+      setState((v) => ({
+        ...v,
+        news,
+        deleted,
+        modified,
+        disabled: news.length + deleted.length + modified.length === 0,
+        newsMap: arrToObj(news),
+        modifiedMap: arrToObj(modified),
+        deletedMap: arrToObj(deleted),
+      }));
+    },
+    [templates, files, loading],
+    { wait: 1000 }
+  );
+
+  const changes = (item: TemplateYjs) => {
+    if (state.newsMap[item.id]) {
+      return {
+        key: 'N',
+        color: 'green',
+        tips: t('templates.add'),
+      };
+    }
+
+    if (state.modifiedMap[item.id]) {
+      return {
+        key: 'M',
+        color: 'orange',
+        tips: t('templates.modify'),
+      };
+    }
+
+    if (state.deletedMap[item.id]) {
+      return {
+        key: 'D',
+        color: 'red',
+        tips: t('templates.delete'),
+      };
+    }
+
+    return null;
+  };
+
+  useEffect(() => {
+    if (projectId && ref) {
+      run();
+    }
+  }, [projectId, ref]);
+
+  return { ...state, changes, run };
 };

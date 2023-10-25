@@ -58,7 +58,7 @@ import Picture from './icons/picture';
 import Trash from './icons/trash';
 import Undo from './icons/undo';
 import ImportFrom from './import';
-import useTemplatesChanges from './template-changes';
+import { useTemplatesChangesState } from './state';
 import {
   createFile,
   createFolder,
@@ -111,7 +111,7 @@ const FileTree = forwardRef<
   const { dialog, showDialog } = useDialog();
 
   const { store, synced } = useStore(projectId, gitRef);
-  const { changes, deleted } = useTemplatesChanges(projectId, gitRef);
+  const { changes, deleted } = useTemplatesChangesState(projectId, gitRef);
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
@@ -636,6 +636,7 @@ function TreeItem({
           pl: depth * 2 + 1,
           pr: 1,
           py: 0.5,
+          flex: 1,
           display: 'flex',
           alignItems: 'center',
           cursor: 'pointer',

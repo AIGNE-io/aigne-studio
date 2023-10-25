@@ -24,8 +24,7 @@ import joinUrl from 'url-join';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
-import { defaultBranch, useProjectState } from './state';
-import useTemplatesChanges from './template-changes';
+import { defaultBranch, useProjectState, useTemplatesChangesState } from './state';
 
 interface CommitForm {
   branch: string;
@@ -43,7 +42,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     refetch,
   } = useProjectState(projectId, gitRef);
 
-  const { disabled, run } = useTemplatesChanges(projectId, gitRef);
+  const { disabled, run } = useTemplatesChangesState(projectId, gitRef);
 
   const simpleMode = !project || project?.gitType === 'simple';
 
