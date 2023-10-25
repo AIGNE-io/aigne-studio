@@ -2,7 +2,11 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { css } from '@emotion/css';
 import { MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   BoxProps,
   Button,
@@ -17,12 +21,14 @@ import {
   Tooltip,
   listItemButtonClasses,
   listItemIconClasses,
+  styled,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
 import {
   ComponentProps,
   ReactNode,
+  SyntheticEvent,
   forwardRef,
   useCallback,
   useEffect,
@@ -50,7 +56,9 @@ import MenuVertical from './icons/menu-vertical';
 import Pen from './icons/pen';
 import Picture from './icons/picture';
 import Trash from './icons/trash';
+import Undo from './icons/undo';
 import ImportFrom from './import';
+import useTemplatesChanges from './template-changes';
 import {
   createFile,
   createFolder,
@@ -103,6 +111,7 @@ const FileTree = forwardRef<
   const { dialog, showDialog } = useDialog();
 
   const { store, synced } = useStore(projectId, gitRef);
+  const { changes, deleted } = useTemplatesChanges(projectId, gitRef);
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
@@ -254,125 +263,156 @@ const FileTree = forwardRef<
     );
 
   return (
-    <Box {...props}>
-      {showNewProject && (
-        <EditableTreeItem
-          icon={<FolderClose />}
-          key={showNewProject.toString()}
-          defaultEditing
-          onSubmit={async (value) => {
-            const name = value.trim();
-            if (name) createFolder({ store, parent: [], name });
-            setShowNewProject(false);
-          }}
-          onCancel={() => setShowNewProject(false)}
-        />
-      )}
+    <>
+      <Box {...props}>
+        {showNewProject && (
+          <EditableTreeItem
+            icon={<FolderClose />}
+            key={showNewProject.toString()}
+            defaultEditing
+            onSubmit={async (value) => {
+              const name = value.trim();
+              if (name) createFolder({ store, parent: [], name });
+              setShowNewProject(false);
+            }}
+            onCancel={() => setShowNewProject(false)}
+          />
+        )}
 
-      {!tree.length && !showNewProject && (
-        <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="32px" m={0.5}>
-          {t('noFiles')}
-        </Box>
-      )}
+        {!tree.length && !showNewProject && (
+          <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="32px" m={0.5}>
+            {t('noFiles')}
+          </Box>
+        )}
 
-      <DndProvider backend={MultiBackend} options={getBackendOptions()}>
-        <Tree
-          tree={tree}
-          rootId=""
-          initialOpen={openIds}
-          onChangeOpen={setOpenIds}
-          canDrag={() => !!mutable}
-          onDrop={async (_, { dragSource, dropTarget }) => {
-            const source = dragSource?.data;
-            const target = dropTarget?.data;
-            if (source) {
-              const to = (target?.path ?? []).concat(source.filename);
+        <DndProvider backend={MultiBackend} options={getBackendOptions()}>
+          <Tree
+            tree={tree}
+            rootId=""
+            initialOpen={openIds}
+            onChangeOpen={setOpenIds}
+            canDrag={() => !!mutable}
+            onDrop={async (_, { dragSource, dropTarget }) => {
+              const source = dragSource?.data;
+              const target = dropTarget?.data;
+              if (source) {
+                const to = (target?.path ?? []).concat(source.filename);
 
-              onMoveFile({ from: source.path, to });
-            }
-          }}
-          classes={{
-            root: css`
-              min-height: 100%;
-              &:after {
-                content: '';
-                display: block;
-                height: 100px;
+                onMoveFile({ from: source.path, to });
               }
-            `,
-            dropTarget: css`
-              background-color: rgba(0, 0, 0, 0.05);
-            `,
-          }}
-          listComponent="div"
-          listItemComponent="div"
-          render={(node, { depth, isOpen, onToggle }) => {
-            if (!node.data) {
-              return <Box />;
-            }
+            }}
+            classes={{
+              root: css`
+                min-height: 100%;
+                &:after {
+                  content: '';
+                  display: block;
+                  height: 100px;
+                }
+              `,
+              dropTarget: css`
+                background-color: rgba(0, 0, 0, 0.05);
+              `,
+            }}
+            listComponent="div"
+            listItemComponent="div"
+            render={(node, { depth, isOpen, onToggle }) => {
+              if (!node.data) {
+                return <Box />;
+              }
 
-            const actions = (
-              <TreeItemMenus
-                mutable={mutable}
-                item={node.data}
-                onCreateFile={onCreateFile}
-                onDeleteFile={onDeleteFile}
-                onLaunch={onLaunch}
-              />
-            );
-
-            const { parent } = node.data;
-            const filepath = parent.concat(node.data.type === 'file' ? `${node.data.meta.id}.yaml` : node.data.name);
-
-            if (node.data.type === 'folder') {
-              return (
-                <EditableTreeItem
-                  key={node.id}
-                  icon={isOpen ? <FolderOpen /> : <FolderClose />}
+              const actions = (
+                <TreeItemMenus
                   mutable={mutable}
-                  depth={depth}
-                  onClick={onToggle}
-                  onSubmit={async (name) => {
-                    const { data } = node;
-                    if (!data || name === data.name) return;
-                    onMoveFile({ from: data.parent.concat(data.name), to: data.parent.concat(name) });
-                  }}
-                  actions={actions}>
-                  {node.text}
-                </EditableTreeItem>
-              );
-            }
-
-            const { meta } = node.data;
-            const name = `${meta.id}.yaml`;
-            const selected = current?.endsWith(name);
-
-            const icon = meta.type === 'image' ? <Picture /> : <File />;
-
-            return (
-              <TreeItem
-                key={node.id}
-                icon={icon}
-                depth={depth}
-                selected={selected}
-                onClick={() => navigate(filepath.join('/'))}
-                actions={actions}>
-                {meta.name || t('alert.unnamed')}
-
-                <AwarenessIndicator
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  path={[meta.id]}
-                  sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
+                  item={node.data}
+                  onCreateFile={onCreateFile}
+                  onDeleteFile={onDeleteFile}
+                  onLaunch={onLaunch}
                 />
-              </TreeItem>
-            );
-          }}
+              );
+
+              const { parent } = node.data;
+              const filepath = parent.concat(node.data.type === 'file' ? `${node.data.meta.id}.yaml` : node.data.name);
+
+              if (node.data.type === 'folder') {
+                return (
+                  <EditableTreeItem
+                    key={node.id}
+                    icon={isOpen ? <FolderOpen /> : <FolderClose />}
+                    mutable={mutable}
+                    depth={depth}
+                    onClick={onToggle}
+                    onSubmit={async (name) => {
+                      const { data } = node;
+                      if (!data || name === data.name) return;
+                      onMoveFile({ from: data.parent.concat(data.name), to: data.parent.concat(name) });
+                    }}
+                    actions={actions}>
+                    {node.text}
+                  </EditableTreeItem>
+                );
+              }
+
+              const { meta } = node.data;
+              const name = `${meta.id}.yaml`;
+              const selected = current?.endsWith(name);
+
+              const changed = changes(meta) ? (
+                <Tooltip title={changes(meta)?.tips}>
+                  <Box
+                    color={changes(meta)?.color}
+                    sx={{
+                      width: '24px',
+                      height: '24px',
+                      textAlign: 'center',
+                      lineHeight: '24px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                    }}>
+                    {changes(meta)?.key}
+                  </Box>
+                </Tooltip>
+              ) : null;
+
+              const icon = meta.type === 'image' ? <Picture /> : <File />;
+
+              return (
+                <TreeItem
+                  key={node.id}
+                  icon={icon}
+                  depth={depth}
+                  selected={selected}
+                  onClick={() => navigate(filepath.join('/'))}
+                  actions={actions}
+                  otherActions={changed}>
+                  {meta.name || t('alert.unnamed')}
+
+                  <AwarenessIndicator
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[meta.id]}
+                    sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
+                  />
+                </TreeItem>
+              );
+            }}
+          />
+        </DndProvider>
+      </Box>
+
+      {!!deleted.length && (
+        <DeleteTemplates
+          list={deleted}
+          changes={changes}
+          projectId={projectId}
+          gitRef={gitRef}
+          onCreateFile={onCreateFile}
         />
-      </DndProvider>
+      )}
 
       {dialog}
-    </Box>
+    </>
   );
 });
 
@@ -551,6 +591,7 @@ function TreeItem({
   depth = 0,
   actions,
   selected,
+  otherActions,
   ...props
 }: {
   icon?: ReactNode;
@@ -558,6 +599,7 @@ function TreeItem({
   depth?: number;
   actions?: ReactNode;
   selected?: boolean;
+  otherActions?: ReactNode;
 } & BoxProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -573,20 +615,23 @@ function TreeItem({
   return (
     <Box
       sx={{
-        my: 0.5,
+        m: 0.5,
         position: 'relative',
+        bgcolor: open ? 'grey.100' : selected ? 'rgba(0,0,0,0.05)' : undefined,
+        borderRadius: 1,
         ':hover': {
-          '.item': { bgcolor: 'grey.100' },
+          bgcolor: 'grey.100',
           '.hover-visible': { opacity: 1 },
         },
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
       }}>
       <Box
         ref={ref}
         className="item"
         {...props}
         sx={{
-          borderRadius: 1,
-          mx: 1,
           position: 'relative',
           pl: depth * 2 + 1,
           pr: 1,
@@ -595,7 +640,6 @@ function TreeItem({
           alignItems: 'center',
           cursor: 'pointer',
           ...props.sx,
-          bgcolor: open ? 'grey.100' : selected ? 'rgba(0,0,0,0.05)' : undefined,
         }}>
         <Box sx={{ width: 32, display: 'flex', alignItems: 'center' }}>{icon}</Box>
 
@@ -610,53 +654,194 @@ function TreeItem({
         </Box>
       </Box>
 
-      {actions && (
-        <Stack
-          component="span"
-          className="hover-visible"
-          justifyContent="center"
-          sx={{ position: 'absolute', right: 8, top: 0, bottom: 0, opacity: open ? 1 : 0 }}>
-          <Tooltip
-            open={open}
-            placement="right-start"
-            onClose={() => setOpen(false)}
-            disableFocusListener
-            disableHoverListener
-            disableTouchListener
-            componentsProps={{
-              tooltip: { sx: { bgcolor: 'grey.100', boxShadow: 1, m: 0, p: 0.5 } },
-            }}
-            title={
-              <ClickAwayListener onClickAway={() => setOpen(false)}>
-                <List
-                  disablePadding
-                  dense
-                  sx={{
-                    color: 'text.primary',
-                    [`.${listItemButtonClasses.root}`]: {
-                      borderRadius: 1,
-                      px: 1,
-                      py: '2px',
-                    },
-                    [`.${listItemIconClasses.root}`]: {
-                      minWidth: 32,
-
-                      '> *': {
-                        fontSize: 18,
+      <Box display="flex" alignItems="center">
+        {actions && (
+          <Stack component="span" className="hover-visible" justifyContent="center" sx={{ opacity: open ? 1 : 0 }}>
+            <Tooltip
+              open={open}
+              placement="right-start"
+              onClose={() => setOpen(false)}
+              disableFocusListener
+              disableHoverListener
+              disableTouchListener
+              componentsProps={{
+                tooltip: { sx: { bgcolor: 'grey.100', boxShadow: 1, m: 0, p: 0.5 } },
+              }}
+              title={
+                <ClickAwayListener onClickAway={() => setOpen(false)}>
+                  <List
+                    disablePadding
+                    dense
+                    sx={{
+                      color: 'text.primary',
+                      [`.${listItemButtonClasses.root}`]: {
+                        borderRadius: 1,
+                        px: 1,
+                        py: '2px',
                       },
-                    },
-                  }}
-                  onClick={() => setOpen(false)}>
-                  {actions}
-                </List>
-              </ClickAwayListener>
-            }>
-            <Button onClick={() => setOpen(true)} sx={{ padding: 0.5, minWidth: 0 }}>
-              <MenuVertical sx={{ fontSize: 20 }} />
-            </Button>
-          </Tooltip>
-        </Stack>
-      )}
+                      [`.${listItemIconClasses.root}`]: {
+                        minWidth: 32,
+
+                        '> *': {
+                          fontSize: 18,
+                        },
+                      },
+                    }}
+                    onClick={() => setOpen(false)}>
+                    {actions}
+                  </List>
+                </ClickAwayListener>
+              }>
+              <Button onClick={() => setOpen(true)} sx={{ padding: 0.5, minWidth: 0 }}>
+                <MenuVertical sx={{ fontSize: 20 }} />
+              </Button>
+            </Tooltip>
+          </Stack>
+        )}
+
+        {otherActions && (
+          <Box display="flex" alignItems="center">
+            {otherActions}
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }
+
+function DeleteTemplates({
+  list,
+  changes,
+  projectId,
+  gitRef,
+  onCreateFile,
+}: {
+  projectId: string;
+  gitRef: string;
+  list: (TemplateYjs & { parent: string[] })[];
+  changes: (item: TemplateYjs) => {
+    key: string;
+    color: string;
+    tips: string;
+  } | null;
+  onCreateFile: ({ parent, meta }: { parent?: string[]; meta?: TemplateYjs }) => void;
+}) {
+  const { t } = useLocaleContext();
+
+  const [expanded, setExpanded] = useState<string | false>('delete-panel');
+  const { dialog, showDialog } = useDialog();
+
+  const handleChange = (panel: string) => (_e: SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
+  return (
+    <>
+      <AccordionContainer expanded={expanded === 'delete-panel'} onChange={handleChange('delete-panel')} elevation={0}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Box className="content">{t('deleted')}</Box>
+        </AccordionSummary>
+
+        <AccordionDetails>
+          <Box maxHeight="120px" overflow="auto">
+            {list.map((item) => {
+              const icon = item.type === 'image' ? <Picture /> : <File />;
+
+              const paths = [...item.parent, item.name || t('alert.unnamed')];
+
+              const changed = changes(item) ? (
+                <>
+                  <Button
+                    sx={{ padding: 0.5, minWidth: 0 }}
+                    onClick={() => {
+                      showDialog({
+                        fullWidth: true,
+                        maxWidth: 'xs',
+                        title: `${t('restoreFile', { file: paths.join('/') })}`,
+                        content: null,
+                        cancelText: t('alert.cancel'),
+                        okText: t('confirm'),
+                        onOk: async () => {
+                          const { parent, ...meta } = item;
+                          onCreateFile({ parent, meta });
+                        },
+                      });
+                    }}>
+                    <Undo sx={{ fontSize: 20 }} />
+                  </Button>
+
+                  <Tooltip title={changes(item)?.tips}>
+                    <Box
+                      color={changes(item)?.color}
+                      sx={{
+                        width: '24px',
+                        height: '24px',
+                        textAlign: 'center',
+                        lineHeight: '24px',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                      }}>
+                      {changes(item)?.key}
+                    </Box>
+                  </Tooltip>
+                </>
+              ) : null;
+
+              return (
+                <TreeItem key={item.id} icon={icon} depth={0} actions={null} otherActions={changed}>
+                  <Box sx={{ textDecoration: 'line-through', display: 'flex', alignItems: 'center', fontSize: '14px' }}>
+                    {!!item.parent?.length && (
+                      <Box
+                        sx={{
+                          color: (theme) => theme.palette.action.disabled,
+                        }}>{`${item.parent.join('/ ')}/`}</Box>
+                    )}
+                    {item.name || t('alert.unnamed')}
+                  </Box>
+
+                  <AwarenessIndicator
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[item.id]}
+                    sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
+                  />
+                </TreeItem>
+              );
+            })}
+          </Box>
+        </AccordionDetails>
+      </AccordionContainer>
+
+      {dialog}
+    </>
+  );
+}
+
+const AccordionContainer = styled(Accordion)`
+  &.MuiAccordion-root {
+    margin: 0;
+    &::before {
+      display: none;
+    }
+    .MuiAccordionSummary-root {
+      min-height: auto;
+      background: ${({ theme }) => theme.palette.action.disabledBackground};
+
+      .MuiAccordionSummary-content {
+        margin: 8px 0;
+        align-items: center;
+        font-size: 14px;
+        .content {
+          flex: 1;
+          width: 0;
+          color: ${({ theme }) => theme.palette.text.primary};
+        }
+      }
+    }
+
+    .MuiAccordionDetails-root {
+      padding: 0;
+    }
+  }
+`;

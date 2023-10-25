@@ -201,4 +201,11 @@ export default flat({
   debugThisCase: '调试该用例',
   deleteThisCase: '删除该用例',
   runThisCase: '运行该用例',
+  restoreFile: '确认还原模板 {file}?',
+  deleted: '删除数据',
+  templates: {
+    add: '新增模板',
+    delete: '模板被删除',
+    modify: '模板被修改',
+  },
 });
