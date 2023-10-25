@@ -1,3 +1,7 @@
+## 0.1.121 (2023-10-25)
+
+- feat: add a shortcut key for selecting project
+
 ## 0.1.120 (2023-10-25)
 
 - feat: support toggle visibility of message

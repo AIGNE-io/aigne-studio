@@ -25,6 +25,7 @@ import {
   Typography,
   styled,
 } from '@mui/material';
+import { useKeyPress } from 'ahooks';
 import { MouseEvent, ReactNode, useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
@@ -51,13 +52,34 @@ export default function ProjectsPage() {
   const { t } = useLocaleContext();
 
   const {
-    state: { loading, templates, projects },
+    state: { loading, templates, projects, selected },
     refetch,
   } = useProjectsState();
+  const navigate = useNavigate();
 
   useEffect(() => {
     refetch();
   }, []);
+
+  useKeyPress(['leftarrow', 'uparrow'], () => {
+    const list = [...document.getElementsByClassName('project-item')];
+    const current = list.findIndex((i) => i.id === selected?.id);
+    const next = list[current - 1] ?? list.at(-1);
+    if (next) (next as HTMLElement).focus();
+  });
+
+  useKeyPress(['rightarrow', 'downarrow'], () => {
+    const list = [...document.getElementsByClassName('project-item')];
+    const current = list.findIndex((i) => i.id === selected?.id);
+    const next = list[current + 1] ?? list[0];
+    if (next) (next as HTMLElement).focus();
+  });
+
+  useKeyPress('enter', () => {
+    if (selected) {
+      navigate(joinUrl('/projects', selected.id));
+    }
+  });
 
   return (
     <Stack minHeight="100%">
@@ -70,10 +92,6 @@ export default function ProjectsPage() {
           ) : (
             loading && (
               <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
-                <ProjectItemSkeleton
-                  width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
-                  maxWidth={180}
-                />
                 <ProjectItemSkeleton
                   width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
                   maxWidth={180}
@@ -311,6 +329,9 @@ function ProjectList({
 
         return (
           <ProjectItem
+            className="project-item"
+            id={item._id!}
+            tabIndex={0}
             key={item._id}
             pinned={!!item.pinnedAt}
             icon={item.icon}
@@ -318,7 +339,9 @@ function ProjectList({
             maxWidth={180}
             selected={selected?.section === section && selected.id === item._id}
             name={section === 'templates' && item.name ? t(item.name) : item.name}
-            onClick={() => setSelected({ section, id: item._id! })}
+            onMouseEnter={(e) => e.currentTarget.focus()}
+            onClick={(e) => e.currentTarget.focus()}
+            onFocus={() => setSelected({ section, id: item._id! })}
             mainActions={
               item._id &&
               (section === 'projects' ? (
@@ -376,6 +399,11 @@ function ProjectList({
                 </IconButton>
               )
             }
+            sx={{
+              '&:focus-visible': {
+                outline: 0,
+              },
+            }}
           />
         );
       })}
