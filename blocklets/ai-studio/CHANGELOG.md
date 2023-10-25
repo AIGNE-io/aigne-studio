@@ -1,3 +1,7 @@
+## 0.1.120 (2023-10-25)
+
+- feat: support toggle visibility of message
+
 ## 0.1.119 (2023-10-25)
 
 - feat: show file changes

@@ -263,7 +263,7 @@ async function runTemplate(
       ];
 
       const messages = (current.prompts ?? [])
-        .filter((i): i is Required<typeof i> => !!i.role && !!i.content)
+        .filter((i): i is Required<typeof i> => !!i.role && !!i.content && i.visibility !== 'hidden')
         .map((item) => {
           const params = matchParams(item.content);
           let { content } = item;
@@ -401,7 +401,6 @@ async function runTemplate(
 
       const isFinalTemplate = current.type !== 'branch' && !next;
 
-      // eslint-disable-next-line no-await-in-loop
       const childLog = await Logs.createWithCatch({
         templateId: current?.id || '',
         prompts: messages || [],
@@ -410,7 +409,6 @@ async function runTemplate(
         startDate: childStartDate,
       });
 
-      // eslint-disable-next-line no-await-in-loop
       const { text } = await chain.call(
         { context: docs.map((i) => i.pageContent).join('\n') },
         callback

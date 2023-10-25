@@ -212,5 +212,9 @@ export default flat({
   actions: '操作',
   copy: '复制',
   copied: '已复制',
+  activeMessageTip: '激活该提示',
+  hideMessageTip: '隐藏该提示',
+  deleteMessageTip: '删除该提示',
+  dragMessageTip: '拖拽排序该提示',
   sourceBranch: '来源分支',
 });
