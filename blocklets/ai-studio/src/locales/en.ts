@@ -88,6 +88,8 @@ export default flat({
     pickFromBranch: 'Pick from branch',
     saveInNewBranch: 'Save in new branch',
     newBranch: 'New branch',
+    newBranchRequired: 'New branch is required',
+    currentBranch: 'Current branch',
     message: 'Message',
   },
   import: {

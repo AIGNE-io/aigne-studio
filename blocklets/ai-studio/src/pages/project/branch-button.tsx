@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ArrowDropDownRounded, CallSplitRounded, Delete, Edit, WarningRounded } from '@mui/icons-material';
+import { Add, ArrowDropDownRounded, CallSplitRounded, Delete, Edit, WarningRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -8,11 +8,14 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  MenuItem,
+  Stack,
+  TextField,
   buttonClasses,
   tooltipClasses,
 } from '@mui/material';
 import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import joinUrl from 'url-join';
 
@@ -34,11 +37,15 @@ export default function BranchButton({
 
   const navigate = useNavigate();
 
-  const { dialog, showDialog } = useDialog();
+  const { createBranch } = useProjectState(projectId, gitRef);
+
+  const { dialog, showDialog, closeDialog } = useDialog();
+  const { dialog: createBranchDialog, showDialog: createShowDialog } = useDialog();
 
   return (
     <>
       {dialog}
+      {createBranchDialog}
 
       <Dropdown
         sx={{
@@ -57,7 +64,52 @@ export default function BranchButton({
               showDialog({
                 maxWidth: 'sm',
                 fullWidth: true,
-                title: t('form.branch'),
+                title: (
+                  <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Box>{t('form.branch')}</Box>
+                    <Button
+                      size="small"
+                      startIcon={<Add />}
+                      variant="contained"
+                      onClick={() => {
+                        let data: { new: string; source: string };
+
+                        createShowDialog({
+                          maxWidth: 'xs',
+                          fullWidth: true,
+                          title: (
+                            <Box display="flex" alignItems="center" justifyContent="space-between">
+                              {`${t('form.add')}${t('form.branch')}`}
+                            </Box>
+                          ),
+                          content: (
+                            <CreateBranch projectId={projectId} _ref={gitRef} onChange={(_data) => (data = _data)} />
+                          ),
+                          cancelText: t('alert.cancel'),
+                          okText: t('confirm'),
+                          onOk: async () => {
+                            try {
+                              if (!data.new) {
+                                throw new Error(t('alert.newBranchRequired'));
+                              }
+
+                              await createBranch({ projectId, input: { name: data.new, oid: data.source } });
+
+                              Toast.success(t('alert.branchCreated'));
+                              closeDialog();
+
+                              navigate(joinUrl('..', data.new), { state: { filepath } });
+                            } catch (error) {
+                              Toast.error(getErrorMessage(error));
+                              throw error;
+                            }
+                          },
+                        });
+                      }}>
+                      {`${t('form.add')}${t('form.branch')}`}
+                    </Button>
+                  </Box>
+                ),
                 content: <AllBranches projectId={projectId} _ref={gitRef} filepath={filepath} />,
                 cancelText: t('alert.close'),
               });
@@ -219,5 +271,60 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
         onProcessRowUpdateError={(error) => Toast.error(getErrorMessage(error))}
       />
     </Box>
+  );
+}
+
+function CreateBranch({
+  projectId,
+  _ref,
+  onChange,
+}: {
+  projectId: string;
+  _ref: string;
+  onChange: (data: { new: string; source: string }) => void;
+}) {
+  const { t } = useLocaleContext();
+  const [states, setStates] = useState({ new: '', source: '' });
+
+  const { state } = useProjectState(projectId, _ref);
+
+  const rows = useMemo(() => {
+    return state.branches.map((branch) => ({ branch }));
+  }, [state.branches]);
+
+  useEffect(() => {
+    if (!states.source && rows[0]?.branch) {
+      states.source = rows[0]?.branch;
+    }
+
+    onChange(states);
+  }, [states, rows]);
+
+  return (
+    <Stack gap={1}>
+      <Box>
+        <TextField
+          label={t('alert.newBranch')}
+          fullWidth
+          value={states.new}
+          onChange={(e) => setStates((r) => ({ ...r, new: e.target.value }))}
+        />
+      </Box>
+
+      <Box>
+        <TextField
+          select
+          label={t('alert.currentBranch')}
+          fullWidth
+          value={states.source || rows[0]?.branch}
+          onChange={(e) => setStates((r) => ({ ...r, source: e.target.value }))}>
+          {rows.map((option) => (
+            <MenuItem key={option.branch} value={option.branch}>
+              {option.branch}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Box>
+    </Stack>
   );
 }

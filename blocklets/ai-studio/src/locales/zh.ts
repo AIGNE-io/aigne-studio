@@ -88,6 +88,8 @@ export default flat({
     pickFromBranch: '从其它分支选择',
     saveInNewBranch: '保存到新的分支',
     newBranch: '新建分支',
+    newBranchRequired: '分支名称不能为空',
+    currentBranch: '当前分支',
     message: '备注',
   },
   import: {
