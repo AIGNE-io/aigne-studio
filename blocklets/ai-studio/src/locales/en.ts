@@ -87,7 +87,6 @@ export default flat({
     close: 'Close',
     pickFromBranch: 'Pick from branch',
     saveInNewBranch: 'Save in new branch',
-    newBranch: 'New branch',
     newBranchRequired: 'New branch is required',
     currentBranch: 'Current branch',
     message: 'Message',
@@ -210,4 +209,5 @@ export default flat({
   actions: 'Actions',
   copy: 'Copy',
   copied: 'Copied',
+  sourceBranch: 'Source branch',
 });

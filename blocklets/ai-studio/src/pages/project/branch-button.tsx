@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Add, ArrowDropDownRounded, CallSplitRounded, Delete, Edit, WarningRounded } from '@mui/icons-material';
+import { ArrowDropDownRounded, CallSplitRounded, WarningRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -22,6 +22,10 @@ import joinUrl from 'url-join';
 import Dropdown from '../../components/template-form/dropdown';
 import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
+import Add from './icons/add';
+import Floppy from './icons/floppy';
+import Pen from './icons/pen';
+import Trash from './icons/trash';
 import { defaultBranch, useProjectState } from './state';
 
 export default function BranchButton({
@@ -79,14 +83,15 @@ export default function BranchButton({
                           fullWidth: true,
                           title: (
                             <Box display="flex" alignItems="center" justifyContent="space-between">
-                              {`${t('form.add')}${t('form.branch')}`}
+                              {t('newObject', { object: t('branch') })}
                             </Box>
                           ),
                           content: (
                             <CreateBranch projectId={projectId} _ref={gitRef} onChange={(_data) => (data = _data)} />
                           ),
-                          cancelText: t('alert.cancel'),
-                          okText: t('confirm'),
+                          cancelText: t('cancel'),
+                          okIcon: <Floppy />,
+                          okText: t('save'),
                           onOk: async () => {
                             try {
                               if (!data.new) {
@@ -106,7 +111,7 @@ export default function BranchButton({
                           },
                         });
                       }}>
-                      {`${t('form.add')}${t('form.branch')}`}
+                      {t('newObject', { object: t('branch') })}
                     </Button>
                   </Box>
                 ),
@@ -234,10 +239,10 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
             <IconButton
               disabled={row.branch === defaultBranch}
               onClick={() => dataGrid.current.startCellEditMode({ id: row.branch, field: 'branch' })}>
-              <Edit />
+              <Pen />
             </IconButton>
             <IconButton disabled={row.branch === defaultBranch} onClick={() => onDelete(row.branch)}>
-              <Delete />
+              <Trash />
             </IconButton>
           </>
         ),
@@ -304,7 +309,8 @@ function CreateBranch({
     <Stack gap={1}>
       <Box>
         <TextField
-          label={t('alert.newBranch')}
+          autoFocus
+          label={t('form.name')}
           fullWidth
           value={states.new}
           onChange={(e) => setStates((r) => ({ ...r, new: e.target.value }))}
@@ -314,7 +320,7 @@ function CreateBranch({
       <Box>
         <TextField
           select
-          label={t('alert.currentBranch')}
+          label={t('sourceBranch')}
           fullWidth
           value={states.source || rows[0]?.branch}
           onChange={(e) => setStates((r) => ({ ...r, source: e.target.value }))}>
