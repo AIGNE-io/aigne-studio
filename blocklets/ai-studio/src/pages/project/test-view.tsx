@@ -196,24 +196,36 @@ const TestCaseView = forwardRef<
       <Table>
         {Object.entries(test.parameters).map(([key, value]) => (
           <Box key={key}>
-            <Box>{key}</Box>
-            <Box>{value}</Box>
+            <Box>
+              <Box>{key}</Box>
+            </Box>
+            <Box>
+              <Box>{value}</Box>
+            </Box>
           </Box>
         ))}
         <Box>
-          <Box>{t('output')}</Box>
           <Box>
-            {test.output}
+            <Box>{t('output')}</Box>
+          </Box>
+          <Box>
+            <Box>
+              {test.output}
 
-            {loading && <WritingIndicator />}
+              {loading && <WritingIndicator />}
 
-            {test.error ? (
-              <Box>
-                <Alert variant="standard" color="error" icon={<Error />} sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                  {test.error.message}
-                </Alert>
-              </Box>
-            ) : null}
+              {test.error ? (
+                <Box>
+                  <Alert
+                    variant="standard"
+                    color="error"
+                    icon={<Error />}
+                    sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                    {test.error.message}
+                  </Alert>
+                </Box>
+              ) : null}
+            </Box>
           </Box>
         </Box>
       </Table>
@@ -232,9 +244,16 @@ const Table = styled(Box)`
 
     > div {
       display: table-cell;
-      padding: 4px 8px;
       border-bottom: 0.5px solid ${({ theme }) => theme.palette.divider};
       border-right: 0.5px solid ${({ theme }) => theme.palette.divider};
+
+      > div {
+        max-height: 200px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 4px 8px;
+        word-break: break-word;
+      }
 
       &:first-of-type {
         min-width: 180px;

@@ -1,7 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
+import { Add, CopyAll } from '@mui/icons-material';
 import {
   Alert,
   Avatar,
@@ -33,6 +34,7 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import { parameterFieldComponent } from '../../components/parameter-field';
 import { matchParams } from '../../components/template-form/parameters';
 import { useSessionContext } from '../../contexts/session';
+import Empty from './icons/empty';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
 import Record from './record';
@@ -44,14 +46,13 @@ export default function DebugView(props: {
   template: TemplateYjs;
   setCurrentTab: (tab: string) => void;
 }) {
-  const { state, newSession, setCurrentSession } = useDebugState({
+  const { state, setCurrentSession } = useDebugState({
     projectId: props.projectId,
     templateId: props.template.id,
   });
 
   useEffect(() => {
     if (!state.sessions.length) {
-      newSession();
       return;
     }
 
@@ -77,6 +78,7 @@ export default function DebugView(props: {
         display: none;
       `}>
       <DebugViewContent {...props} />
+      {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.template.id} />}
     </Box>
   );
 }
@@ -206,7 +208,7 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
             [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
           }}>
           {message.content || message.parameters || message.images?.length || message.loading ? (
-            <Box
+            <MessageViewContent
               sx={{
                 whiteSpace: 'pre-wrap',
                 px: 1,
@@ -216,6 +218,7 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
                 ':hover': {
                   bgcolor: 'grey.100',
                 },
+                position: 'relative',
               }}>
               {message.content ||
                 (message.parameters && (
@@ -240,7 +243,11 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
               )}
 
               {message.loading && <WritingIndicator />}
-            </Box>
+
+              {message.role === 'assistant' && (
+                <Box className="actions">{message.content && <CopyButton key="copy" message={message.content} />}</Box>
+              )}
+            </MessageViewContent>
           ) : null}
 
           {message.error ? (
@@ -272,6 +279,57 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
         </Box>
       )}
     </>
+  );
+}
+
+const MessageViewContent = styled(Box)`
+  > .actions {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    border-radius: 4px;
+    opacity: 0;
+
+    &.active {
+      display: flex;
+    }
+
+    button {
+      min-width: 0;
+      padding: 0;
+      height: 24px;
+      width: 22px;
+      color: rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  &:hover {
+    > .actions {
+      opacity: 1;
+      background-color: rgba(240, 240, 240, 0.9);
+    }
+  }
+`;
+
+function CopyButton({ message }: { message: string }) {
+  const [copied, setCopied] = useState<'copied' | boolean>(false);
+  const { t } = useLocaleContext();
+
+  return (
+    <Tooltip title={copied === 'copied' ? t('copied') : t('copy')} placement="top" open={Boolean(copied)}>
+      <Button
+        size="small"
+        className={cx('copy', copied && 'active')}
+        onMouseEnter={() => setCopied(true)}
+        onMouseLeave={() => setCopied(false)}
+        onClick={() => {
+          navigator.clipboard.writeText(message);
+          setCopied('copied');
+          setTimeout(() => setCopied(false), 1500);
+        }}>
+        <CopyAll fontSize="small" />
+      </Button>
+    </Tooltip>
   );
 }
 
@@ -474,6 +532,7 @@ function DebugModeForm({
                       label={parameter.label || param}
                       fullWidth
                       parameter={omit(parameter, 'min', 'max') as never}
+                      maxRows={!parameter.type || parameter.type === 'string' ? 5 : undefined}
                       // TODO: 临时去掉 NumberField 的自动转 number 功能
                       {...(parameter.type === 'number' ? { autoCorrectValue: false } : undefined)}
                       {...form.register(param, {
@@ -537,6 +596,26 @@ function DebugModeForm({
           {lastMessage?.loading ? t('stop') : t('send')}
         </Button>
       </Stack>
+    </Stack>
+  );
+}
+
+function EmptySessions({ projectId, templateId }: { projectId: string; templateId: string }) {
+  const { newSession } = useDebugState({ projectId, templateId });
+  const { t } = useLocaleContext();
+
+  return (
+    <Stack mt={10} gap={2} alignItems="center">
+      <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+
+      <Button
+        startIcon={<Add />}
+        onClick={(e) => {
+          e.preventDefault();
+          newSession();
+        }}>
+        {t('newObject', { object: t('session') })}
+      </Button>
     </Stack>
   );
 }

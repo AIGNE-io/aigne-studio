@@ -201,4 +201,8 @@ export default flat({
   debugThisCase: '调试该用例',
   deleteThisCase: '删除该用例',
   runThisCase: '运行该用例',
+  label: '标签',
+  actions: '操作',
+  copy: '复制',
+  copied: '已复制',
 });

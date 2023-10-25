@@ -124,6 +124,7 @@ const ColumnsLayout = forwardRef<
         />
 
         <Box
+          sx={{ width: 0 }}
           component={Panel}
           ref={rightPanel}
           defaultSize={45}
