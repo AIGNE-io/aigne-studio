@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
@@ -12,7 +13,7 @@ import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { recoilPersist } from 'recoil-persist';
 
@@ -465,6 +466,7 @@ export interface TemplatesState {
   disabled: boolean;
   loading: boolean;
   templates: TemplateYjsWithParent[];
+  files: TemplateYjsWithParent[];
 }
 
 const templatesStates: { [key: string]: RecoilState<TemplatesState> } = {};
@@ -484,6 +486,7 @@ const templatesState = (projectId: string, gitRef: string) => {
       deletedMap: {},
       loading: false,
       templates: [],
+      files: [],
     },
   });
 
@@ -494,43 +497,24 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   const { t } = useLocaleContext();
   const [state, setState] = useRecoilState(templatesState(projectId, ref));
 
-  const run = async () => {
-    try {
-      setState((r) => ({ ...r, loading: true }));
-
-      const data = await getTemplates(projectId, ref);
-      const templates = (data?.templates || []).map((i) =>
-        omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
-      ) as TemplateYjsWithParent[];
-
-      setState((r) => ({ ...r, templates }));
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setState((r) => ({ ...r, loading: false }));
-    }
-  };
-
   const { store } = useStore(projectId, ref);
 
-  const files = useMemo(() => {
-    return Object.entries(store.tree)
+  const getFile = () => {
+    const files = Object.entries(store.tree)
       .map(([key, filepath]) => {
-        const template = cloneDeep(store.files)[key];
+        const template = store.files[key];
 
         if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
           const paths = filepath.split('/');
-
-          return {
-            ...template,
-            parent: paths.slice(0, -1),
-          };
+          return { ...template, parent: paths.slice(0, -1) };
         }
 
         return undefined;
       })
       .filter((i): i is NonNullable<typeof i> => !!i);
-  }, [cloneDeep(store.files), cloneDeep(store.tree)]);
+
+    setState((r) => ({ ...r, files: cloneDeep(files) }));
+  };
 
   const arrToObj = (list: TemplateYjsWithParent[]): { [key: string]: TemplateYjs } => {
     return list.reduce((pre, cur) => {
@@ -542,8 +526,7 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
     () => {
       if (state.loading) return;
 
-      const duplicateItems = intersectionBy(state.templates, files, 'id');
-
+      const duplicateItems = intersectionBy(state.templates, state.files, 'id');
       const keys = [
         'id',
         'createdBy',
@@ -562,17 +545,18 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
         'parent',
       ];
 
-      const news = differenceBy(files, state.templates, 'id');
-      const deleted = differenceBy(state.templates, files, 'id');
+      const news = differenceBy(state.files, state.templates, 'id');
+      const deleted = differenceBy(state.templates, state.files, 'id');
+
       const modified = duplicateItems.filter((i) => {
         const item = omitBy(pick(i, ...keys), (x) => !x);
 
-        const found = files.find((f) => item.id === f.id);
+        const found = state.files.find((f) => item.id === f.id);
         if (!found) {
           return false;
         }
-        const file = omitBy(pick(found, ...keys), (x) => !x);
 
+        const file = omitBy(pick(found, ...keys), (x) => !x);
         return !equal(item, file);
       });
 
@@ -587,9 +571,36 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
         deletedMap: arrToObj(deleted),
       }));
     },
-    [state.templates, files, state.loading],
+    [state.templates, state.files, state.loading],
     { wait: 1000 }
   );
+
+  useEffect(() => {
+    getYjsDoc(store).getMap('files').observeDeep(getFile);
+    getYjsDoc(store).getMap('tree').observeDeep(getFile);
+
+    return () => {
+      getYjsDoc(store).getMap('files').unobserveDeep(getFile);
+      getYjsDoc(store).getMap('tree').unobserveDeep(getFile);
+    };
+  }, []);
+
+  const run = async () => {
+    try {
+      setState((r) => ({ ...r, loading: true }));
+
+      const data = await getTemplates(projectId, ref);
+      const templates = (data?.templates || []).map((i) =>
+        omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
+      ) as TemplateYjsWithParent[];
+
+      setState((r) => ({ ...r, templates }));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setState((r) => ({ ...r, loading: false }));
+    }
+  };
 
   const changes = (item: TemplateYjs) => {
     if (state.newsMap[item.id]) {
