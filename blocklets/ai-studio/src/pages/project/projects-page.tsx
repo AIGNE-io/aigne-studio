@@ -25,6 +25,7 @@ import {
   Typography,
   styled,
 } from '@mui/material';
+import { useKeyPress } from 'ahooks';
 import { MouseEvent, ReactNode, useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
@@ -51,13 +52,59 @@ export default function ProjectsPage() {
   const { t } = useLocaleContext();
 
   const {
-    state: { loading, templates, projects },
+    state: { loading, templates, projects, selected },
+    setSelected,
     refetch,
   } = useProjectsState();
+  const navigate = useNavigate();
 
   useEffect(() => {
     refetch();
   }, []);
+
+  useKeyPress(['leftarrow', 'uparrow'], () => {
+    if (!projects.length) {
+      return;
+    }
+
+    if (!selected) {
+      setSelected({ section: 'projects', id: projects[0]?._id || '' });
+      return;
+    }
+
+    const index = projects.findIndex((i) => i._id === selected.id);
+    if (index <= 0) {
+      setSelected({ section: 'projects', id: projects[0]?._id || '' });
+      return;
+    }
+
+    setSelected({ section: 'projects', id: projects[index - 1]?._id || '' });
+  });
+
+  useKeyPress(['rightarrow', 'downarrow'], () => {
+    if (!projects.length) {
+      return;
+    }
+
+    if (!selected) {
+      setSelected({ section: 'projects', id: projects[0]?._id || '' });
+      return;
+    }
+
+    const index = projects.findIndex((i) => i._id === selected.id);
+    if (index >= projects.length - 1) {
+      setSelected({ section: 'projects', id: projects[projects.length - 1]?._id || '' });
+      return;
+    }
+
+    setSelected({ section: 'projects', id: projects[index + 1]?._id || '' });
+  });
+
+  useKeyPress('enter', () => {
+    if (selected) {
+      navigate(joinUrl('/projects', selected.id));
+    }
+  });
 
   return (
     <Stack minHeight="100%">
@@ -70,10 +117,6 @@ export default function ProjectsPage() {
           ) : (
             loading && (
               <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
-                <ProjectItemSkeleton
-                  width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
-                  maxWidth={180}
-                />
                 <ProjectItemSkeleton
                   width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
                   maxWidth={180}
@@ -306,11 +349,12 @@ function ProjectList({
 
   return (
     <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
-      {list.map((item) => {
+      {list.map((item, index) => {
         const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item._id;
 
         return (
           <ProjectItem
+            tabIndex={index + 10}
             key={item._id}
             pinned={!!item.pinnedAt}
             icon={item.icon}
@@ -318,7 +362,13 @@ function ProjectList({
             maxWidth={180}
             selected={selected?.section === section && selected.id === item._id}
             name={section === 'templates' && item.name ? t(item.name) : item.name}
+            onMouseEnter={() => {
+              if (section === 'projects') {
+                setSelected({ section, id: item._id! });
+              }
+            }}
             onClick={() => setSelected({ section, id: item._id! })}
+            onFocus={() => setSelected({ section, id: item._id! })}
             mainActions={
               item._id &&
               (section === 'projects' ? (
@@ -376,6 +426,11 @@ function ProjectList({
                 </IconButton>
               )
             }
+            sx={{
+              '&:focus-visible': {
+                outline: 0,
+              },
+            }}
           />
         );
       })}
