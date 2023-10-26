@@ -6,8 +6,9 @@ import Joi from 'joi';
 import { ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
+import { renderAsync } from '../libs/mustache-async';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import Logs, { Status } from '../store/models/logs';
+import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
 import { Project, defaultBranch, getRepository } from '../store/projects';
 import { Template, getTemplate } from '../store/templates';
@@ -113,74 +114,82 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
     getTemplate({ repository, ref: input.ref || defaultBranch, working: input.working, templateId });
 
   const template = input.template ?? (await getTemplateById(input.templateId));
-  const emit = (
-    response:
-      | { type: 'delta'; delta: string }
-      | typeof result
-      | { type: 'next'; delta: string; templateId: string; templateName: string }
-  ) => {
-    if (!res.headersSent) {
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.flushHeaders();
-    }
 
-    res.write(`data: ${JSON.stringify(response)}\n\n`);
-    res.flush();
-  };
-
-  const log = await Logs.createWithCatch({
-    templateId: input.templateId || '',
+  const startDate = new Date();
+  const log = await Log.create({
+    templateId: input.templateId,
     hash: input.ref || defaultBranch,
-    projectId: input.projectId || '',
-    prompts: template.prompts || [],
-    parameters: input.parameters || {},
+    projectId: input.projectId,
+    prompts: template.prompts,
+    parameters: input.parameters,
+    startDate,
   });
 
-  const result = await runTemplate(
-    project,
-    getTemplateById,
-    template,
-    input.parameters,
-    stream
-      ? ({
-          token,
-          isFinalTemplate,
-          templateId,
-          templateName,
-          currentLoop,
-        }: {
-          token: string;
-          isFinalTemplate: boolean;
-          templateId: string;
-          templateName: string;
-          currentLoop: number;
-        }) => {
-          if (isFinalTemplate && currentLoop === 1) {
-            emit({ type: 'delta', delta: token });
-          } else {
-            emit({
-              type: 'next',
-              delta: token,
-              templateName: templateName || '',
-              templateId: templateId || input.templateId || '',
-            });
+  try {
+    const emit = (
+      response:
+        | { type: 'delta'; delta: string }
+        | typeof result
+        | { type: 'next'; delta: string; templateId: string; templateName: string }
+    ) => {
+      if (!res.headersSent) {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.flushHeaders();
+      }
 
+      res.write(`data: ${JSON.stringify(response)}\n\n`);
+      res.flush();
+    };
+
+    const result = await runTemplate(
+      project,
+      getTemplateById,
+      template,
+      input.parameters,
+      stream
+        ? ({
+            token,
+            isFinalTemplate,
+            templateId,
+            templateName,
+          }: {
+            token: string;
+            isFinalTemplate: boolean;
+            templateId: string;
+            templateName: string;
+          }) => {
             if (isFinalTemplate) {
               emit({ type: 'delta', delta: token });
+            } else {
+              emit({
+                type: 'next',
+                delta: token,
+                templateName: templateName || '',
+                templateId: templateId || input.templateId || '',
+              });
             }
           }
-        }
-      : undefined,
-    log?.id
-  );
+        : undefined,
+      log
+    );
 
-  if (stream) {
-    if (!res.headersSent) {
-      emit(result);
+    if (stream) {
+      if (!res.headersSent) {
+        emit(result);
+      }
+      res.end();
+    } else {
+      res.json(result);
     }
-    res.end();
-  } else {
-    res.json(result);
+
+    const endDate = new Date();
+    const requestTime = endDate.getTime() - startDate.getTime();
+    await log.update({ endDate, requestTime, status: Status.SUCCESS, response: result });
+  } catch (error) {
+    const endDate = new Date();
+    const requestTime = endDate.getTime() - startDate.getTime();
+    await log.update({ endDate, requestTime, status: Status.FAIL, error: error.message });
+    throw error;
   }
 });
 
@@ -203,18 +212,16 @@ async function runTemplate(
     | 'branch'
     | 'next'
   >,
-  parameters?: {
-    $history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
-    [key: string]: any;
-  },
-  callback?: (data: {
-    token: string;
-    isFinalTemplate: boolean;
-    templateId: string;
-    templateName: string;
-    currentLoop: number;
-  }) => void,
-  logId?: string
+  parameters:
+    | {
+        $history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
+        [key: string]: any;
+      }
+    | undefined,
+  callback:
+    | ((data: { token: string; isFinalTemplate: boolean; templateId: string; templateName: string }) => void)
+    | undefined,
+  log: Log
 ): Promise<
   | { type: 'text'; text: string }
   | { type: 'images'; images: ({ url: string; b64_json?: undefined } | { url?: undefined; b64_json?: string })[] }
@@ -223,89 +230,112 @@ async function runTemplate(
   let next: Template | undefined;
   let result: Awaited<ReturnType<typeof runTemplate>> | undefined;
 
-  const startDate = new Date();
-  let currentLoop = 0;
+  while (current) {
+    const childStartDate = new Date();
 
-  try {
-    await Logs.updateWithCatch({ startDate }, logId);
+    next = current.next?.id ? await getTemplate(current.next.id) : undefined;
+    // avoid recursive call
+    if (next?.id === current.id) {
+      next = undefined;
+    }
 
-    while (current) {
-      currentLoop++;
-      const childStartDate = new Date();
-
-      next = current.next?.id ? await getTemplate(current.next.id) : undefined;
-      // avoid recursive call
-      if (next?.id === current.id) {
-        next = undefined;
-      }
-
-      const matchParams = (template: string) => [
-        ...new Set(Array.from(template.matchAll(/{{\s*(\w+)\s*}}/g)).map((i) => i[1]!)),
-      ];
-
-      const messages = (current.prompts ?? [])
+    const messages = await Promise.all(
+      (current.prompts ?? [])
         .filter((i): i is Required<typeof i> => !!i.role && !!i.content && i.visibility !== 'hidden')
-        .map((item) => {
-          const params = matchParams(item.content);
-          let { content } = item;
-          for (const param of params) {
-            content = content.replace(new RegExp(`{{\\s*(${param})\\s*}}`, 'g'), parameters?.[param]?.toString() || '');
-          }
-
+        .map(async (item) => {
           // 过滤注释节点
-          const rows = content
+          const content = item.content
             .split(/\n/)
             .filter((x) => !x.startsWith(COMMENT_PREFIX))
             .join('\n');
 
-          return { role: item.role, content: rows };
-        });
+          const renderTemplate = async (template: string) => {
+            return renderAsync(
+              template,
+              {
+                ...parameters,
+                callPrompt: () => async (text: string) => {
+                  try {
+                    const t = await renderTemplate(text);
+                    console.log({ t });
 
-      const datasets = await Promise.all(
-        current.datasets
-          ?.filter((i): i is Required<typeof i> => !!i.vectorStore)
-          .map((item) => VectorStore.load(item.vectorStore.id, new AIKitEmbeddings())) ?? []
-      );
+                    const options = await Joi.object<{ templateId: string; parameters?: object }>({
+                      templateId: Joi.string().required(),
+                      parameters: Joi.object().pattern(Joi.string(), Joi.any()),
+                    }).validateAsync(JSON.parse(t), { stripUnknown: true });
+                    const template = await getTemplate(options.templateId);
+                    const result = await runTemplate(
+                      project,
+                      getTemplate,
+                      template,
+                      options.parameters,
+                      (options) => callback?.({ ...options, isFinalTemplate: false }),
+                      log
+                    );
+                    console.log(result);
+                    if (result.type === 'text') return result.text;
+                  } catch (error) {
+                    return '';
+                  }
+                },
+              },
+              undefined,
+              { escape: (v) => v }
+            );
+          };
 
-      const messagesString = messages.map((i) => i.content).join('\n');
-      const docs = (
-        await Promise.all(datasets.map(async (dataset) => dataset.similaritySearch(messagesString, 4)))
-      ).flat();
+          const prompt = await renderTemplate(content);
+          console.log({ prompt });
 
-      const history = (parameters?.$history ?? []).filter((i) => !!i.role && !!i.content);
+          return { role: item.role, content: prompt };
+        })
+    );
 
-      const prompt = history.concat(messages);
+    const datasets = await Promise.all(
+      current.datasets
+        ?.filter((i): i is Required<typeof i> => !!i.vectorStore)
+        .map((item) => VectorStore.load(item.vectorStore.id, new AIKitEmbeddings())) ?? []
+    );
 
-      const question = (parameters as any)?.question;
-      if (
-        current.mode === 'chat' &&
-        typeof question === 'string' &&
-        !current.prompts?.some((i) => i.content && /{{\s*question\s*}}/.test(i.content))
-      ) {
-        prompt.push({ role: 'user', content: question });
-      }
+    const messagesString = messages.map((i) => i.content).join('\n');
+    const docs = (
+      await Promise.all(datasets.map(async (dataset) => dataset.similaritySearch(messagesString, 4)))
+    ).flat();
 
-      if (docs.length) {
-        const context = docs.map((i) => i.pageContent).join('\n');
-        const contextTemplate = `Use the following pieces of context to answer the users question.
+    const history = (parameters?.$history ?? []).filter((i) => !!i.role && !!i.content);
+
+    const prompt = history.concat(messages);
+
+    const question = (parameters as any)?.question;
+    if (
+      current.mode === 'chat' &&
+      typeof question === 'string' &&
+      !current.prompts?.some((i) => i.content && /{{\s*question\s*}}/.test(i.content))
+    ) {
+      prompt.push({ role: 'user', content: question });
+    }
+
+    if (docs.length) {
+      const context = docs.map((i) => i.pageContent).join('\n');
+      const contextTemplate = `Use the following pieces of context to answer the users question.
   If you don't know the answer, just say that you don't know, don't try to make up an answer.
   ----------------
   ${context}`;
-        prompt.unshift({ role: 'system', content: contextTemplate });
+      prompt.unshift({ role: 'system', content: contextTemplate });
+    }
+
+    if (current.type === 'branch') {
+      const question = parameters?.question;
+
+      const branches = current.branch?.branches.filter((i) => i.template?.name);
+      if (!branches || !question) {
+        current = next;
+        continue;
       }
 
-      if (current.type === 'branch') {
-        const question = parameters?.question;
-
-        const branches = current.branch?.branches.filter((i) => i.template?.name);
-        if (!branches || !question) {
-          current = next;
-          continue;
-        }
-
-        prompt.push({
-          role: 'system',
-          content: `You are a branch selector, don't try to answer the user's question, \
+      prompt.push({
+        role: 'system',
+        content: `You are a branch selector, don't try to answer the user's question, \
   you need to choose the most appropriate one from the following minutes based on the question entered by the user.
   Branches:
   ${branches.map((i) => `Branch_${i.template!.id}: ${i.description || ''}`).join('\n')}
@@ -320,124 +350,104 @@ async function runTemplate(
 
   Question: ${question}\
   `,
-        });
-      }
-
-      if (current.type === 'image') {
-        const { size, number } = await Joi.object<{ size: string; number: number }>({
-          size: Joi.alternatives()
-            .try(Joi.string().valid('256x256', '512x512', '1024x1024'), Joi.any().empty(Joi.any()))
-            .empty(Joi.valid(null, ''))
-            .default('256x256'),
-          number: Joi.number().min(1).max(10).empty(Joi.valid('', null)).default(1),
-        }).validateAsync(parameters, { stripUnknown: true });
-
-        const response = await call<{ data: ImagesResponseDataInner[] }>({
-          name: 'ai-kit',
-          path: '/api/v1/sdk/image/generations',
-          method: 'POST',
-          data: {
-            prompt: prompt.map((i) => i.content).join('\n'),
-            size,
-            n: number,
-            response_format: 'b64_json',
-          },
-        });
-
-        const images = (response.data.data || []).map((i) => ({ url: `data:image/png;base64,${i.b64_json}` }));
-
-        result = { type: 'images', images };
-        break;
-      }
-
-      const isFinalTemplate = current.type !== 'branch' && !next;
-
-      const childLog = await Logs.createWithCatch({
-        templateId: current?.id || '',
-        prompts: messages || [],
-        parameters,
-        parentId: logId || '',
-        startDate: childStartDate,
       });
+    }
 
-      const { data } = await call({
+    if (current.type === 'image') {
+      const { size, number } = await Joi.object<{ size: string; number: number }>({
+        size: Joi.alternatives()
+          .try(Joi.string().valid('256x256', '512x512', '1024x1024'), Joi.any().empty(Joi.any()))
+          .empty(Joi.valid(null, ''))
+          .default('256x256'),
+        number: Joi.number().min(1).max(10).empty(Joi.valid('', null)).default(1),
+      }).validateAsync(parameters, { stripUnknown: true });
+
+      const response = await call<{ data: ImagesResponseDataInner[] }>({
         name: 'ai-kit',
-        path: '/api/v1/sdk/completions',
+        path: '/api/v1/sdk/image/generations',
         method: 'POST',
         data: {
-          modelName: current.model ?? project?.model,
-          temperature: current.temperature ?? project?.temperature,
-          topP: current.topP ?? project?.topP,
-          presencePenalty: current.presencePenalty ?? project?.presencePenalty,
-          frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
-          maxTokens: current.maxTokens ?? project?.maxTokens,
-          stream: true,
-          messages: prompt,
+          prompt: prompt.map((i) => i.content).join('\n'),
+          size,
+          n: number,
+          response_format: 'b64_json',
         },
-        responseType: 'stream',
       });
 
-      let text = '';
-      const decoder = new TextDecoder();
+      const images = (response.data.data || []).map((i) => ({ url: `data:image/png;base64,${i.b64_json}` }));
 
-      for await (const chunk of data) {
-        const token = decoder.decode(chunk);
-        callback?.({
-          isFinalTemplate,
-          token,
-          templateId: current?.id || '',
-          templateName: current?.name || '',
-          currentLoop,
-        });
-        text += token;
-      }
-
-      result = { type: 'text', text };
-
-      if (childLog?.id) {
-        const endDate = new Date();
-        const requestTime = endDate.getTime() - childStartDate.getTime();
-        // eslint-disable-next-line no-await-in-loop
-        await Logs.updateWithCatch({ status: Status.SUCCESS, endDate, requestTime, response: result }, childLog.id);
-      }
-
-      if (current.type === 'branch') {
-        const branchId = text && /Branch_(\w+)/s.exec(text)?.[1]?.trim();
-        if (branchId && current.branch?.branches.some((i) => i.template?.id === branchId)) {
-          current = await getTemplate(branchId);
-          continue;
-        }
-      }
-
-      if (current.next) {
-        const { outputKey } = current.next;
-        if (outputKey) {
-          // eslint-disable-next-line no-param-reassign
-          parameters ??= {};
-          parameters[outputKey] = text;
-        }
-      }
-
-      current = next;
+      result = { type: 'images', images };
+      break;
     }
 
-    await Logs.updateWithCatch({ status: Status.SUCCESS, response: result }, logId);
+    const isFinalTemplate = current.type !== 'branch' && !next;
 
-    // 如果只执行一次，删除子记录
-    if (currentLoop === 1) {
-      await Logs.deleteWithCatch(logId);
+    const childLog = await Log.create({
+      templateId: current?.id,
+      prompts: messages,
+      parameters,
+      parentId: log.id,
+      startDate: childStartDate,
+    });
+
+    const { data } = await call({
+      name: 'ai-kit',
+      path: '/api/v1/sdk/completions',
+      method: 'POST',
+      data: {
+        modelName: current.model ?? project?.model,
+        temperature: current.temperature ?? project?.temperature,
+        topP: current.topP ?? project?.topP,
+        presencePenalty: current.presencePenalty ?? project?.presencePenalty,
+        frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
+        maxTokens: current.maxTokens ?? project?.maxTokens,
+        stream: true,
+        messages: prompt,
+      },
+      responseType: 'stream',
+    });
+
+    let text = '';
+    const decoder = new TextDecoder();
+
+    for await (const chunk of data) {
+      const token = decoder.decode(chunk);
+      callback?.({
+        isFinalTemplate,
+        token,
+        templateId: current?.id || '',
+        templateName: current?.name || '',
+      });
+      text += token;
     }
 
-    return result!;
-  } catch (error) {
-    await Logs.updateWithCatch({ status: Status.FAIL, error: error?.message || '' }, logId);
+    result = { type: 'text', text };
 
-    throw new Error(error?.message);
-  } finally {
     const endDate = new Date();
-    const requestTime = endDate.getTime() - startDate.getTime();
-    await Logs.updateWithCatch({ endDate, requestTime }, logId);
+    const requestTime = endDate.getTime() - childStartDate.getTime();
+    await childLog.update({ status: Status.SUCCESS, endDate, requestTime, response: result });
+
+    if (current.type === 'branch') {
+      const branchId = text && /Branch_(\w+)/s.exec(text)?.[1]?.trim();
+      if (branchId && current.branch?.branches.some((i) => i.template?.id === branchId)) {
+        current = await getTemplate(branchId);
+        continue;
+      }
+    }
+
+    if (current.next) {
+      const { outputKey } = current.next;
+      if (outputKey) {
+        // eslint-disable-next-line no-param-reassign
+        parameters ??= {};
+        parameters[outputKey] = text;
+      }
+    }
+
+    current = next;
   }
+
+  return result!;
 }
 
 export default router;
