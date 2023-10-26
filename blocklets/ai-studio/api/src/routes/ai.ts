@@ -3,18 +3,9 @@ import { call } from '@blocklet/sdk/lib/component';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
-import { LLMChain } from 'langchain/chains';
-import {
-  AIMessagePromptTemplate,
-  ChatPromptTemplate,
-  HumanMessagePromptTemplate,
-  PromptTemplate,
-  SystemMessagePromptTemplate,
-} from 'langchain/prompts';
 import { ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
-import { AIKitChat } from '../core/llms/ai-kit-chat';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Logs, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
@@ -193,16 +184,6 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
   }
 });
 
-class StaticPromptTemplate extends PromptTemplate {
-  constructor(template: string) {
-    super({ template, inputVariables: [], validateTemplate: false });
-  }
-
-  override async format(): Promise<string> {
-    return this.template;
-  }
-}
-
 async function runTemplate(
   project: Project | undefined | null,
   getTemplate: (templateId: string) => Promise<Template>,
@@ -293,17 +274,7 @@ async function runTemplate(
 
       const history = (parameters?.$history ?? []).filter((i) => !!i.role && !!i.content);
 
-      const prompt = ChatPromptTemplate.fromPromptMessages(
-        history.concat(messages).map(({ role, content }) => {
-          const Message = {
-            system: SystemMessagePromptTemplate,
-            user: HumanMessagePromptTemplate,
-            assistant: AIMessagePromptTemplate,
-          }[role];
-
-          return new Message(new StaticPromptTemplate(content));
-        })
-      );
+      const prompt = history.concat(messages);
 
       const question = (parameters as any)?.question;
       if (
@@ -311,15 +282,16 @@ async function runTemplate(
         typeof question === 'string' &&
         !current.prompts?.some((i) => i.content && /{{\s*question\s*}}/.test(i.content))
       ) {
-        prompt.promptMessages.push(new HumanMessagePromptTemplate(new StaticPromptTemplate(question)));
+        prompt.push({ role: 'user', content: question });
       }
 
       if (docs.length) {
+        const context = docs.map((i) => i.pageContent).join('\n');
         const contextTemplate = `Use the following pieces of context to answer the users question.
   If you don't know the answer, just say that you don't know, don't try to make up an answer.
   ----------------
-  {context}`;
-        prompt.promptMessages.unshift(SystemMessagePromptTemplate.fromTemplate(contextTemplate));
+  ${context}`;
+        prompt.unshift({ role: 'system', content: contextTemplate });
       }
 
       if (current.type === 'branch') {
@@ -331,9 +303,9 @@ async function runTemplate(
           continue;
         }
 
-        prompt.promptMessages.push(
-          SystemMessagePromptTemplate.fromTemplate(
-            `You are a branch selector, don't try to answer the user's question, \
+        prompt.push({
+          role: 'system',
+          content: `You are a branch selector, don't try to answer the user's question, \
   you need to choose the most appropriate one from the following minutes based on the question entered by the user.
   Branches:
   ${branches.map((i) => `Branch_${i.template!.id}: ${i.description || ''}`).join('\n')}
@@ -347,9 +319,8 @@ async function runTemplate(
   Begin!"
 
   Question: ${question}\
-  `
-          )
-        );
+  `,
+        });
       }
 
       if (current.type === 'image') {
@@ -366,13 +337,7 @@ async function runTemplate(
           path: '/api/v1/sdk/image/generations',
           method: 'POST',
           data: {
-            prompt: (
-              await prompt.formatMessages({
-                context: docs.map((i) => i.pageContent).join('\n'),
-              })
-            )
-              .map((i) => i.text)
-              .join('\n'),
+            prompt: prompt.map((i) => i.content).join('\n'),
             size,
             n: number,
             response_format: 'b64_json',
@@ -385,20 +350,6 @@ async function runTemplate(
         break;
       }
 
-      const model = new AIKitChat({
-        modelName: current.model ?? project?.model,
-        temperature: current.temperature ?? project?.temperature,
-        topP: current.topP ?? project?.topP,
-        presencePenalty: current.presencePenalty ?? project?.presencePenalty,
-        frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
-        maxTokens: current.maxTokens ?? project?.maxTokens,
-      });
-
-      const chain = new LLMChain({
-        llm: model,
-        prompt,
-      });
-
       const isFinalTemplate = current.type !== 'branch' && !next;
 
       const childLog = await Logs.createWithCatch({
@@ -409,24 +360,38 @@ async function runTemplate(
         startDate: childStartDate,
       });
 
-      const { text } = await chain.call(
-        { context: docs.map((i) => i.pageContent).join('\n') },
-        callback
-          ? [
-              {
-                handleLLMNewToken(token) {
-                  callback({
-                    isFinalTemplate,
-                    token,
-                    templateId: current?.id || '',
-                    templateName: current?.name || '',
-                    currentLoop,
-                  });
-                },
-              },
-            ]
-          : undefined
-      );
+      const { data } = await call({
+        name: 'ai-kit',
+        path: '/api/v1/sdk/completions',
+        method: 'POST',
+        data: {
+          modelName: current.model ?? project?.model,
+          temperature: current.temperature ?? project?.temperature,
+          topP: current.topP ?? project?.topP,
+          presencePenalty: current.presencePenalty ?? project?.presencePenalty,
+          frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
+          maxTokens: current.maxTokens ?? project?.maxTokens,
+          stream: true,
+          messages: prompt,
+        },
+        responseType: 'stream',
+      });
+
+      let text = '';
+      const decoder = new TextDecoder();
+
+      for await (const chunk of data) {
+        const token = decoder.decode(chunk);
+        callback?.({
+          isFinalTemplate,
+          token,
+          templateId: current?.id || '',
+          templateName: current?.name || '',
+          currentLoop,
+        });
+        text += token;
+      }
+
       result = { type: 'text', text };
 
       if (childLog?.id) {
