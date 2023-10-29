@@ -82,7 +82,7 @@ export default function ProjectsPage() {
   });
 
   return (
-    <Stack minHeight="100%">
+    <Stack minHeight="100%" overflow="auto">
       <Box m={{ xs: 2, sm: 3 }} flexGrow={1}>
         <ProjectMenu />
 
@@ -276,7 +276,7 @@ function Section({
         direction="row"
         sx={{
           position: 'sticky',
-          top: 64,
+          top: 0,
           bgcolor: 'background.paper',
           zIndex: 1,
           cursor: enableCollapse ? 'pointer' : 'default',
@@ -606,7 +606,7 @@ function ProjectsFooter() {
         bgcolor: 'background.paper',
         zIndex: (theme) => theme.zIndex.appBar,
         borderTopWidth: 1,
-        borderTopStyle: 'dashed',
+        borderTopStyle: 'solid',
         borderTopColor: (theme) => theme.palette.grey[200],
         px: { xs: 2, sm: 3 },
         py: 2,

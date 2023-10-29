@@ -197,7 +197,7 @@ function SessionSelect({ projectId, templateId }: { projectId: string; templateI
 function MessageView({ message }: { message: SessionItem['messages'][number] }) {
   return (
     <>
-      <Stack p={1} direction="row" gap={1} position="relative">
+      <Stack px={2} py={1} direction="row" gap={1} position="relative">
         <Box py={0.5}>
           <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
         </Box>
@@ -362,7 +362,7 @@ function ChatModeForm({ projectId, templateId }: { projectId: string; templateId
   };
 
   return (
-    <Stack component="form" onSubmit={(e) => e.preventDefault()} direction="row" alignItems="flex-end" px={1} gap={1}>
+    <Stack component="form" onSubmit={(e) => e.preventDefault()} direction="row" alignItems="flex-end" px={2} gap={1}>
       <TextField
         hiddenLabel
         fullWidth
@@ -508,7 +508,7 @@ function DebugModeForm({
   };
 
   return (
-    <Stack component="form" onSubmit={form.handleSubmit(submit)} px={1} gap={1}>
+    <Stack component="form" onSubmit={form.handleSubmit(submit)} px={2} gap={1}>
       <Stack gap={1}>
         {params.map((param) => {
           const parameter =
