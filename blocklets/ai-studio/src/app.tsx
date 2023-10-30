@@ -25,6 +25,7 @@ export default function App() {
             html: {
               height: '100%',
               width: '100%',
+              fontSize: '14px',
             },
             body: {
               height: '100%',

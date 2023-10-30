@@ -1,9 +1,4 @@
 import { cx } from '@emotion/css';
-import {
-  DragIndicatorRounded,
-  KeyboardDoubleArrowLeftRounded,
-  KeyboardDoubleArrowRightRounded,
-} from '@mui/icons-material';
 import { Box, BoxProps, Drawer, styled, useMediaQuery, useTheme } from '@mui/material';
 import { ReactNode, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
@@ -109,7 +104,6 @@ const ColumnsLayout = forwardRef<
 
         <ResizeHandle
           collapsed={leftPanelCollapsed}
-          icon={leftPanelCollapsed ? <KeyboardDoubleArrowRightRounded /> : undefined}
           onClick={() => leftPanelCollapsed && leftPanel.current?.expand()}
         />
 
@@ -119,7 +113,6 @@ const ColumnsLayout = forwardRef<
 
         <ResizeHandle
           collapsed={rightPanelCollapsed}
-          icon={rightPanelCollapsed ? <KeyboardDoubleArrowLeftRounded /> : undefined}
           onClick={() => rightPanelCollapsed && rightPanel.current?.expand()}
         />
 
@@ -127,7 +120,7 @@ const ColumnsLayout = forwardRef<
           component={Panel}
           ref={rightPanel}
           defaultSize={45}
-          minSize={20}
+          minSize={30}
           collapsible
           onCollapse={(collapsed) => {
             onRightCollapse?.(collapsed);
@@ -142,65 +135,49 @@ const ColumnsLayout = forwardRef<
 
 export default ColumnsLayout;
 
-function ResizeHandle({ icon, collapsed, ...props }: { collapsed?: boolean; icon?: ReactNode } & BoxProps) {
+function ResizeHandle({ collapsed, ...props }: { collapsed?: boolean } & BoxProps) {
   return (
     <ResizeHandleRoot component={PanelResizeHandle} className={cx(collapsed && 'collapsed')}>
-      <Box {...props} className="handler">
-        {icon || <DragIndicatorRounded />}
-      </Box>
+      <Box {...props} className="handler" />
     </ResizeHandleRoot>
   );
 }
 
 const ResizeHandleRoot = styled(Box)`
   width: 0;
+  border-left: 1px solid ${({ theme }) => theme.palette.background.default};
   height: 100%;
   position: relative;
-  z-index: 10;
   overflow: visible;
-  border-right: ${({ theme }) => `1px dashed ${theme.palette.grey[200]}`};
   user-select: none;
   outline: none;
-
-  &.collapsed {
-    border-width: 0;
-  }
+  z-index: ${({ theme }) => theme.zIndex.appBar + 1};
 
   .handler {
     position: absolute;
-    left: -5px;
     top: 0;
     bottom: 0;
-    width: 10px;
-    height: 100px;
-    border-radius: 5px;
+    width: ${({ theme }) => theme.spacing(1)};
+    transform: translateX(-50%);
     margin: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: ${({ theme }) => theme.palette.grey[100]};
-    transition: ${({ theme }) =>
-      theme.transitions.create('all', {
-        easing: theme.transitions.easing.sharp,
-      })};
-
-    svg {
-      font-size: 14px;
-    }
+    transition: ${({ theme }) => theme.transitions.create('all', { easing: theme.transitions.easing.sharp })};
   }
 
   :hover,
   &[data-resize-handle-active] {
     .handler {
-      left: -5px;
-      height: calc(100% - 128px);
-      width: 10px;
-      background-color: ${({ theme }) => theme.palette.grey[100]};
-      border-radius: 5px;
+      background-color: ${({ theme }) => theme.palette.background.default};
+    }
+  }
 
-      svg {
-        opacity: 0.7;
-      }
+  &.collapsed {
+    border: none;
+
+    .handler {
+      display: none;
     }
   }
 `;

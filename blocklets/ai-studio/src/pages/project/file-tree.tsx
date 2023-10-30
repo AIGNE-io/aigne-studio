@@ -1,8 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { css } from '@emotion/css';
-import { MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
-import { ExpandMoreRounded } from '@mui/icons-material';
+import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
   Accordion,
   AccordionDetails,
@@ -18,10 +17,15 @@ import {
   ListItemIcon,
   ListItemText,
   Stack,
+  StackProps,
   Tooltip,
+  Typography,
+  accordionSummaryClasses,
   listItemButtonClasses,
   listItemIconClasses,
-  styled,
+  svgIconClasses,
+  tooltipClasses,
+  useTheme,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
@@ -47,11 +51,11 @@ import { getErrorMessage } from '../../libs/api';
 import { importTemplatesToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
+import ChevronDown from './icons/chevron-down';
 import Duplicate from './icons/duplicate';
 import External from './icons/external';
 import File from './icons/file';
 import FolderClose from './icons/folder-close';
-import FolderOpen from './icons/folder-open';
 import MenuVertical from './icons/menu-vertical';
 import Pen from './icons/pen';
 import Picture from './icons/picture';
@@ -106,6 +110,7 @@ const FileTree = forwardRef<
     onLaunch?: (template: TemplateYjs) => any;
   } & Omit<BoxProps, 'onClick'>
 >(({ projectId, gitRef, current, mutable, onLaunch, ...props }, ref) => {
+  const theme = useTheme();
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
@@ -187,7 +192,7 @@ const FileTree = forwardRef<
     ({ from, to }: { from: string[]; to: string[] }) => {
       moveFile({ store, from, to });
 
-      setOpenIds((ids) => [...new Set((ids ?? []).concat(to.slice(0, -1)))]);
+      setOpenIds((ids) => [...new Set((ids ?? []).concat(to.slice(0, -1).join('/')))]);
 
       const filename = current?.split('/').slice(-1)[0];
       const filepath = filename ? Object.values(store.tree).find((i) => i?.endsWith(filename)) : undefined;
@@ -267,7 +272,7 @@ const FileTree = forwardRef<
       <Box {...props}>
         {showNewProject && (
           <EditableTreeItem
-            icon={<FolderClose />}
+            icon={<ChevronDown sx={{ transform: 'rotateZ(-90deg)' }} />}
             key={showNewProject.toString()}
             defaultEditing
             onSubmit={async (value) => {
@@ -304,18 +309,15 @@ const FileTree = forwardRef<
             classes={{
               root: css`
                 min-height: 100%;
-                &:after {
-                  content: '';
-                  display: block;
-                  height: 100px;
-                }
+                padding-bottom: ${theme.spacing(10)};
               `,
               dropTarget: css`
-                background-color: rgba(0, 0, 0, 0.05);
+                background-color: ${theme.palette.action.hover};
               `,
             }}
             listComponent="div"
             listItemComponent="div"
+            dragPreviewRender={DragPreviewRender}
             render={(node, { depth, isOpen, onToggle }) => {
               if (!node.data) {
                 return <Box />;
@@ -338,7 +340,7 @@ const FileTree = forwardRef<
                 return (
                   <EditableTreeItem
                     key={node.id}
-                    icon={isOpen ? <FolderOpen /> : <FolderClose />}
+                    icon={<ChevronDown sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }} />}
                     mutable={mutable}
                     depth={depth}
                     onClick={onToggle}
@@ -357,36 +359,21 @@ const FileTree = forwardRef<
               const name = `${meta.id}.yaml`;
               const selected = current?.endsWith(name);
 
-              const changed = changes(meta) ? (
-                <Tooltip title={changes(meta)?.tips} disableInteractive placement="top">
-                  <Box
-                    color={changes(meta)?.color}
-                    sx={{
-                      width: '24px',
-                      height: '24px',
-                      textAlign: 'center',
-                      lineHeight: '24px',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                    }}>
-                    {changes(meta)?.key}
-                  </Box>
-                </Tooltip>
-              ) : null;
+              const change = changes(meta);
 
               const icon = meta.type === 'image' ? <Picture /> : <File />;
 
-              return (
+              const children = (
                 <TreeItem
                   key={node.id}
                   icon={icon}
                   depth={depth}
                   selected={selected}
                   onClick={() => navigate(filepath.join('/'))}
-                  actions={actions}
-                  otherActions={changed}>
-                  {meta.name || t('alert.unnamed')}
+                  actions={actions}>
+                  <Typography component="span" sx={{ color: change?.color }}>
+                    {meta.name || t('alert.unnamed')}
+                  </Typography>
 
                   <AwarenessIndicator
                     projectId={projectId}
@@ -396,6 +383,15 @@ const FileTree = forwardRef<
                   />
                 </TreeItem>
               );
+
+              if (change) {
+                return (
+                  <Tooltip title={change.tips} disableInteractive placement="top">
+                    <Box>{children}</Box>
+                  </Tooltip>
+                );
+              }
+              return children;
             }}
           />
         </DndProvider>
@@ -417,6 +413,43 @@ const FileTree = forwardRef<
 });
 
 export default FileTree;
+
+function DragPreviewRender({ item }: DragLayerMonitorProps<EntryWithMeta>) {
+  const { t } = useLocaleContext();
+
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      sx={{
+        px: 1,
+        borderRadius: 1,
+        minHeight: 28,
+        maxWidth: 140,
+        bgcolor: 'action.selected',
+      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          width: (theme) => theme.spacing(3),
+          [`.${svgIconClasses.root}`]: { fontSize: '1.25rem', color: 'text.secondary' },
+        }}>
+        {item.data?.type === 'folder' ? <FolderClose /> : item.data?.meta.type === 'image' ? <Picture /> : <File />}
+      </Box>
+
+      <Box
+        sx={{
+          flex: 1,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}>
+        {item.text || t('unnamed')}
+      </Box>
+    </Stack>
+  );
+}
 
 function TreeItemMenus({
   mutable,
@@ -600,7 +633,7 @@ function TreeItem({
   actions?: ReactNode;
   selected?: boolean;
   otherActions?: ReactNode;
-} & BoxProps) {
+} & StackProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
 
@@ -613,38 +646,41 @@ function TreeItem({
   }, [selected]);
 
   return (
-    <Box
+    <Stack
+      direction="row"
       sx={{
-        m: 0.5,
-        position: 'relative',
-        bgcolor: open ? 'grey.100' : selected ? 'rgba(0,0,0,0.05)' : undefined,
+        mx: 1,
+        minHeight: 28,
         borderRadius: 1,
+        bgcolor: selected ? 'action.selected' : open ? 'action.hover' : undefined,
         ':hover': {
-          bgcolor: 'grey.100',
-          '.hover-visible': { display: 'flex' },
+          bgcolor: selected ? 'action.selected' : 'action.hover',
+          '.hover-visible': { maxWidth: '100%' },
         },
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        overflow: 'hidden',
       }}>
-      <Box
+      <Stack
         ref={ref}
-        className="item"
         {...props}
+        direction="row"
+        alignItems="center"
         sx={{
           position: 'relative',
           pl: depth * 2 + 1,
           pr: 1,
-          py: 0.5,
           flex: 1,
-          display: 'flex',
-          alignItems: 'center',
           cursor: 'pointer',
           overflow: 'hidden',
           ...props.sx,
         }}>
-        <Box sx={{ width: 32, display: 'flex', alignItems: 'center' }}>{icon}</Box>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: (theme) => theme.spacing(3),
+            [`.${svgIconClasses.root}`]: { fontSize: '1.25rem', color: 'text.secondary' },
+          }}>
+          {icon}
+        </Box>
 
         <Box
           sx={{
@@ -655,7 +691,7 @@ function TreeItem({
           }}>
           {children}
         </Box>
-      </Box>
+      </Stack>
 
       <Box display="flex" alignItems="center">
         {actions && (
@@ -663,7 +699,9 @@ function TreeItem({
             component="span"
             className="hover-visible"
             justifyContent="center"
-            sx={{ display: open ? 'flex' : 'none' }}>
+            alignItems="flex-end"
+            overflow="hidden"
+            sx={{ maxWidth: open ? '100%' : 0 }}>
             <Tooltip
               open={open}
               placement="right-start"
@@ -672,6 +710,16 @@ function TreeItem({
               disableHoverListener
               disableTouchListener
               componentsProps={{
+                popper: {
+                  sx: {
+                    [`&.${tooltipClasses.popper}[data-popper-placement*="left"] .${tooltipClasses.tooltip}`]: {
+                      mr: 1,
+                    },
+                    [`&.${tooltipClasses.popper}[data-popper-placement*="right"] .${tooltipClasses.tooltip}`]: {
+                      ml: 1,
+                    },
+                  },
+                },
                 tooltip: { sx: { bgcolor: 'grey.100', boxShadow: 1, m: 0, p: 0.5 } },
               }}
               title={
@@ -714,7 +762,7 @@ function TreeItem({
           </Box>
         )}
       </Box>
-    </Box>
+    </Stack>
   );
 }
 
@@ -744,49 +792,74 @@ function DeleteTemplates({
   };
 
   return (
-    <AccordionContainer expanded={expanded === 'delete-panel'} onChange={handleChange('delete-panel')} elevation={0}>
-      <AccordionSummary expandIcon={<ExpandMoreRounded />}>
-        <Box className="content">{t('diff.deleted')}</Box>
+    <Accordion
+      disableGutters
+      expanded={expanded === 'delete-panel'}
+      onChange={handleChange('delete-panel')}
+      elevation={0}
+      sx={{
+        ':before': { display: 'none' },
+        position: 'sticky',
+        bottom: 0,
+        p: 0,
+      }}>
+      <AccordionSummary
+        sx={{
+          px: 2,
+          bgcolor: 'grey.100',
+          minHeight: (theme) => theme.spacing(3.5),
+          [`.${accordionSummaryClasses.content}`]: {
+            m: 0,
+            py: 0,
+            overflow: 'hidden',
+            alignItems: 'center',
+          },
+        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            minWidth: (theme) => theme.spacing(3),
+          }}>
+          <ChevronDown
+            sx={{
+              fontSize: 20,
+              transform: `rotateZ(${expanded ? '0' : '-90deg'})`,
+              transition: (theme) => theme.transitions.create('all'),
+            }}
+          />
+        </Box>
+
+        <Typography variant="subtitle2" flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
+          {t('diff.deleted')}
+        </Typography>
       </AccordionSummary>
 
-      <AccordionDetails>
+      <AccordionDetails sx={{ py: 1, px: 0 }}>
         <Box maxHeight="120px" overflow="auto">
           {list.map((item) => {
             const icon = item.type === 'image' ? <Picture /> : <File />;
 
-            const changed = changes(item) ? (
-              <>
-                <Tooltip title={t('restore')} disableInteractive placement="top">
-                  <Button
-                    sx={{ padding: 0.5, minWidth: 0 }}
-                    onClick={() => {
-                      const { parent, ...meta } = item;
-                      onCreateFile({ parent, meta });
-                    }}>
-                    <Undo sx={{ fontSize: 20 }} />
-                  </Button>
-                </Tooltip>
-
-                <Tooltip title={changes(item)?.tips} disableInteractive placement="top">
-                  <Box
-                    color={changes(item)?.color}
-                    sx={{
-                      width: '24px',
-                      height: '24px',
-                      textAlign: 'center',
-                      lineHeight: '24px',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                    }}>
-                    {changes(item)?.key}
-                  </Box>
-                </Tooltip>
-              </>
-            ) : null;
+            const change = changes(item);
+            if (!change) return null;
 
             return (
-              <TreeItem key={item.id} icon={icon} depth={0} actions={null} otherActions={changed}>
+              <TreeItem
+                key={item.id}
+                icon={icon}
+                depth={0}
+                otherActions={
+                  <Tooltip title={t('restore')} disableInteractive placement="top">
+                    <Button
+                      sx={{ padding: 0.5, minWidth: 0 }}
+                      onClick={() => {
+                        const { parent, ...meta } = item;
+                        onCreateFile({ parent, meta });
+                      }}>
+                      <Undo sx={{ fontSize: 20 }} />
+                    </Button>
+                  </Tooltip>
+                }>
                 <Box sx={{ textDecoration: 'line-through', display: 'flex', alignItems: 'center', fontSize: '14px' }}>
                   {!!item.parent?.length && (
                     <Box
@@ -808,34 +881,6 @@ function DeleteTemplates({
           })}
         </Box>
       </AccordionDetails>
-    </AccordionContainer>
+    </Accordion>
   );
 }
-
-const AccordionContainer = styled(Accordion)`
-  &.MuiAccordion-root {
-    margin: 0;
-    &::before {
-      display: none;
-    }
-    .MuiAccordionSummary-root {
-      min-height: auto;
-      background: ${({ theme }) => theme.palette.grey[100]};
-
-      .MuiAccordionSummary-content {
-        margin: 8px 0;
-        align-items: center;
-        font-size: 14px;
-        .content {
-          flex: 1;
-          width: 0;
-          color: ${({ theme }) => theme.palette.text.primary};
-        }
-      }
-    }
-
-    .MuiAccordionDetails-root {
-      padding: 0;
-    }
-  }
-`;

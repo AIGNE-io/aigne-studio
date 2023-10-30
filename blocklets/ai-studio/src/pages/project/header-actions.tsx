@@ -171,7 +171,7 @@ export default function HeaderActions() {
         onCommitSelect={(commit) => {
           navigate(joinUrl('..', commit.oid), { state: { filepath } });
         }}>
-        <Button size="small" sx={{ minWidth: 32, minHeight: 32 }}>
+        <Button sx={{ minWidth: 32, minHeight: 32 }}>
           <HistoryRounded />
         </Button>
       </CommitsTip>
