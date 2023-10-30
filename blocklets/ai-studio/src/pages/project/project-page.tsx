@@ -11,7 +11,8 @@ import {
   Toolbar,
   Tooltip,
   Typography,
-  tabScrollButtonClasses,
+  tabClasses,
+  tabsClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { useCallback, useEffect, useRef } from 'react';
@@ -133,7 +134,6 @@ export default function ProjectPage() {
               top: 0,
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
-              borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
             <Toolbar variant="dense" sx={{ px: { xs: 1 }, overflow: 'hidden' }}>
               <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
@@ -185,17 +185,31 @@ export default function ProjectPage() {
               top: 0,
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
-              borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
             <Toolbar variant="dense" sx={{ gap: 1, px: { xs: 1 } }}>
               <Tabs
                 variant="scrollable"
+                scrollButtons={false}
                 value={currentTab}
                 onChange={(_, tab) => setCurrentTab(tab)}
+                TabIndicatorProps={{ children: <Box component="span" /> }}
                 sx={{
-                  [`.${tabScrollButtonClasses.disabled}`]: {
-                    opacity: 1,
-                    color: (theme) => theme.palette.action.disabled,
+                  minHeight: 32,
+                  [`.${tabClasses.root}`]: {
+                    py: 1,
+                    px: 1,
+                    minHeight: 32,
+                    minWidth: 32,
+                  },
+                  [`.${tabsClasses.indicator}`]: {
+                    bgcolor: 'transparent',
+
+                    span: {
+                      display: 'block',
+                      mx: 1,
+                      bgcolor: 'primary.main',
+                      height: '100%',
+                    },
                   },
                 }}>
                 <Tab value="setting" label={t('setting')} />
@@ -231,7 +245,6 @@ export default function ProjectPage() {
               top: 0,
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
-              borderBottom: (theme) => `1px dashed ${theme.palette.grey[200]}`,
             }}>
             <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
               {!leftOpen && (
@@ -254,7 +267,7 @@ export default function ProjectPage() {
             </Toolbar>
           </Box>
 
-          <Box m={{ xs: 2 }} flexGrow={1}>
+          <Box mx={{ xs: 2 }} flexGrow={1}>
             {!synced ? (
               <Box sx={{ textAlign: 'center', mt: 10 }}>
                 <CircularProgress size={32} />
@@ -277,7 +290,7 @@ export default function ProjectPage() {
                 bottom: 0,
                 bgcolor: 'background.paper',
                 zIndex: (theme) => theme.zIndex.appBar,
-                borderTop: (theme) => `1px dashed ${theme.palette.grey[200]}`,
+                borderTop: (theme) => `1px solid ${theme.palette.grey[50]}`,
               }}>
               <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
                 <TokenUsage template={template} />

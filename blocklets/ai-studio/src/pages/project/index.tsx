@@ -1,5 +1,5 @@
 import { Dashboard } from '@blocklet/studio-ui';
-import { Box, backdropClasses, circularProgressClasses, drawerClasses, styled } from '@mui/material';
+import { Box, GlobalStyles, backdropClasses, circularProgressClasses, paperClasses, styled } from '@mui/material';
 import { ComponentProps, Suspense, lazy, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -21,6 +21,13 @@ export default function ProjectRoutes() {
 
   return (
     <DndProvider backend={HTML5Backend}>
+      <GlobalStyles
+        styles={(theme) => ({
+          html: {
+            backgroundColor: theme.palette.background.default,
+          },
+        })}
+      />
       <StyledDashboard
         HeaderProps={{
           logo: <LogoRoutes />,
@@ -33,17 +40,29 @@ export default function ProjectRoutes() {
             [`.${backdropClasses.root}`]: {
               top: 64,
             },
-            [`> .${drawerClasses.paper}`]: {
-              borderRightStyle: 'dashed',
-            },
           },
         }}
         sx={{
-          '.dashboard-header': {
+          bgcolor: 'background.default',
+
+          '> .dashboard-header': {
             border: 'none',
-            bgcolor: 'grey.200',
-            borderBottomLeftRadius: 8,
-            borderBottomRightRadius: 8,
+            bgcolor: 'transparent',
+          },
+
+          '> .dashboard-body': {
+            '> .dashboard-aside': {
+              [`.${paperClasses.root}`]: {
+                border: 'none',
+                bgcolor: 'background.default',
+              },
+            },
+            '> .dashboard-content': {
+              bgcolor: 'background.paper',
+              borderTopLeftRadius: (theme) => theme.shape.borderRadius * 2,
+              borderTopRightRadius: (theme) => theme.shape.borderRadius * 2,
+              overflow: 'hidden',
+            },
           },
         }}>
         <ErrorBoundary ref={errorBoundary}>

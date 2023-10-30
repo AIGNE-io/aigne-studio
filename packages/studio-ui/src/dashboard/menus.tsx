@@ -184,10 +184,10 @@ const StyledList = styled(List)`
     .${listItemClasses.root} {
       .${listItemButtonClasses.root} {
         flex-direction: column;
-        margin-left: 4px;
-        margin-right: 4px;
-        padding-left: 4px;
-        padding-right: 4px;
+        margin-left: ${({ theme }) => theme.spacing(1)};
+        margin-right: ${({ theme }) => theme.spacing(1)};
+        padding-left: ${({ theme }) => theme.spacing(0.5)};
+        padding-right: ${({ theme }) => theme.spacing(0.5)};
 
         .${listItemIconClasses.root} {
           margin-right: 0;

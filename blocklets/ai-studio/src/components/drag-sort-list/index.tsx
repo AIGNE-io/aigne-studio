@@ -1,7 +1,7 @@
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { DragIndicator } from '@mui/icons-material';
-import { Box } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
 import { useUpdate } from 'ahooks';
 import { Reorder, useDragControls } from 'framer-motion';
 import get from 'lodash/get';
@@ -100,11 +100,12 @@ export function DragSortListYjs<T>({
   disabled,
   list,
   renderItem,
+  ...props
 }: {
   disabled?: boolean;
   list: { [key: string]: { index: number; data: T } };
   renderItem: (item: T, index: number, params: ItemRenderParams) => ReactNode;
-}) {
+} & BoxProps) {
   const ref = useRef<HTMLDivElement>(null);
   const type = useId();
   const update = useUpdate();
@@ -158,7 +159,7 @@ export function DragSortListYjs<T>({
   drop(ref);
 
   return (
-    <Box ref={ref}>
+    <Box {...props} ref={ref} className={cx(isOver && 'isDragging')}>
       {ids.current.map((id, index) => (
         <ItemDND
           key={id}

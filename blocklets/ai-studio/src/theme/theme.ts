@@ -12,8 +12,19 @@ import {
 
 export const theme = createTheme({
   typography: {
+    fontFamily:
+      'ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji',
     button: {
       textTransform: 'none',
+    },
+  },
+  palette: {
+    background: {
+      paper: '#ffffff',
+      default: '#f5f5f5',
+    },
+    action: {
+      selected: 'rgba(25, 118, 210, 0.08)',
     },
   },
   shape: { borderRadius: 8 },

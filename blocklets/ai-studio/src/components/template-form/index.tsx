@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, Stack, TextField, Typography, inputBaseClasses, inputClasses, styled } from '@mui/material';
+import { Box, Stack, TextField, Typography, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
@@ -39,7 +39,7 @@ export default function TemplateFormView({
   const readOnly = useReadOnly({ ref: gitRef });
 
   return (
-    <Stack>
+    <Stack gap={0.5}>
       <Box position="relative">
         <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
           <HoverBackgroundTextField
@@ -48,7 +48,10 @@ export default function TemplateFormView({
             placeholder={t('unnamed')}
             value={value.name ?? ''}
             onChange={(e) => (value.name = e.target.value)}
-            InputProps={{ readOnly, sx: { fontSize: 18 } }}
+            InputProps={{
+              readOnly,
+              sx: { fontSize: (theme) => theme.typography.h6.fontSize },
+            }}
           />
         </WithAwareness>
 
@@ -67,8 +70,10 @@ export default function TemplateFormView({
             fullWidth
             placeholder={t('description')}
             value={value.description ?? ''}
+            multiline
+            maxRows={6}
             onChange={(e) => (value.description = e.target.value)}
-            InputProps={{ readOnly, sx: { fontSize: 14 } }}
+            InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
           />
         </WithAwareness>
 
@@ -94,7 +99,7 @@ export default function TemplateFormView({
                 placeholder={t('form.tag')}
                 InputProps={{
                   ...params.InputProps,
-                  sx: { fontSize: 14, [`.${inputBaseClasses.input}`]: { py: 0 } },
+                  sx: { [`.${chipClasses.root}`]: { ml: 0, mr: 0.5 } },
                 }}
               />
             )}
@@ -110,7 +115,9 @@ export default function TemplateFormView({
       </Box>
 
       <Box>
-        <Typography variant="h6" sx={{ px: 1, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
+        <Typography
+          variant="h6"
+          sx={{ px: 1, mb: 1, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('prompts')}
         </Typography>
 
@@ -127,8 +134,8 @@ const HoverBackgroundTextField = styled(TextField)(({ theme }) =>
     [`.${inputBaseClasses.root}`]: {
       bgcolor: 'transparent',
 
-      [`&.${inputClasses.focused}`]: {
-        bgcolor: 'rgba(0,0,0,0.06)',
+      [`:hover, &.${inputClasses.focused}`]: {
+        bgcolor: 'action.hover',
       },
     },
   })
