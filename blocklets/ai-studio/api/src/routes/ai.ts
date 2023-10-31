@@ -6,6 +6,7 @@ import Joi from 'joi';
 import { ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
+import logger from '../libs/logger';
 import { renderAsync } from '../libs/mustache-async';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Log, { Status } from '../store/models/logs';
@@ -257,7 +258,6 @@ async function runTemplate(
                 callPrompt: () => async (text: string) => {
                   try {
                     const t = await renderTemplate(text);
-                    console.log({ t });
 
                     const options = await Joi.object<{ templateId: string; parameters?: object }>({
                       templateId: Joi.string().required(),
@@ -272,11 +272,11 @@ async function runTemplate(
                       (options) => callback?.({ ...options, isFinalTemplate: false }),
                       log
                     );
-                    console.log(result);
                     if (result.type === 'text') return result.text;
                   } catch (error) {
-                    return '';
+                    logger.error('callPrompt error', error);
                   }
+                  return '';
                 },
               },
               undefined,
@@ -285,7 +285,6 @@ async function runTemplate(
           };
 
           const prompt = await renderTemplate(content);
-          console.log({ prompt });
 
           return { role: item.role, content: prompt };
         })
