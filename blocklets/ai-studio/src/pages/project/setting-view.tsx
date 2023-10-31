@@ -1,6 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { InfoOutlined } from '@mui/icons-material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
 import {
   Box,
   FormControlLabel,
@@ -11,7 +10,7 @@ import {
   Tooltip,
   Typography,
   formLabelClasses,
-  styled,
+  typographyClasses,
 } from '@mui/material';
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -93,9 +92,16 @@ export default function SettingView({
   if (!model) return null;
 
   return (
-    <Stack py={2}>
-      <Stack sx={{ '> *:last-child': { mb: 4 } }}>
-        <Typography variant="h6" sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
+    <Stack
+      py={2}
+      sx={{
+        '> div > *:last-child': { mb: 4 },
+        [`.${typographyClasses.subtitle2}`]: { mb: 1 },
+      }}>
+      <Stack>
+        <Typography
+          variant="subtitle2"
+          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('variable')}
         </Typography>
 
@@ -104,12 +110,14 @@ export default function SettingView({
         </Box>
       </Stack>
 
-      <Stack sx={{ '> *:last-child': { mb: 4 }, [`.${formLabelClasses.root}`]: { fontSize: 14 } }}>
-        <Typography variant="h6" sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
+      <Stack sx={{ [`.${formLabelClasses.root}`]: { fontSize: 14 } }}>
+        <Typography
+          variant="subtitle2"
+          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('setting')}
         </Typography>
 
-        <Stack direction="row" alignItems="center" px={3} position="relative">
+        <Stack mt={-0.5} direction="row" alignItems="center" px={3} position="relative">
           <FormLabel sx={{ minWidth: 60 }}>{t('public')}</FormLabel>
 
           <Box>
@@ -168,8 +176,10 @@ export default function SettingView({
         </Stack>
       </Stack>
 
-      <Stack sx={{ '> *:last-child': { mb: 4 } }}>
-        <Typography variant="h6" sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
+      <Stack>
+        <Typography
+          variant="subtitle2"
+          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('model')}
         </Typography>
 
@@ -192,9 +202,16 @@ export default function SettingView({
           />
         </Box>
 
-        <AccordionContainer expanded={expanded === 'panel1'} onChange={handleChange('panel1')} elevation={0}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Box className="content">{getModelTexts()}</Box>
+        <Accordion
+          expanded={expanded === 'panel1'}
+          onChange={handleChange('panel1')}
+          elevation={0}
+          disableGutters
+          sx={{ mx: 1, ':before': { display: 'none' } }}>
+          <AccordionSummary
+            expandIcon={<ExpandMoreRounded />}
+            sx={(theme) => ({ ...theme.typography.caption, color: 'text.secondary' })}>
+            {getModelTexts()}
           </AccordionSummary>
 
           <AccordionDetails>
@@ -348,11 +365,13 @@ export default function SettingView({
               </Box>
             </Box>
           </AccordionDetails>
-        </AccordionContainer>
+        </Accordion>
       </Stack>
 
-      <Stack sx={{ '> *:last-child': { mb: 4 } }}>
-        <Typography variant="h6" sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
+      <Stack>
+        <Typography
+          variant="subtitle2"
+          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('dataset')}
         </Typography>
 
@@ -362,8 +381,10 @@ export default function SettingView({
       </Stack>
 
       {template.type !== 'image' && (
-        <Stack sx={{ '> *:last-child': { mb: 2 } }}>
-          <Typography variant="h6" sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
+        <Stack>
+          <Typography
+            variant="subtitle2"
+            sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
             {t('next')}
           </Typography>
 
@@ -375,35 +396,3 @@ export default function SettingView({
     </Stack>
   );
 }
-
-const AccordionContainer = styled(Accordion)`
-  &.MuiAccordion-root {
-    margin: 0;
-
-    &::before {
-      display: none;
-    }
-
-    .MuiAccordionSummary-root {
-      min-height: auto;
-
-      .MuiAccordionSummary-content {
-        margin: 16px 0;
-        align-items: center;
-        font-size: 14px;
-        padding-left: 8px;
-        padding-right: 8px;
-
-        .content {
-          flex: 1;
-          width: 0;
-          color: ${({ theme }) => theme.palette.text.disabled};
-        }
-      }
-    }
-
-    .MuiAccordionDetails-root {
-      padding-left: 24px;
-    }
-  }
-`;

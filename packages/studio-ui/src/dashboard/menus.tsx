@@ -12,7 +12,6 @@ import {
   Tooltip,
   TooltipProps,
   alpha,
-  listClasses,
   listItemButtonClasses,
   listItemClasses,
   listItemIconClasses,
@@ -212,30 +211,26 @@ const StyledList = styled(List)`
 
   > .${listItemClasses.root} {
     .${listItemButtonClasses.root} {
-      &.active {
-        background-color: ${(props) =>
-          alpha(props.theme.palette.primary.main, props.theme.palette.action.selectedOpacity)};
-      }
-    }
-  }
-
-  .${listClasses.root} {
-    .${listItemButtonClasses.root} {
-      .${listItemIconClasses.root} {
-        font-size: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: ${(props) => props.theme.palette.grey[500]};
-        transition: all ${(props) => props.theme.transitions.duration.short}ms ease-in-out;
-      }
+      color: ${({ theme }) => theme.palette.text.secondary};
 
       &.active {
+        background-color: ${({ theme }) => theme.palette.action.selected};
+        color: ${({ theme }) => theme.palette.text.primary};
+
         .${listItemIconClasses.root} {
           font-size: 8px;
-          color: ${(props) => props.theme.palette.primary.main};
+          color: ${({ theme }) => theme.palette.text.secondary};
         }
       }
+    }
+
+    .${listItemIconClasses.root} {
+      font-size: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all ${({ theme }) => theme.transitions.duration.short}ms ease-in-out;
+      color: ${({ theme }) => alpha(theme.palette.text.secondary, theme.palette.action.disabledOpacity)};
     }
   }
 `;

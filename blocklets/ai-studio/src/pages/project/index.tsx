@@ -35,13 +35,7 @@ export default function ProjectRoutes() {
           addons: (exists) => [<AddonsRoutes />, ...exists],
         }}
         menus={<MenuRoutes />}
-        MenusDrawerProps={{
-          sx: {
-            [`.${backdropClasses.root}`]: {
-              top: 64,
-            },
-          },
-        }}
+        MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
         sx={{
           bgcolor: 'background.default',
 

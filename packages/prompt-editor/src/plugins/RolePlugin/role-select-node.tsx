@@ -80,6 +80,7 @@ export class RoleSelectNode extends DecoratorNode<JSX.Element | null> {
     return (
       <RoleSelect
         size="small"
+        className="role-selector"
         disabled={!editor.isEditable()}
         value={this.__text}
         onChange={(e) => handleOnChange(e.target.value)}
