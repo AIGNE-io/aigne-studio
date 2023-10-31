@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, Stack, TextField, Typography, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
+import { Box, Stack, TextField, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
@@ -39,7 +39,7 @@ export default function TemplateFormView({
   const readOnly = useReadOnly({ ref: gitRef });
 
   return (
-    <Stack gap={0.5}>
+    <Stack gap={0.5} pb={10}>
       <Box position="relative">
         <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
           <HoverBackgroundTextField
@@ -118,17 +118,7 @@ export default function TemplateFormView({
         />
       </Box>
 
-      <Box>
-        <Typography
-          variant="subtitle2"
-          sx={{ px: 1, mb: 1, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
-          {t('prompts')}
-        </Typography>
-
-        <Box mb={2}>
-          <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} />
-        </Box>
-      </Box>
+      <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} />
     </Stack>
   );
 }

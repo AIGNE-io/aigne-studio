@@ -2,7 +2,8 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import PromptEditor from '@blocklet/prompt-editor';
 import { cx } from '@emotion/css';
-import { Box, Button, Stack, Tooltip, buttonClasses } from '@mui/material';
+import { TipsAndUpdatesRounded } from '@mui/icons-material';
+import { Box, Button, Stack, Tooltip, Typography, alpha, buttonClasses } from '@mui/material';
 import { useCounter } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
@@ -84,12 +85,22 @@ export default function Prompts({
             border: 2,
             borderColor: 'primary.main',
             borderRadius: 2,
-            overflow: 'hidden',
+            bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
           }}>
+          <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
+            <TipsAndUpdatesRounded fontSize="small" color="primary" />
+
+            <Typography variant="subtitle2">{t('prompts')}</Typography>
+          </Stack>
+
           <DragSortListYjs
             disabled={readOnly}
             list={form.prompts}
             sx={{
+              bgcolor: 'background.paper',
+              borderRadius: 2,
+              overflow: 'hidden',
+
               '&.isDragging': {
                 '.hover-visible': {
                   maxHeight: '0 !important',
@@ -249,7 +260,6 @@ export default function Prompts({
       {!readOnly && (
         <Button
           sx={{ mt: 1, mx: 1 }}
-          size="small"
           startIcon={<Add />}
           onClick={() => {
             const id = nanoid();
