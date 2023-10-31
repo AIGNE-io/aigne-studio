@@ -50,7 +50,7 @@ export default function TemplateFormView({
             onChange={(e) => (value.name = e.target.value)}
             InputProps={{
               readOnly,
-              sx: { fontSize: (theme) => theme.typography.h6.fontSize },
+              sx: (theme) => theme.typography.subtitle1,
             }}
           />
         </WithAwareness>
@@ -73,7 +73,7 @@ export default function TemplateFormView({
             multiline
             maxRows={6}
             onChange={(e) => (value.description = e.target.value)}
-            InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
+            InputProps={{ readOnly, sx: (theme) => ({ ...theme.typography.body2, color: 'text.secondary' }) }}
           />
         </WithAwareness>
 
@@ -99,7 +99,11 @@ export default function TemplateFormView({
                 placeholder={t('form.tag')}
                 InputProps={{
                   ...params.InputProps,
-                  sx: { [`.${chipClasses.root}`]: { ml: 0, mr: 0.5 } },
+                  sx: (theme) => ({
+                    ...theme.typography.body2,
+                    color: 'text.secondary',
+                    [`.${chipClasses.root}`]: { ml: 0, mr: 0.5 },
+                  }),
                 }}
               />
             )}
@@ -116,7 +120,7 @@ export default function TemplateFormView({
 
       <Box>
         <Typography
-          variant="h6"
+          variant="subtitle2"
           sx={{ px: 1, mb: 1, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('prompts')}
         </Typography>

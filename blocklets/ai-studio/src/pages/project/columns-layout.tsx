@@ -1,5 +1,5 @@
 import { cx } from '@emotion/css';
-import { Box, BoxProps, Drawer, styled, useMediaQuery, useTheme } from '@mui/material';
+import { Box, BoxProps, Drawer, backdropClasses, styled, useMediaQuery, useTheme } from '@mui/material';
 import { ReactNode, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
@@ -68,8 +68,8 @@ const ColumnsLayout = forwardRef<
 
         <Drawer
           open={leftDrawerOpen}
-          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
-          PaperProps={{ sx: { width: 300, pt: 8 } }}
+          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1, [`.${backdropClasses.root}`]: { top: 64 } }}
+          PaperProps={{ sx: { width: 300, top: 64, boxShadow: 0 } }}
           onClose={() => setLeftDrawerOpen(false)}>
           {left}
         </Drawer>
@@ -77,8 +77,8 @@ const ColumnsLayout = forwardRef<
         <Drawer
           anchor="right"
           open={rightDrawerOpen}
-          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
-          PaperProps={{ sx: { width: 'calc(100% - 16px)', pt: 8 } }}
+          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1, [`.${backdropClasses.root}`]: { top: 64 } }}
+          PaperProps={{ sx: { width: 'calc(100% - 16px)', top: 64, boxShadow: 0 } }}
           onClose={() => setRightDrawerOpen(false)}>
           {right}
         </Drawer>

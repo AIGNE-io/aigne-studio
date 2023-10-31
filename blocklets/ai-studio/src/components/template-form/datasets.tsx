@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Add, Delete } from '@mui/icons-material';
-import { Autocomplete, Box, Button, TextField } from '@mui/material';
+import { Autocomplete, Box, Button, Stack, TextField } from '@mui/material';
 import { nanoid } from 'nanoid';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
@@ -16,10 +16,10 @@ export default function Datasets({ readOnly, form }: { readOnly?: boolean; form:
   const datasets = useMemo(() => datasetsRes?.datasets.map((i) => ({ id: i._id!, name: i.name })) ?? [], [datasetsRes]);
 
   return (
-    <>
+    <Stack gap={1}>
       {form.datasets &&
         Object.values(form.datasets).map(({ data: item }) => (
-          <Box key={item.id} sx={{ display: 'flex', my: 2 }}>
+          <Box key={item.id} sx={{ display: 'flex' }}>
             <Autocomplete
               readOnly={readOnly}
               fullWidth
@@ -58,6 +58,6 @@ export default function Datasets({ readOnly, form }: { readOnly?: boolean; form:
           {t('form.add')} {t('form.dataset')}
         </Button>
       )}
-    </>
+    </Stack>
   );
 }

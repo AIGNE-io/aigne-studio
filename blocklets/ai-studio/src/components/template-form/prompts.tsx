@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import PromptEditor from '@blocklet/prompt-editor';
+import { cx } from '@emotion/css';
 import { Box, Button, Stack, Tooltip, buttonClasses } from '@mui/material';
 import { useCounter } from 'ahooks';
 import sortBy from 'lodash/sortBy';
@@ -89,8 +90,13 @@ export default function Prompts({
             disabled={readOnly}
             list={form.prompts}
             sx={{
-              '&.isDragging .hover-visible': {
-                maxHeight: '0 !important',
+              '&.isDragging': {
+                '.hover-visible': {
+                  maxHeight: '0 !important',
+                },
+                '.ContentEditable__root:hover': {
+                  bgcolor: 'background.paper',
+                },
               },
             }}
             renderItem={(prompt, index, params) => {
@@ -112,12 +118,16 @@ export default function Prompts({
                   <Stack direction="row" sx={{ position: 'relative' }}>
                     <Box
                       ref={params.preview}
+                      className={cx(hidden && 'prompt-hidden')}
                       sx={{
                         flex: 1,
                         borderRadius: 1,
                         bgcolor: params.isDragging ? 'action.hover' : 'background.paper',
                         opacity: 0.9999, // NOTE: make preview effective
-                        color: hidden ? 'text.disabled' : 'text.primary',
+
+                        '&.prompt-hidden *': {
+                          color: (theme) => `${theme.palette.text.disabled} !important`,
+                        },
                       }}>
                       <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
                         <PromptEditor
@@ -132,11 +142,24 @@ export default function Prompts({
                             });
                             triggerUpdate();
                           }}
-                          sx={{
+                          sx={(theme) => ({
+                            p: 0,
                             '.ContentEditable__root': {
+                              p: 1,
                               minHeight: 48,
+                              ...theme.typography.body1,
+
+                              ':hover': {
+                                bgcolor: 'action.hover',
+                              },
+
+                              ':focus': {
+                                bgcolor: 'action.hover',
+                              },
+
+                              '.role-selector': { fontWeight: 'bold' },
                             },
-                          }}
+                          })}
                         />
                       </WithAwareness>
                     </Box>

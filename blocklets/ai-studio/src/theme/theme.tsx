@@ -29,7 +29,36 @@ export const theme = createTheme({
   },
   shape: { borderRadius: 8 },
   components: {
+    MuiFormLabel: {
+      styleOverrides: {
+        root: {
+          fontSize: '0.875rem',
+        },
+      },
+    },
+    MuiFormControlLabel: {
+      styleOverrides: {
+        label: {
+          fontSize: '0.875rem',
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          fontSize: '0.875rem',
+        },
+      },
+    },
+    MuiRadio: {
+      styleOverrides: {
+        root: {
+          padding: 4,
+        },
+      },
+    },
     MuiAutocomplete: {
+      defaultProps: { popupIcon: <ArrowDropDownRounded /> },
       variants: [
         {
           props: {},

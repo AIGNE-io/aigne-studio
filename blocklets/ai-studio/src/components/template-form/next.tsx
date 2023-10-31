@@ -45,7 +45,7 @@ export default function Next({
   const { next } = form;
 
   return (
-    <Box sx={{ mt: 2, display: 'flex' }}>
+    <Box sx={{ display: 'flex' }}>
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
         <TemplateAutocomplete
           readOnly={readOnly}
