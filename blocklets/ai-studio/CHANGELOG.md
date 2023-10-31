@@ -1,10 +1,14 @@
+## 0.1.124 (2023-10-31)
+
+- fix: polish prompt editor styles
+
 ## 0.1.123 (2023-10-31)
 
 - fix: polish ui
 
 ## 0.1.122 (2023-10-31)
 
-- polish ui
+- fix: polish ui
 
 ## 0.1.121 (2023-10-25)
 
