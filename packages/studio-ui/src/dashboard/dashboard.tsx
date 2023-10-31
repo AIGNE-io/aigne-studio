@@ -151,6 +151,7 @@ function MenusDrawer({ collapsed, ...props }: DrawerProps & { collapsed?: boolea
           borderRightStyle: props.variant === 'permanent' ? 'solid' : 'none',
           borderRightColor: (theme) => (props.variant === 'permanent' ? theme.palette.grey[200] : 'transparent'),
           zIndex: (theme) => theme.zIndex.appBar + 1,
+          boxShadow: 0,
 
           '*::-webkit-scrollbar': {
             display: 'none',

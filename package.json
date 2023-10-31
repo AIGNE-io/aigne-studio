@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.122",
+  "version": "0.1.123",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -61,7 +61,7 @@
     "@arcblock/jwt": "^1.18.92",
     "@ocap/asset": "^1.18.92",
     "@arcblock/validator": "^1.18.92",
-    "@blocklet/sdk": "1.16.17-beta-7ec31a60",
+    "@blocklet/sdk": "1.16.18-beta-adeeb0b3",
     "@nedb/core": "^2.1.5",
     "@mui/material": "^5.11.11",
     "react-dnd": "^16.0.1",

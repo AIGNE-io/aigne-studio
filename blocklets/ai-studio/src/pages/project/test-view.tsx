@@ -54,12 +54,14 @@ export default function DebugView({
         py={1}
         bgcolor="background.paper"
         sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <Typography>{t('testCaseCount', { count: tests.length })} </Typography>
+        <Typography ml={1} variant="subtitle2">
+          {t('testCaseCount', { count: tests.length })}{' '}
+        </Typography>
 
         <LoadingButton
           loading={running}
-          loadingPosition="start"
-          startIcon={<RefreshSquareIcon fontSize="small" />}
+          loadingPosition="end"
+          endIcon={<RefreshSquareIcon fontSize="small" />}
           onClick={runAll}>
           {t('runAll')}
         </LoadingButton>
@@ -252,13 +254,13 @@ const Table = styled(Box)`
         overflow-x: hidden;
         overflow-y: auto;
         padding: 4px 8px;
-        word-break: break-all;
+        word-break: break-word;
       }
 
       &:first-of-type {
-        min-width: 180px;
+        min-width: 100px;
+        vertical-align: top;
         color: ${({ theme }) => theme.palette.text.secondary};
-        font-size: ${({ theme }) => theme.typography.body2.fontSize};
       }
 
       &:last-of-type {

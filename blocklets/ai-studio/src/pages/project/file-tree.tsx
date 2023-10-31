@@ -29,6 +29,7 @@ import {
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
+import { nanoid } from 'nanoid';
 import {
   ComponentProps,
   ReactNode,
@@ -124,7 +125,24 @@ const FileTree = forwardRef<
 
   const onCreateFile = useCallback(
     ({ parent, meta }: { parent?: string[]; meta?: TemplateYjs } = {}) => {
-      const { filepath } = createFile({ store, parent, meta });
+      const promptId = nanoid();
+
+      const { filepath } = createFile({
+        store,
+        parent,
+        meta: {
+          ...meta,
+          prompts: meta?.prompts ?? {
+            [promptId]: {
+              index: 0,
+              data: {
+                id: promptId,
+                role: 'user',
+              },
+            },
+          },
+        },
+      });
       if (parent) setOpenIds((ids) => (ids ?? []).concat(parent.join('/')));
       navigate(filepath);
     },
@@ -285,8 +303,8 @@ const FileTree = forwardRef<
         )}
 
         {!tree.length && !showNewProject && (
-          <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="32px" m={0.5}>
-            {t('noFiles')}
+          <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="28px" m={0.5}>
+            <Typography variant="caption">{t('noFiles')}</Typography>
           </Box>
         )}
 
@@ -370,10 +388,9 @@ const FileTree = forwardRef<
                   depth={depth}
                   selected={selected}
                   onClick={() => navigate(filepath.join('/'))}
-                  actions={actions}>
-                  <Typography component="span" sx={{ color: change?.color }}>
-                    {meta.name || t('alert.unnamed')}
-                  </Typography>
+                  actions={actions}
+                  sx={{ color: change?.color }}>
+                  {meta.name || t('alert.unnamed')}
 
                   <AwarenessIndicator
                     projectId={projectId}
@@ -398,7 +415,7 @@ const FileTree = forwardRef<
       </Box>
 
       {!!deleted.length && (
-        <DeleteTemplates
+        <DeletedTemplates
           list={deleted}
           changes={changes}
           projectId={projectId}
@@ -766,7 +783,7 @@ function TreeItem({
   );
 }
 
-function DeleteTemplates({
+function DeletedTemplates({
   list,
   changes,
   projectId,
@@ -806,7 +823,7 @@ function DeleteTemplates({
       <AccordionSummary
         sx={{
           px: 2,
-          bgcolor: 'grey.100',
+          bgcolor: 'grey.50',
           minHeight: (theme) => theme.spacing(3.5),
           [`.${accordionSummaryClasses.content}`]: {
             m: 0,
@@ -830,7 +847,7 @@ function DeleteTemplates({
           />
         </Box>
 
-        <Typography variant="subtitle2" flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
+        <Typography variant="caption" flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
           {t('diff.deleted')}
         </Typography>
       </AccordionSummary>

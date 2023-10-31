@@ -194,12 +194,14 @@ export default function ProjectPage() {
                 onChange={(_, tab) => setCurrentTab(tab)}
                 TabIndicatorProps={{ children: <Box component="span" /> }}
                 sx={{
+                  ml: 1,
                   minHeight: 32,
                   [`.${tabClasses.root}`]: {
                     py: 1,
                     px: 1,
                     minHeight: 32,
                     minWidth: 32,
+                    borderRadius: 1,
                   },
                   [`.${tabsClasses.indicator}`]: {
                     bgcolor: 'transparent',
