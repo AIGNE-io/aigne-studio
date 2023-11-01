@@ -1,3 +1,9 @@
+## 0.1.125 (2023-11-1)
+
+- fix: use switch represent public field
+- fix: show tip when no any variables
+- fix: reduce the size of radio
+
 ## 0.1.124 (2023-10-31)
 
 - fix: polish prompt editor styles

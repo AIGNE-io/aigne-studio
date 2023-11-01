@@ -220,4 +220,5 @@ export default flat({
   deleteMessageTip: 'Delete this message',
   dragMessageTip: 'Drag sort this message',
   sourceBranch: 'Source branch',
+  noVariables: "You haven't added any variables yet",
 });

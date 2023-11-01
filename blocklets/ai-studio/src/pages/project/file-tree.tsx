@@ -21,6 +21,7 @@ import {
   Tooltip,
   Typography,
   accordionSummaryClasses,
+  iconClasses,
   listItemButtonClasses,
   listItemIconClasses,
   svgIconClasses,
@@ -753,9 +754,8 @@ function TreeItem({
                       },
                       [`.${listItemIconClasses.root}`]: {
                         minWidth: 32,
-
-                        '> *': {
-                          fontSize: 18,
+                        [`.${svgIconClasses.root}, .${iconClasses.root}`]: {
+                          fontSize: '1.125rem',
                         },
                       },
                     }}
