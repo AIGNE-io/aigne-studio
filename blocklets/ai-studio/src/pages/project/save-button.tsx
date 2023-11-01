@@ -15,6 +15,7 @@ import {
   TextField,
   Tooltip,
 } from '@mui/material';
+import { useKeyPress } from 'ahooks';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -86,6 +87,14 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   );
 
   const submitting = form.formState.isSubmitting;
+
+  useKeyPress(
+    (e) => (e.ctrlKey || e.metaKey) && e.key === 's',
+    (e) => {
+      e.preventDefault();
+      dialogState.open();
+    }
+  );
 
   return (
     <>

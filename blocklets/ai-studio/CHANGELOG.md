@@ -1,3 +1,7 @@
+## 0.1.126 (2023-11-1)
+
+- fix: support ctrl/cmd + s open saving dialog
+
 ## 0.1.125 (2023-11-1)
 
 - fix: use switch represent public field
