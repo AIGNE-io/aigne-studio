@@ -4,7 +4,6 @@ import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useDeferredValue, useMemo, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import type { ParameterYjs } from '../../../api/src/store/templates';
 import Settings from '../../pages/project/icons/settings';
 import ParameterConfig from './parameter-config';
 
@@ -42,87 +41,55 @@ export default function Parameters({
       params.push('number');
     }
     return [...new Set(params)];
-  })();
+  })()
+    .filter((i) => form.parameters?.[i])
+    .map((param) => ({ param }));
 
   const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
 
-  const rows = params
-    .map((param) => {
-      const parameter = form.parameters?.[param];
-      if (!parameter) {
-        return null;
-      }
-
-      return { key: param, ...parameter };
-    })
-    .filter(Boolean) as (ParameterYjs & { key: string })[];
-
-  const columns = useMemo<GridColDef<ParameterYjs & { key: string }>[]>(() => {
+  const columns = useMemo<GridColDef<{ param: string }>[]>(() => {
     return [
       {
         field: 'key',
         headerName: t('variable'),
-        headerClassName: 'th',
         headerAlign: 'center',
         sortable: false,
         align: 'center',
         renderCell: ({ row }) => {
-          return <Box>{row.key}</Box>;
+          return <Box>{row.param}</Box>;
         },
       },
       {
         flex: 1,
         field: 'label',
         headerName: t('label'),
-        headerClassName: 'th',
         sortable: false,
         renderCell: ({ row }) => {
-          return (
-            <Input
-              value={row.label || ''}
-              onChange={(e) => {
-                const param = form.parameters?.[row.key];
-                if (param) {
-                  param.label = e.target.value as any;
-                }
-              }}
-            />
-          );
+          const parameter = form.parameters?.[row.param];
+          if (!parameter) return null;
+
+          return <Input fullWidth value={parameter.label || ''} onChange={(e) => (parameter.label = e.target.value)} />;
         },
       },
       {
         field: 'type',
         headerName: t('type'),
-        headerClassName: 'th',
         headerAlign: 'center',
         sortable: false,
         align: 'center',
+        width: 120,
         renderCell: ({ row }) => {
+          const parameter = form.parameters?.[row.param];
+          if (!parameter) return null;
+
           return (
             <Select
-              sx={{
-                ml: 2,
-                background: 'transparent',
-
-                '&.Mui-focused ': {
-                  background: 'transparent',
-                },
-                '&:hover ': {
-                  background: 'transparent',
-                },
-                '.MuiSelect-select:focus': {
-                  background: 'transparent',
-                },
-              }}
+              sx={{ ml: 2 }}
+              variant="standard"
               fullWidth
               size="small"
-              value={row.type ?? 'string'}
-              onChange={(e) => {
-                const param = form.parameters?.[row.key];
-                if (param) {
-                  param.type = e.target.value as any;
-                }
-              }}>
+              value={parameter.type ?? 'string'}
+              onChange={(e) => (parameter.type = e.target.value as any)}>
               <MenuItem value="string">{t('form.parameter.typeText')}</MenuItem>
               <MenuItem value="number">{t('form.parameter.typeNumber')}</MenuItem>
               <MenuItem value="select">{t('form.parameter.typeSelect')}</MenuItem>
@@ -142,7 +109,7 @@ export default function Parameters({
         renderCell: ({ row }) => (
           <Button
             sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
-            onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param: row.key })}>
+            onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param: row.param })}>
             <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
           </Button>
         ),
@@ -202,8 +169,8 @@ export default function Parameters({
         <DataGrid
           key={form.id}
           apiRef={dataGrid}
-          getRowId={(v) => v.key}
-          rows={rows}
+          getRowId={(v) => v.param}
+          rows={params}
           columns={columns}
           disableColumnMenu
           autoHeight

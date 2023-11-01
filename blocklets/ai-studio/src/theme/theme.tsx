@@ -29,7 +29,9 @@ export const theme = createTheme({
       selected: 'rgba(25, 118, 210, 0.08)',
     },
   },
-  shape: { borderRadius: 8 },
+  shape: {
+    borderRadius: 8,
+  },
   components: {
     MuiFormLabel: {
       styleOverrides: {
@@ -249,6 +251,7 @@ export const theme = createTheme({
           props: { disableUnderline: true },
           style: ({ theme }) =>
             theme.unstable_sx({
+              fontSize: '0.875rem',
               lineHeight: '1.5rem',
               [`&.${inputBaseClasses.multiline}`]: {
                 py: 0,
@@ -269,6 +272,7 @@ export const theme = createTheme({
     MuiFilledInput: {
       styleOverrides: {
         root: {
+          fontSize: '0.875rem',
           backgroundColor: 'rgba(0, 0, 0, 0.03)',
           '&:hover': {
             backgroundColor: 'rgb(0, 0, 0, 0.06)',
@@ -286,6 +290,7 @@ export const theme = createTheme({
           props: {},
           style: ({ theme }) =>
             theme.unstable_sx({
+              fontSize: '0.875rem',
               borderRadius: 1,
               lineHeight: '1.5rem',
               // filled
@@ -344,6 +349,39 @@ export const theme = createTheme({
             }),
         },
       ],
+    },
+    MuiTypography: {
+      variants: [
+        {
+          props: { variant: 'body1' },
+          style: ({ theme }) =>
+            theme.unstable_sx({
+              fontSize: '0.875rem',
+            }),
+        },
+        {
+          props: { variant: 'body2' },
+          style: ({ theme }) =>
+            theme.unstable_sx({
+              fontSize: '0.75rem',
+            }),
+        },
+      ],
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: ({ theme }) =>
+          theme.unstable_sx({
+            fontSize: '0.875rem',
+          }),
+      },
+    },
+    MuiListItemText: {
+      styleOverrides: {
+        primary: {
+          fontSize: '0.875rem',
+        },
+      },
     },
   },
 });
