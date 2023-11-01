@@ -497,11 +497,12 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   const { t } = useLocaleContext();
   const [state, setState] = useRecoilState(templatesState(projectId, ref));
 
-  const { store } = useStore(projectId, ref);
+  const { store, synced } = useStore(projectId, ref);
 
   useThrottleEffect(
     () => {
       if (state.loading) return;
+      if (!synced) return;
 
       const duplicateItems = intersectionBy(state.templates, state.files, 'id');
       const keys = [
@@ -550,7 +551,7 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
         deletedMap: arrToObj(deleted),
       }));
     },
-    [state.templates, state.files, state.loading],
+    [state.templates, state.files, state.loading, synced, projectId, ref],
     { wait: 1000 }
   );
 
@@ -579,7 +580,7 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
       getYjsDoc(store).getMap('files').unobserveDeep(getFile);
       getYjsDoc(store).getMap('tree').unobserveDeep(getFile);
     };
-  }, []);
+  }, [projectId, ref]);
 
   const run = async () => {
     try {
