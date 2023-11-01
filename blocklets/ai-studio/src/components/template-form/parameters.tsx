@@ -25,7 +25,7 @@ export default function Parameters({
   form,
 }: {
   readOnly?: boolean;
-  form: Pick<TemplateYjs, 'type' | 'name' | 'prompts' | 'parameters'>;
+  form: Pick<TemplateYjs, 'id' | 'type' | 'name' | 'prompts' | 'parameters'>;
 }) {
   // TODO: parameters 支持自定义顺序，到时候可以去掉这个实时 match params 的逻辑，直接渲染 template.parameters 数据即可
   const deferredValue = useDeferredValue(form);
@@ -79,7 +79,6 @@ export default function Parameters({
         renderCell: ({ row }) => {
           return (
             <Input
-              defaultValue={row.label || ''}
               value={row.label || ''}
               onChange={(e) => {
                 const param = form.parameters?.[row.key];
@@ -149,7 +148,7 @@ export default function Parameters({
         ),
       },
     ];
-  }, [dataGrid, t]);
+  }, [dataGrid, t, form.id]);
 
   return (
     <>
@@ -201,6 +200,7 @@ export default function Parameters({
           },
         }}>
         <DataGrid
+          key={form.id}
           apiRef={dataGrid}
           getRowId={(v) => v.key}
           rows={rows}
