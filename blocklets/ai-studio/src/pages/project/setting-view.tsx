@@ -7,6 +7,7 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  Switch,
   Tooltip,
   Typography,
   formLabelClasses,
@@ -121,13 +122,10 @@ export default function SettingView({
           <FormLabel sx={{ minWidth: 60 }}>{t('public')}</FormLabel>
 
           <Box>
-            <RadioGroup
-              row
-              value={template.public ?? false}
-              onChange={(_, status) => !readOnly && (template.public = status as any)}>
-              <FormControlLabel value control={<Radio />} label={t('public')} />
-              <FormControlLabel value={false} control={<Radio />} label={t('nonPublic')} />
-            </RadioGroup>
+            <Switch
+              checked={template.public ?? false}
+              onChange={(_, checked) => !readOnly && (template.public = checked)}
+            />
           </Box>
         </Stack>
 

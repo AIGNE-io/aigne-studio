@@ -9,6 +9,7 @@ import {
   outlinedInputClasses,
   sliderClasses,
   svgIconClasses,
+  switchClasses,
 } from '@mui/material';
 
 export const theme = createTheme({
@@ -39,6 +40,9 @@ export const theme = createTheme({
     },
     MuiFormControlLabel: {
       styleOverrides: {
+        root: {
+          marginLeft: 0,
+        },
         label: {
           fontSize: '0.875rem',
         },
@@ -63,6 +67,39 @@ export const theme = createTheme({
           [`.${svgIconClasses.fontSizeSmall}`]: {
             fontSize: '1.125rem',
           },
+        },
+      },
+    },
+    MuiCheckbox: {
+      styleOverrides: {
+        root: {
+          padding: 4,
+
+          [`.${svgIconClasses.fontSizeMedium}`]: {
+            fontSize: '1.25rem',
+          },
+
+          [`.${svgIconClasses.fontSizeSmall}`]: {
+            fontSize: '1.125rem',
+          },
+        },
+      },
+    },
+    MuiSwitch: {
+      styleOverrides: {
+        root: {
+          height: 28,
+          width: 48,
+          padding: 8,
+
+          [`&.${switchClasses.sizeSmall}`]: {
+            height: 26,
+            width: 40,
+            padding: 8,
+          },
+        },
+        switchBase: {
+          padding: 4,
         },
       },
     },
