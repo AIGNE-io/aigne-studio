@@ -8,6 +8,7 @@ import {
   inputLabelClasses,
   outlinedInputClasses,
   sliderClasses,
+  svgIconClasses,
 } from '@mui/material';
 
 export const theme = createTheme({
@@ -54,6 +55,14 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           padding: 4,
+
+          [`.${svgIconClasses.fontSizeMedium}`]: {
+            fontSize: '1.25rem',
+          },
+
+          [`.${svgIconClasses.fontSizeSmall}`]: {
+            fontSize: '1.125rem',
+          },
         },
       },
     },

@@ -54,7 +54,7 @@ export default function DebugView({
         py={1}
         bgcolor="background.paper"
         sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <Typography ml={1} variant="subtitle2">
+        <Typography ml={1} variant="subtitle1">
           {t('testCaseCount', { count: tests.length })}{' '}
         </Typography>
 
