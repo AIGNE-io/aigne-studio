@@ -10,6 +10,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Typography,
 } from '@mui/material';
 import { useDeferredValue, useMemo, useState } from 'react';
 
@@ -91,6 +92,15 @@ export default function Parameters({
             </TableRow>
           </TableHead>
           <TableBody>
+            {params.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} sx={{ textAlign: 'center' }}>
+                  <Typography variant="caption" color="text.disabled">
+                    {t('noVariables')}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
             {params.map((param) => {
               const parameter = form.parameters?.[param];
               if (!parameter) {

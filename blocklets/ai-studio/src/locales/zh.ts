@@ -217,4 +217,5 @@ export default flat({
   deleteMessageTip: '删除该提示',
   dragMessageTip: '拖拽排序该提示',
   sourceBranch: '来源分支',
+  noVariables: '您还没有添加任何参数',
 });
