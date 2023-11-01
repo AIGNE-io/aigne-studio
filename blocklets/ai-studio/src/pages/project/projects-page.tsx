@@ -164,7 +164,7 @@ function ProjectMenu() {
               {t('deleteProjectTitle', { project: item.name || t('unnamed') })}
             </Typography>
 
-            <Typography my={2} variant="body2" whiteSpace="pre-wrap">
+            <Typography my={2} whiteSpace="pre-wrap">
               {t('deleteProjectTips')}
             </Typography>
           </Stack>
