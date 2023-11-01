@@ -13,7 +13,6 @@ import {
   Typography,
   tabClasses,
   tabsClasses,
-  useTheme,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { useCallback, useEffect, useRef } from 'react';
@@ -329,7 +328,7 @@ function EmptyView() {
   return (
     <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-      <Typography variant="body2">{t('notOpenFile')}</Typography>
+      <Typography>{t('notOpenFile')}</Typography>
     </Stack>
   );
 }
@@ -340,7 +339,7 @@ function DebugEmptyView() {
   return (
     <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
       <DeveloperTools sx={{ fontSize: 54, color: 'grey.300' }} />
-      <Typography variant="body2">{t('notOpenFile')}</Typography>
+      <Typography>{t('notOpenFile')}</Typography>
     </Stack>
   );
 }

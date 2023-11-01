@@ -1,32 +1,35 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  Box,
-  Button,
-  ClickAwayListener,
-  Paper,
-  Popper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@mui/material';
+import { Box, Button, ClickAwayListener, Input, MenuItem, Paper, Popper, Select, Typography } from '@mui/material';
+import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useDeferredValue, useMemo, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import Settings from '../../pages/project/icons/settings';
 import ParameterConfig from './parameter-config';
 
+function CustomNoRowsOverlay() {
+  const { t } = useLocaleContext();
+
+  return (
+    <Box width={1} height={1} display="flex" justifyContent="center" alignItems="center">
+      <Typography variant="caption" color="text.disabled">
+        {t('noVariables')}
+      </Typography>
+    </Box>
+  );
+}
+
 export default function Parameters({
   readOnly,
   form,
 }: {
   readOnly?: boolean;
-  form: Pick<TemplateYjs, 'type' | 'name' | 'prompts' | 'parameters'>;
+  form: Pick<TemplateYjs, 'id' | 'type' | 'name' | 'prompts' | 'parameters'>;
 }) {
   // TODO: parameters 支持自定义顺序，到时候可以去掉这个实时 match params 的逻辑，直接渲染 template.parameters 数据即可
   const deferredValue = useDeferredValue(form);
   const { t } = useLocaleContext();
+  const dataGrid = useGridApiRef();
 
   const params = (() => {
     const params = Object.values(deferredValue.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
@@ -38,82 +41,147 @@ export default function Parameters({
       params.push('number');
     }
     return [...new Set(params)];
-  })();
+  })()
+    .filter((i) => form.parameters?.[i])
+    .map((param) => ({ param }));
 
   const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
 
-  const MAP = useMemo(() => {
-    return {
-      string: t('form.parameter.typeText'),
-      number: t('form.parameter.typeNumber'),
-      select: t('form.parameter.typeSelect'),
-      language: t('form.parameter.typeLanguage'),
-      horoscope: t('form.parameter.typeHoroscope'),
-    };
-  }, [t]);
+  const columns = useMemo<GridColDef<{ param: string }>[]>(() => {
+    return [
+      {
+        field: 'key',
+        headerName: t('variable'),
+        headerAlign: 'center',
+        sortable: false,
+        align: 'center',
+        renderCell: ({ row }) => {
+          return <Box>{row.param}</Box>;
+        },
+      },
+      {
+        flex: 1,
+        field: 'label',
+        headerName: t('label'),
+        sortable: false,
+        renderCell: ({ row }) => {
+          const parameter = form.parameters?.[row.param];
+          if (!parameter) return null;
+
+          return <Input fullWidth value={parameter.label || ''} onChange={(e) => (parameter.label = e.target.value)} />;
+        },
+      },
+      {
+        field: 'type',
+        headerName: t('type'),
+        headerAlign: 'center',
+        sortable: false,
+        align: 'center',
+        width: 120,
+        renderCell: ({ row }) => {
+          const parameter = form.parameters?.[row.param];
+          if (!parameter) return null;
+
+          return (
+            <Select
+              sx={{ ml: 2 }}
+              variant="standard"
+              fullWidth
+              size="small"
+              value={parameter.type ?? 'string'}
+              onChange={(e) => (parameter.type = e.target.value as any)}>
+              <MenuItem value="string">{t('form.parameter.typeText')}</MenuItem>
+              <MenuItem value="number">{t('form.parameter.typeNumber')}</MenuItem>
+              <MenuItem value="select">{t('form.parameter.typeSelect')}</MenuItem>
+              <MenuItem value="language">{t('form.parameter.typeLanguage')}</MenuItem>
+              <MenuItem value="horoscope">{t('form.parameter.typeHoroscope')}</MenuItem>
+            </Select>
+          );
+        },
+      },
+      {
+        field: 'actions',
+        headerName: t('actions'),
+        headerClassName: 'th',
+        headerAlign: 'center',
+        sortable: false,
+        align: 'center',
+        renderCell: ({ row }) => (
+          <Button
+            sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+            onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param: row.param })}>
+            <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
+          </Button>
+        ),
+      },
+    ];
+  }, [dataGrid, t, form.id]);
 
   return (
     <>
       <Box
         sx={{
-          border: (theme) => `1px solid ${theme.palette.grey[200]}`,
-          borderRadius: 1,
-          overflow: 'hidden',
-          table: {
-            tableLayout: 'fixed',
+          '& .MuiDataGrid-root .MuiDataGrid-columnSeparator': {
+            display: 'none',
           },
-          th: {
+          '& .th': {
             color: 'text.secondary',
-            border: 'none',
           },
-          td: {
-            borderTop: '1px solid transparent',
-            borderTopColor: 'grey.200',
-            borderBottom: 'none',
-          },
-          'th,td': {
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+          '& .MuiDataGrid-root .MuiDataGrid-cell': {
+            outline: 'none',
+            '&:focus-visible': {
+              outline: 'none',
+            },
+            '&:focus-within': {
+              outline: 'none',
+            },
 
-            '&:nth-of-type(3), &:nth-of-type(4)': {
-              textAlign: 'center',
+            '.MuiDataGrid-columnHeader': {
+              outline: 'none',
+              '&:focus-visible': {
+                outline: 'none',
+              },
+              '&:focus-within': {
+                outline: 'none',
+              },
+            },
+          },
+          '& .MuiDataGrid-root .MuiDataGrid-columnHeader': {
+            outline: 'none',
+            '&:focus-visible': {
+              outline: 'none',
+            },
+            '&:focus-within': {
+              outline: 'none',
+            },
+
+            '.MuiDataGrid-columnHeader': {
+              outline: 'none',
+              '&:focus-visible': {
+                outline: 'none',
+              },
+              '&:focus-within': {
+                outline: 'none',
+              },
             },
           },
         }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('variable')}</TableCell>
-              <TableCell>{t('label')}</TableCell>
-              <TableCell width="100">{t('type')}</TableCell>
-              <TableCell width="80">{t('actions')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {params.map((param) => {
-              const parameter = form.parameters?.[param];
-              if (!parameter) {
-                return null;
-              }
-
-              return (
-                <TableRow key={param}>
-                  <TableCell>{param}</TableCell>
-                  <TableCell>{parameter.label}</TableCell>
-                  <TableCell>{(parameter.type && MAP[parameter.type]) || MAP.string}</TableCell>
-                  <TableCell>
-                    <Button
-                      sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
-                      onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param })}>
-                      <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <DataGrid
+          key={form.id}
+          apiRef={dataGrid}
+          getRowId={(v) => v.param}
+          rows={params}
+          columns={columns}
+          disableColumnMenu
+          autoHeight
+          hideFooter
+          pageSizeOptions={[20]}
+          density="compact"
+          initialState={{ pagination: { paginationModel: { pageSize: 20 } } }}
+          slots={{
+            noRowsOverlay: CustomNoRowsOverlay,
+          }}
+        />
       </Box>
 
       <Popper open={Boolean(paramConfig)} anchorEl={paramConfig?.anchorEl} placement="bottom-end" sx={{ zIndex: 1200 }}>

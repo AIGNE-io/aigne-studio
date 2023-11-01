@@ -13,7 +13,6 @@ import {
   TooltipProps,
   alpha,
   listItemButtonClasses,
-  listItemTextClasses,
   styled,
   tooltipClasses,
 } from '@mui/material';
@@ -95,10 +94,6 @@ const Tooltip = styled(({ className, ...props }: TooltipProps) => (
 
   [`.${listItemButtonClasses.root}`]: {
     borderRadius: 6,
-
-    [`.${listItemTextClasses.primary}`]: {
-      fontSize: 16,
-    },
 
     '&.active': {
       backgroundColor: alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),

@@ -8,6 +8,8 @@ import {
   inputLabelClasses,
   outlinedInputClasses,
   sliderClasses,
+  svgIconClasses,
+  switchClasses,
 } from '@mui/material';
 
 export const theme = createTheme({
@@ -27,7 +29,9 @@ export const theme = createTheme({
       selected: 'rgba(25, 118, 210, 0.08)',
     },
   },
-  shape: { borderRadius: 8 },
+  shape: {
+    borderRadius: 8,
+  },
   components: {
     MuiFormLabel: {
       styleOverrides: {
@@ -38,6 +42,9 @@ export const theme = createTheme({
     },
     MuiFormControlLabel: {
       styleOverrides: {
+        root: {
+          marginLeft: 0,
+        },
         label: {
           fontSize: '0.875rem',
         },
@@ -53,6 +60,47 @@ export const theme = createTheme({
     MuiRadio: {
       styleOverrides: {
         root: {
+          padding: 4,
+
+          [`.${svgIconClasses.fontSizeMedium}`]: {
+            fontSize: '1.25rem',
+          },
+
+          [`.${svgIconClasses.fontSizeSmall}`]: {
+            fontSize: '1.125rem',
+          },
+        },
+      },
+    },
+    MuiCheckbox: {
+      styleOverrides: {
+        root: {
+          padding: 4,
+
+          [`.${svgIconClasses.fontSizeMedium}`]: {
+            fontSize: '1.25rem',
+          },
+
+          [`.${svgIconClasses.fontSizeSmall}`]: {
+            fontSize: '1.125rem',
+          },
+        },
+      },
+    },
+    MuiSwitch: {
+      styleOverrides: {
+        root: {
+          height: 28,
+          width: 48,
+          padding: 8,
+
+          [`&.${switchClasses.sizeSmall}`]: {
+            height: 26,
+            width: 40,
+            padding: 8,
+          },
+        },
+        switchBase: {
           padding: 4,
         },
       },
@@ -203,6 +251,7 @@ export const theme = createTheme({
           props: { disableUnderline: true },
           style: ({ theme }) =>
             theme.unstable_sx({
+              fontSize: '0.875rem',
               lineHeight: '1.5rem',
               [`&.${inputBaseClasses.multiline}`]: {
                 py: 0,
@@ -223,6 +272,7 @@ export const theme = createTheme({
     MuiFilledInput: {
       styleOverrides: {
         root: {
+          fontSize: '0.875rem',
           backgroundColor: 'rgba(0, 0, 0, 0.03)',
           '&:hover': {
             backgroundColor: 'rgb(0, 0, 0, 0.06)',
@@ -240,6 +290,7 @@ export const theme = createTheme({
           props: {},
           style: ({ theme }) =>
             theme.unstable_sx({
+              fontSize: '0.875rem',
               borderRadius: 1,
               lineHeight: '1.5rem',
               // filled
@@ -298,6 +349,39 @@ export const theme = createTheme({
             }),
         },
       ],
+    },
+    MuiTypography: {
+      variants: [
+        {
+          props: { variant: 'body1' },
+          style: ({ theme }) =>
+            theme.unstable_sx({
+              fontSize: '0.875rem',
+            }),
+        },
+        {
+          props: { variant: 'body2' },
+          style: ({ theme }) =>
+            theme.unstable_sx({
+              fontSize: '0.75rem',
+            }),
+        },
+      ],
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: ({ theme }) =>
+          theme.unstable_sx({
+            fontSize: '0.875rem',
+          }),
+      },
+    },
+    MuiListItemText: {
+      styleOverrides: {
+        primary: {
+          fontSize: '0.875rem',
+        },
+      },
     },
   },
 });

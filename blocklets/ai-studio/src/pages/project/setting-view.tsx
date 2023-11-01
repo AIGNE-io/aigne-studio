@@ -7,6 +7,7 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  Switch,
   Tooltip,
   Typography,
   formLabelClasses,
@@ -96,11 +97,11 @@ export default function SettingView({
       py={2}
       sx={{
         '> div > *:last-child': { mb: 4 },
-        [`.${typographyClasses.subtitle2}`]: { mb: 1 },
+        [`.${typographyClasses.subtitle1}`]: { mb: 1 },
       }}>
       <Stack>
         <Typography
-          variant="subtitle2"
+          variant="subtitle1"
           sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('variable')}
         </Typography>
@@ -112,7 +113,7 @@ export default function SettingView({
 
       <Stack sx={{ [`.${formLabelClasses.root}`]: { fontSize: 14 } }}>
         <Typography
-          variant="subtitle2"
+          variant="subtitle1"
           sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('setting')}
         </Typography>
@@ -121,13 +122,10 @@ export default function SettingView({
           <FormLabel sx={{ minWidth: 60 }}>{t('public')}</FormLabel>
 
           <Box>
-            <RadioGroup
-              row
-              value={template.public ?? false}
-              onChange={(_, status) => !readOnly && (template.public = status as any)}>
-              <FormControlLabel value control={<Radio />} label={t('public')} />
-              <FormControlLabel value={false} control={<Radio />} label={t('nonPublic')} />
-            </RadioGroup>
+            <Switch
+              checked={template.public ?? false}
+              onChange={(_, checked) => !readOnly && (template.public = checked)}
+            />
           </Box>
         </Stack>
 
@@ -178,7 +176,7 @@ export default function SettingView({
 
       <Stack>
         <Typography
-          variant="subtitle2"
+          variant="subtitle1"
           sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('model')}
         </Typography>
@@ -370,7 +368,7 @@ export default function SettingView({
 
       <Stack>
         <Typography
-          variant="subtitle2"
+          variant="subtitle1"
           sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('dataset')}
         </Typography>
@@ -383,7 +381,7 @@ export default function SettingView({
       {template.type !== 'image' && (
         <Stack>
           <Typography
-            variant="subtitle2"
+            variant="subtitle1"
             sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
             {t('next')}
           </Typography>

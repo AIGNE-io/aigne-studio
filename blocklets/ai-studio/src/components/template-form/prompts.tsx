@@ -44,7 +44,7 @@ export default function Prompts({
           <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
             <TipsAndUpdatesRounded fontSize="small" color="primary" />
 
-            <Typography variant="subtitle2">{t('prompts')}</Typography>
+            <Typography variant="subtitle1">{t('prompts')}</Typography>
           </Stack>
 
           <DragSortListYjs

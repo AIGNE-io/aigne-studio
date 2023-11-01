@@ -73,7 +73,7 @@ export default function TemplateFormView({
             multiline
             maxRows={6}
             onChange={(e) => (value.description = e.target.value)}
-            InputProps={{ readOnly, sx: (theme) => ({ ...theme.typography.body2, color: 'text.secondary' }) }}
+            InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
           />
         </WithAwareness>
 
@@ -99,11 +99,10 @@ export default function TemplateFormView({
                 placeholder={t('form.tag')}
                 InputProps={{
                   ...params.InputProps,
-                  sx: (theme) => ({
-                    ...theme.typography.body2,
+                  sx: {
                     color: 'text.secondary',
                     [`.${chipClasses.root}`]: { ml: 0, mr: 0.5 },
-                  }),
+                  },
                 }}
               />
             )}
