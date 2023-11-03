@@ -1,3 +1,7 @@
+## 0.1.128 (2023-11-3)
+
+- chore: support delete confirm dialog(#291)
+
 ## 0.1.127 (2023-11-1)
 
 - fix: update variable contents in table
