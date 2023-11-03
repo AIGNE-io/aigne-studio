@@ -221,4 +221,10 @@ export default flat({
   dragMessageTip: 'Drag sort this message',
   sourceBranch: 'Source branch',
   noVariables: "You haven't added any variables yet",
+  confirmDelete: 'Please input {name} to delete',
+  deleteProject: 'This will permanently delete project with name {name}',
+  notice: 'notice',
+  click: 'Click to copy',
+  copiedTip: 'Copied',
+  copyTip: 'Click To Copy',
 });

@@ -31,11 +31,11 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
 
 import { Project } from '../../../api/src/store/projects';
+import useDialog from '../../components/delete-confirm/use-dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { createProject } from '../../libs/project';
-import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
 import Duplicate from './icons/duplicate';
@@ -45,7 +45,6 @@ import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
-import WarningCircle from './icons/warning-circle';
 import { defaultBranch } from './state';
 
 export default function ProjectsPage() {
@@ -138,7 +137,7 @@ function ProjectMenu() {
 
   const readOnly = useReadOnly({ ref: defaultBranch });
 
-  const { dialog, showDialog } = useDialog();
+  const { dialog, showDialog, closeDialog } = useDialog();
 
   const {
     state: { menuAnchor, projects },
@@ -152,31 +151,18 @@ function ProjectMenu() {
 
   const onDelete = () => {
     if (!item) return;
+
     showDialog({
-      maxWidth: 'sm',
-      fullWidth: true,
-      content: (
-        <Stack direction="row">
-          <WarningCircle color="warning" fontSize="large" sx={{ verticalAlign: 'text-bottom', mr: 2 }} />
-
-          <Stack flex={1}>
-            <Typography my={0.5} variant="h6" whiteSpace="pre-wrap">
-              {t('deleteProjectTitle', { project: item.name || t('unnamed') })}
-            </Typography>
-
-            <Typography my={2} whiteSpace="pre-wrap">
-              {t('deleteProjectTips')}
-            </Typography>
-          </Stack>
-        </Stack>
-      ),
-      okColor: 'warning',
-      okText: t('alert.delete'),
-      okIcon: <Trash />,
-      cancelText: t('alert.cancel'),
-      onOk: async () => {
+      keyName: item._id || item.name,
+      title: `${t('alert.delete')} ${item.name || t('unnamed')}`,
+      description: t('deleteProject', { name: item.name || t('unnamed') }),
+      confirmPlaceholder: t('confirmDelete', { name: item._id || item.name }),
+      confirm: t('alert.delete'),
+      cancel: t('alert.cancel'),
+      onConfirm: async () => {
         try {
           await deleteProject(item._id!);
+          closeDialog();
           if (projectId === item._id) {
             navigate('/projects', { replace: true });
           }
@@ -184,6 +170,9 @@ function ProjectMenu() {
           Toast.error(getErrorMessage(error));
           throw error;
         }
+      },
+      onCancel: () => {
+        closeDialog();
       },
     });
   };

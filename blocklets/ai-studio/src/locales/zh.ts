@@ -218,4 +218,10 @@ export default flat({
   dragMessageTip: '拖拽排序该提示',
   sourceBranch: '来源分支',
   noVariables: '您还没有添加任何参数',
+  confirmDelete: '请输入 {name} 以确认删除',
+  deleteProject: '这将永久删除名称为 {name} 的项目',
+  notice: '注意',
+  click: '点击复制',
+  copiedTip: '已复制',
+  copyTip: '点击复制',
 });
