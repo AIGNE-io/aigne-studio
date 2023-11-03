@@ -497,7 +497,6 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   const { t } = useLocaleContext();
   const [state, setState] = useRecoilState(templatesState(projectId, ref));
 
-  useUndoManager(projectId, ref);
   const { store, synced } = useStore(projectId, ref);
 
   useThrottleEffect(
@@ -628,13 +627,17 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
     return null;
   };
 
+  const getOriginTemplate = (item: TemplateYjs) => {
+    return state.templates.find((x) => x.id === item.id);
+  };
+
   useEffect(() => {
     if (projectId && ref) {
       run();
     }
   }, [projectId, ref]);
 
-  return { ...state, changes, run };
+  return { ...state, changes, run, getOriginTemplate };
 };
 
 export const useUndoManager = (projectId: string, ref: string) => {

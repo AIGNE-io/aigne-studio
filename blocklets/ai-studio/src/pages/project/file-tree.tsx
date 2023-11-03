@@ -118,7 +118,8 @@ const FileTree = forwardRef<
   const { dialog, showDialog } = useDialog();
 
   const { store, synced } = useStore(projectId, gitRef);
-  const { changes, deleted } = useTemplatesChangesState(projectId, gitRef);
+  const { changes, deleted, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
+  const [showPopper, setShowPopper] = useState(true);
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
@@ -390,7 +391,28 @@ const FileTree = forwardRef<
                   selected={selected}
                   onClick={() => navigate(filepath.join('/'))}
                   actions={actions}
-                  sx={{ color: change?.color }}>
+                  sx={{ color: change?.color }}
+                  otherActions={
+                    change?.key === 'M' && getOriginTemplate(meta) ? (
+                      <Tooltip title={t('restore')} disableInteractive placement="top">
+                        <Button
+                          sx={{ padding: 0.5, minWidth: 0 }}
+                          onClick={() => {
+                            const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & { parent: string[] };
+                            deleteFile({ store, path: [...parent, meta.id] });
+                            onCreateFile({ parent, meta: data });
+                          }}
+                          onMouseEnter={() => {
+                            setShowPopper(false);
+                          }}
+                          onMouseLeave={() => {
+                            setShowPopper(true);
+                          }}>
+                          <Undo sx={{ fontSize: 20 }} />
+                        </Button>
+                      </Tooltip>
+                    ) : null
+                  }>
                   {meta.name || t('alert.unnamed')}
 
                   <AwarenessIndicator
@@ -402,7 +424,7 @@ const FileTree = forwardRef<
                 </TreeItem>
               );
 
-              if (change) {
+              if (change && showPopper) {
                 return (
                   <Tooltip title={change.tips} disableInteractive placement="top">
                     <Box>{children}</Box>
