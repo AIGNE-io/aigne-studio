@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { getYjsDoc } from '@blocklet/co-git/yjs';
+import { UndoManager, getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
@@ -13,7 +13,7 @@ import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { recoilPersist } from 'recoil-persist';
 
@@ -497,6 +497,7 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   const { t } = useLocaleContext();
   const [state, setState] = useRecoilState(templatesState(projectId, ref));
 
+  useUndoManager(projectId, ref);
   const { store, synced } = useStore(projectId, ref);
 
   useThrottleEffect(
@@ -634,4 +635,39 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   }, [projectId, ref]);
 
   return { ...state, changes, run };
+};
+
+export const useUndoManager = (projectId: string, ref: string) => {
+  const { store } = useStore(projectId, ref);
+
+  const doc = useMemo(() => getYjsDoc(store), [store]);
+
+  const undoManager = useMemo(() => new UndoManager([doc.getMap('files'), doc.getMap('tree')], { doc }), [doc]);
+
+  const [state, setState] = useState(() => ({
+    canRedo: undoManager.canRedo(),
+    canUndo: undoManager.canUndo(),
+    redo: () => undoManager.redo(),
+    undo: () => undoManager.undo(),
+  }));
+
+  useEffect(() => {
+    const update = () => {
+      setState((state) => ({
+        ...state,
+        canRedo: undoManager.canRedo(),
+        canUndo: undoManager.canUndo(),
+      }));
+    };
+
+    undoManager.on('stack-item-added', update);
+    undoManager.on('stack-item-popped', update);
+
+    return () => {
+      undoManager.off('stack-item-added', update);
+      undoManager.off('stack-item-popped', update);
+    };
+  }, [undoManager]);
+
+  return state;
 };
