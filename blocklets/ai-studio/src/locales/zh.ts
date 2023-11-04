@@ -90,6 +90,7 @@ export default flat({
     newBranchRequired: '分支名称不能为空',
     currentBranch: '当前分支',
     message: '备注',
+    compare: '对比数据',
   },
   import: {
     title: '导入模板数据',
@@ -218,4 +219,10 @@ export default flat({
   dragMessageTip: '拖拽排序该提示',
   sourceBranch: '来源分支',
   noVariables: '您还没有添加任何参数',
+  compare: {
+    origin: '原始数据',
+    current: '当前数据',
+    select: '选择提交记录',
+    empty: '没有原始数据',
+  },
 });

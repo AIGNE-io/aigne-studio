@@ -68,7 +68,14 @@ export default function Parameters({
           const parameter = form.parameters?.[row.param];
           if (!parameter) return null;
 
-          return <Input fullWidth value={parameter.label || ''} onChange={(e) => (parameter.label = e.target.value)} />;
+          return (
+            <Input
+              readOnly={readOnly}
+              fullWidth
+              value={parameter.label || ''}
+              onChange={(e) => (parameter.label = e.target.value)}
+            />
+          );
         },
       },
       {
@@ -88,6 +95,7 @@ export default function Parameters({
               variant="standard"
               fullWidth
               size="small"
+              readOnly={readOnly}
               value={parameter.type ?? 'string'}
               onChange={(e) => (parameter.type = e.target.value as any)}>
               <MenuItem value="string">{t('form.parameter.typeText')}</MenuItem>
@@ -115,7 +123,7 @@ export default function Parameters({
         ),
       },
     ];
-  }, [dataGrid, t, form.id]);
+  }, [dataGrid, t, form.id, readOnly]);
 
   return (
     <>

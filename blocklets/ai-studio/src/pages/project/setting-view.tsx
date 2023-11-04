@@ -35,14 +35,17 @@ export default function SettingView({
   projectId,
   gitRef,
   template,
+  disabled,
 }: {
   projectId: string;
   gitRef: string;
   template: TemplateYjs;
+  disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
 
-  const readOnly = useReadOnly({ ref: gitRef });
+  const isReadOnly = useReadOnly({ ref: gitRef });
+  const readOnly = disabled || isReadOnly;
   const [expanded, setExpanded] = useState<string | false>(false);
 
   const {

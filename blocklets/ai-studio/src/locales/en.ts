@@ -90,6 +90,7 @@ export default flat({
     newBranchRequired: 'New branch is required',
     currentBranch: 'Current branch',
     message: 'Message',
+    compare: 'Compare',
   },
   import: {
     title: 'Import Templates',
@@ -221,4 +222,10 @@ export default flat({
   dragMessageTip: 'Drag sort this message',
   sourceBranch: 'Source branch',
   noVariables: "You haven't added any variables yet",
+  compare: {
+    origin: 'Origin Data',
+    current: 'Current Data',
+    select: 'Select Commit',
+    empty: 'Empty Data',
+  },
 });

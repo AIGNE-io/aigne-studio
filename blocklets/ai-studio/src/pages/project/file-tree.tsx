@@ -11,6 +11,10 @@ import {
   Button,
   CircularProgress,
   ClickAwayListener,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Input,
   List,
   ListItemButton,
@@ -30,6 +34,7 @@ import {
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
+import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import {
   ComponentProps,
@@ -52,6 +57,7 @@ import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
 import { importTemplatesToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
+import { CompareComponent } from './compare';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
 import Duplicate from './icons/duplicate';
@@ -120,6 +126,7 @@ const FileTree = forwardRef<
   const { store, synced } = useStore(projectId, gitRef);
   const { changes, deleted, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
   const [showPopper, setShowPopper] = useState(true);
+  const dialogState = usePopupState({ variant: 'dialog' });
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
@@ -343,16 +350,6 @@ const FileTree = forwardRef<
                 return <Box />;
               }
 
-              const actions = (
-                <TreeItemMenus
-                  mutable={mutable}
-                  item={node.data}
-                  onCreateFile={onCreateFile}
-                  onDeleteFile={onDeleteFile}
-                  onLaunch={onLaunch}
-                />
-              );
-
               const { parent } = node.data;
               const filepath = parent.concat(node.data.type === 'file' ? `${node.data.meta.id}.yaml` : node.data.name);
 
@@ -369,7 +366,15 @@ const FileTree = forwardRef<
                       if (!data || name === data.name) return;
                       onMoveFile({ from: data.parent.concat(data.name), to: data.parent.concat(name) });
                     }}
-                    actions={actions}>
+                    actions={
+                      <TreeItemMenus
+                        mutable={mutable}
+                        item={node.data}
+                        onCreateFile={onCreateFile}
+                        onDeleteFile={onDeleteFile}
+                        onLaunch={onLaunch}
+                      />
+                    }>
                     {node.text}
                   </EditableTreeItem>
                 );
@@ -382,6 +387,27 @@ const FileTree = forwardRef<
               const change = changes(meta);
 
               const icon = meta.type === 'image' ? <Picture /> : <File />;
+
+              const actions = (
+                <>
+                  <TreeItemMenus
+                    mutable={mutable}
+                    item={node.data}
+                    onCreateFile={onCreateFile}
+                    onDeleteFile={onDeleteFile}
+                    onLaunch={onLaunch}
+                  />
+
+                  {change?.key === 'M' && getOriginTemplate(meta) && (
+                    <ListItemButton {...bindTrigger(dialogState)}>
+                      <ListItemIcon>
+                        <External />
+                      </ListItemIcon>
+                      <ListItemText primary={t('alert.compare')} />
+                    </ListItemButton>
+                  )}
+                </>
+              );
 
               const children = (
                 <TreeItem
@@ -448,6 +474,17 @@ const FileTree = forwardRef<
       )}
 
       {dialog}
+      <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
+        <DialogTitle>{t('alert.compare')}</DialogTitle>
+        <DialogContent sx={{ mt: -3 }}>
+          <Box pt={3}>
+            <CompareComponent projectId={projectId} gitRef={gitRef} filepath={current || ''} />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={dialogState.close}>{t('cancel')}</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 });

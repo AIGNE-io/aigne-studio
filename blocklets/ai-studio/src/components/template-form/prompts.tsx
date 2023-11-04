@@ -55,7 +55,8 @@ export default function Prompts({
       return;
     }
 
-    const doc = (getYjsValue(form) as Map<any>).doc!;
+    const doc = (getYjsValue(form) as Map<any>)?.doc!;
+    if (!doc) return;
     doc.transact(() => {
       form.parameters ??= {};
       for (const param of params) {
@@ -111,7 +112,7 @@ export default function Prompts({
               },
             }}
             renderItem={(prompt, index, params) => {
-              const doc = (getYjsValue(prompt) as Map<any>).doc!;
+              const doc = (getYjsValue(prompt) as Map<any>)?.doc!;
               const hidden = prompt.visibility === 'hidden';
 
               return (
@@ -263,7 +264,7 @@ export default function Prompts({
           startIcon={<Add />}
           onClick={() => {
             const id = nanoid();
-            const doc = (getYjsValue(form) as Map<any>).doc!;
+            const doc = (getYjsValue(form) as Map<any>)?.doc!;
             doc.transact(() => {
               form.prompts ??= {};
               form.prompts[id] = {

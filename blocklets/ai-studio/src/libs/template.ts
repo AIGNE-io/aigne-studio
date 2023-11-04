@@ -25,3 +25,7 @@ export function isTemplateYjsEmpty(template: TemplateYjs) {
 export async function getTemplates(projectId: string, ref: string): Promise<{ templates: Template[] }> {
   return axios.get('/api/templates', { params: { projectId, ref } }).then((res) => res.data);
 }
+
+export async function getTemplate(projectId: string, ref: string, templateId: string): Promise<Template> {
+  return axios.get(`/api/templates/${templateId}`, { params: { projectId, ref } }).then((res) => res.data);
+}

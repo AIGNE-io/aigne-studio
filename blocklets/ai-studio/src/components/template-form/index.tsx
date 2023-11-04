@@ -29,14 +29,17 @@ export default function TemplateFormView({
   projectId,
   gitRef,
   value,
+  disabled,
 }: {
   projectId: string;
   gitRef: string;
   value: TemplateYjs;
+  disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
 
-  const readOnly = useReadOnly({ ref: gitRef });
+  const isReadOnly = useReadOnly({ ref: gitRef });
+  const readOnly = disabled || isReadOnly;
 
   return (
     <Stack gap={0.5} pb={10}>
