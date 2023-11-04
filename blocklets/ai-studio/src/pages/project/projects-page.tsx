@@ -153,7 +153,7 @@ function ProjectMenu() {
     if (!item) return;
 
     showDialog({
-      keyName: item._id || item.name,
+      keyName: item._id || item.name || t('unnamed'),
       title: `${t('alert.delete')} ${item.name || t('unnamed')}`,
       description: t('deleteProject', { name: item.name || t('unnamed') }),
       confirmPlaceholder: t('confirmDelete', { name: item._id || item.name }),
