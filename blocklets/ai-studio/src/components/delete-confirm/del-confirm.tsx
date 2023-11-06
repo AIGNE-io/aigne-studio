@@ -13,8 +13,7 @@ export type Props = {
   cancel: string;
   confirm: string;
   confirmProps?: {
-    color: string;
-    background: string;
+    [key: string]: any;
   };
   params?: Params;
   onCancel: () => void;
