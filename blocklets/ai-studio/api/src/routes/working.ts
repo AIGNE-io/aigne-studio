@@ -3,6 +3,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
+import Projects from '../store/models/projects';
 import { getRepository } from '../store/projects';
 
 export interface WorkingCommitInput {
@@ -32,6 +33,7 @@ export function workingRoutes(router: Router) {
         throw new Error(`commit to read only branch ${input.branch} is forbidden`);
       }
 
+      const project = await Projects.findOne({ where: { _id: projectId } });
       const repository = await getRepository({ projectId });
       const working = await repository.working({ ref });
       await working.commit({
@@ -40,6 +42,14 @@ export function workingRoutes(router: Router) {
         message: input.message,
         author: { name: fullName, email: userId },
       });
+
+      if (project && project.gitType === 'default' && project.gitUrl && project.gitToken) {
+        await repository.push({
+          ref,
+          url: project.gitUrl,
+          token: project.gitToken,
+        });
+      }
 
       res.json({});
     }

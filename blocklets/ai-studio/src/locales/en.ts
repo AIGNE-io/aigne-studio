@@ -170,6 +170,12 @@ export default flat({
         title: 'Professional Mode (familiar with Git)',
         subTitle:
           'Users are familiar with the basic knowledge of Git version management and need perfect version management ability.',
+        setRepo: 'Remote Repo',
+        gitUrl: 'Git Url',
+        validation: {
+          isHttp: 'Must be a valid http url',
+        },
+        gitToken: 'Git Token',
       },
     },
     baseInfo: 'Basic Information',

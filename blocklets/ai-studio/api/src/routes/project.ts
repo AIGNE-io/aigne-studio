@@ -54,6 +54,8 @@ export interface UpdateProjectInput {
   frequencyPenalty?: number;
   maxTokens?: number;
   gitType?: string;
+  gitUrl?: string;
+  gitToken?: string; // 设置这里是否合适
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
@@ -68,6 +70,8 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   frequencyPenalty: Joi.number().min(-2).max(2).empty(null),
   maxTokens: Joi.number().integer().empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
+  gitUrl: Joi.string().allow('').empty([null, '']),
+  gitToken: Joi.string().allow('').empty([null, '']),
 });
 
 export interface GetProjectsQuery {
@@ -89,24 +93,6 @@ const getDeepTemplate = async (projectId: string, ref: string, templateId: strin
     template.parent = filepath.split('/').slice(0, -1);
 
     templates = [template];
-
-    // if (template.next?.id) {
-    //   const nextTemplate = await getDeepTemplate(projectId, ref, template.next?.id);
-    //   if (nextTemplate?.length) {
-    //     templates = [...templates, ...nextTemplate];
-    //   }
-    // }
-
-    // if (template.branch?.branches?.length) {
-    //   for (const branch of template.branch?.branches || []) {
-    //     if (branch.template?.id) {
-    //       const branchTemplate = await getDeepTemplate(projectId, ref, branch.template?.id);
-    //       if (branchTemplate?.length) {
-    //         templates = [...templates, ...branchTemplate];
-    //       }
-    //     }
-    //   }
-    // }
   } catch (error) {
     // return templates
   }
@@ -286,6 +272,8 @@ export function projectRoutes(router: Router) {
       frequencyPenalty,
       maxTokens,
       gitType,
+      gitUrl,
+      gitToken,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (name && (await Projects.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
@@ -309,6 +297,8 @@ export function projectRoutes(router: Router) {
           frequencyPenalty,
           maxTokens,
           gitType,
+          gitUrl,
+          gitToken,
         },
         (v) => v === undefined
       ),

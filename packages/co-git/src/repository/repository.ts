@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import * as git from 'isomorphic-git';
+import http from 'isomorphic-git/http/node';
 import Queue from 'queue';
 
 import Working from './working';
@@ -125,6 +126,34 @@ export default class Repository<T> {
 
   async log({ ref, filepath }: { ref: string; filepath?: string }) {
     return git.log({ fs, gitdir: this.gitdir, ref, filepath, force: true, follow: true });
+  }
+
+  async push({ ref, url, token }: { ref: string; url: string; token: string }) {
+    return new Promise((resolve, reject) => {
+      try {
+        git.push({
+          fs,
+          http,
+          url,
+          dir: this.root,
+          ref,
+          onAuth: () => {
+            return {
+              Authorization: `Bearer ${token}`,
+              username: token,
+            };
+          },
+          onAuthFailure: () => {
+            reject(new Error('on auth token fail'));
+          },
+          onMessage: () => {
+            resolve('message');
+          },
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   async readBlob({ ref, filepath }: { ref: string; filepath: string }) {

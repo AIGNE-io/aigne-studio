@@ -167,6 +167,12 @@ export default flat({
       default: {
         title: '专业模式 （熟悉Git）',
         subTitle: '使用者熟悉 Git 版本管理的基础知识，需要完善的版本管理能力。',
+        setRepo: '远程 Git 地址',
+        gitUrl: 'Git 地址',
+        validation: {
+          isHttp: '必须是一个有效的 http 地址',
+        },
+        gitToken: 'Git Token',
       },
     },
     baseInfo: '基础信息',
