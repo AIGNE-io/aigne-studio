@@ -144,7 +144,7 @@ export default class Repository<T> {
             };
           },
           onAuthFailure: () => {
-            reject(new Error('on auth token fail'));
+            reject(new Error('git token validation invalid'));
           },
           onMessage: () => {
             resolve('message');
