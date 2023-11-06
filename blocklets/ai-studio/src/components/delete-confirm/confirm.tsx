@@ -10,7 +10,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import useTheme from '@mui/material/styles/useTheme';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 function useMobileWidth() {
   const theme = useTheme();
@@ -19,26 +19,39 @@ function useMobileWidth() {
   return { minWidth };
 }
 
+export type Params = {
+  __disableConfirm: boolean;
+  [key: string]: any;
+};
+
 export default function ConfirmDialog({
   title,
   description,
   showCancel,
   cancel,
   confirm,
-  color,
   params: initialParams,
   onCancel,
   onConfirm,
   loading: inputLoading,
+  confirmProps,
   ...rest
 }: {
-  title: any;
-  description: any;
+  title: ReactNode | (() => ReactNode);
+  description:
+    | ReactNode
+    | ((
+        params: Params,
+        setParams: React.Dispatch<React.SetStateAction<Params>>,
+        setError: React.Dispatch<React.SetStateAction<string>>
+      ) => ReactNode);
   showCancel?: boolean;
   cancel: string;
   confirm: string;
-  color?: string;
-  params: { [key: string]: any };
+  confirmProps?: {
+    [key: string]: any;
+  };
+  params: Params;
   loading?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -72,13 +85,15 @@ export default function ConfirmDialog({
 
   const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
 
-  const handleClick = (e: { stopPropagation: () => void }) => {
-    e.stopPropagation();
-  };
   const { minWidth } = useMobileWidth();
 
   return (
-    <StyledDialog onClick={handleClick} fullScreen={isBreakpointsDownSm} open={open} style={{ minWidth }} {...rest}>
+    <StyledDialog
+      onClick={(e) => e.stopPropagation()}
+      fullScreen={isBreakpointsDownSm}
+      open={open}
+      style={{ minWidth }}
+      {...rest}>
       <DialogTitle>{t}</DialogTitle>
       <DialogContent style={{ minWidth }}>
         <DialogContentText component="div">{d}</DialogContentText>
@@ -91,26 +106,23 @@ export default function ConfirmDialog({
       <DialogActions className="delete-actions" style={{ padding: '8px 24px 24px' }}>
         {showCancel && (
           <Button
-            onClick={(e: { stopPropagation: () => void }) => {
+            onClick={(e: MouseEvent) => {
               e.stopPropagation();
               onCallback(onCancel);
             }}
-            color="inherit"
-            data-cy="cancel-confirm-dialog">
+            color="inherit">
             {cancel || changeLocale('common.cancel')}
           </Button>
         )}
         <Button
-          onClick={(e: { stopPropagation: () => void }) => {
+          onClick={(e: MouseEvent) => {
             e.stopPropagation();
             onCallback(onConfirm);
           }}
-          color={color}
-          // eslint-disable-next-line no-underscore-dangle
           disabled={params.__disableConfirm || loading || inputLoading}
           variant="contained"
-          data-cy="submit-confirm-dialog"
-          autoFocus>
+          autoFocus
+          {...(confirmProps || {})}>
           {(loading || inputLoading) && <Spinner size={16} sx={{ mr: 1 }} />}
           {confirm}
         </Button>

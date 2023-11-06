@@ -1,12 +1,27 @@
-import Copy from '@arcblock/ux/lib/ClickToCopy';
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 import Confirm from './confirm';
+import type { Params } from './confirm';
 
-export default function CancelConfirm({
+export type Props = {
+  keyName: string;
+  title: string;
+  description?: string;
+  confirmPlaceholder?: string;
+  cancel: string;
+  confirm: string;
+  confirmProps?: {
+    color: string;
+    background: string;
+  };
+  params?: Params;
+  onCancel: () => void;
+  onConfirm: () => void;
+};
+
+export default function DeleteConfirm({
   title,
   description,
   confirmPlaceholder,
@@ -16,48 +31,23 @@ export default function CancelConfirm({
   onCancel,
   onConfirm,
   keyName,
-}: {
-  keyName: string;
-  title: any;
-  description?: any;
-  confirmPlaceholder?: string;
-  cancel: string;
-  confirm: string;
-  params?: object;
-  onCancel: () => any;
-  onConfirm: () => any;
-}) {
-  const { t } = useLocaleContext();
-
+  confirmProps,
+}: Props) {
   const confirmSetting = {
+    title: <Box>{title}</Box>,
     // eslint-disable-next-line react/no-unstable-nested-components
-    title: () => (
-      <div>
-        {title}
-        {` (${keyName})`}
-      </div>
-    ),
-    // eslint-disable-next-line react/no-unstable-nested-components
-    description: (params: any, setParams: any) => {
-      const setValue = (value: any) => {
-        // eslint-disable-next-line no-underscore-dangle
+    description: (params: Params, setParams: React.Dispatch<React.SetStateAction<Params>>) => {
+      const setValue = (value: Params) => {
         setParams({ ...value, __disableConfirm: value.__disableConfirm });
       };
 
       return (
         <Box>
-          <Box style={{ marginTop: 24, marginBottom: 24 }} dangerouslySetInnerHTML={{ __html: description }} />
-          <Box style={{ marginBottom: 24 }}>
-            {t('click')}：
-            <Copy tip={t('copyTip')} copiedTip={t('copiedTip')}>
-              {keyName}
-            </Copy>
-          </Box>
+          <Box style={{ marginTop: 24, marginBottom: 24 }} dangerouslySetInnerHTML={{ __html: description || '' }} />
           <Typography component="div">
             <TextField
               label={confirmPlaceholder}
               autoComplete="off"
-              data-cy="delete-confirm-input"
               variant="outlined"
               fullWidth
               autoFocus
@@ -74,10 +64,11 @@ export default function CancelConfirm({
     cancel,
     onConfirm,
     onCancel,
+    confirmProps,
     params: {
       inputVal: '',
       __disableConfirm: true,
-      ...initialParams,
+      ...(initialParams || {}),
     },
   };
 
@@ -90,6 +81,7 @@ export default function CancelConfirm({
       params={confirmSetting.params}
       onConfirm={confirmSetting.onConfirm}
       onCancel={confirmSetting.onCancel}
+      confirmProps={confirmSetting.confirmProps}
     />
   );
 }

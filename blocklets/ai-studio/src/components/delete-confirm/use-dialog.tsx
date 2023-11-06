@@ -1,19 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import DelConfirm from './del-confirm';
+import type { Props } from './del-confirm';
 
 export default function useDialog() {
-  const [props, setProps] = useState<{
-    keyName: string;
-    title: any;
-    description?: any;
-    confirmPlaceholder?: string;
-    cancel: string;
-    confirm: string;
-    params?: object;
-    onCancel: () => any;
-    onConfirm: () => any;
-  }>();
+  const [props, setProps] = useState<Props>();
 
   const dialog = useMemo(() => (props ? <DelConfirm {...props} /> : null), [props]);
 
@@ -32,17 +23,8 @@ export default function useDialog() {
       onCancel,
       onConfirm,
       keyName,
-    }: {
-      keyName: string;
-      title: any;
-      description?: any;
-      confirmPlaceholder?: string;
-      cancel: string;
-      confirm: string;
-      params?: object;
-      onCancel: () => any;
-      onConfirm: () => any;
-    }) => {
+      confirmProps,
+    }: Props) => {
       setProps({
         title,
         description,
@@ -53,6 +35,7 @@ export default function useDialog() {
         onCancel,
         onConfirm,
         keyName,
+        confirmProps,
       });
     },
     [closeDialog]

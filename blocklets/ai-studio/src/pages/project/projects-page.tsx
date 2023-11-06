@@ -151,13 +151,17 @@ function ProjectMenu() {
 
   const onDelete = () => {
     if (!item) return;
+    const name = item.name || t('unnamed');
 
     showDialog({
-      keyName: item._id || item.name || t('unnamed'),
-      title: `${t('alert.delete')} ${item.name || t('unnamed')}`,
-      description: t('deleteProject', { name: item.name || t('unnamed') }),
-      confirmPlaceholder: t('confirmDelete', { name: item._id || item.name }),
+      keyName: name,
+      title: `${t('alert.delete')} "${name}"`,
+      description: t('deleteProject', { name }),
+      confirmPlaceholder: t('confirmDelete', { name }),
       confirm: t('alert.delete'),
+      confirmProps: {
+        color: 'warning',
+      },
       cancel: t('alert.cancel'),
       onConfirm: async () => {
         try {
