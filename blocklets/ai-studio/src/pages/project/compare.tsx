@@ -125,7 +125,7 @@ export function CompareComponent({
           </Box>
         ) : (
           <>
-            <TemplateFormView projectId={projectId} gitRef={gitRef} value={template} />
+            <TemplateFormView projectId={projectId} gitRef={gitRef} originValue={state.template} value={template} />
             <SettingView projectId={projectId} gitRef={gitRef} template={template} />
           </>
         )}

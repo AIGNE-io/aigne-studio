@@ -1,5 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, Stack, TextField, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
+import equal from 'fast-deep-equal';
+import cloneDeep from 'lodash/cloneDeep';
+import get from 'lodash/get';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
@@ -29,17 +32,43 @@ export default function TemplateFormView({
   projectId,
   gitRef,
   value,
+  originValue,
   disabled,
 }: {
   projectId: string;
   gitRef: string;
   value: TemplateYjs;
+  originValue?: TemplateYjs;
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
 
   const isReadOnly = useReadOnly({ ref: gitRef });
   const readOnly = disabled || isReadOnly;
+
+  const getDifference = (key: keyof TemplateYjs) => {
+    if (disabled) {
+      return false;
+    }
+
+    if (!originValue) {
+      return false;
+    }
+
+    return !equal(
+      get(cloneDeep(originValue), key, key === 'tags' ? [] : ''),
+      get(cloneDeep(value), key, key === 'tags' ? [] : '')
+    );
+  };
+
+  const getStyle = (key: keyof TemplateYjs) => {
+    const isDiff = getDifference(key);
+    if (!isDiff) {
+      return {};
+    }
+
+    return { border: '1px solid rgb(255, 215, 213)' };
+  };
 
   return (
     <Stack gap={0.5} pb={10}>
@@ -55,6 +84,7 @@ export default function TemplateFormView({
               readOnly,
               sx: (theme) => theme.typography.subtitle1,
             }}
+            sx={getStyle('name')}
           />
         </WithAwareness>
 
@@ -77,6 +107,7 @@ export default function TemplateFormView({
             maxRows={6}
             onChange={(e) => (value.description = e.target.value)}
             InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
+            sx={getStyle('description')}
           />
         </WithAwareness>
 
@@ -91,6 +122,7 @@ export default function TemplateFormView({
       <Box mb={2} position="relative">
         <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
           <TagsAutoComplete
+            sx={getStyle('tags')}
             readOnly={readOnly}
             projectId={projectId}
             value={value.tags ?? []}
@@ -120,7 +152,7 @@ export default function TemplateFormView({
         />
       </Box>
 
-      <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} />
+      <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} originValue={originValue} />
     </Stack>
   );
 }

@@ -90,7 +90,7 @@ export default flat({
     newBranchRequired: '分支名称不能为空',
     currentBranch: '当前分支',
     message: '备注',
-    compare: '对比数据',
+    compare: '对比修改',
   },
   import: {
     title: '导入模板数据',

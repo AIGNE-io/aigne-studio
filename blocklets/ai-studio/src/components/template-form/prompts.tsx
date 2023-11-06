@@ -5,6 +5,8 @@ import { cx } from '@emotion/css';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Tooltip, Typography, alpha, buttonClasses } from '@mui/material';
 import { useCounter } from 'ahooks';
+import equal from 'fast-deep-equal';
+import get from 'lodash/get';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { useDeferredValue, useEffect, useRef } from 'react';
@@ -26,15 +28,39 @@ export default function Prompts({
   projectId,
   gitRef,
   value: form,
+  originValue,
 }: {
   readOnly?: boolean;
   projectId: string;
   gitRef: string;
   value: TemplateYjs;
+  originValue?: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
   const parametersHistory = useRef<Record<string, ParameterYjs>>({});
+
+  const getDifference = (key: keyof TemplateYjs | string) => {
+    if (readOnly) {
+      return false;
+    }
+
+    if (!originValue) {
+      return false;
+    }
+
+    return !equal(get(originValue, key, ''), get(form, key, ''));
+  };
+
+  const getStyle = (key: keyof TemplateYjs | string) => {
+    const isDiff = getDifference(key);
+
+    if (!isDiff) {
+      return {};
+    }
+
+    return { borderColor: 'rgb(255, 215, 213)' };
+  };
 
   // NOTE: 用来触发 parameters 更新
   const [updateTrigger, { inc: triggerUpdate }] = useCounter();
@@ -87,6 +113,7 @@ export default function Prompts({
             borderColor: 'primary.main',
             borderRadius: 2,
             bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+            ...getStyle('prompts'),
           }}>
           <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
             <TipsAndUpdatesRounded fontSize="small" color="primary" />
