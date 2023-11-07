@@ -383,18 +383,19 @@ export default function ProjectSettings() {
                       })}
                     </RadioGroup>
                   </FormControl>
-
-                  {(value.gitType === 'default' || !value.gitType) && (
-                    <Box ml="35px" mt={1}>
-                      <Box sx={{ fontWeight: 'bold', mb: 1 }}>{t('projectSetting.gitType.default.setRepo')}</Box>
-                      <Box display="flex" justifyContent="space-between">
-                        <Box>{value.gitUrl}</Box>
-                        <Button onClick={onSetRepo}>{t('setting')}</Button>
-                      </Box>
-                    </Box>
-                  )}
                 </Box>
               </Box>
+
+              {(value.gitType === 'default' || !value.gitType) && (
+                <Box my={2}>
+                  <Box component="h3">{t('projectSetting.gitType.default.setRepo')}</Box>
+
+                  <Box display="flex" justifyContent="space-between">
+                    <Box>{value.gitUrl}</Box>
+                    <Button onClick={onSetRepo}>{t('setting')}</Button>
+                  </Box>
+                </Box>
+              )}
 
               <Box display="flex" justifyContent="flex-end" mb={5}>
                 <LoadingButton
