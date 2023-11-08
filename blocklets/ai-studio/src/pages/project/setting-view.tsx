@@ -105,20 +105,20 @@ export default function SettingView({
         '> div > *:last-child': { mb: 4 },
         [`.${typographyClasses.subtitle1}`]: { mb: 1 },
       }}>
-      {/* <Compare value={template} originValue={originValue} disabled={disabled} path="parameters"> */}
-      <Stack>
-        <Typography
-          variant="subtitle1"
-          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}
-          className="settings-item">
-          {t('variable')}
-        </Typography>
+      <Compare value={template} originValue={originValue} disabled={disabled} path="parameters">
+        <Stack>
+          <Typography
+            variant="subtitle1"
+            sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}
+            className="settings-item">
+            {t('variable')}
+          </Typography>
 
-        <Box px={2} className="settings-item">
-          <Parameters readOnly={readOnly} form={template} />
-        </Box>
-      </Stack>
-      {/* </Compare> */}
+          <Box px={2} className="settings-item">
+            <Parameters readOnly={readOnly} form={template} />
+          </Box>
+        </Stack>
+      </Compare>
 
       <Compare value={template} originValue={originValue} disabled={disabled} path={['public', 'mode', 'type']}>
         <Stack sx={{ [`.${formLabelClasses.root}`]: { fontSize: 14 } }}>
