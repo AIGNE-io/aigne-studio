@@ -227,5 +227,6 @@ export default flat({
     current: 'Current Data',
     select: 'Select Commit',
     empty: 'Empty Data',
+    diff: 'The file content is modified',
   },
 });

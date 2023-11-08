@@ -482,7 +482,9 @@ const FileTree = forwardRef<
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={dialogState.close}>{t('cancel')}</Button>
+          <Button variant="contained" onClick={dialogState.close}>
+            {t('cancel')}
+          </Button>
         </DialogActions>
       </Dialog>
     </>

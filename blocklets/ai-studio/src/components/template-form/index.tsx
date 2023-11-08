@@ -1,14 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, Stack, TextField, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
-import equal from 'fast-deep-equal';
-import cloneDeep from 'lodash/cloneDeep';
-import get from 'lodash/get';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
 import { useReadOnly } from '../../contexts/session';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
+import Compare from './compare';
 import Prompts from './prompts';
 import TagsAutoComplete from './tags-autocomplete';
 
@@ -46,113 +44,94 @@ export default function TemplateFormView({
   const isReadOnly = useReadOnly({ ref: gitRef });
   const readOnly = disabled || isReadOnly;
 
-  const getDifference = (key: keyof TemplateYjs) => {
-    if (disabled) {
-      return false;
-    }
-
-    if (!originValue) {
-      return false;
-    }
-
-    return !equal(
-      get(cloneDeep(originValue), key, key === 'tags' ? [] : ''),
-      get(cloneDeep(value), key, key === 'tags' ? [] : '')
-    );
-  };
-
-  const getStyle = (key: keyof TemplateYjs) => {
-    const isDiff = getDifference(key);
-    if (!isDiff) {
-      return {};
-    }
-
-    return { border: '1px solid rgb(255, 215, 213)' };
-  };
-
   return (
     <Stack gap={0.5} pb={10}>
-      <Box position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
-          <HoverBackgroundTextField
-            hiddenLabel
-            fullWidth
-            placeholder={t('unnamed')}
-            value={value.name ?? ''}
-            onChange={(e) => (value.name = e.target.value)}
-            InputProps={{
-              readOnly,
-              sx: (theme) => theme.typography.subtitle1,
-            }}
-            sx={getStyle('name')}
-          />
-        </WithAwareness>
+      <Compare value={value} originValue={originValue} disabled={disabled} path="name">
+        <Box position="relative">
+          <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
+            <HoverBackgroundTextField
+              hiddenLabel
+              fullWidth
+              placeholder={t('unnamed')}
+              value={value.name ?? ''}
+              onChange={(e) => (value.name = e.target.value)}
+              InputProps={{
+                readOnly,
+                sx: (theme) => theme.typography.subtitle1,
+              }}
+            />
+          </WithAwareness>
 
-        <AwarenessIndicator
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, 'name']}
-          sx={{ position: 'absolute', right: -16, top: 0 }}
-        />
-      </Box>
-
-      <Box position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'description']}>
-          <HoverBackgroundTextField
-            hiddenLabel
-            fullWidth
-            placeholder={t('description')}
-            value={value.description ?? ''}
-            multiline
-            maxRows={6}
-            onChange={(e) => (value.description = e.target.value)}
-            InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
-            sx={getStyle('description')}
-          />
-        </WithAwareness>
-
-        <AwarenessIndicator
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, 'description']}
-          sx={{ position: 'absolute', right: -16, top: 0 }}
-        />
-      </Box>
-
-      <Box mb={2} position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
-          <TagsAutoComplete
-            sx={getStyle('tags')}
-            readOnly={readOnly}
+          <AwarenessIndicator
             projectId={projectId}
-            value={value.tags ?? []}
-            onChange={(_, tags) => (value.tags = tags)}
-            renderInput={(params) => (
-              <HoverBackgroundTextField
-                {...params}
-                hiddenLabel
-                placeholder={t('form.tag')}
-                InputProps={{
-                  ...params.InputProps,
-                  sx: {
-                    color: 'text.secondary',
-                    [`.${chipClasses.root}`]: { ml: 0, mr: 0.5 },
-                  },
-                }}
-              />
-            )}
+            gitRef={gitRef}
+            path={[value.id, 'name']}
+            sx={{ position: 'absolute', right: -16, top: 0 }}
           />
-        </WithAwareness>
+        </Box>
+      </Compare>
 
-        <AwarenessIndicator
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, 'tag']}
-          sx={{ position: 'absolute', right: -16, top: 0 }}
-        />
-      </Box>
+      <Compare value={value} originValue={originValue} disabled={disabled} path="description">
+        <Box position="relative">
+          <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'description']}>
+            <HoverBackgroundTextField
+              hiddenLabel
+              fullWidth
+              placeholder={t('description')}
+              value={value.description ?? ''}
+              multiline
+              maxRows={6}
+              onChange={(e) => (value.description = e.target.value)}
+              InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
+            />
+          </WithAwareness>
 
-      <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} originValue={originValue} />
+          <AwarenessIndicator
+            projectId={projectId}
+            gitRef={gitRef}
+            path={[value.id, 'description']}
+            sx={{ position: 'absolute', right: -16, top: 0 }}
+          />
+        </Box>
+      </Compare>
+
+      <Compare value={value} originValue={originValue} disabled={disabled} path="tags">
+        <Box mb={2} position="relative">
+          <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
+            <TagsAutoComplete
+              readOnly={readOnly}
+              projectId={projectId}
+              value={value.tags ?? []}
+              onChange={(_, tags) => (value.tags = tags)}
+              renderInput={(params) => (
+                <HoverBackgroundTextField
+                  {...params}
+                  hiddenLabel
+                  placeholder={t('form.tag')}
+                  InputProps={{
+                    ...params.InputProps,
+                    sx: {
+                      color: 'text.secondary',
+                      [`.${chipClasses.root}`]: { ml: 0, mr: 0.5 },
+                    },
+                  }}
+                />
+              )}
+            />
+          </WithAwareness>
+
+          <AwarenessIndicator
+            projectId={projectId}
+            gitRef={gitRef}
+            path={[value.id, 'tag']}
+            sx={{ position: 'absolute', right: -16, top: 0 }}
+          />
+        </Box>
+      </Compare>
+
+      <Compare value={value} originValue={originValue} disabled={disabled} path="prompts">
+        <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} />
+      </Compare>
     </Stack>
   );
 }

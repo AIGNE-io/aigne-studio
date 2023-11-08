@@ -74,7 +74,15 @@ export function CompareComponent({
   if (!template) return null;
 
   return (
-    <Box height="80vh" display="flex" width={1}>
+    <Box
+      height="80vh"
+      display="flex"
+      width={1}
+      sx={{
+        '.settings-item': {
+          padding: 0,
+        },
+      }}>
       <Box flex={1} display="flex" flexDirection="column">
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
@@ -114,7 +122,7 @@ export function CompareComponent({
         )}
       </Box>
 
-      <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+      <Divider orientation="vertical" flexItem sx={{ mx: 3 }} />
 
       <Box flex={1} display="flex" flexDirection="column">
         <Box sx={{ fontSize: 20, fontWeight: 'bold', mb: 2 }}>{t('compare.current')}</Box>
@@ -126,7 +134,7 @@ export function CompareComponent({
         ) : (
           <>
             <TemplateFormView projectId={projectId} gitRef={gitRef} originValue={state.template} value={template} />
-            <SettingView projectId={projectId} gitRef={gitRef} template={template} />
+            <SettingView projectId={projectId} gitRef={gitRef} template={template} originValue={state.template} />
           </>
         )}
       </Box>

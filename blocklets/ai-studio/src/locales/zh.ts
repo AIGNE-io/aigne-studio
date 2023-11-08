@@ -224,5 +224,6 @@ export default flat({
     current: '当前数据',
     select: '选择提交记录',
     empty: '没有原始数据',
+    diff: '文件内容被修改',
   },
 });
