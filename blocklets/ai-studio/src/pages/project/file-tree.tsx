@@ -122,6 +122,7 @@ const FileTree = forwardRef<
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
+  const { conformDialog, showConformDialog } = useDialog();
 
   const { store, synced } = useStore(projectId, gitRef);
   const { changes, deleted, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
@@ -424,9 +425,23 @@ const FileTree = forwardRef<
                         <Button
                           sx={{ padding: 0.5, minWidth: 0 }}
                           onClick={() => {
-                            const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & { parent: string[] };
-                            deleteFile({ store, path: [...parent, meta.id] });
-                            onCreateFile({ parent, meta: data });
+                            showDialog({
+                              fullWidth: true,
+                              maxWidth: 'sm',
+                              title: `${t('restore')}`,
+                              content: (
+                                <Box maxHeight={500}>
+                                  {t('restoreConform', { path: meta.name || t('alert.unnamed') })}
+                                </Box>
+                              ),
+                              onOk: () => {
+                                const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & {
+                                  parent: string[];
+                                };
+                                deleteFile({ store, path: [...parent, meta.id] });
+                                onCreateFile({ parent, meta: data });
+                              },
+                            });
                           }}
                           onMouseEnter={() => {
                             setShowPopper(false);
@@ -474,6 +489,8 @@ const FileTree = forwardRef<
       )}
 
       {dialog}
+      {conformDialog}
+
       <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
         <DialogTitle>{t('alert.compare')}</DialogTitle>
         <DialogContent sx={{ mt: -3 }}>

@@ -212,6 +212,7 @@ export default flat({
     modified: 'Modified',
   },
   restore: 'Restore',
+  restoreConform: 'Are you sure you want to discard the changes in {path}?',
   label: 'Label',
   actions: 'Actions',
   copy: 'Copy',

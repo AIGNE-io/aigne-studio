@@ -209,6 +209,7 @@ export default flat({
     modified: '被修改',
   },
   restore: '还原',
+  restoreConform: '您确定要放弃 {path} 中的更改吗??',
   label: '标签',
   actions: '操作',
   copy: '复制',
