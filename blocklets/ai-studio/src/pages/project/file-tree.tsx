@@ -122,7 +122,6 @@ const FileTree = forwardRef<
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
-  const { conformDialog, showConformDialog } = useDialog();
 
   const { store, synced } = useStore(projectId, gitRef);
   const { changes, deleted, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
@@ -427,7 +426,7 @@ const FileTree = forwardRef<
                           onClick={() => {
                             showDialog({
                               fullWidth: true,
-                              maxWidth: 'sm',
+                              maxWidth: 'xs',
                               title: `${t('restore')}`,
                               content: (
                                 <Box maxHeight={500}>
@@ -489,7 +488,6 @@ const FileTree = forwardRef<
       )}
 
       {dialog}
-      {conformDialog}
 
       <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
         <DialogTitle>{t('alert.compare')}</DialogTitle>
