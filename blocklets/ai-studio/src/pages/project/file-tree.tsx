@@ -60,6 +60,7 @@ import useDialog from '../../utils/use-dialog';
 import { CompareComponent } from './compare';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
+import Compare from './icons/compare';
 import Duplicate from './icons/duplicate';
 import External from './icons/external';
 import File from './icons/file';
@@ -125,7 +126,7 @@ const FileTree = forwardRef<
 
   const { store, synced } = useStore(projectId, gitRef);
   const { changes, deleted, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
-  const [showPopper, setShowPopper] = useState(true);
+  const [showPopper] = useState(true);
   const dialogState = usePopupState({ variant: 'dialog' });
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
@@ -399,12 +400,40 @@ const FileTree = forwardRef<
                   />
 
                   {change?.key === 'M' && getOriginTemplate(meta) && (
-                    <ListItemButton {...bindTrigger(dialogState)}>
-                      <ListItemIcon>
-                        <External />
-                      </ListItemIcon>
-                      <ListItemText primary={t('alert.compare')} />
-                    </ListItemButton>
+                    <>
+                      <ListItemButton {...bindTrigger(dialogState)}>
+                        <ListItemIcon>
+                          <Compare />
+                        </ListItemIcon>
+                        <ListItemText primary={t('alert.compare')} />
+                      </ListItemButton>
+
+                      <ListItemButton
+                        onClick={() => {
+                          showDialog({
+                            fullWidth: true,
+                            maxWidth: 'xs',
+                            title: `${t('restore')}`,
+                            content: (
+                              <Box maxHeight={500}>
+                                {t('restoreConform', { path: meta.name || t('alert.unnamed') })}
+                              </Box>
+                            ),
+                            onOk: () => {
+                              const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & {
+                                parent: string[];
+                              };
+                              deleteFile({ store, path: [...parent, meta.id] });
+                              onCreateFile({ parent, meta: data });
+                            },
+                          });
+                        }}>
+                        <ListItemIcon>
+                          <Undo />
+                        </ListItemIcon>
+                        <ListItemText primary={t('restore')} />
+                      </ListItemButton>
+                    </>
                   )}
                 </>
               );
@@ -417,42 +446,7 @@ const FileTree = forwardRef<
                   selected={selected}
                   onClick={() => navigate(filepath.join('/'))}
                   actions={actions}
-                  sx={{ color: change?.color }}
-                  otherActions={
-                    change?.key === 'M' && getOriginTemplate(meta) ? (
-                      <Tooltip title={t('restore')} disableInteractive placement="top">
-                        <Button
-                          sx={{ padding: 0.5, minWidth: 0 }}
-                          onClick={() => {
-                            showDialog({
-                              fullWidth: true,
-                              maxWidth: 'xs',
-                              title: `${t('restore')}`,
-                              content: (
-                                <Box maxHeight={500}>
-                                  {t('restoreConform', { path: meta.name || t('alert.unnamed') })}
-                                </Box>
-                              ),
-                              onOk: () => {
-                                const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & {
-                                  parent: string[];
-                                };
-                                deleteFile({ store, path: [...parent, meta.id] });
-                                onCreateFile({ parent, meta: data });
-                              },
-                            });
-                          }}
-                          onMouseEnter={() => {
-                            setShowPopper(false);
-                          }}
-                          onMouseLeave={() => {
-                            setShowPopper(true);
-                          }}>
-                          <Undo sx={{ fontSize: 20 }} />
-                        </Button>
-                      </Tooltip>
-                    ) : null
-                  }>
+                  sx={{ color: change?.color }}>
                   {meta.name || t('alert.unnamed')}
 
                   <AwarenessIndicator
