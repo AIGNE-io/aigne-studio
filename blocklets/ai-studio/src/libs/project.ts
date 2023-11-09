@@ -32,5 +32,5 @@ export async function importTemplatesToProject(
 }
 
 export async function addRemoteForProjectGit(projectId: string, data: { url: string; username: string }): Promise<{}> {
-  return axios.post(`/api/projects/${projectId}/add-remote`, data).then((res) => res.data);
+  return axios.post(`/api/projects/${projectId}/add-git-remote`, data).then((res) => res.data);
 }

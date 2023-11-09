@@ -342,7 +342,7 @@ export function projectRoutes(router: Router) {
     return res.json({ templates: uniqBy(templates, 'id') });
   });
 
-  router.post('/projects/:projectId/add-remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.post('/projects/:projectId/add-git-remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
