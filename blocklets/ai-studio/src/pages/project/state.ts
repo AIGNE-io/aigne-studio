@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { UndoManager, getYjsDoc } from '@blocklet/co-git/yjs';
+import { Map, UndoManager, YMapEvent, getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
@@ -640,12 +640,15 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   return { ...state, changes, run, getOriginTemplate };
 };
 
-export const useUndoManager = (projectId: string, ref: string) => {
+export const useUndoManager = (projectId: string, ref: string, key: string) => {
   const { store } = useStore(projectId, ref);
 
   const doc = useMemo(() => getYjsDoc(store), [store]);
 
-  const undoManager = useMemo(() => new UndoManager([doc.getMap('files'), doc.getMap('tree')], { doc }), [doc]);
+  const undoManager = useMemo(() => {
+    const map = doc.getMap('files').get(key) as Map<Map<any>>;
+    return new UndoManager([map], { doc });
+  }, [doc, key]);
 
   const [state, setState] = useState(() => ({
     canRedo: undoManager.canRedo(),
@@ -655,6 +658,13 @@ export const useUndoManager = (projectId: string, ref: string) => {
   }));
 
   useEffect(() => {
+    setState(() => ({
+      canRedo: undoManager.canRedo(),
+      canUndo: undoManager.canUndo(),
+      redo: () => undoManager.redo(),
+      undo: () => undoManager.undo(),
+    }));
+
     const update = () => {
       setState((state) => ({
         ...state,
@@ -670,7 +680,7 @@ export const useUndoManager = (projectId: string, ref: string) => {
       undoManager.off('stack-item-added', update);
       undoManager.off('stack-item-popped', update);
     };
-  }, [undoManager]);
+  }, [undoManager, key]);
 
   return state;
 };

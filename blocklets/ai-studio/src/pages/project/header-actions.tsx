@@ -1,12 +1,12 @@
-import { HistoryRounded, Redo, Undo } from '@mui/icons-material';
-import { Box, Button, IconButton } from '@mui/material';
+import { HistoryRounded } from '@mui/icons-material';
+import { Button } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
 
 import CommitsTip from '../../components/template-form/commits-tip';
 import BranchButton from './branch-button';
 import SaveButton from './save-button';
-import { useProjectState, useUndoManager } from './state';
+import { useProjectState } from './state';
 
 export default function HeaderActions() {
   const { projectId, ref: gitRef, '*': filepath } = useParams();
@@ -17,8 +17,6 @@ export default function HeaderActions() {
   const {
     state: { loading, commits, project },
   } = useProjectState(projectId, gitRef);
-
-  const undoManager = useUndoManager(projectId, gitRef);
 
   const simpleMode = !project || project?.gitType === 'simple';
 
@@ -165,15 +163,6 @@ export default function HeaderActions() {
 
   return (
     <>
-      <Box mr={2}>
-        <IconButton disabled={!undoManager.canUndo} onClick={undoManager.undo}>
-          <Undo />
-        </IconButton>
-
-        <IconButton disabled={!undoManager.canRedo} onClick={undoManager.redo}>
-          <Redo />
-        </IconButton>
-      </Box>
       {!simpleMode && <BranchButton projectId={projectId} gitRef={gitRef} filepath={filepath} />}
       <CommitsTip
         loading={loading}
