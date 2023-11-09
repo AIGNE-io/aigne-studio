@@ -223,7 +223,7 @@ export function projectRoutes(router: Router) {
       }
 
       const project = await Projects.create({
-        ...omit(template, 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
+        ...omit(template, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
         model: template.model || defaultModel,
         _id: nextProjectId(),
         icon,
