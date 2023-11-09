@@ -112,8 +112,6 @@ export default flat({
   create: '创建',
   newObject: '新建{object}',
   createdAt: '创建于',
-  deleteProjectTitle: '删除项目“{project}”？',
-  deleteProjectTips: '删除之后不可找回！',
   home: '首页',
   prompts: '提示',
   model: '模型',
@@ -220,8 +218,4 @@ export default flat({
   noVariables: '您还没有添加任何参数',
   confirmDelete: '请输入 {name} 以确认删除',
   deleteProject: '这将永久删除名称为 {name} 的项目',
-  notice: '注意',
-  click: '点击复制',
-  copiedTip: '已复制',
-  copyTip: '点击复制',
 });

@@ -223,7 +223,7 @@ function ProjectMenu() {
 
       {deleteItem && (
         <DeleteDialog
-          name={deleteItem?.name || t('unnamed')}
+          name={deleteItem?.name || deleteItem._id!}
           onClose={() => {
             setDeleteItem(null);
           }}

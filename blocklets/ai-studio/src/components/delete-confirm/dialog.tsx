@@ -23,8 +23,8 @@ function useMobileWidth() {
 
 export type Props = {
   name: string;
-  onClose: () => void;
-  onConfirm: () => void;
+  onClose: () => any;
+  onConfirm: () => any;
 };
 
 export default function ConfirmDialog({ name, onClose, onConfirm, ...rest }: Props) {
@@ -35,20 +35,16 @@ export default function ConfirmDialog({ name, onClose, onConfirm, ...rest }: Pro
   const theme = useTheme();
   const { t } = useLocaleContext();
 
-  const onCallback = async (cb: (data: object) => void) => {
-    if (typeof cb === 'function') {
-      setLoading(true);
-      try {
-        await cb(params);
-        setOpen(false);
-      } catch (err) {
-        setError(err?.message);
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    } else {
+  const onSubmit = async () => {
+    setLoading(true);
+    try {
+      await onConfirm();
       setOpen(false);
+    } catch (err) {
+      setError(err?.message);
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,20 +88,11 @@ export default function ConfirmDialog({ name, onClose, onConfirm, ...rest }: Pro
         )}
       </DialogContent>
       <DialogActions className="delete-actions" style={{ padding: '8px 24px 24px' }}>
-        <Button
-          onClick={(e: MouseEvent) => {
-            e.stopPropagation();
-            onClose();
-          }}>
-          {t('alert.close')}
-        </Button>
+        <Button onClick={onClose}>{t('alert.close')}</Button>
 
         <Button
           type="submit"
-          onClick={(e: MouseEvent) => {
-            e.stopPropagation();
-            onCallback(onConfirm);
-          }}
+          onClick={onSubmit}
           disabled={params.__disableConfirm || loading}
           variant="contained"
           autoFocus
