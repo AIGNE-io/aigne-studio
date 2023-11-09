@@ -1,6 +1,10 @@
-## 0.1.128 (2023-11-9)
+## 0.1.129 (2023-11-9)
 
 - chore: support undo/redo template change and compare template version
+
+## 0.1.128 (2023-11-3)
+
+- chore: support delete confirm dialog(#291)
 
 ## 0.1.127 (2023-11-1)
 

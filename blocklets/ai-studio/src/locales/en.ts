@@ -113,8 +113,6 @@ export default flat({
   create: 'Create',
   newObject: 'New {object}',
   createdAt: 'Created at',
-  deleteProjectTitle: 'Delete project "{project}"?',
-  deleteProjectTips: 'It cannot be retrieved after deletion!',
   home: 'Home',
   prompts: 'Prompts',
   parameters: 'Parameters',
@@ -230,4 +228,6 @@ export default flat({
     empty: 'Empty Data',
     diff: 'The file content is modified',
   },
+  confirmDelete: 'Please input {name} to delete',
+  deleteProject: 'This will permanently delete project with name {name}',
 });
