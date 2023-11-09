@@ -695,7 +695,7 @@ export function useTemplateCompare({
   originValue?: TemplateYjs;
   disabled?: boolean;
 }) {
-  const getDifference = (key: keyof TemplateYjs) => {
+  const getDifference = (key: keyof TemplateYjs, defaultValue?: string) => {
     if (disabled) {
       return false;
     }
@@ -720,17 +720,20 @@ export function useTemplateCompare({
       return '';
     };
 
-    return !equal(get(cloneDeep(originValue), key, getDefault()), get(cloneDeep(value), key, getDefault()));
+    return !equal(
+      get(cloneDeep(originValue), key, defaultValue ?? getDefault()),
+      get(cloneDeep(value), key, defaultValue ?? getDefault())
+    );
   };
 
-  const getDiff = (path: keyof TemplateYjs | (keyof TemplateYjs)[]) => {
+  const getDiff = (path: keyof TemplateYjs | (keyof TemplateYjs)[], defaultValue?: string) => {
     const list = Array.isArray(path) ? path : [path];
-    return list.map((item) => getDifference(item)).some((x) => x);
+    return list.map((item) => getDifference(item, defaultValue)).some((x) => x);
   };
 
-  const getDiffName = useCallback((path: keyof TemplateYjs, id?: string) => {
+  const getDiffName = useCallback((path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
     if (id === undefined) {
-      if (!getDiff(path)) {
+      if (!getDiff(path, defaultValue)) {
         return '';
       }
 
@@ -741,7 +744,7 @@ export function useTemplateCompare({
       return '';
     }
 
-    if (!getDiff(path)) {
+    if (!getDiff(path, defaultValue)) {
       return '';
     }
 
@@ -752,17 +755,28 @@ export function useTemplateCompare({
     return 'modify';
   }, []);
 
-  const getDiffStyle = useCallback((path: keyof TemplateYjs, id?: string) => {
-    if (!getDiffName(path, id)) {
+  const getDiffStyle = useCallback((style: string, path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
+    if (!getDiffName(path, id, defaultValue)) {
       return {};
     }
 
-    if (getDiffName(path, id) === 'new') {
-      return { background: 'rgb(230, 255, 236)' };
+    if (getDiffName(path, id, defaultValue) === 'new') {
+      return { [style]: 'rgb(230, 255, 236)' };
     }
 
-    return { background: 'rgb(255, 235, 233)' };
+    return { [style]: 'rgb(255, 235, 233)' };
   }, []);
 
-  return { getDiff, getDiffName, getDiffStyle };
+  const getDiffBackground = useCallback((path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
+    return getDiffStyle('background', path, id, defaultValue);
+  }, []);
+
+  const getDiffColor = useCallback(
+    ({ path, id, defaultValue }: { path: keyof TemplateYjs; id?: string; defaultValue?: string }) => {
+      return getDiffStyle('color', path, id, defaultValue);
+    },
+    []
+  );
+
+  return { getDiff, getDiffName, getDiffColor, getDiffBackground };
 }

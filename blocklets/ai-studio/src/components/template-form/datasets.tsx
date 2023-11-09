@@ -24,7 +24,7 @@ export default function Datasets({
   const { value: datasetsRes } = useAsync(() => getDatasets(), []);
   const datasets = useMemo(() => datasetsRes?.datasets.map((i) => ({ id: i._id!, name: i.name })) ?? [], [datasetsRes]);
 
-  const { getDiffStyle } = useTemplateCompare({ value: form as TemplateYjs, originValue, disabled: readOnly });
+  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, originValue, disabled: readOnly });
 
   return (
     <Stack gap={1}>
@@ -41,7 +41,11 @@ export default function Datasets({
               options={datasets}
               isOptionEqualToValue={(o, v) => o.id === v.id}
               getOptionLabel={(v) => v.name || 'Unnamed'}
-              sx={{ ...getDiffStyle('datasets', item.id) }}
+              sx={{
+                '.MuiInputBase-root': {
+                  ...getDiffBackground('datasets', item.id),
+                },
+              }}
             />
 
             {!readOnly && (

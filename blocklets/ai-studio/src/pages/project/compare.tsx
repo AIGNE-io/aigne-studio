@@ -15,7 +15,7 @@ import SettingView from './setting-view';
 import { defaultBranch, useProjectState } from './state';
 import { isTemplate, templateYjsFromTemplate, useStore } from './yjs-state';
 
-export function CompareComponent({
+export default function Compare({
   projectId,
   gitRef,
   filepath,

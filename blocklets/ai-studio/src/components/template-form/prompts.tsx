@@ -81,7 +81,7 @@ export default function Prompts({
     });
   }, [deferredTrigger]);
 
-  const { getDiffStyle } = useTemplateCompare({ value: form as TemplateYjs, originValue, disabled: readOnly });
+  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, originValue, disabled: readOnly });
 
   return (
     <Box>
@@ -131,6 +131,7 @@ export default function Prompts({
                     ':hover .hover-visible': {
                       maxHeight: '100%',
                     },
+                    ...getDiffBackground('prompts', prompt.id),
                   }}>
                   <Stack direction="row" sx={{ position: 'relative' }}>
                     <Box
@@ -145,7 +146,7 @@ export default function Prompts({
                         '&.prompt-hidden *': {
                           color: (theme) => `${theme.palette.text.disabled} !important`,
                         },
-                        ...getDiffStyle('prompts', prompt.id),
+                        ...getDiffBackground('prompts', prompt.id),
                       }}>
                       <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
                         <PromptEditor

@@ -44,7 +44,7 @@ export default function TemplateFormView({
   const isReadOnly = useReadOnly({ ref: gitRef });
   const readOnly = disabled || isReadOnly;
 
-  const { getDiffStyle } = useTemplateCompare({ value, originValue, disabled });
+  const { getDiffBackground } = useTemplateCompare({ value, originValue, disabled });
 
   return (
     <Stack gap={0.5} pb={10}>
@@ -60,7 +60,11 @@ export default function TemplateFormView({
               readOnly,
               sx: (theme) => theme.typography.subtitle1,
             }}
-            sx={{ ...getDiffStyle('name') }}
+            sx={{
+              '.MuiInputBase-root': {
+                ...getDiffBackground('name'),
+              },
+            }}
           />
         </WithAwareness>
 
@@ -83,7 +87,11 @@ export default function TemplateFormView({
             maxRows={6}
             onChange={(e) => (value.description = e.target.value)}
             InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
-            sx={{ ...getDiffStyle('description') }}
+            sx={{
+              '.MuiInputBase-root': {
+                ...getDiffBackground('description'),
+              },
+            }}
           />
         </WithAwareness>
 
@@ -114,7 +122,11 @@ export default function TemplateFormView({
                     [`.${chipClasses.root}`]: { ml: 0, mr: 0.5 },
                   },
                 }}
-                sx={{ ...getDiffStyle('tags') }}
+                sx={{
+                  '.MuiInputBase-root': {
+                    ...getDiffBackground('tags'),
+                  },
+                }}
               />
             )}
           />

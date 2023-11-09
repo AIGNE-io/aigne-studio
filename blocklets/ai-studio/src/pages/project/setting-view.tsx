@@ -16,7 +16,7 @@ import {
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AccordionSummary from '@mui/material/AccordionSummary';
-import { SyntheticEvent, useCallback, useMemo, useState } from 'react';
+import { SyntheticEvent, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -46,8 +46,7 @@ export default function SettingView({
 }) {
   const { t } = useLocaleContext();
 
-  const isReadOnly = useReadOnly({ ref: gitRef });
-  const readOnly = disabled || isReadOnly;
+  const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const [expanded, setExpanded] = useState<string | false>(false);
 
   const {
@@ -95,15 +94,7 @@ export default function SettingView({
     setExpanded(isExpanded ? panel : false);
   };
 
-  const { getDiff } = useTemplateCompare({ value: template, originValue, disabled });
-
-  const getDiffStyle = useCallback((path: keyof TemplateYjs | (keyof TemplateYjs)[]) => {
-    if (!getDiff(path)) {
-      return {};
-    }
-
-    return { background: 'rgb(255, 235, 233)' };
-  }, []);
+  const { getDiffBackground, getDiffColor } = useTemplateCompare({ value: template, originValue, disabled });
 
   if (!model) return null;
 
@@ -153,7 +144,12 @@ export default function SettingView({
             <RadioGroup
               row
               value={template.mode ?? 'default'}
-              onChange={(_, mode) => !readOnly && (template.mode = mode as any)}>
+              onChange={(_, mode) => !readOnly && (template.mode = mode as any)}
+              sx={{
+                '.Mui-checked': {
+                  ...getDiffColor({ path: 'mode', defaultValue: 'default' }),
+                },
+              }}>
               <FormControlLabel value="default" control={<Radio />} label={t('formMode')} />
               <FormControlLabel value="chat" control={<Radio />} label={t('chatMode')} />
             </RadioGroup>
@@ -175,6 +171,11 @@ export default function SettingView({
                   } else {
                     template.type = type as any;
                   }
+                }}
+                sx={{
+                  '.Mui-checked': {
+                    ...getDiffColor({ path: 'type', defaultValue: 'text' }),
+                  },
                 }}>
                 <FormControlLabel value="text" control={<Radio />} label={t('text')} />
                 <FormControlLabel value="image" control={<Radio />} label={t('image')} />
@@ -207,7 +208,11 @@ export default function SettingView({
               value={template.model || project?.model || ''}
               onChange={(e) => (template.model = e.target.value)}
               InputProps={{ readOnly }}
-              sx={{ ...getDiffStyle('next') }}
+              sx={{
+                '.MuiInputBase-root': {
+                  ...getDiffBackground('model'),
+                },
+              }}
             />
           </WithAwareness>
 
@@ -401,8 +406,8 @@ export default function SettingView({
       {template.type !== 'image' && (
         <Stack
           sx={{
-            '.MuiTextField-root': {
-              ...getDiffStyle('next'),
+            '.MuiInputBase-root': {
+              ...getDiffBackground('next'),
             },
           }}>
           <Typography

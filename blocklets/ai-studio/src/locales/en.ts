@@ -90,7 +90,7 @@ export default flat({
     newBranchRequired: 'New branch is required',
     currentBranch: 'Current branch',
     message: 'Message',
-    compare: 'Compare',
+    compare: 'Version compare',
   },
   import: {
     title: 'Import Templates',

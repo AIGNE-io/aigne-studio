@@ -34,7 +34,7 @@ import {
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
-import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import {
   ComponentProps,
@@ -57,10 +57,10 @@ import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
 import { importTemplatesToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
-import { CompareComponent } from './compare';
+import Compare from './compare';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
-import Compare from './icons/compare';
+import CompareIcon from './icons/compare';
 import Duplicate from './icons/duplicate';
 import External from './icons/external';
 import File from './icons/file';
@@ -390,52 +390,34 @@ const FileTree = forwardRef<
               const icon = meta.type === 'image' ? <Picture /> : <File />;
 
               const actions = (
-                <>
-                  <TreeItemMenus
-                    mutable={mutable}
-                    item={node.data}
-                    onCreateFile={onCreateFile}
-                    onDeleteFile={onDeleteFile}
-                    onLaunch={onLaunch}
-                  />
-
-                  {change?.key === 'M' && getOriginTemplate(meta) && (
-                    <>
-                      <ListItemButton {...bindTrigger(dialogState)}>
-                        <ListItemIcon>
-                          <Compare />
-                        </ListItemIcon>
-                        <ListItemText primary={t('alert.compare')} />
-                      </ListItemButton>
-
-                      <ListItemButton
-                        onClick={() => {
-                          showDialog({
-                            fullWidth: true,
-                            maxWidth: 'xs',
-                            title: `${t('restore')}`,
-                            content: (
-                              <Box maxHeight={500}>
-                                {t('restoreConform', { path: meta.name || t('alert.unnamed') })}
-                              </Box>
-                            ),
-                            onOk: () => {
-                              const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & {
-                                parent: string[];
-                              };
-                              deleteFile({ store, path: [...parent, meta.id] });
-                              onCreateFile({ parent, meta: data });
-                            },
-                          });
-                        }}>
-                        <ListItemIcon>
-                          <Undo />
-                        </ListItemIcon>
-                        <ListItemText primary={t('restore')} />
-                      </ListItemButton>
-                    </>
-                  )}
-                </>
+                <TreeItemMenus
+                  mutable={mutable}
+                  item={node.data}
+                  onCreateFile={onCreateFile}
+                  onDeleteFile={onDeleteFile}
+                  onLaunch={onLaunch}
+                  isChanged={Boolean(change?.key === 'M' && getOriginTemplate(meta))}
+                  onCompare={() => {
+                    dialogState.toggle();
+                  }}
+                  onUndo={() => {
+                    showDialog({
+                      fullWidth: true,
+                      maxWidth: 'xs',
+                      title: `${t('restore')}`,
+                      content: (
+                        <Box maxHeight={500}>{t('restoreConform', { path: meta.name || t('alert.unnamed') })}</Box>
+                      ),
+                      onOk: () => {
+                        const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & {
+                          parent: string[];
+                        };
+                        deleteFile({ store, path: [...parent, meta.id] });
+                        onCreateFile({ parent, meta: data });
+                      },
+                    });
+                  }}
+                />
               );
 
               const children = (
@@ -487,7 +469,7 @@ const FileTree = forwardRef<
         <DialogTitle>{t('alert.compare')}</DialogTitle>
         <DialogContent sx={{ mt: -3 }}>
           <Box pt={3}>
-            <CompareComponent projectId={projectId} gitRef={gitRef} filepath={current || ''} />
+            <Compare projectId={projectId} gitRef={gitRef} filepath={current || ''} />
           </Box>
         </DialogContent>
         <DialogActions>
@@ -540,17 +522,23 @@ function DragPreviewRender({ item }: DragLayerMonitorProps<EntryWithMeta>) {
 }
 
 function TreeItemMenus({
+  isChanged,
   mutable,
   item,
   onCreateFile,
   onDeleteFile,
   onLaunch,
+  onCompare,
+  onUndo,
 }: {
+  isChanged?: boolean;
   mutable?: boolean;
   item: EntryWithMeta;
   onCreateFile?: (options?: { parent?: string[]; meta?: TemplateYjs }) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
   onLaunch?: (template: TemplateYjs) => any;
+  onCompare?: () => void;
+  onUndo?: () => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -601,6 +589,24 @@ function TreeItemMenus({
           </ListItemIcon>
           <ListItemText primary={t('alert.delete')} />
         </ListItemButton>
+      )}
+
+      {isChanged && (
+        <>
+          <ListItemButton onClick={onCompare}>
+            <ListItemIcon>
+              <CompareIcon />
+            </ListItemIcon>
+            <ListItemText primary={t('alert.compare')} />
+          </ListItemButton>
+
+          <ListItemButton onClick={onUndo}>
+            <ListItemIcon>
+              <Undo />
+            </ListItemIcon>
+            <ListItemText primary={t('restore')} />
+          </ListItemButton>
+        </>
       )}
     </>
   );
