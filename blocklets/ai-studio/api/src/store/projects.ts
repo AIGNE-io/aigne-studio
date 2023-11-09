@@ -3,6 +3,7 @@ import path from 'path';
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
 import sortBy from 'lodash/sortBy';
+import { nanoid } from 'nanoid';
 import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
 
@@ -128,11 +129,15 @@ export async function getRepository({ projectId }: { projectId: string }) {
       initialCommit: { message: 'init', author: { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content) => {
         if (path.extname(filepath) === '.yaml') {
-          return templateToYjs(parse(Buffer.from(content).toString()));
+          const data = templateToYjs(parse(Buffer.from(content).toString()));
+          return { data, key: data.id };
         }
 
         return {
-          $base64: Buffer.from(content).toString('base64'),
+          key: nanoid(32),
+          data: {
+            $base64: Buffer.from(content).toString('base64'),
+          },
         };
       },
       stringify: async (_, content) => {

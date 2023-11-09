@@ -48,8 +48,7 @@ export function usePromptState({
 }) {
   const { store } = useStore(projectId, gitRef);
 
-  const id = Object.entries(store.tree).find((i) => i[1]?.endsWith(`${templateId}.yaml`))?.[0];
-  const file = id ? store.files[id] : undefined;
+  const file = store.files[templateId];
   const template = isTemplate(file) ? file : undefined;
   const prompt = template?.prompts?.[promptId];
 

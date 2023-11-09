@@ -171,11 +171,13 @@ export const useStore = (projectId: string, gitRef: string, connect?: boolean) =
   return {
     ...store,
     store: syncedStore,
-    getTemplateById: useCallback((templateId: string) => {
-      const id = Object.entries(syncedStore.tree).find((i) => i[1]?.endsWith(`${templateId}.yaml`))?.[0];
-      const file = id ? syncedStore.files[id] : undefined;
-      return isTemplate(file) ? file : undefined;
-    }, []),
+    getTemplateById: useCallback(
+      (templateId: string) => {
+        const file = syncedStore.files[templateId];
+        return isTemplate(file) ? file : undefined;
+      },
+      [syncedStore.files]
+    ),
   };
 };
 
@@ -228,13 +230,12 @@ export function createFile({
   const id = meta?.id || nextTemplateId();
   const filename = `${id}.yaml`;
   const filepath = [...(parent ?? []), filename].join('/');
-  const key = nanoid(32);
   const now = new Date().toISOString();
 
   const template = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };
   getYjsDoc(store).transact(() => {
-    store.tree[key] = filepath;
-    store.files[key] = template;
+    store.tree[id] = filepath;
+    store.files[id] = template;
   });
 
   return {

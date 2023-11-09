@@ -1,3 +1,15 @@
+## 0.1.129 (2023-11-9)
+
+- tmp
+- Merge branch 'main' into feat-call-prompt
+- Merge branch 'main' into feat-call-prompt
+- tmp
+- polish prompt editor styles
+- fix: polish ui (#282)
+- fix: polish ui (#281)
+- support call prompt
+- remove langchain code
+
 ## 0.1.128 (2023-11-3)
 
 - chore: support delete confirm dialog(#291)

@@ -158,8 +158,7 @@ export async function getTemplate({
   if (working) {
     const working = await repository.working({ ref });
     const id = templateId ?? path.parse(filepath).name;
-    const key = Object.entries(working.syncedStore.tree).find(([, p]) => p && path.parse(p).name === id)?.[0];
-    const file = working.syncedStore.files[key!];
+    const file = working.syncedStore.files[id];
     if (!file) throw new Error(`no such template ${templateId || filepath}`);
     return yjsToTemplate(file);
   }
