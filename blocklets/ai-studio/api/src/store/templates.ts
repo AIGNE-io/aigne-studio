@@ -10,9 +10,36 @@ import { yjsToTemplate } from './projects';
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
 
-export type Role = 'system' | 'user' | 'assistant';
+export type Role = 'system' | 'user' | 'assistant' | 'call-prompt';
 
-export const roles: Role[] = ['system', 'user', 'assistant'];
+export const roles: Role[] = ['system', 'user', 'assistant', 'call-prompt'];
+
+export interface PromptMessage {
+  id: string;
+  role?: Extract<Role, 'system' | 'user' | 'assistant'>;
+  content?: string;
+  visibility?: 'hidden';
+}
+
+export interface CallPromptMessage {
+  id: string;
+  role: 'call-prompt';
+  content?: undefined;
+  output: string;
+  template?: { id: string; name?: string };
+  parameters?: {
+    [key: string]: string | number | undefined;
+  };
+  visibility?: 'hidden';
+}
+
+export function isPromptMessage(message: any): message is PromptMessage {
+  return ['system', 'user', 'assistant'].includes(message?.role);
+}
+
+export function isCallPromptMessage(message: any): message is CallPromptMessage {
+  return message?.role === 'call-prompt';
+}
 
 export interface Template {
   id: string;
@@ -22,7 +49,7 @@ export interface Template {
   tags?: string[];
   icon?: string;
   description?: string;
-  prompts?: { id: string; content?: string; role?: Role; visibility?: 'hidden' }[];
+  prompts?: (PromptMessage | CallPromptMessage)[];
   branch?: {
     branches: { id: string; template?: { id: string; name?: string }; description: string }[];
   };

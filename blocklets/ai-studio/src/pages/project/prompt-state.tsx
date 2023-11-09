@@ -2,14 +2,14 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
-import Joi from 'joi';
 import sortBy from 'lodash/sortBy';
 import Mustache from 'mustache';
 import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
+import { TemplateYjs } from '../../../api/src/store/projects';
 import { Role } from '../../../api/src/store/templates';
-import { isTemplate, useStore } from './yjs-state';
+import { isPromptMessage, isTemplate, useStore } from './yjs-state';
 
 export interface PromptState {
   projectId: string;
@@ -53,7 +53,7 @@ export function usePromptState({
   const template = isTemplate(file) ? file : undefined;
   const prompt = template?.prompts?.[promptId];
 
-  const [state, setState] = useRecoilState(promptState(projectId, gitRef, templateId, promptId));
+  const [state] = useRecoilState(promptState(projectId, gitRef, templateId, promptId));
 
   const emitChange = useThrottleFn(
     async () => {
@@ -64,12 +64,13 @@ export function usePromptState({
         state.content = content;
         state.role = role;
 
-        if (prompt && template.prompts) {
-          state.directives = parseDirectives(
-            ...Object.values(template.prompts)
-              .map((i) => (i.data.id === promptId ? content : i.data.content))
-              .filter((i): i is string => !!i)
-          );
+        const p = prompt && isPromptMessage(prompt.data) ? prompt.data : undefined;
+        if (p) {
+          // state.directives = parseDirectives(
+          //   ...Object.values(template.prompts)
+          //     .map((i) => (i.data.id === promptId ? content : i.data.content))
+          //     .filter((i): i is string => !!i)
+          // );
 
           // if (template.type === 'branch') {
           //   variables.add('question');
@@ -81,8 +82,8 @@ export function usePromptState({
 
           const doc = (getYjsValue(prompt) as Map<any>).doc!;
           doc.transact(() => {
-            prompt.data.content = content;
-            prompt.data.role = role;
+            p.content = content;
+            p.role = role;
 
             // template.parameters ??= {};
             // for (const param of variables) {
@@ -122,7 +123,7 @@ export function usePromptState({
 
   const setEditorState = useCallback(
     (editorState: EditorState) => {
-      setState((v) => ({ ...v, editorState }));
+      state.editorState = editorState;
       emitChange.run();
     },
     [emitChange, state]
@@ -130,6 +131,7 @@ export function usePromptState({
 
   useAsyncEffect(async () => {
     if (!prompt) return;
+    if (!isPromptMessage(prompt.data)) return;
     const { content, role } = prompt.data;
     if (state.content !== content || state.role !== role) {
       state.content = content;
@@ -143,31 +145,12 @@ export function usePromptState({
   return { state, prompt, setEditorState, deletePrompt };
 }
 
-type Directive =
-  | {
-      type: 'variable';
-      name: string;
-    }
-  | {
-      type: 'callPrompt';
-      template?: { id: string; name?: string };
-      deps: Directive[];
-    };
+type Directive = {
+  type: 'variable';
+  name: string;
+};
 
-const callPromptChildSchema = Joi.object<{
-  template?: { id: string; name?: string };
-  parameters?: {
-    [key: string]: string | number | undefined;
-  };
-}>({
-  template: Joi.object({
-    id: Joi.string().required(),
-    name: Joi.string().empty([null, '']),
-  }),
-  parameters: Joi.object().pattern(Joi.string(), Joi.any()),
-});
-
-function parseDirectives(...content: string[]): Directive[] {
+export function parseDirectives(...content: string[]): Directive[] {
   return content.flatMap((content) => {
     const spans = Mustache.parse(content);
 
@@ -180,25 +163,6 @@ function parseDirectives(...content: string[]): Directive[] {
           if (name) directives.push({ type: 'variable', name });
           break;
         }
-        case '#': {
-          if (span[1] === 'callPrompt') {
-            const child = content.slice(span[3], span[5]);
-            try {
-              const json = callPromptChildSchema.validate(JSON.parse(child), { stripUnknown: true });
-              if (json.error) throw json.error;
-              directives.push({
-                type: 'callPrompt',
-                template: json.value.template,
-                deps: parseDirectives(
-                  ...Object.values(json.value.parameters ?? []).filter((i): i is string => typeof i === 'string')
-                ),
-              });
-            } catch (error) {
-              console.error('JSON.parse callPrompt child error', child, error);
-            }
-          }
-          break;
-        }
         default:
           console.warn('Unknown directive', span);
       }
@@ -206,4 +170,12 @@ function parseDirectives(...content: string[]): Directive[] {
 
     return directives;
   });
+}
+
+export function parseDirectivesOfTemplate(template: TemplateYjs) {
+  return parseDirectives(
+    ...Object.values(template.prompts ?? {})
+      .map((i) => i.data.content)
+      .filter((i): i is string => Boolean(i))
+  );
 }

@@ -6,13 +6,12 @@ import Joi from 'joi';
 import { ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
-import logger from '../libs/logger';
 import { renderAsync } from '../libs/mustache-async';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
 import { Project, defaultBranch, getRepository } from '../store/projects';
-import { Template, getTemplate } from '../store/templates';
+import { PromptMessage, Role, Template, getTemplate, isCallPromptMessage, isPromptMessage } from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
 
@@ -215,7 +214,7 @@ async function runTemplate(
   >,
   parameters:
     | {
-        $history?: { role: 'user' | 'assistant' | 'system'; content: string }[];
+        $history?: { role: Role; content: string }[];
         [key: string]: any;
       }
     | undefined,
@@ -240,9 +239,46 @@ async function runTemplate(
       next = undefined;
     }
 
+    const renderMessage = async (message: string) => {
+      return renderAsync(message, variables, undefined, { escape: (v) => v });
+    };
+
+    const variables = {
+      ...parameters,
+      ...Object.fromEntries(
+        (current.prompts ?? []).filter(isCallPromptMessage).map((item) => [
+          item.output,
+          () => async () => {
+            if (!item.template) throw new Error('Required property `template` is not present');
+            const template = await getTemplate(item.template.id);
+            const result = await runTemplate(
+              project,
+              getTemplate,
+              template,
+              Object.fromEntries(
+                await Promise.all(
+                  Object.entries(item.parameters ?? {}).map(async ([key, val]) => [
+                    key,
+                    typeof val === 'string' ? await renderMessage(val) : val,
+                  ])
+                )
+              ),
+              (options) => callback?.({ ...options, isFinalTemplate: false }),
+              log
+            );
+            if (result.type === 'text') return result.text;
+            throw new Error(`Unsupported response from call prompt ${result.type}`);
+          },
+        ])
+      ),
+    };
+
     const messages = await Promise.all(
       (current.prompts ?? [])
-        .filter((i): i is Required<typeof i> => !!i.role && !!i.content && i.visibility !== 'hidden')
+        .filter(
+          (i): i is PromptMessage & Required<Pick<PromptMessage, 'role' | 'content'>> =>
+            isPromptMessage(i) && !!i.content && i.visibility !== 'hidden'
+        )
         .map(async (item) => {
           // 过滤注释节点
           const content = item.content
@@ -250,41 +286,7 @@ async function runTemplate(
             .filter((x) => !x.startsWith(COMMENT_PREFIX))
             .join('\n');
 
-          const renderTemplate = async (template: string) => {
-            return renderAsync(
-              template,
-              {
-                ...parameters,
-                callPrompt: () => async (text: string) => {
-                  try {
-                    const t = await renderTemplate(text);
-
-                    const options = await Joi.object<{ templateId: string; parameters?: object }>({
-                      templateId: Joi.string().required(),
-                      parameters: Joi.object().pattern(Joi.string(), Joi.any()),
-                    }).validateAsync(JSON.parse(t), { stripUnknown: true });
-                    const template = await getTemplate(options.templateId);
-                    const result = await runTemplate(
-                      project,
-                      getTemplate,
-                      template,
-                      options.parameters,
-                      (options) => callback?.({ ...options, isFinalTemplate: false }),
-                      log
-                    );
-                    if (result.type === 'text') return result.text;
-                  } catch (error) {
-                    logger.error('callPrompt error', error);
-                  }
-                  return '';
-                },
-              },
-              undefined,
-              { escape: (v) => v }
-            );
-          };
-
-          const prompt = await renderTemplate(content);
+          const prompt = await renderMessage(content);
 
           return { role: item.role, content: prompt };
         })
@@ -306,11 +308,7 @@ async function runTemplate(
     const prompt = history.concat(messages);
 
     const question = (parameters as any)?.question;
-    if (
-      current.mode === 'chat' &&
-      typeof question === 'string' &&
-      !current.prompts?.some((i) => i.content && /{{\s*question\s*}}/.test(i.content))
-    ) {
+    if (current.mode === 'chat' && typeof question === 'string') {
       prompt.push({ role: 'user', content: question });
     }
 

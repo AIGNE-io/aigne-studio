@@ -3,7 +3,7 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import PromptEditor from '@blocklet/prompt-editor';
 import { cx } from '@emotion/css';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import { Box, Button, Stack, Tooltip, Typography, alpha, buttonClasses } from '@mui/material';
+import { Box, Button, Stack, TextField, Tooltip, Typography, alpha, buttonClasses } from '@mui/material';
 import { nanoid } from 'nanoid';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 
@@ -13,10 +13,12 @@ import DragVertical from '../../pages/project/icons/drag-vertical';
 import Eye from '../../pages/project/icons/eye';
 import EyeNo from '../../pages/project/icons/eye-no';
 import Trash from '../../pages/project/icons/trash';
-import { usePromptState } from '../../pages/project/prompt-state';
+import { parseDirectivesOfTemplate, usePromptState } from '../../pages/project/prompt-state';
+import { createFile, isCallPromptMessage, isPromptMessage, isTemplate, useStore } from '../../pages/project/yjs-state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
+import TemplateAutocomplete from './template-autocomplete';
 
 export default function Prompts({
   readOnly,
@@ -65,7 +67,7 @@ export default function Prompts({
               },
             }}
             renderItem={(prompt, _, params) => {
-              return (
+              return isPromptMessage(prompt) ? (
                 <PromptItemView
                   projectId={projectId}
                   gitRef={gitRef}
@@ -77,29 +79,58 @@ export default function Prompts({
                   readOnly={readOnly}
                   isDragging={params.isDragging}
                 />
-              );
+              ) : isCallPromptMessage(prompt) ? (
+                <CallPromptItemView
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  templateId={form.id}
+                  promptId={prompt.id}
+                  preview={params.preview}
+                  drop={params.drop}
+                  drag={params.drag}
+                  readOnly={readOnly}
+                  isDragging={params.isDragging}
+                />
+              ) : null;
             }}
           />
         </Box>
       )}
 
       {!readOnly && (
-        <Button
-          sx={{ mt: 1, mx: 1 }}
-          startIcon={<Add />}
-          onClick={() => {
-            const id = nanoid();
-            const doc = (getYjsValue(form) as Map<any>).doc!;
-            doc.transact(() => {
-              form.prompts ??= {};
-              form.prompts[id] = {
-                index: Object.keys(form.prompts).length,
-                data: { id, content: '', role: 'user' },
-              };
-            });
-          }}>
-          {t('add', { object: t('prompt') })}
-        </Button>
+        <Stack direction="row" gap={2} sx={{ mt: 1, mx: 1 }}>
+          <Button
+            startIcon={<Add />}
+            onClick={() => {
+              const id = nanoid();
+              const doc = (getYjsValue(form) as Map<any>).doc!;
+              doc.transact(() => {
+                form.prompts ??= {};
+                form.prompts[id] = {
+                  index: Object.keys(form.prompts).length,
+                  data: { id, content: '', role: 'user' },
+                };
+              });
+            }}>
+            {t('add', { object: t('prompt') })}
+          </Button>
+
+          <Button
+            startIcon={<Add />}
+            onClick={() => {
+              const id = nanoid();
+              const doc = (getYjsValue(form) as Map<any>).doc!;
+              doc.transact(() => {
+                form.prompts ??= {};
+                form.prompts[id] = {
+                  index: Object.keys(form.prompts).length,
+                  data: { id, role: 'call-prompt', output: '' },
+                };
+              });
+            }}>
+            {t('add', { object: t('callPromptMessage') })}
+          </Button>
+        </Stack>
       )}
     </Box>
   );
@@ -255,6 +286,176 @@ function PromptItemView({
           path={[templateId, 'prompts', prompt.index]}
           sx={{ position: 'absolute', left: '100%', top: 0 }}
         />
+      </Stack>
+    </Box>
+  );
+}
+
+function CallPromptItemView({
+  projectId,
+  gitRef,
+  templateId,
+  promptId,
+  drag,
+  preview,
+  drop,
+  readOnly,
+  isDragging,
+}: {
+  projectId: string;
+  gitRef: string;
+  templateId: string;
+  promptId: string;
+  drag: ConnectDragSource;
+  preview: ConnectDragPreview;
+  drop: ConnectDropTarget;
+  readOnly?: boolean;
+  isDragging?: boolean;
+}) {
+  const { t } = useLocaleContext();
+  const { prompt, deletePrompt } = usePromptState({ projectId, gitRef, templateId, promptId });
+  const { store, getTemplateById } = useStore(projectId, gitRef);
+
+  if (!prompt) return null;
+  const callPromptMessage = isCallPromptMessage(prompt.data) ? prompt.data : null;
+  if (!callPromptMessage) return null;
+
+  const hidden = prompt.data.visibility === 'hidden';
+
+  const templates = Object.values(store.files).filter(isTemplate);
+
+  const targetId = callPromptMessage.template?.id;
+  const target = targetId ? getTemplateById(targetId) : undefined;
+
+  const params = target ? parseDirectivesOfTemplate(target) : [];
+  const doc = (getYjsValue(callPromptMessage) as Map<any>).doc!;
+
+  return (
+    <Box
+      ref={drop}
+      sx={{
+        '&:not(:last-of-type)': {
+          borderBottom: 1,
+          borderColor: 'background.default',
+        },
+        ':hover .hover-visible': {
+          maxHeight: '100%',
+        },
+      }}>
+      <Stack direction="row" sx={{ position: 'relative' }}>
+        <Box
+          ref={preview}
+          className={cx(hidden && 'prompt-hidden')}
+          sx={{
+            flex: 1,
+            borderRadius: 1,
+            bgcolor: isDragging ? 'action.hover' : 'background.paper',
+            opacity: 0.9999, // NOTE: make preview effective
+
+            '&.prompt-hidden *': {
+              color: (theme) => `${theme.palette.text.disabled} !important`,
+            },
+          }}>
+          <Stack p={1} gap={1}>
+            <Stack direction="row" gap={1}>
+              <TextField
+                hiddenLabel
+                placeholder="Output"
+                value={callPromptMessage.output || ''}
+                onChange={(e) => (callPromptMessage.output = e.target.value.trim())}
+              />
+
+              <TemplateAutocomplete
+                fullWidth
+                freeSolo
+                value={target ?? null}
+                onChange={(_, value) => {
+                  if (value && typeof value === 'object') {
+                    callPromptMessage.template = { id: value.id, name: value?.name };
+                  }
+                }}
+                renderInput={(params) => <TextField hiddenLabel {...params} />}
+                options={templates}
+                createTemplate={async (data) => createFile({ store, meta: data }).template}
+              />
+            </Stack>
+
+            <Stack px={1} gap={1}>
+              <Typography variant="caption">Parameters</Typography>
+              {params.map((param) => (
+                <Stack key={param.name} direction="row" gap={1}>
+                  <Box sx={{ minWidth: 100 }}>{param.name}</Box>
+                  <TextField
+                    hiddenLabel
+                    fullWidth
+                    multiline
+                    maxRows={10}
+                    value={callPromptMessage.parameters?.[param.name] || ''}
+                    onChange={(e) => {
+                      doc.transact(() => {
+                        callPromptMessage.parameters ??= {};
+                        callPromptMessage.parameters[param.name] = e.target.value;
+                      });
+                    }}
+                  />
+                </Stack>
+              ))}
+            </Stack>
+          </Stack>
+        </Box>
+
+        {!readOnly && (
+          <Box
+            className="hover-visible"
+            sx={{
+              maxHeight: 0,
+              overflow: 'hidden',
+              position: 'absolute',
+              right: 0,
+              top: 0,
+            }}>
+            <Stack
+              direction="row"
+              sx={{
+                bgcolor: 'background.default',
+                borderRadius: 1,
+                p: 0.5,
+                [`.${buttonClasses.root}`]: {
+                  minWidth: 24,
+                  width: 24,
+                  height: 24,
+                  p: 0,
+                },
+              }}>
+              <Tooltip title={t('deleteMessageTip')} disableInteractive placement="top">
+                <Button onClick={() => deletePrompt(promptId)}>
+                  <Trash sx={{ fontSize: '1.25rem', color: 'grey.500' }} />
+                </Button>
+              </Tooltip>
+
+              <Tooltip title={hidden ? t('activeMessageTip') : t('hideMessageTip')} disableInteractive placement="top">
+                <Button
+                  sx={{
+                    color: 'grey.500',
+                    bgcolor: hidden ? 'action.selected' : undefined,
+                  }}
+                  onClick={() => (prompt.data.visibility = hidden ? undefined : 'hidden')}>
+                  {prompt.data.visibility === 'hidden' ? (
+                    <EyeNo sx={{ fontSize: '1.25rem' }} />
+                  ) : (
+                    <Eye sx={{ fontSize: '1.25rem' }} />
+                  )}
+                </Button>
+              </Tooltip>
+
+              <Tooltip title={t('dragMessageTip')} disableInteractive placement="top">
+                <Button ref={drag}>
+                  <DragVertical sx={{ color: 'grey.500' }} />
+                </Button>
+              </Tooltip>
+            </Stack>
+          </Box>
+        )}
       </Stack>
     </Box>
   );
