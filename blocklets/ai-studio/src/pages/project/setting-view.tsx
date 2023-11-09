@@ -108,12 +108,11 @@ export default function SettingView({
       <Stack>
         <Typography
           variant="subtitle1"
-          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}
-          className="settings-item">
+          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('variable')}
         </Typography>
 
-        <Box px={2} className="settings-item">
+        <Box px={2}>
           <Parameters readOnly={readOnly} form={template} originValue={originValue} />
         </Box>
       </Stack>
@@ -121,12 +120,11 @@ export default function SettingView({
       <Stack sx={{ [`.${formLabelClasses.root}`]: { fontSize: 14 } }}>
         <Typography
           variant="subtitle1"
-          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}
-          className="settings-item">
+          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('setting')}
         </Typography>
 
-        <Stack mt={-0.5} direction="row" alignItems="center" px={3} position="relative" className="settings-item">
+        <Stack mt={-0.5} direction="row" alignItems="center" px={3} position="relative">
           <FormLabel sx={{ minWidth: 60 }}>{t('public')}</FormLabel>
 
           <Box>
@@ -137,7 +135,7 @@ export default function SettingView({
           </Box>
         </Stack>
 
-        <Stack direction="row" alignItems="center" px={3} position="relative" className="settings-item">
+        <Stack direction="row" alignItems="center" px={3} position="relative">
           <FormLabel sx={{ minWidth: 60 }}>{t('mode')}</FormLabel>
 
           <Box>
@@ -156,7 +154,7 @@ export default function SettingView({
           </Box>
         </Stack>
 
-        <Stack direction="row" alignItems="center" px={3} position="relative" className="settings-item">
+        <Stack direction="row" alignItems="center" px={3} position="relative">
           <FormLabel sx={{ minWidth: 60 }}>{t('type')}</FormLabel>
 
           <Box>
@@ -195,12 +193,11 @@ export default function SettingView({
       <Stack>
         <Typography
           variant="subtitle1"
-          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}
-          className="settings-item">
+          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('model')}
         </Typography>
 
-        <Box px={2} position="relative" className="settings-item">
+        <Box px={2} position="relative">
           <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'model']}>
             <ModelSelectField
               fullWidth
@@ -393,12 +390,11 @@ export default function SettingView({
       <Stack>
         <Typography
           variant="subtitle1"
-          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}
-          className="settings-item">
+          sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
           {t('dataset')}
         </Typography>
 
-        <Box px={2} className="settings-item">
+        <Box px={2}>
           <Datasets readOnly={readOnly} form={template} originValue={originValue} />
         </Box>
       </Stack>
@@ -412,12 +408,11 @@ export default function SettingView({
           }}>
           <Typography
             variant="subtitle1"
-            sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}
-            className="settings-item">
+            sx={{ px: 3, position: 'sticky', top: 48, zIndex: 2, bgcolor: 'background.paper' }}>
             {t('next')}
           </Typography>
 
-          <Box px={2} className="settings-item">
+          <Box px={2}>
             <Next readOnly={readOnly} projectId={projectId} gitRef={gitRef} form={template} />
           </Box>
         </Stack>

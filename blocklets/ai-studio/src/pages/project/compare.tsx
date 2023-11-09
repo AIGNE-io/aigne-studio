@@ -78,15 +78,7 @@ export default function Compare({
   if (!template) return null;
 
   return (
-    <Box
-      height="80vh"
-      display="flex"
-      width={1}
-      sx={{
-        '.settings-item': {
-          padding: 0,
-        },
-      }}>
+    <Box height="80vh" display="flex" width={1}>
       <Box flex={1} display="flex" flexDirection="column">
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
@@ -145,7 +137,7 @@ export default function Compare({
         )}
       </Box>
 
-      <Divider orientation="vertical" flexItem sx={{ mx: 3 }} />
+      <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
 
       <Box flex={1} display="flex" flexDirection="column">
         <Box sx={{ fontSize: 20, fontWeight: 'bold', mb: 2 }}>{t('compare.current')}</Box>
