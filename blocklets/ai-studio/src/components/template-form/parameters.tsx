@@ -5,6 +5,7 @@ import { useDeferredValue, useMemo, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import Settings from '../../pages/project/icons/settings';
+import { useTemplateCompare } from '../../pages/project/state';
 import ParameterConfig from './parameter-config';
 
 function CustomNoRowsOverlay() {
@@ -22,9 +23,11 @@ function CustomNoRowsOverlay() {
 export default function Parameters({
   readOnly,
   form,
+  originValue,
 }: {
   readOnly?: boolean;
   form: Pick<TemplateYjs, 'id' | 'type' | 'name' | 'prompts' | 'parameters'>;
+  originValue?: TemplateYjs;
 }) {
   // TODO: parameters 支持自定义顺序，到时候可以去掉这个实时 match params 的逻辑，直接渲染 template.parameters 数据即可
   const deferredValue = useDeferredValue(form);
@@ -125,6 +128,8 @@ export default function Parameters({
     ];
   }, [dataGrid, t, form.id, readOnly]);
 
+  const { getDiffName } = useTemplateCompare({ value: form as TemplateYjs, originValue, disabled: readOnly });
+
   return (
     <>
       <Box
@@ -173,8 +178,18 @@ export default function Parameters({
               },
             },
           },
+
+          '& .custom-parameter-new': {
+            background: 'rgb(230, 255, 236) !important',
+          },
+          '& .custom-parameter-modify': {
+            background: 'rgb(255, 235, 233) !important',
+          },
         }}>
         <DataGrid
+          getRowClassName={(params) => {
+            return `custom-parameter-${getDiffName('parameters', params.row.param)}`;
+          }}
           key={form.id}
           apiRef={dataGrid}
           getRowId={(v) => v.param}

@@ -16,6 +16,7 @@ import DragVertical from '../../pages/project/icons/drag-vertical';
 import Eye from '../../pages/project/icons/eye';
 import EyeNo from '../../pages/project/icons/eye-no';
 import Trash from '../../pages/project/icons/trash';
+import { useTemplateCompare } from '../../pages/project/state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
@@ -26,11 +27,13 @@ export default function Prompts({
   projectId,
   gitRef,
   value: form,
+  originValue,
 }: {
   readOnly?: boolean;
   projectId: string;
   gitRef: string;
   value: TemplateYjs;
+  originValue?: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
@@ -77,6 +80,8 @@ export default function Prompts({
       }
     });
   }, [deferredTrigger]);
+
+  const { getDiffStyle } = useTemplateCompare({ value: form as TemplateYjs, originValue, disabled: readOnly });
 
   return (
     <Box>
@@ -140,6 +145,7 @@ export default function Prompts({
                         '&.prompt-hidden *': {
                           color: (theme) => `${theme.palette.text.disabled} !important`,
                         },
+                        ...getDiffStyle('prompts', prompt.id),
                       }}>
                       <WithAwareness projectId={projectId} gitRef={gitRef} path={[form.id, 'prompts', index]}>
                         <PromptEditor

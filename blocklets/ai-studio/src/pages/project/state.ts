@@ -1,11 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Map, UndoManager, YMapEvent, getYjsDoc } from '@blocklet/co-git/yjs';
+import { Map, UndoManager, getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
 import cloneDeep from 'lodash/cloneDeep';
 import debounce from 'lodash/debounce';
 import differenceBy from 'lodash/differenceBy';
+import get from 'lodash/get';
 import intersectionBy from 'lodash/intersectionBy';
 import isUndefined from 'lodash/isUndefined';
 import omit from 'lodash/omit';
@@ -684,3 +685,84 @@ export const useUndoManager = (projectId: string, ref: string, key: string) => {
 
   return state;
 };
+
+export function useTemplateCompare({
+  value,
+  originValue,
+  disabled,
+}: {
+  value: TemplateYjs;
+  originValue?: TemplateYjs;
+  disabled?: boolean;
+}) {
+  const getDifference = (key: keyof TemplateYjs) => {
+    if (disabled) {
+      return false;
+    }
+
+    if (!originValue) {
+      return false;
+    }
+
+    const getDefault = () => {
+      if (key === 'tags') {
+        return [];
+      }
+
+      if (key === 'next' || key === 'datasets') {
+        return {};
+      }
+
+      if (key === 'temperature') {
+        return 0;
+      }
+
+      return '';
+    };
+
+    return !equal(get(cloneDeep(originValue), key, getDefault()), get(cloneDeep(value), key, getDefault()));
+  };
+
+  const getDiff = (path: keyof TemplateYjs | (keyof TemplateYjs)[]) => {
+    const list = Array.isArray(path) ? path : [path];
+    return list.map((item) => getDifference(item)).some((x) => x);
+  };
+
+  const getDiffName = useCallback((path: keyof TemplateYjs, id?: string) => {
+    if (id === undefined) {
+      if (!getDiff(path)) {
+        return '';
+      }
+
+      return 'modify';
+    }
+
+    if (!id) {
+      return '';
+    }
+
+    if (!getDiff(path)) {
+      return '';
+    }
+
+    if (!(originValue?.[path] as any)?.[id]) {
+      return 'new';
+    }
+
+    return 'modify';
+  }, []);
+
+  const getDiffStyle = useCallback((path: keyof TemplateYjs, id?: string) => {
+    if (!getDiffName(path, id)) {
+      return {};
+    }
+
+    if (getDiffName(path, id) === 'new') {
+      return { background: 'rgb(230, 255, 236)' };
+    }
+
+    return { background: 'rgb(255, 235, 233)' };
+  }, []);
+
+  return { getDiff, getDiffName, getDiffStyle };
+}

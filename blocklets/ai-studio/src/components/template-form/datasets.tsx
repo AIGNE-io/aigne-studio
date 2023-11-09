@@ -8,12 +8,23 @@ import { useAsync } from 'react-use';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { getDatasets } from '../../libs/dataset';
+import { useTemplateCompare } from '../../pages/project/state';
 
-export default function Datasets({ readOnly, form }: { readOnly?: boolean; form: Pick<TemplateYjs, 'datasets'> }) {
+export default function Datasets({
+  readOnly,
+  form,
+  originValue,
+}: {
+  readOnly?: boolean;
+  form: Pick<TemplateYjs, 'datasets'>;
+  originValue?: TemplateYjs;
+}) {
   const { t } = useLocaleContext();
 
   const { value: datasetsRes } = useAsync(() => getDatasets(), []);
   const datasets = useMemo(() => datasetsRes?.datasets.map((i) => ({ id: i._id!, name: i.name })) ?? [], [datasetsRes]);
+
+  const { getDiffStyle } = useTemplateCompare({ value: form as TemplateYjs, originValue, disabled: readOnly });
 
   return (
     <Stack gap={1}>
@@ -30,6 +41,7 @@ export default function Datasets({ readOnly, form }: { readOnly?: boolean; form:
               options={datasets}
               isOptionEqualToValue={(o, v) => o.id === v.id}
               getOptionLabel={(v) => v.name || 'Unnamed'}
+              sx={{ ...getDiffStyle('datasets', item.id) }}
             />
 
             {!readOnly && (
