@@ -66,7 +66,7 @@ const createStore = (projectId: string, gitRef: string) => {
       default: (() => {
         const url = (() => {
           const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-          const wsUrl = new URL(`${wsProtocol}://${window.location.hostname}`);
+          const wsUrl = new URL(`${wsProtocol}://${window.location.host}`);
           wsUrl.pathname = joinUrl(PREFIX, 'api/ws', projectId);
           return wsUrl.toString();
         })();
