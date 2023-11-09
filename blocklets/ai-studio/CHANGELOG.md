@@ -1,3 +1,7 @@
+## 0.1.128 (2023-11-9)
+
+- chore: support undo/redo template change and compare template version
+
 ## 0.1.127 (2023-11-1)
 
 - fix: update variable contents in table
