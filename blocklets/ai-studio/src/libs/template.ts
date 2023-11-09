@@ -27,5 +27,5 @@ export async function getTemplates(projectId: string, ref: string): Promise<{ te
 }
 
 export async function getTemplate(projectId: string, ref: string, templateId: string): Promise<Template> {
-  return axios.get(`/api/templates/${templateId}`, { params: { projectId, ref } }).then((res) => res.data);
+  return axios.get(`/api/templates/${templateId}`, { params: { projectId, hash: ref } }).then((res) => res.data);
 }
