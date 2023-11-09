@@ -31,7 +31,7 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
 
 import { Project } from '../../../api/src/store/projects';
-import useDialog from '../../components/delete-confirm/use-dialog';
+import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
@@ -75,7 +75,9 @@ export default function ProjectsPage() {
   });
 
   useKeyPress('enter', () => {
-    if (selected) {
+    const activeProjectItem = document.activeElement && document.activeElement.classList.contains('project-item');
+
+    if (selected && activeProjectItem) {
       navigate(joinUrl('/projects', selected.id));
     }
   });
@@ -132,12 +134,11 @@ function ProjectMenu() {
   const { projectId } = useParams();
 
   const navigate = useNavigate();
+  const [deleteItem, setDeleteItem] = useState<null | Project>();
 
   const { t } = useLocaleContext();
 
   const readOnly = useReadOnly({ ref: defaultBranch });
-
-  const { dialog, showDialog, closeDialog } = useDialog();
 
   const {
     state: { menuAnchor, projects },
@@ -151,40 +152,11 @@ function ProjectMenu() {
 
   const onDelete = () => {
     if (!item) return;
-    const name = item.name || t('unnamed');
-
-    showDialog({
-      keyName: name,
-      title: `${t('alert.delete')} "${name}"`,
-      description: t('deleteProject', { name }),
-      confirmPlaceholder: t('confirmDelete', { name }),
-      confirm: t('alert.delete'),
-      confirmProps: {
-        color: 'warning',
-      },
-      cancel: t('alert.cancel'),
-      onConfirm: async () => {
-        try {
-          await deleteProject(item._id!);
-          closeDialog();
-          if (projectId === item._id) {
-            navigate('/projects', { replace: true });
-          }
-        } catch (error) {
-          Toast.error(getErrorMessage(error));
-          throw error;
-        }
-      },
-      onCancel: () => {
-        closeDialog();
-      },
-    });
+    setDeleteItem(item);
   };
 
   return (
     <>
-      {dialog}
-
       <Popper
         key={menuAnchor?.id}
         open={Boolean(menuAnchor)}
@@ -248,6 +220,27 @@ function ProjectMenu() {
           </Paper>
         </ClickAwayListener>
       </Popper>
+
+      {deleteItem && (
+        <DeleteDialog
+          name={deleteItem?.name || t('unnamed')}
+          onClose={() => {
+            setDeleteItem(null);
+          }}
+          onConfirm={async () => {
+            try {
+              await deleteProject(deleteItem._id!);
+              setDeleteItem(null);
+              if (projectId === deleteItem._id) {
+                navigate('/projects', { replace: true });
+              }
+            } catch (error) {
+              Toast.error(getErrorMessage(error));
+              throw error;
+            }
+          }}
+        />
+      )}
     </>
   );
 }

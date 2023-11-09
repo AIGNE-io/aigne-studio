@@ -1,7 +1,7 @@
 import Button from '@arcblock/ux/lib/Button';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import styled from '@emotion/styled';
 import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
 import Spinner from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -9,8 +9,10 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import useTheme from '@mui/material/styles/useTheme';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { ReactNode, useState } from 'react';
+import { useState } from 'react';
 
 function useMobileWidth() {
   const theme = useTheme();
@@ -19,49 +21,19 @@ function useMobileWidth() {
   return { minWidth };
 }
 
-export type Params = {
-  __disableConfirm: boolean;
-  [key: string]: any;
+export type Props = {
+  name: string;
+  onClose: () => void;
+  onConfirm: () => void;
 };
 
-export default function ConfirmDialog({
-  title,
-  description,
-  showCancel,
-  cancel,
-  confirm,
-  params: initialParams,
-  onCancel,
-  onConfirm,
-  loading: inputLoading,
-  confirmProps,
-  ...rest
-}: {
-  title: ReactNode | (() => ReactNode);
-  description:
-    | ReactNode
-    | ((
-        params: Params,
-        setParams: React.Dispatch<React.SetStateAction<Params>>,
-        setError: React.Dispatch<React.SetStateAction<string>>
-      ) => ReactNode);
-  showCancel?: boolean;
-  cancel: string;
-  confirm: string;
-  confirmProps?: {
-    [key: string]: any;
-  };
-  params: Params;
-  loading?: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  const [params, setParams] = useState(initialParams);
+export default function ConfirmDialog({ name, onClose, onConfirm, ...rest }: Props) {
+  const [params, setParams] = useState({ __disableConfirm: true, inputVal: '' });
   const [open, setOpen] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { t: changeLocale } = useLocaleContext();
   const theme = useTheme();
+  const { t } = useLocaleContext();
 
   const onCallback = async (cb: (data: object) => void) => {
     if (typeof cb === 'function') {
@@ -80,23 +52,39 @@ export default function ConfirmDialog({
     }
   };
 
-  const t = typeof title === 'function' ? title() : title;
-  const d = typeof description === 'function' ? description(params, setParams, setError) : description;
-
   const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
-
   const { minWidth } = useMobileWidth();
 
   return (
-    <StyledDialog
-      onClick={(e) => e.stopPropagation()}
+    <Dialog
+      component="form"
       fullScreen={isBreakpointsDownSm}
+      onSubmit={(e) => e.preventDefault()}
       open={open}
       style={{ minWidth }}
+      onClose={onClose}
       {...rest}>
-      <DialogTitle>{t}</DialogTitle>
+      <DialogTitle>{`${t('alert.delete')} "${name}"`}</DialogTitle>
       <DialogContent style={{ minWidth }}>
-        <DialogContentText component="div">{d}</DialogContentText>
+        <DialogContentText component="div">
+          <Box
+            style={{ marginTop: 24, marginBottom: 24 }}
+            dangerouslySetInnerHTML={{ __html: t('deleteProject', { name }) || '' }}
+          />
+          <Typography component="div">
+            <TextField
+              label={t('confirmDelete', { name })}
+              autoComplete="off"
+              variant="outlined"
+              fullWidth
+              autoFocus
+              value={params.inputVal}
+              onChange={(e) => {
+                setParams({ ...params, inputVal: e.target.value, __disableConfirm: name !== e.target.value });
+              }}
+            />
+          </Typography>
+        </DialogContentText>
         {!!error && (
           <Alert severity="error" style={{ width: '100%', marginTop: 8 }}>
             {error}
@@ -104,37 +92,28 @@ export default function ConfirmDialog({
         )}
       </DialogContent>
       <DialogActions className="delete-actions" style={{ padding: '8px 24px 24px' }}>
-        {showCancel && (
-          <Button
-            onClick={(e: MouseEvent) => {
-              e.stopPropagation();
-              onCallback(onCancel);
-            }}
-            color="inherit">
-            {cancel || changeLocale('common.cancel')}
-          </Button>
-        )}
         <Button
+          onClick={(e: MouseEvent) => {
+            e.stopPropagation();
+            onClose();
+          }}>
+          {t('alert.close')}
+        </Button>
+
+        <Button
+          type="submit"
           onClick={(e: MouseEvent) => {
             e.stopPropagation();
             onCallback(onConfirm);
           }}
-          disabled={params.__disableConfirm || loading || inputLoading}
+          disabled={params.__disableConfirm || loading}
           variant="contained"
           autoFocus
-          {...(confirmProps || {})}>
-          {(loading || inputLoading) && <Spinner size={16} sx={{ mr: 1 }} />}
-          {confirm}
+          color="warning">
+          {loading && <Spinner size={16} sx={{ mr: 1 }} />}
+          {t('alert.delete')}
         </Button>
       </DialogActions>
-    </StyledDialog>
+    </Dialog>
   );
 }
-
-const StyledDialog = styled(Dialog)`
-  .delete-actions .Mui-disabled {
-    color: rgba(0, 0, 0, 0.26) !important;
-    box-shadow: none;
-    background-color: rgba(0, 0, 0, 0.12) !important;
-  }
-`;
