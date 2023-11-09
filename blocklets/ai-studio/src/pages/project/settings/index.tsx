@@ -32,6 +32,7 @@ import { useReadOnly } from '../../../contexts/session';
 import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
 import { getSupportedModels } from '../../../libs/common';
+import { addRemoteForProjectGit } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
 import { defaultBranch, useProjectState } from '../state';
 import Repo from './repo';
@@ -82,7 +83,6 @@ export default function ProjectSettings() {
         'maxTokens',
         'gitType',
         'gitUrl',
-        'gitToken',
       ]);
 
       setValue(merge);
@@ -136,7 +136,7 @@ export default function ProjectSettings() {
 
   const onSetRepo = () => {
     let url = value.gitUrl || '';
-    let token = value.gitToken || '';
+    let token = '';
 
     showDialog({
       maxWidth: 'sm',
@@ -146,12 +146,15 @@ export default function ProjectSettings() {
         <Repo url={url} token={token} onChangeUrl={(data) => (url = data)} onChangeToken={(data) => (token = data)} />
       ),
       onOk: async () => {
-        if (url) {
-          set('gitUrl', url);
-        }
+        try {
+          await addRemoteForProjectGit(projectId, { url, username: token });
 
-        if (token) {
-          set('gitToken', token);
+          if (url) {
+            set('gitUrl', url);
+          }
+        } catch (error) {
+          Toast.error(getErrorMessage(error));
+          throw error;
         }
       },
     });

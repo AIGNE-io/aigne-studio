@@ -43,15 +43,15 @@ export function workingRoutes(router: Router) {
         author: { name: fullName, email: userId },
       });
 
-      if (project && project.gitType === 'default' && project.gitUrl && project.gitToken) {
-        await repository.push({
-          ref,
-          url: project.gitUrl,
-          token: project.gitToken,
-        });
+      if (project && project.gitType === 'default' && project.gitUrl) {
+        try {
+          await repository.push({ ref });
+        } catch (error) {
+          return res.status(500).json({ error: { message: error.message } });
+        }
       }
 
-      res.json({});
+      return res.json({});
     }
   );
 }

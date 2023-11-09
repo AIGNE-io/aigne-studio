@@ -55,7 +55,6 @@ export interface UpdateProjectInput {
   maxTokens?: number;
   gitType?: string;
   gitUrl?: string;
-  gitToken?: string; // 设置这里是否合适
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
@@ -71,7 +70,11 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   maxTokens: Joi.number().integer().empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
   gitUrl: Joi.string().allow('').empty([null, '']),
-  gitToken: Joi.string().allow('').empty([null, '']),
+});
+
+const addProjectGitRemoteSchema = Joi.object<{ url: string; username: string }>({
+  url: Joi.string().required(),
+  username: Joi.string().required(),
 });
 
 export interface GetProjectsQuery {
@@ -273,7 +276,6 @@ export function projectRoutes(router: Router) {
       maxTokens,
       gitType,
       gitUrl,
-      gitToken,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (name && (await Projects.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
@@ -298,7 +300,6 @@ export function projectRoutes(router: Router) {
           maxTokens,
           gitType,
           gitUrl,
-          gitToken,
         },
         (v) => v === undefined
       ),
@@ -339,5 +340,16 @@ export function projectRoutes(router: Router) {
     const templates = (await Promise.all(fns)).flat();
 
     return res.json({ templates: uniqBy(templates, 'id') });
+  });
+
+  router.post('/projects/:projectId/add-remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
+
+    const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
+    const repository = await getRepository({ projectId });
+    await repository.addRemote(input);
+
+    res.json({});
   });
 }

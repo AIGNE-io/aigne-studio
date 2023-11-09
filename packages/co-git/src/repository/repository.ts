@@ -128,21 +128,34 @@ export default class Repository<T> {
     return git.log({ fs, gitdir: this.gitdir, ref, filepath, force: true, follow: true });
   }
 
-  async push({ ref, url, token }: { ref: string; url: string; token: string }) {
+  async listRemotes() {
+    return { fs, dir: this.root };
+  }
+
+  async addRemote({ url, username }: { url: string; username: string }) {
+    const remoteUrl = new URL(url);
+    if (username) {
+      remoteUrl.username = username;
+    }
+
+    return git.addRemote({
+      fs,
+      dir: this.root,
+      remote: 'origin',
+      force: true,
+      url: remoteUrl.toString(),
+    });
+  }
+
+  async push({ ref }: { ref: string }) {
     return new Promise((resolve, reject) => {
       try {
         git.push({
           fs,
           http,
-          url,
-          dir: this.root,
           ref,
-          onAuth: () => {
-            return {
-              Authorization: `Bearer ${token}`,
-              username: token,
-            };
-          },
+          force: true,
+          dir: this.root,
           onAuthFailure: () => {
             reject(new Error('git token validation invalid'));
           },

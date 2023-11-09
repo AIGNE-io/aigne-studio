@@ -30,3 +30,7 @@ export async function importTemplatesToProject(
 ): Promise<{ templates: (Template & { parent?: string[] })[] }> {
   return axios.post(`/api/projects/${projectId}/${ref}/import`, data).then((res) => res.data);
 }
+
+export async function addRemoteForProjectGit(projectId: string, data: { url: string; username: string }): Promise<{}> {
+  return axios.post(`/api/projects/${projectId}/add-remote`, data).then((res) => res.data);
+}
