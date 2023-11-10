@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, UndoManager, getYjsDoc } from '@blocklet/co-git/yjs';
-import { pink, pink } from '@mui/material/colors';
+import { pink } from '@mui/material/colors';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
