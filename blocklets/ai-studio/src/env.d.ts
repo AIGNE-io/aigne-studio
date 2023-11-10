@@ -24,6 +24,7 @@ declare var blocklet:
 declare module '@arcblock/ux/*';
 declare module '@arcblock/did-connect/*';
 declare module '@blocklet/ui-react/*';
+declare module '@blocklet/discuss-kit';
 
 declare module 'circular-natal-horoscope-js/dist' {
   export { Horoscope, Origin } from 'circular-natal-horoscope-js';
