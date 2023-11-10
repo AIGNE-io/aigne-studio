@@ -114,36 +114,6 @@ export default class Log extends Model<InferAttributes<Log>, InferCreationAttrib
       type: DataTypes.STRING,
     },
   };
-
-  static async createWithCatch(data: LogKeys) {
-    try {
-      const log = await this.create(data);
-      return log;
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-  }
-
-  static async updateWithCatch(data: LogKeys, id?: string) {
-    if (id) {
-      try {
-        await this.update(data, { where: { id } });
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-
-  static async deleteWithCatch(parentId?: string) {
-    if (parentId) {
-      try {
-        await this.destroy({ where: { parentId } });
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
 }
 
 Log.init(Log.GENESIS_ATTRIBUTES, { sequelize });

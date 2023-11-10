@@ -56,7 +56,7 @@ export function tryParseJSONObject(str: string) {
   return false;
 }
 
-export function $text2lexical(content?: string, role?: Role): Promise<string> {
+export function text2EditorState(content?: string, role?: Role): Promise<EditorState> {
   return new Promise((resolve, reject) => {
     const editor = createHeadlessEditor({
       nodes: [...PromptEditorNodes],
@@ -103,13 +103,11 @@ export function $text2lexical(content?: string, role?: Role): Promise<string> {
       root.append(paragraph);
     });
 
-    editor.registerUpdateListener(({ editorState }: { editorState: EditorState }) => {
-      editorState.read(() => resolve(JSON.stringify(editorState)));
-    });
+    editor.registerUpdateListener(({ editorState }) => resolve(editorState));
   });
 }
 
-export function $lexical2text(editorState: string): Promise<{ content: string; role?: Role }> {
+export function editorState2Text(editorState: EditorState): Promise<{ content: string; role?: Role }> {
   // 为了触发文本变化事件
   const TEMP_TEXT = 'TEMP_TEXT';
 
@@ -119,10 +117,7 @@ export function $lexical2text(editorState: string): Promise<{ content: string; r
       onError: (e) => reject(e),
     });
 
-    if (tryParseJSONObject(editorState)) {
-      const editorStateStr = editor.parseEditorState(editorState);
-      editor.setEditorState(editorStateStr);
-    }
+    editor.setEditorState(editor.parseEditorState(editorState.toJSON()));
 
     let role: Role | undefined;
 

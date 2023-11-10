@@ -1,6 +1,16 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
-import { $getSelection, $isRangeSelection, COMMAND_PRIORITY_CRITICAL, KEY_DOWN_COMMAND, LexicalEditor } from 'lexical';
+import {
+  $getSelection,
+  $insertNodes,
+  $isRangeSelection,
+  COMMAND_PRIORITY_CRITICAL,
+  COMMAND_PRIORITY_EDITOR,
+  KEY_DOWN_COMMAND,
+  LexicalCommand,
+  LexicalEditor,
+  createCommand,
+} from 'lexical';
 import { useEffect } from 'react';
 
 import { $isCommentNode } from '../CommentPlugin/comment-node';
@@ -13,6 +23,8 @@ const isBracketCode = ({ keyCode, shiftKey }: { keyCode: number; shiftKey: boole
   return keyCode === 219 && shiftKey;
 };
 
+export const INSERT_VARIABLE_COMMAND: LexicalCommand<{ name: string }> = createCommand('INSERT_VARIABLE_COMMAND');
+
 export default function VarContextPlugin({
   popperElement,
 }: {
@@ -23,6 +35,21 @@ export default function VarContextPlugin({
     element,
     { runClick: throttleClick, runHover: throttleHover, runKeyDown: throttleKeyDown, runKeyUp: throttleKeyUp },
   ] = useHoverPopper(editor);
+
+  useEffect(() => {
+    return mergeRegister(
+      editor.registerCommand<{ name: string }>(
+        INSERT_VARIABLE_COMMAND,
+        (payload) => {
+          const node = $createVariableNode(`{{ ${payload.name} }}`);
+          $insertNodes([node]);
+
+          return true;
+        },
+        COMMAND_PRIORITY_EDITOR
+      )
+    );
+  }, [editor]);
 
   useEffect(() => {
     if (!editor.hasNodes([VariableTextNode])) {
