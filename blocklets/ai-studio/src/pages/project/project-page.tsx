@@ -39,7 +39,7 @@ import SettingView from './setting-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
-import { isTemplate, useStore } from './yjs-state';
+import { useStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -52,11 +52,10 @@ export default function ProjectPage() {
 
   const { t } = useLocaleContext();
 
-  const { store, synced } = useStore(projectId, gitRef, true);
+  const { store, synced, getTemplateById } = useStore(projectId, gitRef, true);
 
   const templateId = filepath && getTemplateIdFromPath(filepath);
-  const file = templateId ? store.files[templateId] : undefined;
-  const template = isTemplate(file) ? file : undefined;
+  const template = templateId && getTemplateById(templateId);
 
   const {
     state: { error },
