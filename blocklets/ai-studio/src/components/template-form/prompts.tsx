@@ -350,7 +350,9 @@ function CallPromptItemView({
   const callPromptMessage = isCallPromptMessage(prompt.data) ? prompt.data : null;
   if (!callPromptMessage) return null;
 
-  const templates = Object.values(store.files).filter(isTemplate);
+  const templates = Object.values(store.files)
+    .filter(isTemplate)
+    .filter((i) => i.id !== template.id);
 
   const targetId = callPromptMessage.template?.id;
   const target = targetId ? getTemplateById(targetId) : undefined;
