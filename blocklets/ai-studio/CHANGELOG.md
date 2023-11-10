@@ -1,3 +1,7 @@
+## 0.1.131 (2023-11-10)
+
+- fix: remove empty parent path
+
 ## 0.1.130 (2023-11-10)
 
 - fix: correct match templateId
