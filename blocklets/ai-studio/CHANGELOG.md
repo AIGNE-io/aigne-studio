@@ -1,3 +1,7 @@
+## 0.1.130 (2023-11-10)
+
+- fix: correct match templateId
+
 ## 0.1.129 (2023-11-9)
 
 - feat: support call prompt
