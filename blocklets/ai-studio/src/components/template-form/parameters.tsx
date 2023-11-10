@@ -24,7 +24,7 @@ function CustomNoRowsOverlay() {
 export default function Parameters({ readOnly, form }: { readOnly?: boolean; form: TemplateYjs }) {
   const params = [
     ...new Set(
-      parseDirectivesOfTemplate(form)
+      parseDirectivesOfTemplate(form, { excludeCallPromptVariables: true })
         .map((i) => (i.type === 'variable' ? i.name : undefined))
         .filter((i): i is string => Boolean(i))
     ),

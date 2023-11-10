@@ -214,8 +214,11 @@ export function parseDirectivesOfMessages(template: TemplateYjs) {
   );
 }
 
-export function parseDirectivesOfTemplate(template: TemplateYjs) {
-  return parseDirectives(
+export function parseDirectivesOfTemplate(
+  template: TemplateYjs,
+  { excludeCallPromptVariables = false }: { excludeCallPromptVariables?: boolean } = {}
+) {
+  const directives = parseDirectives(
     ...Object.values(template.prompts ?? {})
       .flatMap(({ data }) => {
         if (isPromptMessage(data)) return data.content;
@@ -224,6 +227,17 @@ export function parseDirectivesOfTemplate(template: TemplateYjs) {
       })
       .filter((i): i is string => typeof i === 'string')
   );
+
+  if (excludeCallPromptVariables && template.prompts) {
+    const outputs = new Set(
+      Object.values(template.prompts)
+        .map(({ data }) => (isCallPromptMessage(data) ? data.output : undefined))
+        .filter(Boolean)
+    );
+    return directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
+  }
+
+  return directives;
 }
 
 export function usePromptsState({
