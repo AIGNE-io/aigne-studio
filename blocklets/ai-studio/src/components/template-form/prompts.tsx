@@ -1,22 +1,40 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import PromptEditor from '@blocklet/prompt-editor';
+import PromptEditor, { ComponentPickerOption, INSERT_VARIABLE_COMMAND } from '@blocklet/prompt-editor';
 import { cx } from '@emotion/css';
-import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import { Box, Button, Stack, TextField, Tooltip, Typography, alpha, buttonClasses } from '@mui/material';
-import { nanoid } from 'nanoid';
+import { ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  FormLabel,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+  alpha,
+  buttonClasses,
+  inputBaseClasses,
+  styled,
+} from '@mui/material';
+import { useThrottleFn } from 'ahooks';
+import { ReactNode, useMemo, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
+import { CallPromptMessage } from '../../../api/src/store/templates';
 import Add from '../../pages/project/icons/add';
 import DragVertical from '../../pages/project/icons/drag-vertical';
 import Eye from '../../pages/project/icons/eye';
 import EyeNo from '../../pages/project/icons/eye-no';
 import Trash from '../../pages/project/icons/trash';
-import { parseDirectivesOfTemplate, usePromptState } from '../../pages/project/prompt-state';
+import {
+  parseDirectivesOfMessages,
+  randomId,
+  useParameterState,
+  usePromptState,
+  usePromptsState,
+} from '../../pages/project/prompt-state';
 import { createFile, isCallPromptMessage, isPromptMessage, isTemplate, useStore } from '../../pages/project/yjs-state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
-import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
 import TemplateAutocomplete from './template-autocomplete';
 
@@ -32,6 +50,8 @@ export default function Prompts({
   value: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
+
+  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId: form.id });
 
   return (
     <Box>
@@ -67,31 +87,41 @@ export default function Prompts({
               },
             }}
             renderItem={(prompt, _, params) => {
-              return isPromptMessage(prompt) ? (
+              const children = isPromptMessage(prompt) ? (
                 <PromptItemView
                   projectId={projectId}
                   gitRef={gitRef}
                   templateId={form.id}
                   promptId={prompt.id}
-                  preview={params.preview}
-                  drop={params.drop}
-                  drag={params.drag}
                   readOnly={readOnly}
-                  isDragging={params.isDragging}
                 />
               ) : isCallPromptMessage(prompt) ? (
                 <CallPromptItemView
                   projectId={projectId}
                   gitRef={gitRef}
-                  templateId={form.id}
+                  template={form}
                   promptId={prompt.id}
-                  preview={params.preview}
-                  drop={params.drop}
-                  drag={params.drag}
                   readOnly={readOnly}
-                  isDragging={params.isDragging}
                 />
               ) : null;
+
+              return (
+                children && (
+                  <PromptItemContainer
+                    disableToggleVisible={!isPromptMessage(prompt)}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    templateId={form.id}
+                    promptId={prompt.id}
+                    preview={params.preview}
+                    drop={params.drop}
+                    drag={params.drag}
+                    readOnly={readOnly}
+                    isDragging={params.isDragging}>
+                    {children}
+                  </PromptItemContainer>
+                )
+              );
             }}
           />
         </Box>
@@ -99,36 +129,8 @@ export default function Prompts({
 
       {!readOnly && (
         <Stack direction="row" gap={2} sx={{ mt: 1, mx: 1 }}>
-          <Button
-            startIcon={<Add />}
-            onClick={() => {
-              const id = nanoid();
-              const doc = (getYjsValue(form) as Map<any>).doc!;
-              doc.transact(() => {
-                form.prompts ??= {};
-                form.prompts[id] = {
-                  index: Object.keys(form.prompts).length,
-                  data: { id, content: '', role: 'user' },
-                };
-              });
-            }}>
+          <Button startIcon={<Add />} onClick={() => addPrompt({ id: randomId(), content: '', role: 'user' })}>
             {t('add', { object: t('prompt') })}
-          </Button>
-
-          <Button
-            startIcon={<Add />}
-            onClick={() => {
-              const id = nanoid();
-              const doc = (getYjsValue(form) as Map<any>).doc!;
-              doc.transact(() => {
-                form.prompts ??= {};
-                form.prompts[id] = {
-                  index: Object.keys(form.prompts).length,
-                  data: { id, role: 'call-prompt', output: '' },
-                };
-              });
-            }}>
-            {t('add', { object: t('callPromptMessage') })}
           </Button>
         </Stack>
       )}
@@ -136,30 +138,34 @@ export default function Prompts({
   );
 }
 
-function PromptItemView({
+function PromptItemContainer({
   projectId,
   gitRef,
   templateId,
   promptId,
-  drag,
-  preview,
   drop,
+  preview,
+  drag,
   readOnly,
   isDragging,
+  children,
+  disableToggleVisible,
 }: {
   projectId: string;
   gitRef: string;
   templateId: string;
   promptId: string;
-  drag: ConnectDragSource;
-  preview: ConnectDragPreview;
   drop: ConnectDropTarget;
+  preview: ConnectDragPreview;
+  drag: ConnectDragSource;
   readOnly?: boolean;
   isDragging?: boolean;
+  children?: ReactNode;
+  disableToggleVisible?: boolean;
 }) {
   const { t } = useLocaleContext();
-  const { state, prompt, deletePrompt, setEditorState } = usePromptState({ projectId, gitRef, templateId, promptId });
 
+  const { prompt, deletePrompt } = usePromptState({ projectId, gitRef, templateId, promptId });
   if (!prompt) return null;
 
   const hidden = prompt.data.visibility === 'hidden';
@@ -190,41 +196,7 @@ function PromptItemView({
               color: (theme) => `${theme.palette.text.disabled} !important`,
             },
           }}>
-          <WithAwareness projectId={projectId} gitRef={gitRef} path={[templateId, 'prompts', prompt.index]}>
-            <PromptEditor
-              p={1}
-              editable={!readOnly}
-              value={state.editorState}
-              onChange={setEditorState}
-              // content={prompt.content}
-              // role={prompt.role}
-              // onChange={(content, role) => {
-              //   doc.transact(() => {
-              //     prompt.content = content;
-              //     prompt.role = role;
-              //   });
-              //   triggerUpdate();
-              // }}
-              sx={(theme) => ({
-                p: 0,
-                '.ContentEditable__root': {
-                  p: 1,
-                  minHeight: 48,
-                  ...theme.typography.body1,
-
-                  ':hover': {
-                    bgcolor: 'action.hover',
-                  },
-
-                  ':focus': {
-                    bgcolor: 'action.hover',
-                  },
-
-                  '.role-selector': { fontWeight: 'bold' },
-                },
-              })}
-            />
-          </WithAwareness>
+          {children}
         </Box>
 
         {!readOnly && (
@@ -240,7 +212,7 @@ function PromptItemView({
             <Stack
               direction="row"
               sx={{
-                bgcolor: 'background.default',
+                bgcolor: (theme) => alpha(theme.palette.grey[300], 0.9),
                 borderRadius: 1,
                 p: 0.5,
                 [`.${buttonClasses.root}`]: {
@@ -256,20 +228,25 @@ function PromptItemView({
                 </Button>
               </Tooltip>
 
-              <Tooltip title={hidden ? t('activeMessageTip') : t('hideMessageTip')} disableInteractive placement="top">
-                <Button
-                  sx={{
-                    color: 'grey.500',
-                    bgcolor: hidden ? 'action.selected' : undefined,
-                  }}
-                  onClick={() => (prompt.data.visibility = hidden ? undefined : 'hidden')}>
-                  {prompt.data.visibility === 'hidden' ? (
-                    <EyeNo sx={{ fontSize: '1.25rem' }} />
-                  ) : (
-                    <Eye sx={{ fontSize: '1.25rem' }} />
-                  )}
-                </Button>
-              </Tooltip>
+              {!disableToggleVisible && (
+                <Tooltip
+                  title={hidden ? t('activeMessageTip') : t('hideMessageTip')}
+                  disableInteractive
+                  placement="top">
+                  <Button
+                    sx={{
+                      color: 'grey.500',
+                      bgcolor: hidden ? 'action.selected' : undefined,
+                    }}
+                    onClick={() => (prompt.data.visibility = hidden ? undefined : 'hidden')}>
+                    {prompt.data.visibility === 'hidden' ? (
+                      <EyeNo sx={{ fontSize: '1.25rem' }} />
+                    ) : (
+                      <Eye sx={{ fontSize: '1.25rem' }} />
+                    )}
+                  </Button>
+                </Tooltip>
+              )}
 
               <Tooltip title={t('dragMessageTip')} disableInteractive placement="top">
                 <Button ref={drag}>
@@ -291,172 +268,245 @@ function PromptItemView({
   );
 }
 
-function CallPromptItemView({
+function PromptItemView({
   projectId,
   gitRef,
   templateId,
   promptId,
-  drag,
-  preview,
-  drop,
   readOnly,
-  isDragging,
 }: {
   projectId: string;
   gitRef: string;
   templateId: string;
   promptId: string;
-  drag: ConnectDragSource;
-  preview: ConnectDragPreview;
-  drop: ConnectDropTarget;
   readOnly?: boolean;
-  isDragging?: boolean;
 }) {
+  const { state, prompt, setEditorState } = usePromptState({ projectId, gitRef, templateId, promptId });
+  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
+
+  const options = useMemo(
+    () => [
+      new ComponentPickerOption('Execute Prompt', {
+        keywords: ['execute', 'prompt'],
+        onSelect: (editor) => {
+          const variable = `var-${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-prompt', output: variable }, prompt?.index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+    ],
+    [addPrompt, prompt?.index]
+  );
+
+  if (!prompt || !state.editorState) return null;
+
+  return (
+    <StyledPromptEditor
+      useRoleNode
+      p={1}
+      editable={!readOnly}
+      value={state.editorState}
+      onChange={setEditorState}
+      componentPickerProps={{ options }}
+    />
+  );
+}
+
+function CallPromptItemView({
+  projectId,
+  gitRef,
+  template,
+  promptId,
+  readOnly,
+}: {
+  projectId: string;
+  gitRef: string;
+  template: TemplateYjs;
+  promptId: string;
+  readOnly?: boolean;
+}) {
+  const originalOutput = useRef<string>();
+  const { renameVariable } = usePromptsState({ projectId, gitRef, templateId: template.id });
+
   const { t } = useLocaleContext();
-  const { prompt, deletePrompt } = usePromptState({ projectId, gitRef, templateId, promptId });
+
+  const { prompt } = usePromptState({ projectId, gitRef, templateId: template.id, promptId });
   const { store, getTemplateById } = useStore(projectId, gitRef);
+
+  const rename = useThrottleFn(
+    () => {
+      if (callPromptMessage?.output && originalOutput.current && originalOutput.current !== callPromptMessage.output) {
+        renameVariable({
+          [originalOutput.current]: callPromptMessage.output,
+        });
+        originalOutput.current = callPromptMessage.output;
+      }
+    },
+    { wait: 500, trailing: true }
+  );
 
   if (!prompt) return null;
   const callPromptMessage = isCallPromptMessage(prompt.data) ? prompt.data : null;
   if (!callPromptMessage) return null;
-
-  const hidden = prompt.data.visibility === 'hidden';
 
   const templates = Object.values(store.files).filter(isTemplate);
 
   const targetId = callPromptMessage.template?.id;
   const target = targetId ? getTemplateById(targetId) : undefined;
 
-  const params = target ? parseDirectivesOfTemplate(target) : [];
-  const doc = (getYjsValue(callPromptMessage) as Map<any>).doc!;
+  const params = target ? parseDirectivesOfMessages(target) : [];
 
   return (
-    <Box
-      ref={drop}
-      sx={{
-        '&:not(:last-of-type)': {
-          borderBottom: 1,
-          borderColor: 'background.default',
-        },
-        ':hover .hover-visible': {
-          maxHeight: '100%',
-        },
-      }}>
-      <Stack direction="row" sx={{ position: 'relative' }}>
-        <Box
-          ref={preview}
-          className={cx(hidden && 'prompt-hidden')}
-          sx={{
-            flex: 1,
-            borderRadius: 1,
-            bgcolor: isDragging ? 'action.hover' : 'background.paper',
-            opacity: 0.9999, // NOTE: make preview effective
+    <Stack p={1} gap={1}>
+      <Stack px={1} direction="row" alignItems="center" gap={1}>
+        <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
+          Execute Prompt
+        </Typography>
 
-            '&.prompt-hidden *': {
-              color: (theme) => `${theme.palette.text.disabled} !important`,
-            },
-          }}>
-          <Stack p={1} gap={1}>
-            <Stack direction="row" gap={1}>
-              <TextField
-                hiddenLabel
-                placeholder="Output"
-                value={callPromptMessage.output || ''}
-                onChange={(e) => (callPromptMessage.output = e.target.value.trim())}
-              />
+        <TemplateAutocomplete
+          fullWidth
+          freeSolo
+          value={target}
+          onChange={(_, value) => {
+            if (value && typeof value === 'object') {
+              callPromptMessage.template = { id: value.id, name: value.name };
+              if (
+                value.name &&
+                callPromptMessage.output.startsWith(randomVariableNamePrefix) &&
+                !parseDirectivesOfMessages(template).some((i) => i.type === 'variable' && i.name === value.name)
+              ) {
+                originalOutput.current = callPromptMessage.output;
+                callPromptMessage.output = value.name;
+                rename.run();
+              }
+            }
+          }}
+          popupIcon={<ArrowDropDownRounded />}
+          forcePopupIcon
+          disableClearable
+          renderInput={(params) => (
+            <TextField {...params} placeholder={t('selectObject', { object: t('template') })} hiddenLabel />
+          )}
+          options={templates}
+          createTemplate={async (data) => createFile({ store, meta: data }).template}
+        />
 
-              <TemplateAutocomplete
-                fullWidth
-                freeSolo
-                value={target ?? null}
-                onChange={(_, value) => {
-                  if (value && typeof value === 'object') {
-                    callPromptMessage.template = { id: value.id, name: value?.name };
-                  }
-                }}
-                renderInput={(params) => <TextField hiddenLabel {...params} />}
-                options={templates}
-                createTemplate={async (data) => createFile({ store, meta: data }).template}
-              />
-            </Stack>
-
-            <Stack px={1} gap={1}>
-              <Typography variant="caption">Parameters</Typography>
-              {params.map((param) => (
-                <Stack key={param.name} direction="row" gap={1}>
-                  <Box sx={{ minWidth: 100 }}>{param.name}</Box>
-                  <TextField
-                    hiddenLabel
-                    fullWidth
-                    multiline
-                    maxRows={10}
-                    value={callPromptMessage.parameters?.[param.name] || ''}
-                    onChange={(e) => {
-                      doc.transact(() => {
-                        callPromptMessage.parameters ??= {};
-                        callPromptMessage.parameters[param.name] = e.target.value;
-                      });
-                    }}
-                  />
-                </Stack>
-              ))}
-            </Stack>
-          </Stack>
-        </Box>
-
-        {!readOnly && (
-          <Box
-            className="hover-visible"
-            sx={{
-              maxHeight: 0,
-              overflow: 'hidden',
-              position: 'absolute',
-              right: 0,
-              top: 0,
-            }}>
-            <Stack
-              direction="row"
-              sx={{
-                bgcolor: 'background.default',
-                borderRadius: 1,
-                p: 0.5,
-                [`.${buttonClasses.root}`]: {
-                  minWidth: 24,
-                  width: 24,
-                  height: 24,
-                  p: 0,
-                },
-              }}>
-              <Tooltip title={t('deleteMessageTip')} disableInteractive placement="top">
-                <Button onClick={() => deletePrompt(promptId)}>
-                  <Trash sx={{ fontSize: '1.25rem', color: 'grey.500' }} />
-                </Button>
-              </Tooltip>
-
-              <Tooltip title={hidden ? t('activeMessageTip') : t('hideMessageTip')} disableInteractive placement="top">
-                <Button
-                  sx={{
-                    color: 'grey.500',
-                    bgcolor: hidden ? 'action.selected' : undefined,
-                  }}
-                  onClick={() => (prompt.data.visibility = hidden ? undefined : 'hidden')}>
-                  {prompt.data.visibility === 'hidden' ? (
-                    <EyeNo sx={{ fontSize: '1.25rem' }} />
-                  ) : (
-                    <Eye sx={{ fontSize: '1.25rem' }} />
-                  )}
-                </Button>
-              </Tooltip>
-
-              <Tooltip title={t('dragMessageTip')} disableInteractive placement="top">
-                <Button ref={drag}>
-                  <DragVertical sx={{ color: 'grey.500' }} />
-                </Button>
-              </Tooltip>
-            </Stack>
-          </Box>
-        )}
+        <TextField
+          onFocus={() => (originalOutput.current = callPromptMessage.output)}
+          onBlur={rename.run}
+          hiddenLabel
+          placeholder={t('output')}
+          value={callPromptMessage.output || ''}
+          onChange={(e) => {
+            callPromptMessage.output = e.target.value.trim();
+            rename.run();
+          }}
+          sx={{ [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}
+        />
       </Stack>
-    </Box>
+
+      {params.length > 0 && (
+        <Stack px={1} ml={1} gap={1}>
+          <Typography variant="caption">{t('parameters')}</Typography>
+
+          {params.map((param) => (
+            <Stack key={param.name} direction="row" gap={1}>
+              <FormLabel sx={{ minWidth: 100 }}>{param.name}</FormLabel>
+              <Box flex={1}>
+                <ParameterItem
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  templateId={template.id}
+                  prompt={callPromptMessage}
+                  index={prompt.index}
+                  param={param.name}
+                  readOnly={readOnly}
+                />
+              </Box>
+            </Stack>
+          ))}
+        </Stack>
+      )}
+    </Stack>
   );
 }
+
+const randomVariableNamePrefix = 'var-';
+
+function ParameterItem({
+  index,
+  projectId,
+  gitRef,
+  templateId,
+  prompt,
+  param,
+  readOnly,
+}: {
+  index: number;
+  projectId: string;
+  gitRef: string;
+  templateId: string;
+  prompt: CallPromptMessage;
+  param: string;
+  readOnly?: boolean;
+}) {
+  const { state, setEditorState } = useParameterState({ projectId, gitRef, templateId, prompt, param });
+
+  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
+
+  const options = useMemo(
+    () => [
+      new ComponentPickerOption('Execute Prompt', {
+        keywords: ['execute', 'prompt'],
+        onSelect: (editor) => {
+          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-prompt', output: variable }, index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+    ],
+    [addPrompt]
+  );
+
+  return (
+    <StyledPromptEditor
+      editable={!readOnly}
+      value={state.editorState}
+      onChange={setEditorState}
+      componentPickerProps={{ options }}
+      sx={{
+        '.ContentEditable__root': {
+          px: 1,
+          py: 0.5,
+          minHeight: 32,
+          borderRadius: 1,
+          overflow: 'hidden',
+          bgcolor: 'rgba(0,0,0,0.03)',
+        },
+      }}
+    />
+  );
+}
+
+const StyledPromptEditor = styled(PromptEditor)(({ theme }) =>
+  theme.unstable_sx({
+    p: 0,
+    '.ContentEditable__root': {
+      p: 1,
+      minHeight: 48,
+      ...theme.typography.body1,
+
+      ':hover': {
+        bgcolor: 'action.hover',
+      },
+
+      ':focus': {
+        bgcolor: 'action.hover',
+      },
+
+      '.role-selector': { fontWeight: 'bold' },
+    },
+  })
+);

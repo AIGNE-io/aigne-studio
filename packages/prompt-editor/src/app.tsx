@@ -1,33 +1,16 @@
 import styled from '@emotion/styled';
-import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { InitialConfigType, LexicalComposer } from '@lexical/react/LexicalComposer';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { Box, BoxProps } from '@mui/material';
-import { $createParagraphNode, $createTextNode, $getRoot, EditorState, LexicalEditor } from 'lexical';
-import React, { MutableRefObject, ReactNode, useCallback, useEffect, useRef } from 'react';
+import { EditorState, LexicalEditor } from 'lexical';
+import React, { ComponentProps, MutableRefObject, ReactNode, useCallback, useEffect, useRef } from 'react';
 
 import Editor from './editor';
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
-import { $createRoleSelectNode } from './plugins/RolePlugin/role-select-node';
+import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
 import PromptEditorEditorTheme from './themes/prompt-editor-theme';
 
 export type { EditorState } from 'lexical';
-
-export function defaultValue(isRole: boolean = true) {
-  const root = $getRoot();
-  if (root.getFirstChild() === null) {
-    const paragraph = $createParagraphNode();
-
-    if (isRole) {
-      const role = $createRoleSelectNode('system');
-      paragraph.append(role);
-    } else {
-      const text = $createTextNode(' ');
-      paragraph.append(text);
-    }
-
-    root.append(paragraph);
-  }
-}
 
 interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
   placeholder?: string;
@@ -40,10 +23,11 @@ interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
   editable?: boolean;
   editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
   autoFocus?: boolean;
+  componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
 }
 
 export default function PromptEditor({
-  useRoleNode = true,
+  useRoleNode = false,
   useVariableNode = true,
   isDebug = false,
   editable = true,
@@ -51,9 +35,9 @@ export default function PromptEditor({
   children,
   ...props
 }: PromptEditorProps): JSX.Element {
-  const initialConfig = {
+  const initialConfig: InitialConfigType = {
     editable,
-    defaultValue: props.value,
+    editorState: props.value,
     namespace: 'PromptEditor',
     nodes: [...PromptEditorNodes],
     onError: (error: Error) => {
@@ -87,23 +71,26 @@ function EditorShell({
   onChange,
   editorRef,
   autoFocus,
+  componentPickerProps,
   ...props
 }: PromptEditorProps) {
   const [editor] = useLexicalComposerContext();
 
-  const stateRef = useRef<EditorState>();
+  const stateRef = useRef(props.value);
 
   useEffect(() => {
     if (props.value && stateRef.current !== props.value) {
       stateRef.current = props.value;
       setTimeout(() => editor.setEditorState(props.value!));
     }
-  }, [props.value]);
+  }, [editor, props.value]);
 
   const setState = useCallback(
     (s: EditorState) => {
-      stateRef.current = s;
-      onChange?.(s);
+      if (stateRef.current !== s) {
+        stateRef.current = s;
+        onChange?.(s);
+      }
     },
     [onChange]
   );
@@ -132,7 +119,8 @@ function EditorShell({
         editorRef={editorRef}
         useRoleNode={useRoleNode}
         useVariableNode={useVariableNode}
-        isDebug={isDebug}>
+        isDebug={isDebug}
+        componentPickerProps={componentPickerProps}>
         {children}
       </Editor>
     </EditorRoot>

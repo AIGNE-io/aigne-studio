@@ -221,4 +221,6 @@ export default flat({
   noVariables: "You haven't added any variables yet",
   confirmDelete: 'Please input {name} to delete',
   deleteProject: 'This will permanently delete project with name {name}',
+  selectObject: 'Select {object}',
+  template: 'Template',
 });

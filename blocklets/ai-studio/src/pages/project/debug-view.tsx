@@ -32,11 +32,11 @@ import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { parameterFieldComponent } from '../../components/parameter-field';
-import { matchParams } from '../../components/template-form/parameters';
 import { useSessionContext } from '../../contexts/session';
 import Empty from './icons/empty';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
+import { parseDirectivesOfTemplate } from './prompt-state';
 import Record from './record';
 import { SessionItem, useDebugState } from './state';
 
@@ -436,18 +436,18 @@ function DebugModeForm({
 
   const scrollToBottom = useScrollToBottom();
 
-  const params = (() => {
-    const params = Object.values(template.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
-    if (template.type === 'branch') {
-      params.push('question');
-    }
-    if (template.type === 'image') {
-      params.push('size');
-      params.push('number');
-    }
-    if (template.mode === 'chat') params.push('question');
-    return [...new Set(params)];
-  })();
+  const params = new Set(
+    parseDirectivesOfTemplate(template)
+      .map((i) => (i.type === 'variable' ? i.name : undefined))
+      .filter((i): i is string => Boolean(i))
+  );
+  if (template.type === 'image') {
+    params.add('size');
+    params.add('number');
+  }
+  if (template.mode === 'chat') {
+    params.add('question');
+  }
 
   const initForm = useMemo(
     () =>
@@ -510,14 +510,11 @@ function DebugModeForm({
   return (
     <Stack component="form" onSubmit={form.handleSubmit(submit)} px={2} gap={1}>
       <Stack gap={1}>
-        {params.map((param) => {
+        {[...params].map((param) => {
           const parameter =
             template.parameters?.[param] ?? (param === 'question' && template.mode === 'chat' ? {} : undefined);
-          if (!parameter) {
-            return null;
-          }
 
-          const Field = parameterFieldComponent({ type: parameter.type });
+          const Field = parameterFieldComponent({ type: parameter?.type ?? 'string' });
 
           return (
             <Box key={param}>
@@ -525,16 +522,16 @@ function DebugModeForm({
                 control={form.control}
                 name={param}
                 render={({ field, fieldState }) => {
-                  const { required, min, max, minLength, maxLength } = parameter as any;
+                  const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
 
                   return (
                     <Field
-                      label={parameter.label || param}
+                      label={parameter?.label || param}
                       fullWidth
                       parameter={omit(parameter, 'min', 'max') as never}
-                      maxRows={!parameter.type || parameter.type === 'string' ? 5 : undefined}
-                      // TODO: 临时去掉 NumberField 的自动转 number 功能
-                      {...(parameter.type === 'number' ? { autoCorrectValue: false } : undefined)}
+                      maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
+                      // FIXME: 临时去掉 NumberField 的自动转 number 功能
+                      {...(parameter?.type === 'number' ? { autoCorrectValue: false } : undefined)}
                       {...form.register(param, {
                         required: required ? t('validation.fieldRequired') : undefined,
                         min:
@@ -559,7 +556,7 @@ function DebugModeForm({
                         form.setValue(param, v, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
                       }
                       error={Boolean(fieldState.error)}
-                      helperText={fieldState.error?.message || parameter.helper}
+                      helperText={fieldState.error?.message || parameter?.helper}
                     />
                   );
                 }}

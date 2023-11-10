@@ -28,7 +28,7 @@ export interface CallPromptMessage {
   output: string;
   template?: { id: string; name?: string };
   parameters?: {
-    [key: string]: string | number | undefined;
+    [key: string]: string | undefined;
   };
   visibility?: 'hidden';
 }

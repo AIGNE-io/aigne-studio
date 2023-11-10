@@ -243,31 +243,36 @@ async function runTemplate(
       return renderAsync(message, variables, undefined, { escape: (v) => v });
     };
 
+    const variablesCache: { [key: string]: Promise<string> } = {};
+
     const variables = {
       ...parameters,
       ...Object.fromEntries(
         (current.prompts ?? []).filter(isCallPromptMessage).map((item) => [
           item.output,
           () => async () => {
-            if (!item.template) throw new Error('Required property `template` is not present');
-            const template = await getTemplate(item.template.id);
-            const result = await runTemplate(
-              project,
-              getTemplate,
-              template,
-              Object.fromEntries(
-                await Promise.all(
-                  Object.entries(item.parameters ?? {}).map(async ([key, val]) => [
-                    key,
-                    typeof val === 'string' ? await renderMessage(val) : val,
-                  ])
-                )
-              ),
-              (options) => callback?.({ ...options, isFinalTemplate: false }),
-              log
-            );
-            if (result.type === 'text') return result.text;
-            throw new Error(`Unsupported response from call prompt ${result.type}`);
+            variablesCache[item.output] ??= (async () => {
+              if (!item.template) throw new Error('Required property `template` is not present');
+              const template = await getTemplate(item.template.id);
+              const result = await runTemplate(
+                project,
+                getTemplate,
+                template,
+                Object.fromEntries(
+                  await Promise.all(
+                    Object.entries(item.parameters ?? {}).map(async ([key, val]) => [
+                      key,
+                      typeof val === 'string' ? await renderMessage(val) : val,
+                    ])
+                  )
+                ),
+                (options) => callback?.({ ...options, isFinalTemplate: false }),
+                log
+              );
+              if (result.type === 'text') return result.text;
+              throw new Error(`Unsupported response from call prompt ${result.type}`);
+            })();
+            return variablesCache[item.output];
           },
         ])
       ),

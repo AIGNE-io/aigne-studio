@@ -159,6 +159,7 @@ export const theme = createTheme({
                 mt: 1.5,
                 [`&.${inputBaseClasses.hiddenLabel}`]: {
                   mt: 0,
+                  pt: 0,
                 },
               },
               [`.${inputLabelClasses.standard}`]: {

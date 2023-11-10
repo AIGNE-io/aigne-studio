@@ -7,9 +7,10 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { EditorState, LexicalEditor } from 'lexical';
-import { MutableRefObject } from 'react';
+import { ComponentProps, MutableRefObject } from 'react';
 
 import CommentPlugin from './plugins/CommentPlugin';
+import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
 import FloatingToolbarPlugin from './plugins/FloatingToolbarPlugin';
 import RoleSelectPlugin from './plugins/RolePlugin';
 import TreeViewPlugin from './plugins/TreeViewPlugin';
@@ -28,6 +29,7 @@ export default function Editor({
   autoFocus = true,
   editorRef,
   popperElement,
+  componentPickerProps,
 }: {
   useRoleNode?: boolean;
   useVariableNode?: boolean;
@@ -39,6 +41,7 @@ export default function Editor({
   autoFocus?: boolean;
   editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
   popperElement?: (editor: LexicalEditor) => any;
+  componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
 }): JSX.Element {
   const placeholderNode = <Placeholder>{placeholder}</Placeholder>;
 
@@ -56,6 +59,7 @@ export default function Editor({
       {useRoleNode && <RoleSelectPlugin />}
       {useVariableNode && <VariablePlugin popperElement={popperElement} />}
       <FloatingToolbarPlugin floatElement={floatElement} />
+      {componentPickerProps && <ComponentPickerMenuPlugin {...componentPickerProps} />}
       <HistoryPlugin />
       {onChange && <OnChangePlugin onChange={onChange} />}
       {editorRef !== undefined && <EditorRefPlugin editorRef={editorRef} />}

@@ -4,35 +4,34 @@ import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/util
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import Mustache from 'mustache';
-import { useCallback } from 'react';
+import { customAlphabet } from 'nanoid';
+import { useCallback, useMemo } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { Role } from '../../../api/src/store/templates';
-import { isPromptMessage, isTemplate, useStore } from './yjs-state';
+import { CallPromptMessage, Role } from '../../../api/src/store/templates';
+import { isCallPromptMessage, isPromptMessage, isTemplate, useStore } from './yjs-state';
 
-export interface PromptState {
-  projectId: string;
-  gitRef: string;
-  promptId: string;
-  content?: string;
-  role?: Role;
-  editorState?: EditorState;
-  directives?: Directive[];
+const PROMPT_EDITOR_STATE_CACHE: { [key: string]: { content?: string; role?: Role } } = {};
+
+function getPromptEditorStateCache(key: string) {
+  PROMPT_EDITOR_STATE_CACHE[key] ??= {};
+  return PROMPT_EDITOR_STATE_CACHE[key]!;
 }
 
-const promptStates: { [key: string]: RecoilState<PromptState> } = {};
+export interface PromptEditorState {
+  editorState?: EditorState;
+}
 
-const promptState = (projectId: string, gitRef: string, templateId: string, promptId: string) => {
-  const key = `${projectId}-${gitRef}-${templateId}-${promptId}`;
+const promptEditorStates: { [key: string]: RecoilState<PromptEditorState> } = {};
 
-  promptStates[key] ??= atom<PromptState>({
-    key: `promptState-${key}`,
-    default: { projectId, gitRef, promptId },
-    dangerouslyAllowMutability: true,
+const promptEditorState = (key: string) => {
+  promptEditorStates[key] ??= atom<PromptEditorState>({
+    key,
+    default: {},
   });
 
-  return promptStates[key]!;
+  return promptEditorStates[key]!;
 };
 
 export function usePromptState({
@@ -46,59 +45,32 @@ export function usePromptState({
   templateId: string;
   promptId: string;
 }) {
-  const { store } = useStore(projectId, gitRef);
+  const key = useMemo(
+    () => ['promptState', projectId, gitRef, templateId, promptId].join('/'),
+    [projectId, gitRef, templateId, promptId]
+  );
+  const [state, setState] = useRecoilState(promptEditorState(key));
 
-  const file = store.files[templateId];
-  const template = isTemplate(file) ? file : undefined;
+  const cache = useMemo(() => getPromptEditorStateCache(key), [key]);
+
+  const { getTemplateById } = useStore(projectId, gitRef);
+  const template = getTemplateById(templateId);
   const prompt = template?.prompts?.[promptId];
 
-  const [state] = useRecoilState(promptState(projectId, gitRef, templateId, promptId));
-
   const emitChange = useThrottleFn(
-    async () => {
-      const { editorState } = state;
-      if (!editorState) return;
+    async ({ editorState }: { editorState: EditorState }) => {
       const { content, role = 'user' } = await editorState2Text(editorState);
-      if (state.content !== content || state.role !== role) {
-        state.content = content;
-        state.role = role;
+
+      if (cache.content !== content || cache.role !== role) {
+        cache.content = content;
+        cache.role = role;
 
         const p = prompt && isPromptMessage(prompt.data) ? prompt.data : undefined;
         if (p) {
-          // state.directives = parseDirectives(
-          //   ...Object.values(template.prompts)
-          //     .map((i) => (i.data.id === promptId ? content : i.data.content))
-          //     .filter((i): i is string => !!i)
-          // );
-
-          // if (template.type === 'branch') {
-          //   variables.add('question');
-          // }
-          // if (template.type === 'image') {
-          //   variables.add('size');
-          //   variables.add('number');
-          // }
-
           const doc = (getYjsValue(prompt) as Map<any>).doc!;
           doc.transact(() => {
             p.content = content;
             p.role = role;
-
-            // template.parameters ??= {};
-            // for (const param of variables) {
-            //   template.parameters[param] ??= {};
-            // }
-            // for (const [key] of Object.entries(template.parameters)) {
-            //   if (template.type === 'branch' && key === 'question') {
-            //     continue;
-            //   }
-            //   if (template.type === 'image' && ['size', 'number'].includes(key)) {
-            //     continue;
-            //   }
-            //   if (!variables.has(key)) {
-            //     delete template.parameters[key];
-            //   }
-            // }
           });
         }
       }
@@ -122,26 +94,86 @@ export function usePromptState({
 
   const setEditorState = useCallback(
     (editorState: EditorState) => {
-      state.editorState = editorState;
-      emitChange.run();
+      setState((v) => ({ ...v, editorState }));
+      emitChange.run({ editorState });
     },
-    [emitChange, state]
+    [emitChange, setState]
   );
 
   useAsyncEffect(async () => {
     if (!prompt) return;
     if (!isPromptMessage(prompt.data)) return;
     const { content, role } = prompt.data;
-    if (state.content !== content || state.role !== role) {
-      state.content = content;
-      state.role = role;
+    if (cache.content !== content || cache.role !== role) {
+      cache.content = content;
+      cache.role = role;
 
       const editorState = await text2EditorState(content, role);
-      setEditorState(editorState);
+      setState((v) => ({ ...v, editorState }));
     }
   }, [prompt?.data.content, prompt?.data.role]);
 
   return { state, prompt, setEditorState, deletePrompt };
+}
+
+export function useParameterState({
+  projectId,
+  gitRef,
+  templateId,
+  prompt,
+  param,
+}: {
+  projectId: string;
+  gitRef: string;
+  templateId: string;
+  prompt: CallPromptMessage;
+  param: string;
+}) {
+  const content = prompt.parameters?.[param] ?? '';
+
+  const key = useMemo(
+    () => ['promptState', projectId, gitRef, templateId, prompt.id, param].join('/'),
+    [projectId, gitRef, templateId, prompt.id, param]
+  );
+  const [state, setState] = useRecoilState(promptEditorState(key));
+
+  const cache = useMemo(() => getPromptEditorStateCache(key), [key]);
+
+  const emitChange = useThrottleFn(
+    async ({ editorState }: { editorState: EditorState }) => {
+      const { content } = await editorState2Text(editorState);
+
+      if (cache.content !== content) {
+        cache.content = content;
+
+        const doc = (getYjsValue(prompt) as Map<any>).doc!;
+        doc.transact(() => {
+          prompt.parameters ??= {};
+          prompt.parameters[param] = content;
+        });
+      }
+    },
+    { wait: 1000, trailing: true }
+  );
+
+  const setEditorState = useCallback(
+    (editorState: EditorState) => {
+      setState((v) => ({ ...v, editorState }));
+      emitChange.run({ editorState });
+    },
+    [emitChange, setState]
+  );
+
+  useAsyncEffect(async () => {
+    if (cache.content !== content) {
+      cache.content = content;
+
+      const editorState = await text2EditorState(content);
+      setState((v) => ({ ...v, editorState }));
+    }
+  }, [content]);
+
+  return { state, setEditorState };
 }
 
 type Directive = {
@@ -162,6 +194,9 @@ export function parseDirectives(...content: string[]): Directive[] {
           if (name) directives.push({ type: 'variable', name });
           break;
         }
+        case 'text': {
+          break;
+        }
         default:
           console.warn('Unknown directive', span);
       }
@@ -171,10 +206,100 @@ export function parseDirectives(...content: string[]): Directive[] {
   });
 }
 
-export function parseDirectivesOfTemplate(template: TemplateYjs) {
+export function parseDirectivesOfMessages(template: TemplateYjs) {
   return parseDirectives(
     ...Object.values(template.prompts ?? {})
       .map((i) => i.data.content)
       .filter((i): i is string => Boolean(i))
   );
+}
+
+export function parseDirectivesOfTemplate(template: TemplateYjs) {
+  return parseDirectives(
+    ...Object.values(template.prompts ?? {})
+      .flatMap(({ data }) => {
+        if (isPromptMessage(data)) return data.content;
+        if (isCallPromptMessage(data) && data.parameters) return Object.values(data.parameters);
+        return [];
+      })
+      .filter((i): i is string => typeof i === 'string')
+  );
+}
+
+export function usePromptsState({
+  projectId,
+  gitRef,
+  templateId,
+}: {
+  projectId: string;
+  gitRef: string;
+  templateId: string;
+}) {
+  const { store } = useStore(projectId, gitRef);
+
+  const file = store.files[templateId];
+  const template = isTemplate(file) ? file : undefined;
+
+  const addPrompt = useCallback(
+    (prompt: NonNullable<TemplateYjs['prompts']>[string]['data'], index?: number) => {
+      if (!template) return;
+
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+      doc.transact(() => {
+        template.prompts ??= {};
+
+        template.prompts[prompt.id] = {
+          index: typeof index === 'number' ? index - 0.1 : Object.keys(template.prompts).length,
+          data: prompt,
+        };
+
+        sortBy(Object.values(template.prompts), (i) => i.index).forEach((i, index) => (i.index = index));
+      });
+    },
+    [template]
+  );
+
+  const renameVariable = useCallback(
+    (rename: { [key: string]: string }) => {
+      if (!template) return;
+
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+      doc.transact(() => {
+        if (!template.prompts) return;
+
+        for (const { data } of Object.values(template.prompts)) {
+          if (isPromptMessage(data) && data.content) {
+            data.content = renameVariableByMustache(data.content, rename);
+          } else if (isCallPromptMessage(data) && data.parameters) {
+            for (const param of Object.keys(data.parameters)) {
+              const val = data.parameters[param];
+              if (typeof val === 'string') {
+                data.parameters[param] = renameVariableByMustache(val, rename);
+              }
+            }
+          }
+        }
+      });
+    },
+    [template]
+  );
+
+  return { addPrompt, renameVariable };
+}
+
+export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+
+function renameVariableByMustache(content: string, rename: { [key: string]: string }) {
+  let result = content;
+
+  const spans = Mustache.parse(content);
+  for (const span of spans.reverse()) {
+    if (span[0] === 'name') {
+      const newName = rename[span[1]];
+      if (newName) {
+        result = `${result.slice(0, span[2])}{{ ${newName} }}${result.slice(span[3])}`;
+      }
+    }
+  }
+  return result;
 }
