@@ -30,13 +30,13 @@ export default function TemplateFormView({
   projectId,
   gitRef,
   value,
-  originValue,
+  compareValue,
   disabled,
 }: {
   projectId: string;
   gitRef: string;
   value: TemplateYjs;
-  originValue?: TemplateYjs;
+  compareValue?: TemplateYjs;
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
@@ -44,7 +44,7 @@ export default function TemplateFormView({
   const isReadOnly = useReadOnly({ ref: gitRef });
   const readOnly = disabled || isReadOnly;
 
-  const { getDiffBackground } = useTemplateCompare({ value, originValue, disabled });
+  const { getDiffBackground } = useTemplateCompare({ value, compareValue, disabled });
 
   return (
     <Stack gap={0.5} pb={10}>
@@ -140,7 +140,7 @@ export default function TemplateFormView({
         />
       </Box>
 
-      <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} originValue={originValue} />
+      <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} compareValue={compareValue} />
     </Stack>
   );
 }

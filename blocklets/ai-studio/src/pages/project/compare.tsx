@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Box, CircularProgress, Divider, MenuItem, Select, Typography } from '@mui/material';
+import { Box, CircularProgress, Divider, MenuItem, Select, Stack, Typography, typographyClasses } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -12,6 +12,11 @@ import Branch from './icons/branch';
 import Empty from './icons/empty';
 import History from './icons/history';
 import SettingView from './setting-view';
+import Dataset from './setting-view/dataset';
+import Model from './setting-view/model';
+import Next from './setting-view/next';
+import Parameters from './setting-view/parameters';
+import Settings from './setting-view/settings';
 import { defaultBranch, useProjectState } from './state';
 import { isTemplate, templateYjsFromTemplate, useStore } from './yjs-state';
 
@@ -35,10 +40,7 @@ export default function Compare({
 
   const [branch, setBranch] = useState(gitRef);
   const [commit, setCommit] = useState(gitRef);
-  const [state, setState] = useState<{
-    loading: boolean;
-    template?: TemplateYjs;
-  }>({
+  const [state, setState] = useState<{ loading: boolean; template?: TemplateYjs }>({
     template: undefined,
     loading: true,
   });
@@ -75,66 +77,71 @@ export default function Compare({
   const file = id ? store.files[id] : undefined;
   const template = isTemplate(file) ? file : undefined;
 
+  const renderSelect = () => {
+    return (
+      <Box display="flex" gap={1}>
+        {!simpleMode && (
+          <Select
+            startAdornment={<Branch sx={{ mr: 1, fontSize: 16 }} />}
+            value={branch}
+            onChange={(e) => {
+              setBranch(e.target.value);
+              setCommit('');
+              init(e.target.value);
+            }}>
+            {branches.map((branch) => (
+              <MenuItem key={branch} value={branch}>
+                {branch}
+              </MenuItem>
+            ))}
+          </Select>
+        )}
+
+        <Select
+          sx={{ width: 150 }}
+          value={commit}
+          startAdornment={<History sx={{ mr: 1, fontSize: 16 }} />}
+          onChange={(e) => {
+            setCommit(e.target.value);
+            init(e.target.value);
+          }}>
+          {list.map((item) => (
+            <MenuItem key={item.oid} value={item.oid}>
+              {item.commit?.message}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
+    );
+  };
+
   if (!template) return null;
 
-  return (
+  if (state.loading) {
+    return (
+      <Box height="80vh" display="flex" width={1}>
+        <Box flex={1} display="flex" alignItems="center" justifyContent="center">
+          <CircularProgress size={24} />
+        </Box>
+      </Box>
+    );
+  }
+
+  if (!state.template) {
     <Box height="80vh" display="flex" width={1}>
       <Box flex={1} display="flex" flexDirection="column">
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
 
-          <Box display="flex" gap={1}>
-            {!simpleMode && (
-              <Select
-                startAdornment={<Branch sx={{ mr: 1, fontSize: 16 }} />}
-                value={branch}
-                onChange={(e) => {
-                  setBranch(e.target.value);
-                  setCommit('');
-                  init(e.target.value);
-                }}>
-                {branches.map((branch) => (
-                  <MenuItem key={branch} value={branch}>
-                    {branch}
-                  </MenuItem>
-                ))}
-              </Select>
-            )}
-
-            <Select
-              sx={{ width: 150 }}
-              value={commit}
-              startAdornment={<History sx={{ mr: 1, fontSize: 16 }} />}
-              onChange={(e) => {
-                setCommit(e.target.value);
-                init(e.target.value);
-              }}>
-              {list.map((item) => (
-                <MenuItem key={item.oid} value={item.oid}>
-                  {item.commit?.message}
-                </MenuItem>
-              ))}
-            </Select>
-          </Box>
+          {renderSelect()}
         </Box>
 
-        {state.loading ? (
-          <Box flex={1} display="flex" alignItems="center" justifyContent="center">
-            <CircularProgress size={20} />
+        <Box flex={1} display="flex" alignItems="center" justifyContent="center">
+          <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+            <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+            <Typography sx={{ color: (theme) => theme.palette.action.disabled }}>{t('compare.empty')}</Typography>
           </Box>
-        ) : !state.template ? (
-          <Box flex={1} display="flex" alignItems="center" justifyContent="center">
-            <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
-              <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-              <Typography sx={{ color: (theme) => theme.palette.action.disabled }}>{t('compare.empty')}</Typography>
-            </Box>
-          </Box>
-        ) : (
-          <>
-            <TemplateFormView projectId={projectId} gitRef={gitRef} value={state.template} disabled />
-            <SettingView projectId={projectId} gitRef={gitRef} template={state.template} disabled />
-          </>
-        )}
+        </Box>
       </Box>
 
       <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
@@ -142,17 +149,119 @@ export default function Compare({
       <Box flex={1} display="flex" flexDirection="column">
         <Box sx={{ fontSize: 20, fontWeight: 'bold', mb: 2 }}>{t('compare.current')}</Box>
 
-        {state.loading ? (
-          <Box flex={1} display="flex" alignItems="center" justifyContent="center">
-            <CircularProgress size={20} />
-          </Box>
-        ) : (
-          <>
-            <TemplateFormView projectId={projectId} gitRef={gitRef} originValue={state.template} value={template} />
-            <SettingView projectId={projectId} gitRef={gitRef} template={template} originValue={state.template} />
-          </>
-        )}
+        <>
+          <TemplateFormView projectId={projectId} gitRef={gitRef} compareValue={state.template} value={template} />
+          <SettingView projectId={projectId} gitRef={gitRef} template={template} compareValue={state.template} />
+        </>
       </Box>
-    </Box>
+    </Box>;
+  }
+
+  return (
+    <Stack height="80vh" display="flex" width={1}>
+      <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
+        <Box flex={1} display="flex" flexDirection="column">
+          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
+
+            {renderSelect()}
+          </Box>
+        </Box>
+
+        <Box flex={1} display="flex" flexDirection="column">
+          <Box sx={{ mb: 2, fontSize: 20, fontWeight: 'bold' }}>{t('compare.current')}</Box>
+        </Box>
+      </Stack>
+
+      <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
+        <Box flex={1} display="flex" flexDirection="column">
+          {state.template && (
+            <TemplateFormView
+              projectId={projectId}
+              gitRef={gitRef}
+              value={state.template}
+              compareValue={template}
+              disabled
+            />
+          )}
+        </Box>
+
+        <Box flex={1} display="flex" flexDirection="column">
+          <TemplateFormView projectId={projectId} gitRef={gitRef} compareValue={state.template} value={template} />
+        </Box>
+      </Stack>
+
+      <Stack
+        sx={{
+          '>.MuiStack-root > div': { pb: 4 },
+          [`.${typographyClasses.subtitle1}`]: { mb: 1 },
+        }}>
+        <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
+          <Box flex={1} display="flex" flexDirection="column">
+            {state.template && <Parameters template={state.template} compareValue={template} readOnly />}
+          </Box>
+
+          <Box flex={1} display="flex" flexDirection="column">
+            <Parameters template={template} compareValue={state.template} />
+          </Box>
+        </Stack>
+
+        <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
+          <Box flex={1} display="flex" flexDirection="column">
+            {state.template && (
+              <Settings
+                projectId={projectId}
+                gitRef={gitRef}
+                template={state.template}
+                compareValue={template}
+                readOnly
+              />
+            )}
+          </Box>
+
+          <Box flex={1} display="flex" flexDirection="column">
+            <Settings projectId={projectId} gitRef={gitRef} template={template} compareValue={state.template} />
+          </Box>
+        </Stack>
+
+        <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
+          <Box flex={1} display="flex" flexDirection="column">
+            {state.template && (
+              <Model projectId={projectId} gitRef={gitRef} template={state.template} compareValue={template} readOnly />
+            )}
+          </Box>
+
+          <Box flex={1} display="flex" flexDirection="column">
+            <Model projectId={projectId} gitRef={gitRef} template={template} compareValue={state.template} />
+          </Box>
+        </Stack>
+
+        <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
+          <Box flex={1} display="flex" flexDirection="column">
+            {state.template && <Dataset template={state.template} compareValue={template} readOnly />}
+          </Box>
+
+          <Box flex={1} display="flex" flexDirection="column">
+            <Dataset template={template} compareValue={state.template} />
+          </Box>
+        </Stack>
+
+        {(state?.template?.type !== 'image' || template.type !== 'image') && (
+          <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
+            <Box flex={1} display="flex" flexDirection="column">
+              {state.template && state.template.type !== 'image' && (
+                <Next projectId={projectId} gitRef={gitRef} template={template} compareValue={template} readOnly />
+              )}
+            </Box>
+
+            <Box flex={1} display="flex" flexDirection="column">
+              {template.type !== 'image' && (
+                <Next projectId={projectId} gitRef={gitRef} template={template} compareValue={state.template} />
+              )}
+            </Box>
+          </Stack>
+        )}
+      </Stack>
+    </Stack>
   );
 }

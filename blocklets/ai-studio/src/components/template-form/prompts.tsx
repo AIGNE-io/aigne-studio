@@ -27,13 +27,13 @@ export default function Prompts({
   projectId,
   gitRef,
   value: form,
-  originValue,
+  compareValue,
 }: {
   readOnly?: boolean;
   projectId: string;
   gitRef: string;
   value: TemplateYjs;
-  originValue?: TemplateYjs;
+  compareValue?: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
@@ -81,7 +81,7 @@ export default function Prompts({
     });
   }, [deferredTrigger]);
 
-  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, originValue, disabled: readOnly });
+  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, disabled: readOnly });
 
   return (
     <Box>

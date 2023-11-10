@@ -13,18 +13,18 @@ import { useTemplateCompare } from '../../pages/project/state';
 export default function Datasets({
   readOnly,
   form,
-  originValue,
+  compareValue,
 }: {
   readOnly?: boolean;
   form: Pick<TemplateYjs, 'datasets'>;
-  originValue?: TemplateYjs;
+  compareValue?: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
   const { value: datasetsRes } = useAsync(() => getDatasets(), []);
   const datasets = useMemo(() => datasetsRes?.datasets.map((i) => ({ id: i._id!, name: i.name })) ?? [], [datasetsRes]);
 
-  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, originValue, disabled: readOnly });
+  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, disabled: readOnly });
 
   return (
     <Stack gap={1}>

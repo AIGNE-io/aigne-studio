@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, UndoManager, getYjsDoc } from '@blocklet/co-git/yjs';
+import { pink, pink } from '@mui/material/colors';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
@@ -688,22 +689,14 @@ export const useUndoManager = (projectId: string, ref: string, key: string) => {
 
 export function useTemplateCompare({
   value,
-  originValue,
+  compareValue,
   disabled,
 }: {
   value: TemplateYjs;
-  originValue?: TemplateYjs;
+  compareValue?: TemplateYjs;
   disabled?: boolean;
 }) {
   const getDifference = (key: keyof TemplateYjs, defaultValue?: string) => {
-    if (disabled) {
-      return false;
-    }
-
-    if (!originValue) {
-      return false;
-    }
-
     const getDefault = () => {
       if (key === 'tags') {
         return [];
@@ -721,7 +714,7 @@ export function useTemplateCompare({
     };
 
     return !equal(
-      get(cloneDeep(originValue), key, defaultValue ?? getDefault()),
+      get(cloneDeep(compareValue), key, defaultValue ?? getDefault()),
       get(cloneDeep(value), key, defaultValue ?? getDefault())
     );
   };
@@ -732,8 +725,15 @@ export function useTemplateCompare({
   };
 
   const getDiffName = useCallback((path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
+    // 未禁止并且没有对比数据，不做校验
+    if (!disabled && !compareValue) {
+      return '';
+    }
+
+    const diff = getDiff(path, defaultValue);
+
     if (id === undefined) {
-      if (!getDiff(path, defaultValue)) {
+      if (!diff) {
         return '';
       }
 
@@ -744,27 +744,54 @@ export function useTemplateCompare({
       return '';
     }
 
-    if (!getDiff(path, defaultValue)) {
+    if (!diff) {
       return '';
     }
 
-    if (!(originValue?.[path] as any)?.[id]) {
-      return 'new';
+    if (!(compareValue?.[path] as any)?.[id]) {
+      return disabled ? 'delete' : 'new';
     }
 
     return 'modify';
   }, []);
 
+  const getBackgroundColor = (name: string) => {
+    if (name === 'new') {
+      return 'rgba(230, 255, 236, 0.4) !important';
+    }
+
+    if (name === 'delete') {
+      return 'rgba(255, 215, 213, 0.4) !important';
+    }
+
+    if (name === 'modify') {
+      return 'rgba(255, 235, 233, 0.4) !important';
+    }
+
+    return '';
+  };
+
   const getDiffStyle = useCallback((style: string, path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
-    if (!getDiffName(path, id, defaultValue)) {
+    const name = getDiffName(path, id, defaultValue);
+
+    if (!name) {
       return {};
     }
 
-    if (getDiffName(path, id, defaultValue) === 'new') {
-      return { [style]: 'rgb(230, 255, 236)' };
+    if (name === 'new') {
+      return { [style]: getBackgroundColor('new') };
     }
 
-    return { [style]: 'rgb(255, 235, 233)' };
+    if (name === 'delete') {
+      return { [style]: getBackgroundColor('delete') };
+    }
+
+    if (disabled) {
+      return {};
+    }
+
+    // 禁止情况
+    return { [style]: getBackgroundColor('modify') };
   }, []);
 
   const getDiffBackground = useCallback((path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
@@ -773,10 +800,15 @@ export function useTemplateCompare({
 
   const getDiffColor = useCallback(
     ({ path, id, defaultValue }: { path: keyof TemplateYjs; id?: string; defaultValue?: string }) => {
-      return getDiffStyle('color', path, id, defaultValue);
+      const name = getDiffName(path, id, defaultValue);
+      if (disabled || !name) {
+        return '';
+      }
+
+      return pink[600];
     },
     []
   );
 
-  return { getDiff, getDiffName, getDiffColor, getDiffBackground };
+  return { getDiff, getDiffName, getDiffColor, getDiffBackground, getBackgroundColor };
 }
