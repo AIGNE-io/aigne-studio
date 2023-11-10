@@ -3,5 +3,7 @@ export default function dirname(path: string) {
 }
 
 export function getTemplateIdFromPath(path: string) {
-  return path.match(/\/?(?<templateId>\S+).yaml$/)?.groups?.templateId;
+  const filename = path.split('/').slice(-1)[0];
+  if (filename?.endsWith('.yaml')) return filename.match(/(?<templateId>.*).yaml$/)?.groups?.templateId;
+  return undefined;
 }
