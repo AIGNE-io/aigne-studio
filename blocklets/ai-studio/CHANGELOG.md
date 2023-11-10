@@ -1,3 +1,8 @@
+## 0.1.132 (2023-11-10)
+
+- fix: always display prompts title
+- fix: reorder hooks error
+
 ## 0.1.131 (2023-11-10)
 
 - fix: remove empty parent path
