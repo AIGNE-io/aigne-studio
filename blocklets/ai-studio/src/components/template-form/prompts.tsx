@@ -55,20 +55,20 @@ export default function Prompts({
 
   return (
     <Box>
-      {form.prompts && Object.keys(form.prompts).length > 0 && (
-        <Box
-          sx={{
-            border: 2,
-            borderColor: 'primary.main',
-            borderRadius: 2,
-            bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-          }}>
-          <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
-            <TipsAndUpdatesRounded fontSize="small" color="primary" />
+      <Box
+        sx={{
+          border: 2,
+          borderColor: 'primary.main',
+          borderRadius: 2,
+          bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+        }}>
+        <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
+          <TipsAndUpdatesRounded fontSize="small" color="primary" />
 
-            <Typography variant="subtitle1">{t('prompts')}</Typography>
-          </Stack>
+          <Typography variant="subtitle1">{t('prompts')}</Typography>
+        </Stack>
 
+        {form.prompts && (
           <DragSortListYjs
             disabled={readOnly}
             list={form.prompts}
@@ -124,8 +124,8 @@ export default function Prompts({
               );
             }}
           />
-        </Box>
-      )}
+        )}
+      </Box>
 
       {!readOnly && (
         <Stack direction="row" gap={2} sx={{ mt: 1, mx: 1 }}>

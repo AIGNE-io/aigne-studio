@@ -336,7 +336,7 @@ const FileTree = forwardRef<
             }}
             listComponent="div"
             listItemComponent="div"
-            dragPreviewRender={DragPreviewRender}
+            dragPreviewRender={({ item }) => <DragPreviewRender item={item} />}
             render={(node, { depth, isOpen, onToggle }) => {
               if (!node.data) {
                 return <Box />;
@@ -432,7 +432,7 @@ const FileTree = forwardRef<
 
 export default FileTree;
 
-function DragPreviewRender({ item }: DragLayerMonitorProps<EntryWithMeta>) {
+function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 'item'>) {
   const { t } = useLocaleContext();
 
   return (
