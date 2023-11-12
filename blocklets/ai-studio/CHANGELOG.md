@@ -1,3 +1,7 @@
+## 0.1.133 (2023-11-12)
+
+- chore: support undo/redo and compare template version
+
 ## 0.1.132 (2023-11-10)
 
 - fix: always display prompts title

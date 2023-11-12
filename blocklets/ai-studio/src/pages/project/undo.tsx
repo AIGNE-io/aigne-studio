@@ -1,6 +1,7 @@
-import { Redo, Undo } from '@mui/icons-material';
 import { Box, IconButton } from '@mui/material';
 
+import Redo from './icons/redo';
+import Undo from './icons/undo';
 import { useUndoManager } from './state';
 
 export default function UndoAndRedo({ projectId, gitRef, id }: { gitRef: string; id: string; projectId: string }) {

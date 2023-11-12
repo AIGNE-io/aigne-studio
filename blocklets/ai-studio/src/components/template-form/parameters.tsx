@@ -127,7 +127,7 @@ export default function Parameters({
   }, [dataGrid, t, form.id, readOnly]);
 
   const { getDiffName, getBackgroundColor } = useTemplateCompare({
-    value: form as TemplateYjs,
+    value: form,
     compareValue,
     disabled: readOnly,
   });
