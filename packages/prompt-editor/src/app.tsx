@@ -87,12 +87,14 @@ function EditorShell({
 
   const setState = useCallback(
     (s: EditorState) => {
+      if (!editable) return;
+
       if (stateRef.current !== s) {
         stateRef.current = s;
         onChange?.(s);
       }
     },
-    [onChange]
+    [onChange, editable]
   );
 
   useEffect(() => {

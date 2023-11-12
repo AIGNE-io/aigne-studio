@@ -61,7 +61,7 @@ export default function Editor({
       <FloatingToolbarPlugin floatElement={floatElement} />
       {componentPickerProps && <ComponentPickerMenuPlugin {...componentPickerProps} />}
       <HistoryPlugin />
-      {onChange && <OnChangePlugin onChange={onChange} />}
+      {onChange && <OnChangePlugin onChange={onChange} ignoreSelectionChange />}
       {editorRef !== undefined && <EditorRefPlugin editorRef={editorRef} />}
 
       {children}

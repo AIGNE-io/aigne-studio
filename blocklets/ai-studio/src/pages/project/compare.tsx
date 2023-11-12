@@ -187,7 +187,7 @@ export default function Compare({
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <TemplateFormView projectId={projectId} gitRef={gitRef} compareValue={state.template} value={template} />
+          <TemplateFormView projectId={projectId} gitRef={gitRef} value={template} compareValue={state.template} />
         </Box>
       </Stack>
 
