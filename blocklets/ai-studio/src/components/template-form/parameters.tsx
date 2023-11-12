@@ -1,10 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Button, ClickAwayListener, Input, MenuItem, Paper, Popper, Select, Typography } from '@mui/material';
 import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import Settings from '../../pages/project/icons/settings';
+import { parseDirectivesOfTemplate } from '../../pages/project/prompt-state';
 import { useTemplateCompare } from '../../pages/project/state';
 import ParameterConfig from './parameter-config';
 
@@ -26,41 +28,31 @@ export default function Parameters({
   compareValue,
 }: {
   readOnly?: boolean;
-  form: Pick<TemplateYjs, 'id' | 'type' | 'name' | 'prompts' | 'parameters'>;
+  form: TemplateYjs;
   compareValue?: TemplateYjs;
 }) {
-  // TODO: parameters 支持自定义顺序，到时候可以去掉这个实时 match params 的逻辑，直接渲染 template.parameters 数据即可
-  const deferredValue = useDeferredValue(form);
+  const params = [
+    ...new Set(
+      parseDirectivesOfTemplate(form, { excludeCallPromptVariables: true })
+        .map((i) => (i.type === 'variable' ? i.name : undefined))
+        .filter((i): i is string => Boolean(i))
+    ),
+  ].map((param) => ({ param }));
+  const doc = (getYjsValue(form) as Map<any>)?.doc!;
+
   const { t } = useLocaleContext();
   const dataGrid = useGridApiRef();
-
-  const params = (() => {
-    const params = Object.values(deferredValue.prompts ?? {})?.flatMap((i) => matchParams(i.data.content ?? '')) ?? [];
-    if (deferredValue.type === 'branch') {
-      params.push('question');
-    }
-    if (deferredValue.type === 'image') {
-      params.push('size');
-      params.push('number');
-    }
-    return [...new Set(params)];
-  })()
-    .filter((i) => form.parameters?.[i])
-    .map((param) => ({ param }));
 
   const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
 
   const columns = useMemo<GridColDef<{ param: string }>[]>(() => {
     return [
       {
-        field: 'key',
+        field: 'param',
         headerName: t('variable'),
         headerAlign: 'center',
         sortable: false,
         align: 'center',
-        renderCell: ({ row }) => {
-          return <Box>{row.param}</Box>;
-        },
       },
       {
         flex: 1,
@@ -69,14 +61,18 @@ export default function Parameters({
         sortable: false,
         renderCell: ({ row }) => {
           const parameter = form.parameters?.[row.param];
-          if (!parameter) return null;
 
           return (
             <Input
-              readOnly={readOnly}
               fullWidth
-              value={parameter.label || ''}
-              onChange={(e) => (parameter.label = e.target.value)}
+              value={parameter?.label || ''}
+              onChange={(e) => {
+                doc.transact(() => {
+                  form.parameters ??= {};
+                  form.parameters[row.param] ??= {};
+                  form.parameters[row.param]!.label = e.target.value;
+                });
+              }}
             />
           );
         },
@@ -90,17 +86,19 @@ export default function Parameters({
         width: 120,
         renderCell: ({ row }) => {
           const parameter = form.parameters?.[row.param];
-          if (!parameter) return null;
 
           return (
             <Select
               sx={{ ml: 2 }}
               variant="standard"
-              fullWidth
+              autoWidth
               size="small"
-              readOnly={readOnly}
-              value={parameter.type ?? 'string'}
-              onChange={(e) => (parameter.type = e.target.value as any)}>
+              value={parameter?.type ?? 'string'}
+              onChange={(e) => {
+                form.parameters ??= {};
+                form.parameters[row.param] ??= {};
+                form.parameters[row.param]!.type = e.target.value as any;
+              }}>
               <MenuItem value="string">{t('form.parameter.typeText')}</MenuItem>
               <MenuItem value="number">{t('form.parameter.typeNumber')}</MenuItem>
               <MenuItem value="select">{t('form.parameter.typeSelect')}</MenuItem>

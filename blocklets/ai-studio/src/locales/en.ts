@@ -230,4 +230,6 @@ export default flat({
   },
   confirmDelete: 'Please input {name} to delete',
   deleteProject: 'This will permanently delete project with name {name}',
+  selectObject: 'Select {object}',
+  template: 'Template',
 });

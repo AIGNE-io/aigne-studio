@@ -4,7 +4,8 @@ import { GPTTokens } from 'gpt-tokens';
 import { useDeferredValue, useMemo } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { Role } from '../../../api/src/store/templates';
+import { PromptMessage, Role } from '../../../api/src/store/templates';
+import { isPromptMessage } from './yjs-state';
 
 export function TokenUsage({ template }: { template: TemplateYjs }) {
   const { t } = useLocaleContext();
@@ -17,7 +18,7 @@ export function TokenUsage({ template }: { template: TemplateYjs }) {
         role: data.role,
         content: data.content,
       }))
-      .filter((i): i is { role: Role; content: string } => Boolean(i.role) && Boolean(i.content));
+      .filter((i): i is PromptMessage & { role: Role; content: string } => isPromptMessage(i) && Boolean(i.content));
 
     return messages.length > 0
       ? new GPTTokens({

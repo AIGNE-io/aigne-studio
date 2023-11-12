@@ -1,6 +1,19 @@
+## 0.1.132 (2023-11-10)
+
+- fix: always display prompts title
+- fix: reorder hooks error
+
+## 0.1.131 (2023-11-10)
+
+- fix: remove empty parent path
+
+## 0.1.130 (2023-11-10)
+
+- fix: correct match templateId
+
 ## 0.1.129 (2023-11-9)
 
-- chore: support undo/redo template change and compare template version
+- feat: support call prompt
 
 ## 0.1.128 (2023-11-3)
 

@@ -91,7 +91,7 @@ export default function TemplateAutocomplete<
       }}
       renderOption={(props, option) => (
         <MenuItem {...props} key={option.id}>
-          {option.name}
+          {option.name || t('unnamed')}
         </MenuItem>
       )}
       renderInput={renderInput}

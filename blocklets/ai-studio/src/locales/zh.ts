@@ -115,6 +115,7 @@ export default flat({
   createdAt: '创建于',
   home: '首页',
   prompts: '提示',
+  parameters: '参数',
   model: '模型',
   temperature: '随机性 temperature',
   temperatureTip:
@@ -227,4 +228,6 @@ export default flat({
   },
   confirmDelete: '请输入 {name} 以确认删除',
   deleteProject: '这将永久删除名称为 {name} 的项目',
+  selectObject: '选择{object}',
+  template: '模板',
 });

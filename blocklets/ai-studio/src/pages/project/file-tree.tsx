@@ -243,7 +243,7 @@ const FileTree = forwardRef<
     [...new Set(Object.values(store.tree).map((filepath) => filepath?.split('/').slice(0, -1).join('/')))].flatMap(
       (filepath) => {
         if (!filepath) return [];
-        const parent = filepath.split('/');
+        const parent = filepath.split('/').filter(Boolean);
         return parent.map((name, index) => {
           return {
             type: 'folder' as const,
@@ -260,7 +260,7 @@ const FileTree = forwardRef<
     .map(([key, filepath]) => {
       const template = store.files[key];
       if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
-        const paths = filepath.split('/');
+        const paths = filepath.split('/').filter(Boolean);
         return {
           type: 'file' as const,
           name: template.name || '',
@@ -345,7 +345,7 @@ const FileTree = forwardRef<
             }}
             listComponent="div"
             listItemComponent="div"
-            dragPreviewRender={DragPreviewRender}
+            dragPreviewRender={({ item }) => <DragPreviewRender item={item} />}
             render={(node, { depth, isOpen, onToggle }) => {
               if (!node.data) {
                 return <Box />;
@@ -426,7 +426,7 @@ const FileTree = forwardRef<
                   icon={icon}
                   depth={depth}
                   selected={selected}
-                  onClick={() => navigate(filepath.join('/'))}
+                  onClick={() => navigate(joinUrl('.', ...filepath))}
                   actions={actions}
                   sx={{ color: change?.color }}>
                   {meta.name || t('alert.unnamed')}
@@ -484,7 +484,7 @@ const FileTree = forwardRef<
 
 export default FileTree;
 
-function DragPreviewRender({ item }: DragLayerMonitorProps<EntryWithMeta>) {
+function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 'item'>) {
   const { t } = useLocaleContext();
 
   return (
