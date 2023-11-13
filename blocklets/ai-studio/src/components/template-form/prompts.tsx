@@ -373,13 +373,24 @@ function CallPromptItemView({
           onChange={(_, value) => {
             if (value && typeof value === 'object') {
               callPromptMessage.template = { id: value.id, name: value.name };
-              if (
-                value.name &&
-                callPromptMessage.output.startsWith(randomVariableNamePrefix) &&
-                !parseDirectivesOfMessages(template).some((i) => i.type === 'variable' && i.name === value.name)
-              ) {
+              if (value.name) {
                 originalOutput.current = callPromptMessage.output;
-                callPromptMessage.output = value.name;
+
+                const existsVariables = new Set(
+                  parseDirectivesOfMessages(template)
+                    .filter((i) => i.type === 'variable')
+                    .map((i) => i.name)
+                );
+
+                let newName = value.name;
+                let index = 0;
+
+                while (existsVariables.has(newName)) {
+                  newName = `${value.name} ${++index}`;
+                }
+
+                callPromptMessage.output = newName;
+
                 rename.run();
               }
             }
