@@ -6,7 +6,7 @@ import Joi from 'joi';
 import { ImagesResponseDataInner } from 'openai';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
-import { renderAsync } from '../libs/mustache-async';
+import Mustache from '../libs/mustache';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
@@ -240,7 +240,7 @@ async function runTemplate(
     }
 
     const renderMessage = async (message: string) => {
-      return renderAsync(message, variables, undefined, { escape: (v) => v });
+      return Mustache.render(message, variables, undefined, { escape: (v) => v });
     };
 
     const variablesCache: { [key: string]: Promise<string> } = {};
