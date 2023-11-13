@@ -5,7 +5,7 @@ import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import Mustache from 'mustache';
 import { customAlphabet } from 'nanoid';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useId, useMemo } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -49,9 +49,11 @@ export function usePromptState({
   readOnly?: boolean;
   originTemplate?: TemplateYjs;
 }) {
+  const editorId = useId();
+
   const key = useMemo(
-    () => ['promptState', projectId, gitRef, templateId, promptId, readOnly].join('/'),
-    [projectId, gitRef, templateId, promptId, readOnly]
+    () => ['promptState', projectId, gitRef, templateId, promptId, readOnly, editorId].join('/'),
+    [projectId, gitRef, templateId, promptId, readOnly, editorId]
   );
   const [state, setState] = useRecoilState(promptEditorState(key));
 
