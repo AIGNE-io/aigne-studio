@@ -467,14 +467,12 @@ const FileTree = forwardRef<
 
       <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
         <DialogTitle>{t('alert.compare')}</DialogTitle>
-        <DialogContent sx={{ mt: -3 }}>
-          <Box pt={3}>
-            <Compare projectId={projectId} gitRef={gitRef} filepath={current || ''} />
-          </Box>
+        <DialogContent>
+          <Compare projectId={projectId} gitRef={gitRef} filepath={current || ''} />
         </DialogContent>
         <DialogActions>
           <Button variant="contained" onClick={dialogState.close}>
-            {t('cancel')}
+            {t('alert.close')}
           </Button>
         </DialogActions>
       </Dialog>
