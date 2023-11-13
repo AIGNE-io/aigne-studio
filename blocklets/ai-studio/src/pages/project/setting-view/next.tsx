@@ -19,7 +19,7 @@ export default function NextView({
   readOnly?: boolean;
 }) {
   const { t } = useLocaleContext();
-  const { getDiffBackground } = useTemplateCompare({ value: template, compareValue, disabled: readOnly });
+  const { getDiffBackground } = useTemplateCompare({ value: template, compareValue, readOnly });
 
   return (
     <Stack

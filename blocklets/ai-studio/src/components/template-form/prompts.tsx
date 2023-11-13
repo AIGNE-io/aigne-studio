@@ -55,7 +55,7 @@ export default function Prompts({
   const { t } = useLocaleContext();
 
   const { addPrompt } = usePromptsState({ projectId, gitRef, templateId: form.id });
-  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, disabled: readOnly });
+  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, readOnly });
 
   return (
     <Box>

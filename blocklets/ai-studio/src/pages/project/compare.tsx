@@ -18,7 +18,7 @@ import Next from './setting-view/next';
 import Parameters from './setting-view/parameters';
 import Settings from './setting-view/settings';
 import { defaultBranch, useProjectState } from './state';
-import { isTemplate, templateYjsFromTemplate, useStore } from './yjs-state';
+import { templateYjsFromTemplate, useStore } from './yjs-state';
 
 export default function Compare({
   projectId,
@@ -34,7 +34,7 @@ export default function Compare({
     state: { project, branches },
   } = useProjectState(projectId, gitRef);
 
-  const { store } = useStore(projectId, gitRef);
+  const { store, getTemplateById } = useStore(projectId, gitRef);
 
   const simpleMode = project?.gitType === 'simple';
 
@@ -73,9 +73,7 @@ export default function Compare({
     init(gitRef);
   }, []);
 
-  const id = Object.entries(store.tree).find((i) => i[1] === filepath)?.[0];
-  const file = id ? store.files[id] : undefined;
-  const template = isTemplate(file) ? file : undefined;
+  const template = getTemplateById(filepath.replace('.yaml', ''));
 
   const renderSelect = () => {
     return (

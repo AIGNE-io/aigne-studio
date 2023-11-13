@@ -31,7 +31,7 @@ export default function SettingView({
 }) {
   const { t } = useLocaleContext();
 
-  const { getDiffColor } = useTemplateCompare({ value: template, compareValue, disabled: readOnly });
+  const { getDiffColor } = useTemplateCompare({ value: template, compareValue, readOnly });
 
   return (
     <Stack sx={{ [`.${formLabelClasses.root}`]: { fontSize: 14 } }}>

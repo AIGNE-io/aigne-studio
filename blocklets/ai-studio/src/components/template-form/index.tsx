@@ -42,7 +42,7 @@ export default function TemplateFormView({
   const { t } = useLocaleContext();
 
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
-  const { getDiffBackground } = useTemplateCompare({ value, compareValue, disabled });
+  const { getDiffBackground } = useTemplateCompare({ value, compareValue, readOnly });
 
   return (
     <Stack gap={0.5} pb={10}>

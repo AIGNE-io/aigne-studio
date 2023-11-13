@@ -65,6 +65,7 @@ export default function Parameters({
           return (
             <Input
               fullWidth
+              readOnly={readOnly}
               value={parameter?.label || ''}
               onChange={(e) => {
                 doc.transact(() => {
@@ -94,6 +95,7 @@ export default function Parameters({
               autoWidth
               size="small"
               value={parameter?.type ?? 'string'}
+              readOnly={readOnly}
               onChange={(e) => {
                 form.parameters ??= {};
                 form.parameters[row.param] ??= {};
@@ -129,7 +131,7 @@ export default function Parameters({
   const { getDiffName, getBackgroundColor } = useTemplateCompare({
     value: form,
     compareValue,
-    disabled: readOnly,
+    readOnly,
   });
 
   return (

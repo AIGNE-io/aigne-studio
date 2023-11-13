@@ -77,7 +77,7 @@ export default function ModelView({
     setExpanded(isExpanded ? panel : false);
   };
 
-  const { getDiffBackground } = useTemplateCompare({ value: template, compareValue, disabled: readOnly });
+  const { getDiffBackground } = useTemplateCompare({ value: template, compareValue, readOnly });
 
   if (!model) return null;
 

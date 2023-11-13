@@ -690,124 +690,142 @@ export const useUndoManager = (projectId: string, ref: string, key: string) => {
 export function useTemplateCompare({
   value,
   compareValue,
-  disabled,
+  readOnly,
 }: {
   value: TemplateYjs;
   compareValue?: TemplateYjs;
-  disabled?: boolean;
+  readOnly?: boolean;
 }) {
-  const getDifference = (key: keyof TemplateYjs, defaultValue?: string) => {
-    const getDefault = () => {
-      if (key === 'tags') {
-        return [];
+  const getDifference = useCallback(
+    (key: keyof TemplateYjs, defaultValue?: string) => {
+      const getDefault = () => {
+        if (key === 'tags') {
+          return [];
+        }
+
+        if (key === 'next' || key === 'datasets') {
+          return {};
+        }
+
+        if (key === 'temperature') {
+          return 0;
+        }
+
+        return '';
+      };
+
+      return !equal(
+        get(cloneDeep(compareValue), key, defaultValue ?? getDefault()),
+        get(cloneDeep(value), key, defaultValue ?? getDefault())
+      );
+    },
+    [compareValue, value]
+  );
+
+  const getDiff = useCallback(
+    (path: keyof TemplateYjs | (keyof TemplateYjs)[], defaultValue?: string) => {
+      const list = Array.isArray(path) ? path : [path];
+      return list.map((item) => getDifference(item, defaultValue)).some((x) => x);
+    },
+    [compareValue, value]
+  );
+
+  const getDiffName = useCallback(
+    (path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
+      // 未禁止并且没有对比数据，不做校验
+      if (!readOnly && !compareValue) {
+        return '';
       }
 
-      if (key === 'next' || key === 'datasets') {
-        return {};
+      const diff = getDiff(path, defaultValue);
+
+      if (id === undefined) {
+        if (!diff) {
+          return '';
+        }
+
+        return 'modify';
       }
 
-      if (key === 'temperature') {
-        return 0;
+      if (!id) {
+        return '';
       }
 
-      return '';
-    };
-
-    return !equal(
-      get(cloneDeep(compareValue), key, defaultValue ?? getDefault()),
-      get(cloneDeep(value), key, defaultValue ?? getDefault())
-    );
-  };
-
-  const getDiff = (path: keyof TemplateYjs | (keyof TemplateYjs)[], defaultValue?: string) => {
-    const list = Array.isArray(path) ? path : [path];
-    return list.map((item) => getDifference(item, defaultValue)).some((x) => x);
-  };
-
-  const getDiffName = useCallback((path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
-    // 未禁止并且没有对比数据，不做校验
-    if (!disabled && !compareValue) {
-      return '';
-    }
-
-    const diff = getDiff(path, defaultValue);
-
-    if (id === undefined) {
       if (!diff) {
         return '';
       }
 
+      if (!(compareValue?.[path] as any)?.[id]) {
+        return readOnly ? 'delete' : 'new';
+      }
+
       return 'modify';
-    }
+    },
+    [compareValue, value, readOnly]
+  );
 
-    if (!id) {
+  const getBackgroundColor = useCallback(
+    (name: string) => {
+      if (name === 'new') {
+        return 'rgba(230, 255, 236, 0.4) !important';
+      }
+
+      if (name === 'delete') {
+        return 'rgba(255, 215, 213, 0.4) !important';
+      }
+
+      if (name === 'modify') {
+        return 'rgba(255, 235, 233, 0.4) !important';
+      }
+
       return '';
-    }
+    },
+    [compareValue, value, readOnly]
+  );
 
-    if (!diff) {
-      return '';
-    }
+  const getDiffStyle = useCallback(
+    (style: string, path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
+      const name = getDiffName(path, id, defaultValue);
 
-    if (!(compareValue?.[path] as any)?.[id]) {
-      return disabled ? 'delete' : 'new';
-    }
+      if (!name) {
+        return {};
+      }
 
-    return 'modify';
-  }, []);
+      if (name === 'new') {
+        return { [style]: getBackgroundColor('new') };
+      }
 
-  const getBackgroundColor = (name: string) => {
-    if (name === 'new') {
-      return 'rgba(230, 255, 236, 0.4) !important';
-    }
+      if (name === 'delete') {
+        return { [style]: getBackgroundColor('delete') };
+      }
 
-    if (name === 'delete') {
-      return 'rgba(255, 215, 213, 0.4) !important';
-    }
+      if (readOnly) {
+        return {};
+      }
 
-    if (name === 'modify') {
-      return 'rgba(255, 235, 233, 0.4) !important';
-    }
+      // 禁止情况
+      return { [style]: getBackgroundColor('modify') };
+    },
+    [compareValue, value, readOnly]
+  );
 
-    return '';
-  };
-
-  const getDiffStyle = useCallback((style: string, path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
-    const name = getDiffName(path, id, defaultValue);
-
-    if (!name) {
-      return {};
-    }
-
-    if (name === 'new') {
-      return { [style]: getBackgroundColor('new') };
-    }
-
-    if (name === 'delete') {
-      return { [style]: getBackgroundColor('delete') };
-    }
-
-    if (disabled) {
-      return {};
-    }
-
-    // 禁止情况
-    return { [style]: getBackgroundColor('modify') };
-  }, []);
-
-  const getDiffBackground = useCallback((path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
-    return getDiffStyle('background', path, id, defaultValue);
-  }, []);
+  const getDiffBackground = useCallback(
+    (path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
+      return getDiffStyle('background', path, id, defaultValue);
+    },
+    [compareValue, value, readOnly]
+  );
 
   const getDiffColor = useCallback(
     ({ path, id, defaultValue }: { path: keyof TemplateYjs; id?: string; defaultValue?: string }) => {
       const name = getDiffName(path, id, defaultValue);
-      if (disabled || !name) {
+      if (readOnly || !name) {
         return '';
       }
 
       return pink[600];
     },
-    []
+    [compareValue, value, readOnly]
   );
 
   return { getDiff, getDiffName, getDiffColor, getDiffBackground, getBackgroundColor };
