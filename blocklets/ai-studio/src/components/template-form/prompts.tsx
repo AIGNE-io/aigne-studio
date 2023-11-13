@@ -96,6 +96,7 @@ export default function Prompts({
                   projectId={projectId}
                   gitRef={gitRef}
                   templateId={form.id}
+                  template={form}
                   promptId={prompt.id}
                   readOnly={readOnly}
                 />
@@ -116,6 +117,7 @@ export default function Prompts({
                     projectId={projectId}
                     gitRef={gitRef}
                     templateId={form.id}
+                    template={form}
                     promptId={prompt.id}
                     preview={params.preview}
                     drop={params.drop}
@@ -160,6 +162,7 @@ function PromptItemContainer({
   children,
   disableToggleVisible,
   style,
+  template,
 }: {
   projectId: string;
   gitRef: string;
@@ -173,10 +176,18 @@ function PromptItemContainer({
   children?: ReactNode;
   disableToggleVisible?: boolean;
   style: object;
+  template?: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
-  const { prompt, deletePrompt } = usePromptState({ projectId, gitRef, templateId, promptId });
+  const { prompt, deletePrompt } = usePromptState({
+    projectId,
+    gitRef,
+    templateId,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
   if (!prompt) return null;
 
   const hidden = prompt.data.visibility === 'hidden';
@@ -284,6 +295,7 @@ function PromptItemView({
   projectId,
   gitRef,
   templateId,
+  template,
   promptId,
   readOnly,
 }: {
@@ -292,8 +304,16 @@ function PromptItemView({
   templateId: string;
   promptId: string;
   readOnly?: boolean;
+  template?: TemplateYjs;
 }) {
-  const { state, prompt, setEditorState } = usePromptState({ projectId, gitRef, templateId, promptId });
+  const { state, prompt, setEditorState } = usePromptState({
+    projectId,
+    gitRef,
+    templateId,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
   const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
 
   const options = useMemo(
@@ -343,7 +363,14 @@ function CallPromptItemView({
 
   const { t } = useLocaleContext();
 
-  const { prompt } = usePromptState({ projectId, gitRef, templateId: template.id, promptId });
+  const { prompt } = usePromptState({
+    projectId,
+    gitRef,
+    templateId: template.id,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
   const { store, getTemplateById } = useStore(projectId, gitRef);
 
   const rename = useThrottleFn(

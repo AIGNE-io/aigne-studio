@@ -30,20 +30,18 @@ export default function TemplateFormView({
   projectId,
   gitRef,
   value,
-  compareValue,
   disabled,
+  compareValue,
 }: {
   projectId: string;
   gitRef: string;
   value: TemplateYjs;
-  compareValue?: TemplateYjs;
   disabled?: boolean;
+  compareValue?: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
-  const isReadOnly = useReadOnly({ ref: gitRef });
-  const readOnly = disabled || isReadOnly;
-
+  const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const { getDiffBackground } = useTemplateCompare({ value, compareValue, disabled });
 
   return (

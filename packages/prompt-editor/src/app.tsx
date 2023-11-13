@@ -113,7 +113,7 @@ function EditorShell({
   );
 
   return (
-    <EditorRoot {...props} className={`editor-shell ${props.className}`} ref={shellRef} onClick={onShellClick}>
+    <EditorRoot {...props} className={`editor-shell ${props?.className || ''}`} ref={shellRef} onClick={onShellClick}>
       <Editor
         autoFocus={autoFocus}
         onChange={setState}
