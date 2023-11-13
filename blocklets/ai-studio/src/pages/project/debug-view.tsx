@@ -478,7 +478,7 @@ function DebugModeForm({
     }
     sendMessage({
       sessionIndex: state.currentSessionIndex!,
-      message: { type: 'debug', projectId, templateId: template.id, gitRef, parameters: { ...form } },
+      message: { type: 'debug', projectId, templateId: template.id, gitRef, parameters: pick(form, ...params) },
     });
     setSession(state.currentSessionIndex!, (session) => {
       session.debugForm = { ...form };

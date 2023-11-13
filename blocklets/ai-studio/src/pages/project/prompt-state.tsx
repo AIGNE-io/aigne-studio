@@ -3,11 +3,11 @@ import { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import sortBy from 'lodash/sortBy';
-import Mustache from 'mustache';
 import { customAlphabet } from 'nanoid';
 import { useCallback, useId, useMemo } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
+import Mustache from '../../../api/src/libs/mustache';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { CallPromptMessage, Role } from '../../../api/src/store/templates';
 import { isCallPromptMessage, isPromptMessage, isTemplate, useStore } from './yjs-state';

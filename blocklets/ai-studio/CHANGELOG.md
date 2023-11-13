@@ -1,6 +1,12 @@
-## 0.1.133 (2023-11-12)
+## 0.1.134 (2023-11-13)
 
 - chore: support undo/redo and compare template version
+
+## 0.1.133 (2023-11-13)
+
+- fix: auto find a unused variable name after template changed
+- fix: pick parameters by template parmas
+- fix: custom mustache ignore unclosed tag error
 
 ## 0.1.132 (2023-11-10)
 
