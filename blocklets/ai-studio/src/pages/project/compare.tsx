@@ -34,7 +34,7 @@ export default function Compare({
     state: { project, branches },
   } = useProjectState(projectId, gitRef);
 
-  const { store, getTemplateById } = useStore(projectId, gitRef);
+  const { getTemplateById } = useStore(projectId, gitRef);
 
   const simpleMode = project?.gitType === 'simple';
 
