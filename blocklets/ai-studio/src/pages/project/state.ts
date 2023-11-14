@@ -1,11 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { getYjsDoc } from '@blocklet/co-git/yjs';
+import { Map, UndoManager, getYjsDoc } from '@blocklet/co-git/yjs';
+import { pink } from '@mui/material/colors';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
 import cloneDeep from 'lodash/cloneDeep';
 import debounce from 'lodash/debounce';
 import differenceBy from 'lodash/differenceBy';
+import get from 'lodash/get';
 import intersectionBy from 'lodash/intersectionBy';
 import isUndefined from 'lodash/isUndefined';
 import omit from 'lodash/omit';
@@ -13,7 +15,7 @@ import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { recoilPersist } from 'recoil-persist';
 
@@ -627,11 +629,206 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
     return null;
   };
 
+  const getOriginTemplate = (item: TemplateYjs) => {
+    return state.templates.find((x) => x.id === item.id);
+  };
+
   useEffect(() => {
     if (projectId && ref) {
       run();
     }
   }, [projectId, ref]);
 
-  return { ...state, changes, run };
+  return { ...state, changes, run, getOriginTemplate };
 };
+
+export const useUndoManager = (projectId: string, ref: string, key: string) => {
+  const { store } = useStore(projectId, ref);
+
+  const doc = useMemo(() => getYjsDoc(store), [store]);
+
+  const undoManager = useMemo(() => {
+    const map = doc.getMap('files').get(key) as Map<Map<any>>;
+    return new UndoManager([map], { doc });
+  }, [doc, key]);
+
+  const [state, setState] = useState(() => ({
+    canRedo: undoManager.canRedo(),
+    canUndo: undoManager.canUndo(),
+    redo: () => undoManager.redo(),
+    undo: () => undoManager.undo(),
+  }));
+
+  useEffect(() => {
+    setState(() => ({
+      canRedo: undoManager.canRedo(),
+      canUndo: undoManager.canUndo(),
+      redo: () => undoManager.redo(),
+      undo: () => undoManager.undo(),
+    }));
+
+    const update = () => {
+      setState((state) => ({
+        ...state,
+        canRedo: undoManager.canRedo(),
+        canUndo: undoManager.canUndo(),
+      }));
+    };
+
+    undoManager.on('stack-item-added', update);
+    undoManager.on('stack-item-popped', update);
+
+    return () => {
+      undoManager.off('stack-item-added', update);
+      undoManager.off('stack-item-popped', update);
+    };
+  }, [undoManager, key]);
+
+  return state;
+};
+
+export function useTemplateCompare({
+  value,
+  compareValue,
+  readOnly,
+}: {
+  value: TemplateYjs;
+  compareValue?: TemplateYjs;
+  readOnly?: boolean;
+}) {
+  const getDifference = useCallback(
+    (key: keyof TemplateYjs, id?: string, defaultValue?: string) => {
+      const getDefault = () => {
+        if (key === 'tags') {
+          return [];
+        }
+
+        if (key === 'next' || key === 'datasets') {
+          return {};
+        }
+
+        if (key === 'temperature') {
+          return 0;
+        }
+
+        return '';
+      };
+
+      const index = id ? [key, id] : [key];
+
+      return !equal(
+        get(cloneDeep(compareValue), index, defaultValue ?? getDefault()),
+        get(cloneDeep(value), index, defaultValue ?? getDefault())
+      );
+    },
+    [compareValue, value]
+  );
+
+  const getDiff = useCallback(
+    (path: keyof TemplateYjs | (keyof TemplateYjs)[], id?: string, defaultValue?: string) => {
+      const list = Array.isArray(path) ? path : [path];
+      return list.map((item) => getDifference(item, id, defaultValue)).some((x) => x);
+    },
+    [compareValue, value]
+  );
+
+  const getDiffName = useCallback(
+    (path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
+      // 未禁止并且没有对比数据，不做校验
+      if (!readOnly && !compareValue) {
+        return '';
+      }
+
+      const diff = getDiff(path, id, defaultValue);
+
+      if (id === undefined) {
+        if (!diff) {
+          return '';
+        }
+
+        return 'modify';
+      }
+
+      if (!id) {
+        return '';
+      }
+
+      if (!diff) {
+        return '';
+      }
+
+      if (!(compareValue?.[path] as any)?.[id]) {
+        return readOnly ? 'delete' : 'new';
+      }
+
+      return 'modify';
+    },
+    [compareValue, value, readOnly]
+  );
+
+  const getBackgroundColor = useCallback(
+    (name: string) => {
+      if (name === 'new') {
+        return 'rgba(230, 255, 236, 0.4) !important';
+      }
+
+      if (name === 'delete') {
+        return 'rgba(255, 215, 213, 0.4) !important';
+      }
+
+      if (name === 'modify') {
+        return 'rgba(255, 235, 233, 0.4) !important';
+      }
+
+      return '';
+    },
+    [compareValue, value, readOnly]
+  );
+
+  const getDiffStyle = useCallback(
+    (style: string, path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
+      const name = getDiffName(path, id, defaultValue);
+
+      if (!name) {
+        return {};
+      }
+
+      if (name === 'new') {
+        return { [style]: getBackgroundColor('new') };
+      }
+
+      if (name === 'delete') {
+        return { [style]: getBackgroundColor('delete') };
+      }
+
+      if (readOnly) {
+        return {};
+      }
+
+      // 禁止情况
+      return { [style]: getBackgroundColor('modify') };
+    },
+    [compareValue, value, readOnly]
+  );
+
+  const getDiffBackground = useCallback(
+    (path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
+      return getDiffStyle('background', path, id, defaultValue);
+    },
+    [compareValue, value, readOnly]
+  );
+
+  const getDiffColor = useCallback(
+    ({ path, id, defaultValue }: { path: keyof TemplateYjs; id?: string; defaultValue?: string }) => {
+      const name = getDiffName(path, id, defaultValue);
+      if (readOnly || !name) {
+        return '';
+      }
+
+      return pink[600];
+    },
+    [compareValue, value, readOnly]
+  );
+
+  return { getDiff, getDiffName, getDiffColor, getDiffBackground, getBackgroundColor };
+}

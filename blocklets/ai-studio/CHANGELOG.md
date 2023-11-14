@@ -1,3 +1,7 @@
+## 0.1.134 (2023-11-13)
+
+- chore: support undo/redo and compare template version
+
 ## 0.1.133 (2023-11-13)
 
 - fix: auto find a unused variable name after template changed

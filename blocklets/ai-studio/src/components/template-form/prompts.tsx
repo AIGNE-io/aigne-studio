@@ -33,6 +33,7 @@ import {
   usePromptState,
   usePromptsState,
 } from '../../pages/project/prompt-state';
+import { useTemplateCompare } from '../../pages/project/state';
 import { createFile, isCallPromptMessage, isPromptMessage, isTemplate, useStore } from '../../pages/project/yjs-state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import { DragSortListYjs } from '../drag-sort-list';
@@ -43,15 +44,18 @@ export default function Prompts({
   projectId,
   gitRef,
   value: form,
+  compareValue,
 }: {
   readOnly?: boolean;
   projectId: string;
   gitRef: string;
   value: TemplateYjs;
+  compareValue?: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
   const { addPrompt } = usePromptsState({ projectId, gitRef, templateId: form.id });
+  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, readOnly });
 
   return (
     <Box>
@@ -91,7 +95,7 @@ export default function Prompts({
                 <PromptItemView
                   projectId={projectId}
                   gitRef={gitRef}
-                  templateId={form.id}
+                  template={form}
                   promptId={prompt.id}
                   readOnly={readOnly}
                 />
@@ -111,13 +115,18 @@ export default function Prompts({
                     disableToggleVisible={!isPromptMessage(prompt)}
                     projectId={projectId}
                     gitRef={gitRef}
-                    templateId={form.id}
+                    template={form}
                     promptId={prompt.id}
                     preview={params.preview}
                     drop={params.drop}
                     drag={params.drag}
                     readOnly={readOnly}
-                    isDragging={params.isDragging}>
+                    isDragging={params.isDragging}
+                    style={{
+                      '.editor-shell': {
+                        ...getDiffBackground('prompts', prompt.id),
+                      },
+                    }}>
                     {children}
                   </PromptItemContainer>
                 )
@@ -141,7 +150,6 @@ export default function Prompts({
 function PromptItemContainer({
   projectId,
   gitRef,
-  templateId,
   promptId,
   drop,
   preview,
@@ -150,10 +158,11 @@ function PromptItemContainer({
   isDragging,
   children,
   disableToggleVisible,
+  style,
+  template,
 }: {
   projectId: string;
   gitRef: string;
-  templateId: string;
   promptId: string;
   drop: ConnectDropTarget;
   preview: ConnectDragPreview;
@@ -162,10 +171,20 @@ function PromptItemContainer({
   isDragging?: boolean;
   children?: ReactNode;
   disableToggleVisible?: boolean;
+  style: object;
+  template: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
-  const { prompt, deletePrompt } = usePromptState({ projectId, gitRef, templateId, promptId });
+  const templateId = template.id;
+  const { prompt, deletePrompt } = usePromptState({
+    projectId,
+    gitRef,
+    templateId,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
   if (!prompt) return null;
 
   const hidden = prompt.data.visibility === 'hidden';
@@ -181,6 +200,7 @@ function PromptItemContainer({
         ':hover .hover-visible': {
           maxHeight: '100%',
         },
+        ...(style || {}),
       }}>
       <Stack direction="row" sx={{ position: 'relative' }}>
         <Box
@@ -271,17 +291,25 @@ function PromptItemContainer({
 function PromptItemView({
   projectId,
   gitRef,
-  templateId,
+  template,
   promptId,
   readOnly,
 }: {
   projectId: string;
   gitRef: string;
-  templateId: string;
   promptId: string;
   readOnly?: boolean;
+  template: TemplateYjs;
 }) {
-  const { state, prompt, setEditorState } = usePromptState({ projectId, gitRef, templateId, promptId });
+  const templateId = template.id;
+  const { state, prompt, setEditorState } = usePromptState({
+    projectId,
+    gitRef,
+    templateId,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
   const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
 
   const options = useMemo(
@@ -331,7 +359,14 @@ function CallPromptItemView({
 
   const { t } = useLocaleContext();
 
-  const { prompt } = usePromptState({ projectId, gitRef, templateId: template.id, promptId });
+  const { prompt } = usePromptState({
+    projectId,
+    gitRef,
+    templateId: template.id,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
   const { store, getTemplateById } = useStore(projectId, gitRef);
 
   const rename = useThrottleFn(

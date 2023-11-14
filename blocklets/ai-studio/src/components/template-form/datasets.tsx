@@ -1,19 +1,30 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Add, Delete } from '@mui/icons-material';
-import { Autocomplete, Box, Button, Stack, TextField } from '@mui/material';
+import { Autocomplete, Box, Button, Stack, TextField, inputBaseClasses } from '@mui/material';
 import { nanoid } from 'nanoid';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { getDatasets } from '../../libs/dataset';
+import { useTemplateCompare } from '../../pages/project/state';
 
-export default function Datasets({ readOnly, form }: { readOnly?: boolean; form: Pick<TemplateYjs, 'datasets'> }) {
+export default function Datasets({
+  readOnly,
+  form,
+  compareValue,
+}: {
+  readOnly?: boolean;
+  form: TemplateYjs;
+  compareValue?: TemplateYjs;
+}) {
   const { t } = useLocaleContext();
 
   const { value: datasetsRes } = useAsync(() => getDatasets(), []);
   const datasets = useMemo(() => datasetsRes?.datasets.map((i) => ({ id: i._id!, name: i.name })) ?? [], [datasetsRes]);
+
+  const { getDiffBackground } = useTemplateCompare({ value: form, compareValue, readOnly });
 
   return (
     <Stack gap={1}>
@@ -30,6 +41,11 @@ export default function Datasets({ readOnly, form }: { readOnly?: boolean; form:
               options={datasets}
               isOptionEqualToValue={(o, v) => o.id === v.id}
               getOptionLabel={(v) => v.name || 'Unnamed'}
+              sx={{
+                [`.${inputBaseClasses.root}`]: {
+                  ...getDiffBackground('datasets', item.id),
+                },
+              }}
             />
 
             {!readOnly && (

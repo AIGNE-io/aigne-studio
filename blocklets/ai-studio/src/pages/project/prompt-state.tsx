@@ -4,7 +4,7 @@ import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/util
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import { customAlphabet } from 'nanoid';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useId, useMemo } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Mustache from '../../../api/src/libs/mustache';
@@ -39,15 +39,21 @@ export function usePromptState({
   gitRef,
   templateId,
   promptId,
+  readOnly,
+  originTemplate,
 }: {
   projectId: string;
   gitRef: string;
   templateId: string;
   promptId: string;
+  readOnly?: boolean;
+  originTemplate?: TemplateYjs;
 }) {
+  const editorId = useId();
+
   const key = useMemo(
-    () => ['promptState', projectId, gitRef, templateId, promptId].join('/'),
-    [projectId, gitRef, templateId, promptId]
+    () => ['promptState', projectId, gitRef, templateId, promptId, readOnly, editorId].join('/'),
+    [projectId, gitRef, templateId, promptId, readOnly, editorId]
   );
   const [state, setState] = useRecoilState(promptEditorState(key));
 
@@ -55,10 +61,12 @@ export function usePromptState({
 
   const { getTemplateById } = useStore(projectId, gitRef);
   const template = getTemplateById(templateId);
-  const prompt = template?.prompts?.[promptId];
+  const prompt = readOnly ? originTemplate?.prompts?.[promptId] : template?.prompts?.[promptId];
 
   const emitChange = useThrottleFn(
     async ({ editorState }: { editorState: EditorState }) => {
+      if (readOnly) return;
+
       const { content, role = 'user' } = await editorState2Text(editorState);
 
       if (cache.content !== content || cache.role !== role) {
@@ -94,10 +102,12 @@ export function usePromptState({
 
   const setEditorState = useCallback(
     (editorState: EditorState) => {
+      if (readOnly) return;
+
       setState((v) => ({ ...v, editorState }));
       emitChange.run({ editorState });
     },
-    [emitChange, setState]
+    [emitChange, setState, readOnly]
   );
 
   useAsyncEffect(async () => {
@@ -111,7 +121,7 @@ export function usePromptState({
       const editorState = await text2EditorState(content, role);
       setState((v) => ({ ...v, editorState }));
     }
-  }, [prompt?.data.content, prompt?.data.role]);
+  }, [prompt?.data.content, prompt?.data.role, readOnly]);
 
   return { state, prompt, setEditorState, deletePrompt };
 }

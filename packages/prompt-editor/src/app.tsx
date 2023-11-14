@@ -87,12 +87,14 @@ function EditorShell({
 
   const setState = useCallback(
     (s: EditorState) => {
+      if (!editable) return;
+
       if (stateRef.current !== s) {
         stateRef.current = s;
         onChange?.(s);
       }
     },
-    [onChange]
+    [onChange, editable]
   );
 
   useEffect(() => {
@@ -111,7 +113,7 @@ function EditorShell({
   );
 
   return (
-    <EditorRoot {...props} className={`editor-shell ${props.className}`} ref={shellRef} onClick={onShellClick}>
+    <EditorRoot {...props} className={`editor-shell ${props?.className || ''}`} ref={shellRef} onClick={onShellClick}>
       <Editor
         autoFocus={autoFocus}
         onChange={setState}

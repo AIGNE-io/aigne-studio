@@ -39,6 +39,7 @@ import SettingView from './setting-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
+import UndoAndRedo from './undo';
 import { useStore } from './yjs-state';
 
 const defaultBranch = 'main';
@@ -258,6 +259,8 @@ export default function ProjectPage() {
               )}
 
               <Box flex={1} />
+
+              {template && <UndoAndRedo projectId={projectId} gitRef={gitRef} id={templateId} />}
 
               {!rightOpen && (
                 <PanelToggleButton

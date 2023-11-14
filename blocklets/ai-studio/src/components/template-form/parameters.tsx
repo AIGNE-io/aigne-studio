@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import Settings from '../../pages/project/icons/settings';
 import { parseDirectivesOfTemplate } from '../../pages/project/prompt-state';
+import { useTemplateCompare } from '../../pages/project/state';
 import ParameterConfig from './parameter-config';
 
 function CustomNoRowsOverlay() {
@@ -21,7 +22,15 @@ function CustomNoRowsOverlay() {
   );
 }
 
-export default function Parameters({ readOnly, form }: { readOnly?: boolean; form: TemplateYjs }) {
+export default function Parameters({
+  readOnly,
+  form,
+  compareValue,
+}: {
+  readOnly?: boolean;
+  form: TemplateYjs;
+  compareValue?: TemplateYjs;
+}) {
   const params = [
     ...new Set(
       parseDirectivesOfTemplate(form, { excludeCallPromptVariables: true })
@@ -29,7 +38,7 @@ export default function Parameters({ readOnly, form }: { readOnly?: boolean; for
         .filter((i): i is string => Boolean(i))
     ),
   ].map((param) => ({ param }));
-  const doc = (getYjsValue(form) as Map<any>).doc!;
+  const doc = (getYjsValue(form) as Map<any>)?.doc!;
 
   const { t } = useLocaleContext();
   const dataGrid = useGridApiRef();
@@ -56,6 +65,7 @@ export default function Parameters({ readOnly, form }: { readOnly?: boolean; for
           return (
             <Input
               fullWidth
+              readOnly={readOnly}
               value={parameter?.label || ''}
               onChange={(e) => {
                 doc.transact(() => {
@@ -85,6 +95,7 @@ export default function Parameters({ readOnly, form }: { readOnly?: boolean; for
               autoWidth
               size="small"
               value={parameter?.type ?? 'string'}
+              readOnly={readOnly}
               onChange={(e) => {
                 form.parameters ??= {};
                 form.parameters[row.param] ??= {};
@@ -115,7 +126,13 @@ export default function Parameters({ readOnly, form }: { readOnly?: boolean; for
         ),
       },
     ];
-  }, [dataGrid, t, form.id]);
+  }, [dataGrid, t, form.id, readOnly]);
+
+  const { getDiffName, getBackgroundColor } = useTemplateCompare({
+    value: form,
+    compareValue,
+    readOnly,
+  });
 
   return (
     <>
@@ -165,8 +182,21 @@ export default function Parameters({ readOnly, form }: { readOnly?: boolean; for
               },
             },
           },
+
+          '& .custom-parameter-new': {
+            background: getBackgroundColor('new'),
+          },
+          '& .custom-parameter-modify': {
+            background: getBackgroundColor('modify'),
+          },
+          '& .custom-parameter-delete': {
+            background: getBackgroundColor('delete'),
+          },
         }}>
         <DataGrid
+          getRowClassName={(params) => {
+            return `custom-parameter-${getDiffName('parameters', params.row.param)}`;
+          }}
           key={form.id}
           apiRef={dataGrid}
           getRowId={(v) => v.param}
@@ -184,7 +214,11 @@ export default function Parameters({ readOnly, form }: { readOnly?: boolean; for
         />
       </Box>
 
-      <Popper open={Boolean(paramConfig)} anchorEl={paramConfig?.anchorEl} placement="bottom-end" sx={{ zIndex: 1200 }}>
+      <Popper
+        open={Boolean(paramConfig)}
+        anchorEl={paramConfig?.anchorEl}
+        placement="bottom-end"
+        sx={{ zIndex: 12001 }}>
         <ClickAwayListener
           onClickAway={(e) => {
             if (e.target === document.body) return;
