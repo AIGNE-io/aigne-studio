@@ -9,7 +9,7 @@ import Working from './working';
 
 export interface RepositoryOptions<T> {
   root: string;
-  parse: (filepath: string, content: Uint8Array) => Promise<T> | T;
+  parse: (filepath: string, content: Uint8Array) => Promise<{ key: string; data: T }> | { key: string; data: T };
   stringify: (
     filepath: string,
     content: T

@@ -23,6 +23,7 @@ import WithAwareness from '../../components/awareness/with-awareness';
 import TemplateFormView from '../../components/template-form';
 import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
+import { getTemplateIdFromPath } from '../../utils/path';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import DiscussView from './discuss-view';
@@ -38,7 +39,8 @@ import SettingView from './setting-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
-import { isTemplate, useStore } from './yjs-state';
+import UndoAndRedo from './undo';
+import { useStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -51,11 +53,10 @@ export default function ProjectPage() {
 
   const { t } = useLocaleContext();
 
-  const { store, synced } = useStore(projectId, gitRef, true);
+  const { store, synced, getTemplateById } = useStore(projectId, gitRef, true);
 
-  const id = Object.entries(store.tree).find((i) => i[1] === filepath)?.[0];
-  const file = id ? store.files[id] : undefined;
-  const template = isTemplate(file) ? file : undefined;
+  const templateId = filepath && getTemplateIdFromPath(filepath);
+  const template = templateId && getTemplateById(templateId);
 
   const {
     state: { error },
@@ -258,6 +259,8 @@ export default function ProjectPage() {
               )}
 
               <Box flex={1} />
+
+              {template && <UndoAndRedo projectId={projectId} gitRef={gitRef} id={templateId} />}
 
               {!rightOpen && (
                 <PanelToggleButton

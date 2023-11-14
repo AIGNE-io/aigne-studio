@@ -90,6 +90,7 @@ export default flat({
     newBranchRequired: '分支名称不能为空',
     currentBranch: '当前分支',
     message: '备注',
+    compare: '版本比较',
   },
   import: {
     title: '导入模板数据',
@@ -112,10 +113,9 @@ export default flat({
   create: '创建',
   newObject: '新建{object}',
   createdAt: '创建于',
-  deleteProjectTitle: '删除项目“{project}”？',
-  deleteProjectTips: '删除之后不可找回！',
   home: '首页',
   prompts: '提示',
+  parameters: '参数',
   model: '模型',
   temperature: '随机性 temperature',
   temperatureTip:
@@ -214,6 +214,7 @@ export default flat({
     modified: '被修改',
   },
   restore: '还原',
+  restoreConform: '您确定要放弃 {path} 中的更改吗??',
   label: '标签',
   actions: '操作',
   copy: '复制',
@@ -224,4 +225,15 @@ export default flat({
   dragMessageTip: '拖拽排序该提示',
   sourceBranch: '来源分支',
   noVariables: '您还没有添加任何参数',
+  compare: {
+    origin: '原始数据',
+    current: '当前数据',
+    select: '选择提交记录',
+    empty: '没有原始数据',
+    diff: '文件内容被修改',
+  },
+  confirmDelete: '请输入 {name} 以确认删除',
+  deleteProject: '这将永久删除名称为 {name} 的项目',
+  selectObject: '选择{object}',
+  template: '模板',
 });

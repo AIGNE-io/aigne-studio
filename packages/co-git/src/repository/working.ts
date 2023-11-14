@@ -5,7 +5,6 @@ import { syncedStore } from '@syncedstore/core';
 import { MappedTypeDescription } from '@syncedstore/core/types/doc';
 import * as decoding from 'lib0/decoding';
 import * as encoding from 'lib0/encoding';
-import { uuidv4 } from 'lib0/random';
 import debounce from 'lodash/debounce';
 import difference from 'lodash/difference';
 import type { WebSocket } from 'ws';
@@ -65,15 +64,15 @@ export default class Working<T> extends Doc {
         await this.repo.listFiles({ ref: this.options.ref })
       ).map(async (filepath) => {
         const content = (await this.repo.readBlob({ ref: this.options.ref, filepath })).blob;
-        return { filepath, file: await this.repo.options.parse(filepath, content) };
+        const { data, key } = await this.repo.options.parse(filepath, content);
+        return { filepath, key, file: data };
       })
     );
 
     this.transact(() => {
       this.getMap('files').clear();
       this.getMap('tree').clear();
-      for (const { filepath, file } of files) {
-        const key = uuidv4();
+      for (const { filepath, key, file } of files) {
         this.syncedStore.files[key] = file;
         this.syncedStore.tree[key] = filepath;
       }

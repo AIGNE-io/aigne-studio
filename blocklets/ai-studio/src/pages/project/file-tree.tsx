@@ -11,6 +11,10 @@ import {
   Button,
   CircularProgress,
   ClickAwayListener,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Input,
   List,
   ListItemButton,
@@ -30,6 +34,7 @@ import {
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
+import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import {
   ComponentProps,
@@ -52,8 +57,10 @@ import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
 import { importTemplatesToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
+import Compare from './compare';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
+import CompareIcon from './icons/compare';
 import Duplicate from './icons/duplicate';
 import External from './icons/external';
 import File from './icons/file';
@@ -118,7 +125,9 @@ const FileTree = forwardRef<
   const { dialog, showDialog } = useDialog();
 
   const { store, synced } = useStore(projectId, gitRef);
-  const { changes, deleted } = useTemplatesChangesState(projectId, gitRef);
+  const { changes, deleted, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
+  const [showPopper] = useState(true);
+  const dialogState = usePopupState({ variant: 'dialog' });
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
@@ -234,7 +243,7 @@ const FileTree = forwardRef<
     [...new Set(Object.values(store.tree).map((filepath) => filepath?.split('/').slice(0, -1).join('/')))].flatMap(
       (filepath) => {
         if (!filepath) return [];
-        const parent = filepath.split('/');
+        const parent = filepath.split('/').filter(Boolean);
         return parent.map((name, index) => {
           return {
             type: 'folder' as const,
@@ -251,7 +260,7 @@ const FileTree = forwardRef<
     .map(([key, filepath]) => {
       const template = store.files[key];
       if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
-        const paths = filepath.split('/');
+        const paths = filepath.split('/').filter(Boolean);
         return {
           type: 'file' as const,
           name: template.name || '',
@@ -336,21 +345,11 @@ const FileTree = forwardRef<
             }}
             listComponent="div"
             listItemComponent="div"
-            dragPreviewRender={DragPreviewRender}
+            dragPreviewRender={({ item }) => <DragPreviewRender item={item} />}
             render={(node, { depth, isOpen, onToggle }) => {
               if (!node.data) {
                 return <Box />;
               }
-
-              const actions = (
-                <TreeItemMenus
-                  mutable={mutable}
-                  item={node.data}
-                  onCreateFile={onCreateFile}
-                  onDeleteFile={onDeleteFile}
-                  onLaunch={onLaunch}
-                />
-              );
 
               const { parent } = node.data;
               const filepath = parent.concat(node.data.type === 'file' ? `${node.data.meta.id}.yaml` : node.data.name);
@@ -368,7 +367,15 @@ const FileTree = forwardRef<
                       if (!data || name === data.name) return;
                       onMoveFile({ from: data.parent.concat(data.name), to: data.parent.concat(name) });
                     }}
-                    actions={actions}>
+                    actions={
+                      <TreeItemMenus
+                        mutable={mutable}
+                        item={node.data}
+                        onCreateFile={onCreateFile}
+                        onDeleteFile={onDeleteFile}
+                        onLaunch={onLaunch}
+                      />
+                    }>
                     {node.text}
                   </EditableTreeItem>
                 );
@@ -382,13 +389,44 @@ const FileTree = forwardRef<
 
               const icon = meta.type === 'image' ? <Picture /> : <File />;
 
+              const actions = (
+                <TreeItemMenus
+                  mutable={mutable}
+                  item={node.data}
+                  onCreateFile={onCreateFile}
+                  onDeleteFile={onDeleteFile}
+                  onLaunch={onLaunch}
+                  isChanged={Boolean(change?.key === 'M' && getOriginTemplate(meta))}
+                  onCompare={() => {
+                    dialogState.toggle();
+                  }}
+                  onUndo={() => {
+                    showDialog({
+                      fullWidth: true,
+                      maxWidth: 'xs',
+                      title: `${t('restore')}`,
+                      content: (
+                        <Box maxHeight={500}>{t('restoreConform', { path: meta.name || t('alert.unnamed') })}</Box>
+                      ),
+                      onOk: () => {
+                        const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & {
+                          parent: string[];
+                        };
+                        deleteFile({ store, path: [...parent, meta.id] });
+                        onCreateFile({ parent, meta: data });
+                      },
+                    });
+                  }}
+                />
+              );
+
               const children = (
                 <TreeItem
                   key={node.id}
                   icon={icon}
                   depth={depth}
                   selected={selected}
-                  onClick={() => navigate(filepath.join('/'))}
+                  onClick={() => navigate(joinUrl('.', ...filepath))}
                   actions={actions}
                   sx={{ color: change?.color }}>
                   {meta.name || t('alert.unnamed')}
@@ -402,7 +440,7 @@ const FileTree = forwardRef<
                 </TreeItem>
               );
 
-              if (change) {
+              if (change && showPopper) {
                 return (
                   <Tooltip title={change.tips} disableInteractive placement="top">
                     <Box>{children}</Box>
@@ -426,13 +464,25 @@ const FileTree = forwardRef<
       )}
 
       {dialog}
+
+      <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
+        <DialogTitle>{t('alert.compare')}</DialogTitle>
+        <DialogContent>
+          <Compare projectId={projectId} gitRef={gitRef} filepath={current || ''} />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" onClick={dialogState.close}>
+            {t('alert.close')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 });
 
 export default FileTree;
 
-function DragPreviewRender({ item }: DragLayerMonitorProps<EntryWithMeta>) {
+function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 'item'>) {
   const { t } = useLocaleContext();
 
   return (
@@ -470,17 +520,23 @@ function DragPreviewRender({ item }: DragLayerMonitorProps<EntryWithMeta>) {
 }
 
 function TreeItemMenus({
+  isChanged,
   mutable,
   item,
   onCreateFile,
   onDeleteFile,
   onLaunch,
+  onCompare,
+  onUndo,
 }: {
+  isChanged?: boolean;
   mutable?: boolean;
   item: EntryWithMeta;
   onCreateFile?: (options?: { parent?: string[]; meta?: TemplateYjs }) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
   onLaunch?: (template: TemplateYjs) => any;
+  onCompare?: () => void;
+  onUndo?: () => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -531,6 +587,24 @@ function TreeItemMenus({
           </ListItemIcon>
           <ListItemText primary={t('alert.delete')} />
         </ListItemButton>
+      )}
+
+      {isChanged && (
+        <>
+          <ListItemButton onClick={onCompare}>
+            <ListItemIcon>
+              <CompareIcon />
+            </ListItemIcon>
+            <ListItemText primary={t('alert.compare')} />
+          </ListItemButton>
+
+          <ListItemButton onClick={onUndo}>
+            <ListItemIcon>
+              <Undo />
+            </ListItemIcon>
+            <ListItemText primary={t('restore')} />
+          </ListItemButton>
+        </>
       )}
     </>
   );

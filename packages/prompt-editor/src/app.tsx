@@ -1,52 +1,33 @@
 import styled from '@emotion/styled';
-import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { InitialConfigType, LexicalComposer } from '@lexical/react/LexicalComposer';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { Box, BoxProps } from '@mui/material';
-import { useAsyncEffect, useThrottleFn } from 'ahooks';
-import { $createParagraphNode, $createTextNode, $getRoot, EditorState, LexicalEditor } from 'lexical';
-import React, { MutableRefObject, ReactNode, useCallback, useEffect, useRef } from 'react';
+import { EditorState, LexicalEditor } from 'lexical';
+import React, { ComponentProps, MutableRefObject, ReactNode, useCallback, useEffect, useRef } from 'react';
 
 import Editor from './editor';
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
-import { $createRoleSelectNode } from './plugins/RolePlugin/role-select-node';
+import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
 import PromptEditorEditorTheme from './themes/prompt-editor-theme';
-import { $lexical2text, $text2lexical, Role } from './utils';
 
 export type { EditorState } from 'lexical';
-
-export function defaultValue(isRole: boolean = true) {
-  const root = $getRoot();
-  if (root.getFirstChild() === null) {
-    const paragraph = $createParagraphNode();
-
-    if (isRole) {
-      const role = $createRoleSelectNode('system');
-      paragraph.append(role);
-    } else {
-      const text = $createTextNode(' ');
-      paragraph.append(text);
-    }
-
-    root.append(paragraph);
-  }
-}
 
 interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
   placeholder?: string;
   children?: ReactNode;
-  content?: string;
-  role?: Role;
-  onChange?: (content: string, role: Role) => void;
+  value?: EditorState;
+  onChange?: (value: EditorState) => void;
   useRoleNode?: boolean;
   useVariableNode?: boolean;
   isDebug?: boolean;
   editable?: boolean;
   editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
   autoFocus?: boolean;
+  componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
 }
 
 export default function PromptEditor({
-  useRoleNode = true,
+  useRoleNode = false,
   useVariableNode = true,
   isDebug = false,
   editable = true,
@@ -54,8 +35,9 @@ export default function PromptEditor({
   children,
   ...props
 }: PromptEditorProps): JSX.Element {
-  const initialConfig = {
+  const initialConfig: InitialConfigType = {
     editable,
+    editorState: props.value,
     namespace: 'PromptEditor',
     nodes: [...PromptEditorNodes],
     onError: (error: Error) => {
@@ -86,45 +68,34 @@ function EditorShell({
   isDebug,
   children,
   editable,
-  content,
-  role,
   onChange,
   editorRef,
   autoFocus,
+  componentPickerProps,
   ...props
 }: PromptEditorProps) {
   const [editor] = useLexicalComposerContext();
 
-  const state = useRef<EditorState>();
-  const cache = useRef<{ content?: string; role?: Role }>();
+  const stateRef = useRef(props.value);
 
-  const emitChange = useThrottleFn(
-    async () => {
-      const json = JSON.stringify(state.current);
-      const { content, role = 'user' } = await $lexical2text(json);
-      if (cache.current?.content !== content || cache.current.role !== role) {
-        cache.current = { content, role };
-        onChange?.(content, role);
-      }
-    },
-    { wait: 500 }
-  );
+  useEffect(() => {
+    if (props.value && stateRef.current !== props.value) {
+      stateRef.current = props.value;
+      setTimeout(() => editor.setEditorState(props.value!));
+    }
+  }, [editor, props.value]);
 
   const setState = useCallback(
     (s: EditorState) => {
-      state.current = s;
-      emitChange.run();
-    },
-    [emitChange]
-  );
+      if (!editable) return;
 
-  useAsyncEffect(async () => {
-    if (cache.current?.content !== content || cache.current?.role !== role) {
-      cache.current = { content, role };
-      const state = await $text2lexical(content, role);
-      editor.setEditorState(editor.parseEditorState(state));
-    }
-  }, [content, role]);
+      if (stateRef.current !== s) {
+        stateRef.current = s;
+        onChange?.(s);
+      }
+    },
+    [onChange, editable]
+  );
 
   useEffect(() => {
     editor.setEditable(editable ?? true);
@@ -142,7 +113,7 @@ function EditorShell({
   );
 
   return (
-    <EditorRoot {...props} className={`editor-shell ${props.className}`} ref={shellRef} onClick={onShellClick}>
+    <EditorRoot {...props} className={`editor-shell ${props?.className || ''}`} ref={shellRef} onClick={onShellClick}>
       <Editor
         autoFocus={autoFocus}
         onChange={setState}
@@ -150,7 +121,8 @@ function EditorShell({
         editorRef={editorRef}
         useRoleNode={useRoleNode}
         useVariableNode={useVariableNode}
-        isDebug={isDebug}>
+        isDebug={isDebug}
+        componentPickerProps={componentPickerProps}>
         {children}
       </Editor>
     </EditorRoot>

@@ -1,3 +1,34 @@
+## 0.1.134 (2023-11-13)
+
+- chore: support undo/redo and compare template version
+
+## 0.1.133 (2023-11-13)
+
+- fix: auto find a unused variable name after template changed
+- fix: pick parameters by template parmas
+- fix: custom mustache ignore unclosed tag error
+
+## 0.1.132 (2023-11-10)
+
+- fix: always display prompts title
+- fix: reorder hooks error
+
+## 0.1.131 (2023-11-10)
+
+- fix: remove empty parent path
+
+## 0.1.130 (2023-11-10)
+
+- fix: correct match templateId
+
+## 0.1.129 (2023-11-9)
+
+- feat: support call prompt
+
+## 0.1.128 (2023-11-3)
+
+- chore: support delete confirm dialog(#291)
+
 ## 0.1.127 (2023-11-1)
 
 - fix: update variable contents in table

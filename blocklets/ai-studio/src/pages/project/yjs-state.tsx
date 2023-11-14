@@ -13,14 +13,14 @@ import { cloneDeep } from 'lodash';
 import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import joinUrl from 'url-join';
 import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { Template } from '../../../api/src/store/templates';
+import { CallPromptMessage, PromptMessage, Template } from '../../../api/src/store/templates';
 import { PREFIX } from '../../libs/api';
 
 export type State = {
@@ -30,6 +30,14 @@ export type State = {
 
 export function isTemplate(value?: State['files'][string]): value is TemplateYjs {
   return typeof (value as any)?.id === 'string';
+}
+
+export function isPromptMessage(message: any): message is PromptMessage {
+  return ['system', 'user', 'assistant'].includes(message?.role);
+}
+
+export function isCallPromptMessage(message: any): message is CallPromptMessage {
+  return message?.role === 'call-prompt';
 }
 
 export interface StoreContext {
@@ -66,7 +74,7 @@ const createStore = (projectId: string, gitRef: string) => {
       default: (() => {
         const url = (() => {
           const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-          const wsUrl = new URL(`${wsProtocol}://${window.location.hostname}`);
+          const wsUrl = new URL(`${wsProtocol}://${window.location.host}`);
           wsUrl.pathname = joinUrl(PREFIX, 'api/ws', projectId);
           return wsUrl.toString();
         })();
@@ -158,9 +166,18 @@ export const useStore = (projectId: string, gitRef: string, connect?: boolean) =
     };
   }, [projectId, gitRef]);
 
+  const syncedStore = useSyncedStore(store.store, [store.store]);
+
   return {
     ...store,
-    store: useSyncedStore(store.store, [store.store]),
+    store: syncedStore,
+    getTemplateById: useCallback(
+      (templateId: string) => {
+        const file = syncedStore.files[templateId];
+        return isTemplate(file) ? file : undefined;
+      },
+      [syncedStore.files]
+    ),
   };
 };
 
@@ -213,13 +230,12 @@ export function createFile({
   const id = meta?.id || nextTemplateId();
   const filename = `${id}.yaml`;
   const filepath = [...(parent ?? []), filename].join('/');
-  const key = nanoid(32);
   const now = new Date().toISOString();
 
   const template = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };
   getYjsDoc(store).transact(() => {
-    store.tree[key] = filepath;
-    store.files[key] = template;
+    store.tree[id] = filepath;
+    store.files[id] = template;
   });
 
   return {

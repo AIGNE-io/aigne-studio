@@ -25,9 +25,9 @@ createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <PromptEditor
       isDebug
-      onChange={(content, role) => {
+      onChange={(editorState) => {
         // eslint-disable-next-line no-console
-        console.log({ content, role });
+        console.log(editorState.toJSON());
       }}
     />
   </React.StrictMode>

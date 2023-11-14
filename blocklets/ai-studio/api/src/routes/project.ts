@@ -9,7 +9,6 @@ import { uniqBy } from 'lodash';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import sample from 'lodash/sample';
-import { nanoid } from 'nanoid';
 import { Op } from 'sequelize';
 
 import { defaultModel } from '../libs/models';
@@ -212,7 +211,7 @@ export function projectRoutes(router: Router) {
       }
 
       const project = await Projects.create({
-        ...omit(template, 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
+        ...omit(template, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
         model: template.model || defaultModel,
         _id: nextProjectId(),
         icon,
@@ -224,9 +223,8 @@ export function projectRoutes(router: Router) {
       const working = await repository.working({ ref: defaultBranch });
       for (const { parent, ...file } of template.files) {
         const id = nextTemplateId();
-        const key = nanoid(32);
-        working.syncedStore.files[key] = templateToYjs({ ...file, id });
-        working.syncedStore.tree[key] = parent.concat(`${id}.yaml`).join('/');
+        working.syncedStore.files[id] = templateToYjs({ ...file, id });
+        working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
       }
       await working.commit({
         ref: defaultBranch,

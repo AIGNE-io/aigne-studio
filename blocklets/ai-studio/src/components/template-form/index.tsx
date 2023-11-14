@@ -4,6 +4,7 @@ import { Box, Stack, TextField, chipClasses, inputBaseClasses, inputClasses, sty
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { Template } from '../../../api/src/store/templates';
 import { useReadOnly } from '../../contexts/session';
+import { useTemplateCompare } from '../../pages/project/state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import Prompts from './prompts';
@@ -29,14 +30,19 @@ export default function TemplateFormView({
   projectId,
   gitRef,
   value,
+  disabled,
+  compareValue,
 }: {
   projectId: string;
   gitRef: string;
   value: TemplateYjs;
+  disabled?: boolean;
+  compareValue?: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
-  const readOnly = useReadOnly({ ref: gitRef });
+  const readOnly = useReadOnly({ ref: gitRef }) || disabled;
+  const { getDiffBackground } = useTemplateCompare({ value, compareValue, readOnly });
 
   return (
     <Stack gap={0.5} pb={10}>
@@ -51,6 +57,11 @@ export default function TemplateFormView({
             InputProps={{
               readOnly,
               sx: (theme) => theme.typography.subtitle1,
+            }}
+            sx={{
+              [`.${inputBaseClasses.root}`]: {
+                ...getDiffBackground('name'),
+              },
             }}
           />
         </WithAwareness>
@@ -74,6 +85,11 @@ export default function TemplateFormView({
             maxRows={6}
             onChange={(e) => (value.description = e.target.value)}
             InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
+            sx={{
+              [`.${inputBaseClasses.root}`]: {
+                ...getDiffBackground('description'),
+              },
+            }}
           />
         </WithAwareness>
 
@@ -104,6 +120,11 @@ export default function TemplateFormView({
                     [`.${chipClasses.root}`]: { ml: 0, mr: 0.5 },
                   },
                 }}
+                sx={{
+                  [`.${inputBaseClasses.root}`]: {
+                    ...getDiffBackground('tags'),
+                  },
+                }}
               />
             )}
           />
@@ -117,7 +138,7 @@ export default function TemplateFormView({
         />
       </Box>
 
-      <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} />
+      <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} compareValue={compareValue} />
     </Stack>
   );
 }
