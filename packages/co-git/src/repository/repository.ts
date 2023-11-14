@@ -129,22 +129,11 @@ export default class Repository<T> {
   }
 
   async listRemotes() {
-    return { fs, dir: this.root };
+    return git.listRemotes({ fs, dir: this.root });
   }
 
-  async addRemote({ url, username }: { url: string; username: string }) {
-    const remoteUrl = new URL(url);
-    if (username) {
-      remoteUrl.username = username;
-    }
-
-    return git.addRemote({
-      fs,
-      dir: this.root,
-      remote: 'origin',
-      force: true,
-      url: remoteUrl.toString(),
-    });
+  async addRemote({ remote, url, force }: { remote: string; url: string; force?: boolean }) {
+    return git.addRemote({ fs, dir: this.root, remote, url, force });
   }
 
   async push({ ref }: { ref: string }) {

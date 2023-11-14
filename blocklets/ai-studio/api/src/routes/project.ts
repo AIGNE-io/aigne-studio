@@ -72,8 +72,10 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
 });
 
 const addProjectGitRemoteSchema = Joi.object<{ url: string; username: string }>({
-  url: Joi.string().required(),
-  username: Joi.string().required(),
+  url: Joi.string()
+    .uri({ scheme: ['https'] })
+    .required(),
+  username: Joi.string().empty([null, '']),
 });
 
 export interface GetProjectsQuery {
@@ -345,8 +347,12 @@ export function projectRoutes(router: Router) {
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
+
+    const url = new URL(input.url);
+    url.username = input.username;
+
     const repository = await getRepository({ projectId });
-    await repository.addRemote(input);
+    await repository.addRemote({ remote: 'origin', url: url.toString(), force: true });
 
     res.json({});
   });
