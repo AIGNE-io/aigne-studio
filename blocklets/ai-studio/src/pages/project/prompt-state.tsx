@@ -10,7 +10,7 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 import Mustache from '../../../api/src/libs/mustache';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { CallPromptMessage, Role } from '../../../api/src/store/templates';
-import { isCallPromptMessage, isPromptMessage, isTemplate, useStore } from './yjs-state';
+import { isCallAPIMessage, isCallPromptMessage, isPromptMessage, isTemplate, useStore } from './yjs-state';
 
 const PROMPT_EDITOR_STATE_CACHE: { [key: string]: { content?: string; role?: Role } } = {};
 
@@ -226,9 +226,12 @@ export function parseDirectivesOfMessages(template: TemplateYjs) {
 
 export function parseDirectivesOfTemplate(
   template: TemplateYjs,
-  { excludeCallPromptVariables = false }: { excludeCallPromptVariables?: boolean } = {}
+  {
+    excludeCallPromptVariables = false,
+    excludeCallAPIVariables = false,
+  }: { excludeCallPromptVariables?: boolean; excludeCallAPIVariables?: boolean } = {}
 ) {
-  const directives = parseDirectives(
+  let directives = parseDirectives(
     ...Object.values(template.prompts ?? {})
       .flatMap(({ data }) => {
         if (isPromptMessage(data)) return data.content;
@@ -244,7 +247,18 @@ export function parseDirectivesOfTemplate(
         .map(({ data }) => (isCallPromptMessage(data) ? data.output : undefined))
         .filter(Boolean)
     );
-    return directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
+
+    directives = directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
+  }
+
+  if (excludeCallAPIVariables && template.prompts) {
+    const outputs = new Set(
+      Object.values(template.prompts)
+        .map(({ data }) => (isCallAPIMessage(data) ? data.output : undefined))
+        .filter(Boolean)
+    );
+
+    directives = directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
   }
 
   return directives;
@@ -301,6 +315,8 @@ export function usePromptsState({
                 data.parameters[param] = renameVariableByMustache(val, rename);
               }
             }
+          } else if (isCallAPIMessage(data) && data.output) {
+            data.output = renameVariableByMustache(data.output, rename);
           }
         }
       });

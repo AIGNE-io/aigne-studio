@@ -20,7 +20,7 @@ import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { CallPromptMessage, PromptMessage, Template } from '../../../api/src/store/templates';
+import { CallAPIMessage, CallPromptMessage, PromptMessage, Template } from '../../../api/src/store/templates';
 import { PREFIX } from '../../libs/api';
 
 export type State = {
@@ -38,6 +38,10 @@ export function isPromptMessage(message: any): message is PromptMessage {
 
 export function isCallPromptMessage(message: any): message is CallPromptMessage {
   return message?.role === 'call-prompt';
+}
+
+export function isCallAPIMessage(message: any): message is CallAPIMessage {
+  return message?.role === 'call-api';
 }
 
 export interface StoreContext {

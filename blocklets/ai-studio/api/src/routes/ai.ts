@@ -1,5 +1,6 @@
 import { COMMENT_PREFIX } from '@blocklet/prompt-editor/utils';
 import { call } from '@blocklet/sdk/lib/component';
+import axios from 'axios';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -11,7 +12,15 @@ import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
 import { Project, defaultBranch, getRepository } from '../store/projects';
-import { PromptMessage, Role, Template, getTemplate, isCallPromptMessage, isPromptMessage } from '../store/templates';
+import {
+  PromptMessage,
+  Role,
+  Template,
+  getTemplate,
+  isCallAPIMessage,
+  isCallPromptMessage,
+  isPromptMessage,
+} from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
 
@@ -276,6 +285,23 @@ async function runTemplate(
           },
         ])
       ),
+      ...Object.fromEntries(
+        (current.prompts ?? []).filter(isCallAPIMessage).map((item) => [
+          item.output,
+          () => async () => {
+            variablesCache[item.output] ??= (async () => {
+              if (!item.url) throw new Error('Required property `url` is not present');
+              const { data } = await axios({
+                url: item.url,
+                method: item.method,
+                data: item.params && Object.keys(item.params).length ? item.params : undefined,
+              });
+              return data;
+            })();
+            return variablesCache[item.output];
+          },
+        ])
+      ),
     };
 
     const messages = await Promise.all(
@@ -292,6 +318,7 @@ async function runTemplate(
             .join('\n');
 
           const prompt = await renderMessage(content);
+          console.log(prompt);
 
           return { role: item.role, content: prompt };
         })

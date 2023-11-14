@@ -10,9 +10,9 @@ import { yjsToTemplate } from './projects';
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
 
-export type Role = 'system' | 'user' | 'assistant' | 'call-prompt';
+export type Role = 'system' | 'user' | 'assistant' | 'call-prompt' | 'call-api';
 
-export const roles: Role[] = ['system', 'user', 'assistant', 'call-prompt'];
+export const roles: Role[] = ['system', 'user', 'assistant', 'call-prompt', 'call-api'];
 
 export interface PromptMessage {
   id: string;
@@ -27,9 +27,18 @@ export interface CallPromptMessage {
   content?: undefined;
   output: string;
   template?: { id: string; name?: string };
-  parameters?: {
-    [key: string]: string | undefined;
-  };
+  parameters?: { [key: string]: string | undefined };
+  visibility?: 'hidden';
+}
+
+export interface CallAPIMessage {
+  id: string;
+  role: 'call-api';
+  content?: undefined;
+  method: string;
+  url: string;
+  output: string;
+  params?: { [key: string]: string | undefined };
   visibility?: 'hidden';
 }
 
@@ -41,6 +50,10 @@ export function isCallPromptMessage(message: any): message is CallPromptMessage 
   return message?.role === 'call-prompt';
 }
 
+export function isCallAPIMessage(message: any): message is CallAPIMessage {
+  return message?.role === 'call-api';
+}
+
 export interface Template {
   id: string;
   type?: 'branch' | 'image';
@@ -49,7 +62,7 @@ export interface Template {
   tags?: string[];
   icon?: string;
   description?: string;
-  prompts?: (PromptMessage | CallPromptMessage)[];
+  prompts?: (PromptMessage | CallPromptMessage | CallAPIMessage)[];
   branch?: {
     branches: { id: string; template?: { id: string; name?: string }; description: string }[];
   };
