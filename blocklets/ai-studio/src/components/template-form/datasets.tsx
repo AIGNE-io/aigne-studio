@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Add, Delete } from '@mui/icons-material';
-import { Autocomplete, Box, Button, Stack, TextField } from '@mui/material';
+import { Autocomplete, Box, Button, Stack, TextField, inputBaseClasses } from '@mui/material';
 import { nanoid } from 'nanoid';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
@@ -42,7 +42,7 @@ export default function Datasets({
               isOptionEqualToValue={(o, v) => o.id === v.id}
               getOptionLabel={(v) => v.name || 'Unnamed'}
               sx={{
-                '.MuiInputBase-root': {
+                [`.${inputBaseClasses.root}`]: {
                   ...getDiffBackground('datasets', item.id),
                 },
               }}

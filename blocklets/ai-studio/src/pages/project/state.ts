@@ -697,7 +697,7 @@ export function useTemplateCompare({
   readOnly?: boolean;
 }) {
   const getDifference = useCallback(
-    (key: keyof TemplateYjs, defaultValue?: string) => {
+    (key: keyof TemplateYjs, id?: string, defaultValue?: string) => {
       const getDefault = () => {
         if (key === 'tags') {
           return [];
@@ -714,18 +714,20 @@ export function useTemplateCompare({
         return '';
       };
 
+      const index = id ? [key, id] : [key];
+
       return !equal(
-        get(cloneDeep(compareValue), key, defaultValue ?? getDefault()),
-        get(cloneDeep(value), key, defaultValue ?? getDefault())
+        get(cloneDeep(compareValue), index, defaultValue ?? getDefault()),
+        get(cloneDeep(value), index, defaultValue ?? getDefault())
       );
     },
     [compareValue, value]
   );
 
   const getDiff = useCallback(
-    (path: keyof TemplateYjs | (keyof TemplateYjs)[], defaultValue?: string) => {
+    (path: keyof TemplateYjs | (keyof TemplateYjs)[], id?: string, defaultValue?: string) => {
       const list = Array.isArray(path) ? path : [path];
-      return list.map((item) => getDifference(item, defaultValue)).some((x) => x);
+      return list.map((item) => getDifference(item, id, defaultValue)).some((x) => x);
     },
     [compareValue, value]
   );
@@ -737,7 +739,7 @@ export function useTemplateCompare({
         return '';
       }
 
-      const diff = getDiff(path, defaultValue);
+      const diff = getDiff(path, id, defaultValue);
 
       if (id === undefined) {
         if (!diff) {

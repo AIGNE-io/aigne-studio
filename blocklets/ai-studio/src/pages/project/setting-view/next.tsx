@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography, inputBaseClasses } from '@mui/material';
 
 import { TemplateYjs } from '../../../../api/src/store/projects';
 import Next from '../../../components/template-form/next';
@@ -24,7 +24,7 @@ export default function NextView({
   return (
     <Stack
       sx={{
-        '.MuiInputBase-root': {
+        [`.${inputBaseClasses.root}`]: {
           ...getDiffBackground('next'),
         },
       }}>

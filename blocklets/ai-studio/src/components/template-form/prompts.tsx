@@ -95,7 +95,6 @@ export default function Prompts({
                 <PromptItemView
                   projectId={projectId}
                   gitRef={gitRef}
-                  templateId={form.id}
                   template={form}
                   promptId={prompt.id}
                   readOnly={readOnly}
@@ -116,7 +115,6 @@ export default function Prompts({
                     disableToggleVisible={!isPromptMessage(prompt)}
                     projectId={projectId}
                     gitRef={gitRef}
-                    templateId={form.id}
                     template={form}
                     promptId={prompt.id}
                     preview={params.preview}
@@ -152,7 +150,6 @@ export default function Prompts({
 function PromptItemContainer({
   projectId,
   gitRef,
-  templateId,
   promptId,
   drop,
   preview,
@@ -166,7 +163,6 @@ function PromptItemContainer({
 }: {
   projectId: string;
   gitRef: string;
-  templateId: string;
   promptId: string;
   drop: ConnectDropTarget;
   preview: ConnectDragPreview;
@@ -176,10 +172,11 @@ function PromptItemContainer({
   children?: ReactNode;
   disableToggleVisible?: boolean;
   style: object;
-  template?: TemplateYjs;
+  template: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
+  const templateId = template.id;
   const { prompt, deletePrompt } = usePromptState({
     projectId,
     gitRef,
@@ -294,18 +291,17 @@ function PromptItemContainer({
 function PromptItemView({
   projectId,
   gitRef,
-  templateId,
   template,
   promptId,
   readOnly,
 }: {
   projectId: string;
   gitRef: string;
-  templateId: string;
   promptId: string;
   readOnly?: boolean;
-  template?: TemplateYjs;
+  template: TemplateYjs;
 }) {
+  const templateId = template.id;
   const { state, prompt, setEditorState } = usePromptState({
     projectId,
     gitRef,

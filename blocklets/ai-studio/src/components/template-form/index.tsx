@@ -59,7 +59,7 @@ export default function TemplateFormView({
               sx: (theme) => theme.typography.subtitle1,
             }}
             sx={{
-              '.MuiInputBase-root': {
+              [`.${inputBaseClasses.root}`]: {
                 ...getDiffBackground('name'),
               },
             }}
@@ -86,7 +86,7 @@ export default function TemplateFormView({
             onChange={(e) => (value.description = e.target.value)}
             InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
             sx={{
-              '.MuiInputBase-root': {
+              [`.${inputBaseClasses.root}`]: {
                 ...getDiffBackground('description'),
               },
             }}
@@ -121,7 +121,7 @@ export default function TemplateFormView({
                   },
                 }}
                 sx={{
-                  '.MuiInputBase-root': {
+                  [`.${inputBaseClasses.root}`]: {
                     ...getDiffBackground('tags'),
                   },
                 }}
