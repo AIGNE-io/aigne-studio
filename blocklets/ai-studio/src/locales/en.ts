@@ -232,4 +232,13 @@ export default flat({
   deleteProject: 'This will permanently delete project with name {name}',
   selectObject: 'Select {object}',
   template: 'Template',
+  call: {
+    api: {
+      placeholder: 'API ',
+      body: 'Body JSON',
+    },
+    func: {
+      code: 'Function Code',
+    },
+  },
 });

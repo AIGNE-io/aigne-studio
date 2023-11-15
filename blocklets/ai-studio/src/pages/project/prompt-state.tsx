@@ -248,6 +248,13 @@ export function parseDirectivesOfTemplate(
       .flatMap(({ data }) => {
         if (isPromptMessage(data)) return data.content;
         if (isCallPromptMessage(data) && data.parameters) return Object.values(data.parameters);
+        if (isCallAPIMessage(data) && data.url) {
+          if (data.params && typeof data.params === 'object') {
+            return [data.url, ...Object.values(data.params)];
+          }
+
+          return [data.url];
+        }
         return [];
       })
       .filter((i): i is string => typeof i === 'string')

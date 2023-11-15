@@ -230,4 +230,13 @@ export default flat({
   deleteProject: '这将永久删除名称为 {name} 的项目',
   selectObject: '选择{object}',
   template: '模板',
+  call: {
+    api: {
+      placeholder: 'API 地址',
+      body: 'Body体',
+    },
+    func: {
+      code: '函数代码',
+    },
+  },
 });

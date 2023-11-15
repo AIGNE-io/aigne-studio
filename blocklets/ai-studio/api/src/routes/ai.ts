@@ -4,6 +4,7 @@ import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import { ImagesResponseDataInner } from 'openai';
+import { NodeVM } from 'vm2';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import Mustache from '../libs/mustache';
@@ -17,6 +18,7 @@ import {
   Template,
   getTemplate,
   isCallAPIMessage,
+  isCallFuncMessage,
   isCallPromptMessage,
   isPromptMessage,
 } from '../store/templates';
@@ -251,6 +253,29 @@ async function runTemplate(
       return Mustache.render(message, variables, undefined, { escape: (v) => v });
     };
 
+    const vm = new NodeVM({
+      console: 'inherit',
+      sandbox: {
+        context: {
+          get: (name: any) => {
+            const variable = variables[name];
+            if (typeof variable === 'function') {
+              if (typeof variable() === 'function') {
+                return variable()();
+              }
+
+              return variable();
+            }
+
+            return variable;
+          },
+        },
+      },
+      require: {
+        external: true,
+      },
+    });
+
     const variablesCache: { [key: string]: Promise<string> } = {};
 
     const variables = {
@@ -291,30 +316,81 @@ async function runTemplate(
             variablesCache[item.output] ??= (async () => {
               if (!item.url) throw new Error('Required property `url` is not present');
 
-              const response = await fetch(item.url, {
-                method: item.method,
-                body: item.params && Object.keys(item.params).length ? JSON.stringify(item.params) : undefined,
-              });
+              if (item.url.includes(`{{${item.output}}}`)) {
+                throw new Error(`Loop dependent variable "${item.output}"`);
+              }
+
+              // 替换url中变量
+              const url = await renderMessage(item.url);
+              const params: { method: string; body?: string } = { method: item.method };
+
+              if (
+                item.params &&
+                typeof item.params === 'object' &&
+                Object.keys(item.params).length &&
+                ['post', 'put', 'patch', 'delete'].includes(item.method)
+              ) {
+                if (JSON.stringify(item.params).includes(`{{${item.output}}})`)) {
+                  throw new Error(`Loop dependent variable ${item.output}`);
+                }
+
+                const paramFns = Object.entries(item.params).map(async ([key, value]) => {
+                  if (value && typeof value === 'string') {
+                    const formatValue = await renderMessage(value);
+                    return [key, formatValue];
+                  }
+
+                  return [key, value];
+                });
+
+                params.body = JSON.stringify(Object.fromEntries(await Promise.all(paramFns)));
+              }
+
+              const response = await fetch(url, params);
 
               // 确保响应有效
               if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+                throw new Error(`HTTP Error! Status: ${response.status}`);
               }
 
               // 检查内容类型
               const contentType = response.headers.get('Content-Type');
-
               if (contentType) {
                 if (contentType.includes('application/json')) {
-                  return response.json();
+                  const result = await response.json();
+                  return JSON.stringify(result);
                 }
 
                 if (contentType.includes('text/plain') || contentType.includes('text/html')) {
-                  return response.text();
+                  const result = await response.text();
+                  return result;
                 }
               }
 
               throw new Error('Unsupported content type');
+            })();
+            return variablesCache[item.output];
+          },
+        ])
+      ),
+      ...Object.fromEntries(
+        (current.prompts ?? []).filter(isCallFuncMessage).map((item) => [
+          item.output,
+          () => async () => {
+            variablesCache[item.output] ??= (async () => {
+              if (!item.code) return '';
+
+              if (item.code.includes(`context.get('${item.output}')`)) {
+                throw new Error(`Loop dependent variable "${item.output}"`);
+              }
+
+              if (item.code.includes(`context.get("${item.output}")`)) {
+                throw new Error(`Loop dependent variable "${item.output}"`);
+              }
+
+              const functionInSandbox = vm.run(`module.exports = async function() { ${item.code} }`);
+              const result = await functionInSandbox();
+              return result;
             })();
             return variablesCache[item.output];
           },

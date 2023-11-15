@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import PromptEditor, { ComponentPickerOption, INSERT_VARIABLE_COMMAND } from '@blocklet/prompt-editor';
 import { cx } from '@emotion/css';
-import Editor from '@monaco-editor/react';
+import Editor, { useMonaco } from '@monaco-editor/react';
 import { ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
 import {
   Box,
@@ -20,11 +20,11 @@ import {
   styled,
 } from '@mui/material';
 import { useThrottleFn } from 'ahooks';
-import { ReactNode, useCallback, useMemo, useRef } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { CallPromptMessage, EditorPromptMessage } from '../../../api/src/store/templates';
+import { CallFuncMessage, CallPromptMessage, EditorPromptMessage } from '../../../api/src/store/templates';
 import Add from '../../pages/project/icons/add';
 import DragVertical from '../../pages/project/icons/drag-vertical';
 import Eye from '../../pages/project/icons/eye';
@@ -32,6 +32,7 @@ import EyeNo from '../../pages/project/icons/eye-no';
 import Trash from '../../pages/project/icons/trash';
 import {
   parseDirectivesOfMessages,
+  parseDirectivesOfTemplate,
   randomId,
   useParameterState,
   usePromptState,
@@ -614,10 +615,10 @@ function CallAPIItemView({
               },
             }}
             value={callAPIMessage.method ?? ''}
-            onChange={(e) => (callAPIMessage.method = e.target.value)}>
-            <MenuItem disabled value="">
-              <em>select method</em>
-            </MenuItem>
+            onChange={(e) => {
+              callAPIMessage.params = {};
+              callAPIMessage.method = e.target.value;
+            }}>
             {methods.map((method) => {
               return (
                 <MenuItem value={method.toLocaleLowerCase()} key={method.toLocaleLowerCase()}>
@@ -630,7 +631,7 @@ function CallAPIItemView({
           <TextField
             sx={{ flex: 1 }}
             hiddenLabel
-            placeholder={t('API URL')}
+            placeholder={t('call.api.placeholder')}
             value={callAPIMessage.url ?? ''}
             onChange={(e) => (callAPIMessage.url = e.target.value)}
           />
@@ -652,7 +653,7 @@ function CallAPIItemView({
 
       {['post', 'put', 'patch', 'delete'].includes(callAPIMessage.method) && (
         <Stack px={1} ml={1} gap={1}>
-          <Typography variant="caption">{t('URL Body JSON')}</Typography>
+          <Typography variant="caption">{t('call.api.body')}</Typography>
 
           <Editor
             height="120px"
@@ -675,10 +676,11 @@ function CallAPIItemView({
             }}
             options={{
               lineNumbersMinChars: 2,
+              minimap: { enabled: false },
               readOnly,
-              minimap: {
-                enabled: false,
-              },
+              tabSize: 2,
+              insertSpaces: true,
+              detectIndentation: false,
             }}
           />
         </Stack>
@@ -702,6 +704,10 @@ function CallFuncItemView({
 }) {
   const originalOutput = useRef<string>();
   const { renameVariable } = usePromptsState({ projectId, gitRef, templateId: template.id });
+  const { getTemplateById } = useStore(projectId, gitRef);
+  const currentTemplate = getTemplateById(template.id);
+
+  const monaco = useMonaco();
 
   const { t } = useLocaleContext();
 
@@ -725,6 +731,31 @@ function CallFuncItemView({
     },
     { wait: 500, trailing: true }
   );
+
+  const temp = currentTemplate && JSON.parse(JSON.stringify(currentTemplate));
+
+  useEffect(() => {
+    if (monaco && currentTemplate) {
+      const params = new Set(
+        parseDirectivesOfTemplate(currentTemplate)
+          .map((i) => (i.type === 'variable' ? i.name : undefined))
+          .filter((i): i is string => Boolean(i))
+      );
+      const data = prompt?.data as CallFuncMessage;
+      if (data?.output) {
+        params.delete(data.output);
+      }
+
+      const customTypeDefinitions = `
+        declare var context: {
+          get: (name: (${[...params].map((x) => `'${x}'`).join('|')})) => any;
+        };
+      `;
+
+      monaco.languages.typescript.typescriptDefaults.addExtraLib(customTypeDefinitions, 'custom.d.ts');
+      monaco.languages.typescript.javascriptDefaults.addExtraLib(customTypeDefinitions, 'custom.d.ts');
+    }
+  }, [monaco, temp, prompt]);
 
   if (!prompt) return null;
   const callFuncMessage = isCallFuncMessage(prompt.data) ? prompt.data : null;
@@ -759,7 +790,7 @@ function CallFuncItemView({
       </Stack>
 
       <Stack px={1} ml={1} gap={1}>
-        <Typography variant="caption">{t('Function Code')}</Typography>
+        <Typography variant="caption">{t('call.func.code')}</Typography>
 
         <Editor
           height="120px"
@@ -772,10 +803,10 @@ function CallFuncItemView({
           }}
           options={{
             lineNumbersMinChars: 2,
+            minimap: { enabled: false },
             readOnly,
-            minimap: {
-              enabled: false,
-            },
+            tabSize: 2,
+            insertSpaces: true,
           }}
         />
       </Stack>
