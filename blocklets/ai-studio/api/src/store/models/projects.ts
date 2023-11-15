@@ -42,6 +42,10 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare gitUrl?: string;
 
+  declare gitAutoSync?: boolean;
+
+  declare gitLastSyncedAt?: Date;
+
   public static readonly GENESIS_ATTRIBUTES = {
     _id: {
       type: DataTypes.STRING,
@@ -99,7 +103,12 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
     },
     gitUrl: {
       type: DataTypes.STRING,
-      defaultValue: '',
+    },
+    gitAutoSync: {
+      type: DataTypes.BOOLEAN,
+    },
+    gitLastSyncedAt: {
+      type: DataTypes.DATE,
     },
   };
 }

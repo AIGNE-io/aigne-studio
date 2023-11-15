@@ -1,4 +1,11 @@
-import { CreateProjectInput, GetProjectsQuery, UpdateProjectInput } from '../../api/src/routes/project';
+import {
+  AddProjectRemoteInput,
+  CreateProjectInput,
+  GetProjectsQuery,
+  ProjectPullInput,
+  ProjectPushInput,
+  UpdateProjectInput,
+} from '../../api/src/routes/project';
 import { Project } from '../../api/src/store/projects';
 import { Template } from '../../api/src/store/templates';
 import axios from './api';
@@ -31,6 +38,18 @@ export async function importTemplatesToProject(
   return axios.post(`/api/projects/${projectId}/${ref}/import`, data).then((res) => res.data);
 }
 
-export async function addRemoteForProjectGit(projectId: string, data: { url: string; username: string }): Promise<{}> {
-  return axios.post(`/api/projects/${projectId}/add-git-remote`, data).then((res) => res.data);
+export async function addProjectRemote(projectId: string, data: AddProjectRemoteInput): Promise<{}> {
+  return axios.post(`/api/projects/${projectId}/remote`, data).then((res) => res.data);
+}
+
+export async function projectPush(projectId: string, input?: ProjectPushInput): Promise<{}> {
+  return axios.post(`/api/projects/${projectId}/remote/push`, input).then((res) => res.data);
+}
+
+export async function projectPull(projectId: string, input?: ProjectPullInput): Promise<{}> {
+  return axios.post(`/api/projects/${projectId}/remote/pull`, input).then((res) => res.data);
+}
+
+export async function projectSync(projectId: string): Promise<{}> {
+  return axios.post(`/api/projects/${projectId}/remote/sync`).then((res) => res.data);
 }

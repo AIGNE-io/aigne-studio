@@ -4,7 +4,7 @@ import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
 import Projects from '../store/models/projects';
-import { getRepository } from '../store/projects';
+import { defaultRemote, getRepository } from '../store/projects';
 
 export interface WorkingCommitInput {
   branch: string;
@@ -33,7 +33,7 @@ export function workingRoutes(router: Router) {
         throw new Error(`commit to read only branch ${input.branch} is forbidden`);
       }
 
-      const project = await Projects.findOne({ where: { _id: projectId } });
+      const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
       const repository = await getRepository({ projectId });
       const working = await repository.working({ ref });
       await working.commit({
@@ -43,12 +43,10 @@ export function workingRoutes(router: Router) {
         author: { name: fullName, email: userId },
       });
 
-      if (project && project.gitType === 'default' && project.gitUrl) {
-        try {
-          await repository.push({ ref });
-        } catch (error) {
-          return res.status(500).json({ error: { message: error.message } });
-        }
+      if (project.gitUrl && project.gitAutoSync) {
+        await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
+        await repository.push({ remote: defaultRemote, ref });
+        await project.update({ gitLastSyncedAt: new Date() });
       }
 
       return res.json({});

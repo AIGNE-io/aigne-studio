@@ -351,6 +351,14 @@ export const theme = createTheme({
         },
       ],
     },
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: ({ theme }) =>
+          theme.unstable_sx({
+            mx: 1,
+          }),
+      },
+    },
     MuiTypography: {
       variants: [
         {

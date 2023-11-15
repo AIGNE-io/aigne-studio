@@ -132,29 +132,54 @@ export default class Repository<T> {
     return git.listRemotes({ fs, dir: this.root });
   }
 
+  async getRemoteInfo(options: Omit<Parameters<typeof git.getRemoteInfo>[0], 'http'>) {
+    return git.getRemoteInfo({ http, ...options });
+  }
+
   async addRemote({ remote, url, force }: { remote: string; url: string; force?: boolean }) {
     return git.addRemote({ fs, dir: this.root, remote, url, force });
   }
 
-  async push({ ref }: { ref: string }) {
-    return new Promise((resolve, reject) => {
-      try {
-        git.push({
-          fs,
-          http,
-          ref,
-          force: true,
-          dir: this.root,
-          onAuthFailure: () => {
-            reject(new Error('git token validation invalid'));
-          },
-          onMessage: () => {
-            resolve('message');
-          },
-        });
-      } catch (error) {
-        reject(error);
-      }
+  async push(options?: Omit<Parameters<typeof git.push>[0], 'fs' | 'http' | 'dir'>) {
+    return git.push({
+      fs,
+      http,
+      dir: this.root,
+      ...options,
+    });
+  }
+
+  async pull(options?: Omit<Parameters<typeof git.pull>[0], 'fs' | 'http' | 'dir'>) {
+    return git.pull({
+      fs,
+      http,
+      dir: this.root,
+      ...options,
+    });
+  }
+
+  async fetch(options?: Omit<Parameters<typeof git.fetch>[0], 'fs' | 'http' | 'dir'>) {
+    return git.fetch({
+      fs,
+      http,
+      dir: this.root,
+      ...options,
+    });
+  }
+
+  async checkout(options?: Omit<Parameters<typeof git.checkout>[0], 'fs' | 'dir'>) {
+    return git.checkout({
+      fs,
+      dir: this.root,
+      ...options,
+    });
+  }
+
+  async abortMerge(options?: Omit<Parameters<typeof git.abortMerge>[0], 'fs' | 'dir'>) {
+    return git.abortMerge({
+      fs,
+      dir: this.root,
+      ...options,
     });
   }
 
