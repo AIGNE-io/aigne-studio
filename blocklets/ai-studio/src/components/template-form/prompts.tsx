@@ -24,7 +24,7 @@ import { ReactNode, useCallback, useMemo, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { CallAPIMessage, CallPromptMessage, PromptMessage } from '../../../api/src/store/templates';
+import { CallPromptMessage, EditorPromptMessage } from '../../../api/src/store/templates';
 import Add from '../../pages/project/icons/add';
 import DragVertical from '../../pages/project/icons/drag-vertical';
 import Eye from '../../pages/project/icons/eye';
@@ -41,6 +41,7 @@ import { useTemplateCompare } from '../../pages/project/state';
 import {
   createFile,
   isCallAPIMessage,
+  isCallFuncMessage,
   isCallPromptMessage,
   isPromptMessage,
   isTemplate,
@@ -54,12 +55,14 @@ const CONST_TYPE = {
   prompt: 'prompt',
   callPrompt: 'callPrompt',
   callAPI: 'callAPI',
+  callFunc: 'callFunc',
 };
 
 const componentMap = {
   [CONST_TYPE.prompt]: PromptItemView,
   [CONST_TYPE.callPrompt]: CallPromptItemView,
   [CONST_TYPE.callAPI]: CallAPIItemView,
+  [CONST_TYPE.callFunc]: CallFuncItemView,
 };
 
 export default function Prompts({
@@ -81,7 +84,7 @@ export default function Prompts({
   const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, readOnly });
 
   const getChildren = useCallback(
-    (prompt: PromptMessage | CallPromptMessage | CallAPIMessage) => {
+    (prompt: EditorPromptMessage) => {
       const getType = () => {
         if (isPromptMessage(prompt)) {
           return CONST_TYPE.prompt;
@@ -93,6 +96,10 @@ export default function Prompts({
 
         if (isCallAPIMessage(prompt)) {
           return CONST_TYPE.callAPI;
+        }
+
+        if (isCallFuncMessage(prompt)) {
+          return CONST_TYPE.callFunc;
         }
 
         return null;
@@ -360,11 +367,20 @@ function PromptItemView({
         },
       }),
       new ComponentPickerOption('Execute API', {
-        keywords: ['execute', 'api call'],
+        keywords: ['execute', 'api', 'call'],
         onSelect: (editor) => {
           const variable = `var-${randomId(5)}`;
           const id = randomId();
           addPrompt({ id, role: 'call-api', output: variable, method: 'get', url: '', params: {} }, prompt?.index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+      new ComponentPickerOption('Execute Function', {
+        keywords: ['execute', 'function', 'call'],
+        onSelect: (editor) => {
+          const variable = `var-${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-function', output: variable }, prompt?.index || 0);
           editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
         },
       }),
@@ -634,27 +650,125 @@ function CallAPIItemView({
         />
       </Stack>
 
+      {['post', 'put', 'patch', 'delete'].includes(callAPIMessage.method) && (
+        <Stack px={1} ml={1} gap={1}>
+          <Typography variant="caption">{t('URL Body JSON')}</Typography>
+
+          <Editor
+            height="120px"
+            defaultLanguage="json"
+            language="json"
+            theme="vs-dark"
+            value={JSON.stringify(callAPIMessage.params || {}, null, 2)}
+            onChange={(value) => {
+              if (value) {
+                try {
+                  const json = JSON.parse(value);
+                  callAPIMessage.params = json;
+                } catch (error) {
+                  console.error(error);
+                }
+                return;
+              }
+
+              callAPIMessage.params = {};
+            }}
+            options={{
+              lineNumbersMinChars: 2,
+              readOnly,
+              minimap: {
+                enabled: false,
+              },
+            }}
+          />
+        </Stack>
+      )}
+    </Stack>
+  );
+}
+
+function CallFuncItemView({
+  projectId,
+  gitRef,
+  template,
+  promptId,
+  readOnly,
+}: {
+  projectId: string;
+  gitRef: string;
+  template: TemplateYjs;
+  promptId: string;
+  readOnly?: boolean;
+}) {
+  const originalOutput = useRef<string>();
+  const { renameVariable } = usePromptsState({ projectId, gitRef, templateId: template.id });
+
+  const { t } = useLocaleContext();
+
+  const { prompt } = usePromptState({
+    projectId,
+    gitRef,
+    templateId: template.id,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
+
+  const rename = useThrottleFn(
+    () => {
+      if (callFuncMessage?.output && originalOutput.current && originalOutput.current !== callFuncMessage.output) {
+        renameVariable({
+          [originalOutput.current]: callFuncMessage.output,
+        });
+        originalOutput.current = callFuncMessage.output;
+      }
+    },
+    { wait: 500, trailing: true }
+  );
+
+  if (!prompt) return null;
+  const callFuncMessage = isCallFuncMessage(prompt.data) ? prompt.data : null;
+  if (!callFuncMessage) return null;
+
+  return (
+    <Stack p={1} gap={1}>
+      <Stack
+        px={1}
+        direction="row"
+        alignItems="center"
+        gap={1}
+        sx={{ [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}>
+        <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
+          Execute JS Function
+        </Typography>
+
+        <Stack flex={1} direction="row" alignItems="center" gap={1} />
+
+        <TextField
+          onFocus={() => (originalOutput.current = callFuncMessage.output)}
+          onBlur={rename.run}
+          hiddenLabel
+          placeholder={t('output')}
+          value={callFuncMessage.output || ''}
+          onChange={(e) => {
+            callFuncMessage.output = e.target.value.trim();
+            rename.run();
+          }}
+          sx={{ width: 100 }}
+        />
+      </Stack>
+
       <Stack px={1} ml={1} gap={1}>
-        <Typography variant="caption">{t('parameters')}</Typography>
+        <Typography variant="caption">{t('Function Code')}</Typography>
 
         <Editor
           height="120px"
-          defaultLanguage="json"
-          language="json"
+          defaultLanguage="javascript"
+          language="javascript"
           theme="vs-dark"
-          value={JSON.stringify(callAPIMessage.params || {}, null, 2)}
+          value={callFuncMessage.code || ''}
           onChange={(value) => {
-            if (value) {
-              try {
-                const json = JSON.parse(value);
-                callAPIMessage.params = json;
-              } catch (error) {
-                console.error(error);
-              }
-              return;
-            }
-
-            callAPIMessage.params = {};
+            callFuncMessage.code = value || '';
           }}
           options={{
             lineNumbersMinChars: 2,

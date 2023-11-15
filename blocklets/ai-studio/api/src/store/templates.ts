@@ -10,9 +10,9 @@ import { yjsToTemplate } from './projects';
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
 
-export type Role = 'system' | 'user' | 'assistant' | 'call-prompt' | 'call-api';
+export type Role = 'system' | 'user' | 'assistant' | 'call-prompt' | 'call-api' | 'call-function';
 
-export const roles: Role[] = ['system', 'user', 'assistant', 'call-prompt', 'call-api'];
+export const roles: Role[] = ['system', 'user', 'assistant', 'call-prompt', 'call-api', 'call-function'];
 
 export interface PromptMessage {
   id: string;
@@ -42,6 +42,17 @@ export interface CallAPIMessage {
   visibility?: 'hidden';
 }
 
+export interface CallFuncMessage {
+  id: string;
+  role: 'call-function';
+  content?: undefined;
+  code?: string;
+  output: string;
+  visibility?: 'hidden';
+}
+
+export type EditorPromptMessage = PromptMessage | CallPromptMessage | CallAPIMessage | CallFuncMessage;
+
 export function isPromptMessage(message: any): message is PromptMessage {
   return ['system', 'user', 'assistant'].includes(message?.role);
 }
@@ -54,6 +65,10 @@ export function isCallAPIMessage(message: any): message is CallAPIMessage {
   return message?.role === 'call-api';
 }
 
+export function isCallFuncMessage(message: any): message is CallFuncMessage {
+  return message?.role === 'call-function';
+}
+
 export interface Template {
   id: string;
   type?: 'branch' | 'image';
@@ -62,7 +77,7 @@ export interface Template {
   tags?: string[];
   icon?: string;
   description?: string;
-  prompts?: (PromptMessage | CallPromptMessage | CallAPIMessage)[];
+  prompts?: EditorPromptMessage[];
   branch?: {
     branches: { id: string; template?: { id: string; name?: string }; description: string }[];
   };

@@ -1,6 +1,5 @@
 import { COMMENT_PREFIX } from '@blocklet/prompt-editor/utils';
 import { call } from '@blocklet/sdk/lib/component';
-import axios from 'axios';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -291,12 +290,31 @@ async function runTemplate(
           () => async () => {
             variablesCache[item.output] ??= (async () => {
               if (!item.url) throw new Error('Required property `url` is not present');
-              const { data } = await axios({
-                url: item.url,
+
+              const response = await fetch(item.url, {
                 method: item.method,
-                data: item.params && Object.keys(item.params).length ? item.params : undefined,
+                body: item.params && Object.keys(item.params).length ? JSON.stringify(item.params) : undefined,
               });
-              return data;
+
+              // 确保响应有效
+              if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+              }
+
+              // 检查内容类型
+              const contentType = response.headers.get('Content-Type');
+
+              if (contentType) {
+                if (contentType.includes('application/json')) {
+                  return response.json();
+                }
+
+                if (contentType.includes('text/plain') || contentType.includes('text/html')) {
+                  return response.text();
+                }
+              }
+
+              throw new Error('Unsupported content type');
             })();
             return variablesCache[item.output];
           },
@@ -318,7 +336,6 @@ async function runTemplate(
             .join('\n');
 
           const prompt = await renderMessage(content);
-          console.log(prompt);
 
           return { role: item.role, content: prompt };
         })

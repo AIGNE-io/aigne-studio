@@ -10,7 +10,14 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 import Mustache from '../../../api/src/libs/mustache';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { CallPromptMessage, Role } from '../../../api/src/store/templates';
-import { isCallAPIMessage, isCallPromptMessage, isPromptMessage, isTemplate, useStore } from './yjs-state';
+import {
+  isCallAPIMessage,
+  isCallFuncMessage,
+  isCallPromptMessage,
+  isPromptMessage,
+  isTemplate,
+  useStore,
+} from './yjs-state';
 
 const PROMPT_EDITOR_STATE_CACHE: { [key: string]: { content?: string; role?: Role } } = {};
 
@@ -229,7 +236,12 @@ export function parseDirectivesOfTemplate(
   {
     excludeCallPromptVariables = false,
     excludeCallAPIVariables = false,
-  }: { excludeCallPromptVariables?: boolean; excludeCallAPIVariables?: boolean } = {}
+    excludeCallFuncVariables = false,
+  }: {
+    excludeCallPromptVariables?: boolean;
+    excludeCallAPIVariables?: boolean;
+    excludeCallFuncVariables?: boolean;
+  } = {}
 ) {
   let directives = parseDirectives(
     ...Object.values(template.prompts ?? {})
@@ -255,6 +267,16 @@ export function parseDirectivesOfTemplate(
     const outputs = new Set(
       Object.values(template.prompts)
         .map(({ data }) => (isCallAPIMessage(data) ? data.output : undefined))
+        .filter(Boolean)
+    );
+
+    directives = directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
+  }
+
+  if (excludeCallFuncVariables && template.prompts) {
+    const outputs = new Set(
+      Object.values(template.prompts)
+        .map(({ data }) => (isCallFuncMessage(data) ? data.output : undefined))
         .filter(Boolean)
     );
 
@@ -316,6 +338,8 @@ export function usePromptsState({
               }
             }
           } else if (isCallAPIMessage(data) && data.output) {
+            data.output = renameVariableByMustache(data.output, rename);
+          } else if (isCallFuncMessage(data) && data.output) {
             data.output = renameVariableByMustache(data.output, rename);
           }
         }

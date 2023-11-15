@@ -437,7 +437,11 @@ function DebugModeForm({
   const scrollToBottom = useScrollToBottom();
 
   const params = new Set(
-    parseDirectivesOfTemplate(template, { excludeCallPromptVariables: true, excludeCallAPIVariables: true })
+    parseDirectivesOfTemplate(template, {
+      excludeCallPromptVariables: true,
+      excludeCallAPIVariables: true,
+      excludeCallFuncVariables: true,
+    })
       .map((i) => (i.type === 'variable' ? i.name : undefined))
       .filter((i): i is string => Boolean(i))
   );
