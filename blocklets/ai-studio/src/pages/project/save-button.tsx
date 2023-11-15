@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { SaveRounded } from '@mui/icons-material';
+import { DownloadRounded, SaveRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
@@ -14,6 +14,7 @@ import {
   Stack,
   TextField,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import { useKeyPress } from 'ahooks';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
@@ -25,6 +26,7 @@ import joinUrl from 'url-join';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
+import useDialog from '../../utils/use-dialog';
 import { defaultBranch, useProjectState, useTemplatesChangesState } from './state';
 
 interface CommitForm {
@@ -35,6 +37,8 @@ interface CommitForm {
 export default function SaveButton({ projectId, gitRef }: { projectId: string; gitRef: string }) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
+
+  const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
 
   const dialogState = usePopupState({ variant: 'dialog' });
 
@@ -62,20 +66,34 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const onSave = useCallback(
     async (input: CommitForm) => {
       try {
+        let needMergeConflict = false;
+
         const branch = simpleMode ? defaultBranch : input.branch;
-        await commitFromWorking({
-          projectId,
-          ref: gitRef,
-          input: {
-            branch,
-            message: input.message || new Date().toLocaleString(),
-          },
-        });
+        try {
+          await commitFromWorking({
+            projectId,
+            ref: gitRef,
+            input: {
+              branch,
+              message: input.message || new Date().toLocaleString(),
+            },
+          });
+        } catch (error) {
+          needMergeConflict = isTheErrorShouldShowMergeConflict(error);
+          if (!needMergeConflict) throw error;
+        }
 
         dialogState.close();
+
+        if (needMergeConflict) {
+          Toast.warning(t('alert.savedButSyncConflicted'));
+          await showMergeConflictDialog();
+        } else {
+          Toast.success(t('alert.saved'));
+        }
+
         refetch();
         run();
-        Toast.success(t('alert.saved'));
         if (branch !== gitRef) navigate(joinUrl('..', branch), { replace: true });
       } catch (error) {
         form.reset(input);
@@ -83,7 +101,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         throw error;
       }
     },
-    [gitRef, navigate, projectId, refetch, t, simpleMode]
+    [simpleMode, dialogState, refetch, run, gitRef, navigate, projectId, t, showMergeConflictDialog, form]
   );
 
   const submitting = form.formState.isSubmitting;
@@ -98,6 +116,8 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
 
   return (
     <>
+      {dialog}
+
       <Button
         {...bindTrigger(dialogState)}
         disabled={submitting || disabled}
@@ -192,4 +212,78 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
       </Dialog>
     </>
   );
+}
+
+export function isTheErrorShouldShowMergeConflict(error: any) {
+  const errorName = error.response?.data?.error?.name;
+  return ['MergeConflictError', 'PushRejectedError'].includes(errorName);
+}
+
+export function useMergeConflictDialog({ projectId }: { projectId: string }) {
+  const { t } = useLocaleContext();
+  const { dialog, showDialog } = useDialog();
+
+  const { push, pull } = useProjectState(projectId, defaultBranch);
+
+  const showMergeConflictDialog = useCallback(async () => {
+    return new Promise<void>((resolve) => {
+      showDialog({
+        fullWidth: true,
+        maxWidth: 'sm',
+        title: (
+          <Stack direction="row" alignItems="center" gap={1}>
+            <WarningRounded color="warning" fontSize="large" /> {t('mergeConflict')}
+          </Stack>
+        ),
+
+        content: (
+          <Stack gap={0.25} sx={{ b: { color: 'warning.main', mx: 0.25 } }}>
+            <Typography variant="subtitle1">{t('mergeConflictTip')}</Typography>
+            <Box>
+              <Typography component="span" fontWeight="bold">
+                {t('useRemote')}:{' '}
+              </Typography>
+              <Typography component="span" dangerouslySetInnerHTML={{ __html: t('useRemoteTip') }} />
+            </Box>
+            <Box>
+              <Typography component="span" fontWeight="bold">
+                {t('useLocal')}:{' '}
+              </Typography>
+              <Typography component="span" dangerouslySetInnerHTML={{ __html: t('useLocalTip') }} />
+            </Box>
+          </Stack>
+        ),
+        cancelText: t('cancel'),
+        middleText: t('useRemote'),
+        middleColor: 'warning',
+        middleIcon: <DownloadRounded />,
+        middleVariant: 'outlined',
+        okText: t('useLocal'),
+        okColor: 'warning',
+        okIcon: <UploadRounded />,
+        okVariant: 'outlined',
+        onMiddleClick: async () => {
+          try {
+            await pull(projectId, { force: true });
+            Toast.success(t('synced'));
+          } catch (error) {
+            Toast.error(getErrorMessage(error));
+            throw error;
+          }
+        },
+        onOk: async () => {
+          try {
+            await push(projectId, { force: true });
+            Toast.success(t('synced'));
+          } catch (error) {
+            Toast.error(getErrorMessage(error));
+            throw error;
+          }
+        },
+        onClose: () => resolve(),
+      });
+    });
+  }, [projectId, pull, push, showDialog, t]);
+
+  return { dialog, showMergeConflictDialog };
 }

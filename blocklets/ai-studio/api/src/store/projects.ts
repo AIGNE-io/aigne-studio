@@ -29,6 +29,9 @@ export interface Project
   pinnedAt?: string | Date;
   icon?: string;
   gitType?: 'simple' | 'default';
+  gitUrl?: string;
+  gitAutoSync?: boolean;
+  gitLastSyncedAt?: Date;
 }
 
 export default class Projects extends Database<Project> {
@@ -77,6 +80,8 @@ export const projectTemplates: (Project & {
 ];
 
 export const defaultBranch = 'main';
+
+export const defaultRemote = 'origin';
 
 export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'datasets' | 'parameters' | 'tests'> {
   prompts?: {

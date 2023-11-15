@@ -43,7 +43,7 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
   logger.error(error);
 
   if (error instanceof Errors.NotFoundError) {
-    res.status(404).json({ error: { message: 'Not Found' } });
+    res.status(404).json({ error: { name: error.name, message: 'Not Found' } });
     return;
   }
 
@@ -59,7 +59,7 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
     }
   }
 
-  res.status(500).json({ error: { message: error.message } });
+  res.status(500).json({ error: { name: error.name, message: error.message } });
 }));
 
 const port = parseInt(process.env.BLOCKLET_PORT!, 10);
