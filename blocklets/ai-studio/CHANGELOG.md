@@ -1,3 +1,9 @@
+## 0.1.136 (2023-11-16)
+
+- fix: when the comparison data is wrong, the empty page is displayed directly
+- fix: editor compares styles
+- chore: merge multiple lines of text
+
 ## 0.1.135 (2023-11-14)
 
 - chore: set remote repo
