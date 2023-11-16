@@ -106,7 +106,7 @@ export default function Parameters({
                     (form.parameters[row.param] as StringParameter)!.multiline = true;
                   } else {
                     form.parameters[row.param]!.type = newValue as any;
-                    (form.parameters[row.param] as StringParameter)!.multiline = false;
+                    delete (form.parameters[row.param] as StringParameter)!.multiline;
                   }
                 });
               }}
