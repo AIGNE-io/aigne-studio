@@ -16,8 +16,12 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       <Grid item xs={12}>
         <ParameterConfigType
           label={t('form.parameter.type')}
+          fullWidth
+          size="small"
           value={(!value.type || value.type === 'string') && value.multiline ? 'multiline' : value.type ?? 'string'}
-          onChange={(newValue) => {
+          InputProps={{ readOnly }}
+          onChange={(e) => {
+            const newValue = e.target.value;
             const doc = (getYjsValue(value) as Map<any>)?.doc!;
             if (!doc) return;
 
@@ -31,7 +35,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               }
             });
           }}
-          readOnly={readOnly}
         />
       </Grid>
 

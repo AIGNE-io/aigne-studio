@@ -93,10 +93,14 @@ export default function Parameters({
           const isMultiline = (!parameter?.type || parameter?.type === 'string') && parameter?.multiline;
           return (
             <ParameterConfigType
+              variant="standard"
+              hiddenLabel
+              SelectProps={{ autoWidth: true }}
               sx={{ ml: 2 }}
               value={isMultiline ? 'multiline' : parameter?.type ?? 'string'}
-              readOnly={readOnly}
-              onChange={(newValue) => {
+              InputProps={{ readOnly }}
+              onChange={(e) => {
+                const newValue = e.target.value;
                 doc.transact(() => {
                   form.parameters ??= {};
                   form.parameters[row.param] ??= {};
