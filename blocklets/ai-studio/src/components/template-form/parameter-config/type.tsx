@@ -44,7 +44,7 @@ export default function ParameterConfigType({
         value: 'horoscope',
       },
     ];
-  }, []);
+  }, [t]);
 
   if (label) {
     return (
