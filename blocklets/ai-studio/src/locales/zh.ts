@@ -41,7 +41,7 @@ export default flat({
       label: '标签',
       value: '值',
       defaultValue: '默认值',
-      multiline: '多行文本',
+      typeTextMultiline: '多行文本',
       placeholder: '提示',
       helper: '帮助文本',
       required: '必填',

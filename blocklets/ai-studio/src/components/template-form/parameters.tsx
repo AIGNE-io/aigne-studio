@@ -1,14 +1,16 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Box, Button, ClickAwayListener, Input, MenuItem, Paper, Popper, Select, Typography } from '@mui/material';
+import { Box, Button, ClickAwayListener, Input, Paper, Popper, Typography } from '@mui/material';
 import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
+import { StringParameter } from '../../../api/src/store/templates';
 import Settings from '../../pages/project/icons/settings';
 import { parseDirectivesOfTemplate } from '../../pages/project/prompt-state';
 import { useTemplateCompare } from '../../pages/project/state';
 import ParameterConfig from './parameter-config';
+import ParameterConfigType from './parameter-config/type';
 
 function CustomNoRowsOverlay() {
   const { t } = useLocaleContext();
@@ -88,25 +90,31 @@ export default function Parameters({
         renderCell: ({ row }) => {
           const parameter = form.parameters?.[row.param];
 
+          const isMultiline = (!parameter?.type || parameter?.type === 'string') && parameter?.multiline;
           return (
-            <Select
-              sx={{ ml: 2 }}
+            <ParameterConfigType
               variant="standard"
-              autoWidth
-              size="small"
-              value={parameter?.type ?? 'string'}
-              readOnly={readOnly}
+              hiddenLabel
+              SelectProps={{ autoWidth: true }}
+              sx={{ ml: 2 }}
+              value={isMultiline ? 'multiline' : parameter?.type ?? 'string'}
+              InputProps={{ readOnly }}
               onChange={(e) => {
-                form.parameters ??= {};
-                form.parameters[row.param] ??= {};
-                form.parameters[row.param]!.type = e.target.value as any;
-              }}>
-              <MenuItem value="string">{t('form.parameter.typeText')}</MenuItem>
-              <MenuItem value="number">{t('form.parameter.typeNumber')}</MenuItem>
-              <MenuItem value="select">{t('form.parameter.typeSelect')}</MenuItem>
-              <MenuItem value="language">{t('form.parameter.typeLanguage')}</MenuItem>
-              <MenuItem value="horoscope">{t('form.parameter.typeHoroscope')}</MenuItem>
-            </Select>
+                const newValue = e.target.value;
+                doc.transact(() => {
+                  form.parameters ??= {};
+                  form.parameters[row.param] ??= {};
+
+                  if (newValue === 'multiline') {
+                    form.parameters[row.param]!.type = 'string';
+                    (form.parameters[row.param] as StringParameter)!.multiline = true;
+                  } else {
+                    form.parameters[row.param]!.type = newValue as any;
+                    delete (form.parameters[row.param] as StringParameter)!.multiline;
+                  }
+                });
+              }}
+            />
           );
         },
       },
@@ -218,7 +226,7 @@ export default function Parameters({
         open={Boolean(paramConfig)}
         anchorEl={paramConfig?.anchorEl}
         placement="bottom-end"
-        sx={{ zIndex: 12001 }}>
+        sx={{ zIndex: (theme) => theme.zIndex.modal }}>
         <ClickAwayListener
           onClickAway={(e) => {
             if (e.target === document.body) return;
