@@ -16,10 +16,12 @@ import {
   Stack,
   Switch,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import gitUrlParse from 'git-url-parse';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -186,6 +188,17 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
               autoFocus
               fullWidth
               label={`${t('url')}*`}
+              onPaste={(e) => {
+                try {
+                  const url = gitUrlParse(e.clipboardData.getData('text/plain'));
+                  const https = gitUrlParse.stringify(url, 'https');
+                  form.setValue('url', https, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                  form.setValue('username', url.owner, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                  e.preventDefault();
+                } catch {
+                  // empty
+                }
+              }}
               {...form.register('url', {
                 required: true,
                 validate: (value) =>
@@ -193,6 +206,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
                     value
                   ) || t('validation.urlPattern'),
               })}
+              InputLabelProps={{ shrink: form.watch('url') ? true : undefined }}
               error={Boolean(form.formState.errors.url)}
               helperText={form.formState.errors.url?.message}
             />
@@ -203,6 +217,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
               {...form.register('username')}
               error={Boolean(form.formState.errors.username)}
               helperText={form.formState.errors.username?.message}
+              InputLabelProps={{ shrink: form.watch('username') ? true : undefined }}
             />
 
             <TextField
@@ -214,9 +229,14 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
                 form.formState.errors.password?.message || (
                   <Box component="span">
                     {t('remoteGitRepoPasswordHelper')}{' '}
-                    <Link href="https://github.com/settings/tokens" target="_blank">
-                      github access token
-                    </Link>
+                    <Tooltip
+                      title={t('githubTokenTip')}
+                      placement="top"
+                      slotProps={{ popper: { sx: { whiteSpace: 'pre-wrap' } } }}>
+                      <Link href="https://github.com/settings/personal-access-tokens/new" target="_blank">
+                        github access token
+                      </Link>
+                    </Tooltip>
                   </Box>
                 )
               }
