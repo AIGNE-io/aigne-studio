@@ -41,7 +41,7 @@ export default flat({
       label: 'Label',
       value: 'Value',
       defaultValue: 'Default Value',
-      multiline: 'Multiline',
+      typeTextMultiline: 'Multiline',
       placeholder: 'Placeholder',
       helper: 'Helper Text',
       required: 'Required',

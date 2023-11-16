@@ -377,14 +377,6 @@ export const theme = createTheme({
         },
       ],
     },
-    MuiMenu: {
-      styleOverrides: {
-        root: ({ theme }) =>
-          theme.unstable_sx({
-            zIndex: 13001,
-          }),
-      },
-    },
     MuiMenuItem: {
       styleOverrides: {
         root: ({ theme }) =>

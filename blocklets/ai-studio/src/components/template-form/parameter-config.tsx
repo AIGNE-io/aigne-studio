@@ -1,9 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { FormControl, FormControlLabel, Grid, MenuItem, Switch, TextField } from '@mui/material';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { FormControl, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
 
 import { ParameterYjs, StringParameter } from '../../../api/src/store/templates';
 import NumberField from '../number-field';
 import ParameterField from '../parameter-field';
+import ParameterConfigType from './parameter-config/type';
 import SelectOptionsConfig from './select-options-config';
 
 export default function ParameterConfig({ readOnly, value }: { readOnly?: boolean; value: ParameterYjs }) {
@@ -12,31 +14,25 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <TextField
-          fullWidth
+        <ParameterConfigType
           label={t('form.parameter.type')}
-          size="small"
-          select
           value={(!value.type || value.type === 'string') && value.multiline ? 'multiline' : value.type ?? 'string'}
-          onChange={(e) => {
-            const newValue = e.target.value as any;
+          onChange={(newValue) => {
+            const doc = (getYjsValue(value) as Map<any>)?.doc!;
+            if (!doc) return;
 
-            if (newValue === 'multiline') {
-              value.type = 'string';
-              (value as StringParameter).multiline = true;
-            } else {
-              value.type = newValue;
-              (value as StringParameter).multiline = false;
-            }
+            doc.transact(() => {
+              if (newValue === 'multiline') {
+                value.type = 'string';
+                (value as StringParameter).multiline = true;
+              } else {
+                value.type = newValue as any;
+                (value as StringParameter).multiline = false;
+              }
+            });
           }}
-          InputProps={{ readOnly }}>
-          <MenuItem value="string">{t('form.parameter.typeText')}</MenuItem>
-          <MenuItem value="multiline">{t('form.parameter.multiline')}</MenuItem>
-          <MenuItem value="number">{t('form.parameter.typeNumber')}</MenuItem>
-          <MenuItem value="select">{t('form.parameter.typeSelect')}</MenuItem>
-          <MenuItem value="language">{t('form.parameter.typeLanguage')}</MenuItem>
-          <MenuItem value="horoscope">{t('form.parameter.typeHoroscope')}</MenuItem>
-        </TextField>
+          readOnly={readOnly}
+        />
       </Grid>
 
       <Grid item xs={12}>
