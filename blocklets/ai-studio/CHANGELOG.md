@@ -1,3 +1,7 @@
+## 0.1.136 (2023-11-16)
+
+- fix: auto convert git url to https url
+
 ## 0.1.135 (2023-11-14)
 
 - chore: set remote repo
