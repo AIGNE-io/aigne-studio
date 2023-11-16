@@ -237,6 +237,8 @@ export default flat({
   username: '用户名',
   password: '密码',
   remoteGitRepoPasswordHelper: 'Github 不支持使用密码访问，可以使用',
+  githubTokenTip:
+    '获取 access token 步骤:\n1. 点击链接打开 github token 页面\n2. 点击 "Generate new token"\n3. 填写 token name\n4. Repository access: 选择 Only select repositories\n5. 选择您的仓库\n6. Repositories permissions: 找到 "Contents" 选择 "Read and write"\n7. 点击 "Generate token"',
   autoSync: '保存时自动同步',
   sync: '同步',
   synced: '已同步',

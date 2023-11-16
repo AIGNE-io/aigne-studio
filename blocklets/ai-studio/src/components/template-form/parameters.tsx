@@ -218,7 +218,7 @@ export default function Parameters({
         />
       </Box>
 
-      <Popper open={Boolean(paramConfig)} anchorEl={paramConfig?.anchorEl} placement="bottom-end" sx={{ zIndex: 1202 }}>
+      <Popper open={Boolean(paramConfig)} anchorEl={paramConfig?.anchorEl} placement="bottom-end" sx={{ zIndex: 1400 }}>
         <ClickAwayListener
           onClickAway={(e) => {
             if (e.target === document.body) return;
