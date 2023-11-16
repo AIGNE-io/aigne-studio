@@ -10,7 +10,7 @@ import Settings from '../../pages/project/icons/settings';
 import { parseDirectivesOfTemplate } from '../../pages/project/prompt-state';
 import { useTemplateCompare } from '../../pages/project/state';
 import ParameterConfig from './parameter-config';
-import SelectOptionsConfig from './parameter-config/type';
+import ParameterConfigType from './parameter-config/type';
 
 function CustomNoRowsOverlay() {
   const { t } = useLocaleContext();
@@ -92,7 +92,7 @@ export default function Parameters({
 
           const isMultiline = (!parameter?.type || parameter?.type === 'string') && parameter?.multiline;
           return (
-            <SelectOptionsConfig
+            <ParameterConfigType
               sx={{ ml: 2 }}
               value={isMultiline ? 'multiline' : parameter?.type ?? 'string'}
               readOnly={readOnly}

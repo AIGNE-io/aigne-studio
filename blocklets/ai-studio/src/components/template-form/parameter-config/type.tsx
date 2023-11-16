@@ -70,7 +70,6 @@ export default function ParameterConfigType({
 
   return (
     <Select
-      sx={{ ml: 2 }}
       variant="standard"
       autoWidth
       size="small"
