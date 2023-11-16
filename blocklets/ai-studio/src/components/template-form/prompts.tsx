@@ -167,7 +167,7 @@ export default function Prompts({
                     readOnly={readOnly}
                     isDragging={params.isDragging}
                     style={{
-                      '.editor-shell': {
+                      '.editor-container': {
                         ...getDiffBackground('prompts', prompt.id),
                       },
                     }}>
@@ -249,7 +249,7 @@ function PromptItemContainer({
       <Stack direction="row" sx={{ position: 'relative' }}>
         <Box
           ref={preview}
-          className={cx(hidden && 'prompt-hidden')}
+          className={cx(hidden && 'prompt-hidden', 'editor-container')}
           sx={{
             flex: 1,
             borderRadius: 1,

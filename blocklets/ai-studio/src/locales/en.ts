@@ -41,7 +41,7 @@ export default flat({
       label: 'Label',
       value: 'Value',
       defaultValue: 'Default Value',
-      multiline: 'Multiline',
+      typeTextMultiline: 'Multiline',
       placeholder: 'Placeholder',
       helper: 'Helper Text',
       required: 'Required',
@@ -248,6 +248,8 @@ export default flat({
   username: 'Username',
   password: 'Password',
   remoteGitRepoPasswordHelper: 'Github does not support password access, you can use',
+  githubTokenTip:
+    'Steps to get github access token:\n1. Click link navigate to github tokens\n2. Click "Generate new token"\n3. Fill the token name\n4. Repository access: Only select repositories\n5. Select your repository\n6. Repositories permissions: Contents -> Read and write\n7. Generate token',
   autoSync: 'Auto sync when saving',
   sync: 'Sync',
   synced: 'Synced',
