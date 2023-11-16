@@ -5,6 +5,7 @@ import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
+import { StringParameter } from '../../../api/src/store/templates';
 import Settings from '../../pages/project/icons/settings';
 import { parseDirectivesOfTemplate } from '../../pages/project/prompt-state';
 import { useTemplateCompare } from '../../pages/project/state';
@@ -88,20 +89,34 @@ export default function Parameters({
         renderCell: ({ row }) => {
           const parameter = form.parameters?.[row.param];
 
+          const val =
+            (!parameter?.type || parameter?.type === 'string') && parameter?.multiline
+              ? 'multiline'
+              : parameter?.type ?? 'string';
           return (
             <Select
               sx={{ ml: 2 }}
               variant="standard"
               autoWidth
               size="small"
-              value={parameter?.type ?? 'string'}
+              value={val}
               readOnly={readOnly}
               onChange={(e) => {
+                const newValue = e.target.value as any;
+
                 form.parameters ??= {};
                 form.parameters[row.param] ??= {};
-                form.parameters[row.param]!.type = e.target.value as any;
+
+                if (newValue === 'multiline') {
+                  form.parameters[row.param]!.type = 'string';
+                  (form.parameters[row.param] as StringParameter)!.multiline = true;
+                } else {
+                  form.parameters[row.param]!.type = newValue;
+                  (form.parameters[row.param] as StringParameter)!.multiline = false;
+                }
               }}>
               <MenuItem value="string">{t('form.parameter.typeText')}</MenuItem>
+              <MenuItem value="multiline">{t('form.parameter.multiline')}</MenuItem>
               <MenuItem value="number">{t('form.parameter.typeNumber')}</MenuItem>
               <MenuItem value="select">{t('form.parameter.typeSelect')}</MenuItem>
               <MenuItem value="language">{t('form.parameter.typeLanguage')}</MenuItem>

@@ -39,7 +39,7 @@
     "@blocklet/ai-kit": "^0.0.71",
     "@blocklet/co-git": "^0.1.135",
     "@blocklet/constant": "1.16.18-beta-adeeb0b3",
-    "@blocklet/discuss-kit": "^1.5.167",
+    "@blocklet/discuss-kit": "^1.5.175",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
     "@blocklet/prompt-editor": "^0.1.135",
     "@blocklet/sdk": "1.16.18-beta-adeeb0b3",

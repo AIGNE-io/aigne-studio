@@ -1,5 +1,4 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import Toast from '@arcblock/ux/lib/Toast';
 import { Box, CircularProgress, Divider, MenuItem, Select, Stack, Typography, typographyClasses } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useEffect, useMemo, useState } from 'react';
@@ -40,10 +39,7 @@ export default function Compare({
 
   const [branch, setBranch] = useState(gitRef);
   const [commit, setCommit] = useState(gitRef);
-  const [state, setState] = useState<{ loading: boolean; template?: TemplateYjs }>({
-    template: undefined,
-    loading: true,
-  });
+  const [state, setState] = useState<{ loading: boolean; template?: TemplateYjs }>({ loading: true });
 
   const { data } = useRequest(() => getLogs({ projectId, ref: simpleMode ? defaultBranch : gitRef }), {
     refreshDeps: [projectId, gitRef, simpleMode],
@@ -62,8 +58,7 @@ export default function Compare({
 
       setState((r) => ({ ...r, template: templateYjsFromTemplate(data) }));
     } catch (error) {
-      Toast.error(error?.message);
-      setState((r) => ({ ...r, loading: false }));
+      setState((r) => ({ ...r, template: undefined, loading: false }));
     } finally {
       setState((r) => ({ ...r, loading: false }));
     }
@@ -126,33 +121,35 @@ export default function Compare({
   }
 
   if (!state.template) {
-    <Box height="80vh" display="flex" width={1}>
-      <Box flex={1} display="flex" flexDirection="column">
-        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
+    return (
+      <Stack height="80vh" width={1}>
+        <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
+          <Box flex={1} display="flex" flexDirection="column">
+            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
 
-          {renderSelect()}
-        </Box>
+              {renderSelect()}
+            </Box>
 
-        <Box flex={1} display="flex" alignItems="center" justifyContent="center">
-          <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
-            <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-            <Typography sx={{ color: (theme) => theme.palette.action.disabled }}>{t('compare.empty')}</Typography>
+            <Box flex={1} display="flex" alignItems="center" justifyContent="center">
+              <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+                <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+                <Typography sx={{ color: (theme) => theme.palette.action.disabled }}>{t('compare.empty')}</Typography>
+              </Box>
+            </Box>
           </Box>
-        </Box>
-      </Box>
 
-      <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+          <Box flex={1} display="flex" flexDirection="column">
+            <Box sx={{ fontSize: 20, fontWeight: 'bold', mb: 2 }}>{t('compare.current')}</Box>
 
-      <Box flex={1} display="flex" flexDirection="column">
-        <Box sx={{ fontSize: 20, fontWeight: 'bold', mb: 2 }}>{t('compare.current')}</Box>
-
-        <>
-          <TemplateFormView projectId={projectId} gitRef={gitRef} compareValue={state.template} value={template} />
-          <SettingView projectId={projectId} gitRef={gitRef} template={template} compareValue={state.template} />
-        </>
-      </Box>
-    </Box>;
+            <>
+              <TemplateFormView projectId={projectId} gitRef={gitRef} compareValue={state.template} value={template} />
+              <SettingView projectId={projectId} gitRef={gitRef} template={template} compareValue={state.template} />
+            </>
+          </Box>
+        </Stack>
+      </Stack>
+    );
   }
 
   return (
