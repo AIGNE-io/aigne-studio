@@ -17,6 +17,7 @@ import { createImageUrl } from '../libs/utils';
 import Projects from '../store/models/projects';
 import {
   defaultBranch,
+  defaultRemote,
   getRepository,
   nextProjectId,
   projectTemplates,
@@ -53,6 +54,7 @@ export interface UpdateProjectInput {
   frequencyPenalty?: number;
   maxTokens?: number;
   gitType?: string;
+  gitAutoSync?: boolean;
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
@@ -67,6 +69,37 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   frequencyPenalty: Joi.number().min(-2).max(2).empty(null),
   maxTokens: Joi.number().integer().empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
+  gitAutoSync: Joi.boolean().empty([null]),
+});
+
+export interface AddProjectRemoteInput {
+  url: string;
+  username?: string;
+  password?: string;
+}
+
+const addProjectGitRemoteSchema = Joi.object<AddProjectRemoteInput>({
+  url: Joi.string()
+    .uri({ scheme: ['https'] })
+    .required(),
+  username: Joi.string().empty([null, '']),
+  password: Joi.string().empty([null, '']),
+});
+
+export interface ProjectPullInput {
+  force?: boolean;
+}
+
+const pullInputSchema = Joi.object<ProjectPullInput>({
+  force: Joi.boolean().empty([null]),
+});
+
+export interface ProjectPushInput {
+  force?: boolean;
+}
+
+const pushInputSchema = Joi.object<ProjectPushInput>({
+  force: Joi.boolean().empty([null]),
 });
 
 export interface GetProjectsQuery {
@@ -88,24 +121,6 @@ const getDeepTemplate = async (projectId: string, ref: string, templateId: strin
     template.parent = filepath.split('/').slice(0, -1);
 
     templates = [template];
-
-    // if (template.next?.id) {
-    //   const nextTemplate = await getDeepTemplate(projectId, ref, template.next?.id);
-    //   if (nextTemplate?.length) {
-    //     templates = [...templates, ...nextTemplate];
-    //   }
-    // }
-
-    // if (template.branch?.branches?.length) {
-    //   for (const branch of template.branch?.branches || []) {
-    //     if (branch.template?.id) {
-    //       const branchTemplate = await getDeepTemplate(projectId, ref, branch.template?.id);
-    //       if (branchTemplate?.length) {
-    //         templates = [...templates, ...branchTemplate];
-    //       }
-    //     }
-    //   }
-    // }
   } catch (error) {
     // return templates
   }
@@ -284,6 +299,7 @@ export function projectRoutes(router: Router) {
       frequencyPenalty,
       maxTokens,
       gitType,
+      gitAutoSync,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (name && (await Projects.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
@@ -292,7 +308,7 @@ export function projectRoutes(router: Router) {
 
     const { did } = req.user!;
 
-    await Projects.update(
+    await project.update(
       omitBy(
         {
           name,
@@ -307,14 +323,13 @@ export function projectRoutes(router: Router) {
           frequencyPenalty,
           maxTokens,
           gitType,
+          gitAutoSync,
         },
         (v) => v === undefined
-      ),
-      { where: { _id: projectId } }
+      )
     );
-    const doc = await Projects.findOne({ where: { _id: projectId } });
 
-    res.json(doc);
+    res.json(project.dataValues);
   });
 
   router.delete('/projects/:projectId', ensureComponentCallOrAdmin(), async (req, res) => {
@@ -327,7 +342,7 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    await Projects.destroy({ where: { _id: projectId } });
+    await project.destroy();
 
     const root = repositoryRoot(projectId);
     rmSync(root, { recursive: true, force: true });
@@ -347,5 +362,110 @@ export function projectRoutes(router: Router) {
     const templates = (await Promise.all(fns)).flat();
 
     return res.json({ templates: uniqBy(templates, 'id') });
+  });
+
+  router.post('/projects/:projectId/remote', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
+
+    const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
+
+    const url = new URL(input.url);
+    if (input.username) url.username = input.username;
+    if (input.password) url.password = input.password;
+
+    const repository = await getRepository({ projectId });
+    await repository.addRemote({ remote: defaultRemote, url: url.toString(), force: true });
+
+    const urlWithoutPassword = new URL(url);
+    urlWithoutPassword.password = '';
+    await project.update({ gitUrl: urlWithoutPassword.toString() });
+
+    res.json({});
+  });
+
+  router.post('/projects/:projectId/remote/push', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
+
+    const input = await pushInputSchema.validateAsync(req.body, { stripUnknown: true });
+
+    const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    const repository = await getRepository({ projectId });
+    const branches = await repository.listBranches();
+    for (const ref of branches) {
+      await repository.push({ remote: defaultRemote, ref, force: input.force });
+    }
+
+    await project.update({ gitLastSyncedAt: new Date() });
+
+    res.json({});
+  });
+
+  router.post('/projects/:projectId/remote/pull', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+    const { did: userId, fullName } = req.user!;
+
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
+
+    const input = await pullInputSchema.validateAsync(req.body, { stripUnknown: true });
+
+    const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    const repository = await getRepository({ projectId });
+    const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
+    if (!remote) throw new Error('The remote has not been set up yet');
+
+    const branches = await repository.listBranches();
+
+    for (const ref of branches) {
+      if (input.force) {
+        await repository.fetch({ remote: defaultRemote, ref });
+        await repository.branch({
+          ref,
+          object: `${defaultRemote}/${ref}`,
+          checkout: true,
+          force: true,
+        });
+      } else {
+        await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
+      }
+    }
+
+    await project.update({ gitLastSyncedAt: new Date() });
+
+    res.json({});
+  });
+
+  router.post('/projects/:projectId/remote/sync', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+    const { did: userId, fullName } = req.user!;
+
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
+
+    const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    const repository = await getRepository({ projectId });
+    const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
+    if (!remote) throw new Error('The remote has not been set up yet');
+
+    const { refs: remoteRefs } = await repository.getRemoteInfo({ url: remote.url });
+
+    const branches = await repository.listBranches();
+
+    for (const ref of branches) {
+      // NOTE: 检查远程仓库是否有对应的分支。如果远程仓库没有对应的分支，调用 pull 会报错
+      if (remoteRefs?.heads?.[ref]) {
+        await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
+      }
+      await repository.push({ remote: defaultRemote, ref });
+    }
+
+    await project.update({ gitLastSyncedAt: new Date() });
+
+    res.json({});
   });
 }

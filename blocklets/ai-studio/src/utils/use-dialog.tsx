@@ -20,9 +20,12 @@ export default function useDialog() {
       cancelText = 'Cancel',
       middleText,
       middleColor,
+      middleIcon,
+      middleVariant,
       okText = 'Ok',
       okIcon,
       okColor,
+      okVariant,
       onOk,
       onMiddleClick,
       onCancel,
@@ -34,12 +37,16 @@ export default function useDialog() {
       okText?: string;
       okIcon?: ReactNode;
       okColor?: ButtonProps['color'];
+      okVariant?: ButtonProps['variant'];
       middleText?: string;
       middleColor?: ButtonProps['color'];
+      middleIcon?: ReactNode;
+      middleVariant?: ButtonProps['variant'];
       onOk?: () => Promise<any> | any;
       onMiddleClick?: () => Promise<any> | any;
       onCancel?: () => Promise<any> | any;
-    } & Omit<DialogProps, 'title' | 'open' | 'content'>) => {
+      onClose?: () => any;
+    } & Omit<DialogProps, 'title' | 'open' | 'content' | 'onClose'>) => {
       setProps({
         ...props,
         open: true,
@@ -56,28 +63,34 @@ export default function useDialog() {
                 onClick={async () => {
                   await onCancel?.();
                   closeDialog();
+                  props.onClose?.();
                 }}>
                 {cancelText}
               </Button>
               {middleText && onMiddleClick ? (
-                <Button
-                  variant="contained"
+                <PromiseLoadingButton
+                  variant={middleVariant || 'contained'}
                   color={middleColor}
+                  startIcon={middleIcon}
+                  loadingPosition={middleIcon ? 'start' : 'center'}
                   onClick={async () => {
                     await onMiddleClick();
                     closeDialog();
+                    props.onClose?.();
                   }}>
                   {middleText}
-                </Button>
+                </PromiseLoadingButton>
               ) : null}
               {onOk && (
                 <PromiseLoadingButton
-                  variant="contained"
+                  variant={okVariant || 'contained'}
                   color={okColor}
                   startIcon={okIcon}
+                  loadingPosition={okIcon ? 'start' : 'center'}
                   onClick={async () => {
                     await onOk?.();
                     closeDialog();
+                    props.onClose?.();
                   }}
                   type="submit">
                   {okText}
@@ -89,6 +102,7 @@ export default function useDialog() {
         onClose: async () => {
           await onCancel?.();
           closeDialog();
+          props.onClose?.();
         },
       });
     },

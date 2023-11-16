@@ -32,6 +32,7 @@ import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
 import { getSupportedModels } from '../../../libs/common';
 import { defaultBranch, useProjectState } from '../state';
+import RemoteRepoSetting from './remote-repo-setting';
 
 const init = {
   name: '',
@@ -60,8 +61,11 @@ export default function ProjectSettings() {
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
   const model = useMemo(() => supportedModels?.find((i) => i.model === value.model), [value.model, supportedModels]);
 
-  const { state, updateProject } = useProjectState(projectId, defaultBranch);
-  const { project, error } = state;
+  const {
+    state: { project, error, ...state },
+    updateProject,
+  } = useProjectState(projectId, defaultBranch);
+  if (error) throw error;
 
   const loading = state.loading || getSupportedModelsLoading;
 
@@ -123,24 +127,14 @@ export default function ProjectSettings() {
     }
   };
 
-  useEffect(() => {
-    if (error) {
-      Toast.error(getErrorMessage(error));
-    }
-  }, [error]);
-
-  if (loading && !isSubmit.current) {
+  if (loading && !isSubmit.current && !project) {
     return <Loading fixed />;
-  }
-
-  if (error) {
-    return null;
   }
 
   return (
     <Box overflow="auto">
       <UploaderProvider>
-        <SettingsContainer sx={{ mt: 2 }} maxWidth="sm">
+        <SettingsContainer sx={{ pb: 10 }} maxWidth="sm">
           <form onSubmit={(e) => e.preventDefault()}>
             <Box my={2}>
               <Box component="h3">{t('projectSetting.baseInfo')}</Box>
@@ -355,7 +349,7 @@ export default function ProjectSettings() {
               </Box>
             </Box>
 
-            <Box display="flex" justifyContent="flex-end" mb={5}>
+            <Box mb={5}>
               <LoadingButton
                 disabled={readOnly}
                 variant="contained"
@@ -367,6 +361,12 @@ export default function ProjectSettings() {
               </LoadingButton>
             </Box>
           </form>
+
+          <Box my={2}>
+            <Box component="h3">{t('remoteGitRepo')}</Box>
+
+            <RemoteRepoSetting projectId={projectId} />
+          </Box>
         </SettingsContainer>
       </UploaderProvider>
     </Box>

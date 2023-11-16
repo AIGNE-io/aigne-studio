@@ -40,6 +40,12 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare maxTokens?: number;
 
+  declare gitUrl?: string;
+
+  declare gitAutoSync?: boolean;
+
+  declare gitLastSyncedAt?: Date;
+
   public static readonly GENESIS_ATTRIBUTES = {
     _id: {
       type: DataTypes.STRING,
@@ -94,6 +100,15 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
     },
     maxTokens: {
       type: DataTypes.FLOAT,
+    },
+    gitUrl: {
+      type: DataTypes.STRING,
+    },
+    gitAutoSync: {
+      type: DataTypes.BOOLEAN,
+    },
+    gitLastSyncedAt: {
+      type: DataTypes.DATE,
     },
   };
 }

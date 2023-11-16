@@ -111,10 +111,42 @@ export const useProjectState = (projectId: string, gitRef: string) => {
       await projectApi.updateProject(...args);
       refetch();
     },
-    [setState]
+    [refetch]
   );
 
-  return { state, refetch, createBranch, updateBranch, deleteBranch, updateProject };
+  const addRemote = useCallback(
+    async (...args: Parameters<typeof projectApi.addProjectRemote>) => {
+      await projectApi.addProjectRemote(...args);
+      refetch();
+    },
+    [refetch]
+  );
+
+  const push = useCallback(
+    async (...args: Parameters<typeof projectApi.projectPush>) => {
+      await projectApi.projectPush(...args);
+      refetch();
+    },
+    [refetch]
+  );
+
+  const pull = useCallback(
+    async (...args: Parameters<typeof projectApi.projectPull>) => {
+      await projectApi.projectPull(...args);
+      refetch();
+    },
+    [refetch]
+  );
+
+  const sync = useCallback(
+    async (...args: Parameters<typeof projectApi.projectSync>) => {
+      await projectApi.projectSync(...args);
+      refetch();
+    },
+    [refetch]
+  );
+
+  return { state, refetch, createBranch, updateBranch, deleteBranch, updateProject, addRemote, push, pull, sync };
 };
 
 export interface SessionItem {
