@@ -27,7 +27,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
                 (value as StringParameter).multiline = true;
               } else {
                 value.type = newValue as any;
-                (value as StringParameter).multiline = false;
+                delete (value as StringParameter).multiline;
               }
             });
           }}
