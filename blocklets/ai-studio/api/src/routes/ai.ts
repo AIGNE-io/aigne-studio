@@ -396,7 +396,7 @@ async function runTemplate(
               if (!item.vectorStore) return '';
 
               if (!item.parameters || Object.keys(item.parameters).length === 0) {
-                throw new Error('parameters is required');
+                throw new Error('dataset search parameters is required');
               }
 
               const regex = new RegExp(`\\{\\{\\s*${item.output}\\s*\\}\\}`);
