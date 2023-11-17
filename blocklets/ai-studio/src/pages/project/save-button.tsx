@@ -216,7 +216,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
 
 export function isTheErrorShouldShowMergeConflict(error: any) {
   const errorName = error.response?.data?.error?.name;
-  return ['MergeConflictError', 'PushRejectedError'].includes(errorName);
+  return ['MergeConflictError', 'PushRejectedError', 'MergeNotSupportedError'].includes(errorName);
 }
 
 export function useMergeConflictDialog({ projectId }: { projectId: string }) {

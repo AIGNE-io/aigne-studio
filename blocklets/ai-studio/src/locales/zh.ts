@@ -246,7 +246,7 @@ export default flat({
   mergeConflict: '合并冲突',
   mergeConflictTip: '远程数据已被更改，无法自动合并！',
   useRemote: '使用远程数据',
-  useRemoteTip: '丢弃<b>本地</b>数据',
+  useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
-  useLocalTip: '丢弃<b>远程</b>数据',
+  useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
 });
