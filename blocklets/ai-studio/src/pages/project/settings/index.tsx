@@ -167,7 +167,7 @@ export default function ProjectSettings() {
     }
 
     return () => {
-      blocker.current?.reset?.();
+      blocker.current = null;
     };
   }, [blocker, changed, t, value]);
 
