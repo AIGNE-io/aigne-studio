@@ -1,3 +1,11 @@
+## 0.1.138 (2023-11-17)
+
+- update link of github access token
+- update tips of conflict
+- fix: check connection before add remote
+- reduce loading size of saving
+- fix: update label password to access token
+
 ## 0.1.137 (2023-11-16)
 
 - fix: when the comparison data is wrong, the empty page is displayed directly
