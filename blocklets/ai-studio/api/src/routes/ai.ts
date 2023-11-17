@@ -349,8 +349,7 @@ async function runTemplate(
               const contentType = response.headers.get('Content-Type');
               if (contentType) {
                 if (contentType.includes('application/json')) {
-                  const result = await response.json();
-                  return JSON.stringify(result);
+                  return response.json();
                 }
 
                 if (contentType.includes('text/plain') || contentType.includes('text/html')) {

@@ -228,7 +228,7 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
                         <Typography component="span" color="text.secondary">
                           {key}
                         </Typography>
-                        : {val}
+                        : {typeof val === 'string' ? val : JSON.stringify(val)}
                       </Typography>
                     ))}
                   </Box>
@@ -437,12 +437,7 @@ function DebugModeForm({
   const scrollToBottom = useScrollToBottom();
 
   const params = new Set(
-    parseDirectivesOfTemplate(template, {
-      excludeCallPromptVariables: true,
-      excludeCallAPIVariables: true,
-      excludeCallFuncVariables: true,
-      excludeCallDatasetVariables: true,
-    })
+    parseDirectivesOfTemplate(template, { excludeNonPromptVariables: true })
       .map((i) => (i.type === 'variable' ? i.name : undefined))
       .filter((i): i is string => Boolean(i))
   );

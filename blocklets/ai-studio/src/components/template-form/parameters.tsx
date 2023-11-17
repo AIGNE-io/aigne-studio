@@ -35,12 +35,7 @@ export default function Parameters({
 }) {
   const params = [
     ...new Set(
-      parseDirectivesOfTemplate(form, {
-        excludeCallPromptVariables: true,
-        excludeCallAPIVariables: true,
-        excludeCallFuncVariables: true,
-        excludeCallDatasetVariables: true,
-      })
+      parseDirectivesOfTemplate(form, { excludeNonPromptVariables: true })
         .map((i) => (i.type === 'variable' ? i.name : undefined))
         .filter((i): i is string => Boolean(i))
     ),

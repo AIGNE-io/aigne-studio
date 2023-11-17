@@ -2,6 +2,7 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { ComponentPickerOption, EditorState, INSERT_VARIABLE_COMMAND } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
+import { toPath } from 'lodash';
 import sortBy from 'lodash/sortBy';
 import { customAlphabet } from 'nanoid';
 import { useCallback, useId, useMemo } from 'react';
@@ -292,15 +293,9 @@ export function parseDirectivesOfMessages(template: TemplateYjs) {
 export function parseDirectivesOfTemplate(
   template: TemplateYjs,
   {
-    excludeCallPromptVariables = false,
-    excludeCallAPIVariables = false,
-    excludeCallFuncVariables = false,
-    excludeCallDatasetVariables = false,
+    excludeNonPromptVariables = false,
   }: {
-    excludeCallPromptVariables?: boolean;
-    excludeCallAPIVariables?: boolean;
-    excludeCallFuncVariables?: boolean;
-    excludeCallDatasetVariables?: boolean;
+    excludeNonPromptVariables?: boolean;
   } = {}
 ) {
   let directives = parseDirectives(
@@ -322,44 +317,18 @@ export function parseDirectivesOfTemplate(
       .filter((i): i is string => typeof i === 'string')
   );
 
-  if (excludeCallPromptVariables && template.prompts) {
+  if (excludeNonPromptVariables && template.prompts) {
     const outputs = new Set(
       Object.values(template.prompts)
-        .map(({ data }) => (isCallPromptMessage(data) ? data.output : undefined))
+        .map(({ data }) => (isPromptMessage(data) ? undefined : data.output))
         .filter(Boolean)
     );
 
-    directives = directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
-  }
-
-  if (excludeCallAPIVariables && template.prompts) {
-    const outputs = new Set(
-      Object.values(template.prompts)
-        .map(({ data }) => (isCallAPIMessage(data) ? data.output : undefined))
-        .filter(Boolean)
-    );
-
-    directives = directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
-  }
-
-  if (excludeCallFuncVariables && template.prompts) {
-    const outputs = new Set(
-      Object.values(template.prompts)
-        .map(({ data }) => (isCallFuncMessage(data) ? data.output : undefined))
-        .filter(Boolean)
-    );
-
-    directives = directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
-  }
-
-  if (excludeCallDatasetVariables && template.prompts) {
-    const outputs = new Set(
-      Object.values(template.prompts)
-        .map(({ data }) => (isCallDatasetMessage(data) ? data.output : undefined))
-        .filter(Boolean)
-    );
-
-    directives = directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
+    directives = directives.filter((i) => {
+      if (i.type !== 'variable') return true;
+      const variableEntry = toPath(i.name)[0];
+      return !outputs.has(variableEntry);
+    });
   }
 
   return directives;
