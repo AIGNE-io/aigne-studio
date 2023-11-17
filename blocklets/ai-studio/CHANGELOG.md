@@ -1,3 +1,7 @@
+## 0.1.139 (2023-11-17)
+
+- feat: blocking when the page is modified
+
 ## 0.1.138 (2023-11-17)
 
 - update link of github access token
