@@ -222,7 +222,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
 
             <TextField
               fullWidth
-              label={t('password')}
+              label={t('accessToken')}
               {...form.register('password')}
               error={Boolean(form.formState.errors.password)}
               helperText={
