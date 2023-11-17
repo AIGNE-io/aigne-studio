@@ -20,7 +20,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import isNil from 'lodash/isNil';
 import pick from 'lodash/pick';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { unstable_useBlocker as useBlocker, useParams } from 'react-router-dom';
+import { useBeforeUnload, unstable_useBlocker as useBlocker, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
@@ -35,8 +35,6 @@ import { getSupportedModels } from '../../../libs/common';
 import useDialog from '../../../utils/use-dialog';
 import { defaultBranch, useProjectState } from '../state';
 import RemoteRepoSetting from './remote-repo-setting';
-
-type BlockerReturnType = ReturnType<typeof useBlocker>;
 
 const init = {
   name: '',
@@ -62,7 +60,6 @@ export default function ProjectSettings() {
   const [value, setValue] = useState<UpdateProjectInput>(init);
   const isSubmit = useRef(false);
   const origin = useRef<UpdateProjectInput>();
-  const blocker = useRef<BlockerReturnType>();
 
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
   const model = useMemo(() => supportedModels?.find((i) => i.model === value.model), [value.model, supportedModels]);
@@ -138,12 +135,14 @@ export default function ProjectSettings() {
     return !equal(origin.current, value);
   }, [value]);
 
-  blocker.current = useBlocker(
-    ({ currentLocation, nextLocation }) => changed && currentLocation.pathname !== nextLocation.pathname
-  );
+  useBeforeUnload((e) => {
+    if (changed) e.returnValue = 'Discard changes?';
+  });
+
+  const blocker = useBlocker(changed);
 
   useEffect(() => {
-    if (changed && blocker.current && blocker.current.state === 'blocked') {
+    if (changed && blocker.state === 'blocked') {
       showDialog({
         maxWidth: 'xs',
         fullWidth: true,
@@ -155,21 +154,17 @@ export default function ProjectSettings() {
         middleColor: 'error',
         onOk: async () => {
           await onSubmit();
-          blocker.current?.proceed?.();
+          blocker.proceed();
         },
         onMiddleClick: () => {
-          blocker.current?.proceed?.();
+          blocker.proceed();
         },
         onCancel: () => {
-          blocker.current?.reset?.();
+          blocker.reset();
         },
       });
     }
-
-    return () => {
-      blocker.current = undefined;
-    };
-  }, [blocker, changed, t, value]);
+  }, [blocker.state, changed, t, value]);
 
   if (loading && !isSubmit.current && !project) {
     return <Loading fixed />;
