@@ -4,6 +4,7 @@ import { cx } from '@emotion/css';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
 import {
+  Autocomplete,
   Box,
   Button,
   FormLabel,
@@ -22,9 +23,16 @@ import {
 import { useThrottleFn } from 'ahooks';
 import { ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget } from 'react-dnd';
+import { useAsync } from 'react-use';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { CallFuncMessage, CallPromptMessage, EditorPromptMessage } from '../../../api/src/store/templates';
+import {
+  CallDatasetMessage,
+  CallFuncMessage,
+  CallPromptMessage,
+  EditorPromptMessage,
+} from '../../../api/src/store/templates';
+import { getDatasets } from '../../libs/dataset';
 import Add from '../../pages/project/icons/add';
 import DragVertical from '../../pages/project/icons/drag-vertical';
 import Eye from '../../pages/project/icons/eye';
@@ -42,6 +50,7 @@ import { useTemplateCompare } from '../../pages/project/state';
 import {
   createFile,
   isCallAPIMessage,
+  isCallDatasetMessage,
   isCallFuncMessage,
   isCallPromptMessage,
   isPromptMessage,
@@ -57,6 +66,7 @@ const CONST_TYPE = {
   callPrompt: 'callPrompt',
   callAPI: 'callAPI',
   callFunc: 'callFunc',
+  callDataset: 'callDataset',
 };
 
 const componentMap = {
@@ -64,6 +74,7 @@ const componentMap = {
   [CONST_TYPE.callPrompt]: CallPromptItemView,
   [CONST_TYPE.callAPI]: CallAPIItemView,
   [CONST_TYPE.callFunc]: CallFuncItemView,
+  [CONST_TYPE.callDataset]: CallDatasetItemView,
 };
 
 export default function Prompts({
@@ -101,6 +112,10 @@ export default function Prompts({
 
         if (isCallFuncMessage(prompt)) {
           return CONST_TYPE.callFunc;
+        }
+
+        if (isCallDatasetMessage(prompt)) {
+          return CONST_TYPE.callDataset;
         }
 
         return null;
@@ -382,6 +397,15 @@ function PromptItemView({
           const variable = `var-${randomId(5)}`;
           const id = randomId();
           addPrompt({ id, role: 'call-function', output: variable }, prompt?.index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+      new ComponentPickerOption('Execute Dataset', {
+        keywords: ['execute', 'dataset'],
+        onSelect: (editor) => {
+          const variable = `var-${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-dataset', output: variable, searchParams: '' }, prompt?.index || 0);
           editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
         },
       }),
@@ -814,6 +838,125 @@ function CallFuncItemView({
   );
 }
 
+function CallDatasetItemView({
+  projectId,
+  gitRef,
+  template,
+  promptId,
+  readOnly,
+}: {
+  projectId: string;
+  gitRef: string;
+  template: TemplateYjs;
+  promptId: string;
+  readOnly?: boolean;
+}) {
+  const { t } = useLocaleContext();
+
+  const originalOutput = useRef<string>();
+  const { renameVariable } = usePromptsState({ projectId, gitRef, templateId: template.id });
+  const { value: datasetsRes } = useAsync(() => getDatasets(), []);
+  const datasets = useMemo(() => datasetsRes?.datasets.map((i) => ({ id: i._id!, name: i.name })) ?? [], [datasetsRes]);
+
+  const { prompt } = usePromptState({
+    projectId,
+    gitRef,
+    templateId: template.id,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
+
+  const rename = useThrottleFn(
+    () => {
+      if (
+        callDatasetMessage?.output &&
+        originalOutput.current &&
+        originalOutput.current !== callDatasetMessage.output
+      ) {
+        renameVariable({
+          [originalOutput.current]: callDatasetMessage.output,
+        });
+        originalOutput.current = callDatasetMessage.output;
+      }
+    },
+    { wait: 500, trailing: true }
+  );
+
+  if (!prompt) return null;
+  const callDatasetMessage = isCallDatasetMessage(prompt.data) ? prompt.data : null;
+  if (!callDatasetMessage) return null;
+
+  return (
+    <Stack p={1} gap={1}>
+      <Stack
+        px={1}
+        direction="row"
+        alignItems="center"
+        gap={1}
+        sx={{ [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}>
+        <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
+          Execute Dataset
+        </Typography>
+
+        <Stack flex={1} direction="row" alignItems="center" gap={1}>
+          <Autocomplete
+            readOnly={readOnly}
+            fullWidth
+            size="small"
+            value={callDatasetMessage.vectorStore ?? null}
+            onChange={(_, value) => (callDatasetMessage.vectorStore = value ?? undefined)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                hiddenLabel
+                sx={{
+                  [`> .${inputBaseClasses.root}`]: {
+                    py: '4px !important',
+                  },
+                }}
+              />
+            )}
+            options={datasets}
+            isOptionEqualToValue={(o, v) => o.id === v.id}
+            getOptionLabel={(v) => v.name || 'Unnamed'}
+          />
+        </Stack>
+
+        <TextField
+          onFocus={() => (originalOutput.current = callDatasetMessage.output)}
+          onBlur={rename.run}
+          hiddenLabel
+          placeholder={t('output')}
+          value={callDatasetMessage.output || ''}
+          onChange={(e) => {
+            callDatasetMessage.output = e.target.value.trim();
+            rename.run();
+          }}
+          sx={{ width: 100 }}
+        />
+      </Stack>
+
+      <Stack px={1} ml={1} gap={1}>
+        <Stack direction="row" gap={1}>
+          <FormLabel sx={{ minWidth: 100, lineHeight: '32px' }}>查询数据</FormLabel>
+          <Box flex={1}>
+            <ParameterItem
+              projectId={projectId}
+              gitRef={gitRef}
+              templateId={template.id}
+              prompt={callDatasetMessage}
+              index={prompt.index}
+              param="dataset-search-param"
+              readOnly={readOnly}
+            />
+          </Box>
+        </Stack>
+      </Stack>
+    </Stack>
+  );
+}
+
 const randomVariableNamePrefix = 'var-';
 
 function ParameterItem({
@@ -829,7 +972,7 @@ function ParameterItem({
   projectId: string;
   gitRef: string;
   templateId: string;
-  prompt: CallPromptMessage;
+  prompt: CallPromptMessage | CallDatasetMessage;
   param: string;
   readOnly?: boolean;
 }) {

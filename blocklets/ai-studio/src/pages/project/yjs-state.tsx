@@ -22,6 +22,7 @@ import { WebsocketProvider, messageSync } from 'y-websocket';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import {
   CallAPIMessage,
+  CallDatasetMessage,
   CallFuncMessage,
   CallPromptMessage,
   PromptMessage,
@@ -52,6 +53,10 @@ export function isCallAPIMessage(message: any): message is CallAPIMessage {
 
 export function isCallFuncMessage(message: any): message is CallFuncMessage {
   return message?.role === 'call-function';
+}
+
+export function isCallDatasetMessage(message: any): message is CallDatasetMessage {
+  return message?.role === 'call-dataset';
 }
 
 export interface StoreContext {

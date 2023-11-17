@@ -18,6 +18,7 @@ import {
   Template,
   getTemplate,
   isCallAPIMessage,
+  isCallDatasetMessage,
   isCallFuncMessage,
   isCallPromptMessage,
   isPromptMessage,
@@ -252,32 +253,23 @@ async function runTemplate(
     const renderMessage = async (message: string) => {
       return Mustache.render(message, variables, undefined, { escape: (v) => v });
     };
-
     const vm = new NodeVM({
       console: 'inherit',
       sandbox: {
         context: {
           get: (name: any) => {
-            const variable = variables[name];
-            if (typeof variable === 'function') {
-              if (typeof variable() === 'function') {
-                return variable()();
-              }
-
-              return variable();
+            let result = variables[name];
+            while (typeof result === 'function') {
+              result = result();
             }
 
-            return variable;
+            return result;
           },
         },
-      },
-      require: {
-        external: true,
       },
     });
 
     const variablesCache: { [key: string]: Promise<string> } = {};
-
     const variables = {
       ...parameters,
       ...Object.fromEntries(
@@ -316,11 +308,11 @@ async function runTemplate(
             variablesCache[item.output] ??= (async () => {
               if (!item.url) throw new Error('Required property `url` is not present');
 
-              if (item.url.includes(`{{${item.output}}}`)) {
+              const regex = new RegExp(`\\{\\{\\s*${item.output}\\s*\\}\\}`);
+              if (regex.test(item.url)) {
                 throw new Error(`Loop dependent variable "${item.output}"`);
               }
 
-              // 替换url中变量
               const url = await renderMessage(item.url);
               const params: { method: string; body?: string } = { method: item.method };
 
@@ -330,8 +322,10 @@ async function runTemplate(
                 Object.keys(item.params).length &&
                 ['post', 'put', 'patch', 'delete'].includes(item.method)
               ) {
-                if (JSON.stringify(item.params).includes(`{{${item.output}}})`)) {
-                  throw new Error(`Loop dependent variable ${item.output}`);
+                const regex = new RegExp(`\\{\\{\\s*${item.output}\\s*\\}\\}`);
+                const parametersStr = JSON.stringify(item.params);
+                if (regex.test(parametersStr)) {
+                  throw new Error(`Loop dependent variable "${item.output}"`);
                 }
 
                 const paramFns = Object.entries(item.params).map(async ([key, value]) => {
@@ -348,12 +342,10 @@ async function runTemplate(
 
               const response = await fetch(url, params);
 
-              // 确保响应有效
               if (!response.ok) {
                 throw new Error(`HTTP Error! Status: ${response.status}`);
               }
 
-              // 检查内容类型
               const contentType = response.headers.get('Content-Type');
               if (contentType) {
                 if (contentType.includes('application/json')) {
@@ -390,6 +382,43 @@ async function runTemplate(
 
               const functionInSandbox = vm.run(`module.exports = async function() { ${item.code} }`);
               const result = await functionInSandbox();
+              return result;
+            })();
+            return variablesCache[item.output];
+          },
+        ])
+      ),
+      ...Object.fromEntries(
+        (current.prompts ?? []).filter(isCallDatasetMessage).map((item) => [
+          item.output,
+          () => async () => {
+            variablesCache[item.output] ??= (async () => {
+              if (!item.vectorStore) return '';
+
+              if (!item.parameters || Object.keys(item.parameters).length === 0) {
+                throw new Error('parameters is required');
+              }
+
+              const regex = new RegExp(`\\{\\{\\s*${item.output}\\s*\\}\\}`);
+              const parametersStr = JSON.stringify(item.parameters);
+              if (regex.test(parametersStr)) {
+                throw new Error(`Loop dependent variable "${item.output}"`);
+              }
+
+              const messages = (
+                await Promise.all(
+                  Object.values(item.parameters).map(async (val) =>
+                    typeof val === 'string' ? renderMessage(val) : val
+                  )
+                )
+              ).flat();
+
+              const messagesString = messages.join('\n');
+
+              const dataset = await VectorStore.load(item.vectorStore.id, new AIKitEmbeddings());
+              const docs = await dataset.similaritySearch(messagesString, 4);
+              const result = docs.map((doc) => doc.pageContent).join('\n');
+
               return result;
             })();
             return variablesCache[item.output];

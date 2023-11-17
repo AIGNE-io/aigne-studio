@@ -9,9 +9,10 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Mustache from '../../../api/src/libs/mustache';
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { CallPromptMessage, Role } from '../../../api/src/store/templates';
+import { CallDatasetMessage, CallPromptMessage, Role } from '../../../api/src/store/templates';
 import {
   isCallAPIMessage,
+  isCallDatasetMessage,
   isCallFuncMessage,
   isCallPromptMessage,
   isPromptMessage,
@@ -143,7 +144,7 @@ export function useParameterState({
   projectId: string;
   gitRef: string;
   templateId: string;
-  prompt: CallPromptMessage;
+  prompt: CallPromptMessage | CallDatasetMessage;
   param: string;
 }) {
   const content = prompt.parameters?.[param] ?? '';
@@ -237,10 +238,12 @@ export function parseDirectivesOfTemplate(
     excludeCallPromptVariables = false,
     excludeCallAPIVariables = false,
     excludeCallFuncVariables = false,
+    excludeCallDatasetVariables = false,
   }: {
     excludeCallPromptVariables?: boolean;
     excludeCallAPIVariables?: boolean;
     excludeCallFuncVariables?: boolean;
+    excludeCallDatasetVariables?: boolean;
   } = {}
 ) {
   let directives = parseDirectives(
@@ -255,6 +258,8 @@ export function parseDirectivesOfTemplate(
 
           return [data.url];
         }
+        if (isCallDatasetMessage(data) && data.parameters) return Object.values(data.parameters);
+
         return [];
       })
       .filter((i): i is string => typeof i === 'string')
@@ -284,6 +289,16 @@ export function parseDirectivesOfTemplate(
     const outputs = new Set(
       Object.values(template.prompts)
         .map(({ data }) => (isCallFuncMessage(data) ? data.output : undefined))
+        .filter(Boolean)
+    );
+
+    directives = directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
+  }
+
+  if (excludeCallDatasetVariables && template.prompts) {
+    const outputs = new Set(
+      Object.values(template.prompts)
+        .map(({ data }) => (isCallDatasetMessage(data) ? data.output : undefined))
         .filter(Boolean)
     );
 
@@ -344,9 +359,7 @@ export function usePromptsState({
                 data.parameters[param] = renameVariableByMustache(val, rename);
               }
             }
-          } else if (isCallAPIMessage(data) && data.output) {
-            data.output = renameVariableByMustache(data.output, rename);
-          } else if (isCallFuncMessage(data) && data.output) {
+          } else if ((isCallAPIMessage(data) || isCallFuncMessage(data) || isCallDatasetMessage(data)) && data.output) {
             data.output = renameVariableByMustache(data.output, rename);
           }
         }

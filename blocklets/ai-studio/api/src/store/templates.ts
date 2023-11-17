@@ -10,9 +10,17 @@ import { yjsToTemplate } from './projects';
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
 
-export type Role = 'system' | 'user' | 'assistant' | 'call-prompt' | 'call-api' | 'call-function';
+export type Role = 'system' | 'user' | 'assistant' | 'call-prompt' | 'call-api' | 'call-function' | 'call-dataset';
 
-export const roles: Role[] = ['system', 'user', 'assistant', 'call-prompt', 'call-api', 'call-function'];
+export const roles: Role[] = [
+  'system',
+  'user',
+  'assistant',
+  'call-prompt',
+  'call-api',
+  'call-function',
+  'call-dataset',
+];
 
 export interface PromptMessage {
   id: string;
@@ -51,7 +59,23 @@ export interface CallFuncMessage {
   visibility?: 'hidden';
 }
 
-export type EditorPromptMessage = PromptMessage | CallPromptMessage | CallAPIMessage | CallFuncMessage;
+export interface CallDatasetMessage {
+  id: string;
+  role: 'call-dataset';
+  content?: undefined;
+  output: string;
+  type?: 'vectorStore';
+  parameters?: { [key: string]: string | undefined };
+  vectorStore?: { id: string; name?: string };
+  visibility?: 'hidden';
+}
+
+export type EditorPromptMessage =
+  | PromptMessage
+  | CallPromptMessage
+  | CallAPIMessage
+  | CallFuncMessage
+  | CallDatasetMessage;
 
 export function isPromptMessage(message: any): message is PromptMessage {
   return ['system', 'user', 'assistant'].includes(message?.role);
@@ -67,6 +91,10 @@ export function isCallAPIMessage(message: any): message is CallAPIMessage {
 
 export function isCallFuncMessage(message: any): message is CallFuncMessage {
   return message?.role === 'call-function';
+}
+
+export function isCallDatasetMessage(message: any): message is CallDatasetMessage {
+  return message?.role === 'call-dataset';
 }
 
 export interface Template {
