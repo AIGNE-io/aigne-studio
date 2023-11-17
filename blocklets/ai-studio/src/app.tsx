@@ -4,7 +4,15 @@ import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
 import { ReactNode, Suspense, lazy, useEffect, useRef } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import {
+  Navigate,
+  Outlet,
+  Route,
+  RouterProvider,
+  createBrowserRouter,
+  createRoutesFromElements,
+  useLocation,
+} from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
 
 import ErrorBoundary from './components/error/error-boundary';
@@ -44,13 +52,11 @@ export default function App() {
         <RecoilRoot>
           <ToastProvider>
             <LocaleProvider translations={translations} fallbackLocale="en">
-              <BrowserRouter basename={basename}>
-                <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
-                  <Suspense fallback={<Loading fixed />}>
-                    <AppRoutes />
-                  </Suspense>
-                </SessionProvider>
-              </BrowserRouter>
+              <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
+                <Suspense fallback={<Loading fixed />}>
+                  <AppRoutes basename={basename} />
+                </Suspense>
+              </SessionProvider>
             </LocaleProvider>
           </ToastProvider>
         </RecoilRoot>
@@ -59,22 +65,29 @@ export default function App() {
   );
 }
 
-function AppRoutes() {
-  const errorBoundary = useRef<ErrorBoundary>(null);
-
+function LocationListener({ errorBoundaryRef }: { errorBoundaryRef: React.RefObject<ErrorBoundary> }) {
   const location = useLocation();
+
   useEffect(() => {
-    errorBoundary.current?.reset();
-  }, [location]);
+    if (errorBoundaryRef.current) {
+      errorBoundaryRef.current.reset();
+    }
+  }, [location, errorBoundaryRef]);
+
+  return <Outlet />;
+}
+
+function AppRoutes({ basename }: { basename: string }) {
+  const errorBoundary = useRef<ErrorBoundary>(null);
 
   const initialized = useInitialized();
   const isPromptEditor = useIsPromptEditor();
 
   if (!initialized) return <Loading fixed />;
 
-  return (
-    <ErrorBoundary ref={errorBoundary}>
-      <Routes>
+  const router = createBrowserRouter(
+    createRoutesFromElements(
+      <Route path="/" element={<LocationListener errorBoundaryRef={errorBoundary} />}>
         <Route index element={isPromptEditor ? <Navigate to="projects" replace /> : <Home />} />
         {isPromptEditor ? (
           <>
@@ -93,7 +106,14 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/" />} />
         )}
         <Route path="*" element={<NotFound />} />
-      </Routes>
+      </Route>
+    ),
+    { basename }
+  );
+
+  return (
+    <ErrorBoundary ref={errorBoundary}>
+      <RouterProvider router={router} />
     </ErrorBoundary>
   );
 }

@@ -57,7 +57,7 @@ export default flat({
     import: 'Import',
     imported: 'Imported',
     noTemplates: 'No Templates',
-    saveChanges: "You haven't saved yet, save now?",
+    saveChanges: 'Your updated data has not been saved, are you sure to leave?',
     discard: 'Discard',
     discardChanges: 'Discard all changes?',
     deleteTemplate: 'Delete template "{template}"?',
@@ -251,4 +251,6 @@ export default flat({
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
+  saveAndLeave: 'Save and Leave',
+  leave: 'Leave',
 });

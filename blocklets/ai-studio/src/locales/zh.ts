@@ -57,7 +57,7 @@ export default flat({
     import: '导入',
     imported: '导入成功',
     noTemplates: '暂无模版',
-    saveChanges: '您还未保存，现在保存？',
+    saveChanges: '您更新数据还未保存，确认离开吗？',
     discard: '放弃',
     discardChanges: '放弃所有更改？',
     deleteTemplate: '删除模版“{template}”？',
@@ -249,4 +249,6 @@ export default flat({
   useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
   useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
+  saveAndLeave: '保存并离开',
+  leave: '直接离开',
 });

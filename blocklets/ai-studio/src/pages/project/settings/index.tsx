@@ -15,11 +15,12 @@ import {
   Tooltip,
   styled,
 } from '@mui/material';
+import equal from 'fast-deep-equal';
 import cloneDeep from 'lodash/cloneDeep';
 import isNil from 'lodash/isNil';
 import pick from 'lodash/pick';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { unstable_useBlocker as useBlocker, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
@@ -31,8 +32,11 @@ import { useReadOnly } from '../../../contexts/session';
 import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
 import { getSupportedModels } from '../../../libs/common';
+import useDialog from '../../../utils/use-dialog';
 import { defaultBranch, useProjectState } from '../state';
 import RemoteRepoSetting from './remote-repo-setting';
+
+type BlockerReturnType = ReturnType<typeof useBlocker>;
 
 const init = {
   name: '',
@@ -53,10 +57,12 @@ export default function ProjectSettings() {
   if (!projectId) throw new Error('Missing required params `projectId`');
 
   const readOnly = useReadOnly({ ref: defaultBranch });
-
+  const { dialog, showDialog } = useDialog();
   const [submitLoading, setLoading] = useState(false);
   const [value, setValue] = useState<UpdateProjectInput>(init);
   const isSubmit = useRef(false);
+  const origin = useRef<UpdateProjectInput>();
+  const blocker = useRef<BlockerReturnType>();
 
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
   const model = useMemo(() => supportedModels?.find((i) => i.model === value.model), [value.model, supportedModels]);
@@ -84,6 +90,7 @@ export default function ProjectSettings() {
         'gitType',
       ]);
 
+      origin.current = merge;
       setValue(merge);
     }
   }, [project]);
@@ -126,6 +133,43 @@ export default function ProjectSettings() {
       setLoading(false);
     }
   };
+
+  const changed = useMemo(() => {
+    return !equal(origin.current, value);
+  }, [value]);
+
+  blocker.current = useBlocker(
+    ({ currentLocation, nextLocation }) => changed && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  useEffect(() => {
+    if (changed && blocker.current && blocker.current.state === 'blocked') {
+      showDialog({
+        maxWidth: 'xs',
+        fullWidth: true,
+        title: t('alert.saveChanges'),
+        okText: t('saveAndLeave'),
+        okColor: 'primary',
+        cancelText: t('alert.cancel'),
+        middleText: t('leave'),
+        middleColor: 'error',
+        onOk: async () => {
+          await onSubmit();
+          blocker.current?.proceed?.();
+        },
+        onMiddleClick: () => {
+          blocker.current?.proceed?.();
+        },
+        onCancel: () => {
+          blocker.current?.reset?.();
+        },
+      });
+    }
+
+    return () => {
+      blocker.current?.reset?.();
+    };
+  }, [blocker, changed, t, value]);
 
   if (loading && !isSubmit.current && !project) {
     return <Loading fixed />;
@@ -369,6 +413,8 @@ export default function ProjectSettings() {
           </Box>
         </SettingsContainer>
       </UploaderProvider>
+
+      {dialog}
     </Box>
   );
 }
