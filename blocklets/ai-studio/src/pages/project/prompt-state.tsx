@@ -1,5 +1,5 @@
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { EditorState } from '@blocklet/prompt-editor';
+import { ComponentPickerOption, EditorState, INSERT_VARIABLE_COMMAND } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import sortBy from 'lodash/sortBy';
@@ -192,6 +192,63 @@ export function useParameterState({
   }, [content]);
 
   return { state, setEditorState };
+}
+
+export function useEditorPicker({
+  projectId,
+  gitRef,
+  templateId,
+}: {
+  projectId: string;
+  gitRef: string;
+  templateId: string;
+}) {
+  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
+  const randomVariableNamePrefix = 'var-';
+
+  const getOptions = useCallback(
+    (index?: number) => [
+      new ComponentPickerOption('Execute Prompt', {
+        keywords: ['execute', 'prompt'],
+        onSelect: (editor) => {
+          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-prompt', output: variable }, index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+      new ComponentPickerOption('Execute API', {
+        keywords: ['execute', 'api', 'call'],
+        onSelect: (editor) => {
+          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-api', output: variable, method: 'get', url: '', params: {} }, index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+      new ComponentPickerOption('Execute Function', {
+        keywords: ['execute', 'function', 'call'],
+        onSelect: (editor) => {
+          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-function', output: variable }, index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+      new ComponentPickerOption('Execute Dataset', {
+        keywords: ['execute', 'dataset'],
+        onSelect: (editor) => {
+          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-dataset', output: variable }, index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+    ],
+    [addPrompt]
+  );
+
+  return { getOptions };
 }
 
 type Directive = {

@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import PromptEditor, { ComponentPickerOption, INSERT_VARIABLE_COMMAND } from '@blocklet/prompt-editor';
+import PromptEditor from '@blocklet/prompt-editor';
 import { cx } from '@emotion/css';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
@@ -42,6 +42,7 @@ import {
   parseDirectivesOfMessages,
   parseDirectivesOfTemplate,
   randomId,
+  useEditorPicker,
   useParameterState,
   usePromptState,
   usePromptsState,
@@ -369,49 +370,8 @@ function PromptItemView({
     readOnly,
     originTemplate: template,
   });
-  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
-
-  const options = useMemo(
-    () => [
-      new ComponentPickerOption('Execute Prompt', {
-        keywords: ['execute', 'prompt'],
-        onSelect: (editor) => {
-          const variable = `var-${randomId(5)}`;
-          const id = randomId();
-          addPrompt({ id, role: 'call-prompt', output: variable }, prompt?.index || 0);
-          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
-        },
-      }),
-      new ComponentPickerOption('Execute API', {
-        keywords: ['execute', 'api', 'call'],
-        onSelect: (editor) => {
-          const variable = `var-${randomId(5)}`;
-          const id = randomId();
-          addPrompt({ id, role: 'call-api', output: variable, method: 'get', url: '', params: {} }, prompt?.index || 0);
-          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
-        },
-      }),
-      new ComponentPickerOption('Execute Function', {
-        keywords: ['execute', 'function', 'call'],
-        onSelect: (editor) => {
-          const variable = `var-${randomId(5)}`;
-          const id = randomId();
-          addPrompt({ id, role: 'call-function', output: variable }, prompt?.index || 0);
-          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
-        },
-      }),
-      new ComponentPickerOption('Execute Dataset', {
-        keywords: ['execute', 'dataset'],
-        onSelect: (editor) => {
-          const variable = `var-${randomId(5)}`;
-          const id = randomId();
-          addPrompt({ id, role: 'call-dataset', output: variable, searchParams: '' }, prompt?.index || 0);
-          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
-        },
-      }),
-    ],
-    [addPrompt, prompt?.index]
-  );
+  const { getOptions } = useEditorPicker({ projectId, gitRef, templateId });
+  const options = getOptions(prompt?.index);
 
   if (!prompt || !state.editorState) return null;
 
@@ -760,14 +720,22 @@ function CallFuncItemView({
 
   useEffect(() => {
     if (monaco && currentTemplate) {
-      const params = new Set(
-        parseDirectivesOfTemplate(currentTemplate)
-          .map((i) => (i.type === 'variable' ? i.name : undefined))
-          .filter((i): i is string => Boolean(i))
-      );
-      const data = prompt?.data as CallFuncMessage;
-      if (data?.output) {
-        params.delete(data.output);
+      const params = new Set<string>();
+      parseDirectivesOfTemplate(currentTemplate).forEach((directive) => {
+        if (directive.type === 'variable' && typeof directive.name === 'string') {
+          params.add(directive.name);
+        }
+      });
+
+      Object.values(template.prompts ?? {}).forEach(({ data }) => {
+        if (!isCallPromptMessage(data) && 'output' in data && typeof data.output === 'string') {
+          params.add(data.output);
+        }
+      });
+
+      const output = (prompt?.data as CallFuncMessage)?.output;
+      if (typeof output === 'string') {
+        params.delete(output);
       }
 
       const customTypeDefinitions = `
@@ -909,6 +877,7 @@ function CallDatasetItemView({
             renderInput={(params) => (
               <TextField
                 {...params}
+                placeholder={t('form.dataset')}
                 hiddenLabel
                 sx={{
                   [`> .${inputBaseClasses.root}`]: {
@@ -939,7 +908,8 @@ function CallDatasetItemView({
 
       <Stack px={1} ml={1} gap={1}>
         <Stack direction="row" gap={1}>
-          <FormLabel sx={{ minWidth: 100, lineHeight: '32px' }}>查询数据</FormLabel>
+          <FormLabel sx={{ minWidth: 60, lineHeight: '32px' }}>{t('call.dataset.search')}</FormLabel>
+
           <Box flex={1}>
             <ParameterItem
               projectId={projectId}
@@ -956,8 +926,6 @@ function CallDatasetItemView({
     </Stack>
   );
 }
-
-const randomVariableNamePrefix = 'var-';
 
 function ParameterItem({
   index,
@@ -978,22 +946,9 @@ function ParameterItem({
 }) {
   const { state, setEditorState } = useParameterState({ projectId, gitRef, templateId, prompt, param });
 
-  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
+  const { getOptions } = useEditorPicker({ projectId, gitRef, templateId });
 
-  const options = useMemo(
-    () => [
-      new ComponentPickerOption('Execute Prompt', {
-        keywords: ['execute', 'prompt'],
-        onSelect: (editor) => {
-          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
-          const id = randomId();
-          addPrompt({ id, role: 'call-prompt', output: variable }, index || 0);
-          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
-        },
-      }),
-    ],
-    [addPrompt]
-  );
+  const options = getOptions(index);
 
   return (
     <StyledPromptEditor

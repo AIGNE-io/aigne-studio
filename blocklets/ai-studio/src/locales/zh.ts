@@ -240,6 +240,9 @@ export default flat({
     func: {
       code: '函数代码',
     },
+    dataset: {
+      search: '查询数据',
+    },
   },
   remoteGitRepo: '远程 Git 仓库',
   url: '地址',

@@ -242,6 +242,9 @@ export default flat({
     func: {
       code: 'Function Code',
     },
+    dataset: {
+      search: 'Search',
+    },
   },
   remoteGitRepo: 'Remote Git Repo',
   url: 'URL',

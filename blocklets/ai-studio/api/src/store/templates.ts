@@ -70,12 +70,9 @@ export interface CallDatasetMessage {
   visibility?: 'hidden';
 }
 
-export type EditorPromptMessage =
-  | PromptMessage
-  | CallPromptMessage
-  | CallAPIMessage
-  | CallFuncMessage
-  | CallDatasetMessage;
+export type CallMessage = CallPromptMessage | CallAPIMessage | CallFuncMessage | CallDatasetMessage;
+
+export type EditorPromptMessage = PromptMessage | CallMessage;
 
 export function isPromptMessage(message: any): message is PromptMessage {
   return ['system', 'user', 'assistant'].includes(message?.role);
