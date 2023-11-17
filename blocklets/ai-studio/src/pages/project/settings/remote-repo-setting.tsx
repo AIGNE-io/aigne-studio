@@ -222,7 +222,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
 
             <TextField
               fullWidth
-              label={t('password')}
+              label={t('accessToken')}
               {...form.register('password')}
               error={Boolean(form.formState.errors.password)}
               helperText={
@@ -233,7 +233,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
                       title={t('githubTokenTip')}
                       placement="top"
                       slotProps={{ popper: { sx: { whiteSpace: 'pre-wrap' } } }}>
-                      <Link href="https://github.com/settings/personal-access-tokens/new" target="_blank">
+                      <Link href="https://github.com/settings/tokens?type=beta" target="_blank">
                         github access token
                       </Link>
                     </Tooltip>
