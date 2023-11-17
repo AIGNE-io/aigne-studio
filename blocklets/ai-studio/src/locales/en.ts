@@ -237,7 +237,7 @@ export default flat({
   remoteGitRepo: 'Remote Git Repo',
   url: 'URL',
   username: 'Username',
-  password: 'Password',
+  accessToken: 'Access Token',
   remoteGitRepoPasswordHelper: 'Github does not support password access, you can use',
   githubTokenTip:
     'Steps to get github access token:\n1. Click link navigate to github tokens\n2. Click "Generate new token"\n3. Fill the token name\n4. Repository access: Only select repositories\n5. Select your repository\n6. Repositories permissions: Contents -> Read and write\n7. Generate token',
@@ -248,7 +248,7 @@ export default flat({
   mergeConflict: 'Merge Conflict',
   mergeConflictTip: 'The remote data has been changed and cannot be automatically merged!',
   useRemote: 'Use Remote',
-  useRemoteTip: '<b>Local</b> changes will be lost',
+  useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
-  useLocalTip: '<b>Remote</b> changes will be lost',
+  useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
 });

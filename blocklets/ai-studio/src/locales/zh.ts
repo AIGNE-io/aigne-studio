@@ -235,10 +235,10 @@ export default flat({
   remoteGitRepo: '远程 Git 仓库',
   url: '地址',
   username: '用户名',
-  password: '密码',
-  remoteGitRepoPasswordHelper: 'Github 不支持使用密码访问，可以使用',
+  accessToken: '访问令牌',
+  remoteGitRepoPasswordHelper: 'Github 不支持使用密码访问，请使用',
   githubTokenTip:
-    '获取 access token 步骤:\n1. 点击链接打开 github token 页面\n2. 点击 "Generate new token"\n3. 填写 token name\n4. Repository access: 选择 Only select repositories\n5. 选择您的仓库\n6. Repositories permissions: 找到 "Contents" 选择 "Read and write"\n7. 点击 "Generate token"',
+    '获取访问令牌的步骤:\n1. 点击链接打开 github token 页面\n2. 点击 "Generate new token"\n3. 填写 token name\n4. Repository access: 选择 Only select repositories\n5. 选择您的仓库\n6. Repositories permissions: 找到 "Contents" 选择 "Read and write"\n7. 点击 "Generate token"',
   autoSync: '保存时自动同步',
   sync: '同步',
   synced: '已同步',
@@ -246,7 +246,7 @@ export default flat({
   mergeConflict: '合并冲突',
   mergeConflictTip: '远程数据已被更改，无法自动合并！',
   useRemote: '使用远程数据',
-  useRemoteTip: '丢弃<b>本地</b>数据',
+  useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
-  useLocalTip: '丢弃<b>远程</b>数据',
+  useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
 });

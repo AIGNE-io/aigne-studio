@@ -377,6 +377,10 @@ export function projectRoutes(router: Router) {
     if (input.password) url.password = input.password;
 
     const repository = await getRepository({ projectId });
+
+    // Check the connection
+    await repository.getRemoteInfo({ url: url.toString() });
+
     await repository.addRemote({ remote: defaultRemote, url: url.toString(), force: true });
 
     const urlWithoutPassword = new URL(url);
