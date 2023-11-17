@@ -135,7 +135,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-            <CircularProgress size={24} />
+            <CircularProgress size={20} />
           </Box>
         )}
       </Button>
