@@ -565,6 +565,7 @@ function DebugModeForm({
                     />
                   );
                 }}
+                // 当编辑器中有 ' 使用 form.register 会出错
                 rules={{
                   required: required ? t('validation.fieldRequired') : undefined,
                   min: typeof min === 'number' ? { value: min, message: t('validation.fieldMin', { min }) } : undefined,

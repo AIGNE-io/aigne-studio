@@ -1,3 +1,4 @@
+import styled from '@emotion/styled';
 import Editor, { EditorProps, useMonaco } from '@monaco-editor/react';
 import { useEffect } from 'react';
 
@@ -11,14 +12,15 @@ function CodeEditor({ readOnly, ...props }: { readOnly: boolean } & EditorProps)
         inherit: true,
         rules: [],
         colors: {
-          'editor.background': 'rgba(0, 0, 0, 0.03)',
+          'editor.background': '#F2F2F2',
         },
       });
+      monaco.editor.setTheme('customTheme');
     }
   }, [monaco]);
 
   return (
-    <Editor
+    <CodeEditorContainer
       {...props}
       height="120px"
       theme="customTheme"
@@ -34,3 +36,8 @@ function CodeEditor({ readOnly, ...props }: { readOnly: boolean } & EditorProps)
 }
 
 export default CodeEditor;
+
+const CodeEditorContainer = styled(Editor)`
+  border-radius: 4px;
+  overflow: hidden;
+`;
