@@ -129,9 +129,9 @@ export default function Parameters({
                 doc.transact(() => {
                   form.parameters ??= {};
                   form.parameters[row.param] ??= {};
-
-                  setParamConfig({ anchorEl: e.currentTarget.parentElement!, param: row.param });
                 });
+
+                setParamConfig({ anchorEl: e.currentTarget.parentElement!, param: row.param });
               }}>
               <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
             </Button>
