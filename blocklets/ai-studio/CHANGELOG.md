@@ -1,3 +1,7 @@
+## 0.1.139 (2023-11-19)
+
+- fix: parameter is empty for git
+
 ## 0.1.138 (2023-11-17)
 
 - update link of github access token
