@@ -243,6 +243,12 @@ export default flat({
     dataset: {
       search: '查询数据',
     },
+    list: {
+      prompt: '执行 Prompt',
+      api: '执行 API',
+      func: '执行 JS 函数代码',
+      dataset: '执行数据集',
+    },
   },
   remoteGitRepo: '远程 Git 仓库',
   url: '地址',

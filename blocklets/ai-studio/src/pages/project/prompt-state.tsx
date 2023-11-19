@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { ComponentPickerOption, EditorState, INSERT_VARIABLE_COMMAND } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
@@ -148,7 +149,7 @@ export function useParameterState({
   prompt: CallPromptMessage | CallDatasetMessage;
   param: string;
 }) {
-  const content = prompt.parameters?.[param] ?? '';
+  const content = isCallDatasetMessage(prompt) ? prompt.parameters?.query : prompt.parameters?.[param];
 
   const key = useMemo(
     () => ['promptState', projectId, gitRef, templateId, prompt.id, param].join('/'),
@@ -206,10 +207,11 @@ export function useEditorPicker({
 }) {
   const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
   const randomVariableNamePrefix = 'var-';
+  const { t } = useLocaleContext();
 
   const getOptions = useCallback(
     (index?: number) => [
-      new ComponentPickerOption('Execute Prompt', {
+      new ComponentPickerOption(t('call.list.prompt'), {
         keywords: ['execute', 'prompt'],
         onSelect: (editor) => {
           const variable = `${randomVariableNamePrefix}${randomId(5)}`;
@@ -218,16 +220,16 @@ export function useEditorPicker({
           editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
         },
       }),
-      new ComponentPickerOption('Execute API', {
+      new ComponentPickerOption(t('call.list.api'), {
         keywords: ['execute', 'api', 'call'],
         onSelect: (editor) => {
           const variable = `${randomVariableNamePrefix}${randomId(5)}`;
           const id = randomId();
-          addPrompt({ id, role: 'call-api', output: variable, method: 'get', url: '', params: {} }, index || 0);
+          addPrompt({ id, role: 'call-api', output: variable, method: 'get', url: '' }, index || 0);
           editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
         },
       }),
-      new ComponentPickerOption('Execute Function', {
+      new ComponentPickerOption(t('call.list.func'), {
         keywords: ['execute', 'function', 'call'],
         onSelect: (editor) => {
           const variable = `${randomVariableNamePrefix}${randomId(5)}`;
@@ -236,12 +238,12 @@ export function useEditorPicker({
           editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
         },
       }),
-      new ComponentPickerOption('Execute Dataset', {
+      new ComponentPickerOption(t('call.list.dataset'), {
         keywords: ['execute', 'dataset'],
         onSelect: (editor) => {
           const variable = `${randomVariableNamePrefix}${randomId(5)}`;
           const id = randomId();
-          addPrompt({ id, role: 'call-dataset', output: variable }, index || 0);
+          addPrompt({ id, role: 'call-dataset', output: variable, parameters: { query: '' } }, index || 0);
           editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
         },
       }),
@@ -304,8 +306,8 @@ export function parseDirectivesOfTemplate(
         if (isPromptMessage(data)) return data.content;
         if (isCallPromptMessage(data) && data.parameters) return Object.values(data.parameters);
         if (isCallAPIMessage(data) && data.url) {
-          if (data.params && typeof data.params === 'object') {
-            return [data.url, ...Object.values(data.params)];
+          if (data.body) {
+            return [data.url, data.body];
           }
 
           return [data.url];
@@ -421,8 +423,18 @@ export function usePromptsState({
                 data.parameters[param] = renameVariableByMustache(val, rename);
               }
             }
-          } else if ((isCallAPIMessage(data) || isCallFuncMessage(data) || isCallDatasetMessage(data)) && data.output) {
-            data.output = renameVariableByMustache(data.output, rename);
+          } else if (isCallAPIMessage(data)) {
+            if (data.url) {
+              data.url = renameVariableByMustache(data.url, rename);
+            }
+
+            if (data.body) {
+              data.body = renameVariableByMustache(data.body, rename);
+            }
+          } else if (isCallDatasetMessage(data)) {
+            if (data.parameters?.query) {
+              data.parameters.query = renameVariableByMustache(data.parameters.query, rename);
+            }
           }
         }
       });

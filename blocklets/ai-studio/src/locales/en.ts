@@ -245,6 +245,12 @@ export default flat({
     dataset: {
       search: 'Search',
     },
+    list: {
+      prompt: 'Execute Prompt',
+      api: 'Execute API',
+      func: 'Execute JS Function',
+      dataset: 'Execute Dataset',
+    },
   },
   remoteGitRepo: 'Remote Git Repo',
   url: 'URL',

@@ -331,36 +331,11 @@ async function runTemplate(
             variablesCache[item.output] ??= (async () => {
               if (!item.url) throw new Error('Required property `url` is not present');
 
-              const regex = new RegExp(`\\{\\{\\s*${item.output}\\s*\\}\\}`);
-              if (regex.test(item.url)) {
-                throw new Error(`Loop dependent variable "${item.output}"`);
-              }
-
               const url = await renderMessage(item.url);
               const params: { method: string; body?: string } = { method: item.method };
 
-              if (
-                item.params &&
-                typeof item.params === 'object' &&
-                Object.keys(item.params).length &&
-                ['post', 'put', 'patch', 'delete'].includes(item.method)
-              ) {
-                const regex = new RegExp(`\\{\\{\\s*${item.output}\\s*\\}\\}`);
-                const parametersStr = JSON.stringify(item.params);
-                if (regex.test(parametersStr)) {
-                  throw new Error(`Loop dependent variable "${item.output}"`);
-                }
-
-                const paramFns = Object.entries(item.params).map(async ([key, value]) => {
-                  if (value && typeof value === 'string') {
-                    const formatValue = await renderMessage(value);
-                    return [key, formatValue];
-                  }
-
-                  return [key, value];
-                });
-
-                params.body = JSON.stringify(Object.fromEntries(await Promise.all(paramFns)));
+              if (item.body && ['post', 'put', 'patch', 'delete'].includes(item.method)) {
+                params.body = await renderMessage(item.body);
               }
 
               const response = await fetch(url, params);
@@ -370,25 +345,10 @@ async function runTemplate(
               }
 
               const contentType = response.headers.get('Content-Type');
-              if (contentType) {
-                if (contentType.includes('application/json')) {
-                  const result = await response.json();
+              const result = contentType?.includes('application/json') ? await response.json() : await response.text();
+              emitCall({ item, result });
 
-                  emitCall({ item, result });
-
-                  return result;
-                }
-
-                if (contentType.includes('text/plain') || contentType.includes('text/html')) {
-                  const result = await response.text();
-
-                  emitCall({ item, result });
-
-                  return result;
-                }
-              }
-
-              throw new Error('Unsupported content type');
+              return result;
             })();
             return variablesCache[item.output];
           },
@@ -400,14 +360,6 @@ async function runTemplate(
           () => async () => {
             variablesCache[item.output] ??= (async () => {
               if (!item.code) return '';
-
-              if (item.code.includes(`context.get('${item.output}')`)) {
-                throw new Error(`Loop dependent variable "${item.output}"`);
-              }
-
-              if (item.code.includes(`context.get("${item.output}")`)) {
-                throw new Error(`Loop dependent variable "${item.output}"`);
-              }
 
               const functionInSandbox = vm.run(`module.exports = async function() { ${item.code} }`);
               const result = await functionInSandbox();
@@ -427,25 +379,11 @@ async function runTemplate(
             variablesCache[item.output] ??= (async () => {
               if (!item.vectorStore) return '';
 
-              if (!item.parameters || Object.keys(item.parameters).length === 0) {
+              if (!item.parameters?.query) {
                 throw new Error('dataset search parameters is required');
               }
 
-              const regex = new RegExp(`\\{\\{\\s*${item.output}\\s*\\}\\}`);
-              const parametersStr = JSON.stringify(item.parameters);
-              if (regex.test(parametersStr)) {
-                throw new Error(`Loop dependent variable "${item.output}"`);
-              }
-
-              const messages = (
-                await Promise.all(
-                  Object.values(item.parameters).map(async (val) =>
-                    typeof val === 'string' ? renderMessage(val) : val
-                  )
-                )
-              ).flat();
-
-              const messagesString = messages.join('\n');
+              const messagesString = await renderMessage(item.parameters.query);
 
               const dataset = await VectorStore.load(item.vectorStore.id, new AIKitEmbeddings());
               const docs = await dataset.similaritySearch(messagesString, 4);

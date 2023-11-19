@@ -451,7 +451,7 @@ function CallPromptItemView({
     <Stack p={1} gap={1}>
       <Stack px={1} direction="row" alignItems="center" gap={1}>
         <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
-          Execute Prompt
+          {t('call.list.prompt')}
         </Typography>
 
         <TemplateAutocomplete
@@ -588,7 +588,7 @@ function CallAPIItemView({
         gap={1}
         sx={{ [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}>
         <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
-          Execute API
+          {t('call.list.api')}
         </Typography>
 
         <Stack flex={1} direction="row" alignItems="center" gap={1}>
@@ -650,19 +650,9 @@ function CallAPIItemView({
             readOnly={Boolean(readOnly)}
             defaultLanguage="json"
             language="json"
-            value={JSON.stringify(callAPIMessage.params || {}, null, 2)}
+            value={callAPIMessage.body}
             onChange={(value) => {
-              if (value) {
-                try {
-                  const json = JSON.parse(value);
-                  callAPIMessage.params = json;
-                } catch (error) {
-                  console.error(error);
-                }
-                return;
-              }
-
-              callAPIMessage.params = {};
+              callAPIMessage.body = value;
             }}
           />
         </Stack>
@@ -760,7 +750,7 @@ function CallFuncItemView({
         gap={1}
         sx={{ [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}>
         <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
-          Execute JS Function
+          {t('call.list.func')}
         </Typography>
 
         <Stack flex={1} direction="row" alignItems="center" gap={1} />
@@ -854,7 +844,7 @@ function CallDatasetItemView({
         gap={1}
         sx={{ [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}>
         <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
-          Execute Dataset
+          {t('call.list.dataset')}
         </Typography>
 
         <Stack flex={1} direction="row" alignItems="center" gap={1}>
@@ -907,7 +897,7 @@ function CallDatasetItemView({
               templateId={template.id}
               prompt={callDatasetMessage}
               index={prompt.index}
-              param="dataset-search-param"
+              param="query"
               readOnly={readOnly}
             />
           </Box>

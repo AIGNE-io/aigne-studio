@@ -46,7 +46,7 @@ export interface CallAPIMessage {
   method: string;
   url: string;
   output: string;
-  params?: { [key: string]: string | undefined };
+  body?: string;
   visibility?: 'hidden';
 }
 
@@ -65,7 +65,7 @@ export interface CallDatasetMessage {
   content?: undefined;
   output: string;
   type?: 'vectorStore';
-  parameters?: { [key: string]: string | undefined };
+  parameters?: { query?: string };
   vectorStore?: { id: string; name?: string };
   visibility?: 'hidden';
 }
