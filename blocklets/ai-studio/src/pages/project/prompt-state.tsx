@@ -5,7 +5,7 @@ import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import { toPath } from 'lodash';
 import sortBy from 'lodash/sortBy';
 import { customAlphabet } from 'nanoid';
-import { useCallback, useId, useMemo } from 'react';
+import { useCallback, useId, useMemo, useRef } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Mustache from '../../../api/src/libs/mustache';
@@ -332,6 +332,42 @@ export function parseDirectivesOfTemplate(
   }
 
   return directives;
+}
+
+export function useParametersState(template: TemplateYjs) {
+  const keysSet = new Set(
+    parseDirectivesOfTemplate(template, { excludeCallPromptVariables: true })
+      .map((i) => (i.type === 'variable' ? i.name : undefined))
+      .filter((i): i is string => Boolean(i))
+  );
+
+  const keys = [...keysSet];
+
+  const key = keys.join('/');
+  const previousKey = useRef<string>(key);
+
+  const updateParametersIfNeeded = useCallback(() => {
+    if (template && previousKey.current !== key) {
+      previousKey.current = key;
+
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+      doc.transact(() => {
+        template.parameters ??= {};
+
+        for (const param of Object.keys(template.parameters)) {
+          if (!keys.includes(param)) {
+            delete template.parameters[param];
+          }
+        }
+
+        for (const param of keys) {
+          template.parameters[param] ??= {};
+        }
+      });
+    }
+  }, [key, template]);
+
+  return { keysSet, keys, updateParametersIfNeeded };
 }
 
 export function usePromptsState({

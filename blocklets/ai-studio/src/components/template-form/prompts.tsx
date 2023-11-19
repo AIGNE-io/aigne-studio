@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import PromptEditor from '@blocklet/prompt-editor';
 import { cx } from '@emotion/css';
-import Editor, { useMonaco } from '@monaco-editor/react';
+import { useMonaco } from '@monaco-editor/react';
 import { ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
 import {
   Autocomplete,
@@ -44,6 +44,7 @@ import {
   randomId,
   useEditorPicker,
   useParameterState,
+  useParametersState,
   usePromptState,
   usePromptsState,
 } from '../../pages/project/prompt-state';
@@ -133,6 +134,11 @@ export default function Prompts({
     },
     [projectId, gitRef, form, readOnly]
   );
+  const { updateParametersIfNeeded } = useParametersState(form);
+
+  useEffect(() => {
+    updateParametersIfNeeded();
+  }, [updateParametersIfNeeded]);
 
   return (
     <Box>
