@@ -606,10 +606,7 @@ function CallAPIItemView({
               },
             }}
             value={callAPIMessage.method ?? ''}
-            onChange={(e) => {
-              callAPIMessage.params = {};
-              callAPIMessage.method = e.target.value;
-            }}>
+            onChange={(e) => (callAPIMessage.method = e.target.value)}>
             {methods.map((method) => {
               return (
                 <MenuItem value={method.toLocaleLowerCase()} key={method.toLocaleLowerCase()}>
@@ -647,7 +644,7 @@ function CallAPIItemView({
           <Typography variant="caption">{t('call.api.body')}</Typography>
 
           <CodeEditor
-            readOnly={Boolean(readOnly)}
+            readOnly={readOnly}
             defaultLanguage="json"
             language="json"
             value={callAPIMessage.body}

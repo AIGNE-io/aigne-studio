@@ -15,7 +15,6 @@ import { CallDatasetMessage, CallPromptMessage, Role } from '../../../api/src/st
 import {
   isCallAPIMessage,
   isCallDatasetMessage,
-  isCallFuncMessage,
   isCallPromptMessage,
   isPromptMessage,
   isTemplate,
@@ -239,7 +238,7 @@ export function useEditorPicker({
         },
       }),
       new ComponentPickerOption(t('call.list.dataset'), {
-        keywords: ['execute', 'dataset'],
+        keywords: ['query', 'dataset'],
         onSelect: (editor) => {
           const variable = `${randomVariableNamePrefix}${randomId(5)}`;
           const id = randomId();

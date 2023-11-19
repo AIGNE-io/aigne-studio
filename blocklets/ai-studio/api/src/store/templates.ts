@@ -67,7 +67,7 @@ export interface CallDatasetMessage {
   content?: undefined;
   output: string;
   type?: 'vectorStore';
-  parameters?: { query?: string };
+  parameters?: { query?: string; [key: string]: string | undefined };
   vectorStore?: { id: string; name?: string };
   visibility?: 'hidden';
 }

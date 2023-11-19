@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import Editor, { EditorProps, useMonaco } from '@monaco-editor/react';
 import { useEffect } from 'react';
 
-function CodeEditor({ readOnly, ...props }: { readOnly: boolean } & EditorProps) {
+function CodeEditor({ readOnly, ...props }: { readOnly?: boolean } & EditorProps) {
   const monaco = useMonaco();
 
   useEffect(() => {

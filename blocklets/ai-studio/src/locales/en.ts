@@ -237,10 +237,10 @@ export default flat({
   call: {
     api: {
       placeholder: 'API ',
-      body: 'Body JSON',
+      body: 'Body (JSON)',
     },
     func: {
-      code: 'Function Code',
+      code: 'Code',
     },
     dataset: {
       search: 'Search',
@@ -249,7 +249,7 @@ export default flat({
       prompt: 'Execute Prompt',
       api: 'Execute API',
       func: 'Execute JS Function',
-      dataset: 'Execute Dataset',
+      dataset: 'Query Dataset',
     },
   },
   remoteGitRepo: 'Remote Git Repo',
