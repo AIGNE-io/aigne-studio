@@ -60,6 +60,7 @@ import {
 } from '../../pages/project/yjs-state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import { DragSortListYjs } from '../drag-sort-list';
+import CodeEditor from './code-editer';
 import TemplateAutocomplete from './template-autocomplete';
 
 const CONST_TYPE = {
@@ -639,11 +640,10 @@ function CallAPIItemView({
         <Stack px={1} ml={1} gap={1}>
           <Typography variant="caption">{t('call.api.body')}</Typography>
 
-          <Editor
-            height="120px"
+          <CodeEditor
+            readOnly={Boolean(readOnly)}
             defaultLanguage="json"
             language="json"
-            theme="vs-dark"
             value={JSON.stringify(callAPIMessage.params || {}, null, 2)}
             onChange={(value) => {
               if (value) {
@@ -657,14 +657,6 @@ function CallAPIItemView({
               }
 
               callAPIMessage.params = {};
-            }}
-            options={{
-              lineNumbersMinChars: 2,
-              minimap: { enabled: false },
-              readOnly,
-              tabSize: 2,
-              insertSpaces: true,
-              detectIndentation: false,
             }}
           />
         </Stack>
@@ -728,7 +720,7 @@ function CallFuncItemView({
       });
 
       Object.values(template.prompts ?? {}).forEach(({ data }) => {
-        if (!isCallPromptMessage(data) && 'output' in data && typeof data.output === 'string') {
+        if (!isCallPromptMessage(data) && 'output' in data && data.output) {
           params.add(data.output);
         }
       });
@@ -784,21 +776,13 @@ function CallFuncItemView({
       <Stack px={1} ml={1} gap={1}>
         <Typography variant="caption">{t('call.func.code')}</Typography>
 
-        <Editor
-          height="120px"
+        <CodeEditor
+          readOnly={Boolean(readOnly)}
           defaultLanguage="javascript"
           language="javascript"
-          theme="vs-dark"
           value={callFuncMessage.code || ''}
           onChange={(value) => {
             callFuncMessage.code = value || '';
-          }}
-          options={{
-            lineNumbersMinChars: 2,
-            minimap: { enabled: false },
-            readOnly,
-            tabSize: 2,
-            insertSpaces: true,
           }}
         />
       </Stack>

@@ -292,13 +292,13 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
                 {json ? (
                   <Box
                     component="pre"
-                    sx={{ whiteSpace: 'pre-wrap' }}
+                    sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(json, null, 2) }}
                   />
                 ) : (
                   <Box
                     component="pre"
-                    sx={{ whiteSpace: 'pre-wrap' }}
+                    sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
                     dangerouslySetInnerHTML={{ __html: item.content }}
                   />
                 )}
