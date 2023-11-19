@@ -384,7 +384,7 @@ Context.prototype.push = function push(view) {
  * Returns the value of the given name in this context, traversing
  * up the context hierarchy if the value is absent in this context's view.
  */
-Context.prototype.lookup = function lookup(name) {
+Context.prototype.lookup = async function lookup(name) {
   var cache = this.cache;
 
   var value;
@@ -425,7 +425,11 @@ Context.prototype.lookup = function lookup(name) {
             lookupHit =
               hasProperty(intermediateValue, names[index]) || primitiveHasOwnProperty(intermediateValue, names[index]);
 
-          intermediateValue = intermediateValue[names[index++]];
+          intermediateValue = await intermediateValue[names[index++]];
+
+          while (typeof intermediateValue === 'function') {
+            intermediateValue = await intermediateValue(this.view);
+          }
         }
       } else {
         intermediateValue = context.view[name];
@@ -563,12 +567,12 @@ Writer.prototype.renderTokens = async function renderTokens(tokens, context, par
     token = tokens[i];
     symbol = token[0];
 
-    if (symbol === '#') value = this.renderSection(token, context, partials, originalTemplate, config);
-    else if (symbol === '^') value = this.renderInverted(token, context, partials, originalTemplate, config);
-    else if (symbol === '>') value = this.renderPartial(token, context, partials, config);
-    else if (symbol === '&') value = this.unescapedValue(token, context);
+    if (symbol === '#') value = await this.renderSection(token, context, partials, originalTemplate, config);
+    else if (symbol === '^') value = await this.renderInverted(token, context, partials, originalTemplate, config);
+    else if (symbol === '>') value = await this.renderPartial(token, context, partials, config);
+    else if (symbol === '&') value = await this.unescapedValue(token, context);
     else if (symbol === 'name') value = await this.escapedValue(token, context, config);
-    else if (symbol === 'text') value = this.rawValue(token);
+    else if (symbol === 'text') value = await this.rawValue(token);
 
     if (value !== undefined) buffer += value;
   }
@@ -576,10 +580,10 @@ Writer.prototype.renderTokens = async function renderTokens(tokens, context, par
   return buffer;
 };
 
-Writer.prototype.renderSection = function renderSection(token, context, partials, originalTemplate, config) {
+Writer.prototype.renderSection = async function renderSection(token, context, partials, originalTemplate, config) {
   var self = this;
   var buffer = '';
-  var value = context.lookup(token[1]);
+  var value = await context.lookup(token[1]);
 
   // This function is used to render an arbitrary template
   // in the current context by higher-order sections.
@@ -609,8 +613,8 @@ Writer.prototype.renderSection = function renderSection(token, context, partials
   return buffer;
 };
 
-Writer.prototype.renderInverted = function renderInverted(token, context, partials, originalTemplate, config) {
-  var value = context.lookup(token[1]);
+Writer.prototype.renderInverted = async function renderInverted(token, context, partials, originalTemplate, config) {
+  var value = await context.lookup(token[1]);
 
   // Use JavaScript's definition of falsy. Include empty arrays.
   // See https://github.com/janl/mustache.js/issues/186
@@ -647,14 +651,14 @@ Writer.prototype.renderPartial = function renderPartial(token, context, partials
   }
 };
 
-Writer.prototype.unescapedValue = function unescapedValue(token, context) {
-  var value = context.lookup(token[1]);
+Writer.prototype.unescapedValue = async function unescapedValue(token, context) {
+  var value = await context.lookup(token[1]);
   if (value != null) return value;
 };
 
 Writer.prototype.escapedValue = async function escapedValue(token, context, config) {
   var escape = this.getConfigEscape(config) || mustache.escape;
-  var value = context.lookup(token[1]);
+  var value = await context.lookup(token[1]);
 
   if (typeof value === 'function') {
     value = await value.call(context.view);

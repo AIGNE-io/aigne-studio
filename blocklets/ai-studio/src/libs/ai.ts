@@ -37,6 +37,7 @@ export async function callAI(
     | { type: 'text'; text: string }
     | { type: 'images'; images: { url: string }[] }
     | { type: 'next'; delta: string; templateId: string; templateName: string }
+    | { type: 'call'; delta: string; templateId: string; variableName: string }
   >({
     async start(controller) {
       await fetchEventSource(joinUrl(prefix, '/api/ai/call'), {
@@ -49,6 +50,8 @@ export async function callAI(
           if (data.type === 'delta') {
             controller.enqueue(data.delta);
           } else if (data.type === 'next') {
+            controller.enqueue(data);
+          } else if (data.type === 'call') {
             controller.enqueue(data);
           } else {
             controller.enqueue(data);

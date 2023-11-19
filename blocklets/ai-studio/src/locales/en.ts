@@ -234,6 +234,24 @@ export default flat({
   deleteProject: 'This will permanently delete project with name {name}',
   selectObject: 'Select {object}',
   template: 'Template',
+  call: {
+    api: {
+      placeholder: 'API ',
+      body: 'Body (JSON)',
+    },
+    func: {
+      code: 'Code',
+    },
+    dataset: {
+      search: 'Search',
+    },
+    list: {
+      prompt: 'Execute Prompt',
+      api: 'Execute API',
+      func: 'Execute JS Function',
+      dataset: 'Query Dataset',
+    },
+  },
   remoteGitRepo: 'Remote Git Repo',
   url: 'URL',
   username: 'Username',

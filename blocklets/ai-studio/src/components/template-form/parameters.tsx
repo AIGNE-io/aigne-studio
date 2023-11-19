@@ -121,13 +121,22 @@ export default function Parameters({
         headerAlign: 'center',
         sortable: false,
         align: 'center',
-        renderCell: ({ row }) => (
-          <Button
-            sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
-            onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param: row.param })}>
-            <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
-          </Button>
-        ),
+        renderCell: ({ row }) => {
+          return (
+            <Button
+              sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+              onClick={(e) => {
+                doc.transact(() => {
+                  form.parameters ??= {};
+                  form.parameters[row.param] ??= {};
+                });
+
+                setParamConfig({ anchorEl: e.currentTarget.parentElement!, param: row.param });
+              }}>
+              <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
+            </Button>
+          );
+        },
       },
     ];
   }, [dataGrid, t, form.id, readOnly]);

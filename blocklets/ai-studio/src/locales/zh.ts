@@ -232,6 +232,24 @@ export default flat({
   deleteProject: '这将永久删除名称为 {name} 的项目',
   selectObject: '选择{object}',
   template: '模板',
+  call: {
+    api: {
+      placeholder: 'API 地址',
+      body: '数据 (JSON)',
+    },
+    func: {
+      code: '代码',
+    },
+    dataset: {
+      search: '查询',
+    },
+    list: {
+      prompt: '执行 Prompt',
+      api: '执行 API',
+      func: '执行 JS 函数代码',
+      dataset: '查询数据集',
+    },
+  },
   remoteGitRepo: '远程 Git 仓库',
   url: '地址',
   username: '用户名',

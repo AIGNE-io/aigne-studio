@@ -51,11 +51,14 @@ export default function Compare({
     return [{ oid: gitRef, commit: { message: gitRef } }, ...commits];
   }, [gitRef, data]);
 
+  const templateId = getTemplateIdFromPath(filepath);
+  const template = templateId ? getTemplateById(templateId) : undefined;
+
   const init = async (hash: string) => {
     try {
       setState((r) => ({ ...r, template: undefined, loading: true }));
 
-      const data = await getTemplate(projectId, hash, filepath);
+      const data = await getTemplate(projectId, hash, templateId || '');
 
       setState((r) => ({ ...r, template: templateYjsFromTemplate(data) }));
     } catch (error) {
@@ -68,9 +71,6 @@ export default function Compare({
   useEffect(() => {
     init(gitRef);
   }, []);
-
-  const templateId = getTemplateIdFromPath(filepath);
-  const template = templateId ? getTemplateById(templateId) : undefined;
 
   const renderSelect = () => {
     return (

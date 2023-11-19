@@ -1,7 +1,9 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { EditorState } from '@blocklet/prompt-editor';
+import { ComponentPickerOption, EditorState, INSERT_VARIABLE_COMMAND } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
+import { toPath } from 'lodash';
 import sortBy from 'lodash/sortBy';
 import { customAlphabet } from 'nanoid';
 import { useCallback, useId, useMemo, useRef } from 'react';
@@ -9,8 +11,15 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Mustache from '../../../api/src/libs/mustache';
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { CallPromptMessage, Role } from '../../../api/src/store/templates';
-import { isCallPromptMessage, isPromptMessage, isTemplate, useStore } from './yjs-state';
+import { CallDatasetMessage, CallPromptMessage, Role } from '../../../api/src/store/templates';
+import {
+  isCallAPIMessage,
+  isCallDatasetMessage,
+  isCallPromptMessage,
+  isPromptMessage,
+  isTemplate,
+  useStore,
+} from './yjs-state';
 
 const PROMPT_EDITOR_STATE_CACHE: { [key: string]: { content?: string; role?: Role } } = {};
 
@@ -136,10 +145,10 @@ export function useParameterState({
   projectId: string;
   gitRef: string;
   templateId: string;
-  prompt: CallPromptMessage;
+  prompt: CallPromptMessage | CallDatasetMessage;
   param: string;
 }) {
-  const content = prompt.parameters?.[param] ?? '';
+  const content = isCallDatasetMessage(prompt) ? prompt.parameters?.query : prompt.parameters?.[param];
 
   const key = useMemo(
     () => ['promptState', projectId, gitRef, templateId, prompt.id, param].join('/'),
@@ -186,6 +195,64 @@ export function useParameterState({
   return { state, setEditorState };
 }
 
+export function useEditorPicker({
+  projectId,
+  gitRef,
+  templateId,
+}: {
+  projectId: string;
+  gitRef: string;
+  templateId: string;
+}) {
+  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
+  const randomVariableNamePrefix = 'var-';
+  const { t } = useLocaleContext();
+
+  const getOptions = useCallback(
+    (index?: number) => [
+      new ComponentPickerOption(t('call.list.prompt'), {
+        keywords: ['execute', 'prompt'],
+        onSelect: (editor) => {
+          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-prompt', output: variable }, index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+      new ComponentPickerOption(t('call.list.api'), {
+        keywords: ['execute', 'api', 'call'],
+        onSelect: (editor) => {
+          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-api', output: variable, method: 'get', url: '' }, index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+      new ComponentPickerOption(t('call.list.func'), {
+        keywords: ['execute', 'function', 'call'],
+        onSelect: (editor) => {
+          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-function', output: variable }, index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+      new ComponentPickerOption(t('call.list.dataset'), {
+        keywords: ['query', 'dataset'],
+        onSelect: (editor) => {
+          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-dataset', output: variable, parameters: { query: '' } }, index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
+    ],
+    [addPrompt]
+  );
+
+  return { getOptions };
+}
+
 type Directive = {
   type: 'variable';
   name: string;
@@ -193,58 +260,81 @@ type Directive = {
 
 export function parseDirectives(...content: string[]): Directive[] {
   return content.flatMap((content) => {
-    const spans = Mustache.parse(content);
+    // 捕获 /{{ var/api/task/{{list}} 这种错误
+    try {
+      const spans = Mustache.parse(content);
 
-    const directives: Directive[] = [];
+      const directives: Directive[] = [];
 
-    for (const span of spans) {
-      switch (span[0]) {
-        case 'name': {
-          const name = span[1];
-          if (name) directives.push({ type: 'variable', name });
-          break;
+      for (const span of spans) {
+        switch (span[0]) {
+          case 'name': {
+            const name = span[1];
+            if (name) directives.push({ type: 'variable', name });
+            break;
+          }
+          case 'text': {
+            break;
+          }
+          default:
+            console.warn('Unknown directive', span);
         }
-        case 'text': {
-          break;
-        }
-        default:
-          console.warn('Unknown directive', span);
       }
-    }
 
-    return directives;
+      return directives;
+    } catch (error) {
+      return [];
+    }
   });
 }
 
 export function parseDirectivesOfMessages(template: TemplateYjs) {
   return parseDirectives(
     ...Object.values(template.prompts ?? {})
-      .map((i) => i.data.content)
+      .map((i) => i?.data?.content)
       .filter((i): i is string => Boolean(i))
   );
 }
 
 export function parseDirectivesOfTemplate(
   template: TemplateYjs,
-  { excludeCallPromptVariables = false }: { excludeCallPromptVariables?: boolean } = {}
+  {
+    excludeNonPromptVariables = false,
+  }: {
+    excludeNonPromptVariables?: boolean;
+  } = {}
 ) {
-  const directives = parseDirectives(
+  let directives = parseDirectives(
     ...Object.values(template.prompts ?? {})
       .flatMap(({ data }) => {
         if (isPromptMessage(data)) return data.content;
         if (isCallPromptMessage(data) && data.parameters) return Object.values(data.parameters);
+        if (isCallAPIMessage(data) && data.url) {
+          if (data.body) {
+            return [data.url, data.body];
+          }
+
+          return [data.url];
+        }
+        if (isCallDatasetMessage(data) && data.parameters) return Object.values(data.parameters);
+
         return [];
       })
       .filter((i): i is string => typeof i === 'string')
   );
 
-  if (excludeCallPromptVariables && template.prompts) {
+  if (excludeNonPromptVariables && template.prompts) {
     const outputs = new Set(
       Object.values(template.prompts)
-        .map(({ data }) => (isCallPromptMessage(data) ? data.output : undefined))
+        .map(({ data }) => (isPromptMessage(data) ? undefined : data.output))
         .filter(Boolean)
     );
-    return directives.filter((i) => !(i.type === 'variable' && outputs.has(i.name)));
+
+    directives = directives.filter((i) => {
+      if (i.type !== 'variable') return true;
+      const variableEntry = toPath(i.name)[0];
+      return !outputs.has(variableEntry);
+    });
   }
 
   return directives;
@@ -252,7 +342,7 @@ export function parseDirectivesOfTemplate(
 
 export function useParametersState(template: TemplateYjs) {
   const keysSet = new Set(
-    parseDirectivesOfTemplate(template, { excludeCallPromptVariables: true })
+    parseDirectivesOfTemplate(template, { excludeNonPromptVariables: true })
       .map((i) => (i.type === 'variable' ? i.name : undefined))
       .filter((i): i is string => Boolean(i))
   );
@@ -336,6 +426,18 @@ export function usePromptsState({
               if (typeof val === 'string') {
                 data.parameters[param] = renameVariableByMustache(val, rename);
               }
+            }
+          } else if (isCallAPIMessage(data)) {
+            if (data.url) {
+              data.url = renameVariableByMustache(data.url, rename);
+            }
+
+            if (data.body) {
+              data.body = renameVariableByMustache(data.body, rename);
+            }
+          } else if (isCallDatasetMessage(data)) {
+            if (data.parameters?.query) {
+              data.parameters.query = renameVariableByMustache(data.parameters.query, rename);
             }
           }
         }

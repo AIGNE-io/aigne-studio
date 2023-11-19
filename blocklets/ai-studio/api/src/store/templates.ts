@@ -10,9 +10,17 @@ import { yjsToTemplate } from './projects';
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
 
-export type Role = 'system' | 'user' | 'assistant' | 'call-prompt';
+export type Role = 'system' | 'user' | 'assistant' | 'call-prompt' | 'call-api' | 'call-function' | 'call-dataset';
 
-export const roles: Role[] = ['system', 'user', 'assistant', 'call-prompt'];
+export const roles: Role[] = [
+  'system',
+  'user',
+  'assistant',
+  'call-prompt',
+  'call-api',
+  'call-function',
+  'call-dataset',
+];
 
 export interface PromptMessage {
   id: string;
@@ -33,12 +41,59 @@ export interface CallPromptMessage {
   visibility?: 'hidden';
 }
 
+export interface CallAPIMessage {
+  id: string;
+  role: 'call-api';
+  content?: undefined;
+  method: string;
+  url: string;
+  body?: string;
+  output: string;
+  visibility?: 'hidden';
+}
+
+export interface CallFuncMessage {
+  id: string;
+  role: 'call-function';
+  content?: undefined;
+  code?: string;
+  output: string;
+  visibility?: 'hidden';
+}
+
+export interface CallDatasetMessage {
+  id: string;
+  role: 'call-dataset';
+  content?: undefined;
+  output: string;
+  type?: 'vectorStore';
+  parameters?: { query?: string; [key: string]: string | undefined };
+  vectorStore?: { id: string; name?: string };
+  visibility?: 'hidden';
+}
+
+export type CallMessage = CallPromptMessage | CallAPIMessage | CallFuncMessage | CallDatasetMessage;
+
+export type EditorPromptMessage = PromptMessage | CallMessage;
+
 export function isPromptMessage(message: any): message is PromptMessage {
   return ['system', 'user', 'assistant'].includes(message?.role);
 }
 
 export function isCallPromptMessage(message: any): message is CallPromptMessage {
   return message?.role === 'call-prompt';
+}
+
+export function isCallAPIMessage(message: any): message is CallAPIMessage {
+  return message?.role === 'call-api';
+}
+
+export function isCallFuncMessage(message: any): message is CallFuncMessage {
+  return message?.role === 'call-function';
+}
+
+export function isCallDatasetMessage(message: any): message is CallDatasetMessage {
+  return message?.role === 'call-dataset';
 }
 
 export interface Template {
@@ -49,7 +104,7 @@ export interface Template {
   tags?: string[];
   icon?: string;
   description?: string;
-  prompts?: (PromptMessage | CallPromptMessage)[];
+  prompts?: EditorPromptMessage[];
   branch?: {
     branches: { id: string; template?: { id: string; name?: string }; description: string }[];
   };
