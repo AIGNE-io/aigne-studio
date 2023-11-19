@@ -16,7 +16,7 @@ import {
   styled,
 } from '@mui/material';
 import { useThrottleFn } from 'ahooks';
-import { ReactNode, useMemo, useRef } from 'react';
+import { ReactNode, useEffect, useMemo, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -30,6 +30,7 @@ import {
   parseDirectivesOfMessages,
   randomId,
   useParameterState,
+  useParametersState,
   usePromptState,
   usePromptsState,
 } from '../../pages/project/prompt-state';
@@ -56,6 +57,12 @@ export default function Prompts({
 
   const { addPrompt } = usePromptsState({ projectId, gitRef, templateId: form.id });
   const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, readOnly });
+
+  const { updateParametersIfNeeded } = useParametersState(form);
+
+  useEffect(() => {
+    updateParametersIfNeeded();
+  }, [updateParametersIfNeeded]);
 
   return (
     <Box>

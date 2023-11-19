@@ -4,7 +4,7 @@ import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/util
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import { customAlphabet } from 'nanoid';
-import { useCallback, useEffect, useId, useMemo } from 'react';
+import { useCallback, useId, useMemo, useRef } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Mustache from '../../../api/src/libs/mustache';
@@ -250,20 +250,22 @@ export function parseDirectivesOfTemplate(
   return directives;
 }
 
-export function useParametersState(
-  template: Parameters<typeof parseDirectivesOfTemplate>[0],
-  options: Parameters<typeof parseDirectivesOfTemplate>[1]
-) {
+export function useParametersState(template: TemplateYjs) {
   const keysSet = new Set(
-    parseDirectivesOfTemplate(template, options)
+    parseDirectivesOfTemplate(template, { excludeCallPromptVariables: true })
       .map((i) => (i.type === 'variable' ? i.name : undefined))
       .filter((i): i is string => Boolean(i))
   );
 
   const keys = [...keysSet];
 
-  useEffect(() => {
-    if (template) {
+  const key = keys.join('/');
+  const previousKey = useRef<string>(key);
+
+  const updateParametersIfNeeded = useCallback(() => {
+    if (template && previousKey.current !== key) {
+      previousKey.current = key;
+
       const doc = (getYjsValue(template) as Map<any>).doc!;
       doc.transact(() => {
         template.parameters ??= {};
@@ -279,9 +281,9 @@ export function useParametersState(
         }
       });
     }
-  }, [keys.join('-'), template]);
+  }, [key, template]);
 
-  return { keysSet, keys };
+  return { keysSet, keys, updateParametersIfNeeded };
 }
 
 export function usePromptsState({

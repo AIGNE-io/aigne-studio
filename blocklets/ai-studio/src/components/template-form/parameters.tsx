@@ -33,7 +33,7 @@ export default function Parameters({
   form: TemplateYjs;
   compareValue?: TemplateYjs;
 }) {
-  const { keys } = useParametersState(form, { excludeCallPromptVariables: true });
+  const { keys } = useParametersState(form);
   const params = keys.map((param) => ({ param }));
 
   const doc = (getYjsValue(form) as Map<any>)?.doc!;

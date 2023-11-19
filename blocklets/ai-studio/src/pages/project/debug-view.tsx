@@ -436,7 +436,7 @@ function DebugModeForm({
 
   const scrollToBottom = useScrollToBottom();
 
-  const { keysSet: params } = useParametersState(template, { excludeCallPromptVariables: true });
+  const { keysSet: params } = useParametersState(template);
   if (template.type === 'image') {
     params.add('size');
     params.add('number');
