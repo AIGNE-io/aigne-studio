@@ -1,8 +1,8 @@
 import Editor, { EditorProps, useMonaco } from '@monaco-editor/react';
-import { Box, styled } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { useEffect } from 'react';
 
-function CodeEditor({ readOnly, ...props }: { readOnly?: boolean } & EditorProps) {
+export default function CodeEditor({ readOnly, ...props }: { readOnly?: boolean } & EditorProps) {
   const monaco = useMonaco();
 
   useEffect(() => {
@@ -19,30 +19,22 @@ function CodeEditor({ readOnly, ...props }: { readOnly?: boolean } & EditorProps
     }
   }, [monaco]);
 
+  const theme = useTheme();
+
   return (
-    <CodeEditorContainer>
-      <Editor
-        {...props}
-        height="120px"
-        theme="customTheme"
-        options={{
-          lineNumbersMinChars: 2,
-          minimap: { enabled: false },
-          readOnly,
-          tabSize: 2,
-          insertSpaces: true,
-        }}
-        className="editor-content"
-      />
-    </CodeEditorContainer>
+    <Box
+      {...props}
+      component={Editor}
+      height="120px"
+      theme="customTheme"
+      sx={{ overflow: 'hidden', borderRadius: `${theme.shape.borderRadius}px` }}
+      options={{
+        lineNumbersMinChars: 2,
+        minimap: { enabled: false },
+        readOnly,
+        tabSize: 2,
+        insertSpaces: true,
+      }}
+    />
   );
 }
-
-export default CodeEditor;
-
-const CodeEditorContainer = styled(Box)`
-  .editor-content {
-    overflow: hidden;
-    border-radius: ${({ theme }) => theme.shape.borderRadius / 2}px;
-  }
-`;
