@@ -7,6 +7,7 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import TemplateFormView from '../../components/template-form';
 import { getLogs } from '../../libs/log';
 import { getTemplate } from '../../libs/template';
+import { getTemplateIdFromPath } from '../../utils/path';
 import Branch from './icons/branch';
 import Empty from './icons/empty';
 import History from './icons/history';
@@ -68,7 +69,8 @@ export default function Compare({
     init(gitRef);
   }, []);
 
-  const template = getTemplateById(filepath.replace('.yaml', ''));
+  const templateId = getTemplateIdFromPath(filepath);
+  const template = templateId ? getTemplateById(templateId) : undefined;
 
   const renderSelect = () => {
     return (
