@@ -1,6 +1,6 @@
 ## 0.1.139 (2023-11-19)
 
-- fix: parameter is empty for git
+- fix: auto save parameters
 
 ## 0.1.138 (2023-11-17)
 

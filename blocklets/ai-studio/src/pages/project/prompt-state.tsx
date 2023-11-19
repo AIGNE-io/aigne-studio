@@ -259,26 +259,27 @@ export function useParametersState(
       .map((i) => (i.type === 'variable' ? i.name : undefined))
       .filter((i): i is string => Boolean(i))
   );
+
   const keys = [...keysSet];
 
   useEffect(() => {
     if (template) {
-      template.parameters ??= {};
-      const formParameters = template.parameters;
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+      doc.transact(() => {
+        template.parameters ??= {};
 
-      keys.forEach((param) => {
-        if (!formParameters[param]) {
-          formParameters[param] ??= {};
+        for (const param of Object.keys(template.parameters)) {
+          if (!keys.includes(param)) {
+            delete template.parameters[param];
+          }
         }
-      });
 
-      Object.keys(formParameters).forEach((key) => {
-        if (!keys.includes(key)) {
-          delete formParameters[key];
+        for (const param of keys) {
+          template.parameters[param] ??= {};
         }
       });
     }
-  }, [template.id, keys]);
+  }, [keys.join('-'), template]);
 
   return { keysSet, keys };
 }
