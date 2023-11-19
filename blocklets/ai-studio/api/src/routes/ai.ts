@@ -151,6 +151,7 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
       response:
         | { type: 'delta'; delta: string }
         | typeof result
+        // FIXME: deprecated next call, remove it after migration.
         | { type: 'next'; delta: string; templateId: string; templateName: string }
         | { type: 'call'; delta: string; templateId: string; variableName: string }
     ) => {

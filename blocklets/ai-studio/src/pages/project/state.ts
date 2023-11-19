@@ -457,6 +457,8 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
                     if (message.cancelled) return;
 
                     if (message.subMessages?.length) {
+                      // FIXME: 如果模板中调用了同一个 template 两次，这里可能会导致只显示了一条调用（两次调用的结果拼在一起了）
+                      // 另外这一块更新 message 的逻辑需要优化（重复的代码太多了，包括上面的 isNext 部分）
                       const found = message.subMessages.find(
                         (x) => x.templateId === value.templateId && x.variableName === value.variableName
                       );

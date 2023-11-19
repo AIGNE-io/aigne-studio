@@ -336,7 +336,7 @@ export function parseDirectivesOfTemplate(
 
 export function useParametersState(template: TemplateYjs) {
   const keysSet = new Set(
-    parseDirectivesOfTemplate(template, { excludeCallPromptVariables: true })
+    parseDirectivesOfTemplate(template, { excludeNonPromptVariables: true })
       .map((i) => (i.type === 'variable' ? i.name : undefined))
       .filter((i): i is string => Boolean(i))
   );
