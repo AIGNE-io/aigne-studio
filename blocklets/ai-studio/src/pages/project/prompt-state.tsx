@@ -4,7 +4,7 @@ import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/util
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import { customAlphabet } from 'nanoid';
-import { useCallback, useId, useMemo } from 'react';
+import { useCallback, useEffect, useId, useMemo } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Mustache from '../../../api/src/libs/mustache';
@@ -248,6 +248,39 @@ export function parseDirectivesOfTemplate(
   }
 
   return directives;
+}
+
+export function useParametersState(
+  template: Parameters<typeof parseDirectivesOfTemplate>[0],
+  options: Parameters<typeof parseDirectivesOfTemplate>[1]
+) {
+  const keysSet = new Set(
+    parseDirectivesOfTemplate(template, options)
+      .map((i) => (i.type === 'variable' ? i.name : undefined))
+      .filter((i): i is string => Boolean(i))
+  );
+  const keys = [...keysSet];
+
+  useEffect(() => {
+    if (template) {
+      template.parameters ??= {};
+      const formParameters = template.parameters;
+
+      keys.forEach((param) => {
+        if (!formParameters[param]) {
+          formParameters[param] ??= {};
+        }
+      });
+
+      Object.keys(formParameters).forEach((key) => {
+        if (!keys.includes(key)) {
+          delete formParameters[key];
+        }
+      });
+    }
+  }, [template.id, keys]);
+
+  return { keysSet, keys };
 }
 
 export function usePromptsState({

@@ -36,7 +36,7 @@ import { useSessionContext } from '../../contexts/session';
 import Empty from './icons/empty';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
-import { parseDirectivesOfTemplate } from './prompt-state';
+import { useParametersState } from './prompt-state';
 import Record from './record';
 import { SessionItem, useDebugState } from './state';
 
@@ -436,11 +436,7 @@ function DebugModeForm({
 
   const scrollToBottom = useScrollToBottom();
 
-  const params = new Set(
-    parseDirectivesOfTemplate(template, { excludeCallPromptVariables: true })
-      .map((i) => (i.type === 'variable' ? i.name : undefined))
-      .filter((i): i is string => Boolean(i))
-  );
+  const { keysSet: params } = useParametersState(template, { excludeCallPromptVariables: true });
   if (template.type === 'image') {
     params.add('size');
     params.add('number');
