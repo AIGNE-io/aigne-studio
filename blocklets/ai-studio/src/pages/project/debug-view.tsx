@@ -515,6 +515,7 @@ function DebugModeForm({
             template.parameters?.[param] ?? (param === 'question' && template.mode === 'chat' ? {} : undefined);
 
           const Field = parameterFieldComponent({ type: parameter?.type ?? 'string' });
+          const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
 
           return (
             <Box key={param}>
@@ -522,8 +523,6 @@ function DebugModeForm({
                 control={form.control}
                 name={param}
                 render={({ field, fieldState }) => {
-                  const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
-
                   return (
                     <Field
                       label={parameter?.label || param}
@@ -532,25 +531,6 @@ function DebugModeForm({
                       maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
                       // FIXME: 临时去掉 NumberField 的自动转 number 功能
                       {...(parameter?.type === 'number' ? { autoCorrectValue: false } : undefined)}
-                      {...form.register(param, {
-                        required: required ? t('validation.fieldRequired') : undefined,
-                        min:
-                          typeof min === 'number'
-                            ? { value: min, message: t('validation.fieldMin', { min }) }
-                            : undefined,
-                        max:
-                          typeof max === 'number'
-                            ? { value: max, message: t('validation.fieldMax', { max }) }
-                            : undefined,
-                        minLength:
-                          typeof minLength === 'number'
-                            ? { value: minLength, message: t('validation.fieldMinLength', { minLength }) }
-                            : undefined,
-                        maxLength:
-                          typeof maxLength === 'number'
-                            ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
-                            : undefined,
-                      })}
                       value={field.value}
                       onChange={(v) =>
                         form.setValue(param, v, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
@@ -559,6 +539,19 @@ function DebugModeForm({
                       helperText={fieldState.error?.message || parameter?.helper}
                     />
                   );
+                }}
+                rules={{
+                  required: required ? t('validation.fieldRequired') : undefined,
+                  min: typeof min === 'number' ? { value: min, message: t('validation.fieldMin', { min }) } : undefined,
+                  max: typeof max === 'number' ? { value: max, message: t('validation.fieldMax', { max }) } : undefined,
+                  minLength:
+                    typeof minLength === 'number'
+                      ? { value: minLength, message: t('validation.fieldMinLength', { minLength }) }
+                      : undefined,
+                  maxLength:
+                    typeof maxLength === 'number'
+                      ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
+                      : undefined,
                 }}
               />
             </Box>

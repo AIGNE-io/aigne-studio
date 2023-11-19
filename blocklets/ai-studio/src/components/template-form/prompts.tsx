@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import PromptEditor from '@blocklet/prompt-editor';
 import { cx } from '@emotion/css';
-import Editor from '@monaco-editor/react';
+import Editor, { useMonaco } from '@monaco-editor/react';
 import { ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
 import {
   Autocomplete,
@@ -21,7 +21,7 @@ import {
   styled,
 } from '@mui/material';
 import { useThrottleFn } from 'ahooks';
-import { ReactNode, useCallback, useMemo, useRef } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget } from 'react-dnd';
 import { useAsync } from 'react-use';
 
@@ -691,6 +691,8 @@ function CallFuncItemView({
   const { getTemplateById } = useStore(projectId, gitRef);
   const currentTemplate = getTemplateById(template.id);
 
+  const monaco = useMonaco();
+
   const { t } = useLocaleContext();
 
   const { prompt } = usePromptState({
@@ -713,6 +715,39 @@ function CallFuncItemView({
     },
     { wait: 500, trailing: true }
   );
+
+  const temp = currentTemplate && JSON.parse(JSON.stringify(currentTemplate));
+
+  useEffect(() => {
+    if (monaco && currentTemplate) {
+      const params = new Set<string>();
+      parseDirectivesOfTemplate(currentTemplate).forEach((directive) => {
+        if (directive.type === 'variable' && typeof directive.name === 'string') {
+          params.add(directive.name);
+        }
+      });
+
+      Object.values(template.prompts ?? {}).forEach(({ data }) => {
+        if (!isCallPromptMessage(data) && 'output' in data && typeof data.output === 'string') {
+          params.add(data.output);
+        }
+      });
+
+      const output = (prompt?.data as CallFuncMessage)?.output;
+      if (typeof output === 'string') {
+        params.delete(output);
+      }
+
+      const customTypeDefinitions = `
+        declare var context: {
+          get: (name: (${[...params].map((x) => `'${x}'`).join('|')})) => any;
+        };
+      `;
+
+      monaco?.languages?.typescript?.typescriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.d.ts');
+      monaco?.languages?.typescript?.javascriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.d.ts');
+    }
+  }, [monaco, temp, prompt]);
 
   if (!prompt) return null;
   const callFuncMessage = isCallFuncMessage(prompt.data) ? prompt.data : null;
@@ -764,36 +799,6 @@ function CallFuncItemView({
             readOnly,
             tabSize: 2,
             insertSpaces: true,
-          }}
-          onMount={(monaco) => {
-            if (monaco && currentTemplate) {
-              const params = new Set<string>();
-              parseDirectivesOfTemplate(currentTemplate).forEach((directive) => {
-                if (directive.type === 'variable' && typeof directive.name === 'string') {
-                  params.add(directive.name);
-                }
-              });
-
-              Object.values(template.prompts ?? {}).forEach(({ data }) => {
-                if (!isCallPromptMessage(data) && 'output' in data && typeof data.output === 'string') {
-                  params.add(data.output);
-                }
-              });
-
-              const output = (prompt?.data as CallFuncMessage)?.output;
-              if (typeof output === 'string') {
-                params.delete(output);
-              }
-
-              const customTypeDefinitions = `
-                declare var context: {
-                  get: (name: (${[...params].map((x) => `'${x}'`).join('|')})) => any;
-                };
-              `;
-
-              monaco?.languages?.typescript?.typescriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.d.ts');
-              monaco?.languages?.typescript?.javascriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.d.ts');
-            }
           }}
         />
       </Stack>
