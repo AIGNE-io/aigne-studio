@@ -1,3 +1,7 @@
+## 0.1.142 (2023-11-19)
+
+- fix: correct parameters of call X
+
 ## 0.1.141 (2023-11-19)
 
 - fix: compare version bug
