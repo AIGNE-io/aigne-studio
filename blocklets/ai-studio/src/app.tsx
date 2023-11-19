@@ -69,10 +69,8 @@ function LocationListener({ errorBoundaryRef }: { errorBoundaryRef: React.RefObj
   const location = useLocation();
 
   useEffect(() => {
-    if (errorBoundaryRef.current) {
-      errorBoundaryRef.current.reset();
-    }
-  }, [location, errorBoundaryRef]);
+    errorBoundaryRef.current?.reset();
+  }, [location]);
 
   return <Outlet />;
 }
