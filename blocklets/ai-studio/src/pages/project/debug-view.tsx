@@ -267,12 +267,41 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
       {message.subMessages && (
         <Box ml={6}>
           {message.subMessages.map((item) => {
-            const content = item.templateName ? `${item.templateName} : ${item.content}` : item.content;
+            const variable = item.templateName || item.variableName;
+            let json = null;
+
+            try {
+              json = item.content && JSON.parse(item.content);
+            } catch (error) {
+              // console.error(error);
+            }
+
+            const avatar = (
+              <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>
+                {(variable || item.content).slice(0, 1).toUpperCase()}
+              </Avatar>
+            );
 
             return (
-              <Box py={0.5} key={item.templateId} display="flex" alignItems="flex-start">
-                <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{content.slice(0, 1).toUpperCase()}</Avatar>
-                <Box ml={1}>{content}</Box>
+              <Box key={`${item.templateId}-${variable}`}>
+                <Box py={1} display="flex" alignItems="center" gap={1}>
+                  {avatar}
+                  <Box>{variable}</Box>
+                </Box>
+
+                {json ? (
+                  <Box
+                    component="pre"
+                    sx={{ whiteSpace: 'pre-wrap' }}
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(json, null, 2) }}
+                  />
+                ) : (
+                  <Box
+                    component="pre"
+                    sx={{ whiteSpace: 'pre-wrap' }}
+                    dangerouslySetInnerHTML={{ __html: item.content }}
+                  />
+                )}
               </Box>
             );
           })}

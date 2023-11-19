@@ -165,7 +165,7 @@ export interface SessionItem {
     loading?: boolean;
     cancelled?: boolean;
     error?: { message: string };
-    subMessages?: { content: string; templateId: string; templateName: string }[];
+    subMessages?: { content: string; templateId: string; templateName?: string; variableName?: string }[];
   }[];
   chatType?: 'chat' | 'debug';
   debugForm?: { [key: string]: any };
@@ -388,6 +388,8 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
 
         const isImages = (i: any): i is { type: 'images'; images: { url: string }[] } => i.type === 'images';
         const isNext = (i: any): i is { type: 'next'; text: string } => i.type === 'next';
+        const isCall = (i: any): i is { type: 'call'; delta: string; templateId: string; variable: string } =>
+          i.type === 'call';
 
         let response = '';
         const subResponses: { [key: string]: string } = {};
@@ -436,6 +438,47 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
                           content: subResponses[key] ?? '',
                           templateId: value.templateId,
                           templateName: value.templateName,
+                        },
+                      ];
+                    }
+                  },
+                  true
+                );
+              }
+            } else if (isCall(value)) {
+              if (value.templateId) {
+                const key = `${messageId}-${value.templateId}-${value.variableName}`;
+                subResponses[key] = value.delta;
+
+                setMessage(
+                  sessionIndex,
+                  messageId,
+                  (message) => {
+                    if (message.cancelled) return;
+
+                    if (message.subMessages?.length) {
+                      const found = message.subMessages.find(
+                        (x) => x.templateId === value.templateId && x.variableName === value.variableName
+                      );
+
+                      if (found) {
+                        found.content = subResponses[key] ?? '';
+                      } else {
+                        message.subMessages = [
+                          ...message.subMessages,
+                          {
+                            content: subResponses[key] ?? '',
+                            templateId: value.templateId,
+                            variableName: value.variableName,
+                          },
+                        ];
+                      }
+                    } else {
+                      message.subMessages = [
+                        {
+                          content: subResponses[key] ?? '',
+                          templateId: value.templateId,
+                          variableName: value.variableName,
                         },
                       ];
                     }
