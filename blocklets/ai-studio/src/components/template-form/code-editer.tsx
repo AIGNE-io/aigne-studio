@@ -1,5 +1,5 @@
-import styled from '@emotion/styled';
 import Editor, { EditorProps, useMonaco } from '@monaco-editor/react';
+import { Box, styled } from '@mui/material';
 import { useEffect } from 'react';
 
 function CodeEditor({ readOnly, ...props }: { readOnly?: boolean } & EditorProps) {
@@ -20,24 +20,29 @@ function CodeEditor({ readOnly, ...props }: { readOnly?: boolean } & EditorProps
   }, [monaco]);
 
   return (
-    <CodeEditorContainer
-      {...props}
-      height="120px"
-      theme="customTheme"
-      options={{
-        lineNumbersMinChars: 2,
-        minimap: { enabled: false },
-        readOnly,
-        tabSize: 2,
-        insertSpaces: true,
-      }}
-    />
+    <CodeEditorContainer>
+      <Editor
+        {...props}
+        height="120px"
+        theme="customTheme"
+        options={{
+          lineNumbersMinChars: 2,
+          minimap: { enabled: false },
+          readOnly,
+          tabSize: 2,
+          insertSpaces: true,
+        }}
+        className="editor-content"
+      />
+    </CodeEditorContainer>
   );
 }
 
 export default CodeEditor;
 
-const CodeEditorContainer = styled(Editor)`
-  border-radius: 4px;
-  overflow: hidden;
+const CodeEditorContainer = styled(Box)`
+  .editor-content {
+    overflow: hidden;
+    border-radius: ${({ theme }) => theme.shape.borderRadius / 2}px;
+  }
 `;
