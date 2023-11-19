@@ -288,14 +288,6 @@ export function parseDirectives(...content: string[]): Directive[] {
   });
 }
 
-export function parseDirectivesOfMessages(template: TemplateYjs) {
-  return parseDirectives(
-    ...Object.values(template.prompts ?? {})
-      .map((i) => i?.data?.content)
-      .filter((i): i is string => Boolean(i))
-  );
-}
-
 export function parseDirectivesOfTemplate(
   template: TemplateYjs,
   {

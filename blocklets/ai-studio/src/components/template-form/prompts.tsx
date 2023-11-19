@@ -39,7 +39,6 @@ import Eye from '../../pages/project/icons/eye';
 import EyeNo from '../../pages/project/icons/eye-no';
 import Trash from '../../pages/project/icons/trash';
 import {
-  parseDirectivesOfMessages,
   parseDirectivesOfTemplate,
   randomId,
   useEditorPicker,
@@ -445,7 +444,7 @@ function CallPromptItemView({
   const targetId = callPromptMessage.template?.id;
   const target = targetId ? getTemplateById(targetId) : undefined;
 
-  const params = target ? parseDirectivesOfMessages(target) : [];
+  const params = target ? parseDirectivesOfTemplate(target, { excludeNonPromptVariables: true }) : [];
 
   return (
     <Stack p={1} gap={1}>
@@ -466,7 +465,7 @@ function CallPromptItemView({
                 originalOutput.current = callPromptMessage.output;
 
                 const existsVariables = new Set(
-                  parseDirectivesOfMessages(template)
+                  parseDirectivesOfTemplate(template)
                     .filter((i) => i.type === 'variable')
                     .map((i) => i.name)
                 );
