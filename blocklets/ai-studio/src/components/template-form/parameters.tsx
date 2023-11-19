@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Button, ClickAwayListener, Input, Paper, Popper, Typography } from '@mui/material';
 import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { StringParameter } from '../../../api/src/store/templates';
@@ -33,19 +33,38 @@ export default function Parameters({
   form: TemplateYjs;
   compareValue?: TemplateYjs;
 }) {
-  const params = [
+  const keys = [
     ...new Set(
       parseDirectivesOfTemplate(form, { excludeCallPromptVariables: true })
         .map((i) => (i.type === 'variable' ? i.name : undefined))
         .filter((i): i is string => Boolean(i))
     ),
-  ].map((param) => ({ param }));
+  ];
+  const params = keys.map((param) => ({ param }));
+
   const doc = (getYjsValue(form) as Map<any>)?.doc!;
 
   const { t } = useLocaleContext();
   const dataGrid = useGridApiRef();
 
   const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; param: string }>();
+
+  useEffect(() => {
+    form.parameters ??= {};
+    const formParameters = form.parameters;
+
+    keys.forEach((param) => {
+      if (!formParameters[param]) {
+        formParameters[param] ??= {};
+      }
+    });
+
+    Object.keys(formParameters).forEach((key) => {
+      if (!keys.includes(key)) {
+        delete formParameters[key];
+      }
+    });
+  }, [form.id, keys]);
 
   const columns = useMemo<GridColDef<{ param: string }>[]>(() => {
     return [
