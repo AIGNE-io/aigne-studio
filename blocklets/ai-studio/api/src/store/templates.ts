@@ -35,7 +35,9 @@ export interface CallPromptMessage {
   content?: undefined;
   output: string;
   template?: { id: string; name?: string };
-  parameters?: { [key: string]: string | undefined };
+  parameters?: {
+    [key: string]: string | undefined;
+  };
   visibility?: 'hidden';
 }
 
@@ -45,8 +47,8 @@ export interface CallAPIMessage {
   content?: undefined;
   method: string;
   url: string;
-  output: string;
   body?: string;
+  output: string;
   visibility?: 'hidden';
 }
 

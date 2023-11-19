@@ -261,33 +261,38 @@ type Directive = {
 
 export function parseDirectives(...content: string[]): Directive[] {
   return content.flatMap((content) => {
-    const spans = Mustache.parse(content);
+    // 捕获 /{{ var/api/task/{{list}} 这种错误
+    try {
+      const spans = Mustache.parse(content);
 
-    const directives: Directive[] = [];
+      const directives: Directive[] = [];
 
-    for (const span of spans) {
-      switch (span[0]) {
-        case 'name': {
-          const name = span[1];
-          if (name) directives.push({ type: 'variable', name });
-          break;
+      for (const span of spans) {
+        switch (span[0]) {
+          case 'name': {
+            const name = span[1];
+            if (name) directives.push({ type: 'variable', name });
+            break;
+          }
+          case 'text': {
+            break;
+          }
+          default:
+            console.warn('Unknown directive', span);
         }
-        case 'text': {
-          break;
-        }
-        default:
-          console.warn('Unknown directive', span);
       }
-    }
 
-    return directives;
+      return directives;
+    } catch (error) {
+      return [];
+    }
   });
 }
 
 export function parseDirectivesOfMessages(template: TemplateYjs) {
   return parseDirectives(
     ...Object.values(template.prompts ?? {})
-      .map((i) => i.data.content)
+      .map((i) => i?.data?.content)
       .filter((i): i is string => Boolean(i))
   );
 }
