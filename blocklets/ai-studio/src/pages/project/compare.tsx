@@ -58,7 +58,7 @@ export default function Compare({
     try {
       setState((r) => ({ ...r, template: undefined, loading: true }));
 
-      const data = await getTemplate(projectId, hash, templateId);
+      const data = await getTemplate(projectId, hash, templateId || '');
 
       setState((r) => ({ ...r, template: templateYjsFromTemplate(data) }));
     } catch (error) {
@@ -128,11 +128,6 @@ export default function Compare({
       </Box>
     </Box>
   );
-
-  console.log({
-    template,
-    s: state.template,
-  });
 
   if (!state.template || !template) {
     return (
