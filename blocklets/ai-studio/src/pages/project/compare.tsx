@@ -7,6 +7,7 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import TemplateFormView from '../../components/template-form';
 import { getLogs } from '../../libs/log';
 import { getTemplate } from '../../libs/template';
+import { getTemplateIdFromPath } from '../../utils/path';
 import Branch from './icons/branch';
 import Empty from './icons/empty';
 import History from './icons/history';
@@ -68,7 +69,8 @@ export default function Compare({
     init(gitRef);
   }, []);
 
-  const template = getTemplateById(filepath.replace('.yaml', ''));
+  const templateId = getTemplateIdFromPath(filepath);
+  const template = templateId ? getTemplateById(templateId) : undefined;
 
   const renderSelect = () => {
     return (
@@ -108,8 +110,6 @@ export default function Compare({
     );
   };
 
-  if (!template) return null;
-
   if (state.loading) {
     return (
       <Box height="80vh" display="flex" width={1}>
@@ -120,7 +120,16 @@ export default function Compare({
     );
   }
 
-  if (!state.template) {
+  const empty = (
+    <Box flex={1} display="flex" alignItems="center" justifyContent="center">
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+        <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+        <Typography sx={{ color: (theme) => theme.palette.action.disabled }}>{t('compare.empty')}</Typography>
+      </Box>
+    </Box>
+  );
+
+  if (!state.template || !template) {
     return (
       <Stack height="80vh" width={1}>
         <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
@@ -131,21 +140,44 @@ export default function Compare({
               {renderSelect()}
             </Box>
 
-            <Box flex={1} display="flex" alignItems="center" justifyContent="center">
-              <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
-                <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-                <Typography sx={{ color: (theme) => theme.palette.action.disabled }}>{t('compare.empty')}</Typography>
-              </Box>
-            </Box>
+            {state.template ? (
+              <>
+                <TemplateFormView
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  value={state.template}
+                  compareValue={template}
+                  disabled
+                />
+                <SettingView
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  template={state.template}
+                  compareValue={template}
+                  disabled
+                />
+              </>
+            ) : (
+              empty
+            )}
           </Box>
 
           <Box flex={1} display="flex" flexDirection="column">
             <Box sx={{ fontSize: 20, fontWeight: 'bold', mb: 2 }}>{t('compare.current')}</Box>
 
-            <>
-              <TemplateFormView projectId={projectId} gitRef={gitRef} compareValue={state.template} value={template} />
-              <SettingView projectId={projectId} gitRef={gitRef} template={template} compareValue={state.template} />
-            </>
+            {template ? (
+              <>
+                <TemplateFormView
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  value={template}
+                  compareValue={state.template}
+                />
+                <SettingView projectId={projectId} gitRef={gitRef} template={template} compareValue={state.template} />
+              </>
+            ) : (
+              empty
+            )}
           </Box>
         </Stack>
       </Stack>

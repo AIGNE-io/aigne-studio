@@ -225,7 +225,7 @@ export default flat({
     origin: '原始数据',
     current: '当前数据',
     select: '选择提交记录',
-    empty: '没有原始数据',
+    empty: '没有数据',
     diff: '文件内容被修改',
   },
   confirmDelete: '请输入 {name} 以确认删除',

@@ -1,3 +1,7 @@
+## 0.1.140 (2023-11-19)
+
+- fix: compare version bug
+
 ## 0.1.139 (2023-11-19)
 
 - fix: auto save parameters
