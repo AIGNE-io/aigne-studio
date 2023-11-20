@@ -214,33 +214,11 @@ const FileTree = forwardRef<
   useImperativeHandle(
     ref,
     () => ({
-      newFolder: ({ parent = [] } = {}) => {
-        let index = 0;
-        let name = 'Folder';
-
-        const parentPath = parent.join('/').concat('/');
-        const existNames = new Set(
-          Object.values(store.tree).map((i) =>
-            i?.startsWith(parentPath) ? i.replace(parentPath, '').split('/')[0] : undefined
-          )
-        );
-
-        while (true) {
-          const n = index ? `${name} ${index}` : name;
-          index++;
-          if (!existNames.has(n)) {
-            name = n;
-            break;
-          }
-        }
-
-        setDefaultEditingFolderPath([...parent, name].join('/'));
-        createFolder({ store, parent, name });
-      },
+      newFolder: (options) => setDefaultEditingFolderPath(createFolder({ store, ...options })),
       newFile: (options) => onCreateFile(options),
       importFrom: () => onImportFrom(),
     }),
-    [onCreateFile, onImportFrom]
+    [onCreateFile, onImportFrom, store]
   );
 
   const onMoveFile = useCallback(

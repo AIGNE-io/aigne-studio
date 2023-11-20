@@ -204,19 +204,43 @@ export const useStore = (projectId: string, gitRef: string, connect?: boolean) =
 
 export function createFolder({
   store,
-  parent,
-  name,
+  ...options
 }: {
   store: StoreContext['store'];
-  parent: string[];
-  name: string;
+  parent?: string[];
+  name?: string;
 }) {
+  const parent = options.parent?.length ? options.parent : [PROMPTS_FOLDER_NAME];
+  let { name } = options;
+
+  if (!name) {
+    let index = 0;
+    name = 'Folder';
+
+    const parentPath = parent.join('/').concat('/');
+    const existNames = new Set(
+      Object.values(store.tree).map((i) =>
+        i?.startsWith(parentPath) ? i.replace(parentPath, '').split('/')[0] : undefined
+      )
+    );
+
+    while (true) {
+      const n = index ? `${name} ${index}` : name;
+      index++;
+      if (!existNames.has(n)) {
+        name = n;
+        break;
+      }
+    }
+  }
+
+  const filepath = [...parent, name].join('/');
   getYjsDoc(store).transact(() => {
-    const filepath = [...parent, name, '.gitkeep'].join('/');
     const key = nanoid(32);
-    store.tree[key] = filepath;
+    store.tree[key] = [filepath, '.gitkeep'].join('/');
     store.files[key] = { $base64: '' };
   });
+  return filepath;
 }
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
