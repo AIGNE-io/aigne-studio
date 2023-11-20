@@ -135,24 +135,37 @@ export async function getRepository({ projectId }: { projectId: string }) {
       parse: async (filepath, content) => {
         if (path.extname(filepath) === '.yaml') {
           const data = templateToYjs(parse(Buffer.from(content).toString()));
-          return { data, key: data.id };
+          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+          const filename = `${data.id}.yaml`;
+          return { filepath: path.join(parent, filename), key: data.id, data };
         }
 
         return {
+          filepath,
           key: nanoid(32),
           data: {
             $base64: Buffer.from(content).toString('base64'),
           },
         };
       },
-      stringify: async (_, content) => {
+      stringify: async (filepath, content) => {
         if (isTemplate(content)) {
-          return stringify(yjsToTemplate(content));
+          const data = stringify(yjsToTemplate(content));
+          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+          const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
+          const newFilepath = path.join(parent, filename);
+
+          return {
+            filepath: newFilepath,
+            data,
+          };
         }
 
         const base64 = content.$base64;
 
-        return typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
+        const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
+
+        return { filepath, data };
       },
     });
     return repository;

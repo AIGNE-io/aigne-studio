@@ -62,9 +62,9 @@ export default class Working<T> extends Doc {
     const files = await Promise.all(
       (
         await this.repo.listFiles({ ref: this.options.ref })
-      ).map(async (filepath) => {
-        const content = (await this.repo.readBlob({ ref: this.options.ref, filepath })).blob;
-        const { data, key } = await this.repo.options.parse(filepath, content);
+      ).map(async (p) => {
+        const content = (await this.repo.readBlob({ ref: this.options.ref, filepath: p })).blob;
+        const { filepath, data, key } = await this.repo.options.parse(p, content);
         return { filepath, key, file: data };
       })
     );
@@ -118,16 +118,23 @@ export default class Working<T> extends Doc {
 
       for (const filepath of deletedFiles) {
         fs.rmSync(path.join(this.repo.root, filepath), { recursive: true, force: true });
+        await fs.rmSync(path.join(this.repo.options.root, filepath), { force: true });
         await tx.remove({ filepath });
       }
 
       for (const [filepath, file] of files) {
-        const p = path.join(this.repo.options.root, filepath);
-        fs.mkdirSync(path.dirname(p), { recursive: true });
+        const { filepath: newFilepath, data } = await this.repo.options.stringify(filepath, file);
 
-        fs.writeFileSync(p, await this.repo.options.stringify(filepath, file));
+        if (filepath !== newFilepath) {
+          await fs.rmSync(path.join(this.repo.options.root, filepath), { force: true });
+          await tx.remove({ filepath });
+        }
 
-        await tx.add({ filepath });
+        const newPath = path.join(this.repo.options.root, newFilepath);
+        fs.mkdirSync(path.dirname(newPath), { recursive: true });
+        fs.writeFileSync(newPath, data);
+
+        await tx.add({ filepath: newFilepath });
       }
 
       return tx.commit({ message, author });
