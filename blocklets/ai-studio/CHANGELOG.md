@@ -2,6 +2,7 @@
 
 - feat: set template empty page
 - fix: Inherits empty parameter to template parameter
+- chore: update uploader package to latest
 
 ## 0.1.144 (2023-11-20)
 
