@@ -92,6 +92,10 @@ export default flat({
     currentBranch: '当前分支',
     message: '备注',
     compare: '版本比较',
+    unsave: {
+      title: '未保存的更改',
+      content: ' 您的更改尚未保存!',
+    },
   },
   import: {
     title: '导入模板数据',
@@ -225,13 +229,31 @@ export default flat({
     origin: '原始数据',
     current: '当前数据',
     select: '选择提交记录',
-    empty: '没有原始数据',
+    empty: '没有数据',
     diff: '文件内容被修改',
   },
   confirmDelete: '请输入 {name} 以确认删除',
   deleteProject: '这将永久删除名称为 {name} 的项目',
   selectObject: '选择{object}',
   template: '模板',
+  call: {
+    api: {
+      placeholder: 'API 地址',
+      body: '数据 (JSON)',
+    },
+    func: {
+      code: '代码',
+    },
+    dataset: {
+      search: '查询',
+    },
+    list: {
+      prompt: '执行 Prompt',
+      api: '执行 API',
+      func: '执行 JS 函数代码',
+      dataset: '查询数据集',
+    },
+  },
   remoteGitRepo: '远程 Git 仓库',
   url: '地址',
   username: '用户名',
@@ -249,6 +271,4 @@ export default flat({
   useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
   useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
-  saveAndLeave: '保存并离开',
-  leave: '直接离开',
 });

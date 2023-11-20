@@ -36,7 +36,7 @@ import { useSessionContext } from '../../contexts/session';
 import Empty from './icons/empty';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
-import { parseDirectivesOfTemplate } from './prompt-state';
+import { useParametersState } from './prompt-state';
 import Record from './record';
 import { SessionItem, useDebugState } from './state';
 
@@ -228,7 +228,7 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
                         <Typography component="span" color="text.secondary">
                           {key}
                         </Typography>
-                        : {val}
+                        : {typeof val === 'string' ? val : JSON.stringify(val)}
                       </Typography>
                     ))}
                   </Box>
@@ -267,12 +267,41 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
       {message.subMessages && (
         <Box ml={6}>
           {message.subMessages.map((item) => {
-            const content = item.templateName ? `${item.templateName} : ${item.content}` : item.content;
+            const variable = item.templateName || item.variableName;
+            let json = null;
+
+            try {
+              json = item.content && JSON.parse(item.content);
+            } catch (error) {
+              // console.error(error);
+            }
+
+            const avatar = (
+              <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>
+                {(variable || item.content).slice(0, 1).toUpperCase()}
+              </Avatar>
+            );
 
             return (
-              <Box py={0.5} key={item.templateId} display="flex" alignItems="flex-start">
-                <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{content.slice(0, 1).toUpperCase()}</Avatar>
-                <Box ml={1}>{content}</Box>
+              <Box key={`${item.templateId}-${variable}`}>
+                <Box py={1} display="flex" alignItems="center" gap={1}>
+                  {avatar}
+                  <Box>{variable}</Box>
+                </Box>
+
+                {json ? (
+                  <Box
+                    component="pre"
+                    sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(json, null, 2) }}
+                  />
+                ) : (
+                  <Box
+                    component="pre"
+                    sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
+                    dangerouslySetInnerHTML={{ __html: item.content }}
+                  />
+                )}
               </Box>
             );
           })}
@@ -436,11 +465,7 @@ function DebugModeForm({
 
   const scrollToBottom = useScrollToBottom();
 
-  const params = new Set(
-    parseDirectivesOfTemplate(template, { excludeCallPromptVariables: true })
-      .map((i) => (i.type === 'variable' ? i.name : undefined))
-      .filter((i): i is string => Boolean(i))
-  );
+  const { keysSet: params } = useParametersState(template);
   if (template.type === 'image') {
     params.add('size');
     params.add('number');
@@ -515,6 +540,7 @@ function DebugModeForm({
             template.parameters?.[param] ?? (param === 'question' && template.mode === 'chat' ? {} : undefined);
 
           const Field = parameterFieldComponent({ type: parameter?.type ?? 'string' });
+          const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
 
           return (
             <Box key={param}>
@@ -522,8 +548,6 @@ function DebugModeForm({
                 control={form.control}
                 name={param}
                 render={({ field, fieldState }) => {
-                  const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
-
                   return (
                     <Field
                       label={parameter?.label || param}
@@ -532,25 +556,6 @@ function DebugModeForm({
                       maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
                       // FIXME: 临时去掉 NumberField 的自动转 number 功能
                       {...(parameter?.type === 'number' ? { autoCorrectValue: false } : undefined)}
-                      {...form.register(param, {
-                        required: required ? t('validation.fieldRequired') : undefined,
-                        min:
-                          typeof min === 'number'
-                            ? { value: min, message: t('validation.fieldMin', { min }) }
-                            : undefined,
-                        max:
-                          typeof max === 'number'
-                            ? { value: max, message: t('validation.fieldMax', { max }) }
-                            : undefined,
-                        minLength:
-                          typeof minLength === 'number'
-                            ? { value: minLength, message: t('validation.fieldMinLength', { minLength }) }
-                            : undefined,
-                        maxLength:
-                          typeof maxLength === 'number'
-                            ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
-                            : undefined,
-                      })}
                       value={field.value}
                       onChange={(v) =>
                         form.setValue(param, v, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
@@ -559,6 +564,20 @@ function DebugModeForm({
                       helperText={fieldState.error?.message || parameter?.helper}
                     />
                   );
+                }}
+                // 当编辑器中有 ' 使用 form.register 会出错
+                rules={{
+                  required: required ? t('validation.fieldRequired') : undefined,
+                  min: typeof min === 'number' ? { value: min, message: t('validation.fieldMin', { min }) } : undefined,
+                  max: typeof max === 'number' ? { value: max, message: t('validation.fieldMax', { max }) } : undefined,
+                  minLength:
+                    typeof minLength === 'number'
+                      ? { value: minLength, message: t('validation.fieldMinLength', { minLength }) }
+                      : undefined,
+                  maxLength:
+                    typeof maxLength === 'number'
+                      ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
+                      : undefined,
                 }}
               />
             </Box>

@@ -1,11 +1,15 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import PromptEditor, { ComponentPickerOption, INSERT_VARIABLE_COMMAND } from '@blocklet/prompt-editor';
+import PromptEditor from '@blocklet/prompt-editor';
 import { cx } from '@emotion/css';
+import { useMonaco } from '@monaco-editor/react';
 import { ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
 import {
+  Autocomplete,
   Box,
   Button,
   FormLabel,
+  MenuItem,
+  Select,
   Stack,
   TextField,
   Tooltip,
@@ -13,31 +17,67 @@ import {
   alpha,
   buttonClasses,
   inputBaseClasses,
+  selectClasses,
   styled,
 } from '@mui/material';
 import { useThrottleFn } from 'ahooks';
-import { ReactNode, useMemo, useRef } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget } from 'react-dnd';
+import { useAsync } from 'react-use';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { CallPromptMessage } from '../../../api/src/store/templates';
+import {
+  CallDatasetMessage,
+  CallFuncMessage,
+  CallPromptMessage,
+  EditorPromptMessage,
+} from '../../../api/src/store/templates';
+import { getDatasets } from '../../libs/dataset';
 import Add from '../../pages/project/icons/add';
 import DragVertical from '../../pages/project/icons/drag-vertical';
 import Eye from '../../pages/project/icons/eye';
 import EyeNo from '../../pages/project/icons/eye-no';
 import Trash from '../../pages/project/icons/trash';
 import {
-  parseDirectivesOfMessages,
+  parseDirectivesOfTemplate,
   randomId,
+  useEditorPicker,
   useParameterState,
+  useParametersState,
   usePromptState,
   usePromptsState,
 } from '../../pages/project/prompt-state';
 import { useTemplateCompare } from '../../pages/project/state';
-import { createFile, isCallPromptMessage, isPromptMessage, isTemplate, useStore } from '../../pages/project/yjs-state';
+import {
+  createFile,
+  isCallAPIMessage,
+  isCallDatasetMessage,
+  isCallFuncMessage,
+  isCallPromptMessage,
+  isPromptMessage,
+  isTemplate,
+  useStore,
+} from '../../pages/project/yjs-state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import { DragSortListYjs } from '../drag-sort-list';
+import CodeEditor from './code-editer';
 import TemplateAutocomplete from './template-autocomplete';
+
+const CONST_TYPE = {
+  prompt: 'prompt',
+  callPrompt: 'callPrompt',
+  callAPI: 'callAPI',
+  callFunc: 'callFunc',
+  callDataset: 'callDataset',
+};
+
+const componentMap = {
+  [CONST_TYPE.prompt]: PromptItemView,
+  [CONST_TYPE.callPrompt]: CallPromptItemView,
+  [CONST_TYPE.callAPI]: CallAPIItemView,
+  [CONST_TYPE.callFunc]: CallFuncItemView,
+  [CONST_TYPE.callDataset]: CallDatasetItemView,
+};
 
 export default function Prompts({
   readOnly,
@@ -56,6 +96,48 @@ export default function Prompts({
 
   const { addPrompt } = usePromptsState({ projectId, gitRef, templateId: form.id });
   const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, readOnly });
+
+  const getChildren = useCallback(
+    (prompt: EditorPromptMessage) => {
+      const getType = () => {
+        if (isPromptMessage(prompt)) {
+          return CONST_TYPE.prompt;
+        }
+
+        if (isCallPromptMessage(prompt)) {
+          return CONST_TYPE.callPrompt;
+        }
+
+        if (isCallAPIMessage(prompt)) {
+          return CONST_TYPE.callAPI;
+        }
+
+        if (isCallFuncMessage(prompt)) {
+          return CONST_TYPE.callFunc;
+        }
+
+        if (isCallDatasetMessage(prompt)) {
+          return CONST_TYPE.callDataset;
+        }
+
+        return null;
+      };
+
+      const type = getType();
+      const Component = type ? componentMap[type] : '';
+      const children = Component ? (
+        <Component projectId={projectId} gitRef={gitRef} template={form} promptId={prompt.id} readOnly={readOnly} />
+      ) : null;
+
+      return children;
+    },
+    [projectId, gitRef, form, readOnly]
+  );
+  const { updateParametersIfNeeded } = useParametersState(form);
+
+  useEffect(() => {
+    updateParametersIfNeeded();
+  }, [updateParametersIfNeeded]);
 
   return (
     <Box>
@@ -91,23 +173,7 @@ export default function Prompts({
               },
             }}
             renderItem={(prompt, _, params) => {
-              const children = isPromptMessage(prompt) ? (
-                <PromptItemView
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  template={form}
-                  promptId={prompt.id}
-                  readOnly={readOnly}
-                />
-              ) : isCallPromptMessage(prompt) ? (
-                <CallPromptItemView
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  template={form}
-                  promptId={prompt.id}
-                  readOnly={readOnly}
-                />
-              ) : null;
+              const children = getChildren(prompt);
 
               return (
                 children && (
@@ -310,22 +376,8 @@ function PromptItemView({
     readOnly,
     originTemplate: template,
   });
-  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
-
-  const options = useMemo(
-    () => [
-      new ComponentPickerOption('Execute Prompt', {
-        keywords: ['execute', 'prompt'],
-        onSelect: (editor) => {
-          const variable = `var-${randomId(5)}`;
-          const id = randomId();
-          addPrompt({ id, role: 'call-prompt', output: variable }, prompt?.index || 0);
-          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
-        },
-      }),
-    ],
-    [addPrompt, prompt?.index]
-  );
+  const { getOptions } = useEditorPicker({ projectId, gitRef, templateId });
+  const options = getOptions(prompt?.index);
 
   if (!prompt || !state.editorState) return null;
 
@@ -392,16 +444,17 @@ function CallPromptItemView({
   const targetId = callPromptMessage.template?.id;
   const target = targetId ? getTemplateById(targetId) : undefined;
 
-  const params = target ? parseDirectivesOfMessages(target) : [];
+  const params = target ? parseDirectivesOfTemplate(target, { excludeNonPromptVariables: true }) : [];
 
   return (
     <Stack p={1} gap={1}>
       <Stack px={1} direction="row" alignItems="center" gap={1}>
         <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
-          Execute Prompt
+          {t('call.list.prompt')}
         </Typography>
 
         <TemplateAutocomplete
+          sx={{ flex: 1 }}
           fullWidth
           freeSolo
           value={target}
@@ -412,7 +465,7 @@ function CallPromptItemView({
                 originalOutput.current = callPromptMessage.output;
 
                 const existsVariables = new Set(
-                  parseDirectivesOfMessages(template)
+                  parseDirectivesOfTemplate(template)
                     .filter((i) => i.type === 'variable')
                     .map((i) => i.name)
                 );
@@ -450,7 +503,7 @@ function CallPromptItemView({
             callPromptMessage.output = e.target.value.trim();
             rename.run();
           }}
-          sx={{ [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}
+          sx={{ width: 100, [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}
         />
       </Stack>
 
@@ -480,7 +533,375 @@ function CallPromptItemView({
   );
 }
 
-const randomVariableNamePrefix = 'var-';
+function CallAPIItemView({
+  projectId,
+  gitRef,
+  template,
+  promptId,
+  readOnly,
+}: {
+  projectId: string;
+  gitRef: string;
+  template: TemplateYjs;
+  promptId: string;
+  readOnly?: boolean;
+}) {
+  const originalOutput = useRef<string>();
+  const { renameVariable } = usePromptsState({ projectId, gitRef, templateId: template.id });
+
+  const { t } = useLocaleContext();
+
+  const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+
+  const { prompt } = usePromptState({
+    projectId,
+    gitRef,
+    templateId: template.id,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
+
+  const rename = useThrottleFn(
+    () => {
+      if (callAPIMessage?.output && originalOutput.current && originalOutput.current !== callAPIMessage.output) {
+        renameVariable({
+          [originalOutput.current]: callAPIMessage.output,
+        });
+        originalOutput.current = callAPIMessage.output;
+      }
+    },
+    { wait: 500, trailing: true }
+  );
+
+  if (!prompt) return null;
+  const callAPIMessage = isCallAPIMessage(prompt.data) ? prompt.data : null;
+  if (!callAPIMessage) return null;
+
+  return (
+    <Stack p={1} gap={1}>
+      <Stack
+        px={1}
+        direction="row"
+        alignItems="center"
+        gap={1}
+        sx={{ [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}>
+        <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
+          {t('call.list.api')}
+        </Typography>
+
+        <Stack flex={1} direction="row" alignItems="center" gap={1}>
+          <Select
+            sx={{
+              width: 80,
+              [`.${selectClasses.select}`]: {
+                fontSize: 12,
+                px: 1,
+                pr: '18px !important',
+              },
+              [`.${selectClasses.icon}`]: {
+                fontSize: 16,
+                right: 2,
+              },
+            }}
+            value={callAPIMessage.method ?? ''}
+            onChange={(e) => (callAPIMessage.method = e.target.value)}>
+            {methods.map((method) => {
+              return (
+                <MenuItem value={method.toLocaleLowerCase()} key={method.toLocaleLowerCase()}>
+                  {method.toLocaleUpperCase()}
+                </MenuItem>
+              );
+            })}
+          </Select>
+
+          <TextField
+            sx={{ flex: 1 }}
+            hiddenLabel
+            placeholder={t('call.api.placeholder')}
+            value={callAPIMessage.url ?? ''}
+            onChange={(e) => (callAPIMessage.url = e.target.value)}
+          />
+        </Stack>
+
+        <TextField
+          onFocus={() => (originalOutput.current = callAPIMessage.output)}
+          onBlur={rename.run}
+          hiddenLabel
+          placeholder={t('output')}
+          value={callAPIMessage.output || ''}
+          onChange={(e) => {
+            callAPIMessage.output = e.target.value.trim();
+            rename.run();
+          }}
+          sx={{ width: 100 }}
+        />
+      </Stack>
+
+      {['post', 'put', 'patch', 'delete'].includes(callAPIMessage.method) && (
+        <Stack px={1} ml={1} gap={1}>
+          <Typography variant="caption">{t('call.api.body')}</Typography>
+
+          <CodeEditor
+            readOnly={readOnly}
+            defaultLanguage="json"
+            language="json"
+            value={callAPIMessage.body}
+            onChange={(value) => {
+              callAPIMessage.body = value;
+            }}
+          />
+        </Stack>
+      )}
+    </Stack>
+  );
+}
+
+function CallFuncItemView({
+  projectId,
+  gitRef,
+  template,
+  promptId,
+  readOnly,
+}: {
+  projectId: string;
+  gitRef: string;
+  template: TemplateYjs;
+  promptId: string;
+  readOnly?: boolean;
+}) {
+  const originalOutput = useRef<string>();
+  const { renameVariable } = usePromptsState({ projectId, gitRef, templateId: template.id });
+  const { getTemplateById } = useStore(projectId, gitRef);
+  const currentTemplate = getTemplateById(template.id);
+
+  const monaco = useMonaco();
+
+  const { t } = useLocaleContext();
+
+  const { prompt } = usePromptState({
+    projectId,
+    gitRef,
+    templateId: template.id,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
+
+  const rename = useThrottleFn(
+    () => {
+      if (callFuncMessage?.output && originalOutput.current && originalOutput.current !== callFuncMessage.output) {
+        renameVariable({
+          [originalOutput.current]: callFuncMessage.output,
+        });
+        originalOutput.current = callFuncMessage.output;
+      }
+    },
+    { wait: 500, trailing: true }
+  );
+
+  const temp = currentTemplate && JSON.parse(JSON.stringify(currentTemplate));
+
+  useEffect(() => {
+    if (monaco && currentTemplate) {
+      const params = new Set<string>();
+      parseDirectivesOfTemplate(currentTemplate).forEach((directive) => {
+        if (directive.type === 'variable' && typeof directive.name === 'string') {
+          params.add(directive.name);
+        }
+      });
+
+      Object.values(template.prompts ?? {}).forEach(({ data }) => {
+        if (!isCallPromptMessage(data) && 'output' in data && data.output) {
+          params.add(data.output);
+        }
+      });
+
+      const output = (prompt?.data as CallFuncMessage)?.output;
+      if (typeof output === 'string') {
+        params.delete(output);
+      }
+
+      const customTypeDefinitions = `
+        declare var context: {
+          get: (name: (${[...params].map((x) => `'${x}'`).join('|')})) => any;
+        };
+      `;
+
+      monaco?.languages?.typescript?.typescriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.d.ts');
+      monaco?.languages?.typescript?.javascriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.d.ts');
+    }
+  }, [monaco, temp, prompt]);
+
+  if (!prompt) return null;
+  const callFuncMessage = isCallFuncMessage(prompt.data) ? prompt.data : null;
+  if (!callFuncMessage) return null;
+
+  return (
+    <Stack p={1} gap={1}>
+      <Stack
+        px={1}
+        direction="row"
+        alignItems="center"
+        gap={1}
+        sx={{ [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}>
+        <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
+          {t('call.list.func')}
+        </Typography>
+
+        <Stack flex={1} direction="row" alignItems="center" gap={1} />
+
+        <TextField
+          onFocus={() => (originalOutput.current = callFuncMessage.output)}
+          onBlur={rename.run}
+          hiddenLabel
+          placeholder={t('output')}
+          value={callFuncMessage.output || ''}
+          onChange={(e) => {
+            callFuncMessage.output = e.target.value.trim();
+            rename.run();
+          }}
+          sx={{ width: 100 }}
+        />
+      </Stack>
+
+      <Stack px={1} ml={1} gap={1}>
+        <Typography variant="caption">{t('call.func.code')}</Typography>
+
+        <CodeEditor
+          readOnly={Boolean(readOnly)}
+          defaultLanguage="javascript"
+          language="javascript"
+          value={callFuncMessage.code || ''}
+          onChange={(value) => {
+            callFuncMessage.code = value || '';
+          }}
+        />
+      </Stack>
+    </Stack>
+  );
+}
+
+function CallDatasetItemView({
+  projectId,
+  gitRef,
+  template,
+  promptId,
+  readOnly,
+}: {
+  projectId: string;
+  gitRef: string;
+  template: TemplateYjs;
+  promptId: string;
+  readOnly?: boolean;
+}) {
+  const { t } = useLocaleContext();
+
+  const originalOutput = useRef<string>();
+  const { renameVariable } = usePromptsState({ projectId, gitRef, templateId: template.id });
+  const { value: datasetsRes } = useAsync(() => getDatasets(), []);
+  const datasets = useMemo(() => datasetsRes?.datasets.map((i) => ({ id: i._id!, name: i.name })) ?? [], [datasetsRes]);
+
+  const { prompt } = usePromptState({
+    projectId,
+    gitRef,
+    templateId: template.id,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
+
+  const rename = useThrottleFn(
+    () => {
+      if (
+        callDatasetMessage?.output &&
+        originalOutput.current &&
+        originalOutput.current !== callDatasetMessage.output
+      ) {
+        renameVariable({
+          [originalOutput.current]: callDatasetMessage.output,
+        });
+        originalOutput.current = callDatasetMessage.output;
+      }
+    },
+    { wait: 500, trailing: true }
+  );
+
+  if (!prompt) return null;
+  const callDatasetMessage = isCallDatasetMessage(prompt.data) ? prompt.data : null;
+  if (!callDatasetMessage) return null;
+
+  return (
+    <Stack p={1} gap={1}>
+      <Stack
+        px={1}
+        direction="row"
+        alignItems="center"
+        gap={1}
+        sx={{ [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}>
+        <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
+          {t('call.list.dataset')}
+        </Typography>
+
+        <Stack flex={1} direction="row" alignItems="center" gap={1}>
+          <Autocomplete
+            readOnly={readOnly}
+            fullWidth
+            size="small"
+            value={callDatasetMessage.vectorStore ?? null}
+            onChange={(_, value) => (callDatasetMessage.vectorStore = value ?? undefined)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder={t('form.dataset')}
+                hiddenLabel
+                sx={{
+                  [`> .${inputBaseClasses.root}`]: {
+                    py: '4px !important',
+                  },
+                }}
+              />
+            )}
+            options={datasets}
+            isOptionEqualToValue={(o, v) => o.id === v.id}
+            getOptionLabel={(v) => v.name || 'Unnamed'}
+          />
+        </Stack>
+
+        <TextField
+          onFocus={() => (originalOutput.current = callDatasetMessage.output)}
+          onBlur={rename.run}
+          hiddenLabel
+          placeholder={t('output')}
+          value={callDatasetMessage.output || ''}
+          onChange={(e) => {
+            callDatasetMessage.output = e.target.value.trim();
+            rename.run();
+          }}
+          sx={{ width: 100 }}
+        />
+      </Stack>
+
+      <Stack px={1} ml={1} gap={1}>
+        <Stack direction="row" gap={1}>
+          <FormLabel sx={{ minWidth: 60, lineHeight: '32px' }}>{t('call.dataset.search')}</FormLabel>
+
+          <Box flex={1}>
+            <ParameterItem
+              projectId={projectId}
+              gitRef={gitRef}
+              templateId={template.id}
+              prompt={callDatasetMessage}
+              index={prompt.index}
+              param="query"
+              readOnly={readOnly}
+            />
+          </Box>
+        </Stack>
+      </Stack>
+    </Stack>
+  );
+}
 
 function ParameterItem({
   index,
@@ -495,28 +916,15 @@ function ParameterItem({
   projectId: string;
   gitRef: string;
   templateId: string;
-  prompt: CallPromptMessage;
+  prompt: CallPromptMessage | CallDatasetMessage;
   param: string;
   readOnly?: boolean;
 }) {
   const { state, setEditorState } = useParameterState({ projectId, gitRef, templateId, prompt, param });
 
-  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId });
+  const { getOptions } = useEditorPicker({ projectId, gitRef, templateId });
 
-  const options = useMemo(
-    () => [
-      new ComponentPickerOption('Execute Prompt', {
-        keywords: ['execute', 'prompt'],
-        onSelect: (editor) => {
-          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
-          const id = randomId();
-          addPrompt({ id, role: 'call-prompt', output: variable }, index || 0);
-          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
-        },
-      }),
-    ],
-    [addPrompt]
-  );
+  const options = getOptions(index);
 
   return (
     <StyledPromptEditor

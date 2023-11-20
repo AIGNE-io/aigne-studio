@@ -146,11 +146,12 @@ export default function ProjectSettings() {
       showDialog({
         maxWidth: 'xs',
         fullWidth: true,
-        title: t('alert.saveChanges'),
-        okText: t('saveAndLeave'),
+        title: t('alert.unsave.title'),
+        content: t('alert.unsave.content'),
+        okText: t('save'),
         okColor: 'primary',
         cancelText: t('alert.cancel'),
-        middleText: t('leave'),
+        middleText: t('alert.discard'),
         middleColor: 'error',
         onOk: async () => {
           await onSubmit();

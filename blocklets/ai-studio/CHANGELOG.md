@@ -1,6 +1,22 @@
-## 0.1.139 (2023-11-17)
+## 0.1.144 (2023-11-20)
 
 - feat: blocking when the page is modified
+
+## 0.1.143 (2023-11-20)
+
+- chore: use node-fetch
+
+## 0.1.142 (2023-11-19)
+
+- fix: correct parameters of call X
+
+## 0.1.141 (2023-11-19)
+
+- fix: compare version bug
+
+## 0.1.139 (2023-11-19)
+
+- fix: auto save parameters
 
 ## 0.1.138 (2023-11-17)
 

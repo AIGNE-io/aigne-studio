@@ -92,6 +92,10 @@ export default flat({
     currentBranch: 'Current branch',
     message: 'Message',
     compare: 'Version compare',
+    unsave: {
+      title: 'Unsaved Changes',
+      content: ' Your changes have not been saved yet!',
+    },
   },
   import: {
     title: 'Import Templates',
@@ -234,6 +238,24 @@ export default flat({
   deleteProject: 'This will permanently delete project with name {name}',
   selectObject: 'Select {object}',
   template: 'Template',
+  call: {
+    api: {
+      placeholder: 'API ',
+      body: 'Body (JSON)',
+    },
+    func: {
+      code: 'Code',
+    },
+    dataset: {
+      search: 'Search',
+    },
+    list: {
+      prompt: 'Execute Prompt',
+      api: 'Execute API',
+      func: 'Execute JS Function',
+      dataset: 'Query Dataset',
+    },
+  },
   remoteGitRepo: 'Remote Git Repo',
   url: 'URL',
   username: 'Username',
@@ -251,6 +273,4 @@ export default flat({
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
-  saveAndLeave: 'Save and Leave',
-  leave: 'Leave',
 });

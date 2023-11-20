@@ -3,7 +3,9 @@ import { call } from '@blocklet/sdk/lib/component';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
+import fetch from 'node-fetch';
 import { ImagesResponseDataInner } from 'openai';
+import { NodeVM } from 'vm2';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import Mustache from '../libs/mustache';
@@ -11,7 +13,18 @@ import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
 import { Project, defaultBranch, getRepository } from '../store/projects';
-import { PromptMessage, Role, Template, getTemplate, isCallPromptMessage, isPromptMessage } from '../store/templates';
+import {
+  CallMessage,
+  PromptMessage,
+  Role,
+  Template,
+  getTemplate,
+  isCallAPIMessage,
+  isCallDatasetMessage,
+  isCallFuncMessage,
+  isCallPromptMessage,
+  isPromptMessage,
+} from '../store/templates';
 import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
 
@@ -101,6 +114,15 @@ const callInputSchema = Joi.object<
   parameters: Joi.object().pattern(Joi.string(), Joi.any()),
 }).xor('templateId', 'template');
 
+type TokenType = { token: string; isFinalTemplate: boolean; templateId: string; templateName: string };
+type CallType = { type: 'call'; templateId: string; variableName: string; result: string };
+
+type ResponseSSE = TokenType | CallType;
+
+function isPromptTypeOutput(data: TokenType | CallType): data is TokenType {
+  return (data as TokenType).token !== undefined;
+}
+
 router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
@@ -130,7 +152,9 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
       response:
         | { type: 'delta'; delta: string }
         | typeof result
+        // FIXME: deprecated next call, remove it after migration.
         | { type: 'next'; delta: string; templateId: string; templateName: string }
+        | { type: 'call'; delta: string; templateId: string; variableName: string }
     ) => {
       if (!res.headersSent) {
         res.setHeader('Content-Type', 'text/event-stream');
@@ -147,25 +171,25 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
       template,
       input.parameters,
       stream
-        ? ({
-            token,
-            isFinalTemplate,
-            templateId,
-            templateName,
-          }: {
-            token: string;
-            isFinalTemplate: boolean;
-            templateId: string;
-            templateName: string;
-          }) => {
-            if (isFinalTemplate) {
-              emit({ type: 'delta', delta: token });
+        ? (data: ResponseSSE) => {
+            if (isPromptTypeOutput(data)) {
+              const { token, isFinalTemplate, templateId, templateName } = data;
+              if (isFinalTemplate) {
+                emit({ type: 'delta', delta: token });
+              } else {
+                emit({
+                  type: 'next',
+                  delta: token,
+                  templateName: templateName || '',
+                  templateId: templateId || input.templateId || '',
+                });
+              }
             } else {
               emit({
-                type: 'next',
-                delta: token,
-                templateName: templateName || '',
-                templateId: templateId || input.templateId || '',
+                type: 'call',
+                templateId: data.templateId || '',
+                variableName: data.variableName,
+                delta: data.result,
               });
             }
           }
@@ -218,9 +242,7 @@ async function runTemplate(
         [key: string]: any;
       }
     | undefined,
-  callback:
-    | ((data: { token: string; isFinalTemplate: boolean; templateId: string; templateName: string }) => void)
-    | undefined,
+  callback: ((data: ResponseSSE) => void) | undefined,
   log: Log
 ): Promise<
   | { type: 'text'; text: string }
@@ -242,8 +264,32 @@ async function runTemplate(
     const renderMessage = async (message: string) => {
       return Mustache.render(message, variables, undefined, { escape: (v) => v });
     };
+    const vm = new NodeVM({
+      console: 'inherit',
+      sandbox: {
+        context: {
+          get: (name: any) => {
+            let result = variables[name];
+            while (typeof result === 'function') {
+              result = result();
+            }
+
+            return result;
+          },
+        },
+      },
+    });
 
     const variablesCache: { [key: string]: Promise<string> } = {};
+
+    const emitCall = ({ item, result }: { item: CallMessage; result: string | object }) => {
+      callback?.({
+        type: 'call',
+        templateId: current?.id || '',
+        variableName: item.output,
+        result: result ? JSON.stringify(result) : result,
+      });
+    };
 
     const variables = {
       ...parameters,
@@ -269,8 +315,86 @@ async function runTemplate(
                 (options) => callback?.({ ...options, isFinalTemplate: false }),
                 log
               );
+
+              emitCall({ item, result });
+
               if (result.type === 'text') return result.text;
               throw new Error(`Unsupported response from call prompt ${result.type}`);
+            })();
+            return variablesCache[item.output];
+          },
+        ])
+      ),
+      ...Object.fromEntries(
+        (current.prompts ?? []).filter(isCallAPIMessage).map((item) => [
+          item.output,
+          () => async () => {
+            variablesCache[item.output] ??= (async () => {
+              if (!item.url) throw new Error('Required property `url` is not present');
+
+              const url = await renderMessage(item.url);
+              const params: { method: string; body?: string } = { method: item.method };
+
+              if (item.body && ['post', 'put', 'patch', 'delete'].includes(item.method)) {
+                params.body = await renderMessage(item.body);
+              }
+
+              const response = await fetch(url, params);
+
+              if (!response.ok) {
+                throw new Error(`HTTP Error! Status: ${response.status}`);
+              }
+
+              const contentType = response.headers.get('Content-Type');
+              const result: any = contentType?.includes('application/json')
+                ? await response.json()
+                : await response.text();
+              emitCall({ item, result });
+
+              return result;
+            })();
+            return variablesCache[item.output];
+          },
+        ])
+      ),
+      ...Object.fromEntries(
+        (current.prompts ?? []).filter(isCallFuncMessage).map((item) => [
+          item.output,
+          () => async () => {
+            variablesCache[item.output] ??= (async () => {
+              if (!item.code) return '';
+
+              const functionInSandbox = vm.run(`module.exports = async function() { ${item.code} }`);
+              const result = await functionInSandbox();
+
+              emitCall({ item, result });
+
+              return result;
+            })();
+            return variablesCache[item.output];
+          },
+        ])
+      ),
+      ...Object.fromEntries(
+        (current.prompts ?? []).filter(isCallDatasetMessage).map((item) => [
+          item.output,
+          () => async () => {
+            variablesCache[item.output] ??= (async () => {
+              if (!item.vectorStore) return '';
+
+              if (!item.parameters?.query) {
+                throw new Error('dataset search parameters is required');
+              }
+
+              const messagesString = await renderMessage(item.parameters.query);
+
+              const dataset = await VectorStore.load(item.vectorStore.id, new AIKitEmbeddings());
+              const docs = await dataset.similaritySearch(messagesString, 4);
+              const result = docs.map((doc) => doc.pageContent).join('\n');
+
+              emitCall({ item, result });
+
+              return result;
             })();
             return variablesCache[item.output];
           },

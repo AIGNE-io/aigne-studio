@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { StringParameter } from '../../../api/src/store/templates';
 import Settings from '../../pages/project/icons/settings';
-import { parseDirectivesOfTemplate } from '../../pages/project/prompt-state';
+import { useParametersState } from '../../pages/project/prompt-state';
 import { useTemplateCompare } from '../../pages/project/state';
 import ParameterConfig from './parameter-config';
 import ParameterConfigType from './parameter-config/type';
@@ -33,13 +33,9 @@ export default function Parameters({
   form: TemplateYjs;
   compareValue?: TemplateYjs;
 }) {
-  const params = [
-    ...new Set(
-      parseDirectivesOfTemplate(form, { excludeCallPromptVariables: true })
-        .map((i) => (i.type === 'variable' ? i.name : undefined))
-        .filter((i): i is string => Boolean(i))
-    ),
-  ].map((param) => ({ param }));
+  const { keys } = useParametersState(form);
+  const params = keys.map((param) => ({ param }));
+
   const doc = (getYjsValue(form) as Map<any>)?.doc!;
 
   const { t } = useLocaleContext();
@@ -125,13 +121,22 @@ export default function Parameters({
         headerAlign: 'center',
         sortable: false,
         align: 'center',
-        renderCell: ({ row }) => (
-          <Button
-            sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
-            onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, param: row.param })}>
-            <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
-          </Button>
-        ),
+        renderCell: ({ row }) => {
+          return (
+            <Button
+              sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+              onClick={(e) => {
+                doc.transact(() => {
+                  form.parameters ??= {};
+                  form.parameters[row.param] ??= {};
+                });
+
+                setParamConfig({ anchorEl: e.currentTarget.parentElement!, param: row.param });
+              }}>
+              <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
+            </Button>
+          );
+        },
       },
     ];
   }, [dataGrid, t, form.id, readOnly]);
