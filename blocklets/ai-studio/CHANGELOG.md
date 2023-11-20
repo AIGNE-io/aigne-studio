@@ -1,3 +1,7 @@
+## 0.1.143 (2023-11-20)
+
+- chore: use node-fetch
+
 ## 0.1.142 (2023-11-19)
 
 - fix: correct parameters of call X
