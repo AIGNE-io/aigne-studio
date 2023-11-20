@@ -336,3 +336,7 @@ export async function getTemplatesFromRepository({ projectId, ref }: { projectId
     )
   );
 }
+
+export function getTemplateIdFromPath(filepath: string) {
+  return path.parse(filepath).name.split('.').at(-1);
+}

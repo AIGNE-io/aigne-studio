@@ -212,7 +212,7 @@ export function createFolder({
   name: string;
 }) {
   getYjsDoc(store).transact(() => {
-    const filepath = [PROMPTS_FOLDER_NAME, ...parent, name, '.gitkeep'].join('/');
+    const filepath = [...parent, name, '.gitkeep'].join('/');
     const key = nanoid(32);
     store.tree[key] = filepath;
     store.files[key] = { $base64: '' };
@@ -250,7 +250,7 @@ export function createFile({
 }) {
   const id = meta?.id || nextTemplateId();
   const filename = `${id}.yaml`;
-  const filepath = [PROMPTS_FOLDER_NAME, ...(parent ?? []), filename].join('/');
+  const filepath = [...(parent ?? []), filename].join('/');
   const now = new Date().toISOString();
 
   const template = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };
@@ -269,7 +269,7 @@ export function moveFile({ store, from, to }: { store: StoreContext['store']; fr
   getYjsDoc(store).transact(() => {
     const p = from.join('/');
     for (const [key, filepath] of Object.entries(store.tree)) {
-      if (filepath?.startsWith(p)) {
+      if (filepath === p || filepath?.startsWith(p.concat('/'))) {
         const newPath = [...to, ...filepath.split('/').slice(from.length)].join('/');
         store.tree[key] = newPath;
       }
@@ -283,7 +283,7 @@ export function deleteFile({ store, path }: { store: StoreContext['store']; path
   getYjsDoc(store).transact(() => {
     const p = path.join('/');
     for (const [key, filepath] of Object.entries(store.tree)) {
-      if (filepath?.startsWith(p)) {
+      if (filepath === p || filepath?.startsWith(p.concat('/'))) {
         delete store.tree[key];
         delete store.files[key];
       }

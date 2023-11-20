@@ -1,12 +1,10 @@
-import path from 'path';
-
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
 import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
 import { parse } from 'yaml';
 
-import { yjsToTemplate } from './projects';
+import { getTemplateIdFromPath, yjsToTemplate } from './projects';
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
 
@@ -213,7 +211,7 @@ export async function getTemplate({
 } & ({ templateId: string; filepath?: undefined } | { filepath: string; templateId?: undefined })): Promise<Template> {
   if (working) {
     const working = await repository.working({ ref });
-    const id = templateId ?? path.parse(filepath).name.split('.').at(-1)!;
+    const id = templateId ?? getTemplateIdFromPath(filepath)!;
     const file = working.syncedStore.files[id];
     if (!file) throw new Error(`no such template ${templateId || filepath}`);
     return yjsToTemplate(file);

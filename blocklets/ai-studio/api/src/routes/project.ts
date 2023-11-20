@@ -20,6 +20,7 @@ import {
   defaultBranch,
   defaultRemote,
   getRepository,
+  getTemplateIdFromPath,
   nextProjectId,
   projectTemplates,
   repositoryRoot,
@@ -115,17 +116,14 @@ const getProjectsQuerySchema = Joi.object<GetProjectsQuery>({
 const getDeepTemplate = async (projectId: string, ref: string, templateId: string) => {
   let templates: (Template & { parent?: string[] })[] = [];
 
-  try {
-    const repository = await getRepository({ projectId });
-    const filepath = await repository.findFile(templateId, { ref });
+  const repository = await getRepository({ projectId });
+  const filepath = (await repository.listFiles({ ref })).find((i) => i.endsWith(`.${templateId}.yaml`));
+  if (!filepath) throw new Error(`File ${templateId} not found`);
 
-    const template = (await getTemplate({ repository, ref, templateId })) as Template & { parent?: string[] };
-    template.parent = filepath.split('/').slice(0, -1);
+  const template = (await getTemplate({ repository, ref, templateId })) as Template & { parent?: string[] };
+  template.parent = filepath.split('/').slice(0, -1);
 
-    templates = [template];
-  } catch (error) {
-    // return templates
-  }
+  templates = [template];
 
   return templates;
 };
@@ -357,12 +355,15 @@ export function projectRoutes(router: Router) {
   router.post('/projects/:projectId/:ref/import', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { resources, projectId, ref } = await exportImportSchema.validateAsync(req.body);
 
-    const fns = resources.map(async (_id: string) => {
-      const list = await getDeepTemplate(projectId, ref, _id);
-      return list;
-    });
-
-    const templates = (await Promise.all(fns)).flat();
+    const templates = (
+      await Promise.all(
+        resources.map(async (filepath: string) => {
+          const templateId = getTemplateIdFromPath(filepath);
+          if (!templateId) return [];
+          return getDeepTemplate(projectId, ref, templateId);
+        })
+      )
+    ).flat();
 
     return res.json({ templates: uniqBy(templates, 'id') });
   });

@@ -1,7 +1,6 @@
 import path from 'path';
 
 import { Router } from 'express';
-import { parse } from 'yaml';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { defaultBranch, getRepository } from '../store/projects';
@@ -32,13 +31,18 @@ export function treeRoutes(router: Router) {
 
     const repository = await getRepository({ projectId });
 
+    const list = await repository.listFiles({ ref });
+
+    // NOTE: 判断是否是升级 git repo 结构前的数据，如果是升级前（没有 prompts 文件夹）的话需要自动添加 prompts 文件夹，统一结构。
+    const needAppendPromptsFolder = !list.find((i) => i === 'README.md');
+
     const files = (
       await Promise.all(
-        (
-          await repository.listFiles({ ref })
-        ).map(async (filepath) => {
+        list.map(async (filepath) => {
           const { dir, base } = path.parse(filepath);
           const parent = dir.split(path.sep);
+
+          if (needAppendPromptsFolder) parent.unshift('prompts');
 
           if (filepath.endsWith('.yaml')) {
             return {
@@ -54,25 +58,4 @@ export function treeRoutes(router: Router) {
     ).filter((i): i is NonNullable<typeof i> => !!i);
     res.json({ files });
   });
-
-  router.get(
-    '/projects/:projectId/tree/:ref/:filepath(*.yaml)',
-    ensureComponentCallOrPromptsEditor(),
-    async (req, res) => {
-      const { projectId, ref, filepath } = req.params;
-      if (!projectId || !ref || !filepath) {
-        throw new Error('Missing required params `projectId` or `ref` or `filepath`');
-      }
-
-      const repository = await getRepository({ projectId });
-
-      const file = await repository.readBlob({
-        ref,
-        filepath: await repository.findFile(path.parse(filepath).name, { ref }),
-      });
-      const data = parse(Buffer.from(file.blob).toString());
-
-      res.json(data);
-    }
-  );
 }

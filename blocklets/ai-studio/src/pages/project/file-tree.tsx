@@ -105,8 +105,8 @@ export type EntryWithMeta =
 export type TreeNode = NodeModel<EntryWithMeta>;
 
 export interface ImperativeFileTree {
-  newFolder: () => void;
-  newFile: () => void;
+  newFolder: (options?: { parent?: string[] }) => void;
+  newFile: (options?: { parent?: string[] }) => void;
   importFrom: () => void;
 }
 
@@ -132,8 +132,6 @@ const FileTree = forwardRef<
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
-  const [showNewProject, setShowNewProject] = useState(false);
-
   const onCreateFile = useCallback(
     ({ parent, meta }: { parent?: string[]; meta?: TemplateYjs } = {}) => {
       const promptId = nanoid();
@@ -155,7 +153,7 @@ const FileTree = forwardRef<
         },
       });
       if (parent) setOpenIds((ids) => (ids ?? []).concat(parent.join('/')));
-      navigate(filepath);
+      navigate(joinUrl('.', filepath));
     },
     [navigate, setOpenIds, store]
   );
@@ -194,10 +192,14 @@ const FileTree = forwardRef<
           if (templates.length) {
             const newTemplates = resetTemplatesId(templates);
             for (const template of newTemplates) {
-              createFile({ store, parent: template.parent || [], meta: templateYjsFromTemplate(template) });
+              createFile({
+                store,
+                parent: template.parent || [PROMPTS_FOLDER_NAME],
+                meta: templateYjsFromTemplate(template),
+              });
             }
           } else {
-            Toast.error('import.selectTemplates');
+            Toast.error(t('import.selectTemplates'));
           }
         } catch (error) {
           Toast.error(getErrorMessage(error));
@@ -207,11 +209,35 @@ const FileTree = forwardRef<
     });
   }, [gitRef, projectId, showDialog, store, t]);
 
+  const [defaultEditingFolderPath, setDefaultEditingFolderPath] = useState<string>();
+
   useImperativeHandle(
     ref,
     () => ({
-      newFolder: () => setShowNewProject(true),
-      newFile: () => onCreateFile(),
+      newFolder: ({ parent = [] } = {}) => {
+        let index = 0;
+        let name = 'Folder';
+
+        const parentPath = parent.join('/').concat('/');
+        const existNames = new Set(
+          Object.values(store.tree).map((i) =>
+            i?.startsWith(parentPath) ? i.replace(parentPath, '').split('/')[0] : undefined
+          )
+        );
+
+        while (true) {
+          const n = index ? `${name} ${index}` : name;
+          index++;
+          if (!existNames.has(n)) {
+            name = n;
+            break;
+          }
+        }
+
+        setDefaultEditingFolderPath([...parent, name].join('/'));
+        createFolder({ store, parent, name });
+      },
+      newFile: (options) => onCreateFile(options),
       importFrom: () => onImportFrom(),
     }),
     [onCreateFile, onImportFrom]
@@ -226,7 +252,7 @@ const FileTree = forwardRef<
       const filename = current?.split('/').slice(-1)[0];
       const filepath = filename ? Object.values(store.tree).find((i) => i?.endsWith(filename)) : undefined;
 
-      if (filepath?.endsWith('.yaml')) navigate(filepath, { replace: true });
+      if (filepath?.endsWith('.yaml')) navigate(joinUrl('.', filepath), { replace: true });
     },
     [current, navigate, setOpenIds, store]
   );
@@ -235,7 +261,9 @@ const FileTree = forwardRef<
     ({ path }: { path: string[] }) => {
       deleteFile({ store, path });
 
-      if (current && path.join('/').startsWith(current)) navigate('.', { replace: true });
+      if (current && path.join('/').startsWith(current)) {
+        navigate('.', { replace: true });
+      }
     },
     [current, navigate, store]
   );
@@ -299,21 +327,7 @@ const FileTree = forwardRef<
   return (
     <>
       <Box {...props}>
-        {showNewProject && (
-          <EditableTreeItem
-            icon={<ChevronDown sx={{ transform: 'rotateZ(-90deg)' }} />}
-            key={showNewProject.toString()}
-            defaultEditing
-            onSubmit={async (value) => {
-              const name = value.trim();
-              if (name) createFolder({ store, parent: [], name });
-              setShowNewProject(false);
-            }}
-            onCancel={() => setShowNewProject(false)}
-          />
-        )}
-
-        {!tree.length && !showNewProject && (
+        {!tree.length && (
           <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="28px" m={0.5}>
             <Typography variant="caption">{t('noFiles')}</Typography>
           </Box>
@@ -353,12 +367,14 @@ const FileTree = forwardRef<
               }
 
               const { parent } = node.data;
-              const filepath = parent.concat(node.data.type === 'file' ? `${node.data.meta.id}.yaml` : node.data.name);
+              const filename = node.data.type === 'file' ? `${node.data.meta.id}.yaml` : node.data.name;
+              const filepath = parent.concat(filename).join('/');
 
               if (node.data.type === 'folder') {
                 return (
                   <EditableTreeItem
                     key={node.id}
+                    defaultEditing={filepath === defaultEditingFolderPath}
                     icon={<ChevronDown sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }} />}
                     mutable={mutable}
                     depth={depth}
@@ -427,7 +443,7 @@ const FileTree = forwardRef<
                   icon={icon}
                   depth={depth}
                   selected={selected}
-                  onClick={() => navigate(joinUrl('.', ...filepath))}
+                  onClick={() => navigate(joinUrl('.', filepath))}
                   actions={actions}
                   sx={{ color: change?.color }}>
                   {meta.name || t('alert.unnamed')}
@@ -557,7 +573,7 @@ function TreeItemMenus({
           <ListItemIcon>
             <Add />
           </ListItemIcon>
-          <ListItemText primary={t('form.new')} />
+          <ListItemText primary={t('newObject', { object: t('file') })} />
         </ListItemButton>
       )}
 
