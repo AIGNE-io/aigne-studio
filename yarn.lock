@@ -106,7 +106,7 @@
     semver "^7.3.8"
     tweetnacl-sealedbox-js "^1.2.0"
 
-"@arcblock/did-auth@1.18.95":
+"@arcblock/did-auth@1.18.95", "@arcblock/did-auth@^1.18.92":
   version "1.18.95"
   resolved "https://registry.yarnpkg.com/@arcblock/did-auth/-/did-auth-1.18.95.tgz#9ad3267d29f99ae0d8356f3e4d8804b28569478e"
   integrity sha512-VVk/9C1+rf/NYhd1qoFm7khnvjGlQxLzbhiXU63sk4eRbJaXSrtZaAiMB5RdckSgRDtGrj9fo1eP18AfuyLeZQ==
@@ -118,24 +118,6 @@
     "@ocap/mcrypto" "1.18.95"
     "@ocap/util" "1.18.95"
     "@ocap/wallet" "1.18.95"
-    debug "^4.3.4"
-    json-stable-stringify "^1.0.1"
-    lodash "^4.17.21"
-    semver "^7.3.8"
-    tweetnacl-sealedbox-js "^1.2.0"
-
-"@arcblock/did-auth@^1.18.92":
-  version "1.18.92"
-  resolved "https://registry.yarnpkg.com/@arcblock/did-auth/-/did-auth-1.18.92.tgz#74c23b6fd891cf4c22db54f926bca883bf743e64"
-  integrity sha512-Oc36UxF/yAedMCA2qn3yi3s+6bHYOXlmAwoCw0sC/KO8iBiWl801zHOmL4AbWhFhB9tW9+D3mC0htIVzL72tUg==
-  dependencies:
-    "@arcblock/did" "1.18.92"
-    "@arcblock/jwt" "1.18.92"
-    "@arcblock/validator" "1.18.92"
-    "@ocap/client" "1.18.92"
-    "@ocap/mcrypto" "1.18.92"
-    "@ocap/util" "1.18.92"
-    "@ocap/wallet" "1.18.92"
     debug "^4.3.4"
     json-stable-stringify "^1.0.1"
     lodash "^4.17.21"
@@ -1920,7 +1902,7 @@
   dependencies:
     "@date-io/core" "^2.16.0"
 
-"@did-connect/authenticator@2.2.0", "@did-connect/authenticator@^2.2.0":
+"@did-connect/authenticator@2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@did-connect/authenticator/-/authenticator-2.2.0.tgz#f0c17a5f350bd55492e20f838aa0ecfe2362deec"
   integrity sha512-HYmh29ONnVVqWhxLuF/oVsmH6s4MLTAJ4dDz6A9nq9/LfraWOu0eoxWEm/KVE4h3nsB6fPAKcARZFIIKOt45wQ==
@@ -1933,7 +1915,7 @@
     debug "^4.3.4"
     lodash "^4.17.21"
 
-"@did-connect/authenticator@2.2.1", "@did-connect/authenticator@^2.2.1":
+"@did-connect/authenticator@2.2.1", "@did-connect/authenticator@^2.2.0", "@did-connect/authenticator@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@did-connect/authenticator/-/authenticator-2.2.1.tgz#bcee513464867eec7e8ea9190cae2a74d056276b"
   integrity sha512-b6OhVMIea+n9bOfaUgFU5bqbOJnMrD4zA210xGtQp99rqZDR5yEZ+5ByHRpvzuuLyjG+8u9/aJJ9e+HFTulMpg==
@@ -1946,26 +1928,7 @@
     debug "^4.3.4"
     lodash "^4.17.21"
 
-"@did-connect/handler@^2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@did-connect/handler/-/handler-2.2.0.tgz#c60cb00746f3e32ccd54d83183524aee48d53fca"
-  integrity sha512-TVYyQrKtVpS9YY8YqSt/nY4yfNpkzyvH29VdcgmLhlC1D3UEQZfQookTYreUCBushd+Nrfa30PxvToE8cOJnow==
-  dependencies:
-    "@arcblock/did" "^1.18.87"
-    "@arcblock/jwt" "^1.18.87"
-    "@arcblock/ws" "^1.18.87"
-    "@did-connect/authenticator" "2.2.0"
-    "@did-connect/storage" "2.2.0"
-    "@did-connect/types" "2.2.0"
-    "@ocap/mcrypto" "^1.18.87"
-    "@ocap/util" "^1.18.87"
-    axios "^0.27.2"
-    lodash "^4.17.21"
-    object-hash "^3.0.0"
-    p-wait-for "^3.2.0"
-    semver "^7.3.8"
-
-"@did-connect/handler@^2.2.1":
+"@did-connect/handler@^2.2.0", "@did-connect/handler@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@did-connect/handler/-/handler-2.2.1.tgz#d876e34eb4aec45b31aabd99f9dfa71782b3cf72"
   integrity sha512-ipYT8eRQ88NVi0kXklJ04uNPDBOVrbxScDuXw/q1tJV36UCeiBhWLgJY8hAprhWSluckY4uy3LCDILm0nb7rFA==
@@ -3304,7 +3267,7 @@
     lodash "^4.17.21"
     mustache "^4.2.0"
 
-"@ocap/client@1.18.92", "@ocap/client@^1.18.92":
+"@ocap/client@1.18.92":
   version "1.18.92"
   resolved "https://registry.yarnpkg.com/@ocap/client/-/client-1.18.92.tgz#7e039b639d45cbfea92db1f2ef391e856a0bcd07"
   integrity sha512-aClYggelWwKGHiEhONm5FTtRYrSk5+AC0BtqG6xTcGvxpgx8M9sikVwmKoJgYkL4NfUhFfDXmGI9BO/CIyIUYg==
@@ -3356,7 +3319,7 @@
     readable-stream "3.6.0"
     wolfy87-eventemitter "^5.2.9"
 
-"@ocap/client@1.18.95":
+"@ocap/client@1.18.95", "@ocap/client@^1.18.92":
   version "1.18.95"
   resolved "https://registry.yarnpkg.com/@ocap/client/-/client-1.18.95.tgz#17a9ac85539cabfe5fa1bef06a668d098b7186f6"
   integrity sha512-hoAYqX0IYQ5orO6JgaZuAs1SrjXBvifjPpay1liMweNR9Bz6ZCX7/zPEwPeuVWBfm+72qHMExeq49A7oain1Zg==
@@ -5568,22 +5531,12 @@ acorn-jsx@^5.3.2:
   resolved "https://registry.yarnpkg.com/acorn-jsx/-/acorn-jsx-5.3.2.tgz#7ed5bb55908b3b2f1bc55c6af1653bada7f07937"
   integrity sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==
 
-acorn-walk@^8.1.1:
-  version "8.2.0"
-  resolved "https://registry.yarnpkg.com/acorn-walk/-/acorn-walk-8.2.0.tgz#741210f2e2426454508853a2f44d0ab83b7f69c1"
-  integrity sha512-k+iyHEuPgSw6SbuDpGQM+06HQUa04DZ3o+F6CSzXMvvI5KMvnaEqXe+YVe555R9nn6GPt404fos4wcgpw12SDA==
-
-acorn-walk@^8.2.0:
+acorn-walk@^8.1.1, acorn-walk@^8.2.0:
   version "8.3.0"
   resolved "https://registry.yarnpkg.com/acorn-walk/-/acorn-walk-8.3.0.tgz#2097665af50fd0cf7a2dfccd2b9368964e66540f"
   integrity sha512-FS7hV565M5l1R08MXqo8odwMTB02C2UqzB17RVgu9EyuYFBqJZ3/ZY97sQD5FewVu1UyDFc1yztUDrAwT0EypA==
 
-acorn@^8.4.1, acorn@^8.9.0:
-  version "8.10.0"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.10.0.tgz#8be5b3907a67221a81ab23c7889c4c5526b62ec5"
-  integrity sha512-F0SAmZ8iUtS//m8DmCTA0jlh6TDKkHQyK6xc6V4KDTyZKA9dnvX9/3sRTVQrWm79glUAZbnmmNcdYwUIHWVybw==
-
-acorn@^8.7.0:
+acorn@^8.4.1, acorn@^8.7.0, acorn@^8.9.0:
   version "8.11.2"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.11.2.tgz#ca0d78b51895be5390a5903c5b3bdcdaf78ae40b"
   integrity sha512-nc0Axzp/0FILLEVsm4fNwLCwMttvhEI263QtVPQcbpfZZ3ts0hLsZGOpE6czNlid7CJ9MlyH8reXkpsf3YUY4w==
@@ -10635,7 +10588,7 @@ joi-extension-semver@^5.0.0:
   dependencies:
     semver "^6.1.1"
 
-joi@17.11.0:
+joi@17.11.0, joi@^17.7.0, joi@^17.7.1:
   version "17.11.0"
   resolved "https://registry.yarnpkg.com/joi/-/joi-17.11.0.tgz#aa9da753578ec7720e6f0ca2c7046996ed04fc1a"
   integrity sha512-NgB+lZLNoqISVy1rZocE9PZI36bL/77ie924Ri43yEvi9GUUMPeyVIr8KdFTMUlby1p0PBYMk9spIxEUQYqrJQ==
@@ -10655,17 +10608,6 @@ joi@17.7.0:
     "@hapi/topo" "^5.0.0"
     "@sideway/address" "^4.1.3"
     "@sideway/formula" "^3.0.0"
-    "@sideway/pinpoint" "^2.0.0"
-
-joi@^17.7.0, joi@^17.7.1:
-  version "17.7.1"
-  resolved "https://registry.yarnpkg.com/joi/-/joi-17.7.1.tgz#854fc85c7fa3cfc47c91124d30bffdbb58e06cec"
-  integrity sha512-teoLhIvWE298R6AeJywcjR4sX2hHjB3/xJX4qPjg+gTg+c0mzUDsziYlqPmLomq9gVsfaMcgPaGc7VxtD/9StA==
-  dependencies:
-    "@hapi/hoek" "^9.0.0"
-    "@hapi/topo" "^5.0.0"
-    "@sideway/address" "^4.1.3"
-    "@sideway/formula" "^3.0.1"
     "@sideway/pinpoint" "^2.0.0"
 
 js-base64@^3.7.2:
