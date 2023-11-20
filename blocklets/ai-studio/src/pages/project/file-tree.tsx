@@ -261,7 +261,7 @@ const FileTree = forwardRef<
     ({ path }: { path: string[] }) => {
       deleteFile({ store, path });
 
-      if (current && path.join('/').startsWith(current)) {
+      if (current?.startsWith(path.join('/'))) {
         navigate('.', { replace: true });
       }
     },
