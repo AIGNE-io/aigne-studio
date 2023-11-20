@@ -283,6 +283,17 @@ export function deleteFile({ store, path }: { store: StoreContext['store']; path
         delete store.tree[key];
         delete store.files[key];
       }
+
+      // Add a gitkeep file if needed
+      const parent = path.slice(0, -1);
+      if (parent.length > 0) {
+        if (Object.values(store.tree).filter((i) => i?.startsWith(parent.join('/').concat('/'))).length === 0) {
+          const filepath = [...parent, '.gitkeep'].join('/');
+          const key = nanoid(32);
+          store.tree[key] = filepath;
+          store.files[key] = { $base64: '' };
+        }
+      }
     }
   });
 }
