@@ -9,11 +9,22 @@ import Working from './working';
 
 export interface RepositoryOptions<T> {
   root: string;
-  parse: (filepath: string, content: Uint8Array) => Promise<{ key: string; data: T }> | { key: string; data: T };
+  parse: (
+    filepath: string,
+    content: Uint8Array
+  ) =>
+    | Promise<{
+        filepath: string;
+        key: string;
+        data: T;
+      }>
+    | { filepath: string; key: string; data: T };
   stringify: (
     filepath: string,
     content: T
-  ) => Promise<string | NodeJS.ArrayBufferView> | string | NodeJS.ArrayBufferView;
+  ) =>
+    | Promise<{ filepath: string; data: string | NodeJS.ArrayBufferView }>
+    | { filepath: string; data: string | NodeJS.ArrayBufferView };
 }
 
 export default class Repository<T> {

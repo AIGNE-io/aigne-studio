@@ -16,12 +16,15 @@ import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '
 import { createImageUrl } from '../libs/utils';
 import Projects from '../store/models/projects';
 import {
+  commitWorking,
   defaultBranch,
   defaultRemote,
   getRepository,
+  getTemplateIdFromPath,
   nextProjectId,
   projectTemplates,
   repositoryRoot,
+  syncRepository,
   templateToYjs,
 } from '../store/projects';
 import { Template, getTemplate, nextTemplateId } from '../store/templates';
@@ -113,17 +116,14 @@ const getProjectsQuerySchema = Joi.object<GetProjectsQuery>({
 const getDeepTemplate = async (projectId: string, ref: string, templateId: string) => {
   let templates: (Template & { parent?: string[] })[] = [];
 
-  try {
-    const repository = await getRepository({ projectId });
-    const filepath = await repository.findFile(templateId, { ref });
+  const repository = await getRepository({ projectId });
+  const filepath = (await repository.listFiles({ ref })).find((i) => i.endsWith(`.${templateId}.yaml`));
+  if (!filepath) throw new Error(`File ${templateId} not found`);
 
-    const template = (await getTemplate({ repository, ref, templateId })) as Template & { parent?: string[] };
-    template.parent = filepath.split('/').slice(0, -1);
+  const template = (await getTemplate({ repository, ref, templateId })) as Template & { parent?: string[] };
+  template.parent = filepath.split('/').slice(0, -1);
 
-    templates = [template];
-  } catch (error) {
-    // return templates
-  }
+  templates = [template];
 
   return templates;
 };
@@ -252,10 +252,11 @@ export function projectRoutes(router: Router) {
         working.syncedStore.files[id] = templateToYjs({ ...file, id });
         working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
       }
-      await working.commit({
+      await commitWorking({
+        project,
         ref: defaultBranch,
         branch: defaultBranch,
-        message: 'First Prompt',
+        message: 'First Commit',
         author: { name: fullName, email: did },
       });
 
@@ -354,12 +355,15 @@ export function projectRoutes(router: Router) {
   router.post('/projects/:projectId/:ref/import', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { resources, projectId, ref } = await exportImportSchema.validateAsync(req.body);
 
-    const fns = resources.map(async (_id: string) => {
-      const list = await getDeepTemplate(projectId, ref, _id);
-      return list;
-    });
-
-    const templates = (await Promise.all(fns)).flat();
+    const templates = (
+      await Promise.all(
+        resources.map(async (filepath: string) => {
+          const templateId = getTemplateIdFromPath(filepath);
+          if (!templateId) return [];
+          return getDeepTemplate(projectId, ref, templateId);
+        })
+      )
+    ).flat();
 
     return res.json({ templates: uniqBy(templates, 'id') });
   });
@@ -451,21 +455,11 @@ export function projectRoutes(router: Router) {
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
-
     const repository = await getRepository({ projectId });
-    const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
-    if (!remote) throw new Error('The remote has not been set up yet');
-
-    const { refs: remoteRefs } = await repository.getRemoteInfo({ url: remote.url });
-
     const branches = await repository.listBranches();
 
     for (const ref of branches) {
-      // NOTE: 检查远程仓库是否有对应的分支。如果远程仓库没有对应的分支，调用 pull 会报错
-      if (remoteRefs?.heads?.[ref]) {
-        await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
-      }
-      await repository.push({ remote: defaultRemote, ref });
+      await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
     }
 
     await project.update({ gitLastSyncedAt: new Date() });

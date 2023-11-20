@@ -64,9 +64,10 @@ export default function ProjectRoutes() {
             <Routes>
               <Route index element={<ProjectsPage />} />
               <Route path=":projectId/*">
-                <Route index element={<Navigate to="prompts" replace />} />
+                <Route index element={<Navigate to="file" replace />} />
+                <Route path="prompts/*" element={<Navigate to="../file" replace />} />
                 <Route path="home" element={<ProjectsPage />} />
-                <Route path="prompts">
+                <Route path="file">
                   <Route index element={<Navigate to={defaultBranch} replace />} />
                   <Route path=":ref/*" element={<ProjectPage />} />
                 </Route>
@@ -101,7 +102,7 @@ function AddonsRoutes() {
       path: ':projectId/*',
       children: [
         {
-          path: 'prompts',
+          path: 'file',
           children: [
             {
               path: ':ref/*',

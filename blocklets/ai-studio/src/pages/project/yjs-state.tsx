@@ -30,6 +30,8 @@ import {
 } from '../../../api/src/store/templates';
 import { PREFIX } from '../../libs/api';
 
+export const PROMPTS_FOLDER_NAME = 'prompts';
+
 export type State = {
   files: { [key: string]: TemplateYjs | { $base64: string } };
   tree: { [key: string]: string };
@@ -202,19 +204,43 @@ export const useStore = (projectId: string, gitRef: string, connect?: boolean) =
 
 export function createFolder({
   store,
-  parent,
-  name,
+  ...options
 }: {
   store: StoreContext['store'];
-  parent: string[];
-  name: string;
+  parent?: string[];
+  name?: string;
 }) {
+  const parent = options.parent?.length ? options.parent : [PROMPTS_FOLDER_NAME];
+  let { name } = options;
+
+  if (!name) {
+    let index = 0;
+    name = 'Folder';
+
+    const parentPath = parent.join('/').concat('/');
+    const existNames = new Set(
+      Object.values(store.tree).map((i) =>
+        i?.startsWith(parentPath) ? i.replace(parentPath, '').split('/')[0] : undefined
+      )
+    );
+
+    while (true) {
+      const n = index ? `${name} ${index}` : name;
+      index++;
+      if (!existNames.has(n)) {
+        name = n;
+        break;
+      }
+    }
+  }
+
+  const filepath = [...parent, name].join('/');
   getYjsDoc(store).transact(() => {
-    const filepath = [...parent, name, '.gitkeep'].join('/');
     const key = nanoid(32);
-    store.tree[key] = filepath;
+    store.tree[key] = [filepath, '.gitkeep'].join('/');
     store.files[key] = { $base64: '' };
   });
+  return filepath;
 }
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
@@ -248,7 +274,7 @@ export function createFile({
 }) {
   const id = meta?.id || nextTemplateId();
   const filename = `${id}.yaml`;
-  const filepath = [...(parent ?? []), filename].join('/');
+  const filepath = [...(parent?.length ? parent : [PROMPTS_FOLDER_NAME]), filename].join('/');
   const now = new Date().toISOString();
 
   const template = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };
@@ -267,11 +293,13 @@ export function moveFile({ store, from, to }: { store: StoreContext['store']; fr
   getYjsDoc(store).transact(() => {
     const p = from.join('/');
     for (const [key, filepath] of Object.entries(store.tree)) {
-      if (filepath?.startsWith(p)) {
+      if (filepath === p || filepath?.startsWith(p.concat('/'))) {
         const newPath = [...to, ...filepath.split('/').slice(from.length)].join('/');
         store.tree[key] = newPath;
       }
     }
+
+    addGitkeepFileIfNeeded(store, from.slice(0, -1));
   });
 }
 
@@ -279,12 +307,26 @@ export function deleteFile({ store, path }: { store: StoreContext['store']; path
   getYjsDoc(store).transact(() => {
     const p = path.join('/');
     for (const [key, filepath] of Object.entries(store.tree)) {
-      if (filepath?.startsWith(p)) {
+      if (filepath === p || filepath?.startsWith(p.concat('/'))) {
         delete store.tree[key];
         delete store.files[key];
       }
     }
+
+    addGitkeepFileIfNeeded(store, path.slice(0, -1));
   });
+}
+
+function addGitkeepFileIfNeeded(store: StoreContext['store'], path: string[]) {
+  // Add a gitkeep file if needed
+  if (path.length > 0) {
+    if (Object.values(store.tree).filter((i) => i?.startsWith(path.join('/').concat('/'))).length === 0) {
+      const filepath = [...path, '.gitkeep'].join('/');
+      const key = nanoid(32);
+      store.tree[key] = filepath;
+      store.files[key] = { $base64: '' };
+    }
+  }
 }
 
 export function importFiles({

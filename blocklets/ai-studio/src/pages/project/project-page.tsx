@@ -17,13 +17,14 @@ import {
 import { useLocalStorageState } from 'ahooks';
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import joinUrl from 'url-join';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import WithAwareness from '../../components/awareness/with-awareness';
 import TemplateFormView from '../../components/template-form';
 import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
-import { getTemplateIdFromPath } from '../../utils/path';
+import dirname, { getTemplateIdFromPath } from '../../utils/path';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import DiscussView from './discuss-view';
@@ -40,7 +41,7 @@ import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
 import UndoAndRedo from './undo';
-import { useStore } from './yjs-state';
+import { PROMPTS_FOLDER_NAME, useStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -92,10 +93,10 @@ export default function ProjectPage() {
 
     const path = filename && Object.values(store.tree).find((i) => i?.endsWith(filename));
 
-    if (path) navigate(path, { replace: true });
+    if (path) navigate(joinUrl('.', path), { replace: true });
     else {
-      const first = Object.values(store.tree)[0];
-      if (first) navigate(first, { replace: true });
+      const first = Object.values(store.tree).find((i) => i?.startsWith(PROMPTS_FOLDER_NAME) && i.endsWith('.yaml'));
+      if (first) navigate(joinUrl('.', first), { replace: true });
     }
   }, [gitRef, synced, location]);
 
@@ -143,7 +144,10 @@ export default function ProjectPage() {
 
               <Tooltip title={t('newObject', { object: t('folder') })}>
                 <span>
-                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFolder()}>
+                  <Button
+                    disabled={readOnly}
+                    sx={{ minWidth: 0 }}
+                    onClick={() => fileTree.current?.newFolder({ parent: dirname(filepath) })}>
                     <FolderAdd />
                   </Button>
                 </span>
@@ -151,7 +155,10 @@ export default function ProjectPage() {
 
               <Tooltip title={t('newObject', { object: t('file') })}>
                 <span>
-                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.newFile()}>
+                  <Button
+                    disabled={readOnly}
+                    sx={{ minWidth: 0 }}
+                    onClick={() => fileTree.current?.newFile({ parent: dirname(filepath) })}>
                     <Add />
                   </Button>
                 </span>
