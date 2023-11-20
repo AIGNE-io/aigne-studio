@@ -1,7 +1,9 @@
+import { readdirSync, rmSync, writeFileSync } from 'fs';
 import path from 'path';
 
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
+import { glob } from 'glob';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { Worker } from 'snowflake-uuid';
@@ -55,7 +57,7 @@ export const projectTemplates: (Project & {
     updatedAt: new Date('2023-09-30T12:23:04.603Z'),
     files: [
       {
-        parent: [],
+        parent: ['prompts'],
         name: 'Hello World',
         prompts: [
           {
@@ -135,30 +137,119 @@ export async function getRepository({ projectId }: { projectId: string }) {
       parse: async (filepath, content) => {
         if (path.extname(filepath) === '.yaml') {
           const data = templateToYjs(parse(Buffer.from(content).toString()));
-          return { data, key: data.id };
+          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+          const filename = `${data.id}.yaml`;
+          return { filepath: path.join(parent, filename), key: data.id, data };
         }
 
         return {
+          filepath,
           key: nanoid(32),
           data: {
             $base64: Buffer.from(content).toString('base64'),
           },
         };
       },
-      stringify: async (_, content) => {
+      stringify: async (filepath, content) => {
         if (isTemplate(content)) {
-          return stringify(yjsToTemplate(content));
+          const data = stringify(yjsToTemplate(content));
+          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+          const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
+          const newFilepath = path.join(parent, filename);
+
+          return {
+            filepath: newFilepath,
+            data,
+          };
         }
 
         const base64 = content.$base64;
 
-        return typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
+        const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
+
+        return { filepath, data };
       },
     });
     return repository;
   })();
 
   return repositories[projectId]!;
+}
+
+export async function syncRepository<T>({
+  repository,
+  ref,
+  author,
+}: {
+  repository: Repository<T>;
+  ref: string;
+  author: NonNullable<Parameters<typeof repository.pull>[0]>['author'];
+}) {
+  const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
+  if (!remote) throw new Error('The remote has not been set up yet');
+  const { refs: remoteRefs } = await repository.getRemoteInfo({ url: remote.url });
+
+  await repository.transact(async () => {
+    await repository.checkout({ ref, force: true });
+
+    // NOTE: 检查远程仓库是否有对应的分支。如果远程仓库没有对应的分支，调用 pull 会报错
+    if (remoteRefs?.heads?.[ref]) {
+      await repository.pull({ remote: defaultRemote, ref, author });
+    }
+    await repository.push({ remote: defaultRemote, ref });
+  });
+}
+
+export async function commitWorking({
+  project,
+  ref,
+  branch,
+  message,
+  author,
+}: {
+  project: Project;
+  ref: string;
+  branch: string;
+  message: string;
+  author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+}) {
+  const repository = await getRepository({ projectId: project._id! });
+  const working = await repository.working({ ref });
+  await working.commit({
+    ref,
+    branch,
+    message,
+    author,
+    beforeCommit: async ({ tx }) => {
+      writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
+      await tx.add({ filepath: 'README.md' });
+
+      // Remove unnecessary .gitkeep files
+      for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
+        if (readdirSync(path.join(repository.options.root, path.dirname(gitkeep))).length > 1) {
+          rmSync(path.join(repository.options.root, gitkeep), { force: true });
+          await tx.remove({ filepath: gitkeep });
+        }
+      }
+    },
+  });
+}
+
+function getReadmeOfProject(project: Project) {
+  return `\
+# ${project.name || 'AI Studio project'}
+
+${project.description || ''}
+
+## Install And Run
+
+This is an AI project created by [AI Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB).
+
+To run it you can:
+
+1. [Launch](https://launcher.arcblock.io/app/?blocklet_meta_url=https%3A%2F%2Fstore.blocklet.dev%2Fapi%2Fblocklets%2Fz8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB%2Fblocklet.json&locale=en&paymentMethod=xFdj7e5muWQyUvur&sessionId=9btigGO5FLxFwL2e) AI Studio on Blocklet Server
+2. Import this project
+`;
 }
 
 export function templateToYjs(template: Template): TemplateYjs {
@@ -244,4 +335,8 @@ export async function getTemplatesFromRepository({ projectId, ref }: { projectId
       )
     )
   );
+}
+
+export function getTemplateIdFromPath(filepath: string) {
+  return path.parse(filepath).name.split('.').at(-1);
 }

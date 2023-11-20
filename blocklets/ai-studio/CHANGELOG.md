@@ -1,8 +1,12 @@
-## 0.1.145 (2023-11-20)
+## 0.1.146 (2023-11-20)
 
 - feat: set template empty page
 - fix: Inherits empty parameter to template parameter
 - chore: update uploader package to latest
+
+## 0.1.145 (2023-11-20)
+
+- fix: use property name as the file name in git
 
 ## 0.1.144 (2023-11-20)
 

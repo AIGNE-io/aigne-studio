@@ -1,5 +1,5 @@
-export default function dirname(path: string) {
-  return path.split('/').filter(Boolean).slice(0, -1).join('/');
+export default function dirname(path?: string) {
+  return path?.split('/').filter(Boolean).slice(0, -1) ?? [];
 }
 
 export function getTemplateIdFromPath(path: string) {

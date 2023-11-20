@@ -23,6 +23,7 @@ import {
 import { useThrottleFn } from 'ahooks';
 import { ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget } from 'react-dnd';
+import { useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -58,6 +59,7 @@ import {
   isTemplate,
   useStore,
 } from '../../pages/project/yjs-state';
+import dirname from '../../utils/path';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import { DragSortListYjs } from '../drag-sort-list';
 import CodeEditor from './code-editer';
@@ -406,6 +408,8 @@ function CallPromptItemView({
   promptId: string;
   readOnly?: boolean;
 }) {
+  const { '*': filepath } = useParams();
+
   const originalOutput = useRef<string>();
   const { renameVariable } = usePromptsState({ projectId, gitRef, templateId: template.id });
 
@@ -499,7 +503,7 @@ function CallPromptItemView({
             <TextField {...params} placeholder={t('selectObject', { object: t('template') })} hiddenLabel />
           )}
           options={templates}
-          createTemplate={async (data) => createFile({ store, meta: data }).template}
+          createTemplate={async (data) => createFile({ store, parent: dirname(filepath), meta: data }).template}
         />
 
         <TextField

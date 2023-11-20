@@ -8,6 +8,7 @@ import { getErrorMessage } from '../../../libs/api';
 import { getBranches } from '../../../libs/branch';
 import { getProjects } from '../../../libs/project';
 import * as api from '../../../libs/tree';
+import { PROMPTS_FOLDER_NAME } from '../yjs-state';
 
 type State = {
   loading: boolean;
@@ -50,7 +51,7 @@ const useRequest = (projectId: string) => {
           ...v,
           projectId,
           ref,
-          files: files.filter((x) => typeof x === 'object'),
+          files: files.filter((x) => typeof x === 'object' && x.parent[0] === PROMPTS_FOLDER_NAME),
           branches,
           error: undefined,
         }));

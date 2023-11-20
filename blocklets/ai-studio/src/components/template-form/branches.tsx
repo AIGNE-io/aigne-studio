@@ -63,7 +63,7 @@ export default function Branches({
                   createTemplate={async (data) =>
                     createFile({
                       store,
-                      parent: dirname(path || '').split('/'),
+                      parent: dirname(path),
                       meta: data,
                     }).template
                   }

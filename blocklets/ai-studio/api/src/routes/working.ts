@@ -3,8 +3,8 @@ import { Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
-import Projects from '../store/models/projects';
-import { defaultRemote, getRepository } from '../store/projects';
+import Project from '../store/models/projects';
+import { commitWorking, getRepository, syncRepository } from '../store/projects';
 
 export interface WorkingCommitInput {
   branch: string;
@@ -33,10 +33,10 @@ export function workingRoutes(router: Router) {
         throw new Error(`commit to read only branch ${input.branch} is forbidden`);
       }
 
-      const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
       const repository = await getRepository({ projectId });
-      const working = await repository.working({ ref });
-      await working.commit({
+      await commitWorking({
+        project,
         ref,
         branch: input.branch,
         message: input.message,
@@ -44,8 +44,7 @@ export function workingRoutes(router: Router) {
       });
 
       if (project.gitUrl && project.gitAutoSync) {
-        await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
-        await repository.push({ remote: defaultRemote, ref });
+        await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
         await project.update({ gitLastSyncedAt: new Date() });
       }
 
