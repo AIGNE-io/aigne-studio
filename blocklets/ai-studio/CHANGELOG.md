@@ -1,3 +1,7 @@
+## 0.1.145 (2023-11-20)
+
+- fix: use property name as the file name in git
+
 ## 0.1.144 (2023-11-20)
 
 - feat: blocking when the page is modified
