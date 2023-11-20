@@ -1,8 +1,9 @@
-import { writeFileSync } from 'fs';
+import { readdirSync, rmSync, writeFileSync } from 'fs';
 import path from 'path';
 
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
+import { glob } from 'glob';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
@@ -47,6 +48,14 @@ export function workingRoutes(router: Router) {
         beforeCommit: async ({ tx }) => {
           writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
           await tx.add({ filepath: 'README.md' });
+
+          // Remove unnecessary .gitkeep files
+          for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
+            if (readdirSync(path.join(repository.options.root, path.dirname(gitkeep))).length > 1) {
+              rmSync(path.join(repository.options.root, gitkeep), { force: true });
+              await tx.remove({ filepath: gitkeep });
+            }
+          }
         },
       });
 
