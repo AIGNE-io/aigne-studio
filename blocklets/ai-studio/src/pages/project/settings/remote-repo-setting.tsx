@@ -194,6 +194,15 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
                   const https = gitUrlParse.stringify(url, 'https');
                   form.setValue('url', https, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
                   form.setValue('username', url.owner, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+
+                  const { password } = url as any;
+                  if (password && typeof password === 'string') {
+                    form.setValue('password', password, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                      shouldTouch: true,
+                    });
+                  }
                   e.preventDefault();
                 } catch {
                   // empty
@@ -241,6 +250,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
                 )
               }
               type={showPassword ? 'text' : 'password'}
+              InputLabelProps={{ shrink: form.watch('password') ? true : undefined }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
