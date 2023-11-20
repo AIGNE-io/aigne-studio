@@ -321,7 +321,7 @@ const FileTree = forwardRef<
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
           <Tree
             tree={tree}
-            rootId=""
+            rootId="prompts"
             initialOpen={openIds}
             onChangeOpen={setOpenIds}
             canDrag={() => !!mutable}

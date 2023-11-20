@@ -248,7 +248,7 @@ export function createFile({
 }) {
   const id = meta?.id || nextTemplateId();
   const filename = `${id}.yaml`;
-  const filepath = [...(parent ?? []), filename].join('/');
+  const filepath = ['prompts', ...(parent ?? []), filename].join('/');
   const now = new Date().toISOString();
 
   const template = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };

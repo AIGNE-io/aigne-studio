@@ -22,6 +22,7 @@ import {
   nextProjectId,
   projectTemplates,
   repositoryRoot,
+  syncRepository,
   templateToYjs,
 } from '../store/projects';
 import { Template, getTemplate, nextTemplateId } from '../store/templates';
@@ -451,21 +452,11 @@ export function projectRoutes(router: Router) {
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
-
     const repository = await getRepository({ projectId });
-    const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
-    if (!remote) throw new Error('The remote has not been set up yet');
-
-    const { refs: remoteRefs } = await repository.getRemoteInfo({ url: remote.url });
-
     const branches = await repository.listBranches();
 
     for (const ref of branches) {
-      // NOTE: 检查远程仓库是否有对应的分支。如果远程仓库没有对应的分支，调用 pull 会报错
-      if (remoteRefs?.heads?.[ref]) {
-        await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
-      }
-      await repository.push({ remote: defaultRemote, ref });
+      await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
     }
 
     await project.update({ gitLastSyncedAt: new Date() });

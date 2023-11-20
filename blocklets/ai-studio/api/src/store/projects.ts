@@ -174,6 +174,30 @@ export async function getRepository({ projectId }: { projectId: string }) {
   return repositories[projectId]!;
 }
 
+export async function syncRepository<T>({
+  repository,
+  ref,
+  author,
+}: {
+  repository: Repository<T>;
+  ref: string;
+  author: NonNullable<Parameters<typeof repository.pull>[0]>['author'];
+}) {
+  const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
+  if (!remote) throw new Error('The remote has not been set up yet');
+  const { refs: remoteRefs } = await repository.getRemoteInfo({ url: remote.url });
+
+  await repository.transact(async () => {
+    await repository.checkout({ ref, force: true });
+
+    // NOTE: 检查远程仓库是否有对应的分支。如果远程仓库没有对应的分支，调用 pull 会报错
+    if (remoteRefs?.heads?.[ref]) {
+      await repository.pull({ remote: defaultRemote, ref, author });
+    }
+    await repository.push({ remote: defaultRemote, ref });
+  });
+}
+
 export function templateToYjs(template: Template): TemplateYjs {
   return {
     ...template,

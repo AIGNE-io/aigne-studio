@@ -13,6 +13,7 @@ import { readSyncMessage, writeSyncStep1, writeUpdate } from 'y-protocols/sync';
 import { Doc, applyUpdate, encodeStateAsUpdate } from 'yjs';
 
 import type Repository from './repository';
+import type { Transaction } from './repository';
 
 const autoSaveTimeout = 10000;
 const pingTimeout = 30000;
@@ -84,6 +85,7 @@ export default class Working<T> extends Doc {
     branch,
     message,
     author,
+    beforeCommit,
   }: {
     ref: string;
     branch: string;
@@ -94,6 +96,7 @@ export default class Working<T> extends Doc {
       timestamp?: number;
       timezoneOffset?: number;
     };
+    beforeCommit?: (options: { tx: Transaction<T> }) => any;
   }) {
     const res = await this.repo.transact(async (tx) => {
       const object = await this.repo.resolveRef({ ref });
@@ -136,6 +139,8 @@ export default class Working<T> extends Doc {
 
         await tx.add({ filepath: newFilepath });
       }
+
+      await beforeCommit?.({ tx });
 
       return tx.commit({ message, author });
     });
