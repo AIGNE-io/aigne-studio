@@ -194,7 +194,7 @@ const FileTree = forwardRef<
             for (const template of newTemplates) {
               createFile({
                 store,
-                parent: template.parent || [PROMPTS_FOLDER_NAME],
+                parent: template.parent,
                 meta: templateYjsFromTemplate(template),
               });
             }

@@ -147,10 +147,7 @@ export default function ProjectPage() {
                   <Button
                     disabled={readOnly}
                     sx={{ minWidth: 0 }}
-                    onClick={() => {
-                      const parent = dirname(filepath);
-                      fileTree.current?.newFolder({ parent: parent.length ? parent : [PROMPTS_FOLDER_NAME] });
-                    }}>
+                    onClick={() => fileTree.current?.newFolder({ parent: dirname(filepath) })}>
                     <FolderAdd />
                   </Button>
                 </span>
@@ -161,10 +158,7 @@ export default function ProjectPage() {
                   <Button
                     disabled={readOnly}
                     sx={{ minWidth: 0 }}
-                    onClick={() => {
-                      const parent = dirname(filepath);
-                      fileTree.current?.newFile({ parent: parent.length ? parent : [PROMPTS_FOLDER_NAME] });
-                    }}>
+                    onClick={() => fileTree.current?.newFile({ parent: dirname(filepath) })}>
                     <Add />
                   </Button>
                 </span>
