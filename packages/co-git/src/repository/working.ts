@@ -90,12 +90,7 @@ export default class Working<T> extends Doc {
     ref: string;
     branch: string;
     message: string;
-    author: {
-      name: string;
-      email?: string;
-      timestamp?: number;
-      timezoneOffset?: number;
-    };
+    author: NonNullable<Parameters<Transaction<T>['commit']>[0]>['author'];
     beforeCommit?: (options: { tx: Transaction<T> }) => any;
   }) {
     const res = await this.repo.transact(async (tx) => {

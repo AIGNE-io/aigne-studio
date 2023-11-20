@@ -30,6 +30,8 @@ import {
 } from '../../../api/src/store/templates';
 import { PREFIX } from '../../libs/api';
 
+export const PROMPTS_FOLDER_NAME = 'prompts';
+
 export type State = {
   files: { [key: string]: TemplateYjs | { $base64: string } };
   tree: { [key: string]: string };
@@ -210,7 +212,7 @@ export function createFolder({
   name: string;
 }) {
   getYjsDoc(store).transact(() => {
-    const filepath = [...parent, name, '.gitkeep'].join('/');
+    const filepath = [PROMPTS_FOLDER_NAME, ...parent, name, '.gitkeep'].join('/');
     const key = nanoid(32);
     store.tree[key] = filepath;
     store.files[key] = { $base64: '' };
@@ -248,7 +250,7 @@ export function createFile({
 }) {
   const id = meta?.id || nextTemplateId();
   const filename = `${id}.yaml`;
-  const filepath = ['prompts', ...(parent ?? []), filename].join('/');
+  const filepath = [PROMPTS_FOLDER_NAME, ...(parent ?? []), filename].join('/');
   const now = new Date().toISOString();
 
   const template = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };
@@ -272,6 +274,8 @@ export function moveFile({ store, from, to }: { store: StoreContext['store']; fr
         store.tree[key] = newPath;
       }
     }
+
+    addGitkeepFileIfNeeded(store, from.slice(0, -1));
   });
 }
 
@@ -283,19 +287,22 @@ export function deleteFile({ store, path }: { store: StoreContext['store']; path
         delete store.tree[key];
         delete store.files[key];
       }
-
-      // Add a gitkeep file if needed
-      const parent = path.slice(0, -1);
-      if (parent.length > 0) {
-        if (Object.values(store.tree).filter((i) => i?.startsWith(parent.join('/').concat('/'))).length === 0) {
-          const filepath = [...parent, '.gitkeep'].join('/');
-          const key = nanoid(32);
-          store.tree[key] = filepath;
-          store.files[key] = { $base64: '' };
-        }
-      }
     }
+
+    addGitkeepFileIfNeeded(store, path.slice(0, -1));
   });
+}
+
+function addGitkeepFileIfNeeded(store: StoreContext['store'], path: string[]) {
+  // Add a gitkeep file if needed
+  if (path.length > 0) {
+    if (Object.values(store.tree).filter((i) => i?.startsWith(path.join('/').concat('/'))).length === 0) {
+      const filepath = [...path, '.gitkeep'].join('/');
+      const key = nanoid(32);
+      store.tree[key] = filepath;
+      store.files[key] = { $base64: '' };
+    }
+  }
 }
 
 export function importFiles({

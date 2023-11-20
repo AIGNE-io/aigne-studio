@@ -73,6 +73,7 @@ import Undo from './icons/undo';
 import ImportFrom from './import';
 import { useTemplatesChangesState } from './state';
 import {
+  PROMPTS_FOLDER_NAME,
   createFile,
   createFolder,
   deleteFile,
@@ -321,7 +322,7 @@ const FileTree = forwardRef<
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
           <Tree
             tree={tree}
-            rootId="prompts"
+            rootId={PROMPTS_FOLDER_NAME}
             initialOpen={openIds}
             onChangeOpen={setOpenIds}
             canDrag={() => !!mutable}

@@ -16,6 +16,7 @@ import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '
 import { createImageUrl } from '../libs/utils';
 import Projects from '../store/models/projects';
 import {
+  commitWorking,
   defaultBranch,
   defaultRemote,
   getRepository,
@@ -253,10 +254,11 @@ export function projectRoutes(router: Router) {
         working.syncedStore.files[id] = templateToYjs({ ...file, id });
         working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
       }
-      await working.commit({
+      await commitWorking({
+        project,
         ref: defaultBranch,
         branch: defaultBranch,
-        message: 'First Prompt',
+        message: 'First Commit',
         author: { name: fullName, email: did },
       });
 
