@@ -3,6 +3,7 @@ import { call } from '@blocklet/sdk/lib/component';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
+import fetch from 'node-fetch';
 import { ImagesResponseDataInner } from 'openai';
 import { NodeVM } from 'vm2';
 
@@ -345,7 +346,9 @@ async function runTemplate(
               }
 
               const contentType = response.headers.get('Content-Type');
-              const result = contentType?.includes('application/json') ? await response.json() : await response.text();
+              const result: any = contentType?.includes('application/json')
+                ? await response.json()
+                : await response.text();
               emitCall({ item, result });
 
               return result;
