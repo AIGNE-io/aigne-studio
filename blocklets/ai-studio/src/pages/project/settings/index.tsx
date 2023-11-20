@@ -132,7 +132,7 @@ export default function ProjectSettings() {
   };
 
   const changed = useMemo(() => {
-    return !equal(origin.current, value);
+    return !!origin.current && !!value && !equal(origin.current, value);
   }, [value]);
 
   useBeforeUnload((e) => {
