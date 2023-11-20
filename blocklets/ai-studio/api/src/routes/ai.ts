@@ -308,7 +308,7 @@ async function runTemplate(
                   await Promise.all(
                     Object.entries(item.parameters ?? {}).map(async ([key, val]) => [
                       key,
-                      typeof val === 'string' ? await renderMessage(val) : val,
+                      !val ? variables[key] : typeof val === 'string' ? await renderMessage(val) : val,
                     ])
                   )
                 ),
