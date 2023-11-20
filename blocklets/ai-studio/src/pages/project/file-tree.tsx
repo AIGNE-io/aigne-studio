@@ -314,7 +314,10 @@ const FileTree = forwardRef<
 
         {!tree.length && !showNewProject && (
           <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="28px" m={0.5}>
-            <Typography variant="caption">{t('noFiles')}</Typography>
+            <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
+              <Add sx={{ fontSize: 54, color: 'grey.300' }} />
+              <Typography>{t('notOpenFile')}</Typography>
+            </Stack>
           </Box>
         )}
 
@@ -336,7 +339,7 @@ const FileTree = forwardRef<
             }}
             classes={{
               root: css`
-                min-height: 100%;
+                min-height: ${!tree.length && !showNewProject ? 'auto' : '100%'};
                 padding-bottom: ${theme.spacing(10)};
               `,
               dropTarget: css`
