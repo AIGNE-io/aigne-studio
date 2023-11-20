@@ -1,3 +1,8 @@
+## 0.1.145 (2023-11-20)
+
+- feat: set template empty page
+- fix: Inherits empty parameter to template parameter
+
 ## 0.1.144 (2023-11-20)
 
 - feat: blocking when the page is modified
