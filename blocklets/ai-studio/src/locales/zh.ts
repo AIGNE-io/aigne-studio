@@ -57,7 +57,7 @@ export default flat({
     import: '导入',
     imported: '导入成功',
     noTemplates: '暂无模版',
-    saveChanges: '您还未保存，现在保存？',
+    saveChanges: '您更新数据还未保存，确认离开吗？',
     discard: '放弃',
     discardChanges: '放弃所有更改？',
     deleteTemplate: '删除模版“{template}”？',
@@ -92,6 +92,10 @@ export default flat({
     currentBranch: '当前分支',
     message: '备注',
     compare: '版本比较',
+    unsave: {
+      title: '未保存的更改',
+      content: ' 您的更改尚未保存!',
+    },
   },
   import: {
     title: '导入模板数据',

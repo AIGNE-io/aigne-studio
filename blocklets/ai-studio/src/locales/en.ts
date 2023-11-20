@@ -57,7 +57,7 @@ export default flat({
     import: 'Import',
     imported: 'Imported',
     noTemplates: 'No Templates',
-    saveChanges: "You haven't saved yet, save now?",
+    saveChanges: 'Your updated data has not been saved, are you sure to leave?',
     discard: 'Discard',
     discardChanges: 'Discard all changes?',
     deleteTemplate: 'Delete template "{template}"?',
@@ -92,6 +92,10 @@ export default flat({
     currentBranch: 'Current branch',
     message: 'Message',
     compare: 'Version compare',
+    unsave: {
+      title: 'Unsaved Changes',
+      content: ' Your changes have not been saved yet!',
+    },
   },
   import: {
     title: 'Import Templates',

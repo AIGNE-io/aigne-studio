@@ -1,3 +1,7 @@
+## 0.1.144 (2023-11-20)
+
+- feat: blocking when the page is modified
+
 ## 0.1.143 (2023-11-20)
 
 - chore: use node-fetch
