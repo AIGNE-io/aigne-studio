@@ -3,6 +3,7 @@ import { call } from '@blocklet/sdk/lib/component';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
+import fetch from 'node-fetch';
 import { ImagesResponseDataInner } from 'openai';
 import { NodeVM } from 'vm2';
 
@@ -338,7 +339,6 @@ async function runTemplate(
                 params.body = await renderMessage(item.body);
               }
 
-              const fetch = await import('node-fetch').then((m) => m.default);
               const response = await fetch(url, params);
 
               if (!response.ok) {
