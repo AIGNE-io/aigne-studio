@@ -215,7 +215,7 @@ export function useEditorPicker({
         onSelect: (editor) => {
           const variable = `${randomVariableNamePrefix}${randomId(5)}`;
           const id = randomId();
-          addPrompt({ id, role: 'call-prompt', output: variable, parameters: {} }, index || 0);
+          addPrompt({ id, role: 'call-prompt', output: variable }, index || 0);
           editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
         },
       }),
@@ -292,7 +292,7 @@ export function parseDirectivesOfTemplate(
   template: TemplateYjs,
   {
     excludeNonPromptVariables = false,
-    includePromptVariables = false,
+    includePromptVariables: includeEmptyPromptVariables = false,
   }: {
     excludeNonPromptVariables?: boolean;
     includePromptVariables?: boolean;
@@ -331,7 +331,7 @@ export function parseDirectivesOfTemplate(
     });
   }
 
-  if (includePromptVariables && template.prompts) {
+  if (includeEmptyPromptVariables && template.prompts) {
     Object.values(template.prompts ?? {}).forEach(({ data }) => {
       if (isCallPromptMessage(data) && data.parameters) {
         Object.entries(data.parameters).forEach(([key, value]) => {
