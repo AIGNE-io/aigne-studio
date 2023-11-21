@@ -1,7 +1,7 @@
 ## 0.1.146 (2023-11-20)
 
 - feat: set template empty page
-- fix: Inherits empty parameter to template parameter
+- fix: inherits empty parameters of call prompt
 - chore: update uploader package to latest
 
 ## 0.1.145 (2023-11-20)
