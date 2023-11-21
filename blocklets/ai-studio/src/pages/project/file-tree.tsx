@@ -311,7 +311,7 @@ const FileTree = forwardRef<
           <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="28px" m={0.5}>
             <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
               <Add sx={{ fontSize: 54, color: 'grey.300' }} />
-              <Typography>{t('notOpenFile')}</Typography>
+              <Typography>{t('noFiles')}</Typography>
             </Stack>
           </Box>
         )}
