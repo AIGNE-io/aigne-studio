@@ -465,6 +465,15 @@ function CallPromptItemView({
           onChange={(_, value) => {
             if (value && typeof value === 'object') {
               callPromptMessage.template = { id: value.id, name: value.name };
+              const temp = getTemplateById(value.id);
+              if (temp) {
+                const p = parseDirectivesOfTemplate(temp, { excludeNonPromptVariables: true })
+                  .filter((i) => i.type === 'variable')
+                  .map((i) => i.name);
+
+                callPromptMessage.parameters = Object.fromEntries(p.map((r) => [r, '']));
+              }
+
               if (value.name) {
                 originalOutput.current = callPromptMessage.output;
 

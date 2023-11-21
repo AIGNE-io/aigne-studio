@@ -260,7 +260,7 @@ type Directive = {
 
 export function parseDirectives(...content: string[]): Directive[] {
   return content.flatMap((content) => {
-    // 捕获 /{{ var/api/task/{{list}} 这种错误
+    // 捕获 api/{{var/api/task/{{list}} 这种错误
     try {
       const spans = Mustache.parse(content);
 
@@ -292,8 +292,10 @@ export function parseDirectivesOfTemplate(
   template: TemplateYjs,
   {
     excludeNonPromptVariables = false,
+    includePromptVariables: includeEmptyPromptVariables = false,
   }: {
     excludeNonPromptVariables?: boolean;
+    includePromptVariables?: boolean;
   } = {}
 ) {
   let directives = parseDirectives(
@@ -329,12 +331,24 @@ export function parseDirectivesOfTemplate(
     });
   }
 
+  if (includeEmptyPromptVariables && template.prompts) {
+    Object.values(template.prompts ?? {}).forEach(({ data }) => {
+      if (isCallPromptMessage(data) && data.parameters) {
+        Object.entries(data.parameters).forEach(([key, value]) => {
+          if (!value) {
+            directives.push({ type: 'variable', name: key });
+          }
+        });
+      }
+    });
+  }
+
   return directives;
 }
 
 export function useParametersState(template: TemplateYjs) {
   const keysSet = new Set(
-    parseDirectivesOfTemplate(template, { excludeNonPromptVariables: true })
+    parseDirectivesOfTemplate(template, { excludeNonPromptVariables: true, includePromptVariables: true })
       .map((i) => (i.type === 'variable' ? i.name : undefined))
       .filter((i): i is string => Boolean(i))
   );
