@@ -18,7 +18,7 @@ export default function MainMenus({ ...props }: Omit<MenusProps, 'menus'>) {
     menus.push({ icon: <Home />, title: t('home'), url: projectId ? 'home' : '.' });
 
     if (projectId) {
-      menus.push({ icon: <DocumentStack />, title: t('prompts'), url: 'prompts' });
+      menus.push({ icon: <DocumentStack />, title: t('prompts'), url: 'file' });
     }
 
     if (projectId) {

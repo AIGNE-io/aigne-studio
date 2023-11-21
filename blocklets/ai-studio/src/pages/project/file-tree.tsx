@@ -295,6 +295,8 @@ const FileTree = forwardRef<
     });
   }, [files, folders]);
 
+  const treeFiles = tree.filter((i) => String(i?.id || '').startsWith([PROMPTS_FOLDER_NAME].join('/').concat('/')));
+
   if (!synced)
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
@@ -305,7 +307,7 @@ const FileTree = forwardRef<
   return (
     <>
       <Box {...props}>
-        {!tree.length && (
+        {!treeFiles.length && (
           <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="28px" m={0.5}>
             <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
               <Add sx={{ fontSize: 54, color: 'grey.300' }} />
@@ -332,7 +334,7 @@ const FileTree = forwardRef<
             }}
             classes={{
               root: css`
-                min-height: ${!tree.length && !showNewProject ? 'auto' : '100%'};
+                min-height: ${!treeFiles.length ? 'auto' : '100%'};
                 padding-bottom: ${theme.spacing(10)};
               `,
               dropTarget: css`
