@@ -34,58 +34,6 @@ import { templateSchema } from './templates';
 
 const router = Router();
 
-function formatFunctionCallName(dataList: string[]): {
-  id: string;
-  type: string;
-  name: string;
-  content: string[];
-  arguments: string;
-} {
-  let functionName = '';
-  let allArguments = '';
-  let id = '';
-  let type = '';
-  const content = [];
-
-  for (const dataString of dataList) {
-    if (dataString && dataString.trim()) {
-      try {
-        const dataObject = JSON.parse(dataString.substring(dataString.indexOf('{')));
-        const toolCalls = dataObject.delta?.toolCalls;
-
-        if (!isNil(dataObject.delta.content)) {
-          content.push(dataObject.delta.content);
-        }
-
-        if (toolCalls && Array.isArray(toolCalls)) {
-          for (const call of toolCalls) {
-            if (call.id) {
-              id = call.id;
-            }
-
-            if (call.type) {
-              type = call.type;
-            }
-
-            if (call.type === 'function' && call.function) {
-              if (!functionName) {
-                functionName = call.function.name;
-              }
-            }
-
-            // 拼接arguments
-            allArguments += call.function.arguments;
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing data:', error);
-      }
-    }
-  }
-
-  return { content, id, type, arguments: allArguments, name: functionName };
-}
-
 router.get('/status', ensureComponentCallOrPromptsEditor(), async (_, res) => {
   const response = await call({
     name: 'ai-kit',
@@ -272,6 +220,58 @@ router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async 
     throw error;
   }
 });
+
+function formatFunctionCallName(dataList: string[]): {
+  id: string;
+  type: string;
+  name: string;
+  content: string[];
+  arguments: string;
+} {
+  let functionName = '';
+  let allArguments = '';
+  let id = '';
+  let type = '';
+  const content = [];
+
+  for (const dataString of dataList) {
+    if (dataString && dataString.trim()) {
+      try {
+        const dataObject = JSON.parse(dataString.substring(dataString.indexOf('{')));
+        const toolCalls = dataObject.delta?.toolCalls;
+
+        if (!isNil(dataObject.delta.content)) {
+          content.push(dataObject.delta.content);
+        }
+
+        if (toolCalls && Array.isArray(toolCalls)) {
+          for (const call of toolCalls) {
+            if (call.id) {
+              id = call.id;
+            }
+
+            if (call.type) {
+              type = call.type;
+            }
+
+            if (call.type === 'function' && call.function) {
+              if (!functionName) {
+                functionName = call.function.name;
+              }
+            }
+
+            // 拼接arguments
+            allArguments += call.function.arguments;
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing data:', error);
+      }
+    }
+  }
+
+  return { content, id, type, arguments: allArguments, name: functionName };
+}
 
 async function runTemplate(
   project: Project | undefined | null,
