@@ -469,7 +469,7 @@ export function useToolsState({
   const file = store.files[templateId];
   const template = isTemplate(file) ? file : undefined;
 
-  const addFunc = useCallback(
+  const addToolFunc = useCallback(
     (func: NonNullable<TemplateYjs['tools']>[string]['data']) => {
       if (!template) return;
 
@@ -484,7 +484,7 @@ export function useToolsState({
     [template]
   );
 
-  const deleteFunc = useCallback(
+  const deleteToolFunc = useCallback(
     (id: string) => {
       if (!template) return;
 
@@ -498,7 +498,7 @@ export function useToolsState({
     [template]
   );
 
-  return { addFunc, deleteFunc };
+  return { addToolFunc, deleteToolFunc };
 }
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');

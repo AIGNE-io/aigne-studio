@@ -63,7 +63,6 @@ import AwarenessIndicator from '../awareness/awareness-indicator';
 import { DragSortListYjs } from '../drag-sort-list';
 import CodeEditor from './code-editer';
 import TemplateAutocomplete from './template-autocomplete';
-import FunctionCallings from './tools-calling';
 
 const CONST_TYPE = {
   prompt: 'prompt',
@@ -96,8 +95,8 @@ export default function Prompts({
 }) {
   const { t } = useLocaleContext();
 
-  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, readOnly });
   const { addPrompt } = usePromptsState({ projectId, gitRef, templateId: form.id });
+  const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, readOnly });
 
   const getChildren = useCallback(
     (prompt: EditorPromptMessage) => {
@@ -142,7 +141,7 @@ export default function Prompts({
   }, [updateParametersIfNeeded]);
 
   return (
-    <Stack gap={2}>
+    <Box>
       <Box
         sx={{
           border: 2,
@@ -205,7 +204,7 @@ export default function Prompts({
       </Box>
 
       {!readOnly && (
-        <Stack>
+        <Stack direction="row" gap={2} sx={{ mt: 1 }}>
           <Button
             sx={{ width: 1 }}
             startIcon={<Add />}
@@ -214,9 +213,7 @@ export default function Prompts({
           </Button>
         </Stack>
       )}
-
-      <FunctionCallings projectId={projectId} gitRef={gitRef} template={form} readOnly={Boolean(readOnly)} />
-    </Stack>
+    </Box>
   );
 }
 

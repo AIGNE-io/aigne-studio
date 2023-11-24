@@ -421,6 +421,6 @@ export function templateYjsFromTemplate(template: Template): TemplateYjs {
       template.datasets &&
       Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
     tests: template.tests && Object.fromEntries(template.tests.map((test, index) => [test.id, { index, data: test }])),
-    tools: template.tools && Object.fromEntries(template.tools.map((func, index) => [func.id, { index, data: func }])),
+    tools: template.tools && Object.fromEntries(template.tools.map((tool, index) => [tool.id, { index, data: tool }])),
   };
 }

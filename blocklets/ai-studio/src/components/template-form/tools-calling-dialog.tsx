@@ -88,15 +88,15 @@ export function useOptions(): {
     return [
       {
         key: 'call-prompt',
-        label: t('functionCall.types.prompt'),
+        label: t('tool.types.prompt'),
       },
       {
         key: 'call-api',
-        label: t('functionCall.types.api'),
+        label: t('tool.types.api'),
       },
       {
         key: 'call-function',
-        label: t('functionCall.types.code'),
+        label: t('tool.types.code'),
       },
     ];
   }, [t]);
@@ -115,7 +115,7 @@ export function useOptions(): {
   return { options, getOption };
 }
 
-export default function FunctionCallDialog({
+export default function ToolFunctionCallDialog({
   projectId,
   gitRef,
   template,
@@ -130,7 +130,7 @@ export default function FunctionCallDialog({
 }) {
   const { t } = useLocaleContext();
 
-  const { addFunc } = useToolsState({ projectId, gitRef, templateId: template.id });
+  const { addToolFunc } = useToolsState({ projectId, gitRef, templateId: template.id });
   const { store, getTemplateById } = useStore(projectId, gitRef);
   const { '*': filepath } = useParams();
 
@@ -168,7 +168,7 @@ export default function FunctionCallDialog({
         function: JSON.parse(input.function),
       };
 
-      addFunc(data);
+      addToolFunc(data);
 
       onCloseDialog();
     },
@@ -195,12 +195,12 @@ export default function FunctionCallDialog({
               justifyContent="space-between"
               alignItems="center"
               sx={{ mb: 1, fontSize: 14, color: (theme) => theme.palette.common.black }}>
-              <Box>{t('functionCall.parameterTip')}</Box>
+              <Box>{t('tool.parameterTip')}</Box>
               <Box
                 component={Link}
                 to="https://platform.openai.com/docs/api-reference/chat/create#chat-create-functions"
                 sx={{ color: (theme) => theme.palette.grey[500], fontSize: '12px' }}>
-                {t('functionCall.viewGuide')}
+                {t('tool.viewGuide')}
               </Box>
             </Box>
             <Controller
@@ -238,7 +238,7 @@ export default function FunctionCallDialog({
                         {fieldState.error?.message}
                       </FormHelperText>
                     ) : (
-                      <FormHelperText sx={{ color: '#0E9F6E' }}>{t('functionCall.validate.json')}</FormHelperText>
+                      <FormHelperText sx={{ color: '#0E9F6E' }}>{t('tool.validate.json')}</FormHelperText>
                     )}
                   </Box>
                 );
@@ -246,7 +246,7 @@ export default function FunctionCallDialog({
               rules={{
                 validate: (value) => {
                   if (!value) {
-                    return t('functionCall.validate.notEmpty');
+                    return t('tool.validate.notEmpty');
                   }
 
                   if (typeof value === 'object') {
@@ -285,7 +285,7 @@ export default function FunctionCallDialog({
               justifyContent="space-between"
               alignItems="center"
               sx={{ mb: 1, fontSize: 14, color: (theme) => theme.palette.common.black }}>
-              <Box>{t('functionCall.dataTip')}</Box>
+              <Box>{t('tool.dataTip')}</Box>
             </Box>
             <Controller
               control={form.control}
@@ -471,7 +471,7 @@ export default function FunctionCallDialog({
               rules={{
                 validate: (value) => {
                   if (!value) {
-                    return t('functionCall.validate.notEmpty');
+                    return t('tool.validate.notEmpty');
                   }
 
                   if (!Object.values(value).length) {
@@ -505,7 +505,7 @@ export default function FunctionCallDialog({
                     return true;
                   }
 
-                  return t('functionCall.validate.notSupported');
+                  return t('tool.validate.notSupported');
                 },
               }}
             />

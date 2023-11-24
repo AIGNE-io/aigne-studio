@@ -274,7 +274,7 @@ export default flat({
   useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
   useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
-  functionCall: {
+  tool: {
     title: '工具',
     edit: '编辑该数据',
     delete: '删除该数据',

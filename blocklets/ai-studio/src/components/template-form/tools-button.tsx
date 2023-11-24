@@ -15,9 +15,9 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import { ToolsMessage } from '../../../api/src/store/templates';
 import Add from '../../pages/project/icons/add';
 import { randomId } from '../../pages/project/prompt-state';
-import FunctionCallDialog, { useOptions } from './tools-calling-dialog';
+import ToolFunctionCallDialog, { useOptions } from './tools-calling-dialog';
 
-export default function PromptsButton({
+export default function ToolsButton({
   readOnly,
   projectId,
   gitRef,
@@ -104,7 +104,9 @@ export default function PromptsButton({
         )}
       </Popper>
 
-      {state?.call && <FunctionCallDialog projectId={projectId} gitRef={gitRef} template={template} state={state} />}
+      {state?.call && (
+        <ToolFunctionCallDialog projectId={projectId} gitRef={gitRef} template={template} state={state} />
+      )}
     </Stack>
   );
 }

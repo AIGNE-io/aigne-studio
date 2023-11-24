@@ -26,7 +26,7 @@ const CodeEditor = forwardRef(({ readOnly, ...props }: { readOnly?: boolean } & 
 
   const theme = useTheme();
 
-  useImperativeHandle(ref, () => monaco?.editor);
+  useImperativeHandle(ref, () => {});
 
   return (
     <Box

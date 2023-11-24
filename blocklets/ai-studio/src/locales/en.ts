@@ -276,7 +276,7 @@ export default flat({
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
-  functionCall: {
+  tool: {
     title: 'Tools',
     edit: 'Edit Function Call',
     delete: 'Delete this function call',

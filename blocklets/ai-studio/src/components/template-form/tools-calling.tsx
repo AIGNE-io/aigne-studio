@@ -24,40 +24,38 @@ export default function FunctionCallings({
   const { t } = useLocaleContext();
 
   return (
-    <Box>
-      <Box
-        sx={{
-          borderRadius: 2,
-          bgcolor: (theme) => theme.palette.action.hover,
-          overflow: 'hidden',
-          px: 2,
-        }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 1, gap: 1 }}>
-          <Stack direction="row" alignItems="center" gap={1}>
-            <ConstructionIcon fontSize="small" color="primary" />
-            <Typography variant="subtitle1">{t('functionCall.title')}</Typography>
-          </Stack>
-
-          <ToolsButton projectId={projectId} gitRef={gitRef} template={template} readOnly={Boolean(readOnly)} />
+    <Box
+      sx={{
+        borderRadius: 2,
+        bgcolor: (theme) => theme.palette.action.hover,
+        overflow: 'hidden',
+        px: 2,
+      }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 1, gap: 1 }}>
+        <Stack direction="row" alignItems="center" gap={1}>
+          <ConstructionIcon fontSize="small" color="primary" />
+          <Typography variant="subtitle1">{t('tool.title')}</Typography>
         </Stack>
 
-        {template?.tools && Object.keys(template.tools).length && (
-          <Stack mb={2} gap={0.5}>
-            {Object.keys(template.tools).map((funcId) => {
-              return (
-                <FunctionItemContainer
-                  key={funcId}
-                  funcId={funcId}
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  template={template}
-                  readOnly={readOnly}
-                />
-              );
-            })}
-          </Stack>
-        )}
-      </Box>
+        <ToolsButton projectId={projectId} gitRef={gitRef} template={template} readOnly={Boolean(readOnly)} />
+      </Stack>
+
+      {template?.tools && Object.keys(template.tools).length && (
+        <Stack mb={2} gap={0.5}>
+          {Object.keys(template.tools).map((funcId) => {
+            return (
+              <FunctionItemContainer
+                key={funcId}
+                funcId={funcId}
+                projectId={projectId}
+                gitRef={gitRef}
+                template={template}
+                readOnly={readOnly}
+              />
+            );
+          })}
+        </Stack>
+      )}
     </Box>
   );
 }
@@ -78,7 +76,7 @@ function FunctionItemContainer({
   const { t } = useLocaleContext();
   const [open, setOpen] = useState(false);
 
-  const { deleteFunc } = useToolsState({ projectId, gitRef, templateId: template.id });
+  const { deleteToolFunc } = useToolsState({ projectId, gitRef, templateId: template.id });
   const functionCallInfo = template.tools && template.tools[funcId];
 
   return (
@@ -133,14 +131,14 @@ function FunctionItemContainer({
                     p: 0,
                   },
                 }}>
-                <Tooltip title={t('functionCall.edit')} disableInteractive placement="top">
+                <Tooltip title={t('tool.edit')} disableInteractive placement="top">
                   <Button onClick={() => setOpen(true)}>
                     <Edit sx={{ fontSize: '1.25rem', color: 'grey.500' }} />
                   </Button>
                 </Tooltip>
 
-                <Tooltip title={t('functionCall.delete')} disableInteractive placement="top">
-                  <Button onClick={() => deleteFunc(funcId)}>
+                <Tooltip title={t('tool.delete')} disableInteractive placement="top">
+                  <Button onClick={() => deleteToolFunc(funcId)}>
                     <Trash sx={{ fontSize: '1.25rem', color: 'grey.500' }} />
                   </Button>
                 </Tooltip>
