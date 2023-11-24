@@ -8,7 +8,15 @@ import { getTemplateIdFromPath, yjsToTemplate } from './projects';
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
 
-export type Role = 'system' | 'user' | 'assistant' | 'call-prompt' | 'call-api' | 'call-function' | 'call-dataset';
+export type Role =
+  | 'system'
+  | 'user'
+  | 'assistant'
+  | 'function'
+  | 'call-prompt'
+  | 'call-api'
+  | 'call-function'
+  | 'call-dataset';
 
 export const roles: Role[] = [
   'system',
@@ -24,6 +32,7 @@ export interface PromptMessage {
   id: string;
   role?: Extract<Role, 'system' | 'user' | 'assistant'>;
   content?: string;
+  name?: string;
   visibility?: 'hidden';
 }
 
@@ -33,9 +42,7 @@ export interface CallPromptMessage {
   content?: undefined;
   output: string;
   template?: { id: string; name?: string };
-  parameters?: {
-    [key: string]: string | undefined;
-  };
+  parameters?: { [key: string]: string | undefined };
   visibility?: 'hidden';
 }
 
@@ -70,12 +77,26 @@ export interface CallDatasetMessage {
   visibility?: 'hidden';
 }
 
+export interface FunctionsMessage {
+  id: string;
+  function: {
+    name: string;
+    description: string;
+    parameters?: {
+      type: 'object';
+      properties: { [key: string]: { type: any; description: 'string' } };
+      required: string[];
+    };
+  };
+  extraInfo: CallPromptMessage | CallAPIMessage | CallFuncMessage;
+}
+
 export type CallMessage = CallPromptMessage | CallAPIMessage | CallFuncMessage | CallDatasetMessage;
 
 export type EditorPromptMessage = PromptMessage | CallMessage;
 
 export function isPromptMessage(message: any): message is PromptMessage {
-  return ['system', 'user', 'assistant'].includes(message?.role);
+  return ['system', 'user', 'assistant', 'function'].includes(message?.role);
 }
 
 export function isCallPromptMessage(message: any): message is CallPromptMessage {
@@ -128,6 +149,7 @@ export interface Template {
     error?: { message: string };
     createdBy: string;
   }[];
+  functions?: FunctionsMessage[];
 }
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | HoroscopeParameter;

@@ -1,11 +1,11 @@
 import Editor, { EditorProps, useMonaco } from '@monaco-editor/react';
 import { Box, useTheme } from '@mui/material';
 import { customAlphabet } from 'nanoid';
-import { useEffect } from 'react';
+import { forwardRef, useEffect, useImperativeHandle } from 'react';
 
 const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 
-export default function CodeEditor({ readOnly, ...props }: { readOnly?: boolean } & EditorProps) {
+const CodeEditor = forwardRef(({ readOnly, ...props }: { readOnly?: boolean } & EditorProps, ref) => {
   const monaco = useMonaco();
   const id = randomId();
   const themeName = `customTheme${id}`;
@@ -26,9 +26,25 @@ export default function CodeEditor({ readOnly, ...props }: { readOnly?: boolean 
 
   const theme = useTheme();
 
+  useImperativeHandle(ref, () => monaco?.editor);
+
   return (
     <Box
-      {...props}
+      loading={
+        <Box
+          sx={{
+            height: props.height || '120px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            background: '#F2F2F2',
+            width: '100%',
+            color: (theme) => theme.palette.grey[500],
+            fontSize: '14px',
+          }}>
+          <Box>Loading...</Box>
+        </Box>
+      }
       component={Editor}
       height="120px"
       theme={themeName}
@@ -40,6 +56,9 @@ export default function CodeEditor({ readOnly, ...props }: { readOnly?: boolean 
         tabSize: 2,
         insertSpaces: true,
       }}
+      {...props}
     />
   );
-}
+});
+
+export default CodeEditor;

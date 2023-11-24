@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import PromptEditor from '@blocklet/prompt-editor';
 import { cx } from '@emotion/css';
 import { useMonaco } from '@monaco-editor/react';
-import { ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
+import { Add, ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
 import {
   Autocomplete,
   Box,
@@ -34,7 +34,6 @@ import {
   EditorPromptMessage,
 } from '../../../api/src/store/templates';
 import { getDatasets } from '../../libs/dataset';
-import Add from '../../pages/project/icons/add';
 import DragVertical from '../../pages/project/icons/drag-vertical';
 import Eye from '../../pages/project/icons/eye';
 import EyeNo from '../../pages/project/icons/eye-no';
@@ -64,6 +63,7 @@ import AwarenessIndicator from '../awareness/awareness-indicator';
 import { DragSortListYjs } from '../drag-sort-list';
 import CodeEditor from './code-editer';
 import TemplateAutocomplete from './template-autocomplete';
+import FunctionCallings from './tools-calling';
 
 const CONST_TYPE = {
   prompt: 'prompt',
@@ -96,8 +96,8 @@ export default function Prompts({
 }) {
   const { t } = useLocaleContext();
 
-  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId: form.id });
   const { getDiffBackground } = useTemplateCompare({ value: form as TemplateYjs, compareValue, readOnly });
+  const { addPrompt } = usePromptsState({ projectId, gitRef, templateId: form.id });
 
   const getChildren = useCallback(
     (prompt: EditorPromptMessage) => {
@@ -142,7 +142,7 @@ export default function Prompts({
   }, [updateParametersIfNeeded]);
 
   return (
-    <Box>
+    <Stack gap={2}>
       <Box
         sx={{
           border: 2,
@@ -205,13 +205,18 @@ export default function Prompts({
       </Box>
 
       {!readOnly && (
-        <Stack direction="row" gap={2} sx={{ mt: 1, mx: 1 }}>
-          <Button startIcon={<Add />} onClick={() => addPrompt({ id: randomId(), content: '', role: 'user' })}>
+        <Stack>
+          <Button
+            sx={{ width: 1 }}
+            startIcon={<Add />}
+            onClick={() => addPrompt({ id: randomId(), content: '', role: 'user' })}>
             {t('add', { object: t('prompt') })}
           </Button>
         </Stack>
       )}
-    </Box>
+
+      <FunctionCallings projectId={projectId} gitRef={gitRef} template={form} readOnly={Boolean(readOnly)} />
+    </Stack>
   );
 }
 

@@ -239,6 +239,9 @@ export default flat({
   selectObject: 'Select {object}',
   template: 'Template',
   call: {
+    prompt: {
+      select: 'Select Template',
+    },
     api: {
       placeholder: 'API ',
       body: 'Body (JSON)',
@@ -273,4 +276,22 @@ export default flat({
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
+  functionCall: {
+    title: 'Tools',
+    edit: 'Edit Function Call',
+    delete: 'Delete this function call',
+    validate: {
+      notSupported: 'The current type is not supported',
+      notEmpty: 'Parameter data cannot be empty',
+      json: 'Json syntax is correct',
+    },
+    types: {
+      prompt: 'Find function data from "Template"',
+      api: 'Find function data from API',
+      code: 'Find function data from Code',
+    },
+    parameterTip: 'Input the structure of functions call:',
+    dataTip: 'Tools Type:',
+    viewGuide: 'View guide',
+  },
 });

@@ -247,7 +247,7 @@ export function useEditorPicker({
         },
       }),
     ],
-    [addPrompt]
+    [addPrompt, t]
   );
 
   return { getOptions };
@@ -453,6 +453,52 @@ export function usePromptsState({
   );
 
   return { addPrompt, renameVariable };
+}
+
+export function useFunctionsState({
+  projectId,
+  gitRef,
+  templateId,
+}: {
+  projectId: string;
+  gitRef: string;
+  templateId: string;
+}) {
+  const { store } = useStore(projectId, gitRef);
+
+  const file = store.files[templateId];
+  const template = isTemplate(file) ? file : undefined;
+
+  const addFunc = useCallback(
+    (func: NonNullable<TemplateYjs['functions']>[string]['data']) => {
+      if (!template) return;
+
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+      doc.transact(() => {
+        template.functions ??= {};
+        template.functions[func.id] = { index: Object.keys(template.functions).length, data: func };
+
+        sortBy(Object.values(template.functions), (i) => i.index).forEach((i, index) => (i.index = index));
+      });
+    },
+    [template]
+  );
+
+  const deleteFunc = useCallback(
+    (id: string) => {
+      if (!template) return;
+
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+
+      doc.transact(() => {
+        template.functions ??= {};
+        delete template.functions[id];
+      });
+    },
+    [template]
+  );
+
+  return { addFunc, deleteFunc };
 }
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');

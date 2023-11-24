@@ -237,6 +237,9 @@ export default flat({
   selectObject: '选择{object}',
   template: '模板',
   call: {
+    prompt: {
+      select: '选择模板',
+    },
     api: {
       placeholder: 'API 地址',
       body: '数据 (JSON)',
@@ -271,4 +274,22 @@ export default flat({
   useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
   useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
+  functionCall: {
+    title: '工具',
+    edit: '编辑该数据',
+    delete: '删除该数据',
+    validate: {
+      notSupported: '不支持当前类型',
+      notEmpty: '参数数据不能为空',
+      json: 'Json语法正确',
+    },
+    types: {
+      prompt: '从 模板 中查找函数数据',
+      api: '从 接口 中查找函数数据',
+      code: '从 代码 中查找函数数据',
+    },
+    parameterTip: '输入函数调用的结构:',
+    dataTip: '工具类型:',
+    viewGuide: '查看指南',
+  },
 });

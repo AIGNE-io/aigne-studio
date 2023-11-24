@@ -14,7 +14,10 @@ import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
 import { Project, defaultBranch, getRepository } from '../store/projects';
 import {
+  CallAPIMessage,
+  CallFuncMessage,
   CallMessage,
+  CallPromptMessage,
   PromptMessage,
   Role,
   Template,
@@ -29,6 +32,37 @@ import VectorStore from '../store/vector-store';
 import { templateSchema } from './templates';
 
 const router = Router();
+
+function formatFunctionCallName(dataList: string[]) {
+  let functionName = '';
+  let allArguments = '';
+  const content = [];
+
+  for (const dataString of dataList) {
+    try {
+      const dataObject = JSON.parse(dataString.substring(dataString.indexOf('{')));
+      const toolCalls = dataObject.delta?.toolCalls;
+      content.push(dataObject.delta.content);
+
+      if (toolCalls && Array.isArray(toolCalls)) {
+        for (const call of toolCalls) {
+          if (call.type === 'function' && call.function) {
+            // 记录第一个function的name
+            if (!functionName) {
+              functionName = call.function.name;
+            }
+            // 拼接arguments
+            allArguments += call.function.arguments;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing data:', error);
+    }
+  }
+
+  return { name: functionName, content, arguments: allArguments };
+}
 
 router.get('/status', ensureComponentCallOrPromptsEditor(), async (_, res) => {
   const response = await call({
@@ -235,10 +269,11 @@ async function runTemplate(
     | 'datasets'
     | 'branch'
     | 'next'
+    | 'functions'
   >,
   parameters:
     | {
-        $history?: { role: Role; content: string }[];
+        $history?: { role: Role; content: string; name?: string }[];
         [key: string]: any;
       }
     | undefined,
@@ -264,21 +299,6 @@ async function runTemplate(
     const renderMessage = async (message: string) => {
       return Mustache.render(message, variables, undefined, { escape: (v) => v });
     };
-    const vm = new NodeVM({
-      console: 'inherit',
-      sandbox: {
-        context: {
-          get: (name: any) => {
-            let result = variables[name];
-            while (typeof result === 'function') {
-              result = result();
-            }
-
-            return result;
-          },
-        },
-      },
-    });
 
     const variablesCache: { [key: string]: Promise<string> } = {};
 
@@ -291,6 +311,75 @@ async function runTemplate(
       });
     };
 
+    const executingAPIFn = async (item: CallAPIMessage, args?: any) => {
+      const url = await renderMessage(item.url);
+      const params: { method: string; body?: string } = { method: item.method };
+
+      const body = args ?? item.body;
+      if (body && ['post', 'put', 'patch', 'delete'].includes(item.method)) {
+        params.body = await renderMessage(body);
+      }
+
+      const response = await fetch(url, params);
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+      }
+
+      const contentType = response.headers.get('Content-Type');
+      const result: any = contentType?.includes('application/json') ? await response.json() : await response.text();
+
+      return result;
+    };
+
+    const executingFuncFn = async (item: CallFuncMessage, args?: any) => {
+      const vm = new NodeVM({
+        console: 'inherit',
+        sandbox: {
+          context: {
+            get: (name: any) => {
+              let result = args[name] || variables[name];
+
+              while (typeof result === 'function') {
+                result = result();
+              }
+
+              return result;
+            },
+          },
+          fetch,
+        },
+      });
+
+      const functionInSandbox = vm.run(`module.exports = async function() { ${item.code} }`);
+      const result = await functionInSandbox();
+      return result;
+    };
+
+    const executingPromptFn = async (item: CallPromptMessage, args?: any) => {
+      if (!item.template) throw new Error('Required property `template` is not present');
+      const template = await getTemplate(item.template.id);
+      const parameters = args ?? item.parameters ?? {};
+
+      const result = await runTemplate(
+        project,
+        getTemplate,
+        template,
+        Object.fromEntries(
+          await Promise.all(
+            Object.entries(parameters).map(async ([key, val]) => [
+              key,
+              !val ? variables[key] : typeof val === 'string' ? await renderMessage(val) : val,
+            ])
+          )
+        ),
+        (options) => callback?.({ ...options, isFinalTemplate: false }),
+        log
+      );
+
+      return result;
+    };
+
     const variables = {
       ...parameters,
       ...Object.fromEntries(
@@ -298,27 +387,13 @@ async function runTemplate(
           item.output,
           () => async () => {
             variablesCache[item.output] ??= (async () => {
-              if (!item.template) throw new Error('Required property `template` is not present');
-              const template = await getTemplate(item.template.id);
-              const result = await runTemplate(
-                project,
-                getTemplate,
-                template,
-                Object.fromEntries(
-                  await Promise.all(
-                    Object.entries(item.parameters ?? {}).map(async ([key, val]) => [
-                      key,
-                      !val ? variables[key] : typeof val === 'string' ? await renderMessage(val) : val,
-                    ])
-                  )
-                ),
-                (options) => callback?.({ ...options, isFinalTemplate: false }),
-                log
-              );
+              const result = await executingPromptFn(item);
 
-              emitCall({ item, result });
+              if (result.type === 'text') {
+                emitCall({ item, result: result.text });
+                return result.text;
+              }
 
-              if (result.type === 'text') return result.text;
               throw new Error(`Unsupported response from call prompt ${result.type}`);
             })();
             return variablesCache[item.output];
@@ -332,23 +407,7 @@ async function runTemplate(
             variablesCache[item.output] ??= (async () => {
               if (!item.url) throw new Error('Required property `url` is not present');
 
-              const url = await renderMessage(item.url);
-              const params: { method: string; body?: string } = { method: item.method };
-
-              if (item.body && ['post', 'put', 'patch', 'delete'].includes(item.method)) {
-                params.body = await renderMessage(item.body);
-              }
-
-              const response = await fetch(url, params);
-
-              if (!response.ok) {
-                throw new Error(`HTTP Error! Status: ${response.status}`);
-              }
-
-              const contentType = response.headers.get('Content-Type');
-              const result: any = contentType?.includes('application/json')
-                ? await response.json()
-                : await response.text();
+              const result = await executingAPIFn(item);
               emitCall({ item, result });
 
               return result;
@@ -364,9 +423,7 @@ async function runTemplate(
             variablesCache[item.output] ??= (async () => {
               if (!item.code) return '';
 
-              const functionInSandbox = vm.run(`module.exports = async function() { ${item.code} }`);
-              const result = await functionInSandbox();
-
+              const result = await executingFuncFn(item);
               emitCall({ item, result });
 
               return result;
@@ -387,7 +444,6 @@ async function runTemplate(
               }
 
               const messagesString = await renderMessage(item.parameters.query);
-
               const dataset = await VectorStore.load(item.vectorStore.id, new AIKitEmbeddings());
               const docs = await dataset.similaritySearch(messagesString, 4);
               const result = docs.map((doc) => doc.pageContent).join('\n');
@@ -516,34 +572,105 @@ async function runTemplate(
       startDate: childStartDate,
     });
 
-    const { data } = await call({
-      name: 'ai-kit',
-      path: '/api/v1/sdk/completions',
-      method: 'POST',
-      data: {
-        modelName: current.model ?? project?.model,
-        temperature: current.temperature ?? project?.temperature,
-        topP: current.topP ?? project?.topP,
-        presencePenalty: current.presencePenalty ?? project?.presencePenalty,
-        frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
-        maxTokens: current.maxTokens ?? project?.maxTokens,
-        stream: true,
-        messages: prompt,
-      },
-      responseType: 'stream',
-    });
+    // ai-kit 需要接受 functions 参数
+    // 根据不同的 model 区分是否使用 functions calling
+    // 需要检查在steam下检查functions calling 输出
+    // 输出 function called 结果
+
+    const callGPT = async () => {
+      if (!current) {
+        throw new Error('template is null');
+      }
+
+      if (!current?.functions) {
+        const { data } = await call({
+          name: 'ai-kit',
+          path: '/api/v1/sdk/completions',
+          method: 'POST',
+          data: {
+            modelName: current.model ?? project?.model,
+            temperature: current.temperature ?? project?.temperature,
+            topP: current.topP ?? project?.topP,
+            presencePenalty: current.presencePenalty ?? project?.presencePenalty,
+            frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
+            maxTokens: current.maxTokens ?? project?.maxTokens,
+            stream: true,
+            messages: prompt,
+          },
+          responseType: 'stream',
+        });
+
+        return data;
+      }
+
+      while (true) {
+        // @ts-ignore
+        // eslint-disable-next-line no-await-in-loop
+        const { data } = await call({
+          name: 'ai-kit',
+          path: '/api/v1/sdk/completions',
+          method: 'POST',
+          data: {
+            modelName: current.model ?? project?.model,
+            temperature: current.temperature ?? project?.temperature,
+            topP: current.topP ?? project?.topP,
+            presencePenalty: current.presencePenalty ?? project?.presencePenalty,
+            frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
+            maxTokens: current.maxTokens ?? project?.maxTokens,
+            stream: true,
+            messages: prompt,
+            tools: current.functions.map((item) => {
+              return {
+                type: 'function',
+                function: item.function,
+              };
+            }),
+            tool_choice: 'auto',
+          },
+          responseType: 'stream',
+          headers: { Accept: 'text/event-stream' },
+        });
+
+        const format = formatFunctionCallName(data as any);
+
+        const name = format?.name;
+        const args = format?.arguments;
+        if (name) {
+          const functionArgs = args ? JSON.parse(args) : undefined;
+          const func = current.functions.find((i) => i.function.name === name);
+          if (!func) {
+            throw new Error(`No ${name} function is currently provided`);
+          }
+
+          let result;
+          if (isCallAPIMessage(func.extraInfo)) {
+            result = await executingAPIFn(func.extraInfo, functionArgs);
+          } else if (isCallFuncMessage(func.extraInfo)) {
+            result = await executingFuncFn(func.extraInfo, functionArgs);
+          } else if (isCallPromptMessage(func.extraInfo)) {
+            result = await executingPromptFn(func.extraInfo, functionArgs);
+          }
+
+          if (result) {
+            prompt.push(data as any);
+            prompt.push({ role: 'function', name: name || '', content: JSON.stringify(result) });
+          }
+        } else {
+          return format.content;
+        }
+      }
+    };
+
+    const data = await callGPT();
 
     let text = '';
     const decoder = new TextDecoder();
 
     for await (const chunk of data) {
       const token = decoder.decode(chunk);
-      callback?.({
-        isFinalTemplate,
-        token,
-        templateId: current?.id || '',
-        templateName: current?.name || '',
-      });
+
+      callback?.({ token, isFinalTemplate, templateId: current?.id || '', templateName: current?.name || '' });
+
       text += token;
     }
 
