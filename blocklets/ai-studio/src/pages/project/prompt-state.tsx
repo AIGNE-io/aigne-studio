@@ -455,7 +455,7 @@ export function usePromptsState({
   return { addPrompt, renameVariable };
 }
 
-export function useFunctionsState({
+export function useToolsState({
   projectId,
   gitRef,
   templateId,
@@ -470,15 +470,15 @@ export function useFunctionsState({
   const template = isTemplate(file) ? file : undefined;
 
   const addFunc = useCallback(
-    (func: NonNullable<TemplateYjs['functions']>[string]['data']) => {
+    (func: NonNullable<TemplateYjs['tools']>[string]['data']) => {
       if (!template) return;
 
       const doc = (getYjsValue(template) as Map<any>).doc!;
       doc.transact(() => {
-        template.functions ??= {};
-        template.functions[func.id] = { index: Object.keys(template.functions).length, data: func };
+        template.tools ??= {};
+        template.tools[func.id] = { index: Object.keys(template.tools).length, data: func };
 
-        sortBy(Object.values(template.functions), (i) => i.index).forEach((i, index) => (i.index = index));
+        sortBy(Object.values(template.tools), (i) => i.index).forEach((i, index) => (i.index = index));
       });
     },
     [template]
@@ -491,8 +491,8 @@ export function useFunctionsState({
       const doc = (getYjsValue(template) as Map<any>).doc!;
 
       doc.transact(() => {
-        template.functions ??= {};
-        delete template.functions[id];
+        template.tools ??= {};
+        delete template.tools[id];
       });
     },
     [template]

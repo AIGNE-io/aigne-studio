@@ -12,7 +12,7 @@ import { useReactive } from 'ahooks';
 import { useRef, useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { FunctionsMessage } from '../../../api/src/store/templates';
+import { ToolsMessage } from '../../../api/src/store/templates';
 import Add from '../../pages/project/icons/add';
 import { randomId } from '../../pages/project/prompt-state';
 import FunctionCallDialog, { useOptions } from './tools-calling-dialog';
@@ -30,7 +30,7 @@ export default function PromptsButton({
 }) {
   const { t } = useLocaleContext();
 
-  const state = useReactive<{ call?: FunctionsMessage | null }>({});
+  const state = useReactive<{ call?: ToolsMessage | null }>({});
 
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);

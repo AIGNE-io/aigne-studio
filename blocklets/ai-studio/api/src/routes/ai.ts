@@ -3,6 +3,7 @@ import { call } from '@blocklet/sdk/lib/component';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
+import isNil from 'lodash/isNil';
 import fetch from 'node-fetch';
 import { ImagesResponseDataInner } from 'openai';
 import { NodeVM } from 'vm2';
@@ -33,35 +34,56 @@ import { templateSchema } from './templates';
 
 const router = Router();
 
-function formatFunctionCallName(dataList: string[]) {
+function formatFunctionCallName(dataList: string[]): {
+  id: string;
+  type: string;
+  name: string;
+  content: string[];
+  arguments: string;
+} {
   let functionName = '';
   let allArguments = '';
+  let id = '';
+  let type = '';
   const content = [];
 
   for (const dataString of dataList) {
-    try {
-      const dataObject = JSON.parse(dataString.substring(dataString.indexOf('{')));
-      const toolCalls = dataObject.delta?.toolCalls;
-      content.push(dataObject.delta.content);
+    if (dataString && dataString.trim()) {
+      try {
+        const dataObject = JSON.parse(dataString.substring(dataString.indexOf('{')));
+        const toolCalls = dataObject.delta?.toolCalls;
 
-      if (toolCalls && Array.isArray(toolCalls)) {
-        for (const call of toolCalls) {
-          if (call.type === 'function' && call.function) {
-            // 记录第一个function的name
-            if (!functionName) {
-              functionName = call.function.name;
+        if (!isNil(dataObject.delta.content)) {
+          content.push(dataObject.delta.content);
+        }
+
+        if (toolCalls && Array.isArray(toolCalls)) {
+          for (const call of toolCalls) {
+            if (call.id) {
+              id = call.id;
             }
+
+            if (call.type) {
+              type = call.type;
+            }
+
+            if (call.type === 'function' && call.function) {
+              if (!functionName) {
+                functionName = call.function.name;
+              }
+            }
+
             // 拼接arguments
             allArguments += call.function.arguments;
           }
         }
+      } catch (error) {
+        console.error('Error parsing data:', error);
       }
-    } catch (error) {
-      console.error('Error parsing data:', error);
     }
   }
 
-  return { name: functionName, content, arguments: allArguments };
+  return { content, id, type, arguments: allArguments, name: functionName };
 }
 
 router.get('/status', ensureComponentCallOrPromptsEditor(), async (_, res) => {
@@ -269,11 +291,24 @@ async function runTemplate(
     | 'datasets'
     | 'branch'
     | 'next'
-    | 'functions'
+    | 'tools'
   >,
   parameters:
     | {
-        $history?: { role: Role; content: string; name?: string }[];
+        $history?: {
+          role: Role;
+          content: string;
+          name?: string;
+          tool_call_id?: string;
+          tool_calls?: {
+            id: string;
+            type: string;
+            function: {
+              name: string;
+              arguments: string;
+            };
+          }[];
+        }[];
         [key: string]: any;
       }
     | undefined,
@@ -572,39 +607,12 @@ async function runTemplate(
       startDate: childStartDate,
     });
 
-    // ai-kit 需要接受 functions 参数
-    // 根据不同的 model 区分是否使用 functions calling
-    // 需要检查在steam下检查functions calling 输出
-    // 输出 function called 结果
-
     const callGPT = async () => {
       if (!current) {
         throw new Error('template is null');
       }
 
-      if (!current?.functions) {
-        const { data } = await call({
-          name: 'ai-kit',
-          path: '/api/v1/sdk/completions',
-          method: 'POST',
-          data: {
-            modelName: current.model ?? project?.model,
-            temperature: current.temperature ?? project?.temperature,
-            topP: current.topP ?? project?.topP,
-            presencePenalty: current.presencePenalty ?? project?.presencePenalty,
-            frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
-            maxTokens: current.maxTokens ?? project?.maxTokens,
-            stream: true,
-            messages: prompt,
-          },
-          responseType: 'stream',
-        });
-
-        return data;
-      }
-
       while (true) {
-        // @ts-ignore
         // eslint-disable-next-line no-await-in-loop
         const { data } = await call({
           name: 'ai-kit',
@@ -619,25 +627,40 @@ async function runTemplate(
             maxTokens: current.maxTokens ?? project?.maxTokens,
             stream: true,
             messages: prompt,
-            tools: current.functions.map((item) => {
-              return {
-                type: 'function',
-                function: item.function,
-              };
-            }),
-            tool_choice: 'auto',
+            tools: current.tools
+              ? current.tools.map((item) => {
+                  return {
+                    type: 'function',
+                    function: item.function,
+                  };
+                })
+              : undefined,
+            tool_choice: current.tools ? 'auto' : undefined,
           },
           responseType: 'stream',
           headers: { Accept: 'text/event-stream' },
         });
 
-        const format = formatFunctionCallName(data as any);
+        const list = [];
+        const decoder = new TextDecoder();
+        for await (const chunk of data) {
+          const token = decoder.decode(chunk);
+          list.push(...token.split('\n\n').filter(Boolean));
+        }
+
+        const format = formatFunctionCallName(list.filter(Boolean));
 
         const name = format?.name;
         const args = format?.arguments;
-        if (name) {
-          const functionArgs = args ? JSON.parse(args) : undefined;
-          const func = current.functions.find((i) => i.function.name === name);
+        if (name && current.tools) {
+          let functionArgs;
+          try {
+            functionArgs = args ? JSON.parse(args) : undefined;
+          } catch (error) {
+            functionArgs = undefined;
+          }
+
+          const func = current.tools.find((i) => i.function.name === name);
           if (!func) {
             throw new Error(`No ${name} function is currently provided`);
           }
@@ -652,8 +675,20 @@ async function runTemplate(
           }
 
           if (result) {
-            prompt.push(data as any);
-            prompt.push({ role: 'function', name: name || '', content: JSON.stringify(result) });
+            // 返回的第一条数据
+            prompt.push({
+              role: 'assistant',
+              content: '',
+              tool_calls: [
+                {
+                  id: format.id,
+                  type: format.type,
+                  function: { name, arguments: functionArgs ? JSON.stringify(functionArgs) : '' },
+                },
+              ],
+            });
+
+            prompt.push({ role: 'tool', content: JSON.stringify(result), tool_call_id: format.id });
           }
         } else {
           return format.content;
@@ -664,13 +699,8 @@ async function runTemplate(
     const data = await callGPT();
 
     let text = '';
-    const decoder = new TextDecoder();
-
-    for await (const chunk of data) {
-      const token = decoder.decode(chunk);
-
+    for (const token of data) {
       callback?.({ token, isFinalTemplate, templateId: current?.id || '', templateName: current?.name || '' });
-
       text += token;
     }
 

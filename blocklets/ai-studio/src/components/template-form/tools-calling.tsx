@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { TemplateYjs } from '../../../api/src/store/projects';
 import Edit from '../../pages/project/icons/edit';
 import Trash from '../../pages/project/icons/trash';
-import { useFunctionsState } from '../../pages/project/prompt-state';
+import { useToolsState } from '../../pages/project/prompt-state';
 import ToolsButton from './tools-button';
 import FunctionCallDialog from './tools-calling-dialog';
 
@@ -22,9 +22,6 @@ export default function FunctionCallings({
   readOnly: boolean;
 }) {
   const { t } = useLocaleContext();
-  if (!template.functions || !Object.keys(template.functions).length) {
-    return null;
-  }
 
   return (
     <Box>
@@ -44,20 +41,22 @@ export default function FunctionCallings({
           <ToolsButton projectId={projectId} gitRef={gitRef} template={template} readOnly={Boolean(readOnly)} />
         </Stack>
 
-        <Stack mb={2} gap={0.5}>
-          {Object.keys(template.functions).map((funcId) => {
-            return (
-              <FunctionItemContainer
-                key={funcId}
-                funcId={funcId}
-                projectId={projectId}
-                gitRef={gitRef}
-                template={template}
-                readOnly={readOnly}
-              />
-            );
-          })}
-        </Stack>
+        {template?.tools && Object.keys(template.tools).length && (
+          <Stack mb={2} gap={0.5}>
+            {Object.keys(template.tools).map((funcId) => {
+              return (
+                <FunctionItemContainer
+                  key={funcId}
+                  funcId={funcId}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  template={template}
+                  readOnly={readOnly}
+                />
+              );
+            })}
+          </Stack>
+        )}
       </Box>
     </Box>
   );
@@ -79,8 +78,8 @@ function FunctionItemContainer({
   const { t } = useLocaleContext();
   const [open, setOpen] = useState(false);
 
-  const { deleteFunc } = useFunctionsState({ projectId, gitRef, templateId: template.id });
-  const functionCallInfo = template.functions && template.functions[funcId];
+  const { deleteFunc } = useToolsState({ projectId, gitRef, templateId: template.id });
+  const functionCallInfo = template.tools && template.tools[funcId];
 
   return (
     <>

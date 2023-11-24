@@ -12,7 +12,7 @@ export type Role =
   | 'system'
   | 'user'
   | 'assistant'
-  | 'function'
+  | 'tool'
   | 'call-prompt'
   | 'call-api'
   | 'call-function'
@@ -77,7 +77,7 @@ export interface CallDatasetMessage {
   visibility?: 'hidden';
 }
 
-export interface FunctionsMessage {
+export interface ToolsMessage {
   id: string;
   function: {
     name: string;
@@ -96,7 +96,7 @@ export type CallMessage = CallPromptMessage | CallAPIMessage | CallFuncMessage |
 export type EditorPromptMessage = PromptMessage | CallMessage;
 
 export function isPromptMessage(message: any): message is PromptMessage {
-  return ['system', 'user', 'assistant', 'function'].includes(message?.role);
+  return ['system', 'user', 'assistant', 'tool'].includes(message?.role);
 }
 
 export function isCallPromptMessage(message: any): message is CallPromptMessage {
@@ -149,7 +149,7 @@ export interface Template {
     error?: { message: string };
     createdBy: string;
   }[];
-  functions?: FunctionsMessage[];
+  tools?: ToolsMessage[];
 }
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | HoroscopeParameter;

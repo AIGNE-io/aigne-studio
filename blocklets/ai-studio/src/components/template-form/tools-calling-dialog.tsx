@@ -21,8 +21,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { CallAPIMessage, CallFuncMessage, CallPromptMessage, FunctionsMessage } from '../../../api/src/store/templates';
-import { parseDirectivesOfTemplate, useFunctionsState } from '../../pages/project/prompt-state';
+import { CallAPIMessage, CallFuncMessage, CallPromptMessage, ToolsMessage } from '../../../api/src/store/templates';
+import { parseDirectivesOfTemplate, useToolsState } from '../../pages/project/prompt-state';
 import {
   createFile,
   isCallAPIMessage,
@@ -35,20 +35,12 @@ import dirname from '../../utils/path';
 import CodeEditor from './code-editer';
 import TemplateAutocomplete from './template-autocomplete';
 
-const functionSchema = Joi.object({
+const toolsSchema = Joi.object({
   name: Joi.string().required(),
   description: Joi.string().required(),
   parameters: Joi.object({
     type: Joi.string().valid('object').required(),
-    properties: Joi.object()
-      .pattern(
-        Joi.string(),
-        Joi.object({
-          type: Joi.any().required(),
-          description: Joi.string().required(),
-        })
-      )
-      .required(),
+    properties: Joi.object().pattern(Joi.string(), Joi.any()).required(),
     required: Joi.array().items(Joi.string()),
   }).required(),
 });
@@ -87,11 +79,8 @@ const callFunctionMessageSchema = Joi.object({
 });
 
 export function useOptions(): {
-  options: {
-    key: string;
-    label: string;
-  }[];
-  getOption: (role: string) => string | undefined;
+  options: { key: string; label: string }[];
+  getOption: (role?: string) => string | undefined;
 } {
   const { t } = useLocaleContext();
 
@@ -113,7 +102,7 @@ export function useOptions(): {
   }, [t]);
 
   const getOption = useCallback(
-    (role: string) => {
+    (role?: string) => {
       if (!role) {
         return '';
       }
@@ -136,12 +125,12 @@ export default function FunctionCallDialog({
   projectId: string;
   gitRef: string;
   template: TemplateYjs;
-  state: { call?: FunctionsMessage | null };
+  state: { call?: ToolsMessage | null };
   onClose?: () => void;
 }) {
   const { t } = useLocaleContext();
 
-  const { addFunc } = useFunctionsState({ projectId, gitRef, templateId: template.id });
+  const { addFunc } = useToolsState({ projectId, gitRef, templateId: template.id });
   const { store, getTemplateById } = useStore(projectId, gitRef);
   const { '*': filepath } = useParams();
 
@@ -261,7 +250,7 @@ export default function FunctionCallDialog({
                   }
 
                   if (typeof value === 'object') {
-                    const { error } = functionSchema.validate(value);
+                    const { error } = toolsSchema.validate(value);
                     if (error) {
                       return error?.message;
                     }
@@ -273,7 +262,7 @@ export default function FunctionCallDialog({
                     try {
                       const json = JSON.parse(value);
 
-                      const { error } = functionSchema.validate(json);
+                      const { error } = toolsSchema.validate(json);
                       if (error) {
                         return error?.message;
                       }
