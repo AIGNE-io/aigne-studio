@@ -17,7 +17,6 @@ import { Project, defaultBranch, getRepository } from '../store/projects';
 import {
   CallAPIMessage,
   CallFuncMessage,
-  CallMessage,
   CallPromptMessage,
   PromptMessage,
   Role,
@@ -337,7 +336,7 @@ async function runTemplate(
 
     const variablesCache: { [key: string]: Promise<string> } = {};
 
-    const emitCall = ({ item, result }: { item: CallMessage; result: string | object }) => {
+    const emitCall = ({ item, result }: { item: { output: string }; result: string | object }) => {
       callback?.({
         type: 'call',
         templateId: current?.id || '',
@@ -675,7 +674,9 @@ async function runTemplate(
           }
 
           if (result) {
-            // 返回的第一条数据
+            emitCall({ item: { output: 'function called' }, result });
+
+            // 其实就是 data[0] 的数据
             prompt.push({
               role: 'assistant',
               content: '',
