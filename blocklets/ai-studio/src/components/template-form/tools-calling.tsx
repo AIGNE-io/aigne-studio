@@ -40,7 +40,7 @@ export default function FunctionCallings({
         <ToolsButton projectId={projectId} gitRef={gitRef} template={template} readOnly={Boolean(readOnly)} />
       </Stack>
 
-      {template?.tools && Object.keys(template.tools).length && (
+      {!!template?.tools && !!Object.keys(template.tools).length && (
         <Stack mb={2} gap={0.5}>
           {Object.keys(template.tools).map((funcId) => {
             return (
