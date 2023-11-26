@@ -298,8 +298,8 @@ async function runTemplate(
           role: Role;
           content: string;
           name?: string;
-          tool_call_id?: string;
-          tool_calls?: {
+          toolCallId?: string;
+          toolCalls?: {
             id: string;
             type: string;
             function: {
@@ -680,7 +680,7 @@ async function runTemplate(
             prompt.push({
               role: 'assistant',
               content: '',
-              tool_calls: [
+              toolCalls: [
                 {
                   id: format.id,
                   type: format.type,
@@ -689,7 +689,7 @@ async function runTemplate(
               ],
             });
 
-            prompt.push({ role: 'tool', content: JSON.stringify(result), tool_call_id: format.id });
+            prompt.push({ role: 'tool', content: JSON.stringify(result), toolCallId: format.id });
           }
         } else {
           return format.content;
