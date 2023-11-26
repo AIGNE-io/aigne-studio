@@ -1,11 +1,14 @@
 import { COMMENT_PREFIX } from '@blocklet/prompt-editor/utils';
-import { call } from '@blocklet/sdk/lib/component';
+import { call, getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
+import { sign } from '@blocklet/sdk/lib/util/verify-sign';
+import axios from 'axios';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import isNil from 'lodash/isNil';
 import fetch from 'node-fetch';
 import { ImagesResponseDataInner } from 'openai';
+import { joinURL } from 'ufo';
 import { NodeVM } from 'vm2';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
@@ -612,33 +615,36 @@ async function runTemplate(
       }
 
       while (true) {
+        const input = {
+          modelName: current.model ?? project?.model,
+          temperature: current.temperature ?? project?.temperature,
+          topP: current.topP ?? project?.topP,
+          presencePenalty: current.presencePenalty ?? project?.presencePenalty,
+          frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
+          maxTokens: current.maxTokens ?? project?.maxTokens,
+          stream: true,
+          messages: prompt,
+          tools: current.tools
+            ? current.tools.map((item) => {
+                return {
+                  type: 'function',
+                  function: item.function,
+                };
+              })
+            : undefined,
+          tool_choice: current.tools ? 'auto' : undefined,
+        };
+
         // eslint-disable-next-line no-await-in-loop
-        const { data } = await call({
-          name: 'ai-kit',
-          path: '/api/v1/sdk/completions',
-          method: 'POST',
-          data: {
-            modelName: current.model ?? project?.model,
-            temperature: current.temperature ?? project?.temperature,
-            topP: current.topP ?? project?.topP,
-            presencePenalty: current.presencePenalty ?? project?.presencePenalty,
-            frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
-            maxTokens: current.maxTokens ?? project?.maxTokens,
-            stream: true,
-            messages: prompt,
-            tools: current.tools
-              ? current.tools.map((item) => {
-                  return {
-                    type: 'function',
-                    function: item.function,
-                  };
-                })
-              : undefined,
-            tool_choice: current.tools ? 'auto' : undefined,
-          },
-          responseType: 'stream',
-          headers: { Accept: 'text/event-stream' },
-        });
+        const { data } = await axios.post(
+          joinURL(getComponentWebEndpoint('ai-kit'), '/api/v1/sdk/completions'),
+          input,
+          {
+            method: 'POST',
+            responseType: 'stream',
+            headers: { Accept: 'text/event-stream', 'x-component-sig': sign(input) },
+          }
+        );
 
         const list = [];
         const decoder = new TextDecoder();
