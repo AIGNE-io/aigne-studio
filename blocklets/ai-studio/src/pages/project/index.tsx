@@ -1,12 +1,21 @@
 import { Dashboard } from '@blocklet/studio-ui';
-import { Box, GlobalStyles, backdropClasses, circularProgressClasses, paperClasses, styled } from '@mui/material';
+import {
+  Box,
+  GlobalStyles,
+  Stack,
+  backdropClasses,
+  circularProgressClasses,
+  paperClasses,
+  styled,
+} from '@mui/material';
 import { ComponentProps, Suspense, lazy, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Navigate, Route, Routes, useLocation, useRoutes } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useLocation, useRoutes } from 'react-router-dom';
 
 import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
+import AddSource from './add-source';
 import HeaderActions from './header-actions';
 import MainMenus from './main-menus';
 import { defaultBranch } from './state';
@@ -100,6 +109,12 @@ function AddonsRoutes() {
   const element = useRoutes([
     {
       path: ':projectId/*',
+      element: (
+        <Stack direction="row" alignItems="center">
+          <Outlet />
+          <AddSource />
+        </Stack>
+      ),
       children: [
         {
           path: 'file',
