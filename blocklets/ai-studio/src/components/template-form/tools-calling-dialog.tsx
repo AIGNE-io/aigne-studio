@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { useMonaco } from '@monaco-editor/react';
 import { ArrowDropDownRounded } from '@mui/icons-material';
 import {
   Box,
@@ -16,7 +17,8 @@ import Button from '@mui/material/Button';
 import FormHelperText from '@mui/material/FormHelperText';
 import MenuItem from '@mui/material/MenuItem';
 import Joi from 'joi';
-import { useCallback, useEffect, useMemo } from 'react';
+import { cloneDeep } from 'lodash';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 
@@ -78,6 +80,18 @@ const callFunctionMessageSchema = Joi.object({
   visibility: Joi.string().valid('hidden').optional(),
 });
 
+function convertSchemaToTypescript(properties: { [keyof: string]: { type: string } }) {
+  const lines = Object.entries(properties).map(([key, value]) => {
+    return `${key}: ${value.type};`;
+  });
+
+  if (!lines.length) {
+    return '';
+  }
+
+  return `declare const parameters: { ${lines.join('\n')} };`;
+}
+
 export function useOptions(): {
   options: { key: string; label: string }[];
   getOption: (role?: string) => string | undefined;
@@ -133,13 +147,14 @@ export default function ToolFunctionCallDialog({
   const { addToolFunc } = useToolsState({ projectId, gitRef, templateId: template.id });
   const { store, getTemplateById } = useStore(projectId, gitRef);
   const { '*': filepath } = useParams();
+  const targetEditorRef = useRef(null);
 
   const form = useForm<{ function: string; extraInfo: CallPromptMessage | CallAPIMessage | CallFuncMessage }>({});
+  const monaco = useMonaco();
   const { getOption } = useOptions();
 
   const onCloseDialog = () => {
     state.call = null;
-
     onClose();
   };
 
@@ -164,7 +179,7 @@ export default function ToolFunctionCallDialog({
     async (input: { function: string; extraInfo: CallPromptMessage | CallAPIMessage | CallFuncMessage }) => {
       const data = {
         id: state.call?.id || '',
-        extraInfo: input.extraInfo,
+        extraInfo: cloneDeep(input.extraInfo),
         function: JSON.parse(input.function),
       };
 
@@ -175,6 +190,23 @@ export default function ToolFunctionCallDialog({
     [state, form]
   );
 
+  useEffect(() => {
+    if (monaco) {
+      const funcsCodes = form.watch('function');
+      let obj: { parameters?: any } = {};
+      try {
+        obj = JSON.parse(funcsCodes);
+      } catch (error) {
+        // error
+      }
+      const customTypeDefinitions = convertSchemaToTypescript(obj?.parameters?.properties || {});
+      if (!customTypeDefinitions) return;
+
+      monaco?.languages?.typescript?.typescriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.parameters.d.ts');
+      monaco?.languages?.typescript?.javascriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.parameters.d.ts');
+    }
+  }, [monaco]);
+
   const option = getOption(state.call?.extraInfo?.role);
 
   return (
@@ -183,7 +215,7 @@ export default function ToolFunctionCallDialog({
       keepMounted={false}
       component="form"
       onSubmit={form.handleSubmit(onSave)}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
       onClose={onCloseDialog}>
       <DialogTitle>{option}</DialogTitle>
@@ -230,7 +262,7 @@ export default function ToolFunctionCallDialog({
                           });
                         }
                       }}
-                      height="200px"
+                      height="400px"
                     />
 
                     {fieldState.error?.message ? (
@@ -445,7 +477,8 @@ export default function ToolFunctionCallDialog({
                               shouldValidate: true,
                             });
                           }}
-                          onMount={() => {
+                          onMount={(editor) => {
+                            targetEditorRef.current = editor;
                             if (state.call?.extraInfo) {
                               form.setValue('extraInfo', state.call?.extraInfo, {
                                 shouldDirty: true,

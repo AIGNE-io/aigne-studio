@@ -385,6 +385,7 @@ async function runTemplate(
             },
           },
           fetch,
+          parameters: args || {},
         },
       });
 
