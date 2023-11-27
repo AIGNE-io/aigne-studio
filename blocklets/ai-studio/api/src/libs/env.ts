@@ -5,7 +5,7 @@ export const Config = {
   _verbose: undefined as boolean | undefined,
   get verbose() {
     if (this._verbose === undefined) {
-      this._verbose = Joi.boolean().validate(process.env.VERBOSE).value ?? false;
+      this._verbose = Joi.boolean().validate(config.env.VERBOSE).value ?? false;
     }
     return this._verbose;
   },
