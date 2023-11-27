@@ -252,6 +252,7 @@ export default flat({
       api: '执行 API',
       func: '执行 JS 函数代码',
       dataset: '查询数据集',
+      macro: '执行 Macro 数据',
     },
   },
   remoteGitRepo: '远程 Git 仓库',
