@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid';
 import { stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
-import env from '../libs/env';
+import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { defaultModel } from '../libs/models';
 import { folders } from '../store/folders';
@@ -16,13 +16,13 @@ import { Template, templates } from '../store/templates';
 const { name } = require('../../../package.json');
 
 async function migrate() {
-  const oldTimeMachineDir = join(env.dataDir, 'timemachine');
+  const oldTimeMachineDir = join(Config.dataDir, 'timemachine');
 
   if (existsSync(oldTimeMachineDir)) {
     rmSync(oldTimeMachineDir, { force: true, recursive: true });
   }
 
-  const defaultRepoDir = join(env.dataDir, 'repositories', 'default');
+  const defaultRepoDir = join(Config.dataDir, 'repositories', 'default');
 
   if (!existsSync(defaultRepoDir)) {
     // Create default project

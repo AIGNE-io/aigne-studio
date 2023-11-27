@@ -1,8 +1,24 @@
-import env from '@blocklet/sdk/lib/env';
+import config from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 
-export default {
-  ...env,
-  chainHost: process.env.CHAIN_HOST || '',
-  verbose: Joi.boolean().validate(process.env.VERBOSE).value ?? false,
+export const Config = {
+  _verbose: undefined as boolean | undefined,
+  get verbose() {
+    if (this._verbose === undefined) {
+      this._verbose = Joi.boolean().validate(process.env.VERBOSE).value ?? false;
+    }
+    return this._verbose;
+  },
+
+  get dataDir() {
+    return config.env.dataDir;
+  },
 };
+
+config.events.on(config.Events.envUpdate, () => {
+  for (const key of Object.keys(Config)) {
+    if (key.startsWith('_')) {
+      delete (Config as any)[key];
+    }
+  }
+});
