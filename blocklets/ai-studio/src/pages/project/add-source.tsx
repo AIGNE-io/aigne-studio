@@ -23,7 +23,6 @@ export default function Exporter() {
     return () => {
       window.removeEventListener('message', listener);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showCreateResource]);
 
   return (
