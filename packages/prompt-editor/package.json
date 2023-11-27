@@ -6,6 +6,7 @@
   "license": "ISC",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
+  "types": "./lib/types/index.d.js",
   "exports": {
     ".": {
       "import": "./lib/esm/index.js",
@@ -14,6 +15,16 @@
     "./utils": {
       "import": "./lib/esm/utils.js",
       "require": "./lib/cjs/utils.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/types/index.d.ts"
+      ],
+      "utils": [
+        "./lib/types/utils.d.ts"
+      ]
     }
   },
   "files": [
@@ -38,7 +49,7 @@
     "build": "npm run clean && run-p build:*",
     "build:cjs": "tsc --module commonjs --outDir lib/cjs",
     "build:esm": "tsc --module es2022 --outDir lib/esm",
-    "build:types": "tsc --declaration --emitDeclarationOnly --outDir .",
+    "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
     "build:css-cjs": "copyfiles -u 1 './src/**/*.css' lib/cjs/",
     "build:css-esm": "copyfiles -u 1 './src/**/*.css' lib/esm/",
     "dev": "run-p 'build:* -- -w'",

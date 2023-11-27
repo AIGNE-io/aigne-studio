@@ -17,6 +17,13 @@
       "require": "./lib/cjs/index.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/types/index.d.ts"
+      ]
+    }
+  },
   "files": [
     "lib",
     "LICENSE",
