@@ -472,7 +472,7 @@ function ProjectItem({
 
       <Stack direction="row" gap={2} mt={1} alignItems="center" justifyContent="space-between">
         <Stack direction="row" gap={2} sx={{ fontSize: '12px', color: (theme) => theme.palette.text.disabled }}>
-          <Box>{`${templateCounts} 条模板`}</Box>
+          <Box>{t('templates', { counts: templateCounts })}</Box>
 
           <Tooltip title={branches.length > 1 ? branches.join('、') : ''} placement="top">
             <Stack direction="row" alignItems="center">
