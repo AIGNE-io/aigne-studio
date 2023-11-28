@@ -99,6 +99,7 @@ function AppRoutes({ basename }: { basename: string }) {
                 </DatasetsProvider>
               }
             />
+            <Route path="embed/*" element={<EmbedRoutes />} />
           </>
         ) : (
           <Route path="*" element={<Navigate to="/" />} />
@@ -121,6 +122,8 @@ const Home = lazy(() => import('./pages/home/home'));
 const ProjectsRoutes = lazy(() => import('./pages/project'));
 
 const DatasetsRoutes = lazy(() => import('./pages/datasets'));
+
+const EmbedRoutes = lazy(() => import('./pages/embed'));
 
 function Layout({ children }: { children: ReactNode }) {
   return <Dashboard>{children}</Dashboard>;

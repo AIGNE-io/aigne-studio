@@ -9,7 +9,7 @@ import { NodeVM } from 'vm2';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import Mustache from '../libs/mustache';
-import { ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { ensureComponentCallOrAuth, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
 import { Project, defaultBranch, getRepository } from '../store/projects';
@@ -123,7 +123,7 @@ function isPromptTypeOutput(data: TokenType | CallType): data is TokenType {
   return (data as TokenType).token !== undefined;
 }
 
-router.post('/call', compression(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });

@@ -332,7 +332,7 @@ export function parseDirectivesOfTemplate(
   }
 
   if (includeEmptyPromptVariables && template.prompts) {
-    Object.values(template.prompts ?? {}).forEach(({ data }) => {
+    Object.values(template.prompts).forEach(({ data }) => {
       if (isCallPromptMessage(data) && data.parameters) {
         Object.entries(data.parameters).forEach(([key, value]) => {
           if (!value) {
