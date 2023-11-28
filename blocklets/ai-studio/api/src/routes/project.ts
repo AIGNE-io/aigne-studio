@@ -164,6 +164,7 @@ export function projectRoutes(router: Router) {
       const repository = await getRepository({ projectId: project._id });
       const branches = await repository.listBranches();
 
+      // 缓存之前是有做的
       try {
         const commits = await getAuthorInfo({ projectId: project._id, ref: defaultBranch });
         users = uniqBy(

@@ -14,7 +14,6 @@ export const getAuthorInfo = async ({
   filepath?: string;
 }) => {
   const repository = await getRepository({ projectId });
-
   const commits = await repository.log({ ref, filepath });
 
   const dids = [...new Set(commits.map((i) => i.commit.author.email))];

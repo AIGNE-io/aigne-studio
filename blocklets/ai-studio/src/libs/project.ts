@@ -10,7 +10,13 @@ import { Project } from '../../api/src/store/projects';
 import { Template } from '../../api/src/store/templates';
 import axios from './api';
 
-export async function getProjects(query?: GetProjectsQuery): Promise<{ projects: Project[] }> {
+export async function getProjects(query?: GetProjectsQuery): Promise<{
+  projects: (Project & {
+    users: { name?: string; email?: string; did?: string; fullName?: string; avatar?: string }[];
+    branches: string[];
+    templateCounts: number;
+  })[];
+}> {
   return axios.get('/api/projects', { params: query }).then((res) => res.data);
 }
 
