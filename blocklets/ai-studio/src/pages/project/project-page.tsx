@@ -295,7 +295,7 @@ export default function ProjectPage() {
             )}
           </Box>
 
-          {template && (
+          {template && template.type !== 'image' && (
             <Box
               sx={{
                 position: 'sticky',
