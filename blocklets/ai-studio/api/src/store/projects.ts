@@ -10,7 +10,7 @@ import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
-import env from '../libs/env';
+import { Config } from '../libs/env';
 import { defaultModel } from '../libs/models';
 import type { ParameterYjs, Template } from './templates';
 
@@ -135,7 +135,7 @@ export function isTemplate(file: FileType): file is TemplateYjs {
 
 const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
 
-export const repositoryRoot = (projectId: string) => path.join(env.dataDir, 'repositories', projectId);
+export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
 
 export async function getRepository({ projectId }: { projectId: string }) {
   repositories[projectId] ??= (async () => {

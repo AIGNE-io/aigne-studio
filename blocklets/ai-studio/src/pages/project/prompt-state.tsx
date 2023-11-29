@@ -11,10 +11,11 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Mustache from '../../../api/src/libs/mustache';
 import { TemplateYjs } from '../../../api/src/store/projects';
-import { CallDatasetMessage, CallPromptMessage, Role } from '../../../api/src/store/templates';
+import { CallDatasetMessage, CallMacroMessage, CallPromptMessage, Role } from '../../../api/src/store/templates';
 import {
   isCallAPIMessage,
   isCallDatasetMessage,
+  isCallMacroMessage,
   isCallPromptMessage,
   isPromptMessage,
   isTemplate,
@@ -145,7 +146,7 @@ export function useParameterState({
   projectId: string;
   gitRef: string;
   templateId: string;
-  prompt: CallPromptMessage | CallDatasetMessage;
+  prompt: CallPromptMessage | CallDatasetMessage | CallMacroMessage;
   param: string;
 }) {
   const content = isCallDatasetMessage(prompt) ? prompt.parameters?.query : prompt.parameters?.[param];
@@ -210,6 +211,15 @@ export function useEditorPicker({
 
   const getOptions = useCallback(
     (index?: number) => [
+      new ComponentPickerOption(t('call.list.macro'), {
+        keywords: ['execute', 'prompt'],
+        onSelect: (editor) => {
+          const variable = `${randomVariableNamePrefix}${randomId(5)}`;
+          const id = randomId();
+          addPrompt({ id, role: 'call-macro', output: variable }, index || 0);
+          editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: variable });
+        },
+      }),
       new ComponentPickerOption(t('call.list.prompt'), {
         keywords: ['execute', 'prompt'],
         onSelect: (editor) => {
@@ -302,7 +312,8 @@ export function parseDirectivesOfTemplate(
     ...Object.values(template.prompts ?? {})
       .flatMap(({ data }) => {
         if (isPromptMessage(data)) return data.content;
-        if (isCallPromptMessage(data) && data.parameters) return Object.values(data.parameters);
+        if ((isCallPromptMessage(data) || isCallMacroMessage(data)) && data.parameters)
+          return Object.values(data.parameters);
         if (isCallAPIMessage(data) && data.url) {
           if (data.body) {
             return [data.url, data.body];
@@ -333,7 +344,7 @@ export function parseDirectivesOfTemplate(
 
   if (includeEmptyPromptVariables && template.prompts) {
     Object.values(template.prompts ?? {}).forEach(({ data }) => {
-      if (isCallPromptMessage(data) && data.parameters) {
+      if ((isCallPromptMessage(data) || isCallMacroMessage(data)) && data.parameters) {
         Object.entries(data.parameters).forEach(([key, value]) => {
           if (!value) {
             directives.push({ type: 'variable', name: key });
@@ -426,7 +437,7 @@ export function usePromptsState({
         for (const { data } of Object.values(template.prompts)) {
           if (isPromptMessage(data) && data.content) {
             data.content = renameVariableByMustache(data.content, rename);
-          } else if (isCallPromptMessage(data) && data.parameters) {
+          } else if ((isCallPromptMessage(data) || isCallMacroMessage(data)) && data.parameters) {
             for (const param of Object.keys(data.parameters)) {
               const val = data.parameters[param];
               if (typeof val === 'string') {

@@ -28,6 +28,7 @@ import {
   isCallAPIMessage,
   isCallDatasetMessage,
   isCallFuncMessage,
+  isCallMacroMessage,
   isCallPromptMessage,
   isPromptMessage,
 } from '../store/templates';
@@ -333,8 +334,8 @@ async function runTemplate(
       next = undefined;
     }
 
-    const renderMessage = async (message: string) => {
-      return Mustache.render(message, variables, undefined, { escape: (v) => v });
+    const renderMessage = async (message: string, parameterVariables?: typeof parameters) => {
+      return Mustache.render(message, parameterVariables || variables, undefined, { escape: (v) => v });
     };
 
     const variablesCache: { [key: string]: Promise<string> } = {};
@@ -428,7 +429,7 @@ async function runTemplate(
               const result = await executingPromptFn(item);
 
               if (result.type === 'text') {
-                emitCall({ item, result: result.text });
+                emitCall({ item: { output: `Prompt Called: ${item.output}` }, result: result.text });
                 return result.text;
               }
 
@@ -446,7 +447,7 @@ async function runTemplate(
               if (!item.url) throw new Error('Required property `url` is not present');
 
               const result = await executingAPIFn(item);
-              emitCall({ item, result });
+              emitCall({ item: { output: `API Called: ${item.output}` }, result });
 
               return result;
             })();
@@ -462,7 +463,7 @@ async function runTemplate(
               if (!item.code) return '';
 
               const result = await executingFuncFn(item);
-              emitCall({ item, result });
+              emitCall({ item: { output: `Code Called: ${item.output}` }, result });
 
               return result;
             })();
@@ -486,7 +487,52 @@ async function runTemplate(
               const docs = await dataset.similaritySearch(messagesString, 4);
               const result = docs.map((doc) => doc.pageContent).join('\n');
 
-              emitCall({ item, result });
+              emitCall({ item: { output: `Dataset Called: ${item.output}` }, result });
+
+              return result;
+            })();
+            return variablesCache[item.output];
+          },
+        ])
+      ),
+      ...Object.fromEntries(
+        (current.prompts ?? []).filter(isCallMacroMessage).map((item) => [
+          item.output,
+          () => async () => {
+            variablesCache[item.output] ??= (async () => {
+              if (!item.template) throw new Error('Required property `template` is not present');
+              const template = await getTemplate(item.template.id);
+
+              const parameters = Object.fromEntries(
+                await Promise.all(
+                  Object.entries(item.parameters ?? {}).map(async ([key, val]) => [
+                    key,
+                    !val ? variables[key] : typeof val === 'string' ? await renderMessage(val) : val,
+                  ])
+                )
+              );
+
+              const messages = await Promise.all(
+                (template.prompts ?? [])
+                  .filter(
+                    (i): i is PromptMessage & Required<Pick<PromptMessage, 'role' | 'content'>> =>
+                      isPromptMessage(i) && !!i.content && i.visibility !== 'hidden'
+                  )
+                  .map(async (item) => {
+                    // 过滤注释节点
+                    const content = item.content
+                      .split(/\n/)
+                      .filter((x) => !x.startsWith(COMMENT_PREFIX))
+                      .join('\n');
+
+                    const prompt = await renderMessage(content, parameters);
+
+                    return { content: prompt };
+                  })
+              );
+
+              const result = messages.map((x) => x.content).join('\n');
+              emitCall({ item: { output: `Macro Called: ${item.output}` }, result });
 
               return result;
             })();

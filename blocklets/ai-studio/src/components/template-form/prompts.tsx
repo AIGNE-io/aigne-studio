@@ -30,6 +30,7 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import {
   CallDatasetMessage,
   CallFuncMessage,
+  CallMacroMessage,
   CallPromptMessage,
   EditorPromptMessage,
 } from '../../../api/src/store/templates';
@@ -53,6 +54,7 @@ import {
   isCallAPIMessage,
   isCallDatasetMessage,
   isCallFuncMessage,
+  isCallMacroMessage,
   isCallPromptMessage,
   isPromptMessage,
   isTemplate,
@@ -70,6 +72,7 @@ const CONST_TYPE = {
   callAPI: 'callAPI',
   callFunc: 'callFunc',
   callDataset: 'callDataset',
+  callMacro: 'callMacro',
 };
 
 const componentMap = {
@@ -78,6 +81,7 @@ const componentMap = {
   [CONST_TYPE.callAPI]: CallAPIItemView,
   [CONST_TYPE.callFunc]: CallFuncItemView,
   [CONST_TYPE.callDataset]: CallDatasetItemView,
+  [CONST_TYPE.callMacro]: CallMacroItemView,
 };
 
 export default function Prompts({
@@ -119,6 +123,10 @@ export default function Prompts({
 
         if (isCallDatasetMessage(prompt)) {
           return CONST_TYPE.callDataset;
+        }
+
+        if (isCallMacroMessage(prompt)) {
+          return CONST_TYPE.callMacro;
         }
 
         return null;
@@ -397,6 +405,157 @@ function PromptItemView({
   );
 }
 
+function CallMacroItemView({
+  projectId,
+  gitRef,
+  template,
+  promptId,
+  readOnly,
+}: {
+  projectId: string;
+  gitRef: string;
+  template: TemplateYjs;
+  promptId: string;
+  readOnly?: boolean;
+}) {
+  const { '*': filepath } = useParams();
+
+  const originalOutput = useRef<string>();
+  const { renameVariable } = usePromptsState({ projectId, gitRef, templateId: template.id });
+
+  const { t } = useLocaleContext();
+
+  const { prompt } = usePromptState({
+    projectId,
+    gitRef,
+    templateId: template.id,
+    promptId,
+    readOnly,
+    originTemplate: template,
+  });
+  const { store, getTemplateById } = useStore(projectId, gitRef);
+
+  const rename = useThrottleFn(
+    () => {
+      if (callMacroMessage?.output && originalOutput.current && originalOutput.current !== callMacroMessage.output) {
+        renameVariable({
+          [originalOutput.current]: callMacroMessage.output,
+        });
+        originalOutput.current = callMacroMessage.output;
+      }
+    },
+    { wait: 500, trailing: true }
+  );
+
+  if (!prompt) return null;
+  const callMacroMessage = isCallMacroMessage(prompt.data) ? prompt.data : null;
+  if (!callMacroMessage) return null;
+
+  const templates = Object.values(store.files)
+    .filter(isTemplate)
+    .filter((i) => i.id !== template.id);
+
+  const targetId = callMacroMessage.template?.id;
+  const target = targetId ? getTemplateById(targetId) : undefined;
+
+  const params = target ? parseDirectivesOfTemplate(target, { excludeNonPromptVariables: true }) : [];
+
+  return (
+    <Stack p={1} gap={1}>
+      <Stack px={1} direction="row" alignItems="center" gap={1}>
+        <Typography noWrap flexShrink={0} variant="body2" fontWeight="fontWeightBold">
+          {t('call.list.macro')}
+        </Typography>
+
+        <TemplateAutocomplete
+          sx={{ flex: 1 }}
+          fullWidth
+          freeSolo
+          value={target}
+          onChange={(_, value) => {
+            if (value && typeof value === 'object') {
+              callMacroMessage.template = { id: value.id, name: value.name };
+              const temp = getTemplateById(value.id);
+              if (temp) {
+                const p = parseDirectivesOfTemplate(temp, { excludeNonPromptVariables: true })
+                  .filter((i) => i.type === 'variable')
+                  .map((i) => i.name);
+
+                callMacroMessage.parameters = Object.fromEntries(p.map((r) => [r, '']));
+              }
+
+              if (value.name) {
+                originalOutput.current = callMacroMessage.output;
+
+                const existsVariables = new Set(
+                  parseDirectivesOfTemplate(template)
+                    .filter((i) => i.type === 'variable')
+                    .map((i) => i.name)
+                );
+
+                let newName = value.name;
+                let index = 0;
+
+                while (existsVariables.has(newName)) {
+                  newName = `${value.name} ${++index}`;
+                }
+
+                callMacroMessage.output = newName;
+
+                rename.run();
+              }
+            }
+          }}
+          popupIcon={<ArrowDropDownRounded />}
+          forcePopupIcon
+          disableClearable
+          renderInput={(params) => (
+            <TextField {...params} placeholder={t('selectObject', { object: t('template') })} hiddenLabel />
+          )}
+          options={templates}
+          createTemplate={async (data) => createFile({ store, parent: dirname(filepath), meta: data }).template}
+        />
+
+        <TextField
+          onFocus={() => (originalOutput.current = callMacroMessage.output)}
+          onBlur={rename.run}
+          hiddenLabel
+          placeholder={t('output')}
+          value={callMacroMessage.output || ''}
+          onChange={(e) => {
+            callMacroMessage.output = e.target.value.trim();
+            rename.run();
+          }}
+          sx={{ width: 100, [`.${inputBaseClasses.input}`]: { color: 'rgb(234, 179, 8)', fontWeight: 'bold' } }}
+        />
+      </Stack>
+
+      {params.length > 0 && (
+        <Stack px={1} ml={1} gap={1}>
+          <Typography variant="caption">{t('parameters')}</Typography>
+
+          {params.map((param) => (
+            <Stack key={param.name} direction="row" gap={1} alignItems="center">
+              <FormLabel sx={{ minWidth: 100 }}>{param.name}</FormLabel>
+              <Box flex={1}>
+                <ParameterItem
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  templateId={template.id}
+                  prompt={callMacroMessage}
+                  index={prompt.index}
+                  param={param.name}
+                  readOnly={readOnly}
+                />
+              </Box>
+            </Stack>
+          ))}
+        </Stack>
+      )}
+    </Stack>
+  );
+}
+
 function CallPromptItemView({
   projectId,
   gitRef,
@@ -527,7 +686,7 @@ function CallPromptItemView({
           <Typography variant="caption">{t('parameters')}</Typography>
 
           {params.map((param) => (
-            <Stack key={param.name} direction="row" gap={1}>
+            <Stack key={param.name} direction="row" gap={1} alignItems="center">
               <FormLabel sx={{ minWidth: 100 }}>{param.name}</FormLabel>
               <Box flex={1}>
                 <ParameterItem
@@ -727,7 +886,7 @@ function CallFuncItemView({
       });
 
       Object.values(template.prompts ?? {}).forEach(({ data }) => {
-        if (!isCallPromptMessage(data) && 'output' in data && data.output) {
+        if (!(isCallPromptMessage(data) || isCallMacroMessage(data)) && 'output' in data && data.output) {
           params.add(data.output);
         }
       });
@@ -931,7 +1090,7 @@ function ParameterItem({
   projectId: string;
   gitRef: string;
   templateId: string;
-  prompt: CallPromptMessage | CallDatasetMessage;
+  prompt: CallPromptMessage | CallDatasetMessage | CallMacroMessage;
   param: string;
   readOnly?: boolean;
 }) {

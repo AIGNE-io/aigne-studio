@@ -16,7 +16,8 @@ export type Role =
   | 'call-prompt'
   | 'call-api'
   | 'call-function'
-  | 'call-dataset';
+  | 'call-dataset'
+  | 'call-macro';
 
 export const roles: Role[] = [
   'system',
@@ -26,6 +27,7 @@ export const roles: Role[] = [
   'call-api',
   'call-function',
   'call-dataset',
+  'call-macro',
 ];
 
 export interface PromptMessage {
@@ -44,6 +46,10 @@ export interface CallPromptMessage {
   template?: { id: string; name?: string };
   parameters?: { [key: string]: string | undefined };
   visibility?: 'hidden';
+}
+
+export interface CallMacroMessage extends Omit<CallPromptMessage, 'role'> {
+  role: 'call-macro';
 }
 
 export interface CallAPIMessage {
@@ -91,12 +97,16 @@ export interface ToolsMessage {
   extraInfo: CallPromptMessage | CallAPIMessage | CallFuncMessage;
 }
 
-export type CallMessage = CallPromptMessage | CallAPIMessage | CallFuncMessage | CallDatasetMessage;
+export type CallMessage = CallPromptMessage | CallAPIMessage | CallFuncMessage | CallDatasetMessage | CallMacroMessage;
 
-export type EditorPromptMessage = PromptMessage | CallMessage;
+export type EditorPromptMessage = PromptMessage | CallMessage | CallMacroMessage;
 
 export function isPromptMessage(message: any): message is PromptMessage {
   return ['system', 'user', 'assistant', 'tool'].includes(message?.role);
+}
+
+export function isCallMacroMessage(message: any): message is CallMacroMessage {
+  return message?.role === 'call-macro';
 }
 
 export function isCallPromptMessage(message: any): message is CallPromptMessage {

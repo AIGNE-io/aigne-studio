@@ -4,12 +4,12 @@ import { join } from 'path';
 import { Embeddings } from 'langchain/dist/embeddings/base';
 import { HNSWLib, HNSWLibArgs } from 'langchain/vectorstores/hnswlib';
 
-import env from '../libs/env';
+import { Config } from '../libs/env';
 import logger from '../libs/logger';
 
 const vectorStores = new Map<string, Promise<VectorStore>>();
 
-const vectorStorePath = (datasetId: string) => join(env.dataDir, 'vectors', datasetId);
+const vectorStorePath = (datasetId: string) => join(Config.dataDir, 'vectors', datasetId);
 
 HNSWLib.imports = async () => {
   try {

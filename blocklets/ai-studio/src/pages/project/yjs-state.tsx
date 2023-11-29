@@ -24,6 +24,7 @@ import {
   CallAPIMessage,
   CallDatasetMessage,
   CallFuncMessage,
+  CallMacroMessage,
   CallPromptMessage,
   PromptMessage,
   Template,
@@ -43,6 +44,10 @@ export function isTemplate(value?: State['files'][string]): value is TemplateYjs
 
 export function isPromptMessage(message: any): message is PromptMessage {
   return ['system', 'user', 'assistant'].includes(message?.role);
+}
+
+export function isCallMacroMessage(message: any): message is CallMacroMessage {
+  return message?.role === 'call-macro';
 }
 
 export function isCallPromptMessage(message: any): message is CallPromptMessage {
