@@ -1,6 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
-import Tag from '@arcblock/ux/lib/Tag';
 import Toast from '@arcblock/ux/lib/Toast';
 import { cx } from '@emotion/css';
 import ForkRightSharpIcon from '@mui/icons-material/ForkRightSharp';
@@ -12,6 +11,7 @@ import {
   Box,
   CircularProgress,
   ClickAwayListener,
+  Collapse,
   Divider,
   IconButton,
   List,
@@ -26,8 +26,10 @@ import {
   Tooltip,
   Typography,
   styled,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
-import { useKeyPress, useSize } from 'ahooks';
+import { useSize } from 'ahooks';
 import { MouseEvent, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import joinUrl from 'url-join';
@@ -39,7 +41,9 @@ import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { createProject } from '../../libs/project';
 import Add from './icons/add';
+import ChevronDown from './icons/chevron-down';
 import Duplicate from './icons/duplicate';
+import Empty from './icons/empty';
 import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
@@ -60,79 +64,94 @@ type NewProject = Project & {
   templateCounts: number;
 };
 
+const CARD_HEIGHT = 180;
+const MAX_WIDTH = 360;
+
 export default function ProjectsPage() {
-  const {
-    state: { loading, templates, projects, selected },
-    refetch,
-  } = useProjectsState();
-  const navigate = useNavigate();
+  const { t } = useLocaleContext();
+  const theme = useTheme();
   const ref = useRef(null);
   const size = useSize(ref);
+
+  const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const {
+    state: { loading, templates, projects },
+    refetch,
+  } = useProjectsState();
 
   useEffect(() => {
     refetch();
   }, []);
 
-  useKeyPress(['leftarrow', 'uparrow'], () => {
-    const list = [...document.getElementsByClassName('project-item')];
-    const current = list.findIndex((i) => i.id === selected?.id);
-    const next = list[current - 1] ?? list.at(-1);
-    if (next) (next as HTMLElement).focus();
-  });
-
-  useKeyPress(['rightarrow', 'downarrow'], () => {
-    const list = [...document.getElementsByClassName('project-item')];
-    const current = list.findIndex((i) => i.id === selected?.id);
-    const next = list[current + 1] ?? list[0];
-    if (next) (next as HTMLElement).focus();
-  });
-
-  useKeyPress('enter', () => {
-    const activeProjectItem = document.activeElement && document.activeElement.classList.contains('project-item');
-
-    if (selected && activeProjectItem) {
-      navigate(joinUrl('/projects', selected.id));
-    }
-  });
-
   const maxWidth = useMemo(() => {
-    const maxItemWidth = 350;
+    const maxItemWidth = MAX_WIDTH;
+
     if (!size?.width) {
       return maxItemWidth;
     }
 
-    const screenWidth = size?.width > 24 * 2 ? (size?.width || 0) - 24 * 2 : size?.width;
-    const marginWidth = 16;
+    const screenWidth = (size?.width || 0) - 24 * 2;
+    const marginWidth = 8 * (isBreakpointsDownSm ? 2 : 3);
 
     const itemsPerRow = Math.ceil((screenWidth + marginWidth) / (maxItemWidth + marginWidth));
     const actualItemWidth = itemsPerRow === 1 ? Math.min(screenWidth, maxItemWidth) : screenWidth / itemsPerRow;
 
     return actualItemWidth - marginWidth + Math.floor(marginWidth / itemsPerRow);
-  }, [size]);
+  }, [size, isBreakpointsDownSm]);
 
   return (
     <Stack minHeight="100%" overflow="auto" ref={ref}>
       <Box m={{ xs: 2, sm: 3 }} flexGrow={1}>
         <ProjectMenu />
 
-        {loading ? (
-          <Stack direction="row" flexWrap="wrap" gap={2}>
-            <ProjectItemSkeleton width={{ sm: 'calc(50% - 18px)', md: 350 }} maxWidth={350} height={178} />
-            <ProjectItemSkeleton width={{ sm: 'calc(50% - 18px)', md: 350 }} maxWidth={350} height={178} />
-          </Stack>
-        ) : (
-          <Stack direction="row" flexWrap="wrap" gap={2}>
-            {!!templates.length && (
-              <ProjectList section="templates" list={templates as NewProject[]} maxWidth={maxWidth} />
-            )}
-            {projects.length ? (
-              <ProjectList section="projects" list={projects as NewProject[]} maxWidth={maxWidth} />
-            ) : null}
-          </Stack>
-        )}
-      </Box>
+        <Section enableCollapse title={t('newFromTemplates')}>
+          {templates.length ? (
+            <ProjectList section="templates" list={templates as NewProject[]} maxWidth={maxWidth} />
+          ) : (
+            loading && (
+              <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
+                <ProjectItemSkeleton
+                  width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
+                  maxWidth={MAX_WIDTH}
+                  height={CARD_HEIGHT}
+                />
+                <ProjectItemSkeleton
+                  width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
+                  maxWidth={MAX_WIDTH}
+                  height={CARD_HEIGHT}
+                />
+              </Stack>
+            )
+          )}
+        </Section>
 
-      <ProjectsFooter />
+        <Section title={t('myProjects')}>
+          {projects.length ? (
+            <ProjectList section="projects" list={projects as NewProject[]} maxWidth={maxWidth} />
+          ) : loading ? (
+            <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
+              <ProjectItemSkeleton
+                width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
+                maxWidth={MAX_WIDTH}
+                height={CARD_HEIGHT}
+              />
+              <ProjectItemSkeleton
+                width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
+                maxWidth={MAX_WIDTH}
+                height={CARD_HEIGHT}
+              />
+            </Stack>
+          ) : (
+            <Stack alignItems="center" my={4}>
+              <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+              <Typography color="text.disabled" my={2}>
+                {t('noProjectTip')}
+              </Typography>
+            </Stack>
+          )}
+        </Section>
+      </Box>
     </Stack>
   );
 }
@@ -252,6 +271,55 @@ function ProjectMenu() {
   );
 }
 
+function Section({
+  enableCollapse,
+  title,
+  children,
+}: {
+  enableCollapse?: boolean;
+  title: ReactNode;
+  children?: ReactNode;
+}) {
+  const [templatesVisible, setTemplatesVisible] = useState(true);
+
+  return (
+    <Box>
+      <Stack
+        direction="row"
+        sx={{
+          position: 'sticky',
+          top: 0,
+          bgcolor: 'background.paper',
+          zIndex: 1,
+          cursor: enableCollapse ? 'pointer' : 'default',
+          my: 1,
+          alignItems: 'center',
+          gap: 1,
+        }}
+        onClick={() => setTemplatesVisible(!templatesVisible)}>
+        <Typography variant="h6" fontWeight="bold">
+          {title}
+        </Typography>
+
+        {enableCollapse && (
+          <IconButton size="small">
+            <ChevronDown
+              sx={{
+                transform: `rotateZ(${templatesVisible ? '-180deg' : '0deg'})`,
+                transition: (theme) => theme.transitions.create('all'),
+              }}
+            />
+          </IconButton>
+        )}
+      </Stack>
+
+      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ py: 0.5, position: 'relative' }}>
+        {children}
+      </Collapse>
+    </Box>
+  );
+}
+
 function ProjectList({
   section,
   list,
@@ -263,29 +331,26 @@ function ProjectList({
   const navigate = useNavigate();
 
   const {
-    state: { selected, menuAnchor },
-    setSelected,
+    state: { menuAnchor },
     setMenuAnchor,
   } = useProjectsState();
 
   return (
-    <>
+    <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
       {list.map((item) => {
         const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item._id;
 
         return (
           <ProjectItem
             section={section}
-            className="project-item"
             id={item._id!}
             tabIndex={0}
             key={item._id}
             pinned={!!item.pinnedAt}
             icon={item.icon}
             width={{ sm: 'calc(50% - 16px)', md: '100%' }}
-            maxWidth={`${maxWidth}px`}
-            minWidth="300px"
-            selected={selected?.section === section && selected.id === item._id}
+            maxWidth={{ sm: 'auto', md: `${maxWidth}px` }}
+            minWidth="280px"
             name={section === 'templates' && item.name ? t(item.name) : item.name}
             description={item.description}
             updatedAt={item.updatedAt}
@@ -295,7 +360,6 @@ function ProjectList({
             gitUrl={item.gitUrl}
             model={item.model}
             users={item.users || []}
-            onMouseEnter={(e) => e.currentTarget.focus()}
             onClick={async () => {
               if (section === 'templates') {
                 try {
@@ -309,7 +373,6 @@ function ProjectList({
                 navigate(joinUrl('/projects', item._id!));
               }
             }}
-            onFocus={() => setSelected({ section, id: item._id! })}
             actions={
               section === 'projects' && (
                 <IconButton
@@ -340,7 +403,7 @@ function ProjectList({
           />
         );
       })}
-    </>
+    </Stack>
   );
 }
 
@@ -376,7 +439,6 @@ function ProjectItem({
   description,
   updatedAt,
   createdAt,
-  selected,
   actions,
   mainActions,
   section,
@@ -394,7 +456,6 @@ function ProjectItem({
   description?: string;
   updatedAt?: string | Date;
   createdAt?: string | Date;
-  selected?: boolean;
   templateCounts: number;
   branches: string[];
   gitUrl?: string;
@@ -403,14 +464,28 @@ function ProjectItem({
   actions?: ReactNode;
   mainActions?: ReactNode;
 } & StackProps) {
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
+
+  const formatGitUrl = useMemo(() => {
+    try {
+      if (gitUrl) {
+        const u = new URL(gitUrl);
+        u.username = '';
+        return u.toString();
+      }
+
+      return '';
+    } catch {
+      return '';
+    }
+  }, [gitUrl]);
 
   if (section === 'templates') {
     return (
       <ProjectItemRoot
         {...props}
-        className={cx(props.className, selected && 'selected')}
-        minHeight={178}
+        className={cx(props.className)}
+        minHeight={CARD_HEIGHT}
         justifyContent="center"
         alignItems="center">
         <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
@@ -419,14 +494,14 @@ function ProjectItem({
   }
 
   return (
-    <ProjectItemRoot {...props} className={cx(props.className, selected && 'selected')}>
+    <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between" mb={2}>
-        <Tag type="primary">{model}</Tag>
+        <Tag>{model}</Tag>
 
         <Stack direction="row" gap={1} alignItems="center" sx={{ color: (theme) => theme.palette.text.disabled }}>
           {createdAt && (
             <Box sx={{ fontSize: 12 }}>
-              <RelativeTime value={createdAt} />
+              <RelativeTime value={createdAt} locale={locale} />
             </Box>
           )}
 
@@ -460,7 +535,7 @@ function ProjectItem({
         </Stack>
 
         <Stack width={0} flex={1}>
-          <Box className="name" sx={{ fontSize: 16, fontWeight: 500 }}>
+          <Box className="name" sx={{ fontSize: 16, fontWeight: 800 }}>
             {name || t('unnamed')}
           </Box>
 
@@ -481,10 +556,16 @@ function ProjectItem({
             </Stack>
           </Tooltip>
 
-          {!!gitUrl && (
+          {!!formatGitUrl && (
             <Box display="flex" alignItems="center">
-              <Tooltip title={gitUrl} placement="top">
-                <GitHubIcon sx={{ fontSize: 14 }} />
+              <Tooltip title={formatGitUrl} placement="top">
+                <GitHubIcon
+                  sx={{ fontSize: 14 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(formatGitUrl, '_blank');
+                  }}
+                />
               </Tooltip>
             </Box>
           )}
@@ -513,6 +594,10 @@ const ProjectItemRoot = styled(Stack)`
   border-style: solid;
   border-color: ${({ theme }) => theme.palette.divider};
   border-radius: 16px;
+
+  :hover {
+    box-shadow: ${({ theme }) => theme.shadows[1]};
+  }
 
   .logo {
     img {
@@ -570,56 +655,14 @@ function LoadingMenuItem({ ...props }: MenuItemProps) {
   );
 }
 
-function ProjectsFooter() {
-  const { t, locale } = useLocaleContext();
-
-  const {
-    state: { selected, templates, projects },
-  } = useProjectsState();
-  if (!selected) return null;
-
-  const item = templates.find((i) => i._id === selected.id) ?? projects.find((i) => i._id === selected.id);
-  if (!item) return null;
-
-  return (
-    <Box
-      sx={{
-        position: 'sticky',
-        bottom: 0,
-        bgcolor: 'background.paper',
-        zIndex: (theme) => theme.zIndex.appBar,
-        borderTopWidth: 1,
-        borderTopStyle: 'solid',
-        borderTopColor: (theme) => theme.palette.grey[200],
-        px: { xs: 2, sm: 3 },
-        py: 2,
-      }}>
-      <Stack direction="row" gap={1}>
-        <Box>
-          {item.icon ? (
-            <Box
-              component="img"
-              src={item.icon}
-              width={80}
-              height={80}
-              borderRadius={1}
-              sx={{ objectFit: 'contain' }}
-            />
-          ) : (
-            <Picture sx={{ fontSize: 56, color: 'grey.400' }} />
-          )}
-        </Box>
-
-        <Stack flex={1}>
-          <Typography variant="h6">
-            {(selected.section === 'projects' ? item.name : item.name && t(item.name)) || t('unnamed')}
-          </Typography>
-          <Typography variant="body1">{item.description}</Typography>
-          <Typography variant="caption">
-            {t('createdAt')} <RelativeTime value={item.createdAt} locale={locale} />
-          </Typography>
-        </Stack>
-      </Stack>
-    </Box>
-  );
-}
+const Tag = styled(Typography)`
+  && {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    height: 20px;
+    line-height: 20px;
+    font-weight: 500;
+    border-radius: 4px;
+  }
+`;
