@@ -252,8 +252,6 @@ async function runTemplate(
   let next: Template | undefined;
   let result: Awaited<ReturnType<typeof runTemplate>> | undefined;
 
-  console.log(current);
-
   while (current) {
     const childStartDate = new Date();
 

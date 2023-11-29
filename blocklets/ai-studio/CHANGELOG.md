@@ -1,3 +1,7 @@
+## 0.1.150 (2023-11-29)
+
+- chore: support more model
+
 ## 0.1.149 (2023-11-29)
 
 - feat: support call macro
