@@ -1,6 +1,6 @@
 ## 0.1.148 (2023-11-27)
 
-- chore: support call macro
+- feat: support call macro
 
 ## 0.1.147 (2023-11-26)
 
