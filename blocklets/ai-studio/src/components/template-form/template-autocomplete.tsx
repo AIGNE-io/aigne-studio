@@ -72,7 +72,7 @@ export default function TemplateAutocomplete<
       clearOnBlur
       selectOnFocus
       handleHomeEndKeys
-      getOptionLabel={(v) => (typeof v === 'string' ? v : (v as any).inputValue || v.name || '')}
+      getOptionLabel={(v) => (typeof v === 'string' ? v : (v as any).inputValue || v.name || t('unnamed'))}
       isOptionEqualToValue={(o, v) => o.id === v.id}
       filterOptions={(options, params) => {
         const filtered = filter(options, params);

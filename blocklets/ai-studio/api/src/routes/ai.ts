@@ -727,7 +727,7 @@ async function runTemplate(
           }
 
           if (result) {
-            emitCall({ item: { output: 'function called' }, result });
+            emitCall({ item: { output: `tools ${name || ''} called` }, result });
 
             // 其实就是 data[0] 的数据
             prompt.push({

@@ -285,9 +285,9 @@ export default flat({
       json: 'Json语法正确',
     },
     types: {
-      prompt: '从 模板 中查找函数数据',
-      api: '从 接口 中查找函数数据',
-      code: '从 代码 中查找函数数据',
+      prompt: 'Prompt calling',
+      api: 'API calling',
+      code: 'Function calling',
     },
     parameterTip: '输入函数调用的结构:',
     dataTip: '工具类型:',

@@ -287,9 +287,9 @@ export default flat({
       json: 'Json syntax is correct',
     },
     types: {
-      prompt: 'Find function data from "Template"',
-      api: 'Find function data from API',
-      code: 'Find function data from Code',
+      prompt: 'Prompt calling',
+      api: 'API calling',
+      code: 'Function calling',
     },
     parameterTip: 'Input the structure of functions call:',
     dataTip: 'Tools Type:',

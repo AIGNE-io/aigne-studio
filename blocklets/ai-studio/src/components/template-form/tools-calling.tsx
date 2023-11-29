@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import ConstructionIcon from '@mui/icons-material/Construction';
-import { Box, Button, Stack, Tooltip, Typography, alpha, buttonClasses } from '@mui/material';
+import { Box, Button, Stack, Tooltip, Typography, alpha, buttonClasses, styled } from '@mui/material';
 import { useState } from 'react';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -8,7 +8,7 @@ import Edit from '../../pages/project/icons/edit';
 import Trash from '../../pages/project/icons/trash';
 import { useToolsState } from '../../pages/project/prompt-state';
 import ToolsButton from './tools-button';
-import FunctionCallDialog from './tools-calling-dialog';
+import FunctionCallDialog, { useOptions } from './tools-calling-dialog';
 
 export default function FunctionCallings({
   projectId,
@@ -76,8 +76,11 @@ function FunctionItemContainer({
   const { t } = useLocaleContext();
   const [open, setOpen] = useState(false);
 
+  const { getOption } = useOptions();
   const { deleteToolFunc } = useToolsState({ projectId, gitRef, templateId: template.id });
   const functionCallInfo = template.tools && template.tools[funcId];
+
+  const option = getOption(functionCallInfo?.data?.extraInfo?.role);
 
   return (
     <>
@@ -85,23 +88,15 @@ function FunctionItemContainer({
         sx={{
           bgcolor: 'background.paper',
           borderRadius: (theme) => `${theme.shape.borderRadius}px`,
-
-          ':hover .hover-visible': {
-            maxHeight: '100%',
-          },
         }}>
         <Stack sx={{ position: 'relative', justifyContent: 'center', minHeight: '48px', p: 1 }}>
           <Stack direction="row" alignItems="center" gap={1}>
-            <Box
-              sx={{
-                fontWeight: 500,
-                fontSize: '14px',
-                lineHeight: 1,
-                mt: '-2px',
-                color: (theme) => theme.palette.grey[800],
-              }}>
+            <Tag>{option}</Tag>
+
+            <Box sx={{ fontWeight: 500, fontSize: '14px', lineHeight: 1, color: (theme) => theme.palette.grey[800] }}>
               {functionCallInfo?.data?.function?.description}
             </Box>
+
             <Box sx={{ fontSize: '12px', lineHeight: 1, color: (theme) => theme.palette.grey[500] }}>
               {functionCallInfo?.data?.function?.name}
             </Box>
@@ -159,3 +154,17 @@ function FunctionItemContainer({
     </>
   );
 }
+
+const Tag = styled(Typography)`
+  && {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2px 10px;
+    height: 20px;
+    line-height: 20px;
+    font-weight: 500;
+    border-radius: 4px;
+    background-color: ${({ theme }) => alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity)};
+  }
+`;
