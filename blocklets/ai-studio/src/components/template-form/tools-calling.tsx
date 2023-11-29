@@ -93,7 +93,7 @@ function FunctionItemContainer({
           <Stack direction="row" alignItems="center" gap={1}>
             <Tag>{option}</Tag>
 
-            <Box sx={{ fontWeight: 500, fontSize: '14px', lineHeight: 1, color: (theme) => theme.palette.grey[800] }}>
+            <Box sx={{ fontWeight: 600, fontSize: '14px', lineHeight: 1, color: (theme) => theme.palette.grey[800] }}>
               {functionCallInfo?.data?.function?.description}
             </Box>
 
@@ -166,5 +166,6 @@ const Tag = styled(Typography)`
     font-weight: 500;
     border-radius: 4px;
     background-color: ${({ theme }) => alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity)};
+    color: ${({ theme }) => theme.palette.grey[500]};
   }
 `;
