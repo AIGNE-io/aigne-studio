@@ -1,3 +1,7 @@
+## 0.1.149 (2023-11-29)
+
+- feat: support call macro
+
 ## 0.1.148 (2023-11-27)
 
 - fix: reactive configures

@@ -14,7 +14,6 @@ import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
 import { Project, defaultBranch, getRepository } from '../store/projects';
 import {
-  CallMessage,
   PromptMessage,
   Role,
   Template,
@@ -22,6 +21,7 @@ import {
   isCallAPIMessage,
   isCallDatasetMessage,
   isCallFuncMessage,
+  isCallMacroMessage,
   isCallPromptMessage,
   isPromptMessage,
 } from '../store/templates';
@@ -261,8 +261,8 @@ async function runTemplate(
       next = undefined;
     }
 
-    const renderMessage = async (message: string) => {
-      return Mustache.render(message, variables, undefined, { escape: (v) => v });
+    const renderMessage = async (message: string, parameterVariables?: typeof parameters) => {
+      return Mustache.render(message, parameterVariables || variables, undefined, { escape: (v) => v });
     };
     const vm = new NodeVM({
       console: 'inherit',
@@ -282,7 +282,7 @@ async function runTemplate(
 
     const variablesCache: { [key: string]: Promise<string> } = {};
 
-    const emitCall = ({ item, result }: { item: CallMessage; result: string | object }) => {
+    const emitCall = ({ item, result }: { item: { output: string }; result: string | object }) => {
       callback?.({
         type: 'call',
         templateId: current?.id || '',
@@ -316,7 +316,7 @@ async function runTemplate(
                 log
               );
 
-              emitCall({ item, result });
+              emitCall({ item: { output: `Prompt Called: ${item.output}` }, result });
 
               if (result.type === 'text') return result.text;
               throw new Error(`Unsupported response from call prompt ${result.type}`);
@@ -349,7 +349,8 @@ async function runTemplate(
               const result: any = contentType?.includes('application/json')
                 ? await response.json()
                 : await response.text();
-              emitCall({ item, result });
+
+              emitCall({ item: { output: `API Called: ${item.output}` }, result });
 
               return result;
             })();
@@ -367,7 +368,7 @@ async function runTemplate(
               const functionInSandbox = vm.run(`module.exports = async function() { ${item.code} }`);
               const result = await functionInSandbox();
 
-              emitCall({ item, result });
+              emitCall({ item: { output: `Code Called: ${item.output}` }, result });
 
               return result;
             })();
@@ -392,7 +393,52 @@ async function runTemplate(
               const docs = await dataset.similaritySearch(messagesString, 4);
               const result = docs.map((doc) => doc.pageContent).join('\n');
 
-              emitCall({ item, result });
+              emitCall({ item: { output: `Dataset Called: ${item.output}` }, result });
+
+              return result;
+            })();
+            return variablesCache[item.output];
+          },
+        ])
+      ),
+      ...Object.fromEntries(
+        (current.prompts ?? []).filter(isCallMacroMessage).map((item) => [
+          item.output,
+          () => async () => {
+            variablesCache[item.output] ??= (async () => {
+              if (!item.template) throw new Error('Required property `template` is not present');
+              const template = await getTemplate(item.template.id);
+
+              const parameters = Object.fromEntries(
+                await Promise.all(
+                  Object.entries(item.parameters ?? {}).map(async ([key, val]) => [
+                    key,
+                    !val ? variables[key] : typeof val === 'string' ? await renderMessage(val) : val,
+                  ])
+                )
+              );
+
+              const messages = await Promise.all(
+                (template.prompts ?? [])
+                  .filter(
+                    (i): i is PromptMessage & Required<Pick<PromptMessage, 'role' | 'content'>> =>
+                      isPromptMessage(i) && !!i.content && i.visibility !== 'hidden'
+                  )
+                  .map(async (item) => {
+                    // 过滤注释节点
+                    const content = item.content
+                      .split(/\n/)
+                      .filter((x) => !x.startsWith(COMMENT_PREFIX))
+                      .join('\n');
+
+                    const prompt = await renderMessage(content, parameters);
+
+                    return { content: prompt };
+                  })
+              );
+
+              const result = messages.map((x) => x.content).join('\n');
+              emitCall({ item: { output: `Macro Called: ${item.output}` }, result });
 
               return result;
             })();
