@@ -1,7 +1,7 @@
 import { HistoryRounded } from '@mui/icons-material';
 import { Button } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import CommitsTip from '../../components/template-form/commits-tip';
 import BranchButton from './branch-button';

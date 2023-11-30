@@ -5,7 +5,7 @@ import ImageListItem from '@mui/material/ImageListItem';
 import { useRequest, useResponsive } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
 import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import { UploaderButton } from '../../contexts/uploader';
 import api from '../../libs/api';

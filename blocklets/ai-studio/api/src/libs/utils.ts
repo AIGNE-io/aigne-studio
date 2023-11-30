@@ -1,4 +1,4 @@
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 export function createImageUrl(host: string, filename: string, width = 0, height = 0) {
   const obj = new URL(host);

@@ -17,7 +17,7 @@ import {
 import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import Dropdown from '../../components/template-form/dropdown';
 import { getErrorMessage } from '../../libs/api';

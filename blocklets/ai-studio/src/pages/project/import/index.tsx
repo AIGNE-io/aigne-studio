@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import Icon from '../icons/warning-circle';
 import useRequest from './state';
@@ -42,13 +42,18 @@ export default function ImportFrom({
   const tree = useMemo<TreeNode[]>(() => {
     if (!state.files) return [];
 
-    return state.files.map((item) => ({
-      id: joinUrl(...item.parent, item.name),
-      parent: item.parent.join(' / ') || '',
-      text: item.name,
-      data: item.type === 'file' ? item.meta : undefined,
-      type: item.type,
-    }));
+    return state.files.map((item) => {
+      const path = (item.parent || []).concat(item.name);
+      const [base, ...input] = path;
+
+      return {
+        id: joinUrl(base as string, ...input),
+        parent: item.parent.join(' / ') || '',
+        text: item.name,
+        data: item.type === 'file' ? item.meta : undefined,
+        type: item.type,
+      };
+    });
   }, [state.files]);
 
   const setDepCounts = (list: TreeNode[], isChecked: boolean) => {

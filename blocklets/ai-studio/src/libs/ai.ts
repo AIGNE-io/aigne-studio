@@ -1,6 +1,6 @@
 import { createImageGenerationApi, createStatusApi, createTextCompletionApi } from '@blocklet/ai-kit';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import { Template } from '../../api/src/store/templates';
 import axios from './api';

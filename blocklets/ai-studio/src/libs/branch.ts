@@ -1,4 +1,4 @@
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import { CreateBranchInput } from '../../api/src/routes/branch';
 import axios from './api';

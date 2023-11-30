@@ -1,4 +1,4 @@
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import { EntryWithMeta } from '../../api/src/routes/tree';
 import axios from './api';

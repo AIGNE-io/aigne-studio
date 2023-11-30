@@ -17,7 +17,7 @@ import {
 import { useLocalStorageState } from 'ahooks';
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import WithAwareness from '../../components/awareness/with-awareness';

@@ -1,4 +1,4 @@
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import { WorkingCommitInput as CommitWorkingInput } from '../../api/src/routes/working';
 import axios from './api';

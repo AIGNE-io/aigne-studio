@@ -15,7 +15,7 @@ import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 

@@ -50,7 +50,7 @@ import {
 } from 'react';
 import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
@@ -284,9 +284,10 @@ const FileTree = forwardRef<
     return [...folders, ...files].map((item) => {
       const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
       const path = item.parent.concat(filename);
+      const [base, ...input] = path;
 
       return {
-        id: joinUrl(...path),
+        id: joinUrl(base as string, ...input),
         text: item.name,
         parent: item.parent.join('/'),
         droppable: item.type === 'folder',

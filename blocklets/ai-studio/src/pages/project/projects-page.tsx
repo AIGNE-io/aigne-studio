@@ -28,7 +28,7 @@ import {
 import { useKeyPress } from 'ahooks';
 import { MouseEvent, ReactNode, useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import { Project } from '../../../api/src/store/projects';
 import DeleteDialog from '../../components/delete-confirm/dialog';

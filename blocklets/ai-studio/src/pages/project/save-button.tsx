@@ -21,7 +21,7 @@ import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/
 import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL as joinUrl } from 'ufo';
 
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
