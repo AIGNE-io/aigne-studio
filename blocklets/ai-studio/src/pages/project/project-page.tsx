@@ -17,7 +17,7 @@ import {
 import { useLocalStorageState } from 'ahooks';
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL } from 'ufo';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import WithAwareness from '../../components/awareness/with-awareness';
@@ -93,10 +93,10 @@ export default function ProjectPage() {
 
     const path = filename && Object.values(store.tree).find((i) => i?.endsWith(filename));
 
-    if (path) navigate(joinUrl('.', path), { replace: true });
+    if (path) navigate(joinURL('.', path), { replace: true });
     else {
       const first = Object.values(store.tree).find((i) => i?.startsWith(PROMPTS_FOLDER_NAME) && i.endsWith('.yaml'));
-      if (first) navigate(joinUrl('.', first), { replace: true });
+      if (first) navigate(joinURL('.', first), { replace: true });
     }
   }, [gitRef, synced, location]);
 
