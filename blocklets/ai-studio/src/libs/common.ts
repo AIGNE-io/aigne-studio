@@ -1,8 +1,31 @@
-export async function getSupportedModels() {
+export type ModelInfo = {
+  brand: string;
+  model: string;
+  temperatureMin?: number;
+  temperatureMax?: number;
+  temperatureDefault?: number;
+  topPMin?: number;
+  topPMax?: number;
+  topPDefault?: number;
+  presencePenaltyMin?: number;
+  presencePenaltyMax?: number;
+  presencePenaltyDefault?: number;
+  frequencyPenaltyMin?: number;
+  frequencyPenaltyMax?: number;
+  frequencyPenaltyDefault?: number;
+  maxTokensMin?: number;
+  maxTokensMax?: number;
+  maxTokensDefault?: number;
+  disabled?: boolean;
+};
+
+export const defaultTextModel = 'gpt-3.5-turbo';
+
+export async function getSupportedModels(): Promise<ModelInfo[]> {
   return [
     {
       brand: 'OpenAI',
-      model: 'gpt-3.5-turbo',
+      model: defaultTextModel,
       temperatureMin: 0,
       temperatureMax: 2,
       temperatureDefault: 1,
@@ -77,6 +100,120 @@ export async function getSupportedModels() {
       maxTokensDefault: 16385,
     },
     {
+      brand: 'OpenAI',
+      model: 'gpt-4',
+      temperatureMin: 0,
+      temperatureMax: 2,
+      temperatureDefault: 1,
+      topPMin: 0,
+      topPMax: 1,
+      topPDefault: 1,
+      presencePenaltyMin: -2,
+      presencePenaltyMax: 2,
+      presencePenaltyDefault: 0,
+      frequencyPenaltyMin: -2,
+      frequencyPenaltyMax: 2,
+      frequencyPenaltyDefault: 0,
+      maxTokensMin: 1,
+      maxTokensMax: 8192,
+      maxTokensDefault: 8192,
+    },
+    {
+      brand: 'OpenAI',
+      model: 'gpt-4-0314',
+      temperatureMin: 0,
+      temperatureMax: 2,
+      temperatureDefault: 1,
+      topPMin: 0,
+      topPMax: 1,
+      topPDefault: 1,
+      presencePenaltyMin: -2,
+      presencePenaltyMax: 2,
+      presencePenaltyDefault: 0,
+      frequencyPenaltyMin: -2,
+      frequencyPenaltyMax: 2,
+      frequencyPenaltyDefault: 0,
+      maxTokensMin: 1,
+      maxTokensMax: 8192,
+      maxTokensDefault: 8192,
+    },
+    {
+      brand: 'OpenAI',
+      model: 'gpt-4-0613',
+      temperatureMin: 0,
+      temperatureMax: 2,
+      temperatureDefault: 1,
+      topPMin: 0,
+      topPMax: 1,
+      topPDefault: 1,
+      presencePenaltyMin: -2,
+      presencePenaltyMax: 2,
+      presencePenaltyDefault: 0,
+      frequencyPenaltyMin: -2,
+      frequencyPenaltyMax: 2,
+      frequencyPenaltyDefault: 0,
+      maxTokensMin: 1,
+      maxTokensMax: 8192,
+      maxTokensDefault: 8192,
+    },
+    {
+      brand: 'OpenAI',
+      model: 'gpt-4-32k',
+      temperatureMin: 0,
+      temperatureMax: 2,
+      temperatureDefault: 1,
+      topPMin: 0,
+      topPMax: 1,
+      topPDefault: 1,
+      presencePenaltyMin: -2,
+      presencePenaltyMax: 2,
+      presencePenaltyDefault: 0,
+      frequencyPenaltyMin: -2,
+      frequencyPenaltyMax: 2,
+      frequencyPenaltyDefault: 0,
+      maxTokensMin: 1,
+      maxTokensMax: 32768,
+      maxTokensDefault: 32768,
+    },
+    {
+      brand: 'OpenAI',
+      model: 'gpt-4-32k-0314',
+      temperatureMin: 0,
+      temperatureMax: 2,
+      temperatureDefault: 1,
+      topPMin: 0,
+      topPMax: 1,
+      topPDefault: 1,
+      presencePenaltyMin: -2,
+      presencePenaltyMax: 2,
+      presencePenaltyDefault: 0,
+      frequencyPenaltyMin: -2,
+      frequencyPenaltyMax: 2,
+      frequencyPenaltyDefault: 0,
+      maxTokensMin: 1,
+      maxTokensMax: 32768,
+      maxTokensDefault: 32768,
+    },
+    {
+      brand: 'OpenAI',
+      model: 'gpt-4-32k-0613',
+      temperatureMin: 0,
+      temperatureMax: 2,
+      temperatureDefault: 1,
+      topPMin: 0,
+      topPMax: 1,
+      topPDefault: 1,
+      presencePenaltyMin: -2,
+      presencePenaltyMax: 2,
+      presencePenaltyDefault: 0,
+      frequencyPenaltyMin: -2,
+      frequencyPenaltyMax: 2,
+      frequencyPenaltyDefault: 0,
+      maxTokensMin: 1,
+      maxTokensMax: 32768,
+      maxTokensDefault: 32768,
+    },
+    {
       brand: 'Hugging Face',
       model: 'Hugging Face',
       disabled: true,
@@ -95,6 +232,20 @@ export async function getSupportedModels() {
       brand: 'Vertex AI',
       model: 'Vertex AI',
       disabled: true,
+    },
+  ];
+}
+
+export const defaultImageModel = 'dall-e-2';
+export async function getSupportedImagesModels(): Promise<ModelInfo[]> {
+  return [
+    {
+      brand: 'OpenAI',
+      model: defaultImageModel,
+    },
+    {
+      brand: 'OpenAI',
+      model: 'dall-e-3',
     },
   ];
 }
