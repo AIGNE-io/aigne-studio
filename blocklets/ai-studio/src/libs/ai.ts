@@ -1,6 +1,6 @@
 import { createImageGenerationApi, createStatusApi, createTextCompletionApi } from '@blocklet/ai-kit';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-import { joinURL as joinUrl } from 'ufo';
+import { joinURL } from 'ufo';
 
 import { Template } from '../../api/src/store/templates';
 import axios from './api';
@@ -40,7 +40,7 @@ export async function callAI(
     | { type: 'call'; delta: string; templateId: string; variableName: string }
   >({
     async start(controller) {
-      await fetchEventSource(joinUrl(prefix, '/api/ai/call'), {
+      await fetchEventSource(joinURL(prefix, '/api/ai/call'), {
         openWhenHidden: true,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

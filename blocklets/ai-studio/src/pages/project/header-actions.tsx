@@ -1,7 +1,7 @@
 import { HistoryRounded } from '@mui/icons-material';
 import { Button } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { joinURL as joinUrl } from 'ufo';
+import { joinURL } from 'ufo';
 
 import CommitsTip from '../../components/template-form/commits-tip';
 import BranchButton from './branch-button';
@@ -169,7 +169,7 @@ export default function HeaderActions() {
         commits={commits}
         hash={gitRef}
         onCommitSelect={(commit) => {
-          navigate(joinUrl('..', commit.oid), { state: { filepath } });
+          navigate(joinURL('..', commit.oid), { state: { filepath } });
         }}>
         <Button sx={{ minWidth: 32, minHeight: 32 }}>
           <HistoryRounded />

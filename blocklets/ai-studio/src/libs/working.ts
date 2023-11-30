@@ -1,4 +1,4 @@
-import { joinURL as joinUrl } from 'ufo';
+import { joinURL } from 'ufo';
 
 import { WorkingCommitInput as CommitWorkingInput } from '../../api/src/routes/working';
 import axios from './api';
@@ -12,5 +12,5 @@ export async function commitFromWorking({
   ref: string;
   input: CommitWorkingInput;
 }): Promise<{}> {
-  return axios.post(joinUrl('/api/projects', projectId, 'workings', ref, 'commit'), input).then((res) => res.data);
+  return axios.post(joinURL('/api/projects', projectId, 'workings', ref, 'commit'), input).then((res) => res.data);
 }

@@ -28,7 +28,7 @@ import {
 import { useKeyPress } from 'ahooks';
 import { MouseEvent, ReactNode, useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
-import { joinURL as joinUrl } from 'ufo';
+import { joinURL } from 'ufo';
 
 import { Project } from '../../../api/src/store/projects';
 import DeleteDialog from '../../components/delete-confirm/dialog';
@@ -78,7 +78,7 @@ export default function ProjectsPage() {
     const activeProjectItem = document.activeElement && document.activeElement.classList.contains('project-item');
 
     if (selected && activeProjectItem) {
-      navigate(joinUrl('/projects', selected.id));
+      navigate(joinURL('/projects', selected.id));
     }
   });
 
@@ -333,7 +333,7 @@ function ProjectList({
               (section === 'projects' ? (
                 <Button
                   component={RouterLink}
-                  to={joinUrl('/projects', item._id)}
+                  to={joinURL('/projects', item._id)}
                   className="hover-visible"
                   size="small"
                   variant="contained"
@@ -351,7 +351,7 @@ function ProjectList({
                   onClick={async () => {
                     try {
                       const project = await createProject({ templateId: item._id! });
-                      navigate(joinUrl('/projects', project._id!));
+                      navigate(joinURL('/projects', project._id!));
                     } catch (error) {
                       Toast.error(getErrorMessage(error));
                       throw error;

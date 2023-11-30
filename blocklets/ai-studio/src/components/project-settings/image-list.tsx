@@ -5,7 +5,7 @@ import ImageListItem from '@mui/material/ImageListItem';
 import { useRequest, useResponsive } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
 import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
-import { joinURL as joinUrl } from 'ufo';
+import { joinURL } from 'ufo';
 
 import { UploaderButton } from '../../contexts/uploader';
 import api from '../../libs/api';
@@ -27,7 +27,7 @@ function createImageUrl(filename: string, width = 0, height = 0) {
   // @ts-ignore
   const { CDN_HOST = '' } = window?.blocklet || {};
   const obj = new URL(CDN_HOST || window.location.origin);
-  obj.pathname = joinUrl(mountPoint, '/uploads/', filename);
+  obj.pathname = joinURL(mountPoint, '/uploads/', filename);
 
   const extension = filename.split('.').pop() || '';
   if (['png', 'jpg', 'jpeg', 'webp'].includes(extension)) {

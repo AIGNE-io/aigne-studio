@@ -1,5 +1,5 @@
 import { ReadCommitResult } from 'isomorphic-git';
-import { joinURL as joinUrl } from 'ufo';
+import { joinURL } from 'ufo';
 
 import axios from './api';
 
@@ -22,5 +22,5 @@ export async function getLogs({
   ref?: string;
   path?: string;
 }): Promise<{ commits: Commit[] }> {
-  return axios.get(joinUrl('/api/projects', projectId, 'logs', ref || '', path || '')).then((res) => res.data);
+  return axios.get(joinURL('/api/projects', projectId, 'logs', ref || '', path || '')).then((res) => res.data);
 }

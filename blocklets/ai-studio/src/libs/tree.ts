@@ -1,4 +1,4 @@
-import { joinURL as joinUrl } from 'ufo';
+import { joinURL } from 'ufo';
 
 import { EntryWithMeta } from '../../api/src/routes/tree';
 import axios from './api';
@@ -10,5 +10,5 @@ export async function getTree({
   projectId: string;
   ref: string;
 }): Promise<{ files: EntryWithMeta[] }> {
-  return axios.get(joinUrl('/api/projects', projectId, 'tree', ref || '')).then((res) => res.data);
+  return axios.get(joinURL('/api/projects', projectId, 'tree', ref || '')).then((res) => res.data);
 }
