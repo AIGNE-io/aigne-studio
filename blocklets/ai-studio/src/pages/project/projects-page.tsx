@@ -26,11 +26,8 @@ import {
   Tooltip,
   Typography,
   styled,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
-import { useSize } from 'ahooks';
-import { MouseEvent, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { MouseEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -58,10 +55,10 @@ type User = {
   avatar?: string;
 };
 
-type NewProject = Project & {
+type ProjectWithUserInfo = Project & {
   users: User[];
   branches: string[];
-  templateCounts: number;
+  templateCount: number;
 };
 
 const CARD_HEIGHT = 180;
@@ -69,11 +66,6 @@ const MAX_WIDTH = 360;
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
-  const theme = useTheme();
-  const ref = useRef(null);
-  const size = useSize(ref);
-
-  const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('sm'));
 
   const {
     state: { loading, templates, projects },
@@ -84,30 +76,14 @@ export default function ProjectsPage() {
     refetch();
   }, []);
 
-  const maxWidth = useMemo(() => {
-    const maxItemWidth = MAX_WIDTH;
-
-    if (!size?.width) {
-      return maxItemWidth;
-    }
-
-    const screenWidth = (size?.width || 0) - 24 * 2;
-    const marginWidth = 8 * (isBreakpointsDownSm ? 2 : 3);
-
-    const itemsPerRow = Math.ceil((screenWidth + marginWidth) / (maxItemWidth + marginWidth));
-    const actualItemWidth = itemsPerRow === 1 ? Math.min(screenWidth, maxItemWidth) : screenWidth / itemsPerRow;
-
-    return actualItemWidth - marginWidth + Math.floor(marginWidth / itemsPerRow);
-  }, [size, isBreakpointsDownSm]);
-
   return (
-    <Stack minHeight="100%" overflow="auto" ref={ref}>
-      <Box m={{ xs: 2, sm: 3 }} flexGrow={1}>
+    <Stack minHeight="100%" overflow="auto">
+      <Stack m={{ xs: 2, sm: 3 }} flexGrow={1} gap={3}>
         <ProjectMenu />
 
         <Section enableCollapse title={t('newFromTemplates')}>
           {templates.length ? (
-            <ProjectList section="templates" list={templates as NewProject[]} maxWidth={maxWidth} />
+            <ProjectList section="templates" list={templates as ProjectWithUserInfo[]} />
           ) : (
             loading && (
               <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
@@ -128,7 +104,7 @@ export default function ProjectsPage() {
 
         <Section title={t('myProjects')}>
           {projects.length ? (
-            <ProjectList section="projects" list={projects as NewProject[]} maxWidth={maxWidth} />
+            <ProjectList section="projects" list={projects as ProjectWithUserInfo[]} />
           ) : loading ? (
             <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
               <ProjectItemSkeleton
@@ -151,7 +127,7 @@ export default function ProjectsPage() {
             </Stack>
           )}
         </Section>
-      </Box>
+      </Stack>
     </Stack>
   );
 }
@@ -292,7 +268,6 @@ function Section({
           bgcolor: 'background.paper',
           zIndex: 1,
           cursor: enableCollapse ? 'pointer' : 'default',
-          my: 1,
           alignItems: 'center',
           gap: 1,
         }}
@@ -313,7 +288,7 @@ function Section({
         )}
       </Stack>
 
-      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ py: 0.5, position: 'relative' }}>
+      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ mt: 1.5, position: 'relative' }}>
         {children}
       </Collapse>
     </Box>
@@ -323,10 +298,7 @@ function Section({
 function ProjectList({
   section,
   list,
-  maxWidth,
-}:
-  | { section: 'templates'; list: NewProject[]; maxWidth: number }
-  | { section: 'projects'; list: NewProject[]; maxWidth: number }) {
+}: { section: 'templates'; list: ProjectWithUserInfo[] } | { section: 'projects'; list: ProjectWithUserInfo[] }) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
 
@@ -336,7 +308,7 @@ function ProjectList({
   } = useProjectsState();
 
   return (
-    <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
+    <ProjectListContainer>
       {list.map((item) => {
         const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item._id;
 
@@ -348,14 +320,13 @@ function ProjectList({
             key={item._id}
             pinned={!!item.pinnedAt}
             icon={item.icon}
-            width={{ sm: 'calc(50% - 16px)', md: '100%' }}
-            maxWidth={{ sm: 'auto', md: `${maxWidth}px` }}
-            minWidth="280px"
+            maxWidth={{ sm: 'auto', md: `${MAX_WIDTH}px` }}
+            flex="1 1 280"
             name={section === 'templates' && item.name ? t(item.name) : item.name}
             description={item.description}
             updatedAt={item.updatedAt}
             createdAt={item.createdAt}
-            templateCounts={item.templateCounts}
+            templateCount={item.templateCount}
             branches={item.branches || []}
             gitUrl={item.gitUrl}
             model={item.model}
@@ -403,7 +374,7 @@ function ProjectList({
           />
         );
       })}
-    </Stack>
+    </ProjectListContainer>
   );
 }
 
@@ -442,7 +413,7 @@ function ProjectItem({
   actions,
   mainActions,
   section,
-  templateCounts,
+  templateCount,
   branches,
   gitUrl,
   model,
@@ -456,7 +427,7 @@ function ProjectItem({
   description?: string;
   updatedAt?: string | Date;
   createdAt?: string | Date;
-  templateCounts: number;
+  templateCount: number;
   branches: string[];
   gitUrl?: string;
   model?: string;
@@ -496,13 +467,13 @@ function ProjectItem({
   return (
     <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between" mb={2}>
-        <Tag>{model}</Tag>
+        <Tag sx={{ fontSize: (theme) => theme.typography.body2.fontSize }}>{model}</Tag>
 
         <Stack direction="row" gap={1} alignItems="center" sx={{ color: (theme) => theme.palette.text.disabled }}>
           {createdAt && (
-            <Box sx={{ fontSize: 12 }}>
+            <Typography variant="caption">
               <RelativeTime value={createdAt} locale={locale} />
-            </Box>
+            </Typography>
           )}
 
           {users && Array.isArray(users) && !!users.length && (
@@ -535,19 +506,22 @@ function ProjectItem({
         </Stack>
 
         <Stack width={0} flex={1}>
-          <Box className="name" sx={{ fontSize: 16, fontWeight: 800 }}>
+          <Box className="name" sx={{ fontWeight: (theme) => theme.typography.fontWeightBold }}>
             {name || t('unnamed')}
           </Box>
 
-          <Box className="desc" sx={{ fontSize: 14, color: (theme) => theme.palette.text.secondary }}>
+          <Box className="desc" sx={{ color: (theme) => theme.palette.text.secondary }}>
             {description}
           </Box>
         </Stack>
       </Stack>
 
       <Stack direction="row" gap={2} mt={1} alignItems="center" justifyContent="space-between">
-        <Stack direction="row" gap={2} sx={{ fontSize: '12px', color: (theme) => theme.palette.text.disabled }}>
-          <Box>{t('templates', { counts: templateCounts })}</Box>
+        <Stack
+          direction="row"
+          gap={2}
+          sx={{ fontSize: (theme) => theme.typography.body2.fontSize, color: 'text.disabled' }}>
+          <Box>{t('templates', { count: templateCount })}</Box>
 
           <Tooltip title={branches.length > 1 ? branches.join('、') : ''} placement="top">
             <Stack direction="row" alignItems="center">
@@ -557,17 +531,21 @@ function ProjectItem({
           </Tooltip>
 
           {!!formatGitUrl && (
-            <Box display="flex" alignItems="center">
-              <Tooltip title={formatGitUrl} placement="top">
-                <GitHubIcon
-                  sx={{ fontSize: 14 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.open(formatGitUrl, '_blank');
-                  }}
-                />
-              </Tooltip>
-            </Box>
+            <Tooltip title={formatGitUrl} placement="top">
+              <Box
+                display="flex"
+                alignItems="center"
+                mt={0.25}
+                component="a"
+                href={formatGitUrl}
+                target="_blank"
+                style={{ color: 'inherit', textDecoration: 'none' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}>
+                <GitHubIcon sx={{ fontSize: 14 }} />
+              </Box>
+            </Tooltip>
           )}
         </Stack>
 
@@ -656,13 +634,16 @@ function LoadingMenuItem({ ...props }: MenuItemProps) {
 }
 
 const Tag = styled(Typography)`
-  && {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    height: 20px;
-    line-height: 20px;
-    font-weight: 500;
-    border-radius: 4px;
-  }
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 4px;
+`;
+
+const ProjectListContainer = styled(Box)`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
 `;

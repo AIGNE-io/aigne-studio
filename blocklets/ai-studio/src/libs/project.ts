@@ -14,7 +14,7 @@ export async function getProjects(query?: GetProjectsQuery): Promise<{
   projects: (Project & {
     users: { name?: string; email?: string; did?: string; fullName?: string; avatar?: string }[];
     branches: string[];
-    templateCounts: number;
+    templateCount: number;
   })[];
 }> {
   return axios.get('/api/projects', { params: query }).then((res) => res.data);

@@ -272,5 +272,5 @@ export default flat({
   useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
   useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
-  templates: '{counts} 条数据',
+  templates: '{count} 个文件',
 });

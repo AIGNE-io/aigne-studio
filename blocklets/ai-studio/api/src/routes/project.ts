@@ -157,35 +157,35 @@ export function projectRoutes(router: Router) {
       ],
     });
 
-    const fns = list.map(async (project) => {
-      let users: { name?: string; email?: string; did?: string; fullName?: string; avatar?: string }[] = [];
-      let templateCounts = 0;
+    const projects = await Promise.all(
+      list.map(async (project) => {
+        let users: { name?: string; email?: string; did?: string; fullName?: string; avatar?: string }[] = [];
+        let templateCount = 0;
 
-      const repository = await getRepository({ projectId: project._id });
-      const branches = await repository.listBranches();
+        const repository = await getRepository({ projectId: project._id });
+        const branches = await repository.listBranches();
 
-      // 缓存之前是有做的
-      try {
-        const commits = await getAuthorInfo({ projectId: project._id, ref: defaultBranch });
-        users = uniqBy(
-          commits.map((commit) => pick(commit.commit.author, 'name', 'email', 'did', 'fullName', 'avatar')),
-          'email'
-        );
-      } catch (error) {
-        // error
-      }
+        // 缓存之前是有做的
+        try {
+          const commits = await getAuthorInfo({ projectId: project._id, ref: defaultBranch });
+          users = uniqBy(
+            commits.map((commit) => pick(commit.commit.author, 'name', 'email', 'did', 'fullName', 'avatar')),
+            'email'
+          );
+        } catch (error) {
+          console.error(error);
+        }
 
-      try {
-        const templates = await getTemplatesFromRepository({ projectId: project._id, ref: defaultBranch });
-        templateCounts = templates.length;
-      } catch (error) {
-        // error
-      }
+        try {
+          const templates = await getTemplatesFromRepository({ projectId: project._id, ref: defaultBranch });
+          templateCount = templates.length;
+        } catch (error) {
+          console.error(error);
+        }
 
-      return { ...project.dataValues, users, branches, templateCounts };
-    });
-
-    const projects = await Promise.all(fns);
+        return { ...project.dataValues, users, branches, templateCount };
+      })
+    );
 
     res.json({ projects });
   });
