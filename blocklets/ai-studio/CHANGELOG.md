@@ -1,3 +1,7 @@
+## 0.1.152 (2023-11-30)
+
+- feat: support function calling
+
 ## 0.1.151 (2023-11-30)
 
 - feat: support more model

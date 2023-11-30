@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import PromptEditor from '@blocklet/prompt-editor';
 import { cx } from '@emotion/css';
 import { useMonaco } from '@monaco-editor/react';
-import { ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
+import { Add, ArrowDropDownRounded, TipsAndUpdatesRounded } from '@mui/icons-material';
 import {
   Autocomplete,
   Box,
@@ -35,7 +35,6 @@ import {
   EditorPromptMessage,
 } from '../../../api/src/store/templates';
 import { getDatasets } from '../../libs/dataset';
-import Add from '../../pages/project/icons/add';
 import DragVertical from '../../pages/project/icons/drag-vertical';
 import Eye from '../../pages/project/icons/eye';
 import EyeNo from '../../pages/project/icons/eye-no';
@@ -213,8 +212,11 @@ export default function Prompts({
       </Box>
 
       {!readOnly && (
-        <Stack direction="row" gap={2} sx={{ mt: 1, mx: 1 }}>
-          <Button startIcon={<Add />} onClick={() => addPrompt({ id: randomId(), content: '', role: 'user' })}>
+        <Stack direction="row" gap={2} sx={{ mt: 1 }}>
+          <Button
+            sx={{ width: 1 }}
+            startIcon={<Add />}
+            onClick={() => addPrompt({ id: randomId(), content: '', role: 'user' })}>
             {t('add', { object: t('prompt') })}
           </Button>
         </Stack>
