@@ -24,10 +24,7 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
   const { t } = useLocaleContext();
 
   const { value, loading, error } = useAsync(() => {
-    if (isImageModel) {
-      return getSupportedImagesModels();
-    }
-    return getSupportedModels();
+    return isImageModel ? getSupportedImagesModels() : getSupportedModels();
   }, [isImageModel]);
 
   if (error) throw error;

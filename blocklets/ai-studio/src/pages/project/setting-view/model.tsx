@@ -37,11 +37,7 @@ export default function ModelView({
   } = useProjectState(projectId, gitRef);
 
   const { value: supportedModels } = useAsync(() => {
-    if (template.type === 'image') {
-      return getSupportedImagesModels();
-    }
-
-    return getSupportedModels();
+    return template.type === 'image' ? getSupportedImagesModels() : getSupportedModels();
   }, [template.type]);
 
   const model = useMemo(() => {
