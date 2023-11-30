@@ -36,9 +36,11 @@ export default function ModelView({
     state: { project },
   } = useProjectState(projectId, gitRef);
 
+  const isImageModel = template.type === 'image';
+
   const { value: supportedModels } = useAsync(() => {
-    return template.type === 'image' ? getSupportedImagesModels() : getSupportedModels();
-  }, [template.type]);
+    return isImageModel ? getSupportedImagesModels() : getSupportedModels();
+  }, [isImageModel]);
 
   const model = useMemo(() => {
     return supportedModels?.find((i) => i.model === (template.model || project?.model));
@@ -94,7 +96,7 @@ export default function ModelView({
       <Box px={2} position="relative">
         <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id, 'model']}>
           <ModelSelectField
-            isImageModel={template.type === 'image'}
+            isImageModel={isImageModel}
             fullWidth
             label={t('model')}
             value={template.model || project?.model || ''}
@@ -116,7 +118,7 @@ export default function ModelView({
         />
       </Box>
 
-      {template.type !== 'image' && (
+      {!isImageModel && (
         <Accordion
           expanded={expanded === 'panel1'}
           onChange={handleChange('panel1')}
