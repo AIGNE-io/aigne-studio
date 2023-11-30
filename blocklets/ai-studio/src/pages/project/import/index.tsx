@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import joinUrl from 'url-join';
+import { joinURL } from 'ufo';
 
 import Icon from '../icons/warning-circle';
 import useRequest from './state';
@@ -43,7 +43,7 @@ export default function ImportFrom({
     if (!state.files) return [];
 
     return state.files.map((item) => ({
-      id: joinUrl(...item.parent, item.name),
+      id: joinURL('', ...item.parent, item.name),
       parent: item.parent.join(' / ') || '',
       text: item.name,
       data: item.type === 'file' ? item.meta : undefined,

@@ -21,7 +21,7 @@ import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/
 import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL } from 'ufo';
 
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
@@ -94,7 +94,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
 
         refetch();
         run();
-        if (branch !== gitRef) navigate(joinUrl('..', branch), { replace: true });
+        if (branch !== gitRef) navigate(joinURL('..', branch), { replace: true });
       } catch (error) {
         form.reset(input);
         Toast.error(getErrorMessage(error));

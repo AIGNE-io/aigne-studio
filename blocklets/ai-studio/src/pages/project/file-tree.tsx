@@ -50,7 +50,7 @@ import {
 } from 'react';
 import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL } from 'ufo';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
@@ -153,7 +153,7 @@ const FileTree = forwardRef<
         },
       });
       if (parent) setOpenIds((ids) => (ids ?? []).concat(parent.join('/')));
-      navigate(joinUrl('.', filepath));
+      navigate(joinURL('.', filepath));
     },
     [navigate, setOpenIds, store]
   );
@@ -230,7 +230,7 @@ const FileTree = forwardRef<
       const filename = current?.split('/').slice(-1)[0];
       const filepath = filename ? Object.values(store.tree).find((i) => i?.endsWith(filename)) : undefined;
 
-      if (filepath?.endsWith('.yaml')) navigate(joinUrl('.', filepath), { replace: true });
+      if (filepath?.endsWith('.yaml')) navigate(joinURL('.', filepath), { replace: true });
     },
     [current, navigate, setOpenIds, store]
   );
@@ -286,7 +286,7 @@ const FileTree = forwardRef<
       const path = item.parent.concat(filename);
 
       return {
-        id: joinUrl(...path),
+        id: joinURL('', ...path),
         text: item.name,
         parent: item.parent.join('/'),
         droppable: item.type === 'folder',
@@ -426,7 +426,7 @@ const FileTree = forwardRef<
                   icon={icon}
                   depth={depth}
                   selected={selected}
-                  onClick={() => navigate(joinUrl('.', filepath))}
+                  onClick={() => navigate(joinURL('.', filepath))}
                   actions={actions}
                   sx={{ color: change?.color }}>
                   {meta.name || t('alert.unnamed')}

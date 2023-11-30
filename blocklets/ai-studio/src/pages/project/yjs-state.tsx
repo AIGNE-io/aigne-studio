@@ -15,7 +15,7 @@ import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
-import joinUrl from 'url-join';
+import { joinURL } from 'ufo';
 import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
@@ -101,7 +101,7 @@ const createStore = (projectId: string, gitRef: string) => {
         const url = (() => {
           const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
           const wsUrl = new URL(`${wsProtocol}://${window.location.host}`);
-          wsUrl.pathname = joinUrl(PREFIX, 'api/ws', projectId);
+          wsUrl.pathname = joinURL(PREFIX, 'api/ws', projectId);
           return wsUrl.toString();
         })();
 
