@@ -32,7 +32,7 @@ import {
 import { useSize } from 'ahooks';
 import { MouseEvent, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL } from 'ufo';
 
 import { Project } from '../../../api/src/store/projects';
 import DeleteDialog from '../../components/delete-confirm/dialog';
@@ -364,13 +364,13 @@ function ProjectList({
               if (section === 'templates') {
                 try {
                   const project = await createProject({ templateId: item._id! });
-                  navigate(joinUrl('/projects', project._id!));
+                  navigate(joinURL('/projects', project._id!));
                 } catch (error) {
                   Toast.error(getErrorMessage(error));
                   throw error;
                 }
               } else if (section === 'projects') {
-                navigate(joinUrl('/projects', item._id!));
+                navigate(joinURL('/projects', item._id!));
               }
             }}
             actions={

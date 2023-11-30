@@ -8,7 +8,15 @@ import { getTemplateIdFromPath, yjsToTemplate } from './projects';
 
 export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
 
-export type Role = 'system' | 'user' | 'assistant' | 'call-prompt' | 'call-api' | 'call-function' | 'call-dataset';
+export type Role =
+  | 'system'
+  | 'user'
+  | 'assistant'
+  | 'call-prompt'
+  | 'call-api'
+  | 'call-function'
+  | 'call-dataset'
+  | 'call-macro';
 
 export const roles: Role[] = [
   'system',
@@ -18,6 +26,7 @@ export const roles: Role[] = [
   'call-api',
   'call-function',
   'call-dataset',
+  'call-macro',
 ];
 
 export interface PromptMessage {
@@ -33,10 +42,12 @@ export interface CallPromptMessage {
   content?: undefined;
   output: string;
   template?: { id: string; name?: string };
-  parameters?: {
-    [key: string]: string | undefined;
-  };
+  parameters?: { [key: string]: string | undefined };
   visibility?: 'hidden';
+}
+
+export interface CallMacroMessage extends Omit<CallPromptMessage, 'role'> {
+  role: 'call-macro';
 }
 
 export interface CallAPIMessage {
@@ -70,12 +81,16 @@ export interface CallDatasetMessage {
   visibility?: 'hidden';
 }
 
-export type CallMessage = CallPromptMessage | CallAPIMessage | CallFuncMessage | CallDatasetMessage;
+export type CallMessage = CallPromptMessage | CallAPIMessage | CallFuncMessage | CallDatasetMessage | CallMacroMessage;
 
-export type EditorPromptMessage = PromptMessage | CallMessage;
+export type EditorPromptMessage = PromptMessage | CallMessage | CallMacroMessage;
 
 export function isPromptMessage(message: any): message is PromptMessage {
   return ['system', 'user', 'assistant'].includes(message?.role);
+}
+
+export function isCallMacroMessage(message: any): message is CallMacroMessage {
+  return message?.role === 'call-macro';
 }
 
 export function isCallPromptMessage(message: any): message is CallPromptMessage {

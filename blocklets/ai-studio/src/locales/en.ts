@@ -254,6 +254,7 @@ export default flat({
       api: 'Execute API',
       func: 'Execute JS Function',
       dataset: 'Query Dataset',
+      macro: 'Reference Macro',
     },
   },
   remoteGitRepo: 'Remote Git Repo',
