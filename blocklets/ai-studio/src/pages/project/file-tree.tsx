@@ -284,10 +284,9 @@ const FileTree = forwardRef<
     return [...folders, ...files].map((item) => {
       const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
       const path = item.parent.concat(filename);
-      const [base, ...input] = path;
 
       return {
-        id: joinURL(base as string, ...input),
+        id: joinURL('', ...path),
         text: item.name,
         parent: item.parent.join('/'),
         droppable: item.type === 'folder',

@@ -42,18 +42,13 @@ export default function ImportFrom({
   const tree = useMemo<TreeNode[]>(() => {
     if (!state.files) return [];
 
-    return state.files.map((item) => {
-      const path = (item.parent || []).concat(item.name);
-      const [base, ...input] = path;
-
-      return {
-        id: joinURL(base as string, ...input),
-        parent: item.parent.join(' / ') || '',
-        text: item.name,
-        data: item.type === 'file' ? item.meta : undefined,
-        type: item.type,
-      };
-    });
+    return state.files.map((item) => ({
+      id: joinURL('', ...item.parent, item.name),
+      parent: item.parent.join(' / ') || '',
+      text: item.name,
+      data: item.type === 'file' ? item.meta : undefined,
+      type: item.type,
+    }));
   }, [state.files]);
 
   const setDepCounts = (list: TreeNode[], isChecked: boolean) => {
