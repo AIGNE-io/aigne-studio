@@ -232,6 +232,7 @@ export default function ToolFunctionCallDialog({
                 component={Link}
                 to="https://platform.openai.com/docs/api-reference/chat/create#chat-create-functions"
                 sx={{ color: (theme) => theme.palette.grey[500], fontSize: '12px' }}>
+                target="_blank"
                 {t('tool.viewGuide')}
               </Box>
             </Box>

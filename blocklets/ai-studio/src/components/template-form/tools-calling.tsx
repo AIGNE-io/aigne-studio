@@ -88,16 +88,28 @@ function FunctionItemContainer({
         sx={{
           bgcolor: 'background.paper',
           borderRadius: (theme) => `${theme.shape.borderRadius}px`,
+
+          ':hover .hover-visible': {
+            maxHeight: '100%',
+          },
         }}>
         <Stack sx={{ position: 'relative', justifyContent: 'center', minHeight: '48px', p: 1 }}>
           <Stack direction="row" alignItems="center" gap={1}>
             <Tag>{option}</Tag>
 
-            <Box sx={{ fontWeight: 600, fontSize: '14px', lineHeight: 1, color: (theme) => theme.palette.grey[800] }}>
+            <Box
+              sx={{
+                fontWeight: (theme) => theme.typography.fontWeightMedium,
+                color: (theme) => theme.palette.grey[800],
+              }}>
               {functionCallInfo?.data?.function?.description}
             </Box>
 
-            <Box sx={{ fontSize: '12px', lineHeight: 1, color: (theme) => theme.palette.grey[500] }}>
+            <Box
+              sx={{
+                fontSize: (theme) => theme.typography.body2.fontSize,
+                color: (theme) => theme.palette.grey[500],
+              }}>
               {functionCallInfo?.data?.function?.name}
             </Box>
           </Stack>
