@@ -37,48 +37,152 @@ import dirname from '../../utils/path';
 import CodeEditor from './code-editer';
 import TemplateAutocomplete from './template-autocomplete';
 
-const toolsSchema = Joi.object({
-  name: Joi.string().required(),
-  description: Joi.string().required(),
-  parameters: Joi.object({
-    type: Joi.string().valid('object').required(),
-    properties: Joi.object().pattern(Joi.string(), Joi.any()).required(),
-    required: Joi.array().items(Joi.string()),
-  }).required(),
-});
+const useSchema = () => {
+  const { t } = useLocaleContext();
 
-const callPromptMessageSchema = Joi.object({
-  id: Joi.string().required(),
-  role: Joi.string().valid('call-prompt').required(),
-  content: Joi.any().forbidden(),
-  output: Joi.string().optional(),
-  template: Joi.object({
-    id: Joi.string().required(),
-    name: Joi.string().optional(),
-  }).required(),
-  parameters: Joi.object().pattern(Joi.string(), Joi.any()).optional(),
-  visibility: Joi.string().valid('hidden').optional(),
-});
+  const toolsSchema = useMemo(() => {
+    return Joi.object({
+      name: Joi.string()
+        .required()
+        .messages({
+          'string.base': t('validateTools.parameter.name.base'),
+          'string.empty': t('validateTools.parameter.name.empty'),
+          'any.required': t('validateTools.parameter.name.required'),
+        }),
+      description: Joi.string()
+        .required()
+        .messages({
+          'string.base': t('validateTools.parameter.description.base'),
+          'string.empty': t('validateTools.parameter.description.empty'),
+          'any.required': t('validateTools.parameter.description.required'),
+        }),
+      parameters: Joi.object({
+        type: Joi.string()
+          .valid('object')
+          .required()
+          .messages({
+            'string.base': t('validateTools.parameter.type.base'),
+            'any.only': t('validateTools.parameter.type.only'),
+            'any.required': t('validateTools.parameter.type.required'),
+          }),
+        properties: Joi.object()
+          .pattern(Joi.string(), Joi.any())
+          .required()
+          .messages({
+            'object.base': t('validateTools.parameter.properties.base'),
+            'any.required': t('validateTools.parameter.properties.required'),
+          }),
+        required: Joi.array()
+          .items(Joi.string())
+          .messages({
+            'array.base': t('validateTools.parameter.required.base'),
+          }),
+      }).required(),
+    });
+  }, [t]);
 
-const callAPIMessageSchema = Joi.object({
-  id: Joi.string().required(),
-  role: Joi.string().valid('call-api').required(),
-  content: Joi.any().forbidden(),
-  method: Joi.string().required(),
-  url: Joi.string().uri().required(),
-  body: Joi.string().optional(),
-  output: Joi.string().optional(),
-  visibility: Joi.string().valid('hidden').optional(),
-});
+  const callPromptMessageSchema = useMemo(() => {
+    return Joi.object({
+      id: Joi.string()
+        .required()
+        .messages({
+          'string.base': t('validateTools.prompt.id.base'),
+          'string.empty': t('validateTools.prompt.id.empty'),
+          'any.required': t('validateTools.prompt.id.required'),
+        }),
+      role: Joi.string().valid('call-prompt').required(),
+      content: Joi.any().forbidden(),
+      output: Joi.string().optional(),
+      template: Joi.object({
+        id: Joi.string()
+          .required()
+          .messages({
+            'string.base': t('validateTools.prompt.templateId.base'),
+            'any.required': t('validateTools.prompt.templateId.required'),
+          }),
+        name: Joi.string()
+          .optional()
+          .messages({
+            'string.base': t('validateTools.prompt.templateName.base'),
+          }),
+      })
+        .required()
+        .messages({
+          'object.base': t('validateTools.prompt.template.base'),
+          'any.required': t('validateTools.prompt.template.required'),
+        }),
+      parameters: Joi.object()
+        .pattern(Joi.string(), Joi.any())
+        .optional()
+        .messages({
+          'object.base': t('validateTools.prompt.parameters.base'),
+        }),
+      visibility: Joi.string().valid('hidden').optional(),
+    });
+  }, [t]);
 
-const callFunctionMessageSchema = Joi.object({
-  id: Joi.string().required(),
-  role: Joi.string().valid('call-function').required(),
-  content: Joi.any().forbidden(),
-  code: Joi.string().required(),
-  output: Joi.string().optional(),
-  visibility: Joi.string().valid('hidden').optional(),
-});
+  const callAPIMessageSchema = useMemo(() => {
+    return Joi.object({
+      id: Joi.string()
+        .required()
+        .messages({
+          'string.base': t('validateTools.api.id.base'),
+          'string.empty': t('validateTools.api.id.empty'),
+          'any.required': t('validateTools.api.id.required'),
+        }),
+      role: Joi.string().valid('call-api').required(),
+      content: Joi.any().forbidden(),
+      method: Joi.string()
+        .required()
+        .messages({
+          'string.base': t('validateTools.api.method.base'),
+          'string.empty': t('validateTools.api.method.empty'),
+          'any.required': t('validateTools.api.method.required'),
+        }),
+      url: Joi.string()
+        .uri()
+        .required()
+        .messages({
+          'string.base': t('validateTools.api.url.base'),
+          'string.uri': t('validateTools.api.url.uri'),
+          'any.required': t('validateTools.api.url.required'),
+        }),
+      body: Joi.string().optional(),
+      output: Joi.string().optional(),
+      visibility: Joi.string().valid('hidden').optional(),
+    });
+  }, [t]);
+
+  const callFunctionMessageSchema = useMemo(() => {
+    return Joi.object({
+      id: Joi.string()
+        .required()
+        .messages({
+          'string.base': t('validateTools.func.id.base'),
+          'string.empty': t('validateTools.func.id.empty'),
+          'any.required': t('validateTools.func.id.required'),
+        }),
+      role: Joi.string().valid('call-function').required(),
+      content: Joi.any().forbidden(),
+      code: Joi.string()
+        .required()
+        .messages({
+          'string.base': t('validateTools.func.code.base'),
+          'string.empty': t('validateTools.func.code.empty'),
+          'any.required': t('validateTools.func.code.required'),
+        }),
+      output: Joi.string().optional(),
+      visibility: Joi.string().valid('hidden').optional(),
+    });
+  }, [t]);
+
+  return {
+    toolsSchema,
+    callPromptMessageSchema,
+    callAPIMessageSchema,
+    callFunctionMessageSchema,
+  };
+};
 
 function convertSchemaToTypescript(properties: { [keyof: string]: { type: string } }) {
   const lines = Object.entries(properties).map(([key, value]) => {
@@ -143,6 +247,7 @@ export default function ToolFunctionCallDialog({
   onClose?: () => void;
 }) {
   const { t } = useLocaleContext();
+  const { toolsSchema, callPromptMessageSchema, callAPIMessageSchema, callFunctionMessageSchema } = useSchema();
 
   const { addToolFunc } = useToolsState({ projectId, gitRef, templateId: template.id });
   const { store, getTemplateById } = useStore(projectId, gitRef);
@@ -202,12 +307,39 @@ export default function ToolFunctionCallDialog({
       const customTypeDefinitions = convertSchemaToTypescript(obj?.parameters?.properties || {});
       if (!customTypeDefinitions) return;
 
-      monaco?.languages?.typescript?.typescriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.parameters.d.ts');
       monaco?.languages?.typescript?.javascriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.parameters.d.ts');
+      monaco?.languages?.typescript?.typescriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.parameters.d.ts');
     }
   }, [monaco]);
 
   const option = getOption(state.call?.extraInfo?.role);
+
+  const parameterRule = useCallback(
+    (json: ToolsMessage['function']) => {
+      const { error } = toolsSchema.validate(json);
+      if (error) {
+        return error?.message;
+      }
+
+      const tools = cloneDeep(template?.tools || {});
+      if (state.call?.id) {
+        delete tools[state.call?.id];
+      }
+
+      const names = Object.values(tools)
+        .map((tool) => {
+          return tool.data?.function?.name;
+        })
+        .filter(Boolean);
+
+      if (names.includes(json.name)) {
+        return t('validateTools.parameter.name.exit');
+      }
+
+      return true;
+    },
+    [state.call?.id, template.tools, t]
+  );
 
   return (
     <Dialog
@@ -230,9 +362,9 @@ export default function ToolFunctionCallDialog({
               <Box>{t('tool.parameterTip')}</Box>
               <Box
                 component={Link}
+                target="_blank"
                 to="https://platform.openai.com/docs/api-reference/chat/create#chat-create-functions"
                 sx={{ color: (theme) => theme.palette.grey[500], fontSize: '12px' }}>
-                target="_blank"
                 {t('tool.viewGuide')}
               </Box>
             </Box>
@@ -283,24 +415,13 @@ export default function ToolFunctionCallDialog({
                   }
 
                   if (typeof value === 'object') {
-                    const { error } = toolsSchema.validate(value);
-                    if (error) {
-                      return error?.message;
-                    }
-
-                    return true;
+                    return parameterRule(value);
                   }
 
                   if (typeof value === 'string') {
                     try {
                       const json = JSON.parse(value);
-
-                      const { error } = toolsSchema.validate(json);
-                      if (error) {
-                        return error?.message;
-                      }
-
-                      return true;
+                      return parameterRule(json);
                     } catch (error) {
                       return error?.message;
                     }

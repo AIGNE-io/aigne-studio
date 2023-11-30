@@ -295,4 +295,81 @@ export default flat({
     dataTip: 'Tools Type:',
     viewGuide: 'View guide',
   },
+  validateTools: {
+    parameter: {
+      name: {
+        base: '"name" must be a string',
+        empty: '"name" cannot be empty',
+        required: '"name" is a required field',
+        exit: '"name" already exists',
+      },
+      description: {
+        base: '"description" must be a string',
+        empty: '"description" cannot be empty',
+        required: '"description" is a required field',
+      },
+      type: {
+        base: 'Type must be a string',
+        only: 'Type must be "object"',
+        required: 'Type is a required field',
+      },
+      properties: {
+        base: 'Properties must be an object',
+        required: 'Properties is a required field',
+      },
+      required: {
+        base: 'Required must be an array of strings',
+      },
+    },
+    prompt: {
+      id: {
+        base: 'Id must be a string',
+        empty: 'Id cannot be empty',
+        required: 'Id is a required field',
+      },
+      templateId: {
+        base: 'Template ID must be a string',
+        required: 'Template ID is a required field',
+      },
+      templateName: {
+        base: 'Template name must be a string',
+      },
+      template: {
+        base: 'Template must be an object',
+        required: 'Template is a required field',
+      },
+      parameters: {
+        base: 'Parameters must be an object',
+      },
+    },
+    api: {
+      id: {
+        base: 'Id must be a string',
+        empty: 'Id cannot be empty',
+        required: 'Id is a required field',
+      },
+      method: {
+        base: 'Method must be a string',
+        empty: 'Method cannot be empty',
+        required: 'Method is a required field',
+      },
+      url: {
+        base: 'URL must be a string',
+        uri: 'URL must be a valid URI',
+        required: 'URL is a required field',
+      },
+    },
+    func: {
+      id: {
+        base: 'Id must be a string',
+        empty: 'Id cannot be empty',
+        required: 'Id is a required field',
+      },
+      code: {
+        base: 'Code must be a string',
+        empty: 'Code cannot be empty',
+        required: 'Code is a required field',
+      },
+    },
+  },
 });

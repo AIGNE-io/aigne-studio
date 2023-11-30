@@ -293,4 +293,81 @@ export default flat({
     dataTip: '工具类型:',
     viewGuide: '查看指南',
   },
+  validateTools: {
+    parameter: {
+      name: {
+        base: '"name" 必须是字符串',
+        empty: '"name" 不能为空',
+        required: '"name" 是必填字段',
+        exit: '"name" 已经存在',
+      },
+      description: {
+        base: '"description" 必须是字符串',
+        empty: '"description" 描述不能为空',
+        required: '"description" 描述是必填字段',
+      },
+      type: {
+        base: '类型必须是字符串',
+        only: '类型必须是"object"',
+        required: '类型是必填字段',
+      },
+      properties: {
+        base: '属性必须是一个对象',
+        required: '属性是必填字段',
+      },
+      required: {
+        base: 'Required 必须是字符串数组',
+      },
+    },
+    prompt: {
+      id: {
+        base: 'Id 必须是字符串',
+        empty: 'Id 不能为空',
+        required: 'Id 是必填字段',
+      },
+      templateId: {
+        base: '模板 ID 必须是字符串',
+        required: '模板 ID 是必填字段',
+      },
+      templateName: {
+        base: '模板名称必须是字符串',
+      },
+      template: {
+        base: '模板必须是对象',
+        required: '模板是必填字段',
+      },
+      parameters: {
+        base: '参数必须是对象',
+      },
+    },
+    api: {
+      id: {
+        base: 'Id 必须是字符串',
+        empty: 'Id 不能为空',
+        required: 'Id 是必填字段',
+      },
+      method: {
+        base: '方法必须是字符串',
+        empty: '方法不能为空',
+        required: '方法是必填字段',
+      },
+      url: {
+        base: 'URL 必须是字符串',
+        uri: 'URL 必须是有效的 URI',
+        required: 'URL 是必填字段',
+      },
+    },
+    func: {
+      id: {
+        base: 'Id 必须是字符串',
+        empty: 'Id 不能为空',
+        required: 'Id 是必填字段',
+      },
+      code: {
+        base: '代码必须是字符串',
+        empty: '代码不能为空',
+        required: '代码是必填字段',
+      },
+    },
+  },
 });
