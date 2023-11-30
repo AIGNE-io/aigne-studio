@@ -620,23 +620,38 @@ async function runTemplate(
     }
 
     if (current.type === 'image') {
-      const { size, number } = await Joi.object<{ size: string; number: number }>({
-        size: Joi.alternatives()
-          .try(Joi.string().valid('256x256', '512x512', '1024x1024'), Joi.any().empty(Joi.any()))
-          .empty(Joi.valid(null, ''))
-          .default('256x256'),
-        number: Joi.number().min(1).max(10).empty(Joi.valid('', null)).default(1),
-      }).validateAsync(parameters, { stripUnknown: true });
+      // eslint-disable-next-line no-await-in-loop
+      const { size, number, model } = await Joi.object<{ size: string; number: number; model: 'string' }>({
+        model: Joi.string().valid('dall-e-3', 'dall-e-2').empty(Joi.valid('', null)).default('dall-e-2'),
+        size: Joi.when('model', {
+          is: 'dall-e-3',
+          then: Joi.alternatives()
+            .try(Joi.string().valid('1024x1024', '1024x1792', '1792x1024'), Joi.any().empty(Joi.any()))
+            .empty(Joi.valid(null, ''))
+            .default('1024x1024'),
+          otherwise: Joi.alternatives()
+            .try(Joi.string().valid('256x256', '512x512', '1024x1024'), Joi.any().empty(Joi.any()))
+            .empty(Joi.valid(null, ''))
+            .default('256x256'),
+        }),
+        number: Joi.when('model', {
+          is: 'dall-e-3',
+          then: Joi.number().valid(1).empty(Joi.valid('', null)).default(1),
+          otherwise: Joi.number().min(1).max(10).empty(Joi.valid('', null)).default(1),
+        }),
+      }).validateAsync({ ...parameters, model: current?.model }, { stripUnknown: true });
 
+      // eslint-disable-next-line no-await-in-loop
       const response = await call<{ data: ImagesResponseDataInner[] }>({
         name: 'ai-kit',
         path: '/api/v1/sdk/image/generations',
         method: 'POST',
         data: {
-          prompt: prompt.map((i) => i.content).join('\n'),
           size,
+          model,
           n: number,
           response_format: 'b64_json',
+          prompt: prompt.map((i) => i.content).join('\n'),
         },
       });
 

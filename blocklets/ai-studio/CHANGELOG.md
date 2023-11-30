@@ -1,3 +1,7 @@
+## 0.1.151 (2023-11-30)
+
+- feat: support more model
+
 ## 0.1.150 (2023-11-30)
 
 - chore: replace url join package

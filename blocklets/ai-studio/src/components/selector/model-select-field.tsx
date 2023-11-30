@@ -13,17 +13,20 @@ import { groupBy } from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useAsync } from 'react-use';
 
-import { getSupportedModels } from '../../libs/common';
+import { getSupportedImagesModels, getSupportedModels } from '../../libs/common';
 import AzureIcon from './ai-icons/azure';
 import HuggingFaceIcon from './ai-icons/hugging-face';
 import OpenAIIcon from './ai-icons/openai';
 import ReplicateIcon from './ai-icons/replicate';
 import VertexAIIcon from './ai-icons/vertex-ai';
 
-export default function ModelSelectField({ ...props }: TextFieldProps) {
+export default function ModelSelectField({ isImageModel, ...props }: { isImageModel?: boolean } & TextFieldProps) {
   const { t } = useLocaleContext();
 
-  const { value, loading, error } = useAsync(() => getSupportedModels(), []);
+  const { value, loading, error } = useAsync(() => {
+    return isImageModel ? getSupportedImagesModels() : getSupportedModels();
+  }, [isImageModel]);
+
   if (error) throw error;
 
   useEffect(() => {
