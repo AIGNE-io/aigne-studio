@@ -29,7 +29,7 @@
     "LICENSE",
     "package.json",
     "README.md",
-    "**/*.d.ts"
+    "tsconfig.json"
   ],
   "repository": {
     "type": "git",
