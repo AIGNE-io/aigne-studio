@@ -131,7 +131,7 @@ export function usePromptState({
       const editorState = await text2EditorState(content, role);
       setState((v) => ({ ...v, editorState }));
     }
-  }, [prompt?.data.content, prompt?.data.role, readOnly]);
+  }, [key, prompt?.data.content, prompt?.data.role, readOnly]);
 
   return { state, prompt, setEditorState, deletePrompt };
 }

@@ -1,3 +1,7 @@
+## 0.1.153 (2023-12-1)
+
+- fix: the prompt does not render
+
 ## 0.1.152 (2023-11-30)
 
 - feat: support function calling
