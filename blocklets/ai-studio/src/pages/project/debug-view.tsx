@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css, cx } from '@emotion/css';
-import { Add, CopyAll } from '@mui/icons-material';
+import { Add, CopyAll, ErrorRounded } from '@mui/icons-material';
 import {
   Alert,
   Avatar,
@@ -251,7 +251,11 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
           ) : null}
 
           {message.error ? (
-            <Alert variant="standard" color="error" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+            <Alert
+              variant="standard"
+              icon={<ErrorRounded />}
+              color="error"
+              sx={{ display: 'inline-flex', px: 1, py: 0 }}>
               {message.error.message}
             </Alert>
           ) : (

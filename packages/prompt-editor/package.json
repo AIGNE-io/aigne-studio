@@ -1,11 +1,12 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.1.153",
+  "version": "0.1.154",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
+  "types": "./lib/types/index.d.js",
   "exports": {
     ".": {
       "import": "./lib/esm/index.js",
@@ -16,12 +17,22 @@
       "require": "./lib/cjs/utils.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/types/index.d.ts"
+      ],
+      "utils": [
+        "./lib/types/utils.d.ts"
+      ]
+    }
+  },
   "files": [
     "lib",
     "LICENSE",
     "package.json",
     "README.md",
-    "**/*.d.ts"
+    "tsconfig.json"
   ],
   "repository": {
     "type": "git",
@@ -38,7 +49,7 @@
     "build": "npm run clean && run-p build:*",
     "build:cjs": "tsc --module commonjs --outDir lib/cjs",
     "build:esm": "tsc --module es2022 --outDir lib/esm",
-    "build:types": "tsc --declaration --emitDeclarationOnly --outDir .",
+    "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
     "build:css-cjs": "copyfiles -u 1 './src/**/*.css' lib/cjs/",
     "build:css-esm": "copyfiles -u 1 './src/**/*.css' lib/esm/",
     "dev": "run-p 'build:* -- -w'",

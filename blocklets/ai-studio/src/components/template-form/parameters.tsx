@@ -82,7 +82,7 @@ export default function Parameters({
         headerAlign: 'center',
         sortable: false,
         align: 'center',
-        width: 120,
+        width: 140,
         renderCell: ({ row }) => {
           const parameter = form.parameters?.[row.param];
 
@@ -106,7 +106,9 @@ export default function Parameters({
                     (form.parameters[row.param] as StringParameter)!.multiline = true;
                   } else {
                     form.parameters[row.param]!.type = newValue as any;
-                    delete (form.parameters[row.param] as StringParameter)!.multiline;
+                    if (typeof (form.parameters[row.param] as StringParameter).multiline !== 'undefined') {
+                      delete (form.parameters[row.param] as StringParameter)!.multiline;
+                    }
                   }
                 });
               }}

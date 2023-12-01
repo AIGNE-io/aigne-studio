@@ -1,11 +1,14 @@
+/* eslint-disable import/no-extraneous-dependencies */
+
 import { existsSync } from 'fs';
 
-/* eslint-disable import/no-extraneous-dependencies */
 import react from '@vitejs/plugin-react';
 import { PluginOption, defineConfig } from 'vite';
 import { createBlockletPlugin } from 'vite-plugin-blocklet';
 import svgr from 'vite-plugin-svgr';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
+// NOTE: 我们项目中有一些页面路径是以 .yaml 结尾的，vite 默认不支持这样的路径（会返回 404）
 const dotPathFixPlugin: () => PluginOption = () => ({
   name: 'dot-path-fix-plugin',
   configureServer: (server) => {
@@ -27,7 +30,7 @@ const dotPathFixPlugin: () => PluginOption = () => ({
 // https://vitejs.dev/config/
 export default defineConfig(() => {
   return {
-    plugins: [dotPathFixPlugin(), react(), createBlockletPlugin(), svgr()],
+    plugins: [tsconfigPaths(), dotPathFixPlugin(), react(), createBlockletPlugin(), svgr()],
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,

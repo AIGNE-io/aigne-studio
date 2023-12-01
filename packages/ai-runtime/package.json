@@ -1,7 +1,7 @@
 {
-  "name": "@blocklet/studio-ui",
+  "name": "@blocklet/ai-runtime",
   "version": "0.1.154",
-  "description": "UI components for studio",
+  "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
   },
@@ -48,11 +48,17 @@
     "update:deps": "npx taze -n '/arcblock|ocap|abtnode|blocklet|did-connect|did-comment|nedb/' -w && npm run deduplicate && yarn",
     "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@microsoft/fetch-event-source": "^2.0.1",
+    "ahooks": "^3.7.8",
+    "axios": "^1.6.2",
+    "lodash": "^4.17.21",
+    "react-hook-form": "^7.48.2",
+    "recoil": "^0.7.7",
+    "ufo": "^1.3.2"
+  },
   "peerDependencies": {
-    "@arcblock/did-connect": "^2.7.25",
-    "@arcblock/ux": "^2.7.25",
-    "@blocklet/ui-react": "^2.7.25",
+    "@arcblock/ux": "^2.8.17",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.1",
     "@mui/icons-material": "^5.14.11",
@@ -62,14 +68,14 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/did-connect": "^2.8.14",
-    "@arcblock/ux": "^2.8.14",
-    "@blocklet/ui-react": "^2.8.14",
+    "@arcblock/ux": "^2.8.17",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.1",
     "@mui/icons-material": "^5.14.11",
     "@mui/lab": "^5.0.0-alpha.146",
     "@mui/material": "^5.14.11",
+    "@types/lodash": "^4.14.202",
+    "@types/mustache": "^4.2.5",
     "@types/react": "^18.2.23",
     "npm-run-all": "^4.1.5",
     "react": "^18.2.0",

@@ -1,13 +1,13 @@
 {
   "name": "ai-studio",
-  "version": "0.1.153",
+  "version": "0.1.154",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
     "eject": "vite eject",
     "lint": "tsc --noEmit && eslint src api/src --ext .mjs,.js,.jsx,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
-    "start": "cross-env NODE_ENV=development nodemon api/dev.ts -w api",
+    "start": "cross-env NODE_ENV=development nodemon",
     "clean": "node scripts/build-clean.js",
     "build": "tsc --noEmit && npm run bundle:client && tsc -p tsconfig.api.json",
     "bundle": "tsc --noEmit && npm run bundle:client && npm run bundle:api",
@@ -37,13 +37,14 @@
     "@arcblock/ux": "^2.8.14",
     "@beskar-labs/gpt-encoder": "^1.0.6",
     "@blocklet/ai-kit": "^0.0.71",
-    "@blocklet/co-git": "^0.1.153",
+    "@blocklet/ai-runtime": "^0.1.154",
+    "@blocklet/co-git": "^0.1.154",
     "@blocklet/constant": "^1.16.18",
     "@blocklet/discuss-kit": "^1.5.178",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
-    "@blocklet/prompt-editor": "^0.1.153",
+    "@blocklet/prompt-editor": "^0.1.154",
     "@blocklet/sdk": "^1.16.18",
-    "@blocklet/studio-ui": "^0.1.153",
+    "@blocklet/studio-ui": "^0.1.154",
     "@blocklet/ui-react": "^2.8.14",
     "@blocklet/uploader": "^0.0.45",
     "@emotion/css": "^11.10.5",
@@ -151,6 +152,7 @@
     "vite": "^4.4.9",
     "vite-plugin-blocklet": "^0.6.15",
     "vite-plugin-svgr": "^2.4.0",
+    "vite-tsconfig-paths": "^4.2.1",
     "zx": "^7.1.1"
   }
 }

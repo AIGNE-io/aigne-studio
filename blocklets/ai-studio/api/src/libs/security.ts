@@ -42,3 +42,7 @@ export function ensureComponentCallOrAdmin() {
 export function ensureComponentCallOrPromptsEditor() {
   return ensureComponentCallOr(ensurePromptsEditor);
 }
+
+export function ensureComponentCallOrAuth() {
+  return ensureComponentCallOr(auth());
+}

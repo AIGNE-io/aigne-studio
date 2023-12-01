@@ -5,7 +5,7 @@ import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
-import { uniqBy } from 'lodash';
+import { pick, uniqBy } from 'lodash';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import sample from 'lodash/sample';
@@ -136,6 +136,14 @@ const exportImportSchema = Joi.object<{
   projectId: Joi.string().required().min(1),
   ref: Joi.string(),
   resources: Joi.array().items(Joi.string()).required(),
+});
+
+export interface GetTemplateQuery {
+  working?: boolean;
+}
+
+const getTemplateQuerySchema = Joi.object<GetTemplateQuery>({
+  working: Joi.boolean().empty([null, '']),
 });
 
 export function projectRoutes(router: Router) {
@@ -465,5 +473,18 @@ export function projectRoutes(router: Router) {
     await project.update({ gitLastSyncedAt: new Date() });
 
     res.json({});
+  });
+
+  router.get('/projects/:projectId/refs/:ref/templates/:templateId', async (req, res) => {
+    const { projectId, ref, templateId } = req.params;
+    const query = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+    await Projects.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
+
+    const repository = await getRepository({ projectId });
+
+    const template = await getTemplate({ repository, ref, templateId, working: query.working });
+
+    res.json(pick(template, 'id', 'name', 'type', 'parameters'));
   });
 }
