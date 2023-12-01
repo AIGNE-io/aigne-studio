@@ -1,10 +1,14 @@
 import { COMMENT_PREFIX } from '@blocklet/prompt-editor/utils';
-import { call } from '@blocklet/sdk/lib/component';
+import { call, getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
+import { sign } from '@blocklet/sdk/lib/util/verify-sign';
+import axios from 'axios';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
+import isNil from 'lodash/isNil';
 import fetch from 'node-fetch';
 import { ImagesResponseDataInner } from 'openai';
+import { joinURL } from 'ufo';
 import { NodeVM } from 'vm2';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
@@ -14,7 +18,9 @@ import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
 import { Project, defaultBranch, getRepository } from '../store/projects';
 import {
-  CallMessage,
+  CallAPIMessage,
+  CallFuncMessage,
+  CallPromptMessage,
   PromptMessage,
   Role,
   Template,
@@ -22,6 +28,7 @@ import {
   isCallAPIMessage,
   isCallDatasetMessage,
   isCallFuncMessage,
+  isCallMacroMessage,
   isCallPromptMessage,
   isPromptMessage,
 } from '../store/templates';
@@ -217,6 +224,58 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
   }
 });
 
+function formatFunctionCallName(dataList: string[]): {
+  id: string;
+  type: string;
+  name: string;
+  content: string[];
+  arguments: string;
+} {
+  let functionName = '';
+  let allArguments = '';
+  let id = '';
+  let type = '';
+  const content = [];
+
+  for (const dataString of dataList) {
+    if (dataString && dataString.trim()) {
+      try {
+        const dataObject = JSON.parse(dataString.substring(dataString.indexOf('{')));
+        const toolCalls = dataObject.delta?.toolCalls;
+
+        if (!isNil(dataObject.delta.content)) {
+          content.push(dataObject.delta.content);
+        }
+
+        if (toolCalls && Array.isArray(toolCalls)) {
+          for (const call of toolCalls) {
+            if (call.id) {
+              id = call.id;
+            }
+
+            if (call.type) {
+              type = call.type;
+            }
+
+            if (call.type === 'function' && call.function) {
+              if (!functionName) {
+                functionName = call.function.name;
+              }
+            }
+
+            // 拼接arguments
+            allArguments += call.function.arguments;
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing data:', error);
+      }
+    }
+  }
+
+  return { content, id, type, arguments: allArguments, name: functionName };
+}
+
 async function runTemplate(
   project: Project | undefined | null,
   getTemplate: (templateId: string) => Promise<Template>,
@@ -235,10 +294,24 @@ async function runTemplate(
     | 'datasets'
     | 'branch'
     | 'next'
+    | 'tools'
   >,
   parameters:
     | {
-        $history?: { role: Role; content: string }[];
+        $history?: {
+          role: Role;
+          content: string;
+          name?: string;
+          toolCallId?: string;
+          toolCalls?: {
+            id: string;
+            type: string;
+            function: {
+              name: string;
+              arguments: string;
+            };
+          }[];
+        }[];
         [key: string]: any;
       }
     | undefined,
@@ -261,34 +334,89 @@ async function runTemplate(
       next = undefined;
     }
 
-    const renderMessage = async (message: string) => {
-      return Mustache.render(message, variables, undefined, { escape: (v) => v });
+    const renderMessage = async (message: string, parameterVariables?: typeof parameters) => {
+      return Mustache.render(message, parameterVariables || variables, undefined, { escape: (v) => v });
     };
-    const vm = new NodeVM({
-      console: 'inherit',
-      sandbox: {
-        context: {
-          get: (name: any) => {
-            let result = variables[name];
-            while (typeof result === 'function') {
-              result = result();
-            }
-
-            return result;
-          },
-        },
-      },
-    });
 
     const variablesCache: { [key: string]: Promise<string> } = {};
 
-    const emitCall = ({ item, result }: { item: CallMessage; result: string | object }) => {
+    const emitCall = ({ item, result }: { item: { output: string }; result: string | object }) => {
       callback?.({
         type: 'call',
         templateId: current?.id || '',
         variableName: item.output,
         result: result ? JSON.stringify(result) : result,
       });
+    };
+
+    const executingAPIFn = async (item: CallAPIMessage, args?: any) => {
+      const url = await renderMessage(item.url);
+      const params: { method: string; body?: string } = { method: item.method };
+
+      const body = args ?? item.body;
+      if (body && ['post', 'put', 'patch', 'delete'].includes(item.method)) {
+        params.body = await renderMessage(body);
+      }
+
+      const response = await fetch(url, params);
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+      }
+
+      const contentType = response.headers.get('Content-Type');
+      const result: any = contentType?.includes('application/json') ? await response.json() : await response.text();
+
+      return result;
+    };
+
+    const executingFuncFn = async (item: CallFuncMessage, args?: any) => {
+      const vm = new NodeVM({
+        console: 'inherit',
+        sandbox: {
+          context: {
+            get: (name: any) => {
+              let result = args[name] || variables[name];
+
+              while (typeof result === 'function') {
+                result = result();
+              }
+
+              return result;
+            },
+          },
+          fetch,
+          parameters: args || {},
+        },
+      });
+
+      const functionInSandbox = vm.run(`module.exports = async function() { ${item.code} }`);
+      const result = await functionInSandbox();
+      return result;
+    };
+
+    const executingPromptFn = async (item: CallPromptMessage, args?: any) => {
+      if (!item.template) throw new Error('Required property `template` is not present');
+      const template = await getTemplate(item.template.id);
+      const parameters = args ?? item.parameters ?? {};
+
+      const result = await runTemplate(
+        project,
+        getTemplate,
+        template,
+        Object.fromEntries(
+          await Promise.all(
+            Object.entries(parameters).map(async ([key, val]) => [
+              key,
+              !val ? variables[key] : typeof val === 'string' ? await renderMessage(val) : val,
+            ])
+          )
+        ),
+        (options) => callback?.({ ...options, isFinalTemplate: false }),
+        log
+      );
+
+      return result;
     };
 
     const variables = {
@@ -298,27 +426,13 @@ async function runTemplate(
           item.output,
           () => async () => {
             variablesCache[item.output] ??= (async () => {
-              if (!item.template) throw new Error('Required property `template` is not present');
-              const template = await getTemplate(item.template.id);
-              const result = await runTemplate(
-                project,
-                getTemplate,
-                template,
-                Object.fromEntries(
-                  await Promise.all(
-                    Object.entries(item.parameters ?? {}).map(async ([key, val]) => [
-                      key,
-                      !val ? variables[key] : typeof val === 'string' ? await renderMessage(val) : val,
-                    ])
-                  )
-                ),
-                (options) => callback?.({ ...options, isFinalTemplate: false }),
-                log
-              );
+              const result = await executingPromptFn(item);
 
-              emitCall({ item, result });
+              if (result.type === 'text') {
+                emitCall({ item: { output: `Prompt Called: ${item.output}` }, result: result.text });
+                return result.text;
+              }
 
-              if (result.type === 'text') return result.text;
               throw new Error(`Unsupported response from call prompt ${result.type}`);
             })();
             return variablesCache[item.output];
@@ -332,24 +446,8 @@ async function runTemplate(
             variablesCache[item.output] ??= (async () => {
               if (!item.url) throw new Error('Required property `url` is not present');
 
-              const url = await renderMessage(item.url);
-              const params: { method: string; body?: string } = { method: item.method };
-
-              if (item.body && ['post', 'put', 'patch', 'delete'].includes(item.method)) {
-                params.body = await renderMessage(item.body);
-              }
-
-              const response = await fetch(url, params);
-
-              if (!response.ok) {
-                throw new Error(`HTTP Error! Status: ${response.status}`);
-              }
-
-              const contentType = response.headers.get('Content-Type');
-              const result: any = contentType?.includes('application/json')
-                ? await response.json()
-                : await response.text();
-              emitCall({ item, result });
+              const result = await executingAPIFn(item);
+              emitCall({ item: { output: `API Called: ${item.output}` }, result });
 
               return result;
             })();
@@ -364,10 +462,8 @@ async function runTemplate(
             variablesCache[item.output] ??= (async () => {
               if (!item.code) return '';
 
-              const functionInSandbox = vm.run(`module.exports = async function() { ${item.code} }`);
-              const result = await functionInSandbox();
-
-              emitCall({ item, result });
+              const result = await executingFuncFn(item);
+              emitCall({ item: { output: `Code Called: ${item.output}` }, result });
 
               return result;
             })();
@@ -387,12 +483,56 @@ async function runTemplate(
               }
 
               const messagesString = await renderMessage(item.parameters.query);
-
               const dataset = await VectorStore.load(item.vectorStore.id, new AIKitEmbeddings());
               const docs = await dataset.similaritySearch(messagesString, 4);
               const result = docs.map((doc) => doc.pageContent).join('\n');
 
-              emitCall({ item, result });
+              emitCall({ item: { output: `Dataset Called: ${item.output}` }, result });
+
+              return result;
+            })();
+            return variablesCache[item.output];
+          },
+        ])
+      ),
+      ...Object.fromEntries(
+        (current.prompts ?? []).filter(isCallMacroMessage).map((item) => [
+          item.output,
+          () => async () => {
+            variablesCache[item.output] ??= (async () => {
+              if (!item.template) throw new Error('Required property `template` is not present');
+              const template = await getTemplate(item.template.id);
+
+              const parameters = Object.fromEntries(
+                await Promise.all(
+                  Object.entries(item.parameters ?? {}).map(async ([key, val]) => [
+                    key,
+                    !val ? variables[key] : typeof val === 'string' ? await renderMessage(val) : val,
+                  ])
+                )
+              );
+
+              const messages = await Promise.all(
+                (template.prompts ?? [])
+                  .filter(
+                    (i): i is PromptMessage & Required<Pick<PromptMessage, 'role' | 'content'>> =>
+                      isPromptMessage(i) && !!i.content && i.visibility !== 'hidden'
+                  )
+                  .map(async (item) => {
+                    // 过滤注释节点
+                    const content = item.content
+                      .split(/\n/)
+                      .filter((x) => !x.startsWith(COMMENT_PREFIX))
+                      .join('\n');
+
+                    const prompt = await renderMessage(content, parameters);
+
+                    return { content: prompt };
+                  })
+              );
+
+              const result = messages.map((x) => x.content).join('\n');
+              emitCall({ item: { output: `Macro Called: ${item.output}` }, result });
 
               return result;
             })();
@@ -480,23 +620,38 @@ async function runTemplate(
     }
 
     if (current.type === 'image') {
-      const { size, number } = await Joi.object<{ size: string; number: number }>({
-        size: Joi.alternatives()
-          .try(Joi.string().valid('256x256', '512x512', '1024x1024'), Joi.any().empty(Joi.any()))
-          .empty(Joi.valid(null, ''))
-          .default('256x256'),
-        number: Joi.number().min(1).max(10).empty(Joi.valid('', null)).default(1),
-      }).validateAsync(parameters, { stripUnknown: true });
+      // eslint-disable-next-line no-await-in-loop
+      const { size, number, model } = await Joi.object<{ size: string; number: number; model: 'string' }>({
+        model: Joi.string().valid('dall-e-3', 'dall-e-2').empty(Joi.valid('', null)).default('dall-e-2'),
+        size: Joi.when('model', {
+          is: 'dall-e-3',
+          then: Joi.alternatives()
+            .try(Joi.string().valid('1024x1024', '1024x1792', '1792x1024'), Joi.any().empty(Joi.any()))
+            .empty(Joi.valid(null, ''))
+            .default('1024x1024'),
+          otherwise: Joi.alternatives()
+            .try(Joi.string().valid('256x256', '512x512', '1024x1024'), Joi.any().empty(Joi.any()))
+            .empty(Joi.valid(null, ''))
+            .default('256x256'),
+        }),
+        number: Joi.when('model', {
+          is: 'dall-e-3',
+          then: Joi.number().valid(1).empty(Joi.valid('', null)).default(1),
+          otherwise: Joi.number().min(1).max(10).empty(Joi.valid('', null)).default(1),
+        }),
+      }).validateAsync({ ...parameters, model: current?.model }, { stripUnknown: true });
 
+      // eslint-disable-next-line no-await-in-loop
       const response = await call<{ data: ImagesResponseDataInner[] }>({
         name: 'ai-kit',
         path: '/api/v1/sdk/image/generations',
         method: 'POST',
         data: {
-          prompt: prompt.map((i) => i.content).join('\n'),
           size,
+          model,
           n: number,
           response_format: 'b64_json',
+          prompt: prompt.map((i) => i.content).join('\n'),
         },
       });
 
@@ -516,34 +671,105 @@ async function runTemplate(
       startDate: childStartDate,
     });
 
-    const { data } = await call({
-      name: 'ai-kit',
-      path: '/api/v1/sdk/completions',
-      method: 'POST',
-      data: {
-        modelName: current.model ?? project?.model,
-        temperature: current.temperature ?? project?.temperature,
-        topP: current.topP ?? project?.topP,
-        presencePenalty: current.presencePenalty ?? project?.presencePenalty,
-        frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
-        maxTokens: current.maxTokens ?? project?.maxTokens,
-        stream: true,
-        messages: prompt,
-      },
-      responseType: 'stream',
-    });
+    const callGPT = async () => {
+      if (!current) {
+        throw new Error('template is null');
+      }
+
+      while (true) {
+        const input = {
+          modelName: current.model ?? project?.model,
+          temperature: current.temperature ?? project?.temperature,
+          topP: current.topP ?? project?.topP,
+          presencePenalty: current.presencePenalty ?? project?.presencePenalty,
+          frequencyPenalty: current.frequencyPenalty ?? project?.frequencyPenalty,
+          maxTokens: current.maxTokens ?? project?.maxTokens,
+          stream: true,
+          messages: prompt,
+          tools: current.tools
+            ? current.tools.map((item) => {
+                return {
+                  type: 'function',
+                  function: item.function,
+                };
+              })
+            : undefined,
+          tool_choice: current.tools ? 'auto' : undefined,
+        };
+
+        // eslint-disable-next-line no-await-in-loop
+        const { data } = await axios.post(
+          joinURL(getComponentWebEndpoint('ai-kit'), '/api/v1/sdk/completions'),
+          input,
+          {
+            method: 'POST',
+            responseType: 'stream',
+            headers: { Accept: 'text/event-stream', 'x-component-sig': sign(input) },
+          }
+        );
+
+        const list = [];
+        const decoder = new TextDecoder();
+        for await (const chunk of data) {
+          const token = decoder.decode(chunk);
+          list.push(...token.split('\n\n').filter(Boolean));
+        }
+
+        const format = formatFunctionCallName(list.filter(Boolean));
+
+        const name = format?.name;
+        const args = format?.arguments;
+        if (name && current.tools) {
+          let functionArgs;
+          try {
+            functionArgs = args ? JSON.parse(args) : undefined;
+          } catch (error) {
+            functionArgs = undefined;
+          }
+
+          const func = current.tools.find((i) => i.function.name === name);
+          if (!func) {
+            throw new Error(`No ${name} function is currently provided`);
+          }
+
+          let result;
+          if (isCallAPIMessage(func.extraInfo)) {
+            result = await executingAPIFn(func.extraInfo, functionArgs);
+          } else if (isCallFuncMessage(func.extraInfo)) {
+            result = await executingFuncFn(func.extraInfo, functionArgs);
+          } else if (isCallPromptMessage(func.extraInfo)) {
+            result = await executingPromptFn(func.extraInfo, functionArgs);
+          }
+
+          if (result) {
+            emitCall({ item: { output: `tools ${name || ''} called` }, result });
+
+            // 其实就是 data[0] 的数据
+            prompt.push({
+              role: 'assistant',
+              content: '',
+              toolCalls: [
+                {
+                  id: format.id,
+                  type: format.type,
+                  function: { name, arguments: functionArgs ? JSON.stringify(functionArgs) : '' },
+                },
+              ],
+            });
+
+            prompt.push({ role: 'tool', content: JSON.stringify(result), toolCallId: format.id });
+          }
+        } else {
+          return format.content;
+        }
+      }
+    };
+
+    const data = await callGPT();
 
     let text = '';
-    const decoder = new TextDecoder();
-
-    for await (const chunk of data) {
-      const token = decoder.decode(chunk);
-      callback?.({
-        isFinalTemplate,
-        token,
-        templateId: current?.id || '',
-        templateName: current?.name || '',
-      });
+    for (const token of data) {
+      callback?.({ token, isFinalTemplate, templateId: current?.id || '', templateName: current?.name || '' });
       text += token;
     }
 

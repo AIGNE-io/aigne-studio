@@ -239,6 +239,9 @@ export default flat({
   selectObject: 'Select {object}',
   template: 'Template',
   call: {
+    prompt: {
+      select: 'Select Template',
+    },
     api: {
       placeholder: 'API ',
       body: 'Body (JSON)',
@@ -254,6 +257,7 @@ export default flat({
       api: 'Execute API',
       func: 'Execute JS Function',
       dataset: 'Query Dataset',
+      macro: 'Reference Macro',
     },
   },
   remoteGitRepo: 'Remote Git Repo',
@@ -273,4 +277,99 @@ export default flat({
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
+  tool: {
+    title: 'Tools',
+    edit: 'Edit Function Call',
+    delete: 'Delete this function call',
+    validate: {
+      notSupported: 'The current type is not supported',
+      notEmpty: 'Parameter data cannot be empty',
+      json: 'Json syntax is correct',
+    },
+    types: {
+      prompt: 'Prompt calling',
+      api: 'API calling',
+      code: 'Function calling',
+    },
+    parameterTip: 'Input the structure of functions call:',
+    dataTip: 'Tools Type:',
+    viewGuide: 'View guide',
+  },
+  validateTools: {
+    parameter: {
+      name: {
+        base: '"name" must be a string',
+        empty: '"name" cannot be empty',
+        required: '"name" is a required field',
+        exit: '"name" already exists',
+      },
+      description: {
+        base: '"description" must be a string',
+        empty: '"description" cannot be empty',
+        required: '"description" is a required field',
+      },
+      type: {
+        base: 'Type must be a string',
+        only: 'Type must be "object"',
+        required: 'Type is a required field',
+      },
+      properties: {
+        base: 'Properties must be an object',
+        required: 'Properties is a required field',
+      },
+      required: {
+        base: 'Required must be an array of strings',
+      },
+    },
+    prompt: {
+      id: {
+        base: 'Id must be a string',
+        empty: 'Id cannot be empty',
+        required: 'Id is a required field',
+      },
+      templateId: {
+        base: 'Template ID must be a string',
+        required: 'Template ID is a required field',
+      },
+      templateName: {
+        base: 'Template name must be a string',
+      },
+      template: {
+        base: 'Template must be an object',
+        required: 'Template is a required field',
+      },
+      parameters: {
+        base: 'Parameters must be an object',
+      },
+    },
+    api: {
+      id: {
+        base: 'Id must be a string',
+        empty: 'Id cannot be empty',
+        required: 'Id is a required field',
+      },
+      method: {
+        base: 'Method must be a string',
+        empty: 'Method cannot be empty',
+        required: 'Method is a required field',
+      },
+      url: {
+        base: 'URL must be a string',
+        uri: 'URL must be a valid URI',
+        required: 'URL is a required field',
+      },
+    },
+    func: {
+      id: {
+        base: 'Id must be a string',
+        empty: 'Id cannot be empty',
+        required: 'Id is a required field',
+      },
+      code: {
+        base: 'Code must be a string',
+        empty: 'Code cannot be empty',
+        required: 'Code is a required field',
+      },
+    },
+  },
 });

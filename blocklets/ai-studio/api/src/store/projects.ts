@@ -10,7 +10,7 @@ import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
-import env from '../libs/env';
+import { Config } from '../libs/env';
 import { defaultModel } from '../libs/models';
 import type { ParameterYjs, Template } from './templates';
 
@@ -85,7 +85,8 @@ export const defaultBranch = 'main';
 
 export const defaultRemote = 'origin';
 
-export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'datasets' | 'parameters' | 'tests'> {
+export interface TemplateYjs
+  extends Omit<Template, 'prompts' | 'branch' | 'datasets' | 'parameters' | 'tests' | 'tools'> {
   prompts?: {
     [key: string]: {
       index: number;
@@ -117,6 +118,13 @@ export interface TemplateYjs extends Omit<Template, 'prompts' | 'branch' | 'data
       data: NonNullable<Template['tests']>[number];
     };
   };
+
+  tools?: {
+    [key: string]: {
+      index: number;
+      data: NonNullable<Template['tools']>[number];
+    };
+  };
 }
 
 type FileType = TemplateYjs | { $base64: string };
@@ -127,7 +135,7 @@ export function isTemplate(file: FileType): file is TemplateYjs {
 
 const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
 
-export const repositoryRoot = (projectId: string) => path.join(env.dataDir, 'repositories', projectId);
+export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
 
 export async function getRepository({ projectId }: { projectId: string }) {
   repositories[projectId] ??= (async () => {
@@ -290,6 +298,7 @@ export function templateToYjs(template: Template): TemplateYjs {
       template.datasets &&
       Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
     tests: template.tests && Object.fromEntries(template.tests.map((test, index) => [test.id, { index, data: test }])),
+    tools: template.tools && Object.fromEntries(template.tools.map((tool, index) => [tool.id, { index, data: tool }])),
   };
 }
 
@@ -316,6 +325,7 @@ export function yjsToTemplate(template: TemplateYjs): Template {
     },
     datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
     tests: template.tests && sortBy(Object.values(template.tests), 'index').map(({ data }) => data),
+    tools: template.tools && sortBy(Object.values(template.tools), 'index').map(({ data }) => data),
   };
 }
 

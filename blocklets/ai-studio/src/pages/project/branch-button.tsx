@@ -17,7 +17,7 @@ import {
 import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import joinUrl from 'url-join';
+import { joinURL } from 'ufo';
 
 import Dropdown from '../../components/template-form/dropdown';
 import { getErrorMessage } from '../../libs/api';
@@ -63,7 +63,7 @@ export default function BranchButton({
           <BranchList
             projectId={projectId}
             _ref={gitRef}
-            onItemClick={(branch) => branch !== gitRef && navigate(joinUrl('..', branch), { state: { filepath } })}
+            onItemClick={(branch) => branch !== gitRef && navigate(joinURL('..', branch), { state: { filepath } })}
             onShowAllClick={() => {
               showDialog({
                 maxWidth: 'sm',
@@ -103,7 +103,7 @@ export default function BranchButton({
                               Toast.success(t('alert.branchCreated'));
                               closeDialog();
 
-                              navigate(joinUrl('..', data.new), { state: { filepath } });
+                              navigate(joinURL('..', data.new), { state: { filepath } });
                             } catch (error) {
                               Toast.error(getErrorMessage(error));
                               throw error;
@@ -214,7 +214,7 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
         onOk: async () => {
           try {
             await deleteBranch({ projectId, branch });
-            if (branch === ref) navigate(joinUrl('../main', filepath || ''));
+            if (branch === ref) navigate(joinURL('../main', filepath || ''));
             Toast.success(t('alert.deleted'));
           } catch (error) {
             Toast.error(getErrorMessage(error));
@@ -269,7 +269,7 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
           const newName = updated.branch.trim();
           if (newName === old.branch) return old;
           return updateBranch({ projectId, branch: old.branch, input: { name: newName } }).then(() => {
-            if (ref === old.branch) navigate(joinUrl('..', newName, filepath || ''));
+            if (ref === old.branch) navigate(joinURL('..', newName, filepath || ''));
             return { branch: newName };
           });
         }}

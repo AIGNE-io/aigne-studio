@@ -9,6 +9,7 @@ import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import Prompts from './prompts';
 import TagsAutoComplete from './tags-autocomplete';
+import ToolFunctionCallings from './tools-calling';
 
 export type TemplateForm = Pick<
   Template,
@@ -138,7 +139,10 @@ export default function TemplateFormView({
         />
       </Box>
 
-      <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} compareValue={compareValue} />
+      <Stack gap={1}>
+        <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} compareValue={compareValue} />
+        <ToolFunctionCallings projectId={projectId} gitRef={gitRef} template={value} readOnly={Boolean(readOnly)} />
+      </Stack>
     </Stack>
   );
 }

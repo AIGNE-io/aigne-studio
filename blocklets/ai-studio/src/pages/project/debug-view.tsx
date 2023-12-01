@@ -472,7 +472,10 @@ function DebugModeForm({
   const { keysSet: params } = useParametersState(template);
   if (template.type === 'image') {
     params.add('size');
-    params.add('number');
+
+    if (template.model === 'dall-e-2') {
+      params.add('number');
+    }
   }
   if (template.mode === 'chat') {
     params.add('question');

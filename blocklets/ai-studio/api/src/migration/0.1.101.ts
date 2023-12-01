@@ -3,14 +3,14 @@ import { sep } from 'path/posix';
 
 import { glob } from 'glob';
 
-import env from '../libs/env';
+import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { getRepository, isTemplate } from '../store/projects';
 
 const { name } = require('../../../package.json');
 
 async function migrate() {
-  const workings = (await glob(join(env.dataDir, 'repositories', '*.cooperative/*')))
+  const workings = (await glob(join(Config.dataDir, 'repositories', '*.cooperative/*')))
     .map((p) => {
       const [repo, ref] = p.split(sep).slice(-2);
       if (repo?.endsWith('.cooperative')) {

@@ -15,7 +15,7 @@ import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
-import joinUrl from 'url-join';
+import { joinURL } from 'ufo';
 import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
@@ -24,6 +24,7 @@ import {
   CallAPIMessage,
   CallDatasetMessage,
   CallFuncMessage,
+  CallMacroMessage,
   CallPromptMessage,
   PromptMessage,
   Template,
@@ -43,6 +44,10 @@ export function isTemplate(value?: State['files'][string]): value is TemplateYjs
 
 export function isPromptMessage(message: any): message is PromptMessage {
   return ['system', 'user', 'assistant'].includes(message?.role);
+}
+
+export function isCallMacroMessage(message: any): message is CallMacroMessage {
+  return message?.role === 'call-macro';
 }
 
 export function isCallPromptMessage(message: any): message is CallPromptMessage {
@@ -96,7 +101,7 @@ const createStore = (projectId: string, gitRef: string) => {
         const url = (() => {
           const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
           const wsUrl = new URL(`${wsProtocol}://${window.location.host}`);
-          wsUrl.pathname = joinUrl(PREFIX, 'api/ws', projectId);
+          wsUrl.pathname = joinURL(PREFIX, 'api/ws', projectId);
           return wsUrl.toString();
         })();
 
@@ -379,6 +384,7 @@ export function templateYjsToTemplate(template: TemplateYjs): Template {
     },
     datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
     tests: template.tests && sortBy(Object.values(template.tests), 'index').map(({ data }) => data),
+    tools: template.tools && sortBy(Object.values(template.tools), 'index').map(({ data }) => data),
   };
 }
 
@@ -420,5 +426,6 @@ export function templateYjsFromTemplate(template: Template): TemplateYjs {
       template.datasets &&
       Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
     tests: template.tests && Object.fromEntries(template.tests.map((test, index) => [test.id, { index, data: test }])),
+    tools: template.tools && Object.fromEntries(template.tools.map((tool, index) => [tool.id, { index, data: tool }])),
   };
 }

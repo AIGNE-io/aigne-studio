@@ -1,3 +1,27 @@
+## 0.1.153 (2023-12-1)
+
+- fix: the prompt does not render
+
+## 0.1.152 (2023-11-30)
+
+- feat: support function calling
+
+## 0.1.151 (2023-11-30)
+
+- feat: support more model
+
+## 0.1.150 (2023-11-30)
+
+- chore: replace url join package
+
+## 0.1.149 (2023-11-29)
+
+- feat: support call macro
+
+## 0.1.148 (2023-11-27)
+
+- fix: reactive configures
+
 ## 0.1.147 (2023-11-26)
 
 - chore: maker source

@@ -1,8 +1,8 @@
-import joinUrl from 'url-join';
+import { joinURL } from 'ufo';
 
 export function createImageUrl(host: string, filename: string, width = 0, height = 0) {
   const obj = new URL(host);
-  obj.pathname = joinUrl('image-bin', '/uploads/', filename);
+  obj.pathname = joinURL('image-bin', '/uploads/', filename);
 
   const extension = filename.split('.').pop() || '';
   if (['png', 'jpg', 'jpeg', 'webp'].includes(extension)) {
