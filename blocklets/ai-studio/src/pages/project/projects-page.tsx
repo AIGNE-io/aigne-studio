@@ -526,7 +526,7 @@ function ProjectItem({
 
           <Box>{t('templates', { count: templateCount })}</Box>
 
-          <Tooltip title={branches.length > 1 ? branches.join('、') : ''} placement="top">
+          <Tooltip title={branches.join('、')} placement="top">
             <Stack direction="row" alignItems="center">
               <ForkRightSharpIcon sx={{ fontSize: 14 }} />
               <Box>{`${branches.length}`}</Box>
