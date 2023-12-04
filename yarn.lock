@@ -217,6 +217,11 @@
   resolved "https://registry.yarnpkg.com/@arcblock/icons/-/icons-2.8.14.tgz#4f9faef52459a63c247592f36ad95c0ff60ce77f"
   integrity sha512-dacisPpOiKlKBTWPW/CcWfBdo9iCeZYKuQRk7osiTrNoeX4Gm61hYCJF9OOYQGTpBCLyb0ROUwxPS3BOxHeKZg==
 
+"@arcblock/icons@^2.8.17":
+  version "2.8.17"
+  resolved "https://registry.yarnpkg.com/@arcblock/icons/-/icons-2.8.17.tgz#ba22c10dc10d9cf06ec345eeadf1cf255f84d9e3"
+  integrity sha512-SzjZhn2+PGhdL7me3ViFYcRRDEqBFCt7DlBLCJyLJJrDW2Vru0FAQQZLtcO+zSvRiH7sWNB/sQqJJwHqONx+mQ==
+
 "@arcblock/jwt@1.18.95", "@arcblock/jwt@^1.18.95":
   version "1.18.95"
   resolved "https://registry.yarnpkg.com/@arcblock/jwt/-/jwt-1.18.95.tgz#fcf4fe2c874bdb6dbdc7a6685ee0c94d7cb2233d"
@@ -233,6 +238,15 @@
   version "2.8.14"
   resolved "https://registry.yarnpkg.com/@arcblock/react-hooks/-/react-hooks-2.8.14.tgz#c2a55212b46a5f3fbfae297d390befd50595e1ec"
   integrity sha512-BsjvoRfpTF2PDVh3g3M5PvT8c5z0kpzuIjXM7y8YbFY6AxR761OpxeY3fZVtDWa6LTQWilQXKuRTONyL0TRyEA==
+  dependencies:
+    core-js "^3.25.5"
+    event-target-shim "^5.0.1"
+    ismobilejs "^1.1.1"
+
+"@arcblock/react-hooks@^2.8.17":
+  version "2.8.17"
+  resolved "https://registry.yarnpkg.com/@arcblock/react-hooks/-/react-hooks-2.8.17.tgz#b43172f99788d01a913e09c1295d7043eab4c83b"
+  integrity sha512-FNzE2SHPEjILxEAMtflYD+SScCX+yJHKzsXZEyrnWZHK2/qAQbMJIeBtHJ6fsBECMyorGhwa27xh0Mj2VtsKuA==
   dependencies:
     core-js "^3.25.5"
     event-target-shim "^5.0.1"
@@ -258,6 +272,57 @@
     "@arcblock/did-motif" "^1.1.13"
     "@arcblock/icons" "^2.8.14"
     "@arcblock/react-hooks" "^2.8.14"
+    "@babel/plugin-syntax-dynamic-import" "^7.8.3"
+    "@emotion/react" "^11.10.4"
+    "@emotion/styled" "^11.10.4"
+    "@fontsource/lato" "^4.5.10"
+    "@fontsource/ubuntu-mono" "^4.5.11"
+    "@iconify-icons/ion" "^1.2.10"
+    "@iconify-icons/logos" "^1.2.35"
+    "@iconify-icons/mdi" "^1.2.47"
+    "@iconify/react" "^4.1.1"
+    "@mui/icons-material" "^5.14.8"
+    "@mui/material" "^5.14.8"
+    "@solana/qr-code-styling" "^1.6.0-beta.0"
+    "@testing-library/react" "^14.0.0"
+    ahooks "^3.7.8"
+    axios "^0.27.2"
+    base64-url "^2.3.3"
+    copy-to-clipboard "^3.3.2"
+    core-js "^3.25.5"
+    d3-geo "^1.12.1"
+    dayjs "^1.11.5"
+    devices.css "^0.1.15"
+    highlight.js "^11.6.0"
+    iconify-icon "^1.0.8"
+    is-svg "^4.3.2"
+    js-cookie "^2.2.1"
+    lodash "^4.17.21"
+    mui-datatables "^4.3.0"
+    notistack "^2.0.5"
+    pako "^2.1.0"
+    react-cookie-consent "^6.4.1"
+    react-error-boundary "^3.1.4"
+    react-helmet "^6.1.0"
+    react-intersection-observer "^8.34.0"
+    react-lottie-player "^1.4.3"
+    react-player "^1.15.3"
+    react-router-dom "^6.4.2"
+    react-shadow "^19.0.3"
+    react-svg "^16.1.18"
+    react-use "^17.4.0"
+    rebound "^0.1.0"
+    topojson-client "^3.1.0"
+    versor "^0.0.4"
+
+"@arcblock/ux@^2.8.17":
+  version "2.8.17"
+  resolved "https://registry.yarnpkg.com/@arcblock/ux/-/ux-2.8.17.tgz#67c54fef2089bc6b326a86a20e6b94f9201888e7"
+  integrity sha512-FQsTa9N0pprGaJ817zW3QcJbTc/N2P/JIyNY9txErBa8TDyUa7PYMVVxWkc0FDpfBOs6nIUGzMJ6vvvOGMHcFA==
+  dependencies:
+    "@arcblock/did-motif" "^1.1.13"
+    "@arcblock/icons" "^2.8.17"
+    "@arcblock/react-hooks" "^2.8.17"
     "@babel/plugin-syntax-dynamic-import" "^7.8.3"
     "@emotion/react" "^11.10.4"
     "@emotion/styled" "^11.10.4"
@@ -4240,6 +4305,11 @@
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.199.tgz#c3edb5650149d847a277a8961a7ad360c474e9bf"
   integrity sha512-Vrjz5N5Ia4SEzWWgIVwnHNEnb1UE1XMkvY5DGXrAeOGE9imk0hgTHh5GyDjLDJi9OTCn9oo9dXH1uToK1VRfrg==
 
+"@types/lodash@^4.14.202":
+  version "4.14.202"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.202.tgz#f09dbd2fb082d507178b2f2a5c7e74bd72ff98f8"
+  integrity sha512-OvlIYQK9tNneDlS0VN54LLd5uiPCBOp7gS5Z0f1mjoJYBrtStzgmJBxONW3U6OZqdtNzZPmn9BS/7WI7BFFcFQ==
+
 "@types/luxon@~3.3.0":
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-3.3.2.tgz#f6e3524c2486b949a4db445e85d93c8e9886dfe2"
@@ -4281,6 +4351,11 @@
   version "4.2.4"
   resolved "https://registry.yarnpkg.com/@types/mustache/-/mustache-4.2.4.tgz#74d37210e1467edd705a0959ba46dc5dc22c3815"
   integrity sha512-5DK8oX+pyEJm8Arm57Ut2R4KCeDuNQhLAuU04IgaKB7nYsFYzhpWqSoFnp7kCtVG7wXKftnaEJIyUFTVvSkkzw==
+
+"@types/mustache@^4.2.5":
+  version "4.2.5"
+  resolved "https://registry.yarnpkg.com/@types/mustache/-/mustache-4.2.5.tgz#9129f0d6857f976e00e171bbb3460e4b702f84ef"
+  integrity sha512-PLwiVvTBg59tGFL/8VpcGvqOu3L4OuveNvPi0EYbWchRdEVP++yRUXJPFl+CApKEq13017/4Nf7aQ5lTtHUNsA==
 
 "@types/node-fetch@^2.6.9":
   version "2.6.9"
@@ -8691,6 +8766,11 @@ globby@^13.1.2:
     ignore "^5.2.0"
     merge2 "^1.4.1"
     slash "^4.0.0"
+
+globrex@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/globrex/-/globrex-0.1.2.tgz#dd5d9ec826232730cd6793a5e33a9302985e6098"
+  integrity sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==
 
 google-protobuf@3.21.0:
   version "3.21.0"
@@ -13501,6 +13581,11 @@ react-hook-form@^7.47.0:
   resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.47.0.tgz#a42f07266bd297ddf1f914f08f4b5f9783262f31"
   integrity sha512-F/TroLjTICipmHeFlMrLtNLceO2xr1jU3CyiNla5zdwsGUGu2UOxxR4UyJgLlhMwLW/Wzp4cpJ7CPfgJIeKdSg==
 
+react-hook-form@^7.48.2:
+  version "7.48.2"
+  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.48.2.tgz#01150354d2be61412ff56a030b62a119283b9935"
+  integrity sha512-H0T2InFQb1hX7qKtDIZmvpU1Xfn/bdahWBN1fH19gSe4bBEqTfmlr7H3XWTaVtiK4/tpPaI1F3355GPMZYge+A==
+
 react-intersection-observer@^8.34.0:
   version "8.34.0"
   resolved "https://registry.yarnpkg.com/react-intersection-observer/-/react-intersection-observer-8.34.0.tgz#6f6e67831c52e6233f6b6cc7eb55814820137c42"
@@ -15374,6 +15459,11 @@ ts-node@^10.9.1:
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
 
+tsconfck@^2.1.0:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/tsconfck/-/tsconfck-2.1.2.tgz#f667035874fa41d908c1fe4d765345fcb1df6e35"
+  integrity sha512-ghqN1b0puy3MhhviwO2kGF8SeMDNhEbnKxjK7h6+fvY9JAxqvXi8y5NAHSQv687OVboS2uZIByzGd45/YxrRHg==
+
 tsconfig-paths@^3.14.1:
   version "3.14.1"
   resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-3.14.1.tgz#ba0734599e8ea36c862798e920bcf163277b137a"
@@ -15977,6 +16067,15 @@ vite-plugin-svgr@^4.0.0:
     "@rollup/pluginutils" "^5.0.4"
     "@svgr/core" "^8.1.0"
     "@svgr/plugin-jsx" "^8.1.0"
+
+vite-tsconfig-paths@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/vite-tsconfig-paths/-/vite-tsconfig-paths-4.2.1.tgz#e53b89096b91d31a6d1e26f75999ea8c336a89ed"
+  integrity sha512-GNUI6ZgPqT3oervkvzU+qtys83+75N/OuDaQl7HmOqFTb0pjZsuARrRipsyJhJ3enqV8beI1xhGbToR4o78nSQ==
+  dependencies:
+    debug "^4.1.1"
+    globrex "^0.1.2"
+    tsconfck "^2.1.0"
 
 vite@^4.4.9:
   version "4.4.9"

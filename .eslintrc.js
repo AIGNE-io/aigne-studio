@@ -10,6 +10,7 @@ module.exports = {
       join(__dirname, 'packages/co-git/tsconfig.json'),
       join(__dirname, 'packages/prompt-editor/tsconfig.json'),
       join(__dirname, 'packages/studio-ui/tsconfig.json'),
+      join(__dirname, 'packages/ai-runtime/tsconfig.json'),
     ],
   },
   rules: {
@@ -30,5 +31,6 @@ module.exports = {
     'require-await': 'off',
     'max-classes-per-file': 'off',
     'no-param-reassign': 'off',
+    'unicorn/filename-case': 'off',
   },
 };

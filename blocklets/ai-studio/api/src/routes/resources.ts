@@ -12,7 +12,7 @@ import { ensurePromptsEditor } from '../libs/security';
 import Projects from '../store/models/projects';
 import { defaultBranch, getTemplatesFromRepository } from '../store/projects';
 
-const TARGET_DIR = 'ai.templates';
+const TARGET_DIR = 'templates.ai';
 
 const getTemplateDir = ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
   const exportDir = component.getResourceExportDir({ projectId, releaseId });

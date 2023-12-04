@@ -14,6 +14,7 @@ import {
 import { TemplateYjs } from '../../../../api/src/store/projects';
 import AwarenessIndicator from '../../../components/awareness/awareness-indicator';
 import WithAwareness from '../../../components/awareness/with-awareness';
+import { defaultImageModel, defaultTextModel } from '../../../libs/common';
 import { useTemplateCompare } from '../state';
 
 export default function SettingView({
@@ -89,6 +90,13 @@ export default function SettingView({
               value={template.type ?? 'text'}
               onChange={(_, type) => {
                 if (readOnly) return;
+
+                if (type === 'image') {
+                  template.model = defaultImageModel;
+                } else {
+                  template.model = defaultTextModel;
+                }
+
                 if (type === 'text') {
                   delete template.type;
                 } else {

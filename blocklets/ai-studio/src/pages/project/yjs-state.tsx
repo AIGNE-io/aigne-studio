@@ -384,6 +384,7 @@ export function templateYjsToTemplate(template: TemplateYjs): Template {
     },
     datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
     tests: template.tests && sortBy(Object.values(template.tests), 'index').map(({ data }) => data),
+    tools: template.tools && sortBy(Object.values(template.tools), 'index').map(({ data }) => data),
   };
 }
 
@@ -425,5 +426,6 @@ export function templateYjsFromTemplate(template: Template): TemplateYjs {
       template.datasets &&
       Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
     tests: template.tests && Object.fromEntries(template.tests.map((test, index) => [test.id, { index, data: test }])),
+    tools: template.tools && Object.fromEntries(template.tools.map((tool, index) => [tool.id, { index, data: tool }])),
   };
 }

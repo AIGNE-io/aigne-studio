@@ -12,6 +12,7 @@ export type Role =
   | 'system'
   | 'user'
   | 'assistant'
+  | 'tool'
   | 'call-prompt'
   | 'call-api'
   | 'call-function'
@@ -33,6 +34,7 @@ export interface PromptMessage {
   id: string;
   role?: Extract<Role, 'system' | 'user' | 'assistant'>;
   content?: string;
+  name?: string;
   visibility?: 'hidden';
 }
 
@@ -81,12 +83,26 @@ export interface CallDatasetMessage {
   visibility?: 'hidden';
 }
 
+export interface ToolsMessage {
+  id: string;
+  function: {
+    name: string;
+    description: string;
+    parameters?: {
+      type: 'object';
+      properties: { [key: string]: { type: any; description: 'string' } };
+      required: string[];
+    };
+  };
+  extraInfo: CallPromptMessage | CallAPIMessage | CallFuncMessage;
+}
+
 export type CallMessage = CallPromptMessage | CallAPIMessage | CallFuncMessage | CallDatasetMessage | CallMacroMessage;
 
 export type EditorPromptMessage = PromptMessage | CallMessage | CallMacroMessage;
 
 export function isPromptMessage(message: any): message is PromptMessage {
-  return ['system', 'user', 'assistant'].includes(message?.role);
+  return ['system', 'user', 'assistant', 'tool'].includes(message?.role);
 }
 
 export function isCallMacroMessage(message: any): message is CallMacroMessage {
@@ -143,6 +159,7 @@ export interface Template {
     error?: { message: string };
     createdBy: string;
   }[];
+  tools?: ToolsMessage[];
 }
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | HoroscopeParameter;

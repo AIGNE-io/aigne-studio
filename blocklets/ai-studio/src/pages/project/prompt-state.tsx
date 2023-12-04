@@ -131,7 +131,7 @@ export function usePromptState({
       const editorState = await text2EditorState(content, role);
       setState((v) => ({ ...v, editorState }));
     }
-  }, [prompt?.data.content, prompt?.data.role, readOnly]);
+  }, [key, prompt?.data.content, prompt?.data.role, readOnly]);
 
   return { state, prompt, setEditorState, deletePrompt };
 }
@@ -257,7 +257,7 @@ export function useEditorPicker({
         },
       }),
     ],
-    [addPrompt]
+    [addPrompt, t]
   );
 
   return { getOptions };
@@ -464,6 +464,52 @@ export function usePromptsState({
   );
 
   return { addPrompt, renameVariable };
+}
+
+export function useToolsState({
+  projectId,
+  gitRef,
+  templateId,
+}: {
+  projectId: string;
+  gitRef: string;
+  templateId: string;
+}) {
+  const { store } = useStore(projectId, gitRef);
+
+  const file = store.files[templateId];
+  const template = isTemplate(file) ? file : undefined;
+
+  const addToolFunc = useCallback(
+    (func: NonNullable<TemplateYjs['tools']>[string]['data']) => {
+      if (!template) return;
+
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+      doc.transact(() => {
+        template.tools ??= {};
+        template.tools[func.id] = { index: Object.keys(template.tools).length, data: func };
+
+        sortBy(Object.values(template.tools), (i) => i.index).forEach((i, index) => (i.index = index));
+      });
+    },
+    [template]
+  );
+
+  const deleteToolFunc = useCallback(
+    (id: string) => {
+      if (!template) return;
+
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+
+      doc.transact(() => {
+        template.tools ??= {};
+        delete template.tools[id];
+      });
+    },
+    [template]
+  );
+
+  return { addToolFunc, deleteToolFunc };
 }
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');

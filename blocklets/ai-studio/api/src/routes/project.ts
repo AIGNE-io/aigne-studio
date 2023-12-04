@@ -141,6 +141,14 @@ const exportImportSchema = Joi.object<{
   resources: Joi.array().items(Joi.string()).required(),
 });
 
+export interface GetTemplateQuery {
+  working?: boolean;
+}
+
+const getTemplateQuerySchema = Joi.object<GetTemplateQuery>({
+  working: Joi.boolean().empty([null, '']),
+});
+
 export function projectRoutes(router: Router) {
   router.get('/projects', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { type } = await getProjectsQuerySchema.validateAsync(req.query, { stripUnknown: true });
@@ -498,5 +506,18 @@ export function projectRoutes(router: Router) {
     await project.update({ gitLastSyncedAt: new Date() });
 
     res.json({});
+  });
+
+  router.get('/projects/:projectId/refs/:ref/templates/:templateId', async (req, res) => {
+    const { projectId, ref, templateId } = req.params;
+    const query = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+    await Projects.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
+
+    const repository = await getRepository({ projectId });
+
+    const template = await getTemplate({ repository, ref, templateId, working: query.working });
+
+    res.json(pick(template, 'id', 'name', 'type', 'parameters'));
   });
 }

@@ -1,3 +1,19 @@
+## 0.1.154 (2023-12-1)
+
+- feat: runtime package
+
+## 0.1.153 (2023-12-1)
+
+- fix: the prompt does not render
+
+## 0.1.152 (2023-11-30)
+
+- feat: support function calling
+
+## 0.1.151 (2023-11-30)
+
+- feat: support more model
+
 ## 0.1.150 (2023-11-30)
 
 - chore: replace url join package
