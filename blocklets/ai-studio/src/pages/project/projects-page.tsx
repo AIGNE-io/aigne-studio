@@ -460,6 +460,7 @@ function ProjectItem({
         justifyContent="center"
         alignItems="center">
         <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
+        <Box sx={{ color: (theme) => theme.palette.text.secondary }}>{t('newObject')}</Box>
       </ProjectItemRoot>
     );
   }
