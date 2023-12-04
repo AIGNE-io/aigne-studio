@@ -41,7 +41,7 @@ import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
 import UndoAndRedo from './undo';
-import { PROMPTS_FOLDER_NAME, useStore } from './yjs-state';
+import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -54,7 +54,7 @@ export default function ProjectPage() {
 
   const { t } = useLocaleContext();
 
-  const { store, synced, getTemplateById } = useStore(projectId, gitRef, true);
+  const { store, synced, getTemplateById } = useProjectStore(projectId, gitRef, true);
 
   const templateId = filepath && getTemplateIdFromPath(filepath);
   const template = templateId && getTemplateById(templateId);

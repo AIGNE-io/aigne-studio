@@ -31,7 +31,7 @@ import {
   isCallFuncMessage,
   isCallPromptMessage,
   isTemplate,
-  useStore,
+  useProjectStore,
 } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
 import CodeEditor from './code-editer';
@@ -250,7 +250,7 @@ export default function ToolFunctionCallDialog({
   const { toolsSchema, callPromptMessageSchema, callAPIMessageSchema, callFunctionMessageSchema } = useSchema();
 
   const { addToolFunc } = useToolsState({ projectId, gitRef, templateId: template.id });
-  const { store, getTemplateById } = useStore(projectId, gitRef);
+  const { store, getTemplateById } = useProjectStore(projectId, gitRef);
   const { '*': filepath } = useParams();
   const targetEditorRef = useRef(null);
 

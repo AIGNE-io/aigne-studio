@@ -26,7 +26,7 @@ import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
 import { getTemplates } from '../../libs/template';
-import { isTemplate, templateYjsFromTemplate, useStore } from './yjs-state';
+import { isTemplate, templateYjsFromTemplate, useProjectStore } from './yjs-state';
 
 export const defaultBranch = 'main';
 
@@ -576,7 +576,7 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   const { t } = useLocaleContext();
   const [state, setState] = useRecoilState(templatesState(projectId, ref));
 
-  const { store, synced } = useStore(projectId, ref);
+  const { store, synced } = useProjectStore(projectId, ref);
 
   useThrottleEffect(
     () => {
@@ -720,7 +720,7 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
 };
 
 export const useUndoManager = (projectId: string, ref: string, key: string) => {
-  const { store } = useStore(projectId, ref);
+  const { store } = useProjectStore(projectId, ref);
 
   const doc = useMemo(() => getYjsDoc(store), [store]);
 

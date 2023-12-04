@@ -8,7 +8,7 @@ import { useParams } from 'react-router-dom';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
 import { isTemplateYjsEmpty } from '../../libs/template';
-import { createFile, isTemplate, useStore } from '../../pages/project/yjs-state';
+import { createFile, isTemplate, useProjectStore } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
 import { ReorderableListYjs } from '../drag-sort-list';
 import TemplateAutocomplete from './template-autocomplete';
@@ -29,7 +29,7 @@ export default function Branches({
 
   const { t } = useLocaleContext();
 
-  const { store } = useStore(projectId, gitRef);
+  const { store } = useProjectStore(projectId, gitRef);
   const templates = Object.values(store.files).filter(isTemplate);
 
   const isTemplateWarning = useCallback(

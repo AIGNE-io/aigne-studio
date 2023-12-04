@@ -19,7 +19,7 @@ import {
   isCallPromptMessage,
   isPromptMessage,
   isTemplate,
-  useStore,
+  useProjectStore,
 } from './yjs-state';
 
 const PROMPT_EDITOR_STATE_CACHE: { [key: string]: { content?: string; role?: Role } } = {};
@@ -69,7 +69,7 @@ export function usePromptState({
 
   const cache = useMemo(() => getPromptEditorStateCache(key), [key]);
 
-  const { getTemplateById } = useStore(projectId, gitRef);
+  const { getTemplateById } = useProjectStore(projectId, gitRef);
   const template = getTemplateById(templateId);
   const prompt = readOnly ? originTemplate?.prompts?.[promptId] : template?.prompts?.[promptId];
 
@@ -402,7 +402,7 @@ export function usePromptsState({
   gitRef: string;
   templateId: string;
 }) {
-  const { store } = useStore(projectId, gitRef);
+  const { store } = useProjectStore(projectId, gitRef);
 
   const file = store.files[templateId];
   const template = isTemplate(file) ? file : undefined;
@@ -475,7 +475,7 @@ export function useToolsState({
   gitRef: string;
   templateId: string;
 }) {
-  const { store } = useStore(projectId, gitRef);
+  const { store } = useProjectStore(projectId, gitRef);
 
   const file = store.files[templateId];
   const template = isTemplate(file) ? file : undefined;

@@ -90,45 +90,41 @@ export interface StoreContext {
 
 const stores: Record<string, RecoilState<StoreContext>> = {};
 
-const createStore = (projectId: string, gitRef: string) => {
+const projectStore = (projectId: string, gitRef: string) => {
   const key = `projectStore-${projectId}-${gitRef}`;
-  let s = stores[key];
-  if (!s) {
-    s = atom<StoreContext>({
-      key,
-      dangerouslyAllowMutability: true,
-      default: (() => {
-        const url = (() => {
-          const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-          const wsUrl = new URL(`${wsProtocol}://${window.location.host}`);
-          wsUrl.pathname = joinURL(PREFIX, 'api/ws', projectId);
-          return wsUrl.toString();
-        })();
+  stores[key] ??= atom<StoreContext>({
+    key,
+    dangerouslyAllowMutability: true,
+    default: (() => {
+      const url = (() => {
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsUrl = new URL(`${wsProtocol}://${window.location.host}`);
+        wsUrl.pathname = joinURL(PREFIX, 'api/ws', projectId);
+        return wsUrl.toString();
+      })();
 
-        const doc = new Doc();
+      const doc = new Doc();
 
-        const provider = new WebsocketProvider(url, gitRef, doc, {
-          connect: false,
-          params: { token: Cookies.get('login_token')! },
-        });
+      const provider = new WebsocketProvider(url, gitRef, doc, {
+        connect: false,
+        params: { token: Cookies.get('login_token')! },
+      });
 
-        const store = syncedStore<State>({ files: {}, tree: {} }, doc);
+      const store = syncedStore<State>({ files: {}, tree: {} }, doc);
 
-        return {
-          store,
-          awareness: { clients: {}, files: {} },
-          provider,
-          synced: provider.synced,
-        };
-      })(),
-    });
-    stores[key] = s;
-  }
-  return s;
+      return {
+        store,
+        awareness: { clients: {}, files: {} },
+        provider,
+        synced: provider.synced,
+      };
+    })(),
+  });
+  return stores[key]!;
 };
 
-export const useStore = (projectId: string, gitRef: string, connect?: boolean) => {
-  const [store, setStore] = useRecoilState(createStore(projectId, gitRef));
+export const useProjectStore = (projectId: string, gitRef: string, connect?: boolean) => {
+  const [store, setStore] = useRecoilState(projectStore(projectId, gitRef));
 
   useEffect(() => {
     if (!connect) return undefined;
@@ -209,15 +205,15 @@ export const useStore = (projectId: string, gitRef: string, connect?: boolean) =
 
 export function createFolder({
   store,
-  ...options
+  name,
+  parent = [],
+  rootFolder = PROMPTS_FOLDER_NAME,
 }: {
   store: StoreContext['store'];
-  parent?: string[];
   name?: string;
+  parent?: string[];
+  rootFolder?: string;
 }) {
-  const parent = options.parent?.length ? options.parent : [PROMPTS_FOLDER_NAME];
-  let { name } = options;
-
   if (!name) {
     let index = 0;
     name = 'Folder';
@@ -239,7 +235,7 @@ export function createFolder({
     }
   }
 
-  const filepath = [...parent, name].join('/');
+  const filepath = joinURL(rootFolder && rootFolder !== parent[0] ? rootFolder : '', ...parent, name);
   getYjsDoc(store).transact(() => {
     const key = nanoid(32);
     store.tree[key] = [filepath, '.gitkeep'].join('/');
@@ -270,16 +266,18 @@ export const resetTemplatesId = (templates: (Template & { parent?: string[] })[]
 
 export function createFile({
   store,
-  parent,
+  parent = [],
   meta,
+  rootFolder = PROMPTS_FOLDER_NAME,
 }: {
   store: StoreContext['store'];
   parent?: string[];
   meta?: Partial<TemplateYjs>;
+  rootFolder?: string;
 }) {
   const id = meta?.id || nextTemplateId();
   const filename = `${id}.yaml`;
-  const filepath = [...(parent?.length ? parent : [PROMPTS_FOLDER_NAME]), filename].join('/');
+  const filepath = joinURL(rootFolder && parent[0] !== rootFolder ? rootFolder : '', ...parent, filename);
   const now = new Date().toISOString();
 
   const template = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };
@@ -323,7 +321,6 @@ export function deleteFile({ store, path }: { store: StoreContext['store']; path
 }
 
 function addGitkeepFileIfNeeded(store: StoreContext['store'], path: string[]) {
-  // Add a gitkeep file if needed
   if (path.length > 0) {
     if (Object.values(store.tree).filter((i) => i?.startsWith(path.join('/').concat('/'))).length === 0) {
       const filepath = [...path, '.gitkeep'].join('/');

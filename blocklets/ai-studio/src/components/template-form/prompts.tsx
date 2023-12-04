@@ -58,7 +58,7 @@ import {
   isCallPromptMessage,
   isPromptMessage,
   isTemplate,
-  useStore,
+  useProjectStore,
 } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
 import AwarenessIndicator from '../awareness/awareness-indicator';
@@ -433,7 +433,7 @@ function CallMacroItemView({
     readOnly,
     originTemplate: template,
   });
-  const { store, getTemplateById } = useStore(projectId, gitRef);
+  const { store, getTemplateById } = useProjectStore(projectId, gitRef);
 
   const rename = useThrottleFn(
     () => {
@@ -584,7 +584,7 @@ function CallPromptItemView({
     readOnly,
     originTemplate: template,
   });
-  const { store, getTemplateById } = useStore(projectId, gitRef);
+  const { store, getTemplateById } = useProjectStore(projectId, gitRef);
 
   const rename = useThrottleFn(
     () => {
@@ -846,7 +846,7 @@ function CallFuncItemView({
 }) {
   const originalOutput = useRef<string>();
   const { renameVariable } = usePromptsState({ projectId, gitRef, templateId: template.id });
-  const { getTemplateById } = useStore(projectId, gitRef);
+  const { getTemplateById } = useProjectStore(projectId, gitRef);
   const currentTemplate = getTemplateById(template.id);
 
   const monaco = useMonaco();

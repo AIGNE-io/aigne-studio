@@ -1,6 +1,6 @@
 import { Avatar, AvatarGroup, Box, BoxProps } from '@mui/material';
 
-import { useStore } from '../../pages/project/yjs-state';
+import { useProjectStore } from '../../pages/project/yjs-state';
 
 export default function AwarenessIndicator({
   projectId,
@@ -14,7 +14,7 @@ export default function AwarenessIndicator({
 } & BoxProps) {
   const {
     awareness: { clients, files },
-  } = useStore(projectId, gitRef);
+  } = useProjectStore(projectId, gitRef);
 
   const file = path.slice(0, 1);
   const field = path.slice(1);

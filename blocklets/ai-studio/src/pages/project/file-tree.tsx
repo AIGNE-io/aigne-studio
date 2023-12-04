@@ -82,7 +82,7 @@ import {
   nextTemplateId,
   resetTemplatesId,
   templateYjsFromTemplate,
-  useStore,
+  useProjectStore,
 } from './yjs-state';
 
 export type EntryWithMeta =
@@ -125,7 +125,7 @@ const FileTree = forwardRef<
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
 
-  const { store, synced } = useStore(projectId, gitRef);
+  const { store, synced } = useProjectStore(projectId, gitRef);
   const { changes, deleted, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
   const [showPopper] = useState(true);
   const dialogState = usePopupState({ variant: 'dialog' });

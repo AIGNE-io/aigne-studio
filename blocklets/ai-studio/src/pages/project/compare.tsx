@@ -18,7 +18,7 @@ import Next from './setting-view/next';
 import Parameters from './setting-view/parameters';
 import Settings from './setting-view/settings';
 import { defaultBranch, useProjectState } from './state';
-import { templateYjsFromTemplate, useStore } from './yjs-state';
+import { templateYjsFromTemplate, useProjectStore } from './yjs-state';
 
 export default function Compare({
   projectId,
@@ -34,7 +34,7 @@ export default function Compare({
     state: { project, branches },
   } = useProjectState(projectId, gitRef);
 
-  const { getTemplateById } = useStore(projectId, gitRef);
+  const { getTemplateById } = useProjectStore(projectId, gitRef);
 
   const simpleMode = project?.gitType === 'simple';
 

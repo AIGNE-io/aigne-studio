@@ -7,7 +7,7 @@ import { stringify } from 'yaml';
 
 import { Template } from '../../../api/src/store/templates';
 import useDialog from '../../utils/use-dialog';
-import { isTemplate, templateYjsToTemplate, useStore } from './yjs-state';
+import { isTemplate, templateYjsToTemplate, useProjectStore } from './yjs-state';
 
 function ExportFiles({
   projectId,
@@ -25,7 +25,7 @@ function ExportFiles({
   const { t } = useLocaleContext();
   const { dialog, showDialog } = useDialog();
 
-  const { store } = useStore(projectId, gitRef);
+  const { store } = useProjectStore(projectId, gitRef);
 
   useEffect(() => {
     const files = Object.entries(store.tree)

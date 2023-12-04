@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { isTemplateYjsEmpty } from '../../libs/template';
-import { createFile, isTemplate, useStore } from '../../pages/project/yjs-state';
+import { createFile, isTemplate, useProjectStore } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
@@ -31,7 +31,7 @@ export default function Next({
 
   const { t } = useLocaleContext();
 
-  const { store } = useStore(projectId, gitRef);
+  const { store } = useProjectStore(projectId, gitRef);
   const templates = Object.values(store.files).filter(isTemplate);
 
   const isTemplateWarning = useCallback(
