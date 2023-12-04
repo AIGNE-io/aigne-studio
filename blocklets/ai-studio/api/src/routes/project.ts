@@ -16,6 +16,7 @@ import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '
 import { createImageUrl } from '../libs/utils';
 import Projects from '../store/models/projects';
 import {
+  commitProjectSettingWorking,
   commitWorking,
   defaultBranch,
   defaultRemote,
@@ -261,7 +262,7 @@ export function projectRoutes(router: Router) {
         working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
       }
       await commitWorking({
-        project,
+        project: project.toJSON(),
         ref: defaultBranch,
         branch: defaultBranch,
         message: 'First Commit',
@@ -315,9 +316,9 @@ export function projectRoutes(router: Router) {
       throw new Error(`Duplicated project ${name}`);
     }
 
-    const { did } = req.user!;
+    const { did, fullName } = req.user!;
 
-    await project.update(
+    const newProject = await project.update(
       omitBy(
         {
           name,
@@ -337,6 +338,15 @@ export function projectRoutes(router: Router) {
         (v) => v === undefined
       )
     );
+
+    const author = { name: fullName, email: did };
+    await commitProjectSettingWorking({ project: newProject.toJSON(), author });
+
+    if (project.gitUrl && project.gitAutoSync) {
+      const repository = await getRepository({ projectId: project._id! });
+      await syncRepository({ repository, ref: defaultBranch, author });
+      await newProject.update({ gitLastSyncedAt: new Date() });
+    }
 
     res.json(project.dataValues);
   });

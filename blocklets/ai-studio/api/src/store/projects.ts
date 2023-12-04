@@ -4,6 +4,7 @@ import path from 'path';
 import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
 import { glob } from 'glob';
+import omit from 'lodash/omit';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { Worker } from 'snowflake-uuid';
@@ -208,6 +209,8 @@ export async function syncRepository<T>({
   });
 }
 
+const SETTINGS_FILE = '.settings.yaml';
+
 export async function commitWorking({
   project,
   ref,
@@ -232,6 +235,11 @@ export async function commitWorking({
       writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
 
+      const fields = omit(project, 'gitUrl');
+      const fieldsStr = stringify(fields);
+      writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
+      await tx.add({ filepath: SETTINGS_FILE });
+
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
         if (readdirSync(path.join(repository.options.root, path.dirname(gitkeep))).length > 1) {
@@ -240,6 +248,26 @@ export async function commitWorking({
         }
       }
     },
+  });
+}
+
+export async function commitProjectSettingWorking({
+  project,
+  message = 'update settings',
+  author,
+}: {
+  project: Project;
+  message?: string;
+  author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+}) {
+  const repository = await getRepository({ projectId: project._id! });
+  const fields = omit(project, 'gitUrl');
+  const fieldsStr = stringify(fields);
+
+  await repository.transact(async (tx) => {
+    writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
+    await tx.add({ filepath: SETTINGS_FILE });
+    await tx.commit({ message, author });
   });
 }
 
