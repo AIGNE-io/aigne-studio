@@ -61,8 +61,8 @@ type ProjectWithUserInfo = Project & {
   templateCount: number;
 };
 
-const CARD_HEIGHT = 180;
-const MAX_WIDTH = 360;
+const CARD_HEIGHT = 140;
+const MAX_WIDTH = 300;
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
@@ -319,9 +319,8 @@ function ProjectList({
             tabIndex={0}
             key={item._id}
             pinned={!!item.pinnedAt}
+            height={CARD_HEIGHT}
             icon={item.icon}
-            maxWidth={{ sm: 'auto', md: `${MAX_WIDTH}px` }}
-            flex="1 1 280"
             name={section === 'templates' && item.name ? t(item.name) : item.name}
             description={item.description}
             updatedAt={item.updatedAt}
@@ -353,6 +352,7 @@ function ProjectList({
                     backgroundColor: (theme) => theme.palette.background.paper,
                     color: (theme) => theme.palette.text.disabled,
                     borderRadius: 1,
+                    padding: 0,
 
                     '&:hover': {
                       backgroundColor: (theme) => theme.palette.background.paper,
@@ -466,67 +466,70 @@ function ProjectItem({
 
   return (
     <ProjectItemRoot {...props} className={cx(props.className)}>
-      <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between" mb={2}>
-        <Tag sx={{ fontSize: (theme) => theme.typography.body2.fontSize }}>{model}</Tag>
-
-        <Stack direction="row" gap={1} alignItems="center" sx={{ color: (theme) => theme.palette.text.disabled }}>
-          {createdAt && (
-            <Typography variant="caption">
-              <RelativeTime value={createdAt} locale={locale} />
-            </Typography>
-          )}
-
-          {users && Array.isArray(users) && !!users.length && (
-            <AvatarGroup total={users.length}>
-              {users.map((user: User) => {
-                const name = user.name || user.did;
-
-                return (
-                  <Tooltip title={user.name} key={user.name} placement="top">
-                    <CustomAvatar alt={user.name} sx={{ borderWidth: '1px !important' }}>
-                      {name ? name[0] : ''}
-                    </CustomAvatar>
-                  </Tooltip>
-                );
-              })}
-            </AvatarGroup>
-          )}
-
-          {pinned && (
-            <Tooltip title={t('pin')} placement="top">
-              <Pin sx={{ fontSize: 14 }} />
-            </Tooltip>
-          )}
-        </Stack>
-      </Stack>
-
-      <Stack direction="row" gap={2}>
-        <Stack alignItems="center" justifyContent="center" className="logo" sx={{ width: '80px', height: '80px' }}>
-          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 56 }} />}
-        </Stack>
-
-        <Stack width={0} flex={1}>
-          <Box className="name" sx={{ fontWeight: (theme) => theme.typography.fontWeightBold }}>
-            {name || t('unnamed')}
+      <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between" mb={1}>
+        <Stack direction="row" gap={1} width={0} flex={1} alignItems="center">
+          <Box className="logo" sx={{ width: '20px', height: '20px' }}>
+            {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 20 }} />}
           </Box>
 
-          <Box className="desc" sx={{ color: (theme) => theme.palette.text.secondary }}>
-            {description}
-          </Box>
+          <Stack width={0} flex={1}>
+            <Box className="name" sx={{ fontWeight: (theme) => theme.typography.fontWeightBold }}>
+              {name || t('unnamed')}
+            </Box>
+          </Stack>
         </Stack>
+
+        {users && Array.isArray(users) && !!users.length && (
+          <AvatarGroup total={users.length}>
+            {users.map((user: User) => {
+              const name = user.name || user.did;
+
+              return (
+                <Tooltip title={user.name} key={user.name} placement="top">
+                  <CustomAvatar alt={user.name} sx={{ borderWidth: '1px !important' }}>
+                    {name ? name[0] : ''}
+                  </CustomAvatar>
+                </Tooltip>
+              );
+            })}
+          </AvatarGroup>
+        )}
+
+        {pinned && (
+          <Tooltip title={t('pin')} placement="top">
+            <Pin sx={{ fontSize: 14 }} />
+          </Tooltip>
+        )}
       </Stack>
+
+      <Box flex={1}>
+        <Box
+          className="desc"
+          sx={{
+            color: (theme) => theme.palette.text.secondary,
+            fontSize: (theme) => theme.typography.caption.fontSize,
+          }}>
+          {description}
+        </Box>
+      </Box>
 
       <Stack direction="row" gap={2} mt={1} alignItems="center" justifyContent="space-between">
         <Stack
           direction="row"
           gap={2}
-          sx={{ fontSize: (theme) => theme.typography.body2.fontSize, color: 'text.disabled' }}>
+          sx={{ fontSize: (theme) => theme.typography.caption.fontSize, color: 'text.disabled' }}>
+          {createdAt && (
+            <Box>
+              <RelativeTime value={createdAt} locale={locale} />
+            </Box>
+          )}
+
           <Box>{t('templates', { count: templateCount })}</Box>
 
           <Tooltip title={branches.length > 1 ? branches.join('、') : ''} placement="top">
             <Stack direction="row" alignItems="center">
               <ForkRightSharpIcon sx={{ fontSize: 14 }} />
-              <Box>{`${branches[0]}`}</Box>
+              <Box>{`${branches.length}`}</Box>
             </Stack>
           </Tooltip>
 
@@ -543,7 +546,7 @@ function ProjectItem({
                 onClick={(e) => {
                   e.stopPropagation();
                 }}>
-                <GitHubIcon sx={{ fontSize: 14 }} />
+                <GitHubIcon sx={{ fontSize: 16 }} />
               </Box>
             </Tooltip>
           )}
@@ -633,17 +636,8 @@ function LoadingMenuItem({ ...props }: MenuItemProps) {
   );
 }
 
-const Tag = styled(Typography)`
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  height: 20px;
-  line-height: 20px;
-  border-radius: 4px;
-`;
-
 const ProjectListContainer = styled(Box)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 24px;
 `;
