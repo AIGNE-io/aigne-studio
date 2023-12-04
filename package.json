@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "yarn workspace ai-studio dev",
     "bundle": "npm run build:libs && yarn workspace ai-studio bundle",
-    "lint": "npm run build:libs && yarn workspaces run lint",
+    "lint": "yarn workspaces run lint",
     "build": "npm run build:libs && yarn workspace ai-studio build",
     "clean": "yarn workspaces run clean",
     "build:libs": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspace @blocklet/prompt-editor build && yarn workspace @blocklet/ai-runtime build",
