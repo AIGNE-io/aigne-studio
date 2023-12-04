@@ -5,6 +5,10 @@ import {
   Button,
   ButtonProps,
   CircularProgress,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Stack,
   Tab,
   Tabs,
@@ -15,8 +19,11 @@ import {
   tabsClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
+import { bindMenu, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import ApiForm from 'src/components/api-form';
+import FunctionForm from 'src/components/function-form';
 import { joinURL } from 'ufo';
 
 import { TemplateYjs } from '../../../api/src/store/projects';
@@ -24,16 +31,19 @@ import WithAwareness from '../../components/awareness/with-awareness';
 import TemplateFormView from '../../components/template-form';
 import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
-import dirname, { getTemplateIdFromPath } from '../../utils/path';
+import dirname, { getFileIdFromPath } from '../../utils/path';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import DiscussView from './discuss-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
 import Add from './icons/add';
+import Code from './icons/code';
 import DeveloperTools from './icons/developer-tools';
 import Empty from './icons/empty';
+import File from './icons/file';
 import FolderAdd from './icons/folder-add';
 import Import from './icons/import';
+import LinkIcon from './icons/link';
 import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
 import SettingView from './setting-view';
@@ -41,7 +51,14 @@ import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
 import UndoAndRedo from './undo';
-import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
+import {
+  FUNCTIONS_FOLDER_NAME,
+  PROMPTS_FOLDER_NAME,
+  isApiFile,
+  isFunctionFile,
+  isTemplate,
+  useProjectStore,
+} from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -54,10 +71,10 @@ export default function ProjectPage() {
 
   const { t } = useLocaleContext();
 
-  const { store, synced, getTemplateById } = useProjectStore(projectId, gitRef, true);
+  const { store, synced, getFileById } = useProjectStore(projectId, gitRef, true);
 
-  const templateId = filepath && getTemplateIdFromPath(filepath);
-  const template = templateId && getTemplateById(templateId);
+  const fileId = filepath && getFileIdFromPath(filepath);
+  const file = fileId && getFileById(fileId);
 
   const {
     state: { error },
@@ -125,6 +142,8 @@ export default function ProjectPage() {
   const layout = useRef<ImperativeColumnsLayout>(null);
   const fileTree = useRef<ImperativeFileTree>(null);
 
+  const createFileMenuState = usePopupState({ variant: 'popper' });
+
   return (
     <ColumnsLayout
       ref={layout}
@@ -147,7 +166,10 @@ export default function ProjectPage() {
                   <Button
                     disabled={readOnly}
                     sx={{ minWidth: 0 }}
-                    onClick={() => fileTree.current?.newFolder({ parent: dirname(filepath) })}>
+                    onClick={() => {
+                      const dir = dirname(filepath);
+                      fileTree.current?.newFolder({ parent: dir.length ? dir : [PROMPTS_FOLDER_NAME] });
+                    }}>
                     <FolderAdd />
                   </Button>
                 </span>
@@ -155,14 +177,55 @@ export default function ProjectPage() {
 
               <Tooltip title={t('newObject', { object: t('file') })}>
                 <span>
-                  <Button
-                    disabled={readOnly}
-                    sx={{ minWidth: 0 }}
-                    onClick={() => fileTree.current?.newFile({ parent: dirname(filepath) })}>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} {...bindTrigger(createFileMenuState)}>
                     <Add />
                   </Button>
                 </span>
               </Tooltip>
+
+              <Menu {...bindMenu(createFileMenuState)} onClick={createFileMenuState.close}>
+                <MenuItem
+                  onClick={() => {
+                    const dir = dirname(filepath);
+                    fileTree.current?.newFile({
+                      parent: dir[0] === PROMPTS_FOLDER_NAME ? dir : [],
+                      rootFolder: PROMPTS_FOLDER_NAME,
+                    });
+                  }}>
+                  <ListItemIcon>
+                    <File />
+                  </ListItemIcon>
+                  <ListItemText primary={t('prompt')} />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    const dir = dirname(filepath);
+                    fileTree.current?.newFile({
+                      parent: dir[0] === FUNCTIONS_FOLDER_NAME ? dir : [],
+                      meta: { type: 'api' },
+                      rootFolder: FUNCTIONS_FOLDER_NAME,
+                    });
+                  }}>
+                  <ListItemIcon>
+                    <LinkIcon />
+                  </ListItemIcon>
+                  <ListItemText primary={t('api')} />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    const dir = dirname(filepath);
+                    fileTree.current?.newFile({
+                      parent: dir[0] === FUNCTIONS_FOLDER_NAME ? dir : [],
+                      meta: { type: 'function' },
+                      rootFolder: FUNCTIONS_FOLDER_NAME,
+                    });
+                  }}>
+                  <ListItemIcon>
+                    <Code />
+                  </ListItemIcon>
+                  <ListItemText primary={t('function')} />
+                </MenuItem>
+              </Menu>
 
               <Tooltip title={t('import.title')}>
                 <span>
@@ -234,16 +297,18 @@ export default function ProjectPage() {
             </Toolbar>
           </Box>
 
-          {!template ? (
+          {!file ? (
             <DebugEmptyView />
-          ) : currentTab === 'setting' ? (
-            <SettingView projectId={projectId} gitRef={gitRef} template={template} />
-          ) : currentTab === 'debug' ? (
-            <DebugView projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
-          ) : currentTab === 'test' ? (
-            <TestView projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
-          ) : currentTab === 'discuss' ? (
-            <DiscussView projectId={projectId} gitRef={gitRef} template={template} />
+          ) : isTemplate(file) ? (
+            currentTab === 'setting' ? (
+              <SettingView projectId={projectId} gitRef={gitRef} template={file} />
+            ) : currentTab === 'debug' ? (
+              <DebugView projectId={projectId} gitRef={gitRef} template={file} setCurrentTab={setCurrentTab} />
+            ) : currentTab === 'test' ? (
+              <TestView projectId={projectId} gitRef={gitRef} template={file} setCurrentTab={setCurrentTab} />
+            ) : currentTab === 'discuss' ? (
+              <DiscussView projectId={projectId} gitRef={gitRef} template={file} />
+            ) : null
           ) : null}
         </Stack>
       }>
@@ -267,7 +332,7 @@ export default function ProjectPage() {
 
               <Box flex={1} />
 
-              {template && <UndoAndRedo projectId={projectId} gitRef={gitRef} id={templateId} />}
+              {file && <UndoAndRedo projectId={projectId} gitRef={gitRef} id={fileId} />}
 
               {!rightOpen && (
                 <PanelToggleButton
@@ -284,9 +349,17 @@ export default function ProjectPage() {
               <Box sx={{ textAlign: 'center', mt: 10 }}>
                 <CircularProgress size={32} />
               </Box>
-            ) : template ? (
-              <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id]} onMount>
-                <TemplateFormView projectId={projectId} gitRef={gitRef} value={template} />
+            ) : file ? (
+              <WithAwareness projectId={projectId} gitRef={gitRef} path={[file.id]} onMount>
+                {isTemplate(file) ? (
+                  <TemplateFormView projectId={projectId} gitRef={gitRef} value={file} />
+                ) : isApiFile(file) ? (
+                  <ApiForm projectId={projectId} gitRef={gitRef} value={file} />
+                ) : isFunctionFile(file) ? (
+                  <FunctionForm projectId={projectId} gitRef={gitRef} value={file} />
+                ) : (
+                  <Box />
+                )}
               </WithAwareness>
             ) : filepath ? (
               <Alert color="error">Not Found</Alert>
@@ -295,7 +368,7 @@ export default function ProjectPage() {
             )}
           </Box>
 
-          {template && template.type !== 'image' && (
+          {file && file.type !== 'image' && (
             <Box
               sx={{
                 position: 'sticky',
@@ -304,10 +377,12 @@ export default function ProjectPage() {
                 zIndex: (theme) => theme.zIndex.appBar,
                 borderTop: (theme) => `1px solid ${theme.palette.grey[50]}`,
               }}>
-              <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
-                <TokenUsage template={template} />
-                <Box />
-              </Toolbar>
+              {isTemplate(file) && (
+                <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
+                  <TokenUsage template={file} />
+                  <Box />
+                </Toolbar>
+              )}
             </Box>
           )}
         </Stack>

@@ -127,25 +127,76 @@ export interface TemplateYjs
   };
 }
 
-type FileType = TemplateYjs | { $base64: string };
+export type FileType = TemplateYjs | ApiFile | FunctionFile | { $base64: string };
+
+export interface ApiFile {
+  id: string;
+  type: 'api';
+  name?: string;
+  description?: string;
+  parameters?: object;
+  schema?: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+}
+
+export interface FunctionFile {
+  id: string;
+  type: 'function';
+  name?: string;
+  description?: string;
+  parameters?: object;
+  code?: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+}
 
 export function isTemplate(file: FileType): file is TemplateYjs {
-  return typeof (file as any).id === 'string';
+  return !isApiFile(file) && !isFunctionFile(file) && typeof (file as any).id === 'string';
+}
+
+export function isApiFile(file: FileType): file is ApiFile {
+  return (file as any).type === 'api';
+}
+
+export function isFunctionFile(file: FileType): file is FunctionFile {
+  return (file as any).type === 'function';
+}
+
+export function isRawFile(file: FileType): file is { $fileType: undefined; $base64: string } {
+  return typeof (file as any).$base64 === 'string';
 }
 
 const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
 
 export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
 
+export const PROMPTS_FOLDER_NAME = 'prompts';
+export const FUNCTION_FOLDER_NAME = 'functions';
+
 export async function getRepository({ projectId }: { projectId: string }) {
   repositories[projectId] ??= (async () => {
-    const repository = await Repository.init<TemplateYjs | { $base64: string }>({
+    const repository = await Repository.init<FileType>({
       root: repositoryRoot(projectId),
       initialCommit: { message: 'init', author: { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content) => {
-        if (path.extname(filepath) === '.yaml') {
+        const { dir, ext } = path.parse(filepath);
+        const [root] = filepath.split('/');
+
+        if (root === PROMPTS_FOLDER_NAME && path.extname(filepath) === '.yaml') {
           const data = templateToYjs(parse(Buffer.from(content).toString()));
-          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+          const parent = dir.replace(/^\.\/?/, '');
+          const filename = `${data.id}.yaml`;
+          return { filepath: path.join(parent, filename), key: data.id, data };
+        }
+
+        if (root === FUNCTION_FOLDER_NAME && ext === '.yaml') {
+          const data: ApiFile | FunctionFile = parse(Buffer.from(content).toString());
+          const parent = dir.replace(/^\.\/?/, '');
           const filename = `${data.id}.yaml`;
           return { filepath: path.join(parent, filename), key: data.id, data };
         }
@@ -171,11 +222,27 @@ export async function getRepository({ projectId }: { projectId: string }) {
           };
         }
 
-        const base64 = content.$base64;
+        if (isApiFile(content) || isFunctionFile(content)) {
+          const data = stringify(content);
+          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+          const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
+          const newFilepath = path.join(parent, filename);
 
-        const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
+          return {
+            filepath: newFilepath,
+            data,
+          };
+        }
 
-        return { filepath, data };
+        if (isRawFile(content)) {
+          const base64 = content.$base64;
+
+          const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
+
+          return { filepath, data };
+        }
+
+        return { filepath, data: '' };
       },
     });
     return repository;

@@ -34,7 +34,7 @@ import {
   useProjectStore,
 } from '../../pages/project/yjs-state';
 import dirname from '../../utils/path';
-import CodeEditor from './code-editer';
+import CodeEditor from './code-editor';
 import TemplateAutocomplete from './template-autocomplete';
 
 const useSchema = () => {
@@ -395,7 +395,7 @@ export default function ToolFunctionCallDialog({
                           });
                         }
                       }}
-                      height="400px"
+                      height={400}
                     />
 
                     {fieldState.error?.message ? (
@@ -586,6 +586,7 @@ export default function ToolFunctionCallDialog({
                         <Typography variant="caption">{t('call.func.code')}</Typography>
 
                         <CodeEditor
+                          height={120}
                           defaultLanguage="javascript"
                           language="javascript"
                           value={(field.value as CallFuncMessage)?.code || ''}

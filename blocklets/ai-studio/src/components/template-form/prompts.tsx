@@ -63,7 +63,7 @@ import {
 import dirname from '../../utils/path';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import { DragSortListYjs } from '../drag-sort-list';
-import CodeEditor from './code-editer';
+import CodeEditor from './code-editor';
 import TemplateAutocomplete from './template-autocomplete';
 
 const CONST_TYPE = {
@@ -817,6 +817,7 @@ function CallAPIItemView({
           <Typography variant="caption">{t('call.api.body')}</Typography>
 
           <CodeEditor
+            height={120}
             readOnly={readOnly}
             defaultLanguage="json"
             language="json"
@@ -902,8 +903,7 @@ function CallFuncItemView({
         };
       `;
 
-      monaco?.languages?.typescript?.typescriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.d.ts');
-      monaco?.languages?.typescript?.javascriptDefaults?.addExtraLib?.(customTypeDefinitions, 'custom.d.ts');
+      monaco?.languages?.typescript?.javascriptDefaults?.setExtraLibs?.([{ content: customTypeDefinitions }]);
     }
   }, [monaco, temp, prompt]);
 
@@ -943,6 +943,7 @@ function CallFuncItemView({
         <Typography variant="caption">{t('call.func.code')}</Typography>
 
         <CodeEditor
+          height={120}
           readOnly={Boolean(readOnly)}
           defaultLanguage="javascript"
           language="javascript"

@@ -478,7 +478,7 @@ export function useToolsState({
   const { store } = useProjectStore(projectId, gitRef);
 
   const file = store.files[templateId];
-  const template = isTemplate(file) ? file : undefined;
+  const template = file && isTemplate(file) ? file : undefined;
 
   const addToolFunc = useCallback(
     (func: NonNullable<TemplateYjs['tools']>[string]['data']) => {

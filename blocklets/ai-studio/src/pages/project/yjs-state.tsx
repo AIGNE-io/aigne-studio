@@ -9,7 +9,8 @@ import {
 } from '@blocklet/co-git/yjs';
 import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
@@ -19,7 +20,7 @@ import { joinURL } from 'ufo';
 import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
+import { ApiFile, FileType, FunctionFile, TemplateYjs } from '../../../api/src/store/projects';
 import {
   CallAPIMessage,
   CallDatasetMessage,
@@ -32,14 +33,29 @@ import {
 import { PREFIX } from '../../libs/api';
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
+export const FUNCTIONS_FOLDER_NAME = 'functions';
+
+export const isBuiltinFolder = (folder: string) => [PROMPTS_FOLDER_NAME, FUNCTIONS_FOLDER_NAME].includes(folder);
 
 export type State = {
-  files: { [key: string]: TemplateYjs | { $base64: string } };
+  files: { [key: string]: FileType };
   tree: { [key: string]: string };
 };
 
-export function isTemplate(value?: State['files'][string]): value is TemplateYjs {
-  return typeof (value as any)?.id === 'string';
+export function isTemplate(file?: FileType): file is TemplateYjs {
+  return !!file && !isApiFile(file) && !isFunctionFile(file) && typeof (file as any).id === 'string';
+}
+
+export function isApiFile(file?: FileType): file is ApiFile {
+  return !!file && (file as any).type === 'api';
+}
+
+export function isFunctionFile(file?: FileType): file is FunctionFile {
+  return !!file && (file as any).type === 'function';
+}
+
+export function isRawFile(file?: FileType): file is { $fileType: undefined; $base64: string } {
+  return !!file && typeof (file as any).$base64 === 'string';
 }
 
 export function isPromptMessage(message: any): message is PromptMessage {
@@ -196,7 +212,14 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
     getTemplateById: useCallback(
       (templateId: string) => {
         const file = syncedStore.files[templateId];
-        return isTemplate(file) ? file : undefined;
+        return file && isTemplate(file) ? file : undefined;
+      },
+      [syncedStore.files]
+    ),
+    getFileById: useCallback(
+      (fileId: string) => {
+        const file = syncedStore.files[fileId];
+        return (file && isTemplate(file)) || isApiFile(file) || isFunctionFile(file) ? file : undefined;
       },
       [syncedStore.files]
     ),
@@ -207,7 +230,7 @@ export function createFolder({
   store,
   name,
   parent = [],
-  rootFolder = PROMPTS_FOLDER_NAME,
+  rootFolder,
 }: {
   store: StoreContext['store'];
   name?: string;
@@ -267,28 +290,44 @@ export const resetTemplatesId = (templates: (Template & { parent?: string[] })[]
 export function createFile({
   store,
   parent = [],
-  meta,
-  rootFolder = PROMPTS_FOLDER_NAME,
+  meta = {},
+  rootFolder,
 }: {
   store: StoreContext['store'];
   parent?: string[];
-  meta?: Partial<TemplateYjs>;
+  meta?: Partial<FileType>;
   rootFolder?: string;
 }) {
-  const id = meta?.id || nextTemplateId();
+  const id = (meta as any).id || nextTemplateId();
   const filename = `${id}.yaml`;
   const filepath = joinURL(rootFolder && parent[0] !== rootFolder ? rootFolder : '', ...parent, filename);
   const now = new Date().toISOString();
 
-  const template = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };
+  const file: FileType = {
+    ...meta,
+    id,
+    type: (meta as any).type as any,
+    createdAt: now,
+    updatedAt: now,
+    createdBy: '',
+    updatedBy: '',
+  };
+
+  if (isTemplate(file)) {
+    if (isEmpty(file.prompts)) {
+      const promptId = nanoid();
+      file.prompts = { [promptId]: { index: 0, data: { id: promptId, role: 'user' } } };
+    }
+  }
+
   getYjsDoc(store).transact(() => {
     store.tree[id] = filepath;
-    store.files[id] = template;
+    store.files[id] = file;
   });
 
   return {
     filepath,
-    template,
+    template: file,
   };
 }
 

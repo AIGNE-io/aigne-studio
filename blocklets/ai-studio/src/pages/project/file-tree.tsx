@@ -35,7 +35,6 @@ import {
 import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { nanoid } from 'nanoid';
 import {
   ComponentProps,
   ReactNode,
@@ -44,7 +43,6 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -52,7 +50,7 @@ import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
+import { FileType, TemplateYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
 import { importTemplatesToProject } from '../../libs/project';
@@ -60,11 +58,14 @@ import useDialog from '../../utils/use-dialog';
 import Compare from './compare';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
+import Code from './icons/code';
 import CompareIcon from './icons/compare';
 import Duplicate from './icons/duplicate';
 import External from './icons/external';
 import File from './icons/file';
+import FolderAdd from './icons/folder-add';
 import FolderClose from './icons/folder-close';
+import LinkIcon from './icons/link';
 import MenuVertical from './icons/menu-vertical';
 import Pen from './icons/pen';
 import Picture from './icons/picture';
@@ -73,10 +74,14 @@ import Undo from './icons/undo';
 import ImportFrom from './import';
 import { useTemplatesChangesState } from './state';
 import {
+  FUNCTIONS_FOLDER_NAME,
   PROMPTS_FOLDER_NAME,
   createFile,
   createFolder,
   deleteFile,
+  isApiFile,
+  isBuiltinFolder,
+  isFunctionFile,
   isTemplate,
   moveFile,
   nextTemplateId,
@@ -92,7 +97,7 @@ export type EntryWithMeta =
       filename: string;
       parent: string[];
       path: string[];
-      meta: TemplateYjs;
+      meta: Exclude<FileType, { $base64: string }>;
     }
   | {
       type: 'folder';
@@ -105,8 +110,8 @@ export type EntryWithMeta =
 export type TreeNode = NodeModel<EntryWithMeta>;
 
 export interface ImperativeFileTree {
-  newFolder: (options?: { parent?: string[] }) => void;
-  newFile: (options?: { parent?: string[] }) => void;
+  newFolder: (options?: Partial<Omit<Parameters<typeof createFolder>[0], 'store'>>) => void;
+  newFile: (options?: Partial<Omit<Parameters<typeof createFile>[0], 'store'>>) => void;
   importFrom: () => void;
 }
 
@@ -132,30 +137,46 @@ const FileTree = forwardRef<
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
-  const onCreateFile = useCallback(
-    ({ parent, meta }: { parent?: string[]; meta?: TemplateYjs } = {}) => {
-      const promptId = nanoid();
+  const openFolder = useCallback(
+    (...path: (string | string[])[]) => {
+      const paths = path.flatMap((i) =>
+        (Array.isArray(i) ? i : i.split('/')).map((_, index, arr) => arr.slice(0, index + 1).join('/'))
+      );
 
+      setOpenIds((ids) => [...new Set((ids ?? []).concat(paths))]);
+    },
+    [setOpenIds]
+  );
+
+  useEffect(() => {
+    if (current) openFolder(current);
+  }, [current, openFolder]);
+
+  const onCreateFile = useCallback(
+    (options: Partial<Omit<Parameters<typeof createFile>[0], 'store'>> = {}) => {
       const { filepath } = createFile({
+        ...options,
         store,
-        parent,
-        meta: {
-          ...meta,
-          prompts: meta?.prompts ?? {
-            [promptId]: {
-              index: 0,
-              data: {
-                id: promptId,
-                role: 'user',
-              },
-            },
-          },
-        },
       });
-      if (parent) setOpenIds((ids) => (ids ?? []).concat(parent.join('/')));
+      const { parent } = options;
+      if (parent) openFolder(parent);
       navigate(joinURL('.', filepath));
     },
-    [navigate, setOpenIds, store]
+    [navigate, openFolder, store]
+  );
+
+  const [defaultEditingFolderPath, setDefaultEditingFolderPath] = useState<string>();
+
+  const onCreateFolder = useCallback(
+    (options: Partial<Omit<Parameters<typeof createFolder>[0], 'store'>> = {}) => {
+      const path = createFolder({
+        ...options,
+        store,
+      });
+      setDefaultEditingFolderPath(path);
+      openFolder(path);
+    },
+    [openFolder, store]
   );
 
   const onImportFrom = useCallback(() => {
@@ -209,30 +230,28 @@ const FileTree = forwardRef<
     });
   }, [gitRef, projectId, showDialog, store, t]);
 
-  const [defaultEditingFolderPath, setDefaultEditingFolderPath] = useState<string>();
-
   useImperativeHandle(
     ref,
     () => ({
-      newFolder: (options) => setDefaultEditingFolderPath(createFolder({ store, ...options })),
+      newFolder: (options) => onCreateFolder(options),
       newFile: (options) => onCreateFile(options),
       importFrom: () => onImportFrom(),
     }),
-    [onCreateFile, onImportFrom, store]
+    [onCreateFolder, onCreateFile, onImportFrom]
   );
 
   const onMoveFile = useCallback(
     ({ from, to }: { from: string[]; to: string[] }) => {
       moveFile({ store, from, to });
 
-      setOpenIds((ids) => [...new Set((ids ?? []).concat(to.slice(0, -1).join('/')))]);
+      openFolder(to);
 
       const filename = current?.split('/').slice(-1)[0];
       const filepath = filename ? Object.values(store.tree).find((i) => i?.endsWith(filename)) : undefined;
 
       if (filepath?.endsWith('.yaml')) navigate(joinURL('.', filepath), { replace: true });
     },
-    [current, navigate, setOpenIds, store]
+    [current, navigate, openFolder, store]
   );
 
   const onDeleteFile = useCallback(
@@ -247,8 +266,8 @@ const FileTree = forwardRef<
   );
 
   const folders = uniqBy(
-    [...new Set(Object.values(store.tree).map((filepath) => filepath?.split('/').slice(0, -1).join('/')))].flatMap(
-      (filepath) => {
+    [...new Set(Object.values(store.tree).map((filepath) => filepath?.split('/').slice(0, -1).join('/')))]
+      .flatMap((filepath) => {
         if (!filepath) return [];
         const parent = filepath.split('/').filter(Boolean);
         return parent.map((name, index) => {
@@ -258,21 +277,32 @@ const FileTree = forwardRef<
             parent: parent.slice(0, index),
           };
         });
-      }
-    ),
+      })
+      .concat(
+        {
+          type: 'folder',
+          name: FUNCTIONS_FOLDER_NAME,
+          parent: [],
+        },
+        {
+          type: 'folder',
+          name: PROMPTS_FOLDER_NAME,
+          parent: [],
+        }
+      ),
     (a) => a.parent.concat(a.name).join('/')
   );
 
   const files = Object.entries(store.tree)
     .map(([key, filepath]) => {
-      const template = store.files[key];
-      if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
+      const file = store.files[key];
+      if (filepath?.endsWith('.yaml') && file && (isTemplate(file) || isApiFile(file) || isFunctionFile(file))) {
         const paths = filepath.split('/').filter(Boolean);
         return {
           type: 'file' as const,
-          name: template.name || '',
+          name: file.name || '',
           parent: paths.slice(0, -1),
-          meta: template,
+          meta: file,
         };
       }
 
@@ -280,22 +310,18 @@ const FileTree = forwardRef<
     })
     .filter((i): i is NonNullable<typeof i> => !!i);
 
-  const tree = useMemo<TreeNode[]>(() => {
-    return [...folders, ...files].map((item) => {
-      const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
-      const path = item.parent.concat(filename);
+  const tree = [...folders, ...files].map((item) => {
+    const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
+    const path = item.parent.concat(filename);
 
-      return {
-        id: joinURL('', ...path),
-        text: item.name,
-        parent: item.parent.join('/'),
-        droppable: item.type === 'folder',
-        data: { ...item, path, filename },
-      };
-    });
-  }, [files, folders]);
-
-  const treeFiles = tree.filter((i) => String(i?.id || '').startsWith([PROMPTS_FOLDER_NAME].join('/').concat('/')));
+    return {
+      id: joinURL('', ...path),
+      text: item.name,
+      parent: item.parent.join('/'),
+      droppable: item.type === 'folder',
+      data: { ...item, path, filename },
+    };
+  });
 
   if (!synced)
     return (
@@ -307,22 +333,18 @@ const FileTree = forwardRef<
   return (
     <>
       <Box {...props}>
-        {!treeFiles.length && (
-          <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="28px" m={0.5}>
-            <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
-              <Add sx={{ fontSize: 54, color: 'grey.300' }} />
-              <Typography>{t('noFiles')}</Typography>
-            </Stack>
-          </Box>
-        )}
-
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
           <Tree
             tree={tree}
-            rootId={PROMPTS_FOLDER_NAME}
+            rootId=""
             initialOpen={openIds}
             onChangeOpen={setOpenIds}
-            canDrag={() => !!mutable}
+            canDrag={(node) => !!mutable && !isBuiltinFolder(node?.id as any)}
+            canDrop={(_, { dragSource, dropTarget }) => {
+              const sourceRoot = dragSource?.data?.path[0];
+              const targetRoot = dropTarget?.data?.path[0];
+              return dropTarget?.data?.type === 'folder' && !!sourceRoot && sourceRoot === targetRoot;
+            }}
             onDrop={async (_, { dragSource, dropTarget }) => {
               const source = dragSource?.data;
               const target = dropTarget?.data;
@@ -334,7 +356,7 @@ const FileTree = forwardRef<
             }}
             classes={{
               root: css`
-                min-height: ${!treeFiles.length ? 'auto' : '100%'};
+                min-height: '100%';
                 padding-bottom: ${theme.spacing(10)};
               `,
               dropTarget: css`
@@ -354,29 +376,33 @@ const FileTree = forwardRef<
               const filepath = parent.concat(filename).join('/');
 
               if (node.data.type === 'folder') {
+                const isBuiltin = isBuiltinFolder(filepath);
+                const folderMutable = mutable && !isBuiltin;
+
                 return (
                   <EditableTreeItem
                     key={node.id}
                     defaultEditing={filepath === defaultEditingFolderPath}
                     icon={<ChevronDown sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }} />}
-                    mutable={mutable}
+                    mutable={folderMutable}
                     depth={depth}
                     onClick={onToggle}
                     onSubmit={async (name) => {
+                      setDefaultEditingFolderPath(undefined);
                       const { data } = node;
                       if (!data || name === data.name) return;
                       onMoveFile({ from: data.parent.concat(data.name), to: data.parent.concat(name) });
                     }}
                     actions={
                       <TreeItemMenus
-                        mutable={mutable}
                         item={node.data}
-                        onCreateFile={onCreateFile}
-                        onDeleteFile={onDeleteFile}
+                        onCreateFolder={mutable ? onCreateFolder : undefined}
+                        onCreateFile={mutable ? onCreateFile : undefined}
+                        onDeleteFile={folderMutable ? onDeleteFile : undefined}
                         onLaunch={onLaunch}
                       />
                     }>
-                    {node.text}
+                    {isBuiltin ? t(node.text) : node.text}
                   </EditableTreeItem>
                 );
               }
@@ -387,14 +413,11 @@ const FileTree = forwardRef<
 
               const change = changes(meta);
 
-              const icon = meta.type === 'image' ? <Picture /> : <File />;
-
               const actions = (
                 <TreeItemMenus
-                  mutable={mutable}
                   item={node.data}
-                  onCreateFile={onCreateFile}
-                  onDeleteFile={onDeleteFile}
+                  onCreateFile={mutable ? onCreateFile : undefined}
+                  onDeleteFile={mutable ? onDeleteFile : undefined}
                   onLaunch={onLaunch}
                   isChanged={Boolean(change?.key === 'M' && getOriginTemplate(meta))}
                   onCompare={() => {
@@ -423,7 +446,7 @@ const FileTree = forwardRef<
               const children = (
                 <TreeItem
                   key={node.id}
-                  icon={icon}
+                  icon={<FileIcon type={meta.type} />}
                   depth={depth}
                   selected={selected}
                   onClick={() => navigate(joinURL('.', filepath))}
@@ -521,8 +544,8 @@ function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 
 
 function TreeItemMenus({
   isChanged,
-  mutable,
   item,
+  onCreateFolder,
   onCreateFile,
   onDeleteFile,
   onLaunch,
@@ -530,8 +553,8 @@ function TreeItemMenus({
   onUndo,
 }: {
   isChanged?: boolean;
-  mutable?: boolean;
   item: EntryWithMeta;
+  onCreateFolder?: (options?: { parent?: string[] }) => any;
   onCreateFile?: (options?: { parent?: string[]; meta?: TemplateYjs }) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
   onLaunch?: (template: TemplateYjs) => any;
@@ -540,10 +563,12 @@ function TreeItemMenus({
 }) {
   const { t } = useLocaleContext();
 
+  const template = item.type === 'file' && isTemplate(item.meta) ? item.meta : undefined;
+
   return (
     <>
-      {onLaunch && item.type === 'file' && (
-        <ListItemButton onClick={() => onLaunch(item.meta)}>
+      {onLaunch && template && (
+        <ListItemButton onClick={() => onLaunch(template)}>
           <ListItemIcon>
             <External />
           </ListItemIcon>
@@ -551,8 +576,17 @@ function TreeItemMenus({
         </ListItemButton>
       )}
 
+      {item.type === 'folder' && onCreateFolder && (
+        <ListItemButton onClick={() => onCreateFolder({ parent: item.path })}>
+          <ListItemIcon>
+            <FolderAdd />
+          </ListItemIcon>
+          <ListItemText primary={t('newObject', { object: t('folder') })} />
+        </ListItemButton>
+      )}
+
       {item.type === 'folder' && onCreateFile && (
-        <ListItemButton disabled={!mutable} onClick={() => onCreateFile({ parent: item.path })}>
+        <ListItemButton onClick={() => onCreateFile({ parent: item.path })}>
           <ListItemIcon>
             <Add />
           </ListItemIcon>
@@ -562,7 +596,6 @@ function TreeItemMenus({
 
       {item.type === 'file' && onCreateFile && (
         <ListItemButton
-          disabled={!mutable}
           onClick={() =>
             onCreateFile({
               parent: item.parent,
@@ -581,7 +614,7 @@ function TreeItemMenus({
       )}
 
       {onDeleteFile && (
-        <ListItemButton disabled={!mutable} onClick={() => onDeleteFile(item)}>
+        <ListItemButton onClick={() => onDeleteFile(item)}>
           <ListItemIcon>
             <Trash />
           </ListItemIcon>
@@ -654,13 +687,15 @@ function EditableTreeItem({
       actions={
         editing ? null : (
           <>
-            <ListItemButton disabled={!mutable} onClick={() => setEditing(true)}>
-              <ListItemIcon>
-                <Pen />
-              </ListItemIcon>
+            {mutable && (
+              <ListItemButton onClick={() => setEditing(true)}>
+                <ListItemIcon>
+                  <Pen />
+                </ListItemIcon>
 
-              <ListItemText primary={t('form.rename')} />
-            </ListItemButton>
+                <ListItemText primary={t('form.rename')} />
+              </ListItemButton>
+            )}
 
             {props.actions}
           </>
@@ -974,4 +1009,11 @@ function DeletedTemplates({
       </AccordionDetails>
     </Accordion>
   );
+}
+
+function FileIcon({ type }: { type?: Exclude<FileType, { $base64: string }>['type'] }) {
+  if (type === 'image') return <Picture />;
+  if (type === 'api') return <LinkIcon />;
+  if (type === 'function') return <Code />;
+  return <File />;
 }

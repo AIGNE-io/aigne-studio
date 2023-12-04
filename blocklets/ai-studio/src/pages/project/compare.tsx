@@ -7,7 +7,7 @@ import { TemplateYjs } from '../../../api/src/store/projects';
 import TemplateFormView from '../../components/template-form';
 import { getLogs } from '../../libs/log';
 import { getTemplate } from '../../libs/template';
-import { getTemplateIdFromPath } from '../../utils/path';
+import { getFileIdFromPath } from '../../utils/path';
 import Branch from './icons/branch';
 import Empty from './icons/empty';
 import History from './icons/history';
@@ -51,7 +51,7 @@ export default function Compare({
     return [{ oid: gitRef, commit: { message: gitRef } }, ...commits];
   }, [gitRef, data]);
 
-  const templateId = getTemplateIdFromPath(filepath);
+  const templateId = getFileIdFromPath(filepath);
   const template = templateId ? getTemplateById(templateId) : undefined;
 
   const init = async (hash: string) => {
