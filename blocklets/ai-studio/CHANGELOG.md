@@ -1,3 +1,7 @@
+## 0.1.155 (2023-12-5)
+
+- chore: save project info to git
+
 ## 0.1.154 (2023-12-1)
 
 - feat: runtime package
