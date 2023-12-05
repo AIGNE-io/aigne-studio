@@ -26,6 +26,7 @@ import {
   projectTemplates,
   repositoryRoot,
   syncRepository,
+  syncToGit,
   templateToYjs,
 } from '../store/projects';
 import { Template, getTemplate, nextTemplateId } from '../store/templates';
@@ -318,7 +319,7 @@ export function projectRoutes(router: Router) {
 
     const { did, fullName } = req.user!;
 
-    const newProject = await project.update(
+    await project.update(
       omitBy(
         {
           name,
@@ -340,13 +341,9 @@ export function projectRoutes(router: Router) {
     );
 
     const author = { name: fullName, email: did };
-    await commitProjectSettingWorking({ project: newProject.toJSON(), author });
+    await commitProjectSettingWorking({ project, author });
 
-    if (project.gitUrl && project.gitAutoSync) {
-      const repository = await getRepository({ projectId: project._id! });
-      await syncRepository({ repository, ref: defaultBranch, author });
-      await newProject.update({ gitLastSyncedAt: new Date() });
-    }
+    await syncToGit({ project, author });
 
     res.json(project.dataValues);
   });

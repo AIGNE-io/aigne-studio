@@ -1,10 +1,10 @@
 import { readdirSync, rmSync, writeFileSync } from 'fs';
 import path from 'path';
 
-import { Repository } from '@blocklet/co-git/repository';
+import { Repository, Transaction } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
 import { glob } from 'glob';
-import omit from 'lodash/omit';
+import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { Worker } from 'snowflake-uuid';
@@ -13,6 +13,7 @@ import { parse, stringify } from 'yaml';
 import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
 import { defaultModel } from '../libs/models';
+import ProjectModel from './models/projects';
 import type { ParameterYjs, Template } from './templates';
 
 const idGenerator = new Worker();
@@ -212,6 +213,47 @@ export async function syncRepository<T>({
 // NOTE: yaml 后缀会有问题，因为prompt的文件是yaml,有处理逻辑
 const SETTINGS_FILE = '.settings.yml';
 
+const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileType>; project: Project }) => {
+  const repository = await getRepository({ projectId: project._id! });
+  const fields = pick(project, [
+    '_id',
+    'name',
+    'description',
+    'model',
+    'createdAt',
+    'updatedAt',
+    'createdBy',
+    'updatedBy',
+    'pinnedAt',
+    'icon',
+    'gitType',
+    'temperature',
+    'topP',
+    'presencePenalty',
+    'frequencyPenalty',
+    'maxTokens',
+    'gitAutoSync',
+  ]);
+  const fieldsStr = stringify(fields);
+
+  writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
+  await tx.add({ filepath: SETTINGS_FILE });
+};
+
+export const syncToGit = async ({
+  project,
+  author,
+}: {
+  project: ProjectModel;
+  author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+}) => {
+  if (project.gitUrl && project.gitAutoSync) {
+    const repository = await getRepository({ projectId: project._id! });
+    await syncRepository({ repository, ref: defaultBranch, author });
+    await project.update({ gitLastSyncedAt: new Date() });
+  }
+};
+
 export async function commitWorking({
   project,
   ref,
@@ -236,10 +278,7 @@ export async function commitWorking({
       writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
 
-      const fields = omit(project, 'gitUrl');
-      const fieldsStr = stringify(fields);
-      writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
-      await tx.add({ filepath: SETTINGS_FILE });
+      await addSettingsToGit({ tx, project });
 
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
@@ -262,12 +301,8 @@ export async function commitProjectSettingWorking({
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
 }) {
   const repository = await getRepository({ projectId: project._id! });
-  const fields = omit(project, 'gitUrl');
-  const fieldsStr = stringify(fields);
-
   await repository.transact(async (tx) => {
-    writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
-    await tx.add({ filepath: SETTINGS_FILE });
+    await addSettingsToGit({ tx, project });
     await tx.commit({ message, author });
   });
 }
