@@ -176,7 +176,6 @@ const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
 export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
-export const FUNCTION_FOLDER_NAME = 'functions';
 
 export async function getRepository({ projectId }: { projectId: string }) {
   repositories[projectId] ??= (async () => {
@@ -187,15 +186,8 @@ export async function getRepository({ projectId }: { projectId: string }) {
         const { dir, ext } = path.parse(filepath);
         const [root] = filepath.split('/');
 
-        if (root === PROMPTS_FOLDER_NAME && path.extname(filepath) === '.yaml') {
+        if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
           const data = templateToYjs(parse(Buffer.from(content).toString()));
-          const parent = dir.replace(/^\.\/?/, '');
-          const filename = `${data.id}.yaml`;
-          return { filepath: path.join(parent, filename), key: data.id, data };
-        }
-
-        if (root === FUNCTION_FOLDER_NAME && ext === '.yaml') {
-          const data: ApiFile | FunctionFile = parse(Buffer.from(content).toString());
           const parent = dir.replace(/^\.\/?/, '');
           const filename = `${data.id}.yaml`;
           return { filepath: path.join(parent, filename), key: data.id, data };
@@ -210,20 +202,8 @@ export async function getRepository({ projectId }: { projectId: string }) {
         };
       },
       stringify: async (filepath, content) => {
-        if (isTemplate(content)) {
-          const data = stringify(yjsToTemplate(content));
-          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
-          const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
-          const newFilepath = path.join(parent, filename);
-
-          return {
-            filepath: newFilepath,
-            data,
-          };
-        }
-
-        if (isApiFile(content) || isFunctionFile(content)) {
-          const data = stringify(content);
+        if (isTemplate(content) || isApiFile(content) || isFunctionFile(content)) {
+          const data = stringify(isTemplate(content) ? yjsToTemplate(content) : content);
           const parent = path.dirname(filepath).replace(/^\.\/?/, '');
           const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
           const newFilepath = path.join(parent, filename);

@@ -51,14 +51,7 @@ import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
 import UndoAndRedo from './undo';
-import {
-  FUNCTIONS_FOLDER_NAME,
-  PROMPTS_FOLDER_NAME,
-  isApiFile,
-  isFunctionFile,
-  isTemplate,
-  useProjectStore,
-} from './yjs-state';
+import { PROMPTS_FOLDER_NAME, isApiFile, isFunctionFile, isTemplate, useProjectStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -198,28 +191,26 @@ export default function ProjectPage() {
                   <ListItemText primary={t('prompt')} />
                 </MenuItem>
                 <MenuItem
-                  onClick={() => {
-                    const dir = dirname(filepath);
+                  onClick={() =>
                     fileTree.current?.newFile({
-                      parent: dir[0] === FUNCTIONS_FOLDER_NAME ? dir : [],
+                      parent: dirname(filepath),
                       meta: { type: 'api' },
-                      rootFolder: FUNCTIONS_FOLDER_NAME,
-                    });
-                  }}>
+                      rootFolder: PROMPTS_FOLDER_NAME,
+                    })
+                  }>
                   <ListItemIcon>
                     <LinkIcon />
                   </ListItemIcon>
                   <ListItemText primary={t('api')} />
                 </MenuItem>
                 <MenuItem
-                  onClick={() => {
-                    const dir = dirname(filepath);
+                  onClick={() =>
                     fileTree.current?.newFile({
-                      parent: dir[0] === FUNCTIONS_FOLDER_NAME ? dir : [],
+                      parent: dirname(filepath),
                       meta: { type: 'function' },
-                      rootFolder: FUNCTIONS_FOLDER_NAME,
-                    });
-                  }}>
+                      rootFolder: PROMPTS_FOLDER_NAME,
+                    })
+                  }>
                   <ListItemIcon>
                     <Code />
                   </ListItemIcon>

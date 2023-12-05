@@ -33,9 +33,8 @@ import {
 import { PREFIX } from '../../libs/api';
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
-export const FUNCTIONS_FOLDER_NAME = 'functions';
 
-export const isBuiltinFolder = (folder: string) => [PROMPTS_FOLDER_NAME, FUNCTIONS_FOLDER_NAME].includes(folder);
+export const isBuiltinFolder = (folder: string) => [PROMPTS_FOLDER_NAME].includes(folder);
 
 export type State = {
   files: { [key: string]: FileType };

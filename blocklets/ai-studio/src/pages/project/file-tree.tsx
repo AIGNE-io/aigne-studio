@@ -15,6 +15,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   Input,
   List,
   ListItemButton,
@@ -56,7 +57,6 @@ import { getErrorMessage } from '../../libs/api';
 import { importTemplatesToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Compare from './compare';
-import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
 import Code from './icons/code';
 import CompareIcon from './icons/compare';
@@ -74,7 +74,6 @@ import Undo from './icons/undo';
 import ImportFrom from './import';
 import { useTemplatesChangesState } from './state';
 import {
-  FUNCTIONS_FOLDER_NAME,
   PROMPTS_FOLDER_NAME,
   createFile,
   createFolder,
@@ -278,18 +277,11 @@ const FileTree = forwardRef<
           };
         });
       })
-      .concat(
-        {
-          type: 'folder',
-          name: FUNCTIONS_FOLDER_NAME,
-          parent: [],
-        },
-        {
-          type: 'folder',
-          name: PROMPTS_FOLDER_NAME,
-          parent: [],
-        }
-      ),
+      .concat({
+        type: 'folder',
+        name: PROMPTS_FOLDER_NAME,
+        parent: [],
+      }),
     (a) => a.parent.concat(a.name).join('/')
   );
 
@@ -310,18 +302,25 @@ const FileTree = forwardRef<
     })
     .filter((i): i is NonNullable<typeof i> => !!i);
 
-  const tree = [...folders, ...files].map((item) => {
-    const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
-    const path = item.parent.concat(filename);
+  const tree = [...folders, ...files]
+    // filter all files not in the `/prompts/` folder
+    .filter(
+      (i) =>
+        (i.type === 'folder' && i.name === PROMPTS_FOLDER_NAME && !i.parent.length) ||
+        i.parent[0] === PROMPTS_FOLDER_NAME
+    )
+    .map((item) => {
+      const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
+      const path = item.parent.concat(filename);
 
-    return {
-      id: joinURL('', ...path),
-      text: item.name,
-      parent: item.parent.join('/'),
-      droppable: item.type === 'folder',
-      data: { ...item, path, filename },
-    };
-  });
+      return {
+        id: joinURL('', ...path),
+        text: item.name,
+        parent: item.parent.join('/'),
+        droppable: item.type === 'folder',
+        data: { ...item, path, filename },
+      };
+    });
 
   if (!synced)
     return (
@@ -402,7 +401,7 @@ const FileTree = forwardRef<
                         onLaunch={onLaunch}
                       />
                     }>
-                    {isBuiltin ? t(node.text) : node.text}
+                    {isBuiltin && node.text === PROMPTS_FOLDER_NAME ? t('explorer') : node.text}
                   </EditableTreeItem>
                 );
               }
@@ -555,7 +554,7 @@ function TreeItemMenus({
   isChanged?: boolean;
   item: EntryWithMeta;
   onCreateFolder?: (options?: { parent?: string[] }) => any;
-  onCreateFile?: (options?: { parent?: string[]; meta?: TemplateYjs }) => any;
+  onCreateFile?: (options?: Partial<Omit<Parameters<typeof createFile>[0], 'store'>>) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
   onLaunch?: (template: TemplateYjs) => any;
   onCompare?: () => void;
@@ -577,21 +576,43 @@ function TreeItemMenus({
       )}
 
       {item.type === 'folder' && onCreateFolder && (
-        <ListItemButton onClick={() => onCreateFolder({ parent: item.path })}>
-          <ListItemIcon>
-            <FolderAdd />
-          </ListItemIcon>
-          <ListItemText primary={t('newObject', { object: t('folder') })} />
-        </ListItemButton>
+        <>
+          <Divider />
+
+          <ListItemButton onClick={() => onCreateFolder({ parent: item.path })}>
+            <ListItemIcon>
+              <FolderAdd />
+            </ListItemIcon>
+            <ListItemText primary={t('newObject', { object: t('folder') })} />
+          </ListItemButton>
+        </>
       )}
 
       {item.type === 'folder' && onCreateFile && (
-        <ListItemButton onClick={() => onCreateFile({ parent: item.path })}>
-          <ListItemIcon>
-            <Add />
-          </ListItemIcon>
-          <ListItemText primary={t('newObject', { object: t('file') })} />
-        </ListItemButton>
+        <>
+          <ListItemButton onClick={() => onCreateFile({ parent: item.path })}>
+            <ListItemIcon>
+              <File />
+            </ListItemIcon>
+            <ListItemText primary={t('newObject', { object: t('file') })} />
+          </ListItemButton>
+
+          <ListItemButton onClick={() => onCreateFile({ parent: item.path, meta: { type: 'api' } })}>
+            <ListItemIcon>
+              <LinkIcon />
+            </ListItemIcon>
+            <ListItemText primary={t('newObject', { object: t('api') })} />
+          </ListItemButton>
+
+          <ListItemButton onClick={() => onCreateFile({ parent: item.path, meta: { type: 'function' } })}>
+            <ListItemIcon>
+              <Code />
+            </ListItemIcon>
+            <ListItemText primary={t('newObject', { object: t('function') })} />
+          </ListItemButton>
+
+          <Divider />
+        </>
       )}
 
       {item.type === 'file' && onCreateFile && (

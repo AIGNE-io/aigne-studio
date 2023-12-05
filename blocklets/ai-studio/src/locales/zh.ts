@@ -373,4 +373,5 @@ export default flat({
       },
     },
   },
+  explorer: '资源管理器',
 });

@@ -375,4 +375,5 @@ export default flat({
       },
     },
   },
+  explorer: 'Explorer',
 });
