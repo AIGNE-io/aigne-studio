@@ -6,7 +6,6 @@ import { MappedTypeDescription } from '@syncedstore/core/types/doc';
 import * as decoding from 'lib0/decoding';
 import * as encoding from 'lib0/encoding';
 import debounce from 'lodash/debounce';
-import difference from 'lodash/difference';
 import type { WebSocket } from 'ws';
 import { Awareness, applyAwarenessUpdate, encodeAwarenessUpdate, removeAwarenessStates } from 'y-protocols/awareness';
 import { readSyncMessage, writeSyncStep1, writeUpdate } from 'y-protocols/sync';
@@ -105,34 +104,24 @@ export default class Working<T> extends Doc {
       // Checkout
       await tx.checkout({ ref: branch, force: true });
 
+      // Delete all files
       const originalFiles = await this.repo.listFiles({ ref: branch });
-
-      const files = this.files();
-
-      const deletedFiles = difference(
-        originalFiles,
-        files.map((i) => i[0])
-      );
-
-      for (const filepath of deletedFiles) {
+      for (const filepath of originalFiles) {
         fs.rmSync(path.join(this.repo.root, filepath), { recursive: true, force: true });
-        await fs.rmSync(path.join(this.repo.options.root, filepath), { force: true });
         await tx.remove({ filepath });
+        await fs.rmSync(path.join(this.repo.options.root, filepath), { force: true });
       }
 
-      for (const [filepath, file] of files) {
-        const { filepath: newFilepath, data } = await this.repo.options.stringify(filepath, file);
+      // Add all files from working
+      const files = this.files();
+      for (const [originalFilepath, file] of files) {
+        const { filepath, data } = await this.repo.options.stringify(originalFilepath, file);
 
-        if (filepath !== newFilepath) {
-          await fs.rmSync(path.join(this.repo.options.root, filepath), { force: true });
-          await tx.remove({ filepath });
-        }
-
-        const newPath = path.join(this.repo.options.root, newFilepath);
+        const newPath = path.join(this.repo.options.root, filepath);
         fs.mkdirSync(path.dirname(newPath), { recursive: true });
         fs.writeFileSync(newPath, data);
 
-        await tx.add({ filepath: newFilepath });
+        await tx.add({ filepath });
       }
 
       await beforeCommit?.({ tx });
