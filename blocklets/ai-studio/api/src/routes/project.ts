@@ -5,22 +5,26 @@ import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
-import { pick, uniqBy } from 'lodash';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
+import pick from 'lodash/pick';
 import sample from 'lodash/sample';
+import uniqBy from 'lodash/uniqBy';
 import { Op } from 'sequelize';
 
 import { defaultModel } from '../libs/models';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { createImageUrl } from '../libs/utils';
-import Projects from '../store/models/projects';
+import Project from '../store/models/projects';
 import {
+  autoSyncRemoteRepoIfNeeded,
+  commitProjectSettingWorking,
   commitWorking,
   defaultBranch,
   defaultRemote,
   getRepository,
   getTemplateIdFromPath,
+  getTemplatesFromRepository,
   nextProjectId,
   projectTemplates,
   repositoryRoot,
@@ -28,6 +32,7 @@ import {
   templateToYjs,
 } from '../store/projects';
 import { Template, getTemplate, nextTemplateId } from '../store/templates';
+import { getAuthorInfo } from './log';
 
 let icons: { filename: string }[] = [];
 
@@ -155,14 +160,44 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    const list = await Projects.findAll({
+    const list = await Project.findAll({
       order: [
         ['pinnedAt', 'DESC'],
         ['updatedAt', 'DESC'],
       ],
     });
 
-    res.json({ projects: list });
+    const projects = await Promise.all(
+      list.map(async (project) => {
+        let users: { name?: string; email?: string; did?: string; fullName?: string; avatar?: string }[] = [];
+        let templateCount = 0;
+
+        const repository = await getRepository({ projectId: project._id });
+        const branches = await repository.listBranches();
+
+        // 缓存之前是有做的
+        try {
+          const commits = await getAuthorInfo({ projectId: project._id, ref: defaultBranch });
+          users = uniqBy(
+            commits.map((commit) => pick(commit.commit.author, 'name', 'email', 'did', 'fullName', 'avatar')),
+            'email'
+          );
+        } catch (error) {
+          console.error(error);
+        }
+
+        try {
+          const templates = await getTemplatesFromRepository({ projectId: project._id, ref: defaultBranch });
+          templateCount = templates.length;
+        } catch (error) {
+          console.error(error);
+        }
+
+        return { ...project.dataValues, users, branches, templateCount };
+      })
+    );
+
+    res.json({ projects });
   });
 
   router.get('/projects/icons', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
@@ -179,7 +214,7 @@ export function projectRoutes(router: Router) {
   router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
 
-    const project = await Projects.findOne({ where: { _id: projectId } });
+    const project = await Project.findOne({ where: { _id: projectId } });
     if (!project) {
       res.status(404).json({ error: 'No such project' });
       return;
@@ -195,12 +230,12 @@ export function projectRoutes(router: Router) {
     const { did, fullName } = req.user!;
 
     if (duplicateFrom) {
-      const original = await Projects.findOne({ where: { _id: duplicateFrom } });
+      const original = await Project.findOne({ where: { _id: duplicateFrom } });
       if (!original) throw new Error(`Project ${duplicateFrom} not found`);
 
       const repo = await getRepository({ projectId: original._id! });
 
-      const project = await Projects.create({
+      const project = await Project.create({
         ...original.dataValues,
         model: original.model || defaultModel,
         _id: nextProjectId(),
@@ -244,7 +279,7 @@ export function projectRoutes(router: Router) {
         icon = createImageUrl(`${req.protocol}://${req.host}`, item.filename);
       }
 
-      const project = await Projects.create({
+      const project = await Project.create({
         ...omit(template, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
         model: template.model || defaultModel,
         _id: nextProjectId(),
@@ -253,7 +288,7 @@ export function projectRoutes(router: Router) {
         updatedBy: did,
       });
 
-      const repository = await getRepository({ projectId: project._id! });
+      const repository = await getRepository({ projectId: project._id!, author: { name: fullName, email: did } });
       const working = await repository.working({ ref: defaultBranch });
       for (const { parent, ...file } of template.files) {
         const id = nextTemplateId();
@@ -272,11 +307,11 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    if (name && (await Projects.findOne({ where: { name } }))) {
+    if (name && (await Project.findOne({ where: { name } }))) {
       throw new Error(`Duplicated project ${name}`);
     }
 
-    const project = await Projects.create({
+    const project = await Project.create({
       _id: nextProjectId(),
       model: defaultModel,
       name,
@@ -290,7 +325,7 @@ export function projectRoutes(router: Router) {
   router.patch('/projects/:projectId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
     const { projectId } = req.params;
 
-    const project = await Projects.findOne({ where: { _id: projectId } });
+    const project = await Project.findOne({ where: { _id: projectId } });
     if (!project) {
       res.status(404).json({ error: 'No such project' });
       return;
@@ -311,11 +346,11 @@ export function projectRoutes(router: Router) {
       gitAutoSync,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
-    if (name && (await Projects.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
+    if (name && (await Project.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
       throw new Error(`Duplicated project ${name}`);
     }
 
-    const { did } = req.user!;
+    const { did, fullName } = req.user!;
 
     await project.update(
       omitBy(
@@ -338,6 +373,11 @@ export function projectRoutes(router: Router) {
       )
     );
 
+    const author = { name: fullName, email: did };
+    await commitProjectSettingWorking({ project, author });
+
+    await autoSyncRemoteRepoIfNeeded({ project, author });
+
     res.json(project.dataValues);
   });
 
@@ -345,7 +385,7 @@ export function projectRoutes(router: Router) {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
-    const project = await Projects.findOne({ where: { _id: projectId } });
+    const project = await Project.findOne({ where: { _id: projectId } });
     if (!project) {
       res.status(404).json({ error: 'No such project' });
       return;
@@ -380,7 +420,7 @@ export function projectRoutes(router: Router) {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
-    const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
 
     const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -408,7 +448,7 @@ export function projectRoutes(router: Router) {
 
     const input = await pushInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-    const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
 
     const repository = await getRepository({ projectId });
     const branches = await repository.listBranches();
@@ -429,7 +469,7 @@ export function projectRoutes(router: Router) {
 
     const input = await pullInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-    const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
 
     const repository = await getRepository({ projectId });
     const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
@@ -462,7 +502,7 @@ export function projectRoutes(router: Router) {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
-    const project = await Projects.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
     const repository = await getRepository({ projectId });
     const branches = await repository.listBranches();
 
@@ -479,7 +519,7 @@ export function projectRoutes(router: Router) {
     const { projectId, ref, templateId } = req.params;
     const query = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-    await Projects.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
+    await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 
     const repository = await getRepository({ projectId });
 
