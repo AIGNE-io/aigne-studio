@@ -139,15 +139,20 @@ const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
 
 export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
 
+export const PROMPTS_FOLDER_NAME = 'prompts';
+
 export async function getRepository({ projectId }: { projectId: string }) {
   repositories[projectId] ??= (async () => {
-    const repository = await Repository.init<TemplateYjs | { $base64: string }>({
+    const repository = await Repository.init<FileType>({
       root: repositoryRoot(projectId),
       initialCommit: { message: 'init', author: { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content) => {
-        if (path.extname(filepath) === '.yaml') {
+        const { dir, ext } = path.parse(filepath);
+        const [root] = filepath.split('/');
+
+        if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
           const data = templateToYjs(parse(Buffer.from(content).toString()));
-          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+          const parent = dir.replace(/^\.\/?/, '');
           const filename = `${data.id}.yaml`;
           return { filepath: path.join(parent, filename), key: data.id, data };
         }
@@ -210,12 +215,11 @@ export async function syncRepository<T>({
   });
 }
 
-// NOTE: yaml 后缀会有问题，因为prompt的文件是yaml,有处理逻辑
-const SETTINGS_FILE = '.settings.yml';
+const SETTINGS_FILE = '.settings.yaml';
 
-const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileType>; project: Project }) => {
+const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileType>; project: ProjectModel }) => {
   const repository = await getRepository({ projectId: project._id! });
-  const fields = pick(project, [
+  const fields = pick(project.dataValues, [
     '_id',
     'name',
     'description',
@@ -234,13 +238,14 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileType>; pr
     'maxTokens',
     'gitAutoSync',
   ]);
-  const fieldsStr = stringify(fields);
+
+  const fieldsStr = stringify(fields, { aliasDuplicateObjects: false });
 
   writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
 };
 
-export const syncToGit = async ({
+export const autoSyncRemoteRepoIfNeeded = async ({
   project,
   author,
 }: {
@@ -261,7 +266,7 @@ export async function commitWorking({
   message,
   author,
 }: {
-  project: Project;
+  project: ProjectModel;
   ref: string;
   branch: string;
   message: string;
@@ -296,7 +301,7 @@ export async function commitProjectSettingWorking({
   message = 'update settings',
   author,
 }: {
-  project: Project;
+  project: ProjectModel;
   message?: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
 }) {

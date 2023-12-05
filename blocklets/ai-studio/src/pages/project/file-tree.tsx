@@ -281,18 +281,27 @@ const FileTree = forwardRef<
     .filter((i): i is NonNullable<typeof i> => !!i);
 
   const tree = useMemo<TreeNode[]>(() => {
-    return [...folders, ...files].map((item) => {
-      const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
-      const path = item.parent.concat(filename);
+    return (
+      [...folders, ...files]
+        // filter all files not in the `/prompts/` folder
+        .filter(
+          (i) =>
+            (i.type === 'folder' && i.name === PROMPTS_FOLDER_NAME && !i.parent.length) ||
+            i.parent[0] === PROMPTS_FOLDER_NAME
+        )
+        .map((item) => {
+          const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
+          const path = item.parent.concat(filename);
 
-      return {
-        id: joinURL('', ...path),
-        text: item.name,
-        parent: item.parent.join('/'),
-        droppable: item.type === 'folder',
-        data: { ...item, path, filename },
-      };
-    });
+          return {
+            id: joinURL('', ...path),
+            text: item.name,
+            parent: item.parent.join('/'),
+            droppable: item.type === 'folder',
+            data: { ...item, path, filename },
+          };
+        })
+    );
   }, [files, folders]);
 
   const treeFiles = tree.filter((i) => String(i?.id || '').startsWith([PROMPTS_FOLDER_NAME].join('/').concat('/')));

@@ -4,7 +4,7 @@ import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
 import Project from '../store/models/projects';
-import { commitWorking, syncToGit } from '../store/projects';
+import { autoSyncRemoteRepoIfNeeded, commitWorking } from '../store/projects';
 
 export interface WorkingCommitInput {
   branch: string;
@@ -43,7 +43,7 @@ export function workingRoutes(router: Router) {
         author,
       });
 
-      await syncToGit({ project, author });
+      await autoSyncRemoteRepoIfNeeded({ project, author });
 
       return res.json({});
     }
