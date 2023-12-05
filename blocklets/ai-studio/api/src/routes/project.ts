@@ -5,10 +5,11 @@ import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
-import { pick, uniqBy } from 'lodash';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
+import pick from 'lodash/pick';
 import sample from 'lodash/sample';
+import uniqBy from 'lodash/uniqBy';
 import { Op } from 'sequelize';
 
 import { defaultModel } from '../libs/models';
@@ -22,6 +23,7 @@ import {
   defaultRemote,
   getRepository,
   getTemplateIdFromPath,
+  getTemplatesFromRepository,
   nextProjectId,
   projectTemplates,
   repositoryRoot,
@@ -30,6 +32,7 @@ import {
   templateToYjs,
 } from '../store/projects';
 import { Template, getTemplate, nextTemplateId } from '../store/templates';
+import { getAuthorInfo } from './log';
 
 let icons: { filename: string }[] = [];
 
@@ -164,7 +167,37 @@ export function projectRoutes(router: Router) {
       ],
     });
 
-    res.json({ projects: list });
+    const projects = await Promise.all(
+      list.map(async (project) => {
+        let users: { name?: string; email?: string; did?: string; fullName?: string; avatar?: string }[] = [];
+        let templateCount = 0;
+
+        const repository = await getRepository({ projectId: project._id });
+        const branches = await repository.listBranches();
+
+        // 缓存之前是有做的
+        try {
+          const commits = await getAuthorInfo({ projectId: project._id, ref: defaultBranch });
+          users = uniqBy(
+            commits.map((commit) => pick(commit.commit.author, 'name', 'email', 'did', 'fullName', 'avatar')),
+            'email'
+          );
+        } catch (error) {
+          console.error(error);
+        }
+
+        try {
+          const templates = await getTemplatesFromRepository({ projectId: project._id, ref: defaultBranch });
+          templateCount = templates.length;
+        } catch (error) {
+          console.error(error);
+        }
+
+        return { ...project.dataValues, users, branches, templateCount };
+      })
+    );
+
+    res.json({ projects });
   });
 
   router.get('/projects/icons', ensureComponentCallOrPromptsEditor(), async (_req, res) => {

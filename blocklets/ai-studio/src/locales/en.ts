@@ -215,8 +215,8 @@ export default flat({
     deleted: 'Deleted',
     modified: 'Modified',
   },
-  restore: 'Restore',
-  restoreConform: 'Are you sure you want to discard the changes in {path}?',
+  restore: 'Revert changes',
+  restoreConform: 'Are you sure you want to revert the changes in {path}?',
   label: 'Label',
   actions: 'Actions',
   copy: 'Copy',
@@ -277,6 +277,7 @@ export default flat({
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
+  templates: '{count} prompts?',
   tool: {
     title: 'Tools',
     edit: 'Edit Function Call',

@@ -213,7 +213,7 @@ export default flat({
     deleted: '已删除',
     modified: '被修改',
   },
-  restore: '还原',
+  restore: '撤销更改',
   restoreConform: '您确定要放弃 {path} 中的更改吗??',
   label: '标签',
   actions: '操作',
@@ -275,6 +275,7 @@ export default flat({
   useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
   useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
+  templates: '{count} 个文件',
   tool: {
     title: '工具',
     edit: '编辑该数据',
