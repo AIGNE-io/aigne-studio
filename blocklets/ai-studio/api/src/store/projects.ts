@@ -160,7 +160,6 @@ export async function getRepository({ projectId }: { projectId: string }) {
         };
       },
       stringify: async (filepath, content) => {
-        console.log(filepath, JSON.stringify(content), isTemplate(content));
         if (isTemplate(content)) {
           const data = stringify(yjsToTemplate(content));
           const parent = path.dirname(filepath).replace(/^\.\/?/, '');
