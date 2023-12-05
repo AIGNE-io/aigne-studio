@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { InfoOutlined, SaveRounded } from '@mui/icons-material';
+import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
@@ -33,6 +33,7 @@ import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
 import { getSupportedModels } from '../../../libs/common';
 import useDialog from '../../../utils/use-dialog';
+import InfoOutlined from '../icons/question';
 import { defaultBranch, useProjectState } from '../state';
 import RemoteRepoSetting from './remote-repo-setting';
 
@@ -46,7 +47,7 @@ const init = {
   presencePenalty: 0,
   frequencyPenalty: 0,
   maxTokens: undefined,
-  gitType: 'default',
+  gitType: 'simple',
 };
 
 export default function ProjectSettings() {
@@ -177,12 +178,12 @@ export default function ProjectSettings() {
         <SettingsContainer sx={{ pb: 10 }} maxWidth="sm">
           <Stack gap={2}>
             <Form onSubmit={(e) => e.preventDefault()}>
-              <Box mb={2}>
+              <Box>
                 <Box component="h3" mt={0}>
                   {t('projectSetting.baseInfo')}
                 </Box>
 
-                <Box display="flex" alignItems="center" p={1}>
+                <Box display="flex" alignItems="center">
                   <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
 
                   <Stack spacing={1} flex={1} ml={4}>
@@ -207,8 +208,10 @@ export default function ProjectSettings() {
                 </Box>
               </Box>
 
-              <Box my={2}>
-                <Box component="h3">{t('projectSetting.defaultModel')}</Box>
+              <Box>
+                <Box component="h3" mt={4}>
+                  {t('projectSetting.defaultModel')}
+                </Box>
 
                 <Box>
                   <Box className="prefer-inline">
@@ -363,8 +366,10 @@ export default function ProjectSettings() {
                 </Box>
               </Box>
 
-              <Box my={2}>
-                <Box component="h3">{t('projectSetting.gitType.title')}</Box>
+              <Box>
+                <Box component="h3" mt={4}>
+                  {t('projectSetting.gitType.title')}
+                </Box>
 
                 <Box>
                   <FormControl className="version">
@@ -375,7 +380,7 @@ export default function ProjectSettings() {
                         return (
                           <FormControlLabel
                             key={version.value}
-                            sx={{ p: 1 }}
+                            sx={{ mb: 1, mr: 0, ':last-child': { m: 0 } }}
                             value={version.value}
                             control={<Radio />}
                             label={
@@ -425,11 +430,17 @@ const SettingsContainer = styled(Container)`
   margin-top: 16px;
 
   .prefer-inline {
-    display: table-row;
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+
+    &:last-child {
+      margin: 0;
+    }
 
     > div {
-      display: table-cell;
-      padding: 8px;
+      flex: 1;
+      padding: 0 8px;
       vertical-align: middle;
 
       :first-of-type {

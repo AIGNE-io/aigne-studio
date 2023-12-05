@@ -82,7 +82,7 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
     },
     gitType: {
       type: DataTypes.STRING,
-      defaultValue: 'default',
+      defaultValue: 'simple',
     },
     temperature: {
       type: DataTypes.FLOAT,
