@@ -1,12 +1,14 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
-import { LoadingButton } from '@blocklet/studio-ui';
 import { cx } from '@emotion/css';
+import ForkRightSharpIcon from '@mui/icons-material/ForkRightSharp';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
+  Avatar,
+  AvatarGroup,
   Box,
-  Button,
   CircularProgress,
   ClickAwayListener,
   Collapse,
@@ -25,9 +27,8 @@ import {
   Typography,
   styled,
 } from '@mui/material';
-import { useKeyPress } from 'ahooks';
-import { MouseEvent, ReactNode, useEffect, useState } from 'react';
-import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
+import { MouseEvent, ReactNode, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import { Project } from '../../../api/src/store/projects';
@@ -40,66 +41,61 @@ import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
 import Duplicate from './icons/duplicate';
 import Empty from './icons/empty';
-import External from './icons/external';
 import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
 import { defaultBranch } from './state';
 
+type User = {
+  name?: string;
+  email?: string;
+  did?: string;
+  fullName?: string;
+  avatar?: string;
+};
+
+type ProjectWithUserInfo = Project & {
+  users: User[];
+  branches: string[];
+  templateCount: number;
+};
+
+const CARD_HEIGHT = 140;
+const MAX_WIDTH = 300;
+
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
 
   const {
-    state: { loading, templates, projects, selected },
+    state: { loading, templates, projects },
     refetch,
   } = useProjectsState();
-  const navigate = useNavigate();
 
   useEffect(() => {
     refetch();
   }, []);
 
-  useKeyPress(['leftarrow', 'uparrow'], () => {
-    const list = [...document.getElementsByClassName('project-item')];
-    const current = list.findIndex((i) => i.id === selected?.id);
-    const next = list[current - 1] ?? list.at(-1);
-    if (next) (next as HTMLElement).focus();
-  });
-
-  useKeyPress(['rightarrow', 'downarrow'], () => {
-    const list = [...document.getElementsByClassName('project-item')];
-    const current = list.findIndex((i) => i.id === selected?.id);
-    const next = list[current + 1] ?? list[0];
-    if (next) (next as HTMLElement).focus();
-  });
-
-  useKeyPress('enter', () => {
-    const activeProjectItem = document.activeElement && document.activeElement.classList.contains('project-item');
-
-    if (selected && activeProjectItem) {
-      navigate(joinURL('/projects', selected.id));
-    }
-  });
-
   return (
     <Stack minHeight="100%" overflow="auto">
-      <Box m={{ xs: 2, sm: 3 }} flexGrow={1}>
+      <Stack m={{ xs: 2, sm: 3 }} flexGrow={1} gap={3}>
         <ProjectMenu />
 
         <Section enableCollapse title={t('newFromTemplates')}>
           {templates.length ? (
-            <ProjectList section="templates" list={templates} />
+            <ProjectList section="templates" list={templates as ProjectWithUserInfo[]} />
           ) : (
             loading && (
               <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
                 <ProjectItemSkeleton
-                  width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
-                  maxWidth={180}
+                  width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
+                  maxWidth={MAX_WIDTH}
+                  height={CARD_HEIGHT}
                 />
                 <ProjectItemSkeleton
-                  width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
-                  maxWidth={180}
+                  width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
+                  maxWidth={MAX_WIDTH}
+                  height={CARD_HEIGHT}
                 />
               </Stack>
             )
@@ -108,11 +104,19 @@ export default function ProjectsPage() {
 
         <Section title={t('myProjects')}>
           {projects.length ? (
-            <ProjectList section="projects" list={projects} />
+            <ProjectList section="projects" list={projects as ProjectWithUserInfo[]} />
           ) : loading ? (
             <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
-              <ProjectItemSkeleton width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }} maxWidth={180} />
-              <ProjectItemSkeleton width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }} maxWidth={180} />
+              <ProjectItemSkeleton
+                width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
+                maxWidth={MAX_WIDTH}
+                height={CARD_HEIGHT}
+              />
+              <ProjectItemSkeleton
+                width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
+                maxWidth={MAX_WIDTH}
+                height={CARD_HEIGHT}
+              />
             </Stack>
           ) : (
             <Stack alignItems="center" my={4}>
@@ -123,9 +127,7 @@ export default function ProjectsPage() {
             </Stack>
           )}
         </Section>
-      </Box>
-
-      <ProjectsFooter />
+      </Stack>
     </Stack>
   );
 }
@@ -266,7 +268,6 @@ function Section({
           bgcolor: 'background.paper',
           zIndex: 1,
           cursor: enableCollapse ? 'pointer' : 'default',
-          my: 1,
           alignItems: 'center',
           gap: 1,
         }}
@@ -287,7 +288,7 @@ function Section({
         )}
       </Stack>
 
-      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ py: 0.5, position: 'relative' }}>
+      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ mt: 1.5, position: 'relative' }}>
         {children}
       </Collapse>
     </Box>
@@ -297,70 +298,51 @@ function Section({
 function ProjectList({
   section,
   list,
-}: { section: 'templates'; list: Project[] } | { section: 'projects'; list: Project[] }) {
+}: { section: 'templates'; list: ProjectWithUserInfo[] } | { section: 'projects'; list: ProjectWithUserInfo[] }) {
   const { t } = useLocaleContext();
-  const readOnly = useReadOnly({ ref: defaultBranch });
   const navigate = useNavigate();
 
   const {
-    state: { selected, menuAnchor },
-    setSelected,
+    state: { menuAnchor },
     setMenuAnchor,
   } = useProjectsState();
 
   return (
-    <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
+    <ProjectListContainer>
       {list.map((item) => {
         const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item._id;
 
         return (
           <ProjectItem
-            className="project-item"
+            section={section}
             id={item._id!}
             tabIndex={0}
             key={item._id}
             pinned={!!item.pinnedAt}
+            height={CARD_HEIGHT}
             icon={item.icon}
-            width={{ xs: 'calc(50% - 8px)', sm: 'calc(25% - 18px)', md: 180 }}
-            maxWidth={180}
-            selected={selected?.section === section && selected.id === item._id}
             name={section === 'templates' && item.name ? t(item.name) : item.name}
-            onMouseEnter={(e) => e.currentTarget.focus()}
-            onClick={(e) => e.currentTarget.focus()}
-            onFocus={() => setSelected({ section, id: item._id! })}
-            mainActions={
-              item._id &&
-              (section === 'projects' ? (
-                <Button
-                  component={RouterLink}
-                  to={joinURL('/projects', item._id)}
-                  className="hover-visible"
-                  size="small"
-                  variant="contained"
-                  startIcon={<External />}>
-                  {t('open')}
-                </Button>
-              ) : section === 'templates' ? (
-                <LoadingButton
-                  disabled={readOnly}
-                  className="hover-visible"
-                  size="small"
-                  variant="contained"
-                  startIcon={<Add />}
-                  loadingPosition="start"
-                  onClick={async () => {
-                    try {
-                      const project = await createProject({ templateId: item._id! });
-                      navigate(joinURL('/projects', project._id!));
-                    } catch (error) {
-                      Toast.error(getErrorMessage(error));
-                      throw error;
-                    }
-                  }}>
-                  {t('create')}
-                </LoadingButton>
-              ) : null)
-            }
+            description={item.description}
+            updatedAt={item.updatedAt}
+            createdAt={item.createdAt}
+            templateCount={item.templateCount}
+            branches={item.branches || []}
+            gitUrl={item.gitUrl}
+            model={item.model}
+            users={item.users || []}
+            onClick={async () => {
+              if (section === 'templates') {
+                try {
+                  const project = await createProject({ templateId: item._id! });
+                  navigate(joinURL('/projects', project._id!));
+                } catch (error) {
+                  Toast.error(getErrorMessage(error));
+                  throw error;
+                }
+              } else if (section === 'projects') {
+                navigate(joinURL('/projects', item._id!));
+              }
+            }}
             actions={
               section === 'projects' && (
                 <IconButton
@@ -370,11 +352,10 @@ function ProjectList({
                     backgroundColor: (theme) => theme.palette.background.paper,
                     color: (theme) => theme.palette.text.disabled,
                     borderRadius: 1,
-                    boxShadow: (theme) => theme.shadows[1],
+                    padding: 0,
 
                     '&:hover': {
                       backgroundColor: (theme) => theme.palette.background.paper,
-                      boxShadow: (theme) => theme.shadows[3],
                     },
                   }}
                   onClick={(e) => {
@@ -393,29 +374,31 @@ function ProjectList({
           />
         );
       })}
-    </Stack>
+    </ProjectListContainer>
   );
 }
 
 function ProjectItemSkeleton({ ...props }: StackProps) {
   return (
-    <ProjectItemRoot {...props} alignItems="center">
-      <Box className="logo" sx={{ borderWidth: '0 !important' }}>
-        <Skeleton
-          sx={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            width: '100%',
-            height: '100%',
-            transform: 'none',
-            borderRadius: 2,
-            bgcolor: 'grey.100',
-          }}
-        />
-      </Box>
+    <ProjectItemRoot {...props}>
+      <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between" mb={2}>
+        <Skeleton width="100%" variant="text" height={28} />
+      </Stack>
 
-      <Skeleton width="100%" variant="text" sx={{ my: 0.5, bgcolor: 'grey.200' }} height={28} />
+      <Stack direction="row" gap={2}>
+        <Skeleton variant="rectangular" width={80} height={80} />
+
+        <Stack width={0} flex={1}>
+          <Skeleton width="100%" variant="text" height={28} />
+          <Skeleton width="100%" variant="text" height={28} />
+        </Stack>
+      </Stack>
+
+      <Stack direction="row" gap={1} mt={1} alignItems="center">
+        <Skeleton width="40px" variant="text" height={28} />
+        <Skeleton width="40px" variant="text" height={28} />
+        <Skeleton width="40px" variant="text" height={28} />
+      </Stack>
     </ProjectItemRoot>
   );
 }
@@ -424,81 +407,181 @@ function ProjectItem({
   pinned,
   icon,
   name,
-  selected,
+  description,
+  updatedAt,
+  createdAt,
   actions,
   mainActions,
+  section,
+  templateCount,
+  branches,
+  gitUrl,
+  model,
+  users,
   ...props
 }: {
+  section: string;
   pinned?: boolean;
   icon?: string;
   name?: string;
-  selected?: boolean;
+  description?: string;
+  updatedAt?: string | Date;
+  createdAt?: string | Date;
+  templateCount: number;
+  branches: string[];
+  gitUrl?: string;
+  model?: string;
+  users?: User[];
   actions?: ReactNode;
   mainActions?: ReactNode;
 } & StackProps) {
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
+
+  const formatGitUrl = useMemo(() => {
+    try {
+      if (gitUrl) {
+        const u = new URL(gitUrl);
+        u.username = '';
+        return u.toString();
+      }
+
+      return '';
+    } catch {
+      return '';
+    }
+  }, [gitUrl]);
+
+  if (section === 'templates') {
+    return (
+      <ProjectItemRoot
+        {...props}
+        className={cx(props.className)}
+        minHeight={CARD_HEIGHT}
+        justifyContent="center"
+        alignItems="center">
+        <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
+        <Box sx={{ color: (theme) => theme.palette.text.secondary }}>{t('newObject')}</Box>
+      </ProjectItemRoot>
+    );
+  }
 
   return (
-    <ProjectItemRoot {...props} alignItems="center" className={cx(props.className, selected && 'selected')}>
-      <Box className="logo">
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}>
-          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 56 }} />}
+    <ProjectItemRoot {...props} className={cx(props.className)}>
+      <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between" mb={1}>
+        <Stack direction="row" gap={1} width={0} flex={1} alignItems="center">
+          <Box className="logo" sx={{ width: '20px', height: '20px' }}>
+            {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 20 }} />}
+          </Box>
+
+          <Stack width={0} flex={1}>
+            <Box className="name" sx={{ fontWeight: (theme) => theme.typography.fontWeightBold }}>
+              {name || t('unnamed')}
+            </Box>
+          </Stack>
         </Stack>
 
-        {(actions || mainActions) && (
-          <Stack
-            direction="row"
-            sx={{ position: 'absolute', right: 0, bottom: 0, p: 1, gap: 1, alignItems: 'flex-end' }}>
-            {mainActions}
+        {users && Array.isArray(users) && !!users.length && (
+          <AvatarGroup total={users.length}>
+            {users.map((user: User) => {
+              const name = user.name || user.did;
 
-            {actions}
-          </Stack>
+              return (
+                <Tooltip title={user.name} key={user.name} placement="top">
+                  <CustomAvatar alt={user.name} sx={{ borderWidth: '1px !important' }}>
+                    {name ? name[0] : ''}
+                  </CustomAvatar>
+                </Tooltip>
+              );
+            })}
+          </AvatarGroup>
         )}
 
         {pinned && (
           <Tooltip title={t('pin')} placement="top">
-            <Pin
-              sx={{
-                position: 'absolute',
-                right: 8,
-                top: 8,
-                color: 'grey.500',
-                fontSize: 16,
-              }}
-            />
+            <Pin sx={{ fontSize: 14 }} />
           </Tooltip>
         )}
+      </Stack>
+
+      <Box flex={1}>
+        <Box
+          className="desc"
+          sx={{
+            color: (theme) => theme.palette.text.secondary,
+            fontSize: (theme) => theme.typography.caption.fontSize,
+          }}>
+          {description}
+        </Box>
       </Box>
 
-      <Typography className="name" variant="subtitle1" noWrap>
-        {name || t('unnamed')}
-      </Typography>
+      <Stack direction="row" gap={2} mt={1} alignItems="center" justifyContent="space-between">
+        <Stack
+          direction="row"
+          gap={2}
+          sx={{ fontSize: (theme) => theme.typography.caption.fontSize, color: 'text.disabled' }}>
+          {createdAt && (
+            <Box>
+              <RelativeTime value={createdAt} locale={locale} />
+            </Box>
+          )}
+
+          <Box>{t('templates', { count: templateCount })}</Box>
+
+          <Tooltip title={branches.join('、')} placement="top">
+            <Stack direction="row" alignItems="center">
+              <ForkRightSharpIcon sx={{ fontSize: 14 }} />
+              <Box>{`${branches.length}`}</Box>
+            </Stack>
+          </Tooltip>
+
+          {!!formatGitUrl && (
+            <Tooltip title={formatGitUrl} placement="top">
+              <Box
+                display="flex"
+                alignItems="center"
+                mt={0.25}
+                component="a"
+                href={formatGitUrl}
+                target="_blank"
+                style={{ color: 'inherit', textDecoration: 'none' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}>
+                <GitHubIcon sx={{ fontSize: 16 }} />
+              </Box>
+            </Tooltip>
+          )}
+        </Stack>
+
+        <Box mr={-0.5}>
+          {(actions || mainActions) && (
+            <Stack direction="row">
+              {mainActions}
+              {actions}
+            </Stack>
+          )}
+        </Box>
+      </Stack>
     </ProjectItemRoot>
   );
 }
 
 const ProjectItemRoot = styled(Stack)`
   width: 100%;
-  min-width: 140px;
   cursor: pointer;
+  overflow: hidden;
+  padding: 8px 16px;
+  position: relative;
+  border-width: 1px;
+  border-style: solid;
+  border-color: ${({ theme }) => theme.palette.divider};
+  border-radius: 16px;
+
+  :hover {
+    box-shadow: ${({ theme }) => theme.shadows[1]};
+  }
 
   .logo {
-    position: relative;
-    border-width: 1px;
-    border-style: solid;
-    border-color: ${({ theme }) => theme.palette.divider};
-    border-radius: 16px;
-    width: 100%;
-
-    &:before {
-      content: '';
-      display: block;
-      padding-bottom: 100%;
-    }
-
     img {
       width: 100%;
       height: 100%;
@@ -508,43 +591,24 @@ const ProjectItemRoot = styled(Stack)`
   }
 
   .name {
-    width: 100%;
-    min-height: 1.75em;
-    margin: 4px 0;
-    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
-  .hover-visible {
-    display: none;
+  .desc {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
+`;
 
-  :hover {
-    .name {
-      color: ${({ theme }) => theme.palette.primary.main};
-    }
-
-    .logo {
-      border-color: ${({ theme }) => theme.palette.primary.main};
-    }
-
-    .hover-visible {
-      display: flex;
-    }
-  }
-
-  &.selected {
-    .name {
-      color: ${({ theme }) => theme.palette.primary.dark};
-      font-weight: bold;
-    }
-
-    .logo {
-      border-color: ${({ theme }) => theme.palette.primary.dark};
-      outline-style: solid;
-      outline-width: 1px;
-      outline-color: ${({ theme }) => theme.palette.primary.dark};
-    }
-  }
+const CustomAvatar = styled(Avatar)`
+  width: 22px;
+  height: 22px;
+  border-width: 1px;
+  font-size: 12px;
 `;
 
 function LoadingMenuItem({ ...props }: MenuItemProps) {
@@ -573,56 +637,8 @@ function LoadingMenuItem({ ...props }: MenuItemProps) {
   );
 }
 
-function ProjectsFooter() {
-  const { t, locale } = useLocaleContext();
-
-  const {
-    state: { selected, templates, projects },
-  } = useProjectsState();
-  if (!selected) return null;
-
-  const item = templates.find((i) => i._id === selected.id) ?? projects.find((i) => i._id === selected.id);
-  if (!item) return null;
-
-  return (
-    <Box
-      sx={{
-        position: 'sticky',
-        bottom: 0,
-        bgcolor: 'background.paper',
-        zIndex: (theme) => theme.zIndex.appBar,
-        borderTopWidth: 1,
-        borderTopStyle: 'solid',
-        borderTopColor: (theme) => theme.palette.grey[200],
-        px: { xs: 2, sm: 3 },
-        py: 2,
-      }}>
-      <Stack direction="row" gap={1}>
-        <Box>
-          {item.icon ? (
-            <Box
-              component="img"
-              src={item.icon}
-              width={80}
-              height={80}
-              borderRadius={1}
-              sx={{ objectFit: 'contain' }}
-            />
-          ) : (
-            <Picture sx={{ fontSize: 56, color: 'grey.400' }} />
-          )}
-        </Box>
-
-        <Stack flex={1}>
-          <Typography variant="h6">
-            {(selected.section === 'projects' ? item.name : item.name && t(item.name)) || t('unnamed')}
-          </Typography>
-          <Typography variant="body1">{item.description}</Typography>
-          <Typography variant="caption">
-            {t('createdAt')} <RelativeTime value={item.createdAt} locale={locale} />
-          </Typography>
-        </Stack>
-      </Stack>
-    </Box>
-  );
-}
+const ProjectListContainer = styled(Box)`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+`;
