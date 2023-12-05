@@ -1,4 +1,4 @@
-import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from '@mui/material';
 import type { DialogProps } from '@mui/material';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
 
@@ -58,15 +58,7 @@ export default function useDialog() {
                 <Box pt={3}>{content}</Box>
               </DialogContent>
             )}
-            <DialogActions>
-              <Button
-                onClick={async () => {
-                  await onCancel?.();
-                  closeDialog();
-                  props.onClose?.();
-                }}>
-                {cancelText}
-              </Button>
+            <DialogActions sx={{ justifyContent: 'space-between', pl: 3 }}>
               {middleText && onMiddleClick ? (
                 <PromiseLoadingButton
                   variant={middleVariant || 'contained'}
@@ -80,22 +72,35 @@ export default function useDialog() {
                   }}>
                   {middleText}
                 </PromiseLoadingButton>
-              ) : null}
-              {onOk && (
-                <PromiseLoadingButton
-                  variant={okVariant || 'contained'}
-                  color={okColor}
-                  startIcon={okIcon}
-                  loadingPosition={okIcon ? 'start' : 'center'}
+              ) : (
+                <Box />
+              )}
+
+              <Stack direction="row" gap={1} alignItems="center">
+                <Button
                   onClick={async () => {
-                    await onOk?.();
+                    await onCancel?.();
                     closeDialog();
                     props.onClose?.();
-                  }}
-                  type="submit">
-                  {okText}
-                </PromiseLoadingButton>
-              )}
+                  }}>
+                  {cancelText}
+                </Button>
+                {onOk && (
+                  <PromiseLoadingButton
+                    variant={okVariant || 'contained'}
+                    color={okColor}
+                    startIcon={okIcon}
+                    loadingPosition={okIcon ? 'start' : 'center'}
+                    onClick={async () => {
+                      await onOk?.();
+                      closeDialog();
+                      props.onClose?.();
+                    }}
+                    type="submit">
+                    {okText}
+                  </PromiseLoadingButton>
+                )}
+              </Stack>
             </DialogActions>
           </form>
         ),

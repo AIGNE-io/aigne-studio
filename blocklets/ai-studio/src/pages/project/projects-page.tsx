@@ -23,6 +23,7 @@ import {
   Skeleton,
   Stack,
   StackProps,
+  TextField,
   Tooltip,
   Typography,
   styled,
@@ -37,9 +38,11 @@ import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { createProject } from '../../libs/project';
+import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
 import Duplicate from './icons/duplicate';
+import Edit from './icons/edit';
 import Empty from './icons/empty';
 import Picture from './icons/picture';
 import Pin from './icons/pin';
@@ -137,6 +140,7 @@ function ProjectMenu() {
 
   const navigate = useNavigate();
   const [deleteItem, setDeleteItem] = useState<null | Project>();
+  const { dialog, showDialog } = useDialog();
 
   const { t } = useLocaleContext();
 
@@ -168,6 +172,48 @@ function ProjectMenu() {
         <ClickAwayListener onClickAway={() => setMenuAnchor(undefined)}>
           <Paper>
             <List dense>
+              {menuAnchor?.section === 'projects' && (
+                <LoadingMenuItem
+                  disabled={readOnly}
+                  onClick={() => {
+                    let name = item?.name || '';
+
+                    showDialog({
+                      disableEnforceFocus: true,
+                      fullWidth: true,
+                      maxWidth: 'sm',
+                      title: t('rename'),
+                      content: (
+                        <Stack overflow="auto" gap={2}>
+                          <TextField
+                            label={t('projectSetting.name')}
+                            sx={{ width: 1 }}
+                            defaultValue={item?.name || ''}
+                            onChange={(e) => (name = e.target.value)}
+                          />
+                        </Stack>
+                      ),
+                      cancelText: t('alert.cancel'),
+                      okText: t('confirm'),
+                      onOk: async () => {
+                        updateProject(menuAnchor.id, { name })
+                          .catch((error) => {
+                            Toast.error(getErrorMessage(error));
+                            throw error;
+                          })
+                          .finally(() => {
+                            setMenuAnchor(undefined);
+                          });
+                      },
+                    });
+                  }}>
+                  <ListItemIcon>
+                    <Edit />
+                  </ListItemIcon>
+                  {t('rename')}
+                </LoadingMenuItem>
+              )}
+
               <LoadingMenuItem
                 disabled={readOnly}
                 onClick={() =>
@@ -243,6 +289,8 @@ function ProjectMenu() {
           }}
         />
       )}
+
+      {dialog}
     </>
   );
 }
@@ -301,6 +349,7 @@ function ProjectList({
 }: { section: 'templates'; list: ProjectWithUserInfo[] } | { section: 'projects'; list: ProjectWithUserInfo[] }) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
+  const { dialog, showDialog } = useDialog();
 
   const {
     state: { menuAnchor },
@@ -308,73 +357,101 @@ function ProjectList({
   } = useProjectsState();
 
   return (
-    <ProjectListContainer>
-      {list.map((item) => {
-        const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item._id;
+    <>
+      <ProjectListContainer>
+        {list.map((item) => {
+          const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item._id;
 
-        return (
-          <ProjectItem
-            section={section}
-            id={item._id!}
-            tabIndex={0}
-            key={item._id}
-            pinned={!!item.pinnedAt}
-            height={CARD_HEIGHT}
-            icon={item.icon}
-            name={section === 'templates' && item.name ? t(item.name) : item.name}
-            description={item.description}
-            updatedAt={item.updatedAt}
-            createdAt={item.createdAt}
-            templateCount={item.templateCount}
-            branches={item.branches || []}
-            gitUrl={item.gitUrl}
-            model={item.model}
-            users={item.users || []}
-            onClick={async () => {
-              if (section === 'templates') {
-                try {
-                  const project = await createProject({ templateId: item._id! });
-                  navigate(joinURL('/projects', project._id!));
-                } catch (error) {
-                  Toast.error(getErrorMessage(error));
-                  throw error;
-                }
-              } else if (section === 'projects') {
-                navigate(joinURL('/projects', item._id!));
-              }
-            }}
-            actions={
-              section === 'projects' && (
-                <IconButton
-                  className={cx(!menuOpen && 'hover-visible')}
-                  size="small"
-                  sx={{
-                    backgroundColor: (theme) => theme.palette.background.paper,
-                    color: (theme) => theme.palette.text.disabled,
-                    borderRadius: 1,
-                    padding: 0,
+          return (
+            <ProjectItem
+              section={section}
+              id={item._id!}
+              tabIndex={0}
+              key={item._id}
+              pinned={!!item.pinnedAt}
+              height={CARD_HEIGHT}
+              icon={item.icon}
+              name={section === 'templates' && item.name ? t(item.name) : item.name}
+              description={item.description}
+              updatedAt={item.updatedAt}
+              createdAt={item.createdAt}
+              templateCount={item.templateCount}
+              branches={item.branches || []}
+              gitUrl={item.gitUrl}
+              model={item.model}
+              users={item.users || []}
+              onClick={async () => {
+                if (section === 'templates') {
+                  let name = '';
+                  let description = '';
 
-                    '&:hover': {
-                      backgroundColor: (theme) => theme.palette.background.paper,
+                  showDialog({
+                    disableEnforceFocus: true,
+                    fullWidth: true,
+                    maxWidth: 'sm',
+                    title: t('newObject', { object: t('form.project') }),
+                    content: (
+                      <Stack overflow="auto" gap={2}>
+                        <TextField
+                          label={t('projectSetting.name')}
+                          sx={{ width: 1 }}
+                          onChange={(e) => (name = e.target.value)}
+                        />
+
+                        <TextField
+                          label={t('projectSetting.description')}
+                          multiline
+                          rows={4}
+                          sx={{ width: 1 }}
+                          onChange={(e) => (description = e.target.value)}
+                        />
+                      </Stack>
+                    ),
+                    cancelText: t('alert.cancel'),
+                    okText: t('confirm'),
+                    onOk: async () => {
+                      const project = await createProject({ templateId: item._id!, name, description });
+                      navigate(joinURL('/projects', project._id!));
                     },
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
-                  }}>
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              )
-            }
-            sx={{
-              '&:focus-visible': {
-                outline: 0,
-              },
-            }}
-          />
-        );
-      })}
-    </ProjectListContainer>
+                  });
+                } else if (section === 'projects') {
+                  navigate(joinURL('/projects', item._id!));
+                }
+              }}
+              actions={
+                section === 'projects' && (
+                  <IconButton
+                    className={cx(!menuOpen && 'hover-visible')}
+                    size="small"
+                    sx={{
+                      backgroundColor: (theme) => theme.palette.background.paper,
+                      color: (theme) => theme.palette.text.disabled,
+                      borderRadius: 1,
+                      padding: 0,
+
+                      '&:hover': {
+                        backgroundColor: (theme) => theme.palette.background.paper,
+                      },
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
+                    }}>
+                    <MoreVertIcon fontSize="small" />
+                  </IconButton>
+                )
+              }
+              sx={{
+                '&:focus-visible': {
+                  outline: 0,
+                },
+              }}
+            />
+          );
+        })}
+      </ProjectListContainer>
+      {dialog}
+    </>
   );
 }
 
@@ -460,7 +537,9 @@ function ProjectItem({
         justifyContent="center"
         alignItems="center">
         <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
-        <Box sx={{ color: (theme) => theme.palette.text.secondary }}>{t('newObject')}</Box>
+        <Box sx={{ color: (theme) => theme.palette.text.secondary }}>
+          {t('newObject', { object: t('form.project') })}
+        </Box>
       </ProjectItemRoot>
     );
   }

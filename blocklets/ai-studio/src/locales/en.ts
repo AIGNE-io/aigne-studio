@@ -373,4 +373,5 @@ export default flat({
       },
     },
   },
+  rename: 'Rename',
 });

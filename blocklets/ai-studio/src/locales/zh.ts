@@ -371,4 +371,5 @@ export default flat({
       },
     },
   },
+  rename: '重命名',
 });

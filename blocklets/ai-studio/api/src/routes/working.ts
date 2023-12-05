@@ -48,7 +48,10 @@ export function workingRoutes(router: Router) {
         await project.update({ gitLastSyncedAt: new Date() });
       }
 
-      return res.json({});
+      project.changed('updatedAt', true);
+      await project.update({ updatedAt: new Date() });
+
+      return res.json({ project });
     }
   );
 }
