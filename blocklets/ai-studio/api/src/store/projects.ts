@@ -160,6 +160,7 @@ export async function getRepository({ projectId }: { projectId: string }) {
         };
       },
       stringify: async (filepath, content) => {
+        console.log(filepath, JSON.stringify(content), isTemplate(content));
         if (isTemplate(content)) {
           const data = stringify(yjsToTemplate(content));
           const parent = path.dirname(filepath).replace(/^\.\/?/, '');
@@ -209,7 +210,8 @@ export async function syncRepository<T>({
   });
 }
 
-const SETTINGS_FILE = '.settings.yaml';
+// NOTE: yaml 后缀会有问题，因为prompt的文件是yaml,有处理逻辑
+const SETTINGS_FILE = '.settings.yml';
 
 export async function commitWorking({
   project,
