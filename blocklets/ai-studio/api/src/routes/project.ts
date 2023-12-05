@@ -288,7 +288,7 @@ export function projectRoutes(router: Router) {
         updatedBy: did,
       });
 
-      const repository = await getRepository({ projectId: project._id! });
+      const repository = await getRepository({ projectId: project._id!, author: { name: fullName, email: did } });
       const working = await repository.working({ ref: defaultBranch });
       for (const { parent, ...file } of template.files) {
         const id = nextTemplateId();

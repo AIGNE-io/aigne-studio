@@ -141,11 +141,17 @@ export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, '
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 
-export async function getRepository({ projectId }: { projectId: string }) {
+export async function getRepository({
+  projectId,
+  author,
+}: {
+  projectId: string;
+  author?: NonNullable<Parameters<Repository<any>['pull']>[0]>['author'];
+}) {
   repositories[projectId] ??= (async () => {
     const repository = await Repository.init<FileType>({
       root: repositoryRoot(projectId),
-      initialCommit: { message: 'init', author: { name: 'AI Studio', email: wallet.address } },
+      initialCommit: { message: 'init', author: author ?? { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content) => {
         const { dir, ext } = path.parse(filepath);
         const [root] = filepath.split('/');
