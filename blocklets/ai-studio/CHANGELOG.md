@@ -1,3 +1,7 @@
+## 0.1.157 (2023-12-6)
+
+- chore: adjust the project and settings ui
+
 ## 0.1.156 (2023-12-5)
 
 - fix: remove all original files
