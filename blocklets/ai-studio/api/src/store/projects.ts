@@ -1,9 +1,10 @@
 import { readdirSync, rmSync, writeFileSync } from 'fs';
 import path from 'path';
 
-import { Repository } from '@blocklet/co-git/repository';
+import { Repository, Transaction } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
 import { glob } from 'glob';
+import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { Worker } from 'snowflake-uuid';
@@ -12,6 +13,7 @@ import { parse, stringify } from 'yaml';
 import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
 import { defaultModel } from '../libs/models';
+import ProjectModel from './models/projects';
 import type { ParameterYjs, Template } from './templates';
 
 const idGenerator = new Worker();
@@ -137,15 +139,26 @@ const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
 
 export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
 
-export async function getRepository({ projectId }: { projectId: string }) {
+export const PROMPTS_FOLDER_NAME = 'prompts';
+
+export async function getRepository({
+  projectId,
+  author,
+}: {
+  projectId: string;
+  author?: NonNullable<Parameters<Repository<any>['pull']>[0]>['author'];
+}) {
   repositories[projectId] ??= (async () => {
-    const repository = await Repository.init<TemplateYjs | { $base64: string }>({
+    const repository = await Repository.init<FileType>({
       root: repositoryRoot(projectId),
-      initialCommit: { message: 'init', author: { name: 'AI Studio', email: wallet.address } },
+      initialCommit: { message: 'init', author: author ?? { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content) => {
-        if (path.extname(filepath) === '.yaml') {
+        const { dir, ext } = path.parse(filepath);
+        const [root] = filepath.split('/');
+
+        if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
           const data = templateToYjs(parse(Buffer.from(content).toString()));
-          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+          const parent = dir.replace(/^\.\/?/, '');
           const filename = `${data.id}.yaml`;
           return { filepath: path.join(parent, filename), key: data.id, data };
         }
@@ -208,6 +221,50 @@ export async function syncRepository<T>({
   });
 }
 
+const SETTINGS_FILE = '.settings.yaml';
+
+const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileType>; project: ProjectModel }) => {
+  const repository = await getRepository({ projectId: project._id! });
+  const fields = pick(project.dataValues, [
+    '_id',
+    'name',
+    'description',
+    'model',
+    'createdAt',
+    'updatedAt',
+    'createdBy',
+    'updatedBy',
+    'pinnedAt',
+    'icon',
+    'gitType',
+    'temperature',
+    'topP',
+    'presencePenalty',
+    'frequencyPenalty',
+    'maxTokens',
+    'gitAutoSync',
+  ]);
+
+  const fieldsStr = stringify(fields, { aliasDuplicateObjects: false });
+
+  writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
+  await tx.add({ filepath: SETTINGS_FILE });
+};
+
+export const autoSyncRemoteRepoIfNeeded = async ({
+  project,
+  author,
+}: {
+  project: ProjectModel;
+  author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+}) => {
+  if (project.gitUrl && project.gitAutoSync) {
+    const repository = await getRepository({ projectId: project._id! });
+    await syncRepository({ repository, ref: defaultBranch, author });
+    await project.update({ gitLastSyncedAt: new Date() });
+  }
+};
+
 export async function commitWorking({
   project,
   ref,
@@ -215,7 +272,7 @@ export async function commitWorking({
   message,
   author,
 }: {
-  project: Project;
+  project: ProjectModel;
   ref: string;
   branch: string;
   message: string;
@@ -232,6 +289,8 @@ export async function commitWorking({
       writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
 
+      await addSettingsToGit({ tx, project });
+
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
         if (readdirSync(path.join(repository.options.root, path.dirname(gitkeep))).length > 1) {
@@ -240,6 +299,22 @@ export async function commitWorking({
         }
       }
     },
+  });
+}
+
+export async function commitProjectSettingWorking({
+  project,
+  message = 'update settings',
+  author,
+}: {
+  project: ProjectModel;
+  message?: string;
+  author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+}) {
+  const repository = await getRepository({ projectId: project._id! });
+  await repository.transact(async (tx) => {
+    await addSettingsToGit({ tx, project });
+    await tx.commit({ message, author });
   });
 }
 

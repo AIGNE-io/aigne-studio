@@ -4,7 +4,7 @@ import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
 import Project from '../store/models/projects';
-import { commitWorking, getRepository, syncRepository } from '../store/projects';
+import { autoSyncRemoteRepoIfNeeded, commitWorking } from '../store/projects';
 
 export interface WorkingCommitInput {
   branch: string;
@@ -34,19 +34,16 @@ export function workingRoutes(router: Router) {
       }
 
       const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
-      const repository = await getRepository({ projectId });
+      const author = { name: fullName, email: userId };
       await commitWorking({
-        project,
+        project: project.toJSON(),
         ref,
         branch: input.branch,
         message: input.message,
-        author: { name: fullName, email: userId },
+        author,
       });
 
-      if (project.gitUrl && project.gitAutoSync) {
-        await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
-        await project.update({ gitLastSyncedAt: new Date() });
-      }
+      await autoSyncRemoteRepoIfNeeded({ project, author });
 
       project.changed('updatedAt', true);
       await project.update({ updatedAt: new Date() });
