@@ -5,6 +5,8 @@ import { cx } from '@emotion/css';
 import ForkRightSharpIcon from '@mui/icons-material/ForkRightSharp';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
+import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import {
   Avatar,
   AvatarGroup,
@@ -176,6 +178,8 @@ function ProjectMenu() {
                 <LoadingMenuItem
                   disabled={readOnly}
                   onClick={() => {
+                    setMenuAnchor(undefined);
+
                     let name = item?.name || '';
                     let description = item?.description || '';
 
@@ -183,7 +187,7 @@ function ProjectMenu() {
                       disableEnforceFocus: true,
                       fullWidth: true,
                       maxWidth: 'sm',
-                      title: `${t('alert.edit')}${t('form.project')}`,
+                      title: `${t('alert.edit')} ${t('form.project')}`,
                       content: (
                         <Stack overflow="auto" gap={2}>
                           <TextField
@@ -205,7 +209,8 @@ function ProjectMenu() {
                         </Stack>
                       ),
                       cancelText: t('alert.cancel'),
-                      okText: t('confirm'),
+                      okText: t('save'),
+                      okIcon: <SaveRoundedIcon />,
                       onOk: async () => {
                         updateProject(menuAnchor.id, { name, description })
                           .catch((error) => {
@@ -221,7 +226,7 @@ function ProjectMenu() {
                   <ListItemIcon>
                     <Edit />
                   </ListItemIcon>
-                  {`${t('alert.edit')}${t('form.project')}`}
+                  {`${t('alert.edit')}`}
                 </LoadingMenuItem>
               )}
 
@@ -420,7 +425,8 @@ function ProjectList({
                       </Stack>
                     ),
                     cancelText: t('alert.cancel'),
-                    okText: t('confirm'),
+                    okText: t('create'),
+                    okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {
                       const project = await createProject({ templateId: item._id!, name, description });
                       navigate(joinURL('/projects', project._id!));
