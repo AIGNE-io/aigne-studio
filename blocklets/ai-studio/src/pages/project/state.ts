@@ -26,7 +26,7 @@ import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
 import { getTemplates } from '../../libs/template';
-import { isTemplate, templateYjsFromTemplate, useStore } from './yjs-state';
+import { PROMPTS_FOLDER_NAME, isTemplate, templateYjsFromTemplate, useStore } from './yjs-state';
 
 export const defaultBranch = 'main';
 
@@ -602,8 +602,10 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
         'parent',
       ];
 
-      const news = differenceBy(state.files, state.templates, 'id');
-      const deleted = differenceBy(state.templates, state.files, 'id');
+      const news = differenceBy(state.files, state.templates, 'id').filter((i) => i.parent[0] === PROMPTS_FOLDER_NAME);
+      const deleted = differenceBy(state.templates, state.files, 'id').filter(
+        (i) => i.parent[0] === PROMPTS_FOLDER_NAME
+      );
 
       const modified = duplicateItems.filter((i) => {
         const item = omitBy(pick(i, ...keys), (x) => !x);
