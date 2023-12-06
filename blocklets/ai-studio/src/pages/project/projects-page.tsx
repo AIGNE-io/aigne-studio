@@ -624,7 +624,10 @@ function ProjectItem({
 
           <Box>{t('templates', { count: templateCount })}</Box>
 
-          <Tooltip title={branches.join('、')} placement="top">
+          <Tooltip
+            title={branches.length > 1 ? t('branches.more', { counts: branches.length }) : t('branches.one')}
+            placement="top"
+            disableInteractive>
             <Stack direction="row" alignItems="center">
               <ForkRightSharpIcon sx={{ fontSize: 14 }} />
               <Box>{`${branches.length}`}</Box>
