@@ -8,6 +8,7 @@ import React, { ComponentProps, MutableRefObject, ReactNode, useCallback, useEff
 import Editor from './editor';
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
+import VariablePickerPlugin from './plugins/VariablePickerPlugin';
 import PromptEditorEditorTheme from './themes/prompt-editor-theme';
 
 export type { EditorState } from 'lexical';
@@ -24,6 +25,7 @@ interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
   editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
   autoFocus?: boolean;
   componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
+  variablePickerProps: ComponentProps<typeof VariablePickerPlugin>;
 }
 
 export default function PromptEditor({
@@ -72,6 +74,7 @@ function EditorShell({
   editorRef,
   autoFocus,
   componentPickerProps,
+  variablePickerProps,
   ...props
 }: PromptEditorProps) {
   const [editor] = useLexicalComposerContext();
@@ -122,6 +125,7 @@ function EditorShell({
         useRoleNode={useRoleNode}
         useVariableNode={useVariableNode}
         isDebug={isDebug}
+        variablePickerProps={variablePickerProps}
         componentPickerProps={componentPickerProps}>
         {children}
       </Editor>

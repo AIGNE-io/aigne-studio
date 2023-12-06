@@ -388,8 +388,9 @@ function PromptItemView({
     readOnly,
     originTemplate: template,
   });
-  const { getOptions } = useEditorPicker({ projectId, gitRef, templateId });
+  const { getOptions, getVariablesPickersOptions } = useEditorPicker({ projectId, gitRef, templateId });
   const options = getOptions(prompt?.index);
+  const pickerOptions = getVariablesPickersOptions();
 
   if (!prompt || !state.editorState) return null;
 
@@ -401,6 +402,7 @@ function PromptItemView({
       value={state.editorState}
       onChange={setEditorState}
       componentPickerProps={{ options }}
+      variablePickerProps={{ options: pickerOptions }}
     />
   );
 }
@@ -1096,9 +1098,9 @@ function ParameterItem({
 }) {
   const { state, setEditorState } = useParameterState({ projectId, gitRef, templateId, prompt, param });
 
-  const { getOptions } = useEditorPicker({ projectId, gitRef, templateId });
-
+  const { getOptions, getVariablesPickersOptions } = useEditorPicker({ projectId, gitRef, templateId });
   const options = getOptions(index);
+  const pickerOptions = getVariablesPickersOptions();
 
   return (
     <StyledPromptEditor
@@ -1106,6 +1108,7 @@ function ParameterItem({
       value={state.editorState}
       onChange={setEditorState}
       componentPickerProps={{ options }}
+      variablePickerProps={{ options: pickerOptions }}
       sx={{
         '.ContentEditable__root': {
           px: 1,

@@ -13,11 +13,11 @@ import {
 } from 'lexical';
 import { useEffect } from 'react';
 
-import { $isCommentNode } from '../CommentPlugin/comment-node';
+// import { $isCommentNode } from '../CommentPlugin/comment-node';
 import PopperVariableNode from './hover-popper/component';
 import useHoverPopper from './hover-popper/use-hover-popper';
 import useTransformVariableNode from './user-transform-node';
-import { $createVariableNode, $isVariableTextNode, VariableTextNode } from './variable-text-node';
+import { $createVariableNode, VariableTextNode } from './variable-text-node';
 
 const isBracketCode = ({ keyCode, shiftKey }: { keyCode: number; shiftKey: boolean }) => {
   return keyCode === 219 && shiftKey;
@@ -44,6 +44,10 @@ export default function VarContextPlugin({
           const node = $createVariableNode(`{{ ${payload.name} }}`);
           $insertNodes([node]);
 
+          if (!payload?.name?.trim()) {
+            node.select(3, 3);
+          }
+
           return true;
         },
         COMMAND_PRIORITY_EDITOR
@@ -66,19 +70,15 @@ export default function VarContextPlugin({
           }
 
           // 识别 BracketLeft Code "{",进行唤起
+          // 无效：目前通过 picker 唤起
           if (isBracketCode(event)) {
             try {
-              const anchorNode = selection.anchor.getNode();
-              if ($isVariableTextNode(anchorNode) || $isCommentNode(anchorNode)) {
-                return true;
-              }
+              // event.preventDefault();
+              // const node = $createVariableNode('{{  }}');
+              // selection.insertNodes([node], true);
+              // node.select(3, 3);
 
-              event.preventDefault();
-              const node = $createVariableNode('{{  }}');
-              selection.insertNodes([node], true);
-              node.select(3, 3);
-
-              return true;
+              return false;
             } catch (error) {
               console.error(error);
               return false;

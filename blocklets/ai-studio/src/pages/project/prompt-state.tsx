@@ -1,7 +1,14 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { ComponentPickerOption, EditorState, INSERT_VARIABLE_COMMAND } from '@blocklet/prompt-editor';
+import {
+  ComponentPickerOption,
+  EditorState,
+  INSERT_VARIABLE_COMMAND,
+  VariablePickerOption,
+} from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
+import DataObjectRoundedIcon from '@mui/icons-material/DataObjectRounded';
+import { alpha } from '@mui/material';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import { toPath } from 'lodash';
 import sortBy from 'lodash/sortBy';
@@ -209,6 +216,25 @@ export function useEditorPicker({
   const randomVariableNamePrefix = 'var-';
   const { t } = useLocaleContext();
 
+  const { getTemplateById } = useStore(projectId, gitRef);
+  const template = getTemplateById(templateId);
+
+  const keys = useMemo(() => {
+    if (!template) {
+      return [];
+    }
+
+    const keysSet = new Set(
+      parseDirectivesOfTemplate(template, { excludeNonPromptVariables: true, includePromptVariables: true })
+        .map((i) => (i.type === 'variable' ? i.name : undefined))
+        .filter((i): i is string => Boolean(i))
+    );
+
+    const keys = [...keysSet];
+
+    return keys;
+  }, [JSON.stringify(template?.prompts)]);
+
   const getOptions = useCallback(
     (index?: number) => [
       new ComponentPickerOption(t('call.list.macro'), {
@@ -260,7 +286,42 @@ export function useEditorPicker({
     [addPrompt, t]
   );
 
-  return { getOptions };
+  const getVariablesPickersOptions = useCallback(() => {
+    return keys
+      .map((key) => {
+        return new VariablePickerOption(key, {
+          icon: (
+            <DataObjectRoundedIcon
+              sx={{
+                color: (theme) => alpha(theme.palette.primary.main, 1),
+                fontSize: (theme) => theme.typography.body1.fontSize,
+              }}
+            />
+          ),
+          onSelect: (editor) => {
+            editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: key });
+          },
+        });
+      })
+      .concat([
+        new VariablePickerOption('添加新变量', {
+          disabled: true,
+          icon: (
+            <DataObjectRoundedIcon
+              sx={{
+                color: (theme) => alpha(theme.palette.primary.main, 1),
+                fontSize: (theme) => theme.typography.body1.fontSize,
+              }}
+            />
+          ),
+          onSelect: (editor) => {
+            editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: '' });
+          },
+        }),
+      ]);
+  }, [keys]);
+
+  return { getOptions, getVariablesPickersOptions };
 }
 
 type Directive = {
