@@ -240,7 +240,7 @@ export function projectRoutes(router: Router) {
         model: original.model || defaultModel,
         _id: nextProjectId(),
         name: original.name && `${original.name}-copy`,
-        description: description || '',
+        description,
         createdBy: did,
         updatedBy: did,
       });
@@ -287,8 +287,8 @@ export function projectRoutes(router: Router) {
         icon,
         createdBy: did,
         updatedBy: did,
-        name: name || '',
-        description: description || '',
+        name,
+        description,
       });
 
       const repository = await getRepository({ projectId: project._id!, author: { name: fullName, email: did } });
@@ -319,8 +319,8 @@ export function projectRoutes(router: Router) {
       model: defaultModel,
       createdBy: did,
       updatedBy: did,
-      name: name || '',
-      description: description || '',
+      name,
+      description,
     });
 
     res.json(project);
