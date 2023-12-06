@@ -224,7 +224,7 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-    const { duplicateFrom, templateId, name } = await createProjectSchema.validateAsync(req.body, {
+    const { duplicateFrom, templateId, name, description } = await createProjectSchema.validateAsync(req.body, {
       stripUnknown: true,
     });
     const { did, fullName } = req.user!;
@@ -240,6 +240,7 @@ export function projectRoutes(router: Router) {
         model: original.model || defaultModel,
         _id: nextProjectId(),
         name: original.name && `${original.name}-copy`,
+        description,
         createdBy: did,
         updatedBy: did,
       });
@@ -286,6 +287,8 @@ export function projectRoutes(router: Router) {
         icon,
         createdBy: did,
         updatedBy: did,
+        name,
+        description,
       });
 
       const repository = await getRepository({ projectId: project._id!, author: { name: fullName, email: did } });
@@ -314,9 +317,10 @@ export function projectRoutes(router: Router) {
     const project = await Project.create({
       _id: nextProjectId(),
       model: defaultModel,
-      name,
       createdBy: did,
       updatedBy: did,
+      name,
+      description,
     });
 
     res.json(project);

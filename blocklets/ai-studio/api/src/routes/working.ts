@@ -45,7 +45,10 @@ export function workingRoutes(router: Router) {
 
       await autoSyncRemoteRepoIfNeeded({ project, author });
 
-      return res.json({});
+      project.changed('updatedAt', true);
+      await project.update({ updatedAt: new Date() });
+
+      return res.json({ project });
     }
   );
 }

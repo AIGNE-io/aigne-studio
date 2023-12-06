@@ -371,4 +371,8 @@ export default flat({
       },
     },
   },
+  branches: {
+    one: '1 条分支',
+    more: '{counts} 条分支',
+  },
 });

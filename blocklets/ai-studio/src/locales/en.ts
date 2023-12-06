@@ -277,7 +277,7 @@ export default flat({
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
-  templates: '{count} prompts?',
+  templates: '{count} Prompts',
   tool: {
     title: 'Tools',
     edit: 'Edit Function Call',
@@ -372,5 +372,9 @@ export default flat({
         required: 'Code is a required field',
       },
     },
+  },
+  branches: {
+    one: '1 Branch',
+    more: '{counts} Branches',
   },
 });
