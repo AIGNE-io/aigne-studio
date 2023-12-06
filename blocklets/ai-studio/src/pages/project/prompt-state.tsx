@@ -304,7 +304,7 @@ export function useEditorPicker({
         });
       })
       .concat([
-        new VariablePickerOption('添加新变量', {
+        new VariablePickerOption(`${t('form.add')}${t('variable')}`, {
           disabled: true,
           icon: (
             <DataObjectRoundedIcon
@@ -319,7 +319,7 @@ export function useEditorPicker({
           },
         }),
       ]);
-  }, [keys]);
+  }, [keys, t]);
 
   return { getOptions, getVariablesPickersOptions };
 }
