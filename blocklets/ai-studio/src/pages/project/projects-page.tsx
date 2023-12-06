@@ -177,26 +177,37 @@ function ProjectMenu() {
                   disabled={readOnly}
                   onClick={() => {
                     let name = item?.name || '';
+                    let description = item?.description || '';
 
                     showDialog({
                       disableEnforceFocus: true,
                       fullWidth: true,
                       maxWidth: 'sm',
-                      title: t('rename'),
+                      title: `${t('alert.edit')}${t('form.project')}`,
                       content: (
                         <Stack overflow="auto" gap={2}>
                           <TextField
+                            autoFocus
                             label={t('projectSetting.name')}
                             sx={{ width: 1 }}
                             defaultValue={item?.name || ''}
                             onChange={(e) => (name = e.target.value)}
+                          />
+
+                          <TextField
+                            label={t('projectSetting.description')}
+                            multiline
+                            rows={4}
+                            sx={{ width: 1 }}
+                            defaultValue={item?.description || ''}
+                            onChange={(e) => (description = e.target.value)}
                           />
                         </Stack>
                       ),
                       cancelText: t('alert.cancel'),
                       okText: t('confirm'),
                       onOk: async () => {
-                        updateProject(menuAnchor.id, { name })
+                        updateProject(menuAnchor.id, { name, description })
                           .catch((error) => {
                             Toast.error(getErrorMessage(error));
                             throw error;
@@ -210,7 +221,7 @@ function ProjectMenu() {
                   <ListItemIcon>
                     <Edit />
                   </ListItemIcon>
-                  {t('rename')}
+                  {`${t('alert.edit')}${t('form.project')}`}
                 </LoadingMenuItem>
               )}
 
@@ -393,6 +404,7 @@ function ProjectList({
                     content: (
                       <Stack overflow="auto" gap={2}>
                         <TextField
+                          autoFocus
                           label={t('projectSetting.name')}
                           sx={{ width: 1 }}
                           onChange={(e) => (name = e.target.value)}
