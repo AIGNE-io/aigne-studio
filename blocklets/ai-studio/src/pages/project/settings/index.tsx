@@ -239,7 +239,7 @@ export default function ProjectSettings() {
                               {t('temperature')}
                               <InfoOutlined
                                 fontSize="small"
-                                sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }}
+                                sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
                               />
                             </FormLabel>
                           </Tooltip>
@@ -265,7 +265,7 @@ export default function ProjectSettings() {
                               {t('topP')}
                               <InfoOutlined
                                 fontSize="small"
-                                sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }}
+                                sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
                               />
                             </FormLabel>
                           </Tooltip>
@@ -291,7 +291,7 @@ export default function ProjectSettings() {
                               {t('presencePenalty')}
                               <InfoOutlined
                                 fontSize="small"
-                                sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }}
+                                sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
                               />
                             </FormLabel>
                           </Tooltip>
@@ -317,7 +317,7 @@ export default function ProjectSettings() {
                               {t('frequencyPenalty')}
                               <InfoOutlined
                                 fontSize="small"
-                                sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }}
+                                sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
                               />
                             </FormLabel>
                           </Tooltip>
@@ -343,7 +343,7 @@ export default function ProjectSettings() {
                               {t('maxTokens')}
                               <InfoOutlined
                                 fontSize="small"
-                                sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }}
+                                sx={{ verticalAlign: 'bottom', ml: 1, color: 'info.main' }}
                               />
                             </FormLabel>
                           </Tooltip>
