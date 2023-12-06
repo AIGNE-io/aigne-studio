@@ -164,7 +164,7 @@ const FileTree = forwardRef<
     [navigate, openFolder, store]
   );
 
-  const [defaultEditingFolderPath, setDefaultEditingFolderPath] = useState<string>();
+  const [editingFolderPath, setEditingFolderPath] = useState<string>();
 
   const onCreateFolder = useCallback(
     (options: Partial<Omit<Parameters<typeof createFolder>[0], 'store'>> = {}) => {
@@ -172,7 +172,7 @@ const FileTree = forwardRef<
         ...options,
         store,
       });
-      setDefaultEditingFolderPath(path);
+      setEditingFolderPath(path);
       openFolder(path);
     },
     [openFolder, store]
@@ -381,22 +381,23 @@ const FileTree = forwardRef<
                 return (
                   <EditableTreeItem
                     key={node.id}
-                    defaultEditing={filepath === defaultEditingFolderPath}
+                    editing={filepath === editingFolderPath}
                     icon={<ChevronDown sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }} />}
-                    mutable={folderMutable}
                     depth={depth}
                     onClick={onToggle}
                     onSubmit={async (name) => {
-                      setDefaultEditingFolderPath(undefined);
+                      setEditingFolderPath(undefined);
                       const { data } = node;
                       if (!data || name === data.name) return;
                       onMoveFile({ from: data.parent.concat(data.name), to: data.parent.concat(name) });
                     }}
+                    onCancel={() => setEditingFolderPath(undefined)}
                     actions={
                       <TreeItemMenus
                         item={node.data}
                         onCreateFolder={mutable ? onCreateFolder : undefined}
                         onCreateFile={mutable ? onCreateFile : undefined}
+                        onRenameFolder={folderMutable ? ({ path }) => setEditingFolderPath(path.join('/')) : undefined}
                         onDeleteFile={folderMutable ? onDeleteFile : undefined}
                         onLaunch={onLaunch}
                       />
@@ -544,6 +545,7 @@ function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 
 function TreeItemMenus({
   isChanged,
   item,
+  onRenameFolder,
   onCreateFolder,
   onCreateFile,
   onDeleteFile,
@@ -553,6 +555,7 @@ function TreeItemMenus({
 }: {
   isChanged?: boolean;
   item: EntryWithMeta;
+  onRenameFolder?: (options: { path: string[] }) => any;
   onCreateFolder?: (options?: { parent?: string[] }) => any;
   onCreateFile?: (options?: Partial<Omit<Parameters<typeof createFile>[0], 'store'>>) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
@@ -564,59 +567,57 @@ function TreeItemMenus({
 
   const template = item.type === 'file' && isTemplate(item.meta) ? item.meta : undefined;
 
-  return (
-    <>
-      {onLaunch && template && (
-        <ListItemButton onClick={() => onLaunch(template)}>
+  const menus = [
+    [
+      onLaunch && template && (
+        <ListItemButton key="launch" onClick={() => onLaunch(template)}>
           <ListItemIcon>
             <External />
           </ListItemIcon>
           <ListItemText primary={t('alert.openInAssistant')} />
         </ListItemButton>
-      )}
+      ),
+    ],
+    [
+      item.type === 'folder' && onCreateFolder && (
+        <ListItemButton key="createFolder" onClick={() => onCreateFolder({ parent: item.path })}>
+          <ListItemIcon>
+            <FolderAdd />
+          </ListItemIcon>
+          <ListItemText primary={t('newObject', { object: t('folder') })} />
+        </ListItemButton>
+      ),
 
-      {item.type === 'folder' && onCreateFolder && (
-        <>
-          <Divider />
+      ...(item.type === 'folder' && onCreateFile
+        ? [
+            <ListItemButton key="createPrompt" onClick={() => onCreateFile({ parent: item.path })}>
+              <ListItemIcon>
+                <File />
+              </ListItemIcon>
+              <ListItemText primary={t('newObject', { object: t('file') })} />
+            </ListItemButton>,
 
-          <ListItemButton onClick={() => onCreateFolder({ parent: item.path })}>
-            <ListItemIcon>
-              <FolderAdd />
-            </ListItemIcon>
-            <ListItemText primary={t('newObject', { object: t('folder') })} />
-          </ListItemButton>
-        </>
-      )}
+            <ListItemButton key="createApi" onClick={() => onCreateFile({ parent: item.path, meta: { type: 'api' } })}>
+              <ListItemIcon>
+                <LinkIcon />
+              </ListItemIcon>
+              <ListItemText primary={t('newObject', { object: t('api') })} />
+            </ListItemButton>,
 
-      {item.type === 'folder' && onCreateFile && (
-        <>
-          <ListItemButton onClick={() => onCreateFile({ parent: item.path })}>
-            <ListItemIcon>
-              <File />
-            </ListItemIcon>
-            <ListItemText primary={t('newObject', { object: t('file') })} />
-          </ListItemButton>
+            <ListItemButton
+              key="createFunction"
+              onClick={() => onCreateFile({ parent: item.path, meta: { type: 'function' } })}>
+              <ListItemIcon>
+                <Code />
+              </ListItemIcon>
+              <ListItemText primary={t('newObject', { object: t('function') })} />
+            </ListItemButton>,
+          ]
+        : []),
 
-          <ListItemButton onClick={() => onCreateFile({ parent: item.path, meta: { type: 'api' } })}>
-            <ListItemIcon>
-              <LinkIcon />
-            </ListItemIcon>
-            <ListItemText primary={t('newObject', { object: t('api') })} />
-          </ListItemButton>
-
-          <ListItemButton onClick={() => onCreateFile({ parent: item.path, meta: { type: 'function' } })}>
-            <ListItemIcon>
-              <Code />
-            </ListItemIcon>
-            <ListItemText primary={t('newObject', { object: t('function') })} />
-          </ListItemButton>
-
-          <Divider />
-        </>
-      )}
-
-      {item.type === 'file' && onCreateFile && (
+      item.type === 'file' && onCreateFile && (
         <ListItemButton
+          key="duplicateFile"
           onClick={() =>
             onCreateFile({
               parent: item.parent,
@@ -632,60 +633,72 @@ function TreeItemMenus({
           </ListItemIcon>
           <ListItemText primary={t('alert.duplicate')} />
         </ListItemButton>
-      )}
+      ),
+    ],
+    [
+      isChanged && (
+        <ListItemButton key="compareChanges" onClick={onCompare}>
+          <ListItemIcon>
+            <CompareIcon />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.compare')} />
+        </ListItemButton>
+      ),
 
-      {onDeleteFile && (
-        <ListItemButton onClick={() => onDeleteFile(item)}>
+      isChanged && (
+        <ListItemButton key="revertChanges" onClick={onUndo}>
+          <ListItemIcon>
+            <Undo />
+          </ListItemIcon>
+          <ListItemText primary={t('restore')} />
+        </ListItemButton>
+      ),
+    ],
+    [
+      onRenameFolder && (
+        <ListItemButton onClick={() => onRenameFolder(item)}>
+          <ListItemIcon>
+            <Pen />
+          </ListItemIcon>
+
+          <ListItemText primary={t('form.rename')} />
+        </ListItemButton>
+      ),
+      onDeleteFile && (
+        <ListItemButton key="deleteFile" onClick={() => onDeleteFile(item)}>
           <ListItemIcon>
             <Trash />
           </ListItemIcon>
           <ListItemText primary={t('alert.delete')} />
         </ListItemButton>
-      )}
+      ),
+    ],
+  ]
+    .map((i) => i.filter((j): j is JSX.Element => Boolean(j)))
+    .filter((i) => !!i.length);
 
-      {isChanged && (
-        <>
-          <ListItemButton onClick={onCompare}>
-            <ListItemIcon>
-              <CompareIcon />
-            </ListItemIcon>
-            <ListItemText primary={t('alert.compare')} />
-          </ListItemButton>
-
-          <ListItemButton onClick={onUndo}>
-            <ListItemIcon>
-              <Undo />
-            </ListItemIcon>
-            <ListItemText primary={t('restore')} />
-          </ListItemButton>
-        </>
-      )}
-    </>
-  );
+  return menus.map((group, index) => {
+    return [index !== 0 && <Divider key={`divider-${index}`} />, ...group];
+  });
 }
 
 function EditableTreeItem({
-  mutable,
-  defaultEditing,
+  editing,
   children,
   onCancel,
   onSubmit,
   ...props
 }: Omit<ComponentProps<typeof TreeItem>, 'children' | 'onSubmit'> & {
-  mutable?: boolean;
-  defaultEditing?: boolean;
+  editing?: boolean;
   children?: string;
   onCancel?: () => any;
+  onCancelEdit?: () => any;
   onSubmit?: (text: string) => any;
 }) {
-  const { t } = useLocaleContext();
-
-  const [editing, setEditing] = useState(defaultEditing);
   const [value, setValue] = useState(children);
 
   const submit = async () => {
     if (!value) {
-      setEditing(false);
       setValue(children);
       onCancel?.();
       return;
@@ -693,9 +706,8 @@ function EditableTreeItem({
 
     try {
       await onSubmit?.(value);
-      setEditing(false);
     } catch (error) {
-      setEditing(false);
+      onCancel?.();
       setValue(children);
       Toast.error(getErrorMessage(error));
       throw error;
@@ -703,25 +715,7 @@ function EditableTreeItem({
   };
 
   return (
-    <TreeItem
-      {...props}
-      actions={
-        editing ? null : (
-          <>
-            {mutable && (
-              <ListItemButton onClick={() => setEditing(true)}>
-                <ListItemIcon>
-                  <Pen />
-                </ListItemIcon>
-
-                <ListItemText primary={t('form.rename')} />
-              </ListItemButton>
-            )}
-
-            {props.actions}
-          </>
-        )
-      }>
+    <TreeItem {...props} actions={editing ? null : props.actions}>
       {editing ? (
         <Input
           disableUnderline
@@ -748,7 +742,6 @@ function EditableTreeItem({
             }
             if (e.key === 'Escape') {
               setValue(children);
-              setEditing(false);
               onCancel?.();
               return;
             }

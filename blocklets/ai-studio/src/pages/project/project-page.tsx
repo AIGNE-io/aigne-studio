@@ -5,10 +5,13 @@ import {
   Button,
   ButtonProps,
   CircularProgress,
+  ClickAwayListener,
+  List,
   ListItemIcon,
   ListItemText,
-  Menu,
   MenuItem,
+  Paper,
+  Popper,
   Stack,
   Tab,
   Tabs,
@@ -154,7 +157,7 @@ export default function ProjectPage() {
 
               <Box flex={1} />
 
-              <Tooltip title={t('newObject', { object: t('folder') })}>
+              <Tooltip title={t('newObject', { object: t('folder') })} disableInteractive>
                 <span>
                   <Button
                     disabled={readOnly}
@@ -168,7 +171,7 @@ export default function ProjectPage() {
                 </span>
               </Tooltip>
 
-              <Tooltip title={t('newObject', { object: t('file') })}>
+              <Tooltip title={t('newObject', { object: t('file') })} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} {...bindTrigger(createFileMenuState)}>
                     <Add />
@@ -176,49 +179,58 @@ export default function ProjectPage() {
                 </span>
               </Tooltip>
 
-              <Menu {...bindMenu(createFileMenuState)} onClick={createFileMenuState.close}>
-                <MenuItem
-                  onClick={() => {
-                    const dir = dirname(filepath);
-                    fileTree.current?.newFile({
-                      parent: dir[0] === PROMPTS_FOLDER_NAME ? dir : [],
-                      rootFolder: PROMPTS_FOLDER_NAME,
-                    });
-                  }}>
-                  <ListItemIcon>
-                    <File />
-                  </ListItemIcon>
-                  <ListItemText primary={t('prompt')} />
-                </MenuItem>
-                <MenuItem
-                  onClick={() =>
-                    fileTree.current?.newFile({
-                      parent: dirname(filepath),
-                      meta: { type: 'api' },
-                      rootFolder: PROMPTS_FOLDER_NAME,
-                    })
-                  }>
-                  <ListItemIcon>
-                    <LinkIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={t('api')} />
-                </MenuItem>
-                <MenuItem
-                  onClick={() =>
-                    fileTree.current?.newFile({
-                      parent: dirname(filepath),
-                      meta: { type: 'function' },
-                      rootFolder: PROMPTS_FOLDER_NAME,
-                    })
-                  }>
-                  <ListItemIcon>
-                    <Code />
-                  </ListItemIcon>
-                  <ListItemText primary={t('function')} />
-                </MenuItem>
-              </Menu>
+              <Popper
+                {...bindMenu(createFileMenuState)}
+                sx={{ zIndex: (theme) => theme.zIndex.modal }}
+                placement="bottom-start">
+                <ClickAwayListener onClickAway={createFileMenuState.close}>
+                  <Paper elevation={2} onClick={createFileMenuState.close}>
+                    <List>
+                      <MenuItem
+                        onClick={() => {
+                          const dir = dirname(filepath);
+                          fileTree.current?.newFile({
+                            parent: dir[0] === PROMPTS_FOLDER_NAME ? dir : [],
+                            rootFolder: PROMPTS_FOLDER_NAME,
+                          });
+                        }}>
+                        <ListItemIcon>
+                          <File />
+                        </ListItemIcon>
+                        <ListItemText primary={t('prompt')} />
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() =>
+                          fileTree.current?.newFile({
+                            parent: dirname(filepath),
+                            meta: { type: 'api' },
+                            rootFolder: PROMPTS_FOLDER_NAME,
+                          })
+                        }>
+                        <ListItemIcon>
+                          <LinkIcon />
+                        </ListItemIcon>
+                        <ListItemText primary={t('api')} />
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() =>
+                          fileTree.current?.newFile({
+                            parent: dirname(filepath),
+                            meta: { type: 'function' },
+                            rootFolder: PROMPTS_FOLDER_NAME,
+                          })
+                        }>
+                        <ListItemIcon>
+                          <Code />
+                        </ListItemIcon>
+                        <ListItemText primary={t('function')} />
+                      </MenuItem>
+                    </List>
+                  </Paper>
+                </ClickAwayListener>
+              </Popper>
 
-              <Tooltip title={t('import.title')}>
+              <Tooltip title={t('import.title')} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
                     <Import />
