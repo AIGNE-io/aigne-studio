@@ -739,6 +739,6 @@ function LoadingMenuItem({ ...props }: MenuItemProps) {
 
 const ProjectListContainer = styled(Box)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
 `;
