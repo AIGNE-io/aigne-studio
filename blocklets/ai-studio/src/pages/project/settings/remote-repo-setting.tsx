@@ -102,7 +102,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
   );
 
   return (
-    <Stack gap={2}>
+    <Stack gap={1}>
       {dialog}
 
       <Stack direction="row" alignItems="center" gap={1}>
@@ -147,6 +147,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
 
           <Stack direction="row" alignItems="center" gap={1}>
             <PromiseLoadingButton
+              size="small"
               variant="outlined"
               loadingPosition="start"
               startIcon={<SyncRounded />}

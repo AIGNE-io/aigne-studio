@@ -1,5 +1,5 @@
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { Box, styled } from '@mui/material';
+import { Box, Skeleton, styled } from '@mui/material';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
 import { useRequest, useResponsive } from 'ahooks';
@@ -51,7 +51,7 @@ const GalleryImageList = forwardRef<
   const responsive = useResponsive();
   const [selectedImage, onSelectedImage] = useState('');
 
-  const { data } = useRequest(() => api.get('/api/projects/icons').then((res) => res.data));
+  const { data, loading } = useRequest(() => api.get('/api/projects/icons').then((res) => res.data));
 
   // @ts-ignore
   const uploads = uniqBy(data?.icons || [], 'filename');
@@ -62,8 +62,12 @@ const GalleryImageList = forwardRef<
   useImperativeHandle(ref, () => ({}), []);
 
   const list = useMemo(() => {
+    if (loading) {
+      return [{ add: true }, ...new Array(9).fill(0).map((_x, i) => ({ loading: true, i }))];
+    }
+
     return [{ add: true }, ...uploads.map((x: any) => ({ ...x, img: createImageUrl(x.filename) }))];
-  }, [uploads]);
+  }, [uploads, loading]);
 
   return (
     <List cols={cols} gap={gap}>
@@ -75,6 +79,24 @@ const GalleryImageList = forwardRef<
                 onChange={({ response }: any) => {
                   const url = response?.data?.url || response?.data?.fileUrl;
                   onChange(url);
+                }}
+              />
+            </Box>
+          );
+        }
+
+        if (item.loading) {
+          return (
+            <Box className="image-container" key={item.i}>
+              <Skeleton
+                sx={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  width: '100%',
+                  height: '100%',
+                  transform: 'none',
+                  bgcolor: 'grey.100',
                 }}
               />
             </Box>
@@ -118,6 +140,7 @@ const List = styled(ImageList)`
     padding-bottom: 100%;
     position: relative;
     overflow: hidden;
+    border-radius: 8px;
   }
 
   .image-container {
