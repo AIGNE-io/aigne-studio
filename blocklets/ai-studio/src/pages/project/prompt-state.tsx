@@ -230,9 +230,7 @@ export function useEditorPicker({
         .filter((i): i is string => Boolean(i))
     );
 
-    const keys = [...keysSet];
-
-    return keys;
+    return [...keysSet];
   }, [JSON.stringify(template?.prompts)]);
 
   const getOptions = useCallback(

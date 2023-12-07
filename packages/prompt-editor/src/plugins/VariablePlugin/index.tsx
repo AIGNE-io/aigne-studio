@@ -1,16 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
-import {
-  $getSelection,
-  $insertNodes,
-  $isRangeSelection,
-  COMMAND_PRIORITY_CRITICAL,
-  COMMAND_PRIORITY_EDITOR,
-  KEY_DOWN_COMMAND,
-  LexicalCommand,
-  LexicalEditor,
-  createCommand,
-} from 'lexical';
+import { $insertNodes, COMMAND_PRIORITY_EDITOR, LexicalCommand, LexicalEditor, createCommand } from 'lexical';
 import { useEffect } from 'react';
 
 // import { $isCommentNode } from '../CommentPlugin/comment-node';
@@ -18,10 +8,6 @@ import PopperVariableNode from './hover-popper/component';
 import useHoverPopper from './hover-popper/use-hover-popper';
 import useTransformVariableNode from './user-transform-node';
 import { $createVariableNode, VariableTextNode } from './variable-text-node';
-
-const isBracketCode = ({ keyCode, shiftKey }: { keyCode: number; shiftKey: boolean }) => {
-  return keyCode === 219 && shiftKey;
-};
 
 export const INSERT_VARIABLE_COMMAND: LexicalCommand<{ name: string }> = createCommand('INSERT_VARIABLE_COMMAND');
 
@@ -60,35 +46,6 @@ export default function VarContextPlugin({
       throw new Error('VarContextPlugin: VariableTextNode not registered on editor');
     }
     return mergeRegister(
-      editor.registerCommand(
-        KEY_DOWN_COMMAND,
-        (event) => {
-          const selection = $getSelection();
-
-          if (!$isRangeSelection(selection)) {
-            return false;
-          }
-
-          // 识别 BracketLeft Code "{",进行唤起
-          // 无效：目前通过 picker 唤起
-          if (isBracketCode(event)) {
-            try {
-              // event.preventDefault();
-              // const node = $createVariableNode('{{  }}');
-              // selection.insertNodes([node], true);
-              // node.select(3, 3);
-
-              return false;
-            } catch (error) {
-              console.error(error);
-              return false;
-            }
-          }
-
-          return false;
-        },
-        COMMAND_PRIORITY_CRITICAL
-      ),
       editor.registerRootListener((rootElement: null | HTMLElement, prevRootElement: null | HTMLElement) => {
         if (prevRootElement !== null) {
           prevRootElement.removeEventListener('mouseover', throttleHover);
