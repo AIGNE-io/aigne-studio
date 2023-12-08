@@ -65,7 +65,7 @@ type ProjectWithUserInfo = Project & {
   templateCount: number;
 };
 
-const CARD_HEIGHT = 140;
+const CARD_HEIGHT = 160;
 const MAX_WIDTH = 300;
 
 const gap = { xs: 2, sm: 3 };
@@ -560,7 +560,7 @@ function ProjectItem({
   return (
     <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between">
-        <Box className="logo" sx={{ width: '24px', height: '24px' }}>
+        <Box className="logo" sx={{ width: '22px', height: '22px' }}>
           {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 24 }} />}
         </Box>
 
@@ -587,7 +587,7 @@ function ProjectItem({
         )}
       </Stack>
 
-      <Box flex={1} my={1}>
+      <Box flex={1} my={1.5}>
         <Box
           className="name"
           sx={{
@@ -600,6 +600,7 @@ function ProjectItem({
         <Box
           className="desc"
           sx={{
+            mt: 0.5,
             color: (theme) => theme.palette.text.secondary,
             fontSize: (theme) => theme.typography.caption.fontSize,
           }}>
@@ -654,7 +655,7 @@ const ProjectItemRoot = styled(Stack)`
   width: 100%;
   cursor: pointer;
   overflow: hidden;
-  padding: 8px 16px;
+  padding: 12px;
   position: relative;
   border-width: 1px;
   border-style: solid;
