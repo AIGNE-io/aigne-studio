@@ -2,13 +2,18 @@ import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import { ComponentProps, useCallback, useRef, useState } from 'react';
+import { AssistantYjs } from 'src/pages/project/yjs-state';
+
+import useVariablesEditorOptions from './use-variables-editor-options';
 
 export default function PromptEditorField({
+  assistant,
   value,
   onChange,
   readOnly,
   ...props
 }: {
+  assistant?: AssistantYjs;
   value?: string;
   onChange: (value: string) => void;
   readOnly?: boolean;
@@ -19,11 +24,14 @@ export default function PromptEditorField({
     readOnly,
   });
 
+  const variablePickerProps = useVariablesEditorOptions(assistant);
+
   return (
     <PromptEditor
       {...props}
       value={editorState}
       onChange={setEditorState}
+      variablePickerProps={variablePickerProps}
       ContentProps={{
         ...props.ContentProps,
         sx: {
