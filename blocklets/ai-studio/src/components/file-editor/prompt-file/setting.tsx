@@ -44,14 +44,16 @@ export default function PromptAssistantSetting({
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end">
           {!open && (
             <Stack direction="row" alignItems="center" gap={1}>
-              <Typography component="span" sx={{ bgcolor: 'grey.300', px: 1, borderRadius: 1 }}>
+              <Typography
+                component="span"
+                sx={{ bgcolor: 'rgba(241, 243, 245, 1)', p: 1, borderRadius: 1, lineHeight: 1 }}>
                 {value.model || project?.model}
               </Typography>
             </Stack>
           )}
         </Stack>
 
-        <Button sx={{ minWidth: 32, minHeight: 32, p: 0 }} onClick={() => setOpen(!open)}>
+        <Button sx={{ minWidth: 32, minHeight: 32 }} onClick={() => setOpen(!open)}>
           <ExpandMoreRounded
             sx={{
               transform: open ? 'rotateZ(180deg)' : undefined,

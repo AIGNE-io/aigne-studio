@@ -135,8 +135,8 @@ function DebugViewContent({
                 session.chatType = v;
               })
             }>
-            <ToggleButton value="chat">{t('chat')}</ToggleButton>
             <ToggleButton value="debug">{t('debug')}</ToggleButton>
+            <ToggleButton value="chat">{t('chat')}</ToggleButton>
           </ToggleButtonGroup>
         </Box>
       </Stack>

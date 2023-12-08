@@ -186,10 +186,16 @@ const debugStates: { [key: string]: RecoilState<DebugState> } = {};
 
 const debugState = (projectId: string, templateId: string) => {
   const key = `debugState-${projectId}-${templateId}` as const;
+  const now = new Date().toISOString();
 
   debugStates[key] ??= atom<DebugState>({
     key,
-    default: { projectId, templateId, sessions: [], nextSessionIndex: 1 },
+    default: {
+      projectId,
+      templateId,
+      sessions: [{ index: 1, createdAt: now, updatedAt: now, messages: [], chatType: 'debug' }],
+      nextSessionIndex: 2,
+    },
     effects: [
       recoilPersist({
         key,

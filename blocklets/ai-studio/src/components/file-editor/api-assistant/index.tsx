@@ -28,6 +28,9 @@ import PrepareExecuteList from '../prepare-execute-list';
 import PromptEditorField from '../prompt-editor-field';
 import ApiAssistantSetting from './setting';
 
+// TODO 放到theme中
+const bgcolor = 'rgba(249, 250, 251, 1)';
+
 export default function ApiAssistantEditor({
   projectId,
   gitRef,
@@ -45,7 +48,7 @@ export default function ApiAssistantEditor({
 
   return (
     <Stack gap={2} pb={10}>
-      <Box sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1 }}>
+      <Box sx={{ bgcolor, p: 1, borderRadius: 1 }}>
         <BasicInfoForm projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
 
         <Box px={1}>
@@ -53,7 +56,7 @@ export default function ApiAssistantEditor({
         </Box>
       </Box>
 
-      <Stack sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1, gap: 2 }}>
+      <Stack sx={{ bgcolor, p: 1, px: 2, borderRadius: 1, gap: 2 }}>
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="subtitle1">Prepare Executes</Typography>
 
@@ -152,6 +155,7 @@ export default function ApiAssistantEditor({
 
           <Box>
             <Button
+              sx={{ px: 2 }}
               startIcon={<Add />}
               onClick={() => {
                 const doc = (getYjsValue(value) as Map<any>).doc!;
@@ -171,11 +175,11 @@ export default function ApiAssistantEditor({
         </Stack>
       </Box>
 
-      <Box sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1 }}>
+      <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <ApiAssistantSetting value={value} readOnly={readOnly} />
       </Box>
 
-      <Box sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1 }}>
+      <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <OutputSettings value={value} readOnly={readOnly} />
       </Box>
     </Stack>

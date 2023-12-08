@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogProps,
   DialogTitle,
+  Divider,
   MenuItem,
   Stack,
   StackProps,
@@ -26,7 +27,7 @@ import {
 } from 'api/src/store/projects';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import Add from 'src/pages/project/icons/add';
 import Trash from 'src/pages/project/icons/trash';
@@ -90,8 +91,6 @@ export default function ExecuteBlockForm({
       )}
 
       <Stack gap={0.5}>
-        <Typography variant="caption">Tools</Typography>
-
         {tools?.length ? (
           tools.map(({ data: tool }) => {
             const f = store.files[tool.id];
@@ -99,61 +98,60 @@ export default function ExecuteBlockForm({
             if (!file) return null;
 
             return (
-              <Stack
-                key={file.id}
-                direction="row"
-                sx={{
-                  px: 1,
-                  minHeight: 32,
-                  gap: 1,
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  borderRadius: 1,
-                  ':hover': {
-                    bgcolor: 'action.hover',
+              <React.Fragment key={file.id}>
+                <Stack
+                  direction="row"
+                  sx={{
+                    px: 1,
+                    minHeight: 32,
+                    gap: 1,
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    ':hover': {
+                      bgcolor: 'action.hover',
 
-                    '.hover-visible': {
-                      display: 'flex',
+                      '.hover-visible': {
+                        display: 'flex',
+                      },
                     },
-                  },
-                }}
-                onClick={() => {
-                  toolForm.current?.form.reset(cloneDeep(tool));
-                  dialogState.open();
-                }}>
-                <Typography variant="subtitle2" noWrap maxWidth="50%">
-                  {file.name || t('unnamed')}
-                </Typography>
+                  }}
+                  onClick={() => {
+                    toolForm.current?.form.reset(cloneDeep(tool));
+                    dialogState.open();
+                  }}>
+                  <Typography variant="subtitle2" noWrap maxWidth="50%">
+                    {file.name || t('unnamed')}
+                  </Typography>
 
-                <Typography variant="body1" color="text.secondary" flex={1} noWrap>
-                  {file.description}
-                </Typography>
+                  <Typography variant="body1" color="text.secondary" flex={1} noWrap>
+                    {file.description}
+                  </Typography>
 
-                <Stack direction="row" className="hover-visible" sx={{ display: 'none' }}>
-                  <Button
-                    sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const doc = (getYjsValue(value) as Map<any>).doc!;
-                      doc.transact(() => {
-                        if (value.tools) {
-                          delete value.tools[tool.id];
-                          Object.values(value.tools).forEach((i, index) => (i.index = index));
-                        }
-                      });
-                    }}>
-                    <Trash sx={{ fontSize: 18 }} />
-                  </Button>
+                  <Stack direction="row" className="hover-visible" sx={{ display: 'none' }}>
+                    <Button
+                      sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const doc = (getYjsValue(value) as Map<any>).doc!;
+                        doc.transact(() => {
+                          if (value.tools) {
+                            delete value.tools[tool.id];
+                            Object.values(value.tools).forEach((i, index) => (i.index = index));
+                          }
+                        });
+                      }}>
+                      <Trash sx={{ fontSize: 18 }} />
+                    </Button>
+                  </Stack>
                 </Stack>
-              </Stack>
+
+                <Divider />
+              </React.Fragment>
             );
           })
         ) : (
-          <Box textAlign="center">
-            <Typography variant="caption" color="text.disabled">
-              You haven't added any tools yet.
-            </Typography>
-          </Box>
+          <Box textAlign="center" height={50} />
         )}
 
         <Box>

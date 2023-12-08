@@ -14,6 +14,9 @@ import PrepareExecuteList from '../prepare-execute-list';
 import FunctionCodeEditor from './function-code-editor';
 import FunctionAssistantSetting from './setting';
 
+// TODO 放到theme中
+const bgcolor = 'rgba(249, 250, 251, 1)';
+
 export default function FunctionFileEditor({
   projectId,
   gitRef,
@@ -31,7 +34,7 @@ export default function FunctionFileEditor({
 
   return (
     <Stack gap={2} pb={10}>
-      <Box sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1 }}>
+      <Box sx={{ bgcolor, p: 1, borderRadius: 1 }}>
         <BasicInfoForm projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
 
         <Box px={1}>
@@ -39,7 +42,7 @@ export default function FunctionFileEditor({
         </Box>
       </Box>
 
-      <Stack sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1, gap: 2 }}>
+      <Stack sx={{ bgcolor, p: 1, px: 2, borderRadius: 1, gap: 2 }}>
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="subtitle1">Prepare Executes</Typography>
 
@@ -94,11 +97,11 @@ export default function FunctionFileEditor({
         <FunctionCodeEditor value={value} readOnly={readOnly} />
       </Box>
 
-      <Box sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1 }}>
+      <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <FunctionAssistantSetting />
       </Box>
 
-      <Box sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1 }}>
+      <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <OutputSettings value={value} readOnly={readOnly} />
       </Box>
     </Stack>

@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
 import { DragSortItemContainer, DragSortListYjs } from 'src/components/drag-sort-list';
 import Eye from 'src/pages/project/icons/eye';
@@ -15,6 +16,9 @@ import ParametersTable from '../parameters-table';
 import PromptEditorField from '../prompt-editor-field';
 import RoleSelectField from './role-select';
 import PromptAssistantSetting from './setting';
+
+// TODO 放到theme中
+const bgcolor = 'rgba(249, 250, 251, 1)';
 
 export default function PromptFileEditor({
   projectId,
@@ -33,7 +37,7 @@ export default function PromptFileEditor({
 
   return (
     <Stack gap={2} pb={10}>
-      <Box sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1 }}>
+      <Box sx={{ bgcolor, p: 1, borderRadius: 1 }}>
         <BasicInfoForm projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
 
         <Box px={1}>
@@ -41,9 +45,17 @@ export default function PromptFileEditor({
         </Box>
       </Box>
 
-      <Box sx={{ bgcolor: 'grey.100', borderRadius: 1 }}>
-        <Stack direction="row" px={2} mt={1}>
-          <Typography variant="subtitle1">Format Prompt</Typography>
+      <Box
+        sx={{
+          border: 2,
+          borderColor: 'primary.main',
+          borderRadius: 2,
+          bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+        }}>
+        <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
+          <TipsAndUpdatesRounded fontSize="small" color="primary" />
+
+          <Typography variant="subtitle1">{t('Format Prompt')}</Typography>
         </Stack>
 
         <Stack gap={2} p={2}>
@@ -112,11 +124,11 @@ export default function PromptFileEditor({
         </Stack>
       </Box>
 
-      <Box sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1 }}>
+      <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <PromptAssistantSetting projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>
 
-      <Box sx={{ bgcolor: 'grey.100', p: 1, borderRadius: 1 }}>
+      <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <OutputSettings value={value} readOnly={readOnly} />
       </Box>
     </Stack>
