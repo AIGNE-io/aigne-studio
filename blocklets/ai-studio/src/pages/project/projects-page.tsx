@@ -655,13 +655,12 @@ const ProjectItemRoot = styled(Stack)`
   width: 100%;
   cursor: pointer;
   overflow: hidden;
-  padding: 12px;
+  padding: ${({ theme }) => theme.shape.borderRadius * 1.5}px;
   position: relative;
   border-width: 1px;
   border-style: solid;
   border-color: ${({ theme }) => theme.palette.divider};
   border-radius: 16px;
-  background: ${({ theme }) => theme.palette.background.paper};
 
   &:hover {
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.08);
