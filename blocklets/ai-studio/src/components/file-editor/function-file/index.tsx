@@ -44,7 +44,7 @@ export default function FunctionFileEditor({
 
       <Stack sx={{ bgcolor, p: 1, px: 2, borderRadius: 1, gap: 2 }}>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="subtitle1">Prepare Executes</Typography>
+          <Typography variant="subtitle1">{t('prepareExecutes')}</Typography>
 
           <Button
             sx={{ minWidth: 32, minHeight: 32, p: 0 }}

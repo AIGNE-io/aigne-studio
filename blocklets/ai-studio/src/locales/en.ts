@@ -281,24 +281,6 @@ export default flat({
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
   templates: '{count} Prompts',
-  tool: {
-    title: 'Tools',
-    edit: 'Edit Function Call',
-    delete: 'Delete this function call',
-    validate: {
-      notSupported: 'The current type is not supported',
-      notEmpty: 'Parameter data cannot be empty',
-      json: 'Json syntax is correct',
-    },
-    types: {
-      prompt: 'Prompt calling',
-      api: 'API calling',
-      code: 'Function calling',
-    },
-    parameterTip: 'Input the structure of functions call:',
-    dataTip: 'Tools Type:',
-    viewGuide: 'View guide',
-  },
   validateTools: {
     parameter: {
       name: {
@@ -381,4 +363,18 @@ export default flat({
     one: '1 Branch',
     more: '{counts} Branches',
   },
+  addObject: 'Add {object}',
+  formatPrompt: 'Format Prompt',
+  promptMessage: 'Prompt Message',
+  executeBlock: 'Execute Block',
+  callAPI: 'Call API',
+  formatResult: 'Format Result',
+  stayAsIs: 'Stay as is',
+  prepareExecutes: 'Prepare Executes',
+  tool: 'Tool',
+  callFunction: 'Call Function',
+  method: 'Method',
+  parameter: 'Parameter',
+  value: 'Value',
+  haveNotAddedTip: "You haven't added any {object} blocks yet",
 });

@@ -54,7 +54,7 @@ export default function PromptFileEditor({
         <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
           <TipsAndUpdatesRounded fontSize="small" color="primary" />
 
-          <Typography variant="subtitle1">{t('Format Prompt')}</Typography>
+          <Typography variant="subtitle1">{t('formatPrompt')}</Typography>
         </Stack>
 
         <Stack gap={2} p={2}>
@@ -116,12 +116,12 @@ export default function PromptFileEditor({
             <Button
               startIcon={<Add />}
               onClick={() => addPrompt({ type: 'message', data: { id: nextTemplateId(), role: 'user' } })}>
-              Add Prompt Message
+              {t('addObject', { object: t('promptMessage') })}
             </Button>
             <Button
               startIcon={<Add />}
               onClick={() => addPrompt({ type: 'executeBlock', data: { id: nextTemplateId() } })}>
-              Add Execute Block
+              {t('addObject', { object: t('executeBlock') })}
             </Button>
           </Stack>
         </Stack>
@@ -139,6 +139,8 @@ export default function PromptFileEditor({
 }
 
 function PromptItemMessage({ value, promptHidden }: { value: PromptMessage; promptHidden?: boolean }) {
+  const { t } = useLocaleContext();
+
   return (
     <Stack
       sx={{
@@ -151,7 +153,7 @@ function PromptItemMessage({ value, promptHidden }: { value: PromptMessage; prom
         },
       }}>
       <Stack direction="row" alignItems="center" gap={1} p={1}>
-        <Typography variant="subtitle2">Prompt</Typography>
+        <Typography variant="subtitle2">{t('prompt')}</Typography>
 
         <RoleSelectField size="small" value={value.role} onChange={(e) => (value.role = e.target.value as any)} />
       </Stack>

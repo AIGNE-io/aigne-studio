@@ -58,7 +58,7 @@ export default function ApiAssistantEditor({
 
       <Stack sx={{ bgcolor, p: 1, px: 2, borderRadius: 1, gap: 2 }}>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="subtitle1">Prepare Executes</Typography>
+          <Typography variant="subtitle1">{t('prepareExecutes')}</Typography>
 
           <Button
             sx={{ minWidth: 32, minHeight: 32, p: 0 }}
@@ -89,7 +89,7 @@ export default function ApiAssistantEditor({
         ) : (
           <Box textAlign="center">
             <Typography variant="caption" color="text.disabled">
-              You haven't added any prepare execute blocks yet.
+              {t('haveNotAddedTip', { object: t('executeBlock') })}
             </Typography>
           </Box>
         )}
@@ -119,11 +119,11 @@ export default function ApiAssistantEditor({
             <TableHead>
               <TableRow>
                 <TableCell align="center" width="200">
-                  Parameter
+                  {t('parameter')}
                 </TableCell>
-                <TableCell align="center">Value</TableCell>
+                <TableCell align="center">{t('value')}</TableCell>
                 <TableCell align="center" width="100">
-                  Actions
+                  {t('actions')}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -179,7 +179,7 @@ export default function ApiAssistantEditor({
                   };
                 });
               }}>
-              Add Parameter
+              {t('addObject', { object: t('parameter') })}
             </Button>
           </Box>
         </Stack>

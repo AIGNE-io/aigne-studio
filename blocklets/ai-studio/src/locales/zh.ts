@@ -279,24 +279,6 @@ export default flat({
   useLocal: '使用本地数据',
   useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
   templates: '{count} 个文件',
-  tool: {
-    title: '工具',
-    edit: '编辑该数据',
-    delete: '删除该数据',
-    validate: {
-      notSupported: '不支持当前类型',
-      notEmpty: '参数数据不能为空',
-      json: 'Json语法正确',
-    },
-    types: {
-      prompt: 'Prompt calling',
-      api: 'API calling',
-      code: 'Function calling',
-    },
-    parameterTip: '输入函数调用的结构:',
-    dataTip: '工具类型:',
-    viewGuide: '查看指南',
-  },
   validateTools: {
     parameter: {
       name: {
@@ -379,4 +361,18 @@ export default flat({
     one: '1 条分支',
     more: '{counts} 条分支',
   },
+  addObject: '添加{object}',
+  formatPrompt: '格式化提示',
+  promptMessage: '提示文本',
+  executeBlock: '执行块',
+  callAPI: '调用接口',
+  formatResult: '格式化输出',
+  stayAsIs: '保持原样',
+  prepareExecutes: '预执行',
+  tool: '工具',
+  callFunction: '调用函数',
+  method: '请求方式',
+  parameter: '参数',
+  value: '值',
+  haveNotAddedTip: '您还没有添加任何{object}',
 });

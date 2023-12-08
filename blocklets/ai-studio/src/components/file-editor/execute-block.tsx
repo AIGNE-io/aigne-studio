@@ -66,7 +66,7 @@ export default function ExecuteBlockForm({
   return (
     <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
       <Stack direction="row" gap={1} alignItems="center">
-        <Typography variant="subtitle2">Execute</Typography>
+        <Typography variant="subtitle2">{t('executeBlock')}</Typography>
 
         <TextField
           size="small"
@@ -84,7 +84,7 @@ export default function ExecuteBlockForm({
 
       {value.selectType === 'selectByPrompt' && (
         <Stack>
-          <Typography variant="caption">Prompt</Typography>
+          <Typography variant="caption">{t('prompt')}</Typography>
 
           <PromptEditorField value={value.selectByPrompt} onChange={(prompt) => (value.selectByPrompt = prompt)} />
         </Stack>
@@ -156,14 +156,14 @@ export default function ExecuteBlockForm({
               toolForm.current?.form.reset({ id: undefined, parameters: undefined });
               dialogState.open();
             }}>
-            Add Tool
+            {t('addObject', { object: t('tool') })}
           </Button>
         </Box>
       </Stack>
 
       <Stack direction="row" alignItems="center" gap={2}>
         <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
-          Format Output
+          {t('formatResult')}
         </Typography>
 
         <TextField
@@ -172,14 +172,14 @@ export default function ExecuteBlockForm({
           SelectProps={{ autoWidth: true }}
           value={value.formatResultType || 'none'}
           onChange={(e) => (value.formatResultType = e.target.value as any)}>
-          <MenuItem value="none">Output as it is</MenuItem>
-          <MenuItem value="asContext">Use as context</MenuItem>
+          <MenuItem value="none">{t('stayAsIs')}</MenuItem>
+          {/* <MenuItem value="asContext">Use as context</MenuItem> */}
         </TextField>
 
         <Box flex={1} />
 
         <Typography variant="body1" component="label">
-          Variable
+          {t('variable')}
         </Typography>
         <TextField hiddenLabel value={value.variable || ''} onChange={(e) => (value.variable = e.target.value)} />
       </Stack>

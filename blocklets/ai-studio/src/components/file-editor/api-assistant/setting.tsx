@@ -1,9 +1,12 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ExpandMoreRounded } from '@mui/icons-material';
 import { Box, Button, Collapse, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { ApiFileYjs } from 'api/src/store/projects';
 import { useMemo, useState } from 'react';
 
 export default function ApiAssistantSetting({ value, readOnly }: { value: ApiFileYjs; readOnly?: boolean }) {
+  const { t } = useLocaleContext();
+
   const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
 
   const [open, setOpen] = useState(false);
@@ -11,7 +14,7 @@ export default function ApiAssistantSetting({ value, readOnly }: { value: ApiFil
   return (
     <Box>
       <Stack direction="row" alignItems="center" gap={2}>
-        <Typography variant="subtitle1">Call API</Typography>
+        <Typography variant="subtitle1">{t('callAPI')}</Typography>
 
         <Box flex={1} overflow="hidden">
           {!open && (
@@ -40,7 +43,7 @@ export default function ApiAssistantSetting({ value, readOnly }: { value: ApiFil
         <Stack py={1} gap={1}>
           <Stack direction="row" gap={1}>
             <TextField
-              label="Method"
+              label={t('method')}
               select
               SelectProps={{ autoWidth: true }}
               InputProps={{ readOnly }}
@@ -55,7 +58,7 @@ export default function ApiAssistantSetting({ value, readOnly }: { value: ApiFil
 
             <TextField
               sx={{ flex: 1 }}
-              label="Url"
+              label={t('url')}
               InputProps={{ readOnly }}
               value={value.requestUrl || ''}
               onChange={(e) => (value.requestUrl = e.target.value)}
