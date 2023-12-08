@@ -16,7 +16,7 @@ export function TokenUsage({ assistant }: { assistant: AssistantYjs }) {
     const messages = prompts
       .filter(
         (i): i is typeof i & { data: { type: 'message'; data: { content: string } } } =>
-          i?.data?.type === 'message' && !!i?.data?.data?.content
+          i.data.type === 'message' && !!i.data.data.content
       )
       .map(({ data }) => ({
         role: data.data.role,

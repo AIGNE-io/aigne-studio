@@ -7,7 +7,6 @@ import type { Migration } from '../migrate';
 import DatasetItems from '../models/dataset-items';
 import Datasets from '../models/datasets';
 import EmbeddingHistories from '../models/embedding-history';
-import { nextId } from '../models/projects';
 import { projects } from '../projects';
 
 export const up: Migration = async ({ context: queryInterface }) => {
@@ -16,7 +15,6 @@ export const up: Migration = async ({ context: queryInterface }) => {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
-      defaultValue: nextId,
     },
     name: {
       type: DataTypes.STRING,
