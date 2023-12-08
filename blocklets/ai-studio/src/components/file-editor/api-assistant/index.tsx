@@ -50,10 +50,10 @@ export default function ApiAssistantEditor({
     <Stack gap={2} pb={10}>
       <Box sx={{ bgcolor, p: 1, borderRadius: 1 }}>
         <BasicInfoForm projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
+      </Box>
 
-        <Box px={1}>
-          <ParametersTable readOnly={disabled} value={value} />
-        </Box>
+      <Box sx={{ bgcolor, py: 1, px: 2, borderRadius: 1 }}>
+        <ParametersTable readOnly={disabled} value={value} />
       </Box>
 
       <Stack sx={{ bgcolor, p: 1, px: 2, borderRadius: 1, gap: 2 }}>
@@ -108,13 +108,23 @@ export default function ApiAssistantEditor({
           <Typography variant="subtitle1">{t('api')}</Typography>
         </Stack>
 
-        <Stack>
-          <Table size="small">
+        <Stack bgcolor="background.paper" borderRadius={2} pt={1}>
+          <Table
+            size="small"
+            sx={{
+              td: {
+                border: 'none',
+              },
+            }}>
             <TableHead>
               <TableRow>
-                <TableCell width="200">Parameter</TableCell>
-                <TableCell>Value</TableCell>
-                <TableCell width="100">Actions</TableCell>
+                <TableCell align="center" width="200">
+                  Parameter
+                </TableCell>
+                <TableCell align="center">Value</TableCell>
+                <TableCell align="center" width="100">
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -133,7 +143,7 @@ export default function ApiAssistantEditor({
                       <TableCell>
                         <PromptEditorField value={parameter.value} onChange={(value) => (parameter.value = value)} />
                       </TableCell>
-                      <TableCell>
+                      <TableCell align="center">
                         <Button
                           sx={{ minWidth: 24, minHeight: 24, p: 0 }}
                           onClick={() => {

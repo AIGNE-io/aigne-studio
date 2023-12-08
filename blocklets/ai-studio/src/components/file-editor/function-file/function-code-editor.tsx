@@ -8,8 +8,11 @@ export default function FunctionCodeEditor({ value, readOnly }: { value: Functio
   useEffect(() => {
     if (!value.code) {
       value.code = `\
-export default function() {
-
+module.exports.default = async function(args) {
+  console.log(args)
+  return {
+    // result
+  }
 }
 `;
     }

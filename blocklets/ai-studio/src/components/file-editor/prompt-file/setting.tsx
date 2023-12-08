@@ -64,7 +64,7 @@ export default function PromptAssistantSetting({
       </Stack>
 
       <Collapse in={open}>
-        <Stack py={1} gap={1} px={2}>
+        <Stack py={1} gap={1}>
           <Box position="relative">
             <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
               <ModelSelectField

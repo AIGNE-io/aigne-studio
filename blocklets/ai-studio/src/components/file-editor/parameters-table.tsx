@@ -178,7 +178,7 @@ export default function ParametersTable({
   return (
     <>
       <Box>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1} mt={2}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
           <Typography variant="subtitle1">{t('parameters')}</Typography>
 
           <Button sx={{ minWidth: 32, p: 0, minHeight: 32 }} onClick={createParameter}>

@@ -36,10 +36,10 @@ export default function FunctionFileEditor({
     <Stack gap={2} pb={10}>
       <Box sx={{ bgcolor, p: 1, borderRadius: 1 }}>
         <BasicInfoForm projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
+      </Box>
 
-        <Box px={1}>
-          <ParametersTable readOnly={disabled} value={value} />
-        </Box>
+      <Box sx={{ bgcolor, py: 1, px: 2, borderRadius: 1 }}>
+        <ParametersTable readOnly={disabled} value={value} />
       </Box>
 
       <Stack sx={{ bgcolor, p: 1, px: 2, borderRadius: 1, gap: 2 }}>

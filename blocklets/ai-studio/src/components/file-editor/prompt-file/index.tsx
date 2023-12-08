@@ -2,6 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
 import { DragSortItemContainer, DragSortListYjs } from 'src/components/drag-sort-list';
+import Add from 'src/pages/project/icons/add';
 import Eye from 'src/pages/project/icons/eye';
 import EyeNo from 'src/pages/project/icons/eye-no';
 import { usePromptsState } from 'src/pages/project/prompt-state';
@@ -39,17 +40,15 @@ export default function PromptFileEditor({
     <Stack gap={2} pb={10}>
       <Box sx={{ bgcolor, p: 1, borderRadius: 1 }}>
         <BasicInfoForm projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
+      </Box>
 
-        <Box px={1}>
-          <ParametersTable readOnly={disabled} value={value} />
-        </Box>
+      <Box sx={{ bgcolor, py: 1, px: 2, borderRadius: 1 }}>
+        <ParametersTable readOnly={disabled} value={value} />
       </Box>
 
       <Box
         sx={{
-          border: 2,
-          borderColor: 'primary.main',
-          borderRadius: 2,
+          borderRadius: 1,
           bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
         }}>
         <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
@@ -114,10 +113,14 @@ export default function PromptFileEditor({
           )}
 
           <Stack direction="row" gap={2}>
-            <Button onClick={() => addPrompt({ type: 'message', data: { id: nextTemplateId(), role: 'user' } })}>
+            <Button
+              startIcon={<Add />}
+              onClick={() => addPrompt({ type: 'message', data: { id: nextTemplateId(), role: 'user' } })}>
               Add Prompt Message
             </Button>
-            <Button onClick={() => addPrompt({ type: 'executeBlock', data: { id: nextTemplateId() } })}>
+            <Button
+              startIcon={<Add />}
+              onClick={() => addPrompt({ type: 'executeBlock', data: { id: nextTemplateId() } })}>
               Add Execute Block
             </Button>
           </Stack>

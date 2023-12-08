@@ -331,7 +331,7 @@ const FileTree = forwardRef<
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
           <Tree
             tree={tree}
-            rootId=""
+            rootId={PROMPTS_FOLDER_NAME}
             initialOpen={openIds}
             onChangeOpen={setOpenIds}
             canDrag={(node) => !!mutable && !isBuiltinFolder(node?.id as any)}
@@ -371,9 +371,6 @@ const FileTree = forwardRef<
               const filepath = parent.concat(filename).join('/');
 
               if (node.data.type === 'folder') {
-                const isBuiltin = isBuiltinFolder(filepath);
-                const folderMutable = mutable && !isBuiltin;
-
                 return (
                   <EditableTreeItem
                     key={node.id}
@@ -393,12 +390,12 @@ const FileTree = forwardRef<
                         item={node.data}
                         onCreateFolder={mutable ? onCreateFolder : undefined}
                         onCreateFile={mutable ? onCreateFile : undefined}
-                        onRenameFolder={folderMutable ? ({ path }) => setEditingFolderPath(path.join('/')) : undefined}
-                        onDeleteFile={folderMutable ? onDeleteFile : undefined}
+                        onRenameFolder={({ path }) => setEditingFolderPath(path.join('/'))}
+                        onDeleteFile={onDeleteFile}
                         onLaunch={onLaunch}
                       />
                     }>
-                    {isBuiltin && node.text === PROMPTS_FOLDER_NAME ? t('explorer') : node.text}
+                    {node.text}
                   </EditableTreeItem>
                 );
               }
