@@ -47,7 +47,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     refetch,
   } = useProjectState(projectId, gitRef);
 
-  const { disabled, run } = useTemplatesChangesState(projectId, gitRef);
+  const { run } = useTemplatesChangesState(projectId, gitRef);
 
   const simpleMode = !project || project?.gitType === 'simple';
 
@@ -120,7 +120,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
 
       <Button
         {...bindTrigger(dialogState)}
-        disabled={submitting || disabled}
+        disabled={submitting}
         sx={{ position: 'relative', minWidth: 32, minHeight: 32 }}>
         <SaveRounded sx={{ opacity: submitting ? 0 : 1 }} />
         {submitting && (

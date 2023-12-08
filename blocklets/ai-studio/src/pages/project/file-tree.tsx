@@ -3,9 +3,6 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { css } from '@emotion/css';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
   BoxProps,
   Button,
@@ -15,6 +12,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   Input,
   List,
   ListItemButton,
@@ -23,8 +21,6 @@ import {
   Stack,
   StackProps,
   Tooltip,
-  Typography,
-  accordionSummaryClasses,
   iconClasses,
   listItemButtonClasses,
   listItemIconClasses,
@@ -35,16 +31,13 @@ import {
 import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { nanoid } from 'nanoid';
 import {
   ComponentProps,
   ReactNode,
-  SyntheticEvent,
   forwardRef,
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -52,37 +45,39 @@ import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
+import { FileTypeYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
 import { importTemplatesToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
-import Compare from './compare';
-import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
+import Code from './icons/code';
 import CompareIcon from './icons/compare';
 import Duplicate from './icons/duplicate';
 import External from './icons/external';
 import File from './icons/file';
+import FolderAdd from './icons/folder-add';
 import FolderClose from './icons/folder-close';
+import LinkIcon from './icons/link';
 import MenuVertical from './icons/menu-vertical';
 import Pen from './icons/pen';
-import Picture from './icons/picture';
 import Trash from './icons/trash';
 import Undo from './icons/undo';
 import ImportFrom from './import';
-import { useTemplatesChangesState } from './state';
 import {
+  AssistantYjs,
   PROMPTS_FOLDER_NAME,
   createFile,
   createFolder,
   deleteFile,
-  isTemplate,
+  isApiFileYjs,
+  isBuiltinFolder,
+  isFunctionFileYjs,
+  isPromptFileYjs,
   moveFile,
   nextTemplateId,
   resetTemplatesId,
-  templateYjsFromTemplate,
-  useStore,
+  useProjectStore,
 } from './yjs-state';
 
 export type EntryWithMeta =
@@ -92,7 +87,7 @@ export type EntryWithMeta =
       filename: string;
       parent: string[];
       path: string[];
-      meta: TemplateYjs;
+      meta: Exclude<FileTypeYjs, { $base64: string }>;
     }
   | {
       type: 'folder';
@@ -105,8 +100,8 @@ export type EntryWithMeta =
 export type TreeNode = NodeModel<EntryWithMeta>;
 
 export interface ImperativeFileTree {
-  newFolder: (options?: { parent?: string[] }) => void;
-  newFile: (options?: { parent?: string[] }) => void;
+  newFolder: (options?: Partial<Omit<Parameters<typeof createFolder>[0], 'store'>>) => void;
+  newFile: (options?: Partial<Omit<Parameters<typeof createFile>[0], 'store'>>) => void;
   importFrom: () => void;
 }
 
@@ -117,7 +112,7 @@ const FileTree = forwardRef<
     gitRef: string;
     current?: string;
     mutable?: boolean;
-    onLaunch?: (template: TemplateYjs) => any;
+    onLaunch?: (assistant: AssistantYjs) => any;
   } & Omit<BoxProps, 'onClick'>
 >(({ projectId, gitRef, current, mutable, onLaunch, ...props }, ref) => {
   const theme = useTheme();
@@ -125,37 +120,53 @@ const FileTree = forwardRef<
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
 
-  const { store, synced } = useStore(projectId, gitRef);
-  const { changes, deleted, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
-  const [showPopper] = useState(true);
+  const { store, synced } = useProjectStore(projectId, gitRef);
+  // const { changes, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
+  // const [showPopper] = useState(true);
   const dialogState = usePopupState({ variant: 'dialog' });
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
-  const onCreateFile = useCallback(
-    ({ parent, meta }: { parent?: string[]; meta?: TemplateYjs } = {}) => {
-      const promptId = nanoid();
+  const openFolder = useCallback(
+    (...path: (string | string[])[]) => {
+      const paths = path.flatMap((i) =>
+        (Array.isArray(i) ? i : i.split('/')).map((_, index, arr) => arr.slice(0, index + 1).join('/'))
+      );
 
+      setOpenIds((ids) => [...new Set((ids ?? []).concat(paths))]);
+    },
+    [setOpenIds]
+  );
+
+  useEffect(() => {
+    if (current) openFolder(current);
+  }, [current, openFolder]);
+
+  const onCreateFile = useCallback(
+    (options: Partial<Omit<Parameters<typeof createFile>[0], 'store'>> = {}) => {
       const { filepath } = createFile({
+        ...options,
         store,
-        parent,
-        meta: {
-          ...meta,
-          prompts: meta?.prompts ?? {
-            [promptId]: {
-              index: 0,
-              data: {
-                id: promptId,
-                role: 'user',
-              },
-            },
-          },
-        },
       });
-      if (parent) setOpenIds((ids) => (ids ?? []).concat(parent.join('/')));
+      const { parent } = options;
+      if (parent) openFolder(parent);
       navigate(joinURL('.', filepath));
     },
-    [navigate, setOpenIds, store]
+    [navigate, openFolder, store]
+  );
+
+  const [editingFolderPath, setEditingFolderPath] = useState<string>();
+
+  const onCreateFolder = useCallback(
+    (options: Partial<Omit<Parameters<typeof createFolder>[0], 'store'>> = {}) => {
+      const path = createFolder({
+        ...options,
+        store,
+      });
+      setEditingFolderPath(path);
+      openFolder(path);
+    },
+    [openFolder, store]
   );
 
   const onImportFrom = useCallback(() => {
@@ -195,7 +206,8 @@ const FileTree = forwardRef<
               createFile({
                 store,
                 parent: template.parent,
-                meta: templateYjsFromTemplate(template),
+                // FIXME:
+                // meta: templateYjsFromTemplate(template),
               });
             }
           } else {
@@ -209,30 +221,28 @@ const FileTree = forwardRef<
     });
   }, [gitRef, projectId, showDialog, store, t]);
 
-  const [defaultEditingFolderPath, setDefaultEditingFolderPath] = useState<string>();
-
   useImperativeHandle(
     ref,
     () => ({
-      newFolder: (options) => setDefaultEditingFolderPath(createFolder({ store, ...options })),
+      newFolder: (options) => onCreateFolder(options),
       newFile: (options) => onCreateFile(options),
       importFrom: () => onImportFrom(),
     }),
-    [onCreateFile, onImportFrom, store]
+    [onCreateFolder, onCreateFile, onImportFrom]
   );
 
   const onMoveFile = useCallback(
     ({ from, to }: { from: string[]; to: string[] }) => {
       moveFile({ store, from, to });
 
-      setOpenIds((ids) => [...new Set((ids ?? []).concat(to.slice(0, -1).join('/')))]);
+      openFolder(to);
 
       const filename = current?.split('/').slice(-1)[0];
       const filepath = filename ? Object.values(store.tree).find((i) => i?.endsWith(filename)) : undefined;
 
       if (filepath?.endsWith('.yaml')) navigate(joinURL('.', filepath), { replace: true });
     },
-    [current, navigate, setOpenIds, store]
+    [current, navigate, openFolder, store]
   );
 
   const onDeleteFile = useCallback(
@@ -247,8 +257,8 @@ const FileTree = forwardRef<
   );
 
   const folders = uniqBy(
-    [...new Set(Object.values(store.tree).map((filepath) => filepath?.split('/').slice(0, -1).join('/')))].flatMap(
-      (filepath) => {
+    [...new Set(Object.values(store.tree).map((filepath) => filepath?.split('/').slice(0, -1).join('/')))]
+      .flatMap((filepath) => {
         if (!filepath) return [];
         const parent = filepath.split('/').filter(Boolean);
         return parent.map((name, index) => {
@@ -258,21 +268,29 @@ const FileTree = forwardRef<
             parent: parent.slice(0, index),
           };
         });
-      }
-    ),
+      })
+      .concat({
+        type: 'folder',
+        name: PROMPTS_FOLDER_NAME,
+        parent: [],
+      }),
     (a) => a.parent.concat(a.name).join('/')
   );
 
   const files = Object.entries(store.tree)
     .map(([key, filepath]) => {
-      const template = store.files[key];
-      if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
+      const file = store.files[key];
+      if (
+        filepath?.endsWith('.yaml') &&
+        file &&
+        (isPromptFileYjs(file) || isApiFileYjs(file) || isFunctionFileYjs(file))
+      ) {
         const paths = filepath.split('/').filter(Boolean);
         return {
           type: 'file' as const,
-          name: template.name || '',
+          name: file.name || '',
           parent: paths.slice(0, -1),
-          meta: template,
+          meta: file,
         };
       }
 
@@ -280,31 +298,25 @@ const FileTree = forwardRef<
     })
     .filter((i): i is NonNullable<typeof i> => !!i);
 
-  const tree = useMemo<TreeNode[]>(() => {
-    return (
-      [...folders, ...files]
-        // filter all files not in the `/prompts/` folder
-        .filter(
-          (i) =>
-            (i.type === 'folder' && i.name === PROMPTS_FOLDER_NAME && !i.parent.length) ||
-            i.parent[0] === PROMPTS_FOLDER_NAME
-        )
-        .map((item) => {
-          const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
-          const path = item.parent.concat(filename);
+  const tree = [...folders, ...files]
+    // filter all files not in the `/prompts/` folder
+    .filter(
+      (i) =>
+        (i.type === 'folder' && i.name === PROMPTS_FOLDER_NAME && !i.parent.length) ||
+        i.parent[0] === PROMPTS_FOLDER_NAME
+    )
+    .map((item) => {
+      const filename = item.type === 'file' ? `${item.meta.id}.yaml` : item.name;
+      const path = item.parent.concat(filename);
 
-          return {
-            id: joinURL('', ...path),
-            text: item.name,
-            parent: item.parent.join('/'),
-            droppable: item.type === 'folder',
-            data: { ...item, path, filename },
-          };
-        })
-    );
-  }, [files, folders]);
-
-  const treeFiles = tree.filter((i) => String(i?.id || '').startsWith([PROMPTS_FOLDER_NAME].join('/').concat('/')));
+      return {
+        id: joinURL('', ...path),
+        text: item.name,
+        parent: item.parent.join('/'),
+        droppable: item.type === 'folder',
+        data: { ...item, path, filename },
+      };
+    });
 
   if (!synced)
     return (
@@ -316,22 +328,18 @@ const FileTree = forwardRef<
   return (
     <>
       <Box {...props}>
-        {!treeFiles.length && (
-          <Box color="text.disabled" textAlign="center" fontSize={14} lineHeight="28px" m={0.5}>
-            <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
-              <Add sx={{ fontSize: 54, color: 'grey.300' }} />
-              <Typography>{t('noFiles')}</Typography>
-            </Stack>
-          </Box>
-        )}
-
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
           <Tree
             tree={tree}
             rootId={PROMPTS_FOLDER_NAME}
             initialOpen={openIds}
             onChangeOpen={setOpenIds}
-            canDrag={() => !!mutable}
+            canDrag={(node) => !!mutable && !isBuiltinFolder(node?.id as any)}
+            canDrop={(_, { dragSource, dropTarget }) => {
+              const sourceRoot = dragSource?.data?.path[0];
+              const targetRoot = dropTarget?.data?.path[0];
+              return dropTarget?.data?.type === 'folder' && !!sourceRoot && sourceRoot === targetRoot;
+            }}
             onDrop={async (_, { dragSource, dropTarget }) => {
               const source = dragSource?.data;
               const target = dropTarget?.data;
@@ -343,7 +351,7 @@ const FileTree = forwardRef<
             }}
             classes={{
               root: css`
-                min-height: ${!treeFiles.length ? 'auto' : '100%'};
+                min-height: '100%';
                 padding-bottom: ${theme.spacing(10)};
               `,
               dropTarget: css`
@@ -366,21 +374,23 @@ const FileTree = forwardRef<
                 return (
                   <EditableTreeItem
                     key={node.id}
-                    defaultEditing={filepath === defaultEditingFolderPath}
+                    editing={filepath === editingFolderPath}
                     icon={<ChevronDown sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }} />}
-                    mutable={mutable}
                     depth={depth}
                     onClick={onToggle}
                     onSubmit={async (name) => {
+                      setEditingFolderPath(undefined);
                       const { data } = node;
                       if (!data || name === data.name) return;
                       onMoveFile({ from: data.parent.concat(data.name), to: data.parent.concat(name) });
                     }}
+                    onCancel={() => setEditingFolderPath(undefined)}
                     actions={
                       <TreeItemMenus
-                        mutable={mutable}
                         item={node.data}
-                        onCreateFile={onCreateFile}
+                        onCreateFolder={mutable ? onCreateFolder : undefined}
+                        onCreateFile={mutable ? onCreateFile : undefined}
+                        onRenameFolder={({ path }) => setEditingFolderPath(path.join('/'))}
                         onDeleteFile={onDeleteFile}
                         onLaunch={onLaunch}
                       />
@@ -394,50 +404,48 @@ const FileTree = forwardRef<
               const name = `${meta.id}.yaml`;
               const selected = current?.endsWith(name);
 
-              const change = changes(meta);
-
-              const icon = meta.type === 'image' ? <Picture /> : <File />;
+              // const change = changes(meta);
 
               const actions = (
                 <TreeItemMenus
-                  mutable={mutable}
                   item={node.data}
-                  onCreateFile={onCreateFile}
-                  onDeleteFile={onDeleteFile}
+                  onCreateFile={mutable ? onCreateFile : undefined}
+                  onDeleteFile={mutable ? onDeleteFile : undefined}
                   onLaunch={onLaunch}
-                  isChanged={Boolean(change?.key === 'M' && getOriginTemplate(meta))}
-                  onCompare={() => {
-                    dialogState.toggle();
-                  }}
-                  onUndo={() => {
-                    showDialog({
-                      fullWidth: true,
-                      maxWidth: 'xs',
-                      title: `${t('restore')}`,
-                      content: (
-                        <Box maxHeight={500}>{t('restoreConform', { path: meta.name || t('alert.unnamed') })}</Box>
-                      ),
-                      onOk: () => {
-                        const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & {
-                          parent: string[];
-                        };
-                        deleteFile({ store, path: [...parent, meta.id] });
-                        onCreateFile({ parent, meta: data });
-                      },
-                    });
-                  }}
+                  // isChanged={Boolean(change?.key === 'M' && getOriginTemplate(meta))}
+                  // onCompare={() => {
+                  //   dialogState.toggle();
+                  // }}
+                  // onUndo={() => {
+                  //   showDialog({
+                  //     fullWidth: true,
+                  //     maxWidth: 'xs',
+                  //     title: `${t('restore')}`,
+                  //     content: (
+                  //       <Box maxHeight={500}>{t('restoreConform', { path: meta.name || t('alert.unnamed') })}</Box>
+                  //     ),
+                  //     onOk: () => {
+                  //       const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & {
+                  //         parent: string[];
+                  //       };
+                  //       deleteFile({ store, path: [...parent, meta.id] });
+                  //       onCreateFile({ parent, meta: data });
+                  //     },
+                  //   });
+                  // }}
                 />
               );
 
               const children = (
                 <TreeItem
                   key={node.id}
-                  icon={icon}
+                  icon={<FileIcon type={meta.type} />}
                   depth={depth}
                   selected={selected}
                   onClick={() => navigate(joinURL('.', filepath))}
                   actions={actions}
-                  sx={{ color: change?.color }}>
+                  // sx={{ color: change?.color }}
+                >
                   {meta.name || t('alert.unnamed')}
 
                   <AwarenessIndicator
@@ -449,20 +457,21 @@ const FileTree = forwardRef<
                 </TreeItem>
               );
 
-              if (change && showPopper) {
-                return (
-                  <Tooltip title={change.tips} disableInteractive placement="top">
-                    <Box>{children}</Box>
-                  </Tooltip>
-                );
-              }
+              // if (change && showPopper) {
+              //   return (
+              //     <Tooltip title={change.tips} disableInteractive placement="top">
+              //       <Box>{children}</Box>
+              //     </Tooltip>
+              //   );
+              // }
               return children;
             }}
           />
         </DndProvider>
       </Box>
 
-      {!!deleted.length && (
+      {/* FIXME: */}
+      {/* {!!deleted.length && (
         <DeletedTemplates
           list={deleted}
           changes={changes}
@@ -470,14 +479,14 @@ const FileTree = forwardRef<
           gitRef={gitRef}
           onCreateFile={onCreateFile}
         />
-      )}
+      )} */}
 
       {dialog}
 
       <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
         <DialogTitle>{t('alert.compare')}</DialogTitle>
         <DialogContent>
-          <Compare projectId={projectId} gitRef={gitRef} filepath={current || ''} />
+          {/* <Compare projectId={projectId} gitRef={gitRef} filepath={current || ''} /> */}
         </DialogContent>
         <DialogActions>
           <Button variant="contained" onClick={dialogState.close}>
@@ -512,7 +521,7 @@ function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 
           width: (theme) => theme.spacing(3),
           [`.${svgIconClasses.root}`]: { fontSize: '1.25rem', color: 'text.secondary' },
         }}>
-        {item.data?.type === 'folder' ? <FolderClose /> : item.data?.meta.type === 'image' ? <Picture /> : <File />}
+        {item.data?.type === 'folder' ? <FolderClose /> : <File />}
       </Box>
 
       <Box
@@ -530,8 +539,9 @@ function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 
 
 function TreeItemMenus({
   isChanged,
-  mutable,
   item,
+  onRenameFolder,
+  onCreateFolder,
   onCreateFile,
   onDeleteFile,
   onLaunch,
@@ -539,39 +549,70 @@ function TreeItemMenus({
   onUndo,
 }: {
   isChanged?: boolean;
-  mutable?: boolean;
   item: EntryWithMeta;
-  onCreateFile?: (options?: { parent?: string[]; meta?: TemplateYjs }) => any;
+  onRenameFolder?: (options: { path: string[] }) => any;
+  onCreateFolder?: (options?: { parent?: string[] }) => any;
+  onCreateFile?: (options?: Partial<Omit<Parameters<typeof createFile>[0], 'store'>>) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
-  onLaunch?: (template: TemplateYjs) => any;
+  onLaunch?: (assistant: AssistantYjs) => any;
   onCompare?: () => void;
   onUndo?: () => void;
 }) {
   const { t } = useLocaleContext();
 
-  return (
-    <>
-      {onLaunch && item.type === 'file' && (
-        <ListItemButton onClick={() => onLaunch(item.meta)}>
+  const assistant = item.type === 'file' && isPromptFileYjs(item.meta) ? item.meta : undefined;
+
+  const menus = [
+    [
+      onLaunch && assistant && (
+        <ListItemButton key="launch" onClick={() => onLaunch(assistant)}>
           <ListItemIcon>
             <External />
           </ListItemIcon>
           <ListItemText primary={t('alert.openInAssistant')} />
         </ListItemButton>
-      )}
-
-      {item.type === 'folder' && onCreateFile && (
-        <ListItemButton disabled={!mutable} onClick={() => onCreateFile({ parent: item.path })}>
+      ),
+    ],
+    [
+      item.type === 'folder' && onCreateFolder && (
+        <ListItemButton key="createFolder" onClick={() => onCreateFolder({ parent: item.path })}>
           <ListItemIcon>
-            <Add />
+            <FolderAdd />
           </ListItemIcon>
-          <ListItemText primary={t('newObject', { object: t('file') })} />
+          <ListItemText primary={t('newObject', { object: t('folder') })} />
         </ListItemButton>
-      )}
+      ),
 
-      {item.type === 'file' && onCreateFile && (
+      ...(item.type === 'folder' && onCreateFile
+        ? [
+            <ListItemButton key="createPrompt" onClick={() => onCreateFile({ parent: item.path })}>
+              <ListItemIcon>
+                <File />
+              </ListItemIcon>
+              <ListItemText primary={t('newObject', { object: t('prompt') })} />
+            </ListItemButton>,
+
+            <ListItemButton key="createApi" onClick={() => onCreateFile({ parent: item.path, meta: { type: 'api' } })}>
+              <ListItemIcon>
+                <LinkIcon />
+              </ListItemIcon>
+              <ListItemText primary={t('newObject', { object: t('api') })} />
+            </ListItemButton>,
+
+            <ListItemButton
+              key="createFunction"
+              onClick={() => onCreateFile({ parent: item.path, meta: { type: 'function' } })}>
+              <ListItemIcon>
+                <Code />
+              </ListItemIcon>
+              <ListItemText primary={t('newObject', { object: t('function') })} />
+            </ListItemButton>,
+          ]
+        : []),
+
+      item.type === 'file' && onCreateFile && (
         <ListItemButton
-          disabled={!mutable}
+          key="duplicateFile"
           onClick={() =>
             onCreateFile({
               parent: item.parent,
@@ -587,60 +628,72 @@ function TreeItemMenus({
           </ListItemIcon>
           <ListItemText primary={t('alert.duplicate')} />
         </ListItemButton>
-      )}
-
-      {onDeleteFile && (
-        <ListItemButton disabled={!mutable} onClick={() => onDeleteFile(item)}>
+      ),
+    ],
+    [
+      isChanged && (
+        <ListItemButton key="compareChanges" onClick={onCompare}>
           <ListItemIcon>
-            <Trash />
+            <CompareIcon />
           </ListItemIcon>
-          <ListItemText primary={t('alert.delete')} />
+          <ListItemText primary={t('alert.compare')} />
         </ListItemButton>
-      )}
+      ),
 
-      {isChanged && (
-        <>
-          <ListItemButton onClick={onCompare}>
-            <ListItemIcon>
-              <CompareIcon />
-            </ListItemIcon>
-            <ListItemText primary={t('alert.compare')} />
-          </ListItemButton>
+      isChanged && (
+        <ListItemButton key="revertChanges" onClick={onUndo}>
+          <ListItemIcon>
+            <Undo />
+          </ListItemIcon>
+          <ListItemText primary={t('restore')} />
+        </ListItemButton>
+      ),
+    ],
+    [
+      onRenameFolder && (
+        <ListItemButton onClick={() => onRenameFolder(item)}>
+          <ListItemIcon>
+            <Pen />
+          </ListItemIcon>
 
-          <ListItemButton onClick={onUndo}>
-            <ListItemIcon>
-              <Undo />
-            </ListItemIcon>
-            <ListItemText primary={t('restore')} />
-          </ListItemButton>
-        </>
-      )}
-    </>
-  );
+          <ListItemText primary={t('form.rename')} />
+        </ListItemButton>
+      ),
+      onDeleteFile && (
+        <ListItemButton key="deleteFile" onClick={() => onDeleteFile(item)}>
+          <ListItemIcon>
+            <Trash color="warning" />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.delete')} primaryTypographyProps={{ color: 'warning.main' }} />
+        </ListItemButton>
+      ),
+    ],
+  ]
+    .map((i) => i.filter((j): j is JSX.Element => Boolean(j)))
+    .filter((i) => !!i.length);
+
+  return menus.map((group, index) => {
+    return [index !== 0 && <Divider key={`divider-${index}`} sx={{ my: 0.5 }} />, ...group];
+  });
 }
 
 function EditableTreeItem({
-  mutable,
-  defaultEditing,
+  editing,
   children,
   onCancel,
   onSubmit,
   ...props
 }: Omit<ComponentProps<typeof TreeItem>, 'children' | 'onSubmit'> & {
-  mutable?: boolean;
-  defaultEditing?: boolean;
+  editing?: boolean;
   children?: string;
   onCancel?: () => any;
+  onCancelEdit?: () => any;
   onSubmit?: (text: string) => any;
 }) {
-  const { t } = useLocaleContext();
-
-  const [editing, setEditing] = useState(defaultEditing);
   const [value, setValue] = useState(children);
 
   const submit = async () => {
     if (!value) {
-      setEditing(false);
       setValue(children);
       onCancel?.();
       return;
@@ -648,9 +701,8 @@ function EditableTreeItem({
 
     try {
       await onSubmit?.(value);
-      setEditing(false);
     } catch (error) {
-      setEditing(false);
+      onCancel?.();
       setValue(children);
       Toast.error(getErrorMessage(error));
       throw error;
@@ -658,23 +710,7 @@ function EditableTreeItem({
   };
 
   return (
-    <TreeItem
-      {...props}
-      actions={
-        editing ? null : (
-          <>
-            <ListItemButton disabled={!mutable} onClick={() => setEditing(true)}>
-              <ListItemIcon>
-                <Pen />
-              </ListItemIcon>
-
-              <ListItemText primary={t('form.rename')} />
-            </ListItemButton>
-
-            {props.actions}
-          </>
-        )
-      }>
+    <TreeItem {...props} actions={editing ? null : props.actions}>
       {editing ? (
         <Input
           disableUnderline
@@ -701,7 +737,6 @@ function EditableTreeItem({
             }
             if (e.key === 'Escape') {
               setValue(children);
-              setEditing(false);
               onCancel?.();
               return;
             }
@@ -866,121 +901,127 @@ function TreeItem({
   );
 }
 
-function DeletedTemplates({
-  list,
-  changes,
-  projectId,
-  gitRef,
-  onCreateFile,
-}: {
-  projectId: string;
-  gitRef: string;
-  list: (TemplateYjs & { parent: string[] })[];
-  changes: (item: TemplateYjs) => {
-    key: string;
-    color: string;
-    tips: string;
-  } | null;
-  onCreateFile: ({ parent, meta }: { parent?: string[]; meta?: TemplateYjs }) => void;
-}) {
-  const { t } = useLocaleContext();
+// function DeletedTemplates({
+//   list,
+//   changes,
+//   projectId,
+//   gitRef,
+//   onCreateFile,
+// }: {
+//   projectId: string;
+//   gitRef: string;
+//   list: (AssistantYjs & { parent: string[] })[];
+//   changes: (item: AssistantYjs) => {
+//     key: string;
+//     color: string;
+//     tips: string;
+//   } | null;
+//   onCreateFile: ({ parent, meta }: { parent?: string[]; meta?: AssistantYjs }) => void;
+// }) {
+//   const { t } = useLocaleContext();
 
-  const [expanded, setExpanded] = useState<string | false>('delete-panel');
+//   const [expanded, setExpanded] = useState<string | false>('delete-panel');
 
-  const handleChange = (panel: string) => (_e: SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : false);
-  };
+//   const handleChange = (panel: string) => (_e: SyntheticEvent, isExpanded: boolean) => {
+//     setExpanded(isExpanded ? panel : false);
+//   };
 
-  return (
-    <Accordion
-      disableGutters
-      expanded={expanded === 'delete-panel'}
-      onChange={handleChange('delete-panel')}
-      elevation={0}
-      sx={{
-        ':before': { display: 'none' },
-        position: 'sticky',
-        bottom: 0,
-        p: 0,
-      }}>
-      <AccordionSummary
-        sx={{
-          px: 2,
-          bgcolor: 'grey.50',
-          minHeight: (theme) => theme.spacing(3.5),
-          [`.${accordionSummaryClasses.content}`]: {
-            m: 0,
-            py: 0,
-            overflow: 'hidden',
-            alignItems: 'center',
-          },
-        }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            minWidth: (theme) => theme.spacing(3),
-          }}>
-          <ChevronDown
-            sx={{
-              fontSize: 20,
-              transform: `rotateZ(${expanded ? '0' : '-90deg'})`,
-              transition: (theme) => theme.transitions.create('all'),
-            }}
-          />
-        </Box>
+//   return (
+//     <Accordion
+//       disableGutters
+//       expanded={expanded === 'delete-panel'}
+//       onChange={handleChange('delete-panel')}
+//       elevation={0}
+//       sx={{
+//         ':before': { display: 'none' },
+//         position: 'sticky',
+//         bottom: 0,
+//         p: 0,
+//       }}>
+//       <AccordionSummary
+//         sx={{
+//           px: 2,
+//           bgcolor: 'grey.50',
+//           minHeight: (theme) => theme.spacing(3.5),
+//           [`.${accordionSummaryClasses.content}`]: {
+//             m: 0,
+//             py: 0,
+//             overflow: 'hidden',
+//             alignItems: 'center',
+//           },
+//         }}>
+//         <Box
+//           sx={{
+//             display: 'flex',
+//             alignItems: 'center',
+//             minWidth: (theme) => theme.spacing(3),
+//           }}>
+//           <ChevronDown
+//             sx={{
+//               fontSize: 20,
+//               transform: `rotateZ(${expanded ? '0' : '-90deg'})`,
+//               transition: (theme) => theme.transitions.create('all'),
+//             }}
+//           />
+//         </Box>
 
-        <Typography variant="caption" flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
-          {t('diff.deleted')}
-        </Typography>
-      </AccordionSummary>
+//         <Typography variant="caption" flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
+//           {t('diff.deleted')}
+//         </Typography>
+//       </AccordionSummary>
 
-      <AccordionDetails sx={{ py: 1, px: 0 }}>
-        <Box maxHeight="120px" overflow="auto">
-          {list.map((item) => {
-            const icon = item.type === 'image' ? <Picture /> : <File />;
+//       <AccordionDetails sx={{ py: 1, px: 0 }}>
+//         <Box maxHeight="120px" overflow="auto">
+//           {list.map((item) => {
+//             const icon = <FileIcon type={item.type} />;
 
-            const change = changes(item);
-            if (!change) return null;
+//             const change = changes(item);
+//             if (!change) return null;
 
-            return (
-              <TreeItem
-                key={item.id}
-                icon={icon}
-                depth={0}
-                otherActions={
-                  <Tooltip title={t('restore')} disableInteractive placement="top">
-                    <Button
-                      sx={{ padding: 0.5, minWidth: 0 }}
-                      onClick={() => {
-                        const { parent, ...meta } = item;
-                        onCreateFile({ parent, meta });
-                      }}>
-                      <Undo sx={{ fontSize: 20 }} />
-                    </Button>
-                  </Tooltip>
-                }>
-                <Box sx={{ textDecoration: 'line-through', display: 'flex', alignItems: 'center', fontSize: '14px' }}>
-                  {!!item.parent?.length && (
-                    <Box
-                      sx={{
-                        color: (theme) => theme.palette.action.disabled,
-                      }}>{`${item.parent.join('/ ')}/`}</Box>
-                  )}
-                  {item.name || t('unnamed')}
-                </Box>
+//             return (
+//               <TreeItem
+//                 key={item.id}
+//                 icon={icon}
+//                 depth={0}
+//                 otherActions={
+//                   <Tooltip title={t('restore')} disableInteractive placement="top">
+//                     <Button
+//                       sx={{ padding: 0.5, minWidth: 0 }}
+//                       onClick={() => {
+//                         const { parent, ...meta } = item;
+//                         onCreateFile({ parent, meta });
+//                       }}>
+//                       <Undo sx={{ fontSize: 20 }} />
+//                     </Button>
+//                   </Tooltip>
+//                 }>
+//                 <Box sx={{ textDecoration: 'line-through', display: 'flex', alignItems: 'center', fontSize: '14px' }}>
+//                   {!!item.parent?.length && (
+//                     <Box
+//                       sx={{
+//                         color: (theme) => theme.palette.action.disabled,
+//                       }}>{`${item.parent.join('/ ')}/`}</Box>
+//                   )}
+//                   {item.name || t('unnamed')}
+//                 </Box>
 
-                <AwarenessIndicator
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  path={[item.id]}
-                  sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
-                />
-              </TreeItem>
-            );
-          })}
-        </Box>
-      </AccordionDetails>
-    </Accordion>
-  );
+//                 <AwarenessIndicator
+//                   projectId={projectId}
+//                   gitRef={gitRef}
+//                   path={[item.id]}
+//                   sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
+//                 />
+//               </TreeItem>
+//             );
+//           })}
+//         </Box>
+//       </AccordionDetails>
+//     </Accordion>
+//   );
+// }
+
+function FileIcon({ type }: { type?: AssistantYjs['type'] }) {
+  if (type === 'api') return <LinkIcon />;
+  if (type === 'function') return <Code />;
+  return <File />;
 }

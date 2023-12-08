@@ -1,11 +1,9 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { FormControl, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
 
-import { ParameterYjs, StringParameter } from '../../../api/src/store/templates';
+import { ParameterYjs } from '../../../api/src/store/templates';
 import NumberField from '../number-field';
 import ParameterField from '../parameter-field';
-import ParameterConfigType from './parameter-config/type';
 import SelectOptionsConfig from './select-options-config';
 
 export default function ParameterConfig({ readOnly, value }: { readOnly?: boolean; value: ParameterYjs }) {
@@ -13,41 +11,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <ParameterConfigType
-          label={t('form.parameter.type')}
-          fullWidth
-          size="small"
-          value={(!value.type || value.type === 'string') && value.multiline ? 'multiline' : value.type ?? 'string'}
-          InputProps={{ readOnly }}
-          onChange={(e) => {
-            const newValue = e.target.value;
-            const doc = (getYjsValue(value) as Map<any>)?.doc!;
-            if (!doc) return;
-
-            doc.transact(() => {
-              if (newValue === 'multiline') {
-                value.type = 'string';
-                (value as StringParameter).multiline = true;
-              } else {
-                value.type = newValue as any;
-                delete (value as StringParameter).multiline;
-              }
-            });
-          }}
-        />
-      </Grid>
-
-      <Grid item xs={12}>
-        <TextField
-          fullWidth
-          label={t('form.parameter.label')}
-          size="small"
-          value={value.label || ''}
-          onChange={(e) => (value.label = e.target.value)}
-          InputProps={{ readOnly }}
-        />
-      </Grid>
       <Grid item xs={12}>
         <TextField
           fullWidth

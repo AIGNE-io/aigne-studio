@@ -14,7 +14,7 @@ import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
 import { defaultModel } from '../libs/models';
 import ProjectModel from './models/projects';
-import type { ParameterYjs, Template } from './templates';
+import type { Parameter, ParameterYjs, Template } from './templates';
 
 const idGenerator = new Worker();
 
@@ -47,7 +47,7 @@ export default class Projects extends Database<Project> {
 export const projects = new Projects();
 
 export const projectTemplates: (Project & {
-  files: (Omit<Template, 'id'> & { parent: string[] })[];
+  files: (Assistant & { parent: string[] })[];
 })[] = [
   {
     _id: '363299428078977024',
@@ -60,24 +60,30 @@ export const projectTemplates: (Project & {
     files: [
       {
         parent: ['prompts'],
+        id: '',
+        type: 'prompt',
         name: 'Hello World',
         prompts: [
           {
-            id: '1',
-            content: 'Say hello in {{language}}!',
-            role: 'user',
+            type: 'message',
+            data: {
+              id: '20231208131000-LgzRpn',
+              content: 'Say hello in {{language}}!',
+              role: 'user',
+            },
           },
         ],
-        parameters: {
-          language: {
+        parameters: [
+          {
+            id: '1701840448533',
+            key: 'language',
             defaultValue: 'English',
           },
-        },
+        ],
         createdBy: wallet.address,
         updatedBy: wallet.address,
         createdAt: '2023-09-30T12:23:04.603Z',
         updatedAt: '2023-09-30T12:23:04.603Z',
-        public: false,
       },
     ],
   },
@@ -129,13 +135,203 @@ export interface TemplateYjs
   };
 }
 
-type FileType = TemplateYjs | { $base64: string };
-
-export function isTemplate(file: FileType): file is TemplateYjs {
-  return typeof (file as any).id === 'string';
+export interface ExecuteBlock {
+  id: string;
+  selectType?: 'all' | 'selectByPrompt';
+  selectByPrompt?: string;
+  tools?: { id: string; parameters?: { [key: string]: string } }[];
+  formatResultType?: 'none' | 'asContext';
+  variable?: string;
 }
 
-const repositories: { [key: string]: Promise<Repository<FileType>> } = {};
+export interface ExecuteBlockYjs extends Omit<ExecuteBlock, 'tools'> {
+  tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
+}
+
+export type FileTypeYjs = PromptFileYjs | ApiFileYjs | FunctionFileYjs | { $base64: string };
+
+export type FileType = PromptFile | ApiFile | FunctionFile | { $base64: string };
+
+export type Assistant = PromptFile | ApiFile | FunctionFile;
+
+export type AssistantYjs = PromptFileYjs | ApiFileYjs | FunctionFileYjs;
+
+export type PromptMessage = {
+  id: string;
+  role: 'system' | 'user' | 'assistant';
+  content?: string;
+  name?: string;
+};
+
+export type Prompt =
+  | {
+      type: 'message';
+      data: PromptMessage;
+      visibility?: 'hidden';
+    }
+  | {
+      type: 'executeBlock';
+      data: ExecuteBlock;
+      visibility?: 'hidden';
+    };
+
+export type PromptYjs =
+  | {
+      type: 'message';
+      data: PromptMessage;
+      visibility?: 'hidden';
+    }
+  | {
+      type: 'executeBlock';
+      data: ExecuteBlockYjs;
+      visibility?: 'hidden';
+    };
+
+export interface PromptFile {
+  id: string;
+  type: 'prompt';
+  name?: string;
+  parameters?: Parameter[];
+  description?: string;
+  prompts?: Prompt[];
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  tests?: {
+    id: string;
+    parameters: { [key: string]: any };
+    output?: string;
+    error?: { message: string };
+    createdBy: string;
+  }[];
+  formatResultType?: 'none';
+  tags?: string[];
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  maxTokens?: number;
+  model?: string;
+}
+
+type ArrayToYjs<T extends Array<{ id: string }>> = { [key: string]: { index: number; data: T[number] } };
+
+export interface PromptFileYjs extends Omit<PromptFile, 'parameters' | 'prompts' | 'tests'> {
+  parameters?: { [key: string]: { index: number; data: ParameterYjs } };
+  prompts?: { [key: string]: { index: number; data: PromptYjs } };
+  tests?: ArrayToYjs<NonNullable<PromptFile['tests']>>;
+}
+
+export interface ApiFile {
+  id: string;
+  type: 'api';
+  name?: string;
+  description?: string;
+  parameters?: Parameter[];
+  prepareExecutes?: ExecuteBlock[];
+  requestParameters?: { id: string; key?: string; value?: string }[];
+  requestMethod?: string;
+  requestUrl?: string;
+  requestHeaders: { id: string; key?: string; value?: string }[];
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  tests?: {
+    id: string;
+    parameters: { [key: string]: any };
+    output?: string;
+    error?: { message: string };
+    createdBy: string;
+  }[];
+  formatResultType?: 'none';
+  tags?: string[];
+}
+
+export interface ApiFileYjs extends Omit<ApiFile, 'parameters' | 'prepareExecutes' | 'tests' | 'requestParameters'> {
+  parameters?: { [key: string]: { index: number; data: ParameterYjs } };
+  prepareExecutes?: { [key: string]: { index: number; data: ExecuteBlockYjs } };
+  tests?: ArrayToYjs<NonNullable<ApiFile['tests']>>;
+  requestParameters?: ArrayToYjs<NonNullable<ApiFile['requestParameters']>>;
+}
+
+export interface FunctionFile {
+  id: string;
+  type: 'function';
+  name?: string;
+  description?: string;
+  parameters?: Parameter[];
+  prepareExecutes?: ExecuteBlock[];
+  code?: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  tests?: {
+    id: string;
+    parameters: { [key: string]: any };
+    output?: string;
+    error?: { message: string };
+    createdBy: string;
+  }[];
+  formatResultType?: 'none';
+  tags?: string[];
+}
+
+export interface FunctionFileYjs extends Omit<FunctionFile, 'parameters' | 'prepareExecutes' | 'tests'> {
+  parameters?: { [key: string]: { index: number; data: ParameterYjs } };
+  prepareExecutes?: { [key: string]: { index: number; data: ExecuteBlockYjs } };
+  tests?: ArrayToYjs<NonNullable<FunctionFile['tests']>>;
+}
+
+export function isAssistant(assistant: FileType): assistant is Assistant;
+export function isAssistant(assistant: FileTypeYjs): assistant is AssistantYjs;
+export function isAssistant(assistant: FileType | FileTypeYjs): assistant is FileType | AssistantYjs {
+  return typeof (assistant as any).id === 'string' && ['prompt', 'api', 'function'].includes((assistant as any).type);
+}
+
+export function isPromptFile(file: FileType): file is PromptFile;
+export function isPromptFile(file: FileTypeYjs): file is PromptFileYjs;
+export function isPromptFile(file: FileType | FileTypeYjs): file is PromptFile | PromptFileYjs {
+  return (file as any).type === 'prompt';
+}
+
+export function isApiFile(file: FileType): file is ApiFile;
+export function isApiFile(file: FileTypeYjs): file is ApiFileYjs;
+export function isApiFile(file: FileType | FileTypeYjs): file is ApiFile | ApiFileYjs {
+  return (file as any).type === 'api';
+}
+
+export function isFunctionFile(file: FileType): file is FunctionFile;
+export function isFunctionFile(file: FileTypeYjs): file is FunctionFileYjs;
+export function isFunctionFile(file: FileType | FileTypeYjs): file is FunctionFile | FunctionFileYjs {
+  return (file as any).type === 'function';
+}
+
+export function isRawFile(file: FileType): file is { $base64: string };
+export function isRawFile(file: FileTypeYjs): file is { $base64: string };
+export function isRawFile(file: FileType | FileTypeYjs): file is { $base64: string } {
+  return typeof (file as any).$base64 === 'string';
+}
+
+export function isPromptMessage(prompt: Prompt): prompt is Extract<Prompt, { type: 'message' }>;
+export function isPromptMessage(prompt: PromptYjs): prompt is Extract<PromptYjs, { type: 'message' }>;
+export function isPromptMessage(
+  prompt: Prompt | PromptYjs
+): prompt is Extract<Prompt | PromptYjs, { type: 'message' }> {
+  return prompt.type === 'message';
+}
+
+export function isExecuteBlock(prompt: Prompt): prompt is Extract<Prompt, { type: 'executeBlock' }>;
+export function isExecuteBlock(prompt: PromptYjs): prompt is Extract<PromptYjs, { type: 'executeBlock' }>;
+export function isExecuteBlock(
+  prompt: Prompt | PromptYjs
+): prompt is Extract<Prompt | PromptYjs, { type: 'executeBlock' }> {
+  return prompt.type === 'executeBlock';
+}
+
+const repositories: { [key: string]: Promise<Repository<FileTypeYjs>> } = {};
 
 export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
 
@@ -149,7 +345,7 @@ export async function getRepository({
   author?: NonNullable<Parameters<Repository<any>['pull']>[0]>['author'];
 }) {
   repositories[projectId] ??= (async () => {
-    const repository = await Repository.init<FileType>({
+    const repository = await Repository.init<FileTypeYjs>({
       root: repositoryRoot(projectId),
       initialCommit: { message: 'init', author: author ?? { name: 'AI Studio', email: wallet.address } },
       parse: async (filepath, content) => {
@@ -157,10 +353,12 @@ export async function getRepository({
         const [root] = filepath.split('/');
 
         if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
-          const data = templateToYjs(parse(Buffer.from(content).toString()));
-          const parent = dir.replace(/^\.\/?/, '');
-          const filename = `${data.id}.yaml`;
-          return { filepath: path.join(parent, filename), key: data.id, data };
+          const data = fileToYjs(parse(Buffer.from(content).toString()));
+          if (isAssistant(data)) {
+            const parent = dir.replace(/^\.\/?/, '');
+            const filename = `${data.id}.yaml`;
+            return { filepath: path.join(parent, filename), key: data.id, data };
+          }
         }
 
         return {
@@ -172,8 +370,8 @@ export async function getRepository({
         };
       },
       stringify: async (filepath, content) => {
-        if (isTemplate(content)) {
-          const data = stringify(yjsToTemplate(content));
+        if (isAssistant(content)) {
+          const data = stringify(fileFromYjs(content));
           const parent = path.dirname(filepath).replace(/^\.\/?/, '');
           const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
           const newFilepath = path.join(parent, filename);
@@ -184,11 +382,15 @@ export async function getRepository({
           };
         }
 
-        const base64 = content.$base64;
+        if (isRawFile(content)) {
+          const base64 = content.$base64;
 
-        const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
+          const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
 
-        return { filepath, data };
+          return { filepath, data };
+        }
+
+        return { filepath, data: '' };
       },
     });
     return repository;
@@ -223,7 +425,7 @@ export async function syncRepository<T>({
 
 const SETTINGS_FILE = '.settings.yaml';
 
-const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileType>; project: ProjectModel }) => {
+const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: ProjectModel }) => {
   const repository = await getRepository({ projectId: project._id! });
   const fields = pick(project.dataValues, [
     '_id',
@@ -335,6 +537,148 @@ To run it you can:
 `;
 }
 
+export function parameterToYjs(parameter: Parameter): ParameterYjs {
+  return parameter.type === 'select'
+    ? {
+        ...parameter,
+        options:
+          parameter.options &&
+          Object.fromEntries(parameter.options.map((option, index) => [option.id, { index, data: option }])),
+      }
+    : parameter;
+}
+
+export function parameterFromYjs(parameter: ParameterYjs): Parameter {
+  return parameter.type === 'select'
+    ? {
+        ...parameter,
+        options: parameter.options && sortBy(Object.values(parameter.options), (i) => i.index).map((i) => i.data),
+      }
+    : parameter;
+}
+
+export function parametersToYjs(parameters: Parameter[]): { [key: string]: { index: number; data: ParameterYjs } } {
+  return arrayToYjs(parameters.map(parameterToYjs));
+}
+
+export function parametersFromYjs(parameters: { [key: string]: { index: number; data: ParameterYjs } }): Parameter[] {
+  return sortBy(Object.values(parameters), (i) => i.index).map(({ data }) => parameterFromYjs(data));
+}
+
+export function executeBlockToYjs(block: ExecuteBlock): ExecuteBlockYjs {
+  return {
+    ...block,
+    tools: block.tools && arrayToYjs(block.tools),
+  };
+}
+
+export function executeBlockFromYjs(block: ExecuteBlockYjs): ExecuteBlock {
+  return {
+    ...block,
+    tools: block.tools && arrayFromYjs(block.tools),
+  };
+}
+
+export function promptToYjs(prompt: Prompt): PromptYjs {
+  if (isExecuteBlock(prompt)) {
+    return { ...prompt, data: executeBlockToYjs(prompt.data) };
+  }
+  return prompt;
+}
+
+export function promptFromYjs(prompt: PromptYjs): Prompt {
+  if (isExecuteBlock(prompt)) {
+    return { ...prompt, data: executeBlockFromYjs(prompt.data) };
+  }
+  return prompt;
+}
+
+export function arrayToYjs<T extends { id: string }>(arr: T[]): { [key: string]: { index: number; data: T } };
+export function arrayToYjs<T extends { id: string }, I>(
+  arr: T[],
+  iter: (item: T) => I
+): { [key: string]: { index: number; data: I } };
+export function arrayToYjs<T extends { id: string }, I>(
+  arr: T[],
+  iter?: (item: T) => I
+): { [key: string]: { index: number; data: I | T } } {
+  return Object.fromEntries(arr.map((data, index) => [data.id, { index, data: iter ? iter(data) : data }]));
+}
+
+export function arrayFromYjs<T>(arr: { [key: string]: { index: number; data: T } }): T[];
+export function arrayFromYjs<T, I>(arr: { [key: string]: { index: number; data: T } }, iter: (item: T) => I): I[];
+export function arrayFromYjs<T, I>(
+  arr: { [key: string]: { index: number; data: T } },
+  iter?: (item: T) => I
+): (T | I)[] {
+  return sortBy(Object.values(arr), (i) => i.index).map(({ data }) => (iter ? iter(data) : data));
+}
+
+export function fileToYjs(file: FileType): FileTypeYjs {
+  if (isPromptFile(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
+      prompts:
+        file.prompts &&
+        arrayToYjs(
+          file.prompts.map((i) => ({ id: i.data.id, data: i })),
+          (i) => promptToYjs(i.data)
+        ),
+      tests: file.tests && arrayToYjs(file.tests),
+    };
+  }
+  if (isFunctionFile(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
+      prepareExecutes: file.prepareExecutes && arrayToYjs(file.prepareExecutes, executeBlockToYjs),
+      tests: file.tests && arrayToYjs(file.tests),
+    };
+  }
+  if (isApiFile(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
+      prepareExecutes: file.prepareExecutes && arrayToYjs(file.prepareExecutes, executeBlockToYjs),
+      tests: file.tests && arrayToYjs(file.tests),
+      requestParameters: file.requestParameters && arrayToYjs(file.requestParameters),
+    };
+  }
+
+  return file;
+}
+
+export function fileFromYjs(file: FileTypeYjs): FileType {
+  if (isPromptFile(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
+      prompts: file.prompts && arrayFromYjs(file.prompts, promptFromYjs),
+      tests: file.tests && arrayFromYjs(file.tests),
+    };
+  }
+  if (isFunctionFile(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
+      prepareExecutes: file.prepareExecutes && arrayFromYjs(file.prepareExecutes, executeBlockFromYjs),
+      tests: file.tests && arrayFromYjs(file.tests),
+    };
+  }
+  if (isApiFile(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
+      prepareExecutes: file.prepareExecutes && arrayFromYjs(file.prepareExecutes, executeBlockFromYjs),
+      tests: file.tests && arrayFromYjs(file.tests),
+      requestParameters: file.requestParameters && arrayFromYjs(file.requestParameters),
+    };
+  }
+
+  return file;
+}
+
 export function templateToYjs(template: Template): TemplateYjs {
   return {
     ...template,
@@ -424,4 +768,37 @@ export async function getTemplatesFromRepository({ projectId, ref }: { projectId
 
 export function getTemplateIdFromPath(filepath: string) {
   return path.parse(filepath).name.split('.').at(-1);
+}
+
+export async function getAssistantFromRepository({
+  repository,
+  ref,
+  working,
+  assistantId,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  assistantId: string;
+  rejectOnEmpty?: boolean | Error;
+}): Promise<Assistant> {
+  let file: Assistant;
+
+  if (working) {
+    const working = await repository.working({ ref });
+    const f = working.syncedStore.files[assistantId];
+    file = f && fileFromYjs(f);
+  } else {
+    const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${assistantId}.yaml`));
+    file = p && parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
+  }
+
+  if (!file || !isAssistant(file)) {
+    if (rejectOnEmpty) {
+      throw typeof rejectOnEmpty !== 'boolean' ? rejectOnEmpty : new Error(`no such file ${assistantId}`);
+    }
+  }
+
+  return file;
 }

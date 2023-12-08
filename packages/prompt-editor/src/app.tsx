@@ -18,18 +18,17 @@ interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
   children?: ReactNode;
   value?: EditorState;
   onChange?: (value: EditorState) => void;
-  useRoleNode?: boolean;
   useVariableNode?: boolean;
   isDebug?: boolean;
   editable?: boolean;
   editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
   autoFocus?: boolean;
   componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
-  variablePickerProps: ComponentProps<typeof VariablePickerPlugin>;
+  variablePickerProps?: ComponentProps<typeof VariablePickerPlugin>;
+  ContentProps?: BoxProps;
 }
 
 export default function PromptEditor({
-  useRoleNode = false,
   useVariableNode = true,
   isDebug = false,
   editable = true,
@@ -51,7 +50,6 @@ export default function PromptEditor({
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <EditorShell
-        useRoleNode={useRoleNode}
         useVariableNode={useVariableNode}
         autoFocus={autoFocus}
         isDebug={isDebug}
@@ -64,7 +62,6 @@ export default function PromptEditor({
 }
 
 function EditorShell({
-  useRoleNode,
   useVariableNode,
   placeholder,
   isDebug,
@@ -75,6 +72,7 @@ function EditorShell({
   autoFocus,
   componentPickerProps,
   variablePickerProps,
+  ContentProps,
   ...props
 }: PromptEditorProps) {
   const [editor] = useLexicalComposerContext();
@@ -116,17 +114,17 @@ function EditorShell({
   );
 
   return (
-    <EditorRoot {...props} className={`editor-shell ${props?.className || ''}`} ref={shellRef} onClick={onShellClick}>
+    <EditorRoot {...props} ref={shellRef} onClick={onShellClick}>
       <Editor
         autoFocus={autoFocus}
         onChange={setState}
         placeholder={placeholder}
         editorRef={editorRef}
-        useRoleNode={useRoleNode}
         useVariableNode={useVariableNode}
         isDebug={isDebug}
         variablePickerProps={variablePickerProps}
-        componentPickerProps={componentPickerProps}>
+        componentPickerProps={componentPickerProps}
+        ContentProps={ContentProps}>
         {children}
       </Editor>
     </EditorRoot>

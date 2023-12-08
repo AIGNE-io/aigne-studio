@@ -1,6 +1,6 @@
 import { FocusEventHandler, ReactElement, cloneElement, useEffect } from 'react';
 
-import { useStore } from '../../pages/project/yjs-state';
+import { useProjectStore } from '../../pages/project/yjs-state';
 
 export default function WithAwareness({
   projectId,
@@ -15,7 +15,7 @@ export default function WithAwareness({
   onMount?: boolean;
   children: ReactElement<{ onFocus?: FocusEventHandler }>;
 }) {
-  const { provider } = useStore(projectId, gitRef);
+  const { provider } = useProjectStore(projectId, gitRef);
 
   useEffect(() => {
     if (onMount) provider.awareness.setLocalStateField('focus', { path });

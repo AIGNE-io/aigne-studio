@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit';
+import { ParameterField } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css, cx } from '@emotion/css';
 import { Add, CopyAll, ErrorRounded } from '@mui/icons-material';
@@ -22,33 +23,31 @@ import {
   selectClasses,
   styled,
 } from '@mui/material';
-import { pick } from 'lodash';
+import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
-import omit from 'lodash/omit';
 import { nanoid } from 'nanoid';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
-import { parameterFieldComponent } from '../../components/parameter-field';
+import { AssistantYjs } from '../../../api/src/store/projects';
 import { useSessionContext } from '../../contexts/session';
 import Empty from './icons/empty';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
-import { useParametersState } from './prompt-state';
 import Record from './record';
 import { SessionItem, useDebugState } from './state';
+import { isAssistant, parameterFromYjs, useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {
   projectId: string;
   gitRef: string;
-  template: TemplateYjs;
+  assistant: AssistantYjs;
   setCurrentTab: (tab: string) => void;
 }) {
   const { state, setCurrentSession } = useDebugState({
     projectId: props.projectId,
-    templateId: props.template.id,
+    templateId: props.assistant.id,
   });
 
   useEffect(() => {
@@ -78,7 +77,7 @@ export default function DebugView(props: {
         display: none;
       `}>
       <DebugViewContent {...props} />
-      {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.template.id} />}
+      {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.assistant.id} />}
     </Box>
   );
 }
@@ -86,19 +85,19 @@ export default function DebugView(props: {
 function DebugViewContent({
   projectId,
   gitRef,
-  template,
+  assistant,
   setCurrentTab,
 }: {
   projectId: string;
   gitRef: string;
-  template: TemplateYjs;
+  assistant: AssistantYjs;
   setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
 
   const { state, setSession } = useDebugState({
     projectId,
-    templateId: template.id,
+    templateId: assistant.id,
   });
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
@@ -109,21 +108,21 @@ function DebugViewContent({
     <>
       <Box px={4} py={2} bgcolor="background.paper" sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
         <Box mx="auto" maxWidth={200}>
-          <SessionSelect projectId={projectId} templateId={template.id} />
+          <SessionSelect projectId={projectId} templateId={assistant.id} />
         </Box>
       </Box>
 
       <Box flexGrow={1}>
         {currentSession.messages.map((message) => (
-          <MessageView key={message.id} message={message} />
+          <MessageView key={message.id} projectId={projectId} gitRef={gitRef} message={message} />
         ))}
       </Box>
 
       <Stack gap={2} sx={{ position: 'sticky', bottom: 0, py: 2, bgcolor: 'background.paper' }}>
         {currentSession.chatType !== 'debug' ? (
-          <ChatModeForm projectId={projectId} templateId={template.id} />
+          <ChatModeForm projectId={projectId} templateId={assistant.id} />
         ) : (
-          <DebugModeForm projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
+          <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
         )}
 
         <Box textAlign="center">
@@ -136,8 +135,8 @@ function DebugViewContent({
                 session.chatType = v;
               })
             }>
-            <ToggleButton value="chat">{t('chat')}</ToggleButton>
             <ToggleButton value="debug">{t('debug')}</ToggleButton>
+            <ToggleButton value="chat">{t('chat')}</ToggleButton>
           </ToggleButtonGroup>
         </Box>
       </Stack>
@@ -194,7 +193,17 @@ function SessionSelect({ projectId, templateId }: { projectId: string; templateI
   );
 }
 
-function MessageView({ message }: { message: SessionItem['messages'][number] }) {
+function MessageView({
+  projectId,
+  gitRef,
+  message,
+}: {
+  projectId: string;
+  gitRef: string;
+  message: SessionItem['messages'][number];
+}) {
+  const { store } = useProjectStore(projectId, gitRef);
+
   return (
     <>
       <Stack px={2} py={1} direction="row" gap={1} position="relative">
@@ -271,41 +280,25 @@ function MessageView({ message }: { message: SessionItem['messages'][number] }) 
       {message.subMessages && (
         <Box ml={6}>
           {message.subMessages.map((item) => {
-            const variable = item.templateName || item.variableName;
-            let json = null;
-
-            try {
-              json = item.content && JSON.parse(item.content);
-            } catch (error) {
-              // console.error(error);
-            }
+            const assistant = store.files[item.assistantId];
+            const name = (assistant && isAssistant(assistant) && assistant.name) || item.taskId;
 
             const avatar = (
-              <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>
-                {(variable || item.content).slice(0, 1).toUpperCase()}
-              </Avatar>
+              <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{name.slice(0, 1).toUpperCase()}</Avatar>
             );
 
             return (
-              <Box key={`${item.templateId}-${variable}`}>
+              <Box key={item.taskId}>
                 <Box py={1} display="flex" alignItems="center" gap={1}>
                   {avatar}
-                  <Box>{variable}</Box>
+                  <Box>{name}</Box>
                 </Box>
 
-                {json ? (
-                  <Box
-                    component="pre"
-                    sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(json, null, 2) }}
-                  />
-                ) : (
-                  <Box
-                    component="pre"
-                    sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
-                    dangerouslySetInnerHTML={{ __html: item.content }}
-                  />
-                )}
+                <Box
+                  component="pre"
+                  sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
+                  dangerouslySetInnerHTML={{ __html: item.content }}
+                />
               </Box>
             );
           })}
@@ -449,19 +442,19 @@ function ChatModeForm({ projectId, templateId }: { projectId: string; templateId
 function DebugModeForm({
   projectId,
   gitRef,
-  template,
+  assistant,
   setCurrentTab,
 }: {
   projectId: string;
   gitRef: string;
-  template: TemplateYjs;
+  assistant: AssistantYjs;
   setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
 
   const { state, sendMessage, setSession, cancelMessage } = useDebugState({
     projectId,
-    templateId: template.id,
+    templateId: assistant.id,
   });
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
@@ -469,51 +462,38 @@ function DebugModeForm({
 
   const scrollToBottom = useScrollToBottom();
 
-  const { keysSet: params } = useParametersState(template);
-  if (template.type === 'image') {
-    params.add('size');
-
-    if (template.model === 'dall-e-2') {
-      params.add('number');
-    }
-  }
-  if (template.mode === 'chat') {
-    params.add('question');
-  }
+  const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter(
+    (i): i is typeof i & { data: { key: string } } => !!i.data.key
+  );
+  const params = parameters.map((i) => i.data.key);
 
   const initForm = useMemo(
     () =>
       pick(
         cloneDeep(
           currentSession?.debugForm ??
-            Object.fromEntries(
-              Object.entries(template.parameters ?? {}).map(([param, parameter]) => [
-                param,
-                parameter.defaultValue ??
-                  (!parameter.type || ['string', 'select', 'number', 'language'].includes(parameter.type)
-                    ? ''
-                    : undefined),
-              ])
-            )
+            Object.fromEntries(parameters.map(({ data: parameter }) => [parameter.key, parameter.defaultValue ?? '']))
         ),
-        ...params
+        params
       ),
-    [currentSession?.debugForm]
+    [currentSession?.debugForm, parameters]
   );
 
   const form = useForm<{ [key: string]: any }>({ defaultValues: initForm });
 
-  const submit = (form: { [key: string]: any }) => {
+  const submit = (parameters: { [key: string]: any }) => {
+    parameters = pick(parameters, params);
+
     if (lastMessage?.loading && currentSession) {
       cancelMessage(currentSession.index, lastMessage.id);
       return;
     }
     sendMessage({
       sessionIndex: state.currentSessionIndex!,
-      message: { type: 'debug', projectId, templateId: template.id, gitRef, parameters: pick(form, ...params) },
+      message: { type: 'debug', projectId, templateId: assistant.id, gitRef, parameters },
     });
     setSession(state.currentSessionIndex!, (session) => {
-      session.debugForm = { ...form };
+      session.debugForm = { ...parameters };
     });
     scrollToBottom({ behavior: 'smooth' });
   };
@@ -523,12 +503,13 @@ function DebugModeForm({
   } = useSessionContext();
 
   const addToTest = () => {
-    const doc = (getYjsValue(template) as Map<any>).doc!;
+    const doc = (getYjsValue(assistant) as Map<any>).doc!;
     doc.transact(() => {
-      template.tests ??= {};
       const id = `${Date.now()}-${nanoid(16)}`;
-      template.tests[id] = {
-        index: Object.values(template.tests).length,
+
+      assistant.tests ??= {};
+      assistant.tests[id] = {
+        index: Object.values(assistant.tests).length,
         data: {
           id,
           parameters: form.getValues(),
@@ -542,37 +523,14 @@ function DebugModeForm({
   return (
     <Stack component="form" onSubmit={form.handleSubmit(submit)} px={2} gap={1}>
       <Stack gap={1}>
-        {[...params].map((param) => {
-          const parameter =
-            template.parameters?.[param] ?? (param === 'question' && template.mode === 'chat' ? {} : undefined);
-
-          const Field = parameterFieldComponent({ type: parameter?.type ?? 'string' });
+        {parameters.map(({ data: parameter }) => {
           const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
 
           return (
-            <Box key={param}>
+            <Box key={parameter.id}>
               <Controller
                 control={form.control}
-                name={param}
-                render={({ field, fieldState }) => {
-                  return (
-                    <Field
-                      label={parameter?.label || param}
-                      fullWidth
-                      parameter={omit(parameter, 'min', 'max') as never}
-                      maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
-                      // FIXME: 临时去掉 NumberField 的自动转 number 功能
-                      {...(parameter?.type === 'number' ? { autoCorrectValue: false } : undefined)}
-                      value={field.value}
-                      onChange={(v) =>
-                        form.setValue(param, v, { shouldDirty: true, shouldTouch: true, shouldValidate: true })
-                      }
-                      error={Boolean(fieldState.error)}
-                      helperText={fieldState.error?.message || parameter?.helper}
-                    />
-                  );
-                }}
-                // 当编辑器中有 ' 使用 form.register 会出错
+                name={parameter.key}
                 rules={{
                   required: required ? t('validation.fieldRequired') : undefined,
                   min: typeof min === 'number' ? { value: min, message: t('validation.fieldMin', { min }) } : undefined,
@@ -585,6 +543,20 @@ function DebugModeForm({
                     typeof maxLength === 'number'
                       ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
                       : undefined,
+                }}
+                render={({ field, fieldState }) => {
+                  return (
+                    <ParameterField
+                      label={parameter.label || parameter.key}
+                      fullWidth
+                      parameter={parameterFromYjs(parameter)}
+                      maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
+                      value={field.value || ''}
+                      onChange={(value) => field.onChange({ target: { value } })}
+                      error={Boolean(fieldState.error)}
+                      helperText={fieldState.error?.message || parameter?.helper}
+                    />
+                  );
                 }}
               />
             </Box>

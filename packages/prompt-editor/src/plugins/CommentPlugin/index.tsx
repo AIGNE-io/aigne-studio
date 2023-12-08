@@ -13,7 +13,6 @@ import {
 import { useEffect } from 'react';
 
 import { IS_APPLE } from '../../utils/environment';
-import { $isRoleSelectNode } from '../RolePlugin/role-select-node';
 import replaceNodes from '../VariablePlugin/utils/replace-nodes';
 import { $isVariableTextNode } from '../VariablePlugin/variable-text-node';
 import { $createCommentNode, $isCommentNode, CommentNode } from './comment-node';
@@ -77,9 +76,7 @@ export default function VarContextPlugin(): JSX.Element | null {
                     return $isLineBreakNode(_node);
                   });
 
-                  const transformPreNodes = (preIndex === -1 ? preNodes : preNodes.slice(preIndex + 1)).filter(
-                    (x) => !$isRoleSelectNode(x)
-                  );
+                  const transformPreNodes = preIndex === -1 ? preNodes : preNodes.slice(preIndex + 1);
 
                   const len = transformPreNodes.reduce((pre, cur) => {
                     return pre + cur.getTextContentSize();

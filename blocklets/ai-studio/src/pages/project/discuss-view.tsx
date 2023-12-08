@@ -1,18 +1,19 @@
 import { Comments } from '@blocklet/discuss-kit';
 import styled from '@emotion/styled';
-import { Box } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
+import { Suspense } from 'react';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
 import { useSessionContext } from '../../contexts/session';
+import { AssistantYjs } from './yjs-state';
 
 export default function DiscussView({
   projectId,
   gitRef,
-  template,
+  assistant,
 }: {
   projectId: string;
   gitRef: string;
-  template: TemplateYjs;
+  assistant: AssistantYjs;
 }) {
   const {
     session: { user },
@@ -20,12 +21,19 @@ export default function DiscussView({
 
   return (
     <Views>
-      <Comments
-        target={{ id: `${projectId}-${gitRef}-${template.id}`, owner: user.did }}
-        displayReaction={false}
-        flatView
-        autoCollapse
-      />
+      <Suspense
+        fallback={
+          <Box textAlign="center" py={4}>
+            <CircularProgress size={24} />
+          </Box>
+        }>
+        <Comments
+          target={{ id: `${projectId}-${gitRef}-${assistant.id}`, owner: user.did }}
+          displayReaction={false}
+          flatView
+          autoCollapse
+        />
+      </Suspense>
     </Views>
   );
 }

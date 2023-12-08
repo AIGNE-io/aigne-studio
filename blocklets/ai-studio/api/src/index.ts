@@ -3,7 +3,6 @@ import 'nanoid';
 
 import path from 'path';
 
-import { isAxiosError } from 'axios';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -42,24 +41,15 @@ if (isProduction) {
 app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
   logger.error(error);
 
-  if (error instanceof Errors.NotFoundError) {
-    res.status(404).json({ error: { name: error.name, message: 'Not Found' } });
-    return;
+  try {
+    const status = error instanceof Errors.NotFoundError ? 404 : 500;
+    if (!res.headersSent) res.status(status).contentType('json');
+    if (res.writable) res.write(JSON.stringify({ error: { name: error.name, message: error.message } }));
+  } catch (error) {
+    logger.error('Write error to client error', error);
+  } finally {
+    res.end();
   }
-
-  if (isAxiosError(error)) {
-    const { response } = error;
-
-    if (response) {
-      res.status(response.status);
-      const type = response.headers['content-type'];
-      if (type) res.type(type);
-      response.data.pipe(res);
-      return;
-    }
-  }
-
-  res.status(500).json({ error: { name: error.name, message: error.message } });
 }));
 
 const port = parseInt(process.env.BLOCKLET_PORT!, 10);

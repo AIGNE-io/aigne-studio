@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import ai from './ai';
+import aiV2 from './ai-v2';
 import { branchRoutes } from './branch';
 import datasetItems from './dataset-items';
 import datasets from './datasets';
@@ -24,7 +25,7 @@ workingRoutes(router);
 treeRoutes(router);
 resourcesRoutes(router);
 
-router.use('/ai', ai);
+router.use('/ai', ai, aiV2);
 router.use('/datasets', datasets);
 router.use('/datasets', datasetItems);
 router.use(ws);

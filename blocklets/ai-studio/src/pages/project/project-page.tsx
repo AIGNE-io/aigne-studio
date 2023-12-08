@@ -5,6 +5,13 @@ import {
   Button,
   ButtonProps,
   CircularProgress,
+  ClickAwayListener,
+  List,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Paper,
+  Popper,
   Stack,
   Tab,
   Tabs,
@@ -15,33 +22,45 @@ import {
   tabsClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
+import { bindMenu, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import ApiAssistantEditor from 'src/components/file-editor/api-assistant';
+import FunctionFileEditor from 'src/components/file-editor/function-file';
+import PromptFileEditor from 'src/components/file-editor/prompt-file';
 import { joinURL } from 'ufo';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
 import WithAwareness from '../../components/awareness/with-awareness';
-import TemplateFormView from '../../components/template-form';
 import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
-import dirname, { getTemplateIdFromPath } from '../../utils/path';
+import dirname, { getFileIdFromPath } from '../../utils/path';
 import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import DiscussView from './discuss-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
 import Add from './icons/add';
+import Code from './icons/code';
 import DeveloperTools from './icons/developer-tools';
 import Empty from './icons/empty';
+import File from './icons/file';
 import FolderAdd from './icons/folder-add';
 import Import from './icons/import';
+import LinkIcon from './icons/link';
 import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
-import SettingView from './setting-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
 import UndoAndRedo from './undo';
-import { PROMPTS_FOLDER_NAME, useStore } from './yjs-state';
+import {
+  AssistantYjs,
+  PROMPTS_FOLDER_NAME,
+  isApiFileYjs,
+  isAssistant,
+  isFunctionFileYjs,
+  isPromptFileYjs,
+  useProjectStore,
+} from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -54,10 +73,10 @@ export default function ProjectPage() {
 
   const { t } = useLocaleContext();
 
-  const { store, synced, getTemplateById } = useStore(projectId, gitRef, true);
+  const { store, synced, getFileById } = useProjectStore(projectId, gitRef, true);
 
-  const templateId = filepath && getTemplateIdFromPath(filepath);
-  const template = templateId && getTemplateById(templateId);
+  const fileId = filepath && getFileIdFromPath(filepath);
+  const file = fileId && getFileById(fileId);
 
   const {
     state: { error },
@@ -107,12 +126,13 @@ export default function ProjectPage() {
   const assistant = useComponent('ai-assistant');
 
   const onLaunch = useCallback(
-    async (template: TemplateYjs) => {
+    async (template: AssistantYjs) => {
       if (!assistant) {
         return;
       }
 
-      const mode = `${template.mode === 'chat' ? 'chat' : 'templates'}`;
+      // const mode = `${template.mode === 'chat' ? 'chat' : 'templates'}`;
+      const mode = 'templates';
 
       window.open(
         `${assistant.mountPoint}/projects/${projectId}/${gitRef}/${mode}/${template.id}?source=studio`,
@@ -124,6 +144,8 @@ export default function ProjectPage() {
 
   const layout = useRef<ImperativeColumnsLayout>(null);
   const fileTree = useRef<ImperativeFileTree>(null);
+
+  const createFileMenuState = usePopupState({ variant: 'popper' });
 
   return (
     <ColumnsLayout
@@ -142,29 +164,80 @@ export default function ProjectPage() {
 
               <Box flex={1} />
 
-              <Tooltip title={t('newObject', { object: t('folder') })}>
+              <Tooltip title={t('newObject', { object: t('folder') })} disableInteractive>
                 <span>
                   <Button
                     disabled={readOnly}
                     sx={{ minWidth: 0 }}
-                    onClick={() => fileTree.current?.newFolder({ parent: dirname(filepath) })}>
+                    onClick={() => {
+                      const dir = dirname(filepath);
+                      fileTree.current?.newFolder({ parent: dir.length ? dir : [PROMPTS_FOLDER_NAME] });
+                    }}>
                     <FolderAdd />
                   </Button>
                 </span>
               </Tooltip>
 
-              <Tooltip title={t('newObject', { object: t('file') })}>
+              <Tooltip title={t('newObject', { object: t('file') })} disableInteractive>
                 <span>
-                  <Button
-                    disabled={readOnly}
-                    sx={{ minWidth: 0 }}
-                    onClick={() => fileTree.current?.newFile({ parent: dirname(filepath) })}>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} {...bindTrigger(createFileMenuState)}>
                     <Add />
                   </Button>
                 </span>
               </Tooltip>
 
-              <Tooltip title={t('import.title')}>
+              <Popper
+                {...bindMenu(createFileMenuState)}
+                sx={{ zIndex: (theme) => theme.zIndex.modal }}
+                placement="bottom-start">
+                <ClickAwayListener onClickAway={createFileMenuState.close}>
+                  <Paper elevation={2} onClick={createFileMenuState.close}>
+                    <List>
+                      <MenuItem
+                        onClick={() => {
+                          const dir = dirname(filepath);
+                          fileTree.current?.newFile({
+                            parent: dir[0] === PROMPTS_FOLDER_NAME ? dir : [],
+                            rootFolder: PROMPTS_FOLDER_NAME,
+                          });
+                        }}>
+                        <ListItemIcon>
+                          <File />
+                        </ListItemIcon>
+                        <ListItemText primary={t('prompt')} />
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() =>
+                          fileTree.current?.newFile({
+                            parent: dirname(filepath),
+                            meta: { type: 'api' },
+                            rootFolder: PROMPTS_FOLDER_NAME,
+                          })
+                        }>
+                        <ListItemIcon>
+                          <LinkIcon />
+                        </ListItemIcon>
+                        <ListItemText primary={t('api')} />
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() =>
+                          fileTree.current?.newFile({
+                            parent: dirname(filepath),
+                            meta: { type: 'function' },
+                            rootFolder: PROMPTS_FOLDER_NAME,
+                          })
+                        }>
+                        <ListItemIcon>
+                          <Code />
+                        </ListItemIcon>
+                        <ListItemText primary={t('function')} />
+                      </MenuItem>
+                    </List>
+                  </Paper>
+                </ClickAwayListener>
+              </Popper>
+
+              <Tooltip title={t('import.title')} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
                     <Import />
@@ -222,7 +295,6 @@ export default function ProjectPage() {
                     },
                   },
                 }}>
-                <Tab value="setting" label={t('setting')} />
                 <Tab value="debug" label={t('debug')} />
                 <Tab value="test" label={t('test')} />
                 <Tab value="discuss" label={t('discuss')} />
@@ -234,16 +306,14 @@ export default function ProjectPage() {
             </Toolbar>
           </Box>
 
-          {!template ? (
+          {!file ? (
             <DebugEmptyView />
-          ) : currentTab === 'setting' ? (
-            <SettingView projectId={projectId} gitRef={gitRef} template={template} />
           ) : currentTab === 'debug' ? (
-            <DebugView projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
+            <DebugView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
           ) : currentTab === 'test' ? (
-            <TestView projectId={projectId} gitRef={gitRef} template={template} setCurrentTab={setCurrentTab} />
+            <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
           ) : currentTab === 'discuss' ? (
-            <DiscussView projectId={projectId} gitRef={gitRef} template={template} />
+            <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />
           ) : null}
         </Stack>
       }>
@@ -267,7 +337,7 @@ export default function ProjectPage() {
 
               <Box flex={1} />
 
-              {template && <UndoAndRedo projectId={projectId} gitRef={gitRef} id={templateId} />}
+              {file && <UndoAndRedo projectId={projectId} gitRef={gitRef} id={fileId} />}
 
               {!rightOpen && (
                 <PanelToggleButton
@@ -284,9 +354,17 @@ export default function ProjectPage() {
               <Box sx={{ textAlign: 'center', mt: 10 }}>
                 <CircularProgress size={32} />
               </Box>
-            ) : template ? (
-              <WithAwareness projectId={projectId} gitRef={gitRef} path={[template.id]} onMount>
-                <TemplateFormView projectId={projectId} gitRef={gitRef} value={template} />
+            ) : file ? (
+              <WithAwareness projectId={projectId} gitRef={gitRef} path={[file.id]} onMount>
+                {isPromptFileYjs(file) ? (
+                  <PromptFileEditor projectId={projectId} gitRef={gitRef} value={file} />
+                ) : isApiFileYjs(file) ? (
+                  <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
+                ) : isFunctionFileYjs(file) ? (
+                  <FunctionFileEditor projectId={projectId} gitRef={gitRef} value={file} />
+                ) : (
+                  <Box />
+                )}
               </WithAwareness>
             ) : filepath ? (
               <Alert color="error">Not Found</Alert>
@@ -295,7 +373,7 @@ export default function ProjectPage() {
             )}
           </Box>
 
-          {template && template.type !== 'image' && (
+          {file && (
             <Box
               sx={{
                 position: 'sticky',
@@ -304,10 +382,12 @@ export default function ProjectPage() {
                 zIndex: (theme) => theme.zIndex.appBar,
                 borderTop: (theme) => `1px solid ${theme.palette.grey[50]}`,
               }}>
-              <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
-                <TokenUsage template={template} />
-                <Box />
-              </Toolbar>
+              {isAssistant(file) && (
+                <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
+                  <TokenUsage assistant={file} />
+                  <Box />
+                </Toolbar>
+              )}
             </Box>
           )}
         </Stack>

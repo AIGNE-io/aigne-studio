@@ -69,7 +69,7 @@ function VariablePickerMenuItem({
   );
 }
 
-export default function VariablePickerPlugin({ options }: { options: VariablePickerOption[] }) {
+export default function VariablePickerPlugin({ options }: { options?: VariablePickerOption[] }) {
   const [editor] = useLexicalComposerContext();
   const [queryString, setQueryString] = useState<string | null>(null);
 

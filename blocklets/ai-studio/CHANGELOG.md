@@ -1,6 +1,6 @@
-## 0.1.158 (2023-12-7)
+## 0.1.158 (2023-12-8)
 
-- feat: support select variables by picker
+- feat: redesign workflow
 
 ## 0.1.157 (2023-12-6)
 
