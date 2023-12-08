@@ -2,6 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, UndoManager, getYjsDoc } from '@blocklet/co-git/yjs';
 import { pink } from '@mui/material/colors';
 import { useThrottleEffect } from 'ahooks';
+import { ResponseSSEV2 } from 'api/src/routes/ai-v2';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
 import cloneDeep from 'lodash/cloneDeep';
@@ -9,7 +10,6 @@ import debounce from 'lodash/debounce';
 import differenceBy from 'lodash/differenceBy';
 import get from 'lodash/get';
 import intersectionBy from 'lodash/intersectionBy';
-import isUndefined from 'lodash/isUndefined';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
@@ -25,8 +25,7 @@ import { callAI, textCompletions } from '../../libs/ai';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
-import { getTemplates } from '../../libs/template';
-import { PROMPTS_FOLDER_NAME, isTemplate, templateYjsFromTemplate, useProjectStore } from './yjs-state';
+import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 export const defaultBranch = 'main';
 
@@ -165,7 +164,11 @@ export interface SessionItem {
     loading?: boolean;
     cancelled?: boolean;
     error?: { message: string };
-    subMessages?: { content: string; templateId: string; templateName?: string; variableName?: string }[];
+    subMessages?: {
+      taskId: string;
+      assistantId: string;
+      content: string;
+    }[];
   }[];
   chatType?: 'chat' | 'debug';
   debugForm?: { [key: string]: any };
@@ -295,24 +298,11 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
   );
 
   const setMessage = useCallback(
-    (
-      sessionIndex: number,
-      messageId: string,
-      recipe: (draft: Draft<SessionItem['messages'][number]>) => void,
-      checkCancelledStatus?: boolean
-    ) => {
+    (sessionIndex: number, messageId: string, recipe: (draft: Draft<SessionItem['messages'][number]>) => void) => {
       setState((state) =>
         produce(state, (state) => {
           const session = state.sessions.find((i) => i.index === sessionIndex);
-          const message = session?.messages.find((i) => i.id === messageId);
-
-          if (checkCancelledStatus) {
-            const index = session?.messages.findIndex((i) => i.id === messageId);
-            if (index) {
-              const nextMessage = session?.messages[index + 1];
-              if (nextMessage?.cancelled) return;
-            }
-          }
+          const message = session?.messages.findLast((i) => i.id === messageId);
 
           if (message) recipe(message);
           else console.error(`setMessage: message not found ${sessionIndex} ${messageId}`);
@@ -379,20 +369,18 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
                 projectId: message.projectId,
                 ref: message.gitRef,
                 working: true,
-                templateId: message.templateId,
+                assistantId: message.templateId,
                 parameters: message.parameters,
               });
 
         const reader = result.getReader();
         const decoder = new TextDecoder();
 
-        const isImages = (i: any): i is { type: 'images'; images: { url: string }[] } => i.type === 'images';
-        const isNext = (i: any): i is { type: 'next'; text: string } => i.type === 'next';
-        const isCall = (i: any): i is { type: 'call'; delta: string; templateId: string; variable: string } =>
-          i.type === 'call';
+        const isTaskChunk = (i: ResponseSSEV2): i is ResponseSSEV2 => typeof i.taskId === 'string';
 
         let response = '';
         const subResponses: { [key: string]: string } = {};
+        let mainTaskId: string | undefined;
 
         for (;;) {
           const { value, done } = await reader.read();
@@ -401,92 +389,30 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
               response += decoder.decode(value);
             } else if (typeof value === 'string') {
               response += value;
-            } else if (isImages(value)) {
-              setMessage(sessionIndex, responseId, (message) => {
-                if (!message.loading) return;
-                message.images = value.images;
-              });
-            } else if (isNext(value)) {
-              if (value.templateId) {
-                const key = `${messageId}-${value.templateId}`;
-                subResponses[key] = subResponses[key] ?? '';
-                subResponses[key] += value.delta;
+            } else if (isTaskChunk(value)) {
+              // console.log(value);
+              if (!mainTaskId) mainTaskId = value.taskId;
 
-                setMessage(
-                  sessionIndex,
-                  messageId,
-                  (message) => {
-                    if (message.cancelled) return;
+              if (value.taskId === mainTaskId) {
+                response += value.delta.content || '';
+              } else {
+                const key = `${messageId}-${value.assistantId}`;
+                subResponses[key] ??= '';
+                subResponses[key] += value.delta.content || '';
 
-                    if (message.subMessages?.length) {
-                      const found = message.subMessages.find((x) => x.templateId === value.templateId);
-                      if (found) {
-                        found.content = subResponses[key] ?? '';
-                      } else {
-                        message.subMessages = [
-                          ...message.subMessages,
-                          {
-                            content: subResponses[key] ?? '',
-                            templateId: value.templateId,
-                            templateName: value.templateName,
-                          },
-                        ];
-                      }
-                    } else {
-                      message.subMessages = [
-                        {
-                          content: subResponses[key] ?? '',
-                          templateId: value.templateId,
-                          templateName: value.templateName,
-                        },
-                      ];
-                    }
-                  },
-                  true
-                );
-              }
-            } else if (isCall(value)) {
-              if (value.templateId) {
-                const key = `${messageId}-${value.templateId}-${value.variableName}`;
-                subResponses[key] = value.delta;
+                setMessage(sessionIndex, messageId, (message) => {
+                  if (message.cancelled) return;
 
-                setMessage(
-                  sessionIndex,
-                  messageId,
-                  (message) => {
-                    if (message.cancelled) return;
+                  message.subMessages ??= [];
 
-                    if (message.subMessages?.length) {
-                      // FIXME: 如果模板中调用了同一个 template 两次，这里可能会导致只显示了一条调用（两次调用的结果拼在一起了）
-                      // 另外这一块更新 message 的逻辑需要优化（重复的代码太多了，包括上面的 isNext 部分）
-                      const found = message.subMessages.find(
-                        (x) => x.templateId === value.templateId && x.variableName === value.variableName
-                      );
+                  let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
+                  if (!subMessage) {
+                    subMessage = { taskId: value.taskId, assistantId: value.assistantId, content: '' };
+                    message.subMessages.push(subMessage);
+                  }
 
-                      if (found) {
-                        found.content = subResponses[key] ?? '';
-                      } else {
-                        message.subMessages = [
-                          ...message.subMessages,
-                          {
-                            content: subResponses[key] ?? '',
-                            templateId: value.templateId,
-                            variableName: value.variableName,
-                          },
-                        ];
-                      }
-                    } else {
-                      message.subMessages = [
-                        {
-                          content: subResponses[key] ?? '',
-                          templateId: value.templateId,
-                          variableName: value.variableName,
-                        },
-                      ];
-                    }
-                  },
-                  true
-                );
+                  subMessage.content += value.delta.content || '';
+                });
               }
             } else {
               console.error('Unknown AI response type', value);
@@ -638,20 +564,18 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
 
   useEffect(() => {
     const getFile = () => {
-      const files = Object.entries(store.tree)
-        .map(([key, filepath]) => {
-          const template = store.files[key];
-
-          if (filepath?.endsWith('.yaml') && template && isTemplate(template)) {
-            const paths = filepath.split('/');
-            return { ...template, parent: paths.slice(0, -1) };
-          }
-
-          return undefined;
-        })
-        .filter((i): i is NonNullable<typeof i> => !!i);
-
-      setState((r) => ({ ...r, files: cloneDeep(files) }));
+      // FIXME:
+      // const files = Object.entries(store.tree)
+      //   .map(([key, filepath]) => {
+      //     const template = store.files[key];
+      //     if (filepath?.endsWith('.yaml') && template && isPromptFileYjs(template)) {
+      //       const paths = filepath.split('/');
+      //       return { ...template, parent: paths.slice(0, -1) };
+      //     }
+      //     return undefined;
+      //   })
+      //   .filter((i): i is NonNullable<typeof i> => !!i);
+      // setState((r) => ({ ...r, files: cloneDeep(files) }));
     };
 
     getYjsDoc(store).getMap('files').observeDeep(getFile);
@@ -664,20 +588,19 @@ export const useTemplatesChangesState = (projectId: string, ref: string) => {
   }, [projectId, ref]);
 
   const run = async () => {
-    try {
-      setState((r) => ({ ...r, loading: true }));
-
-      const data = await getTemplates(projectId, ref);
-      const templates = (data?.templates || []).map((i) =>
-        omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
-      ) as TemplateYjsWithParent[];
-
-      setState((r) => ({ ...r, templates }));
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setState((r) => ({ ...r, loading: false }));
-    }
+    // FIXME:
+    // try {
+    //   setState((r) => ({ ...r, loading: true }));
+    //   const data = await getTemplates(projectId, ref);
+    //   const templates = (data?.templates || []).map((i) =>
+    //     omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
+    //   ) as TemplateYjsWithParent[];
+    //   setState((r) => ({ ...r, templates }));
+    // } catch (error) {
+    //   console.error(error);
+    // } finally {
+    //   setState((r) => ({ ...r, loading: false }));
+    // }
   };
 
   const changes = (item: TemplateYjs) => {

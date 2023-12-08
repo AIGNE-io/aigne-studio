@@ -25,13 +25,12 @@ import { useLocalStorageState } from 'ahooks';
 import { bindMenu, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import ApiForm from 'src/components/api-form';
-import FunctionForm from 'src/components/function-form';
+import ApiAssistantEditor from 'src/components/file-editor/api-assistant';
+import FunctionFileEditor from 'src/components/file-editor/function-file';
+import PromptFileEditor from 'src/components/file-editor/prompt-file';
 import { joinURL } from 'ufo';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
 import WithAwareness from '../../components/awareness/with-awareness';
-import TemplateFormView from '../../components/template-form';
 import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
 import dirname, { getFileIdFromPath } from '../../utils/path';
@@ -49,12 +48,19 @@ import Import from './icons/import';
 import LinkIcon from './icons/link';
 import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
-import SettingView from './setting-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
 import UndoAndRedo from './undo';
-import { PROMPTS_FOLDER_NAME, isApiFile, isFunctionFile, isTemplate, useProjectStore } from './yjs-state';
+import {
+  AssistantYjs,
+  PROMPTS_FOLDER_NAME,
+  isApiFileYjs,
+  isAssistant,
+  isFunctionFileYjs,
+  isPromptFileYjs,
+  useProjectStore,
+} from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -120,12 +126,13 @@ export default function ProjectPage() {
   const assistant = useComponent('ai-assistant');
 
   const onLaunch = useCallback(
-    async (template: TemplateYjs) => {
+    async (template: AssistantYjs) => {
       if (!assistant) {
         return;
       }
 
-      const mode = `${template.mode === 'chat' ? 'chat' : 'templates'}`;
+      // const mode = `${template.mode === 'chat' ? 'chat' : 'templates'}`;
+      const mode = 'templates';
 
       window.open(
         `${assistant.mountPoint}/projects/${projectId}/${gitRef}/${mode}/${template.id}?source=studio`,
@@ -288,7 +295,6 @@ export default function ProjectPage() {
                     },
                   },
                 }}>
-                <Tab value="setting" label={t('setting')} />
                 <Tab value="debug" label={t('debug')} />
                 <Tab value="test" label={t('test')} />
                 <Tab value="discuss" label={t('discuss')} />
@@ -302,16 +308,12 @@ export default function ProjectPage() {
 
           {!file ? (
             <DebugEmptyView />
-          ) : isTemplate(file) ? (
-            currentTab === 'setting' ? (
-              <SettingView projectId={projectId} gitRef={gitRef} template={file} />
-            ) : currentTab === 'debug' ? (
-              <DebugView projectId={projectId} gitRef={gitRef} template={file} setCurrentTab={setCurrentTab} />
-            ) : currentTab === 'test' ? (
-              <TestView projectId={projectId} gitRef={gitRef} template={file} setCurrentTab={setCurrentTab} />
-            ) : currentTab === 'discuss' ? (
-              <DiscussView projectId={projectId} gitRef={gitRef} template={file} />
-            ) : null
+          ) : currentTab === 'debug' ? (
+            <DebugView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
+          ) : currentTab === 'test' ? (
+            <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
+          ) : currentTab === 'discuss' ? (
+            <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />
           ) : null}
         </Stack>
       }>
@@ -354,12 +356,12 @@ export default function ProjectPage() {
               </Box>
             ) : file ? (
               <WithAwareness projectId={projectId} gitRef={gitRef} path={[file.id]} onMount>
-                {isTemplate(file) ? (
-                  <TemplateFormView projectId={projectId} gitRef={gitRef} value={file} />
-                ) : isApiFile(file) ? (
-                  <ApiForm projectId={projectId} gitRef={gitRef} value={file} />
-                ) : isFunctionFile(file) ? (
-                  <FunctionForm projectId={projectId} gitRef={gitRef} value={file} />
+                {isPromptFileYjs(file) ? (
+                  <PromptFileEditor projectId={projectId} gitRef={gitRef} value={file} />
+                ) : isApiFileYjs(file) ? (
+                  <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
+                ) : isFunctionFileYjs(file) ? (
+                  <FunctionFileEditor projectId={projectId} gitRef={gitRef} value={file} />
                 ) : (
                   <Box />
                 )}
@@ -371,7 +373,7 @@ export default function ProjectPage() {
             )}
           </Box>
 
-          {file && file.type !== 'image' && (
+          {file && (
             <Box
               sx={{
                 position: 'sticky',
@@ -380,9 +382,9 @@ export default function ProjectPage() {
                 zIndex: (theme) => theme.zIndex.appBar,
                 borderTop: (theme) => `1px solid ${theme.palette.grey[50]}`,
               }}>
-              {isTemplate(file) && (
+              {isAssistant(file) && (
                 <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
-                  <TokenUsage template={file} />
+                  <TokenUsage assistant={file} />
                   <Box />
                 </Toolbar>
               )}

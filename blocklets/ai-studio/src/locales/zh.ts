@@ -117,6 +117,7 @@ export default flat({
   blank: '空白',
   create: '创建',
   newObject: '新建{object}',
+  newObjectWithType: '新建 “{object}” {type}',
   createdAt: '创建于',
   home: '首页',
   prompts: '提示',
@@ -224,8 +225,7 @@ export default flat({
   copied: '已复制',
   activeMessageTip: '激活该提示',
   hideMessageTip: '隐藏该提示',
-  deleteMessageTip: '删除该提示',
-  dragMessageTip: '拖拽排序该提示',
+  dragSort: '拖拽排序',
   sourceBranch: '来源分支',
   noVariables: '您还没有添加任何参数',
   compare: {

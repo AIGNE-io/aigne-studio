@@ -5,7 +5,7 @@ import { glob } from 'glob';
 
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
-import { getRepository, isTemplate } from '../store/projects';
+import { TemplateYjs, getRepository } from '../store/projects';
 
 const { name } = require('../../../package.json');
 
@@ -23,12 +23,19 @@ async function migrate() {
     })
     .filter((i): i is NonNullable<typeof i> => !!i);
 
+  const isOldTemplateYjs = (file: any): file is TemplateYjs =>
+    !!file &&
+    typeof file.id === 'string' &&
+    file.parameters &&
+    typeof file.parameters === 'object' &&
+    !Array.isArray(file.parameters);
+
   for (const { projectId, ref } of workings) {
     try {
       const repo = await getRepository({ projectId });
       const working = await repo.working({ ref });
       for (const file of Object.values(working.syncedStore.files)) {
-        if (file && isTemplate(file) && file.parameters) {
+        if (file && isOldTemplateYjs(file) && file.parameters) {
           for (const parameter of Object.values(file.parameters)) {
             if (parameter.type === 'select' && Array.isArray(parameter.options)) {
               parameter.options = Object.fromEntries(

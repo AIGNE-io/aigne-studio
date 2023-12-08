@@ -1,100 +1,13 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { css, cx } from '@emotion/css';
-import { DragIndicator } from '@mui/icons-material';
-import { Box, BoxProps } from '@mui/material';
+import { cx } from '@emotion/css';
+import { Box, Button, Stack, StackProps, Tooltip, alpha, buttonClasses } from '@mui/material';
 import { useUpdate } from 'ahooks';
-import { Reorder, useDragControls } from 'framer-motion';
-import get from 'lodash/get';
 import sortBy from 'lodash/sortBy';
-import { ComponentProps, Key, ReactNode, memo, useCallback, useEffect, useId, useRef } from 'react';
+import { ReactNode, useCallback, useEffect, useId, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget, useDrag, useDrop } from 'react-dnd';
-
-export function ReorderableListYjs<T>({
-  list,
-  renderItem,
-  ...props
-}: {
-  list: { [key: string]: { index: number; data: T } };
-  renderItem: (item: T, index: number) => ReactNode;
-} & Omit<ComponentProps<typeof Reorder.Group>, 'onChange' | 'onReorder' | 'values'>) {
-  const mapKeys = sortBy(Object.entries(list), (i) => i[1].index).map((i) => i[0]);
-
-  return (
-    <Reorder.Group
-      as="div"
-      values={mapKeys}
-      onReorder={(keys) => {
-        (getYjsValue(list) as Map<any>).doc!.transact(() => {
-          keys.forEach((key, index) => (list[key]!.index = index));
-        });
-      }}
-      {...props}>
-      {mapKeys.map((key, index) => (
-        <Item key={key} value={key}>
-          {renderItem(list[key]!.data, index)}
-        </Item>
-      ))}
-    </Reorder.Group>
-  );
-}
-
-export default function ReorderableList<T>({
-  list,
-  itemKey,
-  onChange,
-  renderItem,
-  ...props
-}: {
-  list: T[];
-  itemKey: keyof T | ((item: T) => Key);
-  onChange: (data: T[]) => void;
-  renderItem: (item: T, index: number) => ReactNode;
-} & Omit<ComponentProps<typeof Reorder.Group>, 'onChange' | 'onReorder' | 'values'>) {
-  const getItemKey = typeof itemKey === 'function' ? itemKey : (item: T) => get(item, itemKey);
-
-  const map = Object.fromEntries(list.map((i) => [getItemKey(i), i]));
-  const mapKeys = Object.keys(map);
-
-  return (
-    <Reorder.Group
-      as="div"
-      values={mapKeys}
-      onReorder={(keys) => {
-        onChange(keys.map((key) => map[key]));
-      }}
-      {...props}>
-      {mapKeys.map((key, index) => (
-        <Item key={key} value={key}>
-          {renderItem(map[key], index)}
-        </Item>
-      ))}
-    </Reorder.Group>
-  );
-}
-
-const Item = memo(({ value, children }: { value: Key; children: ReactNode }) => {
-  const ctrl = useDragControls();
-
-  return (
-    <Reorder.Item
-      as="div"
-      dragListener={false}
-      dragControls={ctrl}
-      value={value}
-      className={css`
-        display: flex;
-        align-items: baseline;
-      `}>
-      <Box
-        sx={{ display: 'flex', alignItems: 'center', mr: 0.5, cursor: 'grab', userSelect: 'none' }}
-        onPointerDown={(e) => ctrl.start(e)}>
-        <DragIndicator sx={{ fontSize: 18, color: 'grey.700' }} />
-      </Box>
-
-      {children}
-    </Reorder.Item>
-  );
-});
+import DragVertical from 'src/pages/project/icons/drag-vertical';
+import Trash from 'src/pages/project/icons/trash';
 
 export function DragSortListYjs<T>({
   disabled,
@@ -105,7 +18,7 @@ export function DragSortListYjs<T>({
   disabled?: boolean;
   list: { [key: string]: { index: number; data: T } };
   renderItem: (item: T, index: number, params: ItemRenderParams) => ReactNode;
-} & BoxProps) {
+} & StackProps) {
   const ref = useRef<HTMLDivElement>(null);
   const type = useId();
   const update = useUpdate();
@@ -159,7 +72,7 @@ export function DragSortListYjs<T>({
   drop(ref);
 
   return (
-    <Box {...props} ref={ref} className={cx(isOver && 'isDragging')}>
+    <Stack {...props} ref={ref} className={cx(isOver && 'isDragging')}>
       {ids.current.map((id, index) => (
         <ItemDND
           key={id}
@@ -176,7 +89,7 @@ export function DragSortListYjs<T>({
           }}
         </ItemDND>
       ))}
-    </Box>
+    </Stack>
   );
 }
 
@@ -273,4 +186,79 @@ function ItemDND({
 
   drag(drop(preview(ref)));
   return <Box ref={ref}>{children}</Box>;
+}
+
+export function DragSortItemContainer({
+  drop,
+  preview,
+  drag,
+  disabled,
+  isDragging,
+  children,
+  onDelete,
+  actions,
+}: {
+  drop: ConnectDropTarget;
+  preview: ConnectDragPreview;
+  drag: ConnectDragSource;
+  disabled?: boolean;
+  isDragging?: boolean;
+  children?: ReactNode;
+  onDelete?: () => any;
+  actions?: ReactNode;
+}) {
+  const { t } = useLocaleContext();
+
+  return (
+    <Box ref={drop} sx={{ ':hover .hover-visible': { maxHeight: '100%' } }}>
+      <Box sx={{ position: 'relative' }}>
+        <Box
+          ref={preview}
+          sx={{
+            flex: 1,
+            borderRadius: 1,
+            bgcolor: isDragging ? 'action.hover' : 'background.paper',
+            opacity: 0.9999, // NOTE: make preview effective
+          }}>
+          {children}
+        </Box>
+
+        {!disabled && (
+          <Box
+            className="hover-visible"
+            sx={{ maxHeight: 0, overflow: 'hidden', position: 'absolute', right: 2, top: 2 }}>
+            <Stack
+              direction="row"
+              sx={{
+                bgcolor: (theme) => alpha(theme.palette.grey[300], 0.9),
+                borderRadius: 1,
+                p: 0.5,
+                [`.${buttonClasses.root}`]: {
+                  minWidth: 24,
+                  width: 24,
+                  height: 24,
+                  p: 0,
+                },
+              }}>
+              {actions}
+
+              {onDelete && (
+                <Tooltip title={t('delete')} disableInteractive placement="top">
+                  <Button onClick={onDelete}>
+                    <Trash sx={{ fontSize: '1.25rem', color: 'grey.500' }} />
+                  </Button>
+                </Tooltip>
+              )}
+
+              <Tooltip title={t('dragSort')} disableInteractive placement="top">
+                <Button ref={drag}>
+                  <DragVertical sx={{ color: 'grey.500' }} />
+                </Button>
+              </Tooltip>
+            </Stack>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
 }

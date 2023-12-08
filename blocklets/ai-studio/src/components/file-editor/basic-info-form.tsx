@@ -1,52 +1,29 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, Stack, TextField, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
+import { AssistantYjs } from 'src/pages/project/yjs-state';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
-import { Template } from '../../../api/src/store/templates';
 import { useReadOnly } from '../../contexts/session';
-import { useTemplateCompare } from '../../pages/project/state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
-import Prompts from './prompts';
-import TagsAutoComplete from './tags-autocomplete';
-import ToolFunctionCallings from './tools-calling';
+import TagsAutoComplete from '../template-form/tags-autocomplete';
 
-export type TemplateForm = Pick<
-  Template,
-  | 'id'
-  | 'mode'
-  | 'type'
-  | 'name'
-  | 'icon'
-  | 'tags'
-  | 'description'
-  | 'prompts'
-  | 'branch'
-  | 'parameters'
-  | 'datasets'
-  | 'next'
->;
-
-export default function TemplateFormView({
+export default function BasicInfoForm({
   projectId,
   gitRef,
   value,
   disabled,
-  compareValue,
 }: {
   projectId: string;
   gitRef: string;
-  value: TemplateYjs;
+  value: Pick<AssistantYjs, 'id' | 'name' | 'description' | 'tags'>;
   disabled?: boolean;
-  compareValue?: TemplateYjs;
 }) {
   const { t } = useLocaleContext();
 
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
-  const { getDiffBackground } = useTemplateCompare({ value, compareValue, readOnly });
 
   return (
-    <Stack gap={0.5} pb={10}>
+    <Stack gap={0.5}>
       <Box position="relative">
         <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
           <HoverBackgroundTextField
@@ -58,11 +35,6 @@ export default function TemplateFormView({
             InputProps={{
               readOnly,
               sx: (theme) => theme.typography.subtitle1,
-            }}
-            sx={{
-              [`.${inputBaseClasses.root}`]: {
-                ...getDiffBackground('name'),
-              },
             }}
           />
         </WithAwareness>
@@ -86,11 +58,6 @@ export default function TemplateFormView({
             maxRows={6}
             onChange={(e) => (value.description = e.target.value)}
             InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
-            sx={{
-              [`.${inputBaseClasses.root}`]: {
-                ...getDiffBackground('description'),
-              },
-            }}
           />
         </WithAwareness>
 
@@ -102,7 +69,7 @@ export default function TemplateFormView({
         />
       </Box>
 
-      <Box mb={2} position="relative">
+      <Box position="relative">
         <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
           <TagsAutoComplete
             readOnly={readOnly}
@@ -121,11 +88,6 @@ export default function TemplateFormView({
                     [`.${chipClasses.root}`]: { ml: 0, mr: 0.5 },
                   },
                 }}
-                sx={{
-                  [`.${inputBaseClasses.root}`]: {
-                    ...getDiffBackground('tags'),
-                  },
-                }}
               />
             )}
           />
@@ -138,11 +100,6 @@ export default function TemplateFormView({
           sx={{ position: 'absolute', right: -16, top: 0 }}
         />
       </Box>
-
-      <Stack gap={1}>
-        <Prompts readOnly={readOnly} projectId={projectId} gitRef={gitRef} value={value} compareValue={compareValue} />
-        <ToolFunctionCallings projectId={projectId} gitRef={gitRef} template={value} readOnly={Boolean(readOnly)} />
-      </Stack>
     </Stack>
   );
 }

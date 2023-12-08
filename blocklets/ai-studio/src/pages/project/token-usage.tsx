@@ -3,30 +3,33 @@ import { Typography } from '@mui/material';
 import { GPTTokens } from 'gpt-tokens';
 import { useDeferredValue, useMemo } from 'react';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
-import { PromptMessage, Role } from '../../../api/src/store/templates';
-import { isPromptMessage } from './yjs-state';
+import { AssistantYjs, isPromptFileYjs } from './yjs-state';
 
-export function TokenUsage({ template }: { template: TemplateYjs }) {
+export function TokenUsage({ assistant }: { assistant: AssistantYjs }) {
   const { t } = useLocaleContext();
 
-  const prompts = useDeferredValue(Object.values(template.prompts ?? {}));
+  const prompts = useDeferredValue(isPromptFileYjs(assistant) ? Object.values(assistant.prompts ?? {}) : []);
 
   const tokens = useMemo(() => {
+    if (!isPromptFileYjs(assistant)) return undefined;
+
     const messages = prompts
+      .filter(
+        (i): i is typeof i & { data: { type: 'message'; data: { content: string } } } =>
+          i.data.type === 'message' && !!i.data.data.content
+      )
       .map(({ data }) => ({
-        role: data.role,
-        content: data.content,
-      }))
-      .filter((i): i is PromptMessage & { role: Role; content: string } => isPromptMessage(i) && Boolean(i.content));
+        role: data.data.role,
+        content: data.data.content,
+      }));
 
     return messages.length > 0
       ? new GPTTokens({
-          model: (template.model || 'gpt-3.5-turbo') as any,
+          model: (assistant.model || 'gpt-3.5-turbo') as any,
           messages,
         })
       : undefined;
-  }, [prompts]);
+  }, [assistant, prompts]);
 
   return <Typography variant="caption">{t('aboutTokens', { tokens: tokens?.usedTokens || 0 })}</Typography>;
 }

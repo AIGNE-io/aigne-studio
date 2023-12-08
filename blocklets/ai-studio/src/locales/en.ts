@@ -117,6 +117,7 @@ export default flat({
   blank: 'Blank',
   create: 'Create',
   newObject: 'New {object}',
+  newObjectWithType: 'New "{object}" {type}',
   createdAt: 'Created at',
   home: 'Home',
   prompts: 'Prompts',
@@ -226,8 +227,7 @@ export default flat({
   copied: 'Copied',
   activeMessageTip: 'Active this message',
   hideMessageTip: 'Hide this message',
-  deleteMessageTip: 'Delete this message',
-  dragMessageTip: 'Drag sort this message',
+  dragSort: 'Drag sort',
   sourceBranch: 'Source branch',
   noVariables: "You haven't added any variables yet",
   compare: {

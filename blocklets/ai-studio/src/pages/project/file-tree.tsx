@@ -3,9 +3,6 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { css } from '@emotion/css';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
   BoxProps,
   Button,
@@ -24,8 +21,6 @@ import {
   Stack,
   StackProps,
   Tooltip,
-  Typography,
-  accordionSummaryClasses,
   iconClasses,
   listItemButtonClasses,
   listItemIconClasses,
@@ -39,7 +34,6 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import {
   ComponentProps,
   ReactNode,
-  SyntheticEvent,
   forwardRef,
   useCallback,
   useEffect,
@@ -51,12 +45,11 @@ import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { FileType, TemplateYjs } from '../../../api/src/store/projects';
+import { FileTypeYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
 import { importTemplatesToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
-import Compare from './compare';
 import ChevronDown from './icons/chevron-down';
 import Code from './icons/code';
 import CompareIcon from './icons/compare';
@@ -68,24 +61,22 @@ import FolderClose from './icons/folder-close';
 import LinkIcon from './icons/link';
 import MenuVertical from './icons/menu-vertical';
 import Pen from './icons/pen';
-import Picture from './icons/picture';
 import Trash from './icons/trash';
 import Undo from './icons/undo';
 import ImportFrom from './import';
-import { useTemplatesChangesState } from './state';
 import {
+  AssistantYjs,
   PROMPTS_FOLDER_NAME,
   createFile,
   createFolder,
   deleteFile,
-  isApiFile,
+  isApiFileYjs,
   isBuiltinFolder,
-  isFunctionFile,
-  isTemplate,
+  isFunctionFileYjs,
+  isPromptFileYjs,
   moveFile,
   nextTemplateId,
   resetTemplatesId,
-  templateYjsFromTemplate,
   useProjectStore,
 } from './yjs-state';
 
@@ -96,7 +87,7 @@ export type EntryWithMeta =
       filename: string;
       parent: string[];
       path: string[];
-      meta: Exclude<FileType, { $base64: string }>;
+      meta: Exclude<FileTypeYjs, { $base64: string }>;
     }
   | {
       type: 'folder';
@@ -121,7 +112,7 @@ const FileTree = forwardRef<
     gitRef: string;
     current?: string;
     mutable?: boolean;
-    onLaunch?: (template: TemplateYjs) => any;
+    onLaunch?: (assistant: AssistantYjs) => any;
   } & Omit<BoxProps, 'onClick'>
 >(({ projectId, gitRef, current, mutable, onLaunch, ...props }, ref) => {
   const theme = useTheme();
@@ -130,8 +121,8 @@ const FileTree = forwardRef<
   const { dialog, showDialog } = useDialog();
 
   const { store, synced } = useProjectStore(projectId, gitRef);
-  const { changes, deleted, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
-  const [showPopper] = useState(true);
+  // const { changes, getOriginTemplate } = useTemplatesChangesState(projectId, gitRef);
+  // const [showPopper] = useState(true);
   const dialogState = usePopupState({ variant: 'dialog' });
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
@@ -215,7 +206,8 @@ const FileTree = forwardRef<
               createFile({
                 store,
                 parent: template.parent,
-                meta: templateYjsFromTemplate(template),
+                // FIXME:
+                // meta: templateYjsFromTemplate(template),
               });
             }
           } else {
@@ -288,7 +280,11 @@ const FileTree = forwardRef<
   const files = Object.entries(store.tree)
     .map(([key, filepath]) => {
       const file = store.files[key];
-      if (filepath?.endsWith('.yaml') && file && (isTemplate(file) || isApiFile(file) || isFunctionFile(file))) {
+      if (
+        filepath?.endsWith('.yaml') &&
+        file &&
+        (isPromptFileYjs(file) || isApiFileYjs(file) || isFunctionFileYjs(file))
+      ) {
         const paths = filepath.split('/').filter(Boolean);
         return {
           type: 'file' as const,
@@ -411,7 +407,7 @@ const FileTree = forwardRef<
               const name = `${meta.id}.yaml`;
               const selected = current?.endsWith(name);
 
-              const change = changes(meta);
+              // const change = changes(meta);
 
               const actions = (
                 <TreeItemMenus
@@ -419,27 +415,27 @@ const FileTree = forwardRef<
                   onCreateFile={mutable ? onCreateFile : undefined}
                   onDeleteFile={mutable ? onDeleteFile : undefined}
                   onLaunch={onLaunch}
-                  isChanged={Boolean(change?.key === 'M' && getOriginTemplate(meta))}
-                  onCompare={() => {
-                    dialogState.toggle();
-                  }}
-                  onUndo={() => {
-                    showDialog({
-                      fullWidth: true,
-                      maxWidth: 'xs',
-                      title: `${t('restore')}`,
-                      content: (
-                        <Box maxHeight={500}>{t('restoreConform', { path: meta.name || t('alert.unnamed') })}</Box>
-                      ),
-                      onOk: () => {
-                        const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & {
-                          parent: string[];
-                        };
-                        deleteFile({ store, path: [...parent, meta.id] });
-                        onCreateFile({ parent, meta: data });
-                      },
-                    });
-                  }}
+                  // isChanged={Boolean(change?.key === 'M' && getOriginTemplate(meta))}
+                  // onCompare={() => {
+                  //   dialogState.toggle();
+                  // }}
+                  // onUndo={() => {
+                  //   showDialog({
+                  //     fullWidth: true,
+                  //     maxWidth: 'xs',
+                  //     title: `${t('restore')}`,
+                  //     content: (
+                  //       <Box maxHeight={500}>{t('restoreConform', { path: meta.name || t('alert.unnamed') })}</Box>
+                  //     ),
+                  //     onOk: () => {
+                  //       const { parent, ...data } = getOriginTemplate(meta) as TemplateYjs & {
+                  //         parent: string[];
+                  //       };
+                  //       deleteFile({ store, path: [...parent, meta.id] });
+                  //       onCreateFile({ parent, meta: data });
+                  //     },
+                  //   });
+                  // }}
                 />
               );
 
@@ -451,7 +447,8 @@ const FileTree = forwardRef<
                   selected={selected}
                   onClick={() => navigate(joinURL('.', filepath))}
                   actions={actions}
-                  sx={{ color: change?.color }}>
+                  // sx={{ color: change?.color }}
+                >
                   {meta.name || t('alert.unnamed')}
 
                   <AwarenessIndicator
@@ -463,20 +460,21 @@ const FileTree = forwardRef<
                 </TreeItem>
               );
 
-              if (change && showPopper) {
-                return (
-                  <Tooltip title={change.tips} disableInteractive placement="top">
-                    <Box>{children}</Box>
-                  </Tooltip>
-                );
-              }
+              // if (change && showPopper) {
+              //   return (
+              //     <Tooltip title={change.tips} disableInteractive placement="top">
+              //       <Box>{children}</Box>
+              //     </Tooltip>
+              //   );
+              // }
               return children;
             }}
           />
         </DndProvider>
       </Box>
 
-      {!!deleted.length && (
+      {/* FIXME: */}
+      {/* {!!deleted.length && (
         <DeletedTemplates
           list={deleted}
           changes={changes}
@@ -484,14 +482,14 @@ const FileTree = forwardRef<
           gitRef={gitRef}
           onCreateFile={onCreateFile}
         />
-      )}
+      )} */}
 
       {dialog}
 
       <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
         <DialogTitle>{t('alert.compare')}</DialogTitle>
         <DialogContent>
-          <Compare projectId={projectId} gitRef={gitRef} filepath={current || ''} />
+          {/* <Compare projectId={projectId} gitRef={gitRef} filepath={current || ''} /> */}
         </DialogContent>
         <DialogActions>
           <Button variant="contained" onClick={dialogState.close}>
@@ -526,7 +524,7 @@ function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 
           width: (theme) => theme.spacing(3),
           [`.${svgIconClasses.root}`]: { fontSize: '1.25rem', color: 'text.secondary' },
         }}>
-        {item.data?.type === 'folder' ? <FolderClose /> : item.data?.meta.type === 'image' ? <Picture /> : <File />}
+        {item.data?.type === 'folder' ? <FolderClose /> : <File />}
       </Box>
 
       <Box
@@ -559,18 +557,18 @@ function TreeItemMenus({
   onCreateFolder?: (options?: { parent?: string[] }) => any;
   onCreateFile?: (options?: Partial<Omit<Parameters<typeof createFile>[0], 'store'>>) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
-  onLaunch?: (template: TemplateYjs) => any;
+  onLaunch?: (assistant: AssistantYjs) => any;
   onCompare?: () => void;
   onUndo?: () => void;
 }) {
   const { t } = useLocaleContext();
 
-  const template = item.type === 'file' && isTemplate(item.meta) ? item.meta : undefined;
+  const assistant = item.type === 'file' && isPromptFileYjs(item.meta) ? item.meta : undefined;
 
   const menus = [
     [
-      onLaunch && template && (
-        <ListItemButton key="launch" onClick={() => onLaunch(template)}>
+      onLaunch && assistant && (
+        <ListItemButton key="launch" onClick={() => onLaunch(assistant)}>
           <ListItemIcon>
             <External />
           </ListItemIcon>
@@ -594,7 +592,7 @@ function TreeItemMenus({
               <ListItemIcon>
                 <File />
               </ListItemIcon>
-              <ListItemText primary={t('newObject', { object: t('file') })} />
+              <ListItemText primary={t('newObject', { object: t('prompt') })} />
             </ListItemButton>,
 
             <ListItemButton key="createApi" onClick={() => onCreateFile({ parent: item.path, meta: { type: 'api' } })}>
@@ -667,9 +665,9 @@ function TreeItemMenus({
       onDeleteFile && (
         <ListItemButton key="deleteFile" onClick={() => onDeleteFile(item)}>
           <ListItemIcon>
-            <Trash />
+            <Trash color="warning" />
           </ListItemIcon>
-          <ListItemText primary={t('alert.delete')} />
+          <ListItemText primary={t('alert.delete')} primaryTypographyProps={{ color: 'warning.main' }} />
         </ListItemButton>
       ),
     ],
@@ -678,7 +676,7 @@ function TreeItemMenus({
     .filter((i) => !!i.length);
 
   return menus.map((group, index) => {
-    return [index !== 0 && <Divider key={`divider-${index}`} />, ...group];
+    return [index !== 0 && <Divider key={`divider-${index}`} sx={{ my: 0.5 }} />, ...group];
   });
 }
 
@@ -906,127 +904,126 @@ function TreeItem({
   );
 }
 
-function DeletedTemplates({
-  list,
-  changes,
-  projectId,
-  gitRef,
-  onCreateFile,
-}: {
-  projectId: string;
-  gitRef: string;
-  list: (TemplateYjs & { parent: string[] })[];
-  changes: (item: TemplateYjs) => {
-    key: string;
-    color: string;
-    tips: string;
-  } | null;
-  onCreateFile: ({ parent, meta }: { parent?: string[]; meta?: TemplateYjs }) => void;
-}) {
-  const { t } = useLocaleContext();
+// function DeletedTemplates({
+//   list,
+//   changes,
+//   projectId,
+//   gitRef,
+//   onCreateFile,
+// }: {
+//   projectId: string;
+//   gitRef: string;
+//   list: (AssistantYjs & { parent: string[] })[];
+//   changes: (item: AssistantYjs) => {
+//     key: string;
+//     color: string;
+//     tips: string;
+//   } | null;
+//   onCreateFile: ({ parent, meta }: { parent?: string[]; meta?: AssistantYjs }) => void;
+// }) {
+//   const { t } = useLocaleContext();
 
-  const [expanded, setExpanded] = useState<string | false>('delete-panel');
+//   const [expanded, setExpanded] = useState<string | false>('delete-panel');
 
-  const handleChange = (panel: string) => (_e: SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : false);
-  };
+//   const handleChange = (panel: string) => (_e: SyntheticEvent, isExpanded: boolean) => {
+//     setExpanded(isExpanded ? panel : false);
+//   };
 
-  return (
-    <Accordion
-      disableGutters
-      expanded={expanded === 'delete-panel'}
-      onChange={handleChange('delete-panel')}
-      elevation={0}
-      sx={{
-        ':before': { display: 'none' },
-        position: 'sticky',
-        bottom: 0,
-        p: 0,
-      }}>
-      <AccordionSummary
-        sx={{
-          px: 2,
-          bgcolor: 'grey.50',
-          minHeight: (theme) => theme.spacing(3.5),
-          [`.${accordionSummaryClasses.content}`]: {
-            m: 0,
-            py: 0,
-            overflow: 'hidden',
-            alignItems: 'center',
-          },
-        }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            minWidth: (theme) => theme.spacing(3),
-          }}>
-          <ChevronDown
-            sx={{
-              fontSize: 20,
-              transform: `rotateZ(${expanded ? '0' : '-90deg'})`,
-              transition: (theme) => theme.transitions.create('all'),
-            }}
-          />
-        </Box>
+//   return (
+//     <Accordion
+//       disableGutters
+//       expanded={expanded === 'delete-panel'}
+//       onChange={handleChange('delete-panel')}
+//       elevation={0}
+//       sx={{
+//         ':before': { display: 'none' },
+//         position: 'sticky',
+//         bottom: 0,
+//         p: 0,
+//       }}>
+//       <AccordionSummary
+//         sx={{
+//           px: 2,
+//           bgcolor: 'grey.50',
+//           minHeight: (theme) => theme.spacing(3.5),
+//           [`.${accordionSummaryClasses.content}`]: {
+//             m: 0,
+//             py: 0,
+//             overflow: 'hidden',
+//             alignItems: 'center',
+//           },
+//         }}>
+//         <Box
+//           sx={{
+//             display: 'flex',
+//             alignItems: 'center',
+//             minWidth: (theme) => theme.spacing(3),
+//           }}>
+//           <ChevronDown
+//             sx={{
+//               fontSize: 20,
+//               transform: `rotateZ(${expanded ? '0' : '-90deg'})`,
+//               transition: (theme) => theme.transitions.create('all'),
+//             }}
+//           />
+//         </Box>
 
-        <Typography variant="caption" flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
-          {t('diff.deleted')}
-        </Typography>
-      </AccordionSummary>
+//         <Typography variant="caption" flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
+//           {t('diff.deleted')}
+//         </Typography>
+//       </AccordionSummary>
 
-      <AccordionDetails sx={{ py: 1, px: 0 }}>
-        <Box maxHeight="120px" overflow="auto">
-          {list.map((item) => {
-            const icon = item.type === 'image' ? <Picture /> : <File />;
+//       <AccordionDetails sx={{ py: 1, px: 0 }}>
+//         <Box maxHeight="120px" overflow="auto">
+//           {list.map((item) => {
+//             const icon = <FileIcon type={item.type} />;
 
-            const change = changes(item);
-            if (!change) return null;
+//             const change = changes(item);
+//             if (!change) return null;
 
-            return (
-              <TreeItem
-                key={item.id}
-                icon={icon}
-                depth={0}
-                otherActions={
-                  <Tooltip title={t('restore')} disableInteractive placement="top">
-                    <Button
-                      sx={{ padding: 0.5, minWidth: 0 }}
-                      onClick={() => {
-                        const { parent, ...meta } = item;
-                        onCreateFile({ parent, meta });
-                      }}>
-                      <Undo sx={{ fontSize: 20 }} />
-                    </Button>
-                  </Tooltip>
-                }>
-                <Box sx={{ textDecoration: 'line-through', display: 'flex', alignItems: 'center', fontSize: '14px' }}>
-                  {!!item.parent?.length && (
-                    <Box
-                      sx={{
-                        color: (theme) => theme.palette.action.disabled,
-                      }}>{`${item.parent.join('/ ')}/`}</Box>
-                  )}
-                  {item.name || t('unnamed')}
-                </Box>
+//             return (
+//               <TreeItem
+//                 key={item.id}
+//                 icon={icon}
+//                 depth={0}
+//                 otherActions={
+//                   <Tooltip title={t('restore')} disableInteractive placement="top">
+//                     <Button
+//                       sx={{ padding: 0.5, minWidth: 0 }}
+//                       onClick={() => {
+//                         const { parent, ...meta } = item;
+//                         onCreateFile({ parent, meta });
+//                       }}>
+//                       <Undo sx={{ fontSize: 20 }} />
+//                     </Button>
+//                   </Tooltip>
+//                 }>
+//                 <Box sx={{ textDecoration: 'line-through', display: 'flex', alignItems: 'center', fontSize: '14px' }}>
+//                   {!!item.parent?.length && (
+//                     <Box
+//                       sx={{
+//                         color: (theme) => theme.palette.action.disabled,
+//                       }}>{`${item.parent.join('/ ')}/`}</Box>
+//                   )}
+//                   {item.name || t('unnamed')}
+//                 </Box>
 
-                <AwarenessIndicator
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  path={[item.id]}
-                  sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
-                />
-              </TreeItem>
-            );
-          })}
-        </Box>
-      </AccordionDetails>
-    </Accordion>
-  );
-}
+//                 <AwarenessIndicator
+//                   projectId={projectId}
+//                   gitRef={gitRef}
+//                   path={[item.id]}
+//                   sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
+//                 />
+//               </TreeItem>
+//             );
+//           })}
+//         </Box>
+//       </AccordionDetails>
+//     </Accordion>
+//   );
+// }
 
-function FileIcon({ type }: { type?: Exclude<FileType, { $base64: string }>['type'] }) {
-  if (type === 'image') return <Picture />;
+function FileIcon({ type }: { type?: AssistantYjs['type'] }) {
   if (type === 'api') return <LinkIcon />;
   if (type === 'function') return <Code />;
   return <File />;
