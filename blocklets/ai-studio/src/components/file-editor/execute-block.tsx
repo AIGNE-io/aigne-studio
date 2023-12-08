@@ -32,6 +32,7 @@ import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import Add from 'src/pages/project/icons/add';
 import Trash from 'src/pages/project/icons/trash';
 import {
+  AssistantYjs,
   PROMPTS_FOLDER_NAME,
   createFile,
   isApiFileYjs,
@@ -45,12 +46,14 @@ import PromptEditorField from './prompt-editor-field';
 export default function ExecuteBlockForm({
   projectId,
   gitRef,
+  assistant,
   value,
   readOnly,
   ...props
 }: {
   projectId: string;
   gitRef: string;
+  assistant: AssistantYjs;
   value: ExecuteBlockYjs;
   readOnly?: boolean;
 } & StackProps) {
@@ -86,7 +89,11 @@ export default function ExecuteBlockForm({
         <Stack>
           <Typography variant="caption">{t('prompt')}</Typography>
 
-          <PromptEditorField value={value.selectByPrompt} onChange={(prompt) => (value.selectByPrompt = prompt)} />
+          <PromptEditorField
+            assistant={assistant}
+            value={value.selectByPrompt}
+            onChange={(prompt) => (value.selectByPrompt = prompt)}
+          />
         </Stack>
       )}
 
@@ -245,7 +252,11 @@ const ToolDialog = forwardRef<
   const fileId = form.watch('id');
   const f = store.files[fileId];
   const file = isPromptFileYjs(f) || isApiFileYjs(f) || isFunctionFileYjs(f) ? f : undefined;
-  const parameters = file?.parameters && sortBy(Object.values(file.parameters), (i) => i.index);
+  const parameters =
+    file?.parameters &&
+    sortBy(Object.values(file.parameters), (i) => i.index).filter(
+      (i): i is typeof i & { data: { key: string } } => !!i.data.key
+    );
 
   return (
     <Dialog
@@ -255,7 +266,7 @@ const ToolDialog = forwardRef<
       {...DialogProps}
       component="form"
       onSubmit={form.handleSubmit(onSubmit)}>
-      <DialogTitle>Select Tool</DialogTitle>
+      <DialogTitle>{t('selectTool')}</DialogTitle>
 
       <DialogContent>
         <Stack gap={2}>
@@ -322,7 +333,7 @@ const ToolDialog = forwardRef<
                     <TextField
                       autoFocus
                       {...params}
-                      label="Tool"
+                      label={t('tool')}
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message}
                     />
@@ -347,9 +358,12 @@ const ToolDialog = forwardRef<
 
           <Typography variant="body1">{file?.description}</Typography>
 
-          <Typography variant="subtitle2" mb={-1} ml={1} color="text.secondary">
-            Parameters
-          </Typography>
+          {parameters && parameters.length > 0 && (
+            <Typography variant="subtitle2" mb={-1} ml={1} color="text.secondary">
+              {t('parameters')}
+            </Typography>
+          )}
+
           {parameters?.map(({ data: parameter }) => {
             if (!parameter?.key) return null;
 
@@ -376,10 +390,12 @@ const ToolDialog = forwardRef<
       </DialogContent>
 
       <DialogActions>
-        {DialogProps?.onClose && <Button onClick={(e) => DialogProps?.onClose?.(e, 'escapeKeyDown')}>Cancel</Button>}
+        {DialogProps?.onClose && (
+          <Button onClick={(e) => DialogProps?.onClose?.(e, 'escapeKeyDown')}>{t('cancel')}</Button>
+        )}
 
         <Button variant="contained" type="submit">
-          Save
+          {t('save')}
         </Button>
       </DialogActions>
     </Dialog>

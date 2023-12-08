@@ -6,7 +6,7 @@ import Add from 'src/pages/project/icons/add';
 import Eye from 'src/pages/project/icons/eye';
 import EyeNo from 'src/pages/project/icons/eye-no';
 import { usePromptsState } from 'src/pages/project/prompt-state';
-import { nextTemplateId } from 'src/pages/project/yjs-state';
+import { AssistantYjs, nextTemplateId } from 'src/pages/project/yjs-state';
 
 import { ExecuteBlockYjs, PromptFileYjs, PromptMessage } from '../../../../api/src/store/projects';
 import { useReadOnly } from '../../../contexts/session';
@@ -68,9 +68,14 @@ export default function PromptFileEditor({
 
                 const children =
                   prompt.type === 'message' ? (
-                    <PromptItemMessage value={prompt.data} promptHidden={prompt.visibility === 'hidden'} />
+                    <PromptItemMessage
+                      assistant={value}
+                      value={prompt.data}
+                      promptHidden={prompt.visibility === 'hidden'}
+                    />
                   ) : (
                     <PromptItemExecuteBlock
+                      assistant={value}
                       projectId={projectId}
                       gitRef={gitRef}
                       value={prompt.data}
@@ -138,7 +143,15 @@ export default function PromptFileEditor({
   );
 }
 
-function PromptItemMessage({ value, promptHidden }: { value: PromptMessage; promptHidden?: boolean }) {
+function PromptItemMessage({
+  assistant,
+  value,
+  promptHidden,
+}: {
+  assistant: AssistantYjs;
+  value: PromptMessage;
+  promptHidden?: boolean;
+}) {
   const { t } = useLocaleContext();
 
   return (
@@ -158,7 +171,11 @@ function PromptItemMessage({ value, promptHidden }: { value: PromptMessage; prom
         <RoleSelectField size="small" value={value.role} onChange={(e) => (value.role = e.target.value as any)} />
       </Stack>
 
-      <StyledPromptEditor value={value.content} onChange={(content) => (value.content = content)} />
+      <StyledPromptEditor
+        assistant={assistant}
+        value={value.content}
+        onChange={(content) => (value.content = content)}
+      />
     </Stack>
   );
 }
@@ -167,15 +184,18 @@ function PromptItemExecuteBlock({
   projectId,
   gitRef,
   value,
+  assistant,
   promptHidden,
 }: {
   projectId: string;
   gitRef: string;
   value: ExecuteBlockYjs;
+  assistant: AssistantYjs;
   promptHidden?: boolean;
 }) {
   return (
     <ExecuteBlockForm
+      assistant={assistant}
       projectId={projectId}
       gitRef={gitRef}
       value={value}

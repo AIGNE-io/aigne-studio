@@ -14,6 +14,7 @@ import CommentPlugin from './plugins/CommentPlugin';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
 import FloatingToolbarPlugin from './plugins/FloatingToolbarPlugin';
 import TreeViewPlugin from './plugins/TreeViewPlugin';
+import VariablePickerPlugin from './plugins/VariablePickerPlugin';
 import VariablePlugin from './plugins/VariablePlugin';
 import ContentEditable from './ui/content-editable';
 import Placeholder from './ui/content-placeholder';
@@ -29,6 +30,7 @@ export default function Editor({
   editorRef,
   popperElement,
   componentPickerProps,
+  variablePickerProps,
   ContentProps,
 }: {
   useVariableNode?: boolean;
@@ -41,6 +43,7 @@ export default function Editor({
   editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
   popperElement?: (editor: LexicalEditor) => any;
   componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
+  variablePickerProps?: ComponentProps<typeof VariablePickerPlugin>;
   ContentProps?: BoxProps;
 }): JSX.Element {
   const placeholderNode = <Placeholder>{placeholder}</Placeholder>;
@@ -62,6 +65,7 @@ export default function Editor({
       <HistoryPlugin />
       {onChange && <OnChangePlugin onChange={onChange} ignoreSelectionChange />}
       {editorRef !== undefined && <EditorRefPlugin editorRef={editorRef} />}
+      {variablePickerProps && <VariablePickerPlugin {...variablePickerProps} />}
 
       {children}
     </>

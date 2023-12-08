@@ -375,4 +375,5 @@ export default flat({
   parameter: '参数',
   value: '值',
   haveNotAddedTip: '您还没有添加任何{object}',
+  selectTool: '选择工具',
 });

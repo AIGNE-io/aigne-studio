@@ -377,4 +377,5 @@ export default flat({
   parameter: 'Parameter',
   value: 'Value',
   haveNotAddedTip: "You haven't added any {object} blocks yet",
+  selectTool: 'Select Tool',
 });

@@ -6,3 +6,4 @@ export * from './app';
 
 export * from './plugins/ComponentPickerPlugin';
 export * from './plugins/VariablePlugin';
+export * from './plugins/VariablePickerPlugin';

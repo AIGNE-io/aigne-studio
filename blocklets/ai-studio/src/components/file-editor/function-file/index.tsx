@@ -66,6 +66,7 @@ export default function FunctionFileEditor({
         {value.prepareExecutes && Object.values(value.prepareExecutes).length ? (
           <Stack gap={2}>
             <PrepareExecuteList
+              assistant={value}
               projectId={projectId}
               gitRef={gitRef}
               value={value.prepareExecutes}

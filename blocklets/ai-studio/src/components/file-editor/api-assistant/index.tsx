@@ -80,6 +80,7 @@ export default function ApiAssistantEditor({
         {value.prepareExecutes && Object.values(value.prepareExecutes).length ? (
           <Stack gap={2}>
             <PrepareExecuteList
+              assistant={value}
               projectId={projectId}
               gitRef={gitRef}
               value={value.prepareExecutes}
@@ -141,7 +142,11 @@ export default function ApiAssistantEditor({
                         />
                       </TableCell>
                       <TableCell>
-                        <PromptEditorField value={parameter.value} onChange={(value) => (parameter.value = value)} />
+                        <PromptEditorField
+                          assistant={value}
+                          value={parameter.value}
+                          onChange={(value) => (parameter.value = value)}
+                        />
                       </TableCell>
                       <TableCell align="center">
                         <Button
