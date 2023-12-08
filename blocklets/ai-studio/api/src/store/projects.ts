@@ -774,24 +774,31 @@ export async function getAssistantFromRepository({
   repository,
   ref,
   working,
-  fileId,
+  assistantId,
+  rejectOnEmpty,
 }: {
   repository: Repository<any>;
   ref: string;
   working?: boolean;
-  fileId: string;
-}): Promise<Exclude<FileType, { $base64: string }>> {
+  assistantId: string;
+  rejectOnEmpty?: boolean | Error;
+}): Promise<Assistant> {
+  let file: Assistant;
+
   if (working) {
     const working = await repository.working({ ref });
-    const file = working.syncedStore.files[fileId];
-    if (!file) throw new Error(`no such file ${fileId}`);
-    const f = fileFromYjs(file);
-    if (isRawFile(f)) throw new Error(`File ${fileId} is raw file`);
-    return f;
+    const f = working.syncedStore.files[assistantId];
+    file = f && fileFromYjs(f);
+  } else {
+    const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${assistantId}.yaml`));
+    file = p && parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
   }
 
-  const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${fileId}.yaml`));
-  if (!p) throw new Error(`no such file ${fileId}`);
+  if (!file || !isAssistant(file)) {
+    if (rejectOnEmpty) {
+      throw typeof rejectOnEmpty !== 'boolean' ? rejectOnEmpty : new Error(`no such file ${assistantId}`);
+    }
+  }
 
-  return parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
+  return file;
 }

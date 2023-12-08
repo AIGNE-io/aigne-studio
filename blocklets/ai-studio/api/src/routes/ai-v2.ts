@@ -25,11 +25,13 @@ import {
   ExecuteBlock,
   FunctionFile,
   Project,
+  Prompt,
   PromptFile,
   defaultBranch,
   getAssistantFromRepository,
   getRepository,
   isApiFile,
+  isExecuteBlock,
   isFunctionFile,
   isPromptFile,
 } from '../store/projects';
@@ -66,7 +68,7 @@ router.post('/call/v2', compression(), ensureComponentCallOrAuth(), async (req, 
       repository,
       ref: input.ref,
       working: input.working,
-      fileId,
+      assistantId: fileId,
     });
   };
 
@@ -128,6 +130,11 @@ export type ResponseSSEV2 = { taskId: string; assistantId: string; delta: { cont
 
 type RunAssistantCallback = (e: ResponseSSEV2) => void;
 
+interface GetAssistant {
+  (assistantId: string, options: { rejectOnEmpty: true | Error }): Promise<Assistant>;
+  (assistantId: string, options?: { rejectOnEmpty?: false }): Promise<Assistant | null>;
+}
+
 const taskIdGenerator = new Worker();
 
 async function runAssistant({
@@ -141,7 +148,7 @@ async function runAssistant({
 }: {
   taskId: string;
   project: Project;
-  getAssistant: (assistantId: string) => Promise<Assistant>;
+  getAssistant: GetAssistant;
   assistant: Assistant;
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
@@ -197,7 +204,7 @@ async function runFunctionAssistant({
   log,
 }: {
   project: Project;
-  getAssistant: (assistantId: string) => Promise<Assistant>;
+  getAssistant: GetAssistant;
   taskId: string;
   assistant: FunctionFile;
   context?: { [key: string]: any };
@@ -205,23 +212,17 @@ async function runFunctionAssistant({
   callback?: RunAssistantCallback;
   log: Log;
 }) {
-  const prepareExecuteResults = Object.fromEntries(
-    await Promise.all(
-      (assistant.prepareExecutes ?? []).map(async (executeBlock) => {
-        const result = await runExecuteBlock({
-          taskId: taskIdGenerator.nextId().toString(),
-          project,
-          assistant,
-          getAssistant,
-          executeBlock,
-          parameters,
-          callback,
-          log,
-        });
-        return [executeBlock.variable || executeBlock.id, result];
+  const results = assistant.prepareExecutes?.length
+    ? await runExecuteBlocks({
+        project,
+        assistant,
+        getAssistant,
+        parameters,
+        executeBlocks: assistant.prepareExecutes,
+        callback,
+        log,
       })
-    )
-  );
+    : [];
 
   if (!assistant.code) throw new Error(`Assistant ${assistant.id}'s code is empty`);
 
@@ -230,7 +231,9 @@ async function runFunctionAssistant({
     sandbox: {
       context: {
         get: (name: any) => {
-          let result = context?.[name] || prepareExecuteResults[name];
+          if (isNil(name) || name === '') return undefined;
+
+          let result = context?.[name] || results.find((i) => i[0].variable === name);
           while (typeof result === 'function') {
             result = result();
           }
@@ -279,7 +282,7 @@ async function runApiAssistant({
   log,
 }: {
   project: Project;
-  getAssistant: (assistantId: string) => Promise<Assistant>;
+  getAssistant: GetAssistant;
   taskId: string;
   assistant: ApiFile;
   parameters?: { [key: string]: any };
@@ -288,29 +291,30 @@ async function runApiAssistant({
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
 
-  const prepareExecuteResults = Object.fromEntries(
-    await Promise.all(
-      (assistant.prepareExecutes ?? []).map(async (executeBlock) => {
-        const result = await runExecuteBlock({
-          taskId: taskIdGenerator.nextId().toString(),
-          project,
-          assistant,
-          getAssistant,
-          executeBlock,
-          parameters,
-          callback,
-          log,
-        });
-        return [executeBlock.variable || executeBlock.id, result];
+  const results = assistant.prepareExecutes?.length
+    ? await runExecuteBlocks({
+        project,
+        assistant,
+        getAssistant,
+        parameters,
+        executeBlocks: assistant.prepareExecutes,
+        callback,
+        log,
       })
-    )
-  );
+    : [];
+
+  const isSameVariable = (left?: string, right?: string) => left && left === right;
 
   const args = Object.fromEntries(
     await Promise.all(
       (assistant.parameters ?? [])
         .filter((i): i is typeof i & { key: string } => !!i.key)
-        .map(async (i) => [i.key, parameters?.[i.key] || prepareExecuteResults[i.key] || i.defaultValue])
+        .map(async (i) => [
+          i.key,
+          parameters?.[i.key] ||
+            results.find((r) => isSameVariable(i.key, r[0].variable) || isSameVariable(i.label, r[0].variable))?.[1] ||
+            i.defaultValue,
+        ])
     )
   );
 
@@ -362,7 +366,7 @@ async function runPromptAssistant({
 }: {
   taskId: string;
   project: Project;
-  getAssistant: (assistantId: string) => Promise<Assistant>;
+  getAssistant: GetAssistant;
   assistant: PromptFile;
   parameters: { [key: string]: any };
   callback?: RunAssistantCallback;
@@ -371,6 +375,29 @@ async function runPromptAssistant({
   if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
 
   const childStartDate = new Date();
+
+  const executeBlocks = assistant.prompts
+    .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i))
+    .map((i) => i.data);
+
+  const blockResults = await runExecuteBlocks({
+    project,
+    assistant,
+    getAssistant,
+    executeBlocks,
+    parameters,
+    callback,
+    log,
+  });
+
+  const variables = { ...parameters };
+
+  for (const [block, result] of blockResults) {
+    const { variable } = block;
+    if (variable) {
+      variables[variable] = result;
+    }
+  }
 
   const messages = (
     await Promise.all(
@@ -386,23 +413,17 @@ async function runPromptAssistant({
                   ?.split('\n')
                   .filter((i) => !i.startsWith(COMMENT_PREFIX))
                   .join('\n') || '',
-                parameters
+                variables
               ),
             };
           }
 
           if (prompt.type === 'executeBlock') {
-            const result = await runExecuteBlock({
-              taskId: taskIdGenerator.nextId().toString(),
-              project,
-              assistant,
-              getAssistant,
-              executeBlock: prompt.data,
-              parameters,
-              callback,
-              log,
-            });
+            const result = blockResults.find((i) => i[0].id === prompt.data.id)?.[1];
 
+            if (isNil(result) || result === '') return undefined;
+
+            // TODO: 支持选择 block 的结果处理方式：skip/as context/custom
             return {
               role: 'system' as const,
               content: typeof result === 'string' ? result : JSON.stringify(result),
@@ -450,6 +471,56 @@ async function runPromptAssistant({
   return result;
 }
 
+async function runExecuteBlocks({
+  project,
+  assistant,
+  getAssistant,
+  parameters,
+  executeBlocks,
+  callback,
+  log,
+}: {
+  project: Project;
+  assistant: Assistant;
+  getAssistant: GetAssistant;
+  parameters?: { [key: string]: any };
+  executeBlocks: ExecuteBlock[];
+  callback?: (e: ResponseSSEV2) => any;
+  log: Log;
+}) {
+  const variables = {
+    ...parameters,
+  };
+
+  const tasks: [ExecuteBlock, () => () => Promise<any>][] = [];
+  const cache: { [key: string]: Promise<any> } = {};
+
+  for (const executeBlock of executeBlocks) {
+    const task = () => async () => {
+      cache[executeBlock.id] ??= runExecuteBlock({
+        taskId: taskIdGenerator.nextId().toString(),
+        project,
+        assistant,
+        getAssistant,
+        executeBlock,
+        parameters: variables,
+        callback,
+        log,
+      });
+
+      return cache[executeBlock.id]!;
+    };
+
+    if (executeBlock.variable) {
+      variables[executeBlock.variable] = task;
+    }
+
+    tasks.push([executeBlock, task]);
+  }
+
+  return Promise.all(tasks.map((i) => i[1]()().then((result) => [i[0], result] as const)));
+}
+
 async function runExecuteBlock({
   taskId,
   project,
@@ -463,7 +534,7 @@ async function runExecuteBlock({
   taskId: string;
   project: Project;
   assistant: Assistant;
-  getAssistant: (assistantId: string) => Promise<Assistant>;
+  getAssistant: GetAssistant;
   executeBlock: ExecuteBlock;
   parameters?: { [key: string]: any };
   callback?: (e: ResponseSSEV2) => void;
@@ -476,14 +547,8 @@ async function runExecuteBlock({
     const result = (
       await Promise.all(
         tools.map(async (tool) => {
-          // NOTE: may the assistant not exist.
-          let assistant: Assistant;
-          try {
-            assistant = await getAssistant(tool.id);
-          } catch (error) {
-            logger.error('Get assistant error', error);
-            return undefined;
-          }
+          const assistant = await getAssistant(tool.id);
+          if (!assistant) return undefined;
 
           const args = Object.fromEntries(
             await Promise.all(
@@ -491,9 +556,8 @@ async function runExecuteBlock({
                 .filter((i): i is typeof i & { key: string } => !!i.key)
                 .map(async (i) => {
                   const template = tool.parameters?.[i.key]?.trim();
-                  const value = template
-                    ? await renderMessage(template, parameters)
-                    : parameters?.[i.key] || (i.label && parameters?.[i.label]);
+                  const value = await renderMessage(template?.trim() || `{{${i.key}}}`, parameters);
+
                   return [i.key, value];
                 })
             )
@@ -523,14 +587,8 @@ async function runExecuteBlock({
     const toolAssistants = (
       await Promise.all(
         tools.map(async (tool) => {
-          // NOTE: may the assistant not exist.
-          let assistant: Assistant;
-          try {
-            assistant = await getAssistant(tool.id);
-          } catch (error) {
-            logger.error('Get assistant error', error);
-            return undefined;
-          }
+          const assistant = await getAssistant(tool.id);
+          if (!assistant) return undefined;
 
           return {
             tool,
