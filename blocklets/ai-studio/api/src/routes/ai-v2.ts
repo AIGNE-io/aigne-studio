@@ -450,7 +450,8 @@ async function runPromptAssistant({
     topP: assistant.topP ?? project?.topP,
     presencePenalty: assistant.presencePenalty ?? project?.presencePenalty,
     frequencyPenalty: assistant.frequencyPenalty ?? project?.frequencyPenalty,
-    maxTokens: assistant.maxTokens ?? project?.maxTokens,
+    // FIXME: should be maxTokens - prompt tokens
+    // maxTokens: assistant.maxTokens ?? project?.maxTokens,
     stream: true,
     messages,
   };
