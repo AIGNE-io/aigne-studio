@@ -74,6 +74,7 @@ export default function BasicInfoForm({
           <TagsAutoComplete
             readOnly={readOnly}
             projectId={projectId}
+            gitRef={gitRef}
             value={value.tags ?? []}
             onChange={(_, tags) => (value.tags = tags)}
             renderInput={(params) => (

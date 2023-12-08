@@ -1,16 +1,18 @@
 import { Autocomplete, AutocompleteProps, CircularProgress, TextField, TextFieldProps } from '@mui/material';
 import { useReactive, useThrottleEffect } from 'ahooks';
 import { useState } from 'react';
-
-import { getTemplateTags } from '../../libs/template-tag';
-
-const SEARCH_PAGE_SIZE = 50;
+import { AssistantYjs, isAssistant, useProjectStore } from 'src/pages/project/yjs-state';
 
 export default function TagsAutoComplete({
   projectId,
+  gitRef,
   label,
   ...props
-}: { projectId: string } & Partial<AutocompleteProps<string, true, false, true> & Pick<TextFieldProps, 'label'>>) {
+}: { projectId: string; gitRef: string } & Partial<
+  AutocompleteProps<string, true, false, true> & Pick<TextFieldProps, 'label'>
+>) {
+  const { store } = useProjectStore(projectId, gitRef);
+
   const [search, setSearch] = useState('');
   const state = useReactive<{ open: boolean; loading: boolean; options: string[] }>({
     open: false,
@@ -27,8 +29,15 @@ export default function TagsAutoComplete({
       (async () => {
         state.loading = true;
         try {
-          const { tags } = await getTemplateTags({ projectId, limit: SEARCH_PAGE_SIZE, search });
-          state.options = tags.map((i) => i.name);
+          const tags = [
+            ...new Set(
+              Object.values(store.files)
+                .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+                .flatMap((i) => i.tags)
+            ),
+          ];
+
+          state.options = tags.filter((i): i is string => !!i);
         } finally {
           state.loading = false;
         }
