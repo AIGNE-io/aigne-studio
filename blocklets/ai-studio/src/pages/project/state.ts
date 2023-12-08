@@ -501,7 +501,6 @@ const templatesState = (projectId: string, gitRef: string) => {
 export const useTemplatesChangesState = (projectId: string, ref: string) => {
   const { t } = useLocaleContext();
   const [state, setState] = useRecoilState(templatesState(projectId, ref));
-
   const { store, synced } = useProjectStore(projectId, ref);
 
   useThrottleEffect(
