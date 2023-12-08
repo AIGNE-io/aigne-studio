@@ -22,6 +22,7 @@ import {
   commitWorking,
   defaultBranch,
   defaultRemote,
+  fileToYjs,
   getRepository,
   getTemplateIdFromPath,
   getTemplatesFromRepository,
@@ -29,7 +30,6 @@ import {
   projectTemplates,
   repositoryRoot,
   syncRepository,
-  templateToYjs,
 } from '../store/projects';
 import { Template, getTemplate, nextTemplateId } from '../store/templates';
 import { getAuthorInfo } from './log';
@@ -277,7 +277,7 @@ export function projectRoutes(router: Router) {
 
       const item = sample(icons);
       if (item?.filename) {
-        icon = createImageUrl(`${req.protocol}://${req.host}`, item.filename);
+        icon = createImageUrl(`${req.protocol}://${req.hostname}`, item.filename);
       }
 
       const project = await Project.create({
@@ -295,7 +295,7 @@ export function projectRoutes(router: Router) {
       const working = await repository.working({ ref: defaultBranch });
       for (const { parent, ...file } of template.files) {
         const id = nextTemplateId();
-        working.syncedStore.files[id] = templateToYjs({ ...file, id });
+        working.syncedStore.files[id] = fileToYjs({ ...file, id });
         working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
       }
       await commitWorking({

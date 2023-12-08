@@ -2,7 +2,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { cx } from '@emotion/css';
-import ForkRightSharpIcon from '@mui/icons-material/ForkRightSharp';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
@@ -66,8 +65,11 @@ type ProjectWithUserInfo = Project & {
   templateCount: number;
 };
 
-const CARD_HEIGHT = 140;
+const CARD_HEIGHT = 160;
 const MAX_WIDTH = 300;
+
+const gap = { xs: 2, sm: 3 };
+const mt = { xs: 3, sm: 4 };
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
@@ -83,7 +85,7 @@ export default function ProjectsPage() {
 
   return (
     <Stack minHeight="100%" overflow="auto">
-      <Stack m={{ xs: 2, sm: 3 }} flexGrow={1} gap={3}>
+      <Stack m={gap} flexGrow={1} gap={mt}>
         <ProjectMenu />
 
         <Section enableCollapse title={t('newFromTemplates')}>
@@ -91,7 +93,7 @@ export default function ProjectsPage() {
             <ProjectList section="templates" list={templates as ProjectWithUserInfo[]} />
           ) : (
             loading && (
-              <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
+              <Stack direction="row" flexWrap="wrap" gap={gap}>
                 <ProjectItemSkeleton
                   width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
                   maxWidth={MAX_WIDTH}
@@ -111,7 +113,7 @@ export default function ProjectsPage() {
           {projects.length ? (
             <ProjectList section="projects" list={projects as ProjectWithUserInfo[]} />
           ) : loading ? (
-            <Stack direction="row" flexWrap="wrap" gap={{ xs: 2, sm: 3 }}>
+            <Stack direction="row" flexWrap="wrap" gap={gap}>
               <ProjectItemSkeleton
                 width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
                 maxWidth={MAX_WIDTH}
@@ -329,7 +331,6 @@ function Section({
         sx={{
           position: 'sticky',
           top: 0,
-          bgcolor: 'background.paper',
           zIndex: 1,
           cursor: enableCollapse ? 'pointer' : 'default',
           alignItems: 'center',
@@ -341,7 +342,7 @@ function Section({
         </Typography>
 
         {enableCollapse && (
-          <IconButton size="small">
+          <IconButton size="small" sx={{ m: 0, p: 0 }}>
             <ChevronDown
               sx={{
                 transform: `rotateZ(${templatesVisible ? '-180deg' : '0deg'})`,
@@ -352,7 +353,7 @@ function Section({
         )}
       </Stack>
 
-      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ mt: 1.5, position: 'relative' }}>
+      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ mt, position: 'relative' }}>
         {children}
       </Collapse>
     </Box>
@@ -374,7 +375,7 @@ function ProjectList({
 
   return (
     <>
-      <ProjectListContainer>
+      <ProjectListContainer gap={gap}>
         {list.map((item) => {
           const menuOpen = menuAnchor?.section === section && menuAnchor?.id === item._id;
 
@@ -481,18 +482,12 @@ function ProjectItemSkeleton({ ...props }: StackProps) {
       </Stack>
 
       <Stack direction="row" gap={2}>
-        <Skeleton variant="rectangular" width={80} height={80} />
+        <Skeleton variant="rectangular" width={64} height={64} />
 
         <Stack width={0} flex={1}>
           <Skeleton width="100%" variant="text" height={28} />
           <Skeleton width="100%" variant="text" height={28} />
         </Stack>
-      </Stack>
-
-      <Stack direction="row" gap={1} mt={1} alignItems="center">
-        <Skeleton width="40px" variant="text" height={28} />
-        <Skeleton width="40px" variant="text" height={28} />
-        <Skeleton width="40px" variant="text" height={28} />
       </Stack>
     </ProjectItemRoot>
   );
@@ -564,18 +559,10 @@ function ProjectItem({
 
   return (
     <ProjectItemRoot {...props} className={cx(props.className)}>
-      <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between" mb={1}>
-        <Stack direction="row" gap={1} width={0} flex={1} alignItems="center">
-          <Box className="logo" sx={{ width: '20px', height: '20px' }}>
-            {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 20 }} />}
-          </Box>
-
-          <Stack width={0} flex={1}>
-            <Box className="name" sx={{ fontWeight: (theme) => theme.typography.fontWeightBold }}>
-              {name || t('unnamed')}
-            </Box>
-          </Stack>
-        </Stack>
+      <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between">
+        <Box className="logo" sx={{ width: '22px', height: '22px' }}>
+          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 24 }} />}
+        </Box>
 
         {users && Array.isArray(users) && !!users.length && (
           <AvatarGroup total={users.length}>
@@ -600,10 +587,20 @@ function ProjectItem({
         )}
       </Stack>
 
-      <Box flex={1}>
+      <Box flex={1} my={1.5}>
+        <Box
+          className="name"
+          sx={{
+            fontWeight: (theme) => theme.typography.fontWeightBold,
+            fontSize: (theme) => theme.typography.subtitle1.fontSize,
+          }}>
+          {name || t('unnamed')}
+        </Box>
+
         <Box
           className="desc"
           sx={{
+            mt: 0.5,
             color: (theme) => theme.palette.text.secondary,
             fontSize: (theme) => theme.typography.caption.fontSize,
           }}>
@@ -611,7 +608,7 @@ function ProjectItem({
         </Box>
       </Box>
 
-      <Stack direction="row" gap={2} mt={1} alignItems="center" justifyContent="space-between">
+      <Stack direction="row" gap={2} height={20} alignItems="center" justifyContent="space-between">
         <Stack
           direction="row"
           gap={2}
@@ -621,18 +618,6 @@ function ProjectItem({
               <RelativeTime value={createdAt} locale={locale} />
             </Box>
           )}
-
-          <Box>{t('templates', { count: templateCount })}</Box>
-
-          <Tooltip
-            title={branches.length > 1 ? t('branches.more', { counts: branches.length }) : t('branches.one')}
-            placement="top"
-            disableInteractive>
-            <Stack direction="row" alignItems="center">
-              <ForkRightSharpIcon sx={{ fontSize: 14 }} />
-              <Box>{`${branches.length}`}</Box>
-            </Stack>
-          </Tooltip>
 
           {!!formatGitUrl && (
             <Tooltip title={formatGitUrl} placement="top">
@@ -653,7 +638,7 @@ function ProjectItem({
           )}
         </Stack>
 
-        <Box mr={-0.5}>
+        <Box mr={-0.5} className="action">
           {(actions || mainActions) && (
             <Stack direction="row">
               {mainActions}
@@ -670,15 +655,19 @@ const ProjectItemRoot = styled(Stack)`
   width: 100%;
   cursor: pointer;
   overflow: hidden;
-  padding: 8px 16px;
+  padding: ${({ theme }) => theme.shape.borderRadius * 1.5}px;
   position: relative;
   border-width: 1px;
   border-style: solid;
   border-color: ${({ theme }) => theme.palette.divider};
   border-radius: 16px;
 
-  :hover {
-    box-shadow: ${({ theme }) => theme.shadows[1]};
+  &:hover {
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.08);
+
+    .action {
+      display: flex;
+    }
   }
 
   .logo {
@@ -701,6 +690,10 @@ const ProjectItemRoot = styled(Stack)`
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+  }
+
+  .action {
+    display: none;
   }
 `;
 
@@ -740,5 +733,4 @@ function LoadingMenuItem({ ...props }: MenuItemProps) {
 const ProjectListContainer = styled(Box)`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
 `;

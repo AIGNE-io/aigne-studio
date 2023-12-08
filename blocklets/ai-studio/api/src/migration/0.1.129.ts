@@ -6,7 +6,7 @@ import { glob } from 'glob';
 
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
-import { getRepository, isTemplate } from '../store/projects';
+import { getRepository } from '../store/projects';
 
 const { name } = require('../../../package.json');
 
@@ -24,6 +24,8 @@ async function migrate() {
     })
     .filter((i): i is NonNullable<typeof i> => !!i);
 
+  const isPromptFile = (i: any): i is { id: string } => typeof i.id === 'string';
+
   for (const { projectId, ref } of workings) {
     try {
       const repo = await getRepository({ projectId });
@@ -33,7 +35,7 @@ async function migrate() {
 
       for (const key of keys) {
         const file = working.syncedStore.files[key];
-        if (file && isTemplate(file)) {
+        if (file && isPromptFile(file)) {
           working.syncedStore.tree[file.id] = working.syncedStore.tree[key];
           working.syncedStore.files[file.id] = getYjsValue(working.syncedStore.files[key])?.toJSON();
 

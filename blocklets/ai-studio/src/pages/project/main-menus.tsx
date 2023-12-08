@@ -26,7 +26,7 @@ export default function MainMenus({ ...props }: Omit<MenusProps, 'menus'>) {
     }
 
     return menus;
-  }, [projectId]);
+  }, [projectId, t]);
 
   return <Menus {...props} menus={menus} />;
 }

@@ -11,7 +11,6 @@ import {
 
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
 import { $createCommentNode, $isCommentNode, COMMENT_PREFIX } from './plugins/CommentPlugin/comment-node';
-import { $createRoleSelectNode, $isRoleSelectNode } from './plugins/RolePlugin/role-select-node';
 import { isBracketStartAndEnd, splitText } from './plugins/VariablePlugin/utils/util';
 import { $createVariableNode, $isVariableTextNode } from './plugins/VariablePlugin/variable-text-node';
 
@@ -38,8 +37,6 @@ function getAllVariablesFn(nodes: Node[]): string[] {
   return variables;
 }
 
-export type Role = 'system' | 'user' | 'assistant';
-
 export function tryParseJSONObject(str: string) {
   if (!str) {
     return false;
@@ -56,7 +53,7 @@ export function tryParseJSONObject(str: string) {
   return false;
 }
 
-export function text2EditorState(content?: string, role?: Role): Promise<EditorState> {
+export function text2EditorState(content?: string): Promise<EditorState> {
   return new Promise((resolve, reject) => {
     const editor = createHeadlessEditor({
       nodes: [...PromptEditorNodes],
@@ -66,9 +63,6 @@ export function text2EditorState(content?: string, role?: Role): Promise<EditorS
     editor.update(() => {
       const root = $getRoot();
       const paragraph = $createParagraphNode();
-      if (role) {
-        paragraph.append($createRoleSelectNode(role));
-      }
 
       if (content) {
         const rows = content.split(/\n/);
@@ -107,7 +101,7 @@ export function text2EditorState(content?: string, role?: Role): Promise<EditorS
   });
 }
 
-export function editorState2Text(editorState: EditorState): Promise<{ content: string; role?: Role }> {
+export function editorState2Text(editorState: EditorState): Promise<{ content: string }> {
   // 为了触发文本变化事件
   const TEMP_TEXT = 'TEMP_TEXT';
 
@@ -119,17 +113,10 @@ export function editorState2Text(editorState: EditorState): Promise<{ content: s
 
     editor.setEditorState(editor.parseEditorState(editorState.toJSON()));
 
-    let role: Role | undefined;
-
     editor.update(() => {
       const root = $getRoot();
       const children = root.getFirstChild();
       if (children !== null && $isParagraphNode(children)) {
-        const roleNode = children.getFirstChild();
-        if (roleNode !== null && $isRoleSelectNode(roleNode)) {
-          role = roleNode.__text as Role;
-        }
-
         const temp = $createTextNode(TEMP_TEXT);
         children.append(temp);
       } else {
@@ -138,7 +125,7 @@ export function editorState2Text(editorState: EditorState): Promise<{ content: s
     });
 
     editor.registerTextContentListener((textContent) => {
-      resolve({ content: textContent.slice(0, -TEMP_TEXT.length), role });
+      resolve({ content: textContent.slice(0, -TEMP_TEXT.length) });
     });
   });
 }
@@ -154,6 +141,5 @@ export function getAllVariables(editorState: string) {
 
 export { $createCommentNode, $isCommentNode };
 export { $createVariableNode, $isVariableTextNode };
-export { $createRoleSelectNode, $isRoleSelectNode };
 export { $createParagraphNode, $createLineBreakNode, $createTextNode, $isParagraphNode, $isTextNode };
 export { COMMENT_PREFIX };

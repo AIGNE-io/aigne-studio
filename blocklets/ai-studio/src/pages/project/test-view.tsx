@@ -3,6 +3,7 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Error } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import { Alert, Box, Button, Stack, Tooltip, Typography, styled } from '@mui/material';
+import { ResponseSSEV2 } from 'api/src/routes/ai-v2';
 import { cloneDeep, sortBy } from 'lodash';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
@@ -13,20 +14,21 @@ import RefreshSquareIcon from './solar-linear-icons/refresh-square';
 import RulerCrossPen from './solar-linear-icons/ruler-cross-pen';
 import TrashBinIcon from './solar-linear-icons/trash-bin';
 import { useDebugState } from './state';
+import { AssistantYjs } from './yjs-state';
 
 export default function DebugView({
   projectId,
   gitRef,
-  template,
+  assistant,
   setCurrentTab,
 }: {
   projectId: string;
   gitRef: string;
-  template: TemplateYjs;
+  assistant: AssistantYjs;
   setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
-  const tests = sortBy(Object.values(template.tests ?? {}), 'index');
+  const tests = sortBy(Object.values(assistant.tests ?? {}), 'index');
 
   const refs = useRef<{ [key: string]: ImperativeTestCaseView | null }>({});
   const [running, setRunning] = useState(false);
@@ -36,7 +38,7 @@ export default function DebugView({
       setRunning(true);
       await Promise.all(
         Object.entries(refs.current)
-          .filter(([id]) => template.tests?.[id])
+          .filter(([id]) => assistant.tests?.[id])
           .map(([, ref]) => ref?.run())
       );
     } finally {
@@ -73,7 +75,7 @@ export default function DebugView({
             ref={(ref) => (refs.current[data.id] = ref)}
             projectId={projectId}
             gitRef={gitRef}
-            template={template}
+            assistant={assistant}
             test={data}
             setCurrentTab={setCurrentTab}
           />
@@ -92,16 +94,16 @@ const TestCaseView = forwardRef<
   {
     projectId: string;
     gitRef: string;
-    template: TemplateYjs;
+    assistant: AssistantYjs;
     test: NonNullable<TemplateYjs['tests']>[string]['data'];
     setCurrentTab: (tab: string) => void;
   }
->(({ projectId, gitRef, template, test, setCurrentTab }, ref) => {
+>(({ projectId, gitRef, assistant, test, setCurrentTab }, ref) => {
   const { t } = useLocaleContext();
 
   const { newSession } = useDebugState({
     projectId,
-    templateId: template.id,
+    templateId: assistant.id,
   });
 
   const debugTest = () => {
@@ -110,11 +112,11 @@ const TestCaseView = forwardRef<
   };
 
   const deleteTest = () => {
-    const doc = (getYjsValue(template) as Map<any>).doc!;
+    const doc = (getYjsValue(assistant) as Map<any>).doc!;
     doc.transact(() => {
-      if (template.tests) {
-        delete template.tests[test.id];
-        sortBy(Object.values(template.tests), (i) => i.index).forEach((i, index) => (i.index = index));
+      if (assistant.tests) {
+        delete assistant.tests[test.id];
+        sortBy(Object.values(assistant.tests), (i) => i.index).forEach((i, index) => (i.index = index));
       }
     });
   };
@@ -122,7 +124,7 @@ const TestCaseView = forwardRef<
   const [loading, setLoading] = useState(false);
 
   const runTest = async () => {
-    const doc = (getYjsValue(template) as Map<any>).doc!;
+    const doc = (getYjsValue(assistant) as Map<any>).doc!;
     doc.transact(() => {
       test.output = '';
       test.error = undefined;
@@ -134,14 +136,17 @@ const TestCaseView = forwardRef<
         projectId,
         ref: gitRef,
         working: true,
-        templateId: template.id,
+        assistantId: assistant.id,
         parameters: test.parameters,
       });
 
       const reader = result.getReader();
       const decoder = new TextDecoder();
 
+      const isTaskChunk = (i: ResponseSSEV2): i is ResponseSSEV2 => typeof i.taskId === 'string';
+
       let response = '';
+      let mainTaskId: string | undefined;
 
       for (;;) {
         const { value, done } = await reader.read();
@@ -150,6 +155,11 @@ const TestCaseView = forwardRef<
             response += decoder.decode(value);
           } else if (typeof value === 'string') {
             response += value;
+          } else if (isTaskChunk(value)) {
+            mainTaskId ??= value.taskId;
+            if (value.taskId === mainTaskId) {
+              response += value.delta.content || '';
+            }
           } else {
             console.error('Unknown AI response type', value);
           }

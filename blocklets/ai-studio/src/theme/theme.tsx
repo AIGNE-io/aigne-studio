@@ -7,6 +7,7 @@ import {
   inputClasses,
   inputLabelClasses,
   outlinedInputClasses,
+  selectClasses,
   sliderClasses,
   svgIconClasses,
   switchClasses,
@@ -160,6 +161,10 @@ export const theme = createTheme({
                 [`&.${inputBaseClasses.hiddenLabel}`]: {
                   mt: 0,
                   pt: 0,
+
+                  [`.${selectClasses.select}.${inputClasses.input}:focus`]: {
+                    bgcolor: 'transparent',
+                  },
                 },
               },
               [`.${inputLabelClasses.standard}`]: {
@@ -294,6 +299,7 @@ export const theme = createTheme({
               fontSize: '0.875rem',
               borderRadius: 1,
               lineHeight: '1.5rem',
+
               // filled
               [`&.${filledInputClasses.root}`]: {
                 ':before,:after': { display: 'none' },

@@ -162,13 +162,15 @@ export interface Template {
   tools?: ToolsMessage[];
 }
 
-export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | HoroscopeParameter;
+export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter;
 
 export type ParameterYjs = Exclude<Parameter, { type: 'select' }> | SelectParameterYjs;
 
 export type ParameterType = NonNullable<Parameter['type']>;
 
 export interface BaseParameter {
+  id: string;
+  key?: string;
   label?: string;
   placeholder?: string;
   helper?: string;

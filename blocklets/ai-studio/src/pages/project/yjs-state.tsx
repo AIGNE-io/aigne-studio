@@ -9,7 +9,8 @@ import {
 } from '@blocklet/co-git/yjs';
 import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
@@ -19,31 +20,79 @@ import { joinURL } from 'ufo';
 import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
+import {
+  ApiFile,
+  ApiFileYjs,
+  FileType,
+  FileTypeYjs,
+  FunctionFile,
+  FunctionFileYjs,
+  Prompt,
+  PromptFile,
+  PromptFileYjs,
+  PromptYjs,
+} from '../../../api/src/store/projects';
 import {
   CallAPIMessage,
   CallDatasetMessage,
   CallFuncMessage,
   CallMacroMessage,
   CallPromptMessage,
-  PromptMessage,
+  Parameter,
+  ParameterYjs,
   Template,
 } from '../../../api/src/store/templates';
 import { PREFIX } from '../../libs/api';
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 
+export const isBuiltinFolder = (folder: string) => [PROMPTS_FOLDER_NAME].includes(folder);
+
 export type State = {
-  files: { [key: string]: TemplateYjs | { $base64: string } };
+  files: { [key: string]: FileTypeYjs };
   tree: { [key: string]: string };
 };
 
-export function isTemplate(value?: State['files'][string]): value is TemplateYjs {
-  return typeof (value as any)?.id === 'string';
+export type Assistant = PromptFile | ApiFile | FunctionFile;
+
+export type AssistantYjs = PromptFileYjs | ApiFileYjs | FunctionFileYjs;
+
+export function isAssistant(assistant: FileType): assistant is Assistant;
+export function isAssistant(assistant: FileTypeYjs): assistant is AssistantYjs;
+export function isAssistant(assistant: FileType | FileTypeYjs): assistant is FileType | AssistantYjs {
+  return typeof (assistant as any).id === 'string';
 }
 
-export function isPromptMessage(message: any): message is PromptMessage {
-  return ['system', 'user', 'assistant'].includes(message?.role);
+export function isPromptMessage(prompt: Prompt): prompt is Extract<Prompt, { type: 'message' }>;
+export function isPromptMessage(prompt: PromptYjs): prompt is Extract<PromptYjs, { type: 'message' }>;
+export function isPromptMessage(
+  prompt: Prompt | PromptYjs
+): prompt is Extract<Prompt | PromptYjs, { type: 'message' }> {
+  return prompt.type === 'message';
+}
+
+export function isExecuteBlock(prompt: Prompt): prompt is Extract<Prompt, { type: 'executeBlock' }>;
+export function isExecuteBlock(prompt: PromptYjs): prompt is Extract<PromptYjs, { type: 'executeBlock' }>;
+export function isExecuteBlock(
+  prompt: Prompt | PromptYjs
+): prompt is Extract<Prompt | PromptYjs, { type: 'executeBlock' }> {
+  return prompt.type === 'executeBlock';
+}
+
+export function isPromptFileYjs(file?: FileTypeYjs): file is PromptFileYjs {
+  return (file as any)?.type === 'prompt';
+}
+
+export function isApiFileYjs(file?: FileTypeYjs): file is ApiFileYjs {
+  return !!file && (file as any).type === 'api';
+}
+
+export function isFunctionFileYjs(file?: FileTypeYjs): file is FunctionFileYjs {
+  return !!file && (file as any).type === 'function';
+}
+
+export function isRawFile(file?: FileTypeYjs): file is { $fileType: undefined; $base64: string } {
+  return !!file && typeof (file as any).$base64 === 'string';
 }
 
 export function isCallMacroMessage(message: any): message is CallMacroMessage {
@@ -90,45 +139,41 @@ export interface StoreContext {
 
 const stores: Record<string, RecoilState<StoreContext>> = {};
 
-const createStore = (projectId: string, gitRef: string) => {
+const projectStore = (projectId: string, gitRef: string) => {
   const key = `projectStore-${projectId}-${gitRef}`;
-  let s = stores[key];
-  if (!s) {
-    s = atom<StoreContext>({
-      key,
-      dangerouslyAllowMutability: true,
-      default: (() => {
-        const url = (() => {
-          const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-          const wsUrl = new URL(`${wsProtocol}://${window.location.host}`);
-          wsUrl.pathname = joinURL(PREFIX, 'api/ws', projectId);
-          return wsUrl.toString();
-        })();
+  stores[key] ??= atom<StoreContext>({
+    key,
+    dangerouslyAllowMutability: true,
+    default: (() => {
+      const url = (() => {
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsUrl = new URL(`${wsProtocol}://${window.location.host}`);
+        wsUrl.pathname = joinURL(PREFIX, 'api/ws', projectId);
+        return wsUrl.toString();
+      })();
 
-        const doc = new Doc();
+      const doc = new Doc();
 
-        const provider = new WebsocketProvider(url, gitRef, doc, {
-          connect: false,
-          params: { token: Cookies.get('login_token')! },
-        });
+      const provider = new WebsocketProvider(url, gitRef, doc, {
+        connect: false,
+        params: { token: Cookies.get('login_token')! },
+      });
 
-        const store = syncedStore<State>({ files: {}, tree: {} }, doc);
+      const store = syncedStore<State>({ files: {}, tree: {} }, doc);
 
-        return {
-          store,
-          awareness: { clients: {}, files: {} },
-          provider,
-          synced: provider.synced,
-        };
-      })(),
-    });
-    stores[key] = s;
-  }
-  return s;
+      return {
+        store,
+        awareness: { clients: {}, files: {} },
+        provider,
+        synced: provider.synced,
+      };
+    })(),
+  });
+  return stores[key]!;
 };
 
-export const useStore = (projectId: string, gitRef: string, connect?: boolean) => {
-  const [store, setStore] = useRecoilState(createStore(projectId, gitRef));
+export const useProjectStore = (projectId: string, gitRef: string, connect?: boolean) => {
+  const [store, setStore] = useRecoilState(projectStore(projectId, gitRef));
 
   useEffect(() => {
     if (!connect) return undefined;
@@ -200,7 +245,14 @@ export const useStore = (projectId: string, gitRef: string, connect?: boolean) =
     getTemplateById: useCallback(
       (templateId: string) => {
         const file = syncedStore.files[templateId];
-        return isTemplate(file) ? file : undefined;
+        return file && isPromptFileYjs(file) ? file : undefined;
+      },
+      [syncedStore.files]
+    ),
+    getFileById: useCallback(
+      (fileId: string) => {
+        const file = syncedStore.files[fileId];
+        return (file && isPromptFileYjs(file)) || isApiFileYjs(file) || isFunctionFileYjs(file) ? file : undefined;
       },
       [syncedStore.files]
     ),
@@ -209,15 +261,15 @@ export const useStore = (projectId: string, gitRef: string, connect?: boolean) =
 
 export function createFolder({
   store,
-  ...options
+  name,
+  parent = [],
+  rootFolder,
 }: {
   store: StoreContext['store'];
-  parent?: string[];
   name?: string;
+  parent?: string[];
+  rootFolder?: string;
 }) {
-  const parent = options.parent?.length ? options.parent : [PROMPTS_FOLDER_NAME];
-  let { name } = options;
-
   if (!name) {
     let index = 0;
     name = 'Folder';
@@ -239,7 +291,7 @@ export function createFolder({
     }
   }
 
-  const filepath = [...parent, name].join('/');
+  const filepath = joinURL(rootFolder && rootFolder !== parent[0] ? rootFolder : '', ...parent, name);
   getYjsDoc(store).transact(() => {
     const key = nanoid(32);
     store.tree[key] = [filepath, '.gitkeep'].join('/');
@@ -270,27 +322,45 @@ export const resetTemplatesId = (templates: (Template & { parent?: string[] })[]
 
 export function createFile({
   store,
-  parent,
-  meta,
+  parent = [],
+  meta = {},
+  rootFolder,
 }: {
   store: StoreContext['store'];
   parent?: string[];
-  meta?: Partial<TemplateYjs>;
+  meta?: Partial<AssistantYjs>;
+  rootFolder?: string;
 }) {
-  const id = meta?.id || nextTemplateId();
+  const id = (meta as any).id || nextTemplateId();
   const filename = `${id}.yaml`;
-  const filepath = [...(parent?.length ? parent : [PROMPTS_FOLDER_NAME]), filename].join('/');
+  const filepath = joinURL(rootFolder && parent[0] !== rootFolder ? rootFolder : '', ...parent, filename);
   const now = new Date().toISOString();
 
-  const template = { id, createdAt: now, updatedAt: now, createdBy: '', updatedBy: '', ...meta };
+  const file: AssistantYjs = {
+    ...meta,
+    id,
+    type: (meta.type || 'prompt') as any,
+    createdAt: now,
+    updatedAt: now,
+    createdBy: '',
+    updatedBy: '',
+  };
+
+  if (isPromptFileYjs(file)) {
+    if (isEmpty(file.prompts)) {
+      const promptId = nanoid();
+      file.prompts = { [promptId]: { index: 0, data: { type: 'message', data: { id: promptId, role: 'user' } } } };
+    }
+  }
+
   getYjsDoc(store).transact(() => {
     store.tree[id] = filepath;
-    store.files[id] = template;
+    store.files[id] = file;
   });
 
   return {
     filepath,
-    template,
+    template: file,
   };
 }
 
@@ -323,7 +393,6 @@ export function deleteFile({ store, path }: { store: StoreContext['store']; path
 }
 
 function addGitkeepFileIfNeeded(store: StoreContext['store'], path: string[]) {
-  // Add a gitkeep file if needed
   if (path.length > 0) {
     if (Object.values(store.tree).filter((i) => i?.startsWith(path.join('/').concat('/'))).length === 0) {
       const filepath = [...path, '.gitkeep'].join('/');
@@ -335,97 +404,117 @@ function addGitkeepFileIfNeeded(store: StoreContext['store'], path: string[]) {
 }
 
 export function importFiles({
+  // parent = [],
+  // files,
   store,
-  parent = [],
-  files,
 }: {
   store: StoreContext['store'];
   parent?: string[];
   files: (Template & { path?: string[] })[];
 }) {
   getYjsDoc(store).transact(() => {
-    for (const { path, ...file } of files) {
-      const p = parent
-        .concat(path ?? [])
-        .concat(`${file.id}.yaml`)
-        .join('/');
-      const key =
-        Object.keys(store.tree).find((key) => {
-          const f = store.files[key];
-          return isTemplate(f) && f.id === file.id;
-        }) || nanoid(32);
-
-      store.files[key] = templateYjsFromTemplate(file);
-      store.tree[key] = p;
-    }
+    // FIXME:
+    // for (const { path, ...file } of files) {
+    // const p = parent
+    //   .concat(path ?? [])
+    //   .concat(`${file.id}.yaml`)
+    //   .join('/');
+    // const key =
+    //   Object.keys(store.tree).find((key) => {
+    //     const f = store.files[key];
+    //     return isPromptFileYjs(f) && f.id === file.id;
+    //   }) || nanoid(32);
+    // store.files[key] = templateYjsFromTemplate(file);
+    // store.tree[key] = p;
+    // }
   });
 }
 
-export function templateYjsToTemplate(template: TemplateYjs): Template {
-  return {
-    ...template,
-    prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
-    parameters:
-      template.parameters &&
-      Object.fromEntries(
-        Object.entries(template.parameters).map(([param, parameter]) => [
-          param,
-          parameter.type === 'select'
-            ? {
-                ...parameter,
-                options:
-                  parameter.options && sortBy(Object.values(parameter.options), (i) => i.index).map((i) => i.data),
-              }
-            : parameter,
-        ])
-      ),
-    branch: template.branch && {
-      branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
-    },
-    datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
-    tests: template.tests && sortBy(Object.values(template.tests), 'index').map(({ data }) => data),
-    tools: template.tools && sortBy(Object.values(template.tools), 'index').map(({ data }) => data),
-  };
+// export function templateYjsToTemplate(template: TemplateYjs): Template {
+//   return {
+//     ...template,
+//     prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
+//     parameters:
+//       template.parameters &&
+//       Object.fromEntries(
+//         Object.entries(template.parameters).map(([param, parameter]) => [
+//           param,
+//           parameter.type === 'select'
+//             ? {
+//                 ...parameter,
+//                 options:
+//                   parameter.options && sortBy(Object.values(parameter.options), (i) => i.index).map((i) => i.data),
+//               }
+//             : parameter,
+//         ])
+//       ),
+//     branch: template.branch && {
+//       branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
+//     },
+//     datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
+//     tests: template.tests && sortBy(Object.values(template.tests), 'index').map(({ data }) => data),
+//     tools: template.tools && sortBy(Object.values(template.tools), 'index').map(({ data }) => data),
+//   };
+// }
+
+// export function templateYjsFromTemplate(template: Template): TemplateYjs {
+//   return {
+//     ...template,
+//     prompts:
+//       template.prompts &&
+//       Object.fromEntries(
+//         template.prompts?.map((prompt, index) => [
+//           prompt.id,
+//           {
+//             index,
+//             data: prompt,
+//           },
+//         ])
+//       ),
+//     parameters:
+//       template.parameters &&
+//       Object.fromEntries(
+//         Object.entries(template.parameters).map(([param, parameter]) => [
+//           param,
+//           parameter.type === 'select'
+//             ? {
+//                 ...parameter,
+//                 options:
+//                   parameter.options &&
+//                   Object.fromEntries(parameter.options.map((option, index) => [option.id, { index, data: option }])),
+//               }
+//             : parameter,
+//         ])
+//       ),
+//     branch: template.branch && {
+//       branches: Object.fromEntries(
+//         template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
+//       ),
+//     },
+//     datasets:
+//       template.datasets &&
+//       Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
+//     tests: template.tests && Object.fromEntries(template.tests.map((test, index) => [test.id, { index, data: test }])),
+//     tools: template.tools && Object.fromEntries(template.tools.map((tool, index) => [tool.id, { index, data: tool }])),
+//   };
+// }
+
+export function parameterToYjs(parameter: Parameter): ParameterYjs {
+  return parameter.type === 'select'
+    ? {
+        ...parameter,
+        options:
+          parameter.options &&
+          Object.fromEntries(parameter.options.map((option, index) => [option.id, { index, data: option }])),
+      }
+    : parameter;
 }
 
-export function templateYjsFromTemplate(template: Template): TemplateYjs {
-  return {
-    ...template,
-    prompts:
-      template.prompts &&
-      Object.fromEntries(
-        template.prompts?.map((prompt, index) => [
-          prompt.id,
-          {
-            index,
-            data: prompt,
-          },
-        ])
-      ),
-    parameters:
-      template.parameters &&
-      Object.fromEntries(
-        Object.entries(template.parameters).map(([param, parameter]) => [
-          param,
-          parameter.type === 'select'
-            ? {
-                ...parameter,
-                options:
-                  parameter.options &&
-                  Object.fromEntries(parameter.options.map((option, index) => [option.id, { index, data: option }])),
-              }
-            : parameter,
-        ])
-      ),
-    branch: template.branch && {
-      branches: Object.fromEntries(
-        template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
-      ),
-    },
-    datasets:
-      template.datasets &&
-      Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
-    tests: template.tests && Object.fromEntries(template.tests.map((test, index) => [test.id, { index, data: test }])),
-    tools: template.tools && Object.fromEntries(template.tools.map((tool, index) => [tool.id, { index, data: tool }])),
-  };
+export function parameterFromYjs(parameter: ParameterYjs): Parameter {
+  return parameter.type === 'select'
+    ? {
+        ...parameter,
+        options: parameter.options && sortBy(Object.values(parameter.options), (i) => i.index).map((i) => i.data),
+      }
+    : parameter;
 }

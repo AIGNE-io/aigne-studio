@@ -1,3 +1,7 @@
+## 0.1.158 (2023-12-8)
+
+- feat: redesign workflow
+
 ## 0.1.157 (2023-12-6)
 
 - fix: adjust the project and settings ui
