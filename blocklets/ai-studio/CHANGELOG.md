@@ -1,3 +1,7 @@
+## 0.1.160 (2023-12-10)
+
+- fix: assistant may not found
+
 ## 0.1.159 (2023-12-9)
 
 - feat: support select variables by picker
