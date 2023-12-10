@@ -284,7 +284,7 @@ function MessageView({
             const name = (assistant && isAssistant(assistant) && assistant.name) || item.taskId;
 
             const avatar = (
-              <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{name.slice(0, 1).toUpperCase()}</Avatar>
+              <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{name?.slice(0, 1).toUpperCase()}</Avatar>
             );
 
             return (
