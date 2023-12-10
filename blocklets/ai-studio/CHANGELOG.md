@@ -1,3 +1,7 @@
+## 0.1.161 (2023-12-10)
+
+- fix: save failed
+
 ## 0.1.160 (2023-12-10)
 
 - fix: assistant may not found
