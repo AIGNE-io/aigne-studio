@@ -12,7 +12,6 @@ import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
-import { defaultModel } from '../libs/models';
 import ProjectModel from './models/projects';
 
 const idGenerator = new Worker();
@@ -23,7 +22,6 @@ export interface Project {
   _id?: string;
   name?: string;
   description?: string;
-  model: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
   createdBy: string;
@@ -34,6 +32,7 @@ export interface Project {
   gitUrl?: string;
   gitAutoSync?: boolean;
   gitLastSyncedAt?: Date;
+  model?: string;
   temperature?: number;
   topP?: number;
   presencePenalty?: number;
@@ -55,7 +54,7 @@ export const projectTemplates: (Project & {
   {
     _id: '363299428078977024',
     name: 'blank',
-    model: defaultModel,
+    model: '',
     createdBy: wallet.address,
     updatedBy: wallet.address,
     createdAt: new Date('2023-09-30T12:23:04.603Z'),

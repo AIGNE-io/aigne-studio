@@ -13,7 +13,6 @@ import sample from 'lodash/sample';
 import uniqBy from 'lodash/uniqBy';
 import { Op } from 'sequelize';
 
-import { defaultModel } from '../libs/models';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { createImageUrl } from '../libs/utils';
 import { getTemplatesFromRepository } from '../store/0.1.157/projects';
@@ -237,7 +236,7 @@ export function projectRoutes(router: Router) {
 
       const project = await Project.create({
         ...original.dataValues,
-        model: original.model || defaultModel,
+        model: original.model || '',
         _id: nextProjectId(),
         name: original.name && `${original.name}-copy`,
         description,
@@ -282,7 +281,7 @@ export function projectRoutes(router: Router) {
 
       const project = await Project.create({
         ...omit(template, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
-        model: template.model || defaultModel,
+        model: template.model || '',
         _id: nextProjectId(),
         icon,
         createdBy: did,
@@ -316,7 +315,7 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.create({
       _id: nextProjectId(),
-      model: defaultModel,
+      model: '',
       createdBy: did,
       updatedBy: did,
       name,
@@ -364,7 +363,7 @@ export function projectRoutes(router: Router) {
           updatedBy: did,
           description,
           icon,
-          model: model || project.model || defaultModel,
+          model: model || project.model || '',
           temperature,
           topP,
           presencePenalty,
