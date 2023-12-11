@@ -39,15 +39,18 @@ export function usePromptsState({
     [template]
   );
 
-  const deletePrompt = useCallback(({ promptId }: { promptId: string }) => {
-    if (!template?.prompts) return;
+  const deletePrompt = useCallback(
+    ({ promptId }: { promptId: string }) => {
+      if (!template?.prompts) return;
 
-    const doc = (getYjsValue(template) as Map<any>).doc!;
-    doc.transact(() => {
-      delete template.prompts![promptId];
-      sortBy(Object.values(template.prompts!), (i) => i.index).forEach((i, index) => (i.index = index));
-    });
-  }, []);
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+      doc.transact(() => {
+        delete template.prompts![promptId];
+        sortBy(Object.values(template.prompts!), (i) => i.index).forEach((i, index) => (i.index = index));
+      });
+    },
+    [template]
+  );
 
   const renameVariable = useCallback(() => {
     // FIXME:
