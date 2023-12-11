@@ -1,3 +1,4 @@
+import { Mustache } from '@blocklet/ai-runtime/types';
 import { COMMENT_PREFIX } from '@blocklet/prompt-editor/utils';
 import { call, getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import { sign } from '@blocklet/sdk/lib/util/verify-sign';
@@ -12,7 +13,6 @@ import { joinURL } from 'ufo';
 import { NodeVM } from 'vm2';
 
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
-import Mustache from '../libs/mustache';
 import { ensureComponentCallOrAuth, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import {
   CallAPIMessage,

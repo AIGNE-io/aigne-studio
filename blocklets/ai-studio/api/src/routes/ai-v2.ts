@@ -5,6 +5,7 @@ import {
   Assistant,
   ExecuteBlock,
   FunctionFile,
+  Mustache,
   Prompt,
   PromptFile,
   isApiFile,
@@ -27,7 +28,6 @@ import { joinURL } from 'ufo';
 import { NodeVM } from 'vm2';
 
 import logger from '../libs/logger';
-import Mustache from '../libs/mustache';
 import { ensureComponentCallOrAuth } from '../libs/security';
 import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';

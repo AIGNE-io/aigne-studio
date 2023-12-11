@@ -1,6 +1,8 @@
 export * from './utils';
 export * from './yjs';
 
+export { default as Mustache } from './mustache/mustache';
+
 export type FileType = Assistant | { $base64: string };
 
 export type Assistant = PromptFile | ApiFile | FunctionFile;
