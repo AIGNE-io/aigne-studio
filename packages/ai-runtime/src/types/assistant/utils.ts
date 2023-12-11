@@ -1,4 +1,6 @@
+import dayjs from 'dayjs';
 import sortBy from 'lodash/sortBy';
+import { customAlphabet } from 'nanoid';
 
 import type {
   ApiFileYjs,
@@ -11,6 +13,10 @@ import type {
   PromptYjs,
 } from './yjs';
 import type { ApiFile, Assistant, ExecuteBlock, FileType, FunctionFile, Parameter, Prompt, PromptFile } from '.';
+
+export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+
+export const nextAssistantId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${randomId(6)}`;
 
 export function isPromptMessage(prompt: Prompt): prompt is Extract<Prompt, { type: 'message' }>;
 export function isPromptMessage(prompt: PromptYjs): prompt is Extract<PromptYjs, { type: 'message' }>;

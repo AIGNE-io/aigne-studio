@@ -3,8 +3,8 @@ import Sequelize, { DataTypes } from 'sequelize';
 import { datasetItems } from '../0.1.157/dataset-items';
 import { datasets } from '../0.1.157/datasets';
 import { embeddingHistories } from '../0.1.157/embedding-history';
+import { projects } from '../0.1.157/projects';
 import type { Migration } from '../migrate';
-import { projects } from '../projects';
 
 export const up: Migration = async ({ context: queryInterface }) => {
   await queryInterface.createTable('Projects', {

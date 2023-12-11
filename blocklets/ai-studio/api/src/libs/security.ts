@@ -2,7 +2,7 @@ import { auth } from '@blocklet/sdk/lib/middlewares';
 import { verify } from '@blocklet/sdk/lib/util/verify-sign';
 import { NextFunction, Request, Response } from 'express';
 
-import { defaultBranch } from '../store/projects';
+import { defaultBranch } from '../store/repository';
 import logger from './logger';
 
 export const ADMIN_ROLES = ['owner', 'admin'];

@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 
 import type { Migration } from '../migrate';
-import { Status } from '../models/logs';
+import { Status } from '../models/log';
 
 export const up: Migration = async ({ context: queryInterface }) => {
   await queryInterface.createTable('Logs', {

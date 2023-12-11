@@ -1,5 +1,6 @@
 import { Role } from '@blocklet/ai-runtime';
-import { ResponseSSEV2 } from 'api/src/routes/ai-v2';
+import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api/assistant';
+import Project from 'api/src/store/models/project';
 import produce, { Draft } from 'immer';
 import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
@@ -8,9 +9,10 @@ import { ChatCompletionRequestMessage } from 'openai';
 import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { recoilPersist } from 'recoil-persist';
+import { PREFIX } from 'src/libs/api';
+import { joinURL } from 'ufo';
 
-import { Project } from '../../../api/src/store/projects';
-import { callAI, textCompletions } from '../../libs/ai';
+import { textCompletions } from '../../libs/ai';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
@@ -359,7 +361,8 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
                   content: message.content,
                 }),
               })
-            : await callAI({
+            : await runAssistant({
+                url: joinURL(PREFIX, '/api/ai/call'),
                 projectId: message.projectId,
                 ref: message.gitRef,
                 working: true,
@@ -369,8 +372,6 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
 
         const reader = result.getReader();
         const decoder = new TextDecoder();
-
-        const isTaskChunk = (i: ResponseSSEV2): i is ResponseSSEV2 => typeof i.taskId === 'string';
 
         let response = '';
         const subResponses: { [key: string]: string } = {};
@@ -383,8 +384,7 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
               response += decoder.decode(value);
             } else if (typeof value === 'string') {
               response += value;
-            } else if (isTaskChunk(value)) {
-              // console.log(value);
+            } else if (isRunAssistantChunk(value)) {
               if (!mainTaskId) mainTaskId = value.taskId;
 
               if (value.taskId === mainTaskId) {

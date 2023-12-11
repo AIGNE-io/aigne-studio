@@ -1,4 +1,5 @@
 import { Template } from 'api/src/store/0.1.157/templates';
+import Project from 'api/src/store/models/project';
 
 import {
   AddProjectRemoteInput,
@@ -8,15 +9,21 @@ import {
   ProjectPushInput,
   UpdateProjectInput,
 } from '../../api/src/routes/project';
-import { Project } from '../../api/src/store/projects';
 import axios from './api';
 
+export type User = {
+  did?: string;
+  fullName?: string;
+  avatar?: string;
+};
+
+export type ProjectWithUserInfo = Project & {
+  branches: string[];
+  users: User[];
+};
+
 export async function getProjects(query?: GetProjectsQuery): Promise<{
-  projects: (Project & {
-    users: { name?: string; email?: string; did?: string; fullName?: string; avatar?: string }[];
-    branches: string[];
-    templateCount: number;
-  })[];
+  projects: ProjectWithUserInfo[];
 }> {
   return axios.get('/api/projects', { params: query }).then((res) => res.data);
 }

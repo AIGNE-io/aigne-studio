@@ -2,7 +2,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { defaultBranch, getRepository } from '../store/projects';
+import { defaultBranch, getRepository } from '../store/repository';
 
 export interface CreateBranchInput {
   name: string;

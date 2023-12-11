@@ -3,93 +3,14 @@ import path from 'path';
 
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
-import Database from '@blocklet/sdk/lib/database';
 import { glob } from 'glob';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
-import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
-import ProjectModel from './models/projects';
-
-const idGenerator = new Worker();
-
-export const nextProjectId = () => idGenerator.nextId().toString();
-
-export interface Project {
-  _id?: string;
-  name?: string;
-  description?: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-  createdBy: string;
-  updatedBy: string;
-  pinnedAt?: string | Date;
-  icon?: string;
-  gitType?: 'simple' | 'default';
-  gitUrl?: string;
-  gitAutoSync?: boolean;
-  gitLastSyncedAt?: Date;
-  model?: string;
-  temperature?: number;
-  topP?: number;
-  presencePenalty?: number;
-  frequencyPenalty?: number;
-  maxTokens?: number;
-}
-
-export default class Projects extends Database<Project> {
-  constructor() {
-    super('projects');
-  }
-}
-
-export const projects = new Projects();
-
-export const projectTemplates: (Project & {
-  files: (Assistant & { parent: string[] })[];
-})[] = [
-  {
-    _id: '363299428078977024',
-    name: 'blank',
-    model: '',
-    createdBy: wallet.address,
-    updatedBy: wallet.address,
-    createdAt: new Date('2023-09-30T12:23:04.603Z'),
-    updatedAt: new Date('2023-09-30T12:23:04.603Z'),
-    files: [
-      {
-        parent: ['prompts'],
-        id: '',
-        type: 'prompt',
-        name: 'Hello World',
-        prompts: [
-          {
-            type: 'message',
-            data: {
-              id: '20231208131000-LgzRpn',
-              content: 'Say hello in {{language}}!',
-              role: 'user',
-            },
-          },
-        ],
-        parameters: [
-          {
-            id: '1701840448533',
-            key: 'language',
-            defaultValue: 'English',
-          },
-        ],
-        createdBy: wallet.address,
-        updatedBy: wallet.address,
-        createdAt: '2023-09-30T12:23:04.603Z',
-        updatedAt: '2023-09-30T12:23:04.603Z',
-      },
-    ],
-  },
-];
+import Project from './models/project';
 
 export const defaultBranch = 'main';
 
@@ -189,7 +110,7 @@ export async function syncRepository<T>({
 
 const SETTINGS_FILE = '.settings.yaml';
 
-const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: ProjectModel }) => {
+const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: Project }) => {
   const repository = await getRepository({ projectId: project._id! });
   const fields = pick(project.dataValues, [
     '_id',
@@ -221,7 +142,7 @@ export const autoSyncRemoteRepoIfNeeded = async ({
   project,
   author,
 }: {
-  project: ProjectModel;
+  project: Project;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
@@ -238,7 +159,7 @@ export async function commitWorking({
   message,
   author,
 }: {
-  project: ProjectModel;
+  project: Project;
   ref: string;
   branch: string;
   message: string;
@@ -273,7 +194,7 @@ export async function commitProjectSettingWorking({
   message = 'update settings',
   author,
 }: {
-  project: ProjectModel;
+  project: Project;
   message?: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
 }) {
@@ -303,6 +224,22 @@ To run it you can:
 
 export function getTemplateIdFromPath(filepath: string) {
   return path.parse(filepath).name.split('.').at(-1);
+}
+
+export async function getAssistantsOfRepository({ projectId, ref }: { projectId: string; ref: string }) {
+  const repository = await getRepository({ projectId });
+  return repository
+    .listFiles({ ref })
+    .then((files) =>
+      Promise.all(
+        files
+          .filter((i) => i.startsWith(`${PROMPTS_FOLDER_NAME}/`) && i.endsWith('.yaml'))
+          .map((filepath) =>
+            repository.readBlob({ ref, filepath }).then(({ blob }) => parse(Buffer.from(blob).toString()))
+          )
+      )
+    )
+    .then((files) => files.filter((i): i is Assistant => isAssistant(i)));
 }
 
 export async function getAssistantFromRepository({

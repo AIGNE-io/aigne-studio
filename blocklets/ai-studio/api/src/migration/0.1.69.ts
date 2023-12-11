@@ -9,8 +9,8 @@ import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { folders } from '../store/0.1.157/folders';
+import { getRepository, projects } from '../store/0.1.157/projects';
 import { Template, templates } from '../store/0.1.157/templates';
-import { getRepository, projects } from '../store/projects';
 
 const { name } = require('../../../package.json');
 
@@ -28,6 +28,7 @@ async function migrate() {
     await projects.insert({
       _id: 'default',
       name: 'Default',
+      model: '',
       createdBy: wallet.address,
       updatedBy: wallet.address,
     });

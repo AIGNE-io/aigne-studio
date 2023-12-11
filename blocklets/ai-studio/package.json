@@ -55,6 +55,7 @@
     "@microsoft/fetch-event-source": "^2.0.1",
     "@minoru/react-dnd-treeview": "^3.4.4",
     "@monaco-editor/react": "^4.6.0",
+    "@mui/base": "^5.0.0-beta.26",
     "@mui/icons-material": "^5.11.0",
     "@mui/lab": "^5.0.0-alpha.131",
     "@mui/material": "^5.11.12",

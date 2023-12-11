@@ -4,8 +4,8 @@ import { join } from 'path';
 import { Embeddings } from 'langchain/dist/embeddings/base';
 import { HNSWLib, HNSWLibArgs } from 'langchain/vectorstores/hnswlib';
 
-import { Config } from '../../libs/env';
-import logger from '../../libs/logger';
+import { Config } from '../libs/env';
+import logger from '../libs/logger';
 
 const vectorStores = new Map<string, Promise<VectorStore>>();
 

@@ -1,14 +1,15 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime';
+import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api/assistant';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Error } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import { Alert, Box, Button, Stack, Tooltip, Typography, styled } from '@mui/material';
-import { ResponseSSEV2 } from 'api/src/routes/ai-v2';
 import { cloneDeep, sortBy } from 'lodash';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { PREFIX } from 'src/libs/api';
+import { joinURL } from 'ufo';
 
-import { callAI } from '../../libs/ai';
 import { WritingIndicator } from './debug-view';
 import RefreshSquareIcon from './solar-linear-icons/refresh-square';
 import RulerCrossPen from './solar-linear-icons/ruler-cross-pen';
@@ -131,7 +132,8 @@ const TestCaseView = forwardRef<
     setLoading(true);
 
     try {
-      const result = await callAI({
+      const result = await runAssistant({
+        url: joinURL(PREFIX, '/api/ai/call'),
         projectId,
         ref: gitRef,
         working: true,
@@ -141,8 +143,6 @@ const TestCaseView = forwardRef<
 
       const reader = result.getReader();
       const decoder = new TextDecoder();
-
-      const isTaskChunk = (i: ResponseSSEV2): i is ResponseSSEV2 => typeof i.taskId === 'string';
 
       let response = '';
       let mainTaskId: string | undefined;
@@ -154,7 +154,7 @@ const TestCaseView = forwardRef<
             response += decoder.decode(value);
           } else if (typeof value === 'string') {
             response += value;
-          } else if (isTaskChunk(value)) {
+          } else if (isRunAssistantChunk(value)) {
             mainTaskId ??= value.taskId;
             if (value.taskId === mainTaskId) {
               response += value.delta.content || '';

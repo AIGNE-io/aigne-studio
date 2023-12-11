@@ -2,8 +2,9 @@ import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { joinURL } from 'ufo';
 
 import type { AssistantIdentifier } from '../components/AIForm/state';
+import { RunAssistantChunk } from '../core';
 import { Assistant } from '../types/assistant';
-import { AIStudioBaseUrl, aiStudioApi } from './api';
+import { aiStudioApi } from './api';
 
 export interface AssistantInfo extends Pick<Assistant, 'id' | 'name' | 'parameters'> {}
 
@@ -20,39 +21,36 @@ export async function getAssistant({
     .then((res) => res.data);
 }
 
-export async function runAssistant(
-  input: {
-    parameters?: { [key: string]: string | number | undefined };
-  } & AssistantIdentifier
-) {
-  return new ReadableStream<
-    | string
-    | { type: 'text'; text: string }
-    | { type: 'images'; images: { url: string }[] }
-    | { type: 'next'; delta: string; templateId: string; templateName: string }
-    | { type: 'call'; delta: string; templateId: string; variableName: string }
-  >({
+export const isRunAssistantChunk = (i: RunAssistantChunk): i is RunAssistantChunk => typeof i.taskId === 'string';
+
+export async function runAssistant<
+  T = {
+    projectId: string;
+    ref: string;
+    working?: boolean;
+    assistantId: string;
+    parameters?: { [key: string]: string | number };
+  }
+>({
+  url,
+  ...input
+}: {
+  url: string;
+} & T) {
+  return new ReadableStream<RunAssistantChunk>({
     async start(controller) {
-      await fetchEventSource(joinURL(AIStudioBaseUrl, '/api/ai/call'), {
+      await fetchEventSource(url, {
         openWhenHidden: true,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(input),
         onmessage(event) {
           const data = JSON.parse(event.data);
-          if (data.type === 'delta') {
-            controller.enqueue(data.delta);
-          } else if (data.type === 'next') {
-            controller.enqueue(data);
-          } else if (data.type === 'call') {
-            controller.enqueue(data);
-          } else {
-            controller.enqueue(data);
-          }
+          controller.enqueue(data);
         },
         async onopen(response) {
           const contentType = response.headers.get('content-type');
-          if (contentType !== 'text/event-stream') {
+          if (!contentType?.includes('text/event-stream')) {
             let error: string | undefined;
             try {
               const json = await response.json();

@@ -5,7 +5,7 @@ import { Box, Stack } from '@mui/material';
 import { FormEvent, useCallback, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { AssistantInfo } from '../../api/templates';
+import { AssistantInfo } from '../../api/assistant';
 import ParameterField from '../ParameterField';
 
 export default function AIFormView({

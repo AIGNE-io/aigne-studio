@@ -1,7 +1,7 @@
 import { cpSync, existsSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 
-import { fileToYjs } from '@blocklet/ai-runtime/types';
+import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
@@ -15,23 +15,20 @@ import { Op } from 'sequelize';
 
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { createImageUrl } from '../libs/utils';
-import { getTemplatesFromRepository } from '../store/0.1.157/projects';
-import { Template, getTemplate, nextTemplateId } from '../store/0.1.157/templates';
-import Project from '../store/models/projects';
+import Project from '../store/models/project';
 import {
   autoSyncRemoteRepoIfNeeded,
   commitProjectSettingWorking,
   commitWorking,
   defaultBranch,
   defaultRemote,
+  getAssistantFromRepository,
   getRepository,
-  getTemplateIdFromPath,
-  nextProjectId,
-  projectTemplates,
   repositoryRoot,
   syncRepository,
-} from '../store/projects';
-import { getAuthorInfo } from './log';
+} from '../store/repository';
+import { projectTemplates } from '../templates/projects';
+import { getCommits } from './log';
 
 let icons: { filename: string }[] = [];
 
@@ -117,31 +114,6 @@ const getProjectsQuerySchema = Joi.object<GetProjectsQuery>({
   type: Joi.string().allow('templates').empty([null, '']),
 });
 
-const getDeepTemplate = async (projectId: string, ref: string, templateId: string) => {
-  let templates: (Template & { parent?: string[] })[] = [];
-
-  const repository = await getRepository({ projectId });
-  const filepath = (await repository.listFiles({ ref })).find((i) => i.endsWith(`.${templateId}.yaml`));
-  if (!filepath) throw new Error(`File ${templateId} not found`);
-
-  const template = (await getTemplate({ repository, ref, templateId })) as Template & { parent?: string[] };
-  template.parent = filepath.split('/').slice(0, -1);
-
-  templates = [template];
-
-  return templates;
-};
-
-const exportImportSchema = Joi.object<{
-  projectId: string;
-  ref: string;
-  resources: string[];
-}>({
-  projectId: Joi.string().required().min(1),
-  ref: Joi.string(),
-  resources: Joi.array().items(Joi.string()).required(),
-});
-
 export interface GetTemplateQuery {
   working?: boolean;
 }
@@ -168,31 +140,10 @@ export function projectRoutes(router: Router) {
 
     const projects = await Promise.all(
       list.map(async (project) => {
-        let users: { name?: string; email?: string; did?: string; fullName?: string; avatar?: string }[] = [];
-        let templateCount = 0;
-
         const repository = await getRepository({ projectId: project._id });
         const branches = await repository.listBranches();
-
-        // 缓存之前是有做的
-        try {
-          const commits = await getAuthorInfo({ projectId: project._id, ref: defaultBranch });
-          users = uniqBy(
-            commits.map((commit) => pick(commit.commit.author, 'name', 'email', 'did', 'fullName', 'avatar')),
-            'email'
-          );
-        } catch (error) {
-          console.error(error);
-        }
-
-        try {
-          const templates = await getTemplatesFromRepository({ projectId: project._id, ref: defaultBranch });
-          templateCount = templates.length;
-        } catch (error) {
-          console.error(error);
-        }
-
-        return { ...project.dataValues, users, branches, templateCount };
+        const users = await getAuthorsOfProject({ projectId: project._id });
+        return { ...project.dataValues, users, branches };
       })
     );
 
@@ -237,7 +188,6 @@ export function projectRoutes(router: Router) {
       const project = await Project.create({
         ...original.dataValues,
         model: original.model || '',
-        _id: nextProjectId(),
         name: original.name && `${original.name}-copy`,
         description,
         createdBy: did,
@@ -282,7 +232,6 @@ export function projectRoutes(router: Router) {
       const project = await Project.create({
         ...omit(template, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
         model: template.model || '',
-        _id: nextProjectId(),
         icon,
         createdBy: did,
         updatedBy: did,
@@ -293,7 +242,7 @@ export function projectRoutes(router: Router) {
       const repository = await getRepository({ projectId: project._id!, author: { name: fullName, email: did } });
       const working = await repository.working({ ref: defaultBranch });
       for (const { parent, ...file } of template.files) {
-        const id = nextTemplateId();
+        const id = nextAssistantId();
         working.syncedStore.files[id] = fileToYjs({ ...file, id });
         working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
       }
@@ -314,7 +263,6 @@ export function projectRoutes(router: Router) {
     }
 
     const project = await Project.create({
-      _id: nextProjectId(),
       model: '',
       createdBy: did,
       updatedBy: did,
@@ -401,22 +349,6 @@ export function projectRoutes(router: Router) {
     rmSync(`${root}.cooperative`, { recursive: true, force: true });
 
     res.json(project);
-  });
-
-  router.post('/projects/:projectId/:ref/import', ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { resources, projectId, ref } = await exportImportSchema.validateAsync(req.body);
-
-    const templates = (
-      await Promise.all(
-        resources.map(async (filepath: string) => {
-          const templateId = getTemplateIdFromPath(filepath);
-          if (!templateId) return [];
-          return getDeepTemplate(projectId, ref, templateId);
-        })
-      )
-    ).flat();
-
-    return res.json({ templates: uniqBy(templates, 'id') });
   });
 
   router.post('/projects/:projectId/remote', user(), ensureComponentCallOrAdmin(), async (req, res) => {
@@ -518,16 +450,31 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.get('/projects/:projectId/refs/:ref/templates/:templateId', async (req, res) => {
-    const { projectId, ref, templateId } = req.params;
+  router.get('/projects/:projectId/refs/:ref/assistants/:assistantId', async (req, res) => {
+    const { projectId, ref, assistantId } = req.params;
     const query = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
     await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
 
     const repository = await getRepository({ projectId });
 
-    const template = await getTemplate({ repository, ref, templateId, working: query.working });
+    const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
 
-    res.json(pick(template, 'id', 'name', 'type', 'parameters'));
+    res.json(pick(assistant, 'id', 'name', 'type', 'parameters', 'createdAt', 'updatedAt'));
   });
 }
+
+const getAuthorsOfProject = async ({ projectId }: { projectId: string }) => {
+  try {
+    const commits = await getCommits({ projectId, ref: defaultBranch });
+    return uniqBy(
+      commits
+        .map((commit) => pick(commit.commit.author, 'did', 'fullName', 'avatar'))
+        .filter((i): i is typeof i & { did: string } => !!i.did),
+      'did'
+    );
+  } catch (error) {
+    console.error(error);
+  }
+  return [];
+};

@@ -1,7 +1,9 @@
 import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
+import { joinURL } from 'ufo';
 
-import { AssistantInfo, getAssistant, runAssistant } from '../../api/templates';
+import { AIStudioBaseUrl } from '../../api/api';
+import { AssistantInfo, getAssistant, runAssistant } from '../../api/assistant';
 
 export interface AssistantIdentifier {
   projectId: string;
@@ -76,7 +78,11 @@ export const useExecutingState = (identifier: AssistantIdentifier) => {
     async ({ parameters }: { parameters: { [key: string]: string | number | undefined } }) => {
       setState((state) => ({ identifier: state.identifier, loading: true }));
       try {
-        const result = await runAssistant({ ...state.identifier, parameters });
+        const result = await runAssistant({
+          url: joinURL(AIStudioBaseUrl, '/api/ai/call'),
+          ...state.identifier,
+          parameters,
+        });
 
         const reader = result.getReader();
         const decoder = new TextDecoder();

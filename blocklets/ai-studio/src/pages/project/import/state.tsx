@@ -1,9 +1,9 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import Project from 'api/src/store/models/project';
 import { useCallback, useEffect, useState } from 'react';
 
 import { EntryWithMeta } from '../../../../api/src/routes/tree';
-import { Project } from '../../../../api/src/store/projects';
 import { getErrorMessage } from '../../../libs/api';
 import { getBranches } from '../../../libs/branch';
 import { getProjects } from '../../../libs/project';

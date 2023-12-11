@@ -2,9 +2,9 @@ import { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { getUsers } from '../libs/user';
-import { getRepository } from '../store/projects';
+import { getRepository } from '../store/repository';
 
-export const getAuthorInfo = async ({
+export const getCommits = async ({
   projectId,
   ref,
   filepath,
@@ -19,12 +19,10 @@ export const getAuthorInfo = async ({
   const dids = [...new Set(commits.map((i) => i.commit.author.email))];
   const users = await getUsers(dids);
 
-  commits.forEach((i) => {
+  return commits.map((i) => {
     const user = users[i.commit.author.email];
-    if (user) Object.assign(i.commit.author, user);
+    return { ...i, commit: { ...i.commit, author: { ...i.commit.author, ...user } } };
   });
-
-  return commits;
 };
 
 export function logRoutes(router: Router) {
@@ -32,7 +30,7 @@ export function logRoutes(router: Router) {
     const { projectId, ref, filepath } = req.params;
     if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
 
-    const commits = await getAuthorInfo({ projectId, ref, filepath });
+    const commits = await getCommits({ projectId, ref, filepath });
 
     res.json({ commits });
   });

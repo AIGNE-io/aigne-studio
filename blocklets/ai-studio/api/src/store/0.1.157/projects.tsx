@@ -12,7 +12,7 @@ import { parse, stringify } from 'yaml';
 
 import { wallet } from '../../libs/auth';
 import { Config } from '../../libs/env';
-import ProjectModel from '../models/projects';
+import ProjectModel from '../models/project';
 import type { ParameterYjs, Template } from './templates';
 
 const idGenerator = new Worker();

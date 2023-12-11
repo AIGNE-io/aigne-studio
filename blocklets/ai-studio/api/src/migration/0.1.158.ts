@@ -8,7 +8,7 @@ import { wallet } from '../libs/auth';
 import logger from '../libs/logger';
 import { commitWorking, getRepository, isTemplate } from '../store/0.1.157/projects';
 import { isPromptMessage } from '../store/0.1.157/templates';
-import Project from '../store/models/projects';
+import Project from '../store/models/project';
 
 const { name } = require('../../../package.json');
 
