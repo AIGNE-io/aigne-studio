@@ -373,6 +373,7 @@ export default flat({
   prepareExecutes: 'Prepare Executes',
   tool: 'Tool',
   callFunction: 'Call Function',
+  callPrompt: 'Call Prompt',
   method: 'Method',
   parameter: 'Parameter',
   value: 'Value',

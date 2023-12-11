@@ -39,7 +39,7 @@ export default function PromptAssistantSetting({
   return (
     <Box>
       <Stack direction="row" alignItems="center" gap={2}>
-        <Typography variant="subtitle1">{t('callAPI')}</Typography>
+        <Typography variant="subtitle1">{t('callPrompt')}</Typography>
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end">
           {!open && (

@@ -371,6 +371,7 @@ export default flat({
   prepareExecutes: '预执行',
   tool: '工具',
   callFunction: '调用函数',
+  callPrompt: '运行提示',
   method: '请求方式',
   parameter: '参数',
   value: '值',
