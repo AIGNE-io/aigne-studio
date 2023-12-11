@@ -1,4 +1,4 @@
-import { Tag } from '../../api/src/store/tags';
+import { Tag } from '../../api/src/store/0.1.157/tags';
 import axios from './api';
 
 export async function getTemplateTags({

@@ -1,32 +1,30 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { joinURL } from 'ufo';
 
-import type { TemplateIdentifier } from '../components/AIForm/state';
-import { Template } from '../types/template';
+import type { AssistantIdentifier } from '../components/AIForm/state';
+import { Assistant } from '../types/assistant';
 import { AIStudioBaseUrl, aiStudioApi } from './api';
 
-export interface PublicTemplate extends Pick<Template, 'id' | 'name' | 'type' | 'parameters'> {}
+export interface AssistantInfo extends Pick<Assistant, 'id' | 'name' | 'parameters'> {}
 
-export async function getTemplate({
+export async function getAssistant({
   projectId,
   gitRef,
-  templateId,
+  assistantId,
   working,
-}: TemplateIdentifier): Promise<PublicTemplate> {
+}: AssistantIdentifier): Promise<AssistantInfo> {
   return aiStudioApi
-    .get(joinURL('/api/projects', projectId, 'refs', gitRef, 'templates', templateId), {
+    .get(joinURL('/api/projects', projectId, 'refs', gitRef, 'templates', assistantId), {
       params: { working },
     })
     .then((res) => res.data);
 }
 
-export async function executeTemplate(input: {
-  projectId: string;
-  gitRef: string;
-  templateId: string;
-  working?: boolean;
-  parameters?: { [key: string]: string | number | undefined };
-}) {
+export async function runAssistant(
+  input: {
+    parameters?: { [key: string]: string | number | undefined };
+  } & AssistantIdentifier
+) {
   return new ReadableStream<
     | string
     | { type: 'text'; text: string }

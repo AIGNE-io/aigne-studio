@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ApiFileYjs } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import {
@@ -19,7 +20,6 @@ import Add from 'src/pages/project/icons/add';
 import Trash from 'src/pages/project/icons/trash';
 import { nextTemplateId } from 'src/pages/project/yjs-state';
 
-import { ApiFileYjs } from '../../../../api/src/store/projects';
 import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';

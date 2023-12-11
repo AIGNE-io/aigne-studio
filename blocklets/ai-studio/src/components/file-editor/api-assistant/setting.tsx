@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ApiFileYjs } from '@blocklet/ai-runtime';
 import { ExpandMoreRounded } from '@mui/icons-material';
 import { Box, Button, Collapse, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { ApiFileYjs } from 'api/src/store/projects';
 import { useMemo, useState } from 'react';
 
 export default function ApiAssistantSetting({ value, readOnly }: { value: ApiFileYjs; readOnly?: boolean }) {

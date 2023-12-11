@@ -1,9 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { NumberField, ParameterField, ParameterYjs, parameterFromYjs } from '@blocklet/ai-runtime';
 import { FormControl, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
 
-import { ParameterYjs } from '../../../api/src/store/templates';
-import NumberField from '../number-field';
-import ParameterField from '../parameter-field';
 import SelectOptionsConfig from './select-options-config';
 
 export default function ParameterConfig({ readOnly, value }: { readOnly?: boolean; value: ParameterYjs }) {
@@ -34,7 +32,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       <Grid item xs={12}>
         <ParameterField
           readOnly={readOnly}
-          parameter={value}
+          parameter={parameterFromYjs(value)}
           fullWidth
           label={t('form.parameter.defaultValue')}
           size="small"
@@ -67,10 +65,9 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               fullWidth
               label={t('form.parameter.minLength')}
               size="small"
-              min={1}
               value={value.minLength ?? ''}
               onChange={(minLength) => (value.minLength = minLength)}
-              InputProps={{ readOnly }}
+              InputProps={{ readOnly, inputProps: { min: 1 } }}
             />
           </Grid>
           <Grid item xs={6}>
@@ -78,10 +75,9 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               fullWidth
               label={t('form.parameter.maxLength')}
               size="small"
-              min={1}
               value={value.maxLength ?? ''}
               onChange={(maxLength) => (value.maxLength = maxLength)}
-              InputProps={{ readOnly }}
+              InputProps={{ readOnly, inputProps: { min: 1 } }}
             />
           </Grid>
         </>

@@ -1,5 +1,17 @@
 import { ReadableStream, TextDecoderStream, TransformStream } from 'stream/web';
 
+import {
+  ApiFile,
+  Assistant,
+  ExecuteBlock,
+  FunctionFile,
+  Prompt,
+  PromptFile,
+  isApiFile,
+  isExecuteBlock,
+  isFunctionFile,
+  isPromptFile,
+} from '@blocklet/ai-runtime/types';
 import { COMMENT_PREFIX } from '@blocklet/prompt-editor/utils';
 import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import { sign } from '@blocklet/sdk/lib/util/verify-sign';
@@ -19,22 +31,7 @@ import Mustache from '../libs/mustache';
 import { ensureComponentCallOrAuth } from '../libs/security';
 import Log, { Status } from '../store/models/logs';
 import Projects from '../store/models/projects';
-import {
-  ApiFile,
-  Assistant,
-  ExecuteBlock,
-  FunctionFile,
-  Project,
-  Prompt,
-  PromptFile,
-  defaultBranch,
-  getAssistantFromRepository,
-  getRepository,
-  isApiFile,
-  isExecuteBlock,
-  isFunctionFile,
-  isPromptFile,
-} from '../store/projects';
+import { Project, defaultBranch, getAssistantFromRepository, getRepository } from '../store/projects';
 
 const router = Router();
 

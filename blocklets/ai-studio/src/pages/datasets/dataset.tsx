@@ -8,7 +8,7 @@ import omit from 'lodash/omit';
 import { useEffect, useMemo } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 
-import { DatasetItem } from '../../../api/src/store/dataset-items';
+import { DatasetItem } from '../../../api/src/store/0.1.157/dataset-items';
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDataset } from '../../contexts/dataset-items';
 import { getErrorMessage } from '../../libs/api';

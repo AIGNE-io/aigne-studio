@@ -1,23 +1,23 @@
 import { MenuItem, TextField, TextFieldProps } from '@mui/material';
 import { forwardRef } from 'react';
 
-import { SelectParameter } from '../../types/template';
+import { SelectParameter } from '../../types/assistant';
 
 const SelectField = forwardRef<
   HTMLDivElement,
   {
     readOnly?: boolean;
-    parameter: SelectParameter;
+    parameter?: SelectParameter;
     onChange: (value: string) => void;
   } & Omit<TextFieldProps, 'onChange'>
 >(({ readOnly, parameter, onChange, ...props }, ref) => {
   return (
     <TextField
       ref={ref}
-      required={parameter.required}
-      label={parameter.label}
-      placeholder={parameter.placeholder}
-      helperText={parameter.helper}
+      required={parameter?.required}
+      label={parameter?.label}
+      placeholder={parameter?.placeholder}
+      helperText={parameter?.helper}
       select
       onChange={(e) => onChange(e.target.value)}
       {...props}
@@ -25,7 +25,7 @@ const SelectField = forwardRef<
       <MenuItem value="">
         <em>None</em>
       </MenuItem>
-      {parameter.options?.map((option) => (
+      {parameter?.options?.map((option) => (
         <MenuItem key={option.id} value={option.value}>
           {option.label}
         </MenuItem>

@@ -3,7 +3,8 @@ import Joi from 'joi';
 import uniqBy from 'lodash/uniqBy';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { defaultBranch, getTemplatesFromRepository } from '../store/projects';
+import { getTemplatesFromRepository } from '../store/0.1.157/projects';
+import { defaultBranch } from '../store/projects';
 
 export function templateTagRoutes(router: Router) {
   const getTagsQuerySchema = Joi.object<{ projectId: string; search?: string; type?: 'image' }>({

@@ -58,8 +58,10 @@ export default class Log extends Model<InferAttributes<Log>, InferCreationAttrib
   declare error?: string;
 
   declare parentId?: string;
+}
 
-  public static readonly GENESIS_ATTRIBUTES = {
+Log.init(
+  {
     id: {
       type: DataTypes.STRING,
       primaryKey: true,
@@ -113,7 +115,6 @@ export default class Log extends Model<InferAttributes<Log>, InferCreationAttrib
     parentId: {
       type: DataTypes.STRING,
     },
-  };
-}
-
-Log.init(Log.GENESIS_ATTRIBUTES, { sequelize });
+  },
+  { sequelize }
+);

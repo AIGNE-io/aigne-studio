@@ -2,39 +2,35 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { RocketLaunchRounded } from '@mui/icons-material';
 import { LoadingButton, LoadingButtonProps } from '@mui/lab';
 import { Box, Stack } from '@mui/material';
-import { omit } from 'lodash';
 import { FormEvent, useCallback, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { PublicTemplate } from '../../api/templates';
+import { AssistantInfo } from '../../api/templates';
 import ParameterField from '../ParameterField';
 
 export default function AIFormView({
-  template,
+  assistant,
   submitting,
   onSubmit,
   onCancel,
   SubmitProps,
 }: {
-  template: PublicTemplate;
+  assistant: AssistantInfo;
   submitting?: boolean;
   onSubmit: (parameters: { [key: string]: string | number | undefined }) => any;
   onCancel?: () => any;
   SubmitProps?: LoadingButtonProps;
 }) {
   const { t } = useLocaleContext();
-  const params = useMemo(() => Object.keys(template.parameters ?? {}), [template.parameters]);
+
+  const parameters = useMemo(
+    () => (assistant.parameters ?? []).filter((i): i is typeof i & { key: string } => !!i.key),
+    [assistant.parameters]
+  );
 
   const initForm = useMemo(
-    () =>
-      Object.fromEntries(
-        Object.entries(template.parameters ?? {}).map(([param, parameter]) => [
-          param,
-          parameter.defaultValue ??
-            (!parameter.type || ['string', 'select', 'number', 'language'].includes(parameter.type) ? '' : undefined),
-        ])
-      ),
-    [template.parameters]
+    () => Object.fromEntries(parameters.map((parameter) => [parameter.key, parameter.defaultValue ?? ''])),
+    [parameters]
   );
 
   const form = useForm<{ [key: string]: string | number | undefined }>({ defaultValues: initForm });
@@ -54,36 +50,14 @@ export default function AIFormView({
   return (
     <Stack component="form" onSubmit={handleSubmit} gap={2}>
       <Stack gap={2}>
-        {[...params].map((param) => {
-          const parameter = template.parameters?.[param];
-
+        {parameters.map((parameter) => {
           const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
 
           return (
-            <Box key={param}>
+            <Box key={parameter.id}>
               <Controller
                 control={form.control}
-                name={param}
-                render={({ field, fieldState }) => {
-                  return (
-                    <ParameterField
-                      label={parameter?.label || param}
-                      fullWidth
-                      parameter={omit(parameter, 'min', 'max') as never}
-                      maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
-                      value={field.value}
-                      onChange={(v) =>
-                        form.setValue(param, v, {
-                          shouldDirty: true,
-                          shouldTouch: true,
-                          shouldValidate: true,
-                        })
-                      }
-                      error={Boolean(fieldState.error)}
-                      helperText={fieldState.error?.message || parameter?.helper}
-                    />
-                  );
-                }}
+                name={parameter.key}
                 rules={{
                   required: required ? t('validation.fieldRequired') : undefined,
                   min: typeof min === 'number' ? { value: min, message: t('validation.fieldMin', { min }) } : undefined,
@@ -96,6 +70,20 @@ export default function AIFormView({
                     typeof maxLength === 'number'
                       ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
                       : undefined,
+                }}
+                render={({ field, fieldState }) => {
+                  return (
+                    <ParameterField
+                      label={parameter?.label || parameter.key}
+                      fullWidth
+                      parameter={parameter}
+                      maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
+                      value={field.value}
+                      onChange={(value) => field.onChange({ target: { value } })}
+                      error={Boolean(fieldState.error)}
+                      helperText={fieldState.error?.message || parameter?.helper}
+                    />
+                  );
                 }}
               />
             </Box>

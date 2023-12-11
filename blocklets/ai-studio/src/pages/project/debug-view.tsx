@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit';
-import { ParameterField } from '@blocklet/ai-runtime';
+import { AssistantYjs, ParameterField, isAssistant, parameterFromYjs } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css, cx } from '@emotion/css';
 import { Add, CopyAll, ErrorRounded } from '@mui/icons-material';
@@ -30,14 +30,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
-import { AssistantYjs } from '../../../api/src/store/projects';
 import { useSessionContext } from '../../contexts/session';
 import Empty from './icons/empty';
+import Record from './icons/record';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
-import Record from './record';
 import { SessionItem, useDebugState } from './state';
-import { isAssistant, parameterFromYjs, useProjectStore } from './yjs-state';
+import { useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {
   projectId: string;

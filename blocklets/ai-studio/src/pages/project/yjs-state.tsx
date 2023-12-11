@@ -1,5 +1,8 @@
+import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile } from '@blocklet/ai-runtime';
 import {
   Doc,
+  Map,
+  UndoManager,
   createEncoder,
   getYjsDoc,
   syncedStore,
@@ -7,41 +10,19 @@ import {
   useSyncedStore,
   writeVarUint,
 } from '@blocklet/co-git/yjs';
+import { Template } from 'api/src/store/0.1.157/templates';
 import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
-import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
-import {
-  ApiFile,
-  ApiFileYjs,
-  FileType,
-  FileTypeYjs,
-  FunctionFile,
-  FunctionFileYjs,
-  Prompt,
-  PromptFile,
-  PromptFileYjs,
-  PromptYjs,
-} from '../../../api/src/store/projects';
-import {
-  CallAPIMessage,
-  CallDatasetMessage,
-  CallFuncMessage,
-  CallMacroMessage,
-  CallPromptMessage,
-  Parameter,
-  ParameterYjs,
-  Template,
-} from '../../../api/src/store/templates';
 import { PREFIX } from '../../libs/api';
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
@@ -52,68 +33,6 @@ export type State = {
   files: { [key: string]: FileTypeYjs };
   tree: { [key: string]: string };
 };
-
-export type Assistant = PromptFile | ApiFile | FunctionFile;
-
-export type AssistantYjs = PromptFileYjs | ApiFileYjs | FunctionFileYjs;
-
-export function isAssistant(assistant: FileType): assistant is Assistant;
-export function isAssistant(assistant: FileTypeYjs): assistant is AssistantYjs;
-export function isAssistant(assistant: FileType | FileTypeYjs): assistant is FileType | AssistantYjs {
-  return typeof (assistant as any).id === 'string';
-}
-
-export function isPromptMessage(prompt: Prompt): prompt is Extract<Prompt, { type: 'message' }>;
-export function isPromptMessage(prompt: PromptYjs): prompt is Extract<PromptYjs, { type: 'message' }>;
-export function isPromptMessage(
-  prompt: Prompt | PromptYjs
-): prompt is Extract<Prompt | PromptYjs, { type: 'message' }> {
-  return prompt.type === 'message';
-}
-
-export function isExecuteBlock(prompt: Prompt): prompt is Extract<Prompt, { type: 'executeBlock' }>;
-export function isExecuteBlock(prompt: PromptYjs): prompt is Extract<PromptYjs, { type: 'executeBlock' }>;
-export function isExecuteBlock(
-  prompt: Prompt | PromptYjs
-): prompt is Extract<Prompt | PromptYjs, { type: 'executeBlock' }> {
-  return prompt.type === 'executeBlock';
-}
-
-export function isPromptFileYjs(file?: FileTypeYjs): file is PromptFileYjs {
-  return (file as any)?.type === 'prompt';
-}
-
-export function isApiFileYjs(file?: FileTypeYjs): file is ApiFileYjs {
-  return !!file && (file as any).type === 'api';
-}
-
-export function isFunctionFileYjs(file?: FileTypeYjs): file is FunctionFileYjs {
-  return !!file && (file as any).type === 'function';
-}
-
-export function isRawFile(file?: FileTypeYjs): file is { $fileType: undefined; $base64: string } {
-  return !!file && typeof (file as any).$base64 === 'string';
-}
-
-export function isCallMacroMessage(message: any): message is CallMacroMessage {
-  return message?.role === 'call-macro';
-}
-
-export function isCallPromptMessage(message: any): message is CallPromptMessage {
-  return message?.role === 'call-prompt';
-}
-
-export function isCallAPIMessage(message: any): message is CallAPIMessage {
-  return message?.role === 'call-api';
-}
-
-export function isCallFuncMessage(message: any): message is CallFuncMessage {
-  return message?.role === 'call-function';
-}
-
-export function isCallDatasetMessage(message: any): message is CallDatasetMessage {
-  return message?.role === 'call-dataset';
-}
 
 export interface StoreContext {
   synced: boolean;
@@ -245,14 +164,14 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
     getTemplateById: useCallback(
       (templateId: string) => {
         const file = syncedStore.files[templateId];
-        return file && isPromptFileYjs(file) ? file : undefined;
+        return file && isPromptFile(file) ? file : undefined;
       },
       [syncedStore.files]
     ),
     getFileById: useCallback(
       (fileId: string) => {
         const file = syncedStore.files[fileId];
-        return (file && isPromptFileYjs(file)) || isApiFileYjs(file) || isFunctionFileYjs(file) ? file : undefined;
+        return file && isAssistant(file) ? file : undefined;
       },
       [syncedStore.files]
     ),
@@ -346,7 +265,7 @@ export function createFile({
     updatedBy: '',
   };
 
-  if (isPromptFileYjs(file)) {
+  if (isPromptFile(file)) {
     if (isEmpty(file.prompts)) {
       const promptId = nanoid();
       file.prompts = { [promptId]: { index: 0, data: { type: 'message', data: { id: promptId, role: 'user' } } } };
@@ -430,91 +349,47 @@ export function importFiles({
   });
 }
 
-// export function templateYjsToTemplate(template: TemplateYjs): Template {
-//   return {
-//     ...template,
-//     prompts: template.prompts && sortBy(Object.values(template.prompts), 'index').map(({ data }) => data),
-//     parameters:
-//       template.parameters &&
-//       Object.fromEntries(
-//         Object.entries(template.parameters).map(([param, parameter]) => [
-//           param,
-//           parameter.type === 'select'
-//             ? {
-//                 ...parameter,
-//                 options:
-//                   parameter.options && sortBy(Object.values(parameter.options), (i) => i.index).map((i) => i.data),
-//               }
-//             : parameter,
-//         ])
-//       ),
-//     branch: template.branch && {
-//       branches: sortBy(Object.values(template.branch.branches), 'index').map(({ data }) => data),
-//     },
-//     datasets: template.datasets && sortBy(Object.values(template.datasets), 'index').map(({ data }) => data),
-//     tests: template.tests && sortBy(Object.values(template.tests), 'index').map(({ data }) => data),
-//     tools: template.tools && sortBy(Object.values(template.tools), 'index').map(({ data }) => data),
-//   };
-// }
+export const useUndoManager = (projectId: string, ref: string, key: string) => {
+  const { store } = useProjectStore(projectId, ref);
 
-// export function templateYjsFromTemplate(template: Template): TemplateYjs {
-//   return {
-//     ...template,
-//     prompts:
-//       template.prompts &&
-//       Object.fromEntries(
-//         template.prompts?.map((prompt, index) => [
-//           prompt.id,
-//           {
-//             index,
-//             data: prompt,
-//           },
-//         ])
-//       ),
-//     parameters:
-//       template.parameters &&
-//       Object.fromEntries(
-//         Object.entries(template.parameters).map(([param, parameter]) => [
-//           param,
-//           parameter.type === 'select'
-//             ? {
-//                 ...parameter,
-//                 options:
-//                   parameter.options &&
-//                   Object.fromEntries(parameter.options.map((option, index) => [option.id, { index, data: option }])),
-//               }
-//             : parameter,
-//         ])
-//       ),
-//     branch: template.branch && {
-//       branches: Object.fromEntries(
-//         template.branch.branches.map((branch, index) => [branch.id, { index, data: branch }])
-//       ),
-//     },
-//     datasets:
-//       template.datasets &&
-//       Object.fromEntries(template.datasets.map((dataset, index) => [dataset.id, { index, data: dataset }])),
-//     tests: template.tests && Object.fromEntries(template.tests.map((test, index) => [test.id, { index, data: test }])),
-//     tools: template.tools && Object.fromEntries(template.tools.map((tool, index) => [tool.id, { index, data: tool }])),
-//   };
-// }
+  const doc = useMemo(() => getYjsDoc(store), [store]);
 
-export function parameterToYjs(parameter: Parameter): ParameterYjs {
-  return parameter.type === 'select'
-    ? {
-        ...parameter,
-        options:
-          parameter.options &&
-          Object.fromEntries(parameter.options.map((option, index) => [option.id, { index, data: option }])),
-      }
-    : parameter;
-}
+  const undoManager = useMemo(() => {
+    const map = doc.getMap('files').get(key) as Map<Map<any>>;
+    return new UndoManager([map], { doc });
+  }, [doc, key]);
 
-export function parameterFromYjs(parameter: ParameterYjs): Parameter {
-  return parameter.type === 'select'
-    ? {
-        ...parameter,
-        options: parameter.options && sortBy(Object.values(parameter.options), (i) => i.index).map((i) => i.data),
-      }
-    : parameter;
-}
+  const [state, setState] = useState(() => ({
+    canRedo: undoManager.canRedo(),
+    canUndo: undoManager.canUndo(),
+    redo: () => undoManager.redo(),
+    undo: () => undoManager.undo(),
+  }));
+
+  useEffect(() => {
+    setState(() => ({
+      canRedo: undoManager.canRedo(),
+      canUndo: undoManager.canUndo(),
+      redo: () => undoManager.redo(),
+      undo: () => undoManager.undo(),
+    }));
+
+    const update = () => {
+      setState((state) => ({
+        ...state,
+        canRedo: undoManager.canRedo(),
+        canUndo: undoManager.canUndo(),
+      }));
+    };
+
+    undoManager.on('stack-item-added', update);
+    undoManager.on('stack-item-popped', update);
+
+    return () => {
+      undoManager.off('stack-item-added', update);
+      undoManager.off('stack-item-popped', update);
+    };
+  }, [undoManager, key]);
+
+  return state;
+};

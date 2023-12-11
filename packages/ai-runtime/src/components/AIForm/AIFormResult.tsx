@@ -1,10 +1,10 @@
 import { ErrorRounded } from '@mui/icons-material';
 import { Alert, Box, BoxProps, styled } from '@mui/material';
 
-import { TemplateIdentifier, useExecutingState } from './state';
+import { AssistantIdentifier, useExecutingState } from './state';
 
 export interface AIFormResultProps {
-  identifier: TemplateIdentifier;
+  identifier: AssistantIdentifier;
   BoxProps?: BoxProps;
 }
 

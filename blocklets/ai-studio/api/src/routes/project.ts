@@ -1,6 +1,7 @@
 import { cpSync, existsSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 
+import { fileToYjs } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
@@ -15,6 +16,8 @@ import { Op } from 'sequelize';
 import { defaultModel } from '../libs/models';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { createImageUrl } from '../libs/utils';
+import { getTemplatesFromRepository } from '../store/0.1.157/projects';
+import { Template, getTemplate, nextTemplateId } from '../store/0.1.157/templates';
 import Project from '../store/models/projects';
 import {
   autoSyncRemoteRepoIfNeeded,
@@ -22,16 +25,13 @@ import {
   commitWorking,
   defaultBranch,
   defaultRemote,
-  fileToYjs,
   getRepository,
   getTemplateIdFromPath,
-  getTemplatesFromRepository,
   nextProjectId,
   projectTemplates,
   repositoryRoot,
   syncRepository,
 } from '../store/projects';
-import { Template, getTemplate, nextTemplateId } from '../store/templates';
 import { getAuthorInfo } from './log';
 
 let icons: { filename: string }[] = [];

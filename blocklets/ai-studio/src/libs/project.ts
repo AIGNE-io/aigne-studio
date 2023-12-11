@@ -1,3 +1,5 @@
+import { Template } from 'api/src/store/0.1.157/templates';
+
 import {
   AddProjectRemoteInput,
   CreateProjectInput,
@@ -7,7 +9,6 @@ import {
   UpdateProjectInput,
 } from '../../api/src/routes/project';
 import { Project } from '../../api/src/store/projects';
-import { Template } from '../../api/src/store/templates';
 import axios from './api';
 
 export async function getProjects(query?: GetProjectsQuery): Promise<{

@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AssistantYjs } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Error } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
@@ -7,14 +8,12 @@ import { ResponseSSEV2 } from 'api/src/routes/ai-v2';
 import { cloneDeep, sortBy } from 'lodash';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
-import { TemplateYjs } from '../../../api/src/store/projects';
 import { callAI } from '../../libs/ai';
 import { WritingIndicator } from './debug-view';
 import RefreshSquareIcon from './solar-linear-icons/refresh-square';
 import RulerCrossPen from './solar-linear-icons/ruler-cross-pen';
 import TrashBinIcon from './solar-linear-icons/trash-bin';
 import { useDebugState } from './state';
-import { AssistantYjs } from './yjs-state';
 
 export default function DebugView({
   projectId,
@@ -95,7 +94,7 @@ const TestCaseView = forwardRef<
     projectId: string;
     gitRef: string;
     assistant: AssistantYjs;
-    test: NonNullable<TemplateYjs['tests']>[string]['data'];
+    test: NonNullable<AssistantYjs['tests']>[string]['data'];
     setCurrentTab: (tab: string) => void;
   }
 >(({ projectId, gitRef, assistant, test, setCurrentTab }, ref) => {

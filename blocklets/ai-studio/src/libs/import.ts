@@ -1,6 +1,5 @@
+import { Template } from 'api/src/store/0.1.157/templates';
 import Joi from 'joi';
-
-import { Template } from '../../api/src/store/templates';
 
 const valueSchema = Joi.alternatives().conditional('type', {
   switch: [

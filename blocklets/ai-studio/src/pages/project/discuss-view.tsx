@@ -1,10 +1,10 @@
+import { AssistantYjs } from '@blocklet/ai-runtime';
 import { Comments } from '@blocklet/discuss-kit';
 import styled from '@emotion/styled';
 import { Box, CircularProgress } from '@mui/material';
 import { Suspense } from 'react';
 
 import { useSessionContext } from '../../contexts/session';
-import { AssistantYjs } from './yjs-state';
 
 export default function DiscussView({
   projectId,

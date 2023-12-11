@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AssistantYjs } from '@blocklet/ai-runtime';
 import { Box, Stack, TextField, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
-import { AssistantYjs } from 'src/pages/project/yjs-state';
 
 import { useReadOnly } from '../../contexts/session';
 import AwarenessIndicator from '../awareness/awareness-indicator';

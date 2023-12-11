@@ -9,8 +9,9 @@ import uniqBy from 'lodash/uniqBy';
 import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
+import { getTemplatesFromRepository } from '../store/0.1.157/projects';
 import Projects from '../store/models/projects';
-import { defaultBranch, getTemplatesFromRepository } from '../store/projects';
+import { defaultBranch } from '../store/projects';
 
 const TARGET_DIR = 'templates.ai';
 

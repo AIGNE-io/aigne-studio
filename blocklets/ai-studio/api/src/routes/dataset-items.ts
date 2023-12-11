@@ -10,10 +10,10 @@ import omit from 'lodash/omit';
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import logger from '../libs/logger';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { DatasetItem } from '../store/dataset-items';
+import { DatasetItem } from '../store/0.1.157/dataset-items';
+import VectorStore from '../store/0.1.157/vector-store';
 import DatasetItems from '../store/models/dataset-items';
 import EmbeddingHistories from '../store/models/embedding-history';
-import VectorStore from '../store/vector-store';
 
 const router = Router();
 

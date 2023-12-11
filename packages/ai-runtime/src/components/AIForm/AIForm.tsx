@@ -2,17 +2,17 @@ import { Box, BoxProps, CircularProgress, Stack } from '@mui/material';
 import { ComponentProps, useEffect } from 'react';
 
 import AIFormView from './AIFormView';
-import { TemplateIdentifier, useExecutingState, useTemplateState } from './state';
+import { AssistantIdentifier, useExecutingState, useTemplateState } from './state';
 
 export interface AIFormProps {
-  identifier: TemplateIdentifier;
+  identifier: AssistantIdentifier;
   BoxProps?: BoxProps;
   SubmitProps?: ComponentProps<typeof AIFormView>['SubmitProps'];
 }
 
 export default function AIForm({ BoxProps, SubmitProps, identifier }: AIFormProps) {
   const {
-    state: { loading, template, error },
+    state: { loading, assistant: template, error },
     reload,
   } = useTemplateState(identifier);
 
@@ -37,7 +37,7 @@ export default function AIForm({ BoxProps, SubmitProps, identifier }: AIFormProp
       ) : template ? (
         <AIFormView
           SubmitProps={SubmitProps}
-          template={template}
+          assistant={template}
           submitting={submitting}
           onSubmit={(parameters) => execute({ parameters })}
           onCancel={cancel}

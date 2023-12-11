@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AssistantYjs, ExecuteBlockYjs, PromptFileYjs, PromptMessage } from '@blocklet/ai-runtime';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
 import { DragSortItemContainer, DragSortListYjs } from 'src/components/drag-sort-list';
@@ -6,9 +7,8 @@ import Add from 'src/pages/project/icons/add';
 import Eye from 'src/pages/project/icons/eye';
 import EyeNo from 'src/pages/project/icons/eye-no';
 import { usePromptsState } from 'src/pages/project/prompt-state';
-import { AssistantYjs, nextTemplateId } from 'src/pages/project/yjs-state';
+import { nextTemplateId } from 'src/pages/project/yjs-state';
 
-import { ExecuteBlockYjs, PromptFileYjs, PromptMessage } from '../../../../api/src/store/projects';
 import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
 import ExecuteBlockForm from '../execute-block';

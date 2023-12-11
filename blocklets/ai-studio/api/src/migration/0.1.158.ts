@@ -1,14 +1,14 @@
 import path from 'path';
 
+import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { sortBy } from 'lodash';
 import { customAlphabet } from 'nanoid';
 
 import { wallet } from '../libs/auth';
 import logger from '../libs/logger';
-import { getRepository, isTemplate } from '../store/0.1.157/projects';
+import { commitWorking, getRepository, isTemplate } from '../store/0.1.157/projects';
+import { isPromptMessage } from '../store/0.1.157/templates';
 import Project from '../store/models/projects';
-import { AssistantYjs, commitWorking } from '../store/projects';
-import { isPromptMessage } from '../store/templates';
 
 const { name } = require('../../../package.json');
 

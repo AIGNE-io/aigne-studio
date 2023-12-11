@@ -1,43 +1,43 @@
 import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import { PublicTemplate, executeTemplate, getTemplate } from '../../api/templates';
+import { AssistantInfo, getAssistant, runAssistant } from '../../api/templates';
 
-export interface TemplateIdentifier {
+export interface AssistantIdentifier {
   projectId: string;
   gitRef: string;
-  templateId: string;
+  assistantId: string;
   working?: boolean;
 }
 
-export interface TemplateState {
-  identifier: TemplateIdentifier;
+export interface AssistantState {
+  identifier: AssistantIdentifier;
   loading?: boolean;
   error?: Error;
-  template?: PublicTemplate;
+  assistant?: AssistantInfo;
 }
 
-const TEMPLATE_STATES: { [key: string]: RecoilState<TemplateState> } = {};
+const TEMPLATE_STATES: { [key: string]: RecoilState<AssistantState> } = {};
 
-const templateState = ({ projectId, gitRef, templateId, working = false }: TemplateIdentifier) => {
-  const key = ['AITemplateState', projectId, gitRef, templateId, working].join('/');
+const templateState = ({ projectId, gitRef, assistantId, working = false }: AssistantIdentifier) => {
+  const key = ['AITemplateState', projectId, gitRef, assistantId, working].join('/');
 
-  TEMPLATE_STATES[key] ??= atom<TemplateState>({
+  TEMPLATE_STATES[key] ??= atom<AssistantState>({
     key,
-    default: { identifier: { projectId, gitRef, templateId, working } },
+    default: { identifier: { projectId, gitRef, assistantId, working } },
   });
 
   return TEMPLATE_STATES[key]!;
 };
 
-export const useTemplateState = (identifier: TemplateIdentifier) => {
+export const useTemplateState = (identifier: AssistantIdentifier) => {
   const [state, setState] = useRecoilState(templateState(identifier));
 
   const reload = useCallback(async () => {
     setState((state) => ({ ...state, loading: true, error: undefined }));
     try {
-      const template = await getTemplate(state.identifier);
-      setState((state) => ({ ...state, loading: false, template }));
+      const template = await getAssistant(state.identifier);
+      setState((state) => ({ ...state, loading: false, assistant: template }));
     } catch (error) {
       setState((state) => ({ ...state, loading: false, error }));
     }
@@ -47,7 +47,7 @@ export const useTemplateState = (identifier: TemplateIdentifier) => {
 };
 
 export interface ExecutingState {
-  identifier: TemplateIdentifier;
+  identifier: AssistantIdentifier;
   content?: string;
   images?: { url: string }[];
   done?: boolean;
@@ -58,25 +58,25 @@ export interface ExecutingState {
 
 const EXECUTING_STATES: { [key: string]: RecoilState<ExecutingState> } = {};
 
-const executingState = ({ projectId, gitRef, templateId, working = false }: TemplateIdentifier) => {
+const executingState = ({ projectId, gitRef, assistantId: templateId, working = false }: AssistantIdentifier) => {
   const key = ['AIFormExecutingState', projectId, gitRef, templateId, working].join('/');
 
   EXECUTING_STATES[key] ??= atom<ExecutingState>({
     key,
-    default: { identifier: { projectId, gitRef, templateId, working } },
+    default: { identifier: { projectId, gitRef, assistantId: templateId, working } },
   });
 
   return EXECUTING_STATES[key]!;
 };
 
-export const useExecutingState = (identifier: TemplateIdentifier) => {
+export const useExecutingState = (identifier: AssistantIdentifier) => {
   const [state, setState] = useRecoilState(executingState(identifier));
 
   const execute = useCallback(
     async ({ parameters }: { parameters: { [key: string]: string | number | undefined } }) => {
       setState((state) => ({ identifier: state.identifier, loading: true }));
       try {
-        const result = await executeTemplate({ ...state.identifier, parameters });
+        const result = await runAssistant({ ...state.identifier, parameters });
 
         const reader = result.getReader();
         const decoder = new TextDecoder();

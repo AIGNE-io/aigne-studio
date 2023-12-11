@@ -1,12 +1,9 @@
 import Sequelize, { DataTypes } from 'sequelize';
 
-import { datasetItems } from '../dataset-items';
-import { datasets } from '../datasets';
-import { embeddingHistories } from '../embedding-history';
+import { datasetItems } from '../0.1.157/dataset-items';
+import { datasets } from '../0.1.157/datasets';
+import { embeddingHistories } from '../0.1.157/embedding-history';
 import type { Migration } from '../migrate';
-import DatasetItems from '../models/dataset-items';
-import Datasets from '../models/datasets';
-import EmbeddingHistories from '../models/embedding-history';
 import { projects } from '../projects';
 
 export const up: Migration = async ({ context: queryInterface }) => {
@@ -65,9 +62,89 @@ export const up: Migration = async ({ context: queryInterface }) => {
       type: DataTypes.FLOAT,
     },
   });
-  await queryInterface.createTable('EmbeddingHistories', EmbeddingHistories.GENESIS_ATTRIBUTES);
-  await queryInterface.createTable('Datasets', Datasets.GENESIS_ATTRIBUTES);
-  await queryInterface.createTable('DatasetItems', DatasetItems.GENESIS_ATTRIBUTES);
+  await queryInterface.createTable('EmbeddingHistories', {
+    _id: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      allowNull: false,
+    },
+    targetId: {
+      type: DataTypes.STRING,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+    targetVersion: {
+      type: DataTypes.DATE,
+    },
+    error: {
+      type: DataTypes.STRING,
+    },
+  });
+  await queryInterface.createTable('Datasets', {
+    _id: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    updatedBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  });
+  await queryInterface.createTable('DatasetItems', {
+    _id: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      allowNull: false,
+    },
+    datasetId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING,
+    },
+    data: {
+      type: DataTypes.JSON,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    updatedBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    embeddedAt: {
+      type: DataTypes.DATE,
+    },
+    error: {
+      type: DataTypes.STRING,
+    },
+  });
 
   const projectRows = await projects.cursor().sort({ updatedAt: -1 }).exec();
   if (projectRows.length) {

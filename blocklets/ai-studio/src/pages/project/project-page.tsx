@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AssistantYjs, isApiFile, isAssistant, isFunctionFile, isPromptFile } from '@blocklet/ai-runtime';
 import {
   Alert,
   Box,
@@ -52,15 +53,7 @@ import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
 import UndoAndRedo from './undo';
-import {
-  AssistantYjs,
-  PROMPTS_FOLDER_NAME,
-  isApiFileYjs,
-  isAssistant,
-  isFunctionFileYjs,
-  isPromptFileYjs,
-  useProjectStore,
-} from './yjs-state';
+import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 const defaultBranch = 'main';
 
@@ -356,11 +349,11 @@ export default function ProjectPage() {
               </Box>
             ) : file ? (
               <WithAwareness projectId={projectId} gitRef={gitRef} path={[file.id]} onMount>
-                {isPromptFileYjs(file) ? (
+                {isPromptFile(file) ? (
                   <PromptFileEditor projectId={projectId} gitRef={gitRef} value={file} />
-                ) : isApiFileYjs(file) ? (
+                ) : isApiFile(file) ? (
                   <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
-                ) : isFunctionFileYjs(file) ? (
+                ) : isFunctionFile(file) ? (
                   <FunctionFileEditor projectId={projectId} gitRef={gitRef} value={file} />
                 ) : (
                   <Box />

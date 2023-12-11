@@ -14,9 +14,6 @@ import { NodeVM } from 'vm2';
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import Mustache from '../libs/mustache';
 import { ensureComponentCallOrAuth, ensureComponentCallOrPromptsEditor } from '../libs/security';
-import Log, { Status } from '../store/models/logs';
-import Projects from '../store/models/projects';
-import { Project, defaultBranch, getRepository } from '../store/projects';
 import {
   CallAPIMessage,
   CallFuncMessage,
@@ -31,9 +28,11 @@ import {
   isCallMacroMessage,
   isCallPromptMessage,
   isPromptMessage,
-} from '../store/templates';
-import VectorStore from '../store/vector-store';
-import { templateSchema } from './templates';
+} from '../store/0.1.157/templates';
+import VectorStore from '../store/0.1.157/vector-store';
+import Log, { Status } from '../store/models/logs';
+import Projects from '../store/models/projects';
+import { Project, defaultBranch, getRepository } from '../store/projects';
 
 const router = Router();
 
@@ -105,19 +104,6 @@ const callInputSchema = Joi.object<
   working: Joi.boolean().default(false),
   projectId: Joi.string(),
   templateId: Joi.string(),
-  template: Joi.object({
-    type: templateSchema.extract('type'),
-    model: templateSchema.extract('model'),
-    temperature: templateSchema.extract('temperature'),
-    topP: Joi.number().min(0.1).max(1).empty(null),
-    presencePenalty: Joi.number().min(-2).max(2).empty(null),
-    frequencyPenalty: Joi.number().min(-2).max(2).empty(null),
-    maxTokens: Joi.number().integer().empty(null),
-    prompts: templateSchema.extract('prompts'),
-    datasets: templateSchema.extract('datasets'),
-    branch: templateSchema.extract('branch'),
-    next: templateSchema.extract('next'),
-  }),
   parameters: Joi.object().pattern(Joi.string(), Joi.any()),
 }).xor('templateId', 'template');
 

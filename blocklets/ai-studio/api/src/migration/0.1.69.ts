@@ -9,9 +9,9 @@ import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { defaultModel } from '../libs/models';
-import { folders } from '../store/folders';
+import { folders } from '../store/0.1.157/folders';
+import { Template, templates } from '../store/0.1.157/templates';
 import { getRepository, projects } from '../store/projects';
-import { Template, templates } from '../store/templates';
 
 const { name } = require('../../../package.json');
 

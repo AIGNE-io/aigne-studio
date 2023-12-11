@@ -1,11 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { FunctionFileYjs } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Typography, alpha } from '@mui/material';
 import Add from 'src/pages/project/icons/add';
 import { nextTemplateId } from 'src/pages/project/yjs-state';
 
-import { FunctionFileYjs } from '../../../../api/src/store/projects';
 import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';

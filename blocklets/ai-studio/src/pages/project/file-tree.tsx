@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile } from '@blocklet/ai-runtime';
 import { css } from '@emotion/css';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
@@ -45,7 +46,6 @@ import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { FileTypeYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
 import { importTemplatesToProject } from '../../libs/project';
@@ -65,15 +65,11 @@ import Trash from './icons/trash';
 import Undo from './icons/undo';
 import ImportFrom from './import';
 import {
-  AssistantYjs,
   PROMPTS_FOLDER_NAME,
   createFile,
   createFolder,
   deleteFile,
-  isApiFileYjs,
   isBuiltinFolder,
-  isFunctionFileYjs,
-  isPromptFileYjs,
   moveFile,
   nextTemplateId,
   resetTemplatesId,
@@ -280,11 +276,7 @@ const FileTree = forwardRef<
   const files = Object.entries(store.tree)
     .map(([key, filepath]) => {
       const file = store.files[key];
-      if (
-        filepath?.endsWith('.yaml') &&
-        file &&
-        (isPromptFileYjs(file) || isApiFileYjs(file) || isFunctionFileYjs(file))
-      ) {
+      if (filepath?.endsWith('.yaml') && file && isAssistant(file)) {
         const paths = filepath.split('/').filter(Boolean);
         return {
           type: 'file' as const,
@@ -560,7 +552,7 @@ function TreeItemMenus({
 }) {
   const { t } = useLocaleContext();
 
-  const assistant = item.type === 'file' && isPromptFileYjs(item.meta) ? item.meta : undefined;
+  const assistant = item.type === 'file' && isPromptFile(item.meta) ? item.meta : undefined;
 
   const menus = [
     [

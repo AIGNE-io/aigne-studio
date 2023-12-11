@@ -3,8 +3,8 @@ import path from 'path';
 import { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { Template, getTemplate } from '../store/0.1.157/templates';
 import { defaultBranch, getRepository } from '../store/projects';
-import { Template, getTemplate } from '../store/templates';
 
 export interface File {
   type: 'file';
