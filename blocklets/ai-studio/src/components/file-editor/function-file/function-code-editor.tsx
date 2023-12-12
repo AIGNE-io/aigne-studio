@@ -22,7 +22,7 @@ module.exports.default = async function(args) {
     <Box
       sx={{
         zIndex: (theme) => theme.zIndex.tooltip,
-        height: '50vh',
+        height: '300px',
         '.monaco-editor': {
           borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
           borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,

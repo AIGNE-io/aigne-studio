@@ -7,10 +7,10 @@ import useDialog from '../../utils/use-dialog';
 import GalleryImageList, { ImperativeImage } from './image-list';
 
 export default function ProjectSettingsAvatar({ value, onChange }: { value: string; onChange: any }) {
-  const logoUrl = value || `${window.location.origin}/.well-known/service/static/images/logo.png`;
-  const { dialog, showDialog, closeDialog } = useDialog();
   const { t } = useLocaleContext();
 
+  const logoUrl = value || `${window.location.origin}/.well-known/service/static/images/logo.png`;
+  const { dialog, showDialog, closeDialog } = useDialog();
   const gallery = useRef<ImperativeImage>(null);
 
   return (

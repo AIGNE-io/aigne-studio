@@ -9,7 +9,7 @@ const NumberField = forwardRef<
   {
     readOnly?: boolean;
     parameter?: NumberParameter;
-    onChange: (value: string) => void;
+    onChange: (value: number) => void;
   } & Omit<TextFieldProps, 'onChange'>
 >(({ readOnly, parameter, ...props }, ref) => {
   return (
@@ -30,7 +30,7 @@ const NumberField = forwardRef<
           ...props.inputProps,
         },
       }}
-      onChange={(e) => props.onChange?.(e.target.value)}
+      onChange={(e) => props.onChange?.(Number(e.target.value))}
     />
   );
 });

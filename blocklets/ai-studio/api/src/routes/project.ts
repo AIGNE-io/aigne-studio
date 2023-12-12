@@ -31,6 +31,7 @@ import { projectTemplates } from '../templates/projects';
 import { getCommits } from './log';
 
 let icons: { filename: string }[] = [];
+const AI_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export interface CreateProjectInput {
   duplicateFrom?: string;
@@ -155,9 +156,14 @@ export function projectRoutes(router: Router) {
       name: 'image-bin',
       path: '/api/sdk/uploads',
       method: 'GET',
-      params: { pageSize: 100, tags: 'default-project-icon' },
+      params: { pageSize: 100, folderId: AI_STUDIO_COMPONENT_DID },
     });
 
+    res.json({ icons: data?.uploads || [] });
+  });
+
+  router.delete('/projects/icon/:id', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
+    const { data } = await call({ name: 'image-bin', path: `/api/uploads/${_req.params.id}`, method: 'DELETE' });
     res.json({ icons: data?.uploads || [] });
   });
 
@@ -226,7 +232,7 @@ export function projectRoutes(router: Router) {
 
       const item = sample(icons);
       if (item?.filename) {
-        icon = createImageUrl(`${req.protocol}://${req.hostname}`, item.filename);
+        icon = createImageUrl(`${req.protocol}://${req.hostname}`, item.filename, 160, 160);
       }
 
       const project = await Project.create({

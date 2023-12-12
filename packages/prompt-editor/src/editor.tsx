@@ -32,6 +32,7 @@ export default function Editor({
   componentPickerProps,
   variablePickerProps,
   ContentProps,
+  variables,
 }: {
   useVariableNode?: boolean;
   isDebug?: boolean;
@@ -45,6 +46,7 @@ export default function Editor({
   componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
   variablePickerProps?: ComponentProps<typeof VariablePickerPlugin>;
   ContentProps?: BoxProps;
+  variables?: string[];
 }): JSX.Element {
   const placeholderNode = <Placeholder>{placeholder}</Placeholder>;
 

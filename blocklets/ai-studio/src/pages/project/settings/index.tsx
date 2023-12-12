@@ -380,14 +380,14 @@ export default function ProjectSettings() {
                         return (
                           <FormControlLabel
                             key={version.value}
-                            sx={{ mb: 1, mr: 0, ':last-child': { m: 0 } }}
+                            sx={{ mb: 1, mr: 0, ':last-child': { m: 0 }, alignItems: 'flex-start' }}
                             value={version.value}
                             control={<Radio />}
                             label={
-                              <>
+                              <Box mt={0.25} ml={0.5}>
                                 <Box className="title">{version.title}</Box>
                                 <Box className="subTitle">{version.subTitle}</Box>
-                              </>
+                              </Box>
                             }
                           />
                         );

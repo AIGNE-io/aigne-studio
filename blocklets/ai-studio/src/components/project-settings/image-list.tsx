@@ -22,7 +22,7 @@ const getMountPoint = (name: string) => {
   return '/';
 };
 
-function createImageUrl(filename: string, width = 0, height = 0) {
+export function createImageUrl(filename: string, width = 0, height = 0) {
   const mountPoint = getMountPoint('image-bin');
   // @ts-ignore
   const { CDN_HOST = '' } = window?.blocklet || {};
@@ -66,12 +66,14 @@ const GalleryImageList = forwardRef<
       return [{ add: true }, ...new Array(9).fill(0).map((_x, i) => ({ loading: true, i }))];
     }
 
-    return [{ add: true }, ...uploads.map((x: any) => ({ ...x, img: createImageUrl(x.filename) }))];
+    return [{ add: true }, ...uploads.map((x: any) => ({ ...x, img: createImageUrl(x.filename, 160, 160) }))];
   }, [uploads, loading]);
 
   return (
     <List cols={cols} gap={gap}>
       {list.map((item) => {
+        const selected = selectedImage === item.img;
+
         if (item.add) {
           return (
             <Box className="image-container" key="add">
@@ -112,16 +114,14 @@ const GalleryImageList = forwardRef<
             }}>
             <Box className="image-container">
               <img
-                className={selectedImage === item.img ? 'selected' : ''}
+                className={selected ? 'selected' : ''}
                 srcSet={`${item.img}`}
                 src={`${item.img}`}
                 alt={item.filename}
                 loading="lazy"
               />
 
-              {selectedImage === item.img && (
-                <CheckCircleIcon sx={{ color: '#1976d2', position: 'absolute', bottom: 1, right: 1 }} />
-              )}
+              {selected && <CheckCircleIcon sx={{ color: '#1976d2', position: 'absolute', bottom: 1, right: 1 }} />}
             </Box>
           </ImageListItem>
         );
@@ -145,13 +145,14 @@ const List = styled(ImageList)`
 
   .image-container {
     img,
-    button {
+    .upload-button {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
+      cursor: pointer;
     }
   }
 `;

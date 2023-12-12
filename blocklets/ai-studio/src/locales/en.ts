@@ -379,4 +379,7 @@ export default flat({
   value: 'Value',
   haveNotAddedTip: "You haven't added any {object} blocks yet",
   selectTool: 'Select Tool',
+  emptyInput: 'The input cannot be empty',
+  emptyPrompts: 'Add at least one prompt',
+  userInput: 'Test Parameters',
 });

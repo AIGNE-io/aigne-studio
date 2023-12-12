@@ -26,6 +26,7 @@ interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
   componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
   variablePickerProps?: ComponentProps<typeof VariablePickerPlugin>;
   ContentProps?: BoxProps;
+  variables?: string[];
 }
 
 export default function PromptEditor({
@@ -73,6 +74,7 @@ function EditorShell({
   componentPickerProps,
   variablePickerProps,
   ContentProps,
+  variables,
   ...props
 }: PromptEditorProps) {
   const [editor] = useLexicalComposerContext();
@@ -116,6 +118,7 @@ function EditorShell({
   return (
     <EditorRoot {...props} ref={shellRef} onClick={onShellClick}>
       <Editor
+        variables={variables}
         autoFocus={autoFocus}
         onChange={setState}
         placeholder={placeholder}
