@@ -1,4 +1,4 @@
-import { AIForm, AIFormResult } from '@blocklet/ai-runtime';
+import { AIForm, AIFormResult } from '@blocklet/ai-runtime/components';
 import { Box, Grid } from '@mui/material';
 import { Route, Routes, useParams, useSearchParams } from 'react-router-dom';
 

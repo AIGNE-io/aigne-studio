@@ -1,4 +1,4 @@
-import { AssistantYjs, ExecuteBlockYjs } from '@blocklet/ai-runtime';
+import { AssistantYjs, ExecuteBlockYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { useCallback } from 'react';
 

@@ -1,10 +1,10 @@
-import { FunctionFileYjs } from '@blocklet/ai-runtime';
+import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box } from '@mui/material';
 import { useEffect } from 'react';
 
 import CodeEditor from '../../template-form/code-editor';
 
-export default function FunctionCodeEditor({ value, readOnly }: { value: FunctionFileYjs; readOnly?: boolean }) {
+export default function FunctionCodeEditor({ value, readOnly }: { value: FunctionAssistantYjs; readOnly?: boolean }) {
   useEffect(() => {
     if (!value.code) {
       value.code = `\

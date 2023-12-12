@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.162",
+  "version": "0.1.163",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -16,6 +16,14 @@
       "import": "./lib/esm/index.js",
       "require": "./lib/cjs/index.js"
     },
+    "./api": {
+      "import": "./lib/esm/api/index.js",
+      "require": "./lib/cjs/api/index.js"
+    },
+    "./components": {
+      "import": "./lib/esm/components/index.js",
+      "require": "./lib/cjs/components/index.js"
+    },
     "./types": {
       "import": "./lib/esm/types/index.js",
       "require": "./lib/cjs/types/index.js"
@@ -29,6 +37,12 @@
     "*": {
       "*": [
         "./lib/types/index.d.ts"
+      ],
+      "api": [
+        "./lib/types/api/index.d.ts"
+      ],
+      "components": [
+        "./lib/types/components/index.d.ts"
       ],
       "types": [
         "./lib/types/types/index.d.ts"

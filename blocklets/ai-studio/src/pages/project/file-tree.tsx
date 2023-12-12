@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile, nextAssistantId } from '@blocklet/ai-runtime';
+import { AssistantYjs, FileTypeYjs, isAssistant, isPromptAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { css } from '@emotion/css';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
@@ -549,7 +549,7 @@ function TreeItemMenus({
 }) {
   const { t } = useLocaleContext();
 
-  const assistant = item.type === 'file' && isPromptFile(item.meta) ? item.meta : undefined;
+  const assistant = item.type === 'file' && isPromptAssistant(item.meta) ? item.meta : undefined;
 
   const menus = [
     [

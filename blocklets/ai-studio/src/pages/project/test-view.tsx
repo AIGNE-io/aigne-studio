@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime';
-import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api/assistant';
+import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api';
+import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Error } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';

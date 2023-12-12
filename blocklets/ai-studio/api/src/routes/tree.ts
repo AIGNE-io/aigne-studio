@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { Assistant } from '@blocklet/ai-runtime';
+import { Assistant } from '@blocklet/ai-runtime/types';
 import { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';

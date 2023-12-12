@@ -1,10 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ApiFileYjs } from '@blocklet/ai-runtime';
+import { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
 import { ExpandMoreRounded } from '@mui/icons-material';
 import { Box, Button, Collapse, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 
-export default function ApiAssistantSetting({ value, readOnly }: { value: ApiFileYjs; readOnly?: boolean }) {
+export default function ApiAssistantSetting({ value, readOnly }: { value: ApiAssistantYjs; readOnly?: boolean }) {
   const { t } = useLocaleContext();
 
   const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);

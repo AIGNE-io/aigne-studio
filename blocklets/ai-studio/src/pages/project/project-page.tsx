@@ -1,5 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, isApiFile, isAssistant, isFunctionFile, isPromptFile } from '@blocklet/ai-runtime';
+import {
+  AssistantYjs,
+  isApiAssistant,
+  isAssistant,
+  isFunctionAssistant,
+  isPromptAssistant,
+} from '@blocklet/ai-runtime/types';
 import {
   Alert,
   Box,
@@ -27,8 +33,8 @@ import { bindMenu, bindTrigger, usePopupState } from 'material-ui-popup-state/ho
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ApiAssistantEditor from 'src/components/file-editor/api-assistant';
-import FunctionFileEditor from 'src/components/file-editor/function-file';
-import PromptFileEditor from 'src/components/file-editor/prompt-file';
+import FunctionAssistantEditor from 'src/components/file-editor/function-file';
+import PromptAssistantEditor from 'src/components/file-editor/prompt-file';
 import { joinURL, withQuery } from 'ufo';
 
 import WithAwareness from '../../components/awareness/with-awareness';
@@ -351,12 +357,12 @@ export default function ProjectPage() {
               </Box>
             ) : file ? (
               <WithAwareness projectId={projectId} gitRef={gitRef} path={[file.id]} onMount>
-                {isPromptFile(file) ? (
-                  <PromptFileEditor projectId={projectId} gitRef={gitRef} value={file} />
-                ) : isApiFile(file) ? (
+                {isPromptAssistant(file) ? (
+                  <PromptAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
+                ) : isApiAssistant(file) ? (
                   <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
-                ) : isFunctionFile(file) ? (
-                  <FunctionFileEditor projectId={projectId} gitRef={gitRef} value={file} />
+                ) : isFunctionAssistant(file) ? (
+                  <FunctionAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
                 ) : (
                   <Box />
                 )}

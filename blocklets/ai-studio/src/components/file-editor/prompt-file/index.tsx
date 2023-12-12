@@ -1,5 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlockYjs, PromptFileYjs, PromptMessage, nextAssistantId } from '@blocklet/ai-runtime';
+import {
+  AssistantYjs,
+  ExecuteBlockYjs,
+  PromptAssistantYjs,
+  PromptMessage,
+  nextAssistantId,
+} from '@blocklet/ai-runtime/types';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
 import { DragSortItemContainer, DragSortListYjs } from 'src/components/drag-sort-list';
@@ -20,7 +26,7 @@ import PromptAssistantSetting from './setting';
 // TODO 放到theme中
 const bgcolor = 'rgba(249, 250, 251, 1)';
 
-export default function PromptFileEditor({
+export default function PromptAssistantEditor({
   projectId,
   gitRef,
   value,
@@ -28,7 +34,7 @@ export default function PromptFileEditor({
 }: {
   projectId: string;
   gitRef: string;
-  value: PromptFileYjs;
+  value: PromptAssistantYjs;
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();

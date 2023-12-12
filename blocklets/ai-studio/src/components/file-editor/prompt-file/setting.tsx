@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { PromptFileYjs } from '@blocklet/ai-runtime';
+import { PromptAssistantYjs } from '@blocklet/ai-runtime/types';
 import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
 import { Box, Button, Collapse, FormLabel, Stack, Tooltip, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
@@ -19,7 +19,7 @@ export default function PromptAssistantSetting({
 }: {
   projectId: string;
   gitRef: string;
-  value: PromptFileYjs;
+  value: PromptAssistantYjs;
   readOnly?: boolean;
 }) {
   const { t } = useLocaleContext();

@@ -24,7 +24,7 @@ async function migrate() {
     })
     .filter((i): i is NonNullable<typeof i> => !!i);
 
-  const isPromptFile = (i: any): i is { id: string } => typeof i.id === 'string';
+  const isPromptAssistant = (i: any): i is { id: string } => typeof i.id === 'string';
 
   for (const { projectId, ref } of workings) {
     try {
@@ -35,7 +35,7 @@ async function migrate() {
 
       for (const key of keys) {
         const file = working.syncedStore.files[key];
-        if (file && isPromptFile(file)) {
+        if (file && isPromptAssistant(file)) {
           working.syncedStore.tree[file.id] = working.syncedStore.tree[key];
           working.syncedStore.files[file.id] = getYjsValue(working.syncedStore.files[key])?.toJSON();
 

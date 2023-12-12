@@ -1,4 +1,4 @@
-import { PromptFileYjs, isPromptFile } from '@blocklet/ai-runtime';
+import { PromptAssistantYjs, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import sortBy from 'lodash/sortBy';
 import { useCallback } from 'react';
@@ -17,10 +17,10 @@ export function usePromptsState({
   const { store } = useProjectStore(projectId, gitRef);
 
   const file = store.files[templateId];
-  const template = file && isPromptFile(file) ? file : undefined;
+  const template = file && isPromptAssistant(file) ? file : undefined;
 
   const addPrompt = useCallback(
-    (prompt: NonNullable<PromptFileYjs['prompts']>[string]['data'], index?: number) => {
+    (prompt: NonNullable<PromptAssistantYjs['prompts']>[string]['data'], index?: number) => {
       if (!template) return;
 
       const doc = (getYjsValue(template) as Map<any>).doc!;
