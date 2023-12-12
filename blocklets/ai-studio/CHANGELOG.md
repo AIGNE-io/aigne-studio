@@ -1,8 +1,12 @@
+## 0.1.164 (2023-12-12)
+
+- fix: set default model
+
 ## 0.1.163 (2023-12-12)
 
 - fix: remove unused migration
 - refactor: rename types
-- refactor: use subpackage exports from ai-runtime
+- refactor: use sub package exports from ai-runtime
 
 ## 0.1.162 (2023-12-12)
 

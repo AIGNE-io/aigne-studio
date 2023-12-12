@@ -12,6 +12,8 @@ import { defaultBranch, getAssistantFromRepository, getRepository } from '../sto
 
 const router = Router();
 
+const defaultModel = 'gpt-3.5-turbo';
+
 router.get('/status', ensureComponentCallOrPromptsEditor(), async (_, res) => {
   const response = await call({
     name: 'ai-kit',
@@ -75,7 +77,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
   const callAI = (input: CallAIKitInput) =>
     callAIKit({
       ...input,
-      model: input.model ?? project.model,
+      model: input.model || project.model || defaultModel,
       temperature: input.temperature ?? project.temperature,
       topP: input.topP ?? project.topP,
       presencePenalty: input.presencePenalty ?? project.presencePenalty,
