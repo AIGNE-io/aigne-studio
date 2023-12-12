@@ -1,3 +1,10 @@
+## 0.1.162 (2023-12-12)
+
+- fix: launch in assistant
+- fix: can not delete prompt message
+- refactor: move mustache to ai-runtime
+- refactor: move types to runtime package
+
 ## 0.1.161 (2023-12-10)
 
 - fix: save failed
