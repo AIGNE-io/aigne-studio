@@ -4,7 +4,13 @@ import { Assistant } from '@blocklet/ai-runtime';
 import { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { PROMPTS_FOLDER_NAME, defaultBranch, getAssistantFromRepository, getRepository } from '../store/repository';
+import {
+  PROMPTS_FOLDER_NAME,
+  defaultBranch,
+  getAssistantFromRepository,
+  getAssistantIdFromPath,
+  getRepository,
+} from '../store/repository';
 
 export interface File {
   type: 'file';
@@ -36,11 +42,11 @@ export function treeRoutes(router: Router) {
     const files = (
       await Promise.all(
         list.map(async (filepath) => {
-          const { dir, base, name } = path.parse(filepath);
+          const { dir, base } = path.parse(filepath);
           const parent = dir.split(path.sep);
 
           if (filepath.startsWith(`${PROMPTS_FOLDER_NAME}/`) && filepath.endsWith('.yaml')) {
-            const assistantId = name.split('.').at(-2);
+            const assistantId = getAssistantIdFromPath(filepath);
             if (assistantId) {
               return {
                 type: 'file',

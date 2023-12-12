@@ -222,7 +222,7 @@ To run it you can:
 `;
 }
 
-export function getTemplateIdFromPath(filepath: string) {
+export function getAssistantIdFromPath(filepath: string) {
   return path.parse(filepath).name.split('.').at(-1);
 }
 
