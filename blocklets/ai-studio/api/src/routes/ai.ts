@@ -47,7 +47,7 @@ router.post('/image/generations', ensureComponentCallOrPromptsEditor(), async (r
   response.data.pipe(res);
 });
 
-const callV2InputSchema = Joi.object<{
+const callInputSchema = Joi.object<{
   projectId: string;
   ref: string;
   working?: boolean;
@@ -64,7 +64,7 @@ const callV2InputSchema = Joi.object<{
 router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
-  const input = await callV2InputSchema.validateAsync(req.body, { stripUnknown: true });
+  const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
 
   const project = await Project.findByPk(input.projectId, {
     rejectOnEmpty: new Error(`Project ${input.projectId} not found`),

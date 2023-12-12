@@ -29,7 +29,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ApiAssistantEditor from 'src/components/file-editor/api-assistant';
 import FunctionFileEditor from 'src/components/file-editor/function-file';
 import PromptFileEditor from 'src/components/file-editor/prompt-file';
-import { joinURL } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 
 import WithAwareness from '../../components/awareness/with-awareness';
 import { useComponent } from '../../contexts/component';
@@ -116,23 +116,25 @@ export default function ProjectPage() {
     if (filepath) setPreviousFilePath((v) => ({ ...v, [gitRef]: filepath }));
   }, [gitRef, filepath, setPreviousFilePath]);
 
-  const assistant = useComponent('ai-assistant');
+  const aiAssistant = useComponent('ai-assistant');
 
   const onLaunch = useCallback(
-    async (template: AssistantYjs) => {
-      if (!assistant) {
+    async (assistant: AssistantYjs) => {
+      if (!aiAssistant) {
         return;
       }
 
-      // const mode = `${template.mode === 'chat' ? 'chat' : 'templates'}`;
-      const mode = 'templates';
-
       window.open(
-        `${assistant.mountPoint}/projects/${projectId}/${gitRef}/${mode}/${template.id}?source=studio`,
+        withQuery(joinURL(aiAssistant.mountPoint, 'assistants', assistant.id), {
+          source: 'studio',
+          projectId,
+          ref: gitRef,
+          working: true,
+        }),
         '_blank'
       );
     },
-    [assistant, projectId, gitRef]
+    [aiAssistant, projectId, gitRef]
   );
 
   const layout = useRef<ImperativeColumnsLayout>(null);
@@ -246,7 +248,7 @@ export default function ProjectPage() {
             gitRef={gitRef}
             mutable={!readOnly}
             current={filepath}
-            onLaunch={assistant ? onLaunch : undefined}
+            onLaunch={aiAssistant ? onLaunch : undefined}
             sx={{ flexGrow: 1 }}
           />
         </Stack>
