@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ApiFileYjs, nextAssistantId } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import {
@@ -17,9 +18,7 @@ import {
 import { sortBy } from 'lodash';
 import Add from 'src/pages/project/icons/add';
 import Trash from 'src/pages/project/icons/trash';
-import { nextTemplateId } from 'src/pages/project/yjs-state';
 
-import { ApiFileYjs } from '../../../../api/src/store/projects';
 import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';
@@ -65,7 +64,7 @@ export default function ApiAssistantEditor({
             onClick={() => {
               const doc = (getYjsValue(value) as Map<any>).doc!;
               doc.transact(() => {
-                const id = nextTemplateId();
+                const id = nextAssistantId();
                 value.prepareExecutes ??= {};
                 value.prepareExecutes[id] = {
                   index: Math.max(-1, ...Object.values(value.prepareExecutes).map((i) => i.index)) + 1,
@@ -175,7 +174,7 @@ export default function ApiAssistantEditor({
               onClick={() => {
                 const doc = (getYjsValue(value) as Map<any>).doc!;
                 doc.transact(() => {
-                  const id = nextTemplateId();
+                  const id = nextAssistantId();
 
                   value.requestParameters ??= {};
                   value.requestParameters[id] = {

@@ -27,7 +27,7 @@ import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
 import useDialog from '../../utils/use-dialog';
-import { defaultBranch, useProjectState, useTemplatesChangesState } from './state';
+import { defaultBranch, useProjectState } from './state';
 
 interface CommitForm {
   branch: string;
@@ -46,8 +46,6 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     state: { branches, project },
     refetch,
   } = useProjectState(projectId, gitRef);
-
-  const { run } = useTemplatesChangesState(projectId, gitRef);
 
   const simpleMode = !project || project?.gitType === 'simple';
 
@@ -93,7 +91,6 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         }
 
         refetch();
-        run();
         if (branch !== gitRef) navigate(joinURL('..', branch), { replace: true });
       } catch (error) {
         form.reset(input);
@@ -101,7 +98,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         throw error;
       }
     },
-    [simpleMode, dialogState, refetch, run, gitRef, navigate, projectId, t, showMergeConflictDialog, form]
+    [simpleMode, dialogState, refetch, gitRef, navigate, projectId, t, showMergeConflictDialog, form]
   );
 
   const submitting = form.formState.isSubmitting;

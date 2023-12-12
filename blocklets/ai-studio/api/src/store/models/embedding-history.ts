@@ -22,8 +22,10 @@ export default class EmbeddingHistory extends Model<
   declare targetVersion?: Date;
 
   declare error?: string;
+}
 
-  public static readonly GENESIS_ATTRIBUTES = {
+EmbeddingHistory.init(
+  {
     _id: {
       type: DataTypes.STRING,
       primaryKey: true,
@@ -45,7 +47,6 @@ export default class EmbeddingHistory extends Model<
     error: {
       type: DataTypes.STRING,
     },
-  };
-}
-
-EmbeddingHistory.init(EmbeddingHistory.GENESIS_ATTRIBUTES, { sequelize });
+  },
+  { sequelize }
+);

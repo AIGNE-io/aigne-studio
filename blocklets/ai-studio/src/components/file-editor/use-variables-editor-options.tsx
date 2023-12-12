@@ -1,11 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AssistantYjs, randomId } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { INSERT_VARIABLE_COMMAND, VariablePickerOption } from '@blocklet/prompt-editor';
 import { DataObjectRounded } from '@mui/icons-material';
 import { alpha } from '@mui/material';
 import { useCallback, useMemo } from 'react';
-import { randomId } from 'src/pages/project/prompt-state';
-import { AssistantYjs } from 'src/pages/project/yjs-state';
 
 export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   const { t } = useLocaleContext();

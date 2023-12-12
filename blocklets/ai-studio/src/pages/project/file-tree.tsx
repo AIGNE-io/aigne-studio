@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile, nextAssistantId } from '@blocklet/ai-runtime';
 import { css } from '@emotion/css';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
@@ -45,10 +46,8 @@ import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { FileTypeYjs } from '../../../api/src/store/projects';
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
-import { importTemplatesToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import ChevronDown from './icons/chevron-down';
 import Code from './icons/code';
@@ -65,18 +64,12 @@ import Trash from './icons/trash';
 import Undo from './icons/undo';
 import ImportFrom from './import';
 import {
-  AssistantYjs,
   PROMPTS_FOLDER_NAME,
   createFile,
   createFolder,
   deleteFile,
-  isApiFileYjs,
   isBuiltinFolder,
-  isFunctionFileYjs,
-  isPromptFileYjs,
   moveFile,
-  nextTemplateId,
-  resetTemplatesId,
   useProjectStore,
 } from './yjs-state';
 
@@ -198,21 +191,21 @@ const FileTree = forwardRef<
       ),
       onOk: async () => {
         try {
-          const { templates } = await importTemplatesToProject(projectId, gitRef, state);
-
-          if (templates.length) {
-            const newTemplates = resetTemplatesId(templates);
-            for (const template of newTemplates) {
-              createFile({
-                store,
-                parent: template.parent,
-                // FIXME:
-                // meta: templateYjsFromTemplate(template),
-              });
-            }
-          } else {
-            Toast.error(t('import.selectTemplates'));
-          }
+          // FIXME:
+          // const { templates } = await importTemplatesToProject(projectId, gitRef, state);
+          // if (templates.length) {
+          //   const newTemplates = resetTemplatesId(templates);
+          //   for (const template of newTemplates) {
+          //     createFile({
+          //       store,
+          //       parent: template.parent,
+          //       // FIXME:
+          //       // meta: templateYjsFromTemplate(template),
+          //     });
+          //   }
+          // } else {
+          // Toast.error(t('import.selectTemplates'));
+          // }
         } catch (error) {
           Toast.error(getErrorMessage(error));
           throw error;
@@ -280,11 +273,7 @@ const FileTree = forwardRef<
   const files = Object.entries(store.tree)
     .map(([key, filepath]) => {
       const file = store.files[key];
-      if (
-        filepath?.endsWith('.yaml') &&
-        file &&
-        (isPromptFileYjs(file) || isApiFileYjs(file) || isFunctionFileYjs(file))
-      ) {
+      if (filepath?.endsWith('.yaml') && file && isAssistant(file)) {
         const paths = filepath.split('/').filter(Boolean);
         return {
           type: 'file' as const,
@@ -560,7 +549,7 @@ function TreeItemMenus({
 }) {
   const { t } = useLocaleContext();
 
-  const assistant = item.type === 'file' && isPromptFileYjs(item.meta) ? item.meta : undefined;
+  const assistant = item.type === 'file' && isPromptFile(item.meta) ? item.meta : undefined;
 
   const menus = [
     [
@@ -618,7 +607,7 @@ function TreeItemMenus({
               parent: item.parent,
               meta: {
                 ...JSON.parse(JSON.stringify(item.meta)),
-                id: nextTemplateId(),
+                id: nextAssistantId(),
                 name: item.meta.name && `${item.meta.name} Copy`,
               },
             })

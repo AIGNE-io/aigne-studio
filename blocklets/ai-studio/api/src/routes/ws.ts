@@ -2,8 +2,8 @@ import { user } from '@blocklet/sdk/lib/middlewares';
 import express from 'express';
 
 import { ensurePromptsEditor, isRefReadOnly } from '../libs/security';
-import Projects from '../store/models/projects';
-import { getRepository } from '../store/projects';
+import Project from '../store/models/project';
+import { getRepository } from '../store/repository';
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.use(ensurePromptsEditor, user()).ws('/ws/:projectId/:ref', async (conn, r
   const { role } = req.user!;
   const readOnly = isRefReadOnly({ ref, role });
 
-  const project = await Projects.findOne({ where: { _id: projectId } });
+  const project = await Project.findOne({ where: { _id: projectId } });
   if (!project) {
     conn.close(3001, `Project ${projectId} not found`);
     return;

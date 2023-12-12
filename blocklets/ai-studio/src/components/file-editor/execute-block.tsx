@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, FileTypeYjs, isAssistant } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import {
   Autocomplete,
@@ -17,29 +18,13 @@ import {
   Typography,
   createFilterOptions,
 } from '@mui/material';
-import {
-  ApiFileYjs,
-  ExecuteBlock,
-  ExecuteBlockYjs,
-  FileTypeYjs,
-  FunctionFileYjs,
-  PromptFileYjs,
-} from 'api/src/store/projects';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import Add from 'src/pages/project/icons/add';
 import Trash from 'src/pages/project/icons/trash';
-import {
-  AssistantYjs,
-  PROMPTS_FOLDER_NAME,
-  createFile,
-  isApiFileYjs,
-  isFunctionFileYjs,
-  isPromptFileYjs,
-  useProjectStore,
-} from 'src/pages/project/yjs-state';
+import { PROMPTS_FOLDER_NAME, createFile, useProjectStore } from 'src/pages/project/yjs-state';
 
 import PromptEditorField from './prompt-editor-field';
 
@@ -102,7 +87,7 @@ export default function ExecuteBlockForm({
       <Stack gap={0.5}>
         {tools?.map(({ data: tool }) => {
           const f = store.files[tool.id];
-          const file = isPromptFileYjs(f) || isApiFileYjs(f) || isFunctionFileYjs(f) ? f : undefined;
+          const file = f && isAssistant(f) ? f : undefined;
           if (!file) return null;
 
           return (
@@ -243,15 +228,12 @@ const ToolDialog = forwardRef<
   const options = Object.entries(store.tree)
     .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
     .map(([id]) => store.files[id])
-    .filter(
-      (i): i is PromptFileYjs | ApiFileYjs | FunctionFileYjs =>
-        isPromptFileYjs(i) || isApiFileYjs(i) || isFunctionFileYjs(i)
-    )
+    .filter((i): i is AssistantYjs => !!i && isAssistant(i))
     .map((i) => ({ id: i.id, type: i.type, name: i.name }));
 
   const fileId = form.watch('id');
   const f = store.files[fileId];
-  const file = isPromptFileYjs(f) || isApiFileYjs(f) || isFunctionFileYjs(f) ? f : undefined;
+  const file = f && isAssistant(f) ? f : undefined;
   const parameters =
     file?.parameters &&
     sortBy(Object.values(file.parameters), (i) => i.index).filter(
@@ -276,7 +258,7 @@ const ToolDialog = forwardRef<
             rules={{ required: t('validation.fieldRequired') }}
             render={({ field, fieldState }) => {
               const file = store.files[field.value];
-              const target = isPromptFileYjs(file) || isApiFileYjs(file) || isFunctionFileYjs(file) ? file : undefined;
+              const target = file && isAssistant(file) ? file : undefined;
               const value = target ? { id: target.id, type: target.type, name: target.name } : undefined;
 
               return (

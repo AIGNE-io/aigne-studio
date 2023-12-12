@@ -1,16 +1,22 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ParameterYjs } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Add } from '@mui/icons-material';
 import { Box, Button, Stack, TextField } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 
-import { SelectParameterYjs } from '../../../api/src/store/templates';
 import DragVertical from '../../pages/project/icons/drag-vertical';
 import Trash from '../../pages/project/icons/trash';
 import { DragSortListYjs } from '../drag-sort-list';
 
-export default function SelectOptionsConfig({ readOnly, select }: { readOnly?: boolean; select: SelectParameterYjs }) {
+export default function SelectOptionsConfig({
+  readOnly,
+  select,
+}: {
+  readOnly?: boolean;
+  select: Extract<ParameterYjs, { type: 'select' }>;
+}) {
   const { t } = useLocaleContext();
 
   return (

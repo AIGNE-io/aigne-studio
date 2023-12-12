@@ -1,9 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ParameterField, ParameterYjs, parameterFromYjs } from '@blocklet/ai-runtime';
 import { FormControl, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
 
-import { ParameterYjs } from '../../../api/src/store/templates';
-import NumberField from '../number-field';
-import ParameterField from '../parameter-field';
+import NumberField from './number-field';
 import SelectOptionsConfig from './select-options-config';
 
 export default function ParameterConfig({ readOnly, value }: { readOnly?: boolean; value: ParameterYjs }) {
@@ -34,7 +33,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       <Grid item xs={12}>
         <ParameterField
           readOnly={readOnly}
-          parameter={value}
+          parameter={parameterFromYjs(value)}
           fullWidth
           label={t('form.parameter.defaultValue')}
           size="small"
@@ -64,13 +63,14 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         <>
           <Grid item xs={6}>
             <NumberField
-              fullWidth
               label={t('form.parameter.minLength')}
               size="small"
-              min={1}
-              value={value.minLength ?? ''}
-              onChange={(minLength) => (value.minLength = minLength)}
-              InputProps={{ readOnly }}
+              NumberProps={{
+                readOnly,
+                min: 1,
+                value: value.minLength,
+                onChange: (_, minLength) => (value.minLength = minLength),
+              }}
             />
           </Grid>
           <Grid item xs={6}>
@@ -78,10 +78,12 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               fullWidth
               label={t('form.parameter.maxLength')}
               size="small"
-              min={1}
-              value={value.maxLength ?? ''}
-              onChange={(maxLength) => (value.maxLength = maxLength)}
-              InputProps={{ readOnly }}
+              NumberProps={{
+                readOnly,
+                min: 1,
+                value: value.maxLength,
+                onChange: (_, maxLength) => (value.maxLength = maxLength),
+              }}
             />
           </Grid>
         </>
@@ -93,9 +95,11 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               fullWidth
               label={t('form.parameter.min')}
               size="small"
-              value={value.min ?? ''}
-              onChange={(min) => (value.min = min)}
-              InputProps={{ readOnly }}
+              NumberProps={{
+                readOnly,
+                value: value.min,
+                onChange: (_, min) => (value.min = min),
+              }}
             />
           </Grid>
           <Grid item xs={6}>
@@ -103,9 +107,11 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               fullWidth
               label={t('form.parameter.max')}
               size="small"
-              value={value.max ?? ''}
-              onChange={(max) => (value.max = max)}
-              InputProps={{ readOnly }}
+              NumberProps={{
+                readOnly,
+                value: value.max,
+                onChange: (_, max) => (value.max = max),
+              }}
             />
           </Grid>
         </>

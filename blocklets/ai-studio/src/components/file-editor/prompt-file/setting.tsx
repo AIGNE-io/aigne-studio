@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { PromptFileYjs } from '@blocklet/ai-runtime';
 import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
 import { Box, Button, Collapse, FormLabel, Stack, Tooltip, Typography } from '@mui/material';
-import { PromptFileYjs } from 'api/src/store/projects';
 import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 import AwarenessIndicator from 'src/components/awareness/awareness-indicator';
@@ -39,7 +39,7 @@ export default function PromptAssistantSetting({
   return (
     <Box>
       <Stack direction="row" alignItems="center" gap={2}>
-        <Typography variant="subtitle1">{t('callAPI')}</Typography>
+        <Typography variant="subtitle1">{t('callPrompt')}</Typography>
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end">
           {!open && (

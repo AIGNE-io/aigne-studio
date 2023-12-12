@@ -1,5 +1,5 @@
+import { FunctionFileYjs } from '@blocklet/ai-runtime';
 import { Box } from '@mui/material';
-import { FunctionFileYjs } from 'api/src/store/projects';
 import { useEffect } from 'react';
 
 import CodeEditor from '../../template-form/code-editor';

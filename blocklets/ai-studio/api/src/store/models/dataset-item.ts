@@ -37,8 +37,10 @@ export default class DatasetItem extends Model<InferAttributes<DatasetItem>, Inf
   declare embeddedAt?: Date;
 
   declare error?: string;
+}
 
-  public static readonly GENESIS_ATTRIBUTES = {
+DatasetItem.init(
+  {
     _id: {
       type: DataTypes.STRING,
       primaryKey: true,
@@ -75,7 +77,6 @@ export default class DatasetItem extends Model<InferAttributes<DatasetItem>, Inf
     error: {
       type: DataTypes.STRING,
     },
-  };
-}
-
-DatasetItem.init(DatasetItem.GENESIS_ATTRIBUTES, { sequelize });
+  },
+  { sequelize }
+);

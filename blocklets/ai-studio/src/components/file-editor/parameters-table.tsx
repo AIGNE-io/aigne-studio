@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AssistantYjs, ParameterYjs, StringParameter, nextAssistantId } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import {
   Box,
@@ -20,9 +21,7 @@ import { get, sortBy } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import Add from 'src/pages/project/icons/add';
 import Trash from 'src/pages/project/icons/trash';
-import { AssistantYjs, nextTemplateId } from 'src/pages/project/yjs-state';
 
-import { ParameterYjs, StringParameter } from '../../../api/src/store/templates';
 import Settings from '../../pages/project/icons/settings';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
@@ -51,7 +50,7 @@ export default function ParametersTable({
   const { t } = useLocaleContext();
 
   const createParameter = useCallback(() => {
-    const id = nextTemplateId();
+    const id = nextAssistantId();
 
     const doc = (getYjsValue(value) as Map<any>).doc!;
 

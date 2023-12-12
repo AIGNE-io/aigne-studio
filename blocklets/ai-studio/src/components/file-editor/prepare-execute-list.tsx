@@ -1,7 +1,6 @@
+import { AssistantYjs, ExecuteBlockYjs } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { ExecuteBlockYjs } from 'api/src/store/projects';
 import { useCallback } from 'react';
-import { AssistantYjs } from 'src/pages/project/yjs-state';
 
 import { DragSortItemContainer, DragSortListYjs } from '../drag-sort-list';
 import ExecuteBlockForm from './execute-block';

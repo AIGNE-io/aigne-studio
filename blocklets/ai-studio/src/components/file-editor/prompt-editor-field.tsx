@@ -1,8 +1,8 @@
+import { AssistantYjs } from '@blocklet/ai-runtime';
 import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import { ComponentProps, useCallback, useRef, useState } from 'react';
-import { AssistantYjs } from 'src/pages/project/yjs-state';
 
 import useVariablesEditorOptions from './use-variables-editor-options';
 

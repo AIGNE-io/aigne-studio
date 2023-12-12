@@ -1,3 +1,5 @@
+import Project from 'api/src/store/models/project';
+
 import {
   AddProjectRemoteInput,
   CreateProjectInput,
@@ -6,16 +8,21 @@ import {
   ProjectPushInput,
   UpdateProjectInput,
 } from '../../api/src/routes/project';
-import { Project } from '../../api/src/store/projects';
-import { Template } from '../../api/src/store/templates';
 import axios from './api';
 
+export type User = {
+  did?: string;
+  fullName?: string;
+  avatar?: string;
+};
+
+export type ProjectWithUserInfo = Project & {
+  branches: string[];
+  users: User[];
+};
+
 export async function getProjects(query?: GetProjectsQuery): Promise<{
-  projects: (Project & {
-    users: { name?: string; email?: string; did?: string; fullName?: string; avatar?: string }[];
-    branches: string[];
-    templateCount: number;
-  })[];
+  projects: ProjectWithUserInfo[];
 }> {
   return axios.get('/api/projects', { params: query }).then((res) => res.data);
 }
@@ -40,7 +47,7 @@ export async function importTemplatesToProject(
   projectId: string,
   ref: string,
   data: { projectId: string; ref: string; resources: string[] }
-): Promise<{ templates: (Template & { parent?: string[] })[] }> {
+): Promise<{ templates: { parent?: string[] }[] }> {
   return axios.post(`/api/projects/${projectId}/${ref}/import`, data).then((res) => res.data);
 }
 

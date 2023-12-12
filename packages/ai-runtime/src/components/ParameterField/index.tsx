@@ -1,6 +1,6 @@
 import { TextFieldProps } from '@mui/material';
 
-import { Parameter } from '../../types/template';
+import { Parameter } from '../../types/assistant';
 import LanguageField from './LanguageField';
 import NumberField from './NumberField';
 import SelectField from './SelectField';

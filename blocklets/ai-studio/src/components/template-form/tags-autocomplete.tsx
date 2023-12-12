@@ -1,7 +1,8 @@
+import { AssistantYjs, isAssistant } from '@blocklet/ai-runtime';
 import { Autocomplete, AutocompleteProps, CircularProgress, TextField, TextFieldProps } from '@mui/material';
 import { useReactive, useThrottleEffect } from 'ahooks';
 import { useState } from 'react';
-import { AssistantYjs, isAssistant, useProjectStore } from 'src/pages/project/yjs-state';
+import { useProjectStore } from 'src/pages/project/yjs-state';
 
 export default function TagsAutoComplete({
   projectId,

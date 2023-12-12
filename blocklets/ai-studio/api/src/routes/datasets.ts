@@ -4,7 +4,7 @@ import Joi from 'joi';
 import { Op } from 'sequelize';
 
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
-import Datasets from '../store/models/datasets';
+import Dataset from '../store/models/dataset';
 
 const router = Router();
 
@@ -13,7 +13,7 @@ const datasetSchema = Joi.object<{ name?: string }>({
 });
 
 router.get('/', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
-  const list = await Datasets.findAll({ order: [['createdAt', 'ASC']] });
+  const list = await Dataset.findAll({ order: [['createdAt', 'ASC']] });
 
   res.json({ datasets: list });
 });
@@ -21,7 +21,7 @@ router.get('/', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
 router.get('/:datasetId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId } = req.params;
 
-  const dataset = await Datasets.findOne({ where: { _id: datasetId } });
+  const dataset = await Dataset.findOne({ where: { _id: datasetId } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
@@ -34,11 +34,11 @@ router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) 
   const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
 
-  if (name && (await Datasets.findOne({ where: { name } }))) {
+  if (name && (await Dataset.findOne({ where: { name } }))) {
     throw new Error(`Duplicated dataset ${name}`);
   }
 
-  const doc = await Datasets.create({
+  const doc = await Dataset.create({
     name,
     createdBy: did,
     updatedBy: did,
@@ -49,7 +49,7 @@ router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) 
 router.put('/:datasetId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
   const { datasetId } = req.params;
 
-  const dataset = await Datasets.findOne({ where: { _id: datasetId } });
+  const dataset = await Dataset.findOne({ where: { _id: datasetId } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
@@ -57,15 +57,15 @@ router.put('/:datasetId', user(), ensureComponentCallOrAdmin(), async (req, res)
 
   const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
 
-  if (name && (await Datasets.findOne({ where: { name, _id: { [Op.ne]: dataset._id } } }))) {
+  if (name && (await Dataset.findOne({ where: { name, _id: { [Op.ne]: dataset._id } } }))) {
     throw new Error(`Duplicated dataset ${name}`);
   }
 
   const { did } = req.user!;
 
-  await Datasets.update({ name, updatedBy: did }, { where: { _id: datasetId } });
+  await Dataset.update({ name, updatedBy: did }, { where: { _id: datasetId } });
 
-  const doc = await Datasets.findOne({ where: { _id: datasetId } });
+  const doc = await Dataset.findOne({ where: { _id: datasetId } });
 
   res.json(doc);
 });
@@ -73,13 +73,13 @@ router.put('/:datasetId', user(), ensureComponentCallOrAdmin(), async (req, res)
 router.delete('/:datasetId', ensureComponentCallOrAdmin(), async (req, res) => {
   const { datasetId } = req.params;
 
-  const dataset = await Datasets.findOne({ where: { [Op.or]: [{ _id: datasetId }, { name: datasetId }] } });
+  const dataset = await Dataset.findOne({ where: { [Op.or]: [{ _id: datasetId }, { name: datasetId }] } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
   }
 
-  await Datasets.destroy({ where: { _id: datasetId } });
+  await Dataset.destroy({ where: { _id: datasetId } });
 
   res.json(dataset);
 });

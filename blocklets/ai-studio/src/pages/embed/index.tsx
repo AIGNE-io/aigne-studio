@@ -5,7 +5,7 @@ import { Route, Routes, useParams, useSearchParams } from 'react-router-dom';
 export default function EmbedRoutes() {
   return (
     <Routes>
-      <Route path="/:projectId/:gitRef/:templateId" element={<AIFormPage />} />
+      <Route path="/:projectId/:gitRef/:assistantId " element={<AIFormPage />} />
       {/* TODO: A beautiful 404 page */}
       <Route path="*" element={<Box textAlign="center">404</Box>} />
     </Routes>
@@ -13,15 +13,15 @@ export default function EmbedRoutes() {
 }
 
 function AIFormPage() {
-  const { projectId, gitRef, templateId } = useParams();
-  if (!projectId || !gitRef || !templateId) {
+  const { projectId, gitRef, assistantId } = useParams();
+  if (!projectId || !gitRef || !assistantId) {
     throw new Error('Missing required params `projectId` or `gitRef` or `templateId`');
   }
 
   const [searchParams] = useSearchParams();
   const working = searchParams.get('working') === 'true';
 
-  const identifier = { projectId, gitRef, templateId, working };
+  const identifier = { projectId, gitRef, assistantId, working };
 
   return (
     <Box maxWidth="lg" mx="auto">

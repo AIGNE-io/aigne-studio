@@ -9,8 +9,8 @@ import uniqBy from 'lodash/uniqBy';
 import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
-import Projects from '../store/models/projects';
-import { defaultBranch, getTemplatesFromRepository } from '../store/projects';
+import Project from '../store/models/project';
+import { defaultBranch, getAssistantsOfRepository } from '../store/repository';
 
 const TARGET_DIR = 'templates.ai';
 
@@ -45,14 +45,15 @@ const locales: { [key: string]: any } = {
   },
 };
 
-export function resourcesRoutes(router: Router) {
+export function resourceRoutes(router: Router) {
   router.get('/resources/export', ensurePromptsEditor, async (req, res) => {
-    const projectRows = await Projects.findAll({
+    const projects = await Project.findAll({
       order: [['updatedAt', 'DESC']],
     });
-    const local = locales[(req.query as { local: string })?.local] || locales.zh;
 
-    const resources = projectRows.map((x: any) => {
+    const local = locales[(req.query as { local: string })?.local] || locales.en;
+
+    const resources = projects.map((x: any) => {
       return {
         id: x._id,
         name: x.name || local?.unnamed,
@@ -68,7 +69,7 @@ export function resourcesRoutes(router: Router) {
 
     const templates = (
       await Promise.all(
-        resources.map(async (projectId) => getTemplatesFromRepository({ projectId, ref: defaultBranch }))
+        resources.map(async (projectId) => getAssistantsOfRepository({ projectId, ref: defaultBranch }))
       )
     ).flat();
 

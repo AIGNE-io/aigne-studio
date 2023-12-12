@@ -29,16 +29,16 @@ import {
   Typography,
   styled,
 } from '@mui/material';
+import Project from 'api/src/store/models/project';
 import { MouseEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import { Project } from '../../../api/src/store/projects';
 import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
-import { createProject } from '../../libs/project';
+import { ProjectWithUserInfo, User, createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
@@ -50,20 +50,6 @@ import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
 import { defaultBranch } from './state';
-
-type User = {
-  name?: string;
-  email?: string;
-  did?: string;
-  fullName?: string;
-  avatar?: string;
-};
-
-type ProjectWithUserInfo = Project & {
-  users: User[];
-  branches: string[];
-  templateCount: number;
-};
 
 const CARD_HEIGHT = 160;
 const MAX_WIDTH = 300;
@@ -90,7 +76,7 @@ export default function ProjectsPage() {
 
         <Section enableCollapse title={t('newFromTemplates')}>
           {templates.length ? (
-            <ProjectList section="templates" list={templates as ProjectWithUserInfo[]} />
+            <ProjectList section="templates" list={templates} />
           ) : (
             loading && (
               <Stack direction="row" flexWrap="wrap" gap={gap}>
@@ -111,7 +97,7 @@ export default function ProjectsPage() {
 
         <Section title={t('myProjects')}>
           {projects.length ? (
-            <ProjectList section="projects" list={projects as ProjectWithUserInfo[]} />
+            <ProjectList section="projects" list={projects} />
           ) : loading ? (
             <Stack direction="row" flexWrap="wrap" gap={gap}>
               <ProjectItemSkeleton
@@ -392,8 +378,6 @@ function ProjectList({
               description={item.description}
               updatedAt={item.updatedAt}
               createdAt={item.createdAt}
-              templateCount={item.templateCount}
-              branches={item.branches || []}
               gitUrl={item.gitUrl}
               model={item.model}
               users={item.users || []}
@@ -469,6 +453,7 @@ function ProjectList({
           );
         })}
       </ProjectListContainer>
+
       {dialog}
     </>
   );
@@ -503,8 +488,6 @@ function ProjectItem({
   actions,
   mainActions,
   section,
-  templateCount,
-  branches,
   gitUrl,
   model,
   users,
@@ -517,8 +500,6 @@ function ProjectItem({
   description?: string;
   updatedAt?: string | Date;
   createdAt?: string | Date;
-  templateCount: number;
-  branches: string[];
   gitUrl?: string;
   model?: string;
   users?: User[];
@@ -566,13 +547,13 @@ function ProjectItem({
 
         {users && Array.isArray(users) && !!users.length && (
           <AvatarGroup total={users.length}>
-            {users.map((user: User) => {
-              const name = user.name || user.did;
+            {users.map((user) => {
+              const name = user.fullName || user.did;
 
               return (
-                <Tooltip title={user.name} key={user.name} placement="top">
-                  <CustomAvatar alt={user.name} sx={{ borderWidth: '1px !important' }}>
-                    {name ? name[0] : ''}
+                <Tooltip key={user.did} title={name} placement="top">
+                  <CustomAvatar alt={user.fullName} sx={{ borderWidth: '1px !important' }} src={user.avatar}>
+                    {name?.slice(0, 1)}
                   </CustomAvatar>
                 </Tooltip>
               );

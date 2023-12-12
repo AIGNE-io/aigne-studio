@@ -19,8 +19,10 @@ export default class Dataset extends Model<InferAttributes<Dataset>, InferCreati
   declare createdBy: string;
 
   declare updatedBy: string;
+}
 
-  public static readonly GENESIS_ATTRIBUTES = {
+Dataset.init(
+  {
     _id: {
       type: DataTypes.STRING,
       primaryKey: true,
@@ -44,7 +46,6 @@ export default class Dataset extends Model<InferAttributes<Dataset>, InferCreati
       type: DataTypes.STRING,
       allowNull: false,
     },
-  };
-}
-
-Dataset.init(Dataset.GENESIS_ATTRIBUTES, { sequelize });
+  },
+  { sequelize }
+);

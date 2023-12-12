@@ -1,192 +1,84 @@
 import { ReadableStream, TextDecoderStream, TransformStream } from 'stream/web';
 
-import { COMMENT_PREFIX } from '@blocklet/prompt-editor/utils';
-import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
-import { sign } from '@blocklet/sdk/lib/util/verify-sign';
+import { call } from '@blocklet/sdk/lib/component';
 import axios, { isAxiosError } from 'axios';
-import compression from 'compression';
 import { createParser } from 'eventsource-parser';
-import { Router } from 'express';
-import Joi from 'joi';
 import { isNil, pick } from 'lodash';
-import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
-import { joinURL } from 'ufo';
 import { NodeVM } from 'vm2';
 
-import logger from '../libs/logger';
-import Mustache from '../libs/mustache';
-import { ensureComponentCallOrAuth } from '../libs/security';
-import Log, { Status } from '../store/models/logs';
-import Projects from '../store/models/projects';
 import {
   ApiFile,
   Assistant,
   ExecuteBlock,
   FunctionFile,
-  Project,
   Prompt,
   PromptFile,
-  defaultBranch,
-  getAssistantFromRepository,
-  getRepository,
   isApiFile,
   isExecuteBlock,
   isFunctionFile,
   isPromptFile,
-} from '../store/projects';
+} from '../../types';
+import { Mustache } from '../../types/assistant';
 
-const router = Router();
+export type RunAssistantChunk = { taskId: string; assistantId: string; delta: { content?: string | null } };
 
-const callV2InputSchema = Joi.object<{
-  projectId: string;
-  ref: string;
-  working?: boolean;
-  assistantId: string;
-  parameters?: { [key: string]: any };
-}>({
-  ref: Joi.string(),
-  working: Joi.boolean().default(false),
-  projectId: Joi.string(),
-  parameters: Joi.object().pattern(Joi.string(), Joi.any()),
-  assistantId: Joi.string(),
-});
+export type RunAssistantCallback = (e: RunAssistantChunk) => void;
 
-router.post('/call/v2', compression(), ensureComponentCallOrAuth(), async (req, res) => {
-  const stream = req.accepts().includes('text/event-stream');
-
-  const input = await callV2InputSchema.validateAsync(req.body, { stripUnknown: true });
-
-  const project = await Projects.findByPk(input.projectId, {
-    rejectOnEmpty: new Error(`Project ${input.projectId} not found`),
-  });
-
-  const repository = await getRepository({ projectId: input.projectId });
-
-  const getAssistant = (fileId: string) => {
-    return getAssistantFromRepository({
-      repository,
-      ref: input.ref,
-      working: input.working,
-      assistantId: fileId,
-    });
-  };
-
-  const assistant = await getAssistant(input.assistantId);
-
-  const startDate = new Date();
-  const log = await Log.create({
-    templateId: input.assistantId,
-    hash: input.ref || defaultBranch,
-    projectId: input.projectId,
-    prompts: isPromptFile(assistant) ? assistant.prompts : undefined,
-    parameters: input.parameters,
-    startDate,
-  });
-
-  try {
-    const emit = (data: ResponseSSEV2) => {
-      if (!res.headersSent) {
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.flushHeaders();
-      }
-
-      res.write(`data: ${JSON.stringify(data)}\n\n`);
-      res.flush();
-    };
-
-    const taskId = taskIdGenerator.nextId().toString();
-
-    emit({ taskId, assistantId: assistant.id, delta: {} });
-
-    const result = await runAssistant({
-      taskId,
-      project,
-      getAssistant,
-      assistant,
-      parameters: input.parameters,
-      callback: stream ? emit : undefined,
-      log,
-    });
-
-    if (!stream) {
-      res.json(result);
-    }
-
-    res.end();
-
-    const endDate = new Date();
-    const requestTime = endDate.getTime() - startDate.getTime();
-    await log.update({ endDate, requestTime, status: Status.SUCCESS, response: result });
-  } catch (error) {
-    const endDate = new Date();
-    const requestTime = endDate.getTime() - startDate.getTime();
-    await log.update({ endDate, requestTime, status: Status.FAIL, error: error.message });
-    throw error;
-  }
-});
-
-export type ResponseSSEV2 = { taskId: string; assistantId: string; delta: { content?: string | null } };
-
-type RunAssistantCallback = (e: ResponseSSEV2) => void;
-
-interface GetAssistant {
+export interface GetAssistant {
   (assistantId: string, options: { rejectOnEmpty: true | Error }): Promise<Assistant>;
   (assistantId: string, options?: { rejectOnEmpty?: false }): Promise<Assistant | null>;
 }
 
 const taskIdGenerator = new Worker();
 
-async function runAssistant({
+export const nextTaskId = () => taskIdGenerator.nextId().toString();
+
+export async function runAssistant({
   taskId,
-  project,
+  callAI,
   getAssistant,
   assistant,
   parameters = {},
   callback,
-  log,
 }: {
   taskId: string;
-  project: Project;
+  callAI: typeof callAIKit;
   getAssistant: GetAssistant;
   assistant: Assistant;
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
-  log: Log;
 }): Promise<any> {
   if (isPromptFile(assistant)) {
     return runPromptAssistant({
       taskId,
-      project,
+      callAI,
       getAssistant,
       assistant,
       parameters,
       callback,
-      log,
     });
   }
 
   if (isFunctionFile(assistant)) {
     return runFunctionAssistant({
-      project,
       getAssistant,
+      callAI,
       taskId,
       assistant,
       parameters,
       callback,
-      log,
     });
   }
 
   if (isApiFile(assistant)) {
     return runApiAssistant({
-      project,
       getAssistant,
+      callAI,
       taskId,
       assistant,
       parameters,
       callback,
-      log,
     });
   }
 
@@ -194,33 +86,30 @@ async function runAssistant({
 }
 
 async function runFunctionAssistant({
-  project,
   getAssistant,
+  callAI,
   taskId,
   assistant,
   context,
   parameters,
   callback,
-  log,
 }: {
-  project: Project;
+  callAI: typeof callAIKit;
   getAssistant: GetAssistant;
   taskId: string;
   assistant: FunctionFile;
   context?: { [key: string]: any };
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
-  log: Log;
 }) {
   const results = assistant.prepareExecutes?.length
     ? await runExecuteBlocks({
-        project,
         assistant,
+        callAI,
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
         callback,
-        log,
       })
     : [];
 
@@ -273,33 +162,30 @@ async function runFunctionAssistant({
 }
 
 async function runApiAssistant({
-  project,
+  callAI,
   getAssistant,
   taskId,
   assistant,
   parameters,
   callback,
-  log,
 }: {
-  project: Project;
+  callAI: typeof callAIKit;
   getAssistant: GetAssistant;
   taskId: string;
   assistant: ApiFile;
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
-  log: Log;
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
 
   const results = assistant.prepareExecutes?.length
     ? await runExecuteBlocks({
-        project,
         assistant,
+        callAI,
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
         callback,
-        log,
       })
     : [];
 
@@ -356,38 +242,33 @@ async function renderMessage(message: string, parameters?: { [key: string]: any 
 }
 
 async function runPromptAssistant({
+  callAI,
   taskId,
-  project,
   getAssistant,
   assistant,
   parameters,
   callback,
-  log,
 }: {
+  callAI: typeof callAIKit;
   taskId: string;
-  project: Project;
   getAssistant: GetAssistant;
   assistant: PromptFile;
   parameters: { [key: string]: any };
   callback?: RunAssistantCallback;
-  log: Log;
 }) {
   if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
-
-  const childStartDate = new Date();
 
   const executeBlocks = assistant.prompts
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i))
     .map((i) => i.data);
 
   const blockResults = await runExecuteBlocks({
-    project,
     assistant,
+    callAI,
     getAssistant,
     executeBlocks,
     parameters,
     callback,
-    log,
   });
 
   const variables = { ...parameters };
@@ -411,7 +292,7 @@ async function runPromptAssistant({
                 // 过滤注释节点
                 prompt.data.content
                   ?.split('\n')
-                  .filter((i) => !i.startsWith(COMMENT_PREFIX))
+                  .filter((i) => !i.startsWith('//'))
                   .join('\n') || '',
                 variables
               ),
@@ -430,33 +311,16 @@ async function runPromptAssistant({
             };
           }
 
-          logger.warn('Unsupported prompt type', prompt);
+          console.warn('Unsupported prompt type', prompt);
           return undefined;
         })
     )
   ).filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  const childLog = await Log.create({
-    templateId: assistant?.id,
-    prompts: messages,
-    parameters,
-    parentId: log.id,
-    startDate: childStartDate,
-  });
-
-  const input = {
-    modelName: assistant.model ?? project?.model,
-    temperature: assistant.temperature ?? project?.temperature,
-    topP: assistant.topP ?? project?.topP,
-    presencePenalty: assistant.presencePenalty ?? project?.presencePenalty,
-    frequencyPenalty: assistant.frequencyPenalty ?? project?.frequencyPenalty,
-    // FIXME: should be maxTokens - prompt tokens
-    // maxTokens: assistant.maxTokens ?? project?.maxTokens,
+  const res = callAI({
     stream: true,
     messages,
-  };
-
-  const res = callAIKit(input);
+  });
 
   let result = '';
 
@@ -465,29 +329,23 @@ async function runPromptAssistant({
     result += chunk.delta.content || '';
   }
 
-  const endDate = new Date();
-  const requestTime = endDate.getTime() - childStartDate.getTime();
-  await childLog.update({ status: Status.SUCCESS, endDate, requestTime, response: result });
-
   return result;
 }
 
 async function runExecuteBlocks({
-  project,
   assistant,
+  callAI,
   getAssistant,
   parameters,
   executeBlocks,
   callback,
-  log,
 }: {
-  project: Project;
   assistant: Assistant;
+  callAI: typeof callAIKit;
   getAssistant: GetAssistant;
   parameters?: { [key: string]: any };
   executeBlocks: ExecuteBlock[];
-  callback?: (e: ResponseSSEV2) => any;
-  log: Log;
+  callback?: (e: RunAssistantChunk) => any;
 }) {
   const variables = {
     ...parameters,
@@ -500,13 +358,12 @@ async function runExecuteBlocks({
     const task = () => async () => {
       cache[executeBlock.id] ??= runExecuteBlock({
         taskId: taskIdGenerator.nextId().toString(),
-        project,
         assistant,
+        callAI,
         getAssistant,
         executeBlock,
         parameters: variables,
         callback,
-        log,
       });
 
       return cache[executeBlock.id]!;
@@ -524,22 +381,20 @@ async function runExecuteBlocks({
 
 async function runExecuteBlock({
   taskId,
-  project,
   assistant,
+  callAI,
   getAssistant,
   executeBlock,
   parameters,
   callback,
-  log,
 }: {
   taskId: string;
-  project: Project;
   assistant: Assistant;
+  callAI: typeof callAIKit;
   getAssistant: GetAssistant;
   executeBlock: ExecuteBlock;
   parameters?: { [key: string]: any };
-  callback?: (e: ResponseSSEV2) => void;
-  log: Log;
+  callback?: (e: RunAssistantChunk) => void;
 }) {
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
@@ -566,12 +421,11 @@ async function runExecuteBlock({
 
           return runAssistant({
             taskId: taskIdGenerator.nextId().toString(),
-            project,
+            callAI,
             getAssistant,
             assistant,
             parameters: args,
             callback,
-            log,
           });
         })
       )
@@ -611,7 +465,7 @@ async function runExecuteBlock({
       )
     ).filter((i): i is NonNullable<typeof i> => !isNil(i));
 
-    const response = callAIKit({
+    const response = callAI({
       messages: [{ role: 'user', content: message }],
       toolChoice: 'auto',
       tools: toolAssistants.map((i) => ({
@@ -661,12 +515,11 @@ async function runExecuteBlock({
 
           return runAssistant({
             taskId: taskIdGenerator.nextId().toString(),
-            project,
+            callAI,
             getAssistant,
             assistant: tool.assistant,
             parameters,
             callback,
-            log,
           });
         })
       ));
@@ -694,7 +547,7 @@ interface CallAIKitResponseChunk {
   };
 }
 
-interface CallAIKitInput {
+export interface CallAIKitInput {
   stream?: boolean;
   model?: string;
   temperature?: number;
@@ -737,14 +590,17 @@ interface CallAIKitInput {
   )[];
 }
 
-async function* callAIKit(input: CallAIKitInput) {
-  const response = await fetch(joinURL(getComponentWebEndpoint('ai-kit'), '/api/v1/sdk/completions'), {
+export async function* callAIKit(input: CallAIKitInput) {
+  const response = await call({
+    name: 'ai-kit',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', 'x-component-sig': sign(input) },
-    body: JSON.stringify(input),
+    path: '/api/v1/sdk/completions',
+    headers: { Accept: 'text/event-stream' },
+    data: input,
+    responseType: 'stream',
   });
 
-  const stream = new ReadableStreamFromNodeJs(response.body)
+  const stream = new ReadableStreamFromNodeJs(response.data)
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventSourceParserStream());
 
@@ -790,5 +646,3 @@ class EventSourceParserStream extends TransformStream<any, { data?: string }> {
     });
   }
 }
-
-export default router;

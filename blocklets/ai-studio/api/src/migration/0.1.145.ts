@@ -5,7 +5,7 @@ import { glob } from 'glob';
 
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
-import { getRepository } from '../store/projects';
+import { getRepository } from '../store/repository';
 
 const { name } = require('../../../package.json');
 

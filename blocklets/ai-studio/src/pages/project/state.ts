@@ -1,31 +1,21 @@
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Map, UndoManager, getYjsDoc } from '@blocklet/co-git/yjs';
-import { pink } from '@mui/material/colors';
-import { useThrottleEffect } from 'ahooks';
-import { ResponseSSEV2 } from 'api/src/routes/ai-v2';
-import equal from 'fast-deep-equal';
+import { Role } from '@blocklet/ai-runtime';
+import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api/assistant';
+import Project from 'api/src/store/models/project';
 import produce, { Draft } from 'immer';
-import cloneDeep from 'lodash/cloneDeep';
 import debounce from 'lodash/debounce';
-import differenceBy from 'lodash/differenceBy';
-import get from 'lodash/get';
-import intersectionBy from 'lodash/intersectionBy';
 import omit from 'lodash/omit';
-import omitBy from 'lodash/omitBy';
-import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { recoilPersist } from 'recoil-persist';
+import { PREFIX } from 'src/libs/api';
+import { joinURL } from 'ufo';
 
-import { Project, TemplateYjs } from '../../../api/src/store/projects';
-import { Role } from '../../../api/src/store/templates';
-import { callAI, textCompletions } from '../../libs/ai';
+import { textCompletions } from '../../libs/ai';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
-import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 export const defaultBranch = 'main';
 
@@ -371,7 +361,8 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
                   content: message.content,
                 }),
               })
-            : await callAI({
+            : await runAssistant({
+                url: joinURL(PREFIX, '/api/ai/call'),
                 projectId: message.projectId,
                 ref: message.gitRef,
                 working: true,
@@ -381,8 +372,6 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
 
         const reader = result.getReader();
         const decoder = new TextDecoder();
-
-        const isTaskChunk = (i: ResponseSSEV2): i is ResponseSSEV2 => typeof i.taskId === 'string';
 
         let response = '';
         const subResponses: { [key: string]: string } = {};
@@ -395,8 +384,7 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
               response += decoder.decode(value);
             } else if (typeof value === 'string') {
               response += value;
-            } else if (isTaskChunk(value)) {
-              // console.log(value);
+            } else if (isRunAssistantChunk(value)) {
               if (!mainTaskId) mainTaskId = value.taskId;
 
               if (value.taskId === mainTaskId) {
@@ -464,378 +452,3 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
 
   return { state, setSession, setCurrentSession, newSession, deleteSession, sendMessage, cancelMessage };
 };
-
-type TemplateYjsWithParent = TemplateYjs & { parent: string[] };
-
-export interface TemplatesState {
-  created: TemplateYjsWithParent[];
-  deleted: TemplateYjsWithParent[];
-  modified: TemplateYjsWithParent[];
-  createdMap: { [key: string]: TemplateYjs };
-  modifiedMap: { [key: string]: TemplateYjs };
-  deletedMap: { [key: string]: TemplateYjs };
-  disabled: boolean;
-  loading: boolean;
-  templates: TemplateYjsWithParent[];
-  files: TemplateYjsWithParent[];
-}
-
-const templatesStates: { [key: string]: RecoilState<TemplatesState> } = {};
-
-const templatesState = (projectId: string, gitRef: string) => {
-  const key = `${projectId}-${gitRef}`;
-
-  templatesStates[key] ??= atom<TemplatesState>({
-    key: `templatesState-${key}`,
-    default: {
-      created: [],
-      deleted: [],
-      modified: [],
-      disabled: true,
-      createdMap: {},
-      modifiedMap: {},
-      deletedMap: {},
-      loading: false,
-      templates: [],
-      files: [],
-    },
-  });
-
-  return templatesStates[key]!;
-};
-
-export const useTemplatesChangesState = (projectId: string, ref: string) => {
-  const { t } = useLocaleContext();
-  const [state, setState] = useRecoilState(templatesState(projectId, ref));
-  const { store, synced } = useProjectStore(projectId, ref);
-
-  useThrottleEffect(
-    () => {
-      if (state.loading) return;
-      if (!synced) return;
-
-      const duplicateItems = intersectionBy(state.templates, state.files, 'id');
-      const keys = [
-        'id',
-        'createdBy',
-        'updatedBy',
-        'name',
-        'description',
-        'tags',
-        'prompts',
-        'parameters',
-        'mode',
-        'status',
-        'public',
-        'datasets',
-        'next',
-        'tests',
-        'parent',
-      ];
-
-      const news = differenceBy(state.files, state.templates, 'id').filter((i) => i.parent[0] === PROMPTS_FOLDER_NAME);
-      const deleted = differenceBy(state.templates, state.files, 'id').filter(
-        (i) => i.parent[0] === PROMPTS_FOLDER_NAME
-      );
-
-      const modified = duplicateItems.filter((i) => {
-        const item = omitBy(pick(i, ...keys), (x) => !x);
-
-        const found = state.files.find((f) => item.id === f.id);
-        if (!found) {
-          return false;
-        }
-
-        const file = omitBy(pick(found, ...keys), (x) => !x);
-        return !equal(item, file);
-      });
-
-      const arrToObj = (list: TemplateYjsWithParent[]) => Object.fromEntries(list.map((i) => [i.id, i]));
-
-      setState((v) => ({
-        ...v,
-        created: news,
-        deleted,
-        modified,
-        disabled: news.length + deleted.length + modified.length === 0,
-        createdMap: arrToObj(news),
-        modifiedMap: arrToObj(modified),
-        deletedMap: arrToObj(deleted),
-      }));
-    },
-    [state.templates, state.files, state.loading, synced, projectId, ref],
-    { wait: 1000 }
-  );
-
-  useEffect(() => {
-    const getFile = () => {
-      // FIXME:
-      // const files = Object.entries(store.tree)
-      //   .map(([key, filepath]) => {
-      //     const template = store.files[key];
-      //     if (filepath?.endsWith('.yaml') && template && isPromptFileYjs(template)) {
-      //       const paths = filepath.split('/');
-      //       return { ...template, parent: paths.slice(0, -1) };
-      //     }
-      //     return undefined;
-      //   })
-      //   .filter((i): i is NonNullable<typeof i> => !!i);
-      // setState((r) => ({ ...r, files: cloneDeep(files) }));
-    };
-
-    getYjsDoc(store).getMap('files').observeDeep(getFile);
-    getYjsDoc(store).getMap('tree').observeDeep(getFile);
-
-    return () => {
-      getYjsDoc(store).getMap('files').unobserveDeep(getFile);
-      getYjsDoc(store).getMap('tree').unobserveDeep(getFile);
-    };
-  }, [projectId, ref]);
-
-  const run = async () => {
-    // FIXME:
-    // try {
-    //   setState((r) => ({ ...r, loading: true }));
-    //   const data = await getTemplates(projectId, ref);
-    //   const templates = (data?.templates || []).map((i) =>
-    //     omit(omitBy(templateYjsFromTemplate(i), isUndefined), 'ref', 'projectId')
-    //   ) as TemplateYjsWithParent[];
-    //   setState((r) => ({ ...r, templates }));
-    // } catch (error) {
-    //   console.error(error);
-    // } finally {
-    //   setState((r) => ({ ...r, loading: false }));
-    // }
-  };
-
-  const changes = (item: TemplateYjs) => {
-    if (state.createdMap[item.id]) {
-      return {
-        key: 'N',
-        color: 'success.main',
-        tips: t('diff.created'),
-      };
-    }
-
-    if (state.modifiedMap[item.id]) {
-      return {
-        key: 'M',
-        color: 'warning.main',
-        tips: t('diff.modified'),
-      };
-    }
-
-    if (state.deletedMap[item.id]) {
-      return {
-        key: 'D',
-        color: 'error.main',
-        tips: t('diff.deleted'),
-      };
-    }
-
-    return null;
-  };
-
-  const getOriginTemplate = (item: TemplateYjs) => {
-    return state.templates.find((x) => x.id === item.id);
-  };
-
-  useEffect(() => {
-    if (projectId && ref) {
-      run();
-    }
-  }, [projectId, ref]);
-
-  return { ...state, changes, run, getOriginTemplate };
-};
-
-export const useUndoManager = (projectId: string, ref: string, key: string) => {
-  const { store } = useProjectStore(projectId, ref);
-
-  const doc = useMemo(() => getYjsDoc(store), [store]);
-
-  const undoManager = useMemo(() => {
-    const map = doc.getMap('files').get(key) as Map<Map<any>>;
-    return new UndoManager([map], { doc });
-  }, [doc, key]);
-
-  const [state, setState] = useState(() => ({
-    canRedo: undoManager.canRedo(),
-    canUndo: undoManager.canUndo(),
-    redo: () => undoManager.redo(),
-    undo: () => undoManager.undo(),
-  }));
-
-  useEffect(() => {
-    setState(() => ({
-      canRedo: undoManager.canRedo(),
-      canUndo: undoManager.canUndo(),
-      redo: () => undoManager.redo(),
-      undo: () => undoManager.undo(),
-    }));
-
-    const update = () => {
-      setState((state) => ({
-        ...state,
-        canRedo: undoManager.canRedo(),
-        canUndo: undoManager.canUndo(),
-      }));
-    };
-
-    undoManager.on('stack-item-added', update);
-    undoManager.on('stack-item-popped', update);
-
-    return () => {
-      undoManager.off('stack-item-added', update);
-      undoManager.off('stack-item-popped', update);
-    };
-  }, [undoManager, key]);
-
-  return state;
-};
-
-export function useTemplateCompare({
-  value,
-  compareValue,
-  readOnly,
-}: {
-  value: TemplateYjs;
-  compareValue?: TemplateYjs;
-  readOnly?: boolean;
-}) {
-  const getDifference = useCallback(
-    (key: keyof TemplateYjs, id?: string, defaultValue?: string) => {
-      const getDefault = () => {
-        if (key === 'tags') {
-          return [];
-        }
-
-        if (key === 'next' || key === 'datasets') {
-          return {};
-        }
-
-        if (key === 'temperature') {
-          return 0;
-        }
-
-        return '';
-      };
-
-      const index = id ? [key, id] : [key];
-
-      return !equal(
-        get(cloneDeep(compareValue), index, defaultValue ?? getDefault()),
-        get(cloneDeep(value), index, defaultValue ?? getDefault())
-      );
-    },
-    [compareValue, value]
-  );
-
-  const getDiff = useCallback(
-    (path: keyof TemplateYjs | (keyof TemplateYjs)[], id?: string, defaultValue?: string) => {
-      const list = Array.isArray(path) ? path : [path];
-      return list.map((item) => getDifference(item, id, defaultValue)).some((x) => x);
-    },
-    [compareValue, value]
-  );
-
-  const getDiffName = useCallback(
-    (path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
-      // 未禁止并且没有对比数据，不做校验
-      if (!readOnly && !compareValue) {
-        return '';
-      }
-
-      const diff = getDiff(path, id, defaultValue);
-
-      if (id === undefined) {
-        if (!diff) {
-          return '';
-        }
-
-        return 'modify';
-      }
-
-      if (!id) {
-        return '';
-      }
-
-      if (!diff) {
-        return '';
-      }
-
-      if (!(compareValue?.[path] as any)?.[id]) {
-        return readOnly ? 'delete' : 'new';
-      }
-
-      return 'modify';
-    },
-    [compareValue, value, readOnly]
-  );
-
-  const getBackgroundColor = useCallback(
-    (name: string) => {
-      if (name === 'new') {
-        return 'rgba(230, 255, 236, 0.4) !important';
-      }
-
-      if (name === 'delete') {
-        return 'rgba(255, 215, 213, 0.4) !important';
-      }
-
-      if (name === 'modify') {
-        return 'rgba(255, 235, 233, 0.4) !important';
-      }
-
-      return '';
-    },
-    [compareValue, value, readOnly]
-  );
-
-  const getDiffStyle = useCallback(
-    (style: string, path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
-      const name = getDiffName(path, id, defaultValue);
-
-      if (!name) {
-        return {};
-      }
-
-      if (name === 'new') {
-        return { [style]: getBackgroundColor('new') };
-      }
-
-      if (name === 'delete') {
-        return { [style]: getBackgroundColor('delete') };
-      }
-
-      if (readOnly) {
-        return {};
-      }
-
-      // 禁止情况
-      return { [style]: getBackgroundColor('modify') };
-    },
-    [compareValue, value, readOnly]
-  );
-
-  const getDiffBackground = useCallback(
-    (path: keyof TemplateYjs, id?: string, defaultValue?: string) => {
-      return getDiffStyle('background', path, id, defaultValue);
-    },
-    [compareValue, value, readOnly]
-  );
-
-  const getDiffColor = useCallback(
-    ({ path, id, defaultValue }: { path: keyof TemplateYjs; id?: string; defaultValue?: string }) => {
-      const name = getDiffName(path, id, defaultValue);
-      if (readOnly || !name) {
-        return '';
-      }
-
-      return pink[600];
-    },
-    [compareValue, value, readOnly]
-  );
-
-  return { getDiff, getDiffName, getDiffColor, getDiffBackground, getBackgroundColor };
-}

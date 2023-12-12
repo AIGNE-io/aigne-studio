@@ -10,9 +10,8 @@ import omit from 'lodash/omit';
 import { AIKitEmbeddings } from '../core/embeddings/ai-kit';
 import logger from '../libs/logger';
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { DatasetItem } from '../store/dataset-items';
-import DatasetItems from '../store/models/dataset-items';
-import EmbeddingHistories from '../store/models/embedding-history';
+import DatasetItem from '../store/models/dataset-item';
+import EmbeddingHistory from '../store/models/embedding-history';
 import VectorStore from '../store/vector-store';
 
 const router = Router();
@@ -29,13 +28,13 @@ router.get('/:datasetId/items', ensureComponentCallOrPromptsEditor(), async (req
   const { page, size } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
 
   const [items, total] = await Promise.all([
-    DatasetItems.findAll({
+    DatasetItem.findAll({
       order: [['createdAt', 'ASC']],
       where: { datasetId },
       offset: (page - 1) * size,
       limit: size,
     }),
-    DatasetItems.count({
+    DatasetItem.count({
       where: { datasetId },
     }),
   ]);
@@ -95,12 +94,12 @@ router.post('/:datasetId/items', user(), ensureComponentCallOrPromptsEditor(), a
 
   const docs = await Promise.all(
     arr.map(async (item) => {
-      const found = await DatasetItems.findOne({ where: { datasetId, data: item.data } });
+      const found = await DatasetItem.findOne({ where: { datasetId, data: item.data } });
       if (found) {
         return found.update({ ...item, createdBy: did, updatedBy: did }, { where: { datasetId, data: item.data } });
       }
 
-      return DatasetItems.create({ ...item, datasetId, createdBy: did, updatedBy: did });
+      return DatasetItem.create({ ...item, datasetId, createdBy: did, updatedBy: did });
     })
   );
 
@@ -113,7 +112,7 @@ router.delete('/:datasetId/items/:itemId', user(), ensureComponentCallOrPromptsE
     throw new Error('Missing required params `datasetId` or `itemId`');
   }
 
-  await DatasetItems.destroy({ where: { _id: itemId, datasetId } });
+  await DatasetItem.destroy({ where: { _id: itemId, datasetId } });
 
   res.json({});
 });
@@ -124,7 +123,7 @@ async function embeddingDiscussionItem({ datasetId, discussionId }: { datasetId:
   try {
     const discussion = await getDiscussion(discussionId);
 
-    const previousEmbedding = await EmbeddingHistories.findOne({ where: { targetId: discussionId } });
+    const previousEmbedding = await EmbeddingHistory.findOne({ where: { targetId: discussionId } });
     if (previousEmbedding?.targetVersion) {
       if (new Date(previousEmbedding?.targetVersion).toISOString() === new Date(discussion.updatedAt).toISOString()) {
         return;
@@ -140,19 +139,19 @@ async function embeddingDiscussionItem({ datasetId, discussionId }: { datasetId:
     await store.addVectors(vectors, docs);
     await store.save();
 
-    if (await EmbeddingHistories.findOne({ where: { targetId: discussionId } })) {
-      await EmbeddingHistories.update(
+    if (await EmbeddingHistory.findOne({ where: { targetId: discussionId } })) {
+      await EmbeddingHistory.update(
         { targetVersion: new Date(discussion.updatedAt) },
         { where: { targetId: discussionId } }
       );
     } else {
-      await EmbeddingHistories.create({ targetVersion: new Date(discussion.updatedAt) });
+      await EmbeddingHistory.create({ targetVersion: new Date(discussion.updatedAt) });
     }
   } catch (error) {
-    if (await EmbeddingHistories.findOne({ where: { targetId: discussionId } })) {
-      await EmbeddingHistories.update({ error: error.message }, { where: { targetId: discussionId } });
+    if (await EmbeddingHistory.findOne({ where: { targetId: discussionId } })) {
+      await EmbeddingHistory.update({ error: error.message }, { where: { targetId: discussionId } });
     } else {
-      await EmbeddingHistories.create({ error: error.message });
+      await EmbeddingHistory.create({ error: error.message });
     }
   }
 }
@@ -196,7 +195,7 @@ router.post('/:datasetId/items/:itemId/embedding', ensureComponentCallOrPromptsE
   if (!task) {
     task = {
       promise: (async () => {
-        const item = await DatasetItems.findOne({ where: { _id: itemId } });
+        const item = await DatasetItem.findOne({ where: { _id: itemId } });
         if (!item) throw new Error(`Dataset item ${itemId} not found`);
         if (!item.data) return;
 
@@ -205,7 +204,7 @@ router.post('/:datasetId/items/:itemId/embedding', ensureComponentCallOrPromptsE
 
         try {
           await handler(item as any);
-          await DatasetItems.update(
+          await DatasetItem.update(
             {
               embeddedAt: new Date(),
               error: '',
@@ -213,7 +212,7 @@ router.post('/:datasetId/items/:itemId/embedding', ensureComponentCallOrPromptsE
             { where: { _id: itemId } }
           );
         } catch (error) {
-          await DatasetItems.update(
+          await DatasetItem.update(
             {
               embeddedAt: new Date(),
               error: error.message,

@@ -1,17 +1,16 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AssistantYjs, isPromptFile } from '@blocklet/ai-runtime';
 import { Typography } from '@mui/material';
 import { GPTTokens } from 'gpt-tokens';
 import { useDeferredValue, useMemo } from 'react';
 
-import { AssistantYjs, isPromptFileYjs } from './yjs-state';
-
 export function TokenUsage({ assistant }: { assistant: AssistantYjs }) {
   const { t } = useLocaleContext();
 
-  const prompts = useDeferredValue(isPromptFileYjs(assistant) ? Object.values(assistant.prompts ?? {}) : []);
+  const prompts = useDeferredValue(isPromptFile(assistant) ? Object.values(assistant.prompts ?? {}) : []);
 
   const tokens = useMemo(() => {
-    if (!isPromptFileYjs(assistant)) return undefined;
+    if (!isPromptFile(assistant)) return undefined;
 
     const messages = prompts
       .filter(

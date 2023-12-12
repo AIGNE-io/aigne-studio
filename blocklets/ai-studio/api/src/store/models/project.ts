@@ -45,8 +45,10 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
   declare gitAutoSync?: boolean;
 
   declare gitLastSyncedAt?: Date;
+}
 
-  public static readonly GENESIS_ATTRIBUTES = {
+Project.init(
+  {
     _id: {
       type: DataTypes.STRING,
       primaryKey: true,
@@ -110,7 +112,6 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
     gitLastSyncedAt: {
       type: DataTypes.DATE,
     },
-  };
-}
-
-Project.init(Project.GENESIS_ATTRIBUTES, { sequelize });
+  },
+  { sequelize }
+);

@@ -1,14 +1,13 @@
 import { useCallback } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
-import { Project } from '../../api/src/store/projects';
 import * as api from '../libs/project';
 
 export type ProjectsSection = 'templates' | 'projects' | 'samples';
 
 export interface ProjectsState {
-  templates: Project[];
-  projects: Project[];
+  templates: api.ProjectWithUserInfo[];
+  projects: api.ProjectWithUserInfo[];
   loading: boolean;
   error?: Error;
   selected?: { section: ProjectsSection; id: string };

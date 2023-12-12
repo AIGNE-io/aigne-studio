@@ -3,8 +3,8 @@ import { Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
-import Project from '../store/models/projects';
-import { autoSyncRemoteRepoIfNeeded, commitWorking } from '../store/projects';
+import Project from '../store/models/project';
+import { autoSyncRemoteRepoIfNeeded, commitWorking } from '../store/repository';
 
 export interface WorkingCommitInput {
   branch: string;
