@@ -1,3 +1,7 @@
+## 0.1.165 (2023-12-12)
+
+fix: correct migration
+
 ## 0.1.164 (2023-12-12)
 
 - fix: set default model

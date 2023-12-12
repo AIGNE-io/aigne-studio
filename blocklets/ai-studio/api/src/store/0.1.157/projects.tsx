@@ -1,23 +1,14 @@
-import { readdirSync, rmSync, writeFileSync } from 'fs';
 import path from 'path';
 
-import { Repository, Transaction } from '@blocklet/co-git/repository';
+import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
-import { glob } from 'glob';
-import pick from 'lodash/pick';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import { Worker } from 'snowflake-uuid';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../../libs/auth';
 import { Config } from '../../libs/env';
-import ProjectModel from '../models/project';
 import type { ParameterYjs, Template } from './templates';
-
-const idGenerator = new Worker();
-
-export const nextProjectId = () => idGenerator.nextId().toString();
 
 export interface Project
   extends Pick<Template, 'temperature' | 'topP' | 'presencePenalty' | 'frequencyPenalty' | 'maxTokens'> {
@@ -170,148 +161,6 @@ export async function getRepository({
   return repositories[projectId]!;
 }
 
-export async function syncRepository<T>({
-  repository,
-  ref,
-  author,
-}: {
-  repository: Repository<T>;
-  ref: string;
-  author: NonNullable<Parameters<typeof repository.pull>[0]>['author'];
-}) {
-  const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
-  if (!remote) throw new Error('The remote has not been set up yet');
-  const { refs: remoteRefs } = await repository.getRemoteInfo({
-    url: remote.url,
-  });
-
-  await repository.transact(async () => {
-    await repository.checkout({ ref, force: true });
-
-    // NOTE: 检查远程仓库是否有对应的分支。如果远程仓库没有对应的分支，调用 pull 会报错
-    if (remoteRefs?.heads?.[ref]) {
-      await repository.pull({ remote: defaultRemote, ref, author });
-    }
-    await repository.push({ remote: defaultRemote, ref });
-  });
-}
-
-const SETTINGS_FILE = '.settings.yaml';
-
-const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileType>; project: ProjectModel }) => {
-  const repository = await getRepository({ projectId: project._id! });
-  const fields = pick(project.dataValues, [
-    '_id',
-    'name',
-    'description',
-    'model',
-    'createdAt',
-    'updatedAt',
-    'createdBy',
-    'updatedBy',
-    'pinnedAt',
-    'icon',
-    'gitType',
-    'temperature',
-    'topP',
-    'presencePenalty',
-    'frequencyPenalty',
-    'maxTokens',
-    'gitAutoSync',
-  ]);
-
-  const fieldsStr = stringify(fields, { aliasDuplicateObjects: false });
-
-  writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
-  await tx.add({ filepath: SETTINGS_FILE });
-};
-
-export const autoSyncRemoteRepoIfNeeded = async ({
-  project,
-  author,
-}: {
-  project: ProjectModel;
-  author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
-}) => {
-  if (project.gitUrl && project.gitAutoSync) {
-    const repository = await getRepository({ projectId: project._id! });
-    await syncRepository({ repository, ref: defaultBranch, author });
-    await project.update({ gitLastSyncedAt: new Date() });
-  }
-};
-
-export async function commitWorking({
-  project,
-  ref,
-  branch,
-  message,
-  author,
-}: {
-  project: ProjectModel;
-  ref: string;
-  branch: string;
-  message: string;
-  author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
-}) {
-  const repository = await getRepository({ projectId: project._id! });
-  const working = await repository.working({ ref });
-  await working.commit({
-    ref,
-    branch,
-    message,
-    author,
-    beforeCommit: async ({ tx }) => {
-      writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
-      await tx.add({ filepath: 'README.md' });
-
-      await addSettingsToGit({ tx, project });
-
-      // Remove unnecessary .gitkeep files
-      for (const gitkeep of await glob('**/.gitkeep', {
-        cwd: repository.options.root,
-      })) {
-        if (readdirSync(path.join(repository.options.root, path.dirname(gitkeep))).length > 1) {
-          rmSync(path.join(repository.options.root, gitkeep), { force: true });
-          await tx.remove({ filepath: gitkeep });
-        }
-      }
-    },
-  });
-}
-
-export async function commitProjectSettingWorking({
-  project,
-  message = 'update settings',
-  author,
-}: {
-  project: ProjectModel;
-  message?: string;
-  author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
-}) {
-  const repository = await getRepository({ projectId: project._id! });
-  await repository.transact(async (tx) => {
-    await addSettingsToGit({ tx, project });
-    await tx.commit({ message, author });
-  });
-}
-
-function getReadmeOfProject(project: Project) {
-  return `\
-# ${project.name || 'AI Studio project'}
-
-${project.description || ''}
-
-## Install And Run
-
-This is an AI project created by [AI Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB).
-
-To run it you can:
-
-1. [Launch](https://launcher.arcblock.io/app/?blocklet_meta_url=https%3A%2F%2Fstore.blocklet.dev%2Fapi%2Fblocklets%2Fz8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB%2Fblocklet.json&locale=en&paymentMethod=xFdj7e5muWQyUvur&sessionId=9btigGO5FLxFwL2e) AI Studio on Blocklet Server
-2. Import this project
-`;
-}
-
 export function templateToYjs(template: Template): TemplateYjs {
   return {
     ...template,
@@ -379,26 +228,4 @@ export function yjsToTemplate(template: TemplateYjs): Template {
     tests: template.tests && sortBy(Object.values(template.tests), 'index').map(({ data }) => data),
     tools: template.tools && sortBy(Object.values(template.tools), 'index').map(({ data }) => data),
   };
-}
-
-export async function getTemplatesFromRepository({ projectId, ref }: { projectId: string; ref: string }) {
-  const repository = await getRepository({ projectId });
-  const files = await repository.listFiles({ ref }).then((files) => files.filter((i) => i.endsWith('.yaml')));
-  return Promise.all(
-    files.map((filepath) =>
-      repository.readBlob({ ref, filepath }).then(
-        ({ blob }) =>
-          ({
-            projectId,
-            ref,
-            parent: filepath.split('/').slice(0, -1),
-            ...parse(Buffer.from(blob).toString()),
-          } as Template)
-      )
-    )
-  );
-}
-
-export function getTemplateIdFromPath(filepath: string) {
-  return path.parse(filepath).name.split('.').at(-1);
 }

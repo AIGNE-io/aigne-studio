@@ -1,8 +1,4 @@
-import { Repository } from '@blocklet/co-git/repository';
 import Database from '@blocklet/sdk/lib/database';
-import { parse } from 'yaml';
-
-import { getTemplateIdFromPath, yjsToTemplate } from './projects';
 
 export type Role =
   | 'system'
@@ -225,35 +221,3 @@ export default class Templates extends Database {
 }
 
 export const templates = new Templates();
-
-export async function getTemplate({
-  repository,
-  ref,
-  working,
-  templateId,
-  filepath,
-}: {
-  repository: Repository<any>;
-  ref: string;
-  working?: boolean;
-} & ({ templateId: string; filepath?: undefined } | { filepath: string; templateId?: undefined })): Promise<Template> {
-  if (working) {
-    const working = await repository.working({ ref });
-    const id = templateId ?? getTemplateIdFromPath(filepath)!;
-    const file = working.syncedStore.files[id];
-    if (!file) throw new Error(`no such template ${templateId || filepath}`);
-    return yjsToTemplate(file);
-  }
-
-  const p = filepath ?? (await repository.listFiles({ ref })).find((i) => i.endsWith(`${templateId}.yaml`));
-  if (!p) throw new Error(`no such template ${templateId || filepath}`);
-
-  const template = parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
-
-  const [projectId] = (repository.options.root || '').split('/').slice(-1) || [];
-
-  template.projectId = projectId || '';
-  template.ref = ref || 'main';
-
-  return template;
-}

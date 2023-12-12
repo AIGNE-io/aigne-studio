@@ -6,9 +6,10 @@ import { customAlphabet } from 'nanoid';
 
 import { wallet } from '../libs/auth';
 import logger from '../libs/logger';
-import { commitWorking, getRepository, isTemplate } from '../store/0.1.157/projects';
+import { getRepository, isTemplate } from '../store/0.1.157/projects';
 import { isPromptMessage } from '../store/0.1.157/templates';
 import Project from '../store/models/project';
+import { commitWorking } from '../store/repository';
 
 const { name } = require('../../../package.json');
 
