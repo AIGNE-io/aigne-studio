@@ -1,3 +1,7 @@
+## 0.1.167 (2023-12-12)
+
+- fix: required parameters of call api
+
 ## 0.1.166 (2023-12-12)
 
 fix: rename filename of resource component

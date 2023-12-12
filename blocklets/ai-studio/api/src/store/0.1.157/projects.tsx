@@ -120,11 +120,18 @@ export async function getRepository({
         const { dir, ext } = path.parse(filepath);
         const [root] = filepath.split('/');
 
-        if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
-          const data = templateToYjs(parse(Buffer.from(content).toString()));
-          const parent = dir.replace(/^\.\/?/, '');
-          const filename = `${data.id}.yaml`;
-          return { filepath: path.join(parent, filename), key: data.id, data };
+        if (ext === '.yaml') {
+          const json = parse(Buffer.from(content).toString());
+          if (typeof json?.id === 'string') {
+            const data = templateToYjs(json);
+            const parent = dir.replace(/^\.\/?/, '');
+            const filename = `${data.id}.yaml`;
+            return {
+              filepath: path.join(root === PROMPTS_FOLDER_NAME ? '' : PROMPTS_FOLDER_NAME, parent, filename),
+              key: data.id,
+              data,
+            };
+          }
         }
 
         return {
