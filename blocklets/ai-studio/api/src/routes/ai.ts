@@ -56,11 +56,11 @@ const callInputSchema = Joi.object<{
   assistantId: string;
   parameters?: { [key: string]: any };
 }>({
-  ref: Joi.string(),
+  projectId: Joi.string().required(),
+  ref: Joi.string().required(),
   working: Joi.boolean().default(false),
-  projectId: Joi.string(),
+  assistantId: Joi.string().required(),
   parameters: Joi.object().pattern(Joi.string(), Joi.any()),
-  assistantId: Joi.string(),
 });
 
 router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res) => {
