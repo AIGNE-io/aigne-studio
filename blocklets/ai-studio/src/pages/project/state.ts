@@ -1,5 +1,5 @@
-import { Role } from '@blocklet/ai-runtime';
-import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api/assistant';
+import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api';
+import { Role } from '@blocklet/ai-runtime/types';
 import Project from 'api/src/store/models/project';
 import produce, { Draft } from 'immer';
 import debounce from 'lodash/debounce';

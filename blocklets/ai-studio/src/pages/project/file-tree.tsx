@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile, nextAssistantId } from '@blocklet/ai-runtime';
+import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { css } from '@emotion/css';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {

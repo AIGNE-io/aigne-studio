@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { FunctionFileYjs, nextAssistantId } from '@blocklet/ai-runtime';
+import { FunctionFileYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Typography, alpha } from '@mui/material';

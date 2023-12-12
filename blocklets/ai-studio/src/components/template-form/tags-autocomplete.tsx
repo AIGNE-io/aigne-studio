@@ -1,4 +1,4 @@
-import { AssistantYjs, isAssistant } from '@blocklet/ai-runtime';
+import { AssistantYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { Autocomplete, AutocompleteProps, CircularProgress, TextField, TextFieldProps } from '@mui/material';
 import { useReactive, useThrottleEffect } from 'ahooks';
 import { useState } from 'react';

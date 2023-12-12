@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImagePreview } from '@blocklet/ai-kit';
-import { AssistantYjs, ParameterField, isAssistant, parameterFromYjs } from '@blocklet/ai-runtime';
+import { ParameterField } from '@blocklet/ai-runtime/components';
+import { AssistantYjs, isAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css, cx } from '@emotion/css';
 import { Add, CopyAll, ErrorRounded } from '@mui/icons-material';

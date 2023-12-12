@@ -1,4 +1,4 @@
-import { AssistantYjs } from '@blocklet/ai-runtime';
+import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Comments } from '@blocklet/discuss-kit';
 import styled from '@emotion/styled';
 import { Box, CircularProgress } from '@mui/material';

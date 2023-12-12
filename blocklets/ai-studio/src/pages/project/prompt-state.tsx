@@ -1,4 +1,4 @@
-import { PromptFileYjs, isPromptFile } from '@blocklet/ai-runtime';
+import { PromptFileYjs, isPromptFile } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import sortBy from 'lodash/sortBy';
 import { useCallback } from 'react';

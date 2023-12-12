@@ -1,4 +1,4 @@
-import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile, nextAssistantId } from '@blocklet/ai-runtime';
+import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile, nextAssistantId } from '@blocklet/ai-runtime/types';
 import {
   Doc,
   Map,

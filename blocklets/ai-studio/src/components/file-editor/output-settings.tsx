@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime';
+import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, MenuItem, Stack, TextField, Typography } from '@mui/material';
 
 export default function OutputSettings({ value, readOnly }: { value: AssistantYjs; readOnly?: boolean }) {

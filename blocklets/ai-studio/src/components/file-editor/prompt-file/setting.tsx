@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { PromptFileYjs } from '@blocklet/ai-runtime';
+import { PromptFileYjs } from '@blocklet/ai-runtime/types';
 import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
 import { Box, Button, Collapse, FormLabel, Stack, Tooltip, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';

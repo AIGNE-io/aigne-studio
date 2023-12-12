@@ -1,5 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlockYjs, PromptFileYjs, PromptMessage, nextAssistantId } from '@blocklet/ai-runtime';
+import {
+  AssistantYjs,
+  ExecuteBlockYjs,
+  PromptFileYjs,
+  PromptMessage,
+  nextAssistantId,
+} from '@blocklet/ai-runtime/types';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
 import { DragSortItemContainer, DragSortListYjs } from 'src/components/drag-sort-list';

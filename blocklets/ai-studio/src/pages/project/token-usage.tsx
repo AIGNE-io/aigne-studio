@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, isPromptFile } from '@blocklet/ai-runtime';
+import { AssistantYjs, isPromptFile } from '@blocklet/ai-runtime/types';
 import { Typography } from '@mui/material';
 import { GPTTokens } from 'gpt-tokens';
 import { useDeferredValue, useMemo } from 'react';

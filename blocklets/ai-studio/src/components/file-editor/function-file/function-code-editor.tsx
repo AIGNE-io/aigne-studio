@@ -1,4 +1,4 @@
-import { FunctionFileYjs } from '@blocklet/ai-runtime';
+import { FunctionFileYjs } from '@blocklet/ai-runtime/types';
 import { Box } from '@mui/material';
 import { useEffect } from 'react';
 

@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ParameterField, ParameterYjs, parameterFromYjs } from '@blocklet/ai-runtime';
+import { ParameterField } from '@blocklet/ai-runtime/components';
+import { ParameterYjs, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { FormControl, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
 
 import NumberField from './number-field';

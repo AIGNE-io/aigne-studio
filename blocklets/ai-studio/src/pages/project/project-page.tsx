@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, isApiFile, isAssistant, isFunctionFile, isPromptFile } from '@blocklet/ai-runtime';
+import { AssistantYjs, isApiFile, isAssistant, isFunctionFile, isPromptFile } from '@blocklet/ai-runtime/types';
 import {
   Alert,
   Box,

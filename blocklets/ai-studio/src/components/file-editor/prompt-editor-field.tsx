@@ -1,4 +1,4 @@
-import { AssistantYjs } from '@blocklet/ai-runtime';
+import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
