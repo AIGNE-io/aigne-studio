@@ -8,16 +8,16 @@ import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
 
 import {
-  ApiFile,
+  ApiAssistant,
   Assistant,
   ExecuteBlock,
-  FunctionFile,
+  FunctionAssistant,
   Prompt,
-  PromptFile,
-  isApiFile,
+  PromptAssistant,
+  isApiAssistant,
   isExecuteBlock,
-  isFunctionFile,
-  isPromptFile,
+  isFunctionAssistant,
+  isPromptAssistant,
 } from '../../types';
 import { Mustache } from '../../types/assistant';
 
@@ -49,7 +49,7 @@ export async function runAssistant({
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
 }): Promise<any> {
-  if (isPromptFile(assistant)) {
+  if (isPromptAssistant(assistant)) {
     return runPromptAssistant({
       taskId,
       callAI,
@@ -60,7 +60,7 @@ export async function runAssistant({
     });
   }
 
-  if (isFunctionFile(assistant)) {
+  if (isFunctionAssistant(assistant)) {
     return runFunctionAssistant({
       getAssistant,
       callAI,
@@ -71,7 +71,7 @@ export async function runAssistant({
     });
   }
 
-  if (isApiFile(assistant)) {
+  if (isApiAssistant(assistant)) {
     return runApiAssistant({
       getAssistant,
       callAI,
@@ -97,7 +97,7 @@ async function runFunctionAssistant({
   callAI: typeof callAIKit;
   getAssistant: GetAssistant;
   taskId: string;
-  assistant: FunctionFile;
+  assistant: FunctionAssistant;
   context?: { [key: string]: any };
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
@@ -172,7 +172,7 @@ async function runApiAssistant({
   callAI: typeof callAIKit;
   getAssistant: GetAssistant;
   taskId: string;
-  assistant: ApiFile;
+  assistant: ApiAssistant;
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
 }) {
@@ -252,7 +252,7 @@ async function runPromptAssistant({
   callAI: typeof callAIKit;
   taskId: string;
   getAssistant: GetAssistant;
-  assistant: PromptFile;
+  assistant: PromptAssistant;
   parameters: { [key: string]: any };
   callback?: RunAssistantCallback;
 }) {

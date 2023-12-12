@@ -1,5 +1,5 @@
 import { CallAIKitInput, RunAssistantChunk, callAIKit, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
-import { isPromptFile } from '@blocklet/ai-runtime/types';
+import { isPromptAssistant } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import compression from 'compression';
 import { Router } from 'express';
@@ -100,7 +100,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
     templateId: input.assistantId,
     hash: input.ref || defaultBranch,
     projectId: input.projectId,
-    prompts: isPromptFile(assistant) ? assistant.prompts : undefined,
+    prompts: isPromptAssistant(assistant) ? assistant.prompts : undefined,
     parameters: input.parameters,
     startDate,
   });

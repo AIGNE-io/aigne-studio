@@ -1,10 +1,18 @@
-import type { ApiFile, ExecuteBlock, FunctionFile, Parameter, PromptFile, PromptMessage, SelectParameter } from '.';
+import type {
+  ApiAssistant,
+  ExecuteBlock,
+  FunctionAssistant,
+  Parameter,
+  PromptAssistant,
+  PromptMessage,
+  SelectParameter,
+} from '.';
 
 export type ArrayToYjs<T extends Array<{ id: string }>> = { [key: string]: { index: number; data: T[number] } };
 
 export type FileTypeYjs = AssistantYjs | { $base64: string };
 
-export type AssistantYjs = PromptFileYjs | ApiFileYjs | FunctionFileYjs;
+export type AssistantYjs = PromptAssistantYjs | ApiAssistantYjs | FunctionAssistantYjs;
 
 export interface ExecuteBlockYjs extends Omit<ExecuteBlock, 'tools'> {
   tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
@@ -22,23 +30,24 @@ export type PromptYjs =
       visibility?: 'hidden';
     };
 
-export interface PromptFileYjs extends Omit<PromptFile, 'parameters' | 'prompts' | 'tests'> {
+export interface PromptAssistantYjs extends Omit<PromptAssistant, 'parameters' | 'prompts' | 'tests'> {
   parameters?: { [key: string]: { index: number; data: ParameterYjs } };
   prompts?: { [key: string]: { index: number; data: PromptYjs } };
-  tests?: ArrayToYjs<NonNullable<PromptFile['tests']>>;
+  tests?: ArrayToYjs<NonNullable<PromptAssistant['tests']>>;
 }
 
-export interface ApiFileYjs extends Omit<ApiFile, 'parameters' | 'prepareExecutes' | 'tests' | 'requestParameters'> {
+export interface ApiAssistantYjs
+  extends Omit<ApiAssistant, 'parameters' | 'prepareExecutes' | 'tests' | 'requestParameters'> {
   parameters?: { [key: string]: { index: number; data: ParameterYjs } };
   prepareExecutes?: { [key: string]: { index: number; data: ExecuteBlockYjs } };
-  tests?: ArrayToYjs<NonNullable<ApiFile['tests']>>;
-  requestParameters?: ArrayToYjs<NonNullable<ApiFile['requestParameters']>>;
+  tests?: ArrayToYjs<NonNullable<ApiAssistant['tests']>>;
+  requestParameters?: ArrayToYjs<NonNullable<ApiAssistant['requestParameters']>>;
 }
 
-export interface FunctionFileYjs extends Omit<FunctionFile, 'parameters' | 'prepareExecutes' | 'tests'> {
+export interface FunctionAssistantYjs extends Omit<FunctionAssistant, 'parameters' | 'prepareExecutes' | 'tests'> {
   parameters?: { [key: string]: { index: number; data: ParameterYjs } };
   prepareExecutes?: { [key: string]: { index: number; data: ExecuteBlockYjs } };
-  tests?: ArrayToYjs<NonNullable<FunctionFile['tests']>>;
+  tests?: ArrayToYjs<NonNullable<FunctionAssistant['tests']>>;
 }
 
 export type ParameterYjs =

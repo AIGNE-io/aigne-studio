@@ -1,4 +1,4 @@
-import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, FileTypeYjs, isAssistant, isPromptAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import {
   Doc,
   Map,
@@ -161,7 +161,7 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
     getTemplateById: useCallback(
       (templateId: string) => {
         const file = syncedStore.files[templateId];
-        return file && isPromptFile(file) ? file : undefined;
+        return file && isPromptAssistant(file) ? file : undefined;
       },
       [syncedStore.files]
     ),
@@ -262,7 +262,7 @@ export function createFile({
     updatedBy: '',
   };
 
-  if (isPromptFile(file)) {
+  if (isPromptAssistant(file)) {
     if (isEmpty(file.prompts)) {
       const promptId = nanoid();
       file.prompts = { [promptId]: { index: 0, data: { type: 'message', data: { id: promptId, role: 'user' } } } };
@@ -338,7 +338,7 @@ export function importFiles({
     // const key =
     //   Object.keys(store.tree).find((key) => {
     //     const f = store.files[key];
-    //     return isPromptFileYjs(f) && f.id === file.id;
+    //     return isPromptAssistantYjs(f) && f.id === file.id;
     //   }) || nanoid(32);
     // store.files[key] = templateYjsFromTemplate(file);
     // store.tree[key] = p;

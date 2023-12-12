@@ -5,7 +5,7 @@ export { default as Mustache } from './mustache/mustache';
 
 export type FileType = Assistant | { $base64: string };
 
-export type Assistant = PromptFile | ApiFile | FunctionFile;
+export type Assistant = PromptAssistant | ApiAssistant | FunctionAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -37,7 +37,7 @@ export type Prompt =
       visibility?: 'hidden';
     };
 
-export interface PromptFile {
+export interface PromptAssistant {
   id: string;
   type: 'prompt';
   name?: string;
@@ -65,7 +65,7 @@ export interface PromptFile {
   model?: string;
 }
 
-export interface ApiFile {
+export interface ApiAssistant {
   id: string;
   type: 'api';
   name?: string;
@@ -91,7 +91,7 @@ export interface ApiFile {
   tags?: string[];
 }
 
-export interface FunctionFile {
+export interface FunctionAssistant {
   id: string;
   type: 'function';
   name?: string;

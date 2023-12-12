@@ -3,16 +3,25 @@ import sortBy from 'lodash/sortBy';
 import { customAlphabet } from 'nanoid';
 
 import type {
-  ApiFileYjs,
+  ApiAssistantYjs,
   AssistantYjs,
   ExecuteBlockYjs,
   FileTypeYjs,
-  FunctionFileYjs,
+  FunctionAssistantYjs,
   ParameterYjs,
-  PromptFileYjs,
+  PromptAssistantYjs,
   PromptYjs,
 } from './yjs';
-import type { ApiFile, Assistant, ExecuteBlock, FileType, FunctionFile, Parameter, Prompt, PromptFile } from '.';
+import type {
+  ApiAssistant,
+  Assistant,
+  ExecuteBlock,
+  FileType,
+  FunctionAssistant,
+  Parameter,
+  Prompt,
+  PromptAssistant,
+} from '.';
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 
@@ -40,21 +49,21 @@ export function isAssistant(assistant: FileType | FileTypeYjs): assistant is Fil
   return typeof (assistant as any).id === 'string' && ['prompt', 'api', 'function'].includes((assistant as any).type);
 }
 
-export function isPromptFile(file: FileType): file is PromptFile;
-export function isPromptFile(file: FileTypeYjs): file is PromptFileYjs;
-export function isPromptFile(file: FileType | FileTypeYjs): file is PromptFile | PromptFileYjs {
+export function isPromptAssistant(file: FileType): file is PromptAssistant;
+export function isPromptAssistant(file: FileTypeYjs): file is PromptAssistantYjs;
+export function isPromptAssistant(file: FileType | FileTypeYjs): file is PromptAssistant | PromptAssistantYjs {
   return (file as any).type === 'prompt';
 }
 
-export function isApiFile(file: FileType): file is ApiFile;
-export function isApiFile(file: FileTypeYjs): file is ApiFileYjs;
-export function isApiFile(file: FileType | FileTypeYjs): file is ApiFile | ApiFileYjs {
+export function isApiAssistant(file: FileType): file is ApiAssistant;
+export function isApiAssistant(file: FileTypeYjs): file is ApiAssistantYjs;
+export function isApiAssistant(file: FileType | FileTypeYjs): file is ApiAssistant | ApiAssistantYjs {
   return (file as any).type === 'api';
 }
 
-export function isFunctionFile(file: FileType): file is FunctionFile;
-export function isFunctionFile(file: FileTypeYjs): file is FunctionFileYjs;
-export function isFunctionFile(file: FileType | FileTypeYjs): file is FunctionFile | FunctionFileYjs {
+export function isFunctionAssistant(file: FileType): file is FunctionAssistant;
+export function isFunctionAssistant(file: FileTypeYjs): file is FunctionAssistantYjs;
+export function isFunctionAssistant(file: FileType | FileTypeYjs): file is FunctionAssistant | FunctionAssistantYjs {
   return (file as any).type === 'function';
 }
 
@@ -142,7 +151,7 @@ export function arrayFromYjs<T, I>(
 }
 
 export function fileToYjs(file: FileType): FileTypeYjs {
-  if (isPromptFile(file)) {
+  if (isPromptAssistant(file)) {
     return {
       ...file,
       parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
@@ -155,7 +164,7 @@ export function fileToYjs(file: FileType): FileTypeYjs {
       tests: file.tests && arrayToYjs(file.tests),
     };
   }
-  if (isFunctionFile(file)) {
+  if (isFunctionAssistant(file)) {
     return {
       ...file,
       parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
@@ -163,7 +172,7 @@ export function fileToYjs(file: FileType): FileTypeYjs {
       tests: file.tests && arrayToYjs(file.tests),
     };
   }
-  if (isApiFile(file)) {
+  if (isApiAssistant(file)) {
     return {
       ...file,
       parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
@@ -177,7 +186,7 @@ export function fileToYjs(file: FileType): FileTypeYjs {
 }
 
 export function fileFromYjs(file: FileTypeYjs): FileType {
-  if (isPromptFile(file)) {
+  if (isPromptAssistant(file)) {
     return {
       ...file,
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
@@ -185,7 +194,7 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       tests: file.tests && arrayFromYjs(file.tests),
     };
   }
-  if (isFunctionFile(file)) {
+  if (isFunctionAssistant(file)) {
     return {
       ...file,
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
@@ -193,7 +202,7 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       tests: file.tests && arrayFromYjs(file.tests),
     };
   }
-  if (isApiFile(file)) {
+  if (isApiAssistant(file)) {
     return {
       ...file,
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),

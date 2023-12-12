@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   ExecuteBlockYjs,
-  PromptFileYjs,
+  PromptAssistantYjs,
   PromptMessage,
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
@@ -26,7 +26,7 @@ import PromptAssistantSetting from './setting';
 // TODO 放到theme中
 const bgcolor = 'rgba(249, 250, 251, 1)';
 
-export default function PromptFileEditor({
+export default function PromptAssistantEditor({
   projectId,
   gitRef,
   value,
@@ -34,7 +34,7 @@ export default function PromptFileEditor({
 }: {
   projectId: string;
   gitRef: string;
-  value: PromptFileYjs;
+  value: PromptAssistantYjs;
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();

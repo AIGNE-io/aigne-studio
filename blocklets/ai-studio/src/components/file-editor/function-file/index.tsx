@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { FunctionFileYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { FunctionAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Typography, alpha } from '@mui/material';
@@ -16,7 +16,7 @@ import FunctionAssistantSetting from './setting';
 // TODO 放到theme中
 const bgcolor = 'rgba(249, 250, 251, 1)';
 
-export default function FunctionFileEditor({
+export default function FunctionAssistantEditor({
   projectId,
   gitRef,
   value,
@@ -24,7 +24,7 @@ export default function FunctionFileEditor({
 }: {
   projectId: string;
   gitRef: string;
-  value: FunctionFileYjs;
+  value: FunctionAssistantYjs;
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();

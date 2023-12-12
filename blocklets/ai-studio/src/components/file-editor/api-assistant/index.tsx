@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ApiFileYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { ApiAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import {
@@ -38,7 +38,7 @@ export default function ApiAssistantEditor({
 }: {
   projectId: string;
   gitRef: string;
-  value: ApiFileYjs;
+  value: ApiAssistantYjs;
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
