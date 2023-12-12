@@ -1,3 +1,7 @@
+## 0.1.166 (2023-12-12)
+
+fix: rename filename of resource component
+
 ## 0.1.165 (2023-12-12)
 
 fix: correct migration
@@ -139,7 +143,7 @@ fix: correct migration
 ## 0.1.133 (2023-11-13)
 
 - fix: auto find a unused variable name after template changed
-- fix: pick parameters by template parmas
+- fix: pick parameters by template params
 - fix: custom mustache ignore unclosed tag error
 
 ## 0.1.132 (2023-11-10)
@@ -217,7 +221,7 @@ fix: correct migration
 - fix: remove unnecessary code
 - fix: remove default placeholder
 - fix: support ctrl/cmd+z undo
-- fix: keep linebreaks of prompt
+- fix: keep line breaks of prompt
 
 ## 0.1.115 (2023-10-24)
 

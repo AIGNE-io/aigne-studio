@@ -1,5 +1,4 @@
-/* eslint-disable no-await-in-loop */
-import fs from 'fs';
+import { mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 
 import component from '@blocklet/sdk/lib/component';
@@ -12,16 +11,15 @@ import { ensurePromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
 import { defaultBranch, getAssistantsOfRepository } from '../store/repository';
 
-const TARGET_DIR = 'templates.ai';
+const TARGET_DIR = 'assistants.ai';
 
-const getTemplateDir = ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
+const getResourceDir = ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
   const exportDir = component.getResourceExportDir({ projectId, releaseId });
-  const templateDir = path.join(exportDir, TARGET_DIR);
-  if (!fs.existsSync(templateDir)) {
-    fs.mkdirSync(templateDir, { recursive: true });
-  }
+  const resourceDir = path.join(exportDir, TARGET_DIR);
 
-  return templateDir;
+  mkdirSync(resourceDir, { recursive: true });
+
+  return resourceDir;
 };
 
 const exportResourceSchema = Joi.object<{
@@ -67,23 +65,19 @@ export function resourceRoutes(router: Router) {
   router.post('/resources/export', ensurePromptsEditor, async (req, res) => {
     const { resources, projectId, releaseId } = await exportResourceSchema.validateAsync(req.body);
 
-    const templates = (
+    const assistants = (
       await Promise.all(
         resources.map(async (projectId) => getAssistantsOfRepository({ projectId, ref: defaultBranch }))
       )
     ).flat();
 
-    const result = stringify({ templates: uniqBy(templates, 'id') });
+    const result = stringify({ assistants: uniqBy(assistants, 'id') });
 
-    const templateDir = getTemplateDir({ projectId, releaseId: releaseId || '' });
-    const templateFolder = fs.existsSync(templateDir);
-    if (templateFolder) {
-      fs.rmSync(templateDir, { force: true, recursive: true });
-    }
-    fs.mkdirSync(templateDir, { recursive: true });
+    const resourceDir = getResourceDir({ projectId, releaseId: releaseId || '' });
+    mkdirSync(resourceDir, { recursive: true });
 
-    const templateFilename = path.join(templateDir, `templates-${Date.now()}.yaml`);
-    await fs.promises.writeFile(templateFilename, result);
+    const assistantsFilename = path.join(resourceDir, 'assistants.yaml');
+    writeFileSync(assistantsFilename, result);
 
     return res.json(result);
   });
