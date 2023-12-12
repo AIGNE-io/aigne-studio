@@ -48,7 +48,7 @@ export default function ImportFrom({
       text: item.name,
       data: item.type === 'file' ? item.meta : undefined,
       type: item.type,
-    }));
+    })) as any;
   }, [state.files]);
 
   const setDepCounts = (list: TreeNode[], isChecked: boolean) => {

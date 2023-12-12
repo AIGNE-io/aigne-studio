@@ -1,1 +1,1 @@
-declare module '@blocklet/ui-react';
+declare module '@blocklet/ui-react/*';
