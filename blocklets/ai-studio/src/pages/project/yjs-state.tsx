@@ -1,4 +1,4 @@
-import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile } from '@blocklet/ai-runtime';
+import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile, nextAssistantId } from '@blocklet/ai-runtime';
 import {
   Doc,
   Map,
@@ -10,13 +10,10 @@ import {
   useSyncedStore,
   writeVarUint,
 } from '@blocklet/co-git/yjs';
-import { Template } from 'api/src/store/0.1.157/templates';
-import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
-import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
-import { nanoid } from 'nanoid';
+import { customAlphabet, nanoid } from 'nanoid';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
@@ -219,25 +216,25 @@ export function createFolder({
   return filepath;
 }
 
-export const nextTemplateId = () => `${dayjs().format('YYYYMMDDHHmmss')}-${nanoid(6)}`;
+export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 
-export const resetTemplatesId = (templates: (Template & { parent?: string[] })[]) => {
-  const list = cloneDeep(templates);
+// export const resetTemplatesId = (templates: (Template & { parent?: string[] })[]) => {
+//   const list = cloneDeep(templates);
 
-  list.forEach((template) => {
-    const { id } = template;
-    const newId = nextTemplateId();
+//   list.forEach((template) => {
+//     const { id } = template;
+//     const newId = nextAssistantId();
 
-    template.id = newId;
-    list.forEach((t) => {
-      if (t.next && t.next?.id === id) {
-        t.next.id = newId;
-      }
-    });
-  });
+//     template.id = newId;
+//     list.forEach((t) => {
+//       if (t.next && t.next?.id === id) {
+//         t.next.id = newId;
+//       }
+//     });
+//   });
 
-  return list;
-};
+//   return list;
+// };
 
 export function createFile({
   store,
@@ -250,7 +247,7 @@ export function createFile({
   meta?: Partial<AssistantYjs>;
   rootFolder?: string;
 }) {
-  const id = (meta as any).id || nextTemplateId();
+  const id = (meta as any).id || nextAssistantId();
   const filename = `${id}.yaml`;
   const filepath = joinURL(rootFolder && parent[0] !== rootFolder ? rootFolder : '', ...parent, filename);
   const now = new Date().toISOString();
@@ -329,7 +326,7 @@ export function importFiles({
 }: {
   store: StoreContext['store'];
   parent?: string[];
-  files: (Template & { path?: string[] })[];
+  // files: (Template & { path?: string[] })[];
 }) {
   getYjsDoc(store).transact(() => {
     // FIXME:

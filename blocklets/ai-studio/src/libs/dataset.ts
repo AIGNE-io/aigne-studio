@@ -1,8 +1,8 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source';
+import Dataset from 'api/src/store/models/dataset';
+import DatasetItem from 'api/src/store/models/dataset-item';
 
 import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset-items';
-import { DatasetItem } from '../../api/src/store/0.1.157/dataset-items';
-import { Dataset } from '../../api/src/store/0.1.157/datasets';
 import axios from './api';
 
 export interface DatasetInput {

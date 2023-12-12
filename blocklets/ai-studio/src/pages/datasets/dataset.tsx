@@ -4,11 +4,11 @@ import { Add, ArrowBackIosNew, Error as ErrorIcon } from '@mui/icons-material';
 import { Box, Breadcrumbs, Button, Chip, CircularProgress, Link, Tooltip, Typography } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useReactive } from 'ahooks';
+import DatasetItem from 'api/src/store/models/dataset-item';
 import omit from 'lodash/omit';
 import { useEffect, useMemo } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 
-import { DatasetItem } from '../../../api/src/store/0.1.157/dataset-items';
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDataset } from '../../contexts/dataset-items';
 import { getErrorMessage } from '../../libs/api';
@@ -91,7 +91,7 @@ export default function DatasetPage() {
 
       <Box mx={2}>
         <DataGrid
-          getRowId={(v) => v._id!}
+          getRowId={(v) => v._id}
           loading={state.loading && !state.items?.length}
           rows={rows}
           columns={columns}
@@ -107,7 +107,7 @@ export default function DatasetPage() {
   );
 }
 
-const useColumns = (): GridColDef<DatasetItem & { status?: { total?: number; current?: number } }>[] => {
+const useColumns = (): GridColDef<DatasetItem['dataValues'] & { status?: { total?: number; current?: number } }>[] => {
   const { t } = useLocaleContext();
 
   return useMemo(
@@ -163,7 +163,7 @@ const useColumns = (): GridColDef<DatasetItem & { status?: { total?: number; cur
   );
 };
 
-function Actions({ item }: { item: DatasetItem & { status?: {} } }) {
+function Actions({ item }: { item: DatasetItem['dataValues'] & { status?: {} } }) {
   const { t } = useLocaleContext();
   const { refetch } = useDataset(item.datasetId);
 

@@ -1,7 +1,6 @@
 import { PromptFileYjs, isPromptFile } from '@blocklet/ai-runtime';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import sortBy from 'lodash/sortBy';
-import { customAlphabet } from 'nanoid';
 import { useCallback } from 'react';
 
 import { useProjectStore } from './yjs-state';
@@ -87,5 +86,3 @@ export function usePromptsState({
 
   return { addPrompt, deletePrompt, renameVariable };
 }
-
-export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');

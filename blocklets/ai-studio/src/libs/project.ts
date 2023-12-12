@@ -1,4 +1,3 @@
-import { Template } from 'api/src/store/0.1.157/templates';
 import Project from 'api/src/store/models/project';
 
 import {
@@ -48,7 +47,7 @@ export async function importTemplatesToProject(
   projectId: string,
   ref: string,
   data: { projectId: string; ref: string; resources: string[] }
-): Promise<{ templates: (Template & { parent?: string[] })[] }> {
+): Promise<{ templates: { parent?: string[] }[] }> {
   return axios.post(`/api/projects/${projectId}/${ref}/import`, data).then((res) => res.data);
 }
 

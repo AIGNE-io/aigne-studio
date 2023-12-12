@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile } from '@blocklet/ai-runtime';
+import { AssistantYjs, FileTypeYjs, isAssistant, isPromptFile, nextAssistantId } from '@blocklet/ai-runtime';
 import { css } from '@emotion/css';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
@@ -48,7 +48,6 @@ import { joinURL } from 'ufo';
 
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
-import { importTemplatesToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import ChevronDown from './icons/chevron-down';
 import Code from './icons/code';
@@ -71,8 +70,6 @@ import {
   deleteFile,
   isBuiltinFolder,
   moveFile,
-  nextTemplateId,
-  resetTemplatesId,
   useProjectStore,
 } from './yjs-state';
 
@@ -194,21 +191,21 @@ const FileTree = forwardRef<
       ),
       onOk: async () => {
         try {
-          const { templates } = await importTemplatesToProject(projectId, gitRef, state);
-
-          if (templates.length) {
-            const newTemplates = resetTemplatesId(templates);
-            for (const template of newTemplates) {
-              createFile({
-                store,
-                parent: template.parent,
-                // FIXME:
-                // meta: templateYjsFromTemplate(template),
-              });
-            }
-          } else {
-            Toast.error(t('import.selectTemplates'));
-          }
+          // FIXME:
+          // const { templates } = await importTemplatesToProject(projectId, gitRef, state);
+          // if (templates.length) {
+          //   const newTemplates = resetTemplatesId(templates);
+          //   for (const template of newTemplates) {
+          //     createFile({
+          //       store,
+          //       parent: template.parent,
+          //       // FIXME:
+          //       // meta: templateYjsFromTemplate(template),
+          //     });
+          //   }
+          // } else {
+          // Toast.error(t('import.selectTemplates'));
+          // }
         } catch (error) {
           Toast.error(getErrorMessage(error));
           throw error;
@@ -610,7 +607,7 @@ function TreeItemMenus({
               parent: item.parent,
               meta: {
                 ...JSON.parse(JSON.stringify(item.meta)),
-                id: nextTemplateId(),
+                id: nextAssistantId(),
                 name: item.meta.name && `${item.meta.name} Copy`,
               },
             })

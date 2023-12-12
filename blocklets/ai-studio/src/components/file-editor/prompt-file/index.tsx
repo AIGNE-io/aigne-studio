@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlockYjs, PromptFileYjs, PromptMessage } from '@blocklet/ai-runtime';
+import { AssistantYjs, ExecuteBlockYjs, PromptFileYjs, PromptMessage, nextAssistantId } from '@blocklet/ai-runtime';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
 import { DragSortItemContainer, DragSortListYjs } from 'src/components/drag-sort-list';
@@ -7,7 +7,6 @@ import Add from 'src/pages/project/icons/add';
 import Eye from 'src/pages/project/icons/eye';
 import EyeNo from 'src/pages/project/icons/eye-no';
 import { usePromptsState } from 'src/pages/project/prompt-state';
-import { nextTemplateId } from 'src/pages/project/yjs-state';
 
 import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
@@ -120,12 +119,12 @@ export default function PromptFileEditor({
           <Stack direction="row" gap={2}>
             <Button
               startIcon={<Add />}
-              onClick={() => addPrompt({ type: 'message', data: { id: nextTemplateId(), role: 'user' } })}>
+              onClick={() => addPrompt({ type: 'message', data: { id: nextAssistantId(), role: 'user' } })}>
               {t('addObject', { object: t('promptMessage') })}
             </Button>
             <Button
               startIcon={<Add />}
-              onClick={() => addPrompt({ type: 'executeBlock', data: { id: nextTemplateId() } })}>
+              onClick={() => addPrompt({ type: 'executeBlock', data: { id: nextAssistantId() } })}>
               {t('addObject', { object: t('executeBlock') })}
             </Button>
           </Stack>

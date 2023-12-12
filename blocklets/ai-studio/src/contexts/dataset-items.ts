@@ -1,8 +1,8 @@
+import Dataset from 'api/src/store/models/dataset';
+import DatasetItem from 'api/src/store/models/dataset-item';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import { DatasetItem } from '../../api/src/store/0.1.157/dataset-items';
-import { Dataset } from '../../api/src/store/0.1.157/datasets';
 import { getDataset, getDatasetItems } from '../libs/dataset';
 
 interface DatasetState {
