@@ -380,4 +380,6 @@ export default flat({
   emptyInput: '输入不能为空',
   emptyPrompts: '至少添加一个提示词',
   userInput: '用户输入',
+  all: '全部',
+  selectPrompt: '选择模板',
 });

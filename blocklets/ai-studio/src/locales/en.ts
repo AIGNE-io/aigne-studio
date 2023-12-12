@@ -382,4 +382,6 @@ export default flat({
   emptyInput: 'The input cannot be empty',
   emptyPrompts: 'Add at least one prompt',
   userInput: 'Test Parameters',
+  all: 'All',
+  selectPrompt: 'Select by Prompt',
 });

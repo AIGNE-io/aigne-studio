@@ -66,8 +66,8 @@ export default function ExecuteBlockForm({
           SelectProps={{ autoWidth: true }}
           value={value.selectType || 'all'}
           onChange={(e) => (value.selectType = e.target.value as any)}>
-          <MenuItem value="all">All</MenuItem>
-          <MenuItem value="selectByPrompt">Select by Prompt</MenuItem>
+          <MenuItem value="all">{t('all')}</MenuItem>
+          <MenuItem value="selectByPrompt">{t('selectPrompt')}</MenuItem>
         </TextField>
 
         <Box flex={1} />

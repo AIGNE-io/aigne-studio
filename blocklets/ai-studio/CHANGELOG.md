@@ -1,3 +1,7 @@
+## 0.1.168 (2023-12-12)
+
+- fix: bug bash issue
+
 ## 0.1.167 (2023-12-12)
 
 - fix: required parameters of call api
