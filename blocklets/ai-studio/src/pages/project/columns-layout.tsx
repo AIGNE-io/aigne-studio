@@ -119,7 +119,7 @@ const ColumnsLayout = forwardRef<
         <Box
           component={Panel}
           ref={rightPanel}
-          defaultSize={45}
+          defaultSize={30}
           minSize={30}
           collapsible
           onCollapse={(collapsed) => {

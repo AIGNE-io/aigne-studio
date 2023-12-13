@@ -2,6 +2,7 @@ import type {
   ApiAssistant,
   ExecuteBlock,
   FunctionAssistant,
+  ImageAssistant,
   Parameter,
   PromptAssistant,
   PromptMessage,
@@ -12,7 +13,7 @@ export type ArrayToYjs<T extends Array<{ id: string }>> = { [key: string]: { ind
 
 export type FileTypeYjs = AssistantYjs | { $base64: string };
 
-export type AssistantYjs = PromptAssistantYjs | ApiAssistantYjs | FunctionAssistantYjs;
+export type AssistantYjs = PromptAssistantYjs | ApiAssistantYjs | FunctionAssistantYjs | ImageAssistantYjs;
 
 export interface ExecuteBlockYjs extends Omit<ExecuteBlock, 'tools'> {
   tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
@@ -34,6 +35,12 @@ export interface PromptAssistantYjs extends Omit<PromptAssistant, 'parameters' |
   parameters?: { [key: string]: { index: number; data: ParameterYjs } };
   prompts?: { [key: string]: { index: number; data: PromptYjs } };
   tests?: ArrayToYjs<NonNullable<PromptAssistant['tests']>>;
+}
+
+export interface ImageAssistantYjs extends Omit<ImageAssistant, 'parameters' | 'prepareExecutes' | 'tests'> {
+  parameters?: { [key: string]: { index: number; data: ParameterYjs } };
+  prepareExecutes?: { [key: string]: { index: number; data: ExecuteBlockYjs } };
+  tests?: ArrayToYjs<NonNullable<FunctionAssistant['tests']>>;
 }
 
 export interface ApiAssistantYjs

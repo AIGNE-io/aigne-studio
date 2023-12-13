@@ -5,7 +5,7 @@ import { sequelize } from '../sequelize';
 
 const idGenerator = new Worker();
 
-const nextId = () => idGenerator.nextId().toString();
+export const nextProjectId = () => idGenerator.nextId().toString();
 
 export default class Project extends Model<InferAttributes<Project>, InferCreationAttributes<Project>> {
   declare _id: CreationOptional<string>;
@@ -53,7 +53,7 @@ Project.init(
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
-      defaultValue: nextId,
+      defaultValue: nextProjectId,
     },
     name: {
       type: DataTypes.STRING,

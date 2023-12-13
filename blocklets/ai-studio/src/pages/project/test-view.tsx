@@ -103,7 +103,7 @@ const TestCaseView = forwardRef<
 
   const { newSession } = useDebugState({
     projectId,
-    templateId: assistant.id,
+    assistantId: assistant.id,
   });
 
   const debugTest = () => {

@@ -377,4 +377,16 @@ export default flat({
   value: '值',
   haveNotAddedTip: '您还没有添加任何{object}',
   selectTool: '选择工具',
+  number: '数量',
+  numberTip: '要生成的图像数量。必须在1和10之间。对于dall-e-3，仅支持n=1。',
+  quality: '质量',
+  qualityTip: '生成图像的质量。hd可以创建细节更好、整体一致性更大的图像。此参数仅对dall-e-3支持。',
+  responseFormat: '响应格式',
+  responseFormatTip: '生成的图像返回的格式。必须为url或b64_json之一。',
+  size: '尺寸',
+  sizeTip:
+    '生成的图像尺寸。对于dall-e-2，必须为256x256、512x512或1024x1024之一。对于dall-e-3模型，必须为1024x1024、1792x1024或1024x1792之一。',
+  style: '风格',
+  styleTip:
+    '生成图像的风格。必须为vivid或natural之一。vivid会使模型倾向于生成超现实和戏剧化的图像。natural会使模型生成更自然、不太超现实的图像。此参数仅对dall-e-3支持。',
 });

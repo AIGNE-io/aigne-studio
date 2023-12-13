@@ -4,6 +4,7 @@ import {
   isApiAssistant,
   isAssistant,
   isFunctionAssistant,
+  isImageAssistant,
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
 import {
@@ -30,10 +31,11 @@ import {
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
 import { bindMenu, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useEffect, useRef } from 'react';
+import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ApiAssistantEditor from 'src/components/file-editor/api-assistant';
 import FunctionAssistantEditor from 'src/components/file-editor/function-file';
+import ImageAssistantEditor from 'src/components/file-editor/image-file';
 import PromptAssistantEditor from 'src/components/file-editor/prompt-file';
 import { joinURL, withQuery } from 'ufo';
 
@@ -55,6 +57,7 @@ import Import from './icons/import';
 import LinkIcon from './icons/link';
 import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
+import Picture from './icons/picture';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
@@ -200,12 +203,27 @@ export default function ProjectPage() {
                           fileTree.current?.newFile({
                             parent: dir[0] === PROMPTS_FOLDER_NAME ? dir : [],
                             rootFolder: PROMPTS_FOLDER_NAME,
+                            meta: { type: 'prompt' },
                           });
                         }}>
                         <ListItemIcon>
                           <File />
                         </ListItemIcon>
                         <ListItemText primary={t('prompt')} />
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() => {
+                          const dir = dirname(filepath);
+                          fileTree.current?.newFile({
+                            parent: dir[0] === PROMPTS_FOLDER_NAME ? dir : [],
+                            rootFolder: PROMPTS_FOLDER_NAME,
+                            meta: { type: 'image' },
+                          });
+                        }}>
+                        <ListItemIcon>
+                          <Picture />
+                        </ListItemIcon>
+                        <ListItemText primary={t('image')} />
                       </MenuItem>
                       <MenuItem
                         onClick={() =>
@@ -307,15 +325,17 @@ export default function ProjectPage() {
             </Toolbar>
           </Box>
 
-          {!file ? (
-            <DebugEmptyView />
-          ) : currentTab === 'debug' ? (
-            <DebugView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
-          ) : currentTab === 'test' ? (
-            <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
-          ) : currentTab === 'discuss' ? (
-            <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />
-          ) : null}
+          <Suspense>
+            {!file ? (
+              <DebugEmptyView />
+            ) : currentTab === 'debug' ? (
+              <DebugView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
+            ) : currentTab === 'test' ? (
+              <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
+            ) : currentTab === 'discuss' ? (
+              <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />
+            ) : null}
+          </Suspense>
         </Stack>
       }>
       {({ leftOpen, rightOpen }) => (
@@ -359,6 +379,8 @@ export default function ProjectPage() {
               <WithAwareness projectId={projectId} gitRef={gitRef} path={[file.id]} onMount>
                 {isPromptAssistant(file) ? (
                   <PromptAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
+                ) : isImageAssistant(file) ? (
+                  <ImageAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
                 ) : isApiAssistant(file) ? (
                   <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
                 ) : isFunctionAssistant(file) ? (
