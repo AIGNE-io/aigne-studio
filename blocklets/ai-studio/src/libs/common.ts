@@ -1,6 +1,10 @@
-export type TextModelInfo = {
+export interface ModelInfoBase {
   brand: string;
   model: string;
+  disabled?: boolean;
+}
+
+export interface TextModelInfo extends ModelInfoBase {
   temperatureMin?: number;
   temperatureMax?: number;
   temperatureDefault?: number;
@@ -16,8 +20,7 @@ export type TextModelInfo = {
   maxTokensMin?: number;
   maxTokensMax?: number;
   maxTokensDefault?: number;
-  disabled?: boolean;
-};
+}
 
 export const defaultTextModel = 'gpt-3.5-turbo';
 
@@ -236,7 +239,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
   ];
 }
 
-export type ImageModelInfo = {
+export interface ImageModelInfo extends ModelInfoBase {
   brand: string;
   model: string;
   nMin?: number;
@@ -251,7 +254,7 @@ export type ImageModelInfo = {
   sizeDefault?: string;
   style?: string[];
   styleDefault?: string;
-};
+}
 
 export const defaultImageModel = 'dall-e-2';
 
