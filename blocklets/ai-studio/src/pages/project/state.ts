@@ -2,6 +2,7 @@ import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api';
 import { Role } from '@blocklet/ai-runtime/types';
 import Project from 'api/src/store/models/project';
 import produce, { Draft } from 'immer';
+import localForage from 'localforage';
 import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
 import { nanoid } from 'nanoid';
@@ -9,7 +10,6 @@ import { ChatCompletionRequestMessage } from 'openai';
 import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { PREFIX } from 'src/libs/api';
-import indexedStorage from 'src/libs/indexed-storage';
 import { joinURL } from 'ufo';
 
 import { textCompletions } from '../../libs/ai';
@@ -185,7 +185,7 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
       try {
         await debugStateMigration;
 
-        const res = await indexedStorage.get<string>(key);
+        const res = await localForage.getItem<string>(key);
         const json: DebugState = typeof res === 'string' ? JSON.parse(res) : res;
         if (json.projectId === projectId && json.assistantId === assistantId) {
           return {
@@ -218,15 +218,13 @@ const debugState = (projectId: string, assistantId: string) => {
     effects: [
       (() => {
         const setItem = debounce((k, v) => {
-          indexedStorage.set(k, v);
+          localForage.setItem(k, v);
         }, 1000);
 
         window.addEventListener('beforeunload', () => setItem.flush());
 
         return ({ onSet }) => {
-          onSet(async (value) => {
-            setItem(key, value);
-          });
+          onSet((value) => setItem(key, value));
         };
       })(),
     ],
@@ -485,7 +483,7 @@ async function migrateDebugStateFroMLocalStorageToIndexedDB() {
         const json = JSON.parse(text!);
         const state = json[key];
         if (typeof state.projectId === 'string' && typeof state.templateId === 'string') {
-          await indexedStorage.set(key, {
+          await localForage.setItem(key, {
             assistantId: state.templateId,
             ...omit(state, 'templateId'),
           });
