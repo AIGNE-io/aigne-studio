@@ -32,7 +32,6 @@ export default function Editor({
   componentPickerProps,
   variablePickerProps,
   ContentProps,
-  variables,
 }: {
   useVariableNode?: boolean;
   isDebug?: boolean;
