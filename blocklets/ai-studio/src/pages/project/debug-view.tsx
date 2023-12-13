@@ -585,7 +585,7 @@ function DebugModeForm({
                   fontSize: (theme) => theme.typography.caption.fontSize,
                   color: (theme) => theme.palette.text.disabled,
                 }}>
-                {t('userInput')}
+                {t('parameter')}
               </Box>
 
               {parameters.length > 1 && (
