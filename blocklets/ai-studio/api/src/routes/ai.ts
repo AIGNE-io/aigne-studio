@@ -1,5 +1,10 @@
-import { RunAssistantChunk, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
-import { ChatCompletionInput, callAIKitChatCompletions } from '@blocklet/ai-runtime/core/ai-kit';
+import {
+  ChatCompletionInput,
+  RunAssistantChunk,
+  callAIKitChatCompletions,
+  nextTaskId,
+  runAssistant,
+} from '@blocklet/ai-runtime/core';
 import { isPromptAssistant } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import compression from 'compression';

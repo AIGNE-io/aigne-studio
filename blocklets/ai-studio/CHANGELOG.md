@@ -1,3 +1,7 @@
+## 0.1.169 (2023-12-13)
+
+- fix: type errors
+
 ## 0.1.168 (2023-12-13)
 
 - feat: add image assistant
