@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { AssistantYjs, FileTypeYjs, isAssistant, isPromptAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, FileTypeYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { css } from '@emotion/css';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
@@ -60,6 +60,7 @@ import FolderClose from './icons/folder-close';
 import LinkIcon from './icons/link';
 import MenuVertical from './icons/menu-vertical';
 import Pen from './icons/pen';
+import Picture from './icons/picture';
 import Trash from './icons/trash';
 import Undo from './icons/undo';
 import ImportFrom from './import';
@@ -549,7 +550,7 @@ function TreeItemMenus({
 }) {
   const { t } = useLocaleContext();
 
-  const assistant = item.type === 'file' && isPromptAssistant(item.meta) ? item.meta : undefined;
+  const assistant = item.type === 'file' && isAssistant(item.meta) ? item.meta : undefined;
 
   const menus = [
     [
@@ -1012,5 +1013,6 @@ function TreeItem({
 function FileIcon({ type }: { type?: AssistantYjs['type'] }) {
   if (type === 'api') return <LinkIcon />;
   if (type === 'function') return <Code />;
+  if (type === 'image') return <Picture />;
   return <File />;
 }

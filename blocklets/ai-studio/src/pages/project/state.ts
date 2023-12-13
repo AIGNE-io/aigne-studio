@@ -2,13 +2,13 @@ import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api';
 import { Role } from '@blocklet/ai-runtime/types';
 import Project from 'api/src/store/models/project';
 import produce, { Draft } from 'immer';
+import localForage from 'localforage';
 import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
 import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
-import { recoilPersist } from 'recoil-persist';
 import { PREFIX } from 'src/libs/api';
 import { joinURL } from 'ufo';
 
@@ -149,7 +149,7 @@ export interface SessionItem {
     content: string;
     gitRef?: string;
     parameters?: { [key: string]: any };
-    images?: { url: string }[];
+    images?: { b64Json?: string; url?: string }[];
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
@@ -158,6 +158,7 @@ export interface SessionItem {
       taskId: string;
       assistantId: string;
       content: string;
+      images?: { b64Json?: string; url?: string }[];
     }[];
   }[];
   chatType?: 'chat' | 'debug';
@@ -166,7 +167,7 @@ export interface SessionItem {
 
 export interface DebugState {
   projectId: string;
-  templateId: string;
+  assistantId: string;
   sessions: SessionItem[];
   nextSessionIndex: number;
   currentSessionIndex?: number;
@@ -174,57 +175,66 @@ export interface DebugState {
 
 const debugStates: { [key: string]: RecoilState<DebugState> } = {};
 
-const debugState = (projectId: string, templateId: string) => {
-  const key = `debugState-${projectId}-${templateId}` as const;
+const getInitialDebugState = (projectId: string, assistantId: string): [string, Promise<DebugState>] => {
+  const key = `debugState-${projectId}-${assistantId}` as const;
   const now = new Date().toISOString();
+
+  return [
+    key,
+    (async () => {
+      try {
+        await debugStateMigration;
+
+        const res = await localForage.getItem<string>(key);
+        const json: DebugState = typeof res === 'string' ? JSON.parse(res) : res;
+        if (json.projectId === projectId && json.assistantId === assistantId) {
+          return {
+            ...json,
+            sessions: json.sessions.map((session) => ({
+              ...session,
+              messages: session.messages.map((i) => omit(i, 'loading')),
+            })),
+          };
+        }
+      } catch (error) {
+        console.error('initialize default debug state error', error);
+      }
+      return {
+        projectId,
+        assistantId,
+        sessions: [{ index: 1, createdAt: now, updatedAt: now, messages: [], chatType: 'debug' }],
+        nextSessionIndex: 2,
+      };
+    })(),
+  ];
+};
+
+const debugState = (projectId: string, assistantId: string) => {
+  const [key, initialState] = getInitialDebugState(projectId, assistantId);
 
   debugStates[key] ??= atom<DebugState>({
     key,
-    default: {
-      projectId,
-      templateId,
-      sessions: [{ index: 1, createdAt: now, updatedAt: now, messages: [], chatType: 'debug' }],
-      nextSessionIndex: 2,
-    },
+    default: initialState,
     effects: [
-      recoilPersist({
-        key,
-        converter: {
-          stringify: (state: { [k: typeof key]: DebugState }) => {
-            return JSON.stringify({
-              ...state,
-              [key]: {
-                ...state[key],
-                sessions: state[key]?.sessions.map((session) => ({
-                  ...session,
-                  messages: session.messages.map((i) => omit(i, 'loading')),
-                })),
-              },
-            });
-          },
-          parse: JSON.parse,
-        },
-        storage: {
-          getItem: (key) => localStorage.getItem(key),
-          setItem: (() => {
-            const setItem = debounce((k, v) => {
-              localStorage.setItem(k, v);
-            }, 1000);
+      (() => {
+        const setItem = debounce((k, v) => {
+          localForage.setItem(k, v);
+        }, 1000);
 
-            window.addEventListener('beforeunload', () => setItem.flush());
+        window.addEventListener('beforeunload', () => setItem.flush());
 
-            return setItem;
-          })(),
-        },
-      }).persistAtom,
+        return ({ onSet }) => {
+          onSet((value) => setItem(key, value));
+        };
+      })(),
     ],
   });
 
   return debugStates[key]!;
 };
 
-export const useDebugState = ({ projectId, templateId }: { projectId: string; templateId: string }) => {
-  const [state, setState] = useRecoilState(debugState(projectId, templateId));
+export const useDebugState = ({ projectId, assistantId }: { projectId: string; assistantId: string }) => {
+  const [state, setState] = useRecoilState(debugState(projectId, assistantId));
 
   const newSession = useCallback(
     (session?: Partial<SessionItem>) => {
@@ -319,7 +329,7 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
         | {
             type: 'debug';
             projectId: string;
-            templateId: string;
+            assistantId: string;
             gitRef: string;
             parameters: { [key: string]: string | number };
           };
@@ -366,7 +376,7 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
                 projectId: message.projectId,
                 ref: message.gitRef,
                 working: true,
-                assistantId: message.templateId,
+                assistantId: message.assistantId,
                 parameters: message.parameters,
               });
 
@@ -374,7 +384,6 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
         const decoder = new TextDecoder();
 
         let response = '';
-        const subResponses: { [key: string]: string } = {};
         let mainTaskId: string | undefined;
 
         for (;;) {
@@ -385,15 +394,21 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
             } else if (typeof value === 'string') {
               response += value;
             } else if (isRunAssistantChunk(value)) {
+              const { images } = value.delta;
+
               if (!mainTaskId) mainTaskId = value.taskId;
 
               if (value.taskId === mainTaskId) {
                 response += value.delta.content || '';
-              } else {
-                const key = `${messageId}-${value.assistantId}`;
-                subResponses[key] ??= '';
-                subResponses[key] += value.delta.content || '';
 
+                if (images?.length) {
+                  setMessage(sessionIndex, responseId, (message) => {
+                    if (message.cancelled) return;
+                    message.images ??= [];
+                    message.images.push(...images);
+                  });
+                }
+              } else {
                 setMessage(sessionIndex, messageId, (message) => {
                   if (message.cancelled) return;
 
@@ -406,6 +421,11 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
                   }
 
                   subMessage.content += value.delta.content || '';
+
+                  if (images?.length) {
+                    subMessage.images ??= [];
+                    subMessage.images.push(...images);
+                  }
                 });
               }
             } else {
@@ -452,3 +472,29 @@ export const useDebugState = ({ projectId, templateId }: { projectId: string; te
 
   return { state, setSession, setCurrentSession, newSession, deleteSession, sendMessage, cancelMessage };
 };
+
+async function migrateDebugStateFroMLocalStorageToIndexedDB() {
+  for (const key of Object.keys(localStorage)) {
+    if (key.startsWith('debugState-')) {
+      const text = localStorage.getItem(key);
+      localStorage.removeItem(key);
+
+      try {
+        const json = JSON.parse(text!);
+        const state = json[key];
+        if (typeof state.projectId === 'string' && typeof state.templateId === 'string') {
+          await localForage.setItem(key, {
+            assistantId: state.templateId,
+            ...omit(state, 'templateId'),
+          });
+        }
+
+        console.warn('migrate debug state from localStorage to indexed db success', key);
+      } catch (error) {
+        console.error('migrate debug state from localStorage to indexed db error', key, error);
+      }
+    }
+  }
+}
+
+const debugStateMigration = migrateDebugStateFroMLocalStorageToIndexedDB();

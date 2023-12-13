@@ -9,11 +9,11 @@ import {
   TextFieldProps,
   menuItemClasses,
 } from '@mui/material';
-import { groupBy } from 'lodash';
+import groupBy from 'lodash/groupBy';
 import { useEffect, useMemo } from 'react';
 import { useAsync } from 'react-use';
 
-import { getSupportedImagesModels, getSupportedModels } from '../../libs/common';
+import { ImageModelInfo, TextModelInfo, getSupportedImagesModels, getSupportedModels } from '../../libs/common';
 import AzureIcon from './ai-icons/azure';
 import HuggingFaceIcon from './ai-icons/hugging-face';
 import OpenAIIcon from './ai-icons/openai';
@@ -23,7 +23,7 @@ import VertexAIIcon from './ai-icons/vertex-ai';
 export default function ModelSelectField({ isImageModel, ...props }: { isImageModel?: boolean } & TextFieldProps) {
   const { t } = useLocaleContext();
 
-  const { value, loading, error } = useAsync(() => {
+  const { value, loading, error } = useAsync<() => Promise<(TextModelInfo | ImageModelInfo)[]>>(() => {
     return isImageModel ? getSupportedImagesModels() : getSupportedModels();
   }, [isImageModel]);
 
