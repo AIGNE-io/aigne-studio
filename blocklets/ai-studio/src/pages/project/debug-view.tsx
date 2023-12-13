@@ -29,6 +29,7 @@ import {
   selectClasses,
   styled,
 } from '@mui/material';
+import { useLocalStorageState } from 'ahooks';
 import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
@@ -446,6 +447,8 @@ function ChatModeForm({ projectId, templateId }: { projectId: string; templateId
   );
 }
 
+const EXPANDED_NAME = 'EXPANDED_NAME';
+
 function DebugModeForm({
   projectId,
   gitRef,
@@ -458,15 +461,21 @@ function DebugModeForm({
   setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
+  const key = `${projectId}-${gitRef}-${assistant.id}`;
+
+  const {
+    session: { user },
+  } = useSessionContext();
 
   const { state, sendMessage, setSession, cancelMessage } = useDebugState({
     projectId,
     templateId: assistant.id,
   });
 
-  const [expanded, setExpanded] = useState<string | false>('close-params');
+  const [expanded, setExpanded] = useLocalStorageState<string | false>(key, { defaultValue: EXPANDED_NAME });
+  const isExpanded = expanded === EXPANDED_NAME;
 
-  const handleChange = (panel: string) => (_e: SyntheticEvent, isExpanded: boolean) => {
+  const handleChange = (panel: string | false) => (_e: SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
 
@@ -519,10 +528,6 @@ function DebugModeForm({
     scrollToBottom({ behavior: 'smooth' });
   };
 
-  const {
-    session: { user },
-  } = useSessionContext();
-
   const addToTest = () => {
     const doc = (getYjsValue(assistant) as Map<any>).doc!;
     doc.transact(() => {
@@ -544,11 +549,11 @@ function DebugModeForm({
   return (
     <Stack component="form" onSubmit={form.handleSubmit(submit)} px={2} gap={1}>
       {!!parameters.length && (
-        <Accordion
+        <CustomAccordion
           disableGutters
-          expanded={expanded === 'close-params'}
-          onChange={handleChange('close-params')}
-          elevation={expanded === 'close-params' ? 1 : 0}
+          expanded={isExpanded}
+          onChange={handleChange(parameters.length > 1 ? EXPANDED_NAME : false)}
+          elevation={0}
           sx={{
             ':before': { display: 'none' },
             position: 'sticky',
@@ -572,17 +577,9 @@ function DebugModeForm({
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: (theme) => theme.spacing(3),
+                justifyContent: 'space-between',
+                width: 1,
               }}>
-              <ChevronDown
-                sx={{
-                  fontSize: 20,
-                  transform: `rotateZ(${expanded ? '0' : '-180deg'})`,
-                  transition: (theme) => theme.transitions.create('all'),
-                  color: (theme) => theme.palette.text.disabled,
-                }}
-              />
               <Box
                 sx={{
                   fontSize: (theme) => theme.typography.caption.fontSize,
@@ -590,11 +587,22 @@ function DebugModeForm({
                 }}>
                 {t('userInput')}
               </Box>
+
+              {parameters.length > 1 && (
+                <ChevronDown
+                  sx={{
+                    fontSize: 20,
+                    transform: `rotateZ(${expanded ? '0' : '-180deg'})`,
+                    transition: (theme) => theme.transitions.create('all'),
+                    color: (theme) => theme.palette.text.disabled,
+                  }}
+                />
+              )}
             </Box>
           </AccordionSummary>
 
-          <AccordionDetails sx={{ py: 1, px: 0, maxHeight: '50vh', overflow: 'auto' }}>
-            <Stack gap={1} px={2}>
+          <AccordionDetails sx={{ py: 1, px: 0, maxHeight: '50vh', overflow: !isExpanded ? 'hidden' : 'auto' }}>
+            <Stack gap={1}>
               {parameters.map(({ data: parameter }) => {
                 const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
 
@@ -642,7 +650,7 @@ function DebugModeForm({
               })}
             </Stack>
           </AccordionDetails>
-        </Accordion>
+        </CustomAccordion>
       )}
 
       <Stack gap={1} direction="row">
@@ -719,3 +727,14 @@ export const WritingIndicator = styled('span')`
     }
   }
 `;
+
+const CustomAccordion = styled(Accordion)(() => ({
+  '& .MuiAccordionSummary-root': {
+    padding: 0,
+  },
+
+  '& .MuiCollapse-root': {
+    minHeight: '54px !important',
+    visibility: 'visible !important',
+  },
+}));

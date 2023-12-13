@@ -217,12 +217,8 @@ export function projectRoutes(router: Router) {
 
       if (!icons.length) {
         try {
-          const { data } = await call({
-            name: 'image-bin',
-            path: '/api/sdk/uploads',
-            method: 'GET',
-            params: { pageSize: 100, tags: 'default-project-icon' },
-          });
+          const params = { pageSize: 100, tags: 'default-project-icon' };
+          const { data } = await call({ name: 'image-bin', path: '/api/sdk/uploads', method: 'GET', params });
 
           icons = data?.uploads || [];
         } catch (error) {
@@ -232,7 +228,7 @@ export function projectRoutes(router: Router) {
 
       const item = sample(icons);
       if (item?.filename) {
-        icon = createImageUrl(`${req.protocol}://${req.hostname}`, item.filename, 160, 160);
+        icon = createImageUrl(`${req.protocol}://${req.hostname}`, item.filename);
       }
 
       const project = await Project.create({

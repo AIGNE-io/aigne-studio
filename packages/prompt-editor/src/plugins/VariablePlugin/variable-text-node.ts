@@ -33,9 +33,25 @@ function convertVariableElement(domNode: HTMLElement): DOMConversionOutput | nul
   return null;
 }
 
-const style = 'color: rgb(234 179 8/1); font-weight: bold;z-index:2';
+const style = `
+  color: rgb(234 179 8/1);
+  font-weight: bold;
+  z-index:2
+`;
+
+const warningStyle = `
+  color: red;
+  font-weight: bold;
+  z-index:2;
+  cursor: pointer;
+`;
 
 export class VariableTextNode extends TextNode {
+  constructor(text: string, key?: NodeKey) {
+    super(text, key);
+    this.isVariable = true;
+  }
+
   static override getType(): string {
     return TYPE;
   }
@@ -65,12 +81,33 @@ export class VariableTextNode extends TextNode {
 
   override createDOM(config: EditorConfig): HTMLElement {
     const dom = super.createDOM(config);
-    dom.style.cssText = style;
     dom.className = 'variable';
     dom.setAttribute('data-custom-node', 'variable');
     dom.setAttribute('data-node-id', String(+new Date()));
 
+    if (this.isVariable) {
+      dom.style.cssText = style;
+    } else {
+      dom.style.cssText = warningStyle;
+    }
+
     return dom;
+  }
+
+  override updateDOM(prevNode: any, dom: HTMLElement, config: EditorConfig): boolean {
+    const update = super.updateDOM(prevNode, dom, config);
+
+    dom.className = 'variable';
+    dom.setAttribute('data-custom-node', 'variable');
+    dom.setAttribute('data-node-id', String(+new Date()));
+
+    if (this.isVariable) {
+      dom.style.cssText = style;
+    } else {
+      dom.style.cssText = warningStyle;
+    }
+
+    return update;
   }
 
   override exportDOM(): DOMExportOutput {
@@ -96,6 +133,11 @@ export class VariableTextNode extends TextNode {
 
   override isTextEntity(): true {
     return true;
+  }
+
+  setSpecial(b: boolean) {
+    this.isVariable = b;
+    console.log(2);
   }
 }
 

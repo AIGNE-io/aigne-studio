@@ -24,9 +24,7 @@ const getMountPoint = (name: string) => {
 
 export function createImageUrl(filename: string, width = 0, height = 0) {
   const mountPoint = getMountPoint('image-bin');
-  // @ts-ignore
-  const { CDN_HOST = '' } = window?.blocklet || {};
-  const obj = new URL(CDN_HOST || window.location.origin);
+  const obj = new URL(window.location.origin);
   obj.pathname = joinURL(mountPoint, '/uploads/', filename);
 
   const extension = filename.split('.').pop() || '';
@@ -66,7 +64,7 @@ const GalleryImageList = forwardRef<
       return [{ add: true }, ...new Array(9).fill(0).map((_x, i) => ({ loading: true, i }))];
     }
 
-    return [{ add: true }, ...uploads.map((x: any) => ({ ...x, img: createImageUrl(x.filename, 160, 160) }))];
+    return [{ add: true }, ...uploads.map((x: any) => ({ ...x, img: createImageUrl(x.filename) }))];
   }, [uploads, loading]);
 
   return (
@@ -116,7 +114,7 @@ const GalleryImageList = forwardRef<
               <img
                 className={selected ? 'selected' : ''}
                 srcSet={`${item.img}`}
-                src={`${item.img}`}
+                src={`${createImageUrl(item.filename, 160, 160)}`}
                 alt={item.filename}
                 loading="lazy"
               />
