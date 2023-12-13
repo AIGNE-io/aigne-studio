@@ -3,8 +3,7 @@ import { Fade } from '@mui/material';
 import Box from '@mui/material/Box';
 import Popper from '@mui/material/Popper';
 import { LexicalEditor } from 'lexical';
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useRef, useState } from 'react';
 
 import { extractBracketContent } from './utils/util';
 import { VariableTextNode } from './variable-text-node';
@@ -28,12 +27,23 @@ export default function VariablePopover({
     anchorEl: null,
     isVariable: false,
   });
+  const ref = useRef<null | boolean>(null);
 
   useEffect(() => {
     if (!popperElement) return;
 
     VariableTextNode.prototype.handleMouseOver = (dom, isVariable) => {
+      ref.current = true;
       setState({ popper: true, anchorEl: dom, isVariable });
+    };
+
+    VariableTextNode.prototype.handleMouseLeave = () => {
+      ref.current = false;
+      setTimeout(() => {
+        if (!ref.current) {
+          setState(null);
+        }
+      }, 1000);
     };
   }, [editor]);
 
@@ -48,15 +58,16 @@ export default function VariablePopover({
   }
 
   const text = extractBracketContent(state?.anchorEl.innerText) || '';
-
-  return createPortal(
-    <Popper open anchorEl={state.anchorEl} transition placement="top">
-      {({ TransitionProps }) => (
-        <Fade {...TransitionProps}>
-          <Box onMouseLeave={handleClose}>{popperElement({ editor, text, handleClose })}</Box>
-        </Fade>
-      )}
-    </Popper>,
-    state.anchorEl
+  return (
+    <Box onMouseLeave={handleClose} onMouseOver={() => (ref.current = true)}>
+      <Popper
+        open
+        anchorEl={state.anchorEl}
+        transition
+        placement="top"
+        modifiers={[{ name: 'offset', enabled: true, options: { offset: [0, 4] } }]}>
+        {({ TransitionProps }) => <Fade {...TransitionProps}>{popperElement({ editor, text, handleClose })}</Fade>}
+      </Popper>
+    </Box>
   );
 }

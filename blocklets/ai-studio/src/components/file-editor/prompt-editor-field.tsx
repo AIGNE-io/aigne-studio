@@ -69,7 +69,7 @@ export default function PromptEditorField({
               <Stack
                 gap={0.5}
                 sx={{
-                  p: 2,
+                  p: 1,
                   minWidth: '100px',
                   fontSize: (theme) => theme.typography.caption.fontSize,
                   fontWeight: (theme) => theme.palette.text.disabled,

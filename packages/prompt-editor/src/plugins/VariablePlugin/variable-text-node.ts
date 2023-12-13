@@ -82,7 +82,7 @@ export class VariableTextNode extends TextNode {
     dom.setAttribute('data-custom-node', 'variable');
     dom.setAttribute('data-node-id', String(+new Date()));
     dom.addEventListener('mouseover', this.handleMouseOver.bind(this, dom, this.isVariable));
-    dom.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
+    dom.addEventListener('mouseleave', this.handleMouseLeave.bind(this, dom));
 
     if (this.isVariable) {
       dom.style.cssText = style;
@@ -103,6 +103,7 @@ export class VariableTextNode extends TextNode {
     }
 
     dom.addEventListener('mouseover', this.handleMouseOver.bind(this, dom, this.isVariable));
+    dom.addEventListener('mouseleave', this.handleMouseLeave.bind(this, dom));
 
     return update;
   }
