@@ -102,6 +102,7 @@ export default function PromptEditorField({
 
               <Stack direction="row" gap={1} justifyContent="flex-end">
                 <Button
+                  sx={{ p: 0 }}
                   onClick={() => {
                     addParameter(text);
                     handleClose();
