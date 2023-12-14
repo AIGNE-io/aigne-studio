@@ -139,6 +139,10 @@ export class VariableTextNode extends TextNode {
   setIsVariable(isVariable: boolean) {
     this.isVariable = isVariable;
   }
+
+  getCurrentVariable() {
+    return this.isVariable;
+  }
 }
 
 export function $createVariableNode(text: string, key?: NodeKey): VariableTextNode {

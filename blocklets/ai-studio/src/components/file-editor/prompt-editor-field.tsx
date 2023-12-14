@@ -92,7 +92,7 @@ export default function PromptEditorField({
             <Stack gap={1}>
               <Box
                 sx={{
-                  p: 2,
+                  p: 1,
                   fontSize: (theme) => theme.typography.body1.fontSize,
                   fontWeight: (theme) => theme.typography.fontWeightBold,
                   // color: (theme) => theme.palette.error.light,

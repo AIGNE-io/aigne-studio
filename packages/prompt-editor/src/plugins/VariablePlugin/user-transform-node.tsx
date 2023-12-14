@@ -29,9 +29,8 @@ export default function useTransformVariableNode(editor: LexicalEditor, variable
   const nodeVariableTransform = (node: VariableTextNode) => {
     const text = node.getTextContent();
 
-    if (variables && variables.length) {
-      node.setIsVariable(variables.includes(extractBracketContent(text) || ''));
-    }
+    const isVariable = (variables || []).includes(extractBracketContent(text) || '');
+    if (node.getCurrentVariable() !== isVariable) node.setIsVariable(isVariable);
 
     if (hasBrackets(text)) {
       if (!isBracketStartAndEnd(text)) {
