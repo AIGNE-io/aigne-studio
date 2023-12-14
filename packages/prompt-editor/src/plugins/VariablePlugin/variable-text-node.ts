@@ -48,7 +48,7 @@ const warningStyle = `
 export class VariableTextNode extends TextNode {
   constructor(text: string, key?: NodeKey) {
     super(text, key);
-    this.isVariable = true;
+    this.isVariable = false;
   }
 
   static override getType(): string {
