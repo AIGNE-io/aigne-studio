@@ -100,9 +100,6 @@ export class VariableTextNode extends TextNode {
       dom.style.cssText = warningStyle;
     }
 
-    dom.addEventListener('mouseover', this.handleMouseOver.bind(this, dom, this.isVariable));
-    dom.addEventListener('mouseleave', this.handleMouseLeave.bind(this, dom));
-
     return update;
   }
 
