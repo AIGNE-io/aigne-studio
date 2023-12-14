@@ -1,11 +1,17 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
-import { $insertNodes, COMMAND_PRIORITY_EDITOR, LexicalCommand, LexicalEditor, createCommand } from 'lexical';
+import {
+  $getSelection,
+  $insertNodes,
+  $setSelection,
+  COMMAND_PRIORITY_EDITOR,
+  LexicalCommand,
+  LexicalEditor,
+  createCommand,
+} from 'lexical';
 import { useEffect } from 'react';
 
-// import { $isCommentNode } from '../CommentPlugin/comment-node';
-import PopperVariableNode from './hover-popper/component';
-import useHoverPopper from './hover-popper/use-hover-popper';
+import VariablePopover from './popover';
 import useTransformVariableNode from './user-transform-node';
 import { $createVariableNode, VariableTextNode } from './variable-text-node';
 
@@ -13,14 +19,20 @@ export const INSERT_VARIABLE_COMMAND: LexicalCommand<{ name: string }> = createC
 
 export default function VarContextPlugin({
   popperElement,
+  variables,
 }: {
-  popperElement?: (editor: LexicalEditor) => any;
+  variables?: string[];
+  popperElement?: ({
+    text,
+    editor,
+    handleClose,
+  }: {
+    text: string;
+    editor: LexicalEditor;
+    handleClose: () => any;
+  }) => any;
 }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
-  const [
-    element,
-    { runClick: throttleClick, runHover: throttleHover, runKeyDown: throttleKeyDown, runKeyUp: throttleKeyUp },
-  ] = useHoverPopper(editor);
 
   useEffect(() => {
     return mergeRegister(
@@ -41,35 +53,49 @@ export default function VarContextPlugin({
     );
   }, [editor]);
 
+  const removeSelection = () => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if (selection !== null) {
+        $setSelection(null);
+      }
+    });
+  };
+
   useEffect(() => {
     if (!editor.hasNodes([VariableTextNode])) {
       throw new Error('VarContextPlugin: VariableTextNode not registered on editor');
     }
     return mergeRegister(
+      editor.registerMutationListener(VariableTextNode, (mutations) => {
+        const registeredElements: WeakSet<HTMLElement> = new WeakSet();
+        editor.getEditorState().read(() => {
+          for (const [key, mutation] of mutations) {
+            const element: null | HTMLElement = editor.getElementByKey(key);
+            if (
+              (mutation === 'created' || mutation === 'updated') &&
+              element !== null &&
+              !registeredElements.has(element)
+            ) {
+              registeredElements.add(element);
+            }
+          }
+        });
+      }),
       editor.registerRootListener((rootElement: null | HTMLElement, prevRootElement: null | HTMLElement) => {
         if (prevRootElement !== null) {
-          prevRootElement.removeEventListener('mouseover', throttleHover);
-          prevRootElement.removeEventListener('keydown', throttleKeyDown);
-          prevRootElement.removeEventListener('keyup', throttleKeyUp);
-          prevRootElement.removeEventListener('click', throttleClick);
+          prevRootElement.removeEventListener('blur', removeSelection);
         }
 
         if (rootElement !== null) {
-          rootElement.addEventListener('mouseover', throttleHover);
-          rootElement.addEventListener('keydown', throttleKeyDown);
-          rootElement.addEventListener('keyup', throttleKeyUp);
-          rootElement.addEventListener('click', throttleClick);
+          rootElement.addEventListener('blur', removeSelection);
         }
       })
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
 
-  useTransformVariableNode(editor);
+  useTransformVariableNode(editor, variables);
 
-  if (element && popperElement && typeof popperElement === 'function') {
-    return <PopperVariableNode element={element} editor={editor} popperElement={popperElement} />;
-  }
-
-  return null;
+  return <VariablePopover popperElement={popperElement} />;
 }

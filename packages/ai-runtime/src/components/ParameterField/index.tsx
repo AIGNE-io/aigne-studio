@@ -21,5 +21,5 @@ export default function ParameterField({
     language: LanguageField,
   }[parameter.type || 'string'];
 
-  return <Field {...({ parameter } as any)} {...props} />;
+  return <Field {...({ parameter } as any)} size="small" {...props} />;
 }

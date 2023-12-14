@@ -33,9 +33,24 @@ function convertVariableElement(domNode: HTMLElement): DOMConversionOutput | nul
   return null;
 }
 
-const style = 'color: rgb(234 179 8/1); font-weight: bold;z-index:2';
+const style = `
+  color: rgb(234 179 8/1);
+  font-weight: bold;
+  cursor: pointer;
+`;
+
+const warningStyle = `
+  color: #ef5350;
+  font-weight: bold;
+  cursor: pointer;
+`;
 
 export class VariableTextNode extends TextNode {
+  constructor(text: string, key?: NodeKey) {
+    super(text, key);
+    this.isVariable = false;
+  }
+
   static override getType(): string {
     return TYPE;
   }
@@ -55,22 +70,37 @@ export class VariableTextNode extends TextNode {
   }
 
   override exportJSON(): SerializedVariableNode {
-    return {
-      ...super.exportJSON(),
-      text: this.__text,
-      type: TYPE,
-      version: 1,
-    };
+    return { ...super.exportJSON(), text: this.__text, type: TYPE, version: 1 };
   }
 
   override createDOM(config: EditorConfig): HTMLElement {
     const dom = super.createDOM(config);
-    dom.style.cssText = style;
+
     dom.className = 'variable';
     dom.setAttribute('data-custom-node', 'variable');
     dom.setAttribute('data-node-id', String(+new Date()));
+    dom.addEventListener('mouseover', this.handleMouseOver.bind(this, dom, this.isVariable));
+    dom.addEventListener('mouseleave', this.handleMouseLeave.bind(this, dom));
+
+    if (this.isVariable) {
+      dom.style.cssText = style;
+    } else {
+      dom.style.cssText = warningStyle;
+    }
 
     return dom;
+  }
+
+  override updateDOM(prevNode: any, dom: HTMLElement, config: EditorConfig): boolean {
+    const update = super.updateDOM(prevNode, dom, config);
+
+    if (this.isVariable) {
+      dom.style.cssText = style;
+    } else {
+      dom.style.cssText = warningStyle;
+    }
+
+    return update;
   }
 
   override exportDOM(): DOMExportOutput {
@@ -79,6 +109,12 @@ export class VariableTextNode extends TextNode {
     return { element };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleMouseOver(_dom: HTMLElement, _isVar: boolean) {}
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleMouseLeave(_dom: HTMLElement) {}
+
   static override importDOM(): DOMConversionMap | null {
     return {
       span: (domNode: HTMLElement) => {
@@ -86,16 +122,21 @@ export class VariableTextNode extends TextNode {
           return null;
         }
 
-        return {
-          conversion: convertVariableElement,
-          priority: 1,
-        };
+        return { conversion: convertVariableElement, priority: 1 };
       },
     };
   }
 
   override isTextEntity(): true {
     return true;
+  }
+
+  setIsVariable(isVariable: boolean) {
+    this.isVariable = isVariable;
+  }
+
+  getCurrentVariable() {
+    return this.isVariable;
   }
 }
 

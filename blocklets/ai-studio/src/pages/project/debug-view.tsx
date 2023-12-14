@@ -1,11 +1,15 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { ImagePreview } from '@blocklet/ai-kit';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, isAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isAssistant, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css, cx } from '@emotion/css';
 import { Add, CopyAll, ErrorRounded } from '@mui/icons-material';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Avatar,
   Box,
@@ -19,19 +23,22 @@ import {
   ToggleButtonGroup,
   Tooltip,
   Typography,
+  accordionSummaryClasses,
   alertClasses,
   outlinedInputClasses,
   selectClasses,
   styled,
 } from '@mui/material';
+import { useLocalStorageState } from 'ahooks';
 import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
-import { ComponentProps, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, SyntheticEvent, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import { useSessionContext } from '../../contexts/session';
+import ChevronDown from './icons/chevron-down';
 import Empty from './icons/empty';
 import Record from './icons/record';
 import Trash from './icons/trash';
@@ -385,6 +392,7 @@ function ChatModeForm({ projectId, assistantId }: { projectId: string; assistant
     }
 
     if (!question.trim()) {
+      Toast.error(t('emptyInput'));
       return;
     }
 
@@ -446,6 +454,8 @@ function ChatModeForm({ projectId, assistantId }: { projectId: string; assistant
   );
 }
 
+const EXPANDED_NAME = 'EXPANDED_NAME';
+
 function DebugModeForm({
   projectId,
   gitRef,
@@ -458,11 +468,23 @@ function DebugModeForm({
   setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
+  const key = `${projectId}-${gitRef}-${assistant.id}`;
+
+  const {
+    session: { user },
+  } = useSessionContext();
 
   const { state, sendMessage, setSession, cancelMessage } = useDebugState({
     projectId,
     assistantId: assistant.id,
   });
+
+  const [expanded, setExpanded] = useLocalStorageState<string | false>(key, { defaultValue: EXPANDED_NAME });
+  const isExpanded = expanded === EXPANDED_NAME;
+
+  const handleChange = (panel: string | false) => (_e: SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false);
+  };
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
   const lastMessage = currentSession?.messages.at(-1);
@@ -495,6 +517,14 @@ function DebugModeForm({
       cancelMessage(currentSession.index, lastMessage.id);
       return;
     }
+
+    if (isPromptAssistant(assistant)) {
+      if (assistant?.prompts && !Object.values(assistant?.prompts)?.length) {
+        Toast.error(t('emptyPrompts'));
+        return;
+      }
+    }
+
     sendMessage({
       sessionIndex: state.currentSessionIndex!,
       message: { type: 'debug', projectId, assistantId: assistant.id, gitRef, parameters },
@@ -504,10 +534,6 @@ function DebugModeForm({
     });
     scrollToBottom({ behavior: 'smooth' });
   };
-
-  const {
-    session: { user },
-  } = useSessionContext();
 
   const addToTest = () => {
     const doc = (getYjsValue(assistant) as Map<any>).doc!;
@@ -529,47 +555,110 @@ function DebugModeForm({
 
   return (
     <Stack component="form" onSubmit={form.handleSubmit(submit)} px={2} gap={1}>
-      <Stack gap={1}>
-        {parameters.map(({ data: parameter }) => {
-          const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
+      {!!parameters.length && (
+        <CustomAccordion
+          disableGutters
+          expanded={isExpanded}
+          onChange={handleChange(parameters.length > 1 ? EXPANDED_NAME : false)}
+          elevation={0}
+          sx={{
+            ':before': { display: 'none' },
+            position: 'sticky',
+            bottom: 0,
+            p: 0,
+            borderRadius: 1,
+          }}>
+          <AccordionSummary
+            sx={{
+              px: 2,
+              minHeight: (theme) => theme.spacing(3.5),
+              [`.${accordionSummaryClasses.content}`]: {
+                m: 0,
+                py: 0,
+                overflow: 'hidden',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: 1,
+              }}>
+              <Box
+                sx={{
+                  fontSize: (theme) => theme.typography.caption.fontSize,
+                  color: (theme) => theme.palette.text.disabled,
+                }}>
+                {t('parameter')}
+              </Box>
 
-          return (
-            <Box key={parameter.id}>
-              <Controller
-                control={form.control}
-                name={parameter.key}
-                rules={{
-                  required: required ? t('validation.fieldRequired') : undefined,
-                  min: typeof min === 'number' ? { value: min, message: t('validation.fieldMin', { min }) } : undefined,
-                  max: typeof max === 'number' ? { value: max, message: t('validation.fieldMax', { max }) } : undefined,
-                  minLength:
-                    typeof minLength === 'number'
-                      ? { value: minLength, message: t('validation.fieldMinLength', { minLength }) }
-                      : undefined,
-                  maxLength:
-                    typeof maxLength === 'number'
-                      ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
-                      : undefined,
-                }}
-                render={({ field, fieldState }) => {
-                  return (
-                    <ParameterField
-                      label={parameter.label || parameter.key}
-                      fullWidth
-                      parameter={parameterFromYjs(parameter)}
-                      maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
-                      value={field.value || ''}
-                      onChange={(value) => field.onChange({ target: { value } })}
-                      error={Boolean(fieldState.error)}
-                      helperText={fieldState.error?.message || parameter?.helper}
-                    />
-                  );
-                }}
-              />
+              {parameters.length > 1 && (
+                <ChevronDown
+                  sx={{
+                    fontSize: 20,
+                    transform: `rotateZ(${expanded ? '0' : '-180deg'})`,
+                    transition: (theme) => theme.transitions.create('all'),
+                    color: (theme) => theme.palette.text.disabled,
+                  }}
+                />
+              )}
             </Box>
-          );
-        })}
-      </Stack>
+          </AccordionSummary>
+
+          <AccordionDetails sx={{ py: 1, px: 0, maxHeight: '50vh', overflow: !isExpanded ? 'hidden' : 'auto' }}>
+            <Stack gap={1}>
+              {parameters.map(({ data: parameter }) => {
+                const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
+
+                return (
+                  <Box key={parameter.id}>
+                    <Controller
+                      control={form.control}
+                      name={parameter.key}
+                      rules={{
+                        required: required ? t('validation.fieldRequired') : undefined,
+                        min:
+                          typeof min === 'number'
+                            ? { value: min, message: t('validation.fieldMin', { min }) }
+                            : undefined,
+                        max:
+                          typeof max === 'number'
+                            ? { value: max, message: t('validation.fieldMax', { max }) }
+                            : undefined,
+                        minLength:
+                          typeof minLength === 'number'
+                            ? { value: minLength, message: t('validation.fieldMinLength', { minLength }) }
+                            : undefined,
+                        maxLength:
+                          typeof maxLength === 'number'
+                            ? { value: maxLength, message: t('validation.fieldMaxLength', { maxLength }) }
+                            : undefined,
+                      }}
+                      render={({ field, fieldState }) => {
+                        return (
+                          <ParameterField
+                            label={parameter.label || parameter.key}
+                            fullWidth
+                            parameter={parameterFromYjs(parameter)}
+                            maxRows={!parameter?.type || parameter?.type === 'string' ? 5 : undefined}
+                            value={field.value || ''}
+                            onChange={(value) => field.onChange({ target: { value } })}
+                            error={Boolean(fieldState.error)}
+                            helperText={fieldState.error?.message || parameter?.helper}
+                          />
+                        );
+                      }}
+                    />
+                  </Box>
+                );
+              })}
+            </Stack>
+          </AccordionDetails>
+        </CustomAccordion>
+      )}
 
       <Stack gap={1} direction="row">
         <Button variant="outlined" onClick={addToTest}>
@@ -645,6 +734,17 @@ export const WritingIndicator = styled('span')`
     }
   }
 `;
+
+const CustomAccordion = styled(Accordion)(() => ({
+  '& .MuiAccordionSummary-root': {
+    padding: 0,
+  },
+
+  '& .MuiCollapse-root': {
+    minHeight: '54px !important',
+    visibility: 'visible !important',
+  },
+}));
 
 function ImagePreviewB64({
   dataSource,

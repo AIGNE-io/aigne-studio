@@ -84,10 +84,7 @@ export default function BasicInfoForm({
                 placeholder={t('form.tag')}
                 InputProps={{
                   ...params.InputProps,
-                  sx: {
-                    color: 'text.secondary',
-                    [`.${chipClasses.root}`]: { ml: 0, mr: 0.5 },
-                  },
+                  sx: { color: 'text.secondary', [`.${chipClasses.root}`]: { ml: 0, mr: 0.5, my: 0.5 } },
                 }}
               />
             )}

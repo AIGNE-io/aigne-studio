@@ -15,4 +15,10 @@ function hasBrackets(text: string) {
   return pattern.test(text);
 }
 
-export { hasBrackets, isBracketStartAndEnd, splitText };
+function extractBracketContent(text: string) {
+  const pattern = /^\{\{(.*)\}\}$/;
+  const match = pattern.exec(text);
+  return ((match ? match[1] : '') || '').trim();
+}
+
+export { hasBrackets, isBracketStartAndEnd, splitText, extractBracketContent };

@@ -38,6 +38,7 @@ export function UploaderButton({ onChange }: { onChange?: Function }) {
 
   return (
     <IconButton
+      className="upload-button"
       key="uploader-trigger"
       size="small"
       onClick={handleOpen}

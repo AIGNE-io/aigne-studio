@@ -1,3 +1,8 @@
+## 0.1.170 (2023-12-14)
+
+- feat: quick actions for variables(#408)
+- fix: bug bash issue
+
 ## 0.1.169 (2023-12-13)
 
 - fix: type errors

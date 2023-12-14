@@ -1,3 +1,6 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { Box, Skeleton, styled } from '@mui/material';
 import ImageList from '@mui/material/ImageList';
@@ -7,6 +10,7 @@ import uniqBy from 'lodash/uniqBy';
 import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
 import { joinURL } from 'ufo';
 
+import { useSessionContext } from '../../contexts/session';
 import { UploaderButton } from '../../contexts/uploader';
 import api from '../../libs/api';
 
@@ -22,11 +26,9 @@ const getMountPoint = (name: string) => {
   return '/';
 };
 
-function createImageUrl(filename: string, width = 0, height = 0) {
+export function createImageUrl(filename: string, width = 0, height = 0) {
   const mountPoint = getMountPoint('image-bin');
-  // @ts-ignore
-  const { CDN_HOST = '' } = window?.blocklet || {};
-  const obj = new URL(CDN_HOST || window.location.origin);
+  const obj = new URL(window.location.origin);
   obj.pathname = joinURL(mountPoint, '/uploads/', filename);
 
   const extension = filename.split('.').pop() || '';
@@ -50,8 +52,10 @@ const GalleryImageList = forwardRef<
 >(({ onChange, onSelected }: any, ref) => {
   const responsive = useResponsive();
   const [selectedImage, onSelectedImage] = useState('');
+  const { session } = useSessionContext();
+  const { t } = useLocaleContext();
 
-  const { data, loading } = useRequest(() => api.get('/api/projects/icons').then((res) => res.data));
+  const { data, loading, mutate } = useRequest(() => api.get('/api/projects/icons').then((res) => res.data));
 
   // @ts-ignore
   const uploads = uniqBy(data?.icons || [], 'filename');
@@ -69,9 +73,43 @@ const GalleryImageList = forwardRef<
     return [{ add: true }, ...uploads.map((x: any) => ({ ...x, img: createImageUrl(x.filename) }))];
   }, [uploads, loading]);
 
+  const onDelete = async (id: string) => {
+    try {
+      await api.delete(`/api/projects/icon/${id}`);
+
+      mutate((r: any) => {
+        return { icons: (r?.icons || []).filter((x: { _id: string }) => x._id !== id) };
+      });
+
+      Toast.success(t('alert.deleted'));
+    } catch (error) {
+      Toast.error(error?.message);
+    }
+  };
+
+  const renderDelete = (item: { _id: string; createdBy: string }) => {
+    if (item?.createdBy === session.user?.did) {
+      return (
+        <Box
+          sx={{ position: 'absolute', top: 1, right: 1 }}
+          className="close-button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(item._id);
+          }}>
+          <CancelRoundedIcon sx={{ color: (theme) => theme.palette.error.main }} />
+        </Box>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <List cols={cols} gap={gap}>
       {list.map((item) => {
+        const selected = selectedImage === item.img;
+
         if (item.add) {
           return (
             <Box className="image-container" key="add">
@@ -112,16 +150,16 @@ const GalleryImageList = forwardRef<
             }}>
             <Box className="image-container">
               <img
-                className={selectedImage === item.img ? 'selected' : ''}
+                className={selected ? 'selected' : ''}
                 srcSet={`${item.img}`}
-                src={`${item.img}`}
+                src={`${createImageUrl(item.filename, 160, 160)}`}
                 alt={item.filename}
                 loading="lazy"
               />
 
-              {selectedImage === item.img && (
-                <CheckCircleIcon sx={{ color: '#1976d2', position: 'absolute', bottom: 1, right: 1 }} />
-              )}
+              {selected && <CheckCircleIcon sx={{ color: '#1976d2', position: 'absolute', bottom: 1, right: 1 }} />}
+
+              {!selected && renderDelete(item)}
             </Box>
           </ImageListItem>
         );
@@ -141,17 +179,29 @@ const List = styled(ImageList)`
     position: relative;
     overflow: hidden;
     border-radius: 8px;
+
+    .close-button {
+      display: none;
+      cursor: pointer;
+    }
+
+    &:hover {
+      .close-button {
+        display: flex;
+      }
+    }
   }
 
   .image-container {
     img,
-    button {
+    .upload-button {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
+      cursor: pointer;
     }
   }
 `;

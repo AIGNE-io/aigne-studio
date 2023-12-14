@@ -32,6 +32,7 @@ export default function Editor({
   componentPickerProps,
   variablePickerProps,
   ContentProps,
+  variables,
 }: {
   useVariableNode?: boolean;
   isDebug?: boolean;
@@ -41,10 +42,19 @@ export default function Editor({
   onChange?: (editorState: EditorState, editor: LexicalEditor) => void;
   autoFocus?: boolean;
   editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
-  popperElement?: (editor: LexicalEditor) => any;
   componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
   variablePickerProps?: ComponentProps<typeof VariablePickerPlugin>;
   ContentProps?: BoxProps;
+  variables?: string[];
+  popperElement?: ({
+    text,
+    editor,
+    handleClose,
+  }: {
+    text: string;
+    editor: LexicalEditor;
+    handleClose: () => any;
+  }) => any;
 }): JSX.Element {
   const placeholderNode = <Placeholder>{placeholder}</Placeholder>;
 
@@ -59,7 +69,7 @@ export default function Editor({
       <CommentPlugin />
       {autoFocus && <AutoFocusPlugin />}
       {isDebug && <TreeViewPlugin />}
-      {useVariableNode && <VariablePlugin popperElement={popperElement} />}
+      {useVariableNode && <VariablePlugin popperElement={popperElement} variables={variables} />}
       <FloatingToolbarPlugin floatElement={floatElement} />
       {componentPickerProps && <ComponentPickerMenuPlugin {...componentPickerProps} />}
       <HistoryPlugin />

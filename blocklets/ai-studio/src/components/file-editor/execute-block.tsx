@@ -22,9 +22,12 @@ import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import Add from 'src/pages/project/icons/add';
+import External from 'src/pages/project/icons/external';
 import Trash from 'src/pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, createFile, useProjectStore } from 'src/pages/project/yjs-state';
+import { joinURL } from 'ufo';
 
 import PromptEditorField from './prompt-editor-field';
 
@@ -44,7 +47,7 @@ export default function ExecuteBlockForm({
 } & StackProps) {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
-
+  const navigate = useNavigate();
   const toolForm = useRef<ToolDialogImperative>(null);
 
   const { store } = useProjectStore(projectId, gitRef);
@@ -63,8 +66,8 @@ export default function ExecuteBlockForm({
           SelectProps={{ autoWidth: true }}
           value={value.selectType || 'all'}
           onChange={(e) => (value.selectType = e.target.value as any)}>
-          <MenuItem value="all">All</MenuItem>
-          <MenuItem value="selectByPrompt">Select by Prompt</MenuItem>
+          <MenuItem value="all">{t('all')}</MenuItem>
+          <MenuItem value="selectByPrompt">{t('selectPrompt')}</MenuItem>
         </TextField>
 
         <Box flex={1} />
@@ -121,7 +124,7 @@ export default function ExecuteBlockForm({
                 {file.description}
               </Typography>
 
-              <Stack direction="row" className="hover-visible" sx={{ display: 'none' }}>
+              <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
                 <Button
                   sx={{ minWidth: 24, minHeight: 24, p: 0 }}
                   onClick={(e) => {
@@ -135,6 +138,15 @@ export default function ExecuteBlockForm({
                     });
                   }}>
                   <Trash sx={{ fontSize: 18 }} />
+                </Button>
+
+                <Button
+                  sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(joinURL('.', `${file.id}.yaml`));
+                  }}>
+                  <External sx={{ fontSize: 18 }} />
                 </Button>
               </Stack>
             </Stack>
@@ -179,6 +191,7 @@ export default function ExecuteBlockForm({
       <ToolDialog
         ref={toolForm}
         projectId={projectId}
+        assistantId={assistant.id}
         gitRef={gitRef}
         DialogProps={{ ...bindDialog(dialogState) }}
         onSubmit={(tool) => {
@@ -212,12 +225,13 @@ interface ToolDialogImperative {
 const ToolDialog = forwardRef<
   ToolDialogImperative,
   {
+    assistantId: string;
     projectId: string;
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
   }
->(({ projectId, gitRef, onSubmit, DialogProps }, ref) => {
+>(({ assistantId, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
 
@@ -229,6 +243,7 @@ const ToolDialog = forwardRef<
     .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
     .map(([id]) => store.files[id])
     .filter((i): i is AssistantYjs => !!i && isAssistant(i))
+    .filter((i) => i.id !== assistantId)
     .map((i) => ({ id: i.id, type: i.type, name: i.name }));
 
   const fileId = form.watch('id');

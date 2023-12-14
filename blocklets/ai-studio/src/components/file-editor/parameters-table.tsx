@@ -79,8 +79,14 @@ export default function ParametersTable({
     [value]
   );
 
-  const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; parameter: ParameterYjs }>();
+  const isValidVariableName = (name: string) => {
+    if (!name) return true;
 
+    const validNameRegex = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+    return validNameRegex.test(name);
+  };
+
+  const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; parameter: ParameterYjs }>();
   const parameters = sortBy(Object.values(value.parameters ?? {}), (i) => i.index);
 
   const columns = useMemo<GridColDef<(typeof parameters)[number]>[]>(() => {
@@ -96,7 +102,13 @@ export default function ParametersTable({
             readOnly={readOnly}
             placeholder={t('variable')}
             value={parameter.key || ''}
-            onChange={(e) => (parameter.key = e.target.value.trim())}
+            onChange={(e) => {
+              const value = e.target.value.trim();
+
+              if (isValidVariableName(value)) {
+                parameter.key = value;
+              }
+            }}
           />
         ),
       },

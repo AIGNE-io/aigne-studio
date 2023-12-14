@@ -31,6 +31,7 @@ import { projectTemplates } from '../templates/projects';
 import { getCommits } from './log';
 
 let icons: { filename: string }[] = [];
+const AI_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export interface CreateProjectInput {
   duplicateFrom?: string;
@@ -155,9 +156,20 @@ export function projectRoutes(router: Router) {
       name: 'image-bin',
       path: '/api/sdk/uploads',
       method: 'GET',
-      params: { pageSize: 100, tags: 'default-project-icon' },
+      params: { pageSize: 100, folderId: AI_STUDIO_COMPONENT_DID },
     });
 
+    res.json({ icons: data?.uploads || [] });
+  });
+
+  router.delete('/projects/icon/:id', ensureComponentCallOrPromptsEditor(), user(), async (req, res) => {
+    const { did } = req.user!;
+    const { data } = await call({
+      name: 'image-bin',
+      path: `/api/sdk/uploads/${req.params.id}`,
+      method: 'DELETE',
+      headers: { 'x-user-did': did },
+    });
     res.json({ icons: data?.uploads || [] });
   });
 
@@ -212,12 +224,8 @@ export function projectRoutes(router: Router) {
 
       if (!icons.length) {
         try {
-          const { data } = await call({
-            name: 'image-bin',
-            path: '/api/sdk/uploads',
-            method: 'GET',
-            params: { pageSize: 100, tags: 'default-project-icon' },
-          });
+          const params = { pageSize: 100, tags: 'default-project-icon' };
+          const { data } = await call({ name: 'image-bin', path: '/api/sdk/uploads', method: 'GET', params });
 
           icons = data?.uploads || [];
         } catch (error) {
@@ -417,12 +425,7 @@ export function projectRoutes(router: Router) {
     for (const ref of branches) {
       if (input.force) {
         await repository.fetch({ remote: defaultRemote, ref });
-        await repository.branch({
-          ref,
-          object: `${defaultRemote}/${ref}`,
-          checkout: true,
-          force: true,
-        });
+        await repository.branch({ ref, object: `${defaultRemote}/${ref}`, checkout: true, force: true });
       } else {
         await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
       }
