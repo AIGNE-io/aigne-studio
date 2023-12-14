@@ -6,7 +6,7 @@ export * from './mustache/directive';
 
 export type FileType = Assistant | { $base64: string };
 
-export type Assistant = PromptAssistant | ApiAssistant | FunctionAssistant;
+export type Assistant = PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -38,13 +38,12 @@ export type Prompt =
       visibility?: 'hidden';
     };
 
-export interface PromptAssistant {
+export interface AssistantBase {
   id: string;
-  type: 'prompt';
   name?: string;
   parameters?: Parameter[];
+  tags?: string[];
   description?: string;
-  prompts?: Prompt[];
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -57,7 +56,11 @@ export interface PromptAssistant {
     createdBy: string;
   }[];
   formatResultType?: 'none';
-  tags?: string[];
+}
+
+export interface PromptAssistant extends AssistantBase {
+  type: 'prompt';
+  prompts?: Prompt[];
   temperature?: number;
   topP?: number;
   presencePenalty?: number;
@@ -66,58 +69,36 @@ export interface PromptAssistant {
   model?: string;
 }
 
-export interface ApiAssistant {
-  id: string;
+export interface ImageAssistant extends AssistantBase {
+  type: 'image';
+  prepareExecutes?: ExecuteBlock[];
+  prompt?: string;
+  model?: string;
+  n?: number;
+  quality?: string;
+  style?: string;
+  size?: string;
+  responseFormat?: string;
+}
+
+export interface ApiAssistant extends AssistantBase {
   type: 'api';
-  name?: string;
-  description?: string;
-  parameters?: Parameter[];
   prepareExecutes?: ExecuteBlock[];
   requestParameters?: { id: string; key?: string; value?: string }[];
   requestMethod?: string;
   requestUrl?: string;
   requestHeaders: { id: string; key?: string; value?: string }[];
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  updatedBy: string;
-  tests?: {
-    id: string;
-    parameters: { [key: string]: any };
-    output?: string;
-    error?: { message: string };
-    createdBy: string;
-  }[];
-  formatResultType?: 'none';
-  tags?: string[];
 }
 
-export interface FunctionAssistant {
-  id: string;
+export interface FunctionAssistant extends AssistantBase {
   type: 'function';
-  name?: string;
-  description?: string;
-  parameters?: Parameter[];
   prepareExecutes?: ExecuteBlock[];
   code?: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  updatedBy: string;
-  tests?: {
-    id: string;
-    parameters: { [key: string]: any };
-    output?: string;
-    error?: { message: string };
-    createdBy: string;
-  }[];
-  formatResultType?: 'none';
-  tags?: string[];
 }
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter;
 
-export interface BaseParameter {
+export interface ParameterBase {
   id: string;
   key?: string;
   label?: string;
@@ -126,7 +107,7 @@ export interface BaseParameter {
   required?: boolean;
 }
 
-export interface StringParameter extends BaseParameter {
+export interface StringParameter extends ParameterBase {
   type?: 'string';
   value?: string;
   defaultValue?: string;
@@ -135,7 +116,7 @@ export interface StringParameter extends BaseParameter {
   maxLength?: number;
 }
 
-export interface NumberParameter extends BaseParameter {
+export interface NumberParameter extends ParameterBase {
   type: 'number';
   value?: number;
   defaultValue?: number;
@@ -143,14 +124,14 @@ export interface NumberParameter extends BaseParameter {
   max?: number;
 }
 
-export interface SelectParameter extends BaseParameter {
+export interface SelectParameter extends ParameterBase {
   type: 'select';
   value?: string;
   defaultValue?: string;
   options?: { id: string; label: string; value: string }[];
 }
 
-export interface LanguageParameter extends BaseParameter {
+export interface LanguageParameter extends ParameterBase {
   type: 'language';
   value?: string;
   defaultValue?: string;

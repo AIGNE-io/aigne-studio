@@ -33,7 +33,7 @@ import { useLocalStorageState } from 'ahooks';
 import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
-import { SyntheticEvent, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, SyntheticEvent, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
@@ -54,7 +54,7 @@ export default function DebugView(props: {
 }) {
   const { state, setCurrentSession } = useDebugState({
     projectId: props.projectId,
-    templateId: props.assistant.id,
+    assistantId: props.assistant.id,
   });
 
   useEffect(() => {
@@ -104,7 +104,7 @@ function DebugViewContent({
 
   const { state, setSession } = useDebugState({
     projectId,
-    templateId: assistant.id,
+    assistantId: assistant.id,
   });
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
@@ -115,7 +115,7 @@ function DebugViewContent({
     <>
       <Box px={4} py={2} bgcolor="background.paper" sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
         <Box mx="auto" maxWidth={200}>
-          <SessionSelect projectId={projectId} templateId={assistant.id} />
+          <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
       </Box>
 
@@ -127,7 +127,7 @@ function DebugViewContent({
 
       <Stack gap={2} sx={{ position: 'sticky', bottom: 0, py: 2, bgcolor: 'background.paper' }}>
         {currentSession.chatType !== 'debug' ? (
-          <ChatModeForm projectId={projectId} templateId={assistant.id} />
+          <ChatModeForm projectId={projectId} assistantId={assistant.id} />
         ) : (
           <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
         )}
@@ -151,9 +151,12 @@ function DebugViewContent({
   );
 }
 
-function SessionSelect({ projectId, templateId }: { projectId: string; templateId: string }) {
+function SessionSelect({ projectId, assistantId }: { projectId: string; assistantId: string }) {
   const { t } = useLocaleContext();
-  const { state, newSession, deleteSession, setCurrentSession } = useDebugState({ projectId, templateId });
+  const { state, newSession, deleteSession, setCurrentSession } = useDebugState({
+    projectId,
+    assistantId,
+  });
 
   return (
     <Select
@@ -251,11 +254,7 @@ function MessageView({
                 ))}
 
               {message.images && message.images.length > 0 && (
-                <ImagePreview
-                  itemWidth={100}
-                  spacing={1}
-                  dataSource={message.images.map(({ url }) => ({ src: url }))}
-                />
+                <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
               )}
 
               {message.loading && <WritingIndicator />}
@@ -301,11 +300,19 @@ function MessageView({
                   <Box>{name}</Box>
                 </Box>
 
-                <Box
-                  component="pre"
-                  sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
-                  dangerouslySetInnerHTML={{ __html: item.content }}
-                />
+                <Box ml={4}>
+                  {item.content && (
+                    <Box
+                      component="pre"
+                      sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
+                      dangerouslySetInnerHTML={{ __html: item.content }}
+                    />
+                  )}
+
+                  {item.images && item.images.length > 0 && (
+                    <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={item.images} />
+                  )}
+                </Box>
               </Box>
             );
           })}
@@ -366,10 +373,10 @@ function CopyButton({ message }: { message: string }) {
   );
 }
 
-function ChatModeForm({ projectId, templateId }: { projectId: string; templateId: string }) {
+function ChatModeForm({ projectId, assistantId }: { projectId: string; assistantId: string }) {
   const { t } = useLocaleContext();
 
-  const { state, sendMessage, cancelMessage } = useDebugState({ projectId, templateId });
+  const { state, sendMessage, cancelMessage } = useDebugState({ projectId, assistantId });
 
   const scrollToBottom = useScrollToBottom();
 
@@ -469,7 +476,7 @@ function DebugModeForm({
 
   const { state, sendMessage, setSession, cancelMessage } = useDebugState({
     projectId,
-    templateId: assistant.id,
+    assistantId: assistant.id,
   });
 
   const [expanded, setExpanded] = useLocalStorageState<string | false>(key, { defaultValue: EXPANDED_NAME });
@@ -520,7 +527,7 @@ function DebugModeForm({
 
     sendMessage({
       sessionIndex: state.currentSessionIndex!,
-      message: { type: 'debug', projectId, templateId: assistant.id, gitRef, parameters },
+      message: { type: 'debug', projectId, assistantId: assistant.id, gitRef, parameters },
     });
     setSession(state.currentSessionIndex!, (session) => {
       session.debugForm = { ...parameters };
@@ -685,7 +692,7 @@ function DebugModeForm({
 }
 
 function EmptySessions({ projectId, templateId }: { projectId: string; templateId: string }) {
-  const { newSession } = useDebugState({ projectId, templateId });
+  const { newSession } = useDebugState({ projectId, assistantId: templateId });
   const { t } = useLocaleContext();
 
   return (
@@ -738,3 +745,24 @@ const CustomAccordion = styled(Accordion)(() => ({
     visibility: 'visible !important',
   },
 }));
+
+function ImagePreviewB64({
+  dataSource,
+  ...props
+}: Omit<ComponentProps<typeof ImagePreview>, 'dataSource'> & {
+  dataSource: ({ url?: string; b64Json?: string } & Partial<
+    NonNullable<ComponentProps<typeof ImagePreview>['dataSource']>[number]
+  >)[];
+}) {
+  return (
+    <ImagePreview
+      {...props}
+      dataSource={dataSource
+        .map(({ src, url, b64Json, ...i }) => ({
+          ...i,
+          src: src || url || (b64Json && `data:image/png;base64,${b64Json}`),
+        }))
+        .filter((i): i is { src: string } => !!i.src)}
+    />
+  );
+}

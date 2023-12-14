@@ -8,6 +8,7 @@ import type {
   ExecuteBlockYjs,
   FileTypeYjs,
   FunctionAssistantYjs,
+  ImageAssistantYjs,
   ParameterYjs,
   PromptAssistantYjs,
   PromptYjs,
@@ -18,6 +19,7 @@ import type {
   ExecuteBlock,
   FileType,
   FunctionAssistant,
+  ImageAssistant,
   Parameter,
   Prompt,
   PromptAssistant,
@@ -46,13 +48,22 @@ export function isExecuteBlock(
 export function isAssistant(assistant: FileType): assistant is Assistant;
 export function isAssistant(assistant: FileTypeYjs): assistant is AssistantYjs;
 export function isAssistant(assistant: FileType | FileTypeYjs): assistant is FileType | AssistantYjs {
-  return typeof (assistant as any).id === 'string' && ['prompt', 'api', 'function'].includes((assistant as any).type);
+  return (
+    typeof (assistant as any).id === 'string' &&
+    ['prompt', 'image', 'api', 'function'].includes((assistant as any).type)
+  );
 }
 
 export function isPromptAssistant(file: FileType): file is PromptAssistant;
 export function isPromptAssistant(file: FileTypeYjs): file is PromptAssistantYjs;
 export function isPromptAssistant(file: FileType | FileTypeYjs): file is PromptAssistant | PromptAssistantYjs {
   return (file as any).type === 'prompt';
+}
+
+export function isImageAssistant(file: FileType): file is ImageAssistant;
+export function isImageAssistant(file: FileTypeYjs): file is ImageAssistantYjs;
+export function isImageAssistant(file: FileType | FileTypeYjs): file is ImageAssistant | ImageAssistantYjs {
+  return (file as any).type === 'image';
 }
 
 export function isApiAssistant(file: FileType): file is ApiAssistant;
@@ -164,6 +175,14 @@ export function fileToYjs(file: FileType): FileTypeYjs {
       tests: file.tests && arrayToYjs(file.tests),
     };
   }
+  if (isImageAssistant(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
+      prepareExecutes: file.prepareExecutes && arrayToYjs(file.prepareExecutes, executeBlockToYjs),
+      tests: file.tests && arrayToYjs(file.tests),
+    };
+  }
   if (isFunctionAssistant(file)) {
     return {
       ...file,
@@ -191,6 +210,14 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       ...file,
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
       prompts: file.prompts && arrayFromYjs(file.prompts, promptFromYjs),
+      tests: file.tests && arrayFromYjs(file.tests),
+    };
+  }
+  if (isImageAssistant(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
+      prepareExecutes: file.prepareExecutes && arrayFromYjs(file.prepareExecutes, executeBlockFromYjs),
       tests: file.tests && arrayFromYjs(file.tests),
     };
   }

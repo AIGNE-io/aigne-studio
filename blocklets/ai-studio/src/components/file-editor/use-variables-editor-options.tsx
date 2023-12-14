@@ -16,8 +16,8 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
       .filter((i): i is string => !!i);
 
   const options = useMemo(() => {
-    return keys
-      ?.map((key) => {
+    return (keys ?? [])
+      .map((key) => {
         return new VariablePickerOption(key, {
           icon: (
             <DataObjectRounded

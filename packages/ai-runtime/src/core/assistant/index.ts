@@ -1,8 +1,4 @@
-import { ReadableStream, TextDecoderStream, TransformStream } from 'stream/web';
-
-import { call } from '@blocklet/sdk/lib/component';
 import axios, { isAxiosError } from 'axios';
-import { createParser } from 'eventsource-parser';
 import { isNil, pick } from 'lodash';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
@@ -19,9 +15,20 @@ import {
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
-import { Mustache } from '../../types/assistant';
+import { ImageAssistant, Mustache, isImageAssistant } from '../../types/assistant';
+import { ChatCompletionChunk, callAIKitChatCompletions, callAIKitImageGeneration } from '../ai-kit';
 
-export type RunAssistantChunk = { taskId: string; assistantId: string; delta: { content?: string | null } };
+export type RunAssistantChunk = {
+  taskId: string;
+  assistantId: string;
+  delta: {
+    content?: string | null;
+    images?: {
+      b64_string?: string;
+      url?: string;
+    }[];
+  };
+};
 
 export type RunAssistantCallback = (e: RunAssistantChunk) => void;
 
@@ -43,7 +50,7 @@ export async function runAssistant({
   callback,
 }: {
   taskId: string;
-  callAI: typeof callAIKit;
+  callAI: typeof callAIKitChatCompletions;
   getAssistant: GetAssistant;
   assistant: Assistant;
   parameters?: { [key: string]: any };
@@ -51,6 +58,17 @@ export async function runAssistant({
 }): Promise<any> {
   if (isPromptAssistant(assistant)) {
     return runPromptAssistant({
+      taskId,
+      callAI,
+      getAssistant,
+      assistant,
+      parameters,
+      callback,
+    });
+  }
+
+  if (isImageAssistant(assistant)) {
+    return runImageAssistant({
       taskId,
       callAI,
       getAssistant,
@@ -94,7 +112,7 @@ async function runFunctionAssistant({
   parameters,
   callback,
 }: {
-  callAI: typeof callAIKit;
+  callAI: typeof callAIKitChatCompletions;
   getAssistant: GetAssistant;
   taskId: string;
   assistant: FunctionAssistant;
@@ -169,7 +187,7 @@ async function runApiAssistant({
   parameters,
   callback,
 }: {
-  callAI: typeof callAIKit;
+  callAI: typeof callAIKitChatCompletions;
   getAssistant: GetAssistant;
   taskId: string;
   assistant: ApiAssistant;
@@ -249,7 +267,7 @@ async function runPromptAssistant({
   parameters,
   callback,
 }: {
-  callAI: typeof callAIKit;
+  callAI: typeof callAIKitChatCompletions;
   taskId: string;
   getAssistant: GetAssistant;
   assistant: PromptAssistant;
@@ -332,6 +350,66 @@ async function runPromptAssistant({
   return result;
 }
 
+async function runImageAssistant({
+  callAI,
+  taskId,
+  getAssistant,
+  assistant,
+  parameters,
+  callback,
+}: {
+  callAI: typeof callAIKitChatCompletions;
+  taskId: string;
+  getAssistant: GetAssistant;
+  assistant: ImageAssistant;
+  parameters: { [key: string]: any };
+  callback?: RunAssistantCallback;
+}) {
+  if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
+
+  const blockResults = assistant.prepareExecutes?.length
+    ? await runExecuteBlocks({
+        assistant,
+        callAI,
+        getAssistant,
+        parameters,
+        executeBlocks: assistant.prepareExecutes,
+        callback,
+      })
+    : [];
+
+  const variables = { ...parameters };
+
+  for (const [block, result] of blockResults) {
+    const { variable } = block;
+    if (variable) {
+      variables[variable] = result;
+    }
+  }
+
+  const prompt = await renderMessage(
+    assistant.prompt
+      .split('\n')
+      .filter((i) => !i.startsWith('//'))
+      .join('\n'),
+    variables
+  );
+
+  const { data } = await callAIKitImageGeneration({
+    prompt,
+    n: assistant.n,
+    model: assistant.model as any,
+    quality: assistant.quality as any,
+    size: assistant.size as any,
+    style: assistant.style as any,
+    responseFormat: assistant.responseFormat as any,
+  });
+
+  callback?.({ taskId, assistantId: assistant.id, delta: { images: data } });
+
+  return data;
+}
+
 async function runExecuteBlocks({
   assistant,
   callAI,
@@ -341,7 +419,7 @@ async function runExecuteBlocks({
   callback,
 }: {
   assistant: Assistant;
-  callAI: typeof callAIKit;
+  callAI: typeof callAIKitChatCompletions;
   getAssistant: GetAssistant;
   parameters?: { [key: string]: any };
   executeBlocks: ExecuteBlock[];
@@ -390,7 +468,7 @@ async function runExecuteBlock({
 }: {
   taskId: string;
   assistant: Assistant;
-  callAI: typeof callAIKit;
+  callAI: typeof callAIKitChatCompletions;
   getAssistant: GetAssistant;
   executeBlock: ExecuteBlock;
   parameters?: { [key: string]: any };
@@ -478,7 +556,7 @@ async function runExecuteBlock({
       })),
     });
 
-    let calls: NonNullable<CallAIKitResponseChunk['delta']['toolCalls']> | undefined;
+    let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
 
     for await (const chunk of response) {
       if (chunk.delta.content) {
@@ -530,119 +608,4 @@ async function runExecuteBlock({
   }
 
   return undefined;
-}
-
-interface CallAIKitResponseChunk {
-  delta: {
-    role: 'system' | 'user' | 'assistant' | 'tool';
-    content?: string | null;
-    toolCalls?: {
-      id: string;
-      type: 'function';
-      function: {
-        name: string;
-        arguments: string;
-      };
-    }[];
-  };
-}
-
-export interface CallAIKitInput {
-  stream?: boolean;
-  model?: string;
-  temperature?: number;
-  topP?: number;
-  presencePenalty?: number;
-  frequencyPenalty?: number;
-  maxTokens?: number;
-  tools?: {
-    type: 'function';
-    function: {
-      name: string;
-      parameters: Record<string, unknown>;
-      description?: string;
-    };
-  }[];
-  toolChoice?: 'none' | 'auto';
-  messages: (
-    | { role: 'system'; content: string }
-    | {
-        role: 'user';
-        content: string;
-      }
-    | {
-        role: 'assistant';
-        content: string;
-        toolCalls?: {
-          id: string;
-          type: 'function';
-          function: {
-            name: string;
-            arguments: string;
-          };
-        }[];
-      }
-    | {
-        content: string | null;
-        role: 'tool';
-        toolCallId: string;
-      }
-  )[];
-}
-
-export async function* callAIKit(input: CallAIKitInput) {
-  const response = await call({
-    name: 'ai-kit',
-    method: 'POST',
-    path: '/api/v1/sdk/completions',
-    headers: { Accept: 'text/event-stream' },
-    data: input,
-    responseType: 'stream',
-  });
-
-  const stream = new ReadableStreamFromNodeJs(response.data)
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new EventSourceParserStream());
-
-  for await (const { data } of stream) {
-    try {
-      if (data) yield JSON.parse(data) as CallAIKitResponseChunk;
-    } catch (error) {
-      console.error('parse ai response error', error, data);
-    }
-  }
-}
-
-class ReadableStreamFromNodeJs extends ReadableStream<Buffer> {
-  constructor(stream: NodeJS.ReadableStream) {
-    super({
-      start: (controller) => {
-        setTimeout(async () => {
-          for await (const chunk of stream) {
-            controller.enqueue(chunk as Buffer);
-          }
-          controller.close();
-        });
-      },
-    });
-  }
-}
-
-class EventSourceParserStream extends TransformStream<any, { data?: string }> {
-  constructor() {
-    let parser: ReturnType<typeof createParser> | undefined;
-
-    super({
-      start(controller) {
-        parser = createParser((event) => {
-          if (event.type === 'event') {
-            controller.enqueue(event);
-          }
-        });
-      },
-      transform(chunk) {
-        parser?.feed(chunk);
-      },
-    });
-  }
 }

@@ -15,7 +15,7 @@ import { Op } from 'sequelize';
 
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { createImageUrl } from '../libs/utils';
-import Project from '../store/models/project';
+import Project, { nextProjectId } from '../store/models/project';
 import {
   autoSyncRemoteRepoIfNeeded,
   commitProjectSettingWorking,
@@ -199,6 +199,7 @@ export function projectRoutes(router: Router) {
 
       const project = await Project.create({
         ...original.dataValues,
+        _id: nextProjectId(),
         model: original.model || '',
         name: original.name && `${original.name}-copy`,
         description,
@@ -239,6 +240,7 @@ export function projectRoutes(router: Router) {
 
       const project = await Project.create({
         ...omit(template, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
+        _id: nextProjectId(),
         model: template.model || '',
         icon,
         createdBy: did,

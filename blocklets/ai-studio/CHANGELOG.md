@@ -1,6 +1,10 @@
-## 0.1.168 (2023-12-12)
+## 0.1.169 (2023-12-13)
 
-- fix: bug bash issue
+- fix: type errors
+
+## 0.1.168 (2023-12-13)
+
+- feat: add image assistant
 
 ## 0.1.167 (2023-12-12)
 

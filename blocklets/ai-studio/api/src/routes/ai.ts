@@ -1,4 +1,10 @@
-import { CallAIKitInput, RunAssistantChunk, callAIKit, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
+import {
+  ChatCompletionInput,
+  RunAssistantChunk,
+  callAIKitChatCompletions,
+  nextTaskId,
+  runAssistant,
+} from '@blocklet/ai-runtime/core';
 import { isPromptAssistant } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import compression from 'compression';
@@ -74,8 +80,8 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
 
   const repository = await getRepository({ projectId: input.projectId });
 
-  const callAI = (input: CallAIKitInput) =>
-    callAIKit({
+  const callAI = (input: ChatCompletionInput) =>
+    callAIKitChatCompletions({
       ...input,
       model: input.model || project.model || defaultModel,
       temperature: input.temperature ?? project.temperature,

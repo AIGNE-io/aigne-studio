@@ -1,6 +1,10 @@
-export type ModelInfo = {
+export interface ModelInfoBase {
   brand: string;
   model: string;
+  disabled?: boolean;
+}
+
+export interface TextModelInfo extends ModelInfoBase {
   temperatureMin?: number;
   temperatureMax?: number;
   temperatureDefault?: number;
@@ -16,16 +20,15 @@ export type ModelInfo = {
   maxTokensMin?: number;
   maxTokensMax?: number;
   maxTokensDefault?: number;
-  disabled?: boolean;
-};
+}
 
 export const defaultTextModel = 'gpt-3.5-turbo';
 
-export async function getSupportedModels(): Promise<ModelInfo[]> {
+export async function getSupportedModels(): Promise<TextModelInfo[]> {
   return [
     {
       brand: 'OpenAI',
-      model: defaultTextModel,
+      model: 'gpt-3.5-turbo',
       temperatureMin: 0,
       temperatureMax: 2,
       temperatureDefault: 1,
@@ -236,16 +239,52 @@ export async function getSupportedModels(): Promise<ModelInfo[]> {
   ];
 }
 
+export interface ImageModelInfo extends ModelInfoBase {
+  brand: string;
+  model: string;
+  nMin?: number;
+  nMax?: number;
+  nDefault?: number;
+  disabled?: boolean;
+  quality?: string[];
+  qualityDefault?: string;
+  responseFormat?: string[];
+  responseFormatDefault?: string;
+  size?: string[];
+  sizeDefault?: string;
+  style?: string[];
+  styleDefault?: string;
+}
+
 export const defaultImageModel = 'dall-e-2';
-export async function getSupportedImagesModels(): Promise<ModelInfo[]> {
+
+export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
   return [
     {
       brand: 'OpenAI',
-      model: defaultImageModel,
+      model: 'dall-e-2',
+      nMin: 1,
+      nMax: 10,
+      nDefault: 1,
+      responseFormat: ['url', 'b64_json'],
+      responseFormatDefault: 'url',
+      size: ['256x256', '512x512', '1024x1024'],
+      sizeDefault: '256x256',
     },
     {
       brand: 'OpenAI',
       model: 'dall-e-3',
+      nMin: 1,
+      nMax: 1,
+      nDefault: 1,
+      quality: ['standard', 'hd'],
+      qualityDefault: 'standard',
+      responseFormat: ['url', 'b64_json'],
+      responseFormatDefault: 'url',
+      size: ['1024x1024', '1792x1024', '1024x1792'],
+      sizeDefault: '1024x1024',
+      style: ['vivid', 'natural'],
+      styleDefault: 'vivid',
     },
   ];
 }
