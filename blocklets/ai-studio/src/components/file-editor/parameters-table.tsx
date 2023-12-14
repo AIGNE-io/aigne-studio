@@ -80,6 +80,8 @@ export default function ParametersTable({
   );
 
   const isValidVariableName = (name: string) => {
+    if (!name) return true;
+
     const validNameRegex = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
     return validNameRegex.test(name);
   };

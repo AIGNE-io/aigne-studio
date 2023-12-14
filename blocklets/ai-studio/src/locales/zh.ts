@@ -382,4 +382,6 @@ export default flat({
   userInput: '用户输入',
   all: '全部',
   selectPrompt: '选择模板',
+  nonExistentVariable: '"{data}" 变量不存在',
+  addVariable: '添加变量',
 });

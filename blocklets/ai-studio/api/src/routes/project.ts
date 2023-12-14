@@ -162,8 +162,14 @@ export function projectRoutes(router: Router) {
     res.json({ icons: data?.uploads || [] });
   });
 
-  router.delete('/projects/icon/:id', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
-    const { data } = await call({ name: 'image-bin', path: `/api/uploads/${_req.params.id}`, method: 'DELETE' });
+  router.delete('/projects/icon/:id', ensureComponentCallOrPromptsEditor(), user(), async (req, res) => {
+    const { did } = req.user!;
+    const { data } = await call({
+      name: 'image-bin',
+      path: `/api/sdk/uploads/${req.params.id}`,
+      method: 'DELETE',
+      headers: { 'x-user-did': did },
+    });
     res.json({ icons: data?.uploads || [] });
   });
 
@@ -417,12 +423,7 @@ export function projectRoutes(router: Router) {
     for (const ref of branches) {
       if (input.force) {
         await repository.fetch({ remote: defaultRemote, ref });
-        await repository.branch({
-          ref,
-          object: `${defaultRemote}/${ref}`,
-          checkout: true,
-          force: true,
-        });
+        await repository.branch({ ref, object: `${defaultRemote}/${ref}`, checkout: true, force: true });
       } else {
         await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
       }

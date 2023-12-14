@@ -27,6 +27,15 @@ interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
   variablePickerProps?: ComponentProps<typeof VariablePickerPlugin>;
   ContentProps?: BoxProps;
   variables?: string[];
+  popperElement?: ({
+    text,
+    editor,
+    handleClose,
+  }: {
+    text: string;
+    editor: LexicalEditor;
+    handleClose: () => any;
+  }) => any;
 }
 
 export default function PromptEditor({
@@ -75,6 +84,7 @@ function EditorShell({
   variablePickerProps,
   ContentProps,
   variables,
+  popperElement,
   ...props
 }: PromptEditorProps) {
   const [editor] = useLexicalComposerContext();
@@ -127,6 +137,7 @@ function EditorShell({
         isDebug={isDebug}
         variablePickerProps={variablePickerProps}
         componentPickerProps={componentPickerProps}
+        popperElement={popperElement}
         ContentProps={ContentProps}>
         {children}
       </Editor>

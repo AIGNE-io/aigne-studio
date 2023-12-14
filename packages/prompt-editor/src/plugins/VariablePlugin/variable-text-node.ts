@@ -36,20 +36,19 @@ function convertVariableElement(domNode: HTMLElement): DOMConversionOutput | nul
 const style = `
   color: rgb(234 179 8/1);
   font-weight: bold;
-  z-index:2
+  cursor: pointer;
 `;
 
 const warningStyle = `
-  color: red;
+  color: #ef5350;
   font-weight: bold;
-  z-index:2;
   cursor: pointer;
 `;
 
 export class VariableTextNode extends TextNode {
   constructor(text: string, key?: NodeKey) {
     super(text, key);
-    this.isVariable = true;
+    this.isVariable = false;
   }
 
   static override getType(): string {
@@ -71,19 +70,17 @@ export class VariableTextNode extends TextNode {
   }
 
   override exportJSON(): SerializedVariableNode {
-    return {
-      ...super.exportJSON(),
-      text: this.__text,
-      type: TYPE,
-      version: 1,
-    };
+    return { ...super.exportJSON(), text: this.__text, type: TYPE, version: 1 };
   }
 
   override createDOM(config: EditorConfig): HTMLElement {
     const dom = super.createDOM(config);
+
     dom.className = 'variable';
     dom.setAttribute('data-custom-node', 'variable');
     dom.setAttribute('data-node-id', String(+new Date()));
+    dom.addEventListener('mouseover', this.handleMouseOver.bind(this, dom, this.isVariable));
+    dom.addEventListener('mouseleave', this.handleMouseLeave.bind(this, dom));
 
     if (this.isVariable) {
       dom.style.cssText = style;
@@ -96,10 +93,6 @@ export class VariableTextNode extends TextNode {
 
   override updateDOM(prevNode: any, dom: HTMLElement, config: EditorConfig): boolean {
     const update = super.updateDOM(prevNode, dom, config);
-
-    dom.className = 'variable';
-    dom.setAttribute('data-custom-node', 'variable');
-    dom.setAttribute('data-node-id', String(+new Date()));
 
     if (this.isVariable) {
       dom.style.cssText = style;
@@ -116,6 +109,14 @@ export class VariableTextNode extends TextNode {
     return { element };
   }
 
+  handleMouseOver(dom: HTMLElement, isVar: boolean) {
+    // 外部覆盖
+    // eslint-disable-next-line no-console
+    console.log(dom, isVar);
+  }
+
+  handleMouseLeave() {}
+
   static override importDOM(): DOMConversionMap | null {
     return {
       span: (domNode: HTMLElement) => {
@@ -123,10 +124,7 @@ export class VariableTextNode extends TextNode {
           return null;
         }
 
-        return {
-          conversion: convertVariableElement,
-          priority: 1,
-        };
+        return { conversion: convertVariableElement, priority: 1 };
       },
     };
   }
@@ -135,9 +133,12 @@ export class VariableTextNode extends TextNode {
     return true;
   }
 
-  setSpecial(b: boolean) {
-    this.isVariable = b;
-    console.log(2);
+  setIsVariable(isVariable: boolean) {
+    this.isVariable = isVariable;
+  }
+
+  getCurrentVariable() {
+    return this.isVariable;
   }
 }
 

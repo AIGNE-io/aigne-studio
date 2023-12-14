@@ -71,5 +71,5 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
     [assistant]
   );
 
-  return { options };
+  return { options, addParameter };
 }
