@@ -109,13 +109,11 @@ export class VariableTextNode extends TextNode {
     return { element };
   }
 
-  handleMouseOver(dom: HTMLElement, isVar: boolean) {
-    // 外部覆盖
-    // eslint-disable-next-line no-console
-    console.log(dom, isVar);
-  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleMouseOver(_dom: HTMLElement, _isVar: boolean) {}
 
-  handleMouseLeave() {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleMouseLeave(_dom: HTMLElement) {}
 
   static override importDOM(): DOMConversionMap | null {
     return {

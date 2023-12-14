@@ -191,7 +191,7 @@ export default function ExecuteBlockForm({
       <ToolDialog
         ref={toolForm}
         projectId={projectId}
-        promptId={assistant.id}
+        assistantId={assistant.id}
         gitRef={gitRef}
         DialogProps={{ ...bindDialog(dialogState) }}
         onSubmit={(tool) => {
@@ -225,13 +225,13 @@ interface ToolDialogImperative {
 const ToolDialog = forwardRef<
   ToolDialogImperative,
   {
-    promptId: string;
+    assistantId: string;
     projectId: string;
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
   }
->(({ promptId, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+>(({ assistantId, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
 
@@ -243,7 +243,7 @@ const ToolDialog = forwardRef<
     .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
     .map(([id]) => store.files[id])
     .filter((i): i is AssistantYjs => !!i && isAssistant(i))
-    .filter((i) => i.id !== promptId)
+    .filter((i) => i.id !== assistantId)
     .map((i) => ({ id: i.id, type: i.type, name: i.name }));
 
   const fileId = form.watch('id');
