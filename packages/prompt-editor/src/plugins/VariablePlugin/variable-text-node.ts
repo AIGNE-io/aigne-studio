@@ -36,14 +36,12 @@ function convertVariableElement(domNode: HTMLElement): DOMConversionOutput | nul
 const style = `
   color: rgb(234 179 8/1);
   font-weight: bold;
-  z-index:2;
   cursor: pointer;
 `;
 
 const warningStyle = `
-  color: rgb(25, 118, 210);
+  color: #ef5350;
   font-weight: bold;
-  z-index:2;
   cursor: pointer;
 `;
 

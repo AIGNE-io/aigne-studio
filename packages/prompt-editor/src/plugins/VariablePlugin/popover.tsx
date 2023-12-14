@@ -62,9 +62,10 @@ export default function VariablePopover({
     <Box onMouseLeave={handleClose} onMouseOver={() => (ref.current = true)}>
       <Popper
         open
-        anchorEl={state.anchorEl}
         transition
         placement="top"
+        anchorEl={state.anchorEl}
+        sx={{ zIndex: (theme) => theme.zIndex.tooltip }}
         modifiers={[{ name: 'offset', enabled: true, options: { offset: [0, 4] } }]}>
         {({ TransitionProps }) => <Fade {...TransitionProps}>{popperElement({ editor, text, handleClose })}</Fade>}
       </Popper>

@@ -384,4 +384,6 @@ export default flat({
   userInput: 'Test Parameters',
   all: 'All',
   selectPrompt: 'Select by Prompt',
+  nonExistentVariable: 'The "{data}" variable does not exist',
+  addVariable: 'Add Variable',
 });

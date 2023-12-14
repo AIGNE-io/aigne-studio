@@ -94,8 +94,11 @@ export default function PromptEditorField({
                 sx={{
                   p: 2,
                   fontSize: (theme) => theme.typography.body1.fontSize,
-                  fontWeight: (theme) => theme.typography.fontWeightMedium,
-                }}>{`提示改为"${text}" 变量不存在`}</Box>
+                  fontWeight: (theme) => theme.typography.fontWeightBold,
+                  // color: (theme) => theme.palette.error.light,
+                }}>
+                {t('nonExistentVariable', { data: text })}
+              </Box>
 
               <Stack direction="row" gap={1} justifyContent="flex-end">
                 <Button
@@ -104,7 +107,7 @@ export default function PromptEditorField({
                     handleClose();
                   }}
                   size="small">
-                  添加变量
+                  {t('addVariable')}
                 </Button>
               </Stack>
             </Stack>
