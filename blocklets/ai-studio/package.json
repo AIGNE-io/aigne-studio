@@ -43,7 +43,7 @@
     "@blocklet/discuss-kit": "^1.5.178",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
     "@blocklet/prompt-editor": "^0.1.168",
-    "@blocklet/sdk": "^1.16.18",
+    "@blocklet/sdk": "^1.16.19",
     "@blocklet/studio-ui": "^0.1.168",
     "@blocklet/ui-react": "^2.8.14",
     "@blocklet/uploader": "^0.0.45",
