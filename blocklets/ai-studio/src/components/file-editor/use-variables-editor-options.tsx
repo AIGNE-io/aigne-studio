@@ -1,13 +1,18 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, randomId } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ParameterYjs, randomId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { INSERT_VARIABLE_COMMAND, VariablePickerOption } from '@blocklet/prompt-editor';
 import { DataObjectRounded } from '@mui/icons-material';
 import { alpha } from '@mui/material';
 import { useCallback, useMemo } from 'react';
+import { atom, useRecoilState } from 'recoil';
+
+const highlightedState = atom<null | string>({ key: 'highlightedState', default: null });
+const useHighlightedState = () => useRecoilState(highlightedState);
 
 export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   const { t } = useLocaleContext();
+  const [highlightedId, setHighlightedId] = useHighlightedState(null);
 
   const keys =
     assistant?.parameters &&
@@ -56,20 +61,42 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
       if (!assistant) return;
 
       const doc = (getYjsValue(assistant) as Map<any>).doc!;
+      const id = randomId();
+
       doc.transact(() => {
         assistant.parameters ??= {};
 
-        const id = randomId();
-        if (!Object.values(assistant.parameters).some((i) => i.data.key === parameter)) {
+        if (!parameter || !Object.values(assistant.parameters).some((i) => i.data.key === parameter)) {
           assistant.parameters[id] = {
             index: Math.max(-1, ...Object.values(assistant.parameters).map((i) => i.index)) + 1,
             data: { id, key: parameter },
           };
         }
       });
+
+      setHighlightedId(id);
+      setTimeout(() => setHighlightedId(null), 500);
+
+      setTimeout(() => {
+        document.getElementById(`${id}-key`)?.focus();
+      });
     },
     [assistant]
   );
 
-  return { options, addParameter };
+  const deleteParameter = useCallback(
+    (parameter: ParameterYjs) => {
+      if (!assistant) return;
+
+      const doc = (getYjsValue(assistant) as Map<any>).doc!;
+      doc.transact(() => {
+        if (!assistant.parameters) return;
+        delete assistant.parameters[parameter.id];
+        Object.values(assistant.parameters).forEach((item, index) => (item.index = index));
+      });
+    },
+    [assistant]
+  );
+
+  return { options, addParameter, deleteParameter, highlightedId };
 }

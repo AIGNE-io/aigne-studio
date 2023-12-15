@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ParameterYjs, StringParameter, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import {
   Box,
@@ -15,16 +15,18 @@ import {
   TableHead,
   TableRow,
   Typography,
+  alpha,
 } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { get, sortBy } from 'lodash';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Add from 'src/pages/project/icons/add';
 import Trash from 'src/pages/project/icons/trash';
 
 import Settings from '../../pages/project/icons/settings';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
+import useVariablesEditorOptions from './use-variables-editor-options';
 
 function CustomNoRowsOverlay() {
   const { t } = useLocaleContext();
@@ -38,46 +40,10 @@ function CustomNoRowsOverlay() {
   );
 }
 
-export default function ParametersTable({
-  readOnly,
-  value,
-}: {
-  readOnly?: boolean;
-  value: Pick<AssistantYjs, 'id' | 'parameters'>;
-}) {
-  const doc = (getYjsValue(value) as Map<any>)?.doc!;
-
+export default function ParametersTable({ readOnly, value }: { readOnly?: boolean; value: AssistantYjs }) {
   const { t } = useLocaleContext();
-
-  const createParameter = useCallback(() => {
-    const id = nextAssistantId();
-
-    const doc = (getYjsValue(value) as Map<any>).doc!;
-
-    doc.transact(() => {
-      value.parameters ??= {};
-      value.parameters[id] ??= {
-        index: Math.max(-1, ...Object.values(value.parameters).map((i) => i.index)) + 1,
-        data: { id },
-      };
-    });
-
-    setTimeout(() => {
-      document.getElementById(`${id}-key`)?.focus();
-    });
-  }, [value]);
-
-  const deleteParameter = useCallback(
-    (parameter: ParameterYjs) => {
-      const doc = (getYjsValue(value) as Map<any>).doc!;
-      doc.transact(() => {
-        if (!value.parameters) return;
-        delete value.parameters[parameter.id];
-        Object.values(value.parameters).forEach((item, index) => (item.index = index));
-      });
-    },
-    [value]
-  );
+  const doc = (getYjsValue(value) as Map<any>)?.doc!;
+  const { highlightedId, addParameter, deleteParameter } = useVariablesEditorOptions(value);
 
   const isValidVariableName = (name: string) => {
     if (!name) return true;
@@ -192,7 +158,7 @@ export default function ParametersTable({
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
           <Typography variant="subtitle1">{t('parameters')}</Typography>
 
-          <Button sx={{ minWidth: 32, p: 0, minHeight: 32 }} onClick={createParameter}>
+          <Button sx={{ minWidth: 32, p: 0, minHeight: 32 }} onClick={() => addParameter('')}>
             <Add />
           </Button>
         </Stack>
@@ -226,7 +192,15 @@ export default function ParametersTable({
                 {parameters.map(
                   ({ data: parameter }) =>
                     parameter && (
-                      <TableRow key={parameter.id}>
+                      <TableRow
+                        key={parameter.id}
+                        sx={{
+                          backgroundColor:
+                            parameter.id === highlightedId
+                              ? (theme) => alpha(theme.palette.warning.light, theme.palette.action.focusOpacity)
+                              : 'transparent',
+                          transition: 'all 2s',
+                        }}>
                         {columns.map((column) => (
                           <TableCell key={column.field} align={column.align}>
                             {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
