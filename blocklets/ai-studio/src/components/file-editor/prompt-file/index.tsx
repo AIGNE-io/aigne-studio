@@ -8,13 +8,13 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
-import { DragSortItemContainer, DragSortListYjs } from 'src/components/drag-sort-list';
-import Add from 'src/pages/project/icons/add';
-import Eye from 'src/pages/project/icons/eye';
-import EyeNo from 'src/pages/project/icons/eye-no';
-import { usePromptsState } from 'src/pages/project/prompt-state';
 
 import { useReadOnly } from '../../../contexts/session';
+import Add from '../../../pages/project/icons/add';
+import Eye from '../../../pages/project/icons/eye';
+import EyeNo from '../../../pages/project/icons/eye-no';
+import { usePromptsState } from '../../../pages/project/prompt-state';
+import { DragSortItemContainer, DragSortListYjs } from '../../drag-sort-list';
 import BasicInfoForm from '../basic-info-form';
 import ExecuteBlockForm from '../execute-block';
 import OutputSettings from '../output-settings';

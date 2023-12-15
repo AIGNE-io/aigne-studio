@@ -3,9 +3,9 @@ import { FunctionAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/type
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Typography, alpha } from '@mui/material';
-import Add from 'src/pages/project/icons/add';
 
 import { useReadOnly } from '../../../contexts/session';
+import Add from '../../../pages/project/icons/add';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';
 import ParametersTable from '../parameters-table';

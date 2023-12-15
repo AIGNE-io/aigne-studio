@@ -33,13 +33,13 @@ import { useLocalStorageState } from 'ahooks';
 import { bindMenu, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import ApiAssistantEditor from 'src/components/file-editor/api-assistant';
-import FunctionAssistantEditor from 'src/components/file-editor/function-file';
-import ImageAssistantEditor from 'src/components/file-editor/image-file';
-import PromptAssistantEditor from 'src/components/file-editor/prompt-file';
 import { joinURL, withQuery } from 'ufo';
 
 import WithAwareness from '../../components/awareness/with-awareness';
+import ApiAssistantEditor from '../../components/file-editor/api-assistant';
+import FunctionAssistantEditor from '../../components/file-editor/function-file';
+import ImageAssistantEditor from '../../components/file-editor/image-file';
+import PromptAssistantEditor from '../../components/file-editor/prompt-file';
 import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
 import dirname, { getFileIdFromPath } from '../../utils/path';

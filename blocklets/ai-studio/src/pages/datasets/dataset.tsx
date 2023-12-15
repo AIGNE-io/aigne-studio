@@ -4,11 +4,11 @@ import { Add, ArrowBackIosNew, Error as ErrorIcon } from '@mui/icons-material';
 import { Box, Breadcrumbs, Button, Chip, CircularProgress, Link, Tooltip, Typography } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useReactive } from 'ahooks';
-import DatasetItem from 'api/src/store/models/dataset-item';
 import omit from 'lodash/omit';
 import { useEffect, useMemo } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 
+import DatasetItem from '../../../api/src/store/models/dataset-item';
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDataset } from '../../contexts/dataset-items';
 import { getErrorMessage } from '../../libs/api';

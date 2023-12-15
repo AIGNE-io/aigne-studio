@@ -29,11 +29,11 @@ import {
   Typography,
   styled,
 } from '@mui/material';
-import Project from 'api/src/store/models/project';
 import { MouseEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
+import Project from '../../../api/src/store/models/project';
 import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
