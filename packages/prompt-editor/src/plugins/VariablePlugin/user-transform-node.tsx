@@ -2,7 +2,7 @@ import { $createTextNode, LexicalEditor, TextNode } from 'lexical';
 import { useEffect } from 'react';
 
 import replaceNodes from './utils/replace-nodes';
-import { extractBracketContent, hasBrackets, isBracketStartAndEnd } from './utils/util';
+import { hasBrackets, isBracketStartAndEnd } from './utils/util';
 import { $isVariableTextNode, VariableTextNode } from './variable-text-node';
 
 export default function useTransformVariableNode(editor: LexicalEditor, variables: string[] = []) {
@@ -28,9 +28,6 @@ export default function useTransformVariableNode(editor: LexicalEditor, variable
 
   const nodeVariableTransform = (node: VariableTextNode) => {
     const text = node.getTextContent();
-
-    const isVariable = (variables || []).includes(extractBracketContent(text) || '');
-    if (node.getCurrentVariable() !== isVariable) node.setIsVariable(isVariable);
 
     if (hasBrackets(text)) {
       if (!isBracketStartAndEnd(text)) {

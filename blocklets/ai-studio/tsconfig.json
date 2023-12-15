@@ -8,6 +8,7 @@
     }
   },
   "compilerOptions": {
+    "baseUrl": "./",
     "paths": {
       "@blocklet/ai-runtime": ["../../packages/ai-runtime/src"],
       "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],

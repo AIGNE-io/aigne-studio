@@ -1,6 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { Fade } from '@mui/material';
-import Box from '@mui/material/Box';
 import Popper from '@mui/material/Popper';
 import { LexicalEditor } from 'lexical';
 import { useEffect, useRef, useState } from 'react';
@@ -34,11 +33,17 @@ export default function VariablePopover({
 
     VariableTextNode.prototype.handleMouseOver = (dom, isVariable) => {
       ref.current = true;
-      setState({ popper: true, anchorEl: dom, isVariable });
+
+      setTimeout(() => {
+        if (ref.current) {
+          setState({ popper: true, anchorEl: dom, isVariable });
+        }
+      }, 500);
     };
 
     VariableTextNode.prototype.handleMouseLeave = () => {
       ref.current = false;
+
       setTimeout(() => {
         if (!ref.current) {
           setState(null);
@@ -46,6 +51,18 @@ export default function VariablePopover({
       }, 1000);
     };
   }, [editor]);
+
+  useEffect(() => {
+    const fn = () => {
+      ref.current = false;
+      setState(null);
+    };
+    window.addEventListener('keydown', fn);
+
+    return () => {
+      window.removeEventListener('keydown', fn);
+    };
+  }, []);
 
   const handleClose = () => setState(null);
 
@@ -59,16 +76,18 @@ export default function VariablePopover({
 
   const text = extractBracketContent(state?.anchorEl.innerText) || '';
   return (
-    <Box onMouseLeave={handleClose} onMouseOver={() => (ref.current = true)}>
-      <Popper
-        open
-        transition
-        placement="top"
-        anchorEl={state.anchorEl}
-        sx={{ zIndex: (theme) => theme.zIndex.tooltip }}
-        modifiers={[{ name: 'offset', enabled: true, options: { offset: [0, 4] } }]}>
-        {({ TransitionProps }) => <Fade {...TransitionProps}>{popperElement({ editor, text, handleClose })}</Fade>}
-      </Popper>
-    </Box>
+    <Popper
+      transition
+      placement="top"
+      open={state.popper}
+      anchorEl={state.anchorEl}
+      sx={{ zIndex: (theme) => theme.zIndex.tooltip }}
+      modifiers={[{ name: 'offset', enabled: true, options: { offset: [0, 4] } }]}>
+      {({ TransitionProps }) => (
+        <Fade {...TransitionProps} onMouseLeave={handleClose} onMouseOver={() => (ref.current = true)}>
+          {popperElement({ editor, text, handleClose })}
+        </Fade>
+      )}
+    </Popper>
   );
 }
