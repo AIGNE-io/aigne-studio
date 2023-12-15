@@ -1,6 +1,5 @@
 import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api';
 import { Role } from '@blocklet/ai-runtime/types';
-import Project from 'api/src/store/models/project';
 import produce, { Draft } from 'immer';
 import localForage from 'localforage';
 import debounce from 'lodash/debounce';
@@ -9,10 +8,11 @@ import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
 import { useCallback } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
-import { PREFIX } from 'src/libs/api';
 import { joinURL } from 'ufo';
 
+import Project from '../../../api/src/store/models/project';
 import { textCompletions } from '../../libs/ai';
+import { PREFIX } from '../../libs/api';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';

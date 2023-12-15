@@ -7,9 +7,9 @@ import { LoadingButton } from '@mui/lab';
 import { Alert, Box, Button, Stack, Tooltip, Typography, styled } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { PREFIX } from 'src/libs/api';
 import { joinURL } from 'ufo';
 
+import { PREFIX } from '../../libs/api';
 import { WritingIndicator } from './debug-view';
 import RefreshSquareIcon from './solar-linear-icons/refresh-square';
 import RulerCrossPen from './solar-linear-icons/ruler-cross-pen';

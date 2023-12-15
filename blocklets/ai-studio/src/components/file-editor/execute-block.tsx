@@ -23,12 +23,12 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import Add from 'src/pages/project/icons/add';
-import External from 'src/pages/project/icons/external';
-import Trash from 'src/pages/project/icons/trash';
-import { PROMPTS_FOLDER_NAME, createFile, useProjectStore } from 'src/pages/project/yjs-state';
 import { joinURL } from 'ufo';
 
+import Add from '../../pages/project/icons/add';
+import External from '../../pages/project/icons/external';
+import Trash from '../../pages/project/icons/trash';
+import { PROMPTS_FOLDER_NAME, createFile, useProjectStore } from '../../pages/project/yjs-state';
 import PromptEditorField from './prompt-editor-field';
 
 export default function ExecuteBlockForm({

@@ -1,3 +1,7 @@
+## 0.1.171 (2023-12-15)
+
+- fix: add image support for runtime
+
 ## 0.1.170 (2023-12-14)
 
 - feat: quick actions for variables(#408)

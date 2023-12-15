@@ -5,11 +5,12 @@ import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
 import { Box, Button, Collapse, FormLabel, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
-import AwarenessIndicator from 'src/components/awareness/awareness-indicator';
-import WithAwareness from 'src/components/awareness/with-awareness';
-import ModelSelectField from 'src/components/selector/model-select-field';
-import SliderNumberField from 'src/components/slider-number-field';
-import { defaultImageModel, getSupportedImagesModels } from 'src/libs/common';
+
+import { defaultImageModel, getSupportedImagesModels } from '../../../libs/common';
+import AwarenessIndicator from '../../awareness/awareness-indicator';
+import WithAwareness from '../../awareness/with-awareness';
+import ModelSelectField from '../../selector/model-select-field';
+import SliderNumberField from '../../slider-number-field';
 
 export default function ImageAssistantSetting({
   projectId,

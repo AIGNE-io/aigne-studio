@@ -20,10 +20,10 @@ import {
 import { GridColDef } from '@mui/x-data-grid';
 import { get, sortBy } from 'lodash';
 import { useMemo, useState } from 'react';
-import Add from 'src/pages/project/icons/add';
-import Trash from 'src/pages/project/icons/trash';
 
+import Add from '../../pages/project/icons/add';
 import Settings from '../../pages/project/icons/settings';
+import Trash from '../../pages/project/icons/trash';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
 import useVariablesEditorOptions from './use-variables-editor-options';
