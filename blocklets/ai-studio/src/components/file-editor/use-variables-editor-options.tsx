@@ -12,16 +12,29 @@ const useHighlightedState = () => useRecoilState(highlightedState);
 
 export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   const { t } = useLocaleContext();
-  const [highlightedId, setHighlightedId] = useHighlightedState(null);
+  const [highlightedId, setHighlightedId] = useHighlightedState();
 
-  const keys =
-    assistant?.parameters &&
-    Object.values(assistant.parameters)
-      .map((i) => i.data.key)
-      .filter((i): i is string => !!i);
+  const variables = useMemo(() => {
+    const parameterVariables =
+      assistant?.parameters &&
+      Object.values(assistant.parameters)
+        .map((i) => i.data.key)
+        .filter((i): i is string => !!i);
+
+    let executeVariables: string[] = [];
+    if (assistant && 'prepareExecutes' in assistant) {
+      executeVariables = assistant.prepareExecutes
+        ? Object.values(assistant.prepareExecutes)
+            .map((i) => i.data.variable)
+            .filter((i): i is string => !!i)
+        : [];
+    }
+
+    return [...new Set([...(parameterVariables || []), ...(executeVariables || [])])].filter(Boolean);
+  }, []);
 
   const options = useMemo(() => {
-    return (keys ?? [])
+    return (variables ?? [])
       .map((key) => {
         return new VariablePickerOption(key, {
           icon: (
@@ -54,7 +67,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
           },
         }),
       ]);
-  }, [keys?.join('/'), t]);
+  }, [variables?.join('/'), t]);
 
   const addParameter = useCallback(
     (parameter: string) => {
@@ -98,5 +111,5 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
     [assistant]
   );
 
-  return { options, addParameter, deleteParameter, highlightedId };
+  return { options, variables, addParameter, deleteParameter, highlightedId };
 }

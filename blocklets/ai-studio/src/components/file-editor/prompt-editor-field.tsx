@@ -22,13 +22,7 @@ export default function PromptEditorField({
 } & Omit<ComponentProps<typeof PromptEditor>, 'value' | 'onChange'>) {
   const { t } = useLocaleContext();
   const { editorState, setEditorState } = usePromptEditorState({ value: value || '', onChange, readOnly });
-  const { options, addParameter } = useVariablesEditorOptions(assistant);
-
-  const variables =
-    assistant?.parameters &&
-    Object.values(assistant.parameters)
-      .map((i) => i.data.key)
-      .filter((i): i is string => !!i);
+  const { options, variables, addParameter } = useVariablesEditorOptions(assistant);
 
   const getParameters = (text: string) => {
     const list = Object.values(assistant?.parameters || []).map((i) => i.data.key);
