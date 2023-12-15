@@ -19,27 +19,27 @@ export interface AssistantState {
   assistant?: AssistantInfo;
 }
 
-const TEMPLATE_STATES: { [key: string]: RecoilState<AssistantState> } = {};
+const ASSISTANT_STATES: { [key: string]: RecoilState<AssistantState> } = {};
 
-const templateState = ({ projectId, gitRef, assistantId, working = false }: AssistantIdentifier) => {
-  const key = ['AITemplateState', projectId, gitRef, assistantId, working].join('/');
+const assistantState = ({ projectId, gitRef, assistantId, working = false }: AssistantIdentifier) => {
+  const key = ['AIRuntimeAssistantState', projectId, gitRef, assistantId, working].join('/');
 
-  TEMPLATE_STATES[key] ??= atom<AssistantState>({
+  ASSISTANT_STATES[key] ??= atom<AssistantState>({
     key,
     default: { identifier: { projectId, gitRef, assistantId, working } },
   });
 
-  return TEMPLATE_STATES[key]!;
+  return ASSISTANT_STATES[key]!;
 };
 
-export const useTemplateState = (identifier: AssistantIdentifier) => {
-  const [state, setState] = useRecoilState(templateState(identifier));
+export const useAssistantState = (identifier: AssistantIdentifier) => {
+  const [state, setState] = useRecoilState(assistantState(identifier));
 
   const reload = useCallback(async () => {
     setState((state) => ({ ...state, loading: true, error: undefined }));
     try {
-      const template = await getAssistant(state.identifier);
-      setState((state) => ({ ...state, loading: false, assistant: template }));
+      const assistant = await getAssistant(state.identifier);
+      setState((state) => ({ ...state, loading: false, assistant }));
     } catch (error) {
       setState((state) => ({ ...state, loading: false, error }));
     }
@@ -60,12 +60,12 @@ export interface ExecutingState {
 
 const EXECUTING_STATES: { [key: string]: RecoilState<ExecutingState> } = {};
 
-const executingState = ({ projectId, gitRef, assistantId: templateId, working = false }: AssistantIdentifier) => {
-  const key = ['AIFormExecutingState', projectId, gitRef, templateId, working].join('/');
+const executingState = ({ projectId, gitRef, assistantId, working = false }: AssistantIdentifier) => {
+  const key = ['AIFormExecutingState', projectId, gitRef, assistantId, working].join('/');
 
   EXECUTING_STATES[key] ??= atom<ExecutingState>({
     key,
-    default: { identifier: { projectId, gitRef, assistantId: templateId, working } },
+    default: { identifier: { projectId, gitRef, assistantId, working } },
   });
 
   return EXECUTING_STATES[key]!;

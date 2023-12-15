@@ -15,7 +15,7 @@ export async function getAssistant({
   working,
 }: AssistantIdentifier): Promise<AssistantInfo> {
   return aiStudioApi
-    .get(joinURL('/api/projects', projectId, 'refs', gitRef, 'templates', assistantId), {
+    .get(joinURL('/api/projects', projectId, 'refs', gitRef, 'assistants', assistantId), {
       params: { working },
     })
     .then((res) => res.data);
