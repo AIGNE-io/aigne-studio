@@ -51,7 +51,7 @@ export const useTemplateState = (identifier: AssistantIdentifier) => {
 export interface ExecutingState {
   identifier: AssistantIdentifier;
   content?: string;
-  images?: { url: string }[];
+  images?: { url?: string; b64Json?: string }[];
   done?: boolean;
   loading?: boolean;
   cancelled?: boolean;
@@ -81,34 +81,26 @@ export const useExecutingState = (identifier: AssistantIdentifier) => {
         const result = await runAssistant({
           url: joinURL(AIStudioBaseUrl, '/api/ai/call'),
           ...state.identifier,
+          ref: state.identifier.gitRef,
           parameters,
         });
 
         const reader = result.getReader();
-        const decoder = new TextDecoder();
-
-        const isImages = (i: any): i is { type: 'images'; images: { url: string }[] } => i.type === 'images';
+        let mainTaskId: string | undefined;
 
         for (;;) {
-          let content = '';
-
           const { value, done } = await reader.read();
           if (value) {
-            if (value instanceof Uint8Array) {
-              content = decoder.decode(value);
-            } else if (typeof value === 'string') {
-              content = value;
-            } else if (isImages(value)) {
+            mainTaskId ??= value.taskId;
+            if (mainTaskId === value.taskId) {
               setState((state) => {
                 if (!state.loading) return state;
-                return { ...state, images: value.images };
-              });
-            }
 
-            if (content) {
-              setState((state) => {
-                if (!state.loading) return state;
-                return { ...state, content: (state.content || '') + content };
+                return {
+                  ...state,
+                  content: (state.content || '') + (value.delta.content || ''),
+                  images: (state.images ?? []).concat(value.delta.images ?? []),
+                };
               });
             }
           }
