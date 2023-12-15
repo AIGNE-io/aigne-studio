@@ -1,5 +1,5 @@
 import {
-  ChatCompletionInput,
+  CallAI,
   RunAssistantChunk,
   callAIKitChatCompletions,
   nextTaskId,
@@ -80,17 +80,20 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
 
   const repository = await getRepository({ projectId: input.projectId });
 
-  const callAI = (input: ChatCompletionInput) =>
-    callAIKitChatCompletions({
+  const callAI: CallAI = ({ assistant, input }) => {
+    const promptAssistant = isPromptAssistant(assistant) ? assistant : undefined;
+
+    return callAIKitChatCompletions({
       ...input,
-      model: input.model || project.model || defaultModel,
-      temperature: input.temperature ?? project.temperature,
-      topP: input.topP ?? project.topP,
-      presencePenalty: input.presencePenalty ?? project.presencePenalty,
-      frequencyPenalty: input.frequencyPenalty ?? project.frequencyPenalty,
+      model: input.model || promptAssistant?.model || project.model || defaultModel,
+      temperature: input.temperature ?? promptAssistant?.temperature ?? project.temperature,
+      topP: input.topP ?? promptAssistant?.topP ?? project.topP,
+      presencePenalty: input.presencePenalty ?? promptAssistant?.presencePenalty ?? project.presencePenalty,
+      frequencyPenalty: input.frequencyPenalty ?? promptAssistant?.frequencyPenalty ?? project.frequencyPenalty,
       // FIXME: should be maxTokens - prompt tokens
       // maxTokens: input.maxTokens ?? project.maxTokens,
     });
+  };
 
   const getAssistant = (fileId: string) => {
     return getAssistantFromRepository({

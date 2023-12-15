@@ -15,6 +15,7 @@ import { useAsync } from 'react-use';
 
 import { ImageModelInfo, TextModelInfo, getSupportedImagesModels, getSupportedModels } from '../../libs/common';
 import AzureIcon from './ai-icons/azure';
+import GoogleIcon from './ai-icons/google';
 import HuggingFaceIcon from './ai-icons/hugging-face';
 import OpenAIIcon from './ai-icons/openai';
 import ReplicateIcon from './ai-icons/replicate';
@@ -113,4 +114,5 @@ const brandIcon = (brand: string) =>
     'Hugging Face': <HuggingFaceIcon fontSize="small" />,
     Replicate: <ReplicateIcon fontSize="small" />,
     'Vertex AI': <VertexAIIcon fontSize="small" />,
+    Google: <GoogleIcon fontSize="small" />,
   }[brand]);

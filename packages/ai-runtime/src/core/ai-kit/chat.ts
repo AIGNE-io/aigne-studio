@@ -1,4 +1,4 @@
-import { TextDecoderStream } from 'stream/web';
+import { ReadableStream, TextDecoderStream } from 'stream/web';
 
 import { call } from '@blocklet/sdk/lib/component';
 
@@ -62,7 +62,7 @@ export interface ChatCompletionInput {
   )[];
 }
 
-export async function* callAIKitChatCompletions(input: ChatCompletionInput) {
+export async function callAIKitChatCompletions(input: ChatCompletionInput) {
   const response = await call({
     name: 'ai-kit',
     method: 'POST',
@@ -76,11 +76,18 @@ export async function* callAIKitChatCompletions(input: ChatCompletionInput) {
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventSourceParserStream());
 
-  for await (const { data } of stream) {
-    try {
-      if (data) yield JSON.parse(data) as ChatCompletionChunk;
-    } catch (error) {
-      console.error('parse ai response error', error, data);
-    }
-  }
+  return new ReadableStream<ChatCompletionChunk>({
+    async start(controller) {
+      for await (const { data } of stream) {
+        try {
+          if (data) {
+            controller.enqueue(JSON.parse(data) as ChatCompletionChunk);
+          }
+        } catch (error) {
+          console.error('parse ai response error', error, data);
+        }
+      }
+      controller.close();
+    },
+  });
 }
