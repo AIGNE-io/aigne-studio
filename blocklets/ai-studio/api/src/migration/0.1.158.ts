@@ -4,6 +4,7 @@ import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { sortBy } from 'lodash';
 import { customAlphabet } from 'nanoid';
 
+import init from '../init';
 import { wallet } from '../libs/auth';
 import logger from '../libs/logger';
 import { getRepository, isTemplate } from '../store/0.1.157/projects';
@@ -111,6 +112,8 @@ async function migrate() {
 
 (async () => {
   try {
+    await init();
+
     await migrate();
     logger.info(`migration ${version} success`);
     process.exit(0);
