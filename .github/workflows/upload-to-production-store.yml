@@ -1,5 +1,8 @@
 name: upload-to-production-store
 
+env:
+  NODE_OPTIONS: '--max_old_space_size=6144'
+
 on:
   push:
     branches:
@@ -17,11 +20,18 @@ jobs:
         with:
           ref: release
 
+      - name: Prepare @blocklet/cli deps
+        run: yarn global add @blocklet/cli@beta
+        shell: bash
+
       - name: Set yarn cache
         uses: c-hive/gha-yarn-cache@v2
 
       - name: Install dependencies
         run: yarn
+
+      - name: Build packages
+        run: yarn build
 
       - name: Prepare @blocklet/cli deps
         run: yarn global add @blocklet/cli@beta
@@ -36,6 +46,7 @@ jobs:
           skip-release: true
           skip-upload: false
           skip-deploy: true
+          working-directory: blocklets/ai-studio
           bundle-command: yarn bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_PROD }}
           store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_PROD }}

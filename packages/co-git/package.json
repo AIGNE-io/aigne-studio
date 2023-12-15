@@ -1,0 +1,82 @@
+{
+  "name": "@blocklet/co-git",
+  "version": "0.1.172",
+  "description": "The cooperative component library for AI Studio",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
+  "homepage": "https://github.com/blocklet/ai-studio#readme",
+  "license": "ISC",
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "types": "./lib/types/index.d.js",
+  "exports": {
+    ".": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
+    },
+    "./repository": {
+      "import": "./lib/esm/repository/index.js",
+      "require": "./lib/cjs/repository/index.js"
+    },
+    "./yjs": {
+      "import": "./lib/esm/yjs.js",
+      "require": "./lib/cjs/yjs.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/types/index.d.ts"
+      ],
+      "repository": [
+        "./lib/types/repository/index.d.ts"
+      ],
+      "yjs": [
+        "./lib/types/yjs.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "lib",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blocklet/ai-studio.git"
+  },
+  "scripts": {
+    "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "build": "run-p build:*",
+    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
+    "build:esm": "tsc --module es2022 --outDir lib/esm",
+    "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
+    "dev": "run-p 'build:* -- -w'",
+    "clean": "rimraf lib",
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
+    "update:deps": "npx taze -n '/arcblock|ocap|abtnode|blocklet|did-connect|did-comment|nedb/' -w && npm run deduplicate && yarn",
+    "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
+  },
+  "dependencies": {
+    "@syncedstore/core": "^0.6.0-alpha.0",
+    "@syncedstore/react": "^0.6.0-alpha.0",
+    "isomorphic-git": "^1.24.5",
+    "lib0": "^0.2.85",
+    "lodash": "^4.17.21",
+    "queue": "^6.0.2",
+    "ws": "^8.14.1",
+    "y-protocols": "^1.0.6",
+    "yjs": "^13.6.7"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.198",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^5.0.1",
+    "typescript": "^4.9.4"
+  }
+}

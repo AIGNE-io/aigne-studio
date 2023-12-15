@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.json",
+  "ts-node": {
+    "files": true,
+    "require": ["tsconfig-paths/register"],
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  },
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@blocklet/ai-runtime": ["../../packages/ai-runtime/src"],
+      "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],
+      "@blocklet/co-git": ["../../packages/co-git/src"],
+      "@blocklet/co-git/*": ["../../packages/co-git/src/*"],
+      "@blocklet/studio-ui": ["../../packages/studio-ui/src"],
+      "@blocklet/prompt-editor": ["../../packages/prompt-editor/src"],
+      "@blocklet/prompt-editor/*": ["../../packages/prompt-editor/src/*"]
+    }
+  }
+}

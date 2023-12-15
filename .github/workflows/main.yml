@@ -1,5 +1,8 @@
 name: Deploy
 
+env:
+  NODE_OPTIONS: '--max_old_space_size=6144'
+
 on:
   push:
     branches:
@@ -15,19 +18,36 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
+      - name: Prepare @blocklet/cli deps
+        run: yarn global add @blocklet/cli@beta
+        shell: bash
+
       - name: Set yarn cache
         uses: c-hive/gha-yarn-cache@v2
 
       - name: Install dependencies
         run: yarn
 
+      - name: Publish to NPM
+        run: |
+          npm config set '//registry.npmjs.org/:_authToken' "${{ secrets.NPM_TOKEN }}"
+          VERSION=$(cat version | awk '{$1=$1;print}')
+          echo "publish version ${VERSION}"
+          pwd=$(pwd)
+          cd $pwd/packages/co-git && npm publish --access public --no-git-checks
+          cd $pwd/packages/studio-ui && npm publish --access public --no-git-checks
+          cd $pwd/packages/prompt-editor && npm publish --access public --no-git-checks
+          cd $pwd/packages/ai-runtime && npm publish --access public --no-git-checks
+
       - name: Blocklet workflow
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
         uses: blocklet/action-workflow@v1
         with:
+          skip-deps: true
           skip-upload: false
           skip-deploy: true
+          working-directory: blocklets/ai-studio
           bundle-command: yarn bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}
           store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_TEST }}

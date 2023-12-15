@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "outDir": "api/dist",
+    "noEmit": false,
+    "noEmitOnError": true,
+    "module": "CommonJS",
+    "paths": {}
+  },
+  "include": ["api/*.d.ts", "api/src"]
+}

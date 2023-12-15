@@ -1,0 +1,121 @@
+{
+  "name": "@blocklet/ai-runtime",
+  "version": "0.1.172",
+  "description": "Runtime for AI Kits",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
+  "homepage": "https://github.com/blocklet/ai-studio#readme",
+  "license": "ISC",
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "types": "./lib/types/index.d.js",
+  "exports": {
+    ".": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
+    },
+    "./api": {
+      "import": "./lib/esm/api/index.js",
+      "require": "./lib/cjs/api/index.js"
+    },
+    "./components": {
+      "import": "./lib/esm/components/index.js",
+      "require": "./lib/cjs/components/index.js"
+    },
+    "./types": {
+      "import": "./lib/esm/types/index.js",
+      "require": "./lib/cjs/types/index.js"
+    },
+    "./core": {
+      "import": "./lib/esm/core/index.js",
+      "require": "./lib/cjs/core/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/types/index.d.ts"
+      ],
+      "api": [
+        "./lib/types/api/index.d.ts"
+      ],
+      "components": [
+        "./lib/types/components/index.d.ts"
+      ],
+      "types": [
+        "./lib/types/types/index.d.ts"
+      ],
+      "core": [
+        "./lib/types/core/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "lib",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blocklet/ai-studio.git"
+  },
+  "scripts": {
+    "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "build": "run-p build:*",
+    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
+    "build:esm": "tsc --module es2022 --outDir lib/esm",
+    "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
+    "dev": "run-p 'build:* -- -w'",
+    "clean": "rimraf lib",
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
+    "update:deps": "npx taze -n '/arcblock|ocap|abtnode|blocklet|did-connect|did-comment|nedb/' -w && npm run deduplicate && yarn",
+    "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
+  },
+  "dependencies": {
+    "@blocklet/ai-kit": "^0.0.90",
+    "@blocklet/sdk": "^1.16.19",
+    "@microsoft/fetch-event-source": "^2.0.1",
+    "ahooks": "^3.7.8",
+    "axios": "^1.6.2",
+    "dayjs": "^1.11.10",
+    "eventsource-parser": "^1.1.1",
+    "lodash": "^4.17.21",
+    "nanoid": "^3.3.7",
+    "react-hook-form": "^7.48.2",
+    "recoil": "^0.7.7",
+    "snowflake-uuid": "^1.0.0",
+    "ufo": "^1.3.2",
+    "vm2": "^3.9.19"
+  },
+  "peerDependencies": {
+    "@arcblock/ux": "^2.8.17",
+    "@emotion/css": "^11.11.2",
+    "@emotion/react": "^11.11.1",
+    "@mui/icons-material": "^5.14.11",
+    "@mui/lab": "^5.0.0-alpha.146",
+    "@mui/material": "^5.14.11",
+    "react": "^18.2.0",
+    "react-router-dom": "^6.16.0"
+  },
+  "devDependencies": {
+    "@arcblock/ux": "^2.8.21",
+    "@emotion/css": "^11.11.2",
+    "@emotion/react": "^11.11.1",
+    "@mui/icons-material": "^5.14.11",
+    "@mui/lab": "^5.0.0-alpha.146",
+    "@mui/material": "^5.14.11",
+    "@types/lodash": "^4.14.202",
+    "@types/mustache": "^4.2.5",
+    "@types/react": "^18.2.23",
+    "npm-run-all": "^4.1.5",
+    "react": "^18.2.0",
+    "react-router-dom": "^6.16.0",
+    "rimraf": "^5.0.1",
+    "typescript": "^4.9.4"
+  }
+}

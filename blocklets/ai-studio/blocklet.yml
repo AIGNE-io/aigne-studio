@@ -1,0 +1,97 @@
+name: ai-studio
+title: AI Studio
+description: AI Studio is a flexible tool designed to create prompts for AI Kit
+keywords:
+  - blocklet
+  - react
+group: dapp
+did: z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB
+main: api/dist/index.js
+author:
+  name: arcblock
+  email: blocklet@arcblock.io
+  url: https://github.com/blocklet
+repository:
+  type: git
+  url: git+https://github.com/blocklet/ai-assistant.git
+specVersion: 1.2.8
+version: 0.1.172
+logo: logo.png
+files:
+  - dist
+  - logo.png
+  - screenshots
+  - api/hooks/pre-start.js
+  - api/images
+  - migration
+  - api/dist/migration
+  - api/dist/store/migrate.js
+  - api/dist/store/migrations/*.js
+interfaces:
+  - type: web
+    name: publicUrl
+    path: /
+    prefix: '*'
+    port: BLOCKLET_PORT
+    protocol: http
+community: https://community.arcblock.io
+documentation: https://developer.blocklet.io
+homepage: https://store.blocklet.dev
+license: ''
+payment:
+  price: []
+  share: []
+timeout:
+  start: 60
+requirements:
+  server: '>=1.16.0'
+  os: '*'
+  cpu: '*'
+scripts:
+  preStart: node api/hooks/pre-start.js
+  dev: npm run start
+environments: []
+capabilities:
+  clusterMode: false
+  component: true
+  navigation: true
+  resourceExportApi: /api/resources/export
+screenshots:
+  - studio.gif
+components:
+  - name: ai-kit
+    mountPoint: /ai-kit
+    source:
+      name: ai-kit
+      version: latest
+  - name: image-bin
+    required: true
+    mountPoint: /image-bin
+    source:
+      name: image-bin
+      version: latest
+navigation:
+  - id: template
+    title:
+      en: Template
+      zh: 提示模版
+    icon: fluent:design-ideas-16-regular
+    link: /projects
+    section:
+      - dashboard
+    role:
+      - admin
+      - owner
+      - promptsEditor
+  - id: datasets
+    title:
+      en: Datasets
+      zh: 数据集
+    icon: icon-park-outline:data
+    link: /datasets
+    section:
+      - dashboard
+    role:
+      - admin
+      - owner
+      - promptsEditor

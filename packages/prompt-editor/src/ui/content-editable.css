@@ -1,0 +1,11 @@
+.ContentEditable__root {
+  border: 0;
+  font-size: 15px;
+  display: block;
+  position: relative;
+  outline: 0;
+}
+
+.ContentEditable__root span {
+  word-break: break-all;
+}
