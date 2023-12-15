@@ -5,6 +5,7 @@ import omit from 'lodash/omit';
 import { nanoid } from 'nanoid';
 import { stringify } from 'yaml';
 
+import init from '../init';
 import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
@@ -82,6 +83,8 @@ function migrateTemplateToPrompts(template: Template): Template {
 
 (async () => {
   try {
+    await init();
+
     await migrate();
     logger.info('migration 0.1.69 success');
     process.exit(0);
