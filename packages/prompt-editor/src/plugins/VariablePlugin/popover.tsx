@@ -52,6 +52,18 @@ export default function VariablePopover({
     };
   }, [editor]);
 
+  useEffect(() => {
+    const fn = () => {
+      ref.current = false;
+      setState(null);
+    };
+    window.addEventListener('keydown', fn);
+
+    return () => {
+      window.removeEventListener('keydown', fn);
+    };
+  }, []);
+
   const handleClose = () => setState(null);
 
   if (!popperElement) {

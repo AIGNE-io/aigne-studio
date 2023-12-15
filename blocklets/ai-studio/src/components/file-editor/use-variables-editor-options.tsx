@@ -31,7 +31,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
     }
 
     return [...new Set([...(parameterVariables || []), ...(executeVariables || [])])].filter(Boolean);
-  }, []);
+  }, [JSON.stringify(assistant)]);
 
   const options = useMemo(() => {
     return (variables ?? [])
