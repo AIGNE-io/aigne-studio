@@ -1,5 +1,3 @@
-import Project from 'api/src/store/models/project';
-
 import {
   AddProjectRemoteInput,
   CreateProjectInput,
@@ -8,6 +6,7 @@ import {
   ProjectPushInput,
   UpdateProjectInput,
 } from '../../api/src/routes/project';
+import Project from '../../api/src/store/models/project';
 import axios from './api';
 
 export type User = {

@@ -2,7 +2,7 @@ import { Box, BoxProps, CircularProgress, Stack } from '@mui/material';
 import { ComponentProps, useEffect } from 'react';
 
 import AIFormView from './AIFormView';
-import { AssistantIdentifier, useExecutingState, useTemplateState } from './state';
+import { AssistantIdentifier, useAssistantState, useExecutingState } from './state';
 
 export interface AIFormProps {
   identifier: AssistantIdentifier;
@@ -12,9 +12,9 @@ export interface AIFormProps {
 
 export default function AIForm({ BoxProps, SubmitProps, identifier }: AIFormProps) {
   const {
-    state: { loading, assistant: template, error },
+    state: { loading, assistant, error },
     reload,
-  } = useTemplateState(identifier);
+  } = useAssistantState(identifier);
 
   const {
     state: { loading: submitting },
@@ -23,7 +23,7 @@ export default function AIForm({ BoxProps, SubmitProps, identifier }: AIFormProp
   } = useExecutingState(identifier);
 
   useEffect(() => {
-    if (!template) reload();
+    if (!assistant) reload();
   }, []);
 
   if (error) throw error;
@@ -34,10 +34,10 @@ export default function AIForm({ BoxProps, SubmitProps, identifier }: AIFormProp
         <Stack height="100%" alignItems="center" justifyContent="center">
           <CircularProgress size={24} />
         </Stack>
-      ) : template ? (
+      ) : assistant ? (
         <AIFormView
           SubmitProps={SubmitProps}
-          assistant={template}
+          assistant={assistant}
           submitting={submitting}
           onSubmit={(parameters) => execute({ parameters })}
           onCancel={cancel}

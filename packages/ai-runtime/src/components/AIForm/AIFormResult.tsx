@@ -1,5 +1,6 @@
+import { ImagePreview } from '@blocklet/ai-kit';
 import { ErrorRounded } from '@mui/icons-material';
-import { Alert, Box, BoxProps, styled } from '@mui/material';
+import { Alert, Box, BoxProps, CircularProgress, styled } from '@mui/material';
 
 import { AssistantIdentifier, useExecutingState } from './state';
 
@@ -13,11 +14,29 @@ export default function AIFormResult({ identifier, BoxProps }: AIFormResultProps
 
   return (
     <Box height="100%" {...BoxProps}>
-      <Box whiteSpace="pre-wrap">
-        {state.content}
+      {state.loading && !state.content && !state.images?.length && (
+        <Box textAlign="center">
+          <CircularProgress size={32} />
+        </Box>
+      )}
 
-        {state.loading && <WritingIndicator />}
-      </Box>
+      {state.content && (
+        <Box whiteSpace="pre-wrap">
+          {state.content}
+
+          {state.loading && <WritingIndicator />}
+        </Box>
+      )}
+
+      {state.images && state.images.length > 0 && (
+        <ImagePreview
+          itemWidth={state.images.length === 1 ? undefined : 200}
+          spacing={2}
+          dataSource={state.images
+            .map((item) => ({ src: item.url || (item.b64Json && `data:image/png;base64,${item.b64Json}`) }))
+            .filter((i): i is { src: string } => !!i.src)}
+        />
+      )}
 
       {state.error && (
         <Box>

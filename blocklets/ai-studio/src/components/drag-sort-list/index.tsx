@@ -6,8 +6,9 @@ import { useUpdate } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import { ReactNode, useCallback, useEffect, useId, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget, useDrag, useDrop } from 'react-dnd';
-import DragVertical from 'src/pages/project/icons/drag-vertical';
-import Trash from 'src/pages/project/icons/trash';
+
+import DragVertical from '../../pages/project/icons/drag-vertical';
+import Trash from '../../pages/project/icons/trash';
 
 export function DragSortListYjs<T>({
   disabled,

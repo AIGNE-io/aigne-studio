@@ -4,12 +4,13 @@ import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
 import { Box, Button, Collapse, FormLabel, Stack, Tooltip, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
-import AwarenessIndicator from 'src/components/awareness/awareness-indicator';
-import WithAwareness from 'src/components/awareness/with-awareness';
-import ModelSelectField from 'src/components/selector/model-select-field';
-import SliderNumberField from 'src/components/slider-number-field';
-import { getSupportedModels } from 'src/libs/common';
-import { useProjectState } from 'src/pages/project/state';
+
+import { getSupportedModels } from '../../../libs/common';
+import { useProjectState } from '../../../pages/project/state';
+import AwarenessIndicator from '../../awareness/awareness-indicator';
+import WithAwareness from '../../awareness/with-awareness';
+import ModelSelectField from '../../selector/model-select-field';
+import SliderNumberField from '../../slider-number-field';
 
 export default function PromptAssistantSetting({
   projectId,

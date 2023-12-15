@@ -16,10 +16,10 @@ import {
   alpha,
 } from '@mui/material';
 import { sortBy } from 'lodash';
-import Add from 'src/pages/project/icons/add';
-import Trash from 'src/pages/project/icons/trash';
 
 import { useReadOnly } from '../../../contexts/session';
+import Add from '../../../pages/project/icons/add';
+import Trash from '../../../pages/project/icons/trash';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';
 import ParametersTable from '../parameters-table';
