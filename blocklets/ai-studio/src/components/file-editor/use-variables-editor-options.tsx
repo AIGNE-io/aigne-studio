@@ -14,24 +14,29 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   const { t } = useLocaleContext();
   const [highlightedId, setHighlightedId] = useHighlightedState();
 
-  const variables = useMemo(() => {
-    const parameterVariables =
-      assistant?.parameters &&
+  const variableSet = new Set(
+    assistant?.parameters &&
       Object.values(assistant.parameters)
         .map((i) => i.data.key)
-        .filter((i): i is string => !!i);
+        .filter((i): i is string => !!i)
+  );
 
-    let executeVariables: string[] = [];
-    if (assistant && 'prepareExecutes' in assistant) {
-      executeVariables = assistant.prepareExecutes
-        ? Object.values(assistant.prepareExecutes)
-            .map((i) => i.data.variable)
-            .filter((i): i is string => !!i)
-        : [];
+  if (assistant && 'prepareExecutes' in assistant && assistant.prepareExecutes) {
+    for (const { data } of Object.values(assistant.prepareExecutes)) {
+      if (data.variable) variableSet.add(data.variable);
     }
+  }
 
-    return [...new Set([...(parameterVariables || []), ...(executeVariables || [])])].filter(Boolean);
-  }, [JSON.stringify(assistant)]);
+  if (assistant && 'prompts' in assistant && assistant.prompts) {
+    for (const { data } of Object.values(assistant.prompts)) {
+      if (data.type === 'executeBlock') {
+        const { variable } = data.data;
+        if (variable) variableSet.add(variable);
+      }
+    }
+  }
+
+  const variables = [...variableSet];
 
   const options = useMemo(() => {
     return (variables ?? [])
