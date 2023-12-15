@@ -76,7 +76,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
 
   const addParameter = useCallback(
     (parameter: string) => {
-      if (!assistant) return;
+      if (!assistant) return undefined;
 
       const doc = (getYjsValue(assistant) as Map<any>).doc!;
       const id = randomId();
@@ -95,9 +95,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
       setHighlightedId(id);
       setTimeout(() => setHighlightedId(null), 500);
 
-      setTimeout(() => {
-        document.getElementById(`${id}-key`)?.focus();
-      });
+      return id;
     },
     [assistant]
   );
