@@ -1,3 +1,7 @@
+## 0.1.173 (2023-12-15)
+
+- fix: init database before migration running
+
 ## 0.1.172 (2023-12-15)
 
 - fix: delay popper variable dialog
