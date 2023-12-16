@@ -1,6 +1,6 @@
 import {
   CallAI,
-  RunAssistantChunk,
+  RunAssistantResponse,
   callAIKitChatCompletions,
   nextTaskId,
   runAssistant,
@@ -116,17 +116,17 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
     startDate,
   });
 
+  const emit = (data: RunAssistantResponse) => {
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.flushHeaders();
+    }
+
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+    res.flush();
+  };
+
   try {
-    const emit = (data: RunAssistantChunk) => {
-      if (!res.headersSent) {
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.flushHeaders();
-      }
-
-      res.write(`data: ${JSON.stringify(data)}\n\n`);
-      res.flush();
-    };
-
     const taskId = nextTaskId();
 
     if (stream) emit({ taskId, assistantId: assistant.id, delta: {} });
@@ -148,12 +148,18 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
 
     const endDate = new Date();
     const requestTime = endDate.getTime() - startDate.getTime();
-    await log.update({ endDate, requestTime, status: Status.SUCCESS, response: result });
+    log.update({ endDate, requestTime, status: Status.SUCCESS, response: result });
   } catch (error) {
+    if (stream) {
+      emit({ error: { message: error.message } });
+    } else {
+      res.status(500).json({ error: { message: error.message } });
+    }
+    res.end();
+
     const endDate = new Date();
     const requestTime = endDate.getTime() - startDate.getTime();
-    await log.update({ endDate, requestTime, status: Status.FAIL, error: error.message });
-    throw error;
+    log.update({ endDate, requestTime, status: Status.FAIL, error: error.message });
   }
 });
 

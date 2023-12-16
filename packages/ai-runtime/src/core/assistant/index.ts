@@ -20,6 +20,8 @@ import {
 import { ImageAssistant, Mustache, isImageAssistant } from '../../types/assistant';
 import { ChatCompletionChunk, callAIKitChatCompletions, callAIKitImageGeneration } from '../ai-kit';
 
+export type RunAssistantResponse = RunAssistantChunk | RunAssistantError;
+
 export type RunAssistantChunk = {
   taskId: string;
   assistantId: string;
@@ -32,7 +34,11 @@ export type RunAssistantChunk = {
   };
 };
 
-export type RunAssistantCallback = (e: RunAssistantChunk) => void;
+export type RunAssistantError = {
+  error: { message: string };
+};
+
+export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
 export interface GetAssistant {
   (assistantId: string, options: { rejectOnEmpty: true | Error }): Promise<Assistant>;
@@ -433,7 +439,7 @@ async function runExecuteBlocks({
   getAssistant: GetAssistant;
   parameters?: { [key: string]: any };
   executeBlocks: ExecuteBlock[];
-  callback?: (e: RunAssistantChunk) => any;
+  callback?: RunAssistantCallback;
 }) {
   const variables = {
     ...parameters,
@@ -482,7 +488,7 @@ async function runExecuteBlock({
   getAssistant: GetAssistant;
   executeBlock: ExecuteBlock;
   parameters?: { [key: string]: any };
-  callback?: (e: RunAssistantChunk) => void;
+  callback?: RunAssistantCallback;
 }) {
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
@@ -584,9 +590,9 @@ async function runExecuteBlock({
         } else {
           toolCalls.forEach((item, index) => {
             const call = calls?.[index];
-            if (call) {
-              call.function.name += item.function.name || '';
-              call.function.arguments += item.function.arguments || '';
+            if (call?.function) {
+              call.function.name += item.function?.name || '';
+              call.function.arguments += item.function?.arguments || '';
             }
           });
         }
@@ -599,6 +605,8 @@ async function runExecuteBlock({
       calls &&
       (await Promise.all(
         calls.map(async (call) => {
+          if (!call.function?.name || !call.function.arguments) return undefined;
+
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
 
