@@ -33,13 +33,13 @@ function convertVariableElement(domNode: HTMLElement): DOMConversionOutput | nul
   return null;
 }
 
-const style = `
+export const variableStyle = `
   color: rgb(234 179 8/1);
   font-weight: bold;
   cursor: pointer;
 `;
 
-const warningStyle = `
+export const textStyle = `
   color: #ef5350;
   font-weight: bold;
   cursor: pointer;
@@ -83,9 +83,9 @@ export class VariableTextNode extends TextNode {
     dom.addEventListener('mouseleave', this.handleMouseLeave.bind(this, dom));
 
     if (this.isVariable) {
-      dom.style.cssText = style;
+      dom.style.cssText = variableStyle;
     } else {
-      dom.style.cssText = warningStyle;
+      dom.style.cssText = textStyle;
     }
 
     return dom;
@@ -95,9 +95,9 @@ export class VariableTextNode extends TextNode {
     const update = super.updateDOM(prevNode, dom, config);
 
     if (this.isVariable) {
-      dom.style.cssText = style;
+      dom.style.cssText = variableStyle;
     } else {
-      dom.style.cssText = warningStyle;
+      dom.style.cssText = textStyle;
     }
 
     return update;

@@ -4,6 +4,7 @@ import { sep } from 'path/posix';
 import { getYjsValue } from '@blocklet/co-git/yjs';
 import { glob } from 'glob';
 
+import init from '../init';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { getRepository } from '../store/0.1.157/projects';
@@ -52,6 +53,8 @@ async function migrate() {
 
 (async () => {
   try {
+    await init();
+
     await migrate();
     logger.info(`migration ${__filename} success`);
     process.exit(0);

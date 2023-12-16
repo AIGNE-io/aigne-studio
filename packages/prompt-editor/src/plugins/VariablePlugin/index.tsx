@@ -1,6 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
 import {
+  $getNodeByKey,
   $getSelection,
   $insertNodes,
   $setSelection,
@@ -13,7 +14,8 @@ import { useEffect } from 'react';
 
 import VariablePopover from './popover';
 import useTransformVariableNode from './user-transform-node';
-import { $createVariableNode, VariableTextNode } from './variable-text-node';
+import { extractBracketContent } from './utils/util';
+import { $createVariableNode, VariableTextNode, textStyle, variableStyle } from './variable-text-node';
 
 export const INSERT_VARIABLE_COMMAND: LexicalCommand<{ name: string }> = createCommand('INSERT_VARIABLE_COMMAND');
 
@@ -66,18 +68,26 @@ export default function VarContextPlugin({
     if (!editor.hasNodes([VariableTextNode])) {
       throw new Error('VarContextPlugin: VariableTextNode not registered on editor');
     }
+
     return mergeRegister(
       editor.registerMutationListener(VariableTextNode, (mutations) => {
-        const registeredElements: WeakSet<HTMLElement> = new WeakSet();
         editor.getEditorState().read(() => {
-          for (const [key, mutation] of mutations) {
+          for (const [key] of mutations) {
             const element: null | HTMLElement = editor.getElementByKey(key);
-            if (
-              (mutation === 'created' || mutation === 'updated') &&
-              element !== null &&
-              !registeredElements.has(element)
-            ) {
-              registeredElements.add(element);
+            const node = $getNodeByKey(key);
+
+            if (element && node) {
+              const isVariable = (variables || []).includes(extractBracketContent(element.innerText) || '');
+
+              if (node.getCurrentVariable() !== isVariable) {
+                node.setIsVariable(isVariable);
+
+                if (isVariable) {
+                  element.style.cssText = variableStyle;
+                } else {
+                  element.style.cssText = textStyle;
+                }
+              }
             }
           }
         });
@@ -93,7 +103,7 @@ export default function VarContextPlugin({
       })
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor]);
+  }, [editor, variables]);
 
   useTransformVariableNode(editor, variables);
 
