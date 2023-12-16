@@ -1,3 +1,7 @@
+## 0.1.174 (2023-12-16)
+
+- feat: support gemini
+
 ## 0.1.173 (2023-12-15)
 
 - fix: init database before migration running
