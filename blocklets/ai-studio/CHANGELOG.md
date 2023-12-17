@@ -1,3 +1,7 @@
+## 0.1.174 (2023-12-17)
+
+- fix: support $history parameter
+
 ## 0.1.173 (2023-12-15)
 
 - fix: init database before migration running
