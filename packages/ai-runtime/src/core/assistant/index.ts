@@ -348,6 +348,15 @@ async function runPromptAssistant({
     )
   ).filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
+  // TODO: 这是临时支持的 history 方式（目前 Aistro 在用），之后会提供内置的 history 机制
+  if (Array.isArray(parameters.$history)) {
+    const history = parameters.$history
+      .filter((i): i is (typeof messages)[number] => typeof i.role === 'string' && typeof i.content === 'string')
+      .map((i) => pick(i, 'role', 'content'));
+
+    messages.unshift(...history);
+  }
+
   const res = await callAI({
     assistant,
     input: {
