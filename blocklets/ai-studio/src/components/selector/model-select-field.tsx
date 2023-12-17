@@ -17,6 +17,7 @@ import { ImageModelInfo, TextModelInfo, getSupportedImagesModels, getSupportedMo
 import AzureIcon from './ai-icons/azure';
 import GoogleIcon from './ai-icons/google';
 import HuggingFaceIcon from './ai-icons/hugging-face';
+import MistralIcon from './ai-icons/mistral.png?url';
 import OpenAIIcon from './ai-icons/openai';
 import ReplicateIcon from './ai-icons/replicate';
 import VertexAIIcon from './ai-icons/vertex-ai';
@@ -54,7 +55,10 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
             <Box mt={-0.5}>
               <ListItemIcon sx={{ verticalAlign: 'middle', minWidth: 32 }}>{brandIcon(model.brand)}</ListItemIcon>
 
-              <ListItemText sx={{ display: 'inline-flex', alignItems: 'baseline' }} primary={model.model} />
+              <ListItemText
+                sx={{ display: 'inline-flex', alignItems: 'baseline' }}
+                primary={model.name || model.model}
+              />
             </Box>
           );
         },
@@ -73,7 +77,7 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
 
               <ListItemText
                 sx={{ display: 'inline-flex', alignItems: 'baseline' }}
-                primary={model.model}
+                primary={model.name || model.model}
                 secondary={model.disabled ? '(coming soon)' : undefined}
                 secondaryTypographyProps={{ fontStyle: 'italic', ml: 1 }}
               />
@@ -115,4 +119,5 @@ const brandIcon = (brand: string) =>
     Replicate: <ReplicateIcon fontSize="small" />,
     'Vertex AI': <VertexAIIcon fontSize="small" />,
     Google: <GoogleIcon fontSize="small" />,
+    'Mistral AI': <Box component="img" src={MistralIcon} width={20} height={20} />,
   }[brand]);

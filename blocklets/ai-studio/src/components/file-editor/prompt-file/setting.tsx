@@ -49,7 +49,7 @@ export default function PromptAssistantSetting({
               <Typography
                 component="span"
                 sx={{ bgcolor: 'rgba(241, 243, 245, 1)', p: 1, borderRadius: 1, lineHeight: 1 }}>
-                {value.model || project?.model}
+                {model?.name || model?.model || project?.model}
               </Typography>
             </Stack>
           )}
