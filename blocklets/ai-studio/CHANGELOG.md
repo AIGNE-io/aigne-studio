@@ -1,3 +1,7 @@
+## 0.1.175 (2023-12-17)
+
+- feat: support gemini
+
 ## 0.1.174 (2023-12-17)
 
 - fix: support $history parameter
