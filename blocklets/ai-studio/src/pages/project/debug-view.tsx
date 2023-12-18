@@ -416,6 +416,7 @@ function ChatModeForm({
         type: 'chat',
         content: question,
         model: promptAssistant?.model || project?.model,
+        topP: promptAssistant?.topP ?? project?.topP,
         temperature: promptAssistant?.temperature ?? project?.temperature,
         frequencyPenalty: promptAssistant?.frequencyPenalty ?? project?.frequencyPenalty,
         presencePenalty: promptAssistant?.presencePenalty ?? project?.presencePenalty,

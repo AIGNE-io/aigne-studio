@@ -331,6 +331,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             content: string;
             model?: string;
             temperature?: number;
+            topP?: number;
             presencePenalty?: number;
             frequencyPenalty?: number;
           }
@@ -378,7 +379,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                   role: 'user',
                   content: message.content,
                 }),
-                ...pick(message, 'model', 'temperature', 'presencePenalty', 'frequencyPenalty'),
+                ...pick(message, 'model', 'temperature', 'topP', 'presencePenalty', 'frequencyPenalty'),
               })
             : await runAssistant({
                 url: joinURL(PREFIX, '/api/ai/call'),
