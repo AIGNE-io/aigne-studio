@@ -1,9 +1,8 @@
-import { Readable } from 'stream';
 import { ReadableStream, TextDecoderStream } from 'stream/web';
 
 import { call } from '@blocklet/sdk/lib/component';
 
-import { EventSourceParserStream } from './utils';
+import { EventSourceParserStream, readableToWeb } from './utils';
 
 export type ChatCompletionResponse = ChatCompletionChunk | ChatCompletionError;
 
@@ -89,41 +88,29 @@ export async function callAIKitChatCompletions(input: ChatCompletionInput) {
     responseType: 'stream',
   });
 
-  const stream = readableToWebStream(response.data)
+  const stream = readableToWeb(response.data)
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventSourceParserStream());
 
   return new ReadableStream<ChatCompletionChunk>({
     async start(controller) {
-      for await (const { data } of stream) {
-        try {
-          if (data) {
-            const json = JSON.parse(data) as ChatCompletionResponse;
-            if (isChatCompletionError(json)) {
-              controller.error(new Error(json.error.message));
-              return;
-            }
-            controller.enqueue(json);
-          }
-        } catch (error) {
-          console.error('parse ai response error', error, data);
-        }
-      }
-      controller.close();
-    },
-  });
-}
-
-function readableToWebStream(readable: Readable) {
-  return new ReadableStream({
-    async start(controller) {
-      for await (const chunk of readable) {
-        controller.enqueue(chunk);
-      }
       try {
+        for await (const { data } of stream) {
+          try {
+            if (data) {
+              const json = JSON.parse(data) as ChatCompletionResponse;
+              if (isChatCompletionError(json)) {
+                controller.error(new Error(json.error.message));
+                break;
+              }
+              controller.enqueue(json);
+            }
+          } catch (error) {
+            console.error('parse ai response error', error, data);
+          }
+        }
+      } finally {
         controller.close();
-      } catch (error) {
-        console.error(error);
       }
     },
   });
