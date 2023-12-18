@@ -78,6 +78,7 @@ export default function ExecuteBlockForm({
           <Typography variant="caption">{t('prompt')}</Typography>
 
           <PromptEditorField
+            readOnly={readOnly}
             assistant={assistant}
             value={value.selectByPrompt}
             onChange={(prompt) => (value.selectByPrompt = prompt)}

@@ -1,35 +1,16 @@
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ApiAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  alpha,
-} from '@mui/material';
-import { sortBy } from 'lodash';
+import { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
+import { Box, Stack, alpha } from '@mui/material';
 
 import { useReadOnly } from '../../../contexts/session';
-import Add from '../../../pages/project/icons/add';
-import Trash from '../../../pages/project/icons/trash';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';
 import ParametersTable from '../parameters-table';
-import PrepareExecuteList from '../prepare-execute-list';
-import PromptEditorField from '../prompt-editor-field';
+import ApiAssistantEditorAPI from './api';
+import ApiAssistantEditorPrepare from './prepare';
 import ApiAssistantSetting from './setting';
 
 // TODO 放到theme中
 const bgcolor = 'rgba(249, 250, 251, 1)';
-
 export default function ApiAssistantEditor({
   projectId,
   gitRef,
@@ -41,8 +22,6 @@ export default function ApiAssistantEditor({
   value: ApiAssistantYjs;
   disabled?: boolean;
 }) {
-  const { t } = useLocaleContext();
-
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
@@ -56,43 +35,7 @@ export default function ApiAssistantEditor({
       </Box>
 
       <Stack sx={{ bgcolor, p: 1, px: 2, borderRadius: 1, gap: 2 }}>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="subtitle1">{t('prepareExecutes')}</Typography>
-
-          <Button
-            sx={{ minWidth: 32, minHeight: 32, p: 0 }}
-            onClick={() => {
-              const doc = (getYjsValue(value) as Map<any>).doc!;
-              doc.transact(() => {
-                const id = nextAssistantId();
-                value.prepareExecutes ??= {};
-                value.prepareExecutes[id] = {
-                  index: Math.max(-1, ...Object.values(value.prepareExecutes).map((i) => i.index)) + 1,
-                  data: { id },
-                };
-              });
-            }}>
-            <Add />
-          </Button>
-        </Stack>
-
-        {value.prepareExecutes && Object.values(value.prepareExecutes).length ? (
-          <Stack gap={2}>
-            <PrepareExecuteList
-              assistant={value}
-              projectId={projectId}
-              gitRef={gitRef}
-              value={value.prepareExecutes}
-              readOnly={readOnly}
-            />
-          </Stack>
-        ) : (
-          <Box textAlign="center">
-            <Typography variant="caption" color="text.disabled">
-              {t('haveNotAddedTip', { object: t('executeBlock') })}
-            </Typography>
-          </Box>
-        )}
+        <ApiAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Stack>
 
       <Box
@@ -102,91 +45,7 @@ export default function ApiAssistantEditor({
           borderRadius: 2,
           bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
         }}>
-        <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
-          <TipsAndUpdatesRounded fontSize="small" color="primary" />
-
-          <Typography variant="subtitle1">{t('api')}</Typography>
-        </Stack>
-
-        <Stack bgcolor="background.paper" borderRadius={2} pt={1}>
-          <Table
-            size="small"
-            sx={{
-              td: {
-                border: 'none',
-              },
-            }}>
-            <TableHead>
-              <TableRow>
-                <TableCell align="center" width="200">
-                  {t('parameter')}
-                </TableCell>
-                <TableCell align="center">{t('value')}</TableCell>
-                <TableCell align="center" width="100">
-                  {t('actions')}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {value.requestParameters &&
-                sortBy(Object.values(value.requestParameters), (i) => i.index).map(({ data: parameter }) => {
-                  return (
-                    <TableRow key={parameter.id}>
-                      <TableCell>
-                        <TextField
-                          hiddenLabel
-                          fullWidth
-                          value={parameter.key || ''}
-                          onChange={(e) => (parameter.key = e.target.value)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <PromptEditorField
-                          assistant={value}
-                          value={parameter.value}
-                          onChange={(value) => (parameter.value = value)}
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Button
-                          sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                          onClick={() => {
-                            const doc = (getYjsValue(value) as Map<any>).doc!;
-                            doc.transact(() => {
-                              if (!value.requestParameters) return;
-                              delete value.requestParameters[parameter.id];
-                              Object.values(value.requestParameters).forEach((i, index) => (i.index = index));
-                            });
-                          }}>
-                          <Trash />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-            </TableBody>
-          </Table>
-
-          <Box>
-            <Button
-              sx={{ px: 2 }}
-              startIcon={<Add />}
-              onClick={() => {
-                const doc = (getYjsValue(value) as Map<any>).doc!;
-                doc.transact(() => {
-                  const id = nextAssistantId();
-
-                  value.requestParameters ??= {};
-                  value.requestParameters[id] = {
-                    index: Math.max(-1, ...Object.values(value.requestParameters).map((i) => i.index)) + 1,
-                    data: { id },
-                  };
-                });
-              }}>
-              {t('addObject', { object: t('parameter') })}
-            </Button>
-          </Box>
-        </Stack>
+        <ApiAssistantEditorAPI value={value} disabled={disabled} />
       </Box>
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>

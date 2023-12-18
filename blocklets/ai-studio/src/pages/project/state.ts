@@ -1,12 +1,17 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isRunAssistantChunk, isRunAssistantError, runAssistant } from '@blocklet/ai-runtime/api';
-import { Role } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import { getYjsDoc } from '@blocklet/co-git/yjs';
+import { useThrottleEffect } from 'ahooks';
+import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
 import localForage from 'localforage';
+import { cloneDeep, differenceBy, intersectionBy, omitBy } from 'lodash';
 import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 
@@ -16,6 +21,8 @@ import { PREFIX } from '../../libs/api';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
+import * as api from '../../libs/tree';
+import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 export const defaultBranch = 'main';
 
@@ -42,6 +49,8 @@ const projectState = (projectId: string, gitRef: string) => {
 
 export const useProjectState = (projectId: string, gitRef: string) => {
   const [state, setState] = useRecoilState(projectState(projectId, gitRef));
+
+  useAssistantChangesState(projectId, gitRef);
 
   const refetch = useCallback(async () => {
     let loading: boolean | undefined = false;
@@ -503,3 +512,178 @@ async function migrateDebugStateFroMLocalStorageToIndexedDB() {
 }
 
 const debugStateMigration = migrateDebugStateFroMLocalStorageToIndexedDB();
+
+export type AssistantYjsWithParents = AssistantYjs & { parent: string[] };
+
+export interface AssistantState {
+  created: AssistantYjsWithParents[];
+  deleted: AssistantYjsWithParents[];
+  modified: AssistantYjsWithParents[];
+  createdMap: { [key: string]: AssistantYjsWithParents };
+  modifiedMap: { [key: string]: AssistantYjsWithParents };
+  deletedMap: { [key: string]: AssistantYjsWithParents };
+  disabled: boolean;
+  loading: boolean;
+  assistants: AssistantYjsWithParents[];
+  files: AssistantYjsWithParents[];
+}
+
+const assistantStates: { [key: string]: RecoilState<AssistantState> } = {};
+
+const assistantState = (projectId: string, gitRef: string) => {
+  const key = `${projectId}-${gitRef}`;
+
+  assistantStates[key] ??= atom<AssistantState>({
+    key: `assistantState-${key}`,
+    default: {
+      created: [],
+      deleted: [],
+      modified: [],
+      disabled: true,
+      createdMap: {},
+      modifiedMap: {},
+      deletedMap: {},
+      loading: false,
+      assistants: [],
+      files: [],
+    },
+  });
+
+  return assistantStates[key]!;
+};
+
+export const useAssistantChangesState = (projectId: string, ref: string) => {
+  const { t } = useLocaleContext();
+  const [state, setState] = useRecoilState(assistantState(projectId, ref));
+
+  const { store, synced } = useProjectStore(projectId, ref);
+
+  useThrottleEffect(
+    () => {
+      if (state.loading) return;
+      if (!synced) return;
+
+      const duplicateItems = intersectionBy(state.assistants, state.files, 'id');
+      const news = differenceBy(state.files, state.assistants, 'id');
+      const deleted = differenceBy(state.assistants, state.files, 'id');
+      const modified = duplicateItems.filter((i) => {
+        const item = omitBy(i, (x) => !x);
+
+        const found = state.files.find((f) => item.id === f.id);
+        if (!found) {
+          return false;
+        }
+
+        const file = omitBy(found, (x) => !x);
+        return !equal(item, file);
+      });
+
+      const arrToObj = (list: AssistantYjsWithParents[]) => Object.fromEntries(list.map((i) => [i.id, i]));
+
+      setState((v) => ({
+        ...v,
+        created: news,
+        deleted,
+        modified,
+        disabled: news.length + deleted.length + modified.length === 0,
+        createdMap: arrToObj(news),
+        modifiedMap: arrToObj(modified),
+        deletedMap: arrToObj(deleted),
+      }));
+    },
+    [state.assistants, state.files, state.loading, synced, projectId, ref],
+    { wait: 1000 }
+  );
+
+  useEffect(() => {
+    const getFile = () => {
+      const files = Object.entries(store.tree)
+        .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
+        .map(([id, filepath]) => {
+          const file = store.files[id] as AssistantYjsWithParents;
+
+          if (file) {
+            return { ...file, parent: (filepath?.split('/') || []).slice(0, -1) };
+          }
+
+          return file;
+        })
+        .filter((x) => x !== null)
+        .filter((i): i is AssistantYjsWithParents => !!i && isAssistant(i));
+
+      setState((r) => ({ ...r, files: cloneDeep(files) }));
+    };
+
+    getYjsDoc(store).getMap('files').observeDeep(getFile);
+    getYjsDoc(store).getMap('tree').observeDeep(getFile);
+
+    return () => {
+      getYjsDoc(store).getMap('files').unobserveDeep(getFile);
+      getYjsDoc(store).getMap('tree').unobserveDeep(getFile);
+    };
+  }, [projectId, ref]);
+
+  const run = async () => {
+    try {
+      setState((r) => ({ ...r, loading: true }));
+
+      const [{ files }] = await Promise.all([api.getTree({ projectId, ref })]);
+      const assistants = files
+        .filter((x) => typeof x === 'object' && x.parent[0] === PROMPTS_FOLDER_NAME)
+        .map((x) => {
+          if (x && x.type === 'file') {
+            const file = fileToYjs(x.meta) as AssistantYjsWithParents;
+            return { ...file, parent: x.parent };
+          }
+
+          return null;
+        })
+        .filter((x) => x !== null)
+        .filter((i): i is AssistantYjsWithParents => !!i && isAssistant(i));
+
+      setState((r) => ({ ...r, assistants }));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setState((r) => ({ ...r, loading: false }));
+    }
+  };
+
+  const changes = (item: AssistantYjs) => {
+    if (state.createdMap[item.id]) {
+      return {
+        key: 'N',
+        color: 'success.main',
+        tips: t('diff.created'),
+      };
+    }
+
+    if (state.modifiedMap[item.id]) {
+      return {
+        key: 'M',
+        color: 'warning.main',
+        tips: t('diff.modified'),
+      };
+    }
+
+    if (state.deletedMap[item.id]) {
+      return {
+        key: 'D',
+        color: 'error.main',
+        tips: t('diff.deleted'),
+      };
+    }
+
+    return null;
+  };
+
+  const getOriginTemplate = (item: AssistantYjs) => {
+    return state.assistants.find((x) => x.id === item.id);
+  };
+
+  useEffect(() => {
+    if (projectId && ref) run();
+  }, [projectId, ref]);
+
+  return { ...state, changes, run, getOriginTemplate };
+};

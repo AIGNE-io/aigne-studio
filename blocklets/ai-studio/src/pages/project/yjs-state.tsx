@@ -256,10 +256,10 @@ export function createFile({
     ...meta,
     id,
     type: (meta.type || 'prompt') as any,
-    createdAt: now,
-    updatedAt: now,
-    createdBy: '',
-    updatedBy: '',
+    createdAt: meta?.createdAt || now,
+    updatedAt: meta?.updatedAt || now,
+    createdBy: meta?.createdBy || '',
+    updatedBy: meta?.updatedBy || '',
   };
 
   if (isPromptAssistant(file)) {

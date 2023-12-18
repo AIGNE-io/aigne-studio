@@ -142,9 +142,11 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
                 <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
               </Button>
 
-              <Button sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }} onClick={() => deleteParameter(parameter)}>
-                <Trash fontSize="small" sx={{ color: 'text.secondary', opacity: 0.9 }} />
-              </Button>
+              {!readOnly && (
+                <Button sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }} onClick={() => deleteParameter(parameter)}>
+                  <Trash fontSize="small" sx={{ color: 'text.secondary', opacity: 0.9 }} />
+                </Button>
+              )}
             </>
           );
         },
@@ -158,16 +160,18 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
           <Typography variant="subtitle1">{t('parameters')}</Typography>
 
-          <Button
-            sx={{ minWidth: 32, p: 0, minHeight: 32 }}
-            onClick={() => {
-              const id = addParameter('');
-              setTimeout(() => {
-                document.getElementById(`${id}-key`)?.focus();
-              });
-            }}>
-            <Add />
-          </Button>
+          {!readOnly && (
+            <Button
+              sx={{ minWidth: 32, p: 0, minHeight: 32 }}
+              onClick={() => {
+                const id = addParameter('');
+                setTimeout(() => {
+                  document.getElementById(`${id}-key`)?.focus();
+                });
+              }}>
+              <Add />
+            </Button>
+          )}
         </Stack>
 
         {parameters.length ? (
