@@ -1,4 +1,4 @@
-import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api';
+import { isRunAssistantChunk, isRunAssistantError, runAssistant } from '@blocklet/ai-runtime/api';
 import { Role } from '@blocklet/ai-runtime/types';
 import produce, { Draft } from 'immer';
 import localForage from 'localforage';
@@ -428,6 +428,11 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                   }
                 });
               }
+            } else if (isRunAssistantError(value)) {
+              setMessage(sessionIndex, responseId, (message) => {
+                if (message.cancelled) return;
+                message.error = value.error;
+              });
             } else {
               console.error('Unknown AI response type', value);
             }

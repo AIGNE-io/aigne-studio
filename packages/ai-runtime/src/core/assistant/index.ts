@@ -1,3 +1,5 @@
+import { ReadableStream } from 'stream/web';
+
 import axios, { isAxiosError } from 'axios';
 import { isNil, pick } from 'lodash';
 import { Worker } from 'snowflake-uuid';
@@ -18,6 +20,8 @@ import {
 import { ImageAssistant, Mustache, isImageAssistant } from '../../types/assistant';
 import { ChatCompletionChunk, callAIKitChatCompletions, callAIKitImageGeneration } from '../ai-kit';
 
+export type RunAssistantResponse = RunAssistantChunk | RunAssistantError;
+
 export type RunAssistantChunk = {
   taskId: string;
   assistantId: string;
@@ -30,12 +34,21 @@ export type RunAssistantChunk = {
   };
 };
 
-export type RunAssistantCallback = (e: RunAssistantChunk) => void;
+export type RunAssistantError = {
+  error: { message: string };
+};
+
+export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
 export interface GetAssistant {
   (assistantId: string, options: { rejectOnEmpty: true | Error }): Promise<Assistant>;
   (assistantId: string, options?: { rejectOnEmpty?: false }): Promise<Assistant | null>;
 }
+
+export type CallAI = (options: {
+  assistant: Assistant;
+  input: Parameters<typeof callAIKitChatCompletions>[0];
+}) => Promise<ReadableStream<ChatCompletionChunk>>;
 
 const taskIdGenerator = new Worker();
 
@@ -50,7 +63,7 @@ export async function runAssistant({
   callback,
 }: {
   taskId: string;
-  callAI: typeof callAIKitChatCompletions;
+  callAI: CallAI;
   getAssistant: GetAssistant;
   assistant: Assistant;
   parameters?: { [key: string]: any };
@@ -112,7 +125,7 @@ async function runFunctionAssistant({
   parameters,
   callback,
 }: {
-  callAI: typeof callAIKitChatCompletions;
+  callAI: CallAI;
   getAssistant: GetAssistant;
   taskId: string;
   assistant: FunctionAssistant;
@@ -187,7 +200,7 @@ async function runApiAssistant({
   parameters,
   callback,
 }: {
-  callAI: typeof callAIKitChatCompletions;
+  callAI: CallAI;
   getAssistant: GetAssistant;
   taskId: string;
   assistant: ApiAssistant;
@@ -267,7 +280,7 @@ async function runPromptAssistant({
   parameters,
   callback,
 }: {
-  callAI: typeof callAIKitChatCompletions;
+  callAI: CallAI;
   taskId: string;
   getAssistant: GetAssistant;
   assistant: PromptAssistant;
@@ -344,9 +357,12 @@ async function runPromptAssistant({
     messages.unshift(...history);
   }
 
-  const res = callAI({
-    stream: true,
-    messages,
+  const res = await callAI({
+    assistant,
+    input: {
+      stream: true,
+      messages,
+    },
   });
 
   let result = '';
@@ -367,7 +383,7 @@ async function runImageAssistant({
   parameters,
   callback,
 }: {
-  callAI: typeof callAIKitChatCompletions;
+  callAI: CallAI;
   taskId: string;
   getAssistant: GetAssistant;
   assistant: ImageAssistant;
@@ -428,11 +444,11 @@ async function runExecuteBlocks({
   callback,
 }: {
   assistant: Assistant;
-  callAI: typeof callAIKitChatCompletions;
+  callAI: CallAI;
   getAssistant: GetAssistant;
   parameters?: { [key: string]: any };
   executeBlocks: ExecuteBlock[];
-  callback?: (e: RunAssistantChunk) => any;
+  callback?: RunAssistantCallback;
 }) {
   const variables = {
     ...parameters,
@@ -477,11 +493,11 @@ async function runExecuteBlock({
 }: {
   taskId: string;
   assistant: Assistant;
-  callAI: typeof callAIKitChatCompletions;
+  callAI: CallAI;
   getAssistant: GetAssistant;
   executeBlock: ExecuteBlock;
   parameters?: { [key: string]: any };
-  callback?: (e: RunAssistantChunk) => void;
+  callback?: RunAssistantCallback;
 }) {
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
@@ -552,17 +568,20 @@ async function runExecuteBlock({
       )
     ).filter((i): i is NonNullable<typeof i> => !isNil(i));
 
-    const response = callAI({
-      messages: [{ role: 'user', content: message }],
-      toolChoice: 'auto',
-      tools: toolAssistants.map((i) => ({
-        type: 'function',
-        function: {
-          name: i.function.name,
-          description: i.function.descriptions,
-          parameters: i.function.parameters,
-        },
-      })),
+    const response = await callAI({
+      assistant,
+      input: {
+        messages: [{ role: 'user', content: message }],
+        toolChoice: 'auto',
+        tools: toolAssistants.map((i) => ({
+          type: 'function',
+          function: {
+            name: i.function.name,
+            description: i.function.descriptions,
+            parameters: i.function.parameters,
+          },
+        })),
+      },
     });
 
     let calls: NonNullable<ChatCompletionChunk['delta']['toolCalls']> | undefined;
@@ -580,9 +599,9 @@ async function runExecuteBlock({
         } else {
           toolCalls.forEach((item, index) => {
             const call = calls?.[index];
-            if (call) {
-              call.function.name += item.function.name || '';
-              call.function.arguments += item.function.arguments || '';
+            if (call?.function) {
+              call.function.name += item.function?.name || '';
+              call.function.arguments += item.function?.arguments || '';
             }
           });
         }
@@ -595,6 +614,8 @@ async function runExecuteBlock({
       calls &&
       (await Promise.all(
         calls.map(async (call) => {
+          if (!call.function?.name || !call.function.arguments) return undefined;
+
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
 
