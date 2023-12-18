@@ -1,9 +1,8 @@
-import { Readable } from 'stream';
 import { ReadableStream, TextDecoderStream } from 'stream/web';
 
 import { call } from '@blocklet/sdk/lib/component';
 
-import { EventSourceParserStream } from './utils';
+import { EventSourceParserStream, readableToWeb } from './utils';
 
 export type ChatCompletionResponse = ChatCompletionChunk | ChatCompletionError;
 
@@ -89,27 +88,30 @@ export async function callAIKitChatCompletions(input: ChatCompletionInput) {
     responseType: 'stream',
   });
 
-  const stream = Readable.toWeb(response.data)
+  const stream = readableToWeb(response.data)
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventSourceParserStream());
 
   return new ReadableStream<ChatCompletionChunk>({
     async start(controller) {
-      for await (const { data } of stream) {
-        try {
-          if (data) {
-            const json = JSON.parse(data) as ChatCompletionResponse;
-            if (isChatCompletionError(json)) {
-              controller.error(new Error(json.error.message));
-              return;
+      try {
+        for await (const { data } of stream) {
+          try {
+            if (data) {
+              const json = JSON.parse(data) as ChatCompletionResponse;
+              if (isChatCompletionError(json)) {
+                controller.error(new Error(json.error.message));
+                break;
+              }
+              controller.enqueue(json);
             }
-            controller.enqueue(json);
+          } catch (error) {
+            console.error('parse ai response error', error, data);
           }
-        } catch (error) {
-          console.error('parse ai response error', error, data);
         }
+      } finally {
+        controller.close();
       }
-      controller.close();
     },
   });
 }

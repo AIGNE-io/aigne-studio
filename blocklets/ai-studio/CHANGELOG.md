@@ -1,3 +1,11 @@
+## 0.1.177 (2023-12-18)
+
+- fix: custom readableToWeb function instead of Readable.toWeb
+
+## 0.1.176 (2023-12-18)
+
+- fix: readable.toweb not support
+
 ## 0.1.175 (2023-12-17)
 
 - feat: support gemini
