@@ -89,7 +89,7 @@ export async function callAIKitChatCompletions(input: ChatCompletionInput) {
     responseType: 'stream',
   });
 
-  const stream = Readable.toWeb(response.data)
+  const stream = readableToWebStream(response.data)
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventSourceParserStream());
 
@@ -110,6 +110,21 @@ export async function callAIKitChatCompletions(input: ChatCompletionInput) {
         }
       }
       controller.close();
+    },
+  });
+}
+
+function readableToWebStream(readable: Readable) {
+  return new ReadableStream({
+    async start(controller) {
+      for await (const chunk of readable) {
+        controller.enqueue(chunk);
+      }
+      try {
+        controller.close();
+      } catch (error) {
+        console.error(error);
+      }
     },
   });
 }
