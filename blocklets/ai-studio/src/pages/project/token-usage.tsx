@@ -24,7 +24,7 @@ export function TokenUsage({ assistant }: { assistant: AssistantYjs }) {
 
     return messages.length > 0
       ? new GPTTokens({
-          model: (assistant.model || 'gpt-3.5-turbo') as any,
+          model: 'gpt-3.5-turbo',
           messages,
         })
       : undefined;
