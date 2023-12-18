@@ -50,8 +50,6 @@ const projectState = (projectId: string, gitRef: string) => {
 export const useProjectState = (projectId: string, gitRef: string) => {
   const [state, setState] = useRecoilState(projectState(projectId, gitRef));
 
-  useAssistantChangesState(projectId, gitRef);
-
   const refetch = useCallback(async () => {
     let loading: boolean | undefined = false;
     setState((v) => {
