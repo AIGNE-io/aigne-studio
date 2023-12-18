@@ -43,7 +43,7 @@ import Empty from './icons/empty';
 import Record from './icons/record';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
-import { SessionItem, useDebugState } from './state';
+import { SessionItem, useDebugState, useProjectState } from './state';
 import { useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {
@@ -127,7 +127,7 @@ function DebugViewContent({
 
       <Stack gap={2} sx={{ position: 'sticky', bottom: 0, py: 2, bgcolor: 'background.paper' }}>
         {currentSession.chatType !== 'debug' ? (
-          <ChatModeForm projectId={projectId} assistantId={assistant.id} />
+          <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
         ) : (
           <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
         )}
@@ -373,10 +373,22 @@ function CopyButton({ message }: { message: string }) {
   );
 }
 
-function ChatModeForm({ projectId, assistantId }: { projectId: string; assistantId: string }) {
+function ChatModeForm({
+  projectId,
+  gitRef,
+  assistant,
+}: {
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+}) {
   const { t } = useLocaleContext();
 
-  const { state, sendMessage, cancelMessage } = useDebugState({ projectId, assistantId });
+  const {
+    state: { project },
+  } = useProjectState(projectId, gitRef);
+
+  const { state, sendMessage, cancelMessage } = useDebugState({ projectId, assistantId: assistant.id });
 
   const scrollToBottom = useScrollToBottom();
 
@@ -396,7 +408,19 @@ function ChatModeForm({ projectId, assistantId }: { projectId: string; assistant
       return;
     }
 
-    sendMessage({ sessionIndex: state.currentSessionIndex!, message: { type: 'chat', content: question } });
+    const promptAssistant = isPromptAssistant(assistant) ? assistant : undefined;
+
+    sendMessage({
+      sessionIndex: state.currentSessionIndex!,
+      message: {
+        type: 'chat',
+        content: question,
+        model: promptAssistant?.model || project?.model,
+        temperature: promptAssistant?.temperature ?? project?.temperature,
+        frequencyPenalty: promptAssistant?.frequencyPenalty ?? project?.frequencyPenalty,
+        presencePenalty: promptAssistant?.presencePenalty ?? project?.presencePenalty,
+      },
+    });
     scrollToBottom({ behavior: 'smooth' });
 
     setQuestion('');

@@ -4,6 +4,7 @@ import produce, { Draft } from 'immer';
 import localForage from 'localforage';
 import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
+import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
 import { useCallback } from 'react';
@@ -325,7 +326,14 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
     }: {
       sessionIndex: number;
       message:
-        | { type: 'chat'; content: string }
+        | {
+            type: 'chat';
+            content: string;
+            model?: string;
+            temperature?: number;
+            presencePenalty?: number;
+            frequencyPenalty?: number;
+          }
         | {
             type: 'debug';
             projectId: string;
@@ -370,6 +378,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                   role: 'user',
                   content: message.content,
                 }),
+                ...pick(message, 'model', 'temperature', 'presencePenalty', 'frequencyPenalty'),
               })
             : await runAssistant({
                 url: joinURL(PREFIX, '/api/ai/call'),
