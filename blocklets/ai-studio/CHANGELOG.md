@@ -1,3 +1,7 @@
+## 0.1.179 (2023-12-19)
+
+- fix: support custom placeholder/loading of result view
+
 ## 0.1.178 (2023-12-18)
 
 - fix: apply model configuration to chat mode

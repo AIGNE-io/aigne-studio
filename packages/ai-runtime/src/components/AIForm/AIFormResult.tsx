@@ -1,23 +1,33 @@
 import { ImagePreview } from '@blocklet/ai-kit';
 import { ErrorRounded } from '@mui/icons-material';
-import { Alert, Box, BoxProps, CircularProgress, styled } from '@mui/material';
+import { Alert, Box, BoxProps, CircularProgress, Typography, styled } from '@mui/material';
+import { ReactNode } from 'react';
 
 import { AssistantIdentifier, useExecutingState } from './state';
 
 export interface AIFormResultProps {
   identifier: AssistantIdentifier;
+  placeholder?: ReactNode;
+  loadingIndicator?: ReactNode;
   BoxProps?: BoxProps;
 }
 
-export default function AIFormResult({ identifier, BoxProps }: AIFormResultProps) {
+export default function AIFormResult({
+  identifier,
+  placeholder = (
+    <Typography variant="caption" color="text.disabled">
+      Let's try it
+    </Typography>
+  ),
+  loadingIndicator = <CircularProgress size={32} />,
+  BoxProps,
+}: AIFormResultProps) {
   const { state } = useExecutingState(identifier);
 
   return (
     <Box height="100%" {...BoxProps}>
-      {state.loading && !state.content && !state.images?.length && (
-        <Box textAlign="center">
-          <CircularProgress size={32} />
-        </Box>
+      {!state.content && !state.images?.length && !state.error && (
+        <Box textAlign="center">{state.loading ? loadingIndicator : placeholder}</Box>
       )}
 
       {state.content && (
