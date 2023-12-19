@@ -1,5 +1,5 @@
 import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
-import { Box, Divider, Stack, alpha } from '@mui/material';
+import { Box, Divider, Stack } from '@mui/material';
 
 import ImageAssistantEditorPrepare from '../../../components/file-editor/image-file/prepare';
 import ImageAssistantEditorFormatPrompt from '../../../components/file-editor/image-file/prompt';
@@ -20,37 +20,39 @@ export default function CompareImagesAssistant({
     <>
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <ImageAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={remoteAssistant} disabled />
+          <ImageAssistantEditorPrepare
+            projectId={projectId}
+            gitRef={gitRef}
+            value={remoteAssistant}
+            compareValue={localeAssistant}
+            isRemoteCompare
+            disabled
+          />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <ImageAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={localeAssistant} disabled />
+          <ImageAssistantEditorPrepare
+            projectId={projectId}
+            gitRef={gitRef}
+            value={localeAssistant}
+            compareValue={remoteAssistant}
+            disabled
+          />
         </Box>
       </Stack>
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <Box
-            sx={{
-              border: 2,
-              borderColor: 'primary.main',
-              borderRadius: 2,
-              bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-            }}>
-            <ImageAssistantEditorFormatPrompt gitRef={gitRef} value={remoteAssistant} disabled />
-          </Box>
+          <ImageAssistantEditorFormatPrompt gitRef={gitRef} value={remoteAssistant} disabled />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <Box
-            sx={{
-              border: 2,
-              borderColor: 'primary.main',
-              borderRadius: 2,
-              bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-            }}>
-            <ImageAssistantEditorFormatPrompt gitRef={gitRef} value={localeAssistant} disabled />
-          </Box>
+          <ImageAssistantEditorFormatPrompt
+            gitRef={gitRef}
+            value={localeAssistant}
+            disabled
+            compareValue={remoteAssistant}
+          />
         </Box>
       </Stack>
 
@@ -60,7 +62,13 @@ export default function CompareImagesAssistant({
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <ImageAssistantSetting projectId={projectId} gitRef={gitRef} value={localeAssistant} readOnly />
+          <ImageAssistantSetting
+            projectId={projectId}
+            gitRef={gitRef}
+            value={localeAssistant}
+            readOnly
+            compareValue={remoteAssistant}
+          />
         </Box>
       </Stack>
     </>

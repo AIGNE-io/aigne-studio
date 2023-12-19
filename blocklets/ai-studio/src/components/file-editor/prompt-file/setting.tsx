@@ -17,15 +17,15 @@ export default function PromptAssistantSetting({
   projectId,
   gitRef,
   value,
-  compareValue,
   readOnly,
+  compareValue,
   isRemoteCompare,
 }: {
   projectId: string;
   gitRef: string;
   value: PromptAssistantYjs;
-  compareValue?: PromptAssistantYjs;
   readOnly?: boolean;
+  compareValue?: PromptAssistantYjs;
   isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();

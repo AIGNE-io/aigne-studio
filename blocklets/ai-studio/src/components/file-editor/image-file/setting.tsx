@@ -5,6 +5,7 @@ import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
 import { Box, Button, Collapse, FormLabel, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
+import { useAssistantCompare } from 'src/pages/project/state';
 
 import { defaultImageModel, getSupportedImagesModels } from '../../../libs/common';
 import AwarenessIndicator from '../../awareness/awareness-indicator';
@@ -17,17 +18,22 @@ export default function ImageAssistantSetting({
   gitRef,
   value,
   readOnly,
+  compareValue,
+  isRemoteCompare,
 }: {
   projectId: string;
   gitRef: string;
   value: ImageAssistantYjs;
   readOnly?: boolean;
+  compareValue?: ImageAssistantYjs;
+  isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();
 
   const [open, setOpen] = useState(false);
 
   const { value: supportedModels } = useAsync(() => getSupportedImagesModels(), []);
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   const model = value.model || defaultImageModel;
 
@@ -45,7 +51,13 @@ export default function ImageAssistantSetting({
             <Stack direction="row" alignItems="center" gap={1}>
               <Typography
                 component="span"
-                sx={{ bgcolor: 'rgba(241, 243, 245, 1)', p: 1, borderRadius: 1, lineHeight: 1 }}>
+                sx={{
+                  bgcolor: 'rgba(241, 243, 245, 1)',
+                  p: 1,
+                  borderRadius: 1,
+                  lineHeight: 1,
+                  backgroundColor: getDiffBackground('model'),
+                }}>
                 {model}
               </Typography>
             </Stack>
@@ -81,7 +93,7 @@ export default function ImageAssistantSetting({
                     if (Object.hasOwn(value, 'style')) delete value.style;
                   });
                 }}
-                InputProps={{ readOnly }}
+                InputProps={{ readOnly, sx: { backgroundColor: getDiffBackground('model') } }}
               />
             </WithAwareness>
 
@@ -131,7 +143,7 @@ export default function ImageAssistantSetting({
                         step={1}
                         value={value.n ?? modelDetail.nDefault}
                         onChange={(_, v) => (value.n = v)}
-                        sx={{ flex: 1 }}
+                        sx={{ flex: 1, sx: { backgroundColor: getDiffBackground('n') } }}
                       />
                     </WithAwareness>
 
@@ -162,6 +174,7 @@ export default function ImageAssistantSetting({
                         SelectProps={{
                           readOnly,
                           autoWidth: true,
+                          sx: { backgroundColor: getDiffBackground('quality') },
                         }}
                         value={value.quality ?? modelDetail.qualityDefault}
                         onChange={(e) => (value.quality = e.target.value)}>
@@ -200,6 +213,7 @@ export default function ImageAssistantSetting({
                         SelectProps={{
                           readOnly,
                           autoWidth: true,
+                          sx: { backgroundColor: getDiffBackground('responseFormat') },
                         }}
                         value={value.responseFormat ?? modelDetail.responseFormatDefault}
                         onChange={(e) => (value.responseFormat = e.target.value)}>
@@ -238,6 +252,7 @@ export default function ImageAssistantSetting({
                         SelectProps={{
                           readOnly,
                           autoWidth: true,
+                          sx: { backgroundColor: getDiffBackground('size') },
                         }}
                         value={value.size ?? modelDetail.sizeDefault}
                         onChange={(e) => (value.size = e.target.value)}>
@@ -276,6 +291,7 @@ export default function ImageAssistantSetting({
                         SelectProps={{
                           readOnly,
                           autoWidth: true,
+                          sx: { backgroundColor: getDiffBackground('style') },
                         }}
                         value={value.style ?? modelDetail.styleDefault}
                         onChange={(e) => (value.style = e.target.value)}>

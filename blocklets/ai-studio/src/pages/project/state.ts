@@ -703,7 +703,15 @@ export function useAssistantCompare({
 
       const isDifferent = [path].some((item) => {
         const key = id ? [item, id] : [item];
-        return !equal(get(compareValue, key, defaultValue ?? ''), get(value, key, defaultValue ?? ''));
+
+        const compareItem = JSON.stringify(get(compareValue, key.join('.'), defaultValue ?? ''));
+        const currentItem = JSON.stringify(get(value, key.join('.'), defaultValue ?? ''));
+
+        if (id) {
+          console.log(JSON.parse(JSON.stringify(compareValue)), compareItem, key);
+        }
+
+        return !equal(compareItem, currentItem);
       });
 
       if (!isDifferent) return '';
@@ -743,7 +751,9 @@ export function useAssistantCompare({
   );
 
   const getDiffBackground = useCallback(
-    (path: any, id?: string, defaultValue?: string) => getDiffStyle('background', path, id, defaultValue),
+    (path: any, id?: string, defaultValue?: string) => {
+      return getDiffStyle('background', path, id, defaultValue);
+    },
     [getDiffStyle]
   );
 

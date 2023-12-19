@@ -160,8 +160,7 @@ function PromptItemMessage({
           color: promptHidden ? 'text.disabled' : undefined,
         },
         backgroundColor: background,
-      }}
-      className="prompt-item">
+      }}>
       <Stack direction="row" alignItems="center" gap={1} p={1}>
         <Typography variant="subtitle2">{t('prompt')}</Typography>
 

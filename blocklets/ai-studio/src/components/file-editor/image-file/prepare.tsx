@@ -12,11 +12,15 @@ export default function ImageAssistantEditorPrepare({
   gitRef,
   value,
   disabled,
+  compareValue,
+  isRemoteCompare,
 }: {
   projectId: string;
   gitRef: string;
   value: ImageAssistantYjs;
   disabled?: boolean;
+  compareValue?: ImageAssistantYjs;
+  isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();
 
@@ -54,6 +58,8 @@ export default function ImageAssistantEditorPrepare({
             gitRef={gitRef}
             value={value.prepareExecutes}
             readOnly={readOnly}
+            compareAssistant={compareValue}
+            isRemoteCompare={isRemoteCompare}
           />
         </Stack>
       ) : (
