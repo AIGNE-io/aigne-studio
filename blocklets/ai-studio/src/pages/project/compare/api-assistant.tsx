@@ -53,11 +53,11 @@ export default function CompareAPIAssistant({
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <ApiAssistantSetting value={remoteAssistant} readOnly />
+          <ApiAssistantSetting value={remoteAssistant} readOnly isOpen />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <ApiAssistantSetting value={localeAssistant} readOnly compareValue={remoteAssistant} />
+          <ApiAssistantSetting value={localeAssistant} compareValue={remoteAssistant} readOnly isOpen />
         </Box>
       </Stack>
     </>

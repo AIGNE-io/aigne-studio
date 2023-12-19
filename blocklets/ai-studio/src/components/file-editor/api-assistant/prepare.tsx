@@ -31,21 +31,23 @@ export default function ApiAssistantEditorPrepare({
       <Stack direction="row" justifyContent="space-between">
         <Typography variant="subtitle1">{t('prepareExecutes')}</Typography>
 
-        <Button
-          sx={{ minWidth: 32, minHeight: 32, p: 0 }}
-          onClick={() => {
-            const doc = (getYjsValue(value) as Map<any>).doc!;
-            doc.transact(() => {
-              const id = nextAssistantId();
-              value.prepareExecutes ??= {};
-              value.prepareExecutes[id] = {
-                index: Math.max(-1, ...Object.values(value.prepareExecutes).map((i) => i.index)) + 1,
-                data: { id },
-              };
-            });
-          }}>
-          <Add />
-        </Button>
+        {!readOnly && (
+          <Button
+            sx={{ minWidth: 32, minHeight: 32, p: 0 }}
+            onClick={() => {
+              const doc = (getYjsValue(value) as Map<any>).doc!;
+              doc.transact(() => {
+                const id = nextAssistantId();
+                value.prepareExecutes ??= {};
+                value.prepareExecutes[id] = {
+                  index: Math.max(-1, ...Object.values(value.prepareExecutes).map((i) => i.index)) + 1,
+                  data: { id },
+                };
+              });
+            }}>
+            <Add />
+          </Button>
+        )}
       </Stack>
 
       {value.prepareExecutes && Object.values(value.prepareExecutes).length ? (

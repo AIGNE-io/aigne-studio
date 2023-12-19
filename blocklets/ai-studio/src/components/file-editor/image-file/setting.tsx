@@ -20,6 +20,7 @@ export default function ImageAssistantSetting({
   readOnly,
   compareValue,
   isRemoteCompare,
+  isOpen = false,
 }: {
   projectId: string;
   gitRef: string;
@@ -27,16 +28,16 @@ export default function ImageAssistantSetting({
   readOnly?: boolean;
   compareValue?: ImageAssistantYjs;
   isRemoteCompare?: boolean;
+  isOpen?: boolean;
 }) {
   const { t } = useLocaleContext();
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(isOpen);
 
-  const { value: supportedModels } = useAsync(() => getSupportedImagesModels(), []);
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
+  const { value: supportedModels } = useAsync(() => getSupportedImagesModels(), []);
   const model = value.model || defaultImageModel;
-
   const modelDetail = useMemo(() => {
     return supportedModels?.find((i) => i.model === model);
   }, [model, supportedModels]);

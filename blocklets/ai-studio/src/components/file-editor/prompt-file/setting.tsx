@@ -20,6 +20,7 @@ export default function PromptAssistantSetting({
   readOnly,
   compareValue,
   isRemoteCompare,
+  isOpen = false,
 }: {
   projectId: string;
   gitRef: string;
@@ -27,25 +28,23 @@ export default function PromptAssistantSetting({
   readOnly?: boolean;
   compareValue?: PromptAssistantYjs;
   isRemoteCompare?: boolean;
+  isOpen?: boolean;
 }) {
   const { t } = useLocaleContext();
 
-  const [open, setOpen] = useState(false);
-
-  const {
-    state: { project },
-  } = useProjectState(projectId, gitRef);
+  const [open, setOpen] = useState(isOpen);
 
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
+  const { state } = useProjectState(projectId, gitRef);
+  const { project } = state;
   const { value: supportedModels } = useAsync(() => getSupportedModels(), []);
-
   const model = useMemo(() => {
     return supportedModels?.find((i) => i.model === (value.model || project?.model));
   }, [value.model, project?.model, supportedModels]);
 
   return (
-    <Box>
+    <>
       <Stack direction="row" alignItems="center" gap={2}>
         <Typography variant="subtitle1">{t('callPrompt')}</Typography>
 
@@ -263,6 +262,6 @@ export default function PromptAssistantSetting({
           )}
         </Stack>
       </Collapse>
-    </Box>
+    </>
   );
 }

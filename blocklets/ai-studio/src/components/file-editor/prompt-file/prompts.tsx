@@ -46,6 +46,7 @@ export default function PromptAssistantEditorPrompts({
       sx={{
         borderRadius: 1,
         bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+        overflow: 'hidden',
       }}>
       <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
         <TipsAndUpdatesRounded fontSize="small" color="primary" />
@@ -69,15 +70,17 @@ export default function PromptAssistantEditorPrompts({
                     assistant={value}
                     value={prompt.data}
                     promptHidden={prompt.visibility === 'hidden'}
-                    background={getDiffBackground('prompts', prompt.data.id)}
+                    backgroundColor={getDiffBackground('prompts', prompt.data.id)}
                   />
                 ) : (
                   <PromptItemExecuteBlock
+                    readOnly={readOnly}
                     assistant={value}
                     projectId={projectId}
                     gitRef={gitRef}
                     value={prompt.data}
                     promptHidden={prompt.visibility === 'hidden'}
+                    backgroundColor={getDiffBackground('prompts', prompt.data.id)}
                   />
                 );
 
@@ -139,13 +142,13 @@ function PromptItemMessage({
   value,
   promptHidden,
   readOnly,
-  background = {},
+  backgroundColor = {},
 }: {
   assistant: AssistantYjs;
   value: PromptMessage;
   promptHidden?: boolean;
   readOnly?: boolean;
-  background: Object;
+  backgroundColor: Object;
 }) {
   const { t } = useLocaleContext();
 
@@ -159,7 +162,7 @@ function PromptItemMessage({
         '*': {
           color: promptHidden ? 'text.disabled' : undefined,
         },
-        backgroundColor: background,
+        backgroundColor,
       }}>
       <Stack direction="row" alignItems="center" gap={1} p={1}>
         <Typography variant="subtitle2">{t('prompt')}</Typography>
@@ -183,12 +186,16 @@ function PromptItemExecuteBlock({
   value,
   assistant,
   promptHidden,
+  readOnly,
+  backgroundColor,
 }: {
   projectId: string;
   gitRef: string;
   value: ExecuteBlockYjs;
   assistant: AssistantYjs;
   promptHidden?: boolean;
+  readOnly?: boolean;
+  backgroundColor: Object;
 }) {
   return (
     <ExecuteBlockForm
@@ -196,12 +203,14 @@ function PromptItemExecuteBlock({
       projectId={projectId}
       gitRef={gitRef}
       value={value}
+      readOnly={readOnly}
       sx={{
         borderColor: (theme) =>
           alpha(theme.palette.warning.main, promptHidden ? theme.palette.action.disabledOpacity : 1),
         '*': {
           color: promptHidden ? 'text.disabled' : undefined,
         },
+        backgroundColor,
       }}
     />
   );

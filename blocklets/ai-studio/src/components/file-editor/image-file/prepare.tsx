@@ -31,7 +31,7 @@ export default function ImageAssistantEditorPrepare({
       <Stack direction="row" justifyContent="space-between">
         <Typography variant="subtitle1">{t('prepareExecutes')}</Typography>
 
-        {!disabled && (
+        {!readOnly && (
           <Button
             sx={{ minWidth: 32, minHeight: 32, p: 0 }}
             onClick={() => {

@@ -2,7 +2,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isRunAssistantChunk, isRunAssistantError, runAssistant } from '@blocklet/ai-runtime/api';
 import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
-import { pink } from '@mui/material/colors';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
@@ -701,18 +700,13 @@ export function useAssistantCompare({
     (path: keyof AssistantYjs, id?: string, defaultValue?: string) => {
       if (!compareValue) return '';
 
-      const isDifferent = [path].some((item) => {
-        const key = id ? [item, id] : [item];
+      const key = (id ? [path, id] : [path]).join('.');
 
-        const compareItem = JSON.stringify(get(compareValue, key.join('.'), defaultValue ?? ''));
-        const currentItem = JSON.stringify(get(value, key.join('.'), defaultValue ?? ''));
-
-        if (id) {
-          console.log(JSON.parse(JSON.stringify(compareValue)), compareItem, key);
-        }
-
+      const isDifferent = (() => {
+        const compareItem = JSON.stringify(get(compareValue, key, defaultValue ?? ''));
+        const currentItem = JSON.stringify(get(value, key, defaultValue ?? ''));
         return !equal(compareItem, currentItem);
-      });
+      })();
 
       if (!isDifferent) return '';
 
@@ -720,7 +714,6 @@ export function useAssistantCompare({
         return isDifferent ? 'modify' : '';
       }
 
-      const key = id ? [path, id] : [path];
       const itemExistsInCompareValue = get(compareValue, key);
       if (itemExistsInCompareValue === undefined) return isRemoteCompare ? 'delete' : 'new';
 

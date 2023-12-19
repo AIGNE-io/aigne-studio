@@ -44,6 +44,7 @@ export default function ApiAssistantEditorAPI({
         borderColor: 'primary.main',
         borderRadius: 2,
         bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+        overflow: 'hidden',
       }}>
       <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
         <TipsAndUpdatesRounded fontSize="small" color="primary" />
@@ -52,13 +53,7 @@ export default function ApiAssistantEditorAPI({
       </Stack>
 
       <Stack bgcolor="background.paper" borderRadius={2} pt={1}>
-        <Table
-          size="small"
-          sx={{
-            td: {
-              border: 'none',
-            },
-          }}>
+        <Table size="small" sx={{ td: { border: 'none' } }}>
           <TableHead>
             <TableRow>
               <TableCell align="center" width="200">
@@ -82,11 +77,13 @@ export default function ApiAssistantEditorAPI({
                         hiddenLabel
                         fullWidth
                         value={parameter.key || ''}
+                        InputProps={{ readOnly: disabled }}
                         onChange={(e) => (parameter.key = e.target.value)}
                       />
                     </TableCell>
                     <TableCell>
                       <PromptEditorField
+                        sx={{ '.ContentEditable__root': { fontSize: '12px' } }}
                         readOnly={disabled}
                         assistant={value}
                         value={parameter.value}

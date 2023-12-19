@@ -149,16 +149,18 @@ export default function ParametersTable({
           return (
             <>
               <Button
+                disabled={readOnly}
                 sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
                 onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
                 <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
               </Button>
 
-              {!readOnly && (
-                <Button sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }} onClick={() => deleteParameter(parameter)}>
-                  <Trash fontSize="small" sx={{ color: 'text.secondary', opacity: 0.9 }} />
-                </Button>
-              )}
+              <Button
+                disabled={readOnly}
+                sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+                onClick={() => deleteParameter(parameter)}>
+                <Trash fontSize="small" sx={{ color: 'text.secondary', opacity: 0.9 }} />
+              </Button>
             </>
           );
         },

@@ -10,18 +10,20 @@ export default function ApiAssistantSetting({
   readOnly,
   compareValue,
   isRemoteCompare,
+  isOpen,
 }: {
   value: ApiAssistantYjs;
   readOnly?: boolean;
   compareValue?: ApiAssistantYjs;
   isRemoteCompare?: boolean;
+  isOpen?: boolean;
 }) {
   const { t } = useLocaleContext();
 
-  const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
-  const [open, setOpen] = useState(false);
-
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
+
+  const [open, setOpen] = useState(isOpen);
+  const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
 
   return (
     <Box>

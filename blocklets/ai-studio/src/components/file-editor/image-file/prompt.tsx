@@ -32,6 +32,7 @@ export default function ImageAssistantEditorFormatPrompt({
         borderColor: 'primary.main',
         borderRadius: 2,
         bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+        overflow: 'hidden',
         backgroundColor: getDiffBackground('prompt'),
       }}>
       <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>

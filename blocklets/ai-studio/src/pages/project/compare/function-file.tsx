@@ -1,5 +1,5 @@
 import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
-import { Box, Divider, Stack, alpha } from '@mui/material';
+import { Box, Divider, Stack } from '@mui/material';
 
 import FunctionCodeEditor from '../../../components/file-editor/function-file/function-code-editor';
 import FunctionAssistantEditorPrepare from '../../../components/file-editor/function-file/prepare';

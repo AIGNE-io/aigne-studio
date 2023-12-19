@@ -50,15 +50,15 @@ export default function CompareImagesAssistant({
           <ImageAssistantEditorFormatPrompt
             gitRef={gitRef}
             value={localeAssistant}
-            disabled
             compareValue={remoteAssistant}
+            disabled
           />
         </Box>
       </Stack>
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <ImageAssistantSetting projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly />
+          <ImageAssistantSetting projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly isOpen />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
@@ -66,8 +66,9 @@ export default function CompareImagesAssistant({
             projectId={projectId}
             gitRef={gitRef}
             value={localeAssistant}
-            readOnly
             compareValue={remoteAssistant}
+            readOnly
+            isOpen
           />
         </Box>
       </Stack>
