@@ -38,15 +38,7 @@ export default function ApiAssistantEditor({
         <ApiAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Stack>
 
-      <Box
-        sx={{
-          border: 2,
-          borderColor: 'primary.main',
-          borderRadius: 2,
-          bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-        }}>
-        <ApiAssistantEditorAPI value={value} disabled={disabled} />
-      </Box>
+      <ApiAssistantEditorAPI value={value} disabled={disabled} />
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <ApiAssistantSetting value={value} readOnly={readOnly} />

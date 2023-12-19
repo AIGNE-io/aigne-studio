@@ -3,7 +3,8 @@ import { Box, Divider, Stack, alpha } from '@mui/material';
 
 import FunctionCodeEditor from '../../../components/file-editor/function-file/function-code-editor';
 import FunctionAssistantEditorPrepare from '../../../components/file-editor/function-file/prepare';
-import FunctionAssistantSetting from '../../../components/file-editor/function-file/setting';
+
+// import FunctionAssistantSetting from '../../../components/file-editor/function-file/setting';
 
 export default function CompareFunctionAssistant({
   projectId,
@@ -20,41 +21,38 @@ export default function CompareFunctionAssistant({
     <>
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <FunctionAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={remoteAssistant} disabled />
+          <FunctionAssistantEditorPrepare
+            projectId={projectId}
+            gitRef={gitRef}
+            value={remoteAssistant}
+            compareValue={localeAssistant}
+            isRemoteCompare
+            disabled
+          />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <FunctionAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={localeAssistant} disabled />
+          <FunctionAssistantEditorPrepare
+            projectId={projectId}
+            gitRef={gitRef}
+            value={localeAssistant}
+            compareValue={remoteAssistant}
+            disabled
+          />
         </Box>
       </Stack>
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <Box
-            sx={{
-              border: 2,
-              borderColor: 'primary.main',
-              borderRadius: 2,
-              bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-            }}>
-            <FunctionCodeEditor value={remoteAssistant} readOnly />
-          </Box>
+          <FunctionCodeEditor value={remoteAssistant} readOnly />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <Box
-            sx={{
-              border: 2,
-              borderColor: 'primary.main',
-              borderRadius: 2,
-              bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-            }}>
-            <FunctionCodeEditor value={localeAssistant} readOnly />
-          </Box>
+          <FunctionCodeEditor value={localeAssistant} compareValue={remoteAssistant} readOnly />
         </Box>
       </Stack>
 
-      <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
+      {/* <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
           <FunctionAssistantSetting />
         </Box>
@@ -62,7 +60,7 @@ export default function CompareFunctionAssistant({
         <Box flex={1} display="flex" flexDirection="column">
           <FunctionAssistantSetting />
         </Box>
-      </Stack>
+      </Stack> */}
     </>
   );
 }

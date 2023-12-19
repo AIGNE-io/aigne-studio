@@ -38,15 +38,7 @@ export default function FunctionAssistantEditor({
         <FunctionAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Stack>
 
-      <Box
-        sx={{
-          border: 2,
-          borderColor: 'primary.main',
-          borderRadius: 2,
-          bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-        }}>
-        <FunctionCodeEditor value={value} readOnly={readOnly} />
-      </Box>
+      <FunctionCodeEditor value={value} readOnly={readOnly} />
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <FunctionAssistantSetting />

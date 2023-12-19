@@ -1,13 +1,26 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography, alpha } from '@mui/material';
 import { useEffect } from 'react';
+import { useAssistantCompare } from 'src/pages/project/state';
 
 import CodeEditor from '../../template-form/code-editor';
 
-export default function FunctionCodeEditor({ value, readOnly }: { value: FunctionAssistantYjs; readOnly?: boolean }) {
+export default function FunctionCodeEditor({
+  value,
+  readOnly,
+  compareValue,
+  isRemoteCompare,
+}: {
+  value: FunctionAssistantYjs;
+  readOnly?: boolean;
+  compareValue?: FunctionAssistantYjs;
+  isRemoteCompare?: boolean;
+}) {
   const { t } = useLocaleContext();
+
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   useEffect(() => {
     if (!value.code) {
@@ -23,7 +36,14 @@ module.exports.default = async function(args) {
   }, [value]);
 
   return (
-    <>
+    <Box
+      sx={{
+        border: 2,
+        borderColor: 'primary.main',
+        borderRadius: 2,
+        bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+        backgroundColor: getDiffBackground('code'),
+      }}>
       <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
         <TipsAndUpdatesRounded fontSize="small" color="primary" />
         <Typography variant="subtitle1">{t('function')}</Typography>
@@ -39,7 +59,9 @@ module.exports.default = async function(args) {
             '.overflow-guard': {
               borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
               borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
+              backgroundColor: getDiffBackground('code'),
             },
+            backgroundColor: getDiffBackground('code'),
           },
         }}>
         <CodeEditor
@@ -50,6 +72,6 @@ module.exports.default = async function(args) {
           onChange={(code) => (value.code = code)}
         />
       </Box>
-    </>
+    </Box>
   );
 }

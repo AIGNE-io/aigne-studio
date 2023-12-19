@@ -203,7 +203,17 @@ export default function ExecuteBlockForm({
         <Typography variant="body1" component="label">
           {t('variable')}
         </Typography>
-        <TextField hiddenLabel value={value.variable || ''} onChange={(e) => (value.variable = e.target.value)} />
+        <TextField
+          hiddenLabel
+          value={value.variable || ''}
+          InputProps={{
+            readOnly,
+            sx: {
+              backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
+            },
+          }}
+          onChange={(e) => (value.variable = e.target.value)}
+        />
       </Stack>
 
       <ToolDialog

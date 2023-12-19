@@ -38,15 +38,7 @@ export default function ImageAssistantEditor({
         <ImageAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Stack>
 
-      <Box
-        sx={{
-          border: 2,
-          borderColor: 'primary.main',
-          borderRadius: 2,
-          bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-        }}>
-        <ImageAssistantEditorFormatPrompt gitRef={gitRef} value={value} disabled={disabled} />
-      </Box>
+      <ImageAssistantEditorFormatPrompt gitRef={gitRef} value={value} disabled={disabled} />
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <ImageAssistantSetting projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />

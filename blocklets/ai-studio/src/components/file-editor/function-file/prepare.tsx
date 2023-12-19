@@ -2,6 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { FunctionAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Button, Stack, Typography } from '@mui/material';
+import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
 import Add from '../../../pages/project/icons/add';
@@ -12,11 +13,15 @@ export default function FunctionAssistantEditorPrepare({
   gitRef,
   value,
   disabled,
+  compareValue,
+  isRemoteCompare,
 }: {
   projectId: string;
   gitRef: string;
   value: FunctionAssistantYjs;
   disabled?: boolean;
+  compareValue?: FunctionAssistantYjs;
+  isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();
 
@@ -27,21 +32,23 @@ export default function FunctionAssistantEditorPrepare({
       <Stack direction="row" justifyContent="space-between">
         <Typography variant="subtitle1">{t('prepareExecutes')}</Typography>
 
-        <Button
-          sx={{ minWidth: 32, minHeight: 32, p: 0 }}
-          onClick={() => {
-            const doc = (getYjsValue(value) as Map<any>).doc!;
-            doc.transact(() => {
-              const id = nextAssistantId();
-              value.prepareExecutes ??= {};
-              value.prepareExecutes[id] = {
-                index: Math.max(-1, ...Object.values(value.prepareExecutes).map((i) => i.index)) + 1,
-                data: { id },
-              };
-            });
-          }}>
-          <Add />
-        </Button>
+        {!readOnly && (
+          <Button
+            sx={{ minWidth: 32, minHeight: 32, p: 0 }}
+            onClick={() => {
+              const doc = (getYjsValue(value) as Map<any>).doc!;
+              doc.transact(() => {
+                const id = nextAssistantId();
+                value.prepareExecutes ??= {};
+                value.prepareExecutes[id] = {
+                  index: Math.max(-1, ...Object.values(value.prepareExecutes).map((i) => i.index)) + 1,
+                  data: { id },
+                };
+              });
+            }}>
+            <Add />
+          </Button>
+        )}
       </Stack>
 
       {value.prepareExecutes && Object.values(value.prepareExecutes).length ? (
@@ -52,6 +59,8 @@ export default function FunctionAssistantEditorPrepare({
             gitRef={gitRef}
             value={value.prepareExecutes}
             readOnly={readOnly}
+            compareAssistant={compareValue}
+            isRemoteCompare={isRemoteCompare}
           />
         </Stack>
       ) : (
