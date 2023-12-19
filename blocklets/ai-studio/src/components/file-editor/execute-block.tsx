@@ -55,7 +55,10 @@ export default function ExecuteBlockForm({
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
   return (
-    <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
+    <Stack
+      {...props}
+      sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}
+      className="prompt-item">
       <Stack direction="row" gap={1} alignItems="center">
         <Typography variant="subtitle2">{t('executeBlock')}</Typography>
 

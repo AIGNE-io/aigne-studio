@@ -2,11 +2,12 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isRunAssistantChunk, isRunAssistantError, runAssistant } from '@blocklet/ai-runtime/api';
 import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
+import { pink } from '@mui/material/colors';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
 import localForage from 'localforage';
-import { cloneDeep, differenceBy, intersectionBy, omitBy } from 'lodash';
+import { cloneDeep, differenceBy, get, intersectionBy, omitBy } from 'lodash';
 import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
 import { nanoid } from 'nanoid';
@@ -685,3 +686,66 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
 
   return { ...state, changes, run, getOriginTemplate };
 };
+
+export function useAssistantCompare({
+  value,
+  compareValue,
+  isRemoteCompare,
+}: {
+  value: AssistantYjs;
+  compareValue?: AssistantYjs;
+  readOnly?: boolean;
+  isRemoteCompare?: boolean;
+}) {
+  const getDiffName = useCallback(
+    (path: keyof AssistantYjs, id?: string, defaultValue?: string) => {
+      if (!compareValue) return '';
+
+      const isDifferent = [path].some((item) => {
+        const key = id ? [item, id] : [item];
+        return !equal(get(compareValue, key, defaultValue ?? ''), get(value, key, defaultValue ?? ''));
+      });
+
+      if (!isDifferent) return '';
+
+      if (id === undefined) {
+        return isDifferent ? 'modify' : '';
+      }
+
+      const key = id ? [path, id] : [path];
+      const itemExistsInCompareValue = get(compareValue, key);
+      if (itemExistsInCompareValue === undefined) return isRemoteCompare ? 'delete' : 'new';
+
+      return 'modify';
+    },
+    [compareValue, value, isRemoteCompare]
+  );
+
+  const getBackgroundColor = (name: string) => {
+    switch (name) {
+      case 'new':
+        return 'rgba(230, 255, 236, 0.4) !important';
+      case 'delete':
+        return 'rgba(255, 215, 213, 0.4) !important';
+      case 'modify':
+        return 'rgba(255, 235, 233, 0.4) !important';
+      default:
+        return '';
+    }
+  };
+
+  const getDiffStyle = useCallback(
+    (style: string, path: keyof AssistantYjs, id?: string, defaultValue?: string) => {
+      const diffName = getDiffName(path, id, defaultValue);
+      return diffName ? { [style]: getBackgroundColor(diffName) } : {};
+    },
+    [getDiffName]
+  );
+
+  const getDiffBackground = useCallback(
+    (path: any, id?: string, defaultValue?: string) => getDiffStyle('background', path, id, defaultValue),
+    [getDiffStyle]
+  );
+
+  return { getDiffName, getDiffBackground, getBackgroundColor };
+}

@@ -65,7 +65,7 @@ export default function Compare({
     try {
       setState((r) => ({ ...r, template: undefined, loading: true }));
       const data = await api.get(joinURL('/api/projects', projectId, 'refs', hash, 'assistants', templateId || ''), {
-        params: { working: true },
+        params: { working: false },
       });
       setState((r) => ({ ...r, template: fileToYjs(data?.data as any) as AssistantYjs }));
     } catch (error) {
@@ -237,7 +237,7 @@ export default function Compare({
         sx={{ position: 'sticky', top: 0, zIndex: (theme) => theme.zIndex.appBar, bgcolor: 'background.paper' }}
         divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
 
             {renderSelect()}
@@ -245,39 +245,35 @@ export default function Compare({
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <Box sx={{ mb: 2, fontSize: 20, fontWeight: 'bold' }}>{t('compare.current')}</Box>
+          <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.current')}</Box>
+        </Box>
+      </Stack>
+
+      <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
+        <Box flex={1} display="flex" flexDirection="column">
+          {state.template && <BasicInfoForm projectId={projectId} gitRef={gitRef} value={state.template} disabled />}
+        </Box>
+
+        <Box flex={1} display="flex" flexDirection="column">
+          <BasicInfoForm
+            projectId={projectId}
+            gitRef={gitRef}
+            value={template}
+            compareValue={state.template}
+            disabled
+          />
         </Box>
       </Stack>
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
           {state.template && (
-            <>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                <Typography variant="subtitle1">{t('parameters')}</Typography>
-              </Stack>
-              <BasicInfoForm projectId={projectId} gitRef={gitRef} value={state.template} disabled />
-            </>
+            <ParametersTable value={state.template} readOnly compareValue={template} isRemoteCompare />
           )}
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-              <Typography variant="subtitle1">{t('parameters')}</Typography>
-            </Stack>
-            <BasicInfoForm projectId={projectId} gitRef={gitRef} value={template} disabled />
-          </>
-        </Box>
-      </Stack>
-
-      <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
-          {state.template && <ParametersTable value={state.template} readOnly />}
-        </Box>
-
-        <Box flex={1} display="flex" flexDirection="column">
-          <ParametersTable value={template} readOnly />
+          <ParametersTable value={template} readOnly compareValue={state.template} />
         </Box>
       </Stack>
 
@@ -297,7 +293,15 @@ export default function Compare({
 }
 
 const Container = styled(Stack)`
-  > .MuiStack-root > div {
-    margin-bottom: 24px;
+  > .MuiStack-root {
+    > div {
+      margin-bottom: 24px;
+    }
+
+    &:last-child {
+      & > div {
+        margin: 0;
+      }
+    }
   }
 `;

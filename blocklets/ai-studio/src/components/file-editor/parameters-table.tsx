@@ -20,6 +20,7 @@ import {
 import { GridColDef } from '@mui/x-data-grid';
 import { get, sortBy } from 'lodash';
 import { useMemo, useState } from 'react';
+import { useAssistantCompare } from 'src/pages/project/state';
 
 import Add from '../../pages/project/icons/add';
 import Settings from '../../pages/project/icons/settings';
@@ -40,10 +41,21 @@ function CustomNoRowsOverlay() {
   );
 }
 
-export default function ParametersTable({ readOnly, value }: { readOnly?: boolean; value: AssistantYjs }) {
+export default function ParametersTable({
+  readOnly,
+  value,
+  compareValue,
+  isRemoteCompare,
+}: {
+  readOnly?: boolean;
+  value: AssistantYjs;
+  compareValue?: AssistantYjs;
+  isRemoteCompare?: boolean;
+}) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
   const { highlightedId, addParameter, deleteParameter } = useVariablesEditorOptions(value);
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   const isValidVariableName = (name: string) => {
     if (!name) return true;
@@ -213,7 +225,12 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
                           transition: 'all 2s',
                         }}>
                         {columns.map((column) => (
-                          <TableCell key={column.field} align={column.align}>
+                          <TableCell
+                            key={column.field}
+                            align={column.align}
+                            sx={{
+                              ...getDiffBackground('parameters', parameter.id),
+                            }}>
                             {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
                           </TableCell>
                         ))}

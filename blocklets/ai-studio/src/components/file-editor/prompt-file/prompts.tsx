@@ -8,6 +8,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
+import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
 import Add from '../../../pages/project/icons/add';
@@ -23,16 +24,22 @@ export default function PromptAssistantEditorPrompts({
   projectId,
   gitRef,
   value,
+  compareValue,
   disabled,
+  isRemoteCompare,
 }: {
   projectId: string;
   gitRef: string;
   value: PromptAssistantYjs;
+  compareValue?: PromptAssistantYjs;
   disabled?: boolean;
+  isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const { addPrompt, deletePrompt } = usePromptsState({ projectId, gitRef, templateId: value.id });
+
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   return (
     <Box
@@ -62,6 +69,7 @@ export default function PromptAssistantEditorPrompts({
                     assistant={value}
                     value={prompt.data}
                     promptHidden={prompt.visibility === 'hidden'}
+                    background={getDiffBackground('prompts', prompt.data.id)}
                   />
                 ) : (
                   <PromptItemExecuteBlock
@@ -131,11 +139,13 @@ function PromptItemMessage({
   value,
   promptHidden,
   readOnly,
+  background = {},
 }: {
   assistant: AssistantYjs;
   value: PromptMessage;
   promptHidden?: boolean;
   readOnly?: boolean;
+  background: Object;
 }) {
   const { t } = useLocaleContext();
 
@@ -149,7 +159,9 @@ function PromptItemMessage({
         '*': {
           color: promptHidden ? 'text.disabled' : undefined,
         },
-      }}>
+        backgroundColor: background,
+      }}
+      className="prompt-item">
       <Stack direction="row" alignItems="center" gap={1} p={1}>
         <Typography variant="subtitle2">{t('prompt')}</Typography>
 

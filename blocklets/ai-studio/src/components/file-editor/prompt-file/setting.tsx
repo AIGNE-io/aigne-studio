@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import { getSupportedModels } from '../../../libs/common';
-import { useProjectState } from '../../../pages/project/state';
+import { useAssistantCompare, useProjectState } from '../../../pages/project/state';
 import AwarenessIndicator from '../../awareness/awareness-indicator';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';
@@ -17,12 +17,16 @@ export default function PromptAssistantSetting({
   projectId,
   gitRef,
   value,
+  compareValue,
   readOnly,
+  isRemoteCompare,
 }: {
   projectId: string;
   gitRef: string;
   value: PromptAssistantYjs;
+  compareValue?: PromptAssistantYjs;
   readOnly?: boolean;
+  isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();
 
@@ -31,6 +35,8 @@ export default function PromptAssistantSetting({
   const {
     state: { project },
   } = useProjectState(projectId, gitRef);
+
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   const { value: supportedModels } = useAsync(() => getSupportedModels(), []);
 
@@ -48,7 +54,13 @@ export default function PromptAssistantSetting({
             <Stack direction="row" alignItems="center" gap={1}>
               <Typography
                 component="span"
-                sx={{ bgcolor: 'rgba(241, 243, 245, 1)', p: 1, borderRadius: 1, lineHeight: 1 }}>
+                sx={{
+                  bgcolor: 'rgba(241, 243, 245, 1)',
+                  p: 1,
+                  borderRadius: 1,
+                  lineHeight: 1,
+                  backgroundColor: getDiffBackground('model'),
+                }}>
                 {model?.name || model?.model || project?.model}
               </Typography>
             </Stack>
@@ -74,7 +86,7 @@ export default function PromptAssistantSetting({
                 label={t('model')}
                 value={value.model || project?.model || ''}
                 onChange={(e) => (value.model = e.target.value)}
-                InputProps={{ readOnly }}
+                InputProps={{ readOnly, sx: { backgroundColor: getDiffBackground('model') } }}
               />
             </WithAwareness>
 
@@ -104,7 +116,7 @@ export default function PromptAssistantSetting({
                         min={model.temperatureMin}
                         max={model.temperatureMax}
                         step={0.1}
-                        sx={{ flex: 1 }}
+                        sx={{ flex: 1, backgroundColor: getDiffBackground('temperature') }}
                         value={value.temperature ?? project?.temperature ?? model.temperatureDefault}
                         onChange={(_, v) => (value.temperature = v)}
                       />
@@ -138,7 +150,7 @@ export default function PromptAssistantSetting({
                         step={0.1}
                         value={value.topP ?? project?.topP ?? model.topPDefault}
                         onChange={(_, v) => (value.topP = v)}
-                        sx={{ flex: 1 }}
+                        sx={{ flex: 1, backgroundColor: getDiffBackground('topP') }}
                       />
                     </WithAwareness>
 
@@ -168,7 +180,7 @@ export default function PromptAssistantSetting({
                         min={model.presencePenaltyMin}
                         max={model.presencePenaltyMax}
                         step={0.1}
-                        sx={{ flex: 1 }}
+                        sx={{ flex: 1, backgroundColor: getDiffBackground('presencePenalty') }}
                         value={value.presencePenalty ?? project?.presencePenalty ?? model.presencePenaltyDefault}
                         onChange={(_, v) => (value.presencePenalty = v)}
                       />
@@ -200,7 +212,7 @@ export default function PromptAssistantSetting({
                         min={model.frequencyPenaltyMin}
                         max={model.frequencyPenaltyMax}
                         step={0.1}
-                        sx={{ flex: 1 }}
+                        sx={{ flex: 1, backgroundColor: getDiffBackground('frequencyPenalty') }}
                         value={value.frequencyPenalty ?? project?.frequencyPenalty ?? model.frequencyPenaltyDefault}
                         onChange={(_, v) => (value.frequencyPenalty = v)}
                       />
@@ -232,7 +244,7 @@ export default function PromptAssistantSetting({
                         min={model.maxTokensMin}
                         max={model.maxTokensMax}
                         step={1}
-                        sx={{ flex: 1 }}
+                        sx={{ flex: 1, backgroundColor: getDiffBackground('maxTokens') }}
                         value={value.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault}
                         onChange={(_, v) => (value.maxTokens = v)}
                       />
