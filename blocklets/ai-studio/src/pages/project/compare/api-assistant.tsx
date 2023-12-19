@@ -20,37 +20,34 @@ export default function CompareAPIAssistant({
     <>
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <ApiAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={remoteAssistant} disabled />
+          <ApiAssistantEditorPrepare
+            projectId={projectId}
+            gitRef={gitRef}
+            value={remoteAssistant}
+            compareValue={localeAssistant}
+            isRemoteCompare
+            disabled
+          />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <ApiAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={localeAssistant} disabled />
+          <ApiAssistantEditorPrepare
+            projectId={projectId}
+            gitRef={gitRef}
+            value={localeAssistant}
+            compareValue={remoteAssistant}
+            disabled
+          />
         </Box>
       </Stack>
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <Box
-            sx={{
-              border: 2,
-              borderColor: 'primary.main',
-              borderRadius: 2,
-              bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-            }}>
-            <ApiAssistantEditorAPI value={remoteAssistant} disabled />
-          </Box>
+          <ApiAssistantEditorAPI value={remoteAssistant} compareValue={localeAssistant} isRemoteCompare disabled />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <Box
-            sx={{
-              border: 2,
-              borderColor: 'primary.main',
-              borderRadius: 2,
-              bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-            }}>
-            <ApiAssistantEditorAPI value={localeAssistant} disabled />
-          </Box>
+          <ApiAssistantEditorAPI value={localeAssistant} compareValue={remoteAssistant} disabled />
         </Box>
       </Stack>
 
@@ -60,7 +57,7 @@ export default function CompareAPIAssistant({
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <ApiAssistantSetting value={localeAssistant} readOnly />
+          <ApiAssistantSetting value={localeAssistant} readOnly compareValue={remoteAssistant} />
         </Box>
       </Stack>
     </>

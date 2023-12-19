@@ -13,18 +13,38 @@ import {
   TableRow,
   TextField,
   Typography,
+  alpha,
 } from '@mui/material';
 import { sortBy } from 'lodash';
+import { useAssistantCompare } from 'src/pages/project/state';
 
 import Add from '../../../pages/project/icons/add';
 import Trash from '../../../pages/project/icons/trash';
 import PromptEditorField from '../prompt-editor-field';
 
-export default function ApiAssistantEditorAPI({ value, disabled }: { value: ApiAssistantYjs; disabled?: boolean }) {
+export default function ApiAssistantEditorAPI({
+  value,
+  disabled,
+  compareValue,
+  isRemoteCompare,
+}: {
+  value: ApiAssistantYjs;
+  disabled?: boolean;
+  compareValue?: ApiAssistantYjs;
+  isRemoteCompare?: boolean;
+}) {
   const { t } = useLocaleContext();
 
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly: disabled, isRemoteCompare });
+
   return (
-    <>
+    <Box
+      sx={{
+        border: 2,
+        borderColor: 'primary.main',
+        borderRadius: 2,
+        bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+      }}>
       <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
         <TipsAndUpdatesRounded fontSize="small" color="primary" />
 
@@ -54,7 +74,9 @@ export default function ApiAssistantEditorAPI({ value, disabled }: { value: ApiA
             {value.requestParameters &&
               sortBy(Object.values(value.requestParameters), (i) => i.index).map(({ data: parameter }) => {
                 return (
-                  <TableRow key={parameter.id}>
+                  <TableRow
+                    key={parameter.id}
+                    sx={{ backgroundColor: getDiffBackground('requestParameters', parameter.id) }}>
                     <TableCell>
                       <TextField
                         hiddenLabel
@@ -73,6 +95,7 @@ export default function ApiAssistantEditorAPI({ value, disabled }: { value: ApiA
                     </TableCell>
                     <TableCell align="center">
                       <Button
+                        disabled={disabled}
                         sx={{ minWidth: 24, minHeight: 24, p: 0 }}
                         onClick={() => {
                           const doc = (getYjsValue(value) as Map<any>).doc!;
@@ -113,6 +136,6 @@ export default function ApiAssistantEditorAPI({ value, disabled }: { value: ApiA
           )}
         </Box>
       </Stack>
-    </>
+    </Box>
   );
 }

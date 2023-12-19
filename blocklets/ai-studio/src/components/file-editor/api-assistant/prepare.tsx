@@ -12,11 +12,15 @@ export default function ApiAssistantEditorPrepare({
   gitRef,
   value,
   disabled,
+  compareValue,
+  isRemoteCompare,
 }: {
   projectId: string;
   gitRef: string;
   value: ApiAssistantYjs;
   disabled?: boolean;
+  compareValue?: ApiAssistantYjs;
+  isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();
 
@@ -52,6 +56,8 @@ export default function ApiAssistantEditorPrepare({
             gitRef={gitRef}
             value={value.prepareExecutes}
             readOnly={readOnly}
+            compareAssistant={compareValue}
+            isRemoteCompare={isRemoteCompare}
           />
         </Stack>
       ) : (
