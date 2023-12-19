@@ -541,7 +541,7 @@ function ProjectItem({
   return (
     <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between">
-        <Box className="logo" sx={{ width: '22px', height: '22px' }}>
+        <Box className="logo">
           {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 24 }} />}
         </Box>
 
@@ -552,7 +552,7 @@ function ProjectItem({
 
               return (
                 <Tooltip key={user.did} title={name} placement="top">
-                  <CustomAvatar alt={user.fullName} sx={{ borderWidth: '1px !important' }} src={user.avatar}>
+                  <CustomAvatar alt={user.fullName} sx={{ borderWidth: '0 !important' }} src={user.avatar}>
                     {name?.slice(0, 1)}
                   </CustomAvatar>
                 </Tooltip>
@@ -652,11 +652,15 @@ const ProjectItemRoot = styled(Stack)`
   }
 
   .logo {
+    width: 24px;
+    height: 24px;
+    border-radius: ${({ theme }) => theme.shape.borderRadius}px;
+    overflow: hidden;
+
     img {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      border-radius: ${({ theme }) => theme.shape.borderRadius * 2}px;
     }
   }
 
@@ -679,9 +683,8 @@ const ProjectItemRoot = styled(Stack)`
 `;
 
 const CustomAvatar = styled(Avatar)`
-  width: 22px;
-  height: 22px;
-  border-width: 1px;
+  width: 20px;
+  height: 20px;
   font-size: 12px;
 `;
 
