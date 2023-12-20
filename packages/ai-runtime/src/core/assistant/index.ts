@@ -1,11 +1,10 @@
 import { ReadableStream } from 'stream/web';
 
-import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
+import { call } from '@blocklet/sdk/lib/component';
 import env from '@blocklet/sdk/lib/env';
 import axios, { isAxiosError } from 'axios';
 import { isNil, pick } from 'lodash';
 import { Worker } from 'snowflake-uuid';
-import { joinURL } from 'ufo';
 import { NodeVM } from 'vm2';
 
 import {
@@ -165,11 +164,10 @@ async function runFunctionAssistant({
       call,
       fetch,
       axios,
-      process,
-      env,
-      URL,
-      joinURL,
-      getComponentMountPoint,
+      env: {
+        languages: env.languages,
+        appId: env.appId,
+      },
     },
   });
 
