@@ -161,6 +161,7 @@ async function runFunctionAssistant({
           return result;
         },
       },
+      URL,
       call,
       fetch,
       axios,
