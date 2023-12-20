@@ -1,3 +1,7 @@
+## 0.1.180 (2023-12-20)
+
+- fix: optimize sorting table
+
 ## 0.1.179 (2023-12-19)
 
 - fix: support custom placeholder/loading of result view
