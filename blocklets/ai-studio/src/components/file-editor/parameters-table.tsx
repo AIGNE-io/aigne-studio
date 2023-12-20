@@ -24,6 +24,7 @@ import { useMemo, useState } from 'react';
 import Add from '../../pages/project/icons/add';
 import Settings from '../../pages/project/icons/settings';
 import Trash from '../../pages/project/icons/trash';
+import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
 import useVariablesEditorOptions from './use-variables-editor-options';
@@ -195,28 +196,36 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
                   ))}
                 </TableRow>
               </TableHead>
-              <TableBody>
-                {parameters.map(
-                  ({ data: parameter }) =>
-                    parameter && (
-                      <TableRow
-                        key={parameter.id}
-                        sx={{
-                          backgroundColor:
-                            parameter.id === highlightedId
-                              ? (theme) => alpha(theme.palette.warning.light, theme.palette.action.focusOpacity)
-                              : 'transparent',
-                          transition: 'all 2s',
-                        }}>
-                        {columns.map((column) => (
-                          <TableCell key={column.field} align={column.align}>
-                            {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    )
-                )}
-              </TableBody>
+
+              <DragSortListYjs
+                disabled={readOnly}
+                list={value.parameters!}
+                component={TableBody}
+                renderItem={(block, _, params) => {
+                  return (
+                    <TableRow
+                      key={block.id}
+                      ref={(ref) => {
+                        params.drop(ref);
+                        params.drag(ref);
+                        params.preview(ref);
+                      }}
+                      sx={{
+                        backgroundColor:
+                          block.id === highlightedId
+                            ? (theme) => alpha(theme.palette.warning.light, theme.palette.action.focusOpacity)
+                            : 'transparent',
+                        transition: 'all 2s',
+                      }}>
+                      {columns.map((column) => (
+                        <TableCell key={column.field} align={column.align}>
+                          {column.renderCell?.({ row: { data: block } } as any) || get(block, column.field)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                }}
+              />
             </Table>
           </Box>
         ) : (
