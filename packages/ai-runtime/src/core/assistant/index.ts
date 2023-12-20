@@ -168,6 +168,7 @@ async function runFunctionAssistant({
       env: {
         languages: env.languages,
         appId: env.appId,
+        appUrl: env.appUrl,
       },
     },
   });
