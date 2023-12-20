@@ -201,10 +201,10 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
                 disabled={readOnly}
                 list={value.parameters!}
                 component={TableBody}
-                renderItem={(block, _, params) => {
+                renderItem={(parameter, _, params) => {
                   return (
                     <TableRow
-                      key={block.id}
+                      key={parameter.id}
                       ref={(ref) => {
                         params.drop(ref);
                         params.drag(ref);
@@ -212,14 +212,14 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
                       }}
                       sx={{
                         backgroundColor:
-                          block.id === highlightedId
+                          parameter.id === highlightedId
                             ? (theme) => alpha(theme.palette.warning.light, theme.palette.action.focusOpacity)
                             : 'transparent',
                         transition: 'all 2s',
                       }}>
                       {columns.map((column) => (
                         <TableCell key={column.field} align={column.align}>
-                          {column.renderCell?.({ row: { data: block } } as any) || get(block, column.field)}
+                          {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
                         </TableCell>
                       ))}
                     </TableRow>
