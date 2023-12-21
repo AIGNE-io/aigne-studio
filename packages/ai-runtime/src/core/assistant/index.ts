@@ -164,7 +164,6 @@ async function runFunctionAssistant({
       URL,
       call,
       fetch,
-      axios,
       env: {
         languages: env.languages,
         appId: env.appId,
