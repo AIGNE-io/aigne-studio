@@ -1,6 +1,10 @@
-## 0.1.180 (2023-12-19)
+## 0.1.181 (2023-12-21)
 
-- fix: diff assistant data
+- fix: get variable context
+
+## 0.1.180 (2023-12-20)
+
+- fix: support sort parameters
 
 ## 0.1.179 (2023-12-19)
 
