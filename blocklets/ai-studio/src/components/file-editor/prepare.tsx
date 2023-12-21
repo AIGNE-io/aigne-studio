@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ApiAssistantYjs, FunctionAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { ApiAssistantYjs, FunctionAssistantYjs, ImageAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Button, Stack, Typography } from '@mui/material';
 
@@ -17,9 +17,9 @@ export default function Prepare({
 }: {
   projectId: string;
   gitRef: string;
-  value: FunctionAssistantYjs | ApiAssistantYjs;
+  value: FunctionAssistantYjs | ApiAssistantYjs | ImageAssistantYjs;
   disabled?: boolean;
-  compareValue?: FunctionAssistantYjs | ApiAssistantYjs;
+  compareValue?: FunctionAssistantYjs | ApiAssistantYjs | ImageAssistantYjs;
   isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();

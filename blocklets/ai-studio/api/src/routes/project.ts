@@ -469,7 +469,7 @@ export function projectRoutes(router: Router) {
   });
 
   router.get(
-    '/projects/:projectId/:ref/:assistantId',
+    '/projects/compare/:projectId/:ref/:assistantId',
     user(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {

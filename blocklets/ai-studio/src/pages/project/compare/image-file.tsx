@@ -1,9 +1,9 @@
 import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Divider, Stack } from '@mui/material';
 
-import ImageAssistantEditorPrepare from '../../../components/file-editor/image-file/prepare';
 import ImageAssistantEditorFormatPrompt from '../../../components/file-editor/image-file/prompt';
 import ImageAssistantSetting from '../../../components/file-editor/image-file/setting';
+import ImageAssistantEditorPrepare from '../../../components/file-editor/prepare';
 
 export default function CompareImagesAssistant({
   projectId,

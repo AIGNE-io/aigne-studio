@@ -5,7 +5,7 @@ import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';
 import ParametersTable from '../parameters-table';
-import ImageAssistantEditorPrepare from './prepare';
+import ImageAssistantEditorPrepare from '../prepare';
 import ImageAssistantEditorFormatPrompt from './prompt';
 import ImageAssistantSetting from './setting';
 
