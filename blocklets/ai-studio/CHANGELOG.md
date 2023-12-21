@@ -1,3 +1,7 @@
+## 0.1.181 (2023-12-21)
+
+- fix: Modify the style of cards in the project
+
 ## 0.1.180 (2023-12-20)
 
 - fix: support sort parameters
