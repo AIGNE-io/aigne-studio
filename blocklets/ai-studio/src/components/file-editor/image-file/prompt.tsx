@@ -7,7 +7,7 @@ import { useAssistantCompare } from 'src/pages/project/state';
 import { useReadOnly } from '../../../contexts/session';
 import PromptEditorField from '../prompt-editor-field';
 
-export default function ImageAssistantEditorFormatPrompt({
+export default function ImageFilePrompt({
   gitRef,
   value,
   disabled,

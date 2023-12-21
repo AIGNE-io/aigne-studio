@@ -20,7 +20,7 @@ import ExecuteBlockForm from '../execute-block';
 import PromptEditorField from '../prompt-editor-field';
 import RoleSelectField from './role-select';
 
-export default function PromptAssistantEditorPrompts({
+export default function PromptPrompts({
   projectId,
   gitRef,
   value,

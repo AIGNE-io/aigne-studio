@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, Stack, Typography } from '@mui/material';
 
-export default function FunctionAssistantSetting() {
+export default function FunctionCodeSetting() {
   const { t } = useLocaleContext();
 
   return (

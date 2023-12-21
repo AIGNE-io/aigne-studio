@@ -22,7 +22,7 @@ import Add from '../../../pages/project/icons/add';
 import Trash from '../../../pages/project/icons/trash';
 import PromptEditorField from '../prompt-editor-field';
 
-export default function ApiAssistantEditorAPI({
+export default function ApiEditor({
   value,
   disabled,
   compareValue,

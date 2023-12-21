@@ -1,7 +1,7 @@
 import { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Divider, Stack, alpha } from '@mui/material';
 
-import ApiAssistantEditorAPI from '../../../components/file-editor/api-assistant/api';
+import ApiAssistantEditorAPI from '../../../components/file-editor/api-assistant/api-editor';
 import ApiAssistantEditorPrepare from '../../../components/file-editor/api-assistant/prepare';
 import ApiAssistantSetting from '../../../components/file-editor/api-assistant/setting';
 

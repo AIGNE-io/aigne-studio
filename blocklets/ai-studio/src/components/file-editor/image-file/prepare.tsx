@@ -7,7 +7,7 @@ import { useReadOnly } from '../../../contexts/session';
 import Add from '../../../pages/project/icons/add';
 import PrepareExecuteList from '../prepare-execute-list';
 
-export default function ImageAssistantEditorPrepare({
+export default function ImageFilePrepare({
   projectId,
   gitRef,
   value,

@@ -7,7 +7,7 @@ import { useReadOnly } from '../../../contexts/session';
 import Add from '../../../pages/project/icons/add';
 import PrepareExecuteList from '../prepare-execute-list';
 
-export default function ApiAssistantEditorPrepare({
+export default function ApiPrepare({
   projectId,
   gitRef,
   value,

@@ -1,16 +1,17 @@
 import { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
-import { Box, Stack, alpha } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 
 import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';
 import ParametersTable from '../parameters-table';
-import ApiAssistantEditorAPI from './api';
+import ApiAssistantEditorAPI from './api-editor';
 import ApiAssistantEditorPrepare from './prepare';
 import ApiAssistantSetting from './setting';
 
 // TODO 放到theme中
 const bgcolor = 'rgba(249, 250, 251, 1)';
+
 export default function ApiAssistantEditor({
   projectId,
   gitRef,

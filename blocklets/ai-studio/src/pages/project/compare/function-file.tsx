@@ -4,8 +4,6 @@ import { Box, Divider, Stack } from '@mui/material';
 import FunctionCodeEditor from '../../../components/file-editor/function-file/function-code-editor';
 import FunctionAssistantEditorPrepare from '../../../components/file-editor/function-file/prepare';
 
-// import FunctionAssistantSetting from '../../../components/file-editor/function-file/setting';
-
 export default function CompareFunctionAssistant({
   projectId,
   gitRef,
@@ -51,16 +49,6 @@ export default function CompareFunctionAssistant({
           <FunctionCodeEditor value={localeAssistant} compareValue={remoteAssistant} readOnly />
         </Box>
       </Stack>
-
-      {/* <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
-          <FunctionAssistantSetting />
-        </Box>
-
-        <Box flex={1} display="flex" flexDirection="column">
-          <FunctionAssistantSetting />
-        </Box>
-      </Stack> */}
     </>
   );
 }

@@ -13,7 +13,7 @@ import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';
 import SliderNumberField from '../../slider-number-field';
 
-export default function PromptAssistantSetting({
+export default function PromptSetting({
   projectId,
   gitRef,
   value,

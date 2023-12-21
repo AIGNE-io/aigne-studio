@@ -5,7 +5,7 @@ import { Box, Button, Collapse, MenuItem, Stack, TextField, Typography } from '@
 import { useMemo, useState } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
-export default function ApiAssistantSetting({
+export default function ApiSetting({
   value,
   readOnly,
   compareValue,
