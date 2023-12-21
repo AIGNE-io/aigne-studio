@@ -46,7 +46,6 @@ export default function PromptAssistantEditorPrompts({
       sx={{
         borderRadius: 1,
         bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-        overflow: 'hidden',
       }}>
       <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
         <TipsAndUpdatesRounded fontSize="small" color="primary" />
@@ -58,6 +57,7 @@ export default function PromptAssistantEditorPrompts({
         {value.prompts && (
           <DragSortListYjs
             sx={{ gap: 2 }}
+            component={Stack}
             disabled={readOnly}
             list={value.prompts}
             renderItem={(prompt, _, params) => {
