@@ -2,7 +2,7 @@ import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Divider, Stack } from '@mui/material';
 
 import FunctionCodeEditor from '../../../components/file-editor/function-file/function-code-editor';
-import FunctionAssistantEditorPrepare from '../../../components/file-editor/function-file/prepare';
+import FunctionAssistantEditorPrepare from '../../../components/file-editor/prepare';
 
 export default function CompareFunctionAssistant({
   projectId,

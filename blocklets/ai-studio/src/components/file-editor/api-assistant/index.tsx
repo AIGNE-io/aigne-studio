@@ -5,8 +5,8 @@ import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';
 import ParametersTable from '../parameters-table';
+import ApiAssistantEditorPrepare from '../prepare';
 import ApiAssistantEditorAPI from './api-editor';
-import ApiAssistantEditorPrepare from './prepare';
 import ApiAssistantSetting from './setting';
 
 // TODO 放到theme中

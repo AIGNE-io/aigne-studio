@@ -465,8 +465,26 @@ export function projectRoutes(router: Router) {
 
     const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
 
-    res.json(assistant);
+    res.json(pick(assistant, 'id', 'name', 'type', 'parameters', 'createdAt', 'updatedAt'));
   });
+
+  router.get(
+    '/projects/:projectId/:ref/:assistantId',
+    user(),
+    ensureComponentCallOrPromptsEditor(),
+    async (req, res) => {
+      const { projectId = '', ref = '', assistantId = '' } = req.params;
+      const query = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+      await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
+
+      const repository = await getRepository({ projectId });
+
+      const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
+
+      res.json(assistant);
+    }
+  );
 }
 
 const getAuthorsOfProject = async ({ projectId }: { projectId: string }) => {

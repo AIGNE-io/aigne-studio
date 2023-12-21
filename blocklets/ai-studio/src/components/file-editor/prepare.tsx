@@ -1,13 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { FunctionAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { ApiAssistantYjs, FunctionAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Button, Stack, Typography } from '@mui/material';
 
-import { useReadOnly } from '../../../contexts/session';
-import Add from '../../../pages/project/icons/add';
-import PrepareExecuteList from '../prepare-execute-list';
+import { useReadOnly } from '../../contexts/session';
+import Add from '../../pages/project/icons/add';
+import PrepareExecuteList from './prepare-execute-list';
 
-export default function FunctionCodePrepare({
+export default function Prepare({
   projectId,
   gitRef,
   value,
@@ -17,9 +17,9 @@ export default function FunctionCodePrepare({
 }: {
   projectId: string;
   gitRef: string;
-  value: FunctionAssistantYjs;
+  value: FunctionAssistantYjs | ApiAssistantYjs;
   disabled?: boolean;
-  compareValue?: FunctionAssistantYjs;
+  compareValue?: FunctionAssistantYjs | ApiAssistantYjs;
   isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();
@@ -65,7 +65,7 @@ export default function FunctionCodePrepare({
       ) : (
         <Box textAlign="center">
           <Typography variant="caption" color="text.disabled">
-            You haven't added any prepare execute blocks yet.
+            {t('haveNotAddedTip', { object: t('executeBlock') })}
           </Typography>
         </Box>
       )}

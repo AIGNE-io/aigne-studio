@@ -10,6 +10,7 @@ import PromptAssistantSetting from './setting';
 
 // TODO 放到theme中
 const bgcolor = 'rgba(249, 250, 251, 1)';
+
 export default function PromptAssistantEditor({
   projectId,
   gitRef,

@@ -61,21 +61,21 @@ export default function Compare({
   const templateId = getFileIdFromPath(filepath);
   const template = templateId ? getFileById(templateId) : undefined;
 
-  useEffect(() => {
-    const init = async (hash: string) => {
-      try {
-        setState((r) => ({ ...r, template: undefined, loading: true }));
-        const data = await api.get(joinURL('/api/projects', projectId, 'refs', hash, 'assistants', templateId || ''), {
-          params: { working: false },
-        });
-        setState((r) => ({ ...r, template: fileToYjs(data?.data as any) as AssistantYjs }));
-      } catch (error) {
-        setState((r) => ({ ...r, template: undefined, loading: false }));
-      } finally {
-        setState((r) => ({ ...r, loading: false }));
-      }
-    };
+  const init = async (hash: string) => {
+    try {
+      setState((r) => ({ ...r, template: undefined, loading: true }));
+      const data = await api.get(joinURL('/api/projects', projectId, hash, templateId || ''), {
+        params: { working: false },
+      });
+      setState((r) => ({ ...r, template: fileToYjs(data?.data as any) as AssistantYjs }));
+    } catch (error) {
+      setState((r) => ({ ...r, template: undefined, loading: false }));
+    } finally {
+      setState((r) => ({ ...r, loading: false }));
+    }
+  };
 
+  useEffect(() => {
     init(gitRef);
   }, []);
 

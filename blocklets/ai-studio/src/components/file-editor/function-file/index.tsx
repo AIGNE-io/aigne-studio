@@ -1,16 +1,17 @@
 import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
-import { Box, Stack, alpha } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 
 import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';
 import ParametersTable from '../parameters-table';
+import FunctionAssistantEditorPrepare from '../prepare';
 import FunctionCodeEditor from './function-code-editor';
-import FunctionAssistantEditorPrepare from './prepare';
 import FunctionAssistantSetting from './setting';
 
 // TODO 放到theme中
 const bgcolor = 'rgba(249, 250, 251, 1)';
+
 export default function FunctionAssistantEditor({
   projectId,
   gitRef,
