@@ -24,6 +24,8 @@ import { useMemo, useState } from 'react';
 import Add from '../../pages/project/icons/add';
 import Settings from '../../pages/project/icons/settings';
 import Trash from '../../pages/project/icons/trash';
+import AwarenessIndicator from '../awareness/awareness-indicator';
+import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
@@ -41,7 +43,17 @@ function CustomNoRowsOverlay() {
   );
 }
 
-export default function ParametersTable({ readOnly, value }: { readOnly?: boolean; value: AssistantYjs }) {
+export default function ParametersTable({
+  readOnly,
+  value,
+  projectId,
+  gitRef,
+}: {
+  readOnly?: boolean;
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+}) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
   const { highlightedId, addParameter, deleteParameter } = useVariablesEditorOptions(value);
@@ -63,20 +75,33 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
         field: 'key',
         headerName: t('variable'),
         renderCell: ({ row: { data: parameter } }) => (
-          <Input
-            id={`${parameter.id}-key`}
-            fullWidth
-            readOnly={readOnly}
-            placeholder={t('variable')}
-            value={parameter.key || ''}
-            onChange={(e) => {
-              const value = e.target.value.trim();
+          <>
+            <WithAwareness
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, 'parameters', parameter?.id ?? '', 'key']}>
+              <Input
+                id={`${parameter.id}-key`}
+                fullWidth
+                readOnly={readOnly}
+                placeholder={t('variable')}
+                value={parameter.key || ''}
+                onChange={(e) => {
+                  const value = e.target.value.trim();
 
-              if (isValidVariableName(value)) {
-                parameter.key = value;
-              }
-            }}
-          />
+                  if (isValidVariableName(value)) {
+                    parameter.key = value;
+                  }
+                }}
+              />
+            </WithAwareness>
+            <AwarenessIndicator
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, 'name']}
+              sx={{ position: 'absolute', right: 0, top: 0 }}
+            />
+          </>
         ),
       },
       {

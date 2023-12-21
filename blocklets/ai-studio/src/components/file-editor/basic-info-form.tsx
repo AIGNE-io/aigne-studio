@@ -43,7 +43,7 @@ export default function BasicInfoForm({
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, 'name']}
-          sx={{ position: 'absolute', right: -16, top: 0 }}
+          sx={{ position: 'absolute', right: 0, top: 0 }}
         />
       </Box>
 
@@ -65,7 +65,7 @@ export default function BasicInfoForm({
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, 'description']}
-          sx={{ position: 'absolute', right: -16, top: 0 }}
+          sx={{ position: 'absolute', right: 0, top: 0 }}
         />
       </Box>
 
@@ -95,7 +95,7 @@ export default function BasicInfoForm({
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, 'tag']}
-          sx={{ position: 'absolute', right: -16, top: 0 }}
+          sx={{ position: 'absolute', right: 0, top: 0 }}
         />
       </Box>
     </Stack>

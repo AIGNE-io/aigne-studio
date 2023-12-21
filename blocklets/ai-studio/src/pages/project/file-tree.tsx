@@ -427,24 +427,25 @@ const FileTree = forwardRef<
               );
 
               const children = (
-                <TreeItem
-                  key={node.id}
-                  icon={<FileIcon type={meta.type} />}
-                  depth={depth}
-                  selected={selected}
-                  onClick={() => navigate(joinURL('.', filepath))}
-                  actions={actions}
-                  // sx={{ color: change?.color }}
-                >
-                  {meta.name || t('alert.unnamed')}
-
+                <Box sx={{ position: 'relative' }}>
+                  <TreeItem
+                    key={node.id}
+                    icon={<FileIcon type={meta.type} />}
+                    depth={depth}
+                    selected={selected}
+                    onClick={() => navigate(joinURL('.', filepath))}
+                    actions={actions}
+                    // sx={{ color: change?.color }}
+                  >
+                    {meta.name || t('alert.unnamed')}
+                  </TreeItem>
                   <AwarenessIndicator
                     projectId={projectId}
                     gitRef={gitRef}
                     path={[meta.id]}
-                    sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)' }}
+                    sx={{ position: 'absolute', right: 8, top: -2 }}
                   />
-                </TreeItem>
+                </Box>
               );
 
               // if (change && showPopper) {

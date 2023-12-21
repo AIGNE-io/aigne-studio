@@ -52,7 +52,7 @@ export default function ApiAssistantEditor({
       </Box>
 
       <Box sx={{ bgcolor, py: 1, px: 2, borderRadius: 1 }}>
-        <ParametersTable readOnly={disabled} value={value} />
+        <ParametersTable projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} />
       </Box>
 
       <Stack sx={{ bgcolor, p: 1, px: 2, borderRadius: 1, gap: 2 }}>
