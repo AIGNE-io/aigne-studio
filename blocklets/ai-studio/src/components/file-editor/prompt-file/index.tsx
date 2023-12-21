@@ -8,7 +8,6 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
 import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
-import { useThrottleFn } from 'ahooks';
 
 import { useReadOnly } from '../../../contexts/session';
 import Add from '../../../pages/project/icons/add';
