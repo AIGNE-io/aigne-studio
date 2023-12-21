@@ -541,7 +541,7 @@ function ProjectItem({
   return (
     <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between">
-        <Box className="logo" sx={{ width: '22px', height: '22px' }}>
+        <Box className="logo" sx={{ width: '32px', height: '32px' }}>
           {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 24 }} />}
         </Box>
 
@@ -641,7 +641,7 @@ const ProjectItemRoot = styled(Stack)`
   border-width: 1px;
   border-style: solid;
   border-color: ${({ theme }) => theme.palette.divider};
-  border-radius: 16px;
+  border-radius: 8px;
 
   &:hover {
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.08);
