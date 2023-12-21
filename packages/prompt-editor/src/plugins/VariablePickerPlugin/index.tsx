@@ -92,7 +92,11 @@ export default function VariablePickerPlugin({ options }: { options?: VariablePi
   const filteredOptions = useMemo(() => {
     const replaceVariableOptions = filterDisabledOptions.map((x) => {
       if (x.replaceTitle) {
-        x.title = x.replaceTitle.replace('$$$', queryString ? ` "${queryString}" ` : '');
+        const found = matchOptions.find((x) => x.title === queryString);
+
+        if (!found) {
+          x.title = x.replaceTitle.replace('$$$', queryString ? ` "${queryString}" ` : '');
+        }
       }
 
       return x;
