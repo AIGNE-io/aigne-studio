@@ -1,3 +1,7 @@
+## 0.1.182 (2023-12-21)
+
+- fix: modify the style of cards in the project
+
 ## 0.1.181 (2023-12-21)
 
 - fix: get variable context
