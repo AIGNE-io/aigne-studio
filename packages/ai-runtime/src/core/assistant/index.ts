@@ -1,5 +1,7 @@
 import { ReadableStream } from 'stream/web';
 
+import { call } from '@blocklet/sdk/lib/component';
+import env from '@blocklet/sdk/lib/env';
 import axios, { isAxiosError } from 'axios';
 import { isNil, pick } from 'lodash';
 import { Worker } from 'snowflake-uuid';
@@ -152,15 +154,21 @@ async function runFunctionAssistant({
       context: {
         get: (name: any) => {
           if (isNil(name) || name === '') return undefined;
-
-          let result = context?.[name] || results.find((i) => i[0].variable === name);
+          let result = context?.[name] || results.find((i) => i[0].variable === name)?.[1];
           while (typeof result === 'function') {
             result = result();
           }
           return result;
         },
       },
+      URL,
+      call,
       fetch,
+      env: {
+        languages: env.languages,
+        appId: env.appId,
+        appUrl: env.appUrl,
+      },
     },
   });
 
@@ -169,7 +177,6 @@ async function runFunctionAssistant({
   });
 
   const module = await vm.run(assistant.code);
-
   if (typeof module.default !== 'function')
     throw new Error('Invalid function file: function file must export default function');
 
