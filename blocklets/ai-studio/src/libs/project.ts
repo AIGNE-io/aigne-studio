@@ -1,3 +1,5 @@
+import { Assistant } from '@blocklet/ai-runtime/types';
+
 import {
   AddProjectRemoteInput,
   CreateProjectInput,
@@ -46,8 +48,8 @@ export async function importTemplatesToProject(
   projectId: string,
   ref: string,
   data: { projectId: string; ref: string; resources: string[] }
-): Promise<{ templates: { parent?: string[] }[] }> {
-  return axios.post(`/api/projects/${projectId}/${ref}/import`, data).then((res) => res.data);
+): Promise<{ assistants: (Assistant & { parent?: string[] })[] }> {
+  return axios.post(`/api/projects/import/${projectId}/${ref}`, data).then((res) => res.data);
 }
 
 export async function addProjectRemote(projectId: string, data: AddProjectRemoteInput): Promise<{}> {

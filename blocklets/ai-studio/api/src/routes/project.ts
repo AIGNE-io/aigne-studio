@@ -23,6 +23,7 @@ import {
   defaultBranch,
   defaultRemote,
   getAssistantFromRepository,
+  getAssistantIdFromPath,
   getRepository,
   repositoryRoot,
   syncRepository,
@@ -45,6 +46,16 @@ const createProjectSchema = Joi.object<CreateProjectInput>({
   templateId: Joi.string().empty([null, '']),
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
+});
+
+const importSchema = Joi.object<{
+  projectId: string;
+  ref: string;
+  resources: string[];
+}>({
+  projectId: Joi.string().required().min(1),
+  ref: Joi.string(),
+  resources: Joi.array().items(Joi.string()).required(),
 });
 
 export interface UpdateProjectInput {
@@ -485,6 +496,26 @@ export function projectRoutes(router: Router) {
       res.json(assistant);
     }
   );
+
+  router.post('/projects/import/:projectId/:ref', ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { resources, projectId, ref } = await importSchema.validateAsync(req.body);
+
+    const assistants = (
+      await Promise.all(
+        resources.map(async (filepath: string) => {
+          const assistantId = getAssistantIdFromPath(filepath);
+          if (!assistantId) return [];
+          const repository = await getRepository({ projectId });
+          const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${assistantId}.yaml`));
+          const parent = p ? p.split('/').slice(0, -1) : [];
+          const result = await getAssistantFromRepository({ repository, ref, assistantId });
+          return { ...result, parent };
+        })
+      )
+    ).flat();
+
+    return res.json({ assistants: uniqBy(assistants, 'id') });
+  });
 }
 
 const getAuthorsOfProject = async ({ projectId }: { projectId: string }) => {

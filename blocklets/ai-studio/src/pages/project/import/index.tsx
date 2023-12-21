@@ -44,7 +44,7 @@ export default function ImportFrom({
 
     return state.files.map((item) => ({
       id: joinURL('', ...item.parent, item.name),
-      parent: item.parent.join(' / ') || '',
+      parent: item.parent.slice(1).join(' / ') || '',
       text: item.name,
       data: item.type === 'file' ? item.meta : undefined,
       type: item.type,
@@ -83,7 +83,7 @@ export default function ImportFrom({
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box display="flex" alignItems="center" pt={2} gap={2}>
+      <Box display="flex" alignItems="center" gap={2}>
         <Autocomplete
           key={Boolean(projectValue).toString()}
           disabled={!state.projects?.length}
@@ -156,7 +156,7 @@ export default function ImportFrom({
             };
 
             return (
-              <Stack key={item.id} pl={1} mb={0.25}>
+              <Stack key={item.id} mb={0.25}>
                 <FormControlLabel
                   sx={{ pl: 0 }}
                   disabled={Boolean(Number(counts.current[item.text]) > 0)}
