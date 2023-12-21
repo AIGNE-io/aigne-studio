@@ -66,6 +66,7 @@ export default function PromptAssistantEditor({
           {value.prompts && (
             <DragSortListYjs
               sx={{ gap: 2 }}
+              component={Stack}
               disabled={readOnly}
               list={value.prompts}
               renderItem={(prompt, _, params) => {

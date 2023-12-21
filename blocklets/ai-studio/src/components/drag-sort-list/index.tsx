@@ -73,7 +73,7 @@ export function DragSortListYjs<T>({
   drop(ref);
 
   return (
-    <Stack {...props} ref={ref} className={cx(isOver && 'isDragging')}>
+    <Box {...props} ref={ref} className={cx(isOver && 'isDragging')}>
       {ids.current.map((id, index) => (
         <ItemDND
           key={id}
@@ -90,7 +90,7 @@ export function DragSortListYjs<T>({
           }}
         </ItemDND>
       ))}
-    </Stack>
+    </Box>
   );
 }
 
