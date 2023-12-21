@@ -12,7 +12,7 @@ import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 
@@ -195,7 +195,7 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
 
         const res = await localForage.getItem<string>(key);
         const json: DebugState = typeof res === 'string' ? JSON.parse(res) : res;
-        if (json.projectId === projectId && json.assistantId === assistantId) {
+        if (json?.projectId === projectId && json?.assistantId === assistantId) {
           return {
             ...json,
             sessions: json.sessions.map((session) => ({
@@ -217,8 +217,8 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
   ];
 };
 
-const debugState = (projectId: string, assistantId: string) => {
-  const [key, initialState] = getInitialDebugState(projectId, assistantId);
+const useDebugInitState = (projectId: string, assistantId: string) => {
+  const [key, initialState] = useMemo(() => getInitialDebugState(projectId, assistantId), [projectId, assistantId]);
 
   debugStates[key] ??= atom<DebugState>({
     key,
@@ -227,7 +227,7 @@ const debugState = (projectId: string, assistantId: string) => {
       (() => {
         const setItem = debounce((k, v) => {
           localForage.setItem(k, v);
-        }, 1000);
+        }, 2000);
 
         window.addEventListener('beforeunload', () => setItem.flush());
 
@@ -242,7 +242,8 @@ const debugState = (projectId: string, assistantId: string) => {
 };
 
 export const useDebugState = ({ projectId, assistantId }: { projectId: string; assistantId: string }) => {
-  const [state, setState] = useRecoilState(debugState(projectId, assistantId));
+  const debugState = useDebugInitState(projectId, assistantId);
+  const [state, setState] = useRecoilState(debugState);
 
   const newSession = useCallback(
     (session?: Partial<SessionItem>) => {
@@ -496,7 +497,9 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
 };
 
 async function migrateDebugStateFroMLocalStorageToIndexedDB() {
-  for (const key of Object.keys(localStorage)) {
+  const debugStateKeys = Object.keys(localStorage).filter((key) => key.startsWith('debugState-'));
+
+  for (const key of debugStateKeys) {
     if (key.startsWith('debugState-')) {
       const text = localStorage.getItem(key);
       localStorage.removeItem(key);
