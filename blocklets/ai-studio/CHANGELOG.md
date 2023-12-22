@@ -1,3 +1,7 @@
+## 0.1.183 (2023-12-22)
+
+- feat: support history by executeBlock as context
+
 ## 0.1.182 (2023-12-21)
 
 - fix: automatic identification variable

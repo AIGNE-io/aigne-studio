@@ -15,7 +15,7 @@ export interface ExecuteBlock {
   selectType?: 'all' | 'selectByPrompt';
   selectByPrompt?: string;
   tools?: { id: string; parameters?: { [key: string]: string } }[];
-  formatResultType?: 'none' | 'asContext';
+  formatResultType?: 'none' | 'asHistory';
   variable?: string;
 }
 
