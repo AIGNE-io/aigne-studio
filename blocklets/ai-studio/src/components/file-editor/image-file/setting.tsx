@@ -7,7 +7,6 @@ import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import { defaultImageModel, getSupportedImagesModels } from '../../../libs/common';
-import AwarenessIndicator from '../../awareness/awareness-indicator';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';
 import SliderNumberField from '../../slider-number-field';
@@ -65,7 +64,7 @@ export default function ImageAssistantSetting({
       <Collapse in={open}>
         <Stack py={1} gap={1}>
           <Box position="relative">
-            <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
+            <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
               <ModelSelectField
                 fullWidth
                 isImageModel
@@ -84,13 +83,6 @@ export default function ImageAssistantSetting({
                 InputProps={{ readOnly }}
               />
             </WithAwareness>
-
-            <AwarenessIndicator
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[value.id, 'model']}
-              sx={{ position: 'absolute', right: -16, top: 16 }}
-            />
           </Box>
 
           {modelDetail && (
@@ -122,26 +114,17 @@ export default function ImageAssistantSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'n']}>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={modelDetail.nMin}
-                        max={modelDetail.nMax}
-                        step={1}
-                        value={value.n ?? modelDetail.nDefault}
-                        onChange={(_, v) => (value.n = v)}
-                        sx={{ flex: 1 }}
-                      />
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'n']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
+                  <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'n']}>
+                    <SliderNumberField
+                      readOnly={readOnly}
+                      min={modelDetail.nMin}
+                      max={modelDetail.nMax}
+                      step={1}
+                      value={value.n ?? modelDetail.nDefault}
+                      onChange={(_, v) => (value.n = v)}
+                      sx={{ flex: 1 }}
                     />
-                  </Box>
+                  </WithAwareness>
                 </Box>
               )}
 
@@ -154,32 +137,23 @@ export default function ImageAssistantSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'quality']}>
-                      <TextField
-                        hiddenLabel
-                        select
-                        SelectProps={{
-                          readOnly,
-                          autoWidth: true,
-                        }}
-                        value={value.quality ?? modelDetail.qualityDefault}
-                        onChange={(e) => (value.quality = e.target.value)}>
-                        {modelDetail.quality.map((i) => (
-                          <MenuItem key={i} value={i}>
-                            {i}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'quality']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
-                    />
-                  </Box>
+                  <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'quality']}>
+                    <TextField
+                      hiddenLabel
+                      select
+                      SelectProps={{
+                        readOnly,
+                        autoWidth: true,
+                      }}
+                      value={value.quality ?? modelDetail.qualityDefault}
+                      onChange={(e) => (value.quality = e.target.value)}>
+                      {modelDetail.quality.map((i) => (
+                        <MenuItem key={i} value={i}>
+                          {i}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </WithAwareness>
                 </Box>
               )}
 
@@ -191,9 +165,13 @@ export default function ImageAssistantSetting({
                       <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
                     </FormLabel>
                   </Tooltip>
-
                   <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'responseFormat']}>
+                    <WithAwareness
+                      right={-4}
+                      top={-2}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      path={[value.id, 'responseFormat']}>
                       <TextField
                         hiddenLabel
                         select
@@ -210,13 +188,6 @@ export default function ImageAssistantSetting({
                         ))}
                       </TextField>
                     </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'responseFormat']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
-                    />
                   </Box>
                 </Box>
               )}
@@ -230,32 +201,23 @@ export default function ImageAssistantSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'size']}>
-                      <TextField
-                        hiddenLabel
-                        select
-                        SelectProps={{
-                          readOnly,
-                          autoWidth: true,
-                        }}
-                        value={value.size ?? modelDetail.sizeDefault}
-                        onChange={(e) => (value.size = e.target.value)}>
-                        {modelDetail.size.map((i) => (
-                          <MenuItem key={i} value={i}>
-                            {i}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'size']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
-                    />
-                  </Box>
+                  <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'size']}>
+                    <TextField
+                      hiddenLabel
+                      select
+                      SelectProps={{
+                        readOnly,
+                        autoWidth: true,
+                      }}
+                      value={value.size ?? modelDetail.sizeDefault}
+                      onChange={(e) => (value.size = e.target.value)}>
+                      {modelDetail.size.map((i) => (
+                        <MenuItem key={i} value={i}>
+                          {i}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </WithAwareness>
                 </Box>
               )}
 
@@ -268,32 +230,23 @@ export default function ImageAssistantSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'style']}>
-                      <TextField
-                        hiddenLabel
-                        select
-                        SelectProps={{
-                          readOnly,
-                          autoWidth: true,
-                        }}
-                        value={value.style ?? modelDetail.styleDefault}
-                        onChange={(e) => (value.style = e.target.value)}>
-                        {modelDetail.style.map((i) => (
-                          <MenuItem key={i} value={i}>
-                            {i}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'style']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
-                    />
-                  </Box>
+                  <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'style']}>
+                    <TextField
+                      hiddenLabel
+                      select
+                      SelectProps={{
+                        readOnly,
+                        autoWidth: true,
+                      }}
+                      value={value.style ?? modelDetail.styleDefault}
+                      onChange={(e) => (value.style = e.target.value)}>
+                      {modelDetail.style.map((i) => (
+                        <MenuItem key={i} value={i}>
+                          {i}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </WithAwareness>
                 </Box>
               )}
             </Box>

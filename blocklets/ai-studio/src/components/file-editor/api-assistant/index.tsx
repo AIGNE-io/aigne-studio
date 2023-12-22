@@ -1,20 +1,9 @@
+import IndicatorTextField from '@app/components/awareness/indicator-text-field';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ApiAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  alpha,
-} from '@mui/material';
+import { Box, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography, alpha } from '@mui/material';
 import { sortBy } from 'lodash';
 
 import { useReadOnly } from '../../../contexts/session';
@@ -133,15 +122,23 @@ export default function ApiAssistantEditor({
                   return (
                     <TableRow key={parameter.id}>
                       <TableCell>
-                        <TextField
-                          hiddenLabel
-                          fullWidth
-                          value={parameter.key || ''}
-                          onChange={(e) => (parameter.key = e.target.value)}
+                        <IndicatorTextField
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          path={[value.id, 'requestParameters', parameter.id ?? '', 'key']}
+                          textFiledProps={{
+                            hiddenLabel: true,
+                            fullWidth: true,
+                            value: parameter.key || '',
+                            onChange: (e) => (parameter.key = e.target.value),
+                          }}
                         />
                       </TableCell>
                       <TableCell>
                         <PromptEditorField
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          path={[value.id, 'requestParameters', parameter.id ?? '', 'value']}
                           assistant={value}
                           value={parameter.value}
                           onChange={(value) => (parameter.value = value)}
@@ -190,11 +187,11 @@ export default function ApiAssistantEditor({
       </Box>
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
-        <ApiAssistantSetting value={value} readOnly={readOnly} />
+        <ApiAssistantSetting projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
-        <OutputSettings value={value} readOnly={readOnly} />
+        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>
     </Stack>
   );

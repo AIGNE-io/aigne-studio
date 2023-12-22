@@ -1,10 +1,21 @@
+import IndicatorTextField from '@app/components/awareness/indicator-text-field';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
 import { ExpandMoreRounded } from '@mui/icons-material';
-import { Box, Button, Collapse, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Collapse, MenuItem, Stack, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 
-export default function ApiAssistantSetting({ value, readOnly }: { value: ApiAssistantYjs; readOnly?: boolean }) {
+export default function ApiAssistantSetting({
+  value,
+  readOnly,
+  projectId,
+  gitRef,
+}: {
+  value: ApiAssistantYjs;
+  projectId: string;
+  gitRef: string;
+  readOnly?: boolean;
+}) {
   const { t } = useLocaleContext();
 
   const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
@@ -42,26 +53,42 @@ export default function ApiAssistantSetting({ value, readOnly }: { value: ApiAss
       <Collapse in={open}>
         <Stack py={1} gap={1}>
           <Stack direction="row" gap={1}>
-            <TextField
-              label={t('method')}
-              select
-              SelectProps={{ autoWidth: true }}
-              InputProps={{ readOnly }}
-              value={value.requestMethod || methods[0]}
-              onChange={(e) => (value.requestMethod = e.target.value)}>
-              {methods.map((method) => (
-                <MenuItem key={method} value={method}>
-                  {method}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
-              sx={{ flex: 1 }}
-              label={t('url')}
-              InputProps={{ readOnly }}
-              value={value.requestUrl || ''}
-              onChange={(e) => (value.requestUrl = e.target.value)}
+            <IndicatorTextField
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, 'requestMethod']}
+              textFiledProps={{
+                select: true,
+                SelectProps: {
+                  autoWidth: true,
+                },
+                InputProps: {
+                  readOnly,
+                },
+                value: value.requestMethod || methods[0],
+                onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                  (value.requestMethod = e.target.value),
+                children: methods.map((method) => (
+                  <MenuItem key={method} value={method}>
+                    {method}
+                  </MenuItem>
+                )),
+              }}
+            />
+            <IndicatorTextField
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, 'requestUrl']}
+              textFiledProps={{
+                sx: { flex: 1 },
+                label: t('url'),
+                InputProps: {
+                  readOnly,
+                },
+                value: value.requestUrl ?? '',
+                onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                  (value.requestUrl = e.target.value),
+              }}
             />
           </Stack>
         </Stack>

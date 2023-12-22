@@ -1,3 +1,4 @@
+import WithAwareness from '@app/components/awareness/with-awareness';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
@@ -48,7 +49,7 @@ export default function PromptAssistantEditor({
       </Box>
 
       <Box sx={{ bgcolor, py: 1, px: 2, borderRadius: 1 }}>
-        <ParametersTable readOnly={disabled} value={value} />
+        <ParametersTable projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} />
       </Box>
 
       <Box
@@ -76,6 +77,8 @@ export default function PromptAssistantEditor({
                   prompt.type === 'message' ? (
                     <PromptItemMessage
                       assistant={value}
+                      projectId={projectId}
+                      gitRef={gitRef}
                       value={prompt.data}
                       promptHidden={prompt.visibility === 'hidden'}
                     />
@@ -143,7 +146,7 @@ export default function PromptAssistantEditor({
       </Box>
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
-        <OutputSettings value={value} readOnly={readOnly} />
+        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>
     </Stack>
   );
@@ -152,10 +155,14 @@ export default function PromptAssistantEditor({
 function PromptItemMessage({
   assistant,
   value,
+  projectId,
+  gitRef,
   promptHidden,
 }: {
   assistant: AssistantYjs;
   value: PromptMessage;
+  projectId: string;
+  gitRef: string;
   promptHidden?: boolean;
 }) {
   const { t } = useLocaleContext();
@@ -173,15 +180,31 @@ function PromptItemMessage({
       }}>
       <Stack direction="row" alignItems="center" gap={1} p={1}>
         <Typography variant="subtitle2">{t('prompt')}</Typography>
-
-        <RoleSelectField size="small" value={value.role} onChange={(e) => (value.role = e.target.value as any)} />
+        <RoleSelectField
+          size="small"
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, 'prompts', 'data', value.id ?? '', 'role']}
+          value={value.role}
+          onChange={(e) => (value.role = e.target.value as any)}
+        />
       </Stack>
 
-      <StyledPromptEditor
-        assistant={assistant}
-        value={value.content}
-        onChange={(content) => (value.content = content)}
-      />
+      <WithAwareness
+        projectId={projectId}
+        gitRef={gitRef}
+        top={0}
+        right={0}
+        path={[value.id, 'prompts', 'data', value.id ?? '', 'content']}>
+        <StyledPromptEditor
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, 'prompt']}
+          assistant={assistant}
+          value={value.content}
+          onChange={(content) => (value.content = content)}
+        />
+      </WithAwareness>
     </Stack>
   );
 }

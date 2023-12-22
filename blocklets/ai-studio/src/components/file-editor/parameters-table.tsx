@@ -24,7 +24,6 @@ import { useMemo, useState } from 'react';
 import Add from '../../pages/project/icons/add';
 import Settings from '../../pages/project/icons/settings';
 import Trash from '../../pages/project/icons/trash';
-import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
@@ -75,33 +74,27 @@ export default function ParametersTable({
         field: 'key',
         headerName: t('variable'),
         renderCell: ({ row: { data: parameter } }) => (
-          <>
-            <WithAwareness
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[value.id, 'parameters', parameter?.id ?? '', 'key']}>
-              <Input
-                id={`${parameter.id}-key`}
-                fullWidth
-                readOnly={readOnly}
-                placeholder={t('variable')}
-                value={parameter.key || ''}
-                onChange={(e) => {
-                  const value = e.target.value.trim();
+          <WithAwareness
+            projectId={projectId}
+            gitRef={gitRef}
+            top={4}
+            right={-8}
+            path={[value.id, 'parameters', parameter?.id ?? '', 'key']}>
+            <Input
+              id={`${parameter.id}-key`}
+              fullWidth
+              readOnly={readOnly}
+              placeholder={t('variable')}
+              value={parameter.key || ''}
+              onChange={(e) => {
+                const value = e.target.value.trim();
 
-                  if (isValidVariableName(value)) {
-                    parameter.key = value;
-                  }
-                }}
-              />
-            </WithAwareness>
-            <AwarenessIndicator
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[value.id, 'name']}
-              sx={{ position: 'absolute', right: 0, top: 0 }}
+                if (isValidVariableName(value)) {
+                  parameter.key = value;
+                }
+              }}
             />
-          </>
+          </WithAwareness>
         ),
       },
       {
@@ -109,13 +102,20 @@ export default function ParametersTable({
         field: 'label',
         headerName: t('label'),
         renderCell: ({ row: { data: parameter } }) => (
-          <Input
-            fullWidth
-            readOnly={readOnly}
-            placeholder={parameter.key}
-            value={parameter.label || ''}
-            onChange={(e) => (parameter.label = e.target.value)}
-          />
+          <WithAwareness
+            projectId={projectId}
+            gitRef={gitRef}
+            top={4}
+            right={-8}
+            path={[value.id, 'parameters', parameter?.id ?? '', 'label']}>
+            <Input
+              fullWidth
+              readOnly={readOnly}
+              placeholder={parameter.key}
+              value={parameter.label || ''}
+              onChange={(e) => (parameter.label = e.target.value)}
+            />
+          </WithAwareness>
         ),
       },
       {
@@ -126,30 +126,36 @@ export default function ParametersTable({
         width: 140,
         renderCell: ({ row: { data: parameter } }) => {
           const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
-
           return (
-            <ParameterConfigType
-              variant="standard"
-              hiddenLabel
-              SelectProps={{ autoWidth: true }}
-              sx={{ ml: 2 }}
-              value={multiline ? 'multiline' : parameter?.type ?? 'string'}
-              InputProps={{ readOnly }}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                doc.transact(() => {
-                  if (newValue === 'multiline') {
-                    parameter.type = 'string';
-                    (parameter as StringParameter)!.multiline = true;
-                  } else {
-                    parameter.type = newValue as any;
-                    if (typeof (parameter as StringParameter).multiline !== 'undefined') {
-                      delete (parameter as StringParameter)!.multiline;
+            <WithAwareness
+              projectId={projectId}
+              gitRef={gitRef}
+              top={4}
+              right={-8}
+              path={[value.id, 'parameters', parameter?.id ?? '', 'type']}>
+              <ParameterConfigType
+                variant="standard"
+                hiddenLabel
+                SelectProps={{ autoWidth: true }}
+                sx={{ ml: 2 }}
+                value={multiline ? 'multiline' : parameter?.type ?? 'string'}
+                InputProps={{ readOnly }}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  doc.transact(() => {
+                    if (newValue === 'multiline') {
+                      parameter.type = 'string';
+                      (parameter as StringParameter)!.multiline = true;
+                    } else {
+                      parameter.type = newValue as any;
+                      if (typeof (parameter as StringParameter).multiline !== 'undefined') {
+                        delete (parameter as StringParameter)!.multiline;
+                      }
                     }
-                  }
-                });
-              }}
-            />
+                  });
+                }}
+              />
+            </WithAwareness>
           );
         },
       },

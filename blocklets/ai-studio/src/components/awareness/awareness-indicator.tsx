@@ -4,13 +4,6 @@ import { uniqBy } from 'lodash';
 
 import { useProjectStore } from '../../pages/project/yjs-state';
 
-const BlueDot = styled(Box)`
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: blue;
-`;
-
 const UserBlock = styled('div')({
   display: 'flex',
   alignItems: 'center',
@@ -58,7 +51,14 @@ export default function AwarenessIndicator({
             ))}
           </Box>
         }>
-        <BlueDot />
+        <Box
+          sx={{
+            background: (theme) => theme.palette.success.light,
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+          }}
+        />
       </Tooltip>
     </Box>
   );

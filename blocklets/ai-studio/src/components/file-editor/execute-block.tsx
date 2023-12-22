@@ -29,6 +29,7 @@ import Add from '../../pages/project/icons/add';
 import External from '../../pages/project/icons/external';
 import Trash from '../../pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, createFile, useProjectStore } from '../../pages/project/yjs-state';
+import IndicatorTextField from '../awareness/indicator-text-field';
 import PromptEditorField from './prompt-editor-field';
 
 export default function ExecuteBlockForm({
@@ -58,17 +59,29 @@ export default function ExecuteBlockForm({
     <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
       <Stack direction="row" gap={1} alignItems="center">
         <Typography variant="subtitle2">{t('executeBlock')}</Typography>
-
-        <TextField
-          size="small"
-          select
-          hiddenLabel
-          SelectProps={{ autoWidth: true }}
-          value={value.selectType || 'all'}
-          onChange={(e) => (value.selectType = e.target.value as any)}>
-          <MenuItem value="all">{t('all')}</MenuItem>
-          <MenuItem value="selectByPrompt">{t('selectPrompt')}</MenuItem>
-        </TextField>
+        <IndicatorTextField
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, value.selectType ?? 'all']}
+          textFiledProps={{
+            size: 'small',
+            select: true,
+            hiddenLabel: true,
+            SelectProps: {
+              autoWidth: true,
+            },
+            value: value.selectType || 'all',
+            onChange: (e) => (value.selectType = e.target.value as any),
+            children: [
+              <MenuItem key="all" value="all">
+                {t('all')}
+              </MenuItem>,
+              <MenuItem key="selectByPrompt" value="selectByPrompt">
+                {t('selectPrompt')}
+              </MenuItem>,
+            ],
+          }}
+        />
 
         <Box flex={1} />
       </Stack>
@@ -170,22 +183,38 @@ export default function ExecuteBlockForm({
           {t('formatResult')}
         </Typography>
 
-        <TextField
-          hiddenLabel
-          select
-          SelectProps={{ autoWidth: true }}
-          value={value.formatResultType || 'none'}
-          onChange={(e) => (value.formatResultType = e.target.value as any)}>
-          <MenuItem value="none">{t('stayAsIs')}</MenuItem>
-          {/* <MenuItem value="asContext">Use as context</MenuItem> */}
-        </TextField>
+        <IndicatorTextField
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, value.formatResultType ?? 'none']}
+          textFiledProps={{
+            select: true,
+            hiddenLabel: true,
+            SelectProps: {
+              autoWidth: true,
+            },
+            value: value.formatResultType || 'none',
+            onChange: (e) => (value.formatResultType = e.target.value as any),
+            children: [<MenuItem value="none">{t('stayAsIs')}</MenuItem>],
+          }}
+        />
 
         <Box flex={1} />
 
         <Typography variant="body1" component="label">
           {t('variable')}
         </Typography>
-        <TextField hiddenLabel value={value.variable || ''} onChange={(e) => (value.variable = e.target.value)} />
+
+        <IndicatorTextField
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, value.variable ?? '']}
+          textFiledProps={{
+            hiddenLabel: true,
+            value: value.variable ?? '',
+            onChange: (e) => (value.variable = e.target.value),
+          }}
+        />
       </Stack>
 
       <ToolDialog
@@ -275,7 +304,7 @@ const ToolDialog = forwardRef<
               const file = store.files[field.value];
               const target = file && isAssistant(file) ? file : undefined;
               const value = target ? { id: target.id, type: target.type, name: target.name } : undefined;
-
+              /* TODO: indicator */
               return (
                 <Autocomplete
                   key={Boolean(field.value).toString()}

@@ -25,7 +25,7 @@ export default function BasicInfoForm({
   return (
     <Stack gap={0.5}>
       <Box position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
+        <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
           <HoverBackgroundTextField
             hiddenLabel
             fullWidth
@@ -48,7 +48,7 @@ export default function BasicInfoForm({
       </Box>
 
       <Box position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'description']}>
+        <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'description']}>
           <HoverBackgroundTextField
             hiddenLabel
             fullWidth
@@ -70,7 +70,7 @@ export default function BasicInfoForm({
       </Box>
 
       <Box position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
+        <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
           <TagsAutoComplete
             readOnly={readOnly}
             projectId={projectId}
