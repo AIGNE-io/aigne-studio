@@ -19,7 +19,7 @@ import {
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
-import { ImageAssistant, Mustache, isImageAssistant } from '../../types/assistant';
+import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
 import { ChatCompletionChunk, callAIKitChatCompletions, callAIKitImageGeneration } from '../ai-kit';
 
 export type RunAssistantResponse = RunAssistantChunk | RunAssistantError;
@@ -342,7 +342,41 @@ async function runPromptAssistant({
 
             if (isNil(result) || result === '') return undefined;
 
-            // TODO: 支持选择 block 的结果处理方式：skip/as context/custom
+            if (prompt.data.formatResultType === 'asContext') {
+              const arr = Array.isArray(result) ? result : [result];
+
+              const innerMessages: { role: Role; content: string }[][] = arr.map((message: any) => {
+                if (Array.isArray(message)) {
+                  const format = message
+                    .filter(
+                      (i: any): i is (typeof messages)[number] =>
+                        typeof i.role === 'string' && typeof i.content === 'string'
+                    )
+                    .map((i: any) => pick(i, 'role', 'content'));
+
+                  return format;
+                }
+
+                if (message?.role && message.content) {
+                  return [
+                    {
+                      role: message.role,
+                      content: message.content,
+                    },
+                  ];
+                }
+
+                return [
+                  {
+                    role: 'system' as const,
+                    content: typeof message === 'string' ? message : JSON.stringify(message),
+                  },
+                ];
+              });
+
+              return innerMessages.flat();
+            }
+
             return {
               role: 'system' as const,
               content: typeof result === 'string' ? result : JSON.stringify(result),
@@ -353,16 +387,9 @@ async function runPromptAssistant({
           return undefined;
         })
     )
-  ).filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
-
-  // TODO: 这是临时支持的 history 方式（目前 Aistro 在用），之后会提供内置的 history 机制
-  if (Array.isArray(parameters.$history)) {
-    const history = parameters.$history
-      .filter((i): i is (typeof messages)[number] => typeof i.role === 'string' && typeof i.content === 'string')
-      .map((i) => pick(i, 'role', 'content'));
-
-    messages.unshift(...history);
-  }
+  )
+    .flat()
+    .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
   const res = await callAI({
     assistant,
