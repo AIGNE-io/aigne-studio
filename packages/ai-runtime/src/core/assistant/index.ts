@@ -522,7 +522,7 @@ async function runExecuteBlock({
                 .filter((i): i is typeof i & { key: string } => !!i.key)
                 .map(async (i) => {
                   const template = tool.parameters?.[i.key]?.trim();
-                  const value = await renderMessage(template?.trim() || `{{${i.key}}}`, parameters);
+                  const value = template ? await renderMessage(template, parameters) : parameters?.[i.key];
 
                   return [i.key, value];
                 })

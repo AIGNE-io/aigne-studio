@@ -1,3 +1,7 @@
+## 0.1.185 (2023-12-22)
+
+- fix: pass parameter to tool directly
+
 ## 0.1.184 (2023-12-22)
 
 - fix: fetch error in node earlier version
