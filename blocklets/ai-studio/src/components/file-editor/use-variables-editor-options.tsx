@@ -13,7 +13,7 @@ const useHighlightedState = () => useRecoilState(highlightedState);
 export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   const { t } = useLocaleContext();
   const [highlightedId, setHighlightedId] = useHighlightedState();
-  const from = 'editor';
+  const from: 'editor' = 'editor';
 
   const variableSet = new Set(
     assistant?.parameters &&
