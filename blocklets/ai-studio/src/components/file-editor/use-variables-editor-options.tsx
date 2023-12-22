@@ -77,7 +77,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   }, [variables?.join('/'), t]);
 
   const addParameter = useCallback(
-    (parameter: string, from?: string) => {
+    (parameter: string, from?: 'editor') => {
       if (!assistant) return undefined;
 
       const doc = (getYjsValue(assistant) as Map<any>).doc!;
