@@ -27,6 +27,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  avatarClasses,
   styled,
 } from '@mui/material';
 import { MouseEvent, ReactNode, useEffect, useMemo, useState } from 'react';
@@ -546,15 +547,23 @@ function ProjectItem({
         </Box>
 
         {users && Array.isArray(users) && !!users.length && (
-          <AvatarGroup total={users.length}>
+          <AvatarGroup
+            total={users.length + 6}
+            sx={{
+              [`.${avatarClasses.root}`]: {
+                width: '22px',
+                height: '22px',
+                fontSize: '12px',
+              },
+            }}>
             {users.map((user) => {
               const name = user.fullName || user.did;
 
               return (
                 <Tooltip key={user.did} title={name} placement="top">
-                  <CustomAvatar alt={user.fullName} sx={{ borderWidth: '1px !important' }} src={user.avatar}>
+                  <Avatar alt={user.fullName} sx={{ borderWidth: '1px !important' }} src={user.avatar}>
                     {name?.slice(0, 1)}
-                  </CustomAvatar>
+                  </Avatar>
                 </Tooltip>
               );
             })}
@@ -676,13 +685,6 @@ const ProjectItemRoot = styled(Stack)`
   .action {
     display: none;
   }
-`;
-
-const CustomAvatar = styled(Avatar)`
-  width: 22px;
-  height: 22px;
-  border-width: 1px;
-  font-size: 12px;
 `;
 
 function LoadingMenuItem({ ...props }: MenuItemProps) {

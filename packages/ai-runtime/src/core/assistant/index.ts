@@ -4,6 +4,7 @@ import { call } from '@blocklet/sdk/lib/component';
 import env from '@blocklet/sdk/lib/env';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick } from 'lodash';
+import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
 
