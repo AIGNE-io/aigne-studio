@@ -343,38 +343,13 @@ async function runPromptAssistant({
             if (isNil(result) || result === '') return undefined;
 
             if (prompt.data.formatResultType === 'asContext') {
-              const arr = Array.isArray(result) ? result : [result];
-
-              const innerMessages: { role: Role; content: string }[][] = arr.map((message: any) => {
-                if (Array.isArray(message)) {
-                  const format = message
-                    .filter(
-                      (i: any): i is (typeof messages)[number] =>
-                        typeof i.role === 'string' && typeof i.content === 'string'
-                    )
-                    .map((i: any) => pick(i, 'role', 'content'));
-
-                  return format;
-                }
-
-                if (message?.role && message.content) {
-                  return [
-                    {
-                      role: message.role,
-                      content: message.content,
-                    },
-                  ];
-                }
-
-                return [
-                  {
-                    role: 'system' as const,
-                    content: typeof message === 'string' ? message : JSON.stringify(message),
-                  },
-                ];
-              });
-
-              return innerMessages.flat();
+              return [result]
+                .flat()
+                .filter(
+                  (i): i is { role: Role; content: string } =>
+                    typeof i?.role === 'string' && typeof i.content === 'string'
+                )
+                .map((message) => pick(message, 'role', 'content'));
             }
 
             return {
