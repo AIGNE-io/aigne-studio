@@ -3,7 +3,7 @@ import { ReadableStream } from 'stream/web';
 import { call } from '@blocklet/sdk/lib/component';
 import env from '@blocklet/sdk/lib/env';
 import axios, { isAxiosError } from 'axios';
-import { isNil, pick } from 'lodash';
+import { flattenDeep, isNil, pick } from 'lodash';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
 
@@ -340,11 +340,8 @@ async function runPromptAssistant({
           if (prompt.type === 'executeBlock') {
             const result = blockResults.find((i) => i[0].id === prompt.data.id)?.[1];
 
-            if (isNil(result) || result === '') return undefined;
-
             if (prompt.data.formatResultType === 'asHistroy') {
-              return [result]
-                .flat()
+              return flattenDeep([result])
                 .filter(
                   (i): i is { role: Role; content: string } =>
                     typeof i?.role === 'string' && typeof i.content === 'string'
