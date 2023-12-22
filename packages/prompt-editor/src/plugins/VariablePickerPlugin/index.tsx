@@ -20,14 +20,22 @@ export class VariablePickerOption extends MenuOption {
 
   onSelect: (editor: LexicalEditor, queryString?: string) => void;
 
+  replaceTitle?: string;
+
   constructor(
     title: string,
-    options: { icon?: JSX.Element; disabled?: boolean; onSelect: (editor: LexicalEditor, queryString?: string) => void }
+    options: {
+      icon?: JSX.Element;
+      disabled?: boolean;
+      replaceTitle?: string;
+      onSelect: (editor: LexicalEditor, queryString?: string) => void;
+    }
   ) {
     super(title);
     this.title = title;
     this.icon = options.icon;
     this.disabled = options.disabled;
+    this.replaceTitle = options.replaceTitle;
     this.onSelect = options.onSelect.bind(this);
   }
 }
@@ -78,17 +86,28 @@ export default function VariablePickerPlugin({ options }: { options?: VariablePi
   const [filterDisabledOptions, matchOptions] = useMemo(() => {
     const filterDisabledOptions = (options || []).filter((x) => x.disabled);
     const matchOptions = (options || []).filter((x) => !x.disabled);
-
     return [filterDisabledOptions, matchOptions];
   }, [options]);
 
   const filteredOptions = useMemo(() => {
+    const replaceVariableOptions = filterDisabledOptions.map((x) => {
+      if (x.replaceTitle) {
+        const found = matchOptions.find((x) => x.title === queryString);
+
+        if (!found) {
+          x.title = x.replaceTitle.replace('$$$', queryString ? ` "${queryString}" ` : '');
+        }
+      }
+
+      return x;
+    });
+
     if (!queryString) {
-      return matchOptions.concat(filterDisabledOptions);
+      return matchOptions.concat(replaceVariableOptions);
     }
 
     const regex = new RegExp(queryString, 'i');
-    return [...matchOptions.filter((option) => regex.test(option.title))].concat(filterDisabledOptions);
+    return [...matchOptions.filter((option) => regex.test(option.title))].concat(replaceVariableOptions);
   }, [queryString, filterDisabledOptions, matchOptions]);
 
   const onSelectOption = useCallback(

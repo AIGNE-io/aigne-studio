@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isPromptAssistant, parseDirectivesOfTemplate } from '@blocklet/ai-runtime/types';
 import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { Box, Button, Paper, Stack } from '@mui/material';
@@ -21,8 +21,42 @@ export default function PromptEditorField({
   readOnly?: boolean;
 } & Omit<ComponentProps<typeof PromptEditor>, 'value' | 'onChange'>) {
   const { t } = useLocaleContext();
-  const { editorState, setEditorState } = usePromptEditorState({ value: value || '', onChange, readOnly });
-  const { options, variables, addParameter } = useVariablesEditorOptions(assistant);
+  const { from, options, variables, addParameter } = useVariablesEditorOptions(assistant);
+
+  const parameterChange = useThrottleFn(
+    async () => {
+      if (assistant && isPromptAssistant(assistant)) {
+        const variables = parseDirectivesOfTemplate(assistant);
+        const currentVariables = Object.values(assistant.parameters ?? {}).filter((p) => p?.data?.from === from);
+
+        // 添加新增的变量
+        variables.forEach((variable) => {
+          const name = variable?.name;
+          if (name && !currentVariables.some((v) => v?.data?.key === name)) {
+            addParameter(name, from);
+          }
+        });
+
+        // 删除移除的变量
+        (currentVariables || []).forEach((variable) => {
+          const key = variable?.data?.key;
+          if (assistant.parameters && key && !variables.some((v) => v.name === key)) {
+            delete assistant.parameters[variable?.data.id];
+          }
+        });
+      }
+    },
+    { wait: 500, trailing: true }
+  );
+
+  const { editorState, setEditorState } = usePromptEditorState({
+    value: value || '',
+    onChange: (value) => {
+      onChange(value);
+      parameterChange.run();
+    },
+    readOnly,
+  });
 
   const getParameters = (text: string) => {
     const list = Object.values(assistant?.parameters || []).map((i) => i.data.key);
@@ -43,8 +77,8 @@ export default function PromptEditorField({
 
   return (
     <PromptEditor
-      variables={variables}
       {...props}
+      variables={variables}
       value={editorState}
       onChange={setEditorState}
       variablePickerProps={{ options }}
@@ -98,7 +132,7 @@ export default function PromptEditorField({
                 <Button
                   sx={{ p: 0 }}
                   onClick={() => {
-                    addParameter(text);
+                    addParameter(text, from);
                     handleClose();
                   }}
                   size="small">
@@ -119,7 +153,7 @@ export function usePromptEditorState({
   readOnly,
 }: {
   value: string;
-  onChange: (value: string) => any;
+  onChange: (value: string, editorState: EditorState) => any;
   readOnly?: boolean;
 }) {
   const cache = useRef<string>();
@@ -133,7 +167,7 @@ export function usePromptEditorState({
 
       if (cache.current !== content) {
         cache.current = content;
-        onChange(content);
+        onChange(content, editorState);
       }
     },
     { wait: 300, trailing: true }
