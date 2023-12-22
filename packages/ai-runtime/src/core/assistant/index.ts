@@ -342,7 +342,7 @@ async function runPromptAssistant({
 
             if (isNil(result) || result === '') return undefined;
 
-            if (prompt.data.formatResultType === 'asContext') {
+            if (prompt.data.formatResultType === 'asHistroy') {
               return [result]
                 .flat()
                 .filter(

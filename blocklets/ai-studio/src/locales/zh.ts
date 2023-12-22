@@ -367,7 +367,7 @@ export default flat({
   executeBlock: '执行块',
   callAPI: '调用接口',
   formatResult: '格式化输出',
-  asContext: '作为上下文',
+  asHistroy: '作为聊天记录',
   stayAsIs: '保持原样',
   prepareExecutes: '预执行',
   tool: '工具',

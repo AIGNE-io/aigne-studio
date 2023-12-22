@@ -370,7 +370,7 @@ export default flat({
   callAPI: 'Call API',
   formatResult: 'Format Result',
   stayAsIs: 'Stay as is',
-  asContext: 'As Context',
+  asHistroy: 'As Context',
   prepareExecutes: 'Prepare Executes',
   tool: 'Tool',
   callFunction: 'Call Function',
