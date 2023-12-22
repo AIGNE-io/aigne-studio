@@ -54,7 +54,7 @@ import { joinURL } from 'ufo';
 
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
-import { importTemplatesToProject } from '../../libs/project';
+import { exportAssistantsToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Compare from './compare';
 import ChevronDown from './icons/chevron-down';
@@ -191,7 +191,7 @@ const FileTree = forwardRef<
       ),
       onOk: async () => {
         try {
-          const { assistants } = await importTemplatesToProject(projectId, gitRef, state);
+          const { assistants } = await exportAssistantsToProject(projectId, gitRef, state);
           if (assistants.length) {
             const newTemplates = resetTemplatesId(assistants);
             for (const template of newTemplates) {

@@ -2,7 +2,10 @@ import {
   Assistant,
   AssistantYjs,
   FileTypeYjs,
+  isApiAssistant,
   isAssistant,
+  isFunctionAssistant,
+  isImageAssistant,
   isPromptAssistant,
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
@@ -234,15 +237,26 @@ export const resetTemplatesId = (templates: (Assistant & { parent?: string[] })[
     const newId = nextAssistantId();
     template.id = newId;
 
-    // 注意这里？是否仅仅有 prepareExecutes 会关联id
     list.forEach((t) => {
-      if (t && 'prepareExecutes' in t) {
+      if (isImageAssistant(t) || isApiAssistant(t) || isFunctionAssistant(t)) {
         (t.prepareExecutes || []).forEach((x) => {
           (x.tools || [])?.forEach((tool) => {
             if (tool.id === id) {
               tool.id = newId;
             }
           });
+        });
+      }
+
+      if (isPromptAssistant(t)) {
+        (t.prompts || [])?.forEach((prompt) => {
+          if (prompt.type === 'executeBlock' && prompt.data) {
+            (prompt.data.tools || [])?.forEach((tool) => {
+              if (tool.id === id) {
+                tool.id = newId;
+              }
+            });
+          }
         });
       }
     });

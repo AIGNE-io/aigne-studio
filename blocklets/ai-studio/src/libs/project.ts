@@ -44,12 +44,12 @@ export async function deleteProject(projectId: string): Promise<Project> {
   return axios.delete(`/api/projects/${projectId}`).then((res) => res.data);
 }
 
-export async function importTemplatesToProject(
+export async function exportAssistantsToProject(
   projectId: string,
   ref: string,
   data: { projectId: string; ref: string; resources: string[] }
 ): Promise<{ assistants: (Assistant & { parent?: string[] })[] }> {
-  return axios.post(`/api/projects/import/${projectId}/${ref}`, data).then((res) => res.data);
+  return axios.post(`/api/projects/export/${projectId}/${ref}`, data).then((res) => res.data);
 }
 
 export async function addProjectRemote(projectId: string, data: AddProjectRemoteInput): Promise<{}> {

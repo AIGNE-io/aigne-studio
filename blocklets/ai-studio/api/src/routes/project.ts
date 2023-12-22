@@ -48,7 +48,7 @@ const createProjectSchema = Joi.object<CreateProjectInput>({
   description: Joi.string().empty([null, '']),
 });
 
-const importSchema = Joi.object<{
+const exportSchema = Joi.object<{
   projectId: string;
   ref: string;
   resources: string[];
@@ -497,8 +497,8 @@ export function projectRoutes(router: Router) {
     }
   );
 
-  router.post('/projects/import/:projectId/:ref', ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { resources, projectId, ref } = await importSchema.validateAsync(req.body);
+  router.post('/projects/export/:projectId/:ref', ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { resources, projectId, ref } = await exportSchema.validateAsync(req.body);
 
     const assistants = (
       await Promise.all(
