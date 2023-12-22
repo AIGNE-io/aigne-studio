@@ -21,21 +21,19 @@ export default function PromptEditorField({
   readOnly?: boolean;
 } & Omit<ComponentProps<typeof PromptEditor>, 'value' | 'onChange'>) {
   const { t } = useLocaleContext();
-  const { sourceFrom, options, variables, addParameter } = useVariablesEditorOptions(assistant);
+  const { from, options, variables, addParameter } = useVariablesEditorOptions(assistant);
 
   const parameterChange = useThrottleFn(
     async () => {
       if (assistant && isPromptAssistant(assistant)) {
         const variables = parseDirectivesOfTemplate(assistant);
-        const currentVariables = Object.values(assistant.parameters ?? {}).filter(
-          (p) => p?.data?.sourceFrom === sourceFrom
-        );
+        const currentVariables = Object.values(assistant.parameters ?? {}).filter((p) => p?.data?.from === from);
 
         // 添加新增的变量
         variables.forEach((variable) => {
           const name = variable?.name;
           if (name && !currentVariables.some((v) => v?.data?.key === name)) {
-            addParameter(name, sourceFrom);
+            addParameter(name, from);
           }
         });
 
@@ -134,7 +132,7 @@ export default function PromptEditorField({
                 <Button
                   sx={{ p: 0 }}
                   onClick={() => {
-                    addParameter(text, sourceFrom);
+                    addParameter(text, from);
                     handleClose();
                   }}
                   size="small">

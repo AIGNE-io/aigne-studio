@@ -105,7 +105,7 @@ export interface ParameterBase {
   placeholder?: string;
   helper?: string;
   required?: boolean;
-  sourceFrom?: string;
+  from?: 'editor';
 }
 
 export interface StringParameter extends ParameterBase {
