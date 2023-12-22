@@ -340,7 +340,7 @@ async function runPromptAssistant({
           if (prompt.type === 'executeBlock') {
             const result = blockResults.find((i) => i[0].id === prompt.data.id)?.[1];
 
-            if (prompt.data.formatResultType === 'asHistroy') {
+            if (prompt.data.formatResultType === 'asHistory') {
               return flattenDeep([result])
                 .filter(
                   (i): i is { role: Role; content: string } =>
