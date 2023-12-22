@@ -1,3 +1,11 @@
+## 0.1.183 (2023-12-22)
+
+- fix: diff assistant data
+
+## 0.1.182 (2023-12-21)
+
+- fix: automatic identification variable
+
 ## 0.1.181 (2023-12-21)
 
 - fix: get variable context
