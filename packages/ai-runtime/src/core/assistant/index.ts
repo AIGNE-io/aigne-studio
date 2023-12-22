@@ -3,7 +3,8 @@ import { ReadableStream } from 'stream/web';
 import { call } from '@blocklet/sdk/lib/component';
 import env from '@blocklet/sdk/lib/env';
 import axios, { isAxiosError } from 'axios';
-import { isNil, pick } from 'lodash';
+import { flattenDeep, isNil, pick } from 'lodash';
+import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
 
@@ -19,7 +20,7 @@ import {
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
-import { ImageAssistant, Mustache, isImageAssistant } from '../../types/assistant';
+import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
 import { ChatCompletionChunk, callAIKitChatCompletions, callAIKitImageGeneration } from '../ai-kit';
 
 export type RunAssistantResponse = RunAssistantChunk | RunAssistantError;
@@ -340,9 +341,15 @@ async function runPromptAssistant({
           if (prompt.type === 'executeBlock') {
             const result = blockResults.find((i) => i[0].id === prompt.data.id)?.[1];
 
-            if (isNil(result) || result === '') return undefined;
+            if (prompt.data.formatResultType === 'asHistory') {
+              return flattenDeep([result])
+                .filter(
+                  (i): i is { role: Role; content: string } =>
+                    typeof i?.role === 'string' && typeof i.content === 'string'
+                )
+                .map((message) => pick(message, 'role', 'content'));
+            }
 
-            // TODO: 支持选择 block 的结果处理方式：skip/as context/custom
             return {
               role: 'system' as const,
               content: typeof result === 'string' ? result : JSON.stringify(result),
@@ -353,16 +360,9 @@ async function runPromptAssistant({
           return undefined;
         })
     )
-  ).filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
-
-  // TODO: 这是临时支持的 history 方式（目前 Aistro 在用），之后会提供内置的 history 机制
-  if (Array.isArray(parameters.$history)) {
-    const history = parameters.$history
-      .filter((i): i is (typeof messages)[number] => typeof i.role === 'string' && typeof i.content === 'string')
-      .map((i) => pick(i, 'role', 'content'));
-
-    messages.unshift(...history);
-  }
+  )
+    .flat()
+    .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
   const res = await callAI({
     assistant,

@@ -13,6 +13,7 @@ const useHighlightedState = () => useRecoilState(highlightedState);
 export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   const { t } = useLocaleContext();
   const [highlightedId, setHighlightedId] = useHighlightedState();
+  const from: 'editor' = 'editor';
 
   const variableSet = new Set(
     assistant?.parameters &&
@@ -58,6 +59,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
       .concat([
         new VariablePickerOption(`${t('form.add')}${t('variable')}`, {
           disabled: true,
+          replaceTitle: `${t('form.add')}$$$${t('variable')}`,
           icon: (
             <DataObjectRounded
               sx={{
@@ -67,7 +69,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
             />
           ),
           onSelect: (editor, matchingString) => {
-            if (matchingString) addParameter(matchingString);
+            if (matchingString) addParameter(matchingString, from);
             editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: matchingString || '' });
           },
         }),
@@ -75,7 +77,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   }, [variables?.join('/'), t]);
 
   const addParameter = useCallback(
-    (parameter: string) => {
+    (parameter: string, from?: 'editor') => {
       if (!assistant) return undefined;
 
       const doc = (getYjsValue(assistant) as Map<any>).doc!;
@@ -87,7 +89,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
         if (!parameter || !Object.values(assistant.parameters).some((i) => i.data.key === parameter)) {
           assistant.parameters[id] = {
             index: Math.max(-1, ...Object.values(assistant.parameters).map((i) => i.index)) + 1,
-            data: { id, key: parameter },
+            data: { id, key: parameter, from },
           };
         }
       });
@@ -114,5 +116,5 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
     [assistant]
   );
 
-  return { options, variables, addParameter, deleteParameter, highlightedId };
+  return { from, options, variables, addParameter, deleteParameter, highlightedId };
 }
