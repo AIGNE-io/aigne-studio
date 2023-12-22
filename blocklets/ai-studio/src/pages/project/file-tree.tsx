@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { AssistantYjs, FileTypeYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, FileTypeYjs, fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { css } from '@emotion/css';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
@@ -54,6 +54,7 @@ import { joinURL } from 'ufo';
 
 import AwarenessIndicator from '../../components/awareness/awareness-indicator';
 import { getErrorMessage } from '../../libs/api';
+import { exportAssistantsToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Compare from './compare';
 import ChevronDown from './icons/chevron-down';
@@ -80,6 +81,7 @@ import {
   deleteFile,
   isBuiltinFolder,
   moveFile,
+  resetTemplatesId,
   useProjectStore,
 } from './yjs-state';
 
@@ -169,15 +171,7 @@ const FileTree = forwardRef<
   );
 
   const onImportFrom = useCallback(() => {
-    const state: {
-      resources: string[];
-      projectId: string;
-      ref: string;
-    } = {
-      resources: [],
-      projectId: '',
-      ref: '',
-    };
+    const state: { resources: string[]; projectId: string; ref: string } = { resources: [], projectId: '', ref: '' };
 
     showDialog({
       fullWidth: true,
@@ -197,21 +191,15 @@ const FileTree = forwardRef<
       ),
       onOk: async () => {
         try {
-          // FIXME:
-          // const { templates } = await importTemplatesToProject(projectId, gitRef, state);
-          // if (templates.length) {
-          //   const newTemplates = resetTemplatesId(templates);
-          //   for (const template of newTemplates) {
-          //     createFile({
-          //       store,
-          //       parent: template.parent,
-          //       // FIXME:
-          //       // meta: templateYjsFromTemplate(template),
-          //     });
-          //   }
-          // } else {
-          // Toast.error(t('import.selectTemplates'));
-          // }
+          const { assistants } = await exportAssistantsToProject(projectId, gitRef, state);
+          if (assistants.length) {
+            const newTemplates = resetTemplatesId(assistants);
+            for (const template of newTemplates) {
+              createFile({ store, parent: template.parent, meta: fileToYjs(template) as AssistantYjs });
+            }
+          } else {
+            Toast.error(t('import.selectTemplates'));
+          }
         } catch (error) {
           Toast.error(getErrorMessage(error));
           throw error;

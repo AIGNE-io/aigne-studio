@@ -1,4 +1,14 @@
-import { AssistantYjs, FileTypeYjs, isAssistant, isPromptAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import {
+  Assistant,
+  AssistantYjs,
+  FileTypeYjs,
+  isApiAssistant,
+  isAssistant,
+  isFunctionAssistant,
+  isImageAssistant,
+  isPromptAssistant,
+  nextAssistantId,
+} from '@blocklet/ai-runtime/types';
 import {
   Doc,
   Map,
@@ -11,6 +21,7 @@ import {
   writeVarUint,
 } from '@blocklet/co-git/yjs';
 import Cookies from 'js-cookie';
+import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { customAlphabet, nanoid } from 'nanoid';
@@ -218,23 +229,41 @@ export function createFolder({
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 
-// export const resetTemplatesId = (templates: (Template & { parent?: string[] })[]) => {
-//   const list = cloneDeep(templates);
+export const resetTemplatesId = (templates: (Assistant & { parent?: string[] })[]) => {
+  const list = cloneDeep(templates);
 
-//   list.forEach((template) => {
-//     const { id } = template;
-//     const newId = nextAssistantId();
+  list.forEach((template: Assistant & { parent?: string[] }) => {
+    const { id } = template;
+    const newId = nextAssistantId();
+    template.id = newId;
 
-//     template.id = newId;
-//     list.forEach((t) => {
-//       if (t.next && t.next?.id === id) {
-//         t.next.id = newId;
-//       }
-//     });
-//   });
+    list.forEach((t) => {
+      if (isImageAssistant(t) || isApiAssistant(t) || isFunctionAssistant(t)) {
+        (t.prepareExecutes || []).forEach((x) => {
+          (x.tools || [])?.forEach((tool) => {
+            if (tool.id === id) {
+              tool.id = newId;
+            }
+          });
+        });
+      }
 
-//   return list;
-// };
+      if (isPromptAssistant(t)) {
+        (t.prompts || [])?.forEach((prompt) => {
+          if (prompt.type === 'executeBlock' && prompt.data) {
+            (prompt.data.tools || [])?.forEach((tool) => {
+              if (tool.id === id) {
+                tool.id = newId;
+              }
+            });
+          }
+        });
+      }
+    });
+  });
+
+  return list;
+};
 
 export function createFile({
   store,
