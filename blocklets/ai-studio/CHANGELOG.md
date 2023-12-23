@@ -1,6 +1,22 @@
+## 0.1.186 (2023-12-23)
+
+- fix: change project-card's avatar and project-icon size
+
+## 0.1.185 (2023-12-22)
+
+- fix: pass parameter to tool directly
+
+## 0.1.184 (2023-12-22)
+
+- fix: fetch error in node earlier version
+
+## 0.1.183 (2023-12-22)
+
+- feat: support history by executeBlock as context
+
 ## 0.1.182 (2023-12-21)
 
-- fix: modify the style of cards in the project
+- fix: automatic identification variable
 
 ## 0.1.181 (2023-12-21)
 
