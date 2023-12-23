@@ -1,3 +1,7 @@
+## 0.1.186 (2023-12-23)
+
+- fix: change project-card's avatar and project-icon size
+
 ## 0.1.185 (2023-12-22)
 
 - fix: pass parameter to tool directly
