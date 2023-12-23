@@ -13,6 +13,10 @@ export const Config = {
   get dataDir() {
     return config.env.dataDir;
   },
+
+  get useAIKitService() {
+    return true;
+  },
 };
 
 config.events.on(config.Events.envUpdate, () => {
