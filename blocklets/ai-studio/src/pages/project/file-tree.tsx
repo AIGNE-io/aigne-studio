@@ -76,12 +76,12 @@ import { useAssistantChangesState } from './state';
 import type { AssistantYjsWithParents } from './state';
 import {
   PROMPTS_FOLDER_NAME,
-  createFile,
   createFolder,
   deleteFile,
   isBuiltinFolder,
   moveFile,
   resetTemplatesId,
+  useCreateFile,
   useProjectStore,
 } from './yjs-state';
 
@@ -106,7 +106,7 @@ export type TreeNode = NodeModel<EntryWithMeta>;
 
 export interface ImperativeFileTree {
   newFolder: (options?: Partial<Omit<Parameters<typeof createFolder>[0], 'store'>>) => void;
-  newFile: (options?: Partial<Omit<Parameters<typeof createFile>[0], 'store'>>) => void;
+  newFile: (options?: Partial<Omit<Parameters<ReturnType<typeof useCreateFile>>[0], 'store'>>) => void;
   importFrom: () => void;
 }
 
@@ -146,8 +146,10 @@ const FileTree = forwardRef<
     if (current) openFolder(current);
   }, [current, openFolder]);
 
+  const createFile = useCreateFile();
+
   const onCreateFile = useCallback(
-    (options: Partial<Omit<Parameters<typeof createFile>[0], 'store'>> = {}) => {
+    (options: Partial<Omit<Parameters<ReturnType<typeof useCreateFile>>[0], 'store'>> = {}) => {
       const { filepath } = createFile({ ...options, store });
       const { parent } = options;
       if (parent) openFolder(parent);
@@ -532,7 +534,7 @@ function TreeItemMenus({
   item: EntryWithMeta;
   onRenameFolder?: (options: { path: string[] }) => any;
   onCreateFolder?: (options?: { parent?: string[] }) => any;
-  onCreateFile?: (options?: Partial<Omit<Parameters<typeof createFile>[0], 'store'>>) => any;
+  onCreateFile?: (options?: Partial<Omit<Parameters<ReturnType<typeof useCreateFile>>[0], 'store'>>) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
   onLaunch?: (assistant: AssistantYjs) => any;
   onCompare?: () => void;
@@ -898,7 +900,7 @@ function DeletedTemplates({
     color: string;
     tips: string;
   } | null;
-  onCreateFile: (options?: Partial<Omit<Parameters<typeof createFile>[0], 'store'>>) => void;
+  onCreateFile: (options?: Partial<Omit<Parameters<ReturnType<typeof useCreateFile>>[0], 'store'>>) => void;
 }) {
   const { t } = useLocaleContext();
 

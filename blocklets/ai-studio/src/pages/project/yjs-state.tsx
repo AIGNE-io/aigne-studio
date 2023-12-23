@@ -1,3 +1,4 @@
+import { useSessionContext } from '@app/contexts/session';
 import {
   Assistant,
   AssistantYjs,
@@ -265,48 +266,56 @@ export const resetTemplatesId = (templates: (Assistant & { parent?: string[] })[
   return list;
 };
 
-export function createFile({
-  store,
-  parent = [],
-  meta = {},
-  rootFolder,
-}: {
-  store: StoreContext['store'];
-  parent?: string[];
-  meta?: Partial<AssistantYjs>;
-  rootFolder?: string;
-}) {
-  const id = (meta as any).id || nextAssistantId();
-  const filename = `${id}.yaml`;
-  const filepath = joinURL(rootFolder && parent[0] !== rootFolder ? rootFolder : '', ...parent, filename);
-  const now = new Date().toISOString();
+export function useCreateFile() {
+  const { session } = useSessionContext();
+  if (!session.user?.did) throw new Error('Unauthorized');
 
-  const file: AssistantYjs = {
-    ...meta,
-    id,
-    type: (meta.type || 'prompt') as any,
-    createdAt: meta?.createdAt || now,
-    updatedAt: meta?.updatedAt || now,
-    createdBy: meta?.createdBy || '',
-    updatedBy: meta?.updatedBy || '',
-  };
+  return useCallback(
+    ({
+      store,
+      parent = [],
+      meta = {},
+      rootFolder,
+    }: {
+      store: StoreContext['store'];
+      parent?: string[];
+      meta?: Partial<AssistantYjs>;
+      rootFolder?: string;
+    }) => {
+      const id = (meta as any).id || nextAssistantId();
+      const filename = `${id}.yaml`;
+      const filepath = joinURL(rootFolder && parent[0] !== rootFolder ? rootFolder : '', ...parent, filename);
+      const now = new Date().toISOString();
 
-  if (isPromptAssistant(file)) {
-    if (isEmpty(file.prompts)) {
-      const promptId = nanoid();
-      file.prompts = { [promptId]: { index: 0, data: { type: 'message', data: { id: promptId, role: 'user' } } } };
-    }
-  }
+      const file: AssistantYjs = {
+        ...meta,
+        id,
+        type: (meta.type || 'prompt') as any,
+        createdAt: meta?.createdAt || now,
+        updatedAt: meta?.updatedAt || now,
+        createdBy: meta?.createdBy || session.user.did,
+        updatedBy: meta?.updatedBy || session.user.did,
+      };
 
-  getYjsDoc(store).transact(() => {
-    store.tree[id] = filepath;
-    store.files[id] = file;
-  });
+      if (isPromptAssistant(file)) {
+        if (isEmpty(file.prompts)) {
+          const promptId = nanoid();
+          file.prompts = { [promptId]: { index: 0, data: { type: 'message', data: { id: promptId, role: 'user' } } } };
+        }
+      }
 
-  return {
-    filepath,
-    template: file,
-  };
+      getYjsDoc(store).transact(() => {
+        store.tree[id] = filepath;
+        store.files[id] = file;
+      });
+
+      return {
+        filepath,
+        template: file,
+      };
+    },
+    [session.user.did]
+  );
 }
 
 export function moveFile({ store, from, to }: { store: StoreContext['store']; from: string[]; to: string[] }) {
@@ -346,33 +355,6 @@ function addGitkeepFileIfNeeded(store: StoreContext['store'], path: string[]) {
       store.files[key] = { $base64: '' };
     }
   }
-}
-
-export function importFiles({
-  // parent = [],
-  // files,
-  store,
-}: {
-  store: StoreContext['store'];
-  parent?: string[];
-  // files: (Template & { path?: string[] })[];
-}) {
-  getYjsDoc(store).transact(() => {
-    // FIXME:
-    // for (const { path, ...file } of files) {
-    // const p = parent
-    //   .concat(path ?? [])
-    //   .concat(`${file.id}.yaml`)
-    //   .join('/');
-    // const key =
-    //   Object.keys(store.tree).find((key) => {
-    //     const f = store.files[key];
-    //     return isPromptAssistantYjs(f) && f.id === file.id;
-    //   }) || nanoid(32);
-    // store.files[key] = templateYjsFromTemplate(file);
-    // store.tree[key] = p;
-    // }
-  });
 }
 
 export const useUndoManager = (projectId: string, ref: string, key: string) => {

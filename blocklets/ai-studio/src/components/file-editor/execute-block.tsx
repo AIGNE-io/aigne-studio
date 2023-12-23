@@ -29,7 +29,7 @@ import { joinURL } from 'ufo';
 import Add from '../../pages/project/icons/add';
 import External from '../../pages/project/icons/external';
 import Trash from '../../pages/project/icons/trash';
-import { PROMPTS_FOLDER_NAME, createFile, useProjectStore } from '../../pages/project/yjs-state';
+import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';
 import PromptEditorField from './prompt-editor-field';
 
 export default function ExecuteBlockForm({
@@ -282,6 +282,8 @@ const ToolDialog = forwardRef<
     sortBy(Object.values(file.parameters), (i) => i.index).filter(
       (i): i is typeof i & { data: { key: string } } => !!i.data.key
     );
+
+  const createFile = useCreateFile();
 
   return (
     <Dialog
