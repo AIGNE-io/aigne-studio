@@ -27,6 +27,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  avatarClasses,
   styled,
 } from '@mui/material';
 import { MouseEvent, ReactNode, useEffect, useMemo, useState } from 'react';
@@ -541,20 +542,28 @@ function ProjectItem({
   return (
     <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between">
-        <Box className="logo">
-          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 24 }} />}
+        <Box className="logo" sx={{ width: '32px', height: '32px' }}>
+          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 32 }} />}
         </Box>
 
         {users && Array.isArray(users) && !!users.length && (
-          <AvatarGroup total={users.length}>
+          <AvatarGroup
+            total={users.length + 6}
+            sx={{
+              [`.${avatarClasses.root}`]: {
+                width: '24px',
+                height: '24px',
+                fontSize: '12px',
+              },
+            }}>
             {users.map((user) => {
               const name = user.fullName || user.did;
 
               return (
                 <Tooltip key={user.did} title={name} placement="top">
-                  <CustomAvatar alt={user.fullName} sx={{ borderWidth: '0 !important' }} src={user.avatar}>
+                  <Avatar alt={user.fullName} sx={{ borderWidth: '1px !important' }} src={user.avatar}>
                     {name?.slice(0, 1)}
-                  </CustomAvatar>
+                  </Avatar>
                 </Tooltip>
               );
             })}
@@ -661,6 +670,7 @@ const ProjectItemRoot = styled(Stack)`
       width: 100%;
       height: 100%;
       object-fit: contain;
+      border-radius: ${({ theme }) => theme.shape.borderRadius}px;
     }
   }
 
@@ -680,12 +690,6 @@ const ProjectItemRoot = styled(Stack)`
   .action {
     display: none;
   }
-`;
-
-const CustomAvatar = styled(Avatar)`
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
 `;
 
 function LoadingMenuItem({ ...props }: MenuItemProps) {

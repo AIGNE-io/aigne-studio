@@ -195,7 +195,7 @@ export default function ExecuteBlockForm({
           value={value.formatResultType || 'none'}
           onChange={(e) => (value.formatResultType = e.target.value as any)}>
           <MenuItem value="none">{t('stayAsIs')}</MenuItem>
-          {/* <MenuItem value="asContext">Use as context</MenuItem> */}
+          <MenuItem value="asHistory">{t('asHistory')}</MenuItem>
         </TextField>
 
         <Box flex={1} />

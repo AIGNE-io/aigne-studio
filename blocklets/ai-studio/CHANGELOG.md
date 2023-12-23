@@ -1,6 +1,18 @@
+## 0.1.186 (2023-12-23)
+
+- fix: change project-card's avatar and project-icon size
+
+## 0.1.185 (2023-12-22)
+
+- fix: pass parameter to tool directly
+
+## 0.1.184 (2023-12-22)
+
+- fix: fetch error in node earlier version
+
 ## 0.1.183 (2023-12-22)
 
-- fix: diff assistant data
+- feat: support history by executeBlock as context
 
 ## 0.1.182 (2023-12-21)
 
@@ -28,7 +40,7 @@
 
 ## 0.1.176 (2023-12-18)
 
-- fix: readable.toweb not support
+- fix: readable.toWeb not support
 
 ## 0.1.175 (2023-12-17)
 
