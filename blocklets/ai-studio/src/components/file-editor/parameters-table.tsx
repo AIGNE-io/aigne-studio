@@ -20,6 +20,7 @@ import {
 import { GridColDef } from '@mui/x-data-grid';
 import { get, sortBy } from 'lodash';
 import { useMemo, useState } from 'react';
+import { useAssistantCompare } from 'src/pages/project/state';
 
 import Add from '../../pages/project/icons/add';
 import Settings from '../../pages/project/icons/settings';
@@ -41,10 +42,21 @@ function CustomNoRowsOverlay() {
   );
 }
 
-export default function ParametersTable({ readOnly, value }: { readOnly?: boolean; value: AssistantYjs }) {
+export default function ParametersTable({
+  readOnly,
+  value,
+  compareValue,
+  isRemoteCompare,
+}: {
+  readOnly?: boolean;
+  value: AssistantYjs;
+  compareValue?: AssistantYjs;
+  isRemoteCompare?: boolean;
+}) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
   const { highlightedId, addParameter, deleteParameter } = useVariablesEditorOptions(value);
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   const isValidVariableName = (name: string) => {
     if (!name) return true;
@@ -138,12 +150,16 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
           return (
             <>
               <Button
+                disabled={readOnly}
                 sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
                 onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
                 <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
               </Button>
 
-              <Button sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }} onClick={() => deleteParameter(parameter)}>
+              <Button
+                disabled={readOnly}
+                sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+                onClick={() => deleteParameter(parameter)}>
                 <Trash fontSize="small" sx={{ color: 'text.secondary', opacity: 0.9 }} />
               </Button>
             </>
@@ -159,16 +175,18 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
           <Typography variant="subtitle1">{t('parameters')}</Typography>
 
-          <Button
-            sx={{ minWidth: 32, p: 0, minHeight: 32 }}
-            onClick={() => {
-              const id = addParameter('');
-              setTimeout(() => {
-                document.getElementById(`${id}-key`)?.focus();
-              });
-            }}>
-            <Add />
-          </Button>
+          {!readOnly && (
+            <Button
+              sx={{ minWidth: 32, p: 0, minHeight: 32 }}
+              onClick={() => {
+                const id = addParameter('');
+                setTimeout(() => {
+                  document.getElementById(`${id}-key`)?.focus();
+                });
+              }}>
+              <Add />
+            </Button>
+          )}
         </Stack>
 
         {parameters.length ? (
@@ -218,7 +236,12 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
                         transition: 'all 2s',
                       }}>
                       {columns.map((column) => (
-                        <TableCell key={column.field} align={column.align}>
+                        <TableCell
+                          key={column.field}
+                          align={column.align}
+                          sx={{
+                            ...getDiffBackground('parameters', parameter.id),
+                          }}>
                           {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
                         </TableCell>
                       ))}

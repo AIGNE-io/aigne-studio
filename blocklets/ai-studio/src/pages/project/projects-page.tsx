@@ -661,6 +661,11 @@ const ProjectItemRoot = styled(Stack)`
   }
 
   .logo {
+    width: 24px;
+    height: 24px;
+    border-radius: ${({ theme }) => theme.shape.borderRadius}px;
+    overflow: hidden;
+
     img {
       width: 100%;
       height: 100%;

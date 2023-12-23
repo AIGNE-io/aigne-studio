@@ -78,6 +78,7 @@ export default function PromptEditorField({
   return (
     <PromptEditor
       {...props}
+      editable={!readOnly}
       variables={variables}
       value={editorState}
       onChange={setEditorState}

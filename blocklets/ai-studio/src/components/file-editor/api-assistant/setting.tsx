@@ -3,13 +3,27 @@ import { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
 import { ExpandMoreRounded } from '@mui/icons-material';
 import { Box, Button, Collapse, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { useAssistantCompare } from 'src/pages/project/state';
 
-export default function ApiAssistantSetting({ value, readOnly }: { value: ApiAssistantYjs; readOnly?: boolean }) {
+export default function ApiSetting({
+  value,
+  readOnly,
+  compareValue,
+  isRemoteCompare,
+  isOpen,
+}: {
+  value: ApiAssistantYjs;
+  readOnly?: boolean;
+  compareValue?: ApiAssistantYjs;
+  isRemoteCompare?: boolean;
+  isOpen?: boolean;
+}) {
   const { t } = useLocaleContext();
 
-  const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(isOpen);
+  const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
 
   return (
     <Box>
@@ -18,8 +32,16 @@ export default function ApiAssistantSetting({ value, readOnly }: { value: ApiAss
 
         <Box flex={1} overflow="hidden">
           {!open && (
-            <Stack direction="row" alignItems="center" gap={1}>
-              <Typography component="span" sx={{ bgcolor: 'grey.300', px: 1, borderRadius: 1 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              gap={1}
+              sx={{
+                p: 1,
+                borderRadius: 1,
+                backgroundColor: { ...getDiffBackground('requestMethod'), ...getDiffBackground('requestUrl') },
+              }}>
+              <Typography component="span" sx={{ bgcolor: 'grey.300', borderRadius: 1 }}>
                 {value.requestMethod}
               </Typography>
               <Typography component="span" flex={1} noWrap>
@@ -46,7 +68,10 @@ export default function ApiAssistantSetting({ value, readOnly }: { value: ApiAss
               label={t('method')}
               select
               SelectProps={{ autoWidth: true }}
-              InputProps={{ readOnly }}
+              InputProps={{
+                readOnly,
+                sx: { backgroundColor: { ...getDiffBackground('requestMethod') } },
+              }}
               value={value.requestMethod || methods[0]}
               onChange={(e) => (value.requestMethod = e.target.value)}>
               {methods.map((method) => (
@@ -59,7 +84,10 @@ export default function ApiAssistantSetting({ value, readOnly }: { value: ApiAss
             <TextField
               sx={{ flex: 1 }}
               label={t('url')}
-              InputProps={{ readOnly }}
+              InputProps={{
+                readOnly,
+                sx: { backgroundColor: { ...getDiffBackground('requestUrl') } },
+              }}
               value={value.requestUrl || ''}
               onChange={(e) => (value.requestUrl = e.target.value)}
             />

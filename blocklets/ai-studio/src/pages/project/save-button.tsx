@@ -27,7 +27,7 @@ import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
 import useDialog from '../../utils/use-dialog';
-import { defaultBranch, useProjectState } from './state';
+import { defaultBranch, useAssistantChangesState, useProjectState } from './state';
 
 interface CommitForm {
   branch: string;
@@ -46,6 +46,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     state: { branches, project },
     refetch,
   } = useProjectState(projectId, gitRef);
+  const { disabled, run } = useAssistantChangesState(projectId, gitRef);
 
   const simpleMode = !project || project?.gitType === 'simple';
 
@@ -91,6 +92,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         }
 
         refetch();
+        run();
         if (branch !== gitRef) navigate(joinURL('..', branch), { replace: true });
       } catch (error) {
         form.reset(input);
@@ -117,7 +119,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
 
       <Button
         {...bindTrigger(dialogState)}
-        disabled={submitting}
+        disabled={submitting || disabled}
         sx={{ position: 'relative', minWidth: 32, minHeight: 32 }}>
         <SaveRounded sx={{ opacity: submitting ? 0 : 1 }} />
         {submitting && (
