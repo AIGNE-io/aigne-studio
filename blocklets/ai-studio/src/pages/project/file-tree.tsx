@@ -443,7 +443,7 @@ const FileTree = forwardRef<
               if (change) {
                 return (
                   <Tooltip title={change.tips} disableInteractive placement="top">
-                    {children}
+                    <Box>{children}</Box>
                   </Tooltip>
                 );
               }
