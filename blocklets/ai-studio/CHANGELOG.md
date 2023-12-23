@@ -1,3 +1,7 @@
+## 0.1.187 (2023-12-24)
+
+- fix: diff assistant data
+
 ## 0.1.186 (2023-12-23)
 
 - fix: change project-card's avatar and project-icon size
