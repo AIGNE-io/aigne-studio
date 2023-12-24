@@ -126,7 +126,7 @@ export default function ApiAssistantEditor({
                           projectId={projectId}
                           gitRef={gitRef}
                           path={[value.id, 'requestParameters', parameter.id ?? '', 'key']}
-                          textFiledProps={{
+                          TextFiledProps={{
                             hiddenLabel: true,
                             fullWidth: true,
                             value: parameter.key || '',

@@ -184,7 +184,7 @@ function PromptItemMessage({
           size="small"
           projectId={projectId}
           gitRef={gitRef}
-          path={[value.id, 'prompts', 'data', value.id ?? '', 'role']}
+          path={[assistant.id, 'prompts', 'data', value.id ?? '', 'role']}
           value={value.role}
           onChange={(e) => (value.role = e.target.value as any)}
         />
@@ -193,9 +193,8 @@ function PromptItemMessage({
       <WithAwareness
         projectId={projectId}
         gitRef={gitRef}
-        top={0}
-        right={0}
-        path={[value.id, 'prompts', 'data', value.id ?? '', 'content']}>
+        sx={{ top: 0, right: 0 }}
+        path={[assistant.id, 'prompts', 'data', value.id ?? '', 'content']}>
         <StyledPromptEditor
           projectId={projectId}
           gitRef={gitRef}

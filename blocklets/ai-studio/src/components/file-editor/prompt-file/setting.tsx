@@ -66,7 +66,7 @@ export default function PromptAssistantSetting({
 
       <Collapse in={open}>
         <Stack py={1} gap={1}>
-          <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
+          <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
             <ModelSelectField
               fullWidth
               label={t('model')}
@@ -88,8 +88,7 @@ export default function PromptAssistantSetting({
                   </Tooltip>
 
                   <WithAwareness
-                    right={-4}
-                    top={-2}
+                    sx={{ top: -2, right: -4 }}
                     projectId={projectId}
                     gitRef={gitRef}
                     path={[value.id, 'temperature']}>
@@ -115,7 +114,11 @@ export default function PromptAssistantSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'topP']}>
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'topP']}>
                     <SliderNumberField
                       readOnly={readOnly}
                       min={model.topPMin}
@@ -139,8 +142,7 @@ export default function PromptAssistantSetting({
                   </Tooltip>
 
                   <WithAwareness
-                    right={-4}
-                    top={-2}
+                    sx={{ top: -2, right: -4 }}
                     projectId={projectId}
                     gitRef={gitRef}
                     path={[value.id, 'presencePenalty']}>
@@ -167,8 +169,7 @@ export default function PromptAssistantSetting({
                   </Tooltip>
 
                   <WithAwareness
-                    right={-4}
-                    top={-2}
+                    sx={{ top: -2, right: -4 }}
                     projectId={projectId}
                     gitRef={gitRef}
                     path={[value.id, 'frequencyPenalty']}>
@@ -195,8 +196,7 @@ export default function PromptAssistantSetting({
                   </Tooltip>
 
                   <WithAwareness
-                    right={-4}
-                    top={-2}
+                    sx={{ top: -2, right: -4 }}
                     projectId={projectId}
                     gitRef={gitRef}
                     path={[value.id, 'maxTokens']}>

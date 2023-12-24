@@ -64,7 +64,7 @@ export default function ImageAssistantSetting({
       <Collapse in={open}>
         <Stack py={1} gap={1}>
           <Box position="relative">
-            <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
+            <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
               <ModelSelectField
                 fullWidth
                 isImageModel
@@ -114,7 +114,11 @@ export default function ImageAssistantSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'n']}>
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'n']}>
                     <SliderNumberField
                       readOnly={readOnly}
                       min={modelDetail.nMin}
@@ -137,7 +141,11 @@ export default function ImageAssistantSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'quality']}>
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'quality']}>
                     <TextField
                       hiddenLabel
                       select
@@ -167,8 +175,7 @@ export default function ImageAssistantSetting({
                   </Tooltip>
                   <Box>
                     <WithAwareness
-                      right={-4}
-                      top={-2}
+                      sx={{ top: -2, right: -4 }}
                       projectId={projectId}
                       gitRef={gitRef}
                       path={[value.id, 'responseFormat']}>
@@ -201,7 +208,11 @@ export default function ImageAssistantSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'size']}>
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'size']}>
                     <TextField
                       hiddenLabel
                       select
@@ -230,7 +241,11 @@ export default function ImageAssistantSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <WithAwareness right={-4} top={-2} projectId={projectId} gitRef={gitRef} path={[value.id, 'style']}>
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'style']}>
                     <TextField
                       hiddenLabel
                       select

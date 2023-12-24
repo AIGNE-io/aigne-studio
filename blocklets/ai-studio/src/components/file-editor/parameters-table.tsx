@@ -77,8 +77,7 @@ export default function ParametersTable({
           <WithAwareness
             projectId={projectId}
             gitRef={gitRef}
-            top={4}
-            right={-8}
+            sx={{ top: 4, right: -8 }}
             path={[value.id, 'parameters', parameter?.id ?? '', 'key']}>
             <Input
               id={`${parameter.id}-key`}
@@ -105,8 +104,7 @@ export default function ParametersTable({
           <WithAwareness
             projectId={projectId}
             gitRef={gitRef}
-            top={4}
-            right={-8}
+            sx={{ top: 4, right: -8 }}
             path={[value.id, 'parameters', parameter?.id ?? '', 'label']}>
             <Input
               fullWidth
@@ -130,8 +128,7 @@ export default function ParametersTable({
             <WithAwareness
               projectId={projectId}
               gitRef={gitRef}
-              top={4}
-              right={-8}
+              sx={{ top: 4, right: -8 }}
               path={[value.id, 'parameters', parameter?.id ?? '', 'type']}>
               <ParameterConfigType
                 variant="standard"

@@ -63,7 +63,7 @@ export default function ExecuteBlockForm({
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, value.selectType ?? 'all']}
-          textFiledProps={{
+          TextFiledProps={{
             size: 'small',
             select: true,
             hiddenLabel: true,
@@ -187,7 +187,7 @@ export default function ExecuteBlockForm({
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, value.formatResultType ?? 'none']}
-          textFiledProps={{
+          TextFiledProps={{
             select: true,
             hiddenLabel: true,
             SelectProps: {
@@ -212,7 +212,7 @@ export default function ExecuteBlockForm({
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, value.variable ?? '']}
-          textFiledProps={{
+          TextFiledProps={{
             hiddenLabel: true,
             value: value.variable ?? '',
             onChange: (e) => (value.variable = e.target.value),

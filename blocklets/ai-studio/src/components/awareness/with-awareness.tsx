@@ -1,5 +1,5 @@
 import { useSessionContext } from '@app/contexts/session';
-import { Box } from '@mui/material';
+import { Box, SxProps, Theme } from '@mui/material';
 import { pick } from 'lodash';
 import { FocusEventHandler, ReactElement, cloneElement, useEffect } from 'react';
 
@@ -12,20 +12,14 @@ export default function WithAwareness({
   path,
   onMount,
   children,
-  right,
-  top = -2,
-  left,
-  bottom,
+  sx,
   indicator = true,
 }: {
   projectId: string;
   gitRef: string;
   path: (string | number)[];
   indicator?: boolean;
-  top?: number;
-  left?: number;
-  right?: number;
-  bottom?: number;
+  sx?: SxProps<Theme>;
   onMount?: boolean;
   children: ReactElement<{ onFocus?: FocusEventHandler }>;
 }) {
@@ -51,12 +45,7 @@ export default function WithAwareness({
         },
       })}
       {indicator && (
-        <AwarenessIndicator
-          projectId={projectId}
-          gitRef={gitRef}
-          path={path}
-          sx={{ position: 'absolute', top, left, bottom, right }}
-        />
+        <AwarenessIndicator projectId={projectId} gitRef={gitRef} path={path} sx={{ position: 'absolute', ...sx }} />
       )}
     </Box>
   );

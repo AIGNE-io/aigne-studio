@@ -57,7 +57,7 @@ export default function ApiAssistantSetting({
               projectId={projectId}
               gitRef={gitRef}
               path={[value.id, 'requestMethod']}
-              textFiledProps={{
+              TextFiledProps={{
                 select: true,
                 SelectProps: {
                   autoWidth: true,
@@ -79,7 +79,7 @@ export default function ApiAssistantSetting({
               projectId={projectId}
               gitRef={gitRef}
               path={[value.id, 'requestUrl']}
-              textFiledProps={{
+              TextFiledProps={{
                 sx: { flex: 1 },
                 label: t('url'),
                 InputProps: {

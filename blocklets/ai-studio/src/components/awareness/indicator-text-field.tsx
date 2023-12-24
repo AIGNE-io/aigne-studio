@@ -20,13 +20,13 @@ export default function IndicatorTextField({
   projectId,
   gitRef,
   path,
-  textFiledProps,
+  TextFiledProps,
   boxProps,
 }: {
   projectId: string;
   gitRef: string;
   path: (string | number)[];
-  textFiledProps?: TextFieldProps;
+  TextFiledProps?: TextFieldProps;
   boxProps?: BoxProps;
 }) {
   const {
@@ -41,7 +41,7 @@ export default function IndicatorTextField({
   return (
     <Box {...boxProps} position="relative">
       <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={path}>
-        <TextField {...textFiledProps} />
+        <TextField {...TextFiledProps} />
       </WithAwareness>
       {current?.clients.length && (
         <Tooltip

@@ -13,7 +13,7 @@ export default function RoleSelectField({ projectId, gitRef, path, ...props }: P
       projectId={projectId}
       path={path}
       gitRef={gitRef}
-      textFiledProps={{
+      TextFiledProps={{
         select: true,
         hiddenLabel: true,
         ...props,

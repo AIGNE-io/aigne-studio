@@ -26,7 +26,7 @@ export default function OutputSettings({
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, value.formatResultType ?? 'none']}
-          textFiledProps={{
+          TextFiledProps={{
             select: true,
             hiddenLabel: true,
             SelectProps: {
