@@ -1,3 +1,7 @@
+## 0.1.189 (2023-12-25)
+
+- feat: support use ai-kit service
+
 ## 0.1.188 (2023-12-25)
 
 - fix: support all collaboration hover
