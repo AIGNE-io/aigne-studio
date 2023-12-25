@@ -85,8 +85,9 @@ export default function PromptEditorField({
   return (
     <WithAwareness sx={{ top: 0, right: 0 }} projectId={projectId} gitRef={gitRef} path={path}>
       <PromptEditor
-        variables={variables}
         {...props}
+        editable={!readOnly}
+        variables={variables}
         value={editorState}
         onChange={setEditorState}
         variablePickerProps={{ options }}

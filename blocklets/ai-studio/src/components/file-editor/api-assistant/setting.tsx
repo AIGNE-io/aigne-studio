@@ -4,23 +4,31 @@ import { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
 import { ExpandMoreRounded } from '@mui/icons-material';
 import { Box, Button, Collapse, MenuItem, Stack, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { useAssistantCompare } from 'src/pages/project/state';
 
 export default function ApiAssistantSetting({
   value,
   readOnly,
   projectId,
   gitRef,
+  compareValue,
+  isRemoteCompare,
+  isOpen,
 }: {
   value: ApiAssistantYjs;
   projectId: string;
   gitRef: string;
+  compareValue?: ApiAssistantYjs;
+  isRemoteCompare?: boolean;
+  isOpen?: boolean;
   readOnly?: boolean;
 }) {
   const { t } = useLocaleContext();
 
-  const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(isOpen);
+  const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
 
   return (
     <Box>
@@ -29,8 +37,16 @@ export default function ApiAssistantSetting({
 
         <Box flex={1} overflow="hidden">
           {!open && (
-            <Stack direction="row" alignItems="center" gap={1}>
-              <Typography component="span" sx={{ bgcolor: 'grey.300', px: 1, borderRadius: 1 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              gap={1}
+              sx={{
+                p: 1,
+                borderRadius: 1,
+                backgroundColor: { ...getDiffBackground('requestMethod'), ...getDiffBackground('requestUrl') },
+              }}>
+              <Typography component="span" sx={{ bgcolor: 'grey.300', borderRadius: 1 }}>
                 {value.requestMethod}
               </Typography>
               <Typography component="span" flex={1} noWrap>
@@ -58,12 +74,14 @@ export default function ApiAssistantSetting({
               gitRef={gitRef}
               path={[value.id, 'requestMethod']}
               TextFiledProps={{
+                label: t('method'),
                 select: true,
                 SelectProps: {
                   autoWidth: true,
                 },
                 InputProps: {
                   readOnly,
+                  sx: { backgroundColor: { ...getDiffBackground('requestMethod') } },
                 },
                 value: value.requestMethod || methods[0],
                 onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -84,6 +102,7 @@ export default function ApiAssistantSetting({
                 label: t('url'),
                 InputProps: {
                   readOnly,
+                  sx: { backgroundColor: { ...getDiffBackground('requestUrl') } },
                 },
                 value: value.requestUrl ?? '',
                 onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>

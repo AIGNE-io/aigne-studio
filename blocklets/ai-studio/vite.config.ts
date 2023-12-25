@@ -3,6 +3,7 @@
 import { existsSync } from 'fs';
 
 import react from '@vitejs/plugin-react';
+import million from 'million/compiler';
 import { PluginOption, defineConfig } from 'vite';
 import { createBlockletPlugin } from 'vite-plugin-blocklet';
 import svgr from 'vite-plugin-svgr';
@@ -30,7 +31,14 @@ const dotPathFixPlugin: () => PluginOption = () => ({
 // https://vitejs.dev/config/
 export default defineConfig(() => {
   return {
-    plugins: [tsconfigPaths(), dotPathFixPlugin(), react(), createBlockletPlugin(), svgr()],
+    plugins: [
+      million.vite({ auto: true }),
+      tsconfigPaths(),
+      dotPathFixPlugin(),
+      react(),
+      createBlockletPlugin(),
+      svgr(),
+    ],
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,

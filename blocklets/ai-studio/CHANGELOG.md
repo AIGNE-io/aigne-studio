@@ -1,8 +1,18 @@
+## 0.1.188 (2023-12-25)
+
+- fix: support all collaboration hover
+
+## 0.1.187 (2023-12-24)
+
+- fix: diff assistant data
+
+## 0.1.186 (2023-12-23)
+
+- fix: change project-card's avatar and project-icon size
+
 ## 0.1.185 (2023-12-22)
 
-- fix: support all file-edit modules collaboration
-- fix: change the withAwareness
-- fix: get variable (#436)
+- fix: pass parameter to tool directly
 
 ## 0.1.184 (2023-12-22)
 
@@ -38,7 +48,7 @@
 
 ## 0.1.176 (2023-12-18)
 
-- fix: readable.toweb not support
+- fix: readable.toWeb not support
 
 ## 0.1.175 (2023-12-17)
 
