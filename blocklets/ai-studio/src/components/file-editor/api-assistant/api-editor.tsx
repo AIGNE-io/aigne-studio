@@ -72,7 +72,6 @@ export default function ApiEditor({
                         path={[value.id, 'requestParameters', parameter.id, 'key']}
                         TextFiledProps={{
                           hiddenLabel: true,
-                          // fullWidth: true,
                           value: parameter.key ?? '',
                           InputProps: {
                             readOnly: disabled,

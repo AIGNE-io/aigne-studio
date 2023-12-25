@@ -43,7 +43,7 @@ export default function IndicatorTextField({
       <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={path}>
         <TextField {...TextFiledProps} />
       </WithAwareness>
-      {current?.clients.length && (
+      {!!current?.clients.length && (
         <Tooltip
           placement="top"
           arrow

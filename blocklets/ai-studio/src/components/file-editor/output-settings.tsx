@@ -35,7 +35,11 @@ export default function OutputSettings({
             },
             value: value.formatResultType || 'none',
             onChange: (e) => (value.formatResultType = e.target.value as any),
-            children: [<MenuItem value="none">{t('stayAsIs')}</MenuItem>],
+            children: [
+              <MenuItem key="none" value="none">
+                {t('stayAsIs')}
+              </MenuItem>,
+            ],
           }}
         />
       </Stack>

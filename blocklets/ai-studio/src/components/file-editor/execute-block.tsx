@@ -219,8 +219,12 @@ export default function ExecuteBlockForm({
             value: value.formatResultType || 'none',
             onChange: (e) => (value.formatResultType = e.target.value as any),
             children: [
-              <MenuItem value="none">{t('stayAsIs')}</MenuItem>,
-              <MenuItem value="asHistory">{t('asHistory')}</MenuItem>,
+              <MenuItem key="none" value="none">
+                {t('stayAsIs')}
+              </MenuItem>,
+              <MenuItem key="asHistory" value="asHistory">
+                {t('asHistory')}
+              </MenuItem>,
             ],
           }}
         />
