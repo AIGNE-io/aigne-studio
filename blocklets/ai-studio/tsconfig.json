@@ -19,6 +19,8 @@
       "@blocklet/studio-ui": ["../../packages/studio-ui/src"],
       "@blocklet/prompt-editor": ["../../packages/prompt-editor/src"],
       "@blocklet/prompt-editor/*": ["../../packages/prompt-editor/src/*"]
+      // For local dev
+      // "@blocklet/ai-kit/*": ["../../../ai-kit/packages/ai-kit/src/*"]
     }
   }
 }

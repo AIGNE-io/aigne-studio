@@ -11,7 +11,6 @@ import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
-import { ChatCompletionRequestMessage } from 'openai';
 import { useCallback, useEffect, useMemo } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
@@ -381,9 +380,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
           message.type === 'chat'
             ? await textCompletions({
                 stream: true,
-                messages: (
-                  (session?.messages.slice(-15).filter((i) => i.content) ?? []) as ChatCompletionRequestMessage[]
-                ).concat({
+                messages: (session?.messages.slice(-15).map((i) => pick(i, 'role', 'content')) ?? []).concat({
                   role: 'user',
                   content: message.content,
                 }),

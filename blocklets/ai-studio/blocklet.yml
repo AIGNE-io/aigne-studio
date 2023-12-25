@@ -95,3 +95,14 @@ navigation:
       - admin
       - owner
       - promptsEditor
+  - id: billing
+    title:
+      en: Billing
+      zh: 账单
+    icon: uil:bill
+    link: /billing
+    section:
+      - dashboard
+    role:
+      - admin
+      - owner

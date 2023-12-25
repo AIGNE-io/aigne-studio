@@ -1,3 +1,4 @@
+import AIKitServiceConfig from '@blocklet/ai-kit/components/ai-kit-service/config';
 import config from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 
@@ -15,7 +16,7 @@ export const Config = {
   },
 
   get useAIKitService() {
-    return true;
+    return AIKitServiceConfig.useAIKitService;
   },
 };
 
