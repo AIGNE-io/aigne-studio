@@ -31,7 +31,7 @@ export default function PromptAssistantEditor({
       </Box>
 
       <Box sx={{ bgcolor, py: 1, px: 2, borderRadius: 1 }}>
-        <ParametersTable readOnly={disabled} value={value} />
+        <ParametersTable projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} />
       </Box>
 
       <PromptAssistantEditorPrompts projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
@@ -41,7 +41,7 @@ export default function PromptAssistantEditor({
       </Box>
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
-        <OutputSettings value={value} readOnly={readOnly} />
+        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>
     </Stack>
   );

@@ -6,15 +6,22 @@ import { Box, Button, Paper, Stack } from '@mui/material';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import { ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
 
+import WithAwareness from '../awareness/with-awareness';
 import useVariablesEditorOptions from './use-variables-editor-options';
 
 export default function PromptEditorField({
+  projectId,
+  gitRef,
+  path,
   assistant,
   value,
   onChange,
   readOnly,
   ...props
 }: {
+  projectId: string;
+  gitRef: string;
+  path: (string | number)[];
   assistant?: AssistantYjs;
   value?: string;
   onChange: (value: string) => void;
@@ -76,75 +83,77 @@ export default function PromptEditorField({
   }, [t]);
 
   return (
-    <PromptEditor
-      {...props}
-      editable={!readOnly}
-      variables={variables}
-      value={editorState}
-      onChange={setEditorState}
-      variablePickerProps={{ options }}
-      ContentProps={{
-        ...props.ContentProps,
-        sx: { bgcolor: 'grey.100', p: 1, borderRadius: 1, ...props.ContentProps?.sx },
-      }}
-      popperElement={({ text, handleClose }) => {
-        if ((variables || []).includes(text)) {
-          const parameter = getParameters(text);
+    <WithAwareness sx={{ top: 0, right: 0 }} projectId={projectId} gitRef={gitRef} path={path}>
+      <PromptEditor
+        {...props}
+        editable={!readOnly}
+        variables={variables}
+        value={editorState}
+        onChange={setEditorState}
+        variablePickerProps={{ options }}
+        ContentProps={{
+          ...props.ContentProps,
+          sx: { bgcolor: 'grey.100', p: 1, borderRadius: 1, ...props.ContentProps?.sx },
+        }}
+        popperElement={({ text, handleClose }) => {
+          if ((variables || []).includes(text)) {
+            const parameter = getParameters(text);
 
-          const type = (parameter as { multiline: boolean })?.multiline ? 'multiline' : parameter?.type || 'string';
+            const type = (parameter as { multiline: boolean })?.multiline ? 'multiline' : parameter?.type || 'string';
+
+            return (
+              <Paper>
+                <Stack
+                  gap={0.5}
+                  sx={{
+                    p: 1,
+                    minWidth: '100px',
+                    fontSize: (theme) => theme.typography.caption.fontSize,
+                    fontWeight: (theme) => theme.palette.text.disabled,
+                  }}>
+                  <Box>{`${t('form.parameter.type')}: ${typeMap[type]}`}</Box>
+                  <Box>{`${t('form.parameter.label')}: ${parameter?.label || text}`}</Box>
+                  {!!parameter?.placeholder && (
+                    <Box>{`${t('form.parameter.placeholder')}: ${parameter?.placeholder || ''}`}</Box>
+                  )}
+                  {!!parameter?.defaultValue && (
+                    <Box>{`${t('form.parameter.defaultValue')}: ${parameter?.defaultValue || ''}`}</Box>
+                  )}
+                </Stack>
+              </Paper>
+            );
+          }
 
           return (
-            <Paper>
-              <Stack
-                gap={0.5}
-                sx={{
-                  p: 1,
-                  minWidth: '100px',
-                  fontSize: (theme) => theme.typography.caption.fontSize,
-                  fontWeight: (theme) => theme.palette.text.disabled,
-                }}>
-                <Box>{`${t('form.parameter.type')}: ${typeMap[type]}`}</Box>
-                <Box>{`${t('form.parameter.label')}: ${parameter?.label || text}`}</Box>
-                {!!parameter?.placeholder && (
-                  <Box>{`${t('form.parameter.placeholder')}: ${parameter?.placeholder || ''}`}</Box>
-                )}
-                {!!parameter?.defaultValue && (
-                  <Box>{`${t('form.parameter.defaultValue')}: ${parameter?.defaultValue || ''}`}</Box>
-                )}
+            <Paper sx={{ p: 1 }}>
+              <Stack gap={1}>
+                <Box
+                  sx={{
+                    p: 1,
+                    fontSize: (theme) => theme.typography.body1.fontSize,
+                    fontWeight: (theme) => theme.typography.fontWeightBold,
+                    // color: (theme) => theme.palette.error.light,
+                  }}>
+                  {t('nonExistentVariable', { data: text })}
+                </Box>
+
+                <Stack direction="row" gap={1} justifyContent="flex-end">
+                  <Button
+                    sx={{ p: 0 }}
+                    onClick={() => {
+                      addParameter(text);
+                      handleClose();
+                    }}
+                    size="small">
+                    {t('addVariable')}
+                  </Button>
+                </Stack>
               </Stack>
             </Paper>
           );
-        }
-
-        return (
-          <Paper sx={{ p: 1 }}>
-            <Stack gap={1}>
-              <Box
-                sx={{
-                  p: 1,
-                  fontSize: (theme) => theme.typography.body1.fontSize,
-                  fontWeight: (theme) => theme.typography.fontWeightBold,
-                  // color: (theme) => theme.palette.error.light,
-                }}>
-                {t('nonExistentVariable', { data: text })}
-              </Box>
-
-              <Stack direction="row" gap={1} justifyContent="flex-end">
-                <Button
-                  sx={{ p: 0 }}
-                  onClick={() => {
-                    addParameter(text, from);
-                    handleClose();
-                  }}
-                  size="small">
-                  {t('addVariable')}
-                </Button>
-              </Stack>
-            </Stack>
-          </Paper>
-        );
-      }}
-    />
+        }}
+      />
+    </WithAwareness>
   );
 }
 

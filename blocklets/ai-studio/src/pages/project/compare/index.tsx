@@ -268,12 +268,25 @@ export default function Compare({
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
           {state.template && (
-            <ParametersTable value={state.template} readOnly compareValue={template} isRemoteCompare />
+            <ParametersTable
+              projectId={projectId}
+              gitRef={gitRef}
+              value={state.template}
+              readOnly
+              compareValue={template}
+              isRemoteCompare
+            />
           )}
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <ParametersTable value={template} readOnly compareValue={state.template} />
+          <ParametersTable
+            projectId={projectId}
+            gitRef={gitRef}
+            value={template}
+            readOnly
+            compareValue={state.template}
+          />
         </Box>
       </Stack>
 
@@ -281,11 +294,11 @@ export default function Compare({
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          {state.template && <OutputSettings value={state.template} readOnly />}
+          {state.template && <OutputSettings projectId={projectId} gitRef={gitRef} value={state.template} readOnly />}
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <OutputSettings value={template} readOnly />
+          <OutputSettings projectId={projectId} gitRef={gitRef} value={template} readOnly />
         </Box>
       </Stack>
     </Container>

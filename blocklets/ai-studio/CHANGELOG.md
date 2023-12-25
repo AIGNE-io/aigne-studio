@@ -1,3 +1,7 @@
+## 0.1.188 (2023-12-25)
+
+- fix: support all collaboration hover
+
 ## 0.1.187 (2023-12-24)
 
 - fix: diff assistant data

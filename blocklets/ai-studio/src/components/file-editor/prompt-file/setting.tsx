@@ -8,7 +8,6 @@ import { useAsync } from 'react-use';
 
 import { getSupportedModels } from '../../../libs/common';
 import { useAssistantCompare, useProjectState } from '../../../pages/project/state';
-import AwarenessIndicator from '../../awareness/awareness-indicator';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';
 import SliderNumberField from '../../slider-number-field';
@@ -78,24 +77,15 @@ export default function PromptSetting({
 
       <Collapse in={open}>
         <Stack py={1} gap={1}>
-          <Box position="relative">
-            <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
-              <ModelSelectField
-                fullWidth
-                label={t('model')}
-                value={value.model || project?.model || ''}
-                onChange={(e) => (value.model = e.target.value)}
-                InputProps={{ readOnly, sx: { backgroundColor: getDiffBackground('model') } }}
-              />
-            </WithAwareness>
-
-            <AwarenessIndicator
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[value.id, 'model']}
-              sx={{ position: 'absolute', right: -16, top: 16 }}
+          <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
+            <ModelSelectField
+              fullWidth
+              label={t('model')}
+              value={value.model || project?.model || ''}
+              onChange={(e) => (value.model = e.target.value)}
+              InputProps={{ readOnly, sx: { backgroundColor: getDiffBackground('model') } }}
             />
-          </Box>
+          </WithAwareness>
 
           {model && (
             <>
@@ -108,26 +98,21 @@ export default function PromptSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'temperature']}>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={model.temperatureMin}
-                        max={model.temperatureMax}
-                        step={0.1}
-                        sx={{ flex: 1, backgroundColor: getDiffBackground('temperature') }}
-                        value={value.temperature ?? project?.temperature ?? model.temperatureDefault}
-                        onChange={(_, v) => (value.temperature = v)}
-                      />
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'temperature']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'temperature']}>
+                    <SliderNumberField
+                      readOnly={readOnly}
+                      min={model.temperatureMin}
+                      max={model.temperatureMax}
+                      step={0.1}
+                      sx={{ flex: 1, backgroundColor: getDiffBackground('temperature') }}
+                      value={value.temperature ?? project?.temperature ?? model.temperatureDefault}
+                      onChange={(_, v) => (value.temperature = v)}
                     />
-                  </Box>
+                  </WithAwareness>
                 </Box>
               )}
 
@@ -140,26 +125,21 @@ export default function PromptSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'topP']}>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={model.topPMin}
-                        max={model.topPMax}
-                        step={0.1}
-                        value={value.topP ?? project?.topP ?? model.topPDefault}
-                        onChange={(_, v) => (value.topP = v)}
-                        sx={{ flex: 1, backgroundColor: getDiffBackground('topP') }}
-                      />
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'topP']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'topP']}>
+                    <SliderNumberField
+                      readOnly={readOnly}
+                      min={model.topPMin}
+                      max={model.topPMax}
+                      step={0.1}
+                      value={value.topP ?? project?.topP ?? model.topPDefault}
+                      onChange={(_, v) => (value.topP = v)}
+                      sx={{ flex: 1, backgroundColor: getDiffBackground('topP') }}
                     />
-                  </Box>
+                  </WithAwareness>
                 </Box>
               )}
 
@@ -172,26 +152,21 @@ export default function PromptSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'presencePenalty']}>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={model.presencePenaltyMin}
-                        max={model.presencePenaltyMax}
-                        step={0.1}
-                        sx={{ flex: 1, backgroundColor: getDiffBackground('presencePenalty') }}
-                        value={value.presencePenalty ?? project?.presencePenalty ?? model.presencePenaltyDefault}
-                        onChange={(_, v) => (value.presencePenalty = v)}
-                      />
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'presencePenalty']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'presencePenalty']}>
+                    <SliderNumberField
+                      readOnly={readOnly}
+                      min={model.presencePenaltyMin}
+                      max={model.presencePenaltyMax}
+                      step={0.1}
+                      sx={{ flex: 1, backgroundColor: getDiffBackground('presencePenalty') }}
+                      value={value.presencePenalty ?? project?.presencePenalty ?? model.presencePenaltyDefault}
+                      onChange={(_, v) => (value.presencePenalty = v)}
                     />
-                  </Box>
+                  </WithAwareness>
                 </Box>
               )}
 
@@ -204,26 +179,21 @@ export default function PromptSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'frequencyPenalty']}>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={model.frequencyPenaltyMin}
-                        max={model.frequencyPenaltyMax}
-                        step={0.1}
-                        sx={{ flex: 1, backgroundColor: getDiffBackground('frequencyPenalty') }}
-                        value={value.frequencyPenalty ?? project?.frequencyPenalty ?? model.frequencyPenaltyDefault}
-                        onChange={(_, v) => (value.frequencyPenalty = v)}
-                      />
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'frequencyPenalty']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'frequencyPenalty']}>
+                    <SliderNumberField
+                      readOnly={readOnly}
+                      min={model.frequencyPenaltyMin}
+                      max={model.frequencyPenaltyMax}
+                      step={0.1}
+                      sx={{ flex: 1, backgroundColor: getDiffBackground('frequencyPenalty') }}
+                      value={value.frequencyPenalty ?? project?.frequencyPenalty ?? model.frequencyPenaltyDefault}
+                      onChange={(_, v) => (value.frequencyPenalty = v)}
                     />
-                  </Box>
+                  </WithAwareness>
                 </Box>
               )}
 
@@ -236,26 +206,21 @@ export default function PromptSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'maxTokens']}>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={model.maxTokensMin}
-                        max={model.maxTokensMax}
-                        step={1}
-                        sx={{ flex: 1, backgroundColor: getDiffBackground('maxTokens') }}
-                        value={value.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault}
-                        onChange={(_, v) => (value.maxTokens = v)}
-                      />
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'maxTokens']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'maxTokens']}>
+                    <SliderNumberField
+                      readOnly={readOnly}
+                      min={model.maxTokensMin}
+                      max={model.maxTokensMax}
+                      step={1}
+                      sx={{ flex: 1, backgroundColor: getDiffBackground('maxTokens') }}
+                      value={value.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault}
+                      onChange={(_, v) => (value.maxTokens = v)}
                     />
-                  </Box>
+                  </WithAwareness>
                 </Box>
               )}
             </>

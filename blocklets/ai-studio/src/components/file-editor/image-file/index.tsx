@@ -32,21 +32,21 @@ export default function ImageAssistantEditor({
       </Box>
 
       <Box sx={{ bgcolor, py: 1, px: 2, borderRadius: 1 }}>
-        <ParametersTable readOnly={disabled} value={value} />
+        <ParametersTable projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} />
       </Box>
 
       <Stack sx={{ bgcolor, p: 1, px: 2, borderRadius: 1, gap: 2 }}>
         <ImageAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Stack>
 
-      <ImageAssistantEditorFormatPrompt gitRef={gitRef} value={value} disabled={disabled} />
+      <ImageAssistantEditorFormatPrompt projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <ImageAssistantSetting projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
-        <OutputSettings value={value} readOnly={readOnly} />
+        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>
     </Stack>
   );

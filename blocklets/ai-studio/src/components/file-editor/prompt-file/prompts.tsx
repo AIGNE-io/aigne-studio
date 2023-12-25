@@ -68,6 +68,8 @@ export default function PromptPrompts({
                   <PromptItemMessage
                     readOnly={readOnly}
                     assistant={value}
+                    projectId={projectId}
+                    gitRef={gitRef}
                     value={prompt.data}
                     promptHidden={prompt.visibility === 'hidden'}
                     backgroundColor={getDiffBackground('prompts', prompt.data.id)}
@@ -142,10 +144,14 @@ function PromptItemMessage({
   value,
   promptHidden,
   readOnly,
+  projectId,
+  gitRef,
   backgroundColor = {},
 }: {
   assistant: AssistantYjs;
   value: PromptMessage;
+  projectId: string;
+  gitRef: string;
   promptHidden?: boolean;
   readOnly?: boolean;
   backgroundColor: Object;
@@ -167,11 +173,21 @@ function PromptItemMessage({
       <Stack direction="row" alignItems="center" gap={1} p={1}>
         <Typography variant="subtitle2">{t('prompt')}</Typography>
 
-        <RoleSelectField size="small" value={value.role} onChange={(e) => (value.role = e.target.value as any)} />
+        <RoleSelectField
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, 'role']}
+          size="small"
+          value={value.role}
+          onChange={(e) => (value.role = e.target.value as any)}
+        />
       </Stack>
 
       <StyledPromptEditor
         readOnly={readOnly}
+        projectId={projectId}
+        gitRef={gitRef}
+        path={[value.id, 'content']}
         assistant={assistant}
         value={value.content}
         onChange={(content) => (value.content = content)}
@@ -202,6 +218,7 @@ function PromptItemExecuteBlock({
       assistant={assistant}
       projectId={projectId}
       gitRef={gitRef}
+      path={[assistant.id, 'prompts', value.id]}
       value={value}
       readOnly={readOnly}
       sx={{

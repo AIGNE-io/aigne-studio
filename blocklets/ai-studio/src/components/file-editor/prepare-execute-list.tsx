@@ -52,6 +52,7 @@ export default function PrepareExecuteList({
             <ExecuteBlockForm
               assistant={assistant}
               projectId={projectId}
+              path={[assistant.id, 'prepareExecutes', block.id]}
               gitRef={gitRef}
               value={block}
               readOnly={readOnly}

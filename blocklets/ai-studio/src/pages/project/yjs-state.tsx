@@ -125,7 +125,6 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
 
     const onAwarenessChange = () => {
       const states = provider.awareness.getStates();
-
       const awareness: StoreContext['awareness'] = {
         clients: {},
         files: {},
@@ -133,9 +132,9 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
 
       for (const [clientId, state] of states.entries()) {
         if (clientId === provider.awareness.clientID) continue;
-        awareness.clients[clientId] = pick(state.user, 'did', 'fullName', 'avatar');
+        awareness.clients[clientId] = pick(state?.focus?.user, 'did', 'fullName', 'avatar');
 
-        const path: (string | number)[] = state.focus?.path;
+        const path: (string | number)[] = state?.focus?.path;
         if (path && path.length >= 1) {
           const file = path[0]!;
 
@@ -150,7 +149,9 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
         }
       }
 
-      setStore((v) => ({ ...v, awareness }));
+      setStore((v) => {
+        return { ...v, awareness };
+      });
     };
 
     provider.on('synced', onSynced);

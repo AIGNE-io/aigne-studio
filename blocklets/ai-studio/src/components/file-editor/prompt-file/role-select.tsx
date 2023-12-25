@@ -1,11 +1,38 @@
-import { MenuItem, TextField, TextFieldProps } from '@mui/material';
+import IndicatorTextField from '@app/components/awareness/indicator-text-field';
+import { MenuItem, TextFieldProps } from '@mui/material';
 
-export default function RoleSelectField({ ...props }: TextFieldProps) {
+type Props = {
+  projectId: string;
+  gitRef: string;
+  path: string[];
+} & TextFieldProps;
+
+export default function RoleSelectField({ projectId, gitRef, path, ...props }: Props) {
   return (
-    <TextField select hiddenLabel {...props} SelectProps={{ autoWidth: true, ...props.SelectProps }}>
-      <MenuItem value="system">System</MenuItem>
-      <MenuItem value="user">User</MenuItem>
-      <MenuItem value="assistant">Assistant</MenuItem>
-    </TextField>
+    <IndicatorTextField
+      projectId={projectId}
+      path={path}
+      gitRef={gitRef}
+      TextFiledProps={{
+        select: true,
+        hiddenLabel: true,
+        ...props,
+        SelectProps: {
+          autoWidth: true,
+          ...props.SelectProps,
+        },
+        children: [
+          <MenuItem key="system" value="system">
+            System
+          </MenuItem>,
+          <MenuItem key="user" value="user">
+            User
+          </MenuItem>,
+          <MenuItem key="user" value="assistant">
+            Assistant
+          </MenuItem>,
+        ],
+      }}
+    />
   );
 }

@@ -8,7 +8,6 @@ import { useAsync } from 'react-use';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import { defaultImageModel, getSupportedImagesModels } from '../../../libs/common';
-import AwarenessIndicator from '../../awareness/awareness-indicator';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';
 import SliderNumberField from '../../slider-number-field';
@@ -78,7 +77,7 @@ export default function ImageFileSetting({
       <Collapse in={open}>
         <Stack py={1} gap={1}>
           <Box position="relative">
-            <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
+            <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
               <ModelSelectField
                 fullWidth
                 isImageModel
@@ -97,13 +96,6 @@ export default function ImageFileSetting({
                 InputProps={{ readOnly, sx: { backgroundColor: getDiffBackground('model') } }}
               />
             </WithAwareness>
-
-            <AwarenessIndicator
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[value.id, 'model']}
-              sx={{ position: 'absolute', right: -16, top: 16 }}
-            />
           </Box>
 
           {modelDetail && (
@@ -135,26 +127,21 @@ export default function ImageFileSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'n']}>
-                      <SliderNumberField
-                        readOnly={readOnly}
-                        min={modelDetail.nMin}
-                        max={modelDetail.nMax}
-                        step={1}
-                        value={value.n ?? modelDetail.nDefault}
-                        onChange={(_, v) => (value.n = v)}
-                        sx={{ flex: 1, sx: { backgroundColor: getDiffBackground('n') } }}
-                      />
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'n']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'n']}>
+                    <SliderNumberField
+                      readOnly={readOnly}
+                      min={modelDetail.nMin}
+                      max={modelDetail.nMax}
+                      step={1}
+                      value={value.n ?? modelDetail.nDefault}
+                      onChange={(_, v) => (value.n = v)}
+                      sx={{ flex: 1, sx: { backgroundColor: getDiffBackground('n') } }}
                     />
-                  </Box>
+                  </WithAwareness>
                 </Box>
               )}
 
@@ -167,33 +154,28 @@ export default function ImageFileSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'quality']}>
-                      <TextField
-                        hiddenLabel
-                        select
-                        SelectProps={{
-                          readOnly,
-                          autoWidth: true,
-                          sx: { backgroundColor: getDiffBackground('quality') },
-                        }}
-                        value={value.quality ?? modelDetail.qualityDefault}
-                        onChange={(e) => (value.quality = e.target.value)}>
-                        {modelDetail.quality.map((i) => (
-                          <MenuItem key={i} value={i}>
-                            {i}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'quality']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
-                    />
-                  </Box>
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'quality']}>
+                    <TextField
+                      hiddenLabel
+                      select
+                      SelectProps={{
+                        readOnly,
+                        autoWidth: true,
+                        sx: { backgroundColor: getDiffBackground('quality') },
+                      }}
+                      value={value.quality ?? modelDetail.qualityDefault}
+                      onChange={(e) => (value.quality = e.target.value)}>
+                      {modelDetail.quality.map((i) => (
+                        <MenuItem key={i} value={i}>
+                          {i}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </WithAwareness>
                 </Box>
               )}
 
@@ -205,9 +187,12 @@ export default function ImageFileSetting({
                       <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
                     </FormLabel>
                   </Tooltip>
-
                   <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'responseFormat']}>
+                    <WithAwareness
+                      sx={{ top: -2, right: -4 }}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      path={[value.id, 'responseFormat']}>
                       <TextField
                         hiddenLabel
                         select
@@ -225,13 +210,6 @@ export default function ImageFileSetting({
                         ))}
                       </TextField>
                     </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'responseFormat']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
-                    />
                   </Box>
                 </Box>
               )}
@@ -245,33 +223,28 @@ export default function ImageFileSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'size']}>
-                      <TextField
-                        hiddenLabel
-                        select
-                        SelectProps={{
-                          readOnly,
-                          autoWidth: true,
-                          sx: { backgroundColor: getDiffBackground('size') },
-                        }}
-                        value={value.size ?? modelDetail.sizeDefault}
-                        onChange={(e) => (value.size = e.target.value)}>
-                        {modelDetail.size.map((i) => (
-                          <MenuItem key={i} value={i}>
-                            {i}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'size']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
-                    />
-                  </Box>
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'size']}>
+                    <TextField
+                      hiddenLabel
+                      select
+                      SelectProps={{
+                        readOnly,
+                        autoWidth: true,
+                        sx: { backgroundColor: getDiffBackground('size') },
+                      }}
+                      value={value.size ?? modelDetail.sizeDefault}
+                      onChange={(e) => (value.size = e.target.value)}>
+                      {modelDetail.size.map((i) => (
+                        <MenuItem key={i} value={i}>
+                          {i}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </WithAwareness>
                 </Box>
               )}
 
@@ -284,33 +257,28 @@ export default function ImageFileSetting({
                     </FormLabel>
                   </Tooltip>
 
-                  <Box>
-                    <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'style']}>
-                      <TextField
-                        hiddenLabel
-                        select
-                        SelectProps={{
-                          readOnly,
-                          autoWidth: true,
-                          sx: { backgroundColor: getDiffBackground('style') },
-                        }}
-                        value={value.style ?? modelDetail.styleDefault}
-                        onChange={(e) => (value.style = e.target.value)}>
-                        {modelDetail.style.map((i) => (
-                          <MenuItem key={i} value={i}>
-                            {i}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </WithAwareness>
-
-                    <AwarenessIndicator
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'style']}
-                      sx={{ position: 'absolute', right: -16, top: 16 }}
-                    />
-                  </Box>
+                  <WithAwareness
+                    sx={{ top: -2, right: -4 }}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    path={[value.id, 'style']}>
+                    <TextField
+                      hiddenLabel
+                      select
+                      SelectProps={{
+                        readOnly,
+                        autoWidth: true,
+                        sx: { backgroundColor: getDiffBackground('style') },
+                      }}
+                      value={value.style ?? modelDetail.styleDefault}
+                      onChange={(e) => (value.style = e.target.value)}>
+                      {modelDetail.style.map((i) => (
+                        <MenuItem key={i} value={i}>
+                          {i}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </WithAwareness>
                 </Box>
               )}
             </Box>
