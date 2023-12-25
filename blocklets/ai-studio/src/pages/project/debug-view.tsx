@@ -35,6 +35,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
 import { ComponentProps, SyntheticEvent, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import Markdown from 'react-markdown';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import { useSessionContext } from '../../contexts/session';
@@ -229,17 +230,15 @@ function MessageView({
           {message.content || message.parameters || message.images?.length || message.loading ? (
             <MessageViewContent
               sx={{
-                whiteSpace: 'pre-wrap',
                 px: 1,
                 py: 0.5,
                 borderRadius: 1,
-                wordBreak: 'break-word',
                 ':hover': {
                   bgcolor: 'grey.100',
                 },
                 position: 'relative',
               }}>
-              {message.content ||
+              {<Box component={Markdown}>{message.content}</Box> ||
                 (message.parameters && (
                   <Box>
                     {Object.entries(message.parameters).map(([key, val]) => (
