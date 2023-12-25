@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.179",
+  "version": "0.1.188",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -59,6 +59,13 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "@types/react": "^18.2.23",
-    "@types/react-dom": "^18.2.8"
+    "@types/react-dom": "^18.2.8",
+    "@arcblock/did-auth": "^1.18.107",
+    "@ocap/wallet": "^1.18.107",
+    "@ocap/asset": "^1.18.107",
+    "@ocap/util": "^1.18.107",
+    "@ocap/proto": "^1.18.107",
+    "@ocap/types": "^1.18.107",
+    "@arcblock/did-ext": "^1.18.107"
   }
 }

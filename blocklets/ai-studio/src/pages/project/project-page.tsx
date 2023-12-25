@@ -376,7 +376,7 @@ export default function ProjectPage() {
                 <CircularProgress size={32} />
               </Box>
             ) : file ? (
-              <WithAwareness projectId={projectId} gitRef={gitRef} path={[file.id]} onMount>
+              <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[file.id]} onMount>
                 {isPromptAssistant(file) ? (
                   <PromptAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
                 ) : isImageAssistant(file) ? (

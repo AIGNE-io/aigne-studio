@@ -1,13 +1,18 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isRunAssistantChunk, isRunAssistantError, runAssistant } from '@blocklet/ai-runtime/api';
-import { Role } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import { getYjsDoc } from '@blocklet/co-git/yjs';
+import { useThrottleEffect } from 'ahooks';
+import equal from 'fast-deep-equal';
 import produce, { Draft } from 'immer';
 import localForage from 'localforage';
+import { cloneDeep, differenceBy, get, intersectionBy, omitBy } from 'lodash';
 import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { ChatCompletionRequestMessage } from 'openai';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 
@@ -17,6 +22,8 @@ import { PREFIX } from '../../libs/api';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
+import * as api from '../../libs/tree';
+import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 export const defaultBranch = 'main';
 
@@ -188,7 +195,7 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
 
         const res = await localForage.getItem<string>(key);
         const json: DebugState = typeof res === 'string' ? JSON.parse(res) : res;
-        if (json.projectId === projectId && json.assistantId === assistantId) {
+        if (json?.projectId === projectId && json?.assistantId === assistantId) {
           return {
             ...json,
             sessions: json.sessions.map((session) => ({
@@ -210,8 +217,8 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
   ];
 };
 
-const debugState = (projectId: string, assistantId: string) => {
-  const [key, initialState] = getInitialDebugState(projectId, assistantId);
+const useDebugInitState = (projectId: string, assistantId: string) => {
+  const [key, initialState] = useMemo(() => getInitialDebugState(projectId, assistantId), [projectId, assistantId]);
 
   debugStates[key] ??= atom<DebugState>({
     key,
@@ -220,7 +227,7 @@ const debugState = (projectId: string, assistantId: string) => {
       (() => {
         const setItem = debounce((k, v) => {
           localForage.setItem(k, v);
-        }, 1000);
+        }, 2000);
 
         window.addEventListener('beforeunload', () => setItem.flush());
 
@@ -235,7 +242,8 @@ const debugState = (projectId: string, assistantId: string) => {
 };
 
 export const useDebugState = ({ projectId, assistantId }: { projectId: string; assistantId: string }) => {
-  const [state, setState] = useRecoilState(debugState(projectId, assistantId));
+  const debugState = useDebugInitState(projectId, assistantId);
+  const [state, setState] = useRecoilState(debugState);
 
   const newSession = useCallback(
     (session?: Partial<SessionItem>) => {
@@ -489,7 +497,9 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
 };
 
 async function migrateDebugStateFroMLocalStorageToIndexedDB() {
-  for (const key of Object.keys(localStorage)) {
+  const debugStateKeys = Object.keys(localStorage).filter((key) => key.startsWith('debugState-'));
+
+  for (const key of debugStateKeys) {
     if (key.startsWith('debugState-')) {
       const text = localStorage.getItem(key);
       localStorage.removeItem(key);
@@ -513,3 +523,245 @@ async function migrateDebugStateFroMLocalStorageToIndexedDB() {
 }
 
 const debugStateMigration = migrateDebugStateFroMLocalStorageToIndexedDB();
+
+export type AssistantYjsWithParents = AssistantYjs & { parent: string[] };
+
+export interface AssistantState {
+  created: AssistantYjsWithParents[];
+  deleted: AssistantYjsWithParents[];
+  modified: AssistantYjsWithParents[];
+  createdMap: { [key: string]: AssistantYjsWithParents };
+  modifiedMap: { [key: string]: AssistantYjsWithParents };
+  deletedMap: { [key: string]: AssistantYjsWithParents };
+  disabled: boolean;
+  loading: boolean;
+  assistants: AssistantYjsWithParents[];
+  files: AssistantYjsWithParents[];
+}
+
+const assistantStates: { [key: string]: RecoilState<AssistantState> } = {};
+
+const assistantState = (projectId: string, gitRef: string) => {
+  const key = `${projectId}-${gitRef}`;
+
+  assistantStates[key] ??= atom<AssistantState>({
+    key: `assistantState-${key}`,
+    default: {
+      created: [],
+      deleted: [],
+      modified: [],
+      disabled: true,
+      createdMap: {},
+      modifiedMap: {},
+      deletedMap: {},
+      loading: false,
+      assistants: [],
+      files: [],
+    },
+  });
+
+  return assistantStates[key]!;
+};
+
+export const useAssistantChangesState = (projectId: string, ref: string) => {
+  const { t } = useLocaleContext();
+  const [state, setState] = useRecoilState(assistantState(projectId, ref));
+
+  const { store, synced } = useProjectStore(projectId, ref);
+
+  useThrottleEffect(
+    () => {
+      if (state.loading) return;
+      if (!synced) return;
+
+      const duplicateItems = intersectionBy(state.assistants, state.files, 'id');
+      const news = differenceBy(state.files, state.assistants, 'id');
+      const deleted = differenceBy(state.assistants, state.files, 'id');
+      const modified = duplicateItems.filter((i) => {
+        const item = omitBy(i, (x) => !x);
+
+        const found = state.files.find((f) => item.id === f.id);
+        if (!found) {
+          return false;
+        }
+
+        const file = omitBy(found, (x) => !x);
+        return !equal(item, file);
+      });
+
+      const arrToObj = (list: AssistantYjsWithParents[]) => Object.fromEntries(list.map((i) => [i.id, i]));
+
+      setState((v) => ({
+        ...v,
+        created: news,
+        deleted,
+        modified,
+        disabled: news.length + deleted.length + modified.length === 0,
+        createdMap: arrToObj(news),
+        modifiedMap: arrToObj(modified),
+        deletedMap: arrToObj(deleted),
+      }));
+    },
+    [state.assistants, state.files, state.loading, synced, projectId, ref],
+    { wait: 1000 }
+  );
+
+  useEffect(() => {
+    const getFile = () => {
+      const files = Object.entries(store.tree)
+        .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
+        .map(([id, filepath]) => {
+          const file = store.files[id] as AssistantYjsWithParents;
+
+          if (file) {
+            return { ...file, parent: (filepath?.split('/') || []).slice(0, -1) };
+          }
+
+          return file;
+        })
+        .filter((x) => x !== null)
+        .filter((i): i is AssistantYjsWithParents => !!i && isAssistant(i));
+
+      setState((r) => ({ ...r, files: cloneDeep(files) }));
+    };
+
+    getYjsDoc(store).getMap('files').observeDeep(getFile);
+    getYjsDoc(store).getMap('tree').observeDeep(getFile);
+
+    return () => {
+      getYjsDoc(store).getMap('files').unobserveDeep(getFile);
+      getYjsDoc(store).getMap('tree').unobserveDeep(getFile);
+    };
+  }, [projectId, ref]);
+
+  const run = async () => {
+    try {
+      setState((r) => ({ ...r, loading: true }));
+
+      const [{ files }] = await Promise.all([api.getTree({ projectId, ref })]);
+      const assistants = files
+        .filter((x) => typeof x === 'object' && x.parent[0] === PROMPTS_FOLDER_NAME)
+        .map((x) => {
+          if (x && x.type === 'file') {
+            const file = fileToYjs(x.meta) as AssistantYjsWithParents;
+            return { ...file, parent: x.parent };
+          }
+
+          return null;
+        })
+        .filter((x) => x !== null)
+        .filter((i): i is AssistantYjsWithParents => !!i && isAssistant(i));
+
+      setState((r) => ({ ...r, assistants }));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setState((r) => ({ ...r, loading: false }));
+    }
+  };
+
+  const changes = (item: AssistantYjs) => {
+    if (state.createdMap[item.id]) {
+      return {
+        key: 'N',
+        color: 'success.main',
+        tips: t('diff.created'),
+      };
+    }
+
+    if (state.modifiedMap[item.id]) {
+      return {
+        key: 'M',
+        color: 'warning.main',
+        tips: t('diff.modified'),
+      };
+    }
+
+    if (state.deletedMap[item.id]) {
+      return {
+        key: 'D',
+        color: 'error.main',
+        tips: t('diff.deleted'),
+      };
+    }
+
+    return null;
+  };
+
+  const getOriginTemplate = (item: AssistantYjs) => {
+    return state.assistants.find((x) => x.id === item.id);
+  };
+
+  useEffect(() => {
+    if (projectId && ref) run();
+  }, [projectId, ref]);
+
+  return { ...state, changes, run, getOriginTemplate };
+};
+
+export function useAssistantCompare({
+  value,
+  compareValue,
+  isRemoteCompare,
+}: {
+  value: AssistantYjs;
+  compareValue?: AssistantYjs;
+  readOnly?: boolean;
+  isRemoteCompare?: boolean;
+}) {
+  const getDiffName = useCallback(
+    (path: keyof AssistantYjs, id?: string, defaultValue?: string) => {
+      if (!compareValue) return '';
+
+      const key = (id ? [path, id] : [path]).join('.');
+
+      const isDifferent = (() => {
+        const compareItem = JSON.stringify(get(compareValue, key, defaultValue ?? ''));
+        const currentItem = JSON.stringify(get(value, key, defaultValue ?? ''));
+        return !equal(compareItem, currentItem);
+      })();
+
+      if (!isDifferent) return '';
+
+      if (id === undefined) {
+        return isDifferent ? 'modify' : '';
+      }
+
+      const itemExistsInCompareValue = get(compareValue, key);
+      if (itemExistsInCompareValue === undefined) return isRemoteCompare ? 'delete' : 'new';
+
+      return 'modify';
+    },
+    [compareValue, value, isRemoteCompare]
+  );
+
+  const getBackgroundColor = (name: string) => {
+    switch (name) {
+      case 'new':
+        return 'rgba(230, 255, 236, 0.4) !important';
+      case 'delete':
+        return 'rgba(255, 215, 213, 0.4) !important';
+      case 'modify':
+        return 'rgba(255, 235, 233, 0.4) !important';
+      default:
+        return '';
+    }
+  };
+
+  const getDiffStyle = useCallback(
+    (style: string, path: keyof AssistantYjs, id?: string, defaultValue?: string) => {
+      const diffName = getDiffName(path, id, defaultValue);
+      return diffName ? { [style]: getBackgroundColor(diffName) } : {};
+    },
+    [getDiffName]
+  );
+
+  const getDiffBackground = useCallback(
+    (path: any, id?: string, defaultValue?: string) => {
+      return getDiffStyle('background', path, id, defaultValue);
+    },
+    [getDiffStyle]
+  );
+
+  return { getDiffName, getDiffBackground, getBackgroundColor };
+}

@@ -23,12 +23,14 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { useAssistantCompare } from 'src/pages/project/state';
 import { joinURL } from 'ufo';
 
 import Add from '../../pages/project/icons/add';
 import External from '../../pages/project/icons/external';
 import Trash from '../../pages/project/icons/trash';
-import { PROMPTS_FOLDER_NAME, createFile, useProjectStore } from '../../pages/project/yjs-state';
+import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';
+import IndicatorTextField from '../awareness/indicator-text-field';
 import PromptEditorField from './prompt-editor-field';
 
 export default function ExecuteBlockForm({
@@ -37,13 +39,19 @@ export default function ExecuteBlockForm({
   assistant,
   value,
   readOnly,
+  path,
+  compareAssistant,
+  isRemoteCompare,
   ...props
 }: {
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
   value: ExecuteBlockYjs;
+  path: (string | number)[];
   readOnly?: boolean;
+  compareAssistant?: AssistantYjs;
+  isRemoteCompare?: boolean;
 } & StackProps) {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
@@ -51,6 +59,12 @@ export default function ExecuteBlockForm({
   const toolForm = useRef<ToolDialogImperative>(null);
 
   const { store } = useProjectStore(projectId, gitRef);
+  const { getDiffBackground } = useAssistantCompare({
+    value: assistant,
+    compareValue: compareAssistant,
+    readOnly,
+    isRemoteCompare,
+  });
 
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
@@ -58,17 +72,30 @@ export default function ExecuteBlockForm({
     <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
       <Stack direction="row" gap={1} alignItems="center">
         <Typography variant="subtitle2">{t('executeBlock')}</Typography>
-
-        <TextField
-          size="small"
-          select
-          hiddenLabel
-          SelectProps={{ autoWidth: true }}
-          value={value.selectType || 'all'}
-          onChange={(e) => (value.selectType = e.target.value as any)}>
-          <MenuItem value="all">{t('all')}</MenuItem>
-          <MenuItem value="selectByPrompt">{t('selectPrompt')}</MenuItem>
-        </TextField>
+        <IndicatorTextField
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, value.selectType ?? 'all']}
+          TextFiledProps={{
+            size: 'small',
+            select: true,
+            hiddenLabel: true,
+            SelectProps: {
+              autoWidth: true,
+            },
+            value: value.selectType || 'all',
+            onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+              (value.selectType = e.target.value as any),
+            children: [
+              <MenuItem key="all" value="all">
+                {t('all')}
+              </MenuItem>,
+              <MenuItem key="selectByPrompt" value="selectByPrompt">
+                {t('selectPrompt')}
+              </MenuItem>,
+            ],
+          }}
+        />
 
         <Box flex={1} />
       </Stack>
@@ -76,8 +103,11 @@ export default function ExecuteBlockForm({
       {value.selectType === 'selectByPrompt' && (
         <Stack>
           <Typography variant="caption">{t('prompt')}</Typography>
-
           <PromptEditorField
+            readOnly={readOnly}
+            projectId={projectId}
+            gitRef={gitRef}
+            path={path.concat('selectByPrompt')}
             assistant={assistant}
             value={value.selectByPrompt}
             onChange={(prompt) => (value.selectByPrompt = prompt)}
@@ -111,8 +141,10 @@ export default function ExecuteBlockForm({
                     display: 'flex',
                   },
                 },
+                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
               }}
               onClick={() => {
+                if (readOnly) return;
                 toolForm.current?.form.reset(cloneDeep(tool));
                 dialogState.open();
               }}>
@@ -124,45 +156,49 @@ export default function ExecuteBlockForm({
                 {file.description}
               </Typography>
 
-              <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
-                <Button
-                  sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const doc = (getYjsValue(value) as Map<any>).doc!;
-                    doc.transact(() => {
-                      if (value.tools) {
-                        delete value.tools[tool.id];
-                        Object.values(value.tools).forEach((i, index) => (i.index = index));
-                      }
-                    });
-                  }}>
-                  <Trash sx={{ fontSize: 18 }} />
-                </Button>
+              {!readOnly && (
+                <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
+                  <Button
+                    sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const doc = (getYjsValue(value) as Map<any>).doc!;
+                      doc.transact(() => {
+                        if (value.tools) {
+                          delete value.tools[tool.id];
+                          Object.values(value.tools).forEach((i, index) => (i.index = index));
+                        }
+                      });
+                    }}>
+                    <Trash sx={{ fontSize: 18 }} />
+                  </Button>
 
-                <Button
-                  sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(joinURL('.', `${file.id}.yaml`));
-                  }}>
-                  <External sx={{ fontSize: 18 }} />
-                </Button>
-              </Stack>
+                  <Button
+                    sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(joinURL('.', `${file.id}.yaml`));
+                    }}>
+                    <External sx={{ fontSize: 18 }} />
+                  </Button>
+                </Stack>
+              )}
             </Stack>
           );
         })}
 
-        <Box>
-          <Button
-            startIcon={<Add />}
-            onClick={() => {
-              toolForm.current?.form.reset({ id: undefined, parameters: undefined });
-              dialogState.open();
-            }}>
-            {t('addObject', { object: t('tool') })}
-          </Button>
-        </Box>
+        {!readOnly && (
+          <Box>
+            <Button
+              startIcon={<Add />}
+              onClick={() => {
+                toolForm.current?.form.reset({ id: undefined, parameters: undefined });
+                dialogState.open();
+              }}>
+              {t('addObject', { object: t('tool') })}
+            </Button>
+          </Box>
+        )}
       </Stack>
 
       <Stack direction="row" alignItems="center" gap={2}>
@@ -170,22 +206,51 @@ export default function ExecuteBlockForm({
           {t('formatResult')}
         </Typography>
 
-        <TextField
-          hiddenLabel
-          select
-          SelectProps={{ autoWidth: true }}
-          value={value.formatResultType || 'none'}
-          onChange={(e) => (value.formatResultType = e.target.value as any)}>
-          <MenuItem value="none">{t('stayAsIs')}</MenuItem>
-          {/* <MenuItem value="asContext">Use as context</MenuItem> */}
-        </TextField>
+        <IndicatorTextField
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, value.formatResultType ?? 'none']}
+          TextFiledProps={{
+            select: true,
+            hiddenLabel: true,
+            SelectProps: {
+              autoWidth: true,
+            },
+            value: value.formatResultType || 'none',
+            onChange: (e) => (value.formatResultType = e.target.value as any),
+            children: [
+              <MenuItem key="none" value="none">
+                {t('stayAsIs')}
+              </MenuItem>,
+              <MenuItem key="asHistory" value="asHistory">
+                {t('asHistory')}
+              </MenuItem>,
+            ],
+          }}
+        />
 
         <Box flex={1} />
 
         <Typography variant="body1" component="label">
           {t('variable')}
         </Typography>
-        <TextField hiddenLabel value={value.variable || ''} onChange={(e) => (value.variable = e.target.value)} />
+
+        <IndicatorTextField
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, value.variable ?? '']}
+          TextFiledProps={{
+            hiddenLabel: true,
+            InputProps: {
+              readOnly,
+              sx: {
+                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
+              },
+            },
+            value: value.variable ?? '',
+            onChange: (e) => (value.variable = e.target.value),
+          }}
+        />
       </Stack>
 
       <ToolDialog
@@ -255,6 +320,8 @@ const ToolDialog = forwardRef<
       (i): i is typeof i & { data: { key: string } } => !!i.data.key
     );
 
+  const createFile = useCreateFile();
+
   return (
     <Dialog
       open={false}
@@ -275,7 +342,7 @@ const ToolDialog = forwardRef<
               const file = store.files[field.value];
               const target = file && isAssistant(file) ? file : undefined;
               const value = target ? { id: target.id, type: target.type, name: target.name } : undefined;
-
+              /* TODO: indicator */
               return (
                 <Autocomplete
                   key={Boolean(field.value).toString()}
@@ -376,6 +443,9 @@ const ToolDialog = forwardRef<
                   render={({ field }) => (
                     <PromptEditorField
                       value={field.value || ''}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      path={[assistantId, parameter.id]}
                       onChange={(value) => field.onChange({ target: { value } })}
                     />
                   )}

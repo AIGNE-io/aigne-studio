@@ -1,3 +1,39 @@
+## 0.1.188 (2023-12-25)
+
+- fix: support all collaboration hover
+
+## 0.1.187 (2023-12-24)
+
+- fix: diff assistant data
+
+## 0.1.186 (2023-12-23)
+
+- fix: change project-card's avatar and project-icon size
+
+## 0.1.185 (2023-12-22)
+
+- fix: pass parameter to tool directly
+
+## 0.1.184 (2023-12-22)
+
+- fix: fetch error in node earlier version
+
+## 0.1.183 (2023-12-22)
+
+- feat: support history by executeBlock as context
+
+## 0.1.182 (2023-12-21)
+
+- fix: automatic identification variable
+
+## 0.1.181 (2023-12-21)
+
+- fix: get variable context
+
+## 0.1.180 (2023-12-20)
+
+- fix: support sort parameters
+
 ## 0.1.179 (2023-12-19)
 
 - fix: support custom placeholder/loading of result view
@@ -12,7 +48,7 @@
 
 ## 0.1.176 (2023-12-18)
 
-- fix: readable.toweb not support
+- fix: readable.toWeb not support
 
 ## 0.1.175 (2023-12-17)
 

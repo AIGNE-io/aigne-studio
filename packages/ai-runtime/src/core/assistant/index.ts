@@ -6,8 +6,11 @@ import {
   ImageGenerationInput,
   ImageGenerationResponse,
 } from '@blocklet/ai-kit/api/types';
+import { call } from '@blocklet/sdk/lib/component';
+import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
-import { isNil, pick } from 'lodash';
+import { flattenDeep, isNil, pick } from 'lodash';
+import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
 
@@ -23,7 +26,7 @@ import {
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
-import { ImageAssistant, Mustache, isImageAssistant } from '../../types/assistant';
+import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
 
 export type RunAssistantResponse = RunAssistantChunk | RunAssistantError;
 
@@ -171,15 +174,21 @@ async function runFunctionAssistant({
       context: {
         get: (name: any) => {
           if (isNil(name) || name === '') return undefined;
-
-          let result = context?.[name] || results.find((i) => i[0].variable === name);
+          let result = context?.[name] || results.find((i) => i[0].variable === name)?.[1];
           while (typeof result === 'function') {
             result = result();
           }
           return result;
         },
       },
+      URL,
+      call,
       fetch,
+      env: {
+        languages: env.languages,
+        appId: env.appId,
+        appUrl: env.appUrl,
+      },
     },
   });
 
@@ -188,7 +197,6 @@ async function runFunctionAssistant({
   });
 
   const module = await vm.run(assistant.code);
-
   if (typeof module.default !== 'function')
     throw new Error('Invalid function file: function file must export default function');
 
@@ -358,9 +366,15 @@ async function runPromptAssistant({
           if (prompt.type === 'executeBlock') {
             const result = blockResults.find((i) => i[0].id === prompt.data.id)?.[1];
 
-            if (isNil(result) || result === '') return undefined;
+            if (prompt.data.formatResultType === 'asHistory') {
+              return flattenDeep([result])
+                .filter(
+                  (i): i is { role: Role; content: string } =>
+                    typeof i?.role === 'string' && typeof i.content === 'string'
+                )
+                .map((message) => pick(message, 'role', 'content'));
+            }
 
-            // TODO: 支持选择 block 的结果处理方式：skip/as context/custom
             return {
               role: 'system' as const,
               content: typeof result === 'string' ? result : JSON.stringify(result),
@@ -371,16 +385,9 @@ async function runPromptAssistant({
           return undefined;
         })
     )
-  ).filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
-
-  // TODO: 这是临时支持的 history 方式（目前 Aistro 在用），之后会提供内置的 history 机制
-  if (Array.isArray(parameters.$history)) {
-    const history = parameters.$history
-      .filter((i): i is (typeof messages)[number] => typeof i.role === 'string' && typeof i.content === 'string')
-      .map((i) => pick(i, 'role', 'content'));
-
-    messages.unshift(...history);
-  }
+  )
+    .flat()
+    .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
   const res = await callAI({
     assistant,
@@ -556,7 +563,7 @@ async function runExecuteBlock({
                 .filter((i): i is typeof i & { key: string } => !!i.key)
                 .map(async (i) => {
                   const template = tool.parameters?.[i.key]?.trim();
-                  const value = await renderMessage(template?.trim() || `{{${i.key}}}`, parameters);
+                  const value = template ? await renderMessage(template, parameters) : parameters?.[i.key];
 
                   return [i.key, value];
                 })
