@@ -77,7 +77,7 @@
     "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.0.99",
+    "@blocklet/ai-kit": "^0.0.102",
     "@blocklet/sdk": "^1.16.20",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.8",
