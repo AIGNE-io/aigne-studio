@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.188",
+  "version": "0.1.189",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -66,6 +66,9 @@
     "@ocap/util": "^1.18.107",
     "@ocap/proto": "^1.18.107",
     "@ocap/types": "^1.18.107",
-    "@arcblock/did-ext": "^1.18.107"
+    "@arcblock/did-ext": "^1.18.107",
+    "@arcblock/did-util": "^1.18.107",
+    "@arcblock/did": "^1.18.107",
+    "@arcblock/ws": "^1.18.107"
   }
 }
