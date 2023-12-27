@@ -5,8 +5,8 @@ import { EventSourceParserStream, readableToWeb } from '@blocklet/ai-kit/api/uti
 import { call } from '@blocklet/sdk/lib/component';
 import { AxiosResponse } from 'axios';
 
-import { RunAssistantChunk, RunAssistantResponse } from '../../core';
-import { isRunAssistantError } from '../assistant';
+import { RunAssistantChunk, RunAssistantError, RunAssistantResponse } from '../../core';
+import { isRunAssistantChunk, isRunAssistantError } from '../assistant';
 
 export interface CallAssistantInput {
   projectId: string;
@@ -38,7 +38,7 @@ export async function callAssistant(
 ): Promise<
   | { content: string; images: RunAssistantChunk['delta']['images'] | null }
   | AxiosResponse<IncomingMessage, any>
-  | ReadableStream<RunAssistantChunk>
+  | ReadableStream<Exclude<RunAssistantResponse, RunAssistantError>>
   | ReadableStream<string>
 > {
   const response = call({
@@ -66,7 +66,7 @@ export async function callAssistant(
           for await (const chunk of stream) {
             mainTaskId ??= chunk.taskId;
 
-            if (mainTaskId === chunk.taskId) {
+            if (mainTaskId === chunk.taskId && isRunAssistantChunk(chunk)) {
               controller.enqueue(chunk.delta.content || '');
             }
           }
@@ -85,7 +85,7 @@ export async function callAssistant(
 
   for await (const chunk of stream) {
     mainTaskId ??= chunk.taskId;
-    if (mainTaskId === chunk.taskId) {
+    if (mainTaskId === chunk.taskId && isRunAssistantChunk(chunk)) {
       content += chunk.delta.content || '';
       if (chunk.delta.images) images.push(...chunk.delta.images);
     }
@@ -98,7 +98,7 @@ export async function callAssistant(
 }
 
 function toEventStream(data: IncomingMessage) {
-  return new ReadableStream<RunAssistantChunk>({
+  return new ReadableStream<Exclude<RunAssistantResponse, RunAssistantError>>({
     async start(controller) {
       try {
         const stream = readableToWeb(data)
