@@ -1,3 +1,7 @@
+## 0.1.192 (2023-12-27)
+
+- fix: prompt input cannot be seen in debug
+
 ## 0.1.191 (2023-12-27)
 
 - feat: export callAssistant api

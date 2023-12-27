@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/co-git",
-  "version": "0.1.191",
+  "version": "0.1.192",
   "description": "The cooperative component library for AI Studio",
   "publishConfig": {
     "access": "public"
@@ -58,25 +58,23 @@
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
-    "prepare": "npm run build",
-    "update:deps": "npx taze -n '/arcblock|ocap|abtnode|blocklet|did-connect|did-comment|nedb/' -w && npm run deduplicate && yarn",
-    "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
+    "prepare": "npm run build"
   },
   "dependencies": {
-    "@syncedstore/core": "^0.6.0-alpha.0",
-    "@syncedstore/react": "^0.6.0-alpha.0",
-    "isomorphic-git": "^1.24.5",
-    "lib0": "^0.2.85",
+    "@syncedstore/core": "^0.6.0",
+    "@syncedstore/react": "^0.6.0",
+    "isomorphic-git": "^1.25.2",
+    "lib0": "^0.2.88",
     "lodash": "^4.17.21",
     "queue": "^6.0.2",
-    "ws": "^8.14.1",
+    "ws": "^8.16.0",
     "y-protocols": "^1.0.6",
-    "yjs": "^13.6.7"
+    "yjs": "^13.6.10"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.198",
+    "@types/lodash": "^4.14.202",
     "npm-run-all": "^4.1.5",
-    "rimraf": "^5.0.1",
-    "typescript": "^4.9.4"
+    "rimraf": "^5.0.5",
+    "typescript": "^4.9.5"
   }
 }
