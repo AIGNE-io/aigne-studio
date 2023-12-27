@@ -1,3 +1,7 @@
+## 0.1.193 (2023-12-27)
+
+- fix: incorrect test after saving
+
 ## 0.1.192 (2023-12-27)
 
 - fix: prompt input cannot be seen in debug

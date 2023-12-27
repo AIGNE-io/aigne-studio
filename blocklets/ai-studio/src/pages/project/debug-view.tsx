@@ -606,13 +606,14 @@ function DebugModeForm({
     const doc = (getYjsValue(assistant) as Map<any>).doc!;
     doc.transact(() => {
       const id = `${Date.now()}-${nanoid(16)}`;
-
+      const keys = parameters.map((i) => i.data.key);
+      const result = pick(form.getValues(), keys);
       assistant.tests ??= {};
       assistant.tests[id] = {
         index: Object.values(assistant.tests).length,
         data: {
           id,
-          parameters: form.getValues(),
+          parameters: result,
           createdBy: user.did,
         },
       };
