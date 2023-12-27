@@ -719,6 +719,7 @@ function RegistryImport() {
         maxWidth="sm"
         fullWidth
         component="form"
+        auto-complete="off"
         onSubmit={form.handleSubmit(saveSetting)}>
         <DialogTitle>{t('remoteGitRepo')}</DialogTitle>
         <DialogContent>
@@ -763,7 +764,12 @@ function RegistryImport() {
               helperText={form.formState.errors.url?.message}
             />
 
-            <TextField autoFocus label={t('projectSetting.name')} sx={{ width: 1 }} {...form.register('name')} />
+            <TextField
+              label={t('projectSetting.name')}
+              sx={{ width: 1 }}
+              {...form.register('name')}
+              autoComplete="false"
+            />
 
             <TextField
               label={t('projectSetting.description')}
@@ -777,6 +783,7 @@ function RegistryImport() {
               fullWidth
               label={t('accessToken')}
               {...form.register('password')}
+              autoComplete="false"
               error={Boolean(form.formState.errors.password)}
               helperText={
                 form.formState.errors.password?.message || (
