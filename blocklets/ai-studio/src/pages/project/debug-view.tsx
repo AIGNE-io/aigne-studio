@@ -278,17 +278,15 @@ function MessageView({
                         sx={{
                           backgroundColor: (theme) =>
                             theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
-                          fontSize: 18,
                           minHeight: 28,
                           '& .MuiAccordionSummary-content': {
-                            marginY: 0,
+                            my: 0,
                           },
                         }}
-                        aria-controls="panel1a-content"
                         expandIcon={<GridExpandMoreIcon />}>
                         <Typography>{i.role}</Typography>
                       </AccordionSummary>
-                      <AccordionDetails sx={{ fontSize: 18, paddingY: 1 }}>
+                      <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
                         <Typography>{i.content}</Typography>
                       </AccordionDetails>
                     </Accordion>
