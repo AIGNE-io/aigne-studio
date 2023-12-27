@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { isRunAssistantChunk, isRunAssistantError, runAssistant } from '@blocklet/ai-runtime/api';
+import { isRunAssistantChunk, isRunAssistantError, isRunAssistantInput, runAssistant } from '@blocklet/ai-runtime/api';
+import { InputMessages } from '@blocklet/ai-runtime/core';
 import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
@@ -161,10 +162,12 @@ export interface SessionItem {
     loading?: boolean;
     cancelled?: boolean;
     error?: { message: string };
+    inputMessages?: InputMessages;
     subMessages?: {
       taskId: string;
       assistantId: string;
       content: string;
+      inputMessages?: InputMessages;
       images?: { b64Json?: string; url?: string }[];
     }[];
   }[];
@@ -313,15 +316,17 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
 
   const setMessage = useCallback(
     (sessionIndex: number, messageId: string, recipe: (draft: Draft<SessionItem['messages'][number]>) => void) => {
-      setState((state) =>
-        produce(state, (state) => {
-          const session = state.sessions.find((i) => i.index === sessionIndex);
-          const message = session?.messages.findLast((i) => i.id === messageId);
+      requestAnimationFrame(() => {
+        setState((state) =>
+          produce(state, (state) => {
+            const session = state.sessions.find((i) => i.index === sessionIndex);
+            const message = session?.messages.findLast((i) => i.id === messageId);
 
-          if (message) recipe(message);
-          else console.error(`setMessage: message not found ${sessionIndex} ${messageId}`);
-        })
-      );
+            if (message) recipe(message);
+            else console.error(`setMessage: message not found ${sessionIndex} ${messageId}`);
+          })
+        );
+      });
     },
     [setState]
   );
@@ -367,6 +372,8 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               gitRef: message.type === 'debug' ? message.gitRef : undefined,
               parameters: message.type === 'debug' ? message.parameters : undefined,
               subMessages: [],
+              inputMessages: { messages: [] },
+              loading: true,
             },
             { id: responseId, createdAt: now.toISOString(), role: 'assistant', content: '', loading: true }
           );
@@ -374,7 +381,6 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
       );
 
       const session = state.sessions.find((i) => i.index === sessionIndex);
-
       try {
         const result =
           message.type === 'chat'
@@ -408,6 +414,32 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               response += decoder.decode(value);
             } else if (typeof value === 'string') {
               response += value;
+            } else if (isRunAssistantInput(value)) {
+              if (value.taskId === mainTaskId) {
+                setMessage(sessionIndex, messageId, (message) => {
+                  message.inputMessages = value.input;
+                  message.loading = false;
+                });
+              } else {
+                setMessage(sessionIndex, messageId, (message) => {
+                  if (message.cancelled) return;
+
+                  message.subMessages ??= [];
+
+                  let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
+                  if (!subMessage) {
+                    subMessage = {
+                      taskId: value.taskId,
+                      assistantId: value.assistantId,
+                      inputMessages: value.input,
+                      content: '',
+                    };
+                    message.subMessages.push(subMessage);
+                  } else {
+                    subMessage.inputMessages = value.input;
+                  }
+                });
+              }
             } else if (isRunAssistantChunk(value)) {
               const { images } = value.delta;
 
