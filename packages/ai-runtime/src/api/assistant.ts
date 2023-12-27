@@ -2,7 +2,7 @@ import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { joinURL } from 'ufo';
 
 import type { AssistantIdentifier } from '../components/AIForm/state';
-import { RunAssistantChunk, RunAssistantError, RunAssistantResponse } from '../core';
+import { RunAssistantChunk, RunAssistantError, RunAssistantInput, RunAssistantResponse } from '../core';
 import { Assistant } from '../types/assistant';
 import { aiStudioApi } from './api';
 
@@ -23,6 +23,9 @@ export async function getAssistant({
 
 export const isRunAssistantChunk = (i: RunAssistantResponse): i is RunAssistantChunk =>
   typeof (i as RunAssistantChunk).delta === 'object';
+
+export const isRunAssistantInput = (i: RunAssistantResponse): i is RunAssistantInput =>
+  typeof (i as RunAssistantInput).input === 'object';
 
 export const isRunAssistantError = (i: RunAssistantResponse): i is RunAssistantError =>
   typeof (i as RunAssistantError).error === 'object';

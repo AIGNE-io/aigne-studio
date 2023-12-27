@@ -29,8 +29,9 @@ import {
   selectClasses,
   styled,
 } from '@mui/material';
+import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { useLocalStorageState } from 'ahooks';
-import { pick, sortBy } from 'lodash';
+import { isEmpty, pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
 import { ComponentProps, SyntheticEvent, useEffect, useMemo, useState } from 'react';
@@ -212,6 +213,7 @@ function MessageView({
   gitRef: string;
   message: SessionItem['messages'][number];
 }) {
+  const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
 
   return (
@@ -242,22 +244,62 @@ function MessageView({
               {message.content ||
                 (message.parameters && (
                   <Box>
-                    {Object.entries(message.parameters).map(([key, val]) => (
-                      <Typography key={key}>
-                        <Typography component="span" color="text.secondary">
-                          {key}
+                    {!isEmpty(message.parameters) ? (
+                      Object.entries(message.parameters).map(([key, val]) => (
+                        <Typography key={key}>
+                          <Typography component="span" color="text.secondary">
+                            {key}
+                          </Typography>
+                          : {typeof val === 'string' ? val : JSON.stringify(val)}
                         </Typography>
-                        : {typeof val === 'string' ? val : JSON.stringify(val)}
-                      </Typography>
-                    ))}
+                      ))
+                    ) : (
+                      <span>{t('noParameters')}</span>
+                    )}
                   </Box>
                 ))}
+              {!!message.inputMessages?.messages.length && (
+                <Box marginTop={1}>
+                  {message.inputMessages?.messages.map((i, index) => (
+                    <Accordion
+                      sx={{
+                        border: (theme) => `1px solid ${theme.palette.divider}`,
+                        '&:not(:last-child)': {
+                          borderBottom: 0,
+                        },
+                        '&::before': {
+                          display: 'none',
+                        },
+                      }}
+                      disableGutters
+                      elevation={0}
+                      key={index}>
+                      <AccordionSummary
+                        sx={{
+                          backgroundColor: (theme) =>
+                            theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
+                          minHeight: 28,
+                          '& .MuiAccordionSummary-content': {
+                            my: 0,
+                          },
+                        }}
+                        expandIcon={<GridExpandMoreIcon />}>
+                        <Typography>{i.role}</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
+                        <Typography>{i.content}</Typography>
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
+                </Box>
+              )}
 
               {message.images && message.images.length > 0 && (
                 <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
               )}
 
-              {message.loading && <WritingIndicator />}
+              {message.loading &&
+                (message.inputMessages ? <CircularProgress sx={{ marginTop: 1 }} size={18} /> : <WritingIndicator />)}
 
               {message.role === 'assistant' && (
                 <Box className="actions">{message.content && <CopyButton key="copy" message={message.content} />}</Box>
