@@ -30,7 +30,7 @@ import {
   styled,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import { includes, map, pick, pickBy, sortBy } from 'lodash';
+import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
 import { ComponentProps, SyntheticEvent, useEffect, useMemo, useState } from 'react';
@@ -564,8 +564,8 @@ function DebugModeForm({
     const doc = (getYjsValue(assistant) as Map<any>).doc!;
     doc.transact(() => {
       const id = `${Date.now()}-${nanoid(16)}`;
-      const keys = map(parameters, 'data.key');
-      const result = pickBy(form.getValues(), (_, key) => includes(keys, key));
+      const keys = parameters.map((i) => i.data.key);
+      const result = pick(form.getValues(), keys);
       assistant.tests ??= {};
       assistant.tests[id] = {
         index: Object.values(assistant.tests).length,
