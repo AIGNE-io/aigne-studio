@@ -1,3 +1,7 @@
+## 0.1.194 (2023-12-27)
+
+- chore: bump version
+
 ## 0.1.193 (2023-12-27)
 
 - fix: incorrect test after saving
