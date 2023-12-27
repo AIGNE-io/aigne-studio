@@ -99,6 +99,7 @@ export default flat({
   },
   import: {
     title: 'Import Templates',
+    remote: 'Import repository',
     selectProject: 'Select Project',
     selectBranch: 'Select Branch',
     templates: 'Templates',
@@ -124,6 +125,7 @@ export default flat({
   functions: 'Functions',
   function: 'Function',
   api: 'API',
+  noParameters: 'No Parameters',
   parameters: 'Parameters',
   model: 'Model',
   temperature: 'temperature',
@@ -266,6 +268,7 @@ export default flat({
   remoteGitRepo: 'Remote Git Repo',
   url: 'URL',
   username: 'Username',
+  projectName: 'Project Name',
   accessToken: 'Access Token',
   remoteGitRepoPasswordHelper: 'Github does not support password access, you can use',
   githubTokenTip:

@@ -99,6 +99,7 @@ export default flat({
   },
   import: {
     title: '导入模板数据',
+    remote: '引入仓库',
     selectProject: '选择项目',
     selectBranch: '选择分支',
     templates: '模板数据',
@@ -124,6 +125,7 @@ export default flat({
   functions: '工具',
   function: '自定义函数',
   api: '接口',
+  noParameters: '没有参数',
   parameters: '参数',
   model: '模型',
   temperature: '随机性 temperature',
@@ -264,6 +266,7 @@ export default flat({
   remoteGitRepo: '远程 Git 仓库',
   url: '地址',
   username: '用户名',
+  projectName: '项目名称',
   accessToken: '访问令牌',
   remoteGitRepoPasswordHelper: 'Github 不支持使用密码访问，请使用',
   githubTokenTip:

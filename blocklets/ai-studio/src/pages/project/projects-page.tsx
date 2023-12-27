@@ -513,7 +513,7 @@ function ProjectItem({
     try {
       if (gitUrl) {
         const u = new URL(gitUrl);
-        u.username = '';
+        u.password = '';
         return u.toString();
       }
 
