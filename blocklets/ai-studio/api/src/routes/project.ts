@@ -23,6 +23,7 @@ import {
   defaultBranch,
   defaultRemote,
   getAssistantFromRepository,
+  getAssistantIdFromPath,
   getRepository,
   repositoryRoot,
   syncRepository,
@@ -45,6 +46,16 @@ const createProjectSchema = Joi.object<CreateProjectInput>({
   templateId: Joi.string().empty([null, '']),
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
+});
+
+const exportSchema = Joi.object<{
+  projectId: string;
+  ref: string;
+  resources: string[];
+}>({
+  projectId: Joi.string().required().min(1),
+  ref: Joi.string(),
+  resources: Joi.array().items(Joi.string()).required(),
 });
 
 export interface UpdateProjectInput {
@@ -466,6 +477,44 @@ export function projectRoutes(router: Router) {
     const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
 
     res.json(pick(assistant, 'id', 'name', 'type', 'parameters', 'createdAt', 'updatedAt'));
+  });
+
+  router.get(
+    '/projects/compare/:projectId/:ref/:assistantId',
+    user(),
+    ensureComponentCallOrPromptsEditor(),
+    async (req, res) => {
+      const { projectId = '', ref = '', assistantId = '' } = req.params;
+      const query = await getTemplateQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+      await Project.findByPk(projectId, { rejectOnEmpty: new Error(`Project ${projectId} not found`) });
+
+      const repository = await getRepository({ projectId });
+
+      const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
+
+      res.json(assistant);
+    }
+  );
+
+  router.post('/projects/export/:projectId/:ref', ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { resources, projectId, ref } = await exportSchema.validateAsync(req.body);
+
+    const assistants = (
+      await Promise.all(
+        resources.map(async (filepath: string) => {
+          const assistantId = getAssistantIdFromPath(filepath);
+          if (!assistantId) return [];
+          const repository = await getRepository({ projectId });
+          const p = (await repository.listFiles({ ref })).find((i) => i.endsWith(`${assistantId}.yaml`));
+          const parent = p ? p.split('/').slice(0, -1) : [];
+          const result = await getAssistantFromRepository({ repository, ref, assistantId });
+          return { ...result, parent };
+        })
+      )
+    ).flat();
+
+    return res.json({ assistants: uniqBy(assistants, 'id') });
   });
 }
 

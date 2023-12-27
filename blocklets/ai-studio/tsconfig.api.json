@@ -5,7 +5,11 @@
     "noEmit": false,
     "noEmitOnError": true,
     "module": "CommonJS",
-    "paths": {}
+    "baseUrl": "./",
+    "paths": {
+      "@app/*": ["./src/*"],
+      "@api/*": ["./api/src/*"]
+    }
   },
   "include": ["api/*.d.ts", "api/src"]
 }

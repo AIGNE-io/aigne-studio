@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ImagePreview } from '@blocklet/ai-kit';
+import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, isAssistant, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';

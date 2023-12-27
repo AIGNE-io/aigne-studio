@@ -1,10 +1,13 @@
+import { useComponent } from '@app/contexts/component';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Comments } from '@blocklet/discuss-kit';
 import styled from '@emotion/styled';
-import { Box, CircularProgress } from '@mui/material';
+import { Alert, Box, CircularProgress, Stack } from '@mui/material';
 import { Suspense } from 'react';
 
 import { useSessionContext } from '../../contexts/session';
+
+const DISCUSS_KIT_DID = 'z8ia1WEiBZ7hxURf6LwH21Wpg99vophFwSJdu';
 
 export default function DiscussView({
   projectId,
@@ -15,9 +18,17 @@ export default function DiscussView({
   gitRef: string;
   assistant: AssistantYjs;
 }) {
+  const discuss = useComponent(DISCUSS_KIT_DID);
   const {
     session: { user },
   } = useSessionContext();
+
+  if (!discuss)
+    return (
+      <Stack alignItems="center" my={10}>
+        <Alert severity="warning">Add discuss-kit to continue</Alert>
+      </Stack>
+    );
 
   return (
     <Views>

@@ -1,15 +1,11 @@
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { FunctionAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
-import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import { Box, Button, Stack, Typography, alpha } from '@mui/material';
+import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
+import { Box, Stack } from '@mui/material';
 
 import { useReadOnly } from '../../../contexts/session';
-import Add from '../../../pages/project/icons/add';
 import BasicInfoForm from '../basic-info-form';
 import OutputSettings from '../output-settings';
 import ParametersTable from '../parameters-table';
-import PrepareExecuteList from '../prepare-execute-list';
+import FunctionAssistantEditorPrepare from '../prepare';
 import FunctionCodeEditor from './function-code-editor';
 import FunctionAssistantSetting from './setting';
 
@@ -27,8 +23,6 @@ export default function FunctionAssistantEditor({
   value: FunctionAssistantYjs;
   disabled?: boolean;
 }) {
-  const { t } = useLocaleContext();
-
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
@@ -38,71 +32,21 @@ export default function FunctionAssistantEditor({
       </Box>
 
       <Box sx={{ bgcolor, py: 1, px: 2, borderRadius: 1 }}>
-        <ParametersTable readOnly={disabled} value={value} />
+        <ParametersTable projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} />
       </Box>
 
       <Stack sx={{ bgcolor, p: 1, px: 2, borderRadius: 1, gap: 2 }}>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="subtitle1">{t('prepareExecutes')}</Typography>
-
-          <Button
-            sx={{ minWidth: 32, minHeight: 32, p: 0 }}
-            onClick={() => {
-              const doc = (getYjsValue(value) as Map<any>).doc!;
-              doc.transact(() => {
-                const id = nextAssistantId();
-                value.prepareExecutes ??= {};
-                value.prepareExecutes[id] = {
-                  index: Math.max(-1, ...Object.values(value.prepareExecutes).map((i) => i.index)) + 1,
-                  data: { id },
-                };
-              });
-            }}>
-            <Add />
-          </Button>
-        </Stack>
-
-        {value.prepareExecutes && Object.values(value.prepareExecutes).length ? (
-          <Stack gap={2}>
-            <PrepareExecuteList
-              assistant={value}
-              projectId={projectId}
-              gitRef={gitRef}
-              value={value.prepareExecutes}
-              readOnly={readOnly}
-            />
-          </Stack>
-        ) : (
-          <Box textAlign="center">
-            <Typography variant="caption" color="text.disabled">
-              You haven't added any prepare execute blocks yet.
-            </Typography>
-          </Box>
-        )}
+        <FunctionAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Stack>
 
-      <Box
-        sx={{
-          border: 2,
-          borderColor: 'primary.main',
-          borderRadius: 2,
-          bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-        }}>
-        <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
-          <TipsAndUpdatesRounded fontSize="small" color="primary" />
-
-          <Typography variant="subtitle1">{t('function')}</Typography>
-        </Stack>
-
-        <FunctionCodeEditor value={value} readOnly={readOnly} />
-      </Box>
+      <FunctionCodeEditor value={value} readOnly={readOnly} />
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <FunctionAssistantSetting />
       </Box>
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
-        <OutputSettings value={value} readOnly={readOnly} />
+        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>
     </Stack>
   );

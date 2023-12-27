@@ -12,12 +12,16 @@ export default function PrepareExecuteList({
   value,
   assistant,
   readOnly,
+  compareAssistant,
+  isRemoteCompare,
 }: {
   projectId: string;
   gitRef: string;
   value: { [key: string]: { index: number; data: ExecuteBlockYjs } };
   assistant: AssistantYjs;
   readOnly?: boolean;
+  compareAssistant?: AssistantYjs;
+  isRemoteCompare?: boolean;
 }) {
   const onDelete = useCallback(
     (id: string) => {
@@ -48,9 +52,12 @@ export default function PrepareExecuteList({
             <ExecuteBlockForm
               assistant={assistant}
               projectId={projectId}
+              path={[assistant.id, 'prepareExecutes', block.id]}
               gitRef={gitRef}
               value={block}
               readOnly={readOnly}
+              compareAssistant={compareAssistant}
+              isRemoteCompare={isRemoteCompare}
             />
           </DragSortItemContainer>
         );

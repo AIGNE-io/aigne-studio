@@ -1,4 +1,15 @@
-import { AssistantYjs, FileTypeYjs, isAssistant, isPromptAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { useSessionContext } from '@app/contexts/session';
+import {
+  Assistant,
+  AssistantYjs,
+  FileTypeYjs,
+  isApiAssistant,
+  isAssistant,
+  isFunctionAssistant,
+  isImageAssistant,
+  isPromptAssistant,
+  nextAssistantId,
+} from '@blocklet/ai-runtime/types';
 import {
   Doc,
   Map,
@@ -11,6 +22,7 @@ import {
   writeVarUint,
 } from '@blocklet/co-git/yjs';
 import Cookies from 'js-cookie';
+import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { customAlphabet, nanoid } from 'nanoid';
@@ -113,7 +125,6 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
 
     const onAwarenessChange = () => {
       const states = provider.awareness.getStates();
-
       const awareness: StoreContext['awareness'] = {
         clients: {},
         files: {},
@@ -121,9 +132,9 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
 
       for (const [clientId, state] of states.entries()) {
         if (clientId === provider.awareness.clientID) continue;
-        awareness.clients[clientId] = pick(state.user, 'did', 'fullName', 'avatar');
+        awareness.clients[clientId] = pick(state?.focus?.user, 'did', 'fullName', 'avatar');
 
-        const path: (string | number)[] = state.focus?.path;
+        const path: (string | number)[] = state?.focus?.path;
         if (path && path.length >= 1) {
           const file = path[0]!;
 
@@ -138,7 +149,9 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
         }
       }
 
-      setStore((v) => ({ ...v, awareness }));
+      setStore((v) => {
+        return { ...v, awareness };
+      });
     };
 
     provider.on('synced', onSynced);
@@ -218,66 +231,92 @@ export function createFolder({
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 
-// export const resetTemplatesId = (templates: (Template & { parent?: string[] })[]) => {
-//   const list = cloneDeep(templates);
+export const resetTemplatesId = (templates: (Assistant & { parent?: string[] })[]) => {
+  const list = cloneDeep(templates);
 
-//   list.forEach((template) => {
-//     const { id } = template;
-//     const newId = nextAssistantId();
+  list.forEach((template: Assistant & { parent?: string[] }) => {
+    const { id } = template;
+    const newId = nextAssistantId();
+    template.id = newId;
 
-//     template.id = newId;
-//     list.forEach((t) => {
-//       if (t.next && t.next?.id === id) {
-//         t.next.id = newId;
-//       }
-//     });
-//   });
+    list.forEach((t) => {
+      if (isImageAssistant(t) || isApiAssistant(t) || isFunctionAssistant(t)) {
+        (t.prepareExecutes || []).forEach((x) => {
+          (x.tools || [])?.forEach((tool) => {
+            if (tool.id === id) {
+              tool.id = newId;
+            }
+          });
+        });
+      }
 
-//   return list;
-// };
-
-export function createFile({
-  store,
-  parent = [],
-  meta = {},
-  rootFolder,
-}: {
-  store: StoreContext['store'];
-  parent?: string[];
-  meta?: Partial<AssistantYjs>;
-  rootFolder?: string;
-}) {
-  const id = (meta as any).id || nextAssistantId();
-  const filename = `${id}.yaml`;
-  const filepath = joinURL(rootFolder && parent[0] !== rootFolder ? rootFolder : '', ...parent, filename);
-  const now = new Date().toISOString();
-
-  const file: AssistantYjs = {
-    ...meta,
-    id,
-    type: (meta.type || 'prompt') as any,
-    createdAt: now,
-    updatedAt: now,
-    createdBy: '',
-    updatedBy: '',
-  };
-
-  if (isPromptAssistant(file)) {
-    if (isEmpty(file.prompts)) {
-      const promptId = nanoid();
-      file.prompts = { [promptId]: { index: 0, data: { type: 'message', data: { id: promptId, role: 'user' } } } };
-    }
-  }
-
-  getYjsDoc(store).transact(() => {
-    store.tree[id] = filepath;
-    store.files[id] = file;
+      if (isPromptAssistant(t)) {
+        (t.prompts || [])?.forEach((prompt) => {
+          if (prompt.type === 'executeBlock' && prompt.data) {
+            (prompt.data.tools || [])?.forEach((tool) => {
+              if (tool.id === id) {
+                tool.id = newId;
+              }
+            });
+          }
+        });
+      }
+    });
   });
 
-  return {
-    filepath,
-    template: file,
-  };
+  return list;
+};
+
+export function useCreateFile() {
+  const { session } = useSessionContext();
+  if (!session.user?.did) throw new Error('Unauthorized');
+
+  return useCallback(
+    ({
+      store,
+      parent = [],
+      meta = {},
+      rootFolder,
+    }: {
+      store: StoreContext['store'];
+      parent?: string[];
+      meta?: Partial<AssistantYjs>;
+      rootFolder?: string;
+    }) => {
+      const id = (meta as any).id || nextAssistantId();
+      const filename = `${id}.yaml`;
+      const filepath = joinURL(rootFolder && parent[0] !== rootFolder ? rootFolder : '', ...parent, filename);
+      const now = new Date().toISOString();
+
+      const file: AssistantYjs = {
+        ...meta,
+        id,
+        type: (meta.type || 'prompt') as any,
+        createdAt: meta?.createdAt || now,
+        updatedAt: meta?.updatedAt || now,
+        createdBy: meta?.createdBy || session.user.did,
+        updatedBy: meta?.updatedBy || session.user.did,
+      };
+
+      if (isPromptAssistant(file)) {
+        if (isEmpty(file.prompts)) {
+          const promptId = nanoid();
+          file.prompts = { [promptId]: { index: 0, data: { type: 'message', data: { id: promptId, role: 'user' } } } };
+        }
+      }
+
+      getYjsDoc(store).transact(() => {
+        store.tree[id] = filepath;
+        store.files[id] = file;
+      });
+
+      return {
+        filepath,
+        template: file,
+      };
+    },
+    [session.user.did]
+  );
 }
 
 export function moveFile({ store, from, to }: { store: StoreContext['store']; from: string[]; to: string[] }) {
@@ -317,33 +356,6 @@ function addGitkeepFileIfNeeded(store: StoreContext['store'], path: string[]) {
       store.files[key] = { $base64: '' };
     }
   }
-}
-
-export function importFiles({
-  // parent = [],
-  // files,
-  store,
-}: {
-  store: StoreContext['store'];
-  parent?: string[];
-  // files: (Template & { path?: string[] })[];
-}) {
-  getYjsDoc(store).transact(() => {
-    // FIXME:
-    // for (const { path, ...file } of files) {
-    // const p = parent
-    //   .concat(path ?? [])
-    //   .concat(`${file.id}.yaml`)
-    //   .join('/');
-    // const key =
-    //   Object.keys(store.tree).find((key) => {
-    //     const f = store.files[key];
-    //     return isPromptAssistantYjs(f) && f.id === file.id;
-    //   }) || nanoid(32);
-    // store.files[key] = templateYjsFromTemplate(file);
-    // store.tree[key] = p;
-    // }
-  });
 }
 
 export const useUndoManager = (projectId: string, ref: string, key: string) => {

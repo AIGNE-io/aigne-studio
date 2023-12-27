@@ -1,4 +1,4 @@
-import { ImagePreview } from '@blocklet/ai-kit';
+import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ErrorRounded } from '@mui/icons-material';
 import { Alert, Box, BoxProps, CircularProgress, Typography, styled } from '@mui/material';
 import { ReactNode } from 'react';
