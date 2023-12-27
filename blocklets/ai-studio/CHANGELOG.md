@@ -1,3 +1,7 @@
+## 0.1.191 (2023-12-27)
+
+- feat: export callAssistant api
+
 ## 0.1.190 (2023-12-27)
 
 - fix: use latest value of config
