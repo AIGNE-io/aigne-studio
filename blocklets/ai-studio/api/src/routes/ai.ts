@@ -15,23 +15,17 @@ const router = Router();
 
 const defaultModel = 'gpt-3.5-turbo';
 
-router.get(
-  '/status',
-  ensureComponentCallOrPromptsEditor(),
-  proxyToAIKit('/api/v1/status', { useAIKitService: Config.useAIKitService })
-);
+router.get('/status', ensureComponentCallOrPromptsEditor(), (req, res, next) => {
+  proxyToAIKit('/api/v1/status', { useAIKitService: Config.useAIKitService })(req, res, next);
+});
 
-router.post(
-  '/:type(chat)?/completions',
-  ensureComponentCallOrPromptsEditor(),
-  proxyToAIKit('/api/v1/chat/completions', { useAIKitService: Config.useAIKitService })
-);
+router.post('/:type(chat)?/completions', ensureComponentCallOrPromptsEditor(), (req, res, next) => {
+  proxyToAIKit('/api/v1/chat/completions', { useAIKitService: Config.useAIKitService })(req, res, next);
+});
 
-router.post(
-  '/image/generations',
-  ensureComponentCallOrPromptsEditor(),
-  proxyToAIKit('/api/v1/image/generations', { useAIKitService: Config.useAIKitService })
-);
+router.post('/image/generations', ensureComponentCallOrPromptsEditor(), (req, res, next) => {
+  proxyToAIKit('/api/v1/image/generations', { useAIKitService: Config.useAIKitService })(req, res, next);
+});
 
 const callInputSchema = Joi.object<{
   projectId: string;

@@ -1,3 +1,7 @@
+## 0.1.190 (2023-12-27)
+
+- fix: use latest value of config
+
 ## 0.1.189 (2023-12-25)
 
 - feat: support use ai-kit service
