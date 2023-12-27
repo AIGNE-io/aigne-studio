@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.190",
+  "version": "0.1.191",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -19,6 +19,10 @@
     "./api": {
       "import": "./lib/esm/api/index.js",
       "require": "./lib/cjs/api/index.js"
+    },
+    "./api/*": {
+      "import": "./lib/esm/api/*.js",
+      "require": "./lib/cjs/api/*.js"
     },
     "./components": {
       "import": "./lib/esm/components/index.js",
@@ -40,6 +44,10 @@
       ],
       "api": [
         "./lib/types/api/index.d.ts"
+      ],
+      "api/*": [
+        "./lib/types/api/*.d.ts",
+        "./lib/types/api/*/index.d.ts"
       ],
       "components": [
         "./lib/types/components/index.d.ts"
@@ -77,7 +85,7 @@
     "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.0.103",
+    "@blocklet/ai-kit": "^0.0.104",
     "@blocklet/sdk": "^1.16.20",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.8",
