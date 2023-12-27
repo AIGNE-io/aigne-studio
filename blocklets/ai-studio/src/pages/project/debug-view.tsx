@@ -258,9 +258,9 @@ function MessageView({
                     )}
                   </Box>
                 ))}
-              {!!message.InputMessages?.messages.length && (
-                <Box marginY={1}>
-                  {message.InputMessages?.messages.map((i, index) => (
+              {!!message.inputMessages?.messages.length && (
+                <Box marginTop={1}>
+                  {message.inputMessages?.messages.map((i, index) => (
                     <Accordion
                       sx={{
                         border: (theme) => `1px solid ${theme.palette.divider}`,
@@ -278,15 +278,17 @@ function MessageView({
                         sx={{
                           backgroundColor: (theme) =>
                             theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
+                          fontSize: 18,
+                          minHeight: 28,
                           '& .MuiAccordionSummary-content': {
-                            marginLeft: (theme) => theme.spacing(1),
+                            marginY: 0,
                           },
                         }}
                         aria-controls="panel1a-content"
                         expandIcon={<GridExpandMoreIcon />}>
-                        <Typography>{`${t('prompt')}-${index + 1}`}</Typography>
+                        <Typography>{i.role}</Typography>
                       </AccordionSummary>
-                      <AccordionDetails>
+                      <AccordionDetails sx={{ fontSize: 18, paddingY: 1 }}>
                         <Typography>{i.content}</Typography>
                       </AccordionDetails>
                     </Accordion>
@@ -298,7 +300,8 @@ function MessageView({
                 <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
               )}
 
-              {message.loading && <WritingIndicator />}
+              {message.loading &&
+                (message.inputMessages ? <CircularProgress sx={{ marginTop: 1 }} size={18} /> : <WritingIndicator />)}
 
               {message.role === 'assistant' && (
                 <Box className="actions">{message.content && <CopyButton key="copy" message={message.content} />}</Box>

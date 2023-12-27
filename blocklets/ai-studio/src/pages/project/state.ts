@@ -162,12 +162,12 @@ export interface SessionItem {
     loading?: boolean;
     cancelled?: boolean;
     error?: { message: string };
-    InputMessages?: InputMessages;
+    inputMessages?: InputMessages;
     subMessages?: {
       taskId: string;
       assistantId: string;
       content: string;
-      InputMessages?: InputMessages;
+      inputMessages?: InputMessages;
       images?: { b64Json?: string; url?: string }[];
     }[];
   }[];
@@ -372,6 +372,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               gitRef: message.type === 'debug' ? message.gitRef : undefined,
               parameters: message.type === 'debug' ? message.parameters : undefined,
               subMessages: [],
+              inputMessages: { messages: [] },
               loading: true,
             },
             { id: responseId, createdAt: now.toISOString(), role: 'assistant', content: '', loading: true }
@@ -416,7 +417,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             } else if (isRunAssistantInput(value)) {
               if (value.taskId === mainTaskId) {
                 setMessage(sessionIndex, messageId, (message) => {
-                  message.InputMessages = value.input;
+                  message.inputMessages = value.input;
                   message.loading = false;
                 });
               } else {
@@ -430,12 +431,12 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                     subMessage = {
                       taskId: value.taskId,
                       assistantId: value.assistantId,
-                      InputMessages: value.input,
+                      inputMessages: value.input,
                       content: '',
                     };
                     message.subMessages.push(subMessage);
                   } else {
-                    subMessage.InputMessages = value.input;
+                    subMessage.inputMessages = value.input;
                   }
                 });
               }
