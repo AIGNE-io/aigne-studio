@@ -1,10 +1,8 @@
-import { createImageGenerationApi, createStatusApi, createTextCompletionApi } from '@blocklet/ai-kit';
+import { createImageGenerationApi, createTextCompletionApi } from '@blocklet/ai-kit/api';
 
 import axios from './api';
 
-export type { ImageGenerationSize } from '@blocklet/ai-kit';
-
-export const getAIStatus = createStatusApi({ axios, path: '/api/ai/status' });
+export type { ImageGenerationSize } from '@blocklet/ai-kit/api';
 
 export const textCompletions = createTextCompletionApi({ axios, path: '/api/ai/completions' });
 

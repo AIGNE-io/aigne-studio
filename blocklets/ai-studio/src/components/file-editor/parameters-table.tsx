@@ -20,10 +20,12 @@ import {
 import { GridColDef } from '@mui/x-data-grid';
 import { get, sortBy } from 'lodash';
 import { useMemo, useState } from 'react';
+import { useAssistantCompare } from 'src/pages/project/state';
 
 import Add from '../../pages/project/icons/add';
 import Settings from '../../pages/project/icons/settings';
 import Trash from '../../pages/project/icons/trash';
+import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
@@ -41,10 +43,25 @@ function CustomNoRowsOverlay() {
   );
 }
 
-export default function ParametersTable({ readOnly, value }: { readOnly?: boolean; value: AssistantYjs }) {
+export default function ParametersTable({
+  readOnly,
+  value,
+  projectId,
+  gitRef,
+  compareValue,
+  isRemoteCompare,
+}: {
+  readOnly?: boolean;
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+  compareValue?: AssistantYjs;
+  isRemoteCompare?: boolean;
+}) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
   const { highlightedId, addParameter, deleteParameter } = useVariablesEditorOptions(value);
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   const isValidVariableName = (name: string) => {
     if (!name) return true;
@@ -63,20 +80,26 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
         field: 'key',
         headerName: t('variable'),
         renderCell: ({ row: { data: parameter } }) => (
-          <Input
-            id={`${parameter.id}-key`}
-            fullWidth
-            readOnly={readOnly}
-            placeholder={t('variable')}
-            value={parameter.key || ''}
-            onChange={(e) => {
-              const value = e.target.value.trim();
+          <WithAwareness
+            projectId={projectId}
+            gitRef={gitRef}
+            sx={{ top: 4, right: -8 }}
+            path={[value.id, 'parameters', parameter?.id ?? '', 'key']}>
+            <Input
+              id={`${parameter.id}-key`}
+              fullWidth
+              readOnly={readOnly}
+              placeholder={t('variable')}
+              value={parameter.key || ''}
+              onChange={(e) => {
+                const value = e.target.value.trim();
 
-              if (isValidVariableName(value)) {
-                parameter.key = value;
-              }
-            }}
-          />
+                if (isValidVariableName(value)) {
+                  parameter.key = value;
+                }
+              }}
+            />
+          </WithAwareness>
         ),
       },
       {
@@ -84,13 +107,19 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
         field: 'label',
         headerName: t('label'),
         renderCell: ({ row: { data: parameter } }) => (
-          <Input
-            fullWidth
-            readOnly={readOnly}
-            placeholder={parameter.key}
-            value={parameter.label || ''}
-            onChange={(e) => (parameter.label = e.target.value)}
-          />
+          <WithAwareness
+            projectId={projectId}
+            gitRef={gitRef}
+            sx={{ top: 4, right: -8 }}
+            path={[value.id, 'parameters', parameter?.id ?? '', 'label']}>
+            <Input
+              fullWidth
+              readOnly={readOnly}
+              placeholder={parameter.key}
+              value={parameter.label || ''}
+              onChange={(e) => (parameter.label = e.target.value)}
+            />
+          </WithAwareness>
         ),
       },
       {
@@ -101,30 +130,35 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
         width: 140,
         renderCell: ({ row: { data: parameter } }) => {
           const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
-
           return (
-            <ParameterConfigType
-              variant="standard"
-              hiddenLabel
-              SelectProps={{ autoWidth: true }}
-              sx={{ ml: 2 }}
-              value={multiline ? 'multiline' : parameter?.type ?? 'string'}
-              InputProps={{ readOnly }}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                doc.transact(() => {
-                  if (newValue === 'multiline') {
-                    parameter.type = 'string';
-                    (parameter as StringParameter)!.multiline = true;
-                  } else {
-                    parameter.type = newValue as any;
-                    if (typeof (parameter as StringParameter).multiline !== 'undefined') {
-                      delete (parameter as StringParameter)!.multiline;
+            <WithAwareness
+              projectId={projectId}
+              gitRef={gitRef}
+              sx={{ top: 4, right: -8 }}
+              path={[value.id, 'parameters', parameter?.id ?? '', 'type']}>
+              <ParameterConfigType
+                variant="standard"
+                hiddenLabel
+                SelectProps={{ autoWidth: true }}
+                sx={{ ml: 2 }}
+                value={multiline ? 'multiline' : parameter?.type ?? 'string'}
+                InputProps={{ readOnly }}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  doc.transact(() => {
+                    if (newValue === 'multiline') {
+                      parameter.type = 'string';
+                      (parameter as StringParameter)!.multiline = true;
+                    } else {
+                      parameter.type = newValue as any;
+                      if (typeof (parameter as StringParameter).multiline !== 'undefined') {
+                        delete (parameter as StringParameter)!.multiline;
+                      }
                     }
-                  }
-                });
-              }}
-            />
+                  });
+                }}
+              />
+            </WithAwareness>
           );
         },
       },
@@ -138,12 +172,16 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
           return (
             <>
               <Button
+                disabled={readOnly}
                 sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
                 onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
                 <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
               </Button>
 
-              <Button sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }} onClick={() => deleteParameter(parameter)}>
+              <Button
+                disabled={readOnly}
+                sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+                onClick={() => deleteParameter(parameter)}>
                 <Trash fontSize="small" sx={{ color: 'text.secondary', opacity: 0.9 }} />
               </Button>
             </>
@@ -159,16 +197,18 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
           <Typography variant="subtitle1">{t('parameters')}</Typography>
 
-          <Button
-            sx={{ minWidth: 32, p: 0, minHeight: 32 }}
-            onClick={() => {
-              const id = addParameter('');
-              setTimeout(() => {
-                document.getElementById(`${id}-key`)?.focus();
-              });
-            }}>
-            <Add />
-          </Button>
+          {!readOnly && (
+            <Button
+              sx={{ minWidth: 32, p: 0, minHeight: 32 }}
+              onClick={() => {
+                const id = addParameter('');
+                setTimeout(() => {
+                  document.getElementById(`${id}-key`)?.focus();
+                });
+              }}>
+              <Add />
+            </Button>
+          )}
         </Stack>
 
         {parameters.length ? (
@@ -218,7 +258,12 @@ export default function ParametersTable({ readOnly, value }: { readOnly?: boolea
                         transition: 'all 2s',
                       }}>
                       {columns.map((column) => (
-                        <TableCell key={column.field} align={column.align}>
+                        <TableCell
+                          key={column.field}
+                          align={column.align}
+                          sx={{
+                            ...getDiffBackground('parameters', parameter.id),
+                          }}>
                           {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
                         </TableCell>
                       ))}

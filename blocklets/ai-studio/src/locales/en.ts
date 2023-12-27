@@ -370,6 +370,7 @@ export default flat({
   callAPI: 'Call API',
   formatResult: 'Format Result',
   stayAsIs: 'Stay as is',
+  asHistory: 'As Chat History',
   prepareExecutes: 'Prepare Executes',
   tool: 'Tool',
   callFunction: 'Call Function',

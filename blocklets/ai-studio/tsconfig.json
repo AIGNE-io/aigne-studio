@@ -12,6 +12,8 @@
     "paths": {
       "@app/*": ["./src/*"],
       "@api/*": ["./api/src/*"],
+      // For local dev
+      // "@blocklet/ai-kit/*": ["../../../ai-kit/packages/ai-kit/src/*"],
       "@blocklet/ai-runtime": ["../../packages/ai-runtime/src"],
       "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],
       "@blocklet/co-git": ["../../packages/co-git/src"],

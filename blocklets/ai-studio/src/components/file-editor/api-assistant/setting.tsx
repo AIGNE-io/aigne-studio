@@ -1,15 +1,34 @@
+import IndicatorTextField from '@app/components/awareness/indicator-text-field';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ApiAssistantYjs } from '@blocklet/ai-runtime/types';
 import { ExpandMoreRounded } from '@mui/icons-material';
-import { Box, Button, Collapse, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Collapse, MenuItem, Stack, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { useAssistantCompare } from 'src/pages/project/state';
 
-export default function ApiAssistantSetting({ value, readOnly }: { value: ApiAssistantYjs; readOnly?: boolean }) {
+export default function ApiAssistantSetting({
+  value,
+  readOnly,
+  projectId,
+  gitRef,
+  compareValue,
+  isRemoteCompare,
+  isOpen,
+}: {
+  value: ApiAssistantYjs;
+  projectId: string;
+  gitRef: string;
+  compareValue?: ApiAssistantYjs;
+  isRemoteCompare?: boolean;
+  isOpen?: boolean;
+  readOnly?: boolean;
+}) {
   const { t } = useLocaleContext();
 
-  const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(isOpen);
+  const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
 
   return (
     <Box>
@@ -18,8 +37,16 @@ export default function ApiAssistantSetting({ value, readOnly }: { value: ApiAss
 
         <Box flex={1} overflow="hidden">
           {!open && (
-            <Stack direction="row" alignItems="center" gap={1}>
-              <Typography component="span" sx={{ bgcolor: 'grey.300', px: 1, borderRadius: 1 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              gap={1}
+              sx={{
+                p: 1,
+                borderRadius: 1,
+                backgroundColor: { ...getDiffBackground('requestMethod'), ...getDiffBackground('requestUrl') },
+              }}>
+              <Typography component="span" sx={{ bgcolor: 'grey.300', borderRadius: 1 }}>
                 {value.requestMethod}
               </Typography>
               <Typography component="span" flex={1} noWrap>
@@ -42,26 +69,45 @@ export default function ApiAssistantSetting({ value, readOnly }: { value: ApiAss
       <Collapse in={open}>
         <Stack py={1} gap={1}>
           <Stack direction="row" gap={1}>
-            <TextField
-              label={t('method')}
-              select
-              SelectProps={{ autoWidth: true }}
-              InputProps={{ readOnly }}
-              value={value.requestMethod || methods[0]}
-              onChange={(e) => (value.requestMethod = e.target.value)}>
-              {methods.map((method) => (
-                <MenuItem key={method} value={method}>
-                  {method}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
-              sx={{ flex: 1 }}
-              label={t('url')}
-              InputProps={{ readOnly }}
-              value={value.requestUrl || ''}
-              onChange={(e) => (value.requestUrl = e.target.value)}
+            <IndicatorTextField
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, 'requestMethod']}
+              TextFiledProps={{
+                label: t('method'),
+                select: true,
+                SelectProps: {
+                  autoWidth: true,
+                },
+                InputProps: {
+                  readOnly,
+                  sx: { backgroundColor: { ...getDiffBackground('requestMethod') } },
+                },
+                value: value.requestMethod || methods[0],
+                onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                  (value.requestMethod = e.target.value),
+                children: methods.map((method) => (
+                  <MenuItem key={method} value={method}>
+                    {method}
+                  </MenuItem>
+                )),
+              }}
+            />
+            <IndicatorTextField
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, 'requestUrl']}
+              TextFiledProps={{
+                sx: { flex: 1 },
+                label: t('url'),
+                InputProps: {
+                  readOnly,
+                  sx: { backgroundColor: { ...getDiffBackground('requestUrl') } },
+                },
+                value: value.requestUrl ?? '',
+                onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                  (value.requestUrl = e.target.value),
+              }}
             />
           </Stack>
         </Stack>

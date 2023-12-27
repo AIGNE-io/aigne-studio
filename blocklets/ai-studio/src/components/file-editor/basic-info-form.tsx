@@ -3,6 +3,7 @@ import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Stack, TextField, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
 
 import { useReadOnly } from '../../contexts/session';
+import { useAssistantCompare } from '../../pages/project/state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 import TagsAutoComplete from '../template-form/tags-autocomplete';
@@ -11,21 +12,24 @@ export default function BasicInfoForm({
   projectId,
   gitRef,
   value,
+  compareValue,
   disabled,
 }: {
   projectId: string;
   gitRef: string;
-  value: Pick<AssistantYjs, 'id' | 'name' | 'description' | 'tags'>;
+  value: AssistantYjs;
+  compareValue?: AssistantYjs;
   disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
 
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
+  const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly });
 
   return (
     <Stack gap={0.5}>
       <Box position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
+        <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
           <HoverBackgroundTextField
             hiddenLabel
             fullWidth
@@ -36,6 +40,11 @@ export default function BasicInfoForm({
               readOnly,
               sx: (theme) => theme.typography.subtitle1,
             }}
+            sx={{
+              [`.${inputBaseClasses.root}`]: {
+                ...getDiffBackground('name'),
+              },
+            }}
           />
         </WithAwareness>
 
@@ -43,12 +52,12 @@ export default function BasicInfoForm({
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, 'name']}
-          sx={{ position: 'absolute', right: -16, top: 0 }}
+          sx={{ position: 'absolute', right: 0, top: 0 }}
         />
       </Box>
 
       <Box position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'description']}>
+        <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'description']}>
           <HoverBackgroundTextField
             hiddenLabel
             fullWidth
@@ -58,6 +67,11 @@ export default function BasicInfoForm({
             maxRows={6}
             onChange={(e) => (value.description = e.target.value)}
             InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
+            sx={{
+              [`.${inputBaseClasses.root}`]: {
+                ...getDiffBackground('description'),
+              },
+            }}
           />
         </WithAwareness>
 
@@ -65,12 +79,12 @@ export default function BasicInfoForm({
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, 'description']}
-          sx={{ position: 'absolute', right: -16, top: 0 }}
+          sx={{ position: 'absolute', right: 0, top: 0 }}
         />
       </Box>
 
       <Box position="relative">
-        <WithAwareness projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
+        <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
           <TagsAutoComplete
             readOnly={readOnly}
             projectId={projectId}
@@ -86,6 +100,11 @@ export default function BasicInfoForm({
                   ...params.InputProps,
                   sx: { color: 'text.secondary', [`.${chipClasses.root}`]: { ml: 0, mr: 0.5, my: 0.5 } },
                 }}
+                sx={{
+                  [`.${inputBaseClasses.root}`]: {
+                    ...getDiffBackground('tags'),
+                  },
+                }}
               />
             )}
           />
@@ -95,7 +114,7 @@ export default function BasicInfoForm({
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, 'tag']}
-          sx={{ position: 'absolute', right: -16, top: 0 }}
+          sx={{ position: 'absolute', right: 0, top: 0 }}
         />
       </Box>
     </Stack>
