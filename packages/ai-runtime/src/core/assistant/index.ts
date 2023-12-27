@@ -23,7 +23,20 @@ import {
 import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
 import { ChatCompletionChunk, callAIKitChatCompletions, callAIKitImageGeneration } from '../ai-kit';
 
-export type RunAssistantResponse = RunAssistantChunk | RunAssistantError;
+export type InputMessages = {
+  messages: Array<{
+    role: Role;
+    content: string;
+  }>;
+};
+
+export type RunAssistantResponse = RunAssistantChunk | RunAssistantError | RunAssistantInput;
+
+export type RunAssistantInput = {
+  taskId: string;
+  assistantId: string;
+  input: InputMessages;
+};
 
 export type RunAssistantChunk = {
   taskId: string;
@@ -363,6 +376,9 @@ async function runPromptAssistant({
   )
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
+
+  // 这个返回次序比较合理
+  callback?.({ taskId, assistantId: assistant.id, input: { messages } });
 
   const res = await callAI({
     assistant,
