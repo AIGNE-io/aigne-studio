@@ -63,6 +63,7 @@ export default function UploaderProvider({ children }: UploaderProviderProps) {
       {children}
       <UploaderComponent
         key="uploader"
+        // @ts-ignore
         ref={uploaderRef}
         popup
         onUploadFinish={handleUploadFinish}
