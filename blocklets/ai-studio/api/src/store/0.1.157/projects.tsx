@@ -149,19 +149,17 @@ export async function getRepository({
           const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
           const newFilepath = path.join(parent, filename);
 
-          return [
-            {
-              filepath: newFilepath,
-              data,
-            },
-          ];
+          return {
+            filepath: newFilepath,
+            data,
+          };
         }
 
         const base64 = content.$base64;
 
         const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
 
-        return [{ filepath, data }];
+        return { filepath, data };
       },
     });
     return repository;

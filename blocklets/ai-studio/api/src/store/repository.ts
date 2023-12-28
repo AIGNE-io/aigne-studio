@@ -34,7 +34,7 @@ export async function getRepository({
     const repository = await Repository.init<FileTypeYjs>({
       root: repositoryRoot(projectId),
       initialCommit: { message: 'init', author: author ?? { name: 'AI Studio', email: wallet.address } },
-      parse: async (filepath, content, ref) => {
+      parse: async (filepath, content, { ref }) => {
         const { dir, ext } = path.parse(filepath);
         const [root] = filepath.split('/');
 
@@ -69,7 +69,7 @@ export async function getRepository({
         };
       },
       stringify: async (filepath, content) => {
-        if (filepath.startsWith(TESTS_FOLDER_NAME)) return [];
+        if (filepath.startsWith(TESTS_FOLDER_NAME)) return null;
 
         if (isAssistant(content)) {
           const fileContent = fileFromYjs(content);

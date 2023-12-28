@@ -64,7 +64,7 @@ export default class Working<T> extends Doc {
         await this.repo.listFiles({ ref: this.options.ref })
       ).map(async (p) => {
         const content = (await this.repo.readBlob({ ref: this.options.ref, filepath: p })).blob;
-        const { filepath, data, key } = await this.repo.options.parse(p, content, this.options.ref);
+        const { filepath, data, key } = await this.repo.options.parse(p, content, { ref: this.options.ref });
         return { filepath, key, file: data };
       })
     );
@@ -115,7 +115,13 @@ export default class Working<T> extends Doc {
       // Add all files from working
       const files = this.files();
       for (const [originalFilepath, file] of files) {
-        const fileObjects = await this.repo.options.stringify(originalFilepath, file);
+        let fileObjects = await this.repo.options.stringify(originalFilepath, file);
+
+        if (!fileObjects) continue;
+
+        if (!Array.isArray(fileObjects)) {
+          fileObjects = [fileObjects];
+        }
 
         for (const { filepath, data } of fileObjects) {
           const newPath = path.join(this.repo.options.root, filepath);
