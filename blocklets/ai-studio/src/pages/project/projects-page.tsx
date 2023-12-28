@@ -548,7 +548,7 @@ function ProjectItem({
 
         {users && Array.isArray(users) && !!users.length && (
           <AvatarGroup
-            total={users.length + 6}
+            total={users.length}
             sx={{
               [`.${avatarClasses.root}`]: {
                 width: '24px',
