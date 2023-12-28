@@ -4,7 +4,6 @@ import path from 'path';
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { glob } from 'glob';
-import { omit } from 'lodash';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { parse, stringify } from 'yaml';
@@ -49,15 +48,12 @@ export async function getRepository({
           ).blob;
           const assistant = parse(Buffer.from(content).toString());
           const tests = parse(Buffer.from(testFile).toString());
-          console.log(tests, 'parse');
-          // console.log(assistant, tests, 'tests');
           if (tests) {
             assistant.tests = tests;
           }
           const data = fileToYjs(assistant);
 
           if (isAssistant(data)) {
-            // console.log(JSON.parse(JSON.stringify(data)), 'tests');
             const parent = dir.replace(/^\.\/?/, '');
             const filename = `${data.id}.yaml`;
             return { filepath: path.join(parent, filename), key: data.id, data };
@@ -73,12 +69,13 @@ export async function getRepository({
         };
       },
       stringify: async (filepath, content) => {
+        if (filepath.startsWith(TESTS_FOLDER_NAME)) return [];
+
         if (isAssistant(content)) {
-          const testsData = stringify((fileFromYjs(content) as Assistant).tests);
-          if (testsData) {
-            console.log(parse(testsData), 'tests');
-          }
-          const assistantData = stringify(omit(fileFromYjs(content), 'tests'));
+          const fileContent = fileFromYjs(content);
+          const { tests, ...otherData } = fileContent as Assistant;
+          const testsData = stringify(tests);
+          const assistantData = stringify(otherData);
           const parent = path.dirname(filepath).replace(/^\.\/?/, '');
           const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
           const assistantDataFilepath = path.join(parent, filename);

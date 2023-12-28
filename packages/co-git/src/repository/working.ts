@@ -79,10 +79,6 @@ export default class Working<T> extends Doc {
     });
   }
 
-  sleep(n: number) {
-    return new Promise((resolve) => setTimeout(resolve, n * 1000));
-  }
-
   async commit({
     ref,
     branch,
