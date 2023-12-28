@@ -299,7 +299,11 @@ function MessageView({
               )}
 
               {message.loading &&
-                (message.inputMessages ? <CircularProgress sx={{ marginTop: 1 }} size={18} /> : <WritingIndicator />)}
+                (message.inputMessages ? (
+                  message?.inputMessages?.messages.length > 0 && <CircularProgress sx={{ marginTop: 1 }} size={18} />
+                ) : (
+                  <WritingIndicator />
+                ))}
 
               {message.role === 'assistant' && (
                 <Box className="actions">{message.content && <CopyButton key="copy" message={message.content} />}</Box>

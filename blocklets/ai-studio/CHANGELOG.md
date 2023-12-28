@@ -1,3 +1,7 @@
+## 0.1.198 (2023-12-28)
+
+- fix: chat always loading
+
 ## 0.1.197 (2023-12-28)
 
 - chore: update deps
