@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.195",
+  "version": "0.1.196",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -54,7 +54,6 @@
     "zx": "^7.2.3"
   },
   "resolutions": {
-    "react-router-dom": "6.16.0",
     "@arcblock/did": "^1.18.107",
     "@arcblock/did-auth": "^1.18.107",
     "@arcblock/did-ext": "^1.18.107",
@@ -70,6 +69,7 @@
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "react-dnd": "^16.0.1",
-    "react-dnd-html5-backend": "^16.0.1"
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-router-dom": "6.16.0"
   }
 }

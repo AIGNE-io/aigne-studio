@@ -6,7 +6,7 @@ import { Route, Routes } from 'react-router-dom';
 
 export default function BillingRoutes() {
   return (
-    <AdminLayout footerProps={{ className: 'dashboard-footer' }}>
+    <AdminLayout footerProps={{ className: 'dashboard-footer' }} sx={{ bgcolor: 'background.paper' }}>
       <Routes>
         <Route index element={<BillingPage />} />
         <Route path="*" element={<NotFoundView />} />

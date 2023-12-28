@@ -1,3 +1,7 @@
+## 0.1.196 (2023-12-28)
+
+- fix: update ai dashboard
+
 ## 0.1.195 (2023-12-28)
 
 - fix: project user length
