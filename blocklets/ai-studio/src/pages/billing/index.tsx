@@ -16,6 +16,8 @@ export default function BillingRoutes() {
 }
 
 const AdminLayout = styled(Dashboard)`
+  background-color: white;
+
   > .dashboard-body > .dashboard-main {
     > .dashboard-content {
       overflow: auto;
