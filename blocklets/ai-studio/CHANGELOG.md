@@ -1,3 +1,7 @@
+## 0.1.197 (2023-12-28)
+
+- chore: update deps
+
 ## 0.1.196 (2023-12-28)
 
 - fix: update ai dashboard
