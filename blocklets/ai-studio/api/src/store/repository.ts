@@ -1,15 +1,7 @@
 import { readdirSync, rmSync, writeFileSync } from 'fs';
 import path from 'path';
 
-import {
-  Assistant,
-  AssistantYjs,
-  FileTypeYjs,
-  fileFromYjs,
-  fileToYjs,
-  isAssistant,
-  isRawFile,
-} from '@blocklet/ai-runtime/types';
+import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { glob } from 'glob';
 import { omit } from 'lodash';
@@ -55,13 +47,17 @@ export async function getRepository({
               ref,
             })
           ).blob;
+          const assistant = parse(Buffer.from(content).toString());
           const tests = parse(Buffer.from(testFile).toString());
-          const data = fileToYjs(parse(Buffer.from(content).toString())) as AssistantYjs;
+          console.log(tests, 'parse');
+          // console.log(assistant, tests, 'tests');
           if (tests) {
-            data.tests = tests;
+            assistant.tests = tests;
           }
+          const data = fileToYjs(assistant);
 
           if (isAssistant(data)) {
+            // console.log(JSON.parse(JSON.stringify(data)), 'tests');
             const parent = dir.replace(/^\.\/?/, '');
             const filename = `${data.id}.yaml`;
             return { filepath: path.join(parent, filename), key: data.id, data };
@@ -79,6 +75,9 @@ export async function getRepository({
       stringify: async (filepath, content) => {
         if (isAssistant(content)) {
           const testsData = stringify((fileFromYjs(content) as Assistant).tests);
+          if (testsData) {
+            console.log(parse(testsData), 'tests');
+          }
           const assistantData = stringify(omit(fileFromYjs(content), 'tests'));
           const parent = path.dirname(filepath).replace(/^\.\/?/, '');
           const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
