@@ -1,3 +1,7 @@
+## 0.1.195 (2023-12-28)
+
+- fix: project user length
+
 ## 0.1.194 (2023-12-27)
 
 - chore: bump version
