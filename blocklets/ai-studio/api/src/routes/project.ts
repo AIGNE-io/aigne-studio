@@ -408,7 +408,7 @@ export function projectRoutes(router: Router) {
 
     await repository.deleteRemote({ remote: defaultRemote });
 
-    await project.update({ gitUrl: null });
+    await project.update({ gitUrl: null! });
 
     res.json({});
   });
