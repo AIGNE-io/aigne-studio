@@ -10,11 +10,13 @@ import PromptEditorField from '../prompt-editor-field';
 export default function ImageFilePrompt({
   gitRef,
   value,
+  projectId,
   disabled,
   compareValue,
   isRemoteCompare,
 }: {
   gitRef: string;
+  projectId: string;
   value: ImageAssistantYjs;
   disabled?: boolean;
   compareValue?: ImageAssistantYjs;
@@ -40,9 +42,11 @@ export default function ImageFilePrompt({
 
         <Typography variant="subtitle1">{t('formatPrompt')}</Typography>
       </Stack>
-
       <PromptEditorField
         value={value.prompt}
+        projectId={projectId}
+        gitRef={gitRef}
+        path={[value.id, 'prompt']}
         onChange={(prompt) => (value.prompt = prompt)}
         readOnly={readOnly}
         ContentProps={{ sx: { borderRadius: 2, backgroundColor: getDiffBackground('prompt') } }}

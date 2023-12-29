@@ -1,20 +1,9 @@
+import IndicatorTextField from '@app/components/awareness/indicator-text-field';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ApiAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  alpha,
-} from '@mui/material';
+import { Box, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography, alpha } from '@mui/material';
 import { sortBy } from 'lodash';
 import { useAssistantCompare } from 'src/pages/project/state';
 
@@ -27,8 +16,12 @@ export default function ApiEditor({
   disabled,
   compareValue,
   isRemoteCompare,
+  projectId,
+  gitRef,
 }: {
   value: ApiAssistantYjs;
+  projectId: string;
+  gitRef: string;
   disabled?: boolean;
   compareValue?: ApiAssistantYjs;
   isRemoteCompare?: boolean;
@@ -73,12 +66,18 @@ export default function ApiEditor({
                     key={parameter.id}
                     sx={{ backgroundColor: getDiffBackground('requestParameters', parameter.id) }}>
                     <TableCell>
-                      <TextField
-                        hiddenLabel
-                        fullWidth
-                        value={parameter.key || ''}
-                        InputProps={{ readOnly: disabled }}
-                        onChange={(e) => (parameter.key = e.target.value)}
+                      <IndicatorTextField
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        path={[value.id, 'requestParameters', parameter.id, 'key']}
+                        TextFiledProps={{
+                          hiddenLabel: true,
+                          value: parameter.key ?? '',
+                          InputProps: {
+                            readOnly: disabled,
+                          },
+                          onChange: (e) => (parameter.key = e.target.value),
+                        }}
                       />
                     </TableCell>
                     <TableCell>
@@ -86,6 +85,9 @@ export default function ApiEditor({
                         sx={{ '.ContentEditable__root': { fontSize: '12px' } }}
                         readOnly={disabled}
                         assistant={value}
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        path={[value.id, 'requestParameters', parameter.id, 'value']}
                         value={parameter.value}
                         onChange={(value) => (parameter.value = value)}
                       />

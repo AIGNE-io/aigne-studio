@@ -43,21 +43,41 @@ export default function CompareAPIAssistant({
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <ApiAssistantEditorAPI value={remoteAssistant} compareValue={localeAssistant} isRemoteCompare disabled />
+          <ApiAssistantEditorAPI
+            projectId={projectId}
+            gitRef={gitRef}
+            value={remoteAssistant}
+            compareValue={localeAssistant}
+            isRemoteCompare
+            disabled
+          />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <ApiAssistantEditorAPI value={localeAssistant} compareValue={remoteAssistant} disabled />
+          <ApiAssistantEditorAPI
+            projectId={projectId}
+            gitRef={gitRef}
+            value={localeAssistant}
+            compareValue={remoteAssistant}
+            disabled
+          />
         </Box>
       </Stack>
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <ApiAssistantSetting value={remoteAssistant} readOnly isOpen />
+          <ApiAssistantSetting projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly isOpen />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <ApiAssistantSetting value={localeAssistant} compareValue={remoteAssistant} readOnly isOpen />
+          <ApiAssistantSetting
+            projectId={projectId}
+            gitRef={gitRef}
+            value={localeAssistant}
+            compareValue={remoteAssistant}
+            readOnly
+            isOpen
+          />
         </Box>
       </Stack>
     </>

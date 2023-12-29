@@ -43,12 +43,13 @@ export default function CompareImagesAssistant({
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <ImageAssistantEditorFormatPrompt gitRef={gitRef} value={remoteAssistant} disabled />
+          <ImageAssistantEditorFormatPrompt projectId={projectId} gitRef={gitRef} value={remoteAssistant} disabled />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
           <ImageAssistantEditorFormatPrompt
             gitRef={gitRef}
+            projectId={projectId}
             value={localeAssistant}
             compareValue={remoteAssistant}
             disabled

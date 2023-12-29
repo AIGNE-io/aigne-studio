@@ -1,3 +1,47 @@
+## 0.1.198 (2023-12-28)
+
+- fix: chat always loading
+
+## 0.1.197 (2023-12-28)
+
+- chore: update deps
+
+## 0.1.196 (2023-12-28)
+
+- fix: update ai dashboard
+
+## 0.1.195 (2023-12-28)
+
+- fix: project user length
+
+## 0.1.194 (2023-12-27)
+
+- chore: bump version
+
+## 0.1.193 (2023-12-27)
+
+- fix: incorrect test after saving
+
+## 0.1.192 (2023-12-27)
+
+- fix: prompt input cannot be seen in debug
+
+## 0.1.191 (2023-12-27)
+
+- feat: export callAssistant api
+
+## 0.1.190 (2023-12-27)
+
+- fix: use latest value of config
+
+## 0.1.189 (2023-12-25)
+
+- feat: support use ai-kit service
+
+## 0.1.188 (2023-12-25)
+
+- fix: support all collaboration hover
+
 ## 0.1.187 (2023-12-24)
 
 - fix: diff assistant data

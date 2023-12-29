@@ -124,6 +124,7 @@ export default flat({
   functions: 'Functions',
   function: 'Function',
   api: 'API',
+  noParameters: 'No Parameters',
   parameters: 'Parameters',
   model: 'Model',
   temperature: 'temperature',

@@ -100,6 +100,7 @@ function AppRoutes({ basename }: { basename: string }) {
               }
             />
             <Route path="embed/*" element={<EmbedRoutes />} />
+            <Route path="billing/*" element={<BillingRoutes />} />
           </>
         ) : (
           <Route path="*" element={<Navigate to="/" />} />
@@ -124,6 +125,8 @@ const ProjectsRoutes = lazy(() => import('./pages/project'));
 const DatasetsRoutes = lazy(() => import('./pages/datasets'));
 
 const EmbedRoutes = lazy(() => import('./pages/embed'));
+
+const BillingRoutes = lazy(() => import('./pages/billing'));
 
 function Layout({ children }: { children: ReactNode }) {
   return <Dashboard>{children}</Dashboard>;

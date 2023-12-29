@@ -124,6 +124,7 @@ export default flat({
   functions: '工具',
   function: '自定义函数',
   api: '接口',
+  noParameters: '没有参数',
   parameters: '参数',
   model: '模型',
   temperature: '随机性 temperature',
