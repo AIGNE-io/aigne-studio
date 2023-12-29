@@ -40,6 +40,7 @@ export async function getRepository({
 
         if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
           const testFilepath = filepath.replace(new RegExp(`^${PROMPTS_FOLDER_NAME}`), TESTS_FOLDER_NAME);
+          // console.log(testFilepath, 'testFilepath');
           const testFile = (
             await repository.readBlob({
               filepath: testFilepath,
@@ -47,9 +48,9 @@ export async function getRepository({
             })
           ).blob;
           const assistant = parse(Buffer.from(content).toString());
-          const tests = parse(Buffer.from(testFile).toString());
-          if (tests) {
-            assistant.tests = tests;
+          const test = parse(Buffer.from(testFile).toString());
+          if (test) {
+            assistant.tests = test.tests;
           }
           const data = fileToYjs(assistant);
 
@@ -74,12 +75,19 @@ export async function getRepository({
         if (isAssistant(content)) {
           const fileContent = fileFromYjs(content);
           const { tests, ...otherData } = fileContent as Assistant;
-          const testsData = stringify(tests);
+          const newTest = {
+            id: otherData.id,
+            tests,
+          };
+          const testsData = stringify(newTest);
           const assistantData = stringify(otherData);
           const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+          const pathParts = parent.split(path.sep);
+          pathParts[0] = TESTS_FOLDER_NAME;
+          const testPath = pathParts.join(path.sep);
           const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
           const assistantDataFilepath = path.join(parent, filename);
-          const testsDataFilepath = path.join(TESTS_FOLDER_NAME, filename);
+          const testsDataFilepath = path.join(testPath, filename);
 
           return [
             {
