@@ -1,3 +1,7 @@
+## 0.1.199 (2023-12-29)
+
+- fix: world break
+
 ## 0.1.198 (2023-12-28)
 
 - fix: chat always loading
