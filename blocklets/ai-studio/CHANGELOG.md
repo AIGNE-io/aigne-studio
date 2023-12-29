@@ -1,10 +1,102 @@
+## 0.1.200 (2023-12-29)
+
+- feat: support separating tests
+
+## 0.1.199 (2023-12-29)
+
+- fix: world break
+
+## 0.1.198 (2023-12-28)
+
+- fix: chat always loading
+
+## 0.1.197 (2023-12-28)
+
+- chore: update deps
+
+## 0.1.196 (2023-12-28)
+
+- fix: update ai dashboard
+
+## 0.1.195 (2023-12-28)
+
+- fix: project user length
+
+## 0.1.194 (2023-12-27)
+
+- chore: bump version
+
+## 0.1.193 (2023-12-27)
+
+- fix: incorrect test after saving
+
+## 0.1.192 (2023-12-27)
+
+- fix: prompt input cannot be seen in debug
+
+## 0.1.191 (2023-12-27)
+
+- feat: export callAssistant api
+
+## 0.1.190 (2023-12-27)
+
+- fix: use latest value of config
+
+## 0.1.189 (2023-12-25)
+
+- feat: support use ai-kit service
+
+## 0.1.188 (2023-12-25)
+
+- fix: support all collaboration hover
+
+## 0.1.187 (2023-12-24)
+
+- fix: diff assistant data
+
+## 0.1.186 (2023-12-23)
+
+- fix: change project-card's avatar and project-icon size
+
+## 0.1.185 (2023-12-22)
+
+- fix: pass parameter to tool directly
+
+## 0.1.184 (2023-12-22)
+
+- fix: fetch error in node earlier version
+
+## 0.1.183 (2023-12-22)
+
+- feat: support history by executeBlock as context
+
+## 0.1.182 (2023-12-21)
+
+- fix: automatic identification variable
+
+## 0.1.181 (2023-12-21)
+
+- fix: get variable context
+
+## 0.1.180 (2023-12-20)
+
+- fix: support sort parameters
+
+## 0.1.179 (2023-12-19)
+
+- fix: support custom placeholder/loading of result view
+
+## 0.1.178 (2023-12-18)
+
+- fix: apply model configuration to chat mode
+
 ## 0.1.177 (2023-12-18)
 
 - fix: custom readableToWeb function instead of Readable.toWeb
 
 ## 0.1.176 (2023-12-18)
 
-- fix: readable.toweb not support
+- fix: readable.toWeb not support
 
 ## 0.1.175 (2023-12-17)
 

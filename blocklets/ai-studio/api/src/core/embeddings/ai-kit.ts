@@ -1,4 +1,5 @@
-import { call } from '@blocklet/sdk/lib/component';
+import { Config } from '@api/libs/env';
+import { embeddings } from '@blocklet/ai-kit/api/call';
 import { Embeddings, EmbeddingsParams } from 'langchain/embeddings/base';
 import { CreateEmbeddingRequest } from 'openai';
 
@@ -71,7 +72,7 @@ export class AIKitEmbeddings extends Embeddings implements AIKitEmbeddingsParams
         input,
       });
       for (let j = 0; j < input.length; j += 1) {
-        embeddings.push(data.data[j].embedding);
+        embeddings.push(data[j]!.embedding);
       }
     }
 
@@ -83,15 +84,10 @@ export class AIKitEmbeddings extends Embeddings implements AIKitEmbeddingsParams
       model: this.modelName,
       input: this.stripNewLines ? text.replaceAll('\n', ' ') : text,
     });
-    return data.data[0].embedding;
+    return data[0]!.embedding;
   }
 
   private async embeddingWithRetry(request: CreateEmbeddingRequest) {
-    return call({
-      name: 'ai-kit',
-      path: '/api/v1/sdk/embeddings',
-      method: 'POST',
-      data: request,
-    });
+    return embeddings(request, { useAIKitService: Config.useAIKitService });
   }
 }

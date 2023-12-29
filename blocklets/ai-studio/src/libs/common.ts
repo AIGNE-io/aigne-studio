@@ -114,7 +114,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       temperatureMin: 0,
       temperatureMax: 2,
       temperatureDefault: 1,
-      topPMin: 0,
+      topPMin: 0.1,
       topPMax: 1,
       topPDefault: 1,
       maxTokensMin: 1,

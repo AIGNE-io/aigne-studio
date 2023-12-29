@@ -1,28 +1,69 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isPromptAssistant, parseDirectivesOfTemplate } from '@blocklet/ai-runtime/types';
 import PromptEditor, { EditorState } from '@blocklet/prompt-editor';
 import { editorState2Text, text2EditorState } from '@blocklet/prompt-editor/utils';
 import { Box, Button, Paper, Stack } from '@mui/material';
 import { useAsyncEffect, useThrottleFn } from 'ahooks';
 import { ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
 
+import WithAwareness from '../awareness/with-awareness';
 import useVariablesEditorOptions from './use-variables-editor-options';
 
 export default function PromptEditorField({
+  projectId,
+  gitRef,
+  path,
   assistant,
   value,
   onChange,
   readOnly,
   ...props
 }: {
+  projectId: string;
+  gitRef: string;
+  path: (string | number)[];
   assistant?: AssistantYjs;
   value?: string;
   onChange: (value: string) => void;
   readOnly?: boolean;
 } & Omit<ComponentProps<typeof PromptEditor>, 'value' | 'onChange'>) {
   const { t } = useLocaleContext();
-  const { editorState, setEditorState } = usePromptEditorState({ value: value || '', onChange, readOnly });
-  const { options, variables, addParameter } = useVariablesEditorOptions(assistant);
+  const { from, options, variables, addParameter } = useVariablesEditorOptions(assistant);
+
+  const parameterChange = useThrottleFn(
+    async () => {
+      if (assistant && isPromptAssistant(assistant)) {
+        const variables = parseDirectivesOfTemplate(assistant);
+        const currentVariables = Object.values(assistant.parameters ?? {}).filter((p) => p?.data?.from === from);
+
+        // 添加新增的变量
+        variables.forEach((variable) => {
+          const name = variable?.name;
+          if (name && !currentVariables.some((v) => v?.data?.key === name)) {
+            addParameter(name, from);
+          }
+        });
+
+        // 删除移除的变量
+        (currentVariables || []).forEach((variable) => {
+          const key = variable?.data?.key;
+          if (assistant.parameters && key && !variables.some((v) => v.name === key)) {
+            delete assistant.parameters[variable?.data.id];
+          }
+        });
+      }
+    },
+    { wait: 500, trailing: true }
+  );
+
+  const { editorState, setEditorState } = usePromptEditorState({
+    value: value || '',
+    onChange: (value) => {
+      onChange(value);
+      parameterChange.run();
+    },
+    readOnly,
+  });
 
   const getParameters = (text: string) => {
     const list = Object.values(assistant?.parameters || []).map((i) => i.data.key);
@@ -42,74 +83,77 @@ export default function PromptEditorField({
   }, [t]);
 
   return (
-    <PromptEditor
-      variables={variables}
-      {...props}
-      value={editorState}
-      onChange={setEditorState}
-      variablePickerProps={{ options }}
-      ContentProps={{
-        ...props.ContentProps,
-        sx: { bgcolor: 'grey.100', p: 1, borderRadius: 1, ...props.ContentProps?.sx },
-      }}
-      popperElement={({ text, handleClose }) => {
-        if ((variables || []).includes(text)) {
-          const parameter = getParameters(text);
+    <WithAwareness sx={{ top: 0, right: 0 }} projectId={projectId} gitRef={gitRef} path={path}>
+      <PromptEditor
+        {...props}
+        editable={!readOnly}
+        variables={variables}
+        value={editorState}
+        onChange={setEditorState}
+        variablePickerProps={{ options }}
+        ContentProps={{
+          ...props.ContentProps,
+          sx: { bgcolor: 'grey.100', p: 1, borderRadius: 1, ...props.ContentProps?.sx },
+        }}
+        popperElement={({ text, handleClose }) => {
+          if ((variables || []).includes(text)) {
+            const parameter = getParameters(text);
 
-          const type = (parameter as { multiline: boolean })?.multiline ? 'multiline' : parameter?.type || 'string';
+            const type = (parameter as { multiline: boolean })?.multiline ? 'multiline' : parameter?.type || 'string';
+
+            return (
+              <Paper>
+                <Stack
+                  gap={0.5}
+                  sx={{
+                    p: 1,
+                    minWidth: '100px',
+                    fontSize: (theme) => theme.typography.caption.fontSize,
+                    fontWeight: (theme) => theme.palette.text.disabled,
+                  }}>
+                  <Box>{`${t('form.parameter.type')}: ${typeMap[type]}`}</Box>
+                  <Box>{`${t('form.parameter.label')}: ${parameter?.label || text}`}</Box>
+                  {!!parameter?.placeholder && (
+                    <Box>{`${t('form.parameter.placeholder')}: ${parameter?.placeholder || ''}`}</Box>
+                  )}
+                  {!!parameter?.defaultValue && (
+                    <Box>{`${t('form.parameter.defaultValue')}: ${parameter?.defaultValue || ''}`}</Box>
+                  )}
+                </Stack>
+              </Paper>
+            );
+          }
 
           return (
-            <Paper>
-              <Stack
-                gap={0.5}
-                sx={{
-                  p: 1,
-                  minWidth: '100px',
-                  fontSize: (theme) => theme.typography.caption.fontSize,
-                  fontWeight: (theme) => theme.palette.text.disabled,
-                }}>
-                <Box>{`${t('form.parameter.type')}: ${typeMap[type]}`}</Box>
-                <Box>{`${t('form.parameter.label')}: ${parameter?.label || text}`}</Box>
-                {!!parameter?.placeholder && (
-                  <Box>{`${t('form.parameter.placeholder')}: ${parameter?.placeholder || ''}`}</Box>
-                )}
-                {!!parameter?.defaultValue && (
-                  <Box>{`${t('form.parameter.defaultValue')}: ${parameter?.defaultValue || ''}`}</Box>
-                )}
+            <Paper sx={{ p: 1 }}>
+              <Stack gap={1}>
+                <Box
+                  sx={{
+                    p: 1,
+                    fontSize: (theme) => theme.typography.body1.fontSize,
+                    fontWeight: (theme) => theme.typography.fontWeightBold,
+                    // color: (theme) => theme.palette.error.light,
+                  }}>
+                  {t('nonExistentVariable', { data: text })}
+                </Box>
+
+                <Stack direction="row" gap={1} justifyContent="flex-end">
+                  <Button
+                    sx={{ p: 0 }}
+                    onClick={() => {
+                      addParameter(text);
+                      handleClose();
+                    }}
+                    size="small">
+                    {t('addVariable')}
+                  </Button>
+                </Stack>
               </Stack>
             </Paper>
           );
-        }
-
-        return (
-          <Paper sx={{ p: 1 }}>
-            <Stack gap={1}>
-              <Box
-                sx={{
-                  p: 1,
-                  fontSize: (theme) => theme.typography.body1.fontSize,
-                  fontWeight: (theme) => theme.typography.fontWeightBold,
-                  // color: (theme) => theme.palette.error.light,
-                }}>
-                {t('nonExistentVariable', { data: text })}
-              </Box>
-
-              <Stack direction="row" gap={1} justifyContent="flex-end">
-                <Button
-                  sx={{ p: 0 }}
-                  onClick={() => {
-                    addParameter(text);
-                    handleClose();
-                  }}
-                  size="small">
-                  {t('addVariable')}
-                </Button>
-              </Stack>
-            </Stack>
-          </Paper>
-        );
-      }}
-    />
+        }}
+      />
+    </WithAwareness>
   );
 }
 
@@ -119,7 +163,7 @@ export function usePromptEditorState({
   readOnly,
 }: {
   value: string;
-  onChange: (value: string) => any;
+  onChange: (value: string, editorState: EditorState) => any;
   readOnly?: boolean;
 }) {
   const cache = useRef<string>();
@@ -133,7 +177,7 @@ export function usePromptEditorState({
 
       if (cache.current !== content) {
         cache.current = content;
-        onChange(content);
+        onChange(content, editorState);
       }
     },
     { wait: 300, trailing: true }

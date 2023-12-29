@@ -11,7 +11,8 @@ export interface RepositoryOptions<T> {
   root: string;
   parse: (
     filepath: string,
-    content: Uint8Array
+    content: Uint8Array,
+    option: { ref: string }
   ) =>
     | Promise<{
         filepath: string;
@@ -23,8 +24,14 @@ export interface RepositoryOptions<T> {
     filepath: string,
     content: T
   ) =>
-    | Promise<{ filepath: string; data: string | NodeJS.ArrayBufferView }>
-    | { filepath: string; data: string | NodeJS.ArrayBufferView };
+    | Promise<
+        | Array<{ filepath: string; data: string | NodeJS.ArrayBufferView }>
+        | { filepath: string; data: string | NodeJS.ArrayBufferView }
+        | null
+      >
+    | Array<{ filepath: string; data: string | NodeJS.ArrayBufferView }>
+    | { filepath: string; data: string | NodeJS.ArrayBufferView }
+    | null;
 }
 
 export default class Repository<T> {

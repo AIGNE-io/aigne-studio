@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ImagePreview } from '@blocklet/ai-kit';
+import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, isAssistant, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -29,12 +29,14 @@ import {
   selectClasses,
   styled,
 } from '@mui/material';
+import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { useLocalStorageState } from 'ahooks';
-import { pick, sortBy } from 'lodash';
+import { isEmpty, pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
 import { ComponentProps, SyntheticEvent, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import Markdown from 'react-markdown';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import { useSessionContext } from '../../contexts/session';
@@ -43,7 +45,7 @@ import Empty from './icons/empty';
 import Record from './icons/record';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
-import { SessionItem, useDebugState } from './state';
+import { SessionItem, useDebugState, useProjectState } from './state';
 import { useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {
@@ -127,7 +129,7 @@ function DebugViewContent({
 
       <Stack gap={2} sx={{ position: 'sticky', bottom: 0, py: 2, bgcolor: 'background.paper' }}>
         {currentSession.chatType !== 'debug' ? (
-          <ChatModeForm projectId={projectId} assistantId={assistant.id} />
+          <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
         ) : (
           <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
         )}
@@ -212,6 +214,7 @@ function MessageView({
   gitRef: string;
   message: SessionItem['messages'][number];
 }) {
+  const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
 
   return (
@@ -229,35 +232,77 @@ function MessageView({
           {message.content || message.parameters || message.images?.length || message.loading ? (
             <MessageViewContent
               sx={{
-                whiteSpace: 'pre-wrap',
                 px: 1,
                 py: 0.5,
                 borderRadius: 1,
-                wordBreak: 'break-word',
                 ':hover': {
                   bgcolor: 'grey.100',
                 },
                 position: 'relative',
               }}>
-              {message.content ||
+              {<Box component={Markdown}>{message.content}</Box> ||
                 (message.parameters && (
                   <Box>
-                    {Object.entries(message.parameters).map(([key, val]) => (
-                      <Typography key={key}>
-                        <Typography component="span" color="text.secondary">
-                          {key}
+                    {!isEmpty(message.parameters) ? (
+                      Object.entries(message.parameters).map(([key, val]) => (
+                        <Typography key={key}>
+                          <Typography component="span" color="text.secondary">
+                            {key}
+                          </Typography>
+                          : {typeof val === 'string' ? val : JSON.stringify(val)}
                         </Typography>
-                        : {typeof val === 'string' ? val : JSON.stringify(val)}
-                      </Typography>
-                    ))}
+                      ))
+                    ) : (
+                      <span>{t('noParameters')}</span>
+                    )}
                   </Box>
                 ))}
+              {!!message.inputMessages?.messages.length && (
+                <Box marginTop={1}>
+                  {message.inputMessages?.messages.map((i, index) => (
+                    <Accordion
+                      sx={{
+                        border: (theme) => `1px solid ${theme.palette.divider}`,
+                        '&:not(:last-child)': {
+                          borderBottom: 0,
+                        },
+                        '&::before': {
+                          display: 'none',
+                        },
+                      }}
+                      disableGutters
+                      elevation={0}
+                      key={index}>
+                      <AccordionSummary
+                        sx={{
+                          backgroundColor: (theme) =>
+                            theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
+                          minHeight: 28,
+                          '& .MuiAccordionSummary-content': {
+                            my: 0,
+                          },
+                        }}
+                        expandIcon={<GridExpandMoreIcon />}>
+                        <Typography>{i.role}</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
+                        <Typography>{i.content}</Typography>
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
+                </Box>
+              )}
 
               {message.images && message.images.length > 0 && (
                 <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
               )}
 
-              {message.loading && <WritingIndicator />}
+              {message.loading &&
+                (message.inputMessages ? (
+                  message?.inputMessages?.messages.length > 0 && <CircularProgress sx={{ marginTop: 1 }} size={18} />
+                ) : (
+                  <WritingIndicator />
+                ))}
 
               {message.role === 'assistant' && (
                 <Box className="actions">{message.content && <CopyButton key="copy" message={message.content} />}</Box>
@@ -373,10 +418,22 @@ function CopyButton({ message }: { message: string }) {
   );
 }
 
-function ChatModeForm({ projectId, assistantId }: { projectId: string; assistantId: string }) {
+function ChatModeForm({
+  projectId,
+  gitRef,
+  assistant,
+}: {
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
+}) {
   const { t } = useLocaleContext();
 
-  const { state, sendMessage, cancelMessage } = useDebugState({ projectId, assistantId });
+  const {
+    state: { project },
+  } = useProjectState(projectId, gitRef);
+
+  const { state, sendMessage, cancelMessage } = useDebugState({ projectId, assistantId: assistant.id });
 
   const scrollToBottom = useScrollToBottom();
 
@@ -396,7 +453,20 @@ function ChatModeForm({ projectId, assistantId }: { projectId: string; assistant
       return;
     }
 
-    sendMessage({ sessionIndex: state.currentSessionIndex!, message: { type: 'chat', content: question } });
+    const promptAssistant = isPromptAssistant(assistant) ? assistant : undefined;
+
+    sendMessage({
+      sessionIndex: state.currentSessionIndex!,
+      message: {
+        type: 'chat',
+        content: question,
+        model: promptAssistant?.model || project?.model,
+        topP: promptAssistant?.topP ?? project?.topP,
+        temperature: promptAssistant?.temperature ?? project?.temperature,
+        frequencyPenalty: promptAssistant?.frequencyPenalty ?? project?.frequencyPenalty,
+        presencePenalty: promptAssistant?.presencePenalty ?? project?.presencePenalty,
+      },
+    });
     scrollToBottom({ behavior: 'smooth' });
 
     setQuestion('');
@@ -539,13 +609,14 @@ function DebugModeForm({
     const doc = (getYjsValue(assistant) as Map<any>).doc!;
     doc.transact(() => {
       const id = `${Date.now()}-${nanoid(16)}`;
-
+      const keys = parameters.map((i) => i.data.key);
+      const result = pick(form.getValues(), keys);
       assistant.tests ??= {};
       assistant.tests[id] = {
         index: Object.values(assistant.tests).length,
         data: {
           id,
-          parameters: form.getValues(),
+          parameters: result,
           createdBy: user.did,
         },
       };

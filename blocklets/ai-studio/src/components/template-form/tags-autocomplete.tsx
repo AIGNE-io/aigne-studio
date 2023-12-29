@@ -10,7 +10,7 @@ export default function TagsAutoComplete({
   gitRef,
   label,
   ...props
-}: { projectId: string; gitRef: string } & Partial<
+}: { projectId: string; gitRef: string; placeholder?: string } & Partial<
   AutocompleteProps<string, true, false, true> & Pick<TextFieldProps, 'label'>
 >) {
   const { store } = useProjectStore(projectId, gitRef);
