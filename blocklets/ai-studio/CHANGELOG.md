@@ -1,3 +1,7 @@
+## 0.1.200 (2023-12-29)
+
+- feat: support separating tests
+
 ## 0.1.199 (2023-12-29)
 
 - fix: world break

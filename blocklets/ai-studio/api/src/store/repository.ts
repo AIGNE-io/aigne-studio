@@ -21,6 +21,7 @@ const repositories: { [key: string]: Promise<Repository<FileTypeYjs>> } = {};
 export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
+export const TESTS_FOLDER_NAME = 'tests';
 
 export async function getRepository({
   projectId,
@@ -33,12 +34,26 @@ export async function getRepository({
     const repository = await Repository.init<FileTypeYjs>({
       root: repositoryRoot(projectId),
       initialCommit: { message: 'init', author: author ?? { name: 'AI Studio', email: wallet.address } },
-      parse: async (filepath, content) => {
+      parse: async (filepath, content, { ref }) => {
         const { dir, ext } = path.parse(filepath);
         const [root] = filepath.split('/');
 
         if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
-          const data = fileToYjs(parse(Buffer.from(content).toString()));
+          const testFilepath = filepath.replace(new RegExp(`^${PROMPTS_FOLDER_NAME}`), TESTS_FOLDER_NAME);
+          // console.log(testFilepath, 'testFilepath');
+          const testFile = (
+            await repository.readBlob({
+              filepath: testFilepath,
+              ref,
+            })
+          ).blob;
+          const assistant = parse(Buffer.from(content).toString());
+          const test = parse(Buffer.from(testFile).toString());
+          if (test) {
+            assistant.tests = test.tests;
+          }
+          const data = fileToYjs(assistant);
+
           if (isAssistant(data)) {
             const parent = dir.replace(/^\.\/?/, '');
             const filename = `${data.id}.yaml`;
@@ -55,16 +70,35 @@ export async function getRepository({
         };
       },
       stringify: async (filepath, content) => {
-        if (isAssistant(content)) {
-          const data = stringify(fileFromYjs(content));
-          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
-          const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
-          const newFilepath = path.join(parent, filename);
+        if (filepath.startsWith(TESTS_FOLDER_NAME)) return null;
 
-          return {
-            filepath: newFilepath,
-            data,
+        if (isAssistant(content)) {
+          const fileContent = fileFromYjs(content);
+          const { tests, ...otherData } = fileContent as Assistant;
+          const newTest = {
+            id: otherData.id,
+            tests,
           };
+          const testsData = stringify(newTest);
+          const assistantData = stringify(otherData);
+          const parent = path.dirname(filepath).replace(/^\.\/?/, '');
+          const pathParts = parent.split(path.sep);
+          pathParts[0] = TESTS_FOLDER_NAME;
+          const testPath = pathParts.join(path.sep);
+          const filename = `${content.name || 'Unnamed'}.${content.id}.yaml`;
+          const assistantDataFilepath = path.join(parent, filename);
+          const testsDataFilepath = path.join(testPath, filename);
+
+          return [
+            {
+              filepath: assistantDataFilepath,
+              data: assistantData ?? '',
+            },
+            {
+              filepath: testsDataFilepath,
+              data: testsData ?? '',
+            },
+          ];
         }
 
         if (isRawFile(content)) {
@@ -72,10 +106,10 @@ export async function getRepository({
 
           const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
 
-          return { filepath, data };
+          return [{ filepath, data }];
         }
 
-        return { filepath, data: '' };
+        return [{ filepath, data: '' }];
       },
     });
     return repository;
