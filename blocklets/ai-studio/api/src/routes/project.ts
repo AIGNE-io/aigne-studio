@@ -398,6 +398,21 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
+  router.post('/projects/:projectId/remote/delete', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+    const { projectId } = req.params;
+    if (!projectId) throw new Error('Missing required params `projectId`');
+
+    const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    const repository = await getRepository({ projectId });
+
+    await repository.deleteRemote({ remote: defaultRemote });
+
+    await project.update({ gitUrl: null });
+
+    res.json({});
+  });
+
   router.post('/projects/:projectId/remote/push', user(), ensureComponentCallOrAdmin(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');

@@ -119,6 +119,14 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     [refetch]
   );
 
+  const deleteProjectRemote = useCallback(
+    async (...args: Parameters<typeof projectApi.deleteProjectRemote>) => {
+      await projectApi.deleteProjectRemote(...args);
+      refetch();
+    },
+    [refetch]
+  );
+
   const push = useCallback(
     async (...args: Parameters<typeof projectApi.projectPush>) => {
       await projectApi.projectPush(...args);
@@ -143,7 +151,19 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     [refetch]
   );
 
-  return { state, refetch, createBranch, updateBranch, deleteBranch, updateProject, addRemote, push, pull, sync };
+  return {
+    state,
+    refetch,
+    createBranch,
+    updateBranch,
+    deleteBranch,
+    updateProject,
+    addRemote,
+    deleteProjectRemote,
+    push,
+    pull,
+    sync,
+  };
 };
 
 export interface SessionItem {

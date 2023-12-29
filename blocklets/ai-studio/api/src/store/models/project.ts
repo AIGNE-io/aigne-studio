@@ -40,7 +40,7 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare maxTokens?: number;
 
-  declare gitUrl?: string;
+  declare gitUrl?: string | null;
 
   declare gitAutoSync?: boolean;
 
