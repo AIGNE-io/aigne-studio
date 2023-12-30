@@ -2,7 +2,7 @@ import { spawnSync } from 'child_process';
 import { chmodSync, existsSync, mkdirSync, symlinkSync } from 'fs';
 import { dirname, join } from 'path';
 
-import logger from './libs/logger';
+const logger = console;
 
 const { name } = require('../../package.json');
 
