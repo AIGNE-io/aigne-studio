@@ -1,3 +1,8 @@
+## 0.1.201 (2023-12-30)
+
+- chore: updated deps
+- fix: use logger instead of console
+
 ## 0.1.200 (2023-12-29)
 
 - feat: support separating tests
