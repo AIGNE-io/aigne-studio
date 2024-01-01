@@ -398,7 +398,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/delete', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.delete('/projects/:projectId/remote/delete', user(), ensureComponentCallOrAdmin(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
