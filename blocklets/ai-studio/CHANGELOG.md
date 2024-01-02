@@ -1,3 +1,7 @@
+## 0.1.202 (2024-1-2)
+
+- feat: support unlink remote repo
+
 ## 0.1.201 (2023-12-30)
 
 - chore: updated deps
