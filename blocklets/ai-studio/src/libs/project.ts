@@ -56,6 +56,10 @@ export async function addProjectRemote(projectId: string, data: AddProjectRemote
   return axios.post(`/api/projects/${projectId}/remote`, data).then((res) => res.data);
 }
 
+export async function deleteProjectRemote(projectId: string): Promise<{}> {
+  return axios.delete(`/api/projects/${projectId}/remote`).then((res) => res.data);
+}
+
 export async function projectPush(projectId: string, input?: ProjectPushInput): Promise<{}> {
   return axios.post(`/api/projects/${projectId}/remote/push`, input).then((res) => res.data);
 }

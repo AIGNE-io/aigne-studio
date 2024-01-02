@@ -1,3 +1,4 @@
+import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -28,6 +29,7 @@ import { useForm } from 'react-hook-form';
 
 import PromiseLoadingButton from '../../../components/promise-loading-button';
 import { getErrorMessage } from '../../../libs/api';
+import Delete from '../icons/delete';
 import Eye from '../icons/eye';
 import EyeNo from '../icons/eye-no';
 import Pen from '../icons/pen';
@@ -43,9 +45,11 @@ interface RemoteRepoSettingForm {
 export default function RemoteRepoSetting({ projectId }: { projectId: string }) {
   const { t, locale } = useLocaleContext();
 
+  const { dialog: confirmDialog, showDialog: showConfirmDialog } = useDialog();
+
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
 
-  const { state, addRemote, updateProject, sync } = useProjectState(projectId, defaultBranch);
+  const { state, addRemote, deleteProjectRemote, updateProject, sync } = useProjectState(projectId, defaultBranch);
   const dialogState = usePopupState({ variant: 'dialog' });
 
   const [authSyncUpdating, setAutoSyncUpdating] = useState<boolean | 'success' | 'error'>(false);
@@ -103,6 +107,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
 
   return (
     <Stack gap={1}>
+      {confirmDialog}
       {dialog}
 
       <Stack direction="row" alignItems="center" gap={1}>
@@ -116,6 +121,30 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
 
         <IconButton size="small" {...bindTrigger(dialogState)}>
           <Pen />
+        </IconButton>
+        <IconButton
+          size="small"
+          onClick={() => {
+            showConfirmDialog({
+              fullWidth: true,
+              maxWidth: 'sm',
+              title: t('deleteRemote'),
+              content: t('deleteRemoteTip'),
+              okColor: 'error',
+              okText: t('delete'),
+              cancelText: t('cancel'),
+              onOk: async () => {
+                try {
+                  await deleteProjectRemote(projectId);
+                  Toast.success(t('deleteSucceed'));
+                } catch (error) {
+                  Toast.error(getErrorMessage(error));
+                  throw error;
+                }
+              },
+            });
+          }}>
+          <Delete fontSize="small" />
         </IconButton>
       </Stack>
 

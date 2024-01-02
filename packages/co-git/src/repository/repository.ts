@@ -158,6 +158,10 @@ export default class Repository<T> {
     return git.addRemote({ fs, dir: this.root, remote, url, force });
   }
 
+  async deleteRemote({ remote }: { remote: string }) {
+    return git.deleteRemote({ fs, dir: this.root, remote });
+  }
+
   async push(options?: Omit<Parameters<typeof git.push>[0], 'fs' | 'http' | 'dir'>) {
     return git.push({
       fs,
