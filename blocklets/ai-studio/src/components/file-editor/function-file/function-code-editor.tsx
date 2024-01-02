@@ -26,7 +26,6 @@ export default function FunctionCodeEditor({
     if (!value.code) {
       value.code = `\
 module.exports.default = async function(args) {
-  console.log(args)
   return {
     // result
   }

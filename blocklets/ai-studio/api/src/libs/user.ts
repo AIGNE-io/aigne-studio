@@ -19,8 +19,8 @@ const fetchUsers = async (dids: string[]) => {
   try {
     const { users } = await authClient.getUsers({ dids });
     return users.map((item) => pick(item, ['did', 'fullName', 'avatar']));
-  } catch (e) {
-    logger.error(e);
+  } catch (error) {
+    logger.error('fetch users error', { error });
     return [];
   }
 };

@@ -29,12 +29,9 @@ async function handleResource() {
         return { base64: data, filename };
       });
 
-      // console.log(found);
-
       for (const item of list) {
         const originalname = `${item.filename}.png`;
 
-        // eslint-disable-next-line no-await-in-loop
         const found = await call({
           name: 'image-bin',
           path: '/api/sdk/uploads/find',
@@ -46,7 +43,6 @@ async function handleResource() {
           continue;
         }
 
-        // eslint-disable-next-line no-await-in-loop
         await call({
           name: 'image-bin',
           path: '/api/sdk/uploads',
@@ -61,8 +57,8 @@ async function handleResource() {
         });
       }
     }
-  } catch (err) {
-    logger.error(err);
+  } catch (error) {
+    logger.error('handle resource error', { error });
   }
 }
 

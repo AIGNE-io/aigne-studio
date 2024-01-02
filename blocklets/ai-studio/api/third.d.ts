@@ -6,6 +6,8 @@ declare module 'express-async-errors';
 
 declare module 'express-sse';
 
+declare module '@blocklet/logger';
+
 namespace Express {
   interface Request {
     user?: {
