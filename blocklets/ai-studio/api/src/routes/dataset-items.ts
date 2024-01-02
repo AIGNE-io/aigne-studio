@@ -168,7 +168,7 @@ async function embeddingDiscussion({ datasetId }: { datasetId: string }, { itemI
     try {
       await embeddingDiscussionItem({ datasetId, discussionId });
     } catch (error) {
-      logger.error(`embedding discussion ${discussionId} error`, error);
+      logger.error(`embedding discussion ${discussionId} error`, { error });
     }
   }
 }

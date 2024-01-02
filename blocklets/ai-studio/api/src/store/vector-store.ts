@@ -17,8 +17,8 @@ HNSWLib.imports = async () => {
       default: { HierarchicalNSW },
     } = await import('@blocklet/hnswlib-node');
     return { HierarchicalNSW };
-  } catch (err) {
-    logger.error(err);
+  } catch (error) {
+    logger.error('import HNSWLib error', { error });
     throw new Error(
       'Please install @blocklet/hnswlib-node as a dependency with, e.g. `npm install -S @blocklet/hnswlib-node`'
     );
@@ -42,7 +42,7 @@ export default class VectorStore extends HNSWLib {
           try {
             hnsw = await HNSWLib.load(path, embeddings);
           } catch (error) {
-            logger.error('HNSWLib load from path error', error);
+            logger.error('HNSWLib load from path error', { error });
           }
         }
         mkdirSync(path, { recursive: true });

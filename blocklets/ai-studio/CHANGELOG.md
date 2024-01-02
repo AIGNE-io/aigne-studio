@@ -1,6 +1,7 @@
-## 0.1.201 (2023-12-29)
+## 0.1.201 (2023-12-30)
 
-- feat: support delete remote repo
+- chore: updated deps
+- fix: use logger instead of console
 
 ## 0.1.200 (2023-12-29)
 
