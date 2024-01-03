@@ -1,3 +1,16 @@
+## 0.1.205 (2024-1-3)
+
+- feat: support remote repo
+
+## 0.1.204 (2024-1-3)
+
+- fix: debug view performance optimization
+
+## 0.1.203 (2024-1-3)
+
+- fix: compare data params
+- fix: variable prompt in select dialog
+
 ## 0.1.202 (2024-1-2)
 
 - feat: support unlink remote repo

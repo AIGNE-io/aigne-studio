@@ -514,6 +514,9 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             break;
           }
         }
+        setMessage(sessionIndex, messageId, (message) => {
+          message.loading = false;
+        });
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
 
@@ -627,14 +630,20 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
       const news = differenceBy(state.files, state.assistants, 'id');
       const deleted = differenceBy(state.assistants, state.files, 'id');
       const modified = duplicateItems.filter((i) => {
-        const item = omitBy(i, (x) => !x);
+        const item = omit(
+          omitBy(i, (x) => !x),
+          'tests'
+        );
 
         const found = state.files.find((f) => item.id === f.id);
         if (!found) {
           return false;
         }
 
-        const file = omitBy(found, (x) => !x);
+        const file = omit(
+          omitBy(found, (x) => !x),
+          'tests'
+        );
         return !equal(item, file);
       });
 
