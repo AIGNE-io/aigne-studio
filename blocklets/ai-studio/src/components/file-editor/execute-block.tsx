@@ -256,7 +256,7 @@ export default function ExecuteBlockForm({
       <ToolDialog
         ref={toolForm}
         projectId={projectId}
-        assistantId={assistant.id}
+        assistant={assistant}
         gitRef={gitRef}
         DialogProps={{ ...bindDialog(dialogState) }}
         onSubmit={(tool) => {
@@ -290,15 +290,16 @@ interface ToolDialogImperative {
 const ToolDialog = forwardRef<
   ToolDialogImperative,
   {
-    assistantId: string;
     projectId: string;
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
+    assistant: AssistantYjs;
   }
->(({ assistantId, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+>(({ assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
+  const assistantId = assistant.id;
 
   const form = useForm<ToolDialogForm>({ defaultValues: {} });
 
@@ -445,6 +446,7 @@ const ToolDialog = forwardRef<
                       value={field.value || ''}
                       projectId={projectId}
                       gitRef={gitRef}
+                      assistant={assistant}
                       path={[assistantId, parameter.id]}
                       onChange={(value) => field.onChange({ target: { value } })}
                     />
