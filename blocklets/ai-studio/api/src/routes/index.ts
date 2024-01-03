@@ -1,4 +1,3 @@
-import aiKitRouter from '@blocklet/ai-kit/api/router/ai-kit';
 import { Router } from 'express';
 
 import ai from './ai';
@@ -24,7 +23,6 @@ treeRoutes(router);
 resourceRoutes(router);
 
 router.use('/ai', ai);
-router.use('/ai-kit', aiKitRouter);
 router.use('/datasets', datasets);
 router.use('/datasets', datasetItems);
 router.use(ws);

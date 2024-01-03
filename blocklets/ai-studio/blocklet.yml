@@ -65,6 +65,12 @@ components:
     source:
       name: image-bin
       version: latest
+  - name: ai-kit
+    required: true
+    mountPoint: /ai-kit
+    source:
+      name: ai-kit
+      version: latest
 navigation:
   - id: template
     title:
@@ -90,14 +96,3 @@ navigation:
       - admin
       - owner
       - promptsEditor
-  - id: billing
-    title:
-      en: Billing
-      zh: 账单
-    icon: uil:bill
-    link: /billing
-    section:
-      - dashboard
-    role:
-      - admin
-      - owner
