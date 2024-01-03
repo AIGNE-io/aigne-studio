@@ -291,7 +291,9 @@ const MessageView = memo(
 
                 {message.loading &&
                   (message.inputMessages ? (
-                    message?.inputMessages?.messages.length > 0 && <CircularProgress sx={{ marginTop: 1 }} size={18} />
+                    message?.inputMessages?.messages.length === 0 && (
+                      <CircularProgress sx={{ marginTop: 1 }} size={18} />
+                    )
                   ) : (
                     <WritingIndicator />
                   ))}
