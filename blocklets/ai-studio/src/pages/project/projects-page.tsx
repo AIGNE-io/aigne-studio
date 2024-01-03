@@ -2,8 +2,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { cx } from '@emotion/css';
-import { Button } from '@mui/base';
-import { SaveRounded } from '@mui/icons-material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
@@ -13,6 +11,7 @@ import {
   Avatar,
   AvatarGroup,
   Box,
+  Button,
   CircularProgress,
   ClickAwayListener,
   Collapse,
@@ -51,6 +50,7 @@ import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
+import * as projectApi from '../../libs/project';
 import { ProjectWithUserInfo, User, createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
@@ -659,6 +659,7 @@ function ProjectItem({
 interface RemoteRepoSettingForm {
   url: string;
   description: string;
+  username: string;
   password: string;
   name: string;
 }
@@ -666,23 +667,12 @@ interface RemoteRepoSettingForm {
 function RegistryImport() {
   const { t } = useLocaleContext();
   const id = useId();
-
+  const {
+    state: { templates },
+    createProject,
+  } = useProjectsState();
+  const navigate = useNavigate();
   const dialogState = usePopupState({ variant: 'dialog', popupId: id });
-
-  // const changeAutoSync = useCallback(
-  //   async (gitAutoSync: boolean) => {
-  //     setAutoSyncUpdating(true);
-  //     try {
-  //       await updateProject(projectId, { gitAutoSync });
-  //       setAutoSyncUpdating('success');
-  //     } catch (error) {
-  //       setAutoSyncUpdating('error');
-  //       Toast.error(getErrorMessage(error));
-  //       throw error;
-  //     }
-  //   },
-  //   [projectId, updateProject]
-  // );
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -698,14 +688,30 @@ function RegistryImport() {
   const saveSetting = useCallback(
     async (value: RemoteRepoSettingForm) => {
       try {
+        const project = await createProject({
+          templateId: templates?.[0]!._id,
+          name: value.name,
+          description: value.description,
+          isImport: true,
+        });
+        await projectApi.addProjectRemote(project._id, {
+          url: value.url,
+          username: value.username,
+          password: value.password,
+        });
+        await projectApi.projectPull(project._id, {
+          force: true,
+        });
+        form.reset(value);
         dialogState.close();
+        navigate(joinURL('/projects', project._id!));
       } catch (error) {
         form.reset(value);
         Toast.error(getErrorMessage(error));
         throw error;
       }
     },
-    [dialogState, form]
+    [createProject, dialogState, form, templates]
   );
 
   return (
@@ -719,7 +725,6 @@ function RegistryImport() {
         maxWidth="sm"
         fullWidth
         component="form"
-        auto-complete="off"
         onSubmit={form.handleSubmit(saveSetting)}>
         <DialogTitle>{t('remoteGitRepo')}</DialogTitle>
         <DialogContent>
@@ -733,11 +738,7 @@ function RegistryImport() {
                   const url = gitUrlParse(e.clipboardData.getData('text/plain'));
                   const https = gitUrlParse.stringify(url, 'https');
                   form.setValue('url', https, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-                  // form.setValue('projectDescribe', url.owner, {
-                  //   shouldValidate: true,
-                  //   shouldDirty: true,
-                  //   shouldTouch: true,
-                  // });
+                  form.setValue('username', url.owner, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
 
                   const { password } = url as any;
                   if (password && typeof password === 'string') {
@@ -759,16 +760,32 @@ function RegistryImport() {
                     value
                   ) || t('validation.urlPattern'),
               })}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
               InputLabelProps={{ shrink: form.watch('url') ? true : undefined }}
               error={Boolean(form.formState.errors.url)}
               helperText={form.formState.errors.url?.message}
             />
 
             <TextField
+              fullWidth
+              label={t('username')}
+              {...form.register('username')}
+              error={Boolean(form.formState.errors.username)}
+              helperText={form.formState.errors.username?.message}
+              InputLabelProps={{ shrink: form.watch('username') ? true : undefined }}
+            />
+
+            <TextField
               label={t('projectSetting.name')}
               sx={{ width: 1 }}
               {...form.register('name')}
-              autoComplete="false"
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
             />
 
             <TextField
@@ -777,6 +794,10 @@ function RegistryImport() {
               rows={4}
               sx={{ width: 1 }}
               {...form.register('description')}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
             />
 
             <TextField
@@ -803,6 +824,8 @@ function RegistryImport() {
               type={showPassword ? 'text' : 'password'}
               InputLabelProps={{ shrink: form.watch('password') ? true : undefined }}
               InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
@@ -822,8 +845,8 @@ function RegistryImport() {
             type="submit"
             loading={form.formState.isSubmitting}
             loadingPosition="start"
-            startIcon={<SaveRounded />}>
-            {t('save')}
+            startIcon={<Add />}>
+            {t('import.remote')}
           </LoadingButton>
         </DialogActions>
       </Dialog>
