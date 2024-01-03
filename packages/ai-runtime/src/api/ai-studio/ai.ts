@@ -27,7 +27,7 @@ export async function callAssistant(
 export async function callAssistant(
   input: CallAssistantInput,
   options: { responseType: 'event-stream' }
-): Promise<ReadableStream<RunAssistantChunk>>;
+): Promise<ReadableStream<Exclude<RunAssistantResponse, RunAssistantError>>>;
 export async function callAssistant(
   input: CallAssistantInput,
   options: { responseType: 'text-stream' }
