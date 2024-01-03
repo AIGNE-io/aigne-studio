@@ -83,7 +83,7 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.0.113",
+    "@blocklet/ai-kit": "^0.0.116",
     "@blocklet/sdk": "^1.16.20",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.8",

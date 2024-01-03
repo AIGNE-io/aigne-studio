@@ -1253,10 +1253,10 @@
   resolved "https://registry.yarnpkg.com/@beskar-labs/gpt-encoder/-/gpt-encoder-1.0.7.tgz#8a612f4939235ffae255ccdc53df8bdb9a0dfb0a"
   integrity sha512-zitUItoaeDMUfjlcKTEs3acWFzbYxDev2YrxRCrb9LCoBVYB5OGFvTHZirMuTWMX0SgZcrdcRpXJqqUi/Pe97A==
 
-"@blocklet/ai-kit@^0.0.113":
-  version "0.0.113"
-  resolved "https://registry.yarnpkg.com/@blocklet/ai-kit/-/ai-kit-0.0.113.tgz#8fedb65031c21c4e1a0e0573c51ae498e931b20e"
-  integrity sha512-kI0lgQBT/ahpkkUacwT92vFLERcVESPvukuPMWs+UgsDwQJu9qBiIU7z8WM1RG7PDgQEwP29sA+V1/efhR9y+A==
+"@blocklet/ai-kit@^0.0.116":
+  version "0.0.116"
+  resolved "https://registry.yarnpkg.com/@blocklet/ai-kit/-/ai-kit-0.0.116.tgz#58830ed2a207f2a60d18a4bffe4318b461aa13be"
+  integrity sha512-wlCONMku0gfRgIMNSoPbkBOmfw96LDXsGpON5VBXPRXdgmmY7OhqtmqzY4xTf3tjJJjmAoEcmZdCw0Ed2NTK9w==
   dependencies:
     "@arcblock/did" "^1.18.108"
     "@arcblock/ux" "^2.8.26"
