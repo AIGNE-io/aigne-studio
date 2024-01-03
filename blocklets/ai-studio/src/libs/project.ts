@@ -1,3 +1,5 @@
+import { Assistant } from '@blocklet/ai-runtime/types';
+
 import {
   AddProjectRemoteInput,
   CreateProjectInput,
@@ -42,16 +44,20 @@ export async function deleteProject(projectId: string): Promise<Project> {
   return axios.delete(`/api/projects/${projectId}`).then((res) => res.data);
 }
 
-export async function importTemplatesToProject(
+export async function exportAssistantsToProject(
   projectId: string,
   ref: string,
   data: { projectId: string; ref: string; resources: string[] }
-): Promise<{ templates: { parent?: string[] }[] }> {
-  return axios.post(`/api/projects/${projectId}/${ref}/import`, data).then((res) => res.data);
+): Promise<{ assistants: (Assistant & { parent?: string[] })[] }> {
+  return axios.post(`/api/projects/export/${projectId}/${ref}`, data).then((res) => res.data);
 }
 
 export async function addProjectRemote(projectId: string, data: AddProjectRemoteInput): Promise<{}> {
   return axios.post(`/api/projects/${projectId}/remote`, data).then((res) => res.data);
+}
+
+export async function deleteProjectRemote(projectId: string): Promise<{}> {
+  return axios.delete(`/api/projects/${projectId}/remote`).then((res) => res.data);
 }
 
 export async function projectPush(projectId: string, input?: ProjectPushInput): Promise<{}> {

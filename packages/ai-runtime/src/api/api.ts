@@ -1,9 +1,11 @@
+/// <reference path="../blocklet.d.ts" />
+
 import axios from 'axios';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export const AIStudioBaseUrl =
-  window.blocklet?.componentMountPoints.find((i) => i.did === AI_STUDIO_DID)?.mountPoint || '/';
+  globalThis.blocklet?.componentMountPoints.find((i) => i.did === AI_STUDIO_DID)?.mountPoint || '/';
 
 export const API_TIMEOUT = 120 * 1000;
 

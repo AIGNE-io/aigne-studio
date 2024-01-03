@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.185",
+  "version": "0.1.202",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -16,7 +16,7 @@
     "build:libs": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspace @blocklet/prompt-editor build && yarn workspace @blocklet/ai-runtime build",
     "prepare": "husky install",
     "bump-version": "zx scripts/bump-version.mjs",
-    "update:deps": "yarn workspaces run update:deps"
+    "update:deps": "npx -y taze -r -w && yarn install && npx -y yarn-deduplicate yarn.lock && yarn"
   },
   "lint-staged": {
     "*.{mjs,js,jsx,ts,tsx}": [
@@ -38,27 +38,38 @@
     }
   },
   "devDependencies": {
-    "@arcblock/eslint-config": "^0.2.3",
-    "@arcblock/eslint-config-ts": "^0.2.3",
+    "@arcblock/eslint-config": "^0.2.4",
+    "@arcblock/eslint-config-ts": "^0.2.4",
     "bumpp": "^8.2.1",
-    "eslint": "^8.27.0",
-    "husky": "^8.0.2",
+    "eslint": "^8.56.0",
+    "husky": "^8.0.3",
     "import-sort-style-module": "^6.0.0",
-    "lerna": "^7.3.0",
+    "lerna": "^7.4.2",
     "lint-staged": "^12.5.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.8.4",
+    "prettier": "^2.8.8",
     "prettier-plugin-import-sort": "^0.0.7",
     "rimraf": "^3.0.2",
-    "typescript": "^4.9.4",
-    "zx": "^7.1.1"
+    "typescript": "^4.9.5",
+    "zx": "^7.2.3"
   },
   "resolutions": {
+    "@arcblock/did": "^1.18.108",
+    "@arcblock/did-auth": "^1.18.108",
+    "@arcblock/did-ext": "^1.18.108",
+    "@arcblock/did-util": "^1.18.108",
+    "@arcblock/ws": "^1.18.108",
+    "@mui/material": "^5.15.2",
     "@nedb/core": "^2.1.5",
-    "@mui/material": "^5.11.11",
+    "@ocap/asset": "^1.18.108",
+    "@ocap/proto": "^1.18.108",
+    "@ocap/types": "^1.18.108",
+    "@ocap/util": "^1.18.108",
+    "@ocap/wallet": "^1.18.108",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "@types/react": "^18.2.23",
-    "@types/react-dom": "^18.2.8"
+    "react-router-dom": "6.16.0"
   }
 }

@@ -1,7 +1,13 @@
 import { ReadableStream } from 'stream/web';
 
+import {
+  ChatCompletionChunk,
+  ChatCompletionInput,
+  ImageGenerationInput,
+  ImageGenerationResponse,
+} from '@blocklet/ai-kit/api/types';
 import { call } from '@blocklet/sdk/lib/component';
-import env from '@blocklet/sdk/lib/env';
+import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick } from 'lodash';
 import fetch from 'node-fetch';
@@ -21,7 +27,6 @@ import {
   isPromptAssistant,
 } from '../../types';
 import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
-import { ChatCompletionChunk, callAIKitChatCompletions, callAIKitImageGeneration } from '../ai-kit';
 
 export type InputMessages = {
   messages: Array<{
@@ -63,8 +68,13 @@ export interface GetAssistant {
 
 export type CallAI = (options: {
   assistant: Assistant;
-  input: Parameters<typeof callAIKitChatCompletions>[0];
+  input: ChatCompletionInput;
 }) => Promise<ReadableStream<ChatCompletionChunk>>;
+
+export type CallAIImage = (options: {
+  assistant: Assistant;
+  input: ImageGenerationInput;
+}) => Promise<ImageGenerationResponse>;
 
 const taskIdGenerator = new Worker();
 
@@ -73,6 +83,7 @@ export const nextTaskId = () => taskIdGenerator.nextId().toString();
 export async function runAssistant({
   taskId,
   callAI,
+  callAIImage,
   getAssistant,
   assistant,
   parameters = {},
@@ -80,6 +91,7 @@ export async function runAssistant({
 }: {
   taskId: string;
   callAI: CallAI;
+  callAIImage: CallAIImage;
   getAssistant: GetAssistant;
   assistant: Assistant;
   parameters?: { [key: string]: any };
@@ -89,6 +101,7 @@ export async function runAssistant({
     return runPromptAssistant({
       taskId,
       callAI,
+      callAIImage,
       getAssistant,
       assistant,
       parameters,
@@ -100,6 +113,7 @@ export async function runAssistant({
     return runImageAssistant({
       taskId,
       callAI,
+      callAIImage,
       getAssistant,
       assistant,
       parameters,
@@ -111,6 +125,7 @@ export async function runAssistant({
     return runFunctionAssistant({
       getAssistant,
       callAI,
+      callAIImage,
       taskId,
       assistant,
       parameters,
@@ -122,6 +137,7 @@ export async function runAssistant({
     return runApiAssistant({
       getAssistant,
       callAI,
+      callAIImage,
       taskId,
       assistant,
       parameters,
@@ -135,6 +151,7 @@ export async function runAssistant({
 async function runFunctionAssistant({
   getAssistant,
   callAI,
+  callAIImage,
   taskId,
   assistant,
   context,
@@ -142,6 +159,7 @@ async function runFunctionAssistant({
   callback,
 }: {
   callAI: CallAI;
+  callAIImage: CallAIImage;
   getAssistant: GetAssistant;
   taskId: string;
   assistant: FunctionAssistant;
@@ -153,6 +171,7 @@ async function runFunctionAssistant({
     ? await runExecuteBlocks({
         assistant,
         callAI,
+        callAIImage,
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
@@ -215,6 +234,7 @@ async function runFunctionAssistant({
 
 async function runApiAssistant({
   callAI,
+  callAIImage,
   getAssistant,
   taskId,
   assistant,
@@ -222,6 +242,7 @@ async function runApiAssistant({
   callback,
 }: {
   callAI: CallAI;
+  callAIImage: CallAIImage;
   getAssistant: GetAssistant;
   taskId: string;
   assistant: ApiAssistant;
@@ -234,6 +255,7 @@ async function runApiAssistant({
     ? await runExecuteBlocks({
         assistant,
         callAI,
+        callAIImage,
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
@@ -295,6 +317,7 @@ async function renderMessage(message: string, parameters?: { [key: string]: any 
 
 async function runPromptAssistant({
   callAI,
+  callAIImage,
   taskId,
   getAssistant,
   assistant,
@@ -302,6 +325,7 @@ async function runPromptAssistant({
   callback,
 }: {
   callAI: CallAI;
+  callAIImage: CallAIImage;
   taskId: string;
   getAssistant: GetAssistant;
   assistant: PromptAssistant;
@@ -317,6 +341,7 @@ async function runPromptAssistant({
   const blockResults = await runExecuteBlocks({
     assistant,
     callAI,
+    callAIImage,
     getAssistant,
     executeBlocks,
     parameters,
@@ -385,6 +410,11 @@ async function runPromptAssistant({
     input: {
       stream: true,
       messages,
+      model: assistant.model,
+      temperature: assistant.temperature,
+      topP: assistant.topP,
+      presencePenalty: assistant.presencePenalty,
+      frequencyPenalty: assistant.frequencyPenalty,
     },
   });
 
@@ -400,6 +430,7 @@ async function runPromptAssistant({
 
 async function runImageAssistant({
   callAI,
+  callAIImage,
   taskId,
   getAssistant,
   assistant,
@@ -407,6 +438,7 @@ async function runImageAssistant({
   callback,
 }: {
   callAI: CallAI;
+  callAIImage: CallAIImage;
   taskId: string;
   getAssistant: GetAssistant;
   assistant: ImageAssistant;
@@ -419,6 +451,7 @@ async function runImageAssistant({
     ? await runExecuteBlocks({
         assistant,
         callAI,
+        callAIImage,
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
@@ -443,14 +476,17 @@ async function runImageAssistant({
     variables
   );
 
-  const { data } = await callAIKitImageGeneration({
-    prompt,
-    n: assistant.n,
-    model: assistant.model as any,
-    quality: assistant.quality as any,
-    size: assistant.size as any,
-    style: assistant.style as any,
-    responseFormat: assistant.responseFormat as any,
+  const { data } = await callAIImage({
+    assistant,
+    input: {
+      prompt,
+      n: assistant.n,
+      model: assistant.model as any,
+      quality: assistant.quality as any,
+      size: assistant.size as any,
+      style: assistant.style as any,
+      responseFormat: assistant.responseFormat as any,
+    },
   });
 
   callback?.({ taskId, assistantId: assistant.id, delta: { images: data } });
@@ -461,6 +497,7 @@ async function runImageAssistant({
 async function runExecuteBlocks({
   assistant,
   callAI,
+  callAIImage,
   getAssistant,
   parameters,
   executeBlocks,
@@ -468,6 +505,7 @@ async function runExecuteBlocks({
 }: {
   assistant: Assistant;
   callAI: CallAI;
+  callAIImage: CallAIImage;
   getAssistant: GetAssistant;
   parameters?: { [key: string]: any };
   executeBlocks: ExecuteBlock[];
@@ -486,6 +524,7 @@ async function runExecuteBlocks({
         taskId: taskIdGenerator.nextId().toString(),
         assistant,
         callAI,
+        callAIImage,
         getAssistant,
         executeBlock,
         parameters: variables,
@@ -509,6 +548,7 @@ async function runExecuteBlock({
   taskId,
   assistant,
   callAI,
+  callAIImage,
   getAssistant,
   executeBlock,
   parameters,
@@ -517,6 +557,7 @@ async function runExecuteBlock({
   taskId: string;
   assistant: Assistant;
   callAI: CallAI;
+  callAIImage: CallAIImage;
   getAssistant: GetAssistant;
   executeBlock: ExecuteBlock;
   parameters?: { [key: string]: any };
@@ -548,6 +589,7 @@ async function runExecuteBlock({
           return runAssistant({
             taskId: taskIdGenerator.nextId().toString(),
             callAI,
+            callAIImage,
             getAssistant,
             assistant,
             parameters: args,
@@ -595,7 +637,6 @@ async function runExecuteBlock({
       assistant,
       input: {
         messages: [{ role: 'user', content: message }],
-        toolChoice: 'auto',
         tools: toolAssistants.map((i) => ({
           type: 'function',
           function: {
@@ -647,6 +688,7 @@ async function runExecuteBlock({
           return runAssistant({
             taskId: taskIdGenerator.nextId().toString(),
             callAI,
+            callAIImage,
             getAssistant,
             assistant: tool.assistant,
             parameters,

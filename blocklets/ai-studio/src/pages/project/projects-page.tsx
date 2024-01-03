@@ -557,17 +557,17 @@ function ProjectItem({
   return (
     <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between">
-        <Box className="logo" sx={{ width: '22px', height: '22px' }}>
-          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 24 }} />}
+        <Box className="logo" sx={{ width: '32px', height: '32px' }}>
+          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 32 }} />}
         </Box>
 
         {users && Array.isArray(users) && !!users.length && (
           <AvatarGroup
-            total={users.length + 6}
+            total={users.length}
             sx={{
               [`.${avatarClasses.root}`]: {
-                width: '22px',
-                height: '22px',
+                width: '24px',
+                height: '24px',
                 fontSize: '12px',
               },
             }}>
@@ -851,11 +851,16 @@ const ProjectItemRoot = styled(Stack)`
   }
 
   .logo {
+    width: 24px;
+    height: 24px;
+    border-radius: ${({ theme }) => theme.shape.borderRadius}px;
+    overflow: hidden;
+
     img {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      border-radius: ${({ theme }) => theme.shape.borderRadius * 2}px;
+      border-radius: ${({ theme }) => theme.shape.borderRadius}px;
     }
   }
 

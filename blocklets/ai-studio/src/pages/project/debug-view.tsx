@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ImagePreview } from '@blocklet/ai-kit';
+import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, isAssistant, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -36,6 +36,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
 import { ComponentProps, SyntheticEvent, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import Markdown from 'react-markdown';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import { useSessionContext } from '../../contexts/session';
@@ -213,6 +214,7 @@ function MessageView({
   gitRef: string;
   message: SessionItem['messages'][number];
 }) {
+  const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
 
   return (
@@ -230,17 +232,15 @@ function MessageView({
           {message.content || message.parameters || message.images?.length || message.loading ? (
             <MessageViewContent
               sx={{
-                whiteSpace: 'pre-wrap',
                 px: 1,
                 py: 0.5,
                 borderRadius: 1,
-                wordBreak: 'break-word',
                 ':hover': {
                   bgcolor: 'grey.100',
                 },
                 position: 'relative',
               }}>
-              {message.content ||
+              {<Box component={Markdown}>{message.content}</Box> ||
                 (message.parameters && (
                   <Box>
                     {!isEmpty(message.parameters) ? (
@@ -253,13 +253,13 @@ function MessageView({
                         </Typography>
                       ))
                     ) : (
-                      <span>No Parameters</span>
+                      <span>{t('noParameters')}</span>
                     )}
                   </Box>
                 ))}
-              {!!message.InputMessages?.messages.length && (
-                <Box marginY={1}>
-                  {message.InputMessages?.messages.map((i, index) => (
+              {!!message.inputMessages?.messages.length && (
+                <Box marginTop={1}>
+                  {message.inputMessages?.messages.map((i, index) => (
                     <Accordion
                       sx={{
                         border: (theme) => `1px solid ${theme.palette.divider}`,
@@ -272,21 +272,20 @@ function MessageView({
                       }}
                       disableGutters
                       elevation={0}
-                      // eslint-disable-next-line react/no-array-index-key
                       key={index}>
                       <AccordionSummary
                         sx={{
                           backgroundColor: (theme) =>
                             theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
+                          minHeight: 28,
                           '& .MuiAccordionSummary-content': {
-                            marginLeft: (theme) => theme.spacing(1),
+                            my: 0,
                           },
                         }}
-                        aria-controls="panel1a-content"
                         expandIcon={<GridExpandMoreIcon />}>
-                        <Typography>{`prompt${index + 1}`}</Typography>
+                        <Typography>{i.role}</Typography>
                       </AccordionSummary>
-                      <AccordionDetails>
+                      <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
                         <Typography>{i.content}</Typography>
                       </AccordionDetails>
                     </Accordion>
@@ -298,7 +297,12 @@ function MessageView({
                 <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
               )}
 
-              {message.loading && <WritingIndicator />}
+              {message.loading &&
+                (message.inputMessages ? (
+                  message?.inputMessages?.messages.length > 0 && <CircularProgress sx={{ marginTop: 1 }} size={18} />
+                ) : (
+                  <WritingIndicator />
+                ))}
 
               {message.role === 'assistant' && (
                 <Box className="actions">{message.content && <CopyButton key="copy" message={message.content} />}</Box>
@@ -605,13 +609,14 @@ function DebugModeForm({
     const doc = (getYjsValue(assistant) as Map<any>).doc!;
     doc.transact(() => {
       const id = `${Date.now()}-${nanoid(16)}`;
-
+      const keys = parameters.map((i) => i.data.key);
+      const result = pick(form.getValues(), keys);
       assistant.tests ??= {};
       assistant.tests[id] = {
         index: Object.values(assistant.tests).length,
         data: {
           id,
-          parameters: form.getValues(),
+          parameters: result,
           createdBy: user.did,
         },
       };

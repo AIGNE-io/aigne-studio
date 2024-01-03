@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/studio-ui",
-  "version": "0.1.185",
+  "version": "0.1.202",
   "description": "UI components for studio",
   "publishConfig": {
     "access": "public"
@@ -44,9 +44,7 @@
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
-    "prepare": "npm run build",
-    "update:deps": "npx taze -n '/arcblock|ocap|abtnode|blocklet|did-connect|did-comment|nedb/' -w && npm run deduplicate && yarn",
-    "deduplicate": "npx yarn-deduplicate ../../yarn.lock"
+    "prepare": "npm run build"
   },
   "dependencies": {},
   "peerDependencies": {
@@ -62,19 +60,19 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/did-connect": "^2.8.21",
-    "@arcblock/ux": "^2.8.21",
-    "@blocklet/ui-react": "^2.8.21",
+    "@arcblock/did-connect": "^2.8.23",
+    "@arcblock/ux": "^2.8.23",
+    "@blocklet/ui-react": "^2.8.23",
     "@emotion/css": "^11.11.2",
-    "@emotion/react": "^11.11.1",
-    "@mui/icons-material": "^5.14.11",
-    "@mui/lab": "^5.0.0-alpha.146",
-    "@mui/material": "^5.14.11",
-    "@types/react": "^18.2.23",
+    "@emotion/react": "^11.11.3",
+    "@mui/icons-material": "^5.15.2",
+    "@mui/lab": "^5.0.0-alpha.158",
+    "@mui/material": "^5.15.2",
+    "@types/react": "^18.2.46",
     "npm-run-all": "^4.1.5",
     "react": "^18.2.0",
-    "react-router-dom": "^6.16.0",
-    "rimraf": "^5.0.1",
-    "typescript": "^4.9.4"
+    "react-router-dom": "^6.21.1",
+    "rimraf": "^5.0.5",
+    "typescript": "^4.9.5"
   }
 }

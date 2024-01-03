@@ -39,7 +39,7 @@ async function migrate() {
       }
       working.save({ flush: true });
     } catch (error) {
-      logger.error('migrate working failed', error);
+      logger.error('migrate working failed', { error });
     }
   }
 }
@@ -51,8 +51,8 @@ async function migrate() {
     await migrate();
     logger.info(`migration ${version} success`);
     process.exit(0);
-  } catch (err) {
-    logger.error(`${name} migration ${version} error`, err);
+  } catch (error) {
+    logger.error(`${name} migration ${version} error`, { error });
     process.exit(1);
   }
 })();
