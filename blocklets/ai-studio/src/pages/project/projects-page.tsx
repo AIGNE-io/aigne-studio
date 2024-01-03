@@ -528,7 +528,7 @@ function ProjectItem({
     try {
       if (gitUrl) {
         const u = new URL(gitUrl);
-        u.password = '';
+        u.username = '';
         return u.toString();
       }
 
