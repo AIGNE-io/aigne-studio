@@ -1,4 +1,3 @@
-import { Config } from '@api/libs/env';
 import { embeddings } from '@blocklet/ai-kit/api/call';
 import { Embeddings, EmbeddingsParams } from 'langchain/embeddings/base';
 import { CreateEmbeddingRequest } from 'openai';
@@ -88,6 +87,6 @@ export class AIKitEmbeddings extends Embeddings implements AIKitEmbeddingsParams
   }
 
   private async embeddingWithRetry(request: CreateEmbeddingRequest) {
-    return embeddings(request, { useAIKitService: Config.useAIKitService });
+    return embeddings(request);
   }
 }

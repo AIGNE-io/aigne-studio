@@ -1,4 +1,3 @@
-import { Config } from '@api/libs/env';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
 import { CallAI, RunAssistantResponse, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import { isPromptAssistant } from '@blocklet/ai-runtime/types';
@@ -15,17 +14,15 @@ const router = Router();
 
 const defaultModel = 'gpt-3.5-turbo';
 
-router.get('/status', ensureComponentCallOrPromptsEditor(), (req, res, next) => {
-  proxyToAIKit('/api/v1/status', { useAIKitService: Config.useAIKitService })(req, res, next);
-});
+router.get('/status', ensureComponentCallOrPromptsEditor(), proxyToAIKit('/api/v1/status'));
 
-router.post('/:type(chat)?/completions', ensureComponentCallOrPromptsEditor(), (req, res, next) => {
-  proxyToAIKit('/api/v1/chat/completions', { useAIKitService: Config.useAIKitService })(req, res, next);
-});
+router.post(
+  '/:type(chat)?/completions',
+  ensureComponentCallOrPromptsEditor(),
+  proxyToAIKit('/api/v1/sdk/chat/completions' as any)
+);
 
-router.post('/image/generations', ensureComponentCallOrPromptsEditor(), (req, res, next) => {
-  proxyToAIKit('/api/v1/image/generations', { useAIKitService: Config.useAIKitService })(req, res, next);
-});
+router.post('/image/generations', ensureComponentCallOrPromptsEditor(), proxyToAIKit('/api/v1/image/generations'));
 
 const callInputSchema = Joi.object<{
   projectId: string;
@@ -55,19 +52,16 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
   const callAI: CallAI = ({ assistant, input }) => {
     const promptAssistant = isPromptAssistant(assistant) ? assistant : undefined;
 
-    return chatCompletions(
-      {
-        ...input,
-        model: input.model || promptAssistant?.model || project.model || defaultModel,
-        temperature: input.temperature ?? promptAssistant?.temperature ?? project.temperature,
-        topP: input.topP ?? promptAssistant?.topP ?? project.topP,
-        presencePenalty: input.presencePenalty ?? promptAssistant?.presencePenalty ?? project.presencePenalty,
-        frequencyPenalty: input.frequencyPenalty ?? promptAssistant?.frequencyPenalty ?? project.frequencyPenalty,
-        // FIXME: should be maxTokens - prompt tokens
-        // maxTokens: input.maxTokens ?? project.maxTokens,
-      },
-      { useAIKitService: Config.useAIKitService }
-    );
+    return chatCompletions({
+      ...input,
+      model: input.model || promptAssistant?.model || project.model || defaultModel,
+      temperature: input.temperature ?? promptAssistant?.temperature ?? project.temperature,
+      topP: input.topP ?? promptAssistant?.topP ?? project.topP,
+      presencePenalty: input.presencePenalty ?? promptAssistant?.presencePenalty ?? project.presencePenalty,
+      frequencyPenalty: input.frequencyPenalty ?? promptAssistant?.frequencyPenalty ?? project.frequencyPenalty,
+      // FIXME: should be maxTokens - prompt tokens
+      // maxTokens: input.maxTokens ?? project.maxTokens,
+    });
   };
 
   const getAssistant = (fileId: string) => {
@@ -108,7 +102,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
 
     const result = await runAssistant({
       callAI,
-      callAIImage: ({ input }) => imageGenerations(input, { useAIKitService: Config.useAIKitService }),
+      callAIImage: ({ input }) => imageGenerations(input),
       taskId,
       getAssistant,
       assistant,
