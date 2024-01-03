@@ -1,3 +1,7 @@
+## 0.1.204 (2024-1-3)
+
+- fix: debug view performance optimization
+
 ## 0.1.203 (2024-1-3)
 
 - fix: compare data params

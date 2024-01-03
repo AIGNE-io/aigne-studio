@@ -514,6 +514,9 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             break;
           }
         }
+        setMessage(sessionIndex, messageId, (message) => {
+          message.loading = false;
+        });
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
 
