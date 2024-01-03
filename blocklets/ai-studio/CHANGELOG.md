@@ -1,3 +1,7 @@
+## 0.1.205 (2024-1-3)
+
+- fix: move billing to ai-kit
+
 ## 0.1.204 (2024-1-3)
 
 - fix: debug view performance optimization
