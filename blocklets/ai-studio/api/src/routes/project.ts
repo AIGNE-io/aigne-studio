@@ -39,6 +39,7 @@ export interface CreateProjectInput {
   templateId?: string;
   name?: string;
   description?: string;
+  isImport?: boolean;
 }
 
 const createProjectSchema = Joi.object<CreateProjectInput>({
@@ -46,6 +47,7 @@ const createProjectSchema = Joi.object<CreateProjectInput>({
   templateId: Joi.string().empty([null, '']),
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
+  isImport: Joi.boolean().default(false),
 });
 
 const exportSchema = Joi.object<{
@@ -197,9 +199,12 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-    const { duplicateFrom, templateId, name, description } = await createProjectSchema.validateAsync(req.body, {
-      stripUnknown: true,
-    });
+    const { duplicateFrom, templateId, name, description, isImport } = await createProjectSchema.validateAsync(
+      req.body,
+      {
+        stripUnknown: true,
+      }
+    );
     const { did, fullName } = req.user!;
 
     if (duplicateFrom) {
@@ -261,19 +266,21 @@ export function projectRoutes(router: Router) {
       });
 
       const repository = await getRepository({ projectId: project._id!, author: { name: fullName, email: did } });
-      const working = await repository.working({ ref: defaultBranch });
-      for (const { parent, ...file } of template.files) {
-        const id = nextAssistantId();
-        working.syncedStore.files[id] = fileToYjs({ ...file, id });
-        working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
+      if (!isImport) {
+        const working = await repository.working({ ref: defaultBranch });
+        for (const { parent, ...file } of template.files) {
+          const id = nextAssistantId();
+          working.syncedStore.files[id] = fileToYjs({ ...file, id });
+          working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
+        }
+        await commitWorking({
+          project,
+          ref: defaultBranch,
+          branch: defaultBranch,
+          message: 'First Commit',
+          author: { name: fullName, email: did },
+        });
       }
-      await commitWorking({
-        project,
-        ref: defaultBranch,
-        branch: defaultBranch,
-        message: 'First Commit',
-        author: { name: fullName, email: did },
-      });
 
       res.json(project);
       return;

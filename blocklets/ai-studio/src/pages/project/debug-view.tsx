@@ -122,7 +122,13 @@ function DebugViewContent({
 
       <Box flexGrow={1}>
         {currentSession.messages.map((message) => (
-          <MessageView key={message.id} projectId={projectId} gitRef={gitRef} message={message} />
+          <MessageView
+            currentSession={currentSession.chatType}
+            key={message.id}
+            projectId={projectId}
+            gitRef={gitRef}
+            message={message}
+          />
         ))}
       </Box>
 
@@ -205,7 +211,17 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
 }
 
 const MessageView = memo(
-  ({ projectId, gitRef, message }: { projectId: string; gitRef: string; message: SessionItem['messages'][number] }) => {
+  ({
+    projectId,
+    gitRef,
+    currentSession,
+    message,
+  }: {
+    projectId: string;
+    currentSession?: 'chat' | 'debug';
+    gitRef: string;
+    message: SessionItem['messages'][number];
+  }) => {
     const { t } = useLocaleContext();
     const { store } = useProjectStore(projectId, gitRef);
 
@@ -291,9 +307,8 @@ const MessageView = memo(
 
                 {message.loading &&
                   (message.inputMessages ? (
-                    message?.inputMessages?.messages.length === 0 && (
-                      <CircularProgress sx={{ marginTop: 1 }} size={18} />
-                    )
+                    message?.inputMessages?.messages.length === 0 &&
+                    (currentSession === 'debug' ? <CircularProgress sx={{ marginTop: 1 }} size={18} /> : null)
                   ) : (
                     <WritingIndicator />
                   ))}

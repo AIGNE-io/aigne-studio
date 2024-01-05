@@ -99,6 +99,7 @@ export default flat({
   },
   import: {
     title: 'Import Templates',
+    remote: 'Import repository',
     selectProject: 'Select Project',
     selectBranch: 'Select Branch',
     templates: 'Templates',
@@ -270,6 +271,7 @@ export default flat({
   deleteSucceed: 'Delete Succeed',
   url: 'URL',
   username: 'Username',
+  projectName: 'Project Name',
   accessToken: 'Access Token',
   remoteGitRepoPasswordHelper: 'Github does not support password access, you can use',
   githubTokenTip:
