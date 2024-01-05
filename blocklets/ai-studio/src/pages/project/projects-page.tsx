@@ -717,7 +717,7 @@ function RegistryImport() {
   return (
     <>
       <ProjectItemRoot onClick={() => dialogState.open()} justifyContent="center" alignItems="center">
-        {t('import.remote')}
+        <Box sx={{ color: (theme) => theme.palette.text.secondary }}>{t('import.remote')}</Box>
       </ProjectItemRoot>
 
       <Dialog
