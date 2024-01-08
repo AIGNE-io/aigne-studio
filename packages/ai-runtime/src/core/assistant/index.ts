@@ -209,7 +209,7 @@ async function runFunctionAssistant({
     callback?.({
       taskId,
       assistantId: assistant.id,
-      delta: { content: `Console:\n ${data.map((item) => `${JSON.stringify(item)}\n`)}\n` },
+      delta: { content: `Console:\n ${data.map((item) => `${JSON.stringify(item)}\n`)} \n` },
     });
   });
 

@@ -1,3 +1,7 @@
+## 0.1.207 (2024-1-8)
+
+- fix: debug ux
+
 ## 0.1.206 (2024-1-5)
 
 - feat: support remote repo
