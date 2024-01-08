@@ -206,7 +206,11 @@ async function runFunctionAssistant({
   });
 
   vm.on('console.log', (...data) => {
-    callback?.({ taskId, assistantId: assistant.id, delta: { content: `\nDEBUG: ${JSON.stringify(data)}\n` } });
+    callback?.({
+      taskId,
+      assistantId: assistant.id,
+      delta: { content: `Console:\n ${data.map((item) => `${JSON.stringify(item)}\n`)}\n` },
+    });
   });
 
   const module = await vm.run(assistant.code);
@@ -221,12 +225,14 @@ async function runFunctionAssistant({
     )
   );
 
-  const result = await module.default(args);
+  const resultsArgs = Object.fromEntries(results.map((item) => [item[0]?.variable, item[1][0]]).filter((x) => x[0]));
+
+  const result = await module.default({ ...args, ...resultsArgs });
 
   callback?.({
     taskId,
     assistantId: assistant.id,
-    delta: { content: typeof result === 'string' ? result : JSON.stringify(result) },
+    delta: { content: `RUN RESULT:\n ${typeof result === 'string' ? result : JSON.stringify(result)} \n` },
   });
 
   return result;
@@ -305,7 +311,7 @@ async function runApiAssistant({
   callback?.({
     taskId,
     assistantId: assistant.id,
-    delta: { content: typeof result === 'string' ? result : JSON.stringify(result || error) },
+    delta: { content: `RUN RESULT: \n ${typeof result === 'string' ? result : JSON.stringify(result || error)} \n\n` },
   });
 
   return result;

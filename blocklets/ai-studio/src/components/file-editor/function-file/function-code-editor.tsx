@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import CodeEditor from '../../template-form/code-editor';
+import useVariablesEditorOptions from '../use-variables-editor-options';
 
 export default function FunctionCodeEditor({
   value,
@@ -21,6 +22,7 @@ export default function FunctionCodeEditor({
   const { t } = useLocaleContext();
 
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
+  const { variables } = useVariablesEditorOptions(value);
 
   useEffect(() => {
     if (!value.code) {
@@ -65,6 +67,7 @@ module.exports.default = async function(args) {
           },
         }}>
         <CodeEditor
+          variables={variables}
           readOnly={readOnly}
           language="javascript"
           path="function.js"

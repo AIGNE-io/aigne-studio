@@ -248,7 +248,11 @@ const MessageView = memo(
                   },
                   position: 'relative',
                 }}>
-                {<Box component={Markdown}>{message.content}</Box> ||
+                {(
+                  <Box component={Markdown} sx={{ whiteSpace: 'pre-wrap' }}>
+                    {message.content}
+                  </Box>
+                ) ||
                   (message.parameters && (
                     <Box>
                       {!isEmpty(message.parameters) ? (
