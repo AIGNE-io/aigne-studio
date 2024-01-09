@@ -29,6 +29,7 @@ router.post('/image/generations', ensureComponentCallOrPromptsEditor(), proxyToA
 
 const callInputSchema = Joi.object<{
   userId?: string;
+  sessionId?: string;
   projectId: string;
   ref: string;
   working?: boolean;
@@ -36,6 +37,7 @@ const callInputSchema = Joi.object<{
   parameters?: { [key: string]: any };
 }>({
   userId: Joi.string().empty(['', null]),
+  sessionId: Joi.string().empty(['', null]),
   projectId: Joi.string().required(),
   ref: Joi.string().required(),
   working: Joi.boolean().default(false),
@@ -87,6 +89,7 @@ router.post('/call', compression(), user(), ensureComponentCallOrAuth(), async (
         projectId: input.projectId,
         ref: input.ref,
         assistantId: input.assistantId,
+        sessionId: input.sessionId,
         parameters: input.parameters,
         generateStatus: 'generating',
       })

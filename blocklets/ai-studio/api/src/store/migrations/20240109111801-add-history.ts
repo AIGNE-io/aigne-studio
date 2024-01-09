@@ -33,6 +33,9 @@ export const up: Migration = async ({ context: queryInterface }) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    sessionId: {
+      type: DataTypes.STRING,
+    },
     parameters: {
       type: DataTypes.JSON,
     },
@@ -49,6 +52,8 @@ export const up: Migration = async ({ context: queryInterface }) => {
       type: DataTypes.STRING,
     },
   });
+
+  await queryInterface.addIndex('Histories', ['projectId', 'assistantId', 'userId', 'sessionId']);
 };
 
 export const down: Migration = async ({ context: queryInterface }) => {

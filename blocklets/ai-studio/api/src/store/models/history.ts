@@ -22,6 +22,8 @@ export default class History extends Model<InferAttributes<History>, InferCreati
 
   declare assistantId: string;
 
+  declare sessionId?: string;
+
   declare parameters?: { [key: string]: any };
 
   declare result?: { content?: string; images?: { url: string }[] };
@@ -72,6 +74,9 @@ History.init(
     assistantId: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    sessionId: {
+      type: DataTypes.STRING,
     },
     parameters: {
       type: DataTypes.JSON,
