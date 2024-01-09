@@ -477,7 +477,6 @@ async function runImageAssistant({
       quality: assistant.quality as any,
       size: assistant.size as any,
       style: assistant.style as any,
-      responseFormat: assistant.responseFormat as any,
     },
   });
 

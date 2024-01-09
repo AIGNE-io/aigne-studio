@@ -78,7 +78,6 @@ export interface ImageAssistant extends AssistantBase {
   quality?: string;
   style?: string;
   size?: string;
-  responseFormat?: string;
 }
 
 export interface ApiAssistant extends AssistantBase {

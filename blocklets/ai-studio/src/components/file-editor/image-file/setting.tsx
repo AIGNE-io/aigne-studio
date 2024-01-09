@@ -179,41 +179,6 @@ export default function ImageFileSetting({
                 </Box>
               )}
 
-              {modelDetail.responseFormat && modelDetail.responseFormat.length > 0 && (
-                <Box position="relative">
-                  <Tooltip title={t('responseFormatTip')} placement="top" disableInteractive>
-                    <FormLabel>
-                      {t('responseFormat')}
-                      <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
-                    </FormLabel>
-                  </Tooltip>
-                  <Box>
-                    <WithAwareness
-                      sx={{ top: -2, right: -4 }}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      path={[value.id, 'responseFormat']}>
-                      <TextField
-                        hiddenLabel
-                        select
-                        SelectProps={{
-                          readOnly,
-                          autoWidth: true,
-                          sx: { backgroundColor: getDiffBackground('responseFormat') },
-                        }}
-                        value={value.responseFormat ?? modelDetail.responseFormatDefault}
-                        onChange={(e) => (value.responseFormat = e.target.value)}>
-                        {modelDetail.responseFormat.map((i) => (
-                          <MenuItem key={i} value={i}>
-                            {i}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </WithAwareness>
-                  </Box>
-                </Box>
-              )}
-
               {modelDetail.size && modelDetail.size.length > 0 && (
                 <Box position="relative">
                   <Tooltip title={t('sizeTip')} placement="top" disableInteractive>

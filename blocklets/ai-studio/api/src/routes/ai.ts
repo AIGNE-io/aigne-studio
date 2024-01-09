@@ -148,7 +148,7 @@ router.post('/call', compression(), user(), ensureComponentCallOrAuth(), async (
     const result = await runAssistant({
       callAI,
       callAIImage: ({ input }) =>
-        imageGenerations(input).then(async (res) => ({
+        imageGenerations({ ...input, responseFormat: 'b64_json' }).then(async (res) => ({
           data: await Promise.all(
             res.data.map(async (item) => ({
               url: (await uploadImageToImageBin({ filename: `AI Generate ${Date.now()}.png`, data: item })).url,

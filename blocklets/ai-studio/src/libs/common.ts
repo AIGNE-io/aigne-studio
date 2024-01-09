@@ -181,8 +181,6 @@ export interface ImageModelInfo extends ModelInfoBase {
   disabled?: boolean;
   quality?: string[];
   qualityDefault?: string;
-  responseFormat?: string[];
-  responseFormatDefault?: string;
   size?: string[];
   sizeDefault?: string;
   style?: string[];
@@ -199,8 +197,6 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
       nMin: 1,
       nMax: 10,
       nDefault: 1,
-      responseFormat: ['url', 'b64_json'],
-      responseFormatDefault: 'url',
       size: ['256x256', '512x512', '1024x1024'],
       sizeDefault: '256x256',
     },
@@ -212,8 +208,6 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
       nDefault: 1,
       quality: ['standard', 'hd'],
       qualityDefault: 'standard',
-      responseFormat: ['url', 'b64_json'],
-      responseFormatDefault: 'url',
       size: ['1024x1024', '1792x1024', '1024x1792'],
       sizeDefault: '1024x1024',
       style: ['vivid', 'natural'],
