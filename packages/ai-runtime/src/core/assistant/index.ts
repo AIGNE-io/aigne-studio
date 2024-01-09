@@ -9,6 +9,7 @@ import {
 import { call } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
+import dayjs from 'dayjs';
 import { flattenDeep, isNil, pick } from 'lodash';
 import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
@@ -35,12 +36,19 @@ export type InputMessages = {
   }>;
 };
 
-export type RunAssistantResponse = RunAssistantChunk | RunAssistantError | RunAssistantInput;
+export type RunAssistantResponse = RunAssistantChunk | RunAssistantError | RunAssistantInput | RunAssistantConsole;
 
 export type RunAssistantInput = {
   taskId: string;
   assistantId: string;
   input: InputMessages;
+};
+
+export type RunAssistantConsole = {
+  taskId: string;
+  assistantId: string;
+  console: string;
+  timestamp: number;
 };
 
 export type RunAssistantChunk = {
@@ -206,7 +214,21 @@ async function runFunctionAssistant({
   });
 
   vm.on('console.log', (...data) => {
-    callback?.({ taskId, assistantId: assistant.id, delta: { content: `\nDEBUG: ${JSON.stringify(data)}\n` } });
+    const timestamp = new Date().getTime();
+    const logData = data
+      .map((datum) => {
+        if (typeof datum === 'object') {
+          return JSON.stringify(datum, null, 2);
+        }
+        return JSON.stringify(datum);
+      })
+      .join('   ');
+    callback?.({
+      taskId,
+      assistantId: assistant.id,
+      console: `(${dayjs().format('YYYY-MM-DD HH:mm:ss')}): ${logData}`,
+      timestamp,
+    });
   });
 
   const module = await vm.run(assistant.code);

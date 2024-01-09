@@ -1,3 +1,4 @@
+import logsStore from '@app/components/logs-container/logs-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { AssistantYjs, FileTypeYjs, fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
@@ -427,7 +428,11 @@ const FileTree = forwardRef<
                     icon={<FileIcon type={meta.type} />}
                     depth={depth}
                     selected={selected}
-                    onClick={() => navigate(joinURL('.', filepath))}
+                    onClick={() => {
+                      const { clearLogs } = logsStore.getState();
+                      clearLogs();
+                      navigate(joinURL('.', filepath));
+                    }}
                     actions={actions}
                     sx={{ color: change?.color }}>
                     {meta.name || t('alert.unnamed')}

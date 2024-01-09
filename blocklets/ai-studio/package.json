@@ -126,7 +126,8 @@
     "y-indexeddb": "^9.0.12",
     "y-protocols": "^1.0.6",
     "y-websocket": "^1.5.1",
-    "yaml": "^2.3.4"
+    "yaml": "^2.3.4",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/compression": "^1.7.5",

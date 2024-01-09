@@ -1,5 +1,12 @@
+import logsStore from '@app/components/logs-container/logs-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { isRunAssistantChunk, isRunAssistantError, isRunAssistantInput, runAssistant } from '@blocklet/ai-runtime/api';
+import {
+  isRunAssistantChunk,
+  isRunAssistantConsole,
+  isRunAssistantError,
+  isRunAssistantInput,
+  runAssistant,
+} from '@blocklet/ai-runtime/api';
 import { InputMessages } from '@blocklet/ai-runtime/core';
 import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
@@ -500,6 +507,9 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 if (message.cancelled) return;
                 message.error = value.error;
               });
+            } else if (isRunAssistantConsole(value)) {
+              const { setLogs } = logsStore.getState();
+              setLogs(value);
             } else {
               console.error('Unknown AI response type', value);
             }

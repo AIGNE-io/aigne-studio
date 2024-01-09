@@ -1,3 +1,4 @@
+import LogsContainer from '@app/components/logs-container';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
@@ -12,10 +13,12 @@ export default function FunctionCodeEditor({
   readOnly,
   compareValue,
   isRemoteCompare,
+  showConsole = false,
 }: {
   value: FunctionAssistantYjs;
   readOnly?: boolean;
   compareValue?: FunctionAssistantYjs;
+  showConsole?: boolean;
   isRemoteCompare?: boolean;
 }) {
   const { t } = useLocaleContext();
@@ -54,8 +57,8 @@ module.exports.default = async function(args) {
           zIndex: (theme) => theme.zIndex.tooltip,
           height: '300px',
           '.monaco-editor': {
-            borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
-            borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
+            borderBottomLeftRadius: (theme) => (showConsole ? 0 : theme.shape.borderRadius * 2),
+            borderBottomRightRadius: (theme) => (showConsole ? 0 : theme.shape.borderRadius * 2),
             '.overflow-guard': {
               borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
               borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
@@ -72,6 +75,7 @@ module.exports.default = async function(args) {
           onChange={(code) => (value.code = code)}
         />
       </Box>
+      {showConsole && <LogsContainer />}
     </Box>
   );
 }
