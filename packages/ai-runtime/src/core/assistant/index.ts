@@ -1,11 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
-import {
-  ChatCompletionChunk,
-  ChatCompletionInput,
-  ImageGenerationInput,
-  ImageGenerationResponse,
-} from '@blocklet/ai-kit/api/types';
+import { ChatCompletionChunk, ChatCompletionInput, ImageGenerationInput } from '@blocklet/ai-kit/api/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
@@ -48,10 +43,7 @@ export type RunAssistantChunk = {
   assistantId: string;
   delta: {
     content?: string | null;
-    images?: {
-      b64_string?: string;
-      url?: string;
-    }[];
+    images?: { url: string }[];
   };
 };
 
@@ -74,7 +66,7 @@ export type CallAI = (options: {
 export type CallAIImage = (options: {
   assistant: Assistant;
   input: ImageGenerationInput;
-}) => Promise<ImageGenerationResponse>;
+}) => Promise<{ data: { url: string }[] }>;
 
 const taskIdGenerator = new Worker();
 
