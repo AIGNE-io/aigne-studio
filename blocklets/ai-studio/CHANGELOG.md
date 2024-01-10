@@ -1,3 +1,7 @@
+## 0.1.207 (2024-1-10)
+
+- feat: optimized logs format
+
 ## 0.1.206 (2024-1-5)
 
 - feat: support remote repo

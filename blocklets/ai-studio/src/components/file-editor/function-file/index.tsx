@@ -39,7 +39,7 @@ export default function FunctionAssistantEditor({
         <FunctionAssistantEditorPrepare projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Stack>
 
-      <FunctionCodeEditor showConsole value={value} readOnly={readOnly} />
+      <FunctionCodeEditor value={value} readOnly={readOnly} />
 
       <Box sx={{ bgcolor, p: 1, px: 2, borderRadius: 1 }}>
         <FunctionAssistantSetting />
