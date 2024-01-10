@@ -48,7 +48,7 @@ export type RunAssistantConsole = {
   taskId: string;
   assistantId: string;
   console: string;
-  timestamp: number;
+  timestamp: string;
 };
 
 export type RunAssistantChunk = {
@@ -56,6 +56,7 @@ export type RunAssistantChunk = {
   assistantId: string;
   delta: {
     content?: string | null;
+    console?: string | null;
     images?: {
       b64_string?: string;
       url?: string;
@@ -214,7 +215,6 @@ async function runFunctionAssistant({
   });
 
   vm.on('console.log', (...data) => {
-    const timestamp = new Date().getTime();
     const logData = data
       .map((datum) => {
         if (typeof datum === 'object') {
@@ -223,11 +223,12 @@ async function runFunctionAssistant({
         return JSON.stringify(datum);
       })
       .join('   ');
+
     callback?.({
       taskId,
       assistantId: assistant.id,
-      console: `(${dayjs().format('YYYY-MM-DD HH:mm:ss')}): ${logData}`,
-      timestamp,
+      console: logData,
+      timestamp: dayjs().format('HH:mm:ss:SSS'),
     });
   });
 

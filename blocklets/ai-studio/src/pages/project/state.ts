@@ -1,4 +1,3 @@
-import logsStore from '@app/components/logs-container/logs-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   isRunAssistantChunk,
@@ -7,7 +6,7 @@ import {
   isRunAssistantInput,
   runAssistant,
 } from '@blocklet/ai-runtime/api';
-import { InputMessages } from '@blocklet/ai-runtime/core';
+import { InputMessages, RunAssistantConsole } from '@blocklet/ai-runtime/core';
 import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
@@ -182,6 +181,7 @@ export interface SessionItem {
     createdAt: string;
     role: Role;
     content: string;
+    logs?: Array<RunAssistantConsole>;
     gitRef?: string;
     parameters?: { [key: string]: any };
     images?: { b64Json?: string; url?: string }[];
@@ -485,7 +485,6 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               } else {
                 setMessage(sessionIndex, messageId, (message) => {
                   if (message.cancelled) return;
-
                   message.subMessages ??= [];
 
                   let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
@@ -508,8 +507,13 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 message.error = value.error;
               });
             } else if (isRunAssistantConsole(value)) {
-              const { setLogs } = logsStore.getState();
-              setLogs(value);
+              setMessage(sessionIndex, responseId, (message) => {
+                if (message.cancelled) return;
+                if (value) {
+                  message.logs ??= [];
+                  message.logs?.push(value);
+                }
+              });
             } else {
               console.error('Unknown AI response type', value);
             }
