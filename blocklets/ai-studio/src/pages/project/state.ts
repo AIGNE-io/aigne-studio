@@ -1,12 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   isRunAssistantChunk,
-  isRunAssistantConsole,
   isRunAssistantError,
   isRunAssistantInput,
+  isRunAssistantLog,
   runAssistant,
 } from '@blocklet/ai-runtime/api';
-import { InputMessages, RunAssistantConsole } from '@blocklet/ai-runtime/core';
+import { InputMessages, RunAssistantLog } from '@blocklet/ai-runtime/core';
 import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
@@ -181,7 +181,7 @@ export interface SessionItem {
     createdAt: string;
     role: Role;
     content: string;
-    logs?: Array<RunAssistantConsole>;
+    logs?: Array<RunAssistantLog>;
     gitRef?: string;
     parameters?: { [key: string]: any };
     images?: { b64Json?: string; url?: string }[];
@@ -506,7 +506,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 if (message.cancelled) return;
                 message.error = value.error;
               });
-            } else if (isRunAssistantConsole(value)) {
+            } else if (isRunAssistantLog(value)) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
                 if (value) {

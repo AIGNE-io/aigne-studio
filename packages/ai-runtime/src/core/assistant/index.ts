@@ -35,7 +35,7 @@ export type InputMessages = {
   }>;
 };
 
-export type RunAssistantResponse = RunAssistantChunk | RunAssistantError | RunAssistantInput | RunAssistantConsole;
+export type RunAssistantResponse = RunAssistantChunk | RunAssistantError | RunAssistantInput | RunAssistantLog;
 
 export type RunAssistantInput = {
   taskId: string;
@@ -43,7 +43,7 @@ export type RunAssistantInput = {
   input: InputMessages;
 };
 
-export type RunAssistantConsole = {
+export type RunAssistantLog = {
   taskId: string;
   assistantId: string;
   log: string;
