@@ -31,6 +31,7 @@ import {
 } from '@mui/material';
 import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { useLocalStorageState } from 'ahooks';
+import dayjs from 'dayjs';
 import { isEmpty, pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
@@ -234,12 +235,12 @@ const MessageView = memo(
           <Box>
             {!!message.logs?.length && (
               <Box mb={1} bgcolor="grey.50" borderRadius={1} p={0.5}>
-                {message.logs.map((log, index) => (
+                {message.logs.map((item, index) => (
                   <Box my={0.5} key={index}>
                     <Typography component="span" color="text.secondary">
-                      {`${log.timestamp}: `}
+                      {`${dayjs(item.timestamp).format('HH:mm:ss:SSS')}: `}
                     </Typography>
-                    <Typography ml={0.25} component="span">{`${log.console}  `}</Typography>
+                    <Typography ml={0.25} component="span">{`${item.log}  `}</Typography>
                   </Box>
                 ))}
               </Box>

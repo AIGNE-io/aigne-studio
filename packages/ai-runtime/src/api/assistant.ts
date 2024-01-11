@@ -37,7 +37,7 @@ export const isRunAssistantError = (i: RunAssistantResponse): i is RunAssistantE
   typeof (i as RunAssistantError).error === 'object';
 
 export const isRunAssistantConsole = (i: RunAssistantResponse): i is RunAssistantConsole =>
-  typeof (i as RunAssistantConsole).console === 'string';
+  typeof (i as RunAssistantConsole).log === 'string';
 
 export async function runAssistant<
   T = {

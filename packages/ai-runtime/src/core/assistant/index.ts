@@ -9,7 +9,6 @@ import {
 import { call } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
-import dayjs from 'dayjs';
 import { flattenDeep, isNil, pick } from 'lodash';
 import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
@@ -47,8 +46,8 @@ export type RunAssistantInput = {
 export type RunAssistantConsole = {
   taskId: string;
   assistantId: string;
-  console: string;
-  timestamp: string;
+  log: string;
+  timestamp: number;
 };
 
 export type RunAssistantChunk = {
@@ -56,7 +55,6 @@ export type RunAssistantChunk = {
   assistantId: string;
   delta: {
     content?: string | null;
-    console?: string | null;
     images?: {
       b64_string?: string;
       url?: string;
@@ -227,8 +225,8 @@ async function runFunctionAssistant({
     callback?.({
       taskId,
       assistantId: assistant.id,
-      console: logData,
-      timestamp: dayjs().format('HH:mm:ss:SSS'),
+      log: logData,
+      timestamp: Date.now(),
     });
   });
 
