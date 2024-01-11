@@ -45,7 +45,7 @@ import Empty from './icons/empty';
 import Record from './icons/record';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
-import { SessionItem, useDebugState, useProjectState } from './state';
+import { SessionItem, SubscriptionErrorType, useDebugState, useProjectState } from './state';
 import { useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {
@@ -312,7 +312,9 @@ const MessageView = memo(
                 icon={<ErrorRounded />}
                 color="error"
                 sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                {message.error.message}
+                {message?.error?.type === SubscriptionErrorType.UNSUBSCRIBED
+                  ? t('chatSubscribe')
+                  : message.error.message}
               </Alert>
             ) : (
               message.cancelled && (

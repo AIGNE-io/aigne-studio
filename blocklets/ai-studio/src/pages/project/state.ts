@@ -166,6 +166,13 @@ export const useProjectState = (projectId: string, gitRef: string) => {
   };
 };
 
+export enum SubscriptionErrorType {
+  UNSUBSCRIBED = 'UNSUBSCRIBED',
+  NON_PAID = 'NON_PAID',
+  EXCEEDED = 'EXCEEDED',
+  UNKNOWN = 'UNKNOWN',
+}
+
 export interface SessionItem {
   index: number;
   createdAt: string;
@@ -181,7 +188,7 @@ export interface SessionItem {
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
-    error?: { message: string };
+    error?: { message: string; [key: string]: unknown };
     inputMessages?: InputMessages;
     subMessages?: {
       taskId: string;
@@ -514,9 +521,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             break;
           }
         }
-        setMessage(sessionIndex, messageId, (message) => {
-          message.loading = false;
-        });
+
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
 
@@ -524,15 +529,33 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
           message.loading = false;
         });
       } catch (error) {
+        let chatError: {
+          message: string;
+          [key: string]: unknown;
+        };
+
+        try {
+          const parsedError = JSON.parse(error.message);
+          if (typeof parsedError === 'object') {
+            chatError = parsedError;
+          } else {
+            chatError = { message: error.message };
+          }
+        } catch (e) {
+          chatError = { message: error.message };
+        }
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
-
-          message.error = { message: error.message };
+          message.error = chatError;
+          message.loading = false;
+        });
+      } finally {
+        setMessage(sessionIndex, messageId, (message) => {
           message.loading = false;
         });
       }
     },
-    [setMessage, setState, state]
+    [setMessage, setState, state.sessions]
   );
 
   const cancelMessage = useCallback(

@@ -374,6 +374,7 @@ export default flat({
   asHistory: '作为聊天记录',
   stayAsIs: '保持原样',
   prepareExecutes: '预执行',
+  chatSubscribe: '您好，请先订阅服务才可以继续聊天',
   tool: '工具',
   callFunction: '调用函数',
   callPrompt: '运行提示',
