@@ -31,6 +31,7 @@ import {
 } from '@mui/material';
 import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { useLocalStorageState } from 'ahooks';
+import dayjs from 'dayjs';
 import { isEmpty, pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
@@ -231,111 +232,124 @@ const MessageView = memo(
           <Box py={0.5}>
             <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
           </Box>
-
-          <Box
-            flex={1}
-            sx={{
-              [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
-            }}>
-            {message.content || message.parameters || message.images?.length || message.loading ? (
-              <MessageViewContent
-                sx={{
-                  px: 1,
-                  py: 0.5,
-                  borderRadius: 1,
-                  ':hover': {
-                    bgcolor: 'grey.100',
-                  },
-                  position: 'relative',
-                }}>
-                {<Box component={Markdown}>{message.content}</Box> ||
-                  (message.parameters && (
-                    <Box>
-                      {!isEmpty(message.parameters) ? (
-                        Object.entries(message.parameters).map(([key, val]) => (
-                          <Typography key={key}>
-                            <Typography component="span" color="text.secondary">
-                              {key}
+          <Box>
+            {!!message.logs?.length && (
+              <Box mb={1} bgcolor="grey.50" borderRadius={1} p={0.5}>
+                {message.logs.map((item, index) => (
+                  <Box my={0.5} key={index}>
+                    <Typography component="span" color="text.secondary">
+                      {`${dayjs(item.timestamp).format('HH:mm:ss:SSS')}: `}
+                    </Typography>
+                    <Typography ml={0.25} component="span">{`${item.log}  `}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
+            <Box
+              flex={1}
+              sx={{
+                [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
+              }}>
+              {message.content || message.parameters || message.images?.length || message.loading ? (
+                <MessageViewContent
+                  sx={{
+                    px: 1,
+                    py: 0.5,
+                    borderRadius: 1,
+                    ':hover': {
+                      bgcolor: 'grey.100',
+                    },
+                    position: 'relative',
+                  }}>
+                  {<Box component={Markdown}>{message.content}</Box> ||
+                    (message.parameters && (
+                      <Box>
+                        {!isEmpty(message.parameters) ? (
+                          Object.entries(message.parameters).map(([key, val]) => (
+                            <Typography key={key}>
+                              <Typography component="span" color="text.secondary">
+                                {key}
+                              </Typography>
+                              : {typeof val === 'string' ? val : JSON.stringify(val)}
                             </Typography>
-                            : {typeof val === 'string' ? val : JSON.stringify(val)}
-                          </Typography>
-                        ))
-                      ) : (
-                        <span>{t('noParameters')}</span>
-                      )}
-                    </Box>
-                  ))}
-                {!!message.inputMessages?.messages.length && (
-                  <Box marginTop={1}>
-                    {message.inputMessages?.messages.map((i, index) => (
-                      <Accordion
-                        sx={{
-                          border: (theme) => `1px solid ${theme.palette.divider}`,
-                          '&:not(:last-child)': {
-                            borderBottom: 0,
-                          },
-                          '&::before': {
-                            display: 'none',
-                          },
-                        }}
-                        disableGutters
-                        elevation={0}
-                        key={index}>
-                        <AccordionSummary
+                          ))
+                        ) : (
+                          <span>{t('noParameters')}</span>
+                        )}
+                      </Box>
+                    ))}
+                  {!!message.inputMessages?.messages.length && (
+                    <Box marginTop={1}>
+                      {message.inputMessages?.messages.map((i, index) => (
+                        <Accordion
                           sx={{
-                            backgroundColor: (theme) =>
-                              theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
-                            minHeight: 28,
-                            '& .MuiAccordionSummary-content': {
-                              my: 0,
+                            border: (theme) => `1px solid ${theme.palette.divider}`,
+                            '&:not(:last-child)': {
+                              borderBottom: 0,
+                            },
+                            '&::before': {
+                              display: 'none',
                             },
                           }}
-                          expandIcon={<GridExpandMoreIcon />}>
-                          <Typography>{i.role}</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
-                          <Typography>{i.content}</Typography>
-                        </AccordionDetails>
-                      </Accordion>
+                          disableGutters
+                          elevation={0}
+                          key={index}>
+                          <AccordionSummary
+                            sx={{
+                              backgroundColor: (theme) =>
+                                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
+                              minHeight: 28,
+                              '& .MuiAccordionSummary-content': {
+                                my: 0,
+                              },
+                            }}
+                            expandIcon={<GridExpandMoreIcon />}>
+                            <Typography>{i.role}</Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
+                            <Typography>{i.content}</Typography>
+                          </AccordionDetails>
+                        </Accordion>
+                      ))}
+                    </Box>
+                  )}
+
+                  {message.images && message.images.length > 0 && (
+                    <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
+                  )}
+
+                  {message.loading &&
+                    (message.inputMessages ? (
+                      message?.inputMessages?.messages.length === 0 &&
+                      (currentSession === 'debug' ? <CircularProgress sx={{ marginTop: 1 }} size={18} /> : null)
+                    ) : (
+                      <WritingIndicator />
                     ))}
-                  </Box>
-                )}
 
-                {message.images && message.images.length > 0 && (
-                  <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
-                )}
+                  {message.role === 'assistant' && (
+                    <Box className="actions">
+                      {message.content && <CopyButton key="copy" message={message.content} />}
+                    </Box>
+                  )}
+                </MessageViewContent>
+              ) : null}
 
-                {message.loading &&
-                  (message.inputMessages ? (
-                    message?.inputMessages?.messages.length === 0 &&
-                    (currentSession === 'debug' ? <CircularProgress sx={{ marginTop: 1 }} size={18} /> : null)
-                  ) : (
-                    <WritingIndicator />
-                  ))}
-
-                {message.role === 'assistant' && (
-                  <Box className="actions">
-                    {message.content && <CopyButton key="copy" message={message.content} />}
-                  </Box>
-                )}
-              </MessageViewContent>
-            ) : null}
-
-            {message.error ? (
-              <Alert
-                variant="standard"
-                icon={<ErrorRounded />}
-                color="error"
-                sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                {message.error.message}
-              </Alert>
-            ) : (
-              message.cancelled && (
-                <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                  Cancelled
+              {message.error ? (
+                <Alert
+                  variant="standard"
+                  icon={<ErrorRounded />}
+                  color="error"
+                  sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                  {message.error.message}
                 </Alert>
-              )
-            )}
+              ) : (
+                message.cancelled && (
+                  <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                    Cancelled
+                  </Alert>
+                )
+              )}
+            </Box>
           </Box>
         </Stack>
 
