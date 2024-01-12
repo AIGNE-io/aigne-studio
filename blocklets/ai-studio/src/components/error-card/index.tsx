@@ -1,19 +1,16 @@
-import { SubscriptionError } from '@blocklet/ai-kit/api';
+import { SubscriptionErrorType } from '@blocklet/ai-kit/api';
 import { ErrorRounded } from '@mui/icons-material';
 import { Alert, Stack } from '@mui/material';
 import { memo } from 'react';
 
-import SubscribeButton from '../subsuribe';
+import SubscribeButton from '../subscribe';
 
 interface CustomAlertProps {
-  error: { message: string } | SubscriptionError;
+  error: { message: string; [key: string]: unknown };
 }
 
 function ErrorCard({ error }: CustomAlertProps) {
-  const isError = error instanceof Error;
-  const isSubscriptionError = error instanceof SubscriptionError;
-
-  if (isSubscriptionError) {
+  if (error?.type === SubscriptionErrorType.UNSUBSCRIBED) {
     return (
       <Alert
         variant="standard"
@@ -28,42 +25,29 @@ function ErrorCard({ error }: CustomAlertProps) {
           },
         }}>
         {error.message}
-
-        {error instanceof SubscriptionError && (
-          <Stack mt={1} direction="row" sx={{ justifyContent: 'flex-end' }}>
-            <SubscribeButton />
-          </Stack>
-        )}
+        <Stack mt={1} direction="row" sx={{ justifyContent: 'flex-end' }}>
+          <SubscribeButton />
+        </Stack>
       </Alert>
     );
   }
 
-  if (isError) {
-    return (
-      <Alert
-        variant="standard"
-        icon={<ErrorRounded />}
-        color="error"
-        sx={{
-          display: 'inline-flex',
-          px: 1,
-          py: 0,
-          '.MuiAlert-icon': {
-            mr: 0.5,
-          },
-        }}>
-        {error.message}
-
-        {error instanceof SubscriptionError && (
-          <Stack mt={1} direction="row" sx={{ justifyContent: 'flex-end' }}>
-            <SubscribeButton />
-          </Stack>
-        )}
-      </Alert>
-    );
-  }
-
-  return null;
+  return (
+    <Alert
+      variant="standard"
+      icon={<ErrorRounded />}
+      color="error"
+      sx={{
+        display: 'inline-flex',
+        px: 1,
+        py: 0,
+        '.MuiAlert-icon': {
+          mr: 0.5,
+        },
+      }}>
+      {error.message}
+    </Alert>
+  );
 }
 
 export default memo(ErrorCard);

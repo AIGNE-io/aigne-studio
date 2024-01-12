@@ -1,4 +1,4 @@
-import SubscribeButton from '@app/components/subsuribe';
+import SubscribeButton from '@app/components/subscribe';
 import { Dashboard } from '@blocklet/studio-ui';
 import {
   Box,

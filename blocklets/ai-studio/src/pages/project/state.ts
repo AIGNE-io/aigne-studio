@@ -173,13 +173,6 @@ export const useProjectState = (projectId: string, gitRef: string) => {
   };
 };
 
-export enum SubscriptionErrorType {
-  UNSUBSCRIBED = 'UNSUBSCRIBED',
-  NON_PAID = 'NON_PAID',
-  EXCEEDED = 'EXCEEDED',
-  UNKNOWN = 'UNKNOWN',
-}
-
 export interface SessionItem {
   index: number;
   createdAt: string;
@@ -546,7 +539,11 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
       } catch (error) {
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
-          message.error = error;
+          if (error instanceof SubscriptionError) {
+            message.error = { message: error.message, type: error.type, timestamp: error.timestamp };
+          } else {
+            message.error = { message: error.message };
+          }
           message.loading = false;
         });
       } finally {

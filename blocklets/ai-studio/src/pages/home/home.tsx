@@ -1,4 +1,4 @@
-import SubscribeButton from '@app/components/subsuribe';
+import SubscribeButton from '@app/components/subscribe';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, Typography } from '@mui/material';

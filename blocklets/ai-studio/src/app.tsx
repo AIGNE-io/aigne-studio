@@ -17,7 +17,7 @@ import { RecoilRoot } from 'recoil';
 
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
-import SubscribeButton from './components/subsuribe';
+import SubscribeButton from './components/subscribe';
 import { DatasetsProvider } from './contexts/datasets';
 import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
 import { translations } from './locales';
