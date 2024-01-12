@@ -189,7 +189,7 @@ export interface SessionItem {
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
-    error?: { message: string } | SubscriptionError;
+    error?: { message: string; [key: string]: unknown };
     inputMessages?: InputMessages;
     subMessages?: {
       taskId: string;
@@ -505,7 +505,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             } else if (isRunAssistantError(value)) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
-                message.error = value.error;
+                message.error = { message: value.error.message };
               });
             } else if (isRunAssistantLog(value)) {
               setMessage(sessionIndex, responseId, (message) => {
