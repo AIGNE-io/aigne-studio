@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.205",
+  "version": "0.1.207",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
@@ -36,17 +36,18 @@
     "@arcblock/ux": "^2.8.26",
     "@beskar-labs/gpt-encoder": "^1.0.7",
     "@blocklet/ai-kit": "^0.0.116",
-    "@blocklet/ai-runtime": "^0.1.205",
-    "@blocklet/co-git": "^0.1.205",
+    "@blocklet/ai-runtime": "^0.1.207",
+    "@blocklet/co-git": "^0.1.207",
     "@blocklet/constant": "^1.16.20",
     "@blocklet/discuss-kit": "^1.6.48",
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
     "@blocklet/logger": "^1.16.20",
-    "@blocklet/prompt-editor": "^0.1.205",
+    "@blocklet/prompt-editor": "^0.1.207",
     "@blocklet/sdk": "^1.16.20",
-    "@blocklet/studio-ui": "^0.1.205",
+    "@blocklet/studio-ui": "^0.1.207",
     "@blocklet/ui-react": "^2.8.26",
     "@blocklet/uploader": "^0.0.56",
+    "@did-pay/client": "^1.13.92",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
@@ -126,7 +127,8 @@
     "y-indexeddb": "^9.0.12",
     "y-protocols": "^1.0.6",
     "y-websocket": "^1.5.1",
-    "yaml": "^2.3.4"
+    "yaml": "^2.3.4",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/compression": "^1.7.5",

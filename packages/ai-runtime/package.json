@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.205",
+  "version": "0.1.207",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -83,7 +83,7 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.0.116",
+    "@blocklet/ai-kit": "^0.0.118",
     "@blocklet/sdk": "^1.16.20",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.8",

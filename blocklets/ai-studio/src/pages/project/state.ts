@@ -1,6 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { isRunAssistantChunk, isRunAssistantError, isRunAssistantInput, runAssistant } from '@blocklet/ai-runtime/api';
-import { InputMessages } from '@blocklet/ai-runtime/core';
+import { SubscriptionError } from '@blocklet/ai-kit/api';
+import {
+  isRunAssistantChunk,
+  isRunAssistantError,
+  isRunAssistantInput,
+  isRunAssistantLog,
+  runAssistant,
+} from '@blocklet/ai-runtime/api';
+import { InputMessages, RunAssistantLog } from '@blocklet/ai-runtime/core';
 import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
@@ -182,13 +189,14 @@ export interface SessionItem {
     createdAt: string;
     role: Role;
     content: string;
+    logs?: Array<RunAssistantLog>;
     gitRef?: string;
     parameters?: { [key: string]: any };
     images?: { b64Json?: string; url?: string }[];
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
-    error?: { message: string; [key: string]: unknown };
+    error?: { message: string } | SubscriptionError;
     inputMessages?: InputMessages;
     subMessages?: {
       taskId: string;
@@ -485,7 +493,6 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               } else {
                 setMessage(sessionIndex, messageId, (message) => {
                   if (message.cancelled) return;
-
                   message.subMessages ??= [];
 
                   let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
@@ -506,6 +513,14 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
                 message.error = value.error;
+              });
+            } else if (isRunAssistantLog(value)) {
+              setMessage(sessionIndex, responseId, (message) => {
+                if (message.cancelled) return;
+                if (value) {
+                  message.logs ??= [];
+                  message.logs?.push(value);
+                }
               });
             } else {
               console.error('Unknown AI response type', value);
@@ -529,24 +544,9 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
           message.loading = false;
         });
       } catch (error) {
-        let chatError: {
-          message: string;
-          [key: string]: unknown;
-        };
-
-        try {
-          const parsedError = JSON.parse(error.message);
-          if (typeof parsedError === 'object') {
-            chatError = parsedError;
-          } else {
-            chatError = { message: error.message };
-          }
-        } catch (e) {
-          chatError = { message: error.message };
-        }
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
-          message.error = chatError;
+          message.error = error;
           message.loading = false;
         });
       } finally {

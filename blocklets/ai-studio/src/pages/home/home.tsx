@@ -1,10 +1,15 @@
+import SubscribeButton from '@app/components/subsuribe';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, Typography } from '@mui/material';
+import { ReactNode } from 'react';
 
 export default function Home() {
   return (
-    <Dashboard>
+    <Dashboard
+      HeaderProps={{
+        addons: (exists: ReactNode[]) => [<SubscribeButton />, ...exists],
+      }}>
       <Box mx="auto" flexGrow={1} my={4} maxWidth={800}>
         {blocklet && (
           <Box textAlign="center">
