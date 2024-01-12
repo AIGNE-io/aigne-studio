@@ -1,3 +1,7 @@
+## 0.1.208 (2024-1-12)
+
+- chore: resource blocklet data
+
 ## 0.1.207 (2024-1-10)
 
 - feat: optimized logs format
