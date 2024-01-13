@@ -1,3 +1,7 @@
+## 0.1.209 (2024-1-13)
+
+- fix: remove incompatible config
+
 ## 0.1.208 (2024-1-12)
 
 - feat: remind users to subscribe in advance
