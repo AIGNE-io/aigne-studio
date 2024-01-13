@@ -60,18 +60,18 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/did-connect": "^2.8.26",
-    "@arcblock/ux": "^2.8.26",
-    "@blocklet/ui-react": "^2.8.26",
+    "@arcblock/did-connect": "^2.9.13",
+    "@arcblock/ux": "^2.9.13",
+    "@blocklet/ui-react": "^2.9.13",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.3",
-    "@mui/icons-material": "^5.15.2",
-    "@mui/lab": "^5.0.0-alpha.158",
-    "@mui/material": "^5.15.2",
-    "@types/react": "^18.2.46",
+    "@mui/icons-material": "^5.15.4",
+    "@mui/lab": "^5.0.0-alpha.160",
+    "@mui/material": "^5.15.4",
+    "@types/react": "^18.2.47",
     "npm-run-all": "^4.1.5",
     "react": "^18.2.0",
-    "react-router-dom": "^6.21.1",
+    "react-router-dom": "^6.21.2",
     "rimraf": "^5.0.5",
     "typescript": "^4.9.5"
   }
