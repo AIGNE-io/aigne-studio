@@ -1,3 +1,4 @@
+import ErrorCard from '@app/components/error-card';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ImagePreview } from '@blocklet/ai-kit/components';
@@ -5,7 +6,7 @@ import { ParameterField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, isAssistant, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css, cx } from '@emotion/css';
-import { Add, CopyAll, ErrorRounded } from '@mui/icons-material';
+import { Add, CopyAll } from '@mui/icons-material';
 import {
   Accordion,
   AccordionDetails,
@@ -234,7 +235,7 @@ const MessageView = memo(
           </Box>
           <Box>
             {!!message.logs?.length && (
-              <Box mb={1} bgcolor="grey.50" borderRadius={1} p={0.5}>
+              <Box mb={1} bgcolor="grey.50" borderRadius={1} p={1}>
                 {message.logs.map((item, index) => (
                   <Box my={0.5} key={index}>
                     <Typography component="span" color="text.secondary">
@@ -335,13 +336,7 @@ const MessageView = memo(
               ) : null}
 
               {message.error ? (
-                <Alert
-                  variant="standard"
-                  icon={<ErrorRounded />}
-                  color="error"
-                  sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                  {message.error.message}
-                </Alert>
+                <ErrorCard error={message.error} />
               ) : (
                 message.cancelled && (
                   <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>

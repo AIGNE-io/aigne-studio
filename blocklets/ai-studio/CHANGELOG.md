@@ -1,3 +1,7 @@
+## 0.1.208 (2024-1-12)
+
+- feat: remind users to subscribe in advance
+
 ## 0.1.207 (2024-1-10)
 
 - feat: optimized logs format
