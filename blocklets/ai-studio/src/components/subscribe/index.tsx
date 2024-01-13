@@ -12,7 +12,7 @@ export default function SubscribeButton(props: LoadingButtonProps) {
   const fetchRegisterStatus = useAiKitServiceStore((i) => i.fetchRegisterStatus);
   const loading = useAiKitServiceStore((i) => i.loading);
   const paymentLink = useAiKitServiceStore((i) => i.appRegisterState?.paymentLink);
-  const isSubscriptionAvailable = useAiKitServiceStore((i) => i?.isSubscriptionAvailable);
+  const isSubscriptionAvailable = useAiKitServiceStore((i) => i.computed.isSubscriptionAvailable);
 
   const linkToAiKit = useCallback(async () => {
     if (paymentLink) {
