@@ -17,6 +17,7 @@ import { RecoilRoot } from 'recoil';
 
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
+import SubscribeButton from './components/subscribe';
 import { DatasetsProvider } from './contexts/datasets';
 import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
 import { translations } from './locales';
@@ -100,7 +101,6 @@ function AppRoutes({ basename }: { basename: string }) {
               }
             />
             <Route path="embed/*" element={<EmbedRoutes />} />
-            <Route path="billing/*" element={<BillingRoutes />} />
           </>
         ) : (
           <Route path="*" element={<Navigate to="/" />} />
@@ -126,10 +126,15 @@ const DatasetsRoutes = lazy(() => import('./pages/datasets'));
 
 const EmbedRoutes = lazy(() => import('./pages/embed'));
 
-const BillingRoutes = lazy(() => import('./pages/billing'));
-
 function Layout({ children }: { children: ReactNode }) {
-  return <Dashboard>{children}</Dashboard>;
+  return (
+    <Dashboard
+      HeaderProps={{
+        addons: (exists: ReactNode[]) => [<SubscribeButton />, ...exists],
+      }}>
+      {children}
+    </Dashboard>
+  );
 }
 
 function NotFound() {

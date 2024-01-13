@@ -88,8 +88,8 @@ function migrateTemplateToPrompts(template: Template): Template {
     await migrate();
     logger.info('migration 0.1.69 success');
     process.exit(0);
-  } catch (err) {
-    logger.error(`${name} migration 0.1.69 error`, err);
+  } catch (error) {
+    logger.error(`${name} migration 0.1.69 error`, { error });
     process.exit(1);
   }
 })();

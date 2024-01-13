@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.200",
+  "version": "0.1.208",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -59,17 +59,18 @@
     "@arcblock/did-ext": "^1.18.108",
     "@arcblock/did-util": "^1.18.108",
     "@arcblock/ws": "^1.18.108",
-    "@mui/material": "^5.15.2",
+    "@mui/material": "^5.15.4",
     "@nedb/core": "^2.1.5",
     "@ocap/asset": "^1.18.108",
     "@ocap/proto": "^1.18.108",
     "@ocap/types": "^1.18.108",
     "@ocap/util": "^1.18.108",
     "@ocap/wallet": "^1.18.108",
-    "@types/react": "^18.2.45",
+    "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.18",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "react-router-dom": "6.16.0"
+    "react-router-dom": "6.16.0",
+    "@blocklet/constant": "1.16.22-beta-079a9053"
   }
 }

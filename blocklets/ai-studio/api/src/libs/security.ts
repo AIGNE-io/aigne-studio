@@ -29,7 +29,7 @@ export function ensureComponentCallOr(fallback: (req: Request, res: Response, ne
         fallback(req, res, next);
       }
     } catch (error) {
-      logger.error(error);
+      logger.error('validate signature of calling error', { error });
       res.status(401).json({ error: 'verify sig failed' });
     }
   };

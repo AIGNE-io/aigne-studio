@@ -135,8 +135,8 @@ export default function VariablePickerPlugin({ options }: { options?: VariablePi
       menuRenderFn={(anchorElementRef, { selectedIndex, selectOptionAndCleanUp, setHighlightedIndex }) =>
         anchorElementRef.current && filteredOptions.length
           ? ReactDOM.createPortal(
-              <div className="typeahead-popover component-picker-menu">
-                <ul>
+              <Box className="typeahead-popover component-picker-menu">
+                <Box component="ul">
                   {filteredOptions.map((option, i: number) => (
                     <React.Fragment key={option.key}>
                       <VariablePickerMenuItem
@@ -154,8 +154,8 @@ export default function VariablePickerPlugin({ options }: { options?: VariablePi
                       {!option.disabled && filteredOptions[i + 1]?.disabled && <Divider light />}
                     </React.Fragment>
                   ))}
-                </ul>
-              </div>,
+                </Box>
+              </Box>,
               anchorElementRef.current
             )
           : null

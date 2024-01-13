@@ -1,6 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { isRunAssistantChunk, isRunAssistantError, isRunAssistantInput, runAssistant } from '@blocklet/ai-runtime/api';
-import { InputMessages } from '@blocklet/ai-runtime/core';
+import { SubscriptionError } from '@blocklet/ai-kit/api';
+import {
+  isRunAssistantChunk,
+  isRunAssistantError,
+  isRunAssistantInput,
+  isRunAssistantLog,
+  runAssistant,
+} from '@blocklet/ai-runtime/api';
+import { InputMessages, RunAssistantLog } from '@blocklet/ai-runtime/core';
 import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
@@ -119,6 +126,14 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     [refetch]
   );
 
+  const deleteProjectRemote = useCallback(
+    async (...args: Parameters<typeof projectApi.deleteProjectRemote>) => {
+      await projectApi.deleteProjectRemote(...args);
+      refetch();
+    },
+    [refetch]
+  );
+
   const push = useCallback(
     async (...args: Parameters<typeof projectApi.projectPush>) => {
       await projectApi.projectPush(...args);
@@ -143,7 +158,19 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     [refetch]
   );
 
-  return { state, refetch, createBranch, updateBranch, deleteBranch, updateProject, addRemote, push, pull, sync };
+  return {
+    state,
+    refetch,
+    createBranch,
+    updateBranch,
+    deleteBranch,
+    updateProject,
+    addRemote,
+    deleteProjectRemote,
+    push,
+    pull,
+    sync,
+  };
 };
 
 export interface SessionItem {
@@ -155,13 +182,14 @@ export interface SessionItem {
     createdAt: string;
     role: Role;
     content: string;
+    logs?: Array<RunAssistantLog>;
     gitRef?: string;
     parameters?: { [key: string]: any };
     images?: { b64Json?: string; url?: string }[];
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
-    error?: { message: string };
+    error?: { message: string; [key: string]: unknown };
     inputMessages?: InputMessages;
     subMessages?: {
       taskId: string;
@@ -458,7 +486,6 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               } else {
                 setMessage(sessionIndex, messageId, (message) => {
                   if (message.cancelled) return;
-
                   message.subMessages ??= [];
 
                   let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
@@ -478,7 +505,15 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             } else if (isRunAssistantError(value)) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
-                message.error = value.error;
+                message.error = { message: value.error.message };
+              });
+            } else if (isRunAssistantLog(value)) {
+              setMessage(sessionIndex, responseId, (message) => {
+                if (message.cancelled) return;
+                if (value) {
+                  message.logs ??= [];
+                  message.logs?.push(value);
+                }
               });
             } else {
               console.error('Unknown AI response type', value);
@@ -494,6 +529,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             break;
           }
         }
+
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
 
@@ -503,13 +539,20 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
       } catch (error) {
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
-
-          message.error = { message: error.message };
+          if (error instanceof SubscriptionError) {
+            message.error = { message: error.message, type: error.type, timestamp: error.timestamp };
+          } else {
+            message.error = { message: error.message };
+          }
+          message.loading = false;
+        });
+      } finally {
+        setMessage(sessionIndex, messageId, (message) => {
           message.loading = false;
         });
       }
     },
-    [setMessage, setState, state]
+    [setMessage, setState, state.sessions]
   );
 
   const cancelMessage = useCallback(
@@ -607,14 +650,20 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
       const news = differenceBy(state.files, state.assistants, 'id');
       const deleted = differenceBy(state.assistants, state.files, 'id');
       const modified = duplicateItems.filter((i) => {
-        const item = omitBy(i, (x) => !x);
+        const item = omit(
+          omitBy(i, (x) => !x),
+          'tests'
+        );
 
         const found = state.files.find((f) => item.id === f.id);
         if (!found) {
           return false;
         }
 
-        const file = omitBy(found, (x) => !x);
+        const file = omit(
+          omitBy(found, (x) => !x),
+          'tests'
+        );
         return !equal(item, file);
       });
 

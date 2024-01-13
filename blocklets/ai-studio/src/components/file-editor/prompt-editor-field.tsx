@@ -141,7 +141,7 @@ export default function PromptEditorField({
                   <Button
                     sx={{ p: 0 }}
                     onClick={() => {
-                      addParameter(text);
+                      addParameter(text, from);
                       handleClose();
                     }}
                     size="small">

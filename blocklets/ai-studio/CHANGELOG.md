@@ -1,3 +1,37 @@
+## 0.1.208 (2024-1-12)
+
+- feat: remind users to subscribe in advance
+
+## 0.1.207 (2024-1-10)
+
+- feat: optimized logs format
+
+## 0.1.206 (2024-1-5)
+
+- feat: support remote repo
+
+## 0.1.205 (2024-1-3)
+
+- fix: move billing to ai-kit
+
+## 0.1.204 (2024-1-3)
+
+- fix: debug view performance optimization
+
+## 0.1.203 (2024-1-3)
+
+- fix: compare data params
+- fix: variable prompt in select dialog
+
+## 0.1.202 (2024-1-2)
+
+- feat: support unlink remote repo
+
+## 0.1.201 (2023-12-30)
+
+- chore: updated deps
+- fix: use logger instead of console
+
 ## 0.1.200 (2023-12-29)
 
 - feat: support separating tests

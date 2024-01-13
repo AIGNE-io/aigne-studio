@@ -4,7 +4,8 @@ import dotenv from 'dotenv-flow';
 
 import init from '../init';
 import { authClient, customRoles } from '../libs/auth';
-import logger from '../libs/logger';
+
+const logger = console;
 
 dotenv.config();
 

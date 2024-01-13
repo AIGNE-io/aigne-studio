@@ -19,6 +19,10 @@ pre {
   word-break: break-word;
 }
 
+#typeahead-menu {
+  z-index: 10001;
+}
+
 .typeahead-popover {
   background: #fff;
   box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.3);

@@ -103,7 +103,7 @@ async function migrate() {
             author: { name: 'AI Studio', email: wallet.address },
           });
         } catch (error) {
-          logger.error(`Migration to ${version} error`, error);
+          logger.error(`Migration to ${version} error`, { error });
         }
       }
     })
@@ -117,8 +117,8 @@ async function migrate() {
     await migrate();
     logger.info(`migration ${version} success`);
     process.exit(0);
-  } catch (err) {
-    logger.error(`${name} migration ${version} error`, err);
+  } catch (error) {
+    logger.error(`${name} migration ${version} error`, { error });
     process.exit(1);
   }
 })();

@@ -99,6 +99,7 @@ export default flat({
   },
   import: {
     title: 'Import Templates',
+    remote: 'Import repository',
     selectProject: 'Select Project',
     selectBranch: 'Select Branch',
     templates: 'Templates',
@@ -215,6 +216,7 @@ export default flat({
   debugThisCase: 'Debug this case',
   deleteThisCase: 'Delete this case',
   runThisCase: 'Run this case',
+  subscribeAIService: 'Subscribe AI Service',
   diff: {
     created: 'New file',
     deleted: 'Deleted',
@@ -265,8 +267,12 @@ export default flat({
     },
   },
   remoteGitRepo: 'Remote Git Repo',
+  deleteRemote: 'Unlink remote git repo',
+  deleteRemoteTip: 'Are you sure you want to unlink the remote git repo?',
+  deleteSucceed: 'Delete Succeed',
   url: 'URL',
   username: 'Username',
+  projectName: 'Project Name',
   accessToken: 'Access Token',
   remoteGitRepoPasswordHelper: 'Github does not support password access, you can use',
   githubTokenTip:
@@ -372,6 +378,7 @@ export default flat({
   formatResult: 'Format Result',
   stayAsIs: 'Stay as is',
   asHistory: 'As Chat History',
+  chatSubscribe: 'Hello, in order to continue chatting, please first subscribe to AI-KIT service',
   prepareExecutes: 'Prepare Executes',
   tool: 'Tool',
   callFunction: 'Call Function',
