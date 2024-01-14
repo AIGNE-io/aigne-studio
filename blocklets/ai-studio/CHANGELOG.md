@@ -1,3 +1,7 @@
+## 0.1.210 (2024-1-14)
+
+- fix: deduplicate lexical deps
+
 ## 0.1.209 (2024-1-13)
 
 - fix: remove incompatible config
