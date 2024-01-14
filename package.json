@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.210",
+  "version": "0.1.211",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -84,6 +84,7 @@
     "@types/react-dom": "^18.2.18",
     "lexical": "0.12.5",
     "react-dnd": "^16.0.1",
-    "react-dnd-html5-backend": "^16.0.1"
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-router-dom": "6.16.0"
   }
 }
