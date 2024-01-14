@@ -214,6 +214,7 @@ export default flat({
   debugThisCase: '调试该用例',
   deleteThisCase: '删除该用例',
   runThisCase: '运行该用例',
+  subscribeAIService: '订阅 AI 服务',
   diff: {
     created: '新文件',
     deleted: '已删除',
@@ -376,6 +377,7 @@ export default flat({
   asHistory: '作为聊天记录',
   stayAsIs: '保持原样',
   prepareExecutes: '预执行',
+  chatSubscribe: '您好，请先订阅服务才可以继续聊天',
   tool: '工具',
   callFunction: '调用函数',
   callPrompt: '运行提示',

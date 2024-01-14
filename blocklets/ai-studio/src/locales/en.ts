@@ -216,6 +216,7 @@ export default flat({
   debugThisCase: 'Debug this case',
   deleteThisCase: 'Delete this case',
   runThisCase: 'Run this case',
+  subscribeAIService: 'Subscribe AI Service',
   diff: {
     created: 'New file',
     deleted: 'Deleted',
@@ -377,6 +378,7 @@ export default flat({
   formatResult: 'Format Result',
   stayAsIs: 'Stay as is',
   asHistory: 'As Chat History',
+  chatSubscribe: 'Hello, in order to continue chatting, please first subscribe to AI-KIT service',
   prepareExecutes: 'Prepare Executes',
   tool: 'Tool',
   callFunction: 'Call Function',

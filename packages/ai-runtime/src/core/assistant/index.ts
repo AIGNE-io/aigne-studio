@@ -1,5 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
+import { SubscriptionError } from '@blocklet/ai-kit/api';
 import {
   ChatCompletionChunk,
   ChatCompletionInput,
@@ -63,7 +64,7 @@ export type RunAssistantChunk = {
 };
 
 export type RunAssistantError = {
-  error: { message: string };
+  error: { message: string } | SubscriptionError;
 };
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;

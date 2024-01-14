@@ -17,6 +17,7 @@ import { RecoilRoot } from 'recoil';
 
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
+import SubscribeButton from './components/subscribe';
 import { DatasetsProvider } from './contexts/datasets';
 import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
 import { translations } from './locales';
@@ -126,7 +127,14 @@ const DatasetsRoutes = lazy(() => import('./pages/datasets'));
 const EmbedRoutes = lazy(() => import('./pages/embed'));
 
 function Layout({ children }: { children: ReactNode }) {
-  return <Dashboard>{children}</Dashboard>;
+  return (
+    <Dashboard
+      HeaderProps={{
+        addons: (exists: ReactNode[]) => [<SubscribeButton />, ...exists],
+      }}>
+      {children}
+    </Dashboard>
+  );
 }
 
 function NotFound() {

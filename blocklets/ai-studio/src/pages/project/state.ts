@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { SubscriptionError } from '@blocklet/ai-kit/api';
 import {
   isRunAssistantChunk,
   isRunAssistantError,
@@ -188,7 +189,7 @@ export interface SessionItem {
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
-    error?: { message: string };
+    error?: { message: string; [key: string]: unknown };
     inputMessages?: InputMessages;
     subMessages?: {
       taskId: string;
@@ -504,7 +505,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             } else if (isRunAssistantError(value)) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
-                message.error = value.error;
+                message.error = { message: value.error.message };
               });
             } else if (isRunAssistantLog(value)) {
               setMessage(sessionIndex, responseId, (message) => {
@@ -528,9 +529,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             break;
           }
         }
-        setMessage(sessionIndex, messageId, (message) => {
-          message.loading = false;
-        });
+
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
 
@@ -540,13 +539,20 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
       } catch (error) {
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
-
-          message.error = { message: error.message };
+          if (error instanceof SubscriptionError) {
+            message.error = { message: error.message, type: error.type, timestamp: error.timestamp };
+          } else {
+            message.error = { message: error.message };
+          }
+          message.loading = false;
+        });
+      } finally {
+        setMessage(sessionIndex, messageId, (message) => {
           message.loading = false;
         });
       }
     },
-    [setMessage, setState, state]
+    [setMessage, setState, state.sessions]
   );
 
   const cancelMessage = useCallback(

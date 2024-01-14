@@ -1,3 +1,4 @@
+import SubscribeButton from '@app/components/subscribe';
 import { Dashboard } from '@blocklet/studio-ui';
 import {
   Box,
@@ -41,7 +42,7 @@ export default function ProjectRoutes() {
         HeaderProps={{
           logo: <LogoRoutes />,
           brandAddon: <BrandRoutes />,
-          addons: (exists) => [<AddonsRoutes />, ...exists],
+          addons: (exists) => [<SubscribeButton />, <AddonsRoutes />, ...exists],
         }}
         menus={<MenuRoutes />}
         MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
