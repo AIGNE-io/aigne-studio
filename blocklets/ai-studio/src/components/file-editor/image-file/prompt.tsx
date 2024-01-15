@@ -46,6 +46,7 @@ export default function ImageFilePrompt({
         value={value.prompt}
         projectId={projectId}
         gitRef={gitRef}
+        placeholder={t('promptPlaceholder')}
         path={[value.id, 'prompt']}
         onChange={(prompt) => (value.prompt = prompt)}
         readOnly={readOnly}

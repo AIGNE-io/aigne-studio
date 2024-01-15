@@ -369,6 +369,7 @@ export default flat({
   },
   addObject: 'Add {object}',
   formatPrompt: 'Format Prompt',
+  promptPlaceholder: 'Please enter your prompt',
   promptMessage: 'Prompt Message',
   executeBlock: 'Execute Block',
   callAPI: 'Call API',

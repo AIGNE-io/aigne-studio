@@ -367,6 +367,7 @@ export default flat({
   },
   addObject: '添加{object}',
   formatPrompt: '格式化提示',
+  promptPlaceholder: '请输入你的提示',
   promptMessage: '提示文本',
   executeBlock: '执行块',
   callAPI: '调用接口',
