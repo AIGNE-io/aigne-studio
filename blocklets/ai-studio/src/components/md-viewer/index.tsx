@@ -1,0 +1,193 @@
+import 'highlight.js/styles/base16/github.css';
+
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
+import { Box, styled } from '@mui/material';
+import hljs from 'highlight.js';
+import { marked } from 'marked';
+import { mangle } from 'marked-mangle';
+import { memo, useEffect, useMemo, useRef } from 'react';
+
+const MarkdownViewer = styled(Box)`
+  padding: 0 4px;
+  font-size: 14px;
+  background-color: transparent;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: ${({ theme }) => theme.palette.text.primary};
+    font-weight: bold;
+  }
+
+  p {
+    margin: ${({ theme }) => theme.spacing(1)} 0px;
+  }
+
+  ul,
+  ol {
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-start: 0px;
+    padding-inline-start: 2em;
+  }
+
+  ul {
+    list-style-type: disc;
+  }
+
+  ol {
+    list-style-type: decimal;
+  }
+
+  a:-webkit-any-link {
+    color: -webkit-link;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  blockquote {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+
+    > p {
+      &::before {
+        content: '';
+      }
+
+      &::after {
+        content: '';
+      }
+    }
+  }
+
+  .marked-code-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background-color: ${({ theme }) => theme.palette.divider};
+    border-radius: 4px 4px 0 0;
+  }
+
+  code {
+    color: ${({ theme }) => theme.palette.secondary.main};
+    background-color: #fff;
+    border-radius: 0 0 4px 4px;
+  }
+  pre {
+    background-color: #fff;
+    border-radius: 0 0 4px 4px;
+  }
+
+  .copy-button {
+    border-color: transparent;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .marked-table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+`;
+
+interface MdViewerProps {
+  content: string;
+}
+
+marked.use({
+  pedantic: false,
+  gfm: true,
+  breaks: true,
+});
+
+marked.use(mangle());
+
+function MdViewer(props: MdViewerProps) {
+  const { t } = useLocaleContext();
+  const mdViewerRef = useRef<HTMLDivElement>(null);
+  const renderer = useMemo(() => {
+    const renderer = new marked.Renderer();
+
+    renderer.code = (code, language) => {
+      const validLanguage = hljs.getLanguage(language as string) ? language : 'plaintext';
+      const highlightedCode = hljs.highlight(validLanguage as string, code).value;
+
+      return `
+      <div class="marked-code-block">
+        <div class="marked-code-header">
+          <span>${validLanguage === 'plaintext' ? t('plaintext') : validLanguage}</span>
+          <button class="copy-button">${t('copy')}</button>
+        </div>
+        <pre><code class="hljs ${validLanguage}">${highlightedCode}</code></pre>
+      </div>
+    `;
+    };
+
+    renderer.del = (text) => {
+      return `<span>${text}</span>`;
+    };
+
+    renderer.link = (href, title, text) => {
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+    };
+
+    renderer.image = (href, title, text) => {
+      return `<img class="default-image" src="${href}" alt="${text}" title="${title}" />`;
+    };
+
+    renderer.table = (header: string, body: string) => {
+      return `<div class="marked-table-container"><table><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
+    };
+
+    return renderer;
+  }, [t]);
+
+  useEffect(() => {
+    const handleClick = (event: any) => {
+      if (event.target.classList.contains('copy-button')) {
+        const code = event.target.parentNode.nextElementSibling.querySelector('code').textContent;
+
+        navigator.clipboard
+          .writeText(code)
+          .then(() => {
+            Toast.success(t('copied'));
+          })
+          .catch(() => {});
+      }
+    };
+
+    if (mdViewerRef.current) {
+      mdViewerRef.current.addEventListener('click', handleClick);
+    }
+
+    return () => {
+      if (mdViewerRef.current) {
+        mdViewerRef.current.removeEventListener('click', handleClick);
+      }
+    };
+  }, [t]);
+
+  const convertMarkdownToHTML = (content: string) => {
+    const tokens = marked.lexer(content);
+    return marked.parser(tokens, { renderer });
+  };
+
+  return (
+    <MarkdownViewer
+      ref={mdViewerRef}
+      dangerouslySetInnerHTML={{
+        __html: convertMarkdownToHTML(props.content),
+      }}
+    />
+  );
+}
+export default memo(MdViewer);
