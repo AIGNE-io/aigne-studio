@@ -95,3 +95,5 @@ navigation:
       - admin
       - owner
       - promptsEditor
+resource:
+  exportApi: /api/resources/export
