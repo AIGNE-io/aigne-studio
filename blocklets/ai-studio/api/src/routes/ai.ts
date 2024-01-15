@@ -121,7 +121,13 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
     log.update({ endDate, requestTime, status: Status.SUCCESS, response: result });
   } catch (error) {
     if (stream) {
-      emit({ error: { message: error.message } });
+      let errorData;
+      try {
+        errorData = JSON.parse(error.message);
+      } catch {
+        errorData = { message: error.message };
+      }
+      emit({ error: errorData });
     } else {
       res.status(500).json({ error: { message: error.message } });
     }
