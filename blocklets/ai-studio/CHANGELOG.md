@@ -1,3 +1,7 @@
+## 0.1.212 (2024-1-14)
+
+- chore: resource blocklet data
+
 ## 0.1.211 (2024-1-14)
 
 - fix: fix version of react-router-dom

@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.211
+version: 0.1.212
 logo: logo.png
 files:
   - dist
@@ -95,3 +95,5 @@ navigation:
       - admin
       - owner
       - promptsEditor
+resource:
+  exportApi: /api/resources/export
