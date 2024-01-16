@@ -1,17 +1,21 @@
 .Placeholder__root {
-  font-size: 15px;
+  font-size: 12px;
   color: #999;
   overflow: hidden;
   position: absolute;
   text-overflow: ellipsis;
-  top: 8px;
-  left: 14px;
+  top: 4px;
+  left: 8px;
   right: 14px;
+  bottom: 4px;
   user-select: none;
   white-space: nowrap;
   display: inline-block;
   pointer-events: none;
+  display: flex;
+  align-items: center;
 }
+
 @media (max-width: 1025px) {
   .Placeholder__root {
     left: 8px;

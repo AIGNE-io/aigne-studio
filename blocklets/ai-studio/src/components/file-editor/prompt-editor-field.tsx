@@ -10,6 +10,7 @@ import WithAwareness from '../awareness/with-awareness';
 import useVariablesEditorOptions from './use-variables-editor-options';
 
 export default function PromptEditorField({
+  placeholder,
   projectId,
   gitRef,
   path,
@@ -19,6 +20,7 @@ export default function PromptEditorField({
   readOnly,
   ...props
 }: {
+  placeholder?: string;
   projectId: string;
   gitRef: string;
   path: (string | number)[];
@@ -86,6 +88,7 @@ export default function PromptEditorField({
     <WithAwareness sx={{ top: 0, right: 0 }} projectId={projectId} gitRef={gitRef} path={path}>
       <PromptEditor
         {...props}
+        placeholder={placeholder || ''}
         editable={!readOnly}
         variables={variables}
         value={editorState}
