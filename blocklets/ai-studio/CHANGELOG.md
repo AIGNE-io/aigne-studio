@@ -1,3 +1,7 @@
+## 0.1.213 (2024-1-16)
+
+- fix: add parameter tips
+
 ## 0.1.212 (2024-1-14)
 
 - chore: resource blocklet data
