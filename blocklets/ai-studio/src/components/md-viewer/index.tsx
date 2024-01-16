@@ -152,16 +152,19 @@ function MdViewer(props: MdViewerProps) {
   }, [t]);
 
   useEffect(() => {
-    const handleClick = (event: any) => {
-      if (event.target.classList.contains('copy-button')) {
-        const code = event.target.parentNode.nextElementSibling.querySelector('code').textContent;
+    const handleClick = (event: Event) => {
+      const target = event.target as HTMLElement; // 类型断言
+      if (target.classList.contains('copy-button')) {
+        const code = (target.parentNode as HTMLElement)?.nextElementSibling?.querySelector('code')?.textContent;
 
-        navigator.clipboard
-          .writeText(code)
-          .then(() => {
-            Toast.success(t('copied'));
-          })
-          .catch(() => {});
+        if (code) {
+          navigator.clipboard
+            .writeText(code)
+            .then(() => {
+              Toast.success(t('copied'));
+            })
+            .catch(() => {});
+        }
       }
     };
 
