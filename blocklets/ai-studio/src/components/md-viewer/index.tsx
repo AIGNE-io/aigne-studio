@@ -136,7 +136,7 @@ function MdViewer(props: MdViewerProps) {
       return `<span>${text}</span>`;
     };
 
-    renderer.link = (href, title, text) => {
+    renderer.link = (href, _, text) => {
       return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
     };
 
