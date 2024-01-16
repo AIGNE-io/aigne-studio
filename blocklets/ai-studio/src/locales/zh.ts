@@ -99,6 +99,7 @@ export default flat({
   },
   import: {
     title: '导入模板数据',
+    remote: '引入仓库',
     selectProject: '选择项目',
     selectBranch: '选择分支',
     templates: '模板数据',
@@ -213,6 +214,7 @@ export default flat({
   debugThisCase: '调试该用例',
   deleteThisCase: '删除该用例',
   runThisCase: '运行该用例',
+  subscribeAIService: '订阅 AI 服务',
   diff: {
     created: '新文件',
     deleted: '已删除',
@@ -268,6 +270,7 @@ export default flat({
   remoteGitRepo: '远程 Git 仓库',
   url: '地址',
   username: '用户名',
+  projectName: '项目名称',
   accessToken: '访问令牌',
   remoteGitRepoPasswordHelper: 'Github 不支持使用密码访问，请使用',
   githubTokenTip:
@@ -375,6 +378,7 @@ export default flat({
   asHistory: '作为聊天记录',
   stayAsIs: '保持原样',
   prepareExecutes: '预执行',
+  chatSubscribe: '您好，请先订阅服务才可以继续聊天',
   tool: '工具',
   callFunction: '调用函数',
   callPrompt: '运行提示',

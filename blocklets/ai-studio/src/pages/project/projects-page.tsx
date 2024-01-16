@@ -6,15 +6,23 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import { LoadingButton } from '@mui/lab';
 import {
   Avatar,
   AvatarGroup,
   Box,
+  Button,
   CircularProgress,
   ClickAwayListener,
   Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   IconButton,
+  InputAdornment,
+  Link,
   List,
   ListItemIcon,
   MenuItem,
@@ -30,7 +38,10 @@ import {
   avatarClasses,
   styled,
 } from '@mui/material';
-import { MouseEvent, ReactNode, useEffect, useMemo, useState } from 'react';
+import gitUrlParse from 'git-url-parse';
+import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
+import { MouseEvent, ReactNode, useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -39,6 +50,7 @@ import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
+import * as projectApi from '../../libs/project';
 import { ProjectWithUserInfo, User, createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
@@ -46,6 +58,8 @@ import ChevronDown from './icons/chevron-down';
 import Duplicate from './icons/duplicate';
 import Edit from './icons/edit';
 import Empty from './icons/empty';
+import Eye from './icons/eye';
+import EyeNo from './icons/eye-no';
 import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
@@ -453,6 +467,7 @@ function ProjectList({
             />
           );
         })}
+        {section === 'templates' && <RegistryImport />}
       </ProjectListContainer>
 
       {dialog}
@@ -638,6 +653,204 @@ function ProjectItem({
         </Box>
       </Stack>
     </ProjectItemRoot>
+  );
+}
+
+interface RemoteRepoSettingForm {
+  url: string;
+  description: string;
+  username: string;
+  password: string;
+  name: string;
+}
+
+function RegistryImport() {
+  const { t } = useLocaleContext();
+  const id = useId();
+  const {
+    state: { templates },
+    createProject,
+  } = useProjectsState();
+  const navigate = useNavigate();
+  const dialogState = usePopupState({ variant: 'dialog', popupId: id });
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const form = useForm<RemoteRepoSettingForm>({
+    defaultValues: {
+      url: '',
+      description: '',
+      password: '',
+      name: '',
+    },
+  });
+
+  const saveSetting = useCallback(
+    async (value: RemoteRepoSettingForm) => {
+      try {
+        const project = await createProject({
+          templateId: templates?.[0]!._id,
+          name: value.name,
+          description: value.description,
+          isImport: true,
+        });
+        await projectApi.addProjectRemote(project._id, {
+          url: value.url,
+          username: value.username,
+          password: value.password,
+        });
+        await projectApi.projectPull(project._id, {
+          force: true,
+        });
+        form.reset(value);
+        dialogState.close();
+        navigate(joinURL('/projects', project._id!));
+      } catch (error) {
+        form.reset(value);
+        Toast.error(getErrorMessage(error));
+        throw error;
+      }
+    },
+    [createProject, dialogState, form, templates]
+  );
+
+  return (
+    <>
+      <ProjectItemRoot onClick={() => dialogState.open()} justifyContent="center" alignItems="center">
+        <Box sx={{ color: (theme) => theme.palette.text.secondary }}>{t('import.remote')}</Box>
+      </ProjectItemRoot>
+
+      <Dialog
+        {...bindDialog(dialogState)}
+        maxWidth="sm"
+        fullWidth
+        component="form"
+        onSubmit={form.handleSubmit(saveSetting)}>
+        <DialogTitle>{t('remoteGitRepo')}</DialogTitle>
+        <DialogContent>
+          <Stack gap={2}>
+            <TextField
+              autoFocus
+              fullWidth
+              label={`${t('url')}*`}
+              onPaste={(e) => {
+                try {
+                  const url = gitUrlParse(e.clipboardData.getData('text/plain'));
+                  const https = gitUrlParse.stringify(url, 'https');
+                  form.setValue('url', https, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                  form.setValue('username', url.owner, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+
+                  const { password } = url as any;
+                  if (password && typeof password === 'string') {
+                    form.setValue('password', password, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                      shouldTouch: true,
+                    });
+                  }
+                  e.preventDefault();
+                } catch {
+                  // empty
+                }
+              }}
+              {...form.register('url', {
+                required: true,
+                validate: (value) =>
+                  /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/.test(
+                    value
+                  ) || t('validation.urlPattern'),
+              })}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
+              InputLabelProps={{ shrink: form.watch('url') ? true : undefined }}
+              error={Boolean(form.formState.errors.url)}
+              helperText={form.formState.errors.url?.message}
+            />
+
+            <TextField
+              fullWidth
+              label={t('username')}
+              {...form.register('username')}
+              error={Boolean(form.formState.errors.username)}
+              helperText={form.formState.errors.username?.message}
+              InputLabelProps={{ shrink: form.watch('username') ? true : undefined }}
+            />
+
+            <TextField
+              label={t('projectSetting.name')}
+              sx={{ width: 1 }}
+              {...form.register('name')}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
+            />
+
+            <TextField
+              label={t('projectSetting.description')}
+              multiline
+              rows={4}
+              sx={{ width: 1 }}
+              {...form.register('description')}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label={t('accessToken')}
+              {...form.register('password')}
+              autoComplete="false"
+              error={Boolean(form.formState.errors.password)}
+              helperText={
+                form.formState.errors.password?.message || (
+                  <Box component="span">
+                    {t('remoteGitRepoPasswordHelper')}{' '}
+                    <Tooltip
+                      title={t('githubTokenTip')}
+                      placement="top"
+                      slotProps={{ popper: { sx: { whiteSpace: 'pre-wrap' } } }}>
+                      <Link href="https://github.com/settings/tokens?type=beta" target="_blank">
+                        github access token
+                      </Link>
+                    </Tooltip>
+                  </Box>
+                )
+              }
+              type={showPassword ? 'text' : 'password'}
+              InputLabelProps={{ shrink: form.watch('password') ? true : undefined }}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                      {showPassword ? <EyeNo /> : <Eye />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={dialogState.close}>{t('cancel')}</Button>
+          <LoadingButton
+            variant="contained"
+            type="submit"
+            loading={form.formState.isSubmitting}
+            loadingPosition="start"
+            startIcon={<Add />}>
+            {t('import.remote')}
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 

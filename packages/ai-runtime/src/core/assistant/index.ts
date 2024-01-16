@@ -1,5 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
+import { SubscriptionError } from '@blocklet/ai-kit/api';
 import {
   ChatCompletionChunk,
   ChatCompletionInput,
@@ -35,12 +36,19 @@ export type InputMessages = {
   }>;
 };
 
-export type RunAssistantResponse = RunAssistantChunk | RunAssistantError | RunAssistantInput;
+export type RunAssistantResponse = RunAssistantChunk | RunAssistantError | RunAssistantInput | RunAssistantLog;
 
 export type RunAssistantInput = {
   taskId: string;
   assistantId: string;
   input: InputMessages;
+};
+
+export type RunAssistantLog = {
+  taskId: string;
+  assistantId: string;
+  log: string;
+  timestamp: number;
 };
 
 export type RunAssistantChunk = {
@@ -56,7 +64,7 @@ export type RunAssistantChunk = {
 };
 
 export type RunAssistantError = {
-  error: { message: string };
+  error: { message: string } | SubscriptionError;
 };
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
@@ -206,7 +214,21 @@ async function runFunctionAssistant({
   });
 
   vm.on('console.log', (...data) => {
-    callback?.({ taskId, assistantId: assistant.id, delta: { content: `\nDEBUG: ${JSON.stringify(data)}\n` } });
+    const logData = data
+      .map((datum) => {
+        if (typeof datum === 'object') {
+          return JSON.stringify(datum, null, 2);
+        }
+        return JSON.stringify(datum);
+      })
+      .join('   ');
+
+    callback?.({
+      taskId,
+      assistantId: assistant.id,
+      log: logData,
+      timestamp: Date.now(),
+    });
   });
 
   const module = await vm.run(assistant.code);
