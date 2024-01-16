@@ -11,7 +11,9 @@ import { ensurePromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
 import { defaultBranch, getAssistantsOfRepository } from '../store/repository';
 
-const TARGET_DIR = 'assistants.ai';
+const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
+
+const TARGET_DIR = path.join(AI_STUDIO_DID, 'ai');
 
 const getResourceDir = ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
   const exportDir = component.getResourceExportDir({ projectId, releaseId });
