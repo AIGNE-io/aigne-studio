@@ -1,3 +1,35 @@
+## 0.1.213 (2024-1-16)
+
+- feat: add placeholder
+
+## 0.1.212 (2024-1-14)
+
+- chore: resource blocklet data
+
+## 0.1.211 (2024-1-14)
+
+- fix: fix version of react-router-dom
+
+## 0.1.210 (2024-1-14)
+
+- fix: deduplicate lexical deps
+
+## 0.1.209 (2024-1-13)
+
+- fix: remove incompatible config
+
+## 0.1.208 (2024-1-12)
+
+- feat: remind users to subscribe in advance
+
+## 0.1.207 (2024-1-10)
+
+- feat: optimized logs format
+
+## 0.1.206 (2024-1-5)
+
+- feat: support remote repo
+
 ## 0.1.205 (2024-1-3)
 
 - fix: move billing to ai-kit
