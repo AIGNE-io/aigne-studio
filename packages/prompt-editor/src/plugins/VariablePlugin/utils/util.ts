@@ -1,7 +1,7 @@
 const isBracketStartAndEnd = (text: string) => {
   const pattern = /^\{\{(.*)\}\}$/;
   const match = text.match(pattern);
-  return match;
+  return !!match;
 };
 
 function splitText(text: string) {
