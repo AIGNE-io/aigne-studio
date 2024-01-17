@@ -1,4 +1,5 @@
 import ErrorCard from '@app/components/error-card';
+import MdViewer from '@app/components/md-viewer';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ImagePreview } from '@blocklet/ai-kit/components';
@@ -26,6 +27,7 @@ import {
   Typography,
   accordionSummaryClasses,
   alertClasses,
+  alpha,
   outlinedInputClasses,
   selectClasses,
   styled,
@@ -38,7 +40,6 @@ import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
 import { ComponentProps, SyntheticEvent, memo, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import Markdown from 'react-markdown';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import { useSessionContext } from '../../contexts/session';
@@ -122,7 +123,7 @@ function DebugViewContent({
         </Box>
       </Box>
 
-      <Box flexGrow={1}>
+      <Box flexGrow={1} sx={{ overflowX: 'hidden' }}>
         {currentSession.messages.map((message) => (
           <MessageView
             currentSession={currentSession.chatType}
@@ -226,14 +227,13 @@ const MessageView = memo(
   }) => {
     const { t } = useLocaleContext();
     const { store } = useProjectStore(projectId, gitRef);
-
     return (
       <>
         <Stack px={2} py={1} direction="row" gap={1} position="relative">
           <Box py={0.5}>
             <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
           </Box>
-          <Box>
+          <Box width="100%">
             {!!message.logs?.length && (
               <Box mb={1} bgcolor="grey.50" borderRadius={1} p={1}>
                 {message.logs.map((item, index) => (
@@ -255,14 +255,15 @@ const MessageView = memo(
                 <MessageViewContent
                   sx={{
                     px: 1,
-                    py: 0.5,
+                    py: 0.1,
                     borderRadius: 1,
-                    ':hover': {
-                      bgcolor: 'grey.100',
-                    },
+                    bgcolor: (theme) =>
+                      message?.inputMessages
+                        ? theme.palette.grey[100]
+                        : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
                     position: 'relative',
                   }}>
-                  {<Box component={Markdown}>{message.content}</Box> ||
+                  {<MdViewer content={message.content} /> ||
                     (message.parameters && (
                       <Box>
                         {!isEmpty(message.parameters) ? (
@@ -280,7 +281,7 @@ const MessageView = memo(
                       </Box>
                     ))}
                   {!!message.inputMessages?.messages.length && (
-                    <Box marginTop={1}>
+                    <Box margin={0.5}>
                       {message.inputMessages?.messages.map((i, index) => (
                         <Accordion
                           sx={{
@@ -804,27 +805,29 @@ function EmptySessions({ projectId, templateId }: { projectId: string; templateI
 }
 
 export const WritingIndicator = styled('span')`
-  &:after {
-    content: '';
-    display: inline-block;
-    vertical-align: middle;
-    height: 1.2em;
-    margin-top: -0.2em;
-    margin-left: 0.1em;
-    border-right: 0.2em solid orange;
-    border-radius: 10px;
-    animation: blink-caret 0.75s step-end infinite;
+  ${({ theme }) => `
+    &:after {
+      content: '';
+      display: inline-block;
+      vertical-align: middle;
+      height: 1.2em;
+      margin-top: -0.2em;
+      margin-left: 0.1em;
+      border-right: 0.2em solid ${alpha(theme.palette.primary.main, 0.4)};
+      border-radius: 10px;
+      animation: blink-caret 0.75s step-end infinite;
 
-    @keyframes blink-caret {
-      from,
-      to {
-        border-color: transparent;
-      }
-      50% {
-        border-color: orange;
+      @keyframes blink-caret {
+        from,
+        to {
+          border-color: transparent;
+        }
+        50% {
+          border-color: ${alpha(theme.palette.primary.main, 0.4)};
+        }
       }
     }
-  }
+  `}
 `;
 
 const CustomAccordion = styled(Accordion)(() => ({

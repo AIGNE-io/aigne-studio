@@ -185,6 +185,7 @@ function PromptItemMessage({
 
       <StyledPromptEditor
         readOnly={readOnly}
+        placeholder={t('promptPlaceholder')}
         projectId={projectId}
         gitRef={gitRef}
         path={[value.id, 'content']}
