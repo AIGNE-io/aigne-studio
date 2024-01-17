@@ -146,7 +146,7 @@ const SETTINGS_FILE = '.settings.yaml';
 
 const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: Project }) => {
   const repository = await getRepository({ projectId: project._id! });
-  const fields = pick(project.dataValues, [
+  const fields = pick(project, [
     '_id',
     'name',
     'description',
@@ -209,7 +209,6 @@ export async function commitWorking({
     beforeCommit: async ({ tx }) => {
       writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
-
       await addSettingsToGit({ tx, project });
 
       // Remove unnecessary .gitkeep files
