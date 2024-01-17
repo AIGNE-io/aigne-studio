@@ -83,7 +83,7 @@ const useRequest = (currentProjectId: string, currentGitRef: string) => {
       const projects = await projectFn();
 
       if (projects.length) {
-        await refetch({ projectId: projects[0]?._id || '', ref: currentGitRef });
+        await refetch({ projectId: projects[0]?._id || '', ref: 'main' });
         return;
       }
 
