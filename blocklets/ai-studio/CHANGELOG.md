@@ -1,3 +1,7 @@
+## 0.1.220 (2024-1-17)
+
+- fix: error is reported when saving to a new branch
+
 ## 0.1.219 (2024-1-17)
 
 - fix: keep the id in the original assistant
