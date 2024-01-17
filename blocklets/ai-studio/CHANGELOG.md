@@ -1,3 +1,8 @@
+## 0.1.215 (2024-1-17)
+
+- fix: add parameter tips
+- fix: variables that target the execution block are not added to the variable
+
 ## 0.1.214 (2024-1-16)
 
 - fix: markdown optimization
