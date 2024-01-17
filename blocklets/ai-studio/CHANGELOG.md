@@ -1,3 +1,7 @@
+## 0.1.217 (2024-1-17)
+
+- fix: error is reported when saving to a new branch
+
 ## 0.1.216 (2024-1-17)
 
 - feat: support sse error
