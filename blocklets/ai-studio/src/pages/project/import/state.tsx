@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import orderBy from 'lodash/orderBy';
 import { useCallback, useEffect, useState } from 'react';
 
 import { EntryWithMeta } from '../../../../api/src/routes/tree';
@@ -72,7 +73,7 @@ const useRequest = (currentProjectId: string, currentGitRef: string) => {
 
   const projectFn = useCallback(async () => {
     const [{ projects }] = await Promise.all([getProjects()]);
-    const filterProjects = projects || [];
+    const filterProjects = orderBy(projects || [], ['updatedAt'], ['desc']);
     setState((v) => ({ ...v, projects: filterProjects, error: undefined }));
     return filterProjects;
   }, [setState]);
@@ -82,7 +83,7 @@ const useRequest = (currentProjectId: string, currentGitRef: string) => {
       const projects = await projectFn();
 
       if (projects.length) {
-        await refetch({ projectId: projects[0]?._id || '', ref: currentGitRef });
+        await refetch({ projectId: projects[0]?._id || '', ref: 'main' });
         return;
       }
 

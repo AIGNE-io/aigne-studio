@@ -80,7 +80,6 @@ import {
   deleteFile,
   isBuiltinFolder,
   moveFile,
-  resetTemplatesId,
   useCreateFile,
   useProjectStore,
 } from './yjs-state';
@@ -193,8 +192,7 @@ const FileTree = forwardRef<
         try {
           const { assistants } = await exportAssistantsToProject(projectId, gitRef, state);
           if (assistants.length) {
-            const newTemplates = resetTemplatesId(assistants);
-            for (const template of newTemplates) {
+            for (const template of assistants) {
               createFile({ store, parent: template.parent, meta: fileToYjs(template) as AssistantYjs });
             }
           } else {

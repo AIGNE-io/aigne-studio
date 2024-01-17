@@ -10,6 +10,7 @@ import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
+import logger from '../libs/logger';
 import Project from './models/project';
 
 export const defaultBranch = 'main';
@@ -40,18 +41,23 @@ export async function getRepository({
 
         if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
           const testFilepath = filepath.replace(new RegExp(`^${PROMPTS_FOLDER_NAME}`), TESTS_FOLDER_NAME);
-          // console.log(testFilepath, 'testFilepath');
-          const testFile = (
-            await repository.readBlob({
-              filepath: testFilepath,
-              ref,
-            })
-          ).blob;
           const assistant = parse(Buffer.from(content).toString());
-          const test = parse(Buffer.from(testFile).toString());
-          if (test) {
-            assistant.tests = test.tests;
+
+          try {
+            const testFile = (
+              await repository.readBlob({
+                filepath: testFilepath,
+                ref,
+              })
+            )?.blob;
+            const test = parse(Buffer.from(testFile).toString());
+            if (test) {
+              assistant.tests = test.tests;
+            }
+          } catch (error) {
+            logger.error('read testFile blob failed error', { error });
           }
+
           const data = fileToYjs(assistant);
 
           if (isAssistant(data)) {
@@ -146,7 +152,7 @@ const SETTINGS_FILE = '.settings.yaml';
 
 const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: Project }) => {
   const repository = await getRepository({ projectId: project._id! });
-  const fields = pick(project, [
+  const fields = pick(project.dataValues, [
     '_id',
     'name',
     'description',
