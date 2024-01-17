@@ -1,3 +1,7 @@
+## 0.1.216 (2024-1-17)
+
+- feat: support sse error
+
 ## 0.1.215 (2024-1-17)
 
 - fix: add parameter tips

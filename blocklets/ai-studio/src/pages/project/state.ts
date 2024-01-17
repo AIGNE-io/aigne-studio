@@ -505,7 +505,10 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             } else if (isRunAssistantError(value)) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
-                message.error = { message: value.error.message };
+                message.error = pick(value.error, 'message', 'type', 'timestamp') as {
+                  message: string;
+                  [key: string]: unknown;
+                };
               });
             } else if (isRunAssistantLog(value)) {
               setMessage(sessionIndex, responseId, (message) => {
