@@ -59,15 +59,24 @@ export default class Working<T> extends Doc {
   }
 
   async reset() {
-    const files = await Promise.all(
-      (
-        await this.repo.listFiles({ ref: this.options.ref })
-      ).map(async (p) => {
+    const fileList = await this.repo.listFiles({ ref: this.options.ref });
+    const files: {
+      filepath: string;
+      key: string;
+      file: any;
+    }[] = [];
+
+    for (const p of fileList) {
+      try {
         const content = (await this.repo.readBlob({ ref: this.options.ref, filepath: p })).blob;
-        const { filepath, data, key } = await this.repo.options.parse(p, content, { ref: this.options.ref });
-        return { filepath, key, file: data };
-      })
-    );
+
+        const result = await this.repo.options.parse(p, content, { ref: this.options.ref });
+        const { filepath, key, data } = result;
+        files.push({ filepath, key, file: data });
+      } catch (error) {
+        console.error(`Error parsing ${p}: ${error}`);
+      }
+    }
 
     this.transact(() => {
       this.getMap('files').clear();

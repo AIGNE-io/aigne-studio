@@ -46,11 +46,13 @@ export async function getRepository({
               filepath: testFilepath,
               ref,
             })
-          ).blob;
+          )?.blob;
           const assistant = parse(Buffer.from(content).toString());
-          const test = parse(Buffer.from(testFile).toString());
-          if (test) {
-            assistant.tests = test.tests;
+          if (testFile.length !== 0) {
+            const test = parse(Buffer.from(testFile).toString());
+            if (test) {
+              assistant.tests = test.tests;
+            }
           }
           const data = fileToYjs(assistant);
 

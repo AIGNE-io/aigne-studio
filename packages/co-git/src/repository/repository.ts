@@ -207,8 +207,15 @@ export default class Repository<T> {
 
   async readBlob({ ref, filepath }: { ref: string; filepath: string }) {
     const oid = await git.resolveRef({ fs, gitdir: this.gitdir, ref });
-
-    return git.readBlob({ fs, gitdir: this.gitdir, oid, filepath });
+    try {
+      const data = await git.readBlob({ fs, gitdir: this.gitdir, oid, filepath });
+      return data;
+    } catch {
+      return {
+        oid,
+        blob: new Uint8Array(),
+      };
+    }
   }
 
   async findFile(filenameOrPath: string, options: { ref: string; rejectIfNotFound: false }): Promise<string | null>;
