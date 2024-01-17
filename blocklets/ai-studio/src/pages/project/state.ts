@@ -655,7 +655,11 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
       const modified = duplicateItems.filter((i) => {
         const item = omit(
           omitBy(i, (x) => !x),
-          'tests'
+          'tests',
+          'createdBy',
+          'updatedBy',
+          'updatedAt',
+          'createdAt'
         );
 
         const found = state.files.find((f) => item.id === f.id);
@@ -665,7 +669,11 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
 
         const file = omit(
           omitBy(found, (x) => !x),
-          'tests'
+          'tests',
+          'createdBy',
+          'updatedBy',
+          'updatedAt',
+          'createdAt'
         );
         return !equal(item, file);
       });
