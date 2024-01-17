@@ -80,7 +80,6 @@ import {
   deleteFile,
   isBuiltinFolder,
   moveFile,
-  resetTemplatesId,
   useCreateFile,
   useProjectStore,
 } from './yjs-state';
@@ -162,10 +161,7 @@ const FileTree = forwardRef<
 
   const onCreateFolder = useCallback(
     (options: Partial<Omit<Parameters<typeof createFolder>[0], 'store'>> = {}) => {
-      const path = createFolder({
-        ...options,
-        store,
-      });
+      const path = createFolder({ ...options, store });
       setEditingFolderPath(path);
       openFolder(path);
     },
@@ -183,6 +179,7 @@ const FileTree = forwardRef<
         <Box maxHeight={500}>
           <ImportFrom
             projectId={projectId}
+            gitRef={gitRef}
             onChange={(data: { [key: string]: boolean }, projectId: string, ref: string) => {
               state.resources = Object.keys(data).filter((key: string): boolean => Boolean(data[key]));
               state.projectId = projectId;
@@ -195,8 +192,7 @@ const FileTree = forwardRef<
         try {
           const { assistants } = await exportAssistantsToProject(projectId, gitRef, state);
           if (assistants.length) {
-            const newTemplates = resetTemplatesId(assistants);
-            for (const template of newTemplates) {
+            for (const template of assistants) {
               createFile({ store, parent: template.parent, meta: fileToYjs(template) as AssistantYjs });
             }
           } else {

@@ -1,6 +1,18 @@
-## 0.1.217 (2024-1-17)
+## 0.1.220 (2024-1-17)
 
 - fix: error is reported when saving to a new branch
+
+## 0.1.219 (2024-1-17)
+
+- fix: keep the id in the original assistant
+
+## 0.1.218 (2024-1-17)
+
+- fix: transform brackets fail
+
+## 0.1.217 (2024-1-17)
+
+- fix: filter import project
 
 ## 0.1.216 (2024-1-17)
 
