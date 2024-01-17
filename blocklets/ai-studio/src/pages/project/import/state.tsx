@@ -23,7 +23,7 @@ type State = {
   templateRef: string;
 };
 
-const useRequest = (projectId: string) => {
+const useRequest = (currentProjectId: string, currentGitRef: string) => {
   const { t } = useLocaleContext();
 
   const [state, setState] = useState<State>({
@@ -47,11 +47,15 @@ const useRequest = (projectId: string) => {
           getBranches({ projectId }),
         ]);
 
+        const isCurrentProject = currentProjectId === projectId && currentGitRef === ref;
+
         setState((v) => ({
           ...v,
           projectId,
           ref,
-          files: files.filter((x) => typeof x === 'object' && x.parent[0] === PROMPTS_FOLDER_NAME),
+          files: isCurrentProject
+            ? []
+            : files.filter((x) => typeof x === 'object' && x.parent[0] === PROMPTS_FOLDER_NAME),
           branches,
           error: undefined,
         }));
@@ -68,7 +72,7 @@ const useRequest = (projectId: string) => {
 
   const projectFn = useCallback(async () => {
     const [{ projects }] = await Promise.all([getProjects()]);
-    const filterProjects = (projects || []).filter((x) => x._id !== projectId);
+    const filterProjects = projects || [];
     setState((v) => ({ ...v, projects: filterProjects, error: undefined }));
     return filterProjects;
   }, [setState]);
@@ -78,7 +82,7 @@ const useRequest = (projectId: string) => {
       const projects = await projectFn();
 
       if (projects.length) {
-        await refetch({ projectId: projects[0]?._id || '', ref: 'main' });
+        await refetch({ projectId: projects[0]?._id || '', ref: currentGitRef });
         return;
       }
 
@@ -93,7 +97,7 @@ const useRequest = (projectId: string) => {
   useEffect(() => {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId]);
+  }, [currentProjectId, currentGitRef]);
 
   return [state, setState, { init, refetch }] as const;
 };

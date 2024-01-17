@@ -162,10 +162,7 @@ const FileTree = forwardRef<
 
   const onCreateFolder = useCallback(
     (options: Partial<Omit<Parameters<typeof createFolder>[0], 'store'>> = {}) => {
-      const path = createFolder({
-        ...options,
-        store,
-      });
+      const path = createFolder({ ...options, store });
       setEditingFolderPath(path);
       openFolder(path);
     },
@@ -183,6 +180,7 @@ const FileTree = forwardRef<
         <Box maxHeight={500}>
           <ImportFrom
             projectId={projectId}
+            gitRef={gitRef}
             onChange={(data: { [key: string]: boolean }, projectId: string, ref: string) => {
               state.resources = Object.keys(data).filter((key: string): boolean => Boolean(data[key]));
               state.projectId = projectId;
