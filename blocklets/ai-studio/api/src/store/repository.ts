@@ -215,6 +215,7 @@ export async function commitWorking({
     beforeCommit: async ({ tx }) => {
       writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
+
       await addSettingsToGit({ tx, project });
 
       // Remove unnecessary .gitkeep files
