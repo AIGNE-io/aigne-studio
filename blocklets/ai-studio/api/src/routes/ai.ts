@@ -122,7 +122,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
     log.update({ endDate, requestTime, status: Status.SUCCESS, response: result });
   } catch (error) {
     if (stream) {
-      emit({ error: pick(error, 'message', 'type', 'timeStamp') });
+      emit({ error: pick(error, 'message', 'type', 'timestamp') });
     } else {
       res.status(500).json({ error: { message: error.message } });
     }
