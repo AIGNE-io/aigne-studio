@@ -86,20 +86,20 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
       doc.transact(() => {
         assistant.parameters ??= {};
 
-        if (!parameter || !Object.values(assistant.parameters).some((i) => i.data.key === parameter)) {
+        if (!parameter || !variables.includes(parameter)) {
           assistant.parameters[id] = {
             index: Math.max(-1, ...Object.values(assistant.parameters).map((i) => i.index)) + 1,
             data: { id, key: parameter, from },
           };
+
+          setHighlightedId(id);
+          setTimeout(() => setHighlightedId(null), 500);
         }
       });
 
-      setHighlightedId(id);
-      setTimeout(() => setHighlightedId(null), 500);
-
       return id;
     },
-    [assistant]
+    [assistant, variables?.join('/')]
   );
 
   const deleteParameter = useCallback(

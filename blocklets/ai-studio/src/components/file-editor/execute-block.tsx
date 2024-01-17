@@ -15,6 +15,7 @@ import {
   Stack,
   StackProps,
   TextField,
+  Tooltip,
   Typography,
   createFilterOptions,
 } from '@mui/material';
@@ -28,6 +29,7 @@ import { joinURL } from 'ufo';
 
 import Add from '../../pages/project/icons/add';
 import External from '../../pages/project/icons/external';
+import InfoOutlined from '../../pages/project/icons/question';
 import Trash from '../../pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
@@ -424,9 +426,17 @@ const ToolDialog = forwardRef<
           <Typography variant="body1">{file?.description}</Typography>
 
           {parameters && parameters.length > 0 && (
-            <Typography variant="subtitle2" mb={-1} ml={1} color="text.secondary">
-              {t('parameters')}
-            </Typography>
+            <Box>
+              <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
+                <Stack gap={0.5} direction="row" alignItems="center">
+                  <Typography variant="subtitle2" color="text.secondary">
+                    {t('parameters')}
+                  </Typography>
+
+                  <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
+                </Stack>
+              </Tooltip>
+            </Box>
           )}
 
           {parameters?.map(({ data: parameter }) => {
@@ -443,6 +453,7 @@ const ToolDialog = forwardRef<
                   name={`parameters.${parameter.key}`}
                   render={({ field }) => (
                     <PromptEditorField
+                      placeholder={`{{ ${parameter.key} }}`}
                       value={field.value || ''}
                       projectId={projectId}
                       gitRef={gitRef}

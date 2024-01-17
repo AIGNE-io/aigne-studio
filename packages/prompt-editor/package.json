@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.1.212",
+  "version": "0.1.216",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
@@ -79,7 +79,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-error-boundary": "^4.0.12",
-    "y-websocket": "^1.5.1",
+    "y-websocket": "^1.5.2",
     "yjs": "^13.6.10"
   },
   "devDependencies": {
