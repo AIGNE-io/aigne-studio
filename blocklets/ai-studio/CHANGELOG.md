@@ -1,3 +1,7 @@
+## 0.1.217 (2024-1-17)
+
+- fix: filter import project
+
 ## 0.1.216 (2024-1-17)
 
 - feat: support sse error
