@@ -47,13 +47,13 @@ const useRequest = (currentProjectId: string, currentGitRef: string) => {
           getBranches({ projectId }),
         ]);
 
-        const isCurrentProject = currentProjectId === projectId && currentGitRef === ref;
+        const disabledProject = currentProjectId === projectId && currentGitRef === ref;
 
         setState((v) => ({
           ...v,
           projectId,
           ref,
-          files: isCurrentProject
+          files: disabledProject
             ? []
             : files.filter((x) => typeof x === 'object' && x.parent[0] === PROMPTS_FOLDER_NAME),
           branches,
