@@ -459,6 +459,7 @@ export function projectRoutes(router: Router) {
       if (input.force) {
         await repository.fetch({ remote: defaultRemote, ref });
         await repository.branch({ ref, object: `${defaultRemote}/${ref}`, checkout: true, force: true });
+        (await repository.working({ ref })).reset();
       } else {
         await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
       }

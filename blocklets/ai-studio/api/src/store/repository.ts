@@ -10,6 +10,7 @@ import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
+import logger from '../libs/logger';
 import Project from './models/project';
 
 export const defaultBranch = 'main';
@@ -53,8 +54,8 @@ export async function getRepository({
             if (test) {
               assistant.tests = test.tests;
             }
-          } catch (e) {
-            console.error(e);
+          } catch (error) {
+            logger.error('read testFile blob failed error', { error });
           }
 
           const data = fileToYjs(assistant);
