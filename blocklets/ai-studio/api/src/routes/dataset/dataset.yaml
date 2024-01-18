@@ -1,0 +1,55 @@
+openapi: 3.0.0
+info:
+  title: AI Studio Dataset Protocol
+  version: 1.0.0
+paths:
+  '/api/dataset/search':
+    get:
+      type: 'SEARCH'
+      summary: 根据搜索内容搜索指定向量数据库的内容
+      description: 根据搜索内容搜索指定向量数据库的内容
+      parameters:
+        - name: vectorId
+          in: query
+          description: 向量数据库的ID
+          required: true
+          schema:
+            type: string
+            default: ''
+        - name: messageString
+          in: query
+          description: 搜索的内容
+          required: true
+          schema:
+            type: string
+            default: ''
+      responses:
+        '200':
+          description: 成功获取分页列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  role:
+                    type: string
+                    description: 角色
+                    default: 'system'
+                    enum: ['system', 'user', 'assistant']
+                  content:
+                    type: string
+                    description: 内容
+                  test:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/category'
+components:
+  schemas:
+    category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string

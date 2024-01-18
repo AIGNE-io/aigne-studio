@@ -17,6 +17,7 @@
       "@blocklet/ai-runtime": ["../../packages/ai-runtime/src"],
       "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],
       "@blocklet/co-git": ["../../packages/co-git/src"],
+      "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
       "@blocklet/co-git/*": ["../../packages/co-git/src/*"],
       "@blocklet/studio-ui": ["../../packages/studio-ui/src"],
       "@blocklet/prompt-editor": ["../../packages/prompt-editor/src"],

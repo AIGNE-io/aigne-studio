@@ -30,6 +30,7 @@
     ]
   },
   "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0",
     "@arcblock/did-auth": "^1.18.108",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.9.13",
@@ -43,6 +44,7 @@
     "@blocklet/hnswlib-node": "https://github.com/blocklet/hnswlib-node.git",
     "@blocklet/logger": "^1.16.22",
     "@blocklet/prompt-editor": "^0.1.220",
+    "@blocklet/dataset-sdk": "^0.1.220",
     "@blocklet/sdk": "^1.16.22",
     "@blocklet/studio-ui": "^0.1.220",
     "@blocklet/ui-react": "^2.9.13",
