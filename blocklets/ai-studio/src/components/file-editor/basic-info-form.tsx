@@ -35,7 +35,7 @@ export default function BasicInfoForm({
             fullWidth
             placeholder={t('unnamed')}
             value={value.name ?? ''}
-            onChange={(e) => (value.name = e.target.value)}
+            onChange={(e) => (value.name = e.target.value.replace(/\//g, ''))}
             InputProps={{
               readOnly,
               sx: (theme) => theme.typography.subtitle1,
