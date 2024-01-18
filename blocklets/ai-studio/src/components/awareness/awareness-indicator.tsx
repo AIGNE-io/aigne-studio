@@ -37,7 +37,7 @@ export default function AwarenessIndicator({
   if (!current?.clients.length) return null;
 
   return (
-    <Box {...props} position="relative">
+    <Box {...props} zIndex={9999} position="relative">
       <Tooltip
         placement="top"
         arrow
