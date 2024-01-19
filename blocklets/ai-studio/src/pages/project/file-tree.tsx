@@ -683,7 +683,7 @@ function EditableTreeItem({
     }
 
     try {
-      await onSubmit?.(value);
+      await onSubmit?.(value.replace(/\//g, ''));
     } catch (error) {
       onCancel?.();
       setValue(children);
