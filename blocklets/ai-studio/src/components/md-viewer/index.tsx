@@ -66,6 +66,10 @@ const MarkdownViewer = styled(Box)`
     }
   }
 
+  .marked-code-block {
+    margin: ${({ theme }) => theme.spacing(1)} 0px;
+  }
+
   .marked-code-header {
     display: flex;
     justify-content: space-between;

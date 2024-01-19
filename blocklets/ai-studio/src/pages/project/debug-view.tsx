@@ -255,7 +255,7 @@ const MessageView = memo(
                 <MessageViewContent
                   sx={{
                     px: 1,
-                    py: 0.1,
+                    py: 1,
                     borderRadius: 1,
                     bgcolor: (theme) =>
                       message?.inputMessages

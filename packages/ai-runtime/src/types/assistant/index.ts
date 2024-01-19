@@ -10,8 +10,11 @@ export type Assistant = PromptAssistant | ImageAssistant | ApiAssistant | Functi
 
 export type Role = 'system' | 'user' | 'assistant';
 
+export type ExecuteBlockRole = Role | 'none';
+
 export interface ExecuteBlock {
   id: string;
+  role?: ExecuteBlockRole;
   selectType?: 'all' | 'selectByPrompt';
   selectByPrompt?: string;
   tools?: { id: string; parameters?: { [key: string]: string } }[];
