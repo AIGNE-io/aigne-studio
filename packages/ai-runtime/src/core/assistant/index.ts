@@ -399,6 +399,7 @@ async function runPromptAssistant({
           }
 
           if (prompt.type === 'executeBlock') {
+            if (prompt?.data?.role === 'none') return null;
             const result = blockResults.find((i) => i[0].id === prompt.data.id)?.[1];
 
             if (prompt.data.formatResultType === 'asHistory') {
@@ -411,7 +412,7 @@ async function runPromptAssistant({
             }
 
             return {
-              role: 'system' as const,
+              role: prompt.data.role ?? 'system',
               content: typeof result === 'string' ? result : JSON.stringify(result),
             };
           }

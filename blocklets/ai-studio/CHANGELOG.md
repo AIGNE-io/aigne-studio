@@ -1,3 +1,7 @@
+## 0.1.223 (2024-1-20)
+
+- feat: provide execute-block select ability
+
 ## 0.1.222 (2024-1-19)
 
 - fix: folders slash error
