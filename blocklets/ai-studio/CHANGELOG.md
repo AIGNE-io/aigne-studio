@@ -1,6 +1,18 @@
-## 0.1.221 (2024-1-17)
+## 0.1.224 (2024-1-20)
 
 - fix: settings data miss
+
+## 0.1.223 (2024-1-20)
+
+- feat: provide execute-block select ability
+
+## 0.1.222 (2024-1-19)
+
+- fix: folders slash error
+
+## 0.1.221 (2024-1-19)
+
+- feat: up zIndex
 
 ## 0.1.220 (2024-1-17)
 

@@ -1,5 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, FileTypeYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  ExecuteBlock,
+  ExecuteBlockYjs,
+  FileTypeYjs,
+  Role,
+  isAssistant,
+} from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import {
   Autocomplete,
@@ -98,6 +105,39 @@ export default function ExecuteBlockForm({
             ],
           }}
         />
+
+        {assistant.type === 'prompt' && (
+          <IndicatorTextField
+            projectId={projectId}
+            gitRef={gitRef}
+            path={[value.id, value.role ?? 'system']}
+            TextFiledProps={{
+              size: 'small',
+              select: true,
+              hiddenLabel: true,
+              SelectProps: {
+                autoWidth: true,
+              },
+              value: value.role || 'system',
+              onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                (value.role = e.target.value as Role),
+              children: [
+                <MenuItem key="system" value="system">
+                  System
+                </MenuItem>,
+                <MenuItem key="user" value="user">
+                  User
+                </MenuItem>,
+                <MenuItem key="user" value="assistant">
+                  Assistant
+                </MenuItem>,
+                <MenuItem key="none" value="none">
+                  None
+                </MenuItem>,
+              ],
+            }}
+          />
+        )}
 
         <Box flex={1} />
       </Stack>
