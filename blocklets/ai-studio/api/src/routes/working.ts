@@ -36,7 +36,7 @@ export function workingRoutes(router: Router) {
       const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
       const author = { name: fullName, email: userId };
       await commitWorking({
-        project: project.toJSON(),
+        project,
         ref,
         branch: input.branch,
         message: input.message,

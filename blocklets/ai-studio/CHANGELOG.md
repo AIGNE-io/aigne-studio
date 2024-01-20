@@ -1,3 +1,7 @@
+## 0.1.224 (2024-1-20)
+
+- fix: settings data miss
+
 ## 0.1.223 (2024-1-20)
 
 - feat: provide execute-block select ability
