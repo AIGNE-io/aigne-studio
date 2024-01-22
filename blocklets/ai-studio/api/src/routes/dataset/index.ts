@@ -1,8 +1,6 @@
 import path from 'path';
 
 import SwaggerParser from '@apidevtools/swagger-parser';
-import { getDatasetProtocols } from '@blocklet/dataset-sdk';
-import { env } from '@blocklet/sdk/lib/config';
 import { Router } from 'express';
 import Joi from 'joi';
 
@@ -37,34 +35,20 @@ router.get('/data-protocol', async (_req, res) => {
   const yamlPath = path.join(__dirname, '/dataset.yaml');
   const api = await SwaggerParser.dereference(yamlPath);
 
-  const paths = Object.keys(api.paths);
   const list: any[] = [];
 
-  paths.forEach((path) => {
+  Object.keys(api.paths).forEach((path) => {
     const pathItem = api.paths[path];
-    const methods = Object.keys(pathItem);
 
-    methods.forEach((method) => {
+    Object.keys(pathItem).forEach((method) => {
       const info = pathItem[method];
+      const { type = '', summary = '', description = '', parameters = '' } = info || {};
 
-      list.push({
-        url: path,
-        method,
-        type: info?.type,
-        summary: info?.summary,
-        description: info?.description,
-        parameters: info?.parameters ? info?.parameters : [],
-      });
+      list.push({ path, method, type, summary, description, parameters });
     });
   });
 
   res.json({ list, api });
-});
-
-router.get('/list', async (_req, res) => {
-  const list = await getDatasetProtocols(env.appUrl);
-
-  res.json({ list });
 });
 
 export default router;

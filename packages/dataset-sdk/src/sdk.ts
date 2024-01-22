@@ -36,8 +36,15 @@ export default class DataServiceSDK {
     const list = await this.findServicesWithDataAPI();
 
     if (list?.length) {
-      const result = await Promise.all(list.map((url) => axios.get(joinURL(url, 'api/dataset/data-protocol'))));
-      return result.flatMap((item) => item.data?.list);
+      const responses = await Promise.all(
+        list.map((url) =>
+          axios.get(joinURL(url, 'api/dataset/data-protocol')).then((response) => ({ url, data: response.data }))
+        )
+      );
+
+      return responses.flatMap(({ url, data }) =>
+        (data?.list ?? []).map((item: any) => ({ ...item, url, href: joinURL(url, item.path) }))
+      );
     }
 
     return [];
