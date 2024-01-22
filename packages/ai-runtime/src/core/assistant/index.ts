@@ -644,8 +644,6 @@ async function runExecuteBlock({
               return [[parameter.key, { type: 'string', description: parameter.placeholder ?? '' }]];
             });
 
-          if (parameters.length === 0) return undefined;
-
           return {
             tool,
             assistant,
