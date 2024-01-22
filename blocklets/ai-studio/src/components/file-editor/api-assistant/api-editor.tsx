@@ -101,7 +101,9 @@ export default function ApiEditor({
                           doc.transact(() => {
                             if (!value.requestParameters) return;
                             delete value.requestParameters[parameter.id];
-                            Object.values(value.requestParameters).forEach((i, index) => (i.index = index));
+                            sortBy(Object.values(value.requestParameters), 'index').forEach(
+                              (i, index) => (i.index = index)
+                            );
                           });
                         }}>
                         <Trash />

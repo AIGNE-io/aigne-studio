@@ -1,3 +1,9 @@
+## 0.1.226 (2024-1-22)
+
+- fix: 404 after file deleted
+- fix: show parameter tips base on the type of execute block
+- fix: correct index of tools or blocks
+
 ## 0.1.225 (2024-1-22)
 
 - fix: parameter is an object, Tools cannot bring in the parameter
