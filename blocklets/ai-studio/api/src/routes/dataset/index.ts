@@ -1,6 +1,7 @@
 import path from 'path';
 
 import SwaggerParser from '@apidevtools/swagger-parser';
+import { PathItemObject } from '@blocklet/dataset-sdk/types';
 import { Router } from 'express';
 import Joi from 'joi';
 
@@ -35,7 +36,7 @@ router.get('/data-protocol', async (_req, res) => {
   const yamlPath = path.join(__dirname, '/dataset.yaml');
   const api = await SwaggerParser.dereference(yamlPath);
 
-  const list: any[] = [];
+  const list: PathItemObject[] = [];
 
   Object.keys(api.paths).forEach((path) => {
     const pathItem = api.paths[path];

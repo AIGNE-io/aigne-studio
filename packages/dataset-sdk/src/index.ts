@@ -4,10 +4,9 @@ import { ParameterObject } from 'openapi3-ts/oas31';
 import { joinURL } from 'ufo';
 
 import DataServiceSDK from './sdk';
+import { PathItemWithUrlObject } from './types';
 
 const ajv = new Ajv();
-
-export default {};
 
 export const getDatasetProtocols = async (origin: string) => {
   const componentsWithUrl = components.map((component: any) => joinURL(origin, component.mountPoint));
@@ -41,16 +40,7 @@ export const checkParameters = (parameters: ParameterObject[], parametersData: {
   return { isValid: true, message: 'All parameters are valid.' };
 };
 
-export const getRequestConfig = (
-  pathItem: {
-    url: string;
-    href: string;
-    path: string;
-    method: string;
-    parameters: ParameterObject[];
-  },
-  parametersData: { [key: string]: any }
-) => {
+export const getRequestConfig = (pathItem: PathItemWithUrlObject, parametersData: { [key: string]: any }) => {
   let url = pathItem.href;
   for (const parameter of pathItem.parameters) {
     if (parameter.in === 'path') {
