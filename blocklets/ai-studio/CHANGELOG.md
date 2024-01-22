@@ -1,3 +1,7 @@
+## 0.1.225 (2024-1-22)
+
+- fix: parameter is an object, Tools cannot bring in the parameter
+
 ## 0.1.224 (2024-1-20)
 
 - fix: settings data miss
