@@ -638,9 +638,8 @@ async function runExecuteBlock({
           const assistant = await getAssistant(tool.id);
           if (!assistant) return undefined;
           const parameters = (assistant.parameters ?? [])
-            .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key)
-            .flatMap((parameter) => {
-              if (tool.parameters?.[parameter.key]) return [];
+            .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
+            .map((parameter) => {
               return [[parameter.key, { type: 'string', description: parameter.placeholder ?? '' }]];
             });
 
