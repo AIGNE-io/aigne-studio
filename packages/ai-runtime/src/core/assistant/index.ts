@@ -637,6 +637,14 @@ async function runExecuteBlock({
         tools.map(async (tool) => {
           const assistant = await getAssistant(tool.id);
           if (!assistant) return undefined;
+          const parameters = (assistant.parameters ?? [])
+            .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key)
+            .flatMap((parameter) => {
+              if (tool.parameters?.[parameter.key]) return [];
+              return [[parameter.key, { type: 'string', description: parameter.placeholder ?? '' }]];
+            });
+
+          if (parameters.length === 0) return undefined;
 
           return {
             tool,
@@ -646,15 +654,7 @@ async function runExecuteBlock({
               descriptions: assistant.description,
               parameters: {
                 type: 'object',
-                properties: Object.fromEntries(
-                  (assistant.parameters ?? [])
-                    .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key)
-                    .map((parameter) => {
-                      if (tool.parameters?.[parameter.key]) return [];
-                      return [parameter.key, { type: 'string', description: parameter.placeholder }];
-                    })
-                    .filter((i) => i.length > 0)
-                ),
+                properties: Object.fromEntries(parameters),
               },
             },
           };
@@ -729,7 +729,7 @@ async function runExecuteBlock({
             callAIImage,
             getAssistant,
             assistant: toolAssistant,
-            parameters,
+            parameters: args,
             callback,
           });
         })
