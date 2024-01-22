@@ -296,6 +296,7 @@ export default function ExecuteBlockForm({
       </Stack>
 
       <ToolDialog
+        executeBlock={value}
         ref={toolForm}
         projectId={projectId}
         assistant={assistant}
@@ -337,13 +338,14 @@ interface ToolDialogImperative {
 const ToolDialog = forwardRef<
   ToolDialogImperative,
   {
+    executeBlock: ExecuteBlockYjs;
     projectId: string;
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
     assistant: AssistantYjs;
   }
->(({ assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+>(({ executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -367,6 +369,15 @@ const ToolDialog = forwardRef<
     sortBy(Object.values(file.parameters), (i) => i.index).filter(
       (i): i is typeof i & { data: { key: string } } => !!i.data.key
     );
+
+  const assistantParameters = new Set([
+    ...Object.values(assistant.parameters ?? {}).map((i) => i.data.key),
+    ...(assistant.type === 'prompt'
+      ? Object.values(assistant.prompts ?? {})
+          .map((i) => (i.data.type === 'executeBlock' ? i.data.data.variable : undefined))
+          .filter(Boolean)
+      : []),
+  ]);
 
   const createFile = useCreateFile();
 
@@ -498,7 +509,13 @@ const ToolDialog = forwardRef<
                   name={`parameters.${parameter.key}`}
                   render={({ field }) => (
                     <PromptEditorField
-                      placeholder={`{{ ${parameter.key} }}`}
+                      placeholder={
+                        executeBlock.selectType === 'selectByPrompt'
+                          ? t('selectByPromptParameterPlaceholder')
+                          : assistantParameters.has(parameter.key)
+                          ? `{{ ${parameter.key} }}`
+                          : undefined
+                      }
                       value={field.value || ''}
                       projectId={projectId}
                       gitRef={gitRef}
