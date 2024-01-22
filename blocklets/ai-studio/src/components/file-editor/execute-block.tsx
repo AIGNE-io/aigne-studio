@@ -208,7 +208,7 @@ export default function ExecuteBlockForm({
                       doc.transact(() => {
                         if (value.tools) {
                           delete value.tools[tool.id];
-                          Object.values(value.tools).forEach((i, index) => (i.index = index));
+                          sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
                         }
                       });
                     }}>
@@ -305,10 +305,15 @@ export default function ExecuteBlockForm({
           const doc = (getYjsValue(value) as Map<any>).doc!;
           doc.transact(() => {
             value.tools ??= {};
+
+            const old = value.tools[tool.id];
+
             value.tools[tool.id] = {
-              index: Math.max(-1, ...Object.values(value.tools).map((i) => i.index)) + 1,
+              index: old?.index ?? Math.max(-1, ...Object.values(value.tools).map((i) => i.index)) + 1,
               data: tool,
             };
+
+            sortBy(Object.values(value.tools), 'index').forEach((tool, index) => (tool.index = index));
           });
           dialogState.close();
         }}

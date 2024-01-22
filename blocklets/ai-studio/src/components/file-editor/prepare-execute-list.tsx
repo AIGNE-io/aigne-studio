@@ -1,6 +1,7 @@
 import { AssistantYjs, ExecuteBlockYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Stack } from '@mui/material';
+import { sortBy } from 'lodash';
 import { useCallback } from 'react';
 
 import { DragSortItemContainer, DragSortListYjs } from '../drag-sort-list';
@@ -28,7 +29,7 @@ export default function PrepareExecuteList({
       const doc = (getYjsValue(value) as Map<any>).doc!;
       doc.transact(() => {
         delete value[id];
-        Object.values(value).forEach((i, index) => (i.index = index));
+        sortBy(Object.values(value), 'index').forEach((i, index) => (i.index = index));
       });
     },
     [value]
