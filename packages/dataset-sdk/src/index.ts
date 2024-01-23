@@ -68,10 +68,22 @@ export const getRequestConfig = (pathItem: PathItemWithUrlObject, parametersData
       config.params[parameter.name] = parametersData[parameter.name];
     } else if (parameter.in === 'header') {
       config.headers[parameter.name] = parametersData[parameter.name];
-      // @ts-ignore
-    } else if (parameter.in === 'body') {
-      // 自定义扩展，OPENAPI 中没有
-      config.data = parametersData[parameter.name];
+    }
+  }
+
+  if (pathItem.method.toLowerCase() === 'post' && pathItem.requestBody) {
+    const contentTypes = Object.keys(pathItem.requestBody.content);
+    const contentType = contentTypes.includes('application/x-www-form-urlencoded')
+      ? 'application/x-www-form-urlencoded'
+      : contentTypes[0];
+
+    config.headers['Content-Type'] = contentType;
+
+    // Initialize data structure based on Content-Type
+    if (contentType === 'application/x-www-form-urlencoded') {
+      config.data = new URLSearchParams();
+    } else {
+      config.data = {};
     }
   }
 

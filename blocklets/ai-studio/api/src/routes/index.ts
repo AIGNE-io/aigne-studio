@@ -2,7 +2,6 @@ import { Router } from 'express';
 
 import ai from './ai';
 import { branchRoutes } from './branch';
-import collection from './collection';
 import dataset from './dataset';
 import datasetItems from './dataset-items';
 import datasets from './datasets';
@@ -26,7 +25,6 @@ resourceRoutes(router);
 
 router.use('/ai', ai);
 router.use('/dataset', dataset);
-router.use('/collection', collection);
 router.use('/datasets', datasets);
 router.use('/datasets', datasetItems);
 router.use(ws);

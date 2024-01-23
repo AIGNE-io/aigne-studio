@@ -1,7 +1,5 @@
-import path from 'path';
-
-import SwaggerParser from '@apidevtools/swagger-parser';
-import { PathItemObject } from '@blocklet/dataset-sdk/types';
+import { getDatasetProtocols } from '@blocklet/dataset-sdk';
+import { env } from '@blocklet/sdk/lib/config';
 import { Router } from 'express';
 import Joi from 'joi';
 
@@ -15,6 +13,29 @@ const datasetSchema = Joi.object<{ vectorId: string; messageString: string }>({
   messageString: Joi.string().required(),
 });
 
+/**
+ * @openapi
+ * '/api/dataset/search':
+ *    get:
+ *      type: 'SEARCH'
+ *      summary: 根据搜索内容搜索指定向量数据库的内容
+ *      description: 根据搜索内容搜索指定向量数据库的内容
+ *      parameters:
+ *        - name: vectorId
+ *          in: query
+ *          description: 向量数据库的ID
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *        - name: messageString
+ *          in: query
+ *          description: 搜索的内容
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ */
 router.get('/search', async (req, res) => {
   const input = await datasetSchema.validateAsync(req.query);
   const embeddings = new AIKitEmbeddings({});
@@ -32,24 +53,9 @@ router.get('/search', async (req, res) => {
   res.json({ role: 'system', content: contextTemplate });
 });
 
-router.get('/data-protocol', async (_req, res) => {
-  const yamlPath = path.join(__dirname, '/dataset.yaml');
-  const api = await SwaggerParser.dereference(yamlPath);
-
-  const list: PathItemObject[] = [];
-
-  Object.keys(api.paths).forEach((path) => {
-    const pathItem = api.paths[path];
-
-    Object.keys(pathItem).forEach((method) => {
-      const info = pathItem[method];
-      const { type = '', summary = '', description = '', parameters = '' } = info || {};
-
-      list.push({ path, method, type, summary, description, parameters });
-    });
-  });
-
-  res.json({ list, api });
+router.get('/list', async (_req, res) => {
+  const list = await getDatasetProtocols(env.appUrl);
+  res.json({ list });
 });
 
 export default router;

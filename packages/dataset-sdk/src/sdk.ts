@@ -10,7 +10,7 @@ export default class DataServiceSDK {
 
   private async checkService(service: string): Promise<boolean> {
     try {
-      const response = await axios.get(`${service}/api/dataset/data-protocol`);
+      const response = await axios.get(joinURL(service, 'openapi.json'));
       return response.status === 200 && typeof response.data === 'object';
     } catch (error) {
       return false;
@@ -37,13 +37,11 @@ export default class DataServiceSDK {
 
     if (list?.length) {
       const responses = await Promise.all(
-        list.map((url) =>
-          axios.get(joinURL(url, 'api/dataset/data-protocol')).then((response) => ({ url, data: response.data }))
-        )
+        list.map((url) => axios.get(joinURL(url, 'openapi.json')).then((response) => ({ url, data: response.data })))
       );
 
       return responses.flatMap(({ url, data }) =>
-        (data?.list ?? []).map((item: any) => ({ ...item, url, href: joinURL(url, item.path) }))
+        (data?.list ?? []).map((item: any) => ({ ...item, url: joinURL(url, item.path) }))
       );
     }
 

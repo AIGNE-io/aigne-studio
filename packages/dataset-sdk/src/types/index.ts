@@ -1,12 +1,13 @@
-import { ParameterObject } from 'openapi3-ts/oas31';
+import { OperationObject, ParameterObject, RequestBodyObject } from 'openapi3-ts/oas31';
 
-export interface PathItemObject {
+export interface PathItemObject extends OperationObject {
   path: string;
   method: string;
   type: string;
   summary?: string;
   description?: string;
   parameters: ParameterObject[];
+  requestBody?: RequestBodyObject;
 }
 
 export interface PathItemWithUrlObject extends PathItemObject {
