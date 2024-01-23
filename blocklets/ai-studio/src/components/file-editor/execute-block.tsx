@@ -1,5 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, FileTypeYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  ExecuteBlock,
+  ExecuteBlockYjs,
+  FileTypeYjs,
+  Role,
+  isAssistant,
+} from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import {
   Autocomplete,
@@ -99,6 +106,39 @@ export default function ExecuteBlockForm({
           }}
         />
 
+        {assistant.type === 'prompt' && (
+          <IndicatorTextField
+            projectId={projectId}
+            gitRef={gitRef}
+            path={[value.id, value.role ?? 'system']}
+            TextFiledProps={{
+              size: 'small',
+              select: true,
+              hiddenLabel: true,
+              SelectProps: {
+                autoWidth: true,
+              },
+              value: value.role || 'system',
+              onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                (value.role = e.target.value as Role),
+              children: [
+                <MenuItem key="system" value="system">
+                  System
+                </MenuItem>,
+                <MenuItem key="user" value="user">
+                  User
+                </MenuItem>,
+                <MenuItem key="user" value="assistant">
+                  Assistant
+                </MenuItem>,
+                <MenuItem key="none" value="none">
+                  None
+                </MenuItem>,
+              ],
+            }}
+          />
+        )}
+
         <Box flex={1} />
       </Stack>
 
@@ -168,7 +208,7 @@ export default function ExecuteBlockForm({
                       doc.transact(() => {
                         if (value.tools) {
                           delete value.tools[tool.id];
-                          Object.values(value.tools).forEach((i, index) => (i.index = index));
+                          sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
                         }
                       });
                     }}>
@@ -256,6 +296,7 @@ export default function ExecuteBlockForm({
       </Stack>
 
       <ToolDialog
+        executeBlock={value}
         ref={toolForm}
         projectId={projectId}
         assistant={assistant}
@@ -265,10 +306,15 @@ export default function ExecuteBlockForm({
           const doc = (getYjsValue(value) as Map<any>).doc!;
           doc.transact(() => {
             value.tools ??= {};
+
+            const old = value.tools[tool.id];
+
             value.tools[tool.id] = {
-              index: Math.max(-1, ...Object.values(value.tools).map((i) => i.index)) + 1,
+              index: old?.index ?? Math.max(-1, ...Object.values(value.tools).map((i) => i.index)) + 1,
               data: tool,
             };
+
+            sortBy(Object.values(value.tools), 'index').forEach((tool, index) => (tool.index = index));
           });
           dialogState.close();
         }}
@@ -292,13 +338,14 @@ interface ToolDialogImperative {
 const ToolDialog = forwardRef<
   ToolDialogImperative,
   {
+    executeBlock: ExecuteBlockYjs;
     projectId: string;
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
     assistant: AssistantYjs;
   }
->(({ assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+>(({ executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -322,6 +369,15 @@ const ToolDialog = forwardRef<
     sortBy(Object.values(file.parameters), (i) => i.index).filter(
       (i): i is typeof i & { data: { key: string } } => !!i.data.key
     );
+
+  const assistantParameters = new Set([
+    ...Object.values(assistant.parameters ?? {}).map((i) => i.data.key),
+    ...(assistant.type === 'prompt'
+      ? Object.values(assistant.prompts ?? {})
+          .map((i) => (i.data.type === 'executeBlock' ? i.data.data.variable : undefined))
+          .filter(Boolean)
+      : []),
+  ]);
 
   const createFile = useCreateFile();
 
@@ -453,7 +509,13 @@ const ToolDialog = forwardRef<
                   name={`parameters.${parameter.key}`}
                   render={({ field }) => (
                     <PromptEditorField
-                      placeholder={`{{ ${parameter.key} }}`}
+                      placeholder={
+                        executeBlock.selectType === 'selectByPrompt'
+                          ? t('selectByPromptParameterPlaceholder')
+                          : assistantParameters.has(parameter.key)
+                          ? `{{ ${parameter.key} }}`
+                          : undefined
+                      }
                       value={field.value || ''}
                       projectId={projectId}
                       gitRef={gitRef}

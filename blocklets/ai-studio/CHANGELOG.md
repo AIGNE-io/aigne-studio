@@ -1,3 +1,29 @@
+## 0.1.226 (2024-1-22)
+
+- fix: 404 after file deleted
+- fix: show parameter tips base on the type of execute block
+- fix: correct index of tools or blocks
+
+## 0.1.225 (2024-1-22)
+
+- fix: parameter is an object, Tools cannot bring in the parameter
+
+## 0.1.224 (2024-1-20)
+
+- fix: settings data miss
+
+## 0.1.223 (2024-1-20)
+
+- feat: provide execute-block select ability
+
+## 0.1.222 (2024-1-19)
+
+- fix: folders slash error
+
+## 0.1.221 (2024-1-19)
+
+- feat: up zIndex
+
 ## 0.1.220 (2024-1-17)
 
 - fix: error is reported when saving to a new branch

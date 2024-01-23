@@ -334,7 +334,9 @@ async function runApiAssistant({
 }
 
 async function renderMessage(message: string, parameters?: { [key: string]: any }) {
-  return Mustache.render(message, parameters, undefined, { escape: (v) => v });
+  return Mustache.render(message, parameters, undefined, {
+    escape: (v) => (typeof v === 'object' ? JSON.stringify(v) : v),
+  });
 }
 
 async function runPromptAssistant({
@@ -399,6 +401,7 @@ async function runPromptAssistant({
           }
 
           if (prompt.type === 'executeBlock') {
+            if (prompt?.data?.role === 'none') return null;
             const result = blockResults.find((i) => i[0].id === prompt.data.id)?.[1];
 
             if (prompt.data.formatResultType === 'asHistory') {
@@ -411,7 +414,7 @@ async function runPromptAssistant({
             }
 
             return {
-              role: 'system' as const,
+              role: prompt.data.role ?? 'system',
               content: typeof result === 'string' ? result : JSON.stringify(result),
             };
           }
@@ -634,6 +637,11 @@ async function runExecuteBlock({
         tools.map(async (tool) => {
           const assistant = await getAssistant(tool.id);
           if (!assistant) return undefined;
+          const parameters = (assistant.parameters ?? [])
+            .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
+            .map((parameter) => {
+              return [[parameter.key, { type: 'string', description: parameter.placeholder ?? '' }]];
+            });
 
           return {
             tool,
@@ -643,11 +651,7 @@ async function runExecuteBlock({
               descriptions: assistant.description,
               parameters: {
                 type: 'object',
-                properties: Object.fromEntries(
-                  (assistant.parameters ?? [])
-                    .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key)
-                    .map((parameter) => [parameter.key, { type: 'string', description: parameter.placeholder }])
-                ),
+                properties: Object.fromEntries(parameters),
               },
             },
           };
@@ -705,15 +709,24 @@ async function runExecuteBlock({
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
 
-          const parameters = JSON.parse(call.function.arguments);
+          const args = JSON.parse(call.function.arguments);
+          const toolAssistant = tool?.assistant;
+          await Promise.all(
+            toolAssistant.parameters?.map(async (item) => {
+              const message = tool.tool?.parameters?.[item.key!];
+              if (message) {
+                args[item.key!] = await renderMessage(message, parameters);
+              }
+            }) ?? []
+          );
 
           return runAssistant({
             taskId: taskIdGenerator.nextId().toString(),
             callAI,
             callAIImage,
             getAssistant,
-            assistant: tool.assistant,
-            parameters,
+            assistant: toolAssistant,
+            parameters: args,
             callback,
           });
         })
