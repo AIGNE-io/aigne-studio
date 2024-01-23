@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import orderBy from 'lodash/orderBy';
 import { useCallback, useEffect, useState } from 'react';
 
 import { EntryWithMeta } from '../../../../api/src/routes/tree';
@@ -23,7 +24,7 @@ type State = {
   templateRef: string;
 };
 
-const useRequest = (projectId: string) => {
+const useRequest = (currentProjectId: string, currentGitRef: string) => {
   const { t } = useLocaleContext();
 
   const [state, setState] = useState<State>({
@@ -47,11 +48,15 @@ const useRequest = (projectId: string) => {
           getBranches({ projectId }),
         ]);
 
+        const disabledProject = currentProjectId === projectId && currentGitRef === ref;
+
         setState((v) => ({
           ...v,
           projectId,
           ref,
-          files: files.filter((x) => typeof x === 'object' && x.parent[0] === PROMPTS_FOLDER_NAME),
+          files: disabledProject
+            ? []
+            : files.filter((x) => typeof x === 'object' && x.parent[0] === PROMPTS_FOLDER_NAME),
           branches,
           error: undefined,
         }));
@@ -68,7 +73,7 @@ const useRequest = (projectId: string) => {
 
   const projectFn = useCallback(async () => {
     const [{ projects }] = await Promise.all([getProjects()]);
-    const filterProjects = (projects || []).filter((x) => x._id !== projectId);
+    const filterProjects = orderBy(projects || [], ['updatedAt'], ['desc']);
     setState((v) => ({ ...v, projects: filterProjects, error: undefined }));
     return filterProjects;
   }, [setState]);
@@ -93,7 +98,7 @@ const useRequest = (projectId: string) => {
   useEffect(() => {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId]);
+  }, [currentProjectId, currentGitRef]);
 
   return [state, setState, { init, refetch }] as const;
 };

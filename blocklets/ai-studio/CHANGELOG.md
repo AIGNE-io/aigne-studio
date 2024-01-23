@@ -1,3 +1,70 @@
+## 0.1.227 (2024-1-23)
+
+- fix: update deps
+
+## 0.1.226 (2024-1-22)
+
+- fix: 404 after file deleted
+- fix: show parameter tips base on the type of execute block
+- fix: correct index of tools or blocks
+
+## 0.1.225 (2024-1-22)
+
+- fix: parameter is an object, Tools cannot bring in the parameter
+
+## 0.1.224 (2024-1-20)
+
+- fix: settings data miss
+
+## 0.1.223 (2024-1-20)
+
+- feat: provide execute-block select ability
+
+## 0.1.222 (2024-1-19)
+
+- fix: folders slash error
+
+## 0.1.221 (2024-1-19)
+
+- feat: up zIndex
+
+## 0.1.220 (2024-1-17)
+
+- fix: error is reported when saving to a new branch
+
+## 0.1.219 (2024-1-17)
+
+- fix: keep the id in the original assistant
+
+## 0.1.218 (2024-1-17)
+
+- fix: transform brackets fail
+
+## 0.1.217 (2024-1-17)
+
+- fix: filter import project
+
+## 0.1.216 (2024-1-17)
+
+- feat: support sse error
+
+## 0.1.215 (2024-1-17)
+
+- fix: add parameter tips
+- fix: variables that target the execution block are not added to the variable
+
+## 0.1.214 (2024-1-16)
+
+- fix: markdown optimization
+
+## 0.1.213 (2024-1-16)
+
+- feat: add placeholder
+
+## 0.1.212 (2024-1-14)
+
+- chore: resource blocklet data
+
 ## 0.1.211 (2024-1-14)
 
 - fix: fix version of react-router-dom

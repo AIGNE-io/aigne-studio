@@ -18,14 +18,16 @@ import getDepTemplates, { TreeNode } from './utils';
 
 export default function ImportFrom({
   projectId,
+  gitRef,
   onChange,
 }: {
   projectId: string;
+  gitRef: string;
   onChange: (data: { [key: string]: boolean }, projectId: string, ref: string) => void;
 }) {
   const { t } = useLocaleContext();
 
-  const [state, setState, { refetch }] = useRequest(projectId);
+  const [state, setState, { refetch }] = useRequest(projectId, gitRef);
   const counts = useRef<{ [key: string]: number }>({});
   const deps = useRef<{ [key: string]: TreeNode[] }>({});
 
@@ -96,8 +98,8 @@ export default function ImportFrom({
           getOptionLabel={(v) => v.name || t('unnamed')}
           onChange={(_e, newValue) => {
             setSelected({});
-            setState((r) => ({ ...r, projectId: newValue._id!, ref: 'main' }));
-            refetch({ projectId: newValue._id!, ref: 'main' });
+            setState((r) => ({ ...r, projectId: newValue._id! }));
+            refetch({ projectId: newValue._id!, ref: state.ref! });
           }}
           renderOption={(props, option) => (
             <Box component="li" {...props} key={option._id}>
@@ -114,11 +116,12 @@ export default function ImportFrom({
           options={state.branches}
           renderInput={(params) => <TextField {...params} label={t('import.selectBranch')} />}
           isOptionEqualToValue={(o, v) => o === v}
+          getOptionDisabled={(option) => option === gitRef && state.projectId === projectId}
           getOptionLabel={(v) => v}
           onChange={(_e, newValue) => {
             setSelected({});
             setState((r) => ({ ...r, ref: newValue }));
-            refetch({ projectId: state.projectId, ref: newValue });
+            refetch({ projectId: state.projectId!, ref: newValue! });
           }}
         />
       </Box>

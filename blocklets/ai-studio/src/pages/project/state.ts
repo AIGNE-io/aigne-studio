@@ -505,7 +505,10 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             } else if (isRunAssistantError(value)) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
-                message.error = { message: value.error.message };
+                message.error = pick(value.error, 'message', 'type', 'timestamp') as {
+                  message: string;
+                  [key: string]: unknown;
+                };
               });
             } else if (isRunAssistantLog(value)) {
               setMessage(sessionIndex, responseId, (message) => {
@@ -652,7 +655,11 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
       const modified = duplicateItems.filter((i) => {
         const item = omit(
           omitBy(i, (x) => !x),
-          'tests'
+          'tests',
+          'createdBy',
+          'updatedBy',
+          'updatedAt',
+          'createdAt'
         );
 
         const found = state.files.find((f) => item.id === f.id);
@@ -662,7 +669,11 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
 
         const file = omit(
           omitBy(found, (x) => !x),
-          'tests'
+          'tests',
+          'createdBy',
+          'updatedBy',
+          'updatedAt',
+          'createdAt'
         );
         return !equal(item, file);
       });

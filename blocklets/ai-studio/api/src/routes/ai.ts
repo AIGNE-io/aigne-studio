@@ -4,6 +4,7 @@ import { isPromptAssistant } from '@blocklet/ai-runtime/types';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
+import { pick } from 'lodash';
 
 import { ensureComponentCallOrAuth, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Log, { Status } from '../store/models/log';
@@ -121,7 +122,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
     log.update({ endDate, requestTime, status: Status.SUCCESS, response: result });
   } catch (error) {
     if (stream) {
-      emit({ error: { message: error.message } });
+      emit({ error: pick(error, 'message', 'type', 'timestamp') });
     } else {
       res.status(500).json({ error: { message: error.message } });
     }

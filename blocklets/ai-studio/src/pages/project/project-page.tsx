@@ -112,7 +112,8 @@ export default function ProjectPage() {
 
     const filename = p?.split('/').slice(-1)[0];
 
-    const path = filename && Object.values(store.tree).find((i) => i?.endsWith(filename));
+    const path =
+      filename && Object.values(store.tree).find((i) => i?.startsWith(PROMPTS_FOLDER_NAME) && i?.endsWith(filename));
 
     if (path) navigate(joinURL('.', path), { replace: true });
     else {

@@ -370,6 +370,7 @@ export default flat({
   },
   addObject: '添加{object}',
   formatPrompt: '格式化提示',
+  promptPlaceholder: '请输入你的提示',
   promptMessage: '提示文本',
   executeBlock: '执行块',
   callAPI: '调用接口',
@@ -405,4 +406,6 @@ export default flat({
   style: '风格',
   styleTip:
     '生成图像的风格。必须为vivid或natural之一。vivid会使模型倾向于生成超现实和戏剧化的图像。natural会使模型生成更自然、不太超现实的图像。此参数仅对dall-e-3支持。',
+  parametersTip: '您可以正常输入参数内容，也可采用 {{variable}} 格式输入变量。若未传入参数，变量将会自动透传。',
+  selectByPromptParameterPlaceholder: '未设置值的参数将由 AI 根据 Prompt 提供参数值',
 });

@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.211",
+  "version": "0.1.227",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -73,14 +73,14 @@
     "@lexical/react": "0.12.5",
     "@lexical/selection": "0.12.5",
     "@lexical/utils": "0.12.5",
-    "@mui/material": "^5.15.4",
+    "@mui/material": "^5.15.6",
     "@nedb/core": "^2.1.5",
     "@ocap/asset": "^1.18.108",
     "@ocap/proto": "^1.18.108",
     "@ocap/types": "^1.18.108",
     "@ocap/util": "^1.18.108",
     "@ocap/wallet": "^1.18.108",
-    "@types/react": "^18.2.47",
+    "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
     "lexical": "0.12.5",
     "react-dnd": "^16.0.1",

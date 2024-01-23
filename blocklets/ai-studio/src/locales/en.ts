@@ -372,6 +372,7 @@ export default flat({
   },
   addObject: 'Add {object}',
   formatPrompt: 'Format Prompt',
+  promptPlaceholder: 'Please enter your prompt',
   promptMessage: 'Prompt Message',
   executeBlock: 'Execute Block',
   callAPI: 'Call API',
@@ -408,4 +409,7 @@ export default flat({
   style: 'Style',
   styleTip:
     'The style of the generated images. Must be one of vivid or natural. Vivid causes the model to lean towards generating hyper-real and dramatic images. Natural causes the model to produce more natural, less hyper-real looking images. This param is only supported for dall-e-3.',
+  parametersTip:
+    'Parameters can be inputted normally, or you can use the {{variable}} syntax to pass variables. If no parameters are provided, variables will be seamlessly passed through',
+  selectByPromptParameterPlaceholder: 'Parameters without value will be provided by AI based on the prompt.',
 });
