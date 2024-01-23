@@ -106,6 +106,7 @@ function DebugViewContent({
   setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
+
   const { state, setSession } = useDebugState({
     projectId,
     assistantId: assistant.id,
