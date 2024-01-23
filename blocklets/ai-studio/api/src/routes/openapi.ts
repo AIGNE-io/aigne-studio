@@ -1,7 +1,9 @@
 import path from 'path';
 
-import { PathItemObject } from '@blocklet/dataset-sdk/types';
+import { validate } from '@blocklet/dataset-sdk';
+import { OpenAPIObject } from '@blocklet/dataset-sdk/types';
 import { Router } from 'express';
+import { sha3_256 } from 'js-sha3';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
@@ -15,21 +17,17 @@ const options = {
   },
   apis: [path.join(__dirname, './**/*.*')],
 };
-const swaggerSpec = swaggerJSDoc(options) as any;
+const swaggerSpec = swaggerJSDoc(options) as OpenAPIObject;
 
 router.get('/openapi.json', async (_req, res) => {
-  const list: PathItemObject[] = [];
+  await validate(swaggerSpec);
 
-  Object.keys(swaggerSpec.paths).forEach((path) => {
-    const pathItem = swaggerSpec.paths[path];
-
-    Object.keys(pathItem).forEach((method) => {
-      const info = pathItem[method];
+  const list = Object.entries(swaggerSpec.paths || {}).flatMap(([path, pathItem]) =>
+    Object.entries(pathItem).map(([method, info]) => {
       const { type = '', summary = '', description = '', parameters = '' } = info || {};
-
-      list.push({ path, method, type, summary, description, parameters });
-    });
-  });
+      return { id: sha3_256(`${path}-${method}`), path, method, type, summary, description, parameters };
+    })
+  );
 
   res.json({ list });
 });
@@ -37,9 +35,14 @@ router.get('/openapi.json', async (_req, res) => {
 router.use('/api-docs', swaggerUi.serve);
 router.get('/api-docs', swaggerUi.setup(swaggerSpec, { explorer: true }));
 
-router.get('/openapi', (_req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
+router.get('/openapi', async (_req, res) => {
+  try {
+    await validate(swaggerSpec);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  } catch (error) {
+    res.status(500).json({ error: { message: error.message } });
+  }
 });
 
 export default router;

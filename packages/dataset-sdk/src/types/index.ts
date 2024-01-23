@@ -1,5 +1,7 @@
 import { OperationObject, ParameterObject, RequestBodyObject } from 'openapi3-ts/oas31';
 
+export * from 'openapi3-ts/oas31';
+
 export interface PathItemObject extends OperationObject {
   path: string;
   method: string;

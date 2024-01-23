@@ -30,7 +30,6 @@
     ]
   },
   "dependencies": {
-    "@apidevtools/swagger-parser": "^10.1.0",
     "@arcblock/did-auth": "^1.18.108",
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.9.13",

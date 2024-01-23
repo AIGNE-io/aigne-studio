@@ -35,6 +35,9 @@ const datasetSchema = Joi.object<{ vectorId: string; messageString: string }>({
  *          schema:
  *            type: string
  *            default: ''
+ *      responses:
+ *        200:
+ *          description: 成功获取分页列表
  */
 router.get('/search', async (req, res) => {
   const input = await datasetSchema.validateAsync(req.query);
@@ -53,9 +56,50 @@ router.get('/search', async (req, res) => {
   res.json({ role: 'system', content: contextTemplate });
 });
 
+/**
+ * @openapi
+ * '/api/discuss/search':
+ *    get:
+ *      type: 'SEARCH'
+ *      summary: 查询 DISCUSS KIT 数据
+ *      description: 查询 DISCUSS KIT 数据
+ *      parameters:
+ *        - name: messageString
+ *          in: query
+ *          description: 搜索的内容
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *      responses:
+ *        200:
+ *          description: 成功获取分页列表
+ */
+router.get('/test1', async () => {});
+
+/**
+ * @openapi
+ * '/api/vote/search':
+ *    get:
+ *      type: 'SEARCH'
+ *      summary: 查询 VOTE 数据
+ *      description: 查询 VOTE 数据
+ *      parameters:
+ *        - name: messageString
+ *          in: query
+ *          description: 搜索的内容
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *      responses:
+ *        200:
+ *          description: 成功获取分页列表
+ */
+router.get('/test2', async () => {});
+
 router.get('/list', async (_req, res) => {
-  const list = await getDatasetProtocols(env.appUrl);
-  res.json({ list });
+  res.json({ list: await getDatasetProtocols(env.appUrl) });
 });
 
 export default router;

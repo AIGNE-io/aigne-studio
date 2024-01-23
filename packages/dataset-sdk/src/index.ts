@@ -1,10 +1,12 @@
 import { components } from '@blocklet/sdk/lib/config';
 import Ajv from 'ajv';
+// import { AxiosRequestConfig } from 'axios';
+import Enforcer from 'openapi-enforcer';
 import { ParameterObject } from 'openapi3-ts/oas31';
 import { joinURL } from 'ufo';
 
 import DataServiceSDK from './sdk';
-import { PathItemWithUrlObject } from './types';
+import { OpenAPIObject, PathItemWithUrlObject } from './types';
 
 const ajv = new Ajv();
 
@@ -40,7 +42,7 @@ export const checkParameters = (parameters: ParameterObject[], parametersData: {
   return { isValid: true, message: 'All parameters are valid.' };
 };
 
-export const getRequestConfig = (pathItem: PathItemWithUrlObject, parametersData: { [key: string]: any }) => {
+export const createValidationRequest = (pathItem: PathItemWithUrlObject, parametersData: { [key: string]: any }) => {
   let url = pathItem.href;
   for (const parameter of pathItem.parameters) {
     if (parameter.in === 'path') {
@@ -89,3 +91,30 @@ export const getRequestConfig = (pathItem: PathItemWithUrlObject, parametersData
 
   return config;
 };
+
+export async function validate(document: OpenAPIObject) {
+  const result = await Enforcer(document, {
+    fullResult: true,
+    componentOptions: { exceptionSkipCodes: ['EDEV001'] },
+  });
+
+  if (result.error) {
+    throw new Error(result.error);
+  }
+
+  if (result.warning) {
+    throw new Error(result.warning);
+  }
+
+  return result.value;
+}
+
+// export const validateRequest = async (config: AxiosRequestConfig) => {
+//   const options = {
+//     hideWarnings: true,
+//   };
+//   const validator = await Enforcer(resolve(__dirname, './openapi.yaml'), options);
+//   const request = createValidationRequest(config);
+//   const [, err] = validator.request(request);
+//   return err;
+// };
