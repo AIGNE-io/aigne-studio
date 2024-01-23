@@ -1,3 +1,7 @@
+## 0.1.227 (2024-1-23)
+
+- fix: update deps
+
 ## 0.1.226 (2024-1-22)
 
 - fix: 404 after file deleted
