@@ -1,3 +1,7 @@
+## 0.1.230 (2024-1-24)
+
+- fix: correct parameters schema
+
 ## 0.1.229 (2024-1-23)
 
 - chore: update deps
