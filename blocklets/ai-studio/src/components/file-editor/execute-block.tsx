@@ -187,8 +187,8 @@ export default function ExecuteBlockForm({
 
           return (
             <Stack
-              direction="row"
               key={file.id}
+              direction="row"
               sx={{
                 px: 1,
                 minHeight: 32,

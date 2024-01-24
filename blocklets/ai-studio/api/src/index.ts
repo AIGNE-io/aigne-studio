@@ -57,6 +57,7 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
 }));
 
 const port = parseInt(process.env.BLOCKLET_PORT!, 10);
+
 export const server = app.listen(port, (err?: any) => {
   if (err) throw err;
   logger.info(`> ${name} v${version} ready on ${port}`);

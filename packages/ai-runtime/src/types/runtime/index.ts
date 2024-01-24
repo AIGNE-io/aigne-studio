@@ -31,35 +31,42 @@ export type RunAssistantResponse =
   | RunAssistantExecute;
 
 export type RunAssistantInput = {
+  type: AssistantResponseType.INPUT;
   taskId: string;
   assistantId: string;
-  type: AssistantResponseType.INPUT;
   input: InputMessages;
 };
 
 export type RunAssistantExecute = {
-  taskId: string;
-  toolName: string;
-  assistantName: string;
-  assistantId?: string;
-  id: string;
-  currentPhase: ExecutionPhase;
   type: AssistantResponseType.EXECUTE;
-  content?: string;
+  taskId: string;
+  assistantName: string;
+  assistantId: string;
+  execution:
+    | {
+        currentPhase: ExecutionPhase.StartExecution;
+        toolName: string;
+        id: string;
+      }
+    | {
+        currentPhase: ExecutionPhase.ExecuteTool;
+        toolName: string;
+        id: string;
+      };
 };
 
 export type RunAssistantLog = {
-  taskId: string;
   type: AssistantResponseType.LOG;
+  taskId: string;
   assistantId: string;
   log: string;
   timestamp: number;
 };
 
 export type RunAssistantChunk = {
+  type: AssistantResponseType.CHUNK;
   taskId: string;
   assistantId: string;
-  type: AssistantResponseType.CHUNK;
   delta: {
     content?: string | null;
     images?: {

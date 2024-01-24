@@ -377,7 +377,7 @@ export default flat({
   promptPlaceholder: 'Please enter your prompt',
   promptMessage: 'Prompt Message',
   executeBlock: 'Execute Block',
-  executeBlockName: 'Execute Block',
+  executeBlockName: 'Execute Block Name',
   callAPI: 'Call API',
   formatResult: 'Format Result',
   stayAsIs: 'Stay as is',

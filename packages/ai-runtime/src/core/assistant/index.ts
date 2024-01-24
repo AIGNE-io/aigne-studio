@@ -561,13 +561,15 @@ async function runExecuteBlock({
   if (!tools?.length) return undefined;
 
   callback?.({
-    taskId,
-    id: executeBlock.id,
-    assistantId: assistant.id,
-    toolName: executeBlock?.variable ?? '',
-    assistantName: assistant.name ?? '',
-    currentPhase: ExecutionPhase.StartExecution,
     type: AssistantResponseType.EXECUTE,
+    taskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name ?? '',
+    execution: {
+      currentPhase: ExecutionPhase.StartExecution,
+      id: executeBlock.id,
+      toolName: executeBlock?.variable ?? '',
+    },
   });
 
   if (!executeBlock.selectType || executeBlock.selectType === 'all') {
@@ -578,13 +580,15 @@ async function runExecuteBlock({
           if (!toolAssistant) return undefined;
 
           callback?.({
+            type: AssistantResponseType.EXECUTE,
             taskId,
             assistantId: assistant?.id,
-            id: tool.id,
-            toolName: toolAssistant.name ?? '',
             assistantName: assistant.name ?? '',
-            currentPhase: ExecutionPhase.ExecuteTool,
-            type: AssistantResponseType.EXECUTE,
+            execution: {
+              currentPhase: ExecutionPhase.ExecuteTool,
+              id: tool.id,
+              toolName: toolAssistant.name ?? '',
+            },
           });
 
           const args = Object.fromEntries(
@@ -705,15 +709,16 @@ async function runExecuteBlock({
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
-
           callback?.({
-            taskId,
-            assistantId: assistant.id,
-            id: tool.tool.id,
-            toolName: tool.function.name,
-            assistantName: assistant.name ?? '',
-            currentPhase: ExecutionPhase.ExecuteTool,
             type: AssistantResponseType.EXECUTE,
+            taskId,
+            assistantId: assistant?.id,
+            assistantName: assistant.name ?? '',
+            execution: {
+              currentPhase: ExecutionPhase.ExecuteTool,
+              id: tool.tool.id,
+              toolName: tool.function.name,
+            },
           });
 
           const args = JSON.parse(call.function.arguments);
