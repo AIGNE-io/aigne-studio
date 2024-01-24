@@ -17,7 +17,7 @@ export interface ExecuteBlock {
   role?: ExecuteBlockRole;
   selectType?: 'all' | 'selectByPrompt';
   selectByPrompt?: string;
-  tools?: { id: string; parameters?: { [key: string]: string } }[];
+  tools?: { id: string; from?: 'assistant' | 'dataset'; parameters?: { [key: string]: string } }[];
   formatResultType?: 'none' | 'asHistory';
   variable?: string;
 }

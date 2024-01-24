@@ -64,7 +64,7 @@ router.get('/search', async (req, res) => {
  *      summary: 查询 DISCUSS KIT 数据
  *      description: 查询 DISCUSS KIT 数据
  *      parameters:
- *        - name: messageString
+ *        - name: searchDiscussKit
  *          in: query
  *          description: 搜索的内容
  *          required: true
@@ -85,7 +85,7 @@ router.get('/test1', async () => {});
  *      summary: 查询 VOTE 数据
  *      description: 查询 VOTE 数据
  *      parameters:
- *        - name: messageString
+ *        - name: searchVote
  *          in: query
  *          description: 搜索的内容
  *          required: true

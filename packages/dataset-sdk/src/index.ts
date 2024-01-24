@@ -1,12 +1,12 @@
 import { components } from '@blocklet/sdk/lib/config';
 import Ajv from 'ajv';
-// import { AxiosRequestConfig } from 'axios';
 import Enforcer from 'openapi-enforcer';
 import { ParameterObject } from 'openapi3-ts/oas31';
 import { joinURL } from 'ufo';
 
 import DataServiceSDK from './sdk';
-import { OpenAPIObject, PathItemWithUrlObject } from './types';
+import { DatasetObject, OpenAPIObject } from './types';
+import schema from './types/check-protocol';
 
 const ajv = new Ajv();
 
@@ -15,10 +15,10 @@ export const getDatasetProtocols = async (origin: string) => {
 
   const sdk = new DataServiceSDK(componentsWithUrl);
   const list = await sdk.mergeFindServicesResult();
-
-  return list;
+  return list.filter((data) => !schema.validate(data, { stripUnknown: true })?.error);
 };
 
+// TODO check 正确性
 export const checkParameters = (parameters: ParameterObject[], parametersData: { [key: string]: any }) => {
   const properties: { [key: string]: any } = {};
   const required: string[] = [];
@@ -42,9 +42,9 @@ export const checkParameters = (parameters: ParameterObject[], parametersData: {
   return { isValid: true, message: 'All parameters are valid.' };
 };
 
-export const createValidationRequest = (pathItem: PathItemWithUrlObject, parametersData: { [key: string]: any }) => {
-  let url = pathItem.href;
-  for (const parameter of pathItem.parameters) {
+export const createValidationRequest = (pathItem: DatasetObject, parametersData: { [key: string]: any }) => {
+  let url = pathItem?.url || '';
+  for (const parameter of pathItem.parameters || []) {
     if (parameter.in === 'path') {
       url = url.replace(`{${parameter.name}}`, parametersData[parameter.name]);
     }
@@ -65,7 +65,7 @@ export const createValidationRequest = (pathItem: PathItemWithUrlObject, paramet
   };
 
   // 根据参数位置（query, header, body）添加到请求配置
-  for (const parameter of pathItem.parameters) {
+  for (const parameter of pathItem.parameters || []) {
     if (parameter.in === 'query') {
       config.params[parameter.name] = parametersData[parameter.name];
     } else if (parameter.in === 'header') {
@@ -93,10 +93,7 @@ export const createValidationRequest = (pathItem: PathItemWithUrlObject, paramet
 };
 
 export async function validate(document: OpenAPIObject) {
-  const result = await Enforcer(document, {
-    fullResult: true,
-    componentOptions: { exceptionSkipCodes: ['EDEV001'] },
-  });
+  const result = await Enforcer(document, { fullResult: true, componentOptions: { exceptionSkipCodes: ['EDEV001'] } });
 
   if (result.error) {
     throw new Error(result.error);
@@ -108,13 +105,3 @@ export async function validate(document: OpenAPIObject) {
 
   return result.value;
 }
-
-// export const validateRequest = async (config: AxiosRequestConfig) => {
-//   const options = {
-//     hideWarnings: true,
-//   };
-//   const validator = await Enforcer(resolve(__dirname, './openapi.yaml'), options);
-//   const request = createValidationRequest(config);
-//   const [, err] = validator.request(request);
-//   return err;
-// };
