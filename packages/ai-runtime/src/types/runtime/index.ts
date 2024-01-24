@@ -2,6 +2,12 @@ import { SubscriptionError } from '@blocklet/ai-kit/api';
 
 import { Role } from '../assistant';
 
+export enum ExecutionPhase {
+  StartExecution = 'StartExecution',
+  ExecuteTool = 'ExecuteTool',
+  EndExecution = 'EndExecution',
+}
+
 export enum AssistantResponseType {
   ERROR = 'ERROR',
   LOG = 'LOG',
@@ -33,10 +39,11 @@ export type RunAssistantInput = {
 
 export type RunAssistantExecute = {
   taskId: string;
-  toolId: string;
+  toolName: string;
   assistantName: string;
   assistantId?: string;
   id: string;
+  currentPhase: ExecutionPhase;
   type: AssistantResponseType.EXECUTE;
   content?: string;
 };

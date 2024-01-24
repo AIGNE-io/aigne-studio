@@ -27,7 +27,7 @@ import {
   isPromptAssistant,
 } from '../../types';
 import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
-import { AssistantResponseType, RunAssistantResponse } from '../../types/runtime';
+import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
@@ -563,9 +563,10 @@ async function runExecuteBlock({
   callback?.({
     taskId,
     id: executeBlock.id,
-    toolId: executeBlock?.variable || assistant?.id,
     assistantId: assistant.id,
+    toolName: executeBlock?.variable ?? '',
     assistantName: assistant.name ?? '',
+    currentPhase: ExecutionPhase.StartExecution,
     type: AssistantResponseType.EXECUTE,
   });
 
@@ -573,21 +574,22 @@ async function runExecuteBlock({
     const result = (
       await Promise.all(
         tools.map(async (tool) => {
-          const assistant = await getAssistant(tool.id);
-          if (!assistant) return undefined;
+          const toolAssistant = await getAssistant(tool.id);
+          if (!toolAssistant) return undefined;
 
           callback?.({
             taskId,
-            toolId: assistant?.id ?? '',
             assistantId: assistant?.id,
             id: tool.id,
+            toolName: toolAssistant.name ?? '',
             assistantName: assistant.name ?? '',
+            currentPhase: ExecutionPhase.ExecuteTool,
             type: AssistantResponseType.EXECUTE,
           });
 
           const args = Object.fromEntries(
             await Promise.all(
-              (assistant.parameters ?? [])
+              (toolAssistant.parameters ?? [])
                 .filter((i): i is typeof i & { key: string } => !!i.key)
                 .map(async (i) => {
                   const template = tool.parameters?.[i.key]?.trim();
@@ -603,7 +605,7 @@ async function runExecuteBlock({
             callAI,
             callAIImage,
             getAssistant,
-            assistant,
+            assistant: toolAssistant,
             parameters: args,
             callback,
           });
@@ -706,10 +708,11 @@ async function runExecuteBlock({
 
           callback?.({
             taskId,
-            toolId: assistant.id ?? '',
             assistantId: assistant.id,
             id: tool.tool.id,
-            assistantName: tool.assistant.name ?? '',
+            toolName: tool.function.name,
+            assistantName: assistant.name ?? '',
+            currentPhase: ExecutionPhase.ExecuteTool,
             type: AssistantResponseType.EXECUTE,
           });
 
