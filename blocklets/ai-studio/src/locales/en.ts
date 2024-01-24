@@ -169,6 +169,7 @@ export default flat({
   commitMessage: 'Note',
   confirm: 'Confirm',
   projectSetting: {
+    homePageUrl: 'Home Page Url',
     name: 'Project name',
     description: 'Project description',
     gitType: {

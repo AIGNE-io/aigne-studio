@@ -74,6 +74,7 @@ export interface UpdateProjectInput {
   gitType?: string;
   gitAutoSync?: boolean;
   projectType?: Project['projectType'];
+  homePageUrl?: string | null;
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
@@ -90,6 +91,7 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
   gitAutoSync: Joi.boolean().empty([null]),
   projectType: Joi.string().valid('project', 'template', 'example').empty([null, '']),
+  homePageUrl: Joi.string().allow(null, ''),
 });
 
 export interface AddProjectRemoteInput {
@@ -318,6 +320,7 @@ export function projectRoutes(router: Router) {
       gitType,
       gitAutoSync,
       projectType,
+      homePageUrl,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (name && (await Project.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
@@ -343,6 +346,7 @@ export function projectRoutes(router: Router) {
           gitType,
           gitAutoSync,
           projectType,
+          homePageUrl,
         },
         (v) => v === undefined
       )

@@ -47,6 +47,8 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
   declare gitLastSyncedAt?: Date;
 
   declare projectType?: 'project' | 'template' | 'example';
+
+  declare homePageUrl?: string;
 }
 
 Project.init(
@@ -115,6 +117,9 @@ Project.init(
       type: DataTypes.DATE,
     },
     projectType: {
+      type: DataTypes.STRING,
+    },
+    homePageUrl: {
       type: DataTypes.STRING,
     },
   },

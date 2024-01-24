@@ -58,6 +58,7 @@ import LinkIcon from './icons/link';
 import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
 import Picture from './icons/picture';
+import Play from './icons/play';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
@@ -81,7 +82,7 @@ export default function ProjectPage() {
   const file = fileId && getFileById(fileId);
 
   const {
-    state: { error },
+    state: { error, project },
     refetch,
   } = useProjectState(projectId, gitRef);
   if (error) throw error;
@@ -168,6 +169,12 @@ export default function ProjectPage() {
               <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
 
               <Box flex={1} />
+
+              {project?.homePageUrl && (
+                <Button sx={{ minWidth: 0 }} color="secondary" onClick={() => window.open(project.homePageUrl)}>
+                  <Play />
+                </Button>
+              )}
 
               <Tooltip title={t('newObject', { object: t('folder') })} disableInteractive>
                 <span>
