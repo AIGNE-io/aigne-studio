@@ -5,6 +5,7 @@ import {
   isRunAssistantError,
   isRunAssistantInput,
   isRunAssistantLog,
+  isRunAssistantOthers,
   runAssistant,
 } from '@blocklet/ai-runtime/api';
 import { InputMessages, RunAssistantLog } from '@blocklet/ai-runtime/core';
@@ -502,6 +503,8 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                   }
                 });
               }
+            } else if (isRunAssistantOthers(value)) {
+              console.error(JSON.parse(JSON.stringify(value)));
             } else if (isRunAssistantError(value)) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;

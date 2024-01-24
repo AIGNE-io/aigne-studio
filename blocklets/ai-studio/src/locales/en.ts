@@ -193,6 +193,7 @@ export default flat({
   test: 'Test',
   discuss: 'Discuss',
   variable: 'Variable',
+  greeting: 'Greeting',
   loading: 'Loading...',
   noData: 'No data',
   dataset: 'Dataset',

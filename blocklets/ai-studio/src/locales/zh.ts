@@ -190,6 +190,7 @@ export default flat({
   aboutTokens: '大约 {tokens} token',
   test: '测试',
   discuss: '讨论',
+  greeting: '问候语',
   variable: '变量',
   loading: '加载中...',
   noData: '暂无数据',

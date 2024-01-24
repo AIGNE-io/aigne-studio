@@ -29,6 +29,10 @@ import {
 } from '../../types';
 import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
 
+export enum OtherAssistantType {
+  GREETING,
+}
+
 export type InputMessages = {
   messages: Array<{
     role: Role;
@@ -36,12 +40,25 @@ export type InputMessages = {
   }>;
 };
 
-export type RunAssistantResponse = RunAssistantChunk | RunAssistantError | RunAssistantInput | RunAssistantLog;
+export type RunAssistantResponse =
+  | RunAssistantChunk
+  | RunAssistantError
+  | RunAssistantInput
+  | RunAssistantLog
+  | RunAssistantOthers;
 
 export type RunAssistantInput = {
   taskId: string;
   assistantId: string;
   input: InputMessages;
+};
+
+export type RunAssistantOthers = {
+  taskId: string;
+  assistantId: string;
+  id: string;
+  type: OtherAssistantType;
+  content: string;
 };
 
 export type RunAssistantLog = {
@@ -706,6 +723,16 @@ async function runExecuteBlock({
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
 
+          if (tool?.tool.greeting) {
+            callback?.({
+              taskId,
+              assistantId: assistant.id,
+              id: tool.tool.id,
+              type: OtherAssistantType.GREETING,
+              content: tool.tool.greeting,
+            });
+          }
+
           const parameters = JSON.parse(call.function.arguments);
 
           return runAssistant({
@@ -719,7 +746,15 @@ async function runExecuteBlock({
           });
         })
       ));
-
+    if (executeBlock?.greeting) {
+      callback?.({
+        taskId,
+        id: executeBlock.id,
+        assistantId: assistant.id,
+        type: OtherAssistantType.GREETING,
+        content: executeBlock.greeting,
+      });
+    }
     callback?.({ taskId, assistantId: assistant.id, delta: { content: JSON.stringify(result) } });
 
     return result?.length === 1 ? result[0] : result;

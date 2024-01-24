@@ -7,6 +7,7 @@ import {
   RunAssistantError,
   RunAssistantInput,
   RunAssistantLog,
+  RunAssistantOthers,
   RunAssistantResponse,
 } from '../core';
 import { Assistant } from '../types/assistant';
@@ -38,6 +39,9 @@ export const isRunAssistantError = (i: RunAssistantResponse): i is RunAssistantE
 
 export const isRunAssistantLog = (i: RunAssistantResponse): i is RunAssistantLog =>
   typeof (i as RunAssistantLog).log === 'string';
+
+export const isRunAssistantOthers = (i: RunAssistantResponse): i is RunAssistantOthers =>
+  typeof (i as RunAssistantOthers).type === 'number';
 
 export async function runAssistant<
   T = {
