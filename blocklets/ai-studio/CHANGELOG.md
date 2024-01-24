@@ -1,3 +1,7 @@
+## 0.1.232 (2024-1-24)
+
+- fix: correct filter of projects
+
 ## 0.1.231 (2024-1-24)
 
 - feat: support config home page url

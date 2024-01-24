@@ -156,7 +156,7 @@ export function projectRoutes(router: Router) {
 
     res.json({
       templates: [...projectTemplates, ...projects.filter((i) => i.projectType === 'template')],
-      projects: projects.filter((i) => !i.projectType),
+      projects: projects.filter((i) => !i.projectType || i.projectType === 'project'),
       examples: projects.filter((i) => i.projectType === 'example'),
     });
   });
