@@ -1,3 +1,29 @@
+## 0.1.230 (2024-1-24)
+
+- fix: correct parameters schema
+
+## 0.1.229 (2024-1-23)
+
+- chore: update deps
+
+## 0.1.228 (2024-1-23)
+
+- chore: update deps
+
+## 0.1.227 (2024-1-23)
+
+- fix: update deps
+
+## 0.1.226 (2024-1-22)
+
+- fix: 404 after file deleted
+- fix: show parameter tips base on the type of execute block
+- fix: correct index of tools or blocks
+
+## 0.1.225 (2024-1-22)
+
+- fix: parameter is an object, Tools cannot bring in the parameter
+
 ## 0.1.224 (2024-1-20)
 
 - fix: settings data miss
