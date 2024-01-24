@@ -73,6 +73,7 @@ export interface UpdateProjectInput {
   maxTokens?: number;
   gitType?: string;
   gitAutoSync?: boolean;
+  projectType?: Project['projectType'];
 }
 
 const updateProjectSchema = Joi.object<UpdateProjectInput>({
@@ -88,6 +89,7 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   maxTokens: Joi.number().integer().empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
   gitAutoSync: Joi.boolean().empty([null]),
+  projectType: Joi.string().valid('project', 'template', 'example').empty([null, '']),
 });
 
 export interface AddProjectRemoteInput {
@@ -124,10 +126,6 @@ export interface GetProjectsQuery {
   type?: 'templates';
 }
 
-const getProjectsQuerySchema = Joi.object<GetProjectsQuery>({
-  type: Joi.string().allow('templates').empty([null, '']),
-});
-
 export interface GetTemplateQuery {
   working?: boolean;
 }
@@ -137,14 +135,7 @@ const getTemplateQuerySchema = Joi.object<GetTemplateQuery>({
 });
 
 export function projectRoutes(router: Router) {
-  router.get('/projects', ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { type } = await getProjectsQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-    if (type === 'templates') {
-      res.json({ projects: projectTemplates });
-      return;
-    }
-
+  router.get('/projects', ensureComponentCallOrPromptsEditor(), async (_, res) => {
     const list = await Project.findAll({
       order: [
         ['pinnedAt', 'DESC'],
@@ -161,7 +152,11 @@ export function projectRoutes(router: Router) {
       })
     );
 
-    res.json({ projects });
+    res.json({
+      templates: [...projectTemplates, ...projects.filter((i) => i.projectType === 'template')],
+      projects: projects.filter((i) => !i.projectType),
+      examples: projects.filter((i) => i.projectType === 'example'),
+    });
   });
 
   router.get('/projects/icons', ensureComponentCallOrPromptsEditor(), async (_req, res) => {
@@ -211,28 +206,27 @@ export function projectRoutes(router: Router) {
       const original = await Project.findOne({ where: { _id: duplicateFrom } });
       if (!original) throw new Error(`Project ${duplicateFrom} not found`);
 
-      const repo = await getRepository({ projectId: original._id! });
+      const project = await copyProject({ project: original, name, description, createdBy: did, updatedBy: did });
 
-      const project = await Project.create({
-        ...original.dataValues,
-        _id: nextProjectId(),
-        model: original.model || '',
-        name: original.name && `${original.name}-copy`,
-        description,
-        createdBy: did,
-        updatedBy: did,
-      });
-
-      const parent = dirname(repo.root);
-      cpSync(repo.root, join(parent, project._id!), { recursive: true });
-      if (existsSync(`${repo.root}.cooperative`)) {
-        cpSync(`${repo.root}.cooperative`, join(parent, `${project._id}.cooperative`), { recursive: true });
-      }
       res.json(project);
       return;
     }
 
     if (templateId) {
+      const templateOfProject = await Project.findOne({ where: { _id: templateId, projectType: 'template' } });
+      if (templateOfProject) {
+        const project = await copyProject({
+          project: templateOfProject,
+          name,
+          description,
+          createdBy: did,
+          updatedBy: did,
+          projectType: 'project',
+        });
+        res.json(project);
+        return;
+      }
+
       const template = projectTemplates.find((i) => i._id === templateId);
       if (!template) throw new Error(`Template project ${templateId} not found`);
 
@@ -323,6 +317,7 @@ export function projectRoutes(router: Router) {
       maxTokens,
       gitType,
       gitAutoSync,
+      projectType,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
     if (name && (await Project.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
@@ -347,6 +342,7 @@ export function projectRoutes(router: Router) {
           maxTokens,
           gitType,
           gitAutoSync,
+          projectType,
         },
         (v) => v === undefined
       )
@@ -555,3 +551,28 @@ const getAuthorsOfProject = async ({ projectId }: { projectId: string }) => {
   }
   return [];
 };
+
+async function copyProject({
+  project: original,
+  ...patch
+}: {
+  project: Project;
+} & Partial<Project['dataValues']>) {
+  const repo = await getRepository({ projectId: original._id! });
+
+  const project = await Project.create({
+    ...original.dataValues,
+    _id: nextProjectId(),
+    model: original.model || '',
+    ...patch,
+    name: patch.name || (original.name && `${original.name}-copy`),
+  });
+
+  const parent = dirname(repo.root);
+  cpSync(repo.root, join(parent, project._id!), { recursive: true });
+  if (existsSync(`${repo.root}.cooperative`)) {
+    cpSync(`${repo.root}.cooperative`, join(parent, `${project._id}.cooperative`), { recursive: true });
+  }
+
+  return project;
+}
