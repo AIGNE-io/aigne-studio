@@ -1,3 +1,8 @@
+## 0.1.231 (2024-1-24)
+
+- feat: support config home page url
+- feat: support set project as template/example
+
 ## 0.1.230 (2024-1-24)
 
 - fix: correct parameters schema
