@@ -2,7 +2,7 @@ import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { joinURL } from 'ufo';
 
 import type { AssistantIdentifier } from '../components/AIForm/state';
-import { RunAssistantResponse } from '../core';
+import { RunAssistantResponse } from '../types';
 import { Assistant } from '../types/assistant';
 import { aiStudioApi } from './api';
 

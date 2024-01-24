@@ -1,6 +1,5 @@
 import { ReadableStream } from 'stream/web';
 
-import { SubscriptionError } from '@blocklet/ai-kit/api';
 import {
   ChatCompletionChunk,
   ChatCompletionInput,
@@ -28,71 +27,7 @@ import {
   isPromptAssistant,
 } from '../../types';
 import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
-
-export enum AssistantResponseType {
-  GREETING = 'GREETING',
-  ERROR = 'ERROR',
-  LOG = 'LOG',
-  INPUT = 'INPUT',
-  CHUNK = 'CHUNK',
-  EXECUTE = 'EXECUTE',
-}
-
-export type InputMessages = {
-  messages: Array<{
-    role: Role;
-    content: string;
-  }>;
-};
-
-export type RunAssistantResponse =
-  | RunAssistantChunk
-  | RunAssistantError
-  | RunAssistantInput
-  | RunAssistantLog
-  | RunAssistantExecute;
-
-export type RunAssistantInput = {
-  taskId: string;
-  assistantId: string;
-  type: AssistantResponseType.INPUT;
-  input: InputMessages;
-};
-
-export type RunAssistantExecute = {
-  taskId: string;
-  toolId: string;
-  assistantId?: string;
-  id: string;
-  type: AssistantResponseType.EXECUTE;
-  content: string;
-};
-
-export type RunAssistantLog = {
-  taskId: string;
-  type: AssistantResponseType.LOG;
-  assistantId: string;
-  log: string;
-  timestamp: number;
-};
-
-export type RunAssistantChunk = {
-  taskId: string;
-  assistantId: string;
-  type: AssistantResponseType.CHUNK;
-  delta: {
-    content?: string | null;
-    images?: {
-      b64_string?: string;
-      url?: string;
-    }[];
-  };
-};
-
-export type RunAssistantError = {
-  type: AssistantResponseType.ERROR;
-  error: { message: string } | SubscriptionError;
-};
+import { AssistantResponseType, RunAssistantResponse } from '../../types/runtime';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
@@ -625,33 +560,30 @@ async function runExecuteBlock({
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
 
-  if (executeBlock?.greeting) {
-    callback?.({
-      taskId,
-      id: executeBlock.id,
-      toolId: executeBlock?.executeBlockName || assistant?.id,
-      assistantId: assistant.id,
-      type: AssistantResponseType.EXECUTE,
-      content: executeBlock.greeting,
-    });
-  }
+  callback?.({
+    taskId,
+    id: executeBlock.id,
+    toolId: executeBlock?.variable || assistant?.id,
+    assistantId: assistant.id,
+    assistantName: assistant.name ?? '',
+    type: AssistantResponseType.EXECUTE,
+  });
 
   if (!executeBlock.selectType || executeBlock.selectType === 'all') {
     const result = (
       await Promise.all(
         tools.map(async (tool) => {
           const assistant = await getAssistant(tool.id);
-          if (tool?.greeting) {
-            callback?.({
-              taskId,
-              toolId: assistant?.id ?? '',
-              assistantId: assistant?.id,
-              id: tool.id,
-              type: AssistantResponseType.EXECUTE,
-              content: tool.greeting,
-            });
-          }
           if (!assistant) return undefined;
+
+          callback?.({
+            taskId,
+            toolId: assistant?.id ?? '',
+            assistantId: assistant?.id,
+            id: tool.id,
+            assistantName: assistant.name ?? '',
+            type: AssistantResponseType.EXECUTE,
+          });
 
           const args = Object.fromEntries(
             await Promise.all(
@@ -772,16 +704,14 @@ async function runExecuteBlock({
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
 
-          if (tool?.tool.greeting) {
-            callback?.({
-              taskId,
-              toolId: assistant.id ?? '',
-              assistantId: assistant.id,
-              id: tool.tool.id,
-              type: AssistantResponseType.EXECUTE,
-              content: tool.tool.greeting,
-            });
-          }
+          callback?.({
+            taskId,
+            toolId: assistant.id ?? '',
+            assistantId: assistant.id,
+            id: tool.tool.id,
+            assistantName: tool.assistant.name ?? '',
+            type: AssistantResponseType.EXECUTE,
+          });
 
           const args = JSON.parse(call.function.arguments);
           const toolAssistant = tool?.assistant;

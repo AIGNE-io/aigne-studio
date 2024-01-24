@@ -1,8 +1,15 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 import { runAssistant } from '@blocklet/ai-runtime/api';
-import { AssistantResponseType, InputMessages, RunAssistantLog } from '@blocklet/ai-runtime/core';
-import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import {
+  AssistantResponseType,
+  AssistantYjs,
+  InputMessages,
+  Role,
+  RunAssistantLog,
+  fileToYjs,
+  isAssistant,
+} from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
@@ -496,8 +503,6 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                   }
                 });
               }
-            } else if (value.type === AssistantResponseType.EXECUTE) {
-              response += value.content || '';
             } else if (value.type === AssistantResponseType.ERROR) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;

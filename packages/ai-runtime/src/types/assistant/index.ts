@@ -1,6 +1,5 @@
 export * from './utils';
 export * from './yjs';
-
 export { default as Mustache } from './mustache/mustache';
 export * from './mustache/directive';
 
@@ -12,18 +11,16 @@ export type Role = 'system' | 'user' | 'assistant';
 
 export type ExecuteBlockRole = Role | 'none';
 
-export type Tool = { id: string; parameters?: { [key: string]: string }; greeting?: string };
+export type Tool = { id: string; parameters?: { [key: string]: string } };
 
 export interface ExecuteBlock {
   id: string;
-  executeBlockName?: string;
   role?: ExecuteBlockRole;
   selectType?: 'all' | 'selectByPrompt';
   selectByPrompt?: string;
   tools?: Tool[];
   formatResultType?: 'none' | 'asHistory';
   variable?: string;
-  greeting?: string;
 }
 
 export type PromptMessage = {

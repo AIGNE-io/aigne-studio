@@ -4,7 +4,7 @@ import { joinURL } from 'ufo';
 
 import { AIStudioBaseUrl } from '../../api/api';
 import { AssistantInfo, getAssistant, runAssistant } from '../../api/assistant';
-import { AssistantResponseType } from '../../core';
+import { AssistantResponseType } from '../../types';
 
 export interface AssistantIdentifier {
   projectId: string;

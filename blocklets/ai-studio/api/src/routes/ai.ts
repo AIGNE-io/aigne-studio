@@ -1,12 +1,6 @@
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
-import {
-  AssistantResponseType,
-  CallAI,
-  RunAssistantResponse,
-  nextTaskId,
-  runAssistant,
-} from '@blocklet/ai-runtime/core';
-import { isPromptAssistant } from '@blocklet/ai-runtime/types';
+import { CallAI, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
+import { AssistantResponseType, RunAssistantResponse, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
