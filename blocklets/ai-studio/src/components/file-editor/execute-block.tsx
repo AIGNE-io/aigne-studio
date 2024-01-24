@@ -66,10 +66,6 @@ export default function ExecuteBlockForm({
   const dialogState = usePopupState({ variant: 'dialog' });
   const navigate = useNavigate();
   const toolForm = useRef<ToolDialogImperative>(null);
-  // const [toolConfig, setToolConfig] = useState<{
-  //   anchorEl: HTMLElement;
-  //   tool: Tool;
-  // }>();
 
   const { store } = useProjectStore(projectId, gitRef);
   const { getDiffBackground } = useAssistantCompare({
@@ -143,24 +139,6 @@ export default function ExecuteBlockForm({
           />
         )}
 
-        <IndicatorTextField
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, value.greeting ?? '']}
-          TextFiledProps={{
-            placeholder: t('greeting'),
-            hiddenLabel: true,
-            size: 'small',
-            InputProps: {
-              readOnly,
-              sx: {
-                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.greeting`) },
-              },
-            },
-            value: value.greeting ?? '',
-            onChange: (e) => (value.greeting = e.target.value),
-          }}
-        />
         <Box flex={1} />
       </Stack>
 
@@ -221,17 +199,6 @@ export default function ExecuteBlockForm({
 
               {!readOnly && (
                 <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
-                  {/* <Button
-                    sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setToolConfig({
-                        anchorEl: e.currentTarget.parentElement!,
-                        tool: { parameters: tool?.parameters, greeting: tool?.greeting, id: tool?.id },
-                      });
-                    }}>
-                    <Settings sx={{ fontSize: 18 }} />
-                  </Button> */}
                   <Button
                     sx={{ minWidth: 24, minHeight: 24, p: 0 }}
                     onClick={(e) => {
@@ -326,31 +293,6 @@ export default function ExecuteBlockForm({
           }}
         />
       </Stack>
-
-      {/* <Popper
-        open={Boolean(toolConfig)}
-        anchorEl={toolConfig?.anchorEl}
-        placement="bottom-end"
-        sx={{ zIndex: (theme) => theme.zIndex.modal }}>
-        <ClickAwayListener
-          onClickAway={(e) => {
-            if (e.target === document.body) return;
-            setToolConfig(undefined);
-          }}>
-          <Paper sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
-            <TextField
-              placeholder={t('greeting')}
-              hiddenLabel
-              size="small"
-              defaultValue={toolConfig?.tool?.greeting ?? ''}
-              onBlur={(e) => {
-                // @ts-ignore
-                value.tools[toolConfig?.tool.id].data.greeting = e.target.value;
-              }}
-            />
-          </Paper>
-        </ClickAwayListener>
-      </Popper> */}
 
       <ToolDialog
         ref={toolForm}
@@ -567,21 +509,6 @@ const ToolDialog = forwardRef<
           <Typography variant="subtitle2" color="text.secondary">
             {t('greeting')}
           </Typography>
-
-          <Controller
-            control={form.control}
-            name="greeting"
-            render={({ field }) => {
-              return (
-                <TextField
-                  placeholder={t('greeting')}
-                  hiddenLabel
-                  value={field.value ?? ''}
-                  onChange={(e) => field.onChange({ target: { value: e.target.value } })}
-                />
-              );
-            }}
-          />
         </Stack>
       </DialogContent>
 

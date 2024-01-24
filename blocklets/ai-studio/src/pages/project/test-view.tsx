@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { isRunAssistantChunk, runAssistant } from '@blocklet/ai-runtime/api';
+import { runAssistant } from '@blocklet/ai-runtime/api';
+import { AssistantResponseType } from '@blocklet/ai-runtime/core';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Error } from '@mui/icons-material';
@@ -154,7 +155,7 @@ const TestCaseView = forwardRef<
             response += decoder.decode(value);
           } else if (typeof value === 'string') {
             response += value;
-          } else if (isRunAssistantChunk(value)) {
+          } else if (value.type === AssistantResponseType.CHUNK) {
             mainTaskId ??= value.taskId;
             if (value.taskId === mainTaskId) {
               response += value.delta.content || '';

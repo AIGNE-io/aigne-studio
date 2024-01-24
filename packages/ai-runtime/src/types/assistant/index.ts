@@ -16,6 +16,7 @@ export type Tool = { id: string; parameters?: { [key: string]: string }; greetin
 
 export interface ExecuteBlock {
   id: string;
+  executeBlockName?: string;
   role?: ExecuteBlockRole;
   selectType?: 'all' | 'selectByPrompt';
   selectByPrompt?: string;
