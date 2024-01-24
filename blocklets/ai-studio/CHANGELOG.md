@@ -1,3 +1,8 @@
+## 0.1.233 (2024-1-24)
+
+- fix: show description tip of template project
+- fix: disable pointer events when dragging
+
 ## 0.1.232 (2024-1-24)
 
 - fix: correct filter of projects
