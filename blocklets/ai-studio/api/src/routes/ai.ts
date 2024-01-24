@@ -99,7 +99,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
   try {
     const taskId = nextTaskId();
 
-    if (stream) emit({ taskId, assistantId: assistant.id, type: AssistantResponseType.CHUNK, delta: {} });
+    if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: {} });
 
     const result = await runAssistant({
       callAI,
@@ -122,7 +122,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
     log.update({ endDate, requestTime, status: Status.SUCCESS, response: result });
   } catch (error) {
     if (stream) {
-      emit({ error: pick(error, 'message', 'type', 'timestamp'), type: AssistantResponseType.ERROR });
+      emit({ type: AssistantResponseType.ERROR, error: pick(error, 'message', 'type', 'timestamp') });
     } else {
       res.status(500).json({ error: { message: error.message } });
     }
