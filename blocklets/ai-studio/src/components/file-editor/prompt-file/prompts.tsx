@@ -129,7 +129,7 @@ export default function PromptPrompts({
             </Button>
             <Button
               startIcon={<Add />}
-              onClick={() => addPrompt({ type: 'executeBlock', data: { id: nextAssistantId() } })}>
+              onClick={() => addPrompt({ type: 'executeBlock', data: { id: nextAssistantId(), selectType: 'all' } })}>
               {t('addObject', { object: t('executeBlock') })}
             </Button>
           </Stack>

@@ -40,6 +40,7 @@ import InfoOutlined from '../../pages/project/icons/question';
 import Trash from '../../pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
+import { ModelPopper, ModelSetting } from '../modal-settings';
 import PromptEditorField from './prompt-editor-field';
 
 export default function ExecuteBlockForm({
@@ -164,7 +165,12 @@ export default function ExecuteBlockForm({
 
       {value.selectType === 'selectByPrompt' && (
         <Stack>
-          <Typography variant="caption">{t('prompt')}</Typography>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Typography variant="caption">{t('prompt')}</Typography>
+            <ModelPopper>
+              <ModelSetting value={value} readOnly={readOnly} projectId={projectId} gitRef={gitRef} />
+            </ModelPopper>
+          </Box>
           <PromptEditorField
             readOnly={readOnly}
             projectId={projectId}
