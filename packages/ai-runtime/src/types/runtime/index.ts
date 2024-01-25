@@ -38,18 +38,18 @@ export type RunAssistantInput = {
 export type RunAssistantExecute = {
   type: AssistantResponseType.EXECUTE;
   taskId: string;
-  assistantName: string;
   assistantId: string;
+  assistantName?: string;
   execution:
     | {
         currentPhase: ExecutionPhase.EXECUTE_BLOCK_START;
-        toolName: string;
-        id: string;
+        blockId: string;
+        blockName?: string;
       }
     | {
         currentPhase: ExecutionPhase.EXECUTE_TOOL_START;
-        toolName: string;
-        id: string;
+        toolId: string;
+        toolName?: string;
       };
 };
 

@@ -411,9 +411,9 @@ async function runPromptAssistant({
 
   for await (const chunk of res) {
     callback?.({
+      type: AssistantResponseType.CHUNK,
       taskId,
       assistantId: assistant.id,
-      type: AssistantResponseType.CHUNK,
       delta: { content: chunk.delta.content },
     });
     result += chunk.delta.content || '';
@@ -564,11 +564,11 @@ async function runExecuteBlock({
     type: AssistantResponseType.EXECUTE,
     taskId,
     assistantId: assistant.id,
-    assistantName: assistant.name ?? '',
+    assistantName: assistant.name,
     execution: {
       currentPhase: ExecutionPhase.EXECUTE_BLOCK_START,
-      id: executeBlock.id,
-      toolName: executeBlock?.variable ?? '',
+      blockId: executeBlock.id,
+      blockName: executeBlock.variable,
     },
   });
 
@@ -582,12 +582,12 @@ async function runExecuteBlock({
           callback?.({
             type: AssistantResponseType.EXECUTE,
             taskId,
-            assistantId: assistant?.id,
-            assistantName: assistant.name ?? '',
+            assistantId: assistant.id,
+            assistantName: assistant.name,
             execution: {
               currentPhase: ExecutionPhase.EXECUTE_TOOL_START,
-              id: tool.id,
-              toolName: toolAssistant.name ?? '',
+              toolId: toolAssistant.id,
+              toolName: toolAssistant.name,
             },
           });
 
@@ -713,11 +713,11 @@ async function runExecuteBlock({
           callback?.({
             type: AssistantResponseType.EXECUTE,
             taskId,
-            assistantId: assistant?.id,
-            assistantName: assistant.name ?? '',
+            assistantId: assistant.id,
+            assistantName: assistant.name,
             execution: {
               currentPhase: ExecutionPhase.EXECUTE_TOOL_START,
-              id: tool.tool.id,
+              toolId: tool.tool.id,
               toolName: tool.function.name,
             },
           });
