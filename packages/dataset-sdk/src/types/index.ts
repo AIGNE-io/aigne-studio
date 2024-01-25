@@ -1,8 +1,8 @@
-import { OperationObject, ParameterObject, RequestBodyObject, ResponsesObject } from 'openapi3-ts/oas31';
+import { ParameterObject, RequestBodyObject, ResponsesObject } from 'openapi3-ts/oas31';
 
 export * from 'openapi3-ts/oas31';
 
-export interface PathItemObject extends Omit<OperationObject, 'responses'> {
+export interface PathItemObject {
   path: string;
   method: string;
   summary?: string;

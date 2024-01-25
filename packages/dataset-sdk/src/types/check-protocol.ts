@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-const customJoi = Joi.extend((joi) => ({
+const CustomJoi = Joi.extend((joi) => ({
   type: 'string',
   base: joi.string(),
   messages: {
@@ -26,7 +26,7 @@ const customJoi = Joi.extend((joi) => ({
   },
 }));
 
-const baseParameterObjectSchema = Joi.object({
+const BaseParameterObjectSchema = Joi.object({
   description: Joi.string().optional(),
   required: Joi.boolean().optional(),
   deprecated: Joi.boolean().optional(),
@@ -43,18 +43,24 @@ const baseParameterObjectSchema = Joi.object({
   content: Joi.any().optional(),
 }).optional();
 
-const parameterObjectSchema = baseParameterObjectSchema.keys({
+const ParameterObjectSchema = BaseParameterObjectSchema.keys({
   name: Joi.string().required(),
   in: Joi.string().valid('query', 'header', 'path', 'cookie').insensitive().required(),
 });
 
+const RequestBodyObjectSchema = Joi.object({});
+
+const ResponsesObjectSchema = Joi.object({});
+
 export default Joi.object({
-  id: customJoi.string().customId().required(),
-  type: Joi.string().required(),
-  url: Joi.string().uri().optional(),
+  id: CustomJoi.string().customId().required(),
+  type: Joi.string().optional().allow('').empty([null, '']),
+  url: Joi.string().uri().optional().allow('').empty([null, '']),
   path: Joi.string().required(),
   method: Joi.string().valid('GET', 'POST', 'PUT', 'DELETE', 'PATCH').insensitive().required(),
-  summary: Joi.string().optional(),
-  description: Joi.string().optional(),
-  parameters: Joi.array().items(parameterObjectSchema).optional(),
+  summary: Joi.string().optional().allow('').empty([null, '']),
+  description: Joi.string().optional().allow('').empty([null, '']),
+  parameters: Joi.array().items(ParameterObjectSchema).optional().allow(null, '').empty([null, '']),
+  requestBody: RequestBodyObjectSchema.optional().allow('').empty([null, '']),
+  responses: ResponsesObjectSchema.optional().allow('').empty([null, '']),
 }).unknown(true);

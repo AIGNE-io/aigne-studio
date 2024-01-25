@@ -5,17 +5,28 @@ import { ParameterObject } from 'openapi3-ts/oas31';
 import { joinURL } from 'ufo';
 
 import DataServiceSDK from './sdk';
-import { DatasetObject, OpenAPIObject } from './types';
+import { OpenAPIObject } from './types';
 import schema from './types/check-protocol';
 
 const ajv = new Ajv();
 
-export const getDatasetProtocols = async (origin: string) => {
+export * from './request';
+
+export const getBuildInDatasets = async (origin: string) => {
   const componentsWithUrl = components.map((component: any) => joinURL(origin, component.mountPoint));
 
   const sdk = new DataServiceSDK(componentsWithUrl);
   const list = await sdk.mergeFindServicesResult();
-  return list.filter((data) => !schema.validate(data, { stripUnknown: true })?.error);
+
+  return list.filter((data) => {
+    const { error } = schema.validate(data, { stripUnknown: true });
+
+    if (error) {
+      console.error(error);
+    }
+
+    return !error;
+  });
 };
 
 // TODO check 正确性
@@ -40,56 +51,6 @@ export const checkParameters = (parameters: ParameterObject[], parametersData: {
   }
 
   return { isValid: true, message: 'All parameters are valid.' };
-};
-
-export const createValidationRequest = (pathItem: DatasetObject, parametersData: { [key: string]: any }) => {
-  let url = pathItem?.url || '';
-  for (const parameter of pathItem.parameters || []) {
-    if (parameter.in === 'path') {
-      url = url.replace(`{${parameter.name}}`, parametersData[parameter.name]);
-    }
-  }
-
-  const config: {
-    url: string;
-    method: string;
-    headers: { [key: string]: any };
-    params: { [key: string]: any };
-    data: { [key: string]: any };
-  } = {
-    method: pathItem.method,
-    url,
-    headers: {},
-    params: {},
-    data: {},
-  };
-
-  // 根据参数位置（query, header, body）添加到请求配置
-  for (const parameter of pathItem.parameters || []) {
-    if (parameter.in === 'query') {
-      config.params[parameter.name] = parametersData[parameter.name];
-    } else if (parameter.in === 'header') {
-      config.headers[parameter.name] = parametersData[parameter.name];
-    }
-  }
-
-  if (pathItem.method.toLowerCase() === 'post' && pathItem.requestBody) {
-    const contentTypes = Object.keys(pathItem.requestBody.content);
-    const contentType = contentTypes.includes('application/x-www-form-urlencoded')
-      ? 'application/x-www-form-urlencoded'
-      : contentTypes[0];
-
-    config.headers['Content-Type'] = contentType;
-
-    // Initialize data structure based on Content-Type
-    if (contentType === 'application/x-www-form-urlencoded') {
-      config.data = new URLSearchParams();
-    } else {
-      config.data = {};
-    }
-  }
-
-  return config;
 };
 
 export async function validate(document: OpenAPIObject) {

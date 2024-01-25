@@ -21,8 +21,10 @@ router.get('/openapi.json', async (_req, res) => {
 
   const list: DatasetObject[] = Object.entries(swaggerSpec.paths || {}).flatMap(([path, pathItem]) =>
     Object.entries(pathItem).map(([method, info]) => {
-      const { type = '', summary = '', description = '', parameters = '' } = info || {};
-      return { id: `${AI_STUDIO_DID}:${path}:${method}`, path, method, type, summary, description, parameters };
+      const id = `${AI_STUDIO_DID}:${path}:${method}`;
+      const { type = '', summary = '', description = '', parameters = '', requestBody } = info || {};
+
+      return { id, path, method, type, summary, description, parameters, requestBody };
     })
   );
 

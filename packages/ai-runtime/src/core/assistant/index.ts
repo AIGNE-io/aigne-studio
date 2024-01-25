@@ -7,6 +7,8 @@ import {
   ImageGenerationInput,
   ImageGenerationResponse,
 } from '@blocklet/ai-kit/api/types';
+import { getBuildInDatasets, getRequestConfig } from '@blocklet/dataset-sdk';
+import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
@@ -542,6 +544,7 @@ async function runExecuteBlocks({
 
   const tasks: [ExecuteBlock, () => () => Promise<any>][] = [];
   const cache: { [key: string]: Promise<any> } = {};
+  const datasets = await getBuildInDatasets(env.appUrl);
 
   for (const executeBlock of executeBlocks) {
     const task = () => async () => {
@@ -553,6 +556,7 @@ async function runExecuteBlocks({
         getAssistant,
         executeBlock,
         parameters: variables,
+        datasets,
         callback,
       });
 
@@ -577,6 +581,7 @@ async function runExecuteBlock({
   getAssistant,
   executeBlock,
   parameters,
+  datasets,
   callback,
 }: {
   taskId: string;
@@ -586,6 +591,7 @@ async function runExecuteBlock({
   getAssistant: GetAssistant;
   executeBlock: ExecuteBlock;
   parameters?: { [key: string]: any };
+  datasets?: DatasetObject[];
   callback?: RunAssistantCallback;
 }) {
   const { tools } = executeBlock;
@@ -595,9 +601,43 @@ async function runExecuteBlock({
     const result = (
       await Promise.all(
         tools.map(async (tool) => {
+          if (tool?.from === 'dataset') {
+            const dataset = (datasets || []).find((x) => x.id === tool.id);
+            if (dataset) {
+              const parametersData = Object.fromEntries(
+                await Promise.all(
+                  (Object.keys(tool?.parameters || {}) ?? [])
+                    .filter((i): i is typeof i => !!i)
+                    .map(async (i) => {
+                      const template = tool.parameters?.[i]?.trim();
+                      const value = template ? await renderMessage(template, parameters) : parameters?.[i];
+                      return [i, value];
+                    })
+                )
+              );
+
+              const requestBodyData = Object.fromEntries(
+                await Promise.all(
+                  (Object.keys(tool?.requestBody || {}) ?? [])
+                    .filter((i): i is typeof i => !!i)
+                    .map(async (i) => {
+                      const template = tool.requestBody?.[i]?.trim();
+                      const value = template ? await renderMessage(template, parameters) : parameters?.[i];
+                      return [i, value];
+                    })
+                )
+              );
+
+              const config = getRequestConfig(dataset, parametersData, requestBodyData);
+              const response = await axios(config);
+              return response.data;
+            }
+
+            return undefined;
+          }
+
           const assistant = await getAssistant(tool.id);
           if (!assistant) return undefined;
-
           const args = Object.fromEntries(
             await Promise.all(
               (assistant.parameters ?? [])

@@ -8,6 +8,7 @@ import {
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { extractRequestBodyParameters } from '@blocklet/dataset-sdk/request';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import {
   Autocomplete,
@@ -352,9 +353,7 @@ export default function ExecuteBlockForm({
             hiddenLabel: true,
             InputProps: {
               readOnly,
-              sx: {
-                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
-              },
+              sx: { backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) } },
             },
             value: value.variable ?? '',
             onChange: (e) => (value.variable = e.target.value),
@@ -454,7 +453,7 @@ export const ToolDialog = forwardRef<
       from: dataset.from,
     })),
   ]
-    .map((x) => ({ ...x, fromText: x.from === FROM ? '内置数据' : '模板数据' }))
+    .map((x) => ({ ...x, fromText: x.from === FROM ? t('buildInData') : t('assistantData') }))
     .sort((a, b) => (b.from || '').localeCompare(a.from || ''));
 
   const assistantParameters = new Set([
@@ -485,6 +484,7 @@ export const ToolDialog = forwardRef<
     }
 
     if (isDatasetObject(option)) {
+      const bodyParameters = extractRequestBodyParameters(option.requestBody);
       return (
         <Box>
           {(parameters || [])?.map((parameter: any) => {
@@ -507,6 +507,34 @@ export const ToolDialog = forwardRef<
                       gitRef={gitRef}
                       assistant={assistant}
                       path={[assistantId, parameter.name]}
+                      onChange={(value) => field.onChange({ target: { value } })}
+                    />
+                  )}
+                />
+              </Stack>
+            );
+          })}
+
+          {(bodyParameters || [])?.map((parameter: any) => {
+            if (!parameter) return null;
+
+            return (
+              <Stack key={parameter.key}>
+                <Typography variant="caption" mx={1}>
+                  {parameter.description || parameter.key}
+                </Typography>
+
+                <Controller
+                  control={form.control}
+                  name={`requestBody.${parameter.name}`}
+                  render={({ field }) => (
+                    <PromptEditorField
+                      placeholder={`{{ ${parameter.key} }}`}
+                      value={field.value || ''}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      assistant={assistant}
+                      path={[assistantId, parameter.key]}
                       onChange={(value) => field.onChange({ target: { value } })}
                     />
                   )}

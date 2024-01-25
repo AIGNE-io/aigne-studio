@@ -412,4 +412,6 @@ export default flat({
   parametersTip:
     'Parameters can be inputted normally, or you can use the {{variable}} syntax to pass variables. If no parameters are provided, variables will be seamlessly passed through',
   selectByPromptParameterPlaceholder: 'Parameters without value will be provided by AI based on the prompt.',
+  buildInData: 'Build In Data',
+  assistantData: 'Assistant data',
 });

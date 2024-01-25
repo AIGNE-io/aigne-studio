@@ -1,4 +1,4 @@
-import { getDatasetProtocols } from '@blocklet/dataset-sdk';
+import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { env } from '@blocklet/sdk/lib/config';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -79,13 +79,65 @@ router.get('/test1', async () => {});
 
 /**
  * @openapi
- * '/api/vote/search':
+ * '/api/post/user':
+ *    post:
+ *      summary: Create a new user
+ *      description: This operation allows you to create a new user in the system.
+ *      operationId: createUser
+ *      requestBody:
+ *        description: Object containing the new user's details
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              required:
+ *                - username
+ *                - email
+ *              properties:
+ *                username:
+ *                  type: string
+ *                  description: The user's unique username
+ *                email:
+ *                  type: string
+ *                  description: The user's email address
+ *                password:
+ *                  type: string
+ *                  description: The user's password
+ *                age:
+ *                  type: integer
+ *                  description: The user's age
+ *                  minimum: 0
+ *      responses:
+ *        "200":
+ *          description: User created successfully
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  id:
+ *                    type: string
+ *                    description: The unique identifier of the created user
+ *                  username:
+ *                    type: string
+ *                    description: The username of the created user
+ *        "400":
+ *          description: Bad Request - Incorrect request format, missing required fields, etc.
+ *        "500":
+ *          description: Internal Server Error - Something went wrong on the server side.
+ */
+router.post('/user', async () => {});
+
+/**
+ * @openapi
+ * '/api/dataset/test':
  *    get:
  *      type: 'SEARCH'
- *      summary: 查询 VOTE 数据
- *      description: 查询 VOTE 数据
+ *      summary: 测试请求默认数据
+ *      description: 测试请求默认数据
  *      parameters:
- *        - name: searchVote
+ *        - name: data
  *          in: query
  *          description: 搜索的内容
  *          required: true
@@ -96,10 +148,12 @@ router.get('/test1', async () => {});
  *        200:
  *          description: 成功获取分页列表
  */
-router.get('/test2', async () => {});
+router.get('/test', async (req, res) => {
+  res.json({ role: 'system', content: `请根据内容回答： ${req.query.data}` });
+});
 
 router.get('/list', async (_req, res) => {
-  res.json({ list: await getDatasetProtocols(env.appUrl) });
+  res.json({ list: await getBuildInDatasets(env.appUrl) });
 });
 
 export default router;

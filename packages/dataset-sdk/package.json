@@ -19,6 +19,10 @@
     "./types": {
       "import": "./lib/esm/types/index.js",
       "require": "./lib/cjs/types/index.js"
+    },
+    "./request": {
+      "import": "./lib/esm/request.js",
+      "require": "./lib/cjs/request.js"
     }
   },
   "typesVersions": {
