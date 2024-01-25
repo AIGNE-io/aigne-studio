@@ -80,7 +80,27 @@ export default function ExecuteBlockForm({
   return (
     <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
       <Stack direction="row" gap={1} alignItems="center">
-        <Typography variant="subtitle2">{t('executeBlock')}</Typography>
+        <IndicatorTextField
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, value.variable ?? '']}
+          TextFiledProps={{
+            size: 'small',
+            hiddenLabel: true,
+            inputProps: {
+              maxLength: 15,
+            },
+            InputProps: {
+              placeholder: t('executeBlockName'),
+              readOnly,
+              sx: {
+                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
+              },
+            },
+            value: value.variable ?? '',
+            onChange: (e) => (value.variable = e.target.value),
+          }}
+        />
         <IndicatorTextField
           projectId={projectId}
           gitRef={gitRef}
@@ -178,7 +198,6 @@ export default function ExecuteBlockForm({
                 borderRadius: 1,
                 ':hover': {
                   bgcolor: 'action.hover',
-
                   '.hover-visible': {
                     display: 'flex',
                   },
@@ -243,7 +262,7 @@ export default function ExecuteBlockForm({
         )}
       </Stack>
 
-      <Stack direction="row" alignItems="center" gap={2}>
+      <Stack direction="row" alignItems="center" gap={1}>
         <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
           {t('formatResult')}
         </Typography>
@@ -272,27 +291,6 @@ export default function ExecuteBlockForm({
         />
 
         <Box flex={1} />
-
-        <Typography variant="body1" component="label">
-          {t('variable')}
-        </Typography>
-
-        <IndicatorTextField
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, value.variable ?? '']}
-          TextFiledProps={{
-            hiddenLabel: true,
-            InputProps: {
-              readOnly,
-              sx: {
-                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
-              },
-            },
-            value: value.variable ?? '',
-            onChange: (e) => (value.variable = e.target.value),
-          }}
-        />
       </Stack>
 
       <ToolDialog

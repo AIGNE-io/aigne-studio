@@ -12,12 +12,14 @@ export type Role = 'system' | 'user' | 'assistant';
 
 export type ExecuteBlockRole = Role | 'none';
 
+export type Tool = { id: string; parameters?: { [key: string]: string } };
+
 export interface ExecuteBlock {
   id: string;
   role?: ExecuteBlockRole;
   selectType?: 'all' | 'selectByPrompt';
   selectByPrompt?: string;
-  tools?: { id: string; parameters?: { [key: string]: string } }[];
+  tools?: Tool[];
   formatResultType?: 'none' | 'asHistory';
   variable?: string;
 }
