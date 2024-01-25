@@ -592,25 +592,27 @@ function ProjectItem({
 
   if (section === 'templates') {
     return (
-      <ProjectItemRoot
-        {...props}
-        className={cx(props.className)}
-        minHeight={CARD_HEIGHT}
-        justifyContent="center"
-        alignItems="center">
-        <Stack height={60} justifyContent="center" alignItems="center">
-          {icon ? (
-            <Box component="img" src={icon} sx={{ width: 60, height: 60, borderRadius: 1 }} />
-          ) : (
-            <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
-          )}
-        </Stack>
-        <Box sx={{ mt: 1, color: (theme) => theme.palette.text.secondary }}>{name}</Box>
+      <Tooltip title={description}>
+        <ProjectItemRoot
+          {...props}
+          className={cx(props.className)}
+          minHeight={CARD_HEIGHT}
+          justifyContent="center"
+          alignItems="center">
+          <Stack height={60} justifyContent="center" alignItems="center">
+            {icon ? (
+              <Box component="img" src={icon} sx={{ width: 60, height: 60, borderRadius: 1 }} />
+            ) : (
+              <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
+            )}
+          </Stack>
+          <Box sx={{ mt: 1, color: (theme) => theme.palette.text.secondary }}>{name}</Box>
 
-        <Box className="action" sx={{ position: 'absolute', right: 8, bottom: 8 }}>
-          {actions}
-        </Box>
-      </ProjectItemRoot>
+          <Box className="action" sx={{ position: 'absolute', right: 8, bottom: 8 }}>
+            {actions}
+          </Box>
+        </ProjectItemRoot>
+      </Tooltip>
     );
   }
 
@@ -773,12 +775,14 @@ function ImportFromGit() {
 
   return (
     <>
-      <ProjectItemRoot onClick={() => dialogState.open()} justifyContent="center" alignItems="center">
-        <Stack height={60} justifyContent="center" alignItems="center">
-          <Git sx={{ fontSize: 32, color: (theme) => theme.palette.text.disabled }} />
-        </Stack>
-        <Box sx={{ mt: 1, color: (theme) => theme.palette.text.secondary }}>{t('import.remote')}</Box>
-      </ProjectItemRoot>
+      <Tooltip title={t('import.remoteDescription')}>
+        <ProjectItemRoot onClick={() => dialogState.open()} justifyContent="center" alignItems="center">
+          <Stack height={60} justifyContent="center" alignItems="center">
+            <Git sx={{ fontSize: 32, color: (theme) => theme.palette.text.disabled }} />
+          </Stack>
+          <Box sx={{ mt: 1, color: (theme) => theme.palette.text.secondary }}>{t('import.remote')}</Box>
+        </ProjectItemRoot>
+      </Tooltip>
 
       <Dialog
         {...bindDialog(dialogState)}
