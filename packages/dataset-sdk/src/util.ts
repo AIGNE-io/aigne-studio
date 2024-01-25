@@ -35,25 +35,13 @@ const convertArraySchema = (schema: any): any[] => {
 const convertPrimitiveSchema = (schema: any): any => {
   switch (schema.type) {
     case 'string':
-      return {
-        ...schema,
-        value: schema.default || schema.enum ? schema.enum[0] : '',
-      };
+      return { ...schema, value: schema.default || schema.enum ? schema.enum[0] : '' };
     case 'integer':
     case 'number':
-      return {
-        ...schema,
-        value: schema.default || 0,
-      };
+      return { ...schema, value: schema.default || 0 };
     case 'boolean':
-      return {
-        ...schema,
-        value: schema.default || false,
-      };
+      return { ...schema, value: schema.default || false };
     default:
-      return {
-        ...schema,
-        value: schema.default || null,
-      };
+      return { ...schema, value: schema.default || null };
   }
 };

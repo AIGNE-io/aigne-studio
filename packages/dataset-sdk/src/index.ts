@@ -1,19 +1,18 @@
-import { components } from '@blocklet/sdk/lib/config';
+import { components, env } from '@blocklet/sdk/lib/config';
 import Ajv from 'ajv';
-import Enforcer from 'openapi-enforcer';
 import { ParameterObject } from 'openapi3-ts/oas31';
 import { joinURL } from 'ufo';
 
 import DataServiceSDK from './sdk';
-import { OpenAPIObject } from './types';
 import schema from './types/check-protocol';
 
 const ajv = new Ajv();
 
 export * from './request';
+export * from './openapi';
 
-export const getBuildInDatasets = async (origin: string) => {
-  const componentsWithUrl = components.map((component: any) => joinURL(origin, component.mountPoint));
+export const getBuildInDatasets = async (origin?: string) => {
+  const componentsWithUrl = components.map((component: any) => joinURL(origin || env.appUrl, component.mountPoint));
 
   const sdk = new DataServiceSDK(componentsWithUrl);
   const list = await sdk.mergeFindServicesResult();
@@ -52,17 +51,3 @@ export const checkParameters = (parameters: ParameterObject[], parametersData: {
 
   return { isValid: true, message: 'All parameters are valid.' };
 };
-
-export async function validate(document: OpenAPIObject) {
-  const result = await Enforcer(document, { fullResult: true, componentOptions: { exceptionSkipCodes: ['EDEV001'] } });
-
-  if (result.error) {
-    throw new Error(result.error);
-  }
-
-  if (result.warning) {
-    throw new Error(result.warning);
-  }
-
-  return result.value;
-}

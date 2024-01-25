@@ -7,7 +7,7 @@ import {
   ImageGenerationInput,
   ImageGenerationResponse,
 } from '@blocklet/ai-kit/api/types';
-import { getBuildInDatasets, getRequestConfig } from '@blocklet/dataset-sdk';
+import { getBuildInDatasets, getRequest } from '@blocklet/dataset-sdk';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
@@ -43,6 +43,7 @@ export type RunAssistantResponse = RunAssistantChunk | RunAssistantError | RunAs
 export type RunAssistantInput = {
   taskId: string;
   assistantId: string;
+  assistantName?: string;
   input: InputMessages;
 };
 
@@ -604,7 +605,7 @@ async function runExecuteBlock({
           if (tool?.from === 'dataset') {
             const dataset = (datasets || []).find((x) => x.id === tool.id);
             if (dataset) {
-              const parametersData = Object.fromEntries(
+              const requestData = Object.fromEntries(
                 await Promise.all(
                   (Object.keys(tool?.parameters || {}) ?? [])
                     .filter((i): i is typeof i => !!i)
@@ -616,20 +617,14 @@ async function runExecuteBlock({
                 )
               );
 
-              const requestBodyData = Object.fromEntries(
-                await Promise.all(
-                  (Object.keys(tool?.requestBody || {}) ?? [])
-                    .filter((i): i is typeof i => !!i)
-                    .map(async (i) => {
-                      const template = tool.requestBody?.[i]?.trim();
-                      const value = template ? await renderMessage(template, parameters) : parameters?.[i];
-                      return [i, value];
-                    })
-                )
-              );
+              const response = await getRequest(dataset, requestData);
 
-              const config = getRequestConfig(dataset, parametersData, requestBodyData);
-              const response = await axios(config);
+              callback?.({
+                taskId: taskIdGenerator.nextId().toString(),
+                assistantId: tool.id,
+                delta: { content: typeof response.data === 'string' ? response.data : JSON.stringify(response.data) },
+              });
+
               return response.data;
             }
 

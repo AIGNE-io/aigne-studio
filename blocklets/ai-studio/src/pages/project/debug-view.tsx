@@ -226,7 +226,7 @@ const MessageView = memo(
     message: SessionItem['messages'][number];
   }) => {
     const { t } = useLocaleContext();
-    const { store } = useProjectStore(projectId, gitRef);
+    const { store, datasets } = useProjectStore(projectId, gitRef);
     return (
       <>
         <Stack px={2} py={1} direction="row" gap={1} position="relative">
@@ -352,8 +352,13 @@ const MessageView = memo(
         {message.subMessages && (
           <Box ml={6}>
             {message.subMessages.map((item) => {
+              const dataset = datasets.find((x) => x.id === item.assistantId);
               const assistant = store.files[item.assistantId];
-              const name = (assistant && isAssistant(assistant) && assistant.name) || item.taskId;
+              const name =
+                (assistant && isAssistant(assistant) && assistant.name) ||
+                dataset?.summary ||
+                dataset?.description ||
+                item.taskId;
 
               const avatar = (
                 <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{name?.slice(0, 1).toUpperCase()}</Avatar>

@@ -1,11 +1,9 @@
+import axios from 'axios';
+
 import { DatasetObject, RequestBodyObject } from './types';
 import { convertSchemaToObject } from './util';
 
-export const getRequestConfig = (
-  pathItem: DatasetObject,
-  parametersData: { [key: string]: any },
-  requestBodyData?: { [key: string]: any }
-) => {
+export const getRequestConfig = (pathItem: DatasetObject, requestData: { [key: string]: any }) => {
   let url = pathItem?.url || '';
   const config: {
     url: string;
@@ -23,24 +21,30 @@ export const getRequestConfig = (
     cookies: {},
   };
 
-  for (const parameter of pathItem.parameters || []) {
-    const value = parametersData[parameter.name];
+  const data = { ...requestData };
+  const requestBodyData = { ...data };
 
-    switch (parameter.in) {
-      case 'path':
-        url = url.replace(`{${parameter.name}}`, encodeURIComponent(value));
-        break;
-      case 'query':
-        config.params[parameter.name] = value;
-        break;
-      case 'header':
-        config.headers[parameter.name] = value;
-        break;
-      case 'cookie':
-        config.cookies[parameter.name] = value;
-        break;
-      default:
-        throw new Error('Unsupported parameter type');
+  for (const parameter of pathItem.parameters || []) {
+    if (Object.prototype.hasOwnProperty.call(data, parameter.name)) {
+      const value = data[parameter.name];
+      switch (parameter.in) {
+        case 'path':
+          url = url.replace(`{${parameter.name}}`, encodeURIComponent(value));
+          break;
+        case 'query':
+          config.params[parameter.name] = value;
+          break;
+        case 'header':
+          config.headers[parameter.name] = value;
+          break;
+        case 'cookie':
+          config.cookies[parameter.name] = value;
+          break;
+        default:
+          throw new Error('Unsupported parameter type');
+      }
+
+      delete requestBodyData[parameter.name];
     }
   }
 
@@ -122,6 +126,10 @@ function serializeNestedObject(parentKey: string, obj: any): string {
     })
     .join('&');
 }
+
+export const getRequest = (pathItem: DatasetObject, requestData: { [key: string]: any }) => {
+  return axios(getRequestConfig(pathItem, requestData));
+};
 
 export function extractRequestBodyParameters(
   requestBody?: RequestBodyObject

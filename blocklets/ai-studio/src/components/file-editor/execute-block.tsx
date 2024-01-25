@@ -28,7 +28,6 @@ import {
   Typography,
   createFilterOptions,
 } from '@mui/material';
-import { useRequest } from 'ahooks';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
@@ -37,7 +36,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
 import { joinURL } from 'ufo';
 
-import { getDatasetList } from '../../libs/dataset';
 import Add from '../../pages/project/icons/add';
 import External from '../../pages/project/icons/external';
 import InfoOutlined from '../../pages/project/icons/question';
@@ -73,16 +71,13 @@ export default function ExecuteBlockForm({
   const navigate = useNavigate();
   const toolForm = useRef<ToolDialogImperative>(null);
 
-  const { store } = useProjectStore(projectId, gitRef);
+  const { store, datasets } = useProjectStore(projectId, gitRef);
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
     compareValue: compareAssistant,
     readOnly,
     isRemoteCompare,
   });
-
-  const { data } = useRequest(() => getDatasetList());
-  const datasets = data?.list || [];
 
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
@@ -478,6 +473,15 @@ export const ToolDialog = forwardRef<
     );
   }, [file, option]);
 
+  const haveParameters = useMemo(() => {
+    if (isDatasetObject(option)) {
+      const bodyParameters = extractRequestBodyParameters(option.requestBody);
+      return (parameters?.length || 0) + (bodyParameters?.length || 0);
+    }
+
+    return parameters?.length;
+  }, [parameters, option]);
+
   const renderParameters = useCallback(() => {
     if (!option) {
       return null;
@@ -485,6 +489,7 @@ export const ToolDialog = forwardRef<
 
     if (isDatasetObject(option)) {
       const bodyParameters = extractRequestBodyParameters(option.requestBody);
+
       return (
         <Box>
           {(parameters || [])?.map((parameter: any) => {
@@ -526,7 +531,7 @@ export const ToolDialog = forwardRef<
 
                 <Controller
                   control={form.control}
-                  name={`requestBody.${parameter.name}`}
+                  name={`parameters.${parameter.key}`}
                   render={({ field }) => (
                     <PromptEditorField
                       placeholder={`{{ ${parameter.key} }}`}
@@ -694,7 +699,7 @@ export const ToolDialog = forwardRef<
 
           <Typography variant="body1">{file?.description}</Typography>
 
-          {parameters && parameters.length > 0 && (
+          {!!haveParameters && (
             <Box>
               <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
                 <Stack gap={0.5} direction="row" alignItems="center">

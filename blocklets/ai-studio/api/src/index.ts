@@ -3,6 +3,7 @@ import 'nanoid';
 
 import path from 'path';
 
+import createSwaggerRouter from '@blocklet/dataset-sdk/openapi';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -14,7 +15,6 @@ import app from './app';
 import logger from './libs/logger';
 import initProjectIcons from './libs/project-icons';
 import routes from './routes';
-import openapi from './routes/openapi';
 
 export { default as app } from './app';
 
@@ -28,7 +28,13 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 
-app.use('/', openapi);
+app.use(
+  '/',
+  createSwaggerRouter('AI-Studio', {
+    definition: { openapi: '3.0.0', info: { title: 'AI Studio Dataset Protocol', version: '1.0.0' } },
+    apis: [path.join(__dirname, './routes/**/*.*')],
+  })
+);
 app.use('/api', routes);
 
 const isProduction = process.env.NODE_ENV === 'production' || process.env.ABT_NODE_SERVICE_ENV === 'production';

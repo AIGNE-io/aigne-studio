@@ -15,7 +15,7 @@ const datasetSchema = Joi.object<{ vectorId: string; messageString: string }>({
 
 /**
  * @openapi
- * '/api/dataset/search':
+ * /api/dataset/search:
  *    get:
  *      type: 'SEARCH'
  *      summary: 根据搜索内容搜索指定向量数据库的内容
@@ -58,56 +58,29 @@ router.get('/search', async (req, res) => {
 
 /**
  * @openapi
- * '/api/discuss/search':
- *    get:
- *      type: 'SEARCH'
- *      summary: 查询 DISCUSS KIT 数据
- *      description: 查询 DISCUSS KIT 数据
+ * /api/dataset/post-test:
+ *    post:
+ *      summary: 测试POST请求
+ *      description: 测试POST请求
  *      parameters:
- *        - name: searchDiscussKit
+ *        - name: query
  *          in: query
  *          description: 搜索的内容
  *          required: true
  *          schema:
  *            type: string
  *            default: ''
- *      responses:
- *        200:
- *          description: 成功获取分页列表
- */
-router.get('/test1', async () => {});
-
-/**
- * @openapi
- * '/api/post/user':
- *    post:
- *      summary: Create a new user
- *      description: This operation allows you to create a new user in the system.
- *      operationId: createUser
  *      requestBody:
- *        description: Object containing the new user's details
+ *        description: 测试POST请求
  *        required: true
  *        content:
  *          application/json:
  *            schema:
  *              type: object
- *              required:
- *                - username
- *                - email
  *              properties:
- *                username:
+ *                data:
  *                  type: string
- *                  description: The user's unique username
- *                email:
- *                  type: string
- *                  description: The user's email address
- *                password:
- *                  type: string
- *                  description: The user's password
- *                age:
- *                  type: integer
- *                  description: The user's age
- *                  minimum: 0
+ *                  description: 输出测试数据
  *      responses:
  *        "200":
  *          description: User created successfully
@@ -116,22 +89,21 @@ router.get('/test1', async () => {});
  *              schema:
  *                type: object
  *                properties:
- *                  id:
+ *                  data:
  *                    type: string
  *                    description: The unique identifier of the created user
- *                  username:
- *                    type: string
- *                    description: The username of the created user
  *        "400":
  *          description: Bad Request - Incorrect request format, missing required fields, etc.
  *        "500":
  *          description: Internal Server Error - Something went wrong on the server side.
  */
-router.post('/user', async () => {});
+router.post('/post-test', async (req, res) => {
+  res.json({ role: 'system', content: `请根据内容回答： ${req.query.query} + ${req.body.data}` });
+});
 
 /**
  * @openapi
- * '/api/dataset/test':
+ * /api/dataset/search-test:
  *    get:
  *      type: 'SEARCH'
  *      summary: 测试请求默认数据
@@ -148,7 +120,7 @@ router.post('/user', async () => {});
  *        200:
  *          description: 成功获取分页列表
  */
-router.get('/test', async (req, res) => {
+router.get('/search-test', async (req, res) => {
   res.json({ role: 'system', content: `请根据内容回答： ${req.query.data}` });
 });
 

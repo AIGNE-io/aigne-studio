@@ -23,6 +23,10 @@
     "./request": {
       "import": "./lib/esm/request.js",
       "require": "./lib/cjs/request.js"
+    },
+    "./openapi": {
+      "import": "./lib/esm/openapi.js",
+      "require": "./lib/cjs/openapi.js"
     }
   },
   "typesVersions": {
@@ -32,6 +36,12 @@
       ],
       "types": [
         "./lib/types/types/index.d.ts"
+      ],
+      "request": [
+        "./lib/types/request.d.ts"
+      ],
+      "openapi": [
+        "./lib/types/openapi.d.ts"
       ]
     }
   },
@@ -60,10 +70,14 @@
   "dependencies": {
     "@blocklet/sdk": "^1.16.22",
     "ajv": "^8.12.0",
-    "axios": "^1.6.5",
+    "axios": "^1.6.6",
+    "express": "^4.18.2",
     "joi": "^17.12.0",
+    "lodash": "^4.17.21",
     "openapi-enforcer": "^1.22.3",
     "openapi3-ts": "^4.2.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
     "ufo": "^1.3.2"
   },
   "devDependencies": {
