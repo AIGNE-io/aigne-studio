@@ -23,7 +23,7 @@ type ExecuteBlockCommon = {
 
 export type ExecuteBlockSelectAll = ExecuteBlockCommon & { selectType?: 'all' };
 
-type ExecuteModel = {
+type ModelConfiguration = {
   temperature?: number;
   topP?: number;
   presencePenalty?: number;
@@ -34,7 +34,7 @@ type ExecuteModel = {
 
 export type ExecuteBlockSelectByPrompt = ExecuteBlockCommon & {
   selectType: 'selectByPrompt';
-  executeModel?: ExecuteModel;
+  executeModel?: ModelConfiguration;
 };
 
 export type ExecuteBlock = ExecuteBlockSelectAll | ExecuteBlockSelectByPrompt;
