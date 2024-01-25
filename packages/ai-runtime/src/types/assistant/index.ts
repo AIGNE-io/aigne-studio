@@ -33,7 +33,7 @@ type ExecuteModel = {
 };
 
 export type ExecuteBlockSelectByPrompt = ExecuteBlockCommon & {
-  selectType?: 'selectByPrompt';
+  selectType: 'selectByPrompt';
   executeModel?: ExecuteModel;
 };
 

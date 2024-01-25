@@ -2,7 +2,7 @@ import { getSupportedModels } from '@app/libs/common';
 import Settings from '@app/pages/project/icons/settings';
 import { useProjectState } from '@app/pages/project/state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ExecuteBlockSelectByPrompt } from '@blocklet/ai-runtime/types';
+import { ExecuteBlockSelectByPromptYjs } from '@blocklet/ai-runtime/types';
 import { InfoOutlined } from '@mui/icons-material';
 import { Box, Button, ClickAwayListener, FormLabel, Paper, Popper, Stack, Tooltip } from '@mui/material';
 import isNil from 'lodash/isNil';
@@ -21,7 +21,7 @@ export function ModelSetting({
 }: {
   projectId: string;
   gitRef: string;
-  value: ExecuteBlockSelectByPrompt;
+  value: ExecuteBlockSelectByPromptYjs;
   readOnly?: boolean;
 }) {
   const { t } = useLocaleContext();

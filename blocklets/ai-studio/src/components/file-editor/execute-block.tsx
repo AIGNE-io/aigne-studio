@@ -2,7 +2,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   ExecuteBlock,
-  ExecuteBlockSelectByPrompt,
   ExecuteBlockYjs,
   FileTypeYjs,
   Role,
@@ -149,12 +148,7 @@ export default function ExecuteBlockForm({
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="caption">{t('prompt')}</Typography>
             <ModelPopper>
-              <ModelSetting
-                value={value as ExecuteBlockSelectByPrompt}
-                readOnly={readOnly}
-                projectId={projectId}
-                gitRef={gitRef}
-              />
+              <ModelSetting value={value} readOnly={readOnly} projectId={projectId} gitRef={gitRef} />
             </ModelPopper>
           </Box>
           <PromptEditorField
