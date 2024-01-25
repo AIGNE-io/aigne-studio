@@ -1,3 +1,7 @@
+## 0.1.236 (2024-1-25)
+
+- feat: auto scroll
+
 ## 0.1.235 (2024-1-25)
 
 - feat: provide select prompt model settings
