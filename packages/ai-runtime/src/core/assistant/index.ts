@@ -206,6 +206,14 @@ async function runFunctionAssistant({
     )
   );
 
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
   const result = await module.default(args);
 
   callback?.({
@@ -263,6 +271,14 @@ async function runApiAssistant({
         ])
     )
   );
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
 
   const method = assistant.requestMethod || 'GET';
   const isGet = method === 'get';
@@ -393,6 +409,13 @@ async function runPromptAssistant({
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
   callback?.({ type: AssistantResponseType.INPUT, taskId, assistantId: assistant.id, input: { messages } });
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
 
   const res = await callAI({
     assistant,
@@ -469,6 +492,14 @@ async function runImageAssistant({
       .join('\n'),
     variables
   );
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
 
   const { data } = await callAIImage({
     assistant,
@@ -578,18 +609,6 @@ async function runExecuteBlock({
         tools.map(async (tool) => {
           const toolAssistant = await getAssistant(tool.id);
           if (!toolAssistant) return undefined;
-
-          callback?.({
-            type: AssistantResponseType.EXECUTE,
-            taskId,
-            assistantId: assistant.id,
-            assistantName: assistant.name,
-            execution: {
-              currentPhase: ExecutionPhase.EXECUTE_TOOL_START,
-              toolId: toolAssistant.id,
-              toolName: toolAssistant.name,
-            },
-          });
 
           const args = Object.fromEntries(
             await Promise.all(
@@ -709,18 +728,6 @@ async function runExecuteBlock({
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
-
-          callback?.({
-            type: AssistantResponseType.EXECUTE,
-            taskId,
-            assistantId: assistant.id,
-            assistantName: assistant.name,
-            execution: {
-              currentPhase: ExecutionPhase.EXECUTE_TOOL_START,
-              toolId: tool.tool.id,
-              toolName: tool.function.name,
-            },
-          });
 
           const args = JSON.parse(call.function.arguments);
           const toolAssistant = tool?.assistant;
