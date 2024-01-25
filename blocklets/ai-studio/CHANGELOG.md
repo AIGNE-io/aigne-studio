@@ -1,3 +1,7 @@
+## 0.1.237 (2024-1-25)
+
+- fix: introduce dependency exceptions
+
 ## 0.1.236 (2024-1-25)
 
 - feat: auto scroll
