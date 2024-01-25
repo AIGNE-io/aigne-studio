@@ -5,8 +5,7 @@ import { EventSourceParserStream, readableToWeb } from '@blocklet/ai-kit/api/uti
 import { call } from '@blocklet/sdk/lib/component';
 import { AxiosResponse } from 'axios';
 
-import { RunAssistantChunk, RunAssistantError, RunAssistantResponse } from '../../core';
-import { isRunAssistantChunk, isRunAssistantError } from '../assistant';
+import { AssistantResponseType, RunAssistantChunk, RunAssistantError, RunAssistantResponse } from '../../types';
 
 export interface CallAssistantInput {
   projectId: string;
@@ -66,7 +65,7 @@ export async function callAssistant(
           for await (const chunk of stream) {
             mainTaskId ??= chunk.taskId;
 
-            if (mainTaskId === chunk.taskId && isRunAssistantChunk(chunk)) {
+            if (mainTaskId === chunk.taskId && chunk.type === AssistantResponseType.CHUNK) {
               controller.enqueue(chunk.delta.content || '');
             }
           }
@@ -85,7 +84,7 @@ export async function callAssistant(
 
   for await (const chunk of stream) {
     mainTaskId ??= chunk.taskId;
-    if (mainTaskId === chunk.taskId && isRunAssistantChunk(chunk)) {
+    if (mainTaskId === chunk.taskId && chunk.type === AssistantResponseType.CHUNK) {
       content += chunk.delta.content || '';
       if (chunk.delta.images) images.push(...chunk.delta.images);
     }
@@ -106,7 +105,7 @@ function toEventStream(data: IncomingMessage) {
           .pipeThrough(new EventSourceParserStream<RunAssistantResponse>());
 
         for await (const chunk of stream) {
-          if (isRunAssistantError(chunk)) {
+          if (chunk.type === AssistantResponseType.ERROR) {
             controller.error(new Error(chunk.error.message));
             break;
           }
