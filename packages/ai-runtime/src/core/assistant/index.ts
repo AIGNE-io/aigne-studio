@@ -566,7 +566,7 @@ async function runExecuteBlock({
     assistantId: assistant.id,
     assistantName: assistant.name ?? '',
     execution: {
-      currentPhase: ExecutionPhase.START_EXECUTION_BLOCK,
+      currentPhase: ExecutionPhase.EXECUTE_BLOCK_START,
       id: executeBlock.id,
       toolName: executeBlock?.variable ?? '',
     },
@@ -585,7 +585,7 @@ async function runExecuteBlock({
             assistantId: assistant?.id,
             assistantName: assistant.name ?? '',
             execution: {
-              currentPhase: ExecutionPhase.START_EXECUTE_TOOL,
+              currentPhase: ExecutionPhase.EXECUTE_TOOL_START,
               id: tool.id,
               toolName: toolAssistant.name ?? '',
             },
@@ -716,7 +716,7 @@ async function runExecuteBlock({
             assistantId: assistant?.id,
             assistantName: assistant.name ?? '',
             execution: {
-              currentPhase: ExecutionPhase.START_EXECUTE_TOOL,
+              currentPhase: ExecutionPhase.EXECUTE_TOOL_START,
               id: tool.tool.id,
               toolName: tool.function.name,
             },
