@@ -3,9 +3,8 @@ import { SubscriptionError } from '@blocklet/ai-kit/api';
 import { Role } from '../assistant';
 
 export enum ExecutionPhase {
-  StartExecution = 'StartExecution',
-  ExecuteTool = 'ExecuteTool',
-  EndExecution = 'EndExecution',
+  START_EXECUTION_BLOCK = 'START_EXECUTION_BLOCK',
+  START_EXECUTE_TOOL = 'START_EXECUTE_TOOL',
 }
 
 export enum AssistantResponseType {
@@ -44,12 +43,12 @@ export type RunAssistantExecute = {
   assistantId: string;
   execution:
     | {
-        currentPhase: ExecutionPhase.StartExecution;
+        currentPhase: ExecutionPhase.START_EXECUTION_BLOCK;
         toolName: string;
         id: string;
       }
     | {
-        currentPhase: ExecutionPhase.ExecuteTool;
+        currentPhase: ExecutionPhase.START_EXECUTE_TOOL;
         toolName: string;
         id: string;
       };

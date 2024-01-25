@@ -566,7 +566,7 @@ async function runExecuteBlock({
     assistantId: assistant.id,
     assistantName: assistant.name ?? '',
     execution: {
-      currentPhase: ExecutionPhase.StartExecution,
+      currentPhase: ExecutionPhase.START_EXECUTION_BLOCK,
       id: executeBlock.id,
       toolName: executeBlock?.variable ?? '',
     },
@@ -585,7 +585,7 @@ async function runExecuteBlock({
             assistantId: assistant?.id,
             assistantName: assistant.name ?? '',
             execution: {
-              currentPhase: ExecutionPhase.ExecuteTool,
+              currentPhase: ExecutionPhase.START_EXECUTE_TOOL,
               id: tool.id,
               toolName: toolAssistant.name ?? '',
             },
@@ -709,13 +709,14 @@ async function runExecuteBlock({
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
+
           callback?.({
             type: AssistantResponseType.EXECUTE,
             taskId,
             assistantId: assistant?.id,
             assistantName: assistant.name ?? '',
             execution: {
-              currentPhase: ExecutionPhase.ExecuteTool,
+              currentPhase: ExecutionPhase.START_EXECUTE_TOOL,
               id: tool.tool.id,
               toolName: tool.function.name,
             },
