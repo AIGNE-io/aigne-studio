@@ -41,7 +41,7 @@ export default function Prepare({
                 value.prepareExecutes ??= {};
                 value.prepareExecutes[id] = {
                   index: Math.max(-1, ...Object.values(value.prepareExecutes).map((i) => i.index)) + 1,
-                  data: { id },
+                  data: { id, selectType: 'all' },
                 };
               });
             }}>

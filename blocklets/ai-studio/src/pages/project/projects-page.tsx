@@ -55,11 +55,14 @@ import { ProjectWithUserInfo, User, createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
+import DocumentView from './icons/document-view';
 import Duplicate from './icons/duplicate';
 import Edit from './icons/edit';
 import Empty from './icons/empty';
 import Eye from './icons/eye';
 import EyeNo from './icons/eye-no';
+import Git from './icons/git';
+import LayoutPictureRight from './icons/layout-picture-right';
 import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
@@ -76,7 +79,7 @@ export default function ProjectsPage() {
   const { t } = useLocaleContext();
 
   const {
-    state: { loading, templates, projects },
+    state: { loading, templates, projects, examples },
     refetch,
   } = useProjectsState();
 
@@ -135,6 +138,12 @@ export default function ProjectsPage() {
             </Stack>
           )}
         </Section>
+
+        {examples && examples.length > 0 && (
+          <Section enableCollapse title={t('examples')}>
+            <ProjectList section="examples" list={examples} />
+          </Section>
+        )}
       </Stack>
     </Stack>
   );
@@ -152,14 +161,18 @@ function ProjectMenu() {
   const readOnly = useReadOnly({ ref: defaultBranch });
 
   const {
-    state: { menuAnchor, projects },
+    state: { menuAnchor, projects, templates, examples },
     createProject,
     deleteProject,
     updateProject,
     setMenuAnchor,
   } = useProjectsState();
 
-  const item = menuAnchor && projects.find((i) => i._id === menuAnchor.id);
+  const item =
+    menuAnchor &&
+    (projects.find((i) => i._id === menuAnchor.id) ??
+      templates.find((i) => i._id === menuAnchor.id) ??
+      examples.find((i) => i._id === menuAnchor.id));
 
   const onDelete = () => {
     if (!item) return;
@@ -178,111 +191,147 @@ function ProjectMenu() {
           <Paper>
             <List dense>
               {menuAnchor?.section === 'projects' && (
-                <LoadingMenuItem
-                  disabled={readOnly}
-                  onClick={() => {
-                    setMenuAnchor(undefined);
-
-                    let name = item?.name || '';
-                    let description = item?.description || '';
-
-                    showDialog({
-                      disableEnforceFocus: true,
-                      fullWidth: true,
-                      maxWidth: 'sm',
-                      title: `${t('alert.edit')} ${t('form.project')}`,
-                      content: (
-                        <Stack overflow="auto" gap={2}>
-                          <TextField
-                            autoFocus
-                            label={t('projectSetting.name')}
-                            sx={{ width: 1 }}
-                            defaultValue={item?.name || ''}
-                            onChange={(e) => (name = e.target.value)}
-                          />
-
-                          <TextField
-                            label={t('projectSetting.description')}
-                            multiline
-                            rows={4}
-                            sx={{ width: 1 }}
-                            defaultValue={item?.description || ''}
-                            onChange={(e) => (description = e.target.value)}
-                          />
-                        </Stack>
-                      ),
-                      cancelText: t('alert.cancel'),
-                      okText: t('save'),
-                      okIcon: <SaveRoundedIcon />,
-                      onOk: async () => {
-                        updateProject(menuAnchor.id, { name, description })
-                          .catch((error) => {
-                            Toast.error(getErrorMessage(error));
-                            throw error;
-                          })
-                          .finally(() => {
-                            setMenuAnchor(undefined);
-                          });
-                      },
-                    });
-                  }}>
-                  <ListItemIcon>
-                    <Edit />
-                  </ListItemIcon>
-                  {`${t('alert.edit')}`}
-                </LoadingMenuItem>
-              )}
-
-              <LoadingMenuItem
-                disabled={readOnly}
-                onClick={() =>
-                  createProject({ duplicateFrom: menuAnchor!.id })
-                    .catch((error) => {
-                      Toast.error(getErrorMessage(error));
-                      throw error;
-                    })
-                    .finally(() => {
+                <>
+                  <LoadingMenuItem
+                    disabled={readOnly}
+                    onClick={() => {
                       setMenuAnchor(undefined);
-                    })
-                }>
-                <ListItemIcon>
-                  <Duplicate />
-                </ListItemIcon>
-                {t('duplicate')}
-              </LoadingMenuItem>
 
-              {menuAnchor?.section === 'projects' && (
-                <LoadingMenuItem
-                  disabled={readOnly}
-                  onClick={() =>
-                    updateProject(menuAnchor.id, { pinned: !item?.pinnedAt })
-                      .catch((error) => {
-                        Toast.error(getErrorMessage(error));
-                        throw error;
-                      })
-                      .finally(() => {
-                        setMenuAnchor(undefined);
-                      })
-                  }>
-                  <ListItemIcon>{item?.pinnedAt ? <PinOff /> : <Pin />}</ListItemIcon>
-                  {item?.pinnedAt ? t('unpin') : t('pin')}
-                </LoadingMenuItem>
+                      let name = item?.name || '';
+                      let description = item?.description || '';
+
+                      showDialog({
+                        disableEnforceFocus: true,
+                        fullWidth: true,
+                        maxWidth: 'sm',
+                        title: `${t('alert.edit')} ${t('form.project')}`,
+                        content: (
+                          <Stack overflow="auto" gap={2}>
+                            <TextField
+                              autoFocus
+                              label={t('projectSetting.name')}
+                              sx={{ width: 1 }}
+                              defaultValue={item?.name || ''}
+                              onChange={(e) => (name = e.target.value)}
+                            />
+
+                            <TextField
+                              label={t('projectSetting.description')}
+                              multiline
+                              rows={4}
+                              sx={{ width: 1 }}
+                              defaultValue={item?.description || ''}
+                              onChange={(e) => (description = e.target.value)}
+                            />
+                          </Stack>
+                        ),
+                        cancelText: t('alert.cancel'),
+                        okText: t('save'),
+                        okIcon: <SaveRoundedIcon />,
+                        onOk: async () => {
+                          updateProject(menuAnchor.id, { name, description })
+                            .catch((error) => {
+                              Toast.error(getErrorMessage(error));
+                              throw error;
+                            })
+                            .finally(() => {
+                              setMenuAnchor(undefined);
+                            });
+                        },
+                      });
+                    }}>
+                    <ListItemIcon>
+                      <Edit />
+                    </ListItemIcon>
+                    {`${t('alert.edit')}`}
+                  </LoadingMenuItem>
+
+                  <LoadingMenuItem
+                    disabled={readOnly}
+                    onClick={() =>
+                      createProject({ duplicateFrom: menuAnchor!.id })
+                        .catch((error) => {
+                          Toast.error(getErrorMessage(error));
+                          throw error;
+                        })
+                        .finally(() => {
+                          setMenuAnchor(undefined);
+                        })
+                    }>
+                    <ListItemIcon>
+                      <Duplicate />
+                    </ListItemIcon>
+                    {t('duplicate')}
+                  </LoadingMenuItem>
+
+                  <LoadingMenuItem
+                    disabled={readOnly}
+                    onClick={() =>
+                      updateProject(menuAnchor.id, { pinned: !item?.pinnedAt })
+                        .catch((error) => {
+                          Toast.error(getErrorMessage(error));
+                          throw error;
+                        })
+                        .finally(() => {
+                          setMenuAnchor(undefined);
+                        })
+                    }>
+                    <ListItemIcon>{item?.pinnedAt ? <PinOff /> : <Pin />}</ListItemIcon>
+                    {item?.pinnedAt ? t('unpin') : t('pin')}
+                  </LoadingMenuItem>
+
+                  <Divider />
+                </>
               )}
 
-              <Divider />
+              {item && !(menuAnchor?.section === 'templates' && !item?.projectType) && (
+                <MenuItem
+                  onClick={() =>
+                    menuAnchor &&
+                    updateProject(menuAnchor.id, {
+                      projectType: item.projectType === 'template' ? 'project' : 'template',
+                    }).finally(() => setMenuAnchor(undefined))
+                  }>
+                  <ListItemIcon>
+                    <LayoutPictureRight />
+                  </ListItemIcon>
+                  {item.projectType !== 'template' ? t('asTemplateProject') : t('cancelTemplateProject')}
+                </MenuItem>
+              )}
 
-              <MenuItem
-                disabled={readOnly}
-                sx={{ color: 'warning.main' }}
-                onClick={() => {
-                  onDelete();
-                  setMenuAnchor(undefined);
-                }}>
-                <ListItemIcon sx={{ color: 'inherit' }}>
-                  <Trash color="inherit" />
-                </ListItemIcon>
-                {t('delete')}
-              </MenuItem>
+              {item && !(menuAnchor?.section === 'templates' && !item?.projectType) && (
+                <MenuItem
+                  onClick={() =>
+                    menuAnchor &&
+                    updateProject(menuAnchor.id, {
+                      projectType: item.projectType === 'example' ? 'project' : 'example',
+                    }).finally(() => setMenuAnchor(undefined))
+                  }>
+                  <ListItemIcon>
+                    <DocumentView />
+                  </ListItemIcon>
+                  {item.projectType !== 'example' ? t('asExampleProject') : t('cancelExampleProject')}
+                </MenuItem>
+              )}
+
+              {!(menuAnchor?.section === 'templates' && !item?.projectType) && (
+                <>
+                  <Divider />
+
+                  <MenuItem
+                    disabled={readOnly}
+                    sx={{ color: 'warning.main' }}
+                    onClick={() => {
+                      onDelete();
+                      setMenuAnchor(undefined);
+                    }}>
+                    <ListItemIcon sx={{ color: 'inherit' }}>
+                      <Trash color="inherit" />
+                    </ListItemIcon>
+                    {t('delete')}
+                  </MenuItem>
+                </>
+              )}
             </List>
           </Paper>
         </ClickAwayListener>
@@ -332,6 +381,7 @@ function Section({
         sx={{
           position: 'sticky',
           top: 0,
+          pl: 1.5,
           zIndex: 1,
           cursor: enableCollapse ? 'pointer' : 'default',
           alignItems: 'center',
@@ -354,7 +404,7 @@ function Section({
         )}
       </Stack>
 
-      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ mt, position: 'relative' }}>
+      <Collapse in={enableCollapse ? templatesVisible : true} sx={{ mt: 1, position: 'relative' }}>
         {children}
       </Collapse>
     </Box>
@@ -364,7 +414,10 @@ function Section({
 function ProjectList({
   section,
   list,
-}: { section: 'templates'; list: ProjectWithUserInfo[] } | { section: 'projects'; list: ProjectWithUserInfo[] }) {
+}: {
+  section: 'templates' | 'examples' | 'projects';
+  list: ProjectWithUserInfo[];
+}) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
@@ -382,6 +435,7 @@ function ProjectList({
 
           return (
             <ProjectItem
+              className={cx(menuOpen && 'selected')}
               section={section}
               id={item._id!}
               tabIndex={0}
@@ -432,14 +486,13 @@ function ProjectList({
                       navigate(joinURL('/projects', project._id!));
                     },
                   });
-                } else if (section === 'projects') {
+                } else if (section === 'projects' || section === 'examples') {
                   navigate(joinURL('/projects', item._id!));
                 }
               }}
               actions={
-                section === 'projects' && (
+                !(section === 'templates' && !item.projectType) && (
                   <IconButton
-                    className={cx(!menuOpen && 'hover-visible')}
                     size="small"
                     sx={{
                       backgroundColor: (theme) => theme.palette.background.paper,
@@ -467,7 +520,8 @@ function ProjectList({
             />
           );
         })}
-        {section === 'templates' && <RegistryImport />}
+
+        {section === 'templates' && <ImportFromGit />}
       </ProjectListContainer>
 
       {dialog}
@@ -502,7 +556,6 @@ function ProjectItem({
   updatedAt,
   createdAt,
   actions,
-  mainActions,
   section,
   gitUrl,
   model,
@@ -520,7 +573,6 @@ function ProjectItem({
   model?: string;
   users?: User[];
   actions?: ReactNode;
-  mainActions?: ReactNode;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
 
@@ -540,26 +592,38 @@ function ProjectItem({
 
   if (section === 'templates') {
     return (
-      <ProjectItemRoot
-        {...props}
-        className={cx(props.className)}
-        minHeight={CARD_HEIGHT}
-        justifyContent="center"
-        alignItems="center">
-        <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
-        <Box sx={{ color: (theme) => theme.palette.text.secondary }}>
-          {t('newObject', { object: t('form.project') })}
-        </Box>
-      </ProjectItemRoot>
+      <Tooltip title={description}>
+        <ProjectItemRoot
+          {...props}
+          className={cx(props.className)}
+          minHeight={CARD_HEIGHT}
+          justifyContent="center"
+          alignItems="center">
+          <Stack height={60} justifyContent="center" alignItems="center">
+            {icon ? (
+              <Box component="img" src={icon} sx={{ width: 60, height: 60, borderRadius: 1 }} />
+            ) : (
+              <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
+            )}
+          </Stack>
+          <Box sx={{ mt: 1, color: (theme) => theme.palette.text.secondary }}>{name}</Box>
+
+          <Box className="action" sx={{ position: 'absolute', right: 8, bottom: 8 }}>
+            {actions}
+          </Box>
+        </ProjectItemRoot>
+      </Tooltip>
     );
   }
 
   return (
     <ProjectItemRoot {...props} className={cx(props.className)}>
-      <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between">
+      <Stack direction="row" gap={1} alignItems="center">
         <Box className="logo" sx={{ width: '32px', height: '32px' }}>
           {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 32 }} />}
         </Box>
+
+        <Box flex={1} />
 
         {users && Array.isArray(users) && !!users.length && (
           <AvatarGroup
@@ -644,12 +708,7 @@ function ProjectItem({
         </Stack>
 
         <Box mr={-0.5} className="action">
-          {(actions || mainActions) && (
-            <Stack direction="row">
-              {mainActions}
-              {actions}
-            </Stack>
-          )}
+          {actions}
         </Box>
       </Stack>
     </ProjectItemRoot>
@@ -664,7 +723,7 @@ interface RemoteRepoSettingForm {
   name: string;
 }
 
-function RegistryImport() {
+function ImportFromGit() {
   const { t } = useLocaleContext();
   const id = useId();
   const {
@@ -716,9 +775,14 @@ function RegistryImport() {
 
   return (
     <>
-      <ProjectItemRoot onClick={() => dialogState.open()} justifyContent="center" alignItems="center">
-        <Box sx={{ color: (theme) => theme.palette.text.secondary }}>{t('import.remote')}</Box>
-      </ProjectItemRoot>
+      <Tooltip title={t('import.remoteDescription')}>
+        <ProjectItemRoot onClick={() => dialogState.open()} justifyContent="center" alignItems="center">
+          <Stack height={60} justifyContent="center" alignItems="center">
+            <Git sx={{ fontSize: 32, color: (theme) => theme.palette.text.disabled }} />
+          </Stack>
+          <Box sx={{ mt: 1, color: (theme) => theme.palette.text.secondary }}>{t('import.remote')}</Box>
+        </ProjectItemRoot>
+      </Tooltip>
 
       <Dialog
         {...bindDialog(dialogState)}
@@ -865,6 +929,7 @@ const ProjectItemRoot = styled(Stack)`
   border-color: ${({ theme }) => theme.palette.divider};
   border-radius: 16px;
 
+  &.selected,
   &:hover {
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.08);
 
@@ -874,8 +939,6 @@ const ProjectItemRoot = styled(Stack)`
   }
 
   .logo {
-    width: 24px;
-    height: 24px;
     border-radius: ${({ theme }) => theme.shape.borderRadius}px;
     overflow: hidden;
 

@@ -144,7 +144,11 @@ function NotFound() {
         <div>Not Found.</div>
       </Box>
 
-      <Footer />
+      <Footer
+        // FIXME: remove following undefined props after issue https://github.com/ArcBlock/ux/issues/1136 solved
+        meta={undefined}
+        theme={undefined}
+      />
     </Layout>
   );
 }

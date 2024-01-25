@@ -99,7 +99,8 @@ export default flat({
   },
   import: {
     title: 'Import Templates',
-    remote: 'Import repository',
+    remote: 'Import from git repo',
+    remoteDescription: 'Import a project from an existing git repository, such as GitHub.',
     selectProject: 'Select Project',
     selectBranch: 'Select Branch',
     templates: 'Templates',
@@ -108,6 +109,7 @@ export default flat({
   },
   newFromTemplates: 'New from Templates',
   myProjects: 'My Projects',
+  examples: 'Examples',
   duplicate: 'Duplicate',
   pin: 'Pin',
   unpin: 'Unpin',
@@ -168,6 +170,7 @@ export default flat({
   commitMessage: 'Note',
   confirm: 'Confirm',
   projectSetting: {
+    homePageUrl: 'Home Page Url',
     name: 'Project name',
     description: 'Project description',
     gitType: {
@@ -375,6 +378,7 @@ export default flat({
   promptPlaceholder: 'Please enter your prompt',
   promptMessage: 'Prompt Message',
   executeBlock: 'Execute Block',
+  executeBlockName: 'Execute Block Name',
   callAPI: 'Call API',
   formatResult: 'Format Result',
   stayAsIs: 'Stay as is',
@@ -412,4 +416,8 @@ export default flat({
   parametersTip:
     'Parameters can be inputted normally, or you can use the {{variable}} syntax to pass variables. If no parameters are provided, variables will be seamlessly passed through',
   selectByPromptParameterPlaceholder: 'Parameters without value will be provided by AI based on the prompt.',
+  asTemplateProject: 'As Template Project',
+  cancelTemplateProject: 'Cancel Template Project',
+  asExampleProject: 'As Example Project',
+  cancelExampleProject: 'Cancel Example Project',
 });

@@ -25,7 +25,11 @@ export default function Home() {
         )}
       </Box>
 
-      <Footer />
+      <Footer
+        // FIXME: remove following undefined props after issue https://github.com/ArcBlock/ux/issues/1136 solved
+        meta={undefined}
+        theme={undefined}
+      />
     </Dashboard>
   );
 }

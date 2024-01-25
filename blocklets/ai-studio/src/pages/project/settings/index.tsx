@@ -48,6 +48,7 @@ const init = {
   frequencyPenalty: 0,
   maxTokens: undefined,
   gitType: 'simple',
+  homePageUrl: '',
 };
 
 export default function ProjectSettings() {
@@ -86,6 +87,7 @@ export default function ProjectSettings() {
         'frequencyPenalty',
         'maxTokens',
         'gitType',
+        'homePageUrl',
       ]);
 
       origin.current = merge;
@@ -187,29 +189,38 @@ export default function ProjectSettings() {
                   {t('projectSetting.baseInfo')}
                 </Box>
 
-                <Box display="flex" alignItems="center">
-                  <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
+                <Stack gap={1}>
+                  <Box display="flex" alignItems="center">
+                    <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
 
-                  <Stack spacing={1} flex={1} ml={4}>
-                    <TextField
-                      label={t('projectSetting.name')}
-                      sx={{ flex: 1 }}
-                      value={value.name ?? ''}
-                      onChange={(e) => set('name', e.target.value)}
-                      InputProps={{ readOnly }}
-                    />
+                    <Stack spacing={1} flex={1} ml={4}>
+                      <TextField
+                        label={t('projectSetting.name')}
+                        sx={{ flex: 1 }}
+                        value={value.name ?? ''}
+                        onChange={(e) => set('name', e.target.value)}
+                        InputProps={{ readOnly }}
+                      />
 
-                    <TextField
-                      label={t('projectSetting.description')}
-                      multiline
-                      rows={4}
-                      sx={{ width: 1 }}
-                      value={value.description ?? ''}
-                      onChange={(e) => set('description', e.target.value)}
-                      InputProps={{ readOnly }}
-                    />
-                  </Stack>
-                </Box>
+                      <TextField
+                        label={t('projectSetting.description')}
+                        multiline
+                        rows={4}
+                        sx={{ width: 1 }}
+                        value={value.description ?? ''}
+                        onChange={(e) => set('description', e.target.value)}
+                        InputProps={{ readOnly }}
+                      />
+                    </Stack>
+                  </Box>
+
+                  <TextField
+                    label={t('projectSetting.homePageUrl')}
+                    value={value.homePageUrl ?? ''}
+                    onChange={(e) => set('homePageUrl', e.target.value)}
+                    InputProps={{ readOnly }}
+                  />
+                </Stack>
               </Box>
 
               <Box>

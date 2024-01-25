@@ -217,7 +217,10 @@ export default function PromptSetting({
                       max={model.maxTokensMax}
                       step={1}
                       sx={{ flex: 1, backgroundColor: getDiffBackground('maxTokens') }}
-                      value={value.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault}
+                      value={Math.min(
+                        value?.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault ?? 0,
+                        model.maxTokensMax ?? 0
+                      )}
                       onChange={(_, v) => (value.maxTokens = v)}
                     />
                   </WithAwareness>
