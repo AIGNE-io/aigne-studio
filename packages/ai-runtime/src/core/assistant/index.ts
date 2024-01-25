@@ -660,6 +660,7 @@ async function runExecuteBlock({
     const response = await callAI({
       assistant,
       input: {
+        ...executeBlock.executeModel,
         messages: [{ role: 'user', content: message }],
         tools: toolAssistants.map((i) => ({
           type: 'function',
