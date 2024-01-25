@@ -8,6 +8,7 @@ import {
   ImageGenerationResponse,
 } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets, getRequest } from '@blocklet/dataset-sdk';
+import { getAllParameters } from '@blocklet/dataset-sdk/request';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
@@ -670,9 +671,32 @@ async function runExecuteBlock({
     const toolAssistants = (
       await Promise.all(
         tools.map(async (tool) => {
+          if (tool?.from === 'dataset') {
+            const dataset = (datasets || []).find((x) => x.id === tool.id);
+            if (!dataset) return undefined;
+
+            const datasetParameters = getAllParameters(dataset)
+              .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
+              .map((i) => [i.name, { type: 'string', description: i.description ?? '' }]);
+
+            const name = dataset.summary || dataset.description || '';
+            return {
+              tool,
+              assistant: dataset,
+              function: {
+                name: name.replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
+                descriptions: dataset.description || name || '',
+                parameters: {
+                  type: 'object',
+                  properties: Object.fromEntries(datasetParameters),
+                },
+              },
+            };
+          }
+
           const assistant = await getAssistant(tool.id);
           if (!assistant) return undefined;
-          const parameters = (assistant.parameters ?? [])
+          const assistantParameters = (assistant.parameters ?? [])
             .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
             .map((parameter) => [parameter.key, { type: 'string', description: parameter.placeholder ?? '' }]);
 
@@ -684,7 +708,7 @@ async function runExecuteBlock({
               descriptions: assistant.description,
               parameters: {
                 type: 'object',
-                properties: Object.fromEntries(parameters),
+                properties: Object.fromEntries(assistantParameters),
               },
             },
           };
@@ -741,9 +765,32 @@ async function runExecuteBlock({
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
-
           const args = JSON.parse(call.function.arguments);
-          const toolAssistant = tool?.assistant;
+
+          if (tool.tool.from === 'dataset') {
+            const assistant = tool?.assistant as DatasetObject;
+
+            await Promise.all(
+              getAllParameters(assistant)?.map(async (item) => {
+                const message = tool.tool?.parameters?.[item.name!]?.trim();
+                if (message) {
+                  args[item.name!] = await renderMessage(message, parameters);
+                }
+              }) ?? []
+            );
+
+            const response = await getRequest(assistant, args);
+
+            callback?.({
+              taskId: taskIdGenerator.nextId().toString(),
+              assistantId: assistant.id,
+              delta: { content: typeof response.data === 'string' ? response.data : JSON.stringify(response.data) },
+            });
+
+            return response.data;
+          }
+
+          const toolAssistant = tool?.assistant as Assistant;
           await Promise.all(
             toolAssistant.parameters?.map(async (item) => {
               const message = tool.tool?.parameters?.[item.key!];
@@ -752,6 +799,7 @@ async function runExecuteBlock({
               }
             }) ?? []
           );
+          console.log({ args });
 
           return runAssistant({
             taskId: taskIdGenerator.nextId().toString(),

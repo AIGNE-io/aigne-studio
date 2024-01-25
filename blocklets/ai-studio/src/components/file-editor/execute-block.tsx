@@ -8,7 +8,7 @@ import {
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { extractRequestBodyParameters } from '@blocklet/dataset-sdk/request';
+import { getAllParameters } from '@blocklet/dataset-sdk/request';
 import { DatasetObject } from '@blocklet/dataset-sdk/types';
 import {
   Autocomplete,
@@ -462,7 +462,7 @@ export const ToolDialog = forwardRef<
 
   const parameters = useMemo(() => {
     if (isDatasetObject(option)) {
-      return option?.parameters;
+      return getAllParameters(option);
     }
 
     return (
@@ -473,23 +473,12 @@ export const ToolDialog = forwardRef<
     );
   }, [file, option]);
 
-  const haveParameters = useMemo(() => {
-    if (isDatasetObject(option)) {
-      const bodyParameters = extractRequestBodyParameters(option.requestBody);
-      return (parameters?.length || 0) + (bodyParameters?.length || 0);
-    }
-
-    return parameters?.length;
-  }, [parameters, option]);
-
   const renderParameters = useCallback(() => {
     if (!option) {
       return null;
     }
 
     if (isDatasetObject(option)) {
-      const bodyParameters = extractRequestBodyParameters(option.requestBody);
-
       return (
         <Box>
           {(parameters || [])?.map((parameter: any) => {
@@ -512,34 +501,6 @@ export const ToolDialog = forwardRef<
                       gitRef={gitRef}
                       assistant={assistant}
                       path={[assistantId, parameter.name]}
-                      onChange={(value) => field.onChange({ target: { value } })}
-                    />
-                  )}
-                />
-              </Stack>
-            );
-          })}
-
-          {(bodyParameters || [])?.map((parameter: any) => {
-            if (!parameter) return null;
-
-            return (
-              <Stack key={parameter.key}>
-                <Typography variant="caption" mx={1}>
-                  {parameter.description || parameter.key}
-                </Typography>
-
-                <Controller
-                  control={form.control}
-                  name={`parameters.${parameter.key}`}
-                  render={({ field }) => (
-                    <PromptEditorField
-                      placeholder={`{{ ${parameter.key} }}`}
-                      value={field.value || ''}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      assistant={assistant}
-                      path={[assistantId, parameter.key]}
                       onChange={(value) => field.onChange({ target: { value } })}
                     />
                   )}
@@ -699,7 +660,7 @@ export const ToolDialog = forwardRef<
 
           <Typography variant="body1">{file?.description}</Typography>
 
-          {!!haveParameters && (
+          {!!parameters?.length && (
             <Box>
               <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
                 <Stack gap={0.5} direction="row" alignItems="center">

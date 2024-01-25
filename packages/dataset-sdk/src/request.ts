@@ -133,7 +133,7 @@ export const getRequest = (pathItem: DatasetObject, requestData: { [key: string]
 
 export function extractRequestBodyParameters(
   requestBody?: RequestBodyObject
-): { key: string; value: any; description?: string }[] {
+): { name: string; value: any; description?: string }[] {
   if (!requestBody || !requestBody.content) {
     return [];
   }
@@ -148,5 +148,11 @@ export function extractRequestBodyParameters(
 
   const { schema } = mediaTypeObject;
   const schemaObject = convertSchemaToObject(schema);
-  return Object.entries(schemaObject).map(([key, value]: [string, any]) => ({ key, ...value }));
+  return Object.entries(schemaObject).map(([key, value]: [string, any]) => ({ name: key, ...value })) || [];
+}
+
+export function getAllParameters(dataset: DatasetObject): { name: string; description?: string }[] {
+  const requestBody = extractRequestBodyParameters(dataset.requestBody);
+  const datasetParameters = [...(dataset?.parameters ?? []), ...(requestBody ?? [])];
+  return datasetParameters;
 }

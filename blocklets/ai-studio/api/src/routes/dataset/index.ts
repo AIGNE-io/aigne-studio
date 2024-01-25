@@ -106,12 +106,12 @@ router.post('/post-test', async (req, res) => {
  * /api/dataset/search-test:
  *    get:
  *      type: 'SEARCH'
- *      summary: 测试请求默认数据
- *      description: 测试请求默认数据
+ *      summary: GET Current Weather
+ *      description: 获取当前天气
  *      parameters:
- *        - name: data
+ *        - name: city
  *          in: query
- *          description: 搜索的内容
+ *          description: 当前位置
  *          required: true
  *          schema:
  *            type: string
@@ -121,7 +121,7 @@ router.post('/post-test', async (req, res) => {
  *          description: 成功获取分页列表
  */
 router.get('/search-test', async (req, res) => {
-  res.json({ role: 'system', content: `请根据内容回答： ${req.query.data}` });
+  res.json({ role: 'system', content: `当前 ${req.query.city} 的天气为 40 度` });
 });
 
 router.get('/list', async (_req, res) => {

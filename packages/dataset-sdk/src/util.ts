@@ -1,4 +1,4 @@
-export const convertSchemaToObject = (schema: any): any => {
+export const convertSchemaToObject = (schema: any) => {
   if (!schema || typeof schema !== 'object') {
     throw new Error('Invalid schema: Schema must be an object');
   }
@@ -32,7 +32,7 @@ const convertArraySchema = (schema: any): any[] => {
   return [convertSchemaToObject(schema.items)];
 };
 
-const convertPrimitiveSchema = (schema: any): any => {
+const convertPrimitiveSchema = (schema: any): { type: string; value: any; description?: string } => {
   switch (schema.type) {
     case 'string':
       return { ...schema, value: schema.default || schema.enum ? schema.enum[0] : '' };
