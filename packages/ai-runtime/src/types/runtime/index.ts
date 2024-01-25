@@ -4,7 +4,7 @@ import { Role } from '../assistant';
 
 export enum ExecutionPhase {
   EXECUTE_BLOCK_START = 'EXECUTE_BLOCK_START',
-  EXECUTE_TOOL_START = 'EXECUTE_TOOL_START',
+  EXECUTE_ASSISTANT_START = 'EXECUTE_ASSISTANT_START',
 }
 export enum AssistantResponseType {
   ERROR = 'ERROR',
@@ -47,9 +47,7 @@ export type RunAssistantExecute = {
         blockName?: string;
       }
     | {
-        currentPhase: ExecutionPhase.EXECUTE_TOOL_START;
-        toolId: string;
-        toolName?: string;
+        currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START;
       };
 };
 
