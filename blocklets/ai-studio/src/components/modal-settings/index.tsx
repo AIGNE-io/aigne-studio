@@ -192,7 +192,10 @@ export function ModelSetting({
                   max={model.maxTokensMax}
                   step={1}
                   sx={{ flex: 1 }}
-                  value={value.executeModel?.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault}
+                  value={Math.min(
+                    value.executeModel?.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault ?? 0,
+                    model.maxTokensMax ?? 0
+                  )}
                   onChange={(_, v) => (value.executeModel!.maxTokens = v)}
                 />
               </WithAwareness>
