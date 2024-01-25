@@ -21,7 +21,7 @@ type ExecuteBlockCommon = {
   variable?: string;
 };
 
-export type ExecuteBlockSelectAll = ExecuteBlockCommon & { selectType?: 'all' };
+export type ExecuteBlockSelectAll = ExecuteBlockCommon & { selectType: 'all' };
 
 type ModelConfiguration = {
   temperature?: number;
