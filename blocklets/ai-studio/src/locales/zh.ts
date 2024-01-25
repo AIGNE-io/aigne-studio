@@ -99,7 +99,8 @@ export default flat({
   },
   import: {
     title: '导入模板数据',
-    remote: '引入仓库',
+    remote: '从 Git 仓库导入',
+    remoteDescription: '从现有的 git 存储库中导入项目，如 GitHub。',
     selectProject: '选择项目',
     selectBranch: '选择分支',
     templates: '模板数据',
@@ -108,6 +109,7 @@ export default flat({
   },
   newFromTemplates: '从模板创建',
   myProjects: '我的项目',
+  examples: '示例',
   duplicate: '复制',
   pin: '置顶',
   unpin: '取消置顶',
@@ -167,6 +169,7 @@ export default flat({
   commitMessage: '备注',
   confirm: '确认',
   projectSetting: {
+    homePageUrl: '首页地址',
     name: '项目名称',
     description: '项目描述',
     gitType: {
@@ -410,4 +413,8 @@ export default flat({
   selectByPromptParameterPlaceholder: '未设置值的参数将由 AI 根据 Prompt 提供参数值',
   buildInData: '内置数据',
   assistantData: '模板数据',
+  asTemplateProject: '作为模板项目',
+  cancelTemplateProject: '取消模板项目',
+  asExampleProject: '作为示例项目',
+  cancelExampleProject: '取消示例项目',
 });

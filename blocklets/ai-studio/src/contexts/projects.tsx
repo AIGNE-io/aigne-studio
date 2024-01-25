@@ -3,11 +3,12 @@ import { atom, useRecoilState } from 'recoil';
 
 import * as api from '../libs/project';
 
-export type ProjectsSection = 'templates' | 'projects' | 'samples';
+export type ProjectsSection = 'templates' | 'projects' | 'examples';
 
 export interface ProjectsState {
   templates: api.ProjectWithUserInfo[];
   projects: api.ProjectWithUserInfo[];
+  examples: api.ProjectWithUserInfo[];
   loading: boolean;
   error?: Error;
   selected?: { section: ProjectsSection; id: string };
@@ -19,6 +20,7 @@ const projectsState = atom<ProjectsState>({
   default: {
     templates: [],
     projects: [],
+    examples: [],
     loading: false,
   },
 });
@@ -29,12 +31,9 @@ export const useProjectsState = () => {
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
-      const [{ projects: templates }, { projects }] = await Promise.all([
-        api.getProjects({ type: 'templates' }),
-        api.getProjects(),
-      ]);
-      setState((v) => ({ ...v, templates, projects, error: undefined }));
-      return { projects };
+      const { templates, projects, examples } = await api.getProjects();
+      setState((v) => ({ ...v, templates, projects, examples, error: undefined }));
+      return { projects, templates, examples };
     } catch (error) {
       setState((v) => ({ ...v, error }));
       throw error;
@@ -55,7 +54,7 @@ export const useProjectsState = () => {
   const updateProject: typeof api.updateProject = useCallback(
     async (...args) => {
       const res = await api.updateProject(...args);
-      await refetch();
+      refetch();
       return res;
     },
     [refetch]

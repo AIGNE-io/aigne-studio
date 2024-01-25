@@ -45,6 +45,10 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
   declare gitAutoSync?: boolean;
 
   declare gitLastSyncedAt?: Date;
+
+  declare projectType?: 'project' | 'template' | 'example';
+
+  declare homePageUrl?: string;
 }
 
 Project.init(
@@ -111,6 +115,12 @@ Project.init(
     },
     gitLastSyncedAt: {
       type: DataTypes.DATE,
+    },
+    projectType: {
+      type: DataTypes.STRING,
+    },
+    homePageUrl: {
+      type: DataTypes.STRING,
     },
   },
   { sequelize }

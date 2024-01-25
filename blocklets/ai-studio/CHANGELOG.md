@@ -1,3 +1,33 @@
+## 0.1.233 (2024-1-24)
+
+- fix: show description tip of template project
+- fix: disable pointer events when dragging
+
+## 0.1.232 (2024-1-24)
+
+- fix: correct filter of projects
+
+## 0.1.231 (2024-1-24)
+
+- feat: support config home page url
+- feat: support set project as template/example
+
+## 0.1.230 (2024-1-24)
+
+- fix: correct parameters schema
+
+## 0.1.229 (2024-1-23)
+
+- chore: update deps
+
+## 0.1.228 (2024-1-23)
+
+- chore: update deps
+
+## 0.1.227 (2024-1-23)
+
+- fix: update deps
+
 ## 0.1.226 (2024-1-22)
 
 - fix: 404 after file deleted
