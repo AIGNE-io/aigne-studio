@@ -123,7 +123,7 @@ function DebugViewContent({
         </Box>
       </Box>
 
-      <Box flexGrow={1} sx={{ overflowX: 'hidden' }}>
+      <Box component={ScrollToBottom} flexGrow={1} sx={{ overflowX: 'hidden' }}>
         {currentSession.messages.map((message) => (
           <MessageView
             currentSession={currentSession.chatType}

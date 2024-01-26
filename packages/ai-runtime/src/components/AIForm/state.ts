@@ -3,13 +3,8 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 
 import { AIStudioBaseUrl } from '../../api/api';
-import {
-  AssistantInfo,
-  getAssistant,
-  isRunAssistantChunk,
-  isRunAssistantError,
-  runAssistant,
-} from '../../api/assistant';
+import { AssistantInfo, getAssistant, runAssistant } from '../../api/assistant';
+import { AssistantResponseType } from '../../types';
 
 export interface AssistantIdentifier {
   projectId: string;
@@ -97,7 +92,7 @@ export const useExecutingState = (identifier: AssistantIdentifier) => {
         for (;;) {
           const { value, done } = await reader.read();
           if (value) {
-            if (isRunAssistantChunk(value)) {
+            if (value.type === AssistantResponseType.CHUNK) {
               mainTaskId ??= value.taskId;
               if (mainTaskId === value.taskId) {
                 setState((state) => {
@@ -110,7 +105,7 @@ export const useExecutingState = (identifier: AssistantIdentifier) => {
                   };
                 });
               }
-            } else if (isRunAssistantError(value)) {
+            } else if (value.type === AssistantResponseType.ERROR) {
               setState((state) => {
                 if (!state.loading) return state;
 

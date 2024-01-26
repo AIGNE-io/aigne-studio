@@ -1,6 +1,8 @@
 import type {
   ApiAssistant,
   ExecuteBlock,
+  ExecuteBlockSelectAll,
+  ExecuteBlockSelectByPrompt,
   FunctionAssistant,
   ImageAssistant,
   Parameter,
@@ -15,9 +17,15 @@ export type FileTypeYjs = AssistantYjs | { $base64: string };
 
 export type AssistantYjs = PromptAssistantYjs | ApiAssistantYjs | FunctionAssistantYjs | ImageAssistantYjs;
 
-export interface ExecuteBlockYjs extends Omit<ExecuteBlock, 'tools'> {
+export type ExecuteBlockSelectAllYjs = Omit<ExecuteBlockSelectAll, 'tools'> & {
   tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
-}
+};
+
+export type ExecuteBlockSelectByPromptYjs = Omit<ExecuteBlockSelectByPrompt, 'tools'> & {
+  tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
+};
+
+export type ExecuteBlockYjs = ExecuteBlockSelectAllYjs | ExecuteBlockSelectByPromptYjs;
 
 export type PromptYjs =
   | {

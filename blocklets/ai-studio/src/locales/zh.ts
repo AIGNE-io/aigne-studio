@@ -376,6 +376,7 @@ export default flat({
   promptPlaceholder: '请输入你的提示',
   promptMessage: '提示文本',
   executeBlock: '执行块',
+  executeBlockName: '执行块名称',
   callAPI: '调用接口',
   formatResult: '格式化输出',
   asHistory: '作为聊天记录',

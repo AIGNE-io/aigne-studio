@@ -1,6 +1,5 @@
 import { ReadableStream } from 'stream/web';
 
-import { SubscriptionError } from '@blocklet/ai-kit/api';
 import {
   ChatCompletionChunk,
   ChatCompletionInput,
@@ -31,45 +30,7 @@ import {
   isPromptAssistant,
 } from '../../types';
 import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
-
-export type InputMessages = {
-  messages: Array<{
-    role: Role;
-    content: string;
-  }>;
-};
-
-export type RunAssistantResponse = RunAssistantChunk | RunAssistantError | RunAssistantInput | RunAssistantLog;
-
-export type RunAssistantInput = {
-  taskId: string;
-  assistantId: string;
-  assistantName?: string;
-  input: InputMessages;
-};
-
-export type RunAssistantLog = {
-  taskId: string;
-  assistantId: string;
-  log: string;
-  timestamp: number;
-};
-
-export type RunAssistantChunk = {
-  taskId: string;
-  assistantId: string;
-  delta: {
-    content?: string | null;
-    images?: {
-      b64_string?: string;
-      url?: string;
-    }[];
-  };
-};
-
-export type RunAssistantError = {
-  error: { message: string } | SubscriptionError;
-};
+import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
@@ -228,6 +189,7 @@ async function runFunctionAssistant({
       .join('   ');
 
     callback?.({
+      type: AssistantResponseType.LOG,
       taskId,
       assistantId: assistant.id,
       log: logData,
@@ -247,9 +209,18 @@ async function runFunctionAssistant({
     )
   );
 
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
   const result = await module.default(args);
 
   callback?.({
+    type: AssistantResponseType.CHUNK,
     taskId,
     assistantId: assistant.id,
     delta: { content: typeof result === 'string' ? result : JSON.stringify(result) },
@@ -304,6 +275,14 @@ async function runApiAssistant({
     )
   );
 
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
   const method = assistant.requestMethod || 'GET';
   const isGet = method === 'get';
 
@@ -329,6 +308,7 @@ async function runApiAssistant({
   }
 
   callback?.({
+    type: AssistantResponseType.CHUNK,
     taskId,
     assistantId: assistant.id,
     delta: { content: typeof result === 'string' ? result : JSON.stringify(result || error) },
@@ -431,8 +411,14 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  // 这个返回次序比较合理
-  callback?.({ taskId, assistantId: assistant.id, input: { messages } });
+  callback?.({ type: AssistantResponseType.INPUT, taskId, assistantId: assistant.id, input: { messages } });
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
 
   const res = await callAI({
     assistant,
@@ -450,7 +436,12 @@ async function runPromptAssistant({
   let result = '';
 
   for await (const chunk of res) {
-    callback?.({ taskId, assistantId: assistant.id, delta: { content: chunk.delta.content } });
+    callback?.({
+      type: AssistantResponseType.CHUNK,
+      taskId,
+      assistantId: assistant.id,
+      delta: { content: chunk.delta.content },
+    });
     result += chunk.delta.content || '';
   }
 
@@ -505,6 +496,14 @@ async function runImageAssistant({
     variables
   );
 
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
   const { data } = await callAIImage({
     assistant,
     input: {
@@ -518,7 +517,7 @@ async function runImageAssistant({
     },
   });
 
-  callback?.({ taskId, assistantId: assistant.id, delta: { images: data } });
+  callback?.({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: { images: data } });
 
   return data;
 }
@@ -599,6 +598,18 @@ async function runExecuteBlock({
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
 
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: {
+      currentPhase: ExecutionPhase.EXECUTE_BLOCK_START,
+      blockId: executeBlock.id,
+      blockName: executeBlock.variable,
+    },
+  });
+
   if (!executeBlock.selectType || executeBlock.selectType === 'all') {
     const result = (
       await Promise.all(
@@ -621,6 +632,7 @@ async function runExecuteBlock({
               const response = await getRequest(dataset, requestData);
 
               callback?.({
+                type: AssistantResponseType.CHUNK,
                 taskId: taskIdGenerator.nextId().toString(),
                 assistantId: tool.id,
                 delta: { content: typeof response.data === 'string' ? response.data : JSON.stringify(response.data) },
@@ -632,11 +644,11 @@ async function runExecuteBlock({
             return undefined;
           }
 
-          const assistant = await getAssistant(tool.id);
-          if (!assistant) return undefined;
+          const toolAssistant = await getAssistant(tool.id);
+          if (!toolAssistant) return undefined;
           const args = Object.fromEntries(
             await Promise.all(
-              (assistant.parameters ?? [])
+              (toolAssistant.parameters ?? [])
                 .filter((i): i is typeof i & { key: string } => !!i.key)
                 .map(async (i) => {
                   const template = tool.parameters?.[i.key]?.trim();
@@ -652,7 +664,7 @@ async function runExecuteBlock({
             callAI,
             callAIImage,
             getAssistant,
-            assistant,
+            assistant: toolAssistant,
             parameters: args,
             callback,
           });
@@ -660,7 +672,12 @@ async function runExecuteBlock({
       )
     ).filter((i) => !isNil(i));
 
-    callback?.({ taskId, assistantId: assistant.id, delta: { content: JSON.stringify(result) } });
+    callback?.({
+      type: AssistantResponseType.CHUNK,
+      taskId,
+      assistantId: assistant.id,
+      delta: { content: JSON.stringify(result) },
+    });
 
     return result;
   }
@@ -719,6 +736,7 @@ async function runExecuteBlock({
     const response = await callAI({
       assistant,
       input: {
+        ...executeBlock.executeModel,
         messages: [{ role: 'user', content: message }],
         tools: toolAssistants.map((i) => ({
           type: 'function',
@@ -735,7 +753,12 @@ async function runExecuteBlock({
 
     for await (const chunk of response) {
       if (chunk.delta.content) {
-        callback?.({ taskId, assistantId: assistant.id, delta: { content: chunk.delta.content } });
+        callback?.({
+          type: AssistantResponseType.CHUNK,
+          taskId,
+          assistantId: assistant.id,
+          delta: { content: chunk.delta.content },
+        });
       }
 
       const { toolCalls } = chunk.delta;
@@ -782,6 +805,7 @@ async function runExecuteBlock({
             const response = await getRequest(assistant, args);
 
             callback?.({
+              type: AssistantResponseType.CHUNK,
               taskId: taskIdGenerator.nextId().toString(),
               assistantId: assistant.id,
               delta: { content: typeof response.data === 'string' ? response.data : JSON.stringify(response.data) },
@@ -799,7 +823,6 @@ async function runExecuteBlock({
               }
             }) ?? []
           );
-          console.log({ args });
 
           return runAssistant({
             taskId: taskIdGenerator.nextId().toString(),
@@ -813,7 +836,12 @@ async function runExecuteBlock({
         })
       ));
 
-    callback?.({ taskId, assistantId: assistant.id, delta: { content: JSON.stringify(result) } });
+    callback?.({
+      type: AssistantResponseType.CHUNK,
+      taskId,
+      assistantId: assistant.id,
+      delta: { content: JSON.stringify(result) },
+    });
 
     return result?.length === 1 ? result[0] : result;
   }

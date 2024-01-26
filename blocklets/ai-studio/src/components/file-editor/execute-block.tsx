@@ -42,6 +42,7 @@ import InfoOutlined from '../../pages/project/icons/question';
 import Trash from '../../pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
+import { ModelPopper, ModelSetting } from '../modal-settings';
 import PromptEditorField from './prompt-editor-field';
 
 const FROM = 'dataset';
@@ -84,7 +85,27 @@ export default function ExecuteBlockForm({
   return (
     <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
       <Stack direction="row" gap={1} alignItems="center">
-        <Typography variant="subtitle2">{t('executeBlock')}</Typography>
+        <IndicatorTextField
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, value.variable ?? '']}
+          TextFiledProps={{
+            size: 'small',
+            hiddenLabel: true,
+            inputProps: {
+              maxLength: 15,
+            },
+            InputProps: {
+              placeholder: t('executeBlockName'),
+              readOnly,
+              sx: {
+                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
+              },
+            },
+            value: value.variable ?? '',
+            onChange: (e) => (value.variable = e.target.value),
+          }}
+        />
         <IndicatorTextField
           projectId={projectId}
           gitRef={gitRef}
@@ -148,7 +169,12 @@ export default function ExecuteBlockForm({
 
       {value.selectType === 'selectByPrompt' && (
         <Stack>
-          <Typography variant="caption">{t('prompt')}</Typography>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Typography variant="caption">{t('prompt')}</Typography>
+            <ModelPopper>
+              <ModelSetting value={value} readOnly={readOnly} projectId={projectId} gitRef={gitRef} />
+            </ModelPopper>
+          </Box>
           <PromptEditorField
             readOnly={readOnly}
             projectId={projectId}
@@ -241,7 +267,6 @@ export default function ExecuteBlockForm({
                 borderRadius: 1,
                 ':hover': {
                   bgcolor: 'action.hover',
-
                   '.hover-visible': {
                     display: 'flex',
                   },
@@ -306,7 +331,7 @@ export default function ExecuteBlockForm({
         )}
       </Stack>
 
-      <Stack direction="row" alignItems="center" gap={2}>
+      <Stack direction="row" alignItems="center" gap={1}>
         <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
           {t('formatResult')}
         </Typography>
