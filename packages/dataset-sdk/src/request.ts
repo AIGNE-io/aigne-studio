@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { DatasetObject, RequestBodyObject } from './types';
-import { convertSchemaToObject } from './util';
+import convertSchemaToObject from './util/convert-schema';
 
 export const getRequestConfig = (pathItem: DatasetObject, requestData: { [key: string]: any }) => {
   let url = pathItem?.url || '';

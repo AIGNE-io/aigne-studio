@@ -1,4 +1,4 @@
-export const convertSchemaToObject = (schema: any) => {
+const convertSchemaToObject = (schema: any) => {
   if (!schema || typeof schema !== 'object') {
     throw new Error('Invalid schema: Schema must be an object');
   }
@@ -45,3 +45,5 @@ const convertPrimitiveSchema = (schema: any): { type: string; value: any; descri
       return { ...schema, value: schema.default || null };
   }
 };
+
+export default convertSchemaToObject;

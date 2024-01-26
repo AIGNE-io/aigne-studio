@@ -6,8 +6,8 @@ import {
   ImageGenerationInput,
   ImageGenerationResponse,
 } from '@blocklet/ai-kit/api/types';
-import { getBuildInDatasets, getRequest } from '@blocklet/dataset-sdk';
-import { getAllParameters } from '@blocklet/dataset-sdk/request';
+import { getBuildInDatasets } from '@blocklet/dataset-sdk';
+import { getAllParameters, getRequest } from '@blocklet/dataset-sdk/request';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';

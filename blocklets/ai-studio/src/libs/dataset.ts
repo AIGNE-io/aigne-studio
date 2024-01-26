@@ -1,4 +1,4 @@
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset-items';
@@ -11,7 +11,7 @@ export interface DatasetInput {
 }
 
 export async function getDatasetList(): Promise<{ list: DatasetObject[] }> {
-  return axios.get('/collections.json').then((res) => res.data);
+  return axios.get('/api/collections.json').then((res) => res.data);
 }
 
 export async function getDatasets(): Promise<{ datasets: Dataset[] }> {

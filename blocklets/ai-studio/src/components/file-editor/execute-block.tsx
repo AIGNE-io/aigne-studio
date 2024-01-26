@@ -9,7 +9,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request';
-import { DatasetObject } from '@blocklet/dataset-sdk/types';
+import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import {
   Autocomplete,
   Box,

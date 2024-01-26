@@ -3,6 +3,7 @@ import { joinURL } from 'ufo';
 
 import { OPENAPI_API } from './const';
 import { DatasetObject } from './types';
+import schema from './util/check-schema';
 
 export default class DataServiceSDK {
   private services: string[];
@@ -49,5 +50,19 @@ export default class DataServiceSDK {
     }
 
     return [];
+  }
+
+  public async filterOpenapiList() {
+    const list = await this.mergeFindServicesResult();
+
+    return list.filter((data) => {
+      const { error } = schema.validate(data, { stripUnknown: true });
+
+      if (error) {
+        console.error(error);
+      }
+
+      return !error;
+    });
   }
 }
