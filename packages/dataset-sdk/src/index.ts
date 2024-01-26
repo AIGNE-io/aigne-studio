@@ -5,7 +5,6 @@ import DataServiceSDK from './sdk';
 import schema from './types/check-protocol';
 
 export * from './request';
-export * from './openapi';
 
 export const getBuildInDatasets = async (origin?: string) => {
   const componentsWithUrl = components.map((component: any) => joinURL(origin || env.appUrl, component.mountPoint));

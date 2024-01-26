@@ -1,2 +1,3 @@
-export const DEFAULT_PROTOCOL_API = 'openapi.json';
-export const DOCS_API = 'api-docs.json';
+export const OPENAPI_API = '_openapi.json';
+export const DOCS_API = '_api-docs.json';
+export const COLLECTION = 'collections.json';

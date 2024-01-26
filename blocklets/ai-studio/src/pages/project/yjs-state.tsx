@@ -105,9 +105,8 @@ const projectStore = (projectId: string, gitRef: string) => {
 export const useProjectStore = (projectId: string, gitRef: string, connect?: boolean) => {
   const [store, setStore] = useRecoilState(projectStore(projectId, gitRef));
 
-  // 放到这里是否比较好
-  const { data } = useRequest(() => getDatasetList());
-  const datasets = data?.list || [];
+  // 放到这里是否比较好?
+  const { data: datasets = [] } = useRequest(() => getDatasetList());
 
   useEffect(() => {
     if (!connect) return undefined;

@@ -1,4 +1,3 @@
-import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { Router } from 'express';
 import Joi from 'joi';
 
@@ -54,10 +53,6 @@ router.get('/search', async (req, res) => {
     : '';
 
   res.json({ role: 'system', content: contextTemplate });
-});
-
-router.get('/list', async (_req, res) => {
-  res.json({ list: await getBuildInDatasets() });
 });
 
 export default router;

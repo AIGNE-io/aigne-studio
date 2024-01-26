@@ -3,8 +3,8 @@ import 'nanoid';
 
 import path from 'path';
 
-import createSwaggerRouter from '@blocklet/dataset-sdk/openapi';
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
+import createSwaggerRouter from '@blocklet/dataset-sdk/openapi';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';

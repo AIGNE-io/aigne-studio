@@ -11,7 +11,7 @@ export interface DatasetInput {
 }
 
 export async function getDatasetList(): Promise<{ list: DatasetObject[] }> {
-  return axios.get('/api/dataset/list').then((res) => res.data);
+  return axios.get('/collections.json').then((res) => res.data);
 }
 
 export async function getDatasets(): Promise<{ datasets: Dataset[] }> {

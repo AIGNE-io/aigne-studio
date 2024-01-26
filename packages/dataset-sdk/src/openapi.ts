@@ -3,8 +3,9 @@ import Enforcer from 'openapi-enforcer';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
-import { DEFAULT_PROTOCOL_API, DOCS_API } from './const';
+import { COLLECTION, DOCS_API, OPENAPI_API } from './const';
 import { DatasetObject, OpenAPIObject } from './types';
+import { getBuildInDatasets } from '.';
 
 export async function validate(document: OpenAPIObject) {
   const result = await Enforcer(document, { fullResult: true, componentOptions: { exceptionSkipCodes: ['EDEV001'] } });
@@ -31,10 +32,9 @@ const createSwaggerRouter = (blockletName: string, openapiOptions?: swaggerJSDoc
     { failOnErrors: true, definition: { openapi: '3.0.0', info: { title: 'Dataset Protocol', version: '1.0.0' } } },
     openapiOptions || {}
   );
-
   const swaggerSpec = swaggerJSDoc(options) as OpenAPIObject;
 
-  router.get(`/${DEFAULT_PROTOCOL_API}`, async (_req, res) => {
+  router.get(`/${OPENAPI_API}`, async (_req, res) => {
     await validate(swaggerSpec);
 
     const list: DatasetObject[] = Object.entries(swaggerSpec.paths || {}).flatMap(([path, pathItem]) =>
@@ -60,6 +60,10 @@ const createSwaggerRouter = (blockletName: string, openapiOptions?: swaggerJSDoc
     } catch (error) {
       res.status(500).json({ error: { message: error.message } });
     }
+  });
+
+  router.get(`/${COLLECTION}`, async (_req, res) => {
+    res.json(await getBuildInDatasets());
   });
 
   return router;

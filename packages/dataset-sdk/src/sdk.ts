@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { joinURL } from 'ufo';
 
-import { DEFAULT_PROTOCOL_API } from './const';
+import { OPENAPI_API } from './const';
 import { DatasetObject } from './types';
 
 export default class DataServiceSDK {
@@ -13,7 +13,7 @@ export default class DataServiceSDK {
 
   private async checkService(service: string): Promise<boolean> {
     try {
-      const response = await axios.get(joinURL(service, DEFAULT_PROTOCOL_API));
+      const response = await axios.get(joinURL(service, OPENAPI_API));
       return response.status === 200 && typeof response.data === 'object';
     } catch (error) {
       return false;
@@ -40,9 +40,7 @@ export default class DataServiceSDK {
 
     if (list?.length) {
       const responses: { url: string; data: { list: DatasetObject[] } }[] = await Promise.all(
-        list.map((url) =>
-          axios.get(joinURL(url, DEFAULT_PROTOCOL_API)).then((response) => ({ url, data: response.data }))
-        )
+        list.map((url) => axios.get(joinURL(url, OPENAPI_API)).then((response) => ({ url, data: response.data })))
       );
 
       return responses.flatMap(({ url, data }) =>
