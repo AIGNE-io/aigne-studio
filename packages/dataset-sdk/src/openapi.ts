@@ -3,6 +3,7 @@ import Enforcer from 'openapi-enforcer';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
+import { DEFAULT_PROTOCOL_API, DOCS_API } from './const';
 import { DatasetObject, OpenAPIObject } from './types';
 
 export async function validate(document: OpenAPIObject) {
@@ -26,18 +27,14 @@ const createSwaggerRouter = (blockletName: string, openapiOptions?: swaggerJSDoc
     throw new Error('blockletName must be provided to createSwaggerRouter');
   }
 
-  // 使用动态传入的 apis 参数
   const options = Object.assign(
-    {
-      failOnErrors: true,
-      definition: { openapi: '3.0.0', info: { title: 'Dataset Protocol', version: '1.0.0' } },
-    },
+    { failOnErrors: true, definition: { openapi: '3.0.0', info: { title: 'Dataset Protocol', version: '1.0.0' } } },
     openapiOptions || {}
   );
 
   const swaggerSpec = swaggerJSDoc(options) as OpenAPIObject;
 
-  router.get('/openapi.json', async (_req, res) => {
+  router.get(`/${DEFAULT_PROTOCOL_API}`, async (_req, res) => {
     await validate(swaggerSpec);
 
     const list: DatasetObject[] = Object.entries(swaggerSpec.paths || {}).flatMap(([path, pathItem]) =>
@@ -55,7 +52,7 @@ const createSwaggerRouter = (blockletName: string, openapiOptions?: swaggerJSDoc
   router.use('/docs', swaggerUi.serve);
   router.get('/docs', swaggerUi.setup(swaggerSpec, { explorer: true }));
 
-  router.get('/api-docs.json', async (_req, res) => {
+  router.get(`/${DOCS_API}`, async (_req, res) => {
     try {
       await validate(swaggerSpec);
       res.setHeader('Content-Type', 'application/json');

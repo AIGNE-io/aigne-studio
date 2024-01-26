@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { joinURL } from 'ufo';
 
+import { DEFAULT_PROTOCOL_API } from './const';
 import { DatasetObject } from './types';
 
-const DEFAULT_PROTOCOL_API = 'openapi.json';
 export default class DataServiceSDK {
   private services: string[];
 

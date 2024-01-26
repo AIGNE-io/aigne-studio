@@ -16,7 +16,7 @@ const CustomJoi = Joi.extend((joi) => ({
           return helpers.error('string.customId');
         }
 
-        if (path !== parts.path || method !== parts.method) {
+        if (path !== parts.path || (method || '').toLocaleLowerCase() !== (parts.method || '').toLocaleLowerCase()) {
           return helpers.error('string.customId');
         }
 
