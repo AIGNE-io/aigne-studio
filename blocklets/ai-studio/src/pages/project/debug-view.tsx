@@ -7,7 +7,7 @@ import { ParameterField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, isAssistant, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css, cx } from '@emotion/css';
-import { Add, CopyAll } from '@mui/icons-material';
+import { Add, CopyAll, DeleteForeverOutlined } from '@mui/icons-material';
 import {
   Accordion,
   AccordionDetails,
@@ -17,6 +17,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  IconButton,
   MenuItem,
   Select,
   Stack,
@@ -107,7 +108,7 @@ function DebugViewContent({
 }) {
   const { t } = useLocaleContext();
 
-  const { state, setSession } = useDebugState({
+  const { state, setSession, clearCurrentSession } = useDebugState({
     projectId,
     assistantId: assistant.id,
   });
@@ -117,13 +118,28 @@ function DebugViewContent({
   if (!currentSession) return null;
   return (
     <>
-      <Box px={4} py={2} bgcolor="background.paper" sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <Box mx="auto" maxWidth={200}>
+      <Box
+        px={4}
+        pb={2}
+        pt={1}
+        display="flex"
+        justifyContent="space-between"
+        bgcolor="background.paper"
+        sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
+        <Box maxWidth={200}>
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
+        <Tooltip title={t('clearSession')}>
+          <IconButton
+            size="small"
+            sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
+            onClick={clearCurrentSession}>
+            <DeleteForeverOutlined fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </Box>
 
-      <Box component={ScrollToBottom} flexGrow={1} sx={{ overflowX: 'hidden' }}>
+      <Box component={ScrollToBottom} initialScrollBehavior="auto" flexGrow={1} sx={{ overflowX: 'hidden' }}>
         {currentSession.messages.map((message) => (
           <MessageView
             currentSession={currentSession.chatType}
