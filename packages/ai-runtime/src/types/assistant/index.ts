@@ -12,15 +12,34 @@ export type Role = 'system' | 'user' | 'assistant';
 
 export type ExecuteBlockRole = Role | 'none';
 
-export interface ExecuteBlock {
+export type Tool = { id: string; parameters?: { [key: string]: string } };
+
+type ExecuteBlockCommon = {
   id: string;
   role?: ExecuteBlockRole;
-  selectType?: 'all' | 'selectByPrompt';
   selectByPrompt?: string;
-  tools?: { id: string; parameters?: { [key: string]: string } }[];
+  tools?: Tool[];
   formatResultType?: 'none' | 'asHistory';
   variable?: string;
-}
+};
+
+export type ExecuteBlockSelectAll = ExecuteBlockCommon & { selectType: 'all' };
+
+type ModelConfiguration = {
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  maxTokens?: number;
+  model?: string;
+};
+
+export type ExecuteBlockSelectByPrompt = ExecuteBlockCommon & {
+  selectType: 'selectByPrompt';
+  executeModel?: ModelConfiguration;
+};
+
+export type ExecuteBlock = ExecuteBlockSelectAll | ExecuteBlockSelectByPrompt;
 
 export type PromptMessage = {
   id: string;

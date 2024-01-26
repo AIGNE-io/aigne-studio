@@ -1,6 +1,6 @@
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
-import { CallAI, RunAssistantResponse, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
-import { isPromptAssistant } from '@blocklet/ai-runtime/types';
+import { CallAI, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
+import { AssistantResponseType, RunAssistantResponse, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -99,7 +99,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
   try {
     const taskId = nextTaskId();
 
-    if (stream) emit({ taskId, assistantId: assistant.id, delta: {} });
+    if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: {} });
 
     const result = await runAssistant({
       callAI,
@@ -122,7 +122,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
     log.update({ endDate, requestTime, status: Status.SUCCESS, response: result });
   } catch (error) {
     if (stream) {
-      emit({ error: pick(error, 'message', 'type', 'timestamp') });
+      emit({ type: AssistantResponseType.ERROR, error: pick(error, 'message', 'type', 'timestamp') });
     } else {
       res.status(500).json({ error: { message: error.message } });
     }

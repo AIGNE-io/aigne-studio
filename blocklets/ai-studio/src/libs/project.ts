@@ -3,7 +3,6 @@ import { Assistant } from '@blocklet/ai-runtime/types';
 import {
   AddProjectRemoteInput,
   CreateProjectInput,
-  GetProjectsQuery,
   ProjectPullInput,
   ProjectPushInput,
   UpdateProjectInput,
@@ -22,10 +21,12 @@ export type ProjectWithUserInfo = Project & {
   users: User[];
 };
 
-export async function getProjects(query?: GetProjectsQuery): Promise<{
+export async function getProjects(): Promise<{
   projects: ProjectWithUserInfo[];
+  templates: ProjectWithUserInfo[];
+  examples: ProjectWithUserInfo[];
 }> {
-  return axios.get('/api/projects', { params: query }).then((res) => res.data);
+  return axios.get('/api/projects').then((res) => res.data);
 }
 
 export async function getProject(projectId: string): Promise<Project> {

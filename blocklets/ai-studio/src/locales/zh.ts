@@ -99,7 +99,8 @@ export default flat({
   },
   import: {
     title: '导入模板数据',
-    remote: '引入仓库',
+    remote: '从 Git 仓库导入',
+    remoteDescription: '从现有的 git 存储库中导入项目，如 GitHub。',
     selectProject: '选择项目',
     selectBranch: '选择分支',
     templates: '模板数据',
@@ -108,6 +109,7 @@ export default flat({
   },
   newFromTemplates: '从模板创建',
   myProjects: '我的项目',
+  examples: '示例',
   duplicate: '复制',
   pin: '置顶',
   unpin: '取消置顶',
@@ -167,6 +169,7 @@ export default flat({
   commitMessage: '备注',
   confirm: '确认',
   projectSetting: {
+    homePageUrl: '首页地址',
     name: '项目名称',
     description: '项目描述',
     gitType: {
@@ -373,6 +376,7 @@ export default flat({
   promptPlaceholder: '请输入你的提示',
   promptMessage: '提示文本',
   executeBlock: '执行块',
+  executeBlockName: '执行块名称',
   callAPI: '调用接口',
   formatResult: '格式化输出',
   asHistory: '作为聊天记录',
@@ -408,4 +412,8 @@ export default flat({
     '生成图像的风格。必须为vivid或natural之一。vivid会使模型倾向于生成超现实和戏剧化的图像。natural会使模型生成更自然、不太超现实的图像。此参数仅对dall-e-3支持。',
   parametersTip: '您可以正常输入参数内容，也可采用 {{variable}} 格式输入变量。若未传入参数，变量将会自动透传。',
   selectByPromptParameterPlaceholder: '未设置值的参数将由 AI 根据 Prompt 提供参数值',
+  asTemplateProject: '作为模板项目',
+  cancelTemplateProject: '取消模板项目',
+  asExampleProject: '作为示例项目',
+  cancelExampleProject: '取消示例项目',
 });

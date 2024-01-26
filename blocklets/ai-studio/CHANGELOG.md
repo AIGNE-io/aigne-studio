@@ -1,3 +1,33 @@
+## 0.1.237 (2024-1-25)
+
+- fix: introduce dependency exceptions
+
+## 0.1.236 (2024-1-25)
+
+- feat: auto scroll
+
+## 0.1.235 (2024-1-25)
+
+- feat: provide select prompt model settings
+
+## 0.1.234 (2024-1-25)
+
+- feat: reminders for multiple rounds of calls
+
+## 0.1.233 (2024-1-24)
+
+- fix: show description tip of template project
+- fix: disable pointer events when dragging
+
+## 0.1.232 (2024-1-24)
+
+- fix: correct filter of projects
+
+## 0.1.231 (2024-1-24)
+
+- feat: support config home page url
+- feat: support set project as template/example
+
 ## 0.1.230 (2024-1-24)
 
 - fix: correct parameters schema

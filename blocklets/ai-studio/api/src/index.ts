@@ -3,6 +3,7 @@ import 'nanoid';
 
 import path from 'path';
 
+import { AssistantResponseType } from '@blocklet/ai-runtime/types';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -44,7 +45,10 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
   try {
     const status = error instanceof Errors.NotFoundError ? 404 : 500;
     if (!res.headersSent) res.status(status).contentType('json');
-    if (res.writable) res.write(JSON.stringify({ error: { name: error.name, message: error.message } }));
+    if (res.writable)
+      res.write(
+        JSON.stringify({ type: AssistantResponseType.ERROR, error: { name: error.name, message: error.message } })
+      );
   } catch (error) {
     logger.error('Write error to client error', error);
   } finally {
