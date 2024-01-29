@@ -73,7 +73,7 @@
     "@lexical/selection": "^0.12.6",
     "@lexical/utils": "^0.12.6",
     "@mui/material": "^5.15.6",
-    "ahooks": "^3.7.8",
+    "ahooks": "^3.7.9",
     "lexical": "^0.12.6",
     "lodash-es": "^4.17.21",
     "react": "^18.2.0",

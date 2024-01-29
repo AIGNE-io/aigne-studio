@@ -83,11 +83,11 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.1",
+    "@blocklet/ai-kit": "^0.1.7",
     "@blocklet/sdk": "^1.16.22",
     "@microsoft/fetch-event-source": "^2.0.1",
-    "ahooks": "^3.7.8",
-    "axios": "^1.6.6",
+    "ahooks": "^3.7.9",
+    "axios": "^1.6.7",
     "dayjs": "^1.11.10",
     "eventsource-parser": "^1.1.1",
     "lodash": "^4.17.21",
@@ -110,7 +110,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.18",
+    "@arcblock/ux": "^2.9.20",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.3",
     "@mui/icons-material": "^5.15.6",
@@ -124,6 +124,6 @@
     "react": "^18.2.0",
     "react-router-dom": "^6.21.3",
     "rimraf": "^5.0.5",
-    "typescript": "^4.9.5"
+    "typescript": "^5.3.3"
   }
 }

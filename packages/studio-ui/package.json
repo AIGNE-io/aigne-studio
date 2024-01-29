@@ -60,9 +60,9 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/did-connect": "^2.9.18",
-    "@arcblock/ux": "^2.9.18",
-    "@blocklet/ui-react": "^2.9.18",
+    "@arcblock/did-connect": "^2.9.20",
+    "@arcblock/ux": "^2.9.20",
+    "@blocklet/ui-react": "^2.9.20",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.3",
     "@mui/icons-material": "^5.15.6",
@@ -73,6 +73,6 @@
     "react": "^18.2.0",
     "react-router-dom": "^6.21.3",
     "rimraf": "^5.0.5",
-    "typescript": "^4.9.5"
+    "typescript": "^5.3.3"
   }
 }
