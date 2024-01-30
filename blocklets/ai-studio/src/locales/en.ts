@@ -151,6 +151,7 @@ export default flat({
   mode: 'Mode',
   formMode: 'Form',
   chatMode: 'Chat',
+  clearSession: 'Clear current session history',
   showSidebar: 'Show sidebar',
   hideSidebar: 'Hide sidebar',
   folder: 'folder',
