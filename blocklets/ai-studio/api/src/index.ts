@@ -1,6 +1,7 @@
 import 'express-async-errors';
 import 'nanoid';
 
+import fs from 'fs';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
@@ -13,6 +14,7 @@ import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
 import app from './app';
+import { Config } from './libs/env';
 import logger from './libs/logger';
 import initProjectIcons from './libs/project-icons';
 import routes from './routes';
@@ -22,6 +24,10 @@ export { default as app } from './app';
 dotenv.config();
 
 const { name, version } = require('../../package.json');
+
+if (fs.existsSync(Config.uploadDir) === false) {
+  fs.mkdirSync(Config.uploadDir, { recursive: true });
+}
 
 app.set('trust proxy', true);
 app.use(cookieParser());

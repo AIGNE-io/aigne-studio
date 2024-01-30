@@ -1,9 +1,12 @@
 import axios from 'axios';
+import orderBy from 'lodash/orderBy';
 import { joinURL } from 'ufo';
 
 import { OPENAPI_API } from './const';
 import { DatasetObject } from './types';
 import schema from './util/check-schema';
+
+const methodOrder = ['get', 'post', 'put', 'delete'];
 
 export default class DataServiceSDK {
   private services: string[];
@@ -55,14 +58,22 @@ export default class DataServiceSDK {
   public async filterOpenapiList() {
     const list = await this.mergeFindServicesResult();
 
-    return list.filter((data) => {
-      const { error } = schema.validate(data, { stripUnknown: true });
+    return orderBy(
+      list.filter((data) => {
+        const { error } = schema.validate(data, { stripUnknown: true });
 
-      if (error) {
-        console.error(error);
-      }
+        if (error) {
+          console.error(error);
+        }
 
-      return !error;
-    });
+        return !error;
+      }),
+      [
+        (item) => {
+          return methodOrder.indexOf(item.method);
+        },
+      ],
+      ['asc']
+    );
   }
 }

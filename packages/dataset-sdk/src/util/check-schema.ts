@@ -55,7 +55,11 @@ const ResponsesObjectSchema = Joi.object({});
 export default Joi.object({
   id: CustomJoi.string().customId().required(),
   type: Joi.string().optional().allow('').empty([null, '']),
-  url: Joi.string().uri().optional().allow('').empty([null, '']),
+  url: Joi.string()
+    .pattern(/^https?:\/\//)
+    .optional()
+    .allow('')
+    .empty([null, '']),
   path: Joi.string().required(),
   method: Joi.string().valid('GET', 'POST', 'PUT', 'DELETE', 'PATCH').insensitive().required(),
   summary: Joi.string().optional().allow('').empty([null, '']),

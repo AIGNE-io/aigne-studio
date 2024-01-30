@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 
 import { Embeddings } from 'langchain/dist/embeddings/base';
@@ -57,5 +57,11 @@ export default class VectorStore extends HNSWLib {
 
   override async save() {
     await super.save(this.directory);
+  }
+
+  static async remove(datasetId: string) {
+    vectorStores.delete(datasetId);
+    const path = vectorStorePath(datasetId);
+    await rmSync(path, { recursive: true, force: true });
   }
 }

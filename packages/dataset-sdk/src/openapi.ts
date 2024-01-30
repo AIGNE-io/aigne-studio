@@ -40,7 +40,7 @@ const createSwaggerRouter = (blockletName: string, openapiOptions?: swaggerJSDoc
     const list: DatasetObject[] = Object.entries(swaggerSpec.paths || {}).flatMap(([path, pathItem]) =>
       Object.entries(pathItem).map(([method, info]) => {
         const id = `${blockletName}:${path}:${method}`;
-        const { type = '', summary = '', description = '', parameters = '', requestBody } = info || {};
+        const { type = '', summary = '', description = '', parameters = [], requestBody = {} } = info || {};
 
         return { id, path, method, type, summary, description, parameters, requestBody };
       })

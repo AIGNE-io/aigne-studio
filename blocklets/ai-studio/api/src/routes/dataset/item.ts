@@ -1,0 +1,462 @@
+import fs from 'fs';
+import path from 'path';
+
+import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
+import user from '@blocklet/sdk/lib/middlewares/user';
+import axios from 'axios';
+import { Router } from 'express';
+import SSE from 'express-sse';
+import Joi from 'joi';
+import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import multer from 'multer';
+
+import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
+import { Config } from '../../libs/env';
+// import { ensureComponentCallOrPromptsEditor } from '../../libs/security';
+import DatasetItem from '../../store/models/dataset/item';
+import Dataset from '../../store/models/dataset/list';
+import VectorStore from '../../store/vector-store';
+
+const router = Router();
+const sse = new SSE();
+
+const paginationSchema = Joi.object<{ page: number; size: number }>({
+  page: Joi.number().integer().min(1).default(1),
+  size: Joi.number().integer().min(1).max(100).default(20),
+});
+
+const createItemSchema = Joi.object<{
+  type: 'text' | 'discussion';
+  content?: string;
+  id?: string;
+}>({
+  type: Joi.string().valid('text', 'discussion').required(),
+  content: Joi.string().when('type', { is: 'text', then: Joi.required() }),
+  id: Joi.string().when('type', { is: 'discussion', then: Joi.required() }),
+});
+
+/**
+ * @openapi
+ * /api/dataset/{datasetId}/items:
+ *    get:
+ *      type: 'SEARCH'
+ *      summary: 根据 datasetId 获取当前 datasetId 数据集数据信息
+ *      description: 根据 datasetId 获取当前 datasetId 数据集数据信息
+ *      parameters:
+ *        - name: datasetId
+ *          in: path
+ *          description: 数据集的ID
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *        - name: page
+ *          in: query
+ *          description: 当前数据页
+ *          required: true
+ *          schema:
+ *            type: integer
+ *            default: 1
+ *        - name: size
+ *          in: query
+ *          description: 每页数据量
+ *          required: true
+ *          schema:
+ *            type: integer
+ *            default: 20
+ *      responses:
+ *        200:
+ *          description: 根据 datasetId 获取当前 datasetId 数据集数据信息
+ */
+router.get('/:datasetId/items', async (req, res) => {
+  const { datasetId } = req.params;
+
+  if (!datasetId) throw new Error('Missing required params `datasetId`');
+
+  const { page, size } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
+
+  const [items, total] = await Promise.all([
+    DatasetItem.findAll({
+      order: [['createdAt', 'ASC']],
+      where: { datasetId },
+      offset: (page - 1) * size,
+      limit: size,
+    }),
+    DatasetItem.count({ where: { datasetId } }),
+  ]);
+
+  res.json({ items, total });
+});
+
+/**
+ * @openapi
+ * /api/dataset/{datasetId}/items/{itemId}:
+ *    delete:
+ *      type: 'SEARCH'
+ *      summary: 删除 datasetId 数据集中数据
+ *      description: 删除 datasetId 数据集中数据
+ *      parameters:
+ *        - name: datasetId
+ *          in: path
+ *          description: 数据集的ID
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *        - name: itemId
+ *          in: path
+ *          description: 数据ID
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *      responses:
+ *        200:
+ *          description: 删除 datasetId 数据集中数据
+ */
+router.delete('/:datasetId/items/:itemId', user(), async (req, res) => {
+  const { did = 'z1b9TvEdNF2q7SkxABvFqwVatRabR9Eid6G' } = req.user! || {};
+  const { datasetId, itemId } = req.params;
+
+  if (!datasetId || !itemId) {
+    throw new Error('Missing required params `datasetId` or `itemId`');
+  }
+
+  await DatasetItem.destroy({ where: { id: itemId, datasetId } });
+
+  await resetDatasetsEmbedding(datasetId, did);
+
+  res.json({ data: 'success' });
+});
+
+const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
+
+const embeddingHandler: {
+  [key in NonNullable<DatasetItem['type']>]: (
+    item: DatasetItem & { data: { type: key } }
+  ) => Promise<{ name: string; content: string }>;
+} = {
+  discussion: async (item: DatasetItem) => {
+    const discussion = await getDiscussion((item.data as any).id);
+    await saveContentToVectorStore(discussion.content, item.datasetId);
+    return { name: discussion.title, content: discussion.content };
+  },
+  text: async (item: DatasetItem) => {
+    const content = (item.data as any)?.content;
+    await saveContentToVectorStore(content, item.datasetId);
+
+    return { name: content.slice(0, 10), content };
+  },
+  markdown: async (item: DatasetItem) => {
+    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    await saveContentToVectorStore(content, item.datasetId);
+
+    return { name: content.slice(0, 10), content };
+  },
+  txt: async (item: DatasetItem) => {
+    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    await saveContentToVectorStore(content, item.datasetId);
+
+    return { name: content.slice(0, 10), content };
+  },
+  pdf: async (item: DatasetItem) => {
+    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    await saveContentToVectorStore(content, item.datasetId);
+
+    return { name: content.slice(0, 10), content };
+  },
+};
+
+/**
+ * @openapi
+ * /api/dataset/{datasetId}/items/embedding:
+ *    post:
+ *      type: 'CREATE'
+ *      summary: 上传新的数据到数据数据集中
+ *      description: 上传新的数据到数据数据集中
+ *      parameters:
+ *        - name: datasetId
+ *          in: path
+ *          description: 数据集的ID
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                name:
+ *                  type: string
+ *                type:
+ *                  type: string
+ *                id:
+ *                  type: string
+ *                content:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: 上传新的数据到数据数据集中
+ */
+router.post('/:datasetId/items/embedding', user(), async (req, res) => {
+  const { did = 'z1b9TvEdNF2q7SkxABvFqwVatRabR9Eid6G' } = req.user! || {};
+  const { datasetId } = req.params;
+  if (!datasetId) {
+    throw new Error('Missing required params `datasetId`');
+  }
+
+  const input = await createItemSchema.validateAsync(req.body, { stripUnknown: true });
+
+  const result = await DatasetItem.create({
+    type: input.type,
+    data:
+      input.type === 'text'
+        ? {
+            type: input.type,
+            content: input.content || '',
+          }
+        : {
+            type: input.type,
+            id: input.id || '',
+          },
+    datasetId,
+    createdBy: did,
+    updatedBy: did,
+  });
+
+  const itemId = result.dataValues.id;
+  await runHandlerAndSaveContent(itemId);
+
+  res.json({ data: 'success' });
+});
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+/**
+ * @openapi
+ * /api/dataset/{datasetId}/items/file:
+ *    post:
+ *      type: 'CREATE'
+ *      summary: 上传文件到数据数据集中
+ *      description: 上传文件到数据数据集中
+ *      parameters:
+ *        - name: datasetId
+ *          in: path
+ *          description: 数据集的ID
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *      requestBody:
+ *        content:
+ *          multipart/form-data:
+ *            schema:
+ *             type: object
+ *             properties:
+ *                data:
+ *                 type: string
+ *                 format: binary
+ *                type:
+ *                 type: string
+ *                 default: 'file'
+ *      responses:
+ *        200:
+ *          description: 上传文件到数据数据集中
+ */
+router.post('/:datasetId/items/file', user(), upload.single('data'), async (req, res) => {
+  const { did = 'z1b9TvEdNF2q7SkxABvFqwVatRabR9Eid6G' } = req.user! || {};
+  const { datasetId } = req.params;
+  if (!datasetId) {
+    throw new Error('Missing required params `datasetId`');
+  }
+
+  if (!req?.file) {
+    res.status(400).send('No file was uploaded.');
+    return;
+  }
+
+  const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
+
+  if (!type || !filename || !data) {
+    res.json({ error: 'missing required body `type` or `filename` or `data`' });
+    return;
+  }
+
+  let buffer = null;
+
+  if (type === 'base64') {
+    buffer = Buffer.from(data, 'base64');
+  } else if (type === 'path') {
+    buffer = fs.readFileSync(data);
+  } else if (type === 'file') {
+    buffer = data;
+  } else {
+    buffer = data;
+  }
+
+  if (!buffer) {
+    res.json({ error: 'invalid upload type, should be [file, path, base64]' });
+    return;
+  }
+
+  const filePath = path.join(Config.uploadDir, filename);
+  fs.writeFileSync(filePath, buffer, 'utf8');
+
+  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'markdown' | 'txt' | 'pdf';
+
+  const result = await DatasetItem.create({
+    type: fileExtension,
+    data: { type: fileExtension, path: filePath },
+    datasetId,
+    createdBy: did,
+    updatedBy: did,
+  });
+  const itemId = result.dataValues.id;
+  await runHandlerAndSaveContent(itemId);
+
+  res.json({ data: 'success' });
+});
+
+/**
+ * @openapi
+ * /api/dataset/{datasetId}/items/search:
+ *    get:
+ *      type: 'SEARCH'
+ *      summary: 根据搜索内容搜索指定向量数据库的内容
+ *      description: 根据搜索内容搜索指定向量数据库的内容
+ *      parameters:
+ *        - name: datasetId
+ *          in: path
+ *          description: 数据集的ID
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *        - name: message
+ *          in: query
+ *          description: 搜索的内容
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *      responses:
+ *        200:
+ *          description: 成功获取分页列表
+ */
+router.get('/:datasetId/items/search', user(), async (req, res) => {
+  const { did = 'z1b9TvEdNF2q7SkxABvFqwVatRabR9Eid6G' } = req.user! || {};
+  const { datasetId } = req.params;
+  const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
+  const input = await datasetSchema.validateAsync(req.query);
+
+  const dataset = await Dataset.findOne({ where: { id: datasetId, createdBy: did } });
+  if (!dataset || !datasetId) {
+    res.json({ role: 'system', content: '' });
+    return;
+  }
+
+  const datasetItems = await DatasetItem.findAll({ where: { datasetId, createdBy: did } });
+  if (!datasetItems?.length) {
+    res.json({ role: 'system', content: '' });
+    return;
+  }
+
+  const embeddings = new AIKitEmbeddings({});
+  const store = await VectorStore.load(datasetId, embeddings);
+  const docs = await store.similaritySearch(input.message, 4);
+
+  const context = docs.map((i) => i.pageContent).join('\n');
+  const contextTemplate = context
+    ? `Use the following pieces of context to answer the users question.
+  If you don't know the answer, just say that you don't know, don't try to make up an answer.
+  ----------------
+  ${context}`
+    : '';
+
+  res.json({ role: 'system', content: contextTemplate });
+});
+
+export default router;
+
+const discussBaseUrl = () => {
+  const url = getComponentWebEndpoint('z8ia1WEiBZ7hxURf6LwH21Wpg99vophFwSJdu');
+  if (!url) {
+    throw new Error('did-comments component not found');
+  }
+
+  return url;
+};
+
+async function getDiscussion(discussionId: string): Promise<{ content: string; updatedAt: string; title: string }> {
+  const { data } = await axios.get(`/api/blogs/${discussionId}`, {
+    baseURL: discussBaseUrl(),
+    params: { textContent: 1 },
+  });
+
+  if (!data) {
+    throw new Error('Discussion not found');
+  }
+
+  return data;
+}
+
+const saveContentToVectorStore = async (content: string, datasetId: string) => {
+  const textSplitter = new RecursiveCharacterTextSplitter();
+  const docs = await textSplitter.createDocuments([content]);
+  const embeddings = new AIKitEmbeddings({});
+  const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
+  const store = await VectorStore.load(datasetId, embeddings);
+  await store.addVectors(vectors, docs);
+  await store.save();
+};
+
+const runHandlerAndSaveContent = async (itemId: string) => {
+  let task = embeddingTasks.get(itemId);
+  if (!task) {
+    task = {
+      promise: (async () => {
+        const item = await DatasetItem.findOne({ where: { id: itemId } });
+        if (!item) throw new Error(`Dataset item ${itemId} not found`);
+        if (!item.data) return;
+
+        const handler = embeddingHandler[item.type];
+        if (!handler) return;
+
+        try {
+          const { name, content } = await handler(item as any);
+          await DatasetItem.update({ error: '', content, name }, { where: { id: itemId } });
+        } catch (error) {
+          await DatasetItem.update({ error: error.message }, { where: { id: itemId } });
+
+          throw error;
+        } finally {
+          embeddingTasks.delete(itemId);
+          sse.send({ itemId }, 'complete');
+        }
+      })(),
+    };
+
+    embeddingTasks.set(itemId, task);
+    sse.send({ itemId }, 'change');
+  }
+
+  await task.promise;
+};
+
+const resetDatasetsEmbedding = async (datasetId: string, did: string) => {
+  const datasetItems = await DatasetItem.findAll({ where: { datasetId, createdBy: did } });
+  if (!datasetItems?.length) return;
+
+  await VectorStore.remove(datasetId);
+
+  for (const item of datasetItems) {
+    const handler = embeddingHandler[item.type];
+    if (!handler) return;
+
+    // eslint-disable-next-line no-await-in-loop
+    await handler(item as any);
+  }
+};
