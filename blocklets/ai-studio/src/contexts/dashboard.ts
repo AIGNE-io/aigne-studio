@@ -1,4 +1,4 @@
-import produce from 'immer';
+import { produce } from 'immer';
 import { ReactNode, useCallback, useEffect } from 'react';
 import { atom, useRecoilState } from 'recoil';
 

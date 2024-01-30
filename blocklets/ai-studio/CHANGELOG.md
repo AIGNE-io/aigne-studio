@@ -1,3 +1,7 @@
+## 0.1.238 (2024-1-29)
+
+- fix: enable subscription after subscribe succeed
+
 ## 0.1.237 (2024-1-25)
 
 - fix: introduce dependency exceptions
