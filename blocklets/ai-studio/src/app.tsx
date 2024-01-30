@@ -1,5 +1,6 @@
 import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
+import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
@@ -17,7 +18,6 @@ import { RecoilRoot } from 'recoil';
 
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
-import SubscribeButton from './components/subscribe';
 import { DatasetsProvider } from './contexts/datasets';
 import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
 import { translations } from './locales';

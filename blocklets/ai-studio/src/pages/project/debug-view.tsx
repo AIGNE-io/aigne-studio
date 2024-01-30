@@ -7,7 +7,7 @@ import { ParameterField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, isAssistant, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css, cx } from '@emotion/css';
-import { Add, CopyAll, DeleteForeverOutlined } from '@mui/icons-material';
+import { Add, CopyAll } from '@mui/icons-material';
 import {
   Accordion,
   AccordionDetails,
@@ -44,6 +44,7 @@ import { Controller, useForm } from 'react-hook-form';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import { useSessionContext } from '../../contexts/session';
+import Broom from './icons/broom';
 import ChevronDown from './icons/chevron-down';
 import Empty from './icons/empty';
 import Record from './icons/record';
@@ -134,7 +135,7 @@ function DebugViewContent({
             size="small"
             sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
             onClick={clearCurrentSession}>
-            <DeleteForeverOutlined fontSize="small" />
+            <Broom fontSize="small" />
           </IconButton>
         </Tooltip>
       </Box>
@@ -296,7 +297,7 @@ const MessageView = memo(
                         )}
                       </Box>
                     ))}
-                  {!!message.inputMessages?.messages.length && (
+                  {!!message.inputMessages?.messages?.length && (
                     <Box margin={0.5}>
                       {message.inputMessages?.messages.map((i, index) => (
                         <Accordion
