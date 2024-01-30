@@ -129,8 +129,9 @@ export default flat({
   api: 'API',
   noParameters: 'No Parameters',
   parameters: 'Parameters',
-  inputParameters: 'Input Parameters',
   model: 'Model',
+  inputParameters: 'Input parameters',
+  promptMessages: 'Prompt output',
   temperature: 'temperature',
   temperatureTip:
     'Adjusting the temperature can control the diversity of generated text. A low temperature will make the generated text more consistent and predictable, while a high temperature will increase the randomness and creativity of the text.',

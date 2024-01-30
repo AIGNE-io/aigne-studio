@@ -132,6 +132,7 @@ export default flat({
   parameters: '参数',
   model: '模型',
   inputParameters: '被输入参数',
+  promptMessages: 'Prompt输出',
   temperature: '随机性 temperature',
   temperatureTip:
     '调整 temperature 可以控制生成文本的多样性。低 temperature 会使生成的文本更加一致和可预测，而高 temperature 会增加文本的随机性和创造性。',
