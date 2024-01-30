@@ -12,7 +12,7 @@ import multer from 'multer';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
-// import { ensureComponentCallOrPromptsEditor } from '../../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../../libs/security';
 import DatasetItem from '../../store/models/dataset/item';
 import Dataset from '../../store/models/dataset/list';
 import VectorStore from '../../store/vector-store';
@@ -68,7 +68,7 @@ const createItemSchema = Joi.object<{
  *        200:
  *          description: 根据 datasetId 获取当前 datasetId 数据集数据信息
  */
-router.get('/:datasetId/items', async (req, res) => {
+router.get('/:datasetId/items', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId } = req.params;
 
   if (!datasetId) throw new Error('Missing required params `datasetId`');
@@ -114,8 +114,8 @@ router.get('/:datasetId/items', async (req, res) => {
  *        200:
  *          description: 删除 datasetId 数据集中数据
  */
-router.delete('/:datasetId/items/:itemId', user(), async (req, res) => {
-  const { did = 'z1b9TvEdNF2q7SkxABvFqwVatRabR9Eid6G' } = req.user! || {};
+router.delete('/:datasetId/items/:itemId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  const { did } = req.user! || {};
   const { datasetId, itemId } = req.params;
 
   if (!datasetId || !itemId) {
@@ -201,8 +201,8 @@ const embeddingHandler: {
  *        200:
  *          description: 上传新的数据到数据数据集中
  */
-router.post('/:datasetId/items/embedding', user(), async (req, res) => {
-  const { did = 'z1b9TvEdNF2q7SkxABvFqwVatRabR9Eid6G' } = req.user! || {};
+router.post('/:datasetId/items/embedding', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  const { did } = req.user! || {};
   const { datasetId } = req.params;
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
@@ -266,59 +266,65 @@ const upload = multer({ storage: multer.memoryStorage() });
  *        200:
  *          description: 上传文件到数据数据集中
  */
-router.post('/:datasetId/items/file', user(), upload.single('data'), async (req, res) => {
-  const { did = 'z1b9TvEdNF2q7SkxABvFqwVatRabR9Eid6G' } = req.user! || {};
-  const { datasetId } = req.params;
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
+router.post(
+  '/:datasetId/items/file',
+  user(),
+  ensureComponentCallOrPromptsEditor(),
+  upload.single('data'),
+  async (req, res) => {
+    const { did } = req.user! || {};
+    const { datasetId } = req.params;
+    if (!datasetId) {
+      throw new Error('Missing required params `datasetId`');
+    }
+
+    if (!req?.file) {
+      res.status(400).send('No file was uploaded.');
+      return;
+    }
+
+    const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
+
+    if (!type || !filename || !data) {
+      res.json({ error: 'missing required body `type` or `filename` or `data`' });
+      return;
+    }
+
+    let buffer = null;
+
+    if (type === 'base64') {
+      buffer = Buffer.from(data, 'base64');
+    } else if (type === 'path') {
+      buffer = fs.readFileSync(data);
+    } else if (type === 'file') {
+      buffer = data;
+    } else {
+      buffer = data;
+    }
+
+    if (!buffer) {
+      res.json({ error: 'invalid upload type, should be [file, path, base64]' });
+      return;
+    }
+
+    const filePath = path.join(Config.uploadDir, filename);
+    fs.writeFileSync(filePath, buffer, 'utf8');
+
+    const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'markdown' | 'txt' | 'pdf';
+
+    const result = await DatasetItem.create({
+      type: fileExtension,
+      data: { type: fileExtension, path: filePath },
+      datasetId,
+      createdBy: did,
+      updatedBy: did,
+    });
+    const itemId = result.dataValues.id;
+    await runHandlerAndSaveContent(itemId);
+
+    res.json({ data: 'success' });
   }
-
-  if (!req?.file) {
-    res.status(400).send('No file was uploaded.');
-    return;
-  }
-
-  const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
-
-  if (!type || !filename || !data) {
-    res.json({ error: 'missing required body `type` or `filename` or `data`' });
-    return;
-  }
-
-  let buffer = null;
-
-  if (type === 'base64') {
-    buffer = Buffer.from(data, 'base64');
-  } else if (type === 'path') {
-    buffer = fs.readFileSync(data);
-  } else if (type === 'file') {
-    buffer = data;
-  } else {
-    buffer = data;
-  }
-
-  if (!buffer) {
-    res.json({ error: 'invalid upload type, should be [file, path, base64]' });
-    return;
-  }
-
-  const filePath = path.join(Config.uploadDir, filename);
-  fs.writeFileSync(filePath, buffer, 'utf8');
-
-  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'markdown' | 'txt' | 'pdf';
-
-  const result = await DatasetItem.create({
-    type: fileExtension,
-    data: { type: fileExtension, path: filePath },
-    datasetId,
-    createdBy: did,
-    updatedBy: did,
-  });
-  const itemId = result.dataValues.id;
-  await runHandlerAndSaveContent(itemId);
-
-  res.json({ data: 'success' });
-});
+);
 
 /**
  * @openapi
@@ -346,8 +352,8 @@ router.post('/:datasetId/items/file', user(), upload.single('data'), async (req,
  *        200:
  *          description: 成功获取分页列表
  */
-router.get('/:datasetId/items/search', user(), async (req, res) => {
-  const { did = 'z1b9TvEdNF2q7SkxABvFqwVatRabR9Eid6G' } = req.user! || {};
+router.get('/:datasetId/items/search', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  const { did } = req.user! || {};
   const { datasetId } = req.params;
   const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
   const input = await datasetSchema.validateAsync(req.query);

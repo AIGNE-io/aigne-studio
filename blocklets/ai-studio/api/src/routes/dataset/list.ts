@@ -3,7 +3,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { Op } from 'sequelize';
 
-import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../../libs/security';
 import Dataset from '../../store/models/dataset/list';
 
 const router = Router();
@@ -82,7 +82,7 @@ router.get('/:datasetId', ensureComponentCallOrPromptsEditor(), async (req, res)
  *        200:
  *          description: 保存新的数据集
  */
-router.post('/create', user(), async (req, res) => {
+router.post('/create', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
 
@@ -122,7 +122,7 @@ router.post('/create', user(), async (req, res) => {
  *        200:
  *          description: 保存新的数据集
  */
-router.put('/:datasetId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+router.put('/:datasetId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
 
@@ -164,7 +164,7 @@ router.put('/:datasetId', user(), ensureComponentCallOrAdmin(), async (req, res)
  *        200:
  *          description: 删除 datasetId 数据集
  */
-router.delete('/:datasetId', ensureComponentCallOrAdmin(), async (req, res) => {
+router.delete('/:datasetId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId } = req.params;
 
   const dataset = await Dataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });

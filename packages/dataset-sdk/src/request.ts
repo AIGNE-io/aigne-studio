@@ -1,3 +1,4 @@
+import { sign } from '@blocklet/sdk/lib/util/verify-sign';
 import axios from 'axios';
 
 import { DatasetObject, RequestBodyObject } from './types';
@@ -128,7 +129,16 @@ function serializeNestedObject(parentKey: string, obj: any): string {
 }
 
 export const getRequest = (pathItem: DatasetObject, requestData: { [key: string]: any }) => {
-  return axios(getRequestConfig(pathItem, requestData));
+  const config = getRequestConfig(pathItem, requestData);
+  const { headers, ...other } = config;
+  return axios({
+    ...other,
+    headers: {
+      ...(headers || {}),
+      'x-component-sig': sign(other.data || {}),
+      'x-component-did': process.env.BLOCKLET_COMPONENT_DID,
+    },
+  });
 };
 
 export function extractRequestBodyParameters(

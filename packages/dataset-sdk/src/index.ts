@@ -8,5 +8,5 @@ export * from './request';
 export const getBuildInDatasets = (origin?: string) => {
   const componentsWithUrl = components.map((component: any) => joinURL(origin || env.appUrl, component.mountPoint));
   const sdk = new DataServiceSDK(componentsWithUrl);
-  return sdk.filterOpenapiList();
+  return sdk.getFilterList();
 };

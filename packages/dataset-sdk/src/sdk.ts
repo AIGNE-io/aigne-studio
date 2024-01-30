@@ -55,7 +55,7 @@ export default class DataServiceSDK {
     return [];
   }
 
-  public async filterOpenapiList() {
+  public async getFilterList() {
     const list = await this.mergeFindServicesResult();
 
     return orderBy(
