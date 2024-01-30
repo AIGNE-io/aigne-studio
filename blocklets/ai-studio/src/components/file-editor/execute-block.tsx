@@ -149,7 +149,7 @@ export default function ExecuteBlockForm({
                 <MenuItem key="user" value="user">
                   User
                 </MenuItem>,
-                <MenuItem key="user" value="assistant">
+                <MenuItem key="assistant" value="assistant">
                   Assistant
                 </MenuItem>,
                 <MenuItem key="none" value="none">

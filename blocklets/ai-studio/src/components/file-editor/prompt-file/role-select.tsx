@@ -28,7 +28,7 @@ export default function RoleSelectField({ projectId, gitRef, path, ...props }: P
           <MenuItem key="user" value="user">
             User
           </MenuItem>,
-          <MenuItem key="user" value="assistant">
+          <MenuItem key="assistant" value="assistant">
             Assistant
           </MenuItem>,
         ],

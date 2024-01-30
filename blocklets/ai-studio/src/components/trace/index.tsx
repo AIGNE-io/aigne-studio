@@ -100,7 +100,7 @@ const LabelValue = memo(({ label, value }: Trace) => {
     return (
       <>
         {modalParameters.map(([label, value]) => (
-          <LineContainer>
+          <LineContainer key={label}>
             <Label variant="body1">{t(label)}:</Label>
             <StrValue>{value}</StrValue>
           </LineContainer>
