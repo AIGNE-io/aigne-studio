@@ -129,13 +129,14 @@ function serializeNestedObject(parentKey: string, obj: any): string {
 }
 
 export const getRequest = (pathItem: DatasetObject, requestData: { [key: string]: any }) => {
-  const config = getRequestConfig(pathItem, requestData);
-  const { headers, ...other } = config;
+  const requestConfig = getRequestConfig(pathItem, requestData);
+  const { headers, ...config } = requestConfig;
+
   return axios({
-    ...other,
+    ...config,
     headers: {
       ...(headers || {}),
-      'x-component-sig': sign(other.data || {}),
+      'x-component-sig': sign(config.data || {}),
       'x-component-did': process.env.BLOCKLET_COMPONENT_DID,
     },
   });

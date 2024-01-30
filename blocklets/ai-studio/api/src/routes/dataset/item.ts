@@ -9,16 +9,20 @@ import SSE from 'express-sse';
 import Joi from 'joi';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import multer from 'multer';
+import { Op } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
 import { ensureComponentCallOrPromptsEditor } from '../../libs/security';
+import { checkUserAuth } from '../../libs/user';
 import DatasetItem from '../../store/models/dataset/item';
 import Dataset from '../../store/models/dataset/list';
 import VectorStore from '../../store/vector-store';
 
 const router = Router();
 const sse = new SSE();
+const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
+const upload = multer({ storage: multer.memoryStorage() });
 
 const paginationSchema = Joi.object<{ page: number; size: number }>({
   page: Joi.number().integer().min(1).default(1),
@@ -40,8 +44,8 @@ const createItemSchema = Joi.object<{
  * /api/dataset/{datasetId}/items:
  *    get:
  *      type: 'SEARCH'
- *      summary: 根据 datasetId 获取当前 datasetId 数据集数据信息
- *      description: 根据 datasetId 获取当前 datasetId 数据集数据信息
+ *      summary: 获取当前 datasetId 数据集中数据信息
+ *      description: 获取当前 datasetId 数据集中数据信息
  *      parameters:
  *        - name: datasetId
  *          in: path
@@ -53,22 +57,21 @@ const createItemSchema = Joi.object<{
  *        - name: page
  *          in: query
  *          description: 当前数据页
- *          required: true
  *          schema:
  *            type: integer
  *            default: 1
  *        - name: size
  *          in: query
  *          description: 每页数据量
- *          required: true
  *          schema:
  *            type: integer
  *            default: 20
  *      responses:
  *        200:
- *          description: 根据 datasetId 获取当前 datasetId 数据集数据信息
+ *          description: 获取当前 datasetId 数据集中数据信息
  */
-router.get('/:datasetId/items', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+router.get('/:datasetId/items', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  const { did } = req.user!;
   const { datasetId } = req.params;
 
   if (!datasetId) throw new Error('Missing required params `datasetId`');
@@ -78,11 +81,11 @@ router.get('/:datasetId/items', user(), ensureComponentCallOrPromptsEditor(), as
   const [items, total] = await Promise.all([
     DatasetItem.findAll({
       order: [['createdAt', 'ASC']],
-      where: { datasetId },
+      where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
       offset: (page - 1) * size,
       limit: size,
     }),
-    DatasetItem.count({ where: { datasetId } }),
+    DatasetItem.count({ where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] } }),
   ]);
 
   res.json({ items, total });
@@ -93,8 +96,8 @@ router.get('/:datasetId/items', user(), ensureComponentCallOrPromptsEditor(), as
  * /api/dataset/{datasetId}/items/{itemId}:
  *    delete:
  *      type: 'SEARCH'
- *      summary: 删除 datasetId 数据集中数据
- *      description: 删除 datasetId 数据集中数据
+ *      summary: 删除当前 datasetId 数据集中数据信息
+ *      description: 删除当前 datasetId 数据集中数据信息
  *      parameters:
  *        - name: datasetId
  *          in: path
@@ -112,24 +115,28 @@ router.get('/:datasetId/items', user(), ensureComponentCallOrPromptsEditor(), as
  *            default: ''
  *      responses:
  *        200:
- *          description: 删除 datasetId 数据集中数据
+ *          description: 删除当前 datasetId 数据集中数据信息
  */
-router.delete('/:datasetId/items/:itemId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-  const { did } = req.user! || {};
-  const { datasetId, itemId } = req.params;
+router.delete(
+  '/:datasetId/items/:itemId',
+  user(),
+  checkUserAuth(),
+  ensureComponentCallOrPromptsEditor(),
+  async (req, res) => {
+    const { did } = req.user!;
+    const { datasetId, itemId } = req.params;
 
-  if (!datasetId || !itemId) {
-    throw new Error('Missing required params `datasetId` or `itemId`');
+    if (!datasetId || !itemId) {
+      throw new Error('Missing required params `datasetId` or `itemId`');
+    }
+
+    await DatasetItem.destroy({ where: { id: itemId, datasetId } });
+
+    await resetDatasetsEmbedding(datasetId, did);
+
+    res.json({ data: 'success' });
   }
-
-  await DatasetItem.destroy({ where: { id: itemId, datasetId } });
-
-  await resetDatasetsEmbedding(datasetId, did);
-
-  res.json({ data: 'success' });
-});
-
-const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
+);
 
 const embeddingHandler: {
   [key in NonNullable<DatasetItem['type']>]: (
@@ -172,8 +179,8 @@ const embeddingHandler: {
  * /api/dataset/{datasetId}/items/embedding:
  *    post:
  *      type: 'CREATE'
- *      summary: 上传新的数据到数据数据集中
- *      description: 上传新的数据到数据数据集中
+ *      summary: 上传数据到当前 datasetId 数据集中
+ *      description: 上传数据到当前 datasetId 数据集中
  *      parameters:
  *        - name: datasetId
  *          in: path
@@ -199,49 +206,48 @@ const embeddingHandler: {
  *                  type: string
  *      responses:
  *        200:
- *          description: 上传新的数据到数据数据集中
+ *          description: 上传数据到当前 datasetId 数据集中
  */
-router.post('/:datasetId/items/embedding', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-  const { did } = req.user! || {};
-  const { datasetId } = req.params;
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
-  }
+router.post(
+  '/:datasetId/items/embedding',
+  user(),
+  checkUserAuth(),
+  ensureComponentCallOrPromptsEditor(),
+  async (req, res) => {
+    const { did } = req.user!;
+    const { datasetId } = req.params;
+    if (!datasetId) {
+      throw new Error('Missing required params `datasetId`');
+    }
 
-  const input = await createItemSchema.validateAsync(req.body, { stripUnknown: true });
-
-  const result = await DatasetItem.create({
-    type: input.type,
-    data:
+    const input = await createItemSchema.validateAsync(req.body, { stripUnknown: true });
+    const data =
       input.type === 'text'
-        ? {
-            type: input.type,
-            content: input.content || '',
-          }
-        : {
-            type: input.type,
-            id: input.id || '',
-          },
-    datasetId,
-    createdBy: did,
-    updatedBy: did,
-  });
+        ? { type: input.type, content: input.content || '' }
+        : { type: input.type, id: input.id || '' };
 
-  const itemId = result.dataValues.id;
-  await runHandlerAndSaveContent(itemId);
+    const result = await DatasetItem.create({
+      type: input.type,
+      data,
+      datasetId,
+      createdBy: did,
+      updatedBy: did,
+    });
 
-  res.json({ data: 'success' });
-});
+    const itemId = result.dataValues.id;
+    await runHandlerAndSaveContent(itemId);
 
-const upload = multer({ storage: multer.memoryStorage() });
+    res.json({ data: 'success' });
+  }
+);
 
 /**
  * @openapi
  * /api/dataset/{datasetId}/items/file:
  *    post:
  *      type: 'CREATE'
- *      summary: 上传文件到数据数据集中
- *      description: 上传文件到数据数据集中
+ *      summary: 上传文件到当前 datasetId 数据集中
+ *      description: 上传文件到当前 datasetId 数据集中
  *      parameters:
  *        - name: datasetId
  *          in: path
@@ -264,15 +270,16 @@ const upload = multer({ storage: multer.memoryStorage() });
  *                 default: 'file'
  *      responses:
  *        200:
- *          description: 上传文件到数据数据集中
+ *          description: 上传文件到当前 datasetId 数据集中
  */
 router.post(
   '/:datasetId/items/file',
   user(),
+  checkUserAuth(),
   ensureComponentCallOrPromptsEditor(),
   upload.single('data'),
   async (req, res) => {
-    const { did } = req.user! || {};
+    const { did } = req.user!;
     const { datasetId } = req.params;
     if (!datasetId) {
       throw new Error('Missing required params `datasetId`');
@@ -328,11 +335,177 @@ router.post(
 
 /**
  * @openapi
+ * /api/dataset/{datasetId}/items/{itemId}/embedding:
+ *    put:
+ *      type: 'UPDATE'
+ *      summary: 更新数据到当前 datasetId 数据集中
+ *      description: 更新数据到当前 datasetId 数据集中
+ *      parameters:
+ *        - name: datasetId
+ *          in: path
+ *          description: 数据集 Id
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *        - name: itemId
+ *          in: path
+ *          description: 数据 Id
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                name:
+ *                  type: string
+ *                type:
+ *                  type: string
+ *                id:
+ *                  type: string
+ *                content:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: 更新数据到当前 datasetId 数据集中
+ */
+router.put(
+  '/:datasetId/items/:itemId/embedding',
+  user(),
+  checkUserAuth(),
+  ensureComponentCallOrPromptsEditor(),
+  async (req, res) => {
+    const { did } = req.user! || {};
+    const { datasetId, itemId } = req.params;
+    if (!datasetId) {
+      throw new Error('Missing required params `datasetId`');
+    }
+
+    const input = await createItemSchema.validateAsync(req.body, { stripUnknown: true });
+    const data =
+      input.type === 'text'
+        ? { type: input.type, content: input.content || '' }
+        : { type: input.type, id: input.id || '' };
+
+    await DatasetItem.update(
+      { error: '', type: input.type, data, updatedBy: did },
+      { where: { id: itemId, datasetId } }
+    );
+
+    await resetDatasetsEmbedding(datasetId, did);
+
+    res.json({ data: 'success' });
+  }
+);
+
+/**
+ * @openapi
+ * /api/dataset/{datasetId}/items/{itemId}/file:
+ *    put:
+ *      type: 'UPDATE'
+ *      summary: 更新上传到当前 datasetId 数据集中
+ *      description: 更新上传到当前 datasetId 数据集中
+ *      parameters:
+ *        - name: datasetId
+ *          in: path
+ *          description: 数据集 Id
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *        - name: itemId
+ *          in: path
+ *          description: 数据 Id
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *      requestBody:
+ *        content:
+ *          multipart/form-data:
+ *            schema:
+ *             type: object
+ *             properties:
+ *                data:
+ *                 type: string
+ *                 format: binary
+ *                type:
+ *                 type: string
+ *                 default: 'file'
+ *      responses:
+ *        200:
+ *          description: 更新上传到当前 datasetId 数据集中
+ */
+router.put(
+  '/:datasetId/items/:itemId/file',
+  user(),
+  checkUserAuth(),
+  ensureComponentCallOrPromptsEditor(),
+  upload.single('data'),
+  async (req, res) => {
+    const { did } = req.user!;
+    const { datasetId, itemId } = req.params;
+    if (!datasetId) {
+      throw new Error('Missing required params `datasetId`');
+    }
+
+    if (!req?.file) {
+      res.status(400).send('No file was uploaded.');
+      return;
+    }
+
+    const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
+
+    if (!type || !filename || !data) {
+      res.json({ error: 'missing required body `type` or `filename` or `data`' });
+      return;
+    }
+
+    let buffer = null;
+
+    if (type === 'base64') {
+      buffer = Buffer.from(data, 'base64');
+    } else if (type === 'path') {
+      buffer = fs.readFileSync(data);
+    } else if (type === 'file') {
+      buffer = data;
+    } else {
+      buffer = data;
+    }
+
+    if (!buffer) {
+      res.json({ error: 'invalid upload type, should be [file, path, base64]' });
+      return;
+    }
+
+    const filePath = path.join(Config.uploadDir, filename);
+    fs.writeFileSync(filePath, buffer, 'utf8');
+
+    const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'markdown' | 'txt' | 'pdf';
+
+    await DatasetItem.update(
+      { error: '', type: fileExtension, data: { type: fileExtension, path: filePath }, updatedBy: did },
+      { where: { id: itemId, datasetId } }
+    );
+
+    await resetDatasetsEmbedding(datasetId, did);
+
+    res.json({ data: 'success' });
+  }
+);
+
+/**
+ * @openapi
  * /api/dataset/{datasetId}/items/search:
  *    get:
  *      type: 'SEARCH'
- *      summary: 根据搜索内容搜索指定向量数据库的内容
- *      description: 根据搜索内容搜索指定向量数据库的内容
+ *      summary: 搜索内容
+ *      description: 搜索内容
  *      parameters:
  *        - name: datasetId
  *          in: path
@@ -352,38 +525,48 @@ router.post(
  *        200:
  *          description: 成功获取分页列表
  */
-router.get('/:datasetId/items/search', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-  const { did } = req.user! || {};
-  const { datasetId } = req.params;
-  const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
-  const input = await datasetSchema.validateAsync(req.query);
+router.get(
+  '/:datasetId/items/search',
+  user(),
+  checkUserAuth(),
+  ensureComponentCallOrPromptsEditor(),
+  async (req, res) => {
+    const { did } = req.user!;
+    const { datasetId } = req.params;
+    const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
+    const input = await datasetSchema.validateAsync(req.query);
 
-  const dataset = await Dataset.findOne({ where: { id: datasetId, createdBy: did } });
-  if (!dataset || !datasetId) {
-    res.json({ role: 'system', content: '' });
-    return;
-  }
+    const dataset = await Dataset.findOne({
+      where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
+    });
+    if (!dataset || !datasetId) {
+      res.json({ role: 'system', content: '' });
+      return;
+    }
 
-  const datasetItems = await DatasetItem.findAll({ where: { datasetId, createdBy: did } });
-  if (!datasetItems?.length) {
-    res.json({ role: 'system', content: '' });
-    return;
-  }
+    const datasetItems = await DatasetItem.findAll({
+      where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
+    });
+    if (!datasetItems?.length) {
+      res.json({ role: 'system', content: '' });
+      return;
+    }
 
-  const embeddings = new AIKitEmbeddings({});
-  const store = await VectorStore.load(datasetId, embeddings);
-  const docs = await store.similaritySearch(input.message, 4);
+    const embeddings = new AIKitEmbeddings({});
+    const store = await VectorStore.load(datasetId, embeddings);
+    const docs = await store.similaritySearch(input.message, 4);
 
-  const context = docs.map((i) => i.pageContent).join('\n');
-  const contextTemplate = context
-    ? `Use the following pieces of context to answer the users question.
+    const context = docs.map((i) => i.pageContent).join('\n');
+    const contextTemplate = context
+      ? `Use the following pieces of context to answer the users question.
   If you don't know the answer, just say that you don't know, don't try to make up an answer.
   ----------------
   ${context}`
-    : '';
+      : '';
 
-  res.json({ role: 'system', content: contextTemplate });
-});
+    res.json({ role: 'system', content: contextTemplate });
+  }
+);
 
 export default router;
 
@@ -458,11 +641,12 @@ const resetDatasetsEmbedding = async (datasetId: string, did: string) => {
 
   await VectorStore.remove(datasetId);
 
-  for (const item of datasetItems) {
+  // 使用同步还是异步？
+  datasetItems.forEach(async (item) => {
     const handler = embeddingHandler[item.type];
     if (!handler) return;
 
     // eslint-disable-next-line no-await-in-loop
     await handler(item as any);
-  }
+  });
 };
