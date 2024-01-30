@@ -17,6 +17,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  IconButton,
   MenuItem,
   Select,
   Stack,
@@ -43,6 +44,7 @@ import { Controller, useForm } from 'react-hook-form';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import { useSessionContext } from '../../contexts/session';
+import Broom from './icons/broom';
 import ChevronDown from './icons/chevron-down';
 import Empty from './icons/empty';
 import Record from './icons/record';
@@ -107,7 +109,7 @@ function DebugViewContent({
 }) {
   const { t } = useLocaleContext();
 
-  const { state, setSession } = useDebugState({
+  const { state, setSession, clearCurrentSession } = useDebugState({
     projectId,
     assistantId: assistant.id,
   });
@@ -117,13 +119,28 @@ function DebugViewContent({
   if (!currentSession) return null;
   return (
     <>
-      <Box px={4} py={2} bgcolor="background.paper" sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <Box mx="auto" maxWidth={200}>
+      <Box
+        px={4}
+        pb={2}
+        pt={1}
+        display="flex"
+        justifyContent="space-between"
+        bgcolor="background.paper"
+        sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
+        <Box maxWidth={200}>
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
+        <Tooltip title={t('clearSession')}>
+          <IconButton
+            size="small"
+            sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
+            onClick={clearCurrentSession}>
+            <Broom fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </Box>
 
-      <Box component={ScrollToBottom} flexGrow={1} sx={{ overflowX: 'hidden' }}>
+      <Box component={ScrollToBottom} initialScrollBehavior="auto" flexGrow={1} sx={{ overflowX: 'hidden' }}>
         {currentSession.messages.map((message) => (
           <MessageView
             currentSession={currentSession.chatType}
@@ -280,7 +297,7 @@ const MessageView = memo(
                         )}
                       </Box>
                     ))}
-                  {!!message.inputMessages?.messages.length && (
+                  {!!message.inputMessages?.messages?.length && (
                     <Box margin={0.5}>
                       {message.inputMessages?.messages.map((i, index) => (
                         <Accordion
