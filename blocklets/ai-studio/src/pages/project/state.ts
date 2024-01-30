@@ -14,7 +14,7 @@ import {
 import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
-import produce, { Draft } from 'immer';
+import { Draft, produce } from 'immer';
 import localForage from 'localforage';
 import { cloneDeep, differenceBy, get, intersectionBy, omitBy } from 'lodash';
 import debounce from 'lodash/debounce';

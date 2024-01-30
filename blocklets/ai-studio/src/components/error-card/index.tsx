@@ -1,9 +1,8 @@
 import { SubscriptionErrorType } from '@blocklet/ai-kit/api';
+import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { ErrorRounded } from '@mui/icons-material';
 import { Alert, Stack } from '@mui/material';
 import { memo } from 'react';
-
-import SubscribeButton from '../subscribe';
 
 interface CustomAlertProps {
   error: { message: string; [key: string]: unknown };
