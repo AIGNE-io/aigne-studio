@@ -321,6 +321,20 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
     [setState]
   );
 
+  const clearCurrentSession = useCallback(() => {
+    setState((state) => {
+      const sessions = state.sessions.map((session) =>
+        session.index === state.currentSessionIndex
+          ? { ...session, messages: [], updatedAt: new Date().toISOString() }
+          : session
+      );
+      return {
+        ...state,
+        sessions,
+      };
+    });
+  }, [setState]);
+
   const setCurrentSession = useCallback(
     (index?: number) => {
       setState((state) => {
@@ -576,7 +590,16 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
     [setMessage]
   );
 
-  return { state, setSession, setCurrentSession, newSession, deleteSession, sendMessage, cancelMessage };
+  return {
+    state,
+    setSession,
+    setCurrentSession,
+    newSession,
+    clearCurrentSession,
+    deleteSession,
+    sendMessage,
+    cancelMessage,
+  };
 };
 
 async function migrateDebugStateFroMLocalStorageToIndexedDB() {

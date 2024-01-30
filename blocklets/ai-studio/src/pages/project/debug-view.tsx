@@ -18,6 +18,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  IconButton,
   MenuItem,
   Select,
   Stack,
@@ -42,6 +43,7 @@ import { Controller, useForm } from 'react-hook-form';
 import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
 
 import { useSessionContext } from '../../contexts/session';
+import Broom from './icons/broom';
 import ChevronDown from './icons/chevron-down';
 import Empty from './icons/empty';
 import Record from './icons/record';
@@ -105,7 +107,7 @@ function DebugViewContent({
 }) {
   const { t } = useLocaleContext();
 
-  const { state, setSession } = useDebugState({
+  const { state, setSession, clearCurrentSession } = useDebugState({
     projectId,
     assistantId: assistant.id,
   });
@@ -115,15 +117,30 @@ function DebugViewContent({
   if (!currentSession) return null;
   return (
     <>
-      <Box px={4} py={2} bgcolor="background.paper" sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <Box mx="auto" maxWidth={200}>
+      <Box
+        px={4}
+        pb={2}
+        pt={1}
+        display="flex"
+        justifyContent="space-between"
+        bgcolor="background.paper"
+        sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
+        <Box maxWidth={200}>
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
+        <Tooltip title={t('clearSession')}>
+          <IconButton
+            size="small"
+            sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
+            onClick={clearCurrentSession}>
+            <Broom fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </Box>
 
-      <Box component={ScrollToBottom} flexGrow={1} sx={{ overflowX: 'hidden' }}>
+      <Box component={ScrollToBottom} initialScrollBehavior="auto" flexGrow={1} sx={{ overflowX: 'hidden' }}>
         {currentSession.messages.map((message) => (
-          <MessageView message={message} key={message.id} />
+          <MessageView chatType={currentSession.chatType ?? 'chat'} message={message} key={message.id} />
         ))}
       </Box>
 
@@ -205,60 +222,65 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
   );
 }
 
-const MessageView = memo(({ message }: { message: SessionItem['messages'][number] }) => {
-  return (
-    <Stack px={2} py={1} direction="row" gap={1} position="relative">
-      <Box py={0.5}>
-        <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-      </Box>
-      <Box width="100%">
-        <BasicTree inputs={message.inputMessages} />
-
-        <Box
-          flex={1}
-          sx={{
-            [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
-          }}>
-          {(message.content || message.images?.length || message.loading) && !message.inputMessages ? (
-            <MessageViewContent
-              sx={{
-                px: 1,
-                py: 1,
-                borderRadius: 1,
-                bgcolor: (theme) =>
-                  message?.inputMessages
-                    ? theme.palette.grey[100]
-                    : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
-                position: 'relative',
-              }}>
-              <MdViewer content={message.content} />
-
-              {message.images && message.images.length > 0 && (
-                <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
-              )}
-
-              {message.loading && !message.inputMessages && <WritingIndicator />}
-
-              {message.role === 'assistant' && (
-                <Box className="actions">{message.content && <CopyButton key="copy" message={message.content} />}</Box>
-              )}
-            </MessageViewContent>
-          ) : null}
-
-          {message.error ? (
-            <ErrorCard error={message.error} />
-          ) : (
-            message.cancelled && (
-              <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                Cancelled
-              </Alert>
-            )
-          )}
+const MessageView = memo(
+  ({ message, chatType }: { message: SessionItem['messages'][number]; chatType?: 'chat' | 'debug' }) => {
+    return (
+      <Stack px={2} py={1} direction="row" gap={1} position="relative">
+        <Box py={0.5}>
+          <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
         </Box>
-      </Box>
-    </Stack>
-  );
-});
+        <Box width="100%">
+          <BasicTree inputs={message.inputMessages} />
+
+          <Box
+            flex={1}
+            sx={{
+              [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
+            }}>
+            {(message.content || message.images?.length || message.loading) &&
+            (chatType !== 'debug' || !message?.inputMessages?.length) ? (
+              <MessageViewContent
+                sx={{
+                  px: 1,
+                  py: 1,
+                  borderRadius: 1,
+                  bgcolor: (theme) =>
+                    message?.inputMessages
+                      ? theme.palette.grey[100]
+                      : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
+                  position: 'relative',
+                }}>
+                <MdViewer content={message.content} />
+
+                {message.images && message.images.length > 0 && (
+                  <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
+                )}
+
+                {message.loading && !message.inputMessages && <WritingIndicator />}
+
+                {message.role === 'assistant' && (
+                  <Box className="actions">
+                    {message.content && <CopyButton key="copy" message={message.content} />}
+                  </Box>
+                )}
+              </MessageViewContent>
+            ) : null}
+
+            {message.error ? (
+              <ErrorCard error={message.error} />
+            ) : (
+              message.cancelled && (
+                <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                  Cancelled
+                </Alert>
+              )
+            )}
+          </Box>
+        </Box>
+      </Stack>
+    );
+  }
+);
 
 const MessageViewContent = styled(Box)`
   > .actions {
