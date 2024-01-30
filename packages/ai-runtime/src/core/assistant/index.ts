@@ -27,6 +27,12 @@ import {
   isPromptAssistant,
 } from '../../types';
 import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
+import {
+  defaultImageModel,
+  defaultTextModel,
+  getSupportedImagesModels,
+  getSupportedModels,
+} from '../../types/assistant/model';
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
@@ -57,6 +63,7 @@ export async function runAssistant({
   getAssistant,
   assistant,
   parameters = {},
+  parentTaskId,
   callback,
 }: {
   taskId: string;
@@ -65,8 +72,18 @@ export async function runAssistant({
   getAssistant: GetAssistant;
   assistant: Assistant;
   parameters?: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }): Promise<any> {
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
   if (isPromptAssistant(assistant)) {
     return runPromptAssistant({
       taskId,
@@ -75,6 +92,7 @@ export async function runAssistant({
       getAssistant,
       assistant,
       parameters,
+      parentTaskId,
       callback,
     });
   }
@@ -87,6 +105,7 @@ export async function runAssistant({
       getAssistant,
       assistant,
       parameters,
+      parentTaskId,
       callback,
     });
   }
@@ -99,6 +118,7 @@ export async function runAssistant({
       taskId,
       assistant,
       parameters,
+      parentTaskId,
       callback,
     });
   }
@@ -111,6 +131,7 @@ export async function runAssistant({
       taskId,
       assistant,
       parameters,
+      parentTaskId,
       callback,
     });
   }
@@ -126,6 +147,7 @@ async function runFunctionAssistant({
   assistant,
   context,
   parameters,
+  parentTaskId,
   callback,
 }: {
   callAI: CallAI;
@@ -135,6 +157,7 @@ async function runFunctionAssistant({
   assistant: FunctionAssistant;
   context?: { [key: string]: any };
   parameters?: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   const results = assistant.prepareExecutes?.length
@@ -145,6 +168,7 @@ async function runFunctionAssistant({
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
+        parentTaskId: taskId,
         callback,
       })
     : [];
@@ -207,11 +231,13 @@ async function runFunctionAssistant({
   );
 
   callback?.({
-    type: AssistantResponseType.EXECUTE,
-    taskId,
+    type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
-    assistantName: assistant.name,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+    taskId,
+    parentTaskId,
+    assistantName: assistant.name!,
+    inputParameters: parameters,
+    fnArgs: args,
   });
 
   const result = await module.default(args);
@@ -221,6 +247,15 @@ async function runFunctionAssistant({
     taskId,
     assistantId: assistant.id,
     delta: { content: typeof result === 'string' ? result : JSON.stringify(result) },
+  });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
   return result;
@@ -233,6 +268,7 @@ async function runApiAssistant({
   taskId,
   assistant,
   parameters,
+  parentTaskId,
   callback,
 }: {
   callAI: CallAI;
@@ -241,6 +277,7 @@ async function runApiAssistant({
   taskId: string;
   assistant: ApiAssistant;
   parameters?: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
@@ -253,6 +290,7 @@ async function runApiAssistant({
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
+        parentTaskId: taskId,
         callback,
       })
     : [];
@@ -273,11 +311,13 @@ async function runApiAssistant({
   );
 
   callback?.({
-    type: AssistantResponseType.EXECUTE,
-    taskId,
+    type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
-    assistantName: assistant.name,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+    taskId,
+    assistantName: assistant.name!,
+    parentTaskId,
+    inputParameters: parameters,
+    apiArgs: args,
   });
 
   const method = assistant.requestMethod || 'GET';
@@ -311,6 +351,15 @@ async function runApiAssistant({
     delta: { content: typeof result === 'string' ? result : JSON.stringify(result || error) },
   });
 
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
   return result;
 }
 
@@ -327,6 +376,7 @@ async function runPromptAssistant({
   getAssistant,
   assistant,
   parameters,
+  parentTaskId,
   callback,
 }: {
   callAI: CallAI;
@@ -335,9 +385,11 @@ async function runPromptAssistant({
   getAssistant: GetAssistant;
   assistant: PromptAssistant;
   parameters: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
+  const defaultModel = getSupportedModels().find((i) => i.model === (assistant.model || defaultTextModel));
 
   const executeBlocks = assistant.prompts
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i))
@@ -350,6 +402,7 @@ async function runPromptAssistant({
     getAssistant,
     executeBlocks,
     parameters,
+    parentTaskId: taskId,
     callback,
   });
 
@@ -408,13 +461,25 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  callback?.({ type: AssistantResponseType.INPUT, taskId, assistantId: assistant.id, input: { messages } });
   callback?.({
-    type: AssistantResponseType.EXECUTE,
-    taskId,
+    type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
-    assistantName: assistant.name,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+    ...(parentTaskId
+      ? {
+          parentTaskId,
+          modelParameters: {
+            model: assistant.model,
+            temperature: assistant.temperature || defaultModel?.temperatureDefault,
+            topP: assistant.topP || defaultModel?.topPDefault,
+            presencePenalty: assistant.presencePenalty || defaultModel?.frequencyPenaltyDefault,
+            frequencyPenalty: assistant.frequencyPenalty || defaultModel?.frequencyPenaltyDefault,
+          },
+        }
+      : {}),
+    taskId,
+    assistantName: assistant.name!,
+    inputParameters: parameters,
+    promptMessages: messages,
   });
 
   const res = await callAI({
@@ -433,14 +498,23 @@ async function runPromptAssistant({
   let result = '';
 
   for await (const chunk of res) {
+    result += chunk.delta.content || '';
     callback?.({
       type: AssistantResponseType.CHUNK,
       taskId,
       assistantId: assistant.id,
-      delta: { content: chunk.delta.content },
+      delta: { content: chunk.delta.content || '' },
     });
-    result += chunk.delta.content || '';
   }
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
 
   return result;
 }
@@ -452,6 +526,7 @@ async function runImageAssistant({
   getAssistant,
   assistant,
   parameters,
+  parentTaskId,
   callback,
 }: {
   callAI: CallAI;
@@ -460,9 +535,11 @@ async function runImageAssistant({
   getAssistant: GetAssistant;
   assistant: ImageAssistant;
   parameters: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
+  const defaultModel = getSupportedImagesModels().find((i) => i.model === (assistant.model || defaultImageModel));
 
   const blockResults = assistant.prepareExecutes?.length
     ? await runExecuteBlocks({
@@ -472,6 +549,7 @@ async function runImageAssistant({
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
+        parentTaskId: taskId,
         callback,
       })
     : [];
@@ -494,11 +572,24 @@ async function runImageAssistant({
   );
 
   callback?.({
-    type: AssistantResponseType.EXECUTE,
-    taskId,
+    type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
-    assistantName: assistant.name,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+    taskId,
+    parentTaskId,
+    assistantName: assistant.name!,
+    inputParameters: parameters,
+    ...(parentTaskId
+      ? {
+          parentTaskId,
+          modelParameters: {
+            model: assistant.model,
+            n: assistant.n || defaultModel?.nDefault,
+            quality: assistant.quality || defaultModel?.qualityDefault,
+            style: assistant.style || defaultModel?.styleDefault,
+            size: assistant.size || defaultModel?.sizeDefault,
+          },
+        }
+      : {}),
   });
 
   const { data } = await callAIImage({
@@ -516,6 +607,15 @@ async function runImageAssistant({
 
   callback?.({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: { images: data } });
 
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
   return data;
 }
 
@@ -526,6 +626,7 @@ async function runExecuteBlocks({
   getAssistant,
   parameters,
   executeBlocks,
+  parentTaskId,
   callback,
 }: {
   assistant: Assistant;
@@ -534,6 +635,7 @@ async function runExecuteBlocks({
   getAssistant: GetAssistant;
   parameters?: { [key: string]: any };
   executeBlocks: ExecuteBlock[];
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   const variables = {
@@ -553,6 +655,7 @@ async function runExecuteBlocks({
         getAssistant,
         executeBlock,
         parameters: variables,
+        parentTaskId,
         callback,
       });
 
@@ -577,6 +680,7 @@ async function runExecuteBlock({
   getAssistant,
   executeBlock,
   parameters,
+  parentTaskId,
   callback,
 }: {
   taskId: string;
@@ -586,6 +690,7 @@ async function runExecuteBlock({
   getAssistant: GetAssistant;
   executeBlock: ExecuteBlock;
   parameters?: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   const { tools } = executeBlock;
@@ -594,6 +699,7 @@ async function runExecuteBlock({
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
+    parentTaskId,
     assistantId: assistant.id,
     assistantName: assistant.name,
     execution: {
@@ -630,6 +736,7 @@ async function runExecuteBlock({
             getAssistant,
             assistant: toolAssistant,
             parameters: args,
+            parentTaskId,
             callback,
           });
         })
@@ -698,7 +805,7 @@ async function runExecuteBlock({
           type: AssistantResponseType.CHUNK,
           taskId,
           assistantId: assistant.id,
-          delta: { content: chunk.delta.content },
+          delta: { content: chunk.delta.content || '' },
         });
       }
 
@@ -748,6 +855,7 @@ async function runExecuteBlock({
             getAssistant,
             assistant: toolAssistant,
             parameters: args,
+            parentTaskId: taskId,
             callback,
           });
         })

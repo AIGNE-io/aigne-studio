@@ -129,6 +129,7 @@ export default flat({
   api: 'API',
   noParameters: 'No Parameters',
   parameters: 'Parameters',
+  inputParameters: 'Input Parameters',
   model: 'Model',
   temperature: 'temperature',
   temperatureTip:
@@ -243,6 +244,9 @@ export default flat({
     empty: 'Empty Data',
     diff: 'The file content is modified',
   },
+  startTime: 'Start Time',
+  endTime: 'End Time',
+  duration: 'Duration',
   confirmDelete: 'Please input {name} to delete',
   deleteProject: 'This will permanently delete project with name {name}',
   selectObject: 'Select {object}',

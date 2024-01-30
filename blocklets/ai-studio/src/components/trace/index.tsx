@@ -1,0 +1,177 @@
+import { ImagePreviewB64 } from '@app/pages/project/debug-view';
+import { ImageType, MessageInput, SessionItem } from '@app/pages/project/state';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { PromptMessages, RunAssistantInput, RunAssistantLog } from '@blocklet/ai-runtime/types';
+import { Box, Stack, Typography, styled } from '@mui/material';
+import dayjs from 'dayjs';
+import { pick } from 'lodash';
+import { memo } from 'react';
+
+import { JsonDisplay, Label, LineContainer, PromptMessagesComponent, StrValue } from './base-trace';
+
+type Trace =
+  | { label: 'startTime' | 'endTime'; value: number }
+  | { label: 'logs'; value: RunAssistantLog[] }
+  | { label: 'inputParameters'; value: { [key: string]: string } }
+  | { label: 'promptMessages'; value: PromptMessages }
+  | { label: 'output'; value: string }
+  | { label: 'images'; value: ImageType }
+  | { label: 'apiArgs'; value: any }
+  | { label: 'fnArgs'; value: any }
+  | { label: 'modelParameters'; value: RunAssistantInput['modelParameters'] };
+
+function isTraceLabel(key: string): key is Trace['label'] {
+  return [
+    'startTime',
+    'endTime',
+    'logs',
+    'output',
+    'inputParameters',
+    'promptMessages',
+    'images',
+    'apiArgs',
+    'fnArgs',
+    'modelParameters',
+  ].includes(key);
+}
+
+const LabelValue = memo(({ label, value }: Trace) => {
+  const { t } = useLocaleContext();
+  if (label === 'startTime' || label === 'endTime') {
+    return (
+      <LineContainer>
+        <Label variant="body1">{t(label)}:</Label>
+        <StrValue variant="body1">{dayjs(value).format('HH:mm:ss:SSS')}</StrValue>
+      </LineContainer>
+    );
+  }
+
+  if (label === 'logs' && !!value.length) {
+    return (
+      <>
+        <Label variant="body1">{t(label)}:</Label>
+        <JsonDisplay>
+          {value.map((item, index) => (
+            <Box my={0.5} key={index}>
+              <Typography component="span" color="text.secondary">
+                {`${dayjs(item.timestamp).format('HH:mm:ss:SSS')}: `}
+              </Typography>
+              <Typography ml={0.25} color="text.secondary" component="span">{`${item.log}  `}</Typography>
+            </Box>
+          ))}
+        </JsonDisplay>
+      </>
+    );
+  }
+
+  if (
+    (label === 'inputParameters' || label === 'fnArgs' || label === 'apiArgs' || label === 'output') &&
+    value &&
+    Object.keys(value).length
+  ) {
+    return (
+      <>
+        <Label variant="body1">{t(label)}:</Label>
+        <JsonDisplay>{JSON.stringify(value)}</JsonDisplay>
+      </>
+    );
+  }
+
+  if (label === 'promptMessages' && !!value?.length) {
+    return (
+      <>
+        <Label variant="body1">{t(label)}:</Label>
+        <PromptMessagesComponent value={value} />
+      </>
+    );
+  }
+
+  if (label === 'images' && value && value?.length > 0) {
+    return (
+      <>
+        <Label variant="body1">{t(label)}:</Label>
+        <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={value} />
+      </>
+    );
+  }
+
+  if (label === 'modelParameters') {
+    const modalParameters = Object.entries(value ?? {});
+    return (
+      <>
+        {modalParameters.map(([label, value]) => (
+          <LineContainer>
+            <Label variant="body1">{t(label)}:</Label>
+            <StrValue>{value}</StrValue>
+          </LineContainer>
+        ))}
+      </>
+    );
+  }
+
+  return null;
+});
+
+const TraceCard = styled(Stack)(({ theme }) => ({
+  gap: theme.spacing(1),
+  borderRadius: theme.shape.borderRadius,
+  width: '100%',
+}));
+
+interface ContainerProps {
+  deep?: number;
+}
+
+const Container = styled(Box)<ContainerProps>(({ theme, deep = 0 }) => ({
+  margin: `${theme.spacing(deep ? 2 : 1)} 0 0 ${theme.spacing(deep * 3)}`,
+  padding: theme.spacing(1),
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
+}));
+
+function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
+  const pickInput = pick(
+    input,
+    'startTime',
+    'endTime',
+    'logs',
+    'output',
+    'inputParameters',
+    'promptMessages',
+    'images',
+    'apiArgs',
+    'fnArgs',
+    'modelParameters'
+  );
+
+  const arr = Object.entries(pickInput).flatMap(([key, value]) => (isTraceLabel(key) ? [{ label: key, value }] : []));
+  return (
+    <Container deep={deep}>
+      <Typography fontWeight="bold" marginBottom="8px">
+        {input.assistantName}
+      </Typography>
+      <TraceCard>
+        {arr.map((trace) => (
+          <LabelValue key={trace.label} label={trace.label} value={trace.value} />
+        ))}
+      </TraceCard>
+    </Container>
+  );
+}
+
+const Tree = styled(Stack)(({ theme }) => ({
+  paddingRight: theme.spacing(4),
+}));
+
+function BasicTree({ inputs }: { inputs?: SessionItem['messages'][number]['inputMessages'] }) {
+  if (!Array.isArray(inputs)) return null;
+  return (
+    <Tree>
+      {inputs.map((item) => {
+        return <BaseTrace key={item.taskId} input={item} deep={item.deep} />;
+      })}
+    </Tree>
+  );
+}
+
+export default BasicTree;
