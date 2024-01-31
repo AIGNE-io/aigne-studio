@@ -852,6 +852,14 @@ async function runExecuteBlock({
       )
     ).filter((i): i is NonNullable<typeof i> => !isNil(i));
 
+    callback?.({
+      type: AssistantResponseType.INPUT,
+      assistantId: assistant.id,
+      parentTaskId,
+      taskId,
+      modelParameters: executeBlock.executeModel,
+      assistantName: `${assistant.name}(Select)`,
+    });
     const response = await callAI({
       assistant,
       input: {

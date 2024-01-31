@@ -467,6 +467,9 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 let lastInput = message.inputMessages.findLast((input) => input.taskId === value.taskId);
                 if (lastInput) {
                   lastInput = Object.assign(lastInput, value);
+                } else {
+                  const parentTrace = message?.inputMessages.findLast((i) => i.taskId === value.parentTaskId);
+                  message.inputMessages.push({ ...value, deep: parentTrace ? (parentTrace?.deep || 0) + 1 : 0 });
                 }
               });
             } else if (value.type === AssistantResponseType.CHUNK) {

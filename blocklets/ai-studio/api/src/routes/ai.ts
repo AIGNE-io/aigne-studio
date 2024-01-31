@@ -73,7 +73,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
         modelInfo: model,
       };
     }
-    return res as any;
+    return chatCompletionChunk as any;
   };
 
   const getAssistant = (fileId: string) => {
