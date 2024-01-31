@@ -356,13 +356,9 @@ router.post(
  *            schema:
  *              type: object
  *              properties:
- *                name:
- *                  type: string
  *                type:
  *                  type: string
- *                id:
- *                  type: string
- *                content:
+ *                data:
  *                  type: string
  *      responses:
  *        200:
@@ -383,8 +379,8 @@ router.put(
     const input = await createItemSchema.validateAsync(req.body, { stripUnknown: true });
     const data =
       input.type === 'text'
-        ? { type: input.type, content: input.content || '' }
-        : { type: input.type, id: input.id || '' };
+        ? { type: input.type, content: input.data || '' }
+        : { type: input.type, id: input.data || '' };
 
     await DatasetItem.update(
       { error: '', type: input.type, data, updatedBy: did },
