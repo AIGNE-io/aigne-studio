@@ -5,6 +5,7 @@ import { Role } from '../assistant';
 export enum ExecutionPhase {
   EXECUTE_BLOCK_START = 'EXECUTE_BLOCK_START',
   EXECUTE_ASSISTANT_START = 'EXECUTE_ASSISTANT_START',
+  EXECUTE_ASSISTANT_RUNNING = 'EXECUTE_BLOCK_RUNNING',
   EXECUTE_ASSISTANT_END = 'EXECUTE_ASSISTANT_END',
 }
 export enum AssistantResponseType {
@@ -32,7 +33,7 @@ export type RunAssistantInput = {
   taskId: string;
   parentTaskId?: string;
   assistantId: string;
-  assistantName: string;
+  assistantName?: string;
   inputParameters?: { [key: string]: string };
   apiArgs?: any;
   fnArgs?: any;
@@ -67,6 +68,9 @@ export type RunAssistantExecute = {
       }
     | {
         currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END;
+      }
+    | {
+        currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING;
       };
 };
 

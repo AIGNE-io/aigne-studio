@@ -42,10 +42,29 @@ export interface GetAssistant {
   (assistantId: string, options?: { rejectOnEmpty?: false }): Promise<Assistant | null>;
 }
 
-export type CallAI = (options: {
+export type Options = {
   assistant: Assistant;
   input: ChatCompletionInput;
-}) => Promise<ReadableStream<ChatCompletionChunk>>;
+};
+
+export type ModelInfo = {
+  model: string;
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+};
+
+// export type CallAI = ({ assistant, input, outputModal }: Options) => Options extends false ? Promise<ReadableStream<ChatCompletionChunk>> :  ;
+
+export interface CallAI {
+  (options: Options & { outputModel: true }): Promise<{
+    modelInfo: ModelInfo;
+    chatCompletionChunk: ReadableStream<ChatCompletionChunk>;
+  }>;
+  (options: Options & { outputModel?: false }): Promise<ReadableStream<ChatCompletionChunk>>;
+  (options: Options & { outputModel: boolean }): any;
+}
 
 export type CallAIImage = (options: {
   assistant: Assistant;
@@ -231,11 +250,20 @@ async function runFunctionAssistant({
   );
 
   callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
+  });
+
+  callback?.({
     type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
     taskId,
     parentTaskId,
-    assistantName: assistant.name!,
+    assistantName: assistant.name,
     inputParameters: parameters,
     fnArgs: args,
   });
@@ -311,10 +339,19 @@ async function runApiAssistant({
   );
 
   callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
+  });
+
+  callback?.({
     type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
     taskId,
-    assistantName: assistant.name!,
+    assistantName: assistant.name,
     parentTaskId,
     inputParameters: parameters,
     apiArgs: args,
@@ -462,6 +499,15 @@ async function runPromptAssistant({
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
   callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
+  });
+
+  callback?.({
     type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
     ...(parentTaskId
@@ -477,13 +523,14 @@ async function runPromptAssistant({
         }
       : {}),
     taskId,
-    assistantName: assistant.name!,
+    assistantName: assistant.name,
     inputParameters: parameters,
     promptMessages: messages,
   });
 
   const res = await callAI({
     assistant,
+    outputModel: true,
     input: {
       stream: true,
       messages,
@@ -497,15 +544,30 @@ async function runPromptAssistant({
 
   let result = '';
 
-  for await (const chunk of res) {
+  for await (const chunk of res.chatCompletionChunk) {
     result += chunk.delta.content || '';
     callback?.({
       type: AssistantResponseType.CHUNK,
       taskId,
       assistantId: assistant.id,
-      delta: { content: chunk.delta.content || '' },
+      delta: { content: chunk.delta.content },
     });
   }
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    ...(parentTaskId
+      ? {
+          parentTaskId,
+          modelParameters: res.modelInfo,
+        }
+      : {}),
+    taskId,
+    assistantName: assistant.name,
+    inputParameters: parameters,
+    promptMessages: messages,
+  });
 
   callback?.({
     type: AssistantResponseType.EXECUTE,
@@ -572,11 +634,20 @@ async function runImageAssistant({
   );
 
   callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
+  });
+
+  callback?.({
     type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
     taskId,
     parentTaskId,
-    assistantName: assistant.name!,
+    assistantName: assistant.name,
     inputParameters: parameters,
     ...(parentTaskId
       ? {

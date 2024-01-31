@@ -50,19 +50,30 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
 
   const repository = await getRepository({ projectId: input.projectId });
 
-  const callAI: CallAI = ({ assistant, input }) => {
+  const callAI: CallAI = async ({ assistant, input, outputModel = false }) => {
     const promptAssistant = isPromptAssistant(assistant) ? assistant : undefined;
 
-    return chatCompletions({
-      ...input,
+    const model = {
       model: input.model || promptAssistant?.model || project.model || defaultModel,
       temperature: input.temperature ?? promptAssistant?.temperature ?? project.temperature,
       topP: input.topP ?? promptAssistant?.topP ?? project.topP,
       presencePenalty: input.presencePenalty ?? promptAssistant?.presencePenalty ?? project.presencePenalty,
       frequencyPenalty: input.frequencyPenalty ?? promptAssistant?.frequencyPenalty ?? project.frequencyPenalty,
+    };
+    const chatCompletionChunk = await chatCompletions({
+      ...input,
+      ...model,
       // FIXME: should be maxTokens - prompt tokens
       // maxTokens: input.maxTokens ?? project.maxTokens,
     });
+
+    if (outputModel) {
+      return {
+        chatCompletionChunk,
+        modelInfo: model,
+      };
+    }
+    return res as any;
   };
 
   const getAssistant = (fileId: string) => {

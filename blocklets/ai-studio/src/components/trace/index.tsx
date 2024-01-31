@@ -2,7 +2,8 @@ import { ImagePreviewB64 } from '@app/pages/project/debug-view';
 import { ImageType, MessageInput, SessionItem } from '@app/pages/project/state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { PromptMessages, RunAssistantInput, RunAssistantLog } from '@blocklet/ai-runtime/types';
-import { Box, Stack, Typography, styled } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Stack, Typography, styled } from '@mui/material';
+import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
 import { pick } from 'lodash';
 import { memo } from 'react';
@@ -122,9 +123,9 @@ interface ContainerProps {
   deep?: number;
 }
 
-const Container = styled(Box)<ContainerProps>(({ theme, deep = 0 }) => ({
+const Container = styled(Accordion)<ContainerProps>(({ theme, deep = 0 }) => ({
   margin: `${theme.spacing(deep ? 2 : 1)} 0 0 ${theme.spacing(deep * 3)}`,
-  padding: theme.spacing(1),
+  // padding: theme.spacing(1),
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
 }));
@@ -143,18 +144,28 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
     'fnArgs',
     'modelParameters'
   );
-
   const arr = Object.entries(pickInput).flatMap(([key, value]) => (isTraceLabel(key) ? [{ label: key, value }] : []));
+
   return (
-    <Container deep={deep}>
-      <Typography fontWeight="bold" marginBottom="8px">
-        {input.assistantName}
-      </Typography>
-      <TraceCard>
-        {arr.map((trace) => (
-          <LabelValue key={trace.label} label={trace.label} value={trace.value} />
-        ))}
-      </TraceCard>
+    <Container disableGutters deep={deep}>
+      <AccordionSummary
+        sx={{
+          margin: 0,
+          minHeight: 32,
+          '& .MuiAccordionSummary-content': {
+            my: 0,
+          },
+        }}
+        expandIcon={<GridExpandMoreIcon />}>
+        <Typography fontWeight="bold">{input.assistantName}</Typography>
+      </AccordionSummary>
+      <AccordionDetails sx={{ pt: 0 }}>
+        <TraceCard>
+          {arr.map((trace) => (
+            <LabelValue key={trace.label} label={trace.label} value={trace.value} />
+          ))}
+        </TraceCard>
+      </AccordionDetails>
     </Container>
   );
 }
