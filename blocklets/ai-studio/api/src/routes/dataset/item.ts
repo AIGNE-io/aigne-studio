@@ -31,12 +31,10 @@ const paginationSchema = Joi.object<{ page: number; size: number }>({
 
 const createItemSchema = Joi.object<{
   type: 'text' | 'discussion';
-  content?: string;
-  id?: string;
+  data: string;
 }>({
   type: Joi.string().valid('text', 'discussion').required(),
-  content: Joi.string().when('type', { is: 'text', then: Joi.required() }),
-  id: Joi.string().when('type', { is: 'discussion', then: Joi.required() }),
+  data: Joi.string().required(),
 });
 
 /**
@@ -196,13 +194,9 @@ const embeddingHandler: {
  *            schema:
  *              type: object
  *              properties:
- *                name:
- *                  type: string
  *                type:
  *                  type: string
- *                id:
- *                  type: string
- *                content:
+ *                data:
  *                  type: string
  *      responses:
  *        200:
@@ -223,8 +217,8 @@ router.post(
     const input = await createItemSchema.validateAsync(req.body, { stripUnknown: true });
     const data =
       input.type === 'text'
-        ? { type: input.type, content: input.content || '' }
-        : { type: input.type, id: input.id || '' };
+        ? { type: input.type, content: input.data || '' }
+        : { type: input.type, id: input.data || '' };
 
     const result = await DatasetItem.create({
       type: input.type,
