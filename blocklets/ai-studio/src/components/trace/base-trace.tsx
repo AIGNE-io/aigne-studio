@@ -52,7 +52,7 @@ export function PromptMessagesComponent({ value }: { value: PromptMessages }) {
         <Typography>{i.role}</Typography>
       </AccordionSummary>
       <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
-        <Typography>{i.content}</Typography>
+        <Typography sx={{ whiteSpace: 'pre-wrap' }}>{i.content}</Typography>
       </AccordionDetails>
     </Accordion>
   ));
