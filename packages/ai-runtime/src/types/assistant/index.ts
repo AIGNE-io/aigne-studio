@@ -37,6 +37,7 @@ type ModelConfiguration = {
 export type ExecuteBlockSelectByPrompt = ExecuteBlockCommon & {
   selectType: 'selectByPrompt';
   executeModel?: ModelConfiguration;
+  canStopTools?: string[];
 };
 
 export type ExecuteBlock = ExecuteBlockSelectAll | ExecuteBlockSelectByPrompt;

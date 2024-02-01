@@ -720,7 +720,7 @@ async function runExecuteBlock({
     }
 
     const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
-
+    let isStop = false;
     const result =
       calls &&
       (await Promise.all(
@@ -729,7 +729,7 @@ async function runExecuteBlock({
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
-
+          isStop = executeBlock.canStopTools?.includes(tool.tool.id) ?? false;
           const args = JSON.parse(call.function.arguments);
           const toolAssistant = tool?.assistant;
           await Promise.all(
@@ -759,6 +759,10 @@ async function runExecuteBlock({
       assistantId: assistant.id,
       delta: { content: JSON.stringify(result) },
     });
+
+    if (isStop) {
+      throw new Error('stop');
+    }
 
     return result?.length === 1 ? result[0] : result;
   }

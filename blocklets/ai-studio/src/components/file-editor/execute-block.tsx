@@ -168,7 +168,13 @@ export default function ExecuteBlockForm({
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="caption">{t('prompt')}</Typography>
             <ModelPopper>
-              <ModelSetting value={value} readOnly={readOnly} projectId={projectId} gitRef={gitRef} />
+              <ModelSetting
+                files={store.files}
+                value={value}
+                readOnly={readOnly}
+                projectId={projectId}
+                gitRef={gitRef}
+              />
             </ModelPopper>
           </Box>
           <PromptEditorField
@@ -231,6 +237,9 @@ export default function ExecuteBlockForm({
                       e.stopPropagation();
                       const doc = (getYjsValue(value) as Map<any>).doc!;
                       doc.transact(() => {
+                        if (value.selectType === 'selectByPrompt') {
+                          value.canStopTools = value.canStopTools?.filter((i) => i !== tool.id);
+                        }
                         if (value.tools) {
                           delete value.tools[tool.id];
                           sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
