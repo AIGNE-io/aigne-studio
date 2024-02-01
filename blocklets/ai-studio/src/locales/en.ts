@@ -128,6 +128,7 @@ export default flat({
   function: 'Function',
   api: 'API',
   noParameters: 'No Parameters',
+  logs: 'Logs',
   parameters: 'Parameters',
   model: 'Model',
   images: 'Images',

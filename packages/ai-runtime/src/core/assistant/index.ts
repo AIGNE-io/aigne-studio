@@ -27,12 +27,7 @@ import {
   isPromptAssistant,
 } from '../../types';
 import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
-import {
-  defaultImageModel,
-  defaultTextModel,
-  getSupportedImagesModels,
-  getSupportedModels,
-} from '../../types/assistant/model';
+import { defaultImageModel, getSupportedImagesModels } from '../../types/assistant/model';
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
@@ -426,7 +421,6 @@ async function runPromptAssistant({
   callback?: RunAssistantCallback;
 }) {
   if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
-  const defaultModel = getSupportedModels().find((i) => i.model === (assistant.model || defaultTextModel));
 
   const executeBlocks = assistant.prompts
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i))
@@ -510,18 +504,7 @@ async function runPromptAssistant({
   callback?.({
     type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
-    ...(parentTaskId
-      ? {
-          parentTaskId,
-          modelParameters: {
-            model: assistant.model,
-            temperature: assistant.temperature || defaultModel?.temperatureDefault,
-            topP: assistant.topP || defaultModel?.topPDefault,
-            presencePenalty: assistant.presencePenalty || defaultModel?.frequencyPenaltyDefault,
-            frequencyPenalty: assistant.frequencyPenalty || defaultModel?.frequencyPenaltyDefault,
-          },
-        }
-      : {}),
+    parentTaskId,
     taskId,
     assistantName: assistant.name,
     inputParameters: parameters,
@@ -562,7 +545,7 @@ async function runPromptAssistant({
           parentTaskId,
           modelParameters: res.modelInfo,
         }
-      : {}),
+      : { parentTaskId }),
     taskId,
     assistantName: assistant.name,
     inputParameters: parameters,
