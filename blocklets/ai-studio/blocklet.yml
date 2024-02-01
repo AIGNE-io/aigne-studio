@@ -64,19 +64,16 @@ components:
     source:
       name: ai-kit
       version: latest
-      store: https://store.blocklet.dev
   - name: image-bin
     mountPoint: /image-bin
     source:
       name: image-bin
       version: latest
-      store: https://store.blocklet.dev
   - name: did-comments
     mountPoint: /discuss-kit
     source:
       name: did-comments
       version: latest
-      store: https://store.blocklet.dev
 navigation:
   - id: template
     title:
