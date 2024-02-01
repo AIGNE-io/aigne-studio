@@ -2,7 +2,7 @@ import { getSupportedModels } from '@app/libs/common';
 import Settings from '@app/pages/project/icons/settings';
 import { useProjectState } from '@app/pages/project/state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlockSelectByPromptYjs, FileTypeYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import { ExecuteBlockSelectByPromptYjs, FileTypeYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { InfoOutlined } from '@mui/icons-material';
 import {
   Box,
@@ -23,6 +23,7 @@ import {
   Stack,
   Tooltip,
 } from '@mui/material';
+import { sortBy } from 'lodash';
 import isNil from 'lodash/isNil';
 import { ReactElement, useMemo, useRef, useState } from 'react';
 import { useAsync } from 'react-use';
@@ -30,19 +31,6 @@ import { useAsync } from 'react-use';
 import WithAwareness from '../awareness/with-awareness';
 import ModelSelectField from '../selector/model-select-field';
 import SliderNumberField from '../slider-number-field';
-
-type ToolWithFile = {
-  index: number;
-  data: {
-    file: AssistantYjs;
-    id: string;
-    parameters?:
-      | {
-          [key: string]: string;
-        }
-      | undefined;
-  };
-};
 
 export function ModelSetting({
   projectId,
@@ -88,17 +76,18 @@ export function ModelSetting({
     };
   }
 
-  const tools: ToolWithFile[] = value.tools
-    ? Object.values(value.tools)
-        .map(({ index, data: tool }) => {
-          const f = files[tool.id];
-          const file = f && isAssistant(f) ? f : undefined;
-          if (!file) return null;
-          return { index, data: { ...tool, file } };
-        })
-        .filter((i): i is ToolWithFile => i !== null)
-        .sort((a, b) => a.index - b.index)
-    : [];
+  const tools = sortBy(
+    value.tools
+      ? Object.values(value.tools)
+          .map(({ index, data: tool }) => {
+            const f = files[tool.id];
+            const file = f && isAssistant(f) ? f : undefined;
+            if (!file) return null;
+            return { index, data: { ...tool, file } };
+          })
+          .filter((i): i is NonNullable<typeof i> => !!i)
+      : []
+  );
 
   return (
     <Stack position="relative" py={1} gap={1}>
