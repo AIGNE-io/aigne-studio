@@ -58,17 +58,21 @@ capabilities:
 screenshots:
   - studio.gif
 components:
-  - name: image-bin
-    required: true
-    mountPoint: /image-bin
-    source:
-      name: image-bin
-      version: latest
   - name: ai-kit
     required: true
     mountPoint: /ai-kit
     source:
       name: ai-kit
+      version: latest
+  - name: image-bin
+    mountPoint: /image-bin
+    source:
+      name: image-bin
+      version: latest
+  - name: did-comments
+    mountPoint: /discuss-kit
+    source:
+      name: did-comments
       version: latest
 navigation:
   - id: template
