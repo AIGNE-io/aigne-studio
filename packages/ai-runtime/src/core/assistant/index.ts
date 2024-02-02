@@ -744,7 +744,6 @@ async function runExecuteBlock({
     }
 
     const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
-    let isStop = false;
     const result =
       calls &&
       (await Promise.all(
@@ -753,7 +752,6 @@ async function runExecuteBlock({
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
-          isStop = tool.tool?.onEnd === OnTaskCompletion.EXIT;
           const args = JSON.parse(call.function.arguments);
           const toolAssistant = tool?.assistant;
           await Promise.all(
@@ -765,7 +763,7 @@ async function runExecuteBlock({
             }) ?? []
           );
 
-          return runAssistant({
+          const res = runAssistant({
             taskId: taskIdGenerator.nextId().toString(),
             callAI,
             callAIImage,
@@ -774,6 +772,12 @@ async function runExecuteBlock({
             parameters: args,
             callback,
           });
+
+          if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
+            throw new Error('Exit');
+          }
+
+          return res;
         })
       ));
 
@@ -783,10 +787,6 @@ async function runExecuteBlock({
       assistantId: assistant.id,
       delta: { content: JSON.stringify(result) },
     });
-
-    if (isStop) {
-      throw new Error('STOP');
-    }
 
     return result?.length === 1 ? result[0] : result;
   }
