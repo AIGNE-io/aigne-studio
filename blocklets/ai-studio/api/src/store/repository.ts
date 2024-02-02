@@ -293,8 +293,34 @@ export async function getAssistantFromRepository({
   ref: string;
   working?: boolean;
   assistantId: string;
+  rejectOnEmpty: true | Error;
+}): Promise<Assistant>;
+export async function getAssistantFromRepository({
+  repository,
+  ref,
+  working,
+  assistantId,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  assistantId: string;
+  rejectOnEmpty?: false;
+}): Promise<Assistant | undefined>;
+export async function getAssistantFromRepository({
+  repository,
+  ref,
+  working,
+  assistantId,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  assistantId: string;
   rejectOnEmpty?: boolean | Error;
-}): Promise<Assistant> {
+}): Promise<Assistant | undefined> {
   let file: Assistant;
 
   if (working) {
@@ -308,7 +334,9 @@ export async function getAssistantFromRepository({
 
   if (!file || !isAssistant(file)) {
     if (rejectOnEmpty) {
-      throw typeof rejectOnEmpty !== 'boolean' ? rejectOnEmpty : new Error(`no such file ${assistantId}`);
+      throw typeof rejectOnEmpty !== 'boolean'
+        ? rejectOnEmpty
+        : new Error(`no such assistant ${JSON.stringify({ ref, assistantId, working })}`);
     }
   }
 
