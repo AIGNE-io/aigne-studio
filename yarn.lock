@@ -255,7 +255,7 @@
     amp-message "~0.1.2"
     axon "^2.0.3"
 
-"@arcblock/icons@^2.9.20", "@arcblock/icons@^2.9.21":
+"@arcblock/icons@^2.9.21":
   version "2.9.21"
   resolved "https://registry.yarnpkg.com/@arcblock/icons/-/icons-2.9.21.tgz#62e76f41d2b0806a7593e74ae82305ac609a5621"
   integrity sha512-mzvT5xHQsB6u6qX5dMvkH2mu+eayavUA2YOYX+VB9wngMcECuO0AcQbso7XYA0h9dWXjX67CqaF2jzBcEFnEeA==
@@ -272,7 +272,7 @@
     json-stable-stringify "^1.0.1"
     semver "^7.3.8"
 
-"@arcblock/nft-display@^2.9.20", "@arcblock/nft-display@^2.9.21":
+"@arcblock/nft-display@^2.9.21":
   version "2.9.21"
   resolved "https://registry.yarnpkg.com/@arcblock/nft-display/-/nft-display-2.9.21.tgz#07239fcec38ef0893a89d2f3fd5da62b8a96f7dc"
   integrity sha512-MB0H5bbmfZWa48in0aYpNflJsUueI+wgtxR7ghYmqMfOrt/YAGYbM1mZhsaGcs1xi9XmIgxI+/2RQiF13KXqKQ==
@@ -281,7 +281,7 @@
     "@ocap/mcrypto" "^1.18.90"
     "@ocap/util" "^1.18.90"
 
-"@arcblock/react-hooks@^2.9.20", "@arcblock/react-hooks@^2.9.21":
+"@arcblock/react-hooks@^2.9.21":
   version "2.9.21"
   resolved "https://registry.yarnpkg.com/@arcblock/react-hooks/-/react-hooks-2.9.21.tgz#539d7dd15d65d58f4e65e5975e4773c58988c7ca"
   integrity sha512-tkdp6ucZKjce2cxo3jRgEdKHXAFTe8fDCrWS/8vxPtazRPuHnQpYMk8bnQKB3DiSRibJl9aZ/vTJjvlk+XQQMw==
@@ -302,7 +302,7 @@
     lodash.isnull "^3.0.0"
     lodash.set "^4.3.2"
 
-"@arcblock/ux@^2.9.20", "@arcblock/ux@^2.9.21":
+"@arcblock/ux@^2.9.21":
   version "2.9.21"
   resolved "https://registry.yarnpkg.com/@arcblock/ux/-/ux-2.9.21.tgz#ee63af3eb0f909f6abb92bbd29eaa64826ec4b3b"
   integrity sha512-OAyoAqlJmEQDKoKRuBsszZdIklwXVBN/mNW3I8aY7bjv4lCB3m49viSKZElV7r6QMq+4mLY8mhtNWuYRmac+Ng==

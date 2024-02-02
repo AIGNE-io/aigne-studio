@@ -125,9 +125,11 @@ interface ContainerProps {
 
 const Container = styled(Accordion)<ContainerProps>(({ theme, deep = 0 }) => ({
   margin: `${theme.spacing(deep ? 2 : 1)} 0 0 ${theme.spacing(deep * 3)}`,
-  // padding: theme.spacing(1),
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
+  '&::before': {
+    display: 'none',
+  },
 }));
 
 function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {

@@ -629,7 +629,6 @@ async function runImageAssistant({
     type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
     taskId,
-    parentTaskId,
     assistantName: assistant.name,
     inputParameters: parameters,
     ...(parentTaskId
@@ -643,7 +642,7 @@ async function runImageAssistant({
             size: assistant.size || defaultModel?.sizeDefault,
           },
         }
-      : {}),
+      : { parentTaskId }),
   });
 
   const { data } = await callAIImage({
