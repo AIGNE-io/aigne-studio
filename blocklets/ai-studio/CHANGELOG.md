@@ -1,3 +1,7 @@
+## 0.1.242 (2024-2-2)
+
+- feat: stop after tools select
+
 ## 0.1.239 (2024-1-30)
 
 - fix: init scroll and clear messages

@@ -26,7 +26,7 @@ import {
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
-import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
+import { ImageAssistant, Mustache, OnTaskCompletion, Role, isImageAssistant } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
@@ -729,7 +729,7 @@ async function runExecuteBlock({
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
-          isStop = executeBlock.canStopTools?.includes(tool.tool.id) ?? false;
+          isStop = tool.tool?.onEnd === OnTaskCompletion.EXIT;
           const args = JSON.parse(call.function.arguments);
           const toolAssistant = tool?.assistant;
           await Promise.all(

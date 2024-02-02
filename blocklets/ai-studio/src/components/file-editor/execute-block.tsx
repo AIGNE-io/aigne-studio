@@ -238,7 +238,10 @@ export default function ExecuteBlockForm({
                       const doc = (getYjsValue(value) as Map<any>).doc!;
                       doc.transact(() => {
                         if (value.selectType === 'selectByPrompt') {
-                          value.canStopTools = value.canStopTools?.filter((i) => i !== tool.id);
+                          const selectTool = value.tools?.[tool.id];
+                          if (selectTool) {
+                            selectTool.data.onEnd = undefined;
+                          }
                         }
                         if (value.tools) {
                           delete value.tools[tool.id];

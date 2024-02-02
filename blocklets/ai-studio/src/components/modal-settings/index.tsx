@@ -2,7 +2,7 @@ import { getSupportedModels } from '@app/libs/common';
 import Settings from '@app/pages/project/icons/settings';
 import { useProjectState } from '@app/pages/project/state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ExecuteBlockSelectByPromptYjs, FileTypeYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import { ExecuteBlockSelectByPromptYjs, FileTypeYjs, OnTaskCompletion, isAssistant } from '@blocklet/ai-runtime/types';
 import { InfoOutlined } from '@mui/icons-material';
 import {
   Box,
@@ -52,15 +52,6 @@ export function ModelSetting({
   const { project } = state;
   const { value: supportedModels } = useAsync(() => getSupportedModels(), []);
 
-  const toolId = value.canStopTools ?? [];
-
-  const handleChange = (event: SelectChangeEvent<typeof toolId>) => {
-    const {
-      target: { value: selectValue },
-    } = event;
-    value.canStopTools = typeof selectValue === 'string' ? selectValue.split(',') : selectValue;
-  };
-
   const model = useMemo(() => {
     return supportedModels?.find((i) => i.model === (value.executeModel?.model || project?.model));
   }, [supportedModels, value.executeModel?.model, project?.model]);
@@ -88,6 +79,25 @@ export function ModelSetting({
           .filter((i): i is NonNullable<typeof i> => !!i)
       : []
   );
+
+  const toolId = tools.filter((i) => i.data.onEnd === OnTaskCompletion.EXIT).map((i) => i.data.id) ?? [];
+
+  const handleChange = (event: SelectChangeEvent<typeof toolId>) => {
+    const {
+      target: { value: selectValue },
+    } = event;
+
+    const data = typeof selectValue === 'string' ? selectValue.split(',') : selectValue;
+
+    const toolIds = tools.map((tool) => tool.data.id);
+
+    toolIds.forEach((id) => {
+      const tool = value.tools?.[id];
+      if (tool) {
+        tool.data.onEnd = data.includes(id) ? OnTaskCompletion.EXIT : undefined;
+      }
+    });
+  };
 
   return (
     <Stack position="relative" py={1} gap={1}>
