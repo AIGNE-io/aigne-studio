@@ -1,3 +1,15 @@
+## 0.1.242 (2024-2-2)
+
+- fix: reject an error if assistant not found
+
+## 0.1.239 (2024-1-30)
+
+- fix: init scroll and clear messages
+
+## 0.1.238 (2024-1-29)
+
+- fix: enable subscription after subscribe succeed
+
 ## 0.1.237 (2024-1-25)
 
 - fix: introduce dependency exceptions
