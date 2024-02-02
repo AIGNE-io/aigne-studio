@@ -464,6 +464,7 @@ export function projectRoutes(router: Router) {
         await repository.pull({ remote: defaultRemote, ref, author: { name: fullName, email: userId } });
       }
     }
+    await repository.checkout({ ref: defaultBranch, force: true });
 
     await project.update({ gitLastSyncedAt: new Date() });
 
