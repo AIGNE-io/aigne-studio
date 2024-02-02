@@ -137,17 +137,23 @@ async function runFunctionAssistant({
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
 }) {
-  const results = assistant.prepareExecutes?.length
-    ? await runExecuteBlocks({
-        assistant,
-        callAI,
-        callAIImage,
-        getAssistant,
-        parameters,
-        executeBlocks: assistant.prepareExecutes,
-        callback,
-      })
-    : [];
+  let results: (readonly [ExecuteBlock, any])[];
+
+  try {
+    results = assistant.prepareExecutes?.length
+      ? await runExecuteBlocks({
+          assistant,
+          callAI,
+          callAIImage,
+          getAssistant,
+          parameters,
+          executeBlocks: assistant.prepareExecutes,
+          callback,
+        })
+      : [];
+  } catch (e) {
+    return '';
+  }
 
   if (!assistant.code) throw new Error(`Assistant ${assistant.id}'s code is empty`);
 
@@ -245,17 +251,23 @@ async function runApiAssistant({
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
 
-  const results = assistant.prepareExecutes?.length
-    ? await runExecuteBlocks({
-        assistant,
-        callAI,
-        callAIImage,
-        getAssistant,
-        parameters,
-        executeBlocks: assistant.prepareExecutes,
-        callback,
-      })
-    : [];
+  let results: (readonly [ExecuteBlock, any])[];
+
+  try {
+    results = assistant.prepareExecutes?.length
+      ? await runExecuteBlocks({
+          assistant,
+          callAI,
+          callAIImage,
+          getAssistant,
+          parameters,
+          executeBlocks: assistant.prepareExecutes,
+          callback,
+        })
+      : [];
+  } catch (e) {
+    return '';
+  }
 
   const isSameVariable = (left?: string, right?: string) => left && left === right;
 
@@ -343,15 +355,21 @@ async function runPromptAssistant({
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i))
     .map((i) => i.data);
 
-  const blockResults = await runExecuteBlocks({
-    assistant,
-    callAI,
-    callAIImage,
-    getAssistant,
-    executeBlocks,
-    parameters,
-    callback,
-  });
+  let blockResults: (readonly [ExecuteBlock, any])[];
+
+  try {
+    blockResults = await runExecuteBlocks({
+      assistant,
+      callAI,
+      callAIImage,
+      getAssistant,
+      executeBlocks,
+      parameters,
+      callback,
+    });
+  } catch (e) {
+    return '';
+  }
 
   const variables = { ...parameters };
 
@@ -464,17 +482,23 @@ async function runImageAssistant({
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
-  const blockResults = assistant.prepareExecutes?.length
-    ? await runExecuteBlocks({
-        assistant,
-        callAI,
-        callAIImage,
-        getAssistant,
-        parameters,
-        executeBlocks: assistant.prepareExecutes,
-        callback,
-      })
-    : [];
+  let blockResults: (readonly [ExecuteBlock, any])[];
+
+  try {
+    blockResults = assistant.prepareExecutes?.length
+      ? await runExecuteBlocks({
+          assistant,
+          callAI,
+          callAIImage,
+          getAssistant,
+          parameters,
+          executeBlocks: assistant.prepareExecutes,
+          callback,
+        })
+      : [];
+  } catch (e) {
+    return '';
+  }
 
   const variables = { ...parameters };
 
@@ -761,7 +785,7 @@ async function runExecuteBlock({
     });
 
     if (isStop) {
-      throw new Error('stop');
+      throw new Error('STOP');
     }
 
     return result?.length === 1 ? result[0] : result;
