@@ -240,6 +240,7 @@ export async function commitProjectSettingWorking({
 }) {
   const repository = await getRepository({ projectId: project._id! });
   await repository.transact(async (tx) => {
+    await tx.checkout({ ref: defaultBranch, force: true });
     await addSettingsToGit({ tx, project });
     await tx.commit({ message, author });
   });
