@@ -30,7 +30,7 @@ export const getRequest = (pathItem: DatasetObject, requestData: { [key: string]
       ...(headers || {}),
       'x-component-sig': sign(config.data || {}),
       'x-component-did': process.env.BLOCKLET_COMPONENT_DID,
-      'x-custom-user-did': did,
+      'x-user-did': did,
     },
   });
 };
