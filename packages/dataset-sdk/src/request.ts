@@ -4,6 +4,14 @@ import axios from 'axios';
 import { DatasetObject, RequestBodyObject } from './types';
 import convertSchemaToObject from './util/convert-schema';
 
+export interface User {
+  did: string;
+  role: string;
+  fullName: string;
+  provider: string;
+  walletOS: string;
+}
+
 export const getRequestConfig = (pathItem: DatasetObject, requestData: { [key: string]: any }) => {
   let url = pathItem?.url || '';
   const config: {
@@ -128,9 +136,14 @@ function serializeNestedObject(parentKey: string, obj: any): string {
     .join('&');
 }
 
-export const getRequest = (pathItem: DatasetObject, requestData: { [key: string]: any }) => {
+export const getRequest = (pathItem: DatasetObject, requestData: { [key: string]: any }, options?: { user?: User }) => {
   const requestConfig = getRequestConfig(pathItem, requestData);
   const { headers, ...config } = requestConfig;
+  let did = '';
+
+  if (options?.user) {
+    did = options?.user?.did || '';
+  }
 
   return axios({
     ...config,
@@ -138,6 +151,7 @@ export const getRequest = (pathItem: DatasetObject, requestData: { [key: string]
       ...(headers || {}),
       'x-component-sig': sign(config.data || {}),
       'x-component-did': process.env.BLOCKLET_COMPONENT_DID,
+      'x-custom-user-did': did,
     },
   });
 };
