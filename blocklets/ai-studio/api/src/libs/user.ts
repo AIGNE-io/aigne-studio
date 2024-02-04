@@ -48,15 +48,9 @@ export const getUsers = async (dids: string[]) => {
 
 export const checkUserAuth = () => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.headers['x-user-did'] && !req.headers['x-custom-user-did']) {
+    if (!req.user?.did) {
       res.status(401).json({ code: 'forbidden', error: 'not authorized' });
       return;
-    }
-
-    if (!req.user) {
-      req.user = {
-        did: String(req.headers['x-user-did'] || req.headers['x-custom-user-did'] || ''),
-      } as any;
     }
 
     next();
