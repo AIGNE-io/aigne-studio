@@ -1,10 +1,11 @@
 import ErrorCard from '@app/components/error-card';
 import MdViewer from '@app/components/md-viewer';
+import BasicTree from '@app/components/trace';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, isAssistant, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { css, cx } from '@emotion/css';
 import { Add, CopyAll } from '@mui/icons-material';
@@ -33,10 +34,8 @@ import {
   selectClasses,
   styled,
 } from '@mui/material';
-import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { useLocalStorageState } from 'ahooks';
-import dayjs from 'dayjs';
-import { isEmpty, pick, sortBy } from 'lodash';
+import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
 import { ComponentProps, SyntheticEvent, memo, useEffect, useMemo, useState } from 'react';
@@ -51,7 +50,6 @@ import Record from './icons/record';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
 import { SessionItem, useDebugState, useProjectState } from './state';
-import { useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {
   projectId: string;
@@ -142,13 +140,7 @@ function DebugViewContent({
 
       <Box component={ScrollToBottom} initialScrollBehavior="auto" flexGrow={1} sx={{ overflowX: 'hidden' }}>
         {currentSession.messages.map((message) => (
-          <MessageView
-            currentSession={currentSession.chatType}
-            key={message.id}
-            projectId={projectId}
-            gitRef={gitRef}
-            message={message}
-          />
+          <MessageView chatType={currentSession.chatType ?? 'chat'} message={message} key={message.id} />
         ))}
       </Box>
 
@@ -231,177 +223,61 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
 }
 
 const MessageView = memo(
-  ({
-    projectId,
-    gitRef,
-    currentSession,
-    message,
-  }: {
-    projectId: string;
-    currentSession?: 'chat' | 'debug';
-    gitRef: string;
-    message: SessionItem['messages'][number];
-  }) => {
-    const { t } = useLocaleContext();
-    const { store } = useProjectStore(projectId, gitRef);
+  ({ message, chatType }: { message: SessionItem['messages'][number]; chatType?: 'chat' | 'debug' }) => {
     return (
-      <>
-        <Stack px={2} py={1} direction="row" gap={1} position="relative">
-          <Box py={0.5}>
-            <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-          </Box>
-          <Box width="100%">
-            {!!message.logs?.length && (
-              <Box mb={1} bgcolor="grey.50" borderRadius={1} p={1}>
-                {message.logs.map((item, index) => (
-                  <Box my={0.5} key={index}>
-                    <Typography component="span" color="text.secondary">
-                      {`${dayjs(item.timestamp).format('HH:mm:ss:SSS')}: `}
-                    </Typography>
-                    <Typography ml={0.25} component="span">{`${item.log}  `}</Typography>
+      <Stack px={2} py={1} direction="row" gap={1} position="relative">
+        <Box py={0.5}>
+          <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
+        </Box>
+        <Box width="100%">
+          <BasicTree inputs={message.inputMessages} />
+
+          <Box
+            flex={1}
+            sx={{
+              [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
+            }}>
+            {(message.content || message.images?.length || message.loading) &&
+            (chatType !== 'debug' || !message?.inputMessages?.length) ? (
+              <MessageViewContent
+                sx={{
+                  px: 1,
+                  py: 1,
+                  borderRadius: 1,
+                  bgcolor: (theme) =>
+                    message?.inputMessages
+                      ? theme.palette.grey[100]
+                      : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
+                  position: 'relative',
+                }}>
+                <MdViewer content={message.content} />
+
+                {message.images && message.images.length > 0 && (
+                  <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
+                )}
+
+                {message.loading && !message.inputMessages && <WritingIndicator />}
+
+                {message.role === 'assistant' && (
+                  <Box className="actions">
+                    {message.content && <CopyButton key="copy" message={message.content} />}
                   </Box>
-                ))}
-              </Box>
+                )}
+              </MessageViewContent>
+            ) : null}
+
+            {message.error ? (
+              <ErrorCard error={message.error} />
+            ) : (
+              message.cancelled && (
+                <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                  Cancelled
+                </Alert>
+              )
             )}
-            <Box
-              flex={1}
-              sx={{
-                [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
-              }}>
-              {message.content || message.parameters || message.images?.length || message.loading ? (
-                <MessageViewContent
-                  sx={{
-                    px: 1,
-                    py: 1,
-                    borderRadius: 1,
-                    bgcolor: (theme) =>
-                      message?.inputMessages
-                        ? theme.palette.grey[100]
-                        : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
-                    position: 'relative',
-                  }}>
-                  {<MdViewer content={message.content} /> ||
-                    (message.parameters && (
-                      <Box>
-                        {!isEmpty(message.parameters) ? (
-                          Object.entries(message.parameters).map(([key, val]) => (
-                            <Typography key={key}>
-                              <Typography component="span" color="text.secondary">
-                                {key}
-                              </Typography>
-                              : {typeof val === 'string' ? val : JSON.stringify(val)}
-                            </Typography>
-                          ))
-                        ) : (
-                          <span>{t('noParameters')}</span>
-                        )}
-                      </Box>
-                    ))}
-                  {!!message.inputMessages?.messages?.length && (
-                    <Box margin={0.5}>
-                      {message.inputMessages?.messages.map((i, index) => (
-                        <Accordion
-                          sx={{
-                            border: (theme) => `1px solid ${theme.palette.divider}`,
-                            '&:not(:last-child)': {
-                              borderBottom: 0,
-                            },
-                            '&::before': {
-                              display: 'none',
-                            },
-                          }}
-                          disableGutters
-                          elevation={0}
-                          key={index}>
-                          <AccordionSummary
-                            sx={{
-                              backgroundColor: (theme) =>
-                                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
-                              minHeight: 28,
-                              '& .MuiAccordionSummary-content': {
-                                my: 0,
-                              },
-                            }}
-                            expandIcon={<GridExpandMoreIcon />}>
-                            <Typography>{i.role}</Typography>
-                          </AccordionSummary>
-                          <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
-                            <Typography>{i.content}</Typography>
-                          </AccordionDetails>
-                        </Accordion>
-                      ))}
-                    </Box>
-                  )}
-
-                  {message.images && message.images.length > 0 && (
-                    <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
-                  )}
-
-                  {message.loading &&
-                    (message.inputMessages ? (
-                      message?.inputMessages?.messages.length === 0 &&
-                      (currentSession === 'debug' ? <CircularProgress sx={{ marginTop: 1 }} size={18} /> : null)
-                    ) : (
-                      <WritingIndicator />
-                    ))}
-
-                  {message.role === 'assistant' && (
-                    <Box className="actions">
-                      {message.content && <CopyButton key="copy" message={message.content} />}
-                    </Box>
-                  )}
-                </MessageViewContent>
-              ) : null}
-
-              {message.error ? (
-                <ErrorCard error={message.error} />
-              ) : (
-                message.cancelled && (
-                  <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                    Cancelled
-                  </Alert>
-                )
-              )}
-            </Box>
           </Box>
-        </Stack>
-
-        {message.subMessages && (
-          <Box ml={6}>
-            {message.subMessages.map((item) => {
-              const assistant = store.files[item.assistantId];
-              const name = (assistant && isAssistant(assistant) && assistant.name) || item.taskId;
-
-              const avatar = (
-                <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{name?.slice(0, 1).toUpperCase()}</Avatar>
-              );
-
-              return (
-                <Box key={item.taskId}>
-                  <Box py={1} display="flex" alignItems="center" gap={1}>
-                    {avatar}
-                    <Box>{name}</Box>
-                  </Box>
-
-                  <Box ml={4}>
-                    {item.content && (
-                      <Box
-                        component="pre"
-                        sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
-                        dangerouslySetInnerHTML={{ __html: item.content }}
-                      />
-                    )}
-
-                    {item.images && item.images.length > 0 && (
-                      <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={item.images} />
-                    )}
-                  </Box>
-                </Box>
-              );
-            })}
-          </Box>
-        )}
-      </>
+        </Box>
+      </Stack>
     );
   }
 );
@@ -858,7 +734,7 @@ const CustomAccordion = styled(Accordion)(() => ({
   },
 }));
 
-function ImagePreviewB64({
+export function ImagePreviewB64({
   dataSource,
   ...props
 }: Omit<ComponentProps<typeof ImagePreview>, 'dataSource'> & {

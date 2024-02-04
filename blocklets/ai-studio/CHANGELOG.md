@@ -1,3 +1,7 @@
+## 0.1.246 (2024-2-4)
+
+- feat: debug info integration
+
 ## 0.1.245 (2024-2-4)
 
 - feat: stop after tools select
