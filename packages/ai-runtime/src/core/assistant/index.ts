@@ -31,6 +31,15 @@ import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
+export class ToolCompletionDirective extends Error {
+  type: OnTaskCompletion;
+
+  constructor(message: string, type: OnTaskCompletion) {
+    super(message);
+    this.type = type;
+  }
+}
+
 export interface GetAssistant {
   (assistantId: string, options: { rejectOnEmpty: true | Error }): Promise<Assistant>;
   (assistantId: string, options?: { rejectOnEmpty?: false }): Promise<Assistant | null>;
@@ -67,52 +76,61 @@ export async function runAssistant({
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
 }): Promise<any> {
-  if (isPromptAssistant(assistant)) {
-    return runPromptAssistant({
-      taskId,
-      callAI,
-      callAIImage,
-      getAssistant,
-      assistant,
-      parameters,
-      callback,
-    });
-  }
+  try {
+    if (isPromptAssistant(assistant)) {
+      return await runPromptAssistant({
+        taskId,
+        callAI,
+        callAIImage,
+        getAssistant,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
 
-  if (isImageAssistant(assistant)) {
-    return runImageAssistant({
-      taskId,
-      callAI,
-      callAIImage,
-      getAssistant,
-      assistant,
-      parameters,
-      callback,
-    });
-  }
+    if (isImageAssistant(assistant)) {
+      return await runImageAssistant({
+        taskId,
+        callAI,
+        callAIImage,
+        getAssistant,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
 
-  if (isFunctionAssistant(assistant)) {
-    return runFunctionAssistant({
-      getAssistant,
-      callAI,
-      callAIImage,
-      taskId,
-      assistant,
-      parameters,
-      callback,
-    });
-  }
+    if (isFunctionAssistant(assistant)) {
+      return await runFunctionAssistant({
+        getAssistant,
+        callAI,
+        callAIImage,
+        taskId,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
 
-  if (isApiAssistant(assistant)) {
-    return runApiAssistant({
-      getAssistant,
-      callAI,
-      callAIImage,
-      taskId,
-      assistant,
-      parameters,
-      callback,
-    });
+    if (isApiAssistant(assistant)) {
+      return await runApiAssistant({
+        getAssistant,
+        callAI,
+        callAIImage,
+        taskId,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
+  } catch (e) {
+    if (e instanceof ToolCompletionDirective) {
+      if (e.type === OnTaskCompletion.EXIT) {
+        return undefined;
+      }
+    }
+    throw e;
   }
 
   throw new Error('Unimplemented');
@@ -137,23 +155,17 @@ async function runFunctionAssistant({
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
 }) {
-  let results: (readonly [ExecuteBlock, any])[];
-
-  try {
-    results = assistant.prepareExecutes?.length
-      ? await runExecuteBlocks({
-          assistant,
-          callAI,
-          callAIImage,
-          getAssistant,
-          parameters,
-          executeBlocks: assistant.prepareExecutes,
-          callback,
-        })
-      : [];
-  } catch (e) {
-    return '';
-  }
+  const results = assistant.prepareExecutes?.length
+    ? await runExecuteBlocks({
+        assistant,
+        callAI,
+        callAIImage,
+        getAssistant,
+        parameters,
+        executeBlocks: assistant.prepareExecutes,
+        callback,
+      })
+    : [];
 
   if (!assistant.code) throw new Error(`Assistant ${assistant.id}'s code is empty`);
 
@@ -251,23 +263,17 @@ async function runApiAssistant({
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
 
-  let results: (readonly [ExecuteBlock, any])[];
-
-  try {
-    results = assistant.prepareExecutes?.length
-      ? await runExecuteBlocks({
-          assistant,
-          callAI,
-          callAIImage,
-          getAssistant,
-          parameters,
-          executeBlocks: assistant.prepareExecutes,
-          callback,
-        })
-      : [];
-  } catch (e) {
-    return '';
-  }
+  const results = assistant.prepareExecutes?.length
+    ? await runExecuteBlocks({
+        assistant,
+        callAI,
+        callAIImage,
+        getAssistant,
+        parameters,
+        executeBlocks: assistant.prepareExecutes,
+        callback,
+      })
+    : [];
 
   const isSameVariable = (left?: string, right?: string) => left && left === right;
 
@@ -355,21 +361,15 @@ async function runPromptAssistant({
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i))
     .map((i) => i.data);
 
-  let blockResults: (readonly [ExecuteBlock, any])[];
-
-  try {
-    blockResults = await runExecuteBlocks({
-      assistant,
-      callAI,
-      callAIImage,
-      getAssistant,
-      executeBlocks,
-      parameters,
-      callback,
-    });
-  } catch (e) {
-    return '';
-  }
+  const blockResults = await runExecuteBlocks({
+    assistant,
+    callAI,
+    callAIImage,
+    getAssistant,
+    executeBlocks,
+    parameters,
+    callback,
+  });
 
   const variables = { ...parameters };
 
@@ -482,23 +482,17 @@ async function runImageAssistant({
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
-  let blockResults: (readonly [ExecuteBlock, any])[];
-
-  try {
-    blockResults = assistant.prepareExecutes?.length
-      ? await runExecuteBlocks({
-          assistant,
-          callAI,
-          callAIImage,
-          getAssistant,
-          parameters,
-          executeBlocks: assistant.prepareExecutes,
-          callback,
-        })
-      : [];
-  } catch (e) {
-    return '';
-  }
+  const blockResults = assistant.prepareExecutes?.length
+    ? await runExecuteBlocks({
+        assistant,
+        callAI,
+        callAIImage,
+        getAssistant,
+        parameters,
+        executeBlocks: assistant.prepareExecutes,
+        callback,
+      })
+    : [];
 
   const variables = { ...parameters };
 
@@ -763,7 +757,7 @@ async function runExecuteBlock({
             }) ?? []
           );
 
-          const res = runAssistant({
+          const res = await runAssistant({
             taskId: taskIdGenerator.nextId().toString(),
             callAI,
             callAIImage,
@@ -774,7 +768,7 @@ async function runExecuteBlock({
           });
 
           if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
-            throw new Error('Exit');
+            throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
           }
 
           return res;

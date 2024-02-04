@@ -1,4 +1,4 @@
-import { SubscriptionError } from '@blocklet/ai-kit/api';
+import { SubscriptionError, ToolCompletionDirective } from '@blocklet/ai-kit/api';
 
 import { Role } from '../assistant';
 
@@ -74,5 +74,5 @@ export type RunAssistantChunk = {
 
 export type RunAssistantError = {
   type: AssistantResponseType.ERROR;
-  error: { message: string } | SubscriptionError;
+  error: { message: string } | SubscriptionError | ToolCompletionDirective;
 };
