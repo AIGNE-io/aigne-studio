@@ -113,6 +113,7 @@ export default flat({
   duplicate: 'Duplicate',
   pin: 'Pin',
   unpin: 'Unpin',
+  stopped: 'Stopped has been selected in advance',
   delete: 'Delete',
   open: 'Open',
   unnamed: 'Unnamed',

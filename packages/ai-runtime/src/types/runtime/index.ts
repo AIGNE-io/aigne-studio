@@ -38,6 +38,7 @@ export type RunAssistantInput = {
   apiArgs?: any;
   fnArgs?: any;
   promptMessages?: PromptMessages;
+  stop?: boolean;
   modelParameters?: {
     temperature?: number;
     topP?: number;

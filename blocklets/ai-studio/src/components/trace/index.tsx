@@ -19,6 +19,7 @@ type Trace =
   | { label: 'images'; value: ImageType }
   | { label: 'apiArgs'; value: any }
   | { label: 'fnArgs'; value: any }
+  | { label: 'stop'; value: boolean }
   | { label: 'modelParameters'; value: RunAssistantInput['modelParameters'] };
 
 function isTraceLabel(key: string): key is Trace['label'] {
@@ -32,6 +33,7 @@ function isTraceLabel(key: string): key is Trace['label'] {
     'images',
     'apiArgs',
     'fnArgs',
+    'stop',
     'modelParameters',
   ].includes(key);
 }
@@ -110,6 +112,14 @@ const LabelValue = memo(({ label, value }: Trace) => {
     );
   }
 
+  if (label === 'stop' && value) {
+    return (
+      <LineContainer>
+        <StrValue sx={{ color: (theme) => theme.palette.warning.light }}>{t('stopped')}</StrValue>
+      </LineContainer>
+    );
+  }
+
   return null;
 });
 
@@ -144,6 +154,7 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
     'images',
     'apiArgs',
     'fnArgs',
+    'stop',
     'modelParameters'
   );
   const arr = Object.entries(pickInput).flatMap(([key, value]) => (isTraceLabel(key) ? [{ label: key, value }] : []));

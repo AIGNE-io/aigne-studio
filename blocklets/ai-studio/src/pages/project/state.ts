@@ -184,6 +184,7 @@ export type MessageInput = RunAssistantInput & {
   startTime?: number;
   endTime?: number;
   images?: ImageType;
+  selectType?: 'all' | 'selectByPrompt';
 };
 
 export interface SessionItem {
@@ -467,6 +468,9 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 let lastInput = message.inputMessages.findLast((input) => input.taskId === value.taskId);
                 if (lastInput) {
                   lastInput = Object.assign(lastInput, value);
+                  if (value.stop) {
+                    lastInput.endTime = Date.now();
+                  }
                 } else {
                   const parentTrace = message?.inputMessages.findLast((i) => i.taskId === value.parentTaskId);
                   message.inputMessages.push({ ...value, deep: parentTrace ? (parentTrace?.deep || 0) + 1 : 0 });

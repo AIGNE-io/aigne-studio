@@ -113,6 +113,7 @@ export default flat({
   duplicate: '复制',
   pin: '置顶',
   unpin: '取消置顶',
+  stopped: '已提前选择停止',
   delete: '删除',
   open: '打开',
   unnamed: '未命名',

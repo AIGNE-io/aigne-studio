@@ -1,5 +1,5 @@
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
-import { CallAI, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
+import { CallAI, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import { AssistantResponseType, RunAssistantResponse, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import compression from 'compression';
 import { Router } from 'express';
@@ -76,16 +76,17 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
     return chatCompletionChunk as any;
   };
 
-  const getAssistant = (fileId: string) => {
+  const getAssistant: GetAssistant = (fileId: string, options) => {
     return getAssistantFromRepository({
       repository,
       ref: input.ref,
       working: input.working,
       assistantId: fileId,
+      rejectOnEmpty: options?.rejectOnEmpty as any,
     });
   };
 
-  const assistant = await getAssistant(input.assistantId);
+  const assistant = await getAssistant(input.assistantId, { rejectOnEmpty: true });
 
   const startDate = new Date();
   const log = await Log.create({
