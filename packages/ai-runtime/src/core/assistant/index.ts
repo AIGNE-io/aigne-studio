@@ -26,10 +26,19 @@ import {
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
-import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
+import { ImageAssistant, Mustache, OnTaskCompletion, Role, isImageAssistant } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
+
+export class ToolCompletionDirective extends Error {
+  type: OnTaskCompletion;
+
+  constructor(message: string, type: OnTaskCompletion) {
+    super(message);
+    this.type = type;
+  }
+}
 
 export interface GetAssistant {
   (assistantId: string, options: { rejectOnEmpty: true | Error }): Promise<Assistant>;
@@ -67,52 +76,61 @@ export async function runAssistant({
   parameters?: { [key: string]: any };
   callback?: RunAssistantCallback;
 }): Promise<any> {
-  if (isPromptAssistant(assistant)) {
-    return runPromptAssistant({
-      taskId,
-      callAI,
-      callAIImage,
-      getAssistant,
-      assistant,
-      parameters,
-      callback,
-    });
-  }
+  try {
+    if (isPromptAssistant(assistant)) {
+      return await runPromptAssistant({
+        taskId,
+        callAI,
+        callAIImage,
+        getAssistant,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
 
-  if (isImageAssistant(assistant)) {
-    return runImageAssistant({
-      taskId,
-      callAI,
-      callAIImage,
-      getAssistant,
-      assistant,
-      parameters,
-      callback,
-    });
-  }
+    if (isImageAssistant(assistant)) {
+      return await runImageAssistant({
+        taskId,
+        callAI,
+        callAIImage,
+        getAssistant,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
 
-  if (isFunctionAssistant(assistant)) {
-    return runFunctionAssistant({
-      getAssistant,
-      callAI,
-      callAIImage,
-      taskId,
-      assistant,
-      parameters,
-      callback,
-    });
-  }
+    if (isFunctionAssistant(assistant)) {
+      return await runFunctionAssistant({
+        getAssistant,
+        callAI,
+        callAIImage,
+        taskId,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
 
-  if (isApiAssistant(assistant)) {
-    return runApiAssistant({
-      getAssistant,
-      callAI,
-      callAIImage,
-      taskId,
-      assistant,
-      parameters,
-      callback,
-    });
+    if (isApiAssistant(assistant)) {
+      return await runApiAssistant({
+        getAssistant,
+        callAI,
+        callAIImage,
+        taskId,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
+  } catch (e) {
+    if (e instanceof ToolCompletionDirective) {
+      if (e.type === OnTaskCompletion.EXIT) {
+        return undefined;
+      }
+    }
+    throw e;
   }
 
   throw new Error('Unimplemented');
@@ -720,7 +738,6 @@ async function runExecuteBlock({
     }
 
     const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
-
     const result =
       calls &&
       (await Promise.all(
@@ -729,7 +746,6 @@ async function runExecuteBlock({
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
-
           const args = JSON.parse(call.function.arguments);
           const toolAssistant = tool?.assistant;
           await Promise.all(
@@ -741,7 +757,7 @@ async function runExecuteBlock({
             }) ?? []
           );
 
-          return runAssistant({
+          const res = await runAssistant({
             taskId: taskIdGenerator.nextId().toString(),
             callAI,
             callAIImage,
@@ -750,6 +766,12 @@ async function runExecuteBlock({
             parameters: args,
             callback,
           });
+
+          if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
+            throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
+          }
+
+          return res;
         })
       ));
 

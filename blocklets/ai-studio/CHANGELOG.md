@@ -1,3 +1,7 @@
+## 0.1.245 (2024-2-4)
+
+- feat: stop after tools select
+
 ## 0.1.244 (2024-2-3)
 
 - fix: prompt editor crash
