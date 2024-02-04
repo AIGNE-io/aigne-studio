@@ -27,7 +27,6 @@ import {
   isPromptAssistant,
 } from '../../types';
 import { ImageAssistant, Mustache, OnTaskCompletion, Role, isImageAssistant } from '../../types/assistant';
-import { defaultImageModel, getSupportedImagesModels } from '../../types/assistant/model';
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
@@ -51,6 +50,11 @@ export type Options = {
   input: ChatCompletionInput;
 };
 
+export type ImageOptions = {
+  assistant: Assistant;
+  input: ImageGenerationInput;
+};
+
 export type ModelInfo = {
   model: string;
   temperature?: number;
@@ -68,10 +72,13 @@ export interface CallAI {
   (options: Options & { outputModel: boolean }): any;
 }
 
-export type CallAIImage = (options: {
-  assistant: Assistant;
-  input: ImageGenerationInput;
-}) => Promise<ImageGenerationResponse>;
+export interface CallAIImage {
+  (options: ImageOptions & { outputModel: true }): Promise<{
+    modelInfo: ModelInfo;
+    imageRes: ImageGenerationResponse;
+  }>;
+  (options: ImageOptions & { outputModel?: false }): Promise<ImageGenerationResponse>;
+}
 
 const taskIdGenerator = new Worker();
 
@@ -108,6 +115,7 @@ export async function runAssistant({
     if (isPromptAssistant(assistant)) {
       return await runPromptAssistant({
         taskId,
+        parentTaskId,
         callAI,
         callAIImage,
         getAssistant,
@@ -120,6 +128,7 @@ export async function runAssistant({
     if (isImageAssistant(assistant)) {
       return await runImageAssistant({
         taskId,
+        parentTaskId,
         callAI,
         callAIImage,
         getAssistant,
@@ -135,6 +144,7 @@ export async function runAssistant({
         callAI,
         callAIImage,
         taskId,
+        parentTaskId,
         assistant,
         parameters,
         callback,
@@ -147,6 +157,7 @@ export async function runAssistant({
         callAI,
         callAIImage,
         taskId,
+        parentTaskId,
         assistant,
         parameters,
         callback,
@@ -156,12 +167,12 @@ export async function runAssistant({
     if (e instanceof ToolCompletionDirective) {
       if (e.type === OnTaskCompletion.EXIT) {
         callback?.({
-          type: AssistantResponseType.INPUT,
+          type: AssistantResponseType.EXECUTE,
           taskId,
           parentTaskId,
           assistantId: assistant.id,
           assistantName: assistant.name,
-          stop: true,
+          execution: { currentPhase: ExecutionPhase.EXECUTE_SELECT_STOP },
         });
         return undefined;
       }
@@ -603,7 +614,6 @@ async function runImageAssistant({
   callback?: RunAssistantCallback;
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
-  const defaultModel = getSupportedImagesModels().find((i) => i.model === (assistant.model || defaultImageModel));
 
   const blockResults = assistant.prepareExecutes?.length
     ? await runExecuteBlocks({
@@ -648,24 +658,17 @@ async function runImageAssistant({
     type: AssistantResponseType.INPUT,
     assistantId: assistant.id,
     taskId,
+    parentTaskId,
     assistantName: assistant.name,
     inputParameters: parameters,
-    ...(parentTaskId
-      ? {
-          parentTaskId,
-          modelParameters: {
-            model: assistant.model,
-            n: assistant.n || defaultModel?.nDefault,
-            quality: assistant.quality || defaultModel?.qualityDefault,
-            style: assistant.style || defaultModel?.styleDefault,
-            size: assistant.size || defaultModel?.sizeDefault,
-          },
-        }
-      : { parentTaskId }),
   });
 
-  const { data } = await callAIImage({
+  const {
+    imageRes: { data },
+    modelInfo,
+  } = await callAIImage({
     assistant,
+    outputModel: true,
     input: {
       prompt,
       n: assistant.n,
@@ -675,6 +678,19 @@ async function runImageAssistant({
       style: assistant.style as any,
       responseFormat: assistant.responseFormat as any,
     },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    ...(parentTaskId
+      ? {
+          parentTaskId,
+          modelParameters: modelInfo,
+        }
+      : { parentTaskId }),
+    taskId,
+    assistantName: assistant.name,
   });
 
   callback?.({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: { images: data } });

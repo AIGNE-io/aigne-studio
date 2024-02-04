@@ -4,6 +4,7 @@ import { Role } from '../assistant';
 
 export enum ExecutionPhase {
   EXECUTE_BLOCK_START = 'EXECUTE_BLOCK_START',
+  EXECUTE_SELECT_STOP = 'EXECUTE_SELECT_STOP',
   EXECUTE_ASSISTANT_START = 'EXECUTE_ASSISTANT_START',
   EXECUTE_ASSISTANT_RUNNING = 'EXECUTE_BLOCK_RUNNING',
   EXECUTE_ASSISTANT_END = 'EXECUTE_ASSISTANT_END',
@@ -38,7 +39,6 @@ export type RunAssistantInput = {
   apiArgs?: any;
   fnArgs?: any;
   promptMessages?: PromptMessages;
-  stop?: boolean;
   modelParameters?: {
     temperature?: number;
     topP?: number;
@@ -66,6 +66,9 @@ export type RunAssistantExecute = {
       }
     | {
         currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START;
+      }
+    | {
+        currentPhase: ExecutionPhase.EXECUTE_SELECT_STOP;
       }
     | {
         currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END;

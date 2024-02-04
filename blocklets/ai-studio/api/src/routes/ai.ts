@@ -1,6 +1,12 @@
+import { defaultImageModel, getSupportedImagesModels } from '@app/libs/common';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
-import { CallAI, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
-import { AssistantResponseType, RunAssistantResponse, isPromptAssistant } from '@blocklet/ai-runtime/types';
+import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
+import {
+  AssistantResponseType,
+  RunAssistantResponse,
+  isImageAssistant,
+  isPromptAssistant,
+} from '@blocklet/ai-runtime/types';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -76,6 +82,32 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
     return chatCompletionChunk as any;
   };
 
+  const callAIImage: CallAIImage = async ({ assistant, input, outputModel = false }) => {
+    const imageAssistant = isImageAssistant(assistant) ? assistant : undefined;
+    const supportImages = await getSupportedImagesModels();
+    const imageModel = supportImages.find((i) => i.model === (imageAssistant?.model || defaultImageModel));
+
+    const model = {
+      model: input.model,
+      n: input.n || imageModel?.nDefault,
+      quality: input.quality || imageModel?.qualityDefault,
+      style: input.style || imageModel?.styleDefault,
+      size: input.size || imageModel?.sizeDefault,
+    };
+    const imageRes = await imageGenerations({
+      ...input,
+      ...model,
+    });
+
+    if (outputModel) {
+      return {
+        imageRes,
+        modelInfo: model,
+      };
+    }
+    return imageRes as any;
+  };
+
   const getAssistant: GetAssistant = (fileId: string, options) => {
     return getAssistantFromRepository({
       repository,
@@ -115,7 +147,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
 
     const result = await runAssistant({
       callAI,
-      callAIImage: ({ input }) => imageGenerations(input),
+      callAIImage,
       taskId,
       getAssistant,
       assistant,
