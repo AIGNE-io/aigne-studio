@@ -88,7 +88,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
     const imageModel = supportImages.find((i) => i.model === (imageAssistant?.model || defaultImageModel));
 
     const model = {
-      model: input.model,
+      model: input.model || imageModel?.model,
       n: input.n || imageModel?.nDefault,
       quality: input.quality || imageModel?.qualityDefault,
       style: input.style || imageModel?.styleDefault,
