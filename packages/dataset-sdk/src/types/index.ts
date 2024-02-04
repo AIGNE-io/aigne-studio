@@ -16,4 +16,5 @@ export interface DatasetObject extends PathItemObject {
   id: string;
   type: string;
   url?: string;
+  name?: string;
 }

@@ -1,12 +1,12 @@
-import { components, env } from '@blocklet/sdk/lib/config';
+import { components } from '@blocklet/sdk/lib/config';
 import { joinURL } from 'ufo';
 
 import DataServiceSDK from './sdk';
 
 export * from './request';
 
-export const getBuildInDatasets = (origin?: string) => {
-  const componentsWithUrl = components.map((component: any) => joinURL(origin || env.appUrl, component.mountPoint));
-  const sdk = new DataServiceSDK(componentsWithUrl);
+export const getBuildInDatasets = () => {
+  const mountPoints = components.map((component: any) => joinURL(component.name));
+  const sdk = new DataServiceSDK(mountPoints);
   return sdk.getFilterList();
 };

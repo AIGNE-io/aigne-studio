@@ -24,6 +24,10 @@
       "import": "./lib/esm/request.js",
       "require": "./lib/cjs/request.js"
     },
+    "./request/util": {
+      "import": "./lib/esm/request/util.js",
+      "require": "./lib/cjs/request/util.js"
+    },
     "./openapi": {
       "import": "./lib/esm/openapi.js",
       "require": "./lib/cjs/openapi.js"

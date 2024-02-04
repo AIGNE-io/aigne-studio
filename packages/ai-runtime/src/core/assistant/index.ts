@@ -7,7 +7,8 @@ import {
   ImageGenerationResponse,
 } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
-import { getAllParameters, getRequest } from '@blocklet/dataset-sdk/request';
+import { getRequest } from '@blocklet/dataset-sdk/request';
+import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
@@ -565,7 +566,7 @@ async function runExecuteBlocks({
 
   const tasks: [ExecuteBlock, () => () => Promise<any>][] = [];
   const cache: { [key: string]: Promise<any> } = {};
-  const datasets = await getBuildInDatasets(env.appUrl);
+  const datasets = await getBuildInDatasets();
 
   for (const executeBlock of executeBlocks) {
     const task = () => async () => {

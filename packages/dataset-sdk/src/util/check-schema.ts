@@ -54,6 +54,7 @@ const ResponsesObjectSchema = Joi.object({});
 
 export default Joi.object({
   id: CustomJoi.string().customId().required(),
+  name: Joi.string().optional().allow('').empty([null, '']),
   type: Joi.string().optional().allow('').empty([null, '']),
   url: Joi.string()
     .pattern(/^https?:\/\//)
