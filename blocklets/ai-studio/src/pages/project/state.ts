@@ -219,13 +219,12 @@ export interface DebugState {
 
 const debugStates: { [key: string]: RecoilState<DebugState> } = {};
 
-const getInitialDebugState = (projectId: string, assistantId: string): [string, Promise<DebugState>] => {
+const getDebugState = (projectId: string, assistantId: string) => {
   const key = `debugState-${projectId}-${assistantId}` as const;
-  const now = new Date().toISOString();
 
-  return [
+  debugStates[key] ??= atom<DebugState>({
     key,
-    (async () => {
+    default: (async () => {
       try {
         await debugStateMigration;
 
@@ -243,6 +242,8 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
       } catch (error) {
         console.error('initialize default debug state error', error);
       }
+
+      const now = new Date().toISOString();
       return {
         projectId,
         assistantId,
@@ -250,15 +251,6 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
         nextSessionIndex: 2,
       };
     })(),
-  ];
-};
-
-const useDebugInitState = (projectId: string, assistantId: string) => {
-  const key = `debugState-${projectId}-${assistantId}` as const;
-
-  debugStates[key] ??= atom<DebugState>({
-    key,
-    default: getInitialDebugState(projectId, assistantId)[1],
     effects: [
       (() => {
         const setItem = debounce((k, v) => {
@@ -280,7 +272,7 @@ const useDebugInitState = (projectId: string, assistantId: string) => {
 };
 
 export const useDebugState = ({ projectId, assistantId }: { projectId: string; assistantId: string }) => {
-  const debugState = useDebugInitState(projectId, assistantId);
+  const debugState = getDebugState(projectId, assistantId);
   const [state, setState] = useRecoilState(debugState);
 
   const newSession = useCallback(
