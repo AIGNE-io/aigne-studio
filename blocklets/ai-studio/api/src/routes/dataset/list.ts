@@ -18,11 +18,14 @@ const datasetSchema = Joi.object<{ name?: string }>({
  * /api/dataset/list:
  *    get:
  *      type: 'SEARCH'
- *      summary: 获取当前用户数据集
- *      description: 获取当前用户数据集
+ *      summary: Retrieve the current user's datasets
+ *      x-summary-zh: 获取当前用户数据集
+ *      description: Retrieve the current user's datasets
+ *      x-description-zh: 获取当前用户数据集
  *      responses:
  *        200:
- *          description: 获取当前用户数据集
+ *          description: Successfully retrieved the current user's datasets
+ *          x-description-zh: 获取当前用户数据集
  */
 router.get('/list', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { did } = req.user!;
@@ -39,19 +42,23 @@ router.get('/list', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(
  * /api/dataset/{datasetId}:
  *    get:
  *      type: 'SEARCH'
- *      summary: 获取当前用户数据集详情
- *      description: 获取当前用户数据集详情
+ *      summary: Retrieve details of a specific dataset
+ *      x-summary-zh: 获取当前用户数据集详情
+ *      description: Retrieve detailed information of a specific dataset by datasetId
+ *      x-description-zh: 通过数据集ID获取某个特定数据集的详细信息
  *      parameters:
  *        - name: datasetId
  *          in: path
- *          description: 数据集的ID
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集的ID
  *          required: true
  *          schema:
  *            type: string
  *            default: ''
  *      responses:
  *        200:
- *          description: 获取当前用户数据集详情
+ *          description: Successfully retrieved the dataset details
+ *          x-description-zh: 获取当前用户数据集详情
  */
 router.get('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId } = req.params;
@@ -74,8 +81,10 @@ router.get('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsE
  * /api/dataset/create:
  *    post:
  *      type: 'CREATE'
- *      summary: 创建新的数据集
- *      description: 创建新的数据集
+ *      summary: Create a new dataset
+ *      x-summary-zh: 创建新的数据集
+ *      description: Create a new dataset
+ *      x-description-zh: 创建新的数据集
  *      requestBody:
  *        required: true
  *        content:
@@ -87,7 +96,8 @@ router.get('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsE
  *                  type: string
  *      responses:
  *        200:
- *          description: 创建新的数据集
+ *          description: Successfully created a new dataset
+ *          x-description-zh: 创建新的数据集
  */
 router.post('/create', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
@@ -106,12 +116,15 @@ router.post('/create', user(), checkUserAuth(), ensureComponentCallOrPromptsEdit
  * /api/dataset/{datasetId}:
  *    put:
  *      type: 'UPDATE'
- *      summary: 更新数据集
- *      description: 更新数据集
+ *      summary: Update a dataset
+ *      x-summary-zh: 更新数据集
+ *      description: Update a dataset
+ *      x-description-zh: 更新数据集
  *      parameters:
  *        - name: datasetId
  *          in: path
- *          description: 数据集的ID
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集的ID
  *          required: true
  *          schema:
  *            type: string
@@ -127,7 +140,8 @@ router.post('/create', user(), checkUserAuth(), ensureComponentCallOrPromptsEdit
  *                  type: string
  *      responses:
  *        200:
- *          description: 更新数据集
+ *          description: Successfully updated the dataset
+ *          x-description-zh: 更新数据集
  */
 router.put('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId } = req.params;
@@ -156,20 +170,24 @@ router.put('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsE
  * @openapi
  * /api/dataset/{datasetId}:
  *    delete:
- *      type: 'SEARCH'
- *      summary: 删除数据集
- *      description: 删除数据集
+ *      type: 'DELETE'  # Changed from 'SEARCH' to 'DELETE' as it's more appropriate for a delete operation
+ *      summary: Delete a dataset
+ *      x-summary-zh: 删除数据集
+ *      description: Delete a dataset
+ *      x-description-zh: 删除数据集
  *      parameters:
  *        - name: datasetId
  *          in: path
- *          description: 数据集的ID
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集的ID
  *          required: true
  *          schema:
  *            type: string
  *            default: ''
  *      responses:
  *        200:
- *          description: 删除数据集
+ *          description: Successfully deleted the dataset
+ *          x-description-zh: 删除数据集
  */
 router.delete('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { datasetId } = req.params;

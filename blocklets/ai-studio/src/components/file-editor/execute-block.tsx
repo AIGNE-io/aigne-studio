@@ -10,6 +10,7 @@ import {
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
+import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
 import {
   Autocomplete,
   Box,
@@ -67,7 +68,7 @@ export default function ExecuteBlockForm({
   compareAssistant?: AssistantYjs;
   isRemoteCompare?: boolean;
 } & StackProps) {
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
   const navigate = useNavigate();
   const toolForm = useRef<ToolDialogImperative>(null);
@@ -228,11 +229,11 @@ export default function ExecuteBlockForm({
                     dialogState.open();
                   }}>
                   <Typography variant="subtitle2" noWrap maxWidth="50%">
-                    {dataset.summary || t('unnamed')}
+                    {getDatasetTextByI18n(dataset, 'summary', locale) || t('unnamed')}
                   </Typography>
 
                   <Typography variant="body1" color="text.secondary" flex={1} noWrap>
-                    {dataset.description}
+                    {getDatasetTextByI18n(dataset, 'description', locale)}
                   </Typography>
 
                   {!readOnly && (
@@ -456,7 +457,7 @@ export const ToolDialog = forwardRef<
     datasets: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   }
 >(({ datasets, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
 
@@ -481,7 +482,10 @@ export const ToolDialog = forwardRef<
     ...datasets.map((dataset) => ({
       id: dataset.id,
       type: dataset.type,
-      name: dataset.summary || dataset.description || t('unnamed'),
+      name:
+        getDatasetTextByI18n(dataset, 'summary', locale) ||
+        getDatasetTextByI18n(dataset, 'description', locale) ||
+        t('unnamed'),
       from: dataset.from,
     })),
   ]

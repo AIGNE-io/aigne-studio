@@ -42,32 +42,39 @@ const createItemSchema = Joi.object<{
  * /api/dataset/{datasetId}/items:
  *    get:
  *      type: 'SEARCH'
- *      summary: 获取当前 datasetId 数据集中数据信息
- *      description: 获取当前 datasetId 数据集中数据信息
+ *      summary: Get data items in a dataset by datasetId
+ *      x-summary-zh: 获取当前 datasetId 数据集中数据信息
+ *      description: Get data items in a dataset by datasetId
+ *      x-description-zh: 获取当前 datasetId 数据集中数据信息
  *      parameters:
  *        - name: datasetId
  *          in: path
- *          description: 数据集的ID
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集的ID
  *          required: true
  *          schema:
  *            type: string
  *            default: ''
  *        - name: page
  *          in: query
- *          description: 当前数据页
+ *          description: The page number of the data
+ *          x-description-zh: 当前数据页
  *          schema:
  *            type: integer
  *            default: 1
  *        - name: size
  *          in: query
- *          description: 每页数据量
+ *          description: The number of items per page
+ *          x-description-zh: 每页数据量
  *          schema:
  *            type: integer
  *            default: 20
  *      responses:
  *        200:
- *          description: 获取当前 datasetId 数据集中数据信息
+ *          description: Successfully retrieved data items in the dataset
+ *          x-description-zh: 获取当前 datasetId 数据集中数据信息
  */
+
 router.get('/:datasetId/items', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
@@ -94,27 +101,33 @@ router.get('/:datasetId/items', user(), checkUserAuth(), ensureComponentCallOrPr
  * /api/dataset/{datasetId}/items/{itemId}:
  *    delete:
  *      type: 'SEARCH'
- *      summary: 删除当前 datasetId 数据集中数据信息
- *      description: 删除当前 datasetId 数据集中数据信息
+ *      summary: Delete a data item from the dataset by datasetId and itemId
+ *      x-summary-zh: 删除当前 datasetId 数据集中数据信息
+ *      description: Delete a data item from the dataset by datasetId and itemId
+ *      x-description-zh: 删除当前 datasetId 数据集中数据信息
  *      parameters:
  *        - name: datasetId
  *          in: path
- *          description: 数据集的ID
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集的ID
  *          required: true
  *          schema:
  *            type: string
  *            default: ''
  *        - name: itemId
  *          in: path
- *          description: 数据ID
+ *          description: The ID of the data item
+ *          x-description-zh: 数据ID
  *          required: true
  *          schema:
  *            type: string
  *            default: ''
  *      responses:
  *        200:
- *          description: 删除当前 datasetId 数据集中数据信息
+ *          description: Successfully deleted the data item from the dataset
+ *          x-description-zh: 删除当前 datasetId 数据集中数据信息
  */
+
 router.delete(
   '/:datasetId/items/:itemId',
   user(),
@@ -177,12 +190,15 @@ const embeddingHandler: {
  * /api/dataset/{datasetId}/items/embedding:
  *    post:
  *      type: 'CREATE'
- *      summary: 上传数据到当前 datasetId 数据集中
- *      description: 上传数据到当前 datasetId 数据集中
+ *      summary: Upload data to the specified dataset by datasetId
+ *      x-summary-zh: 上传数据到当前 datasetId 数据集中
+ *      description: Upload data to the specified dataset by datasetId
+ *      x-description-zh: 上传数据到当前 datasetId 数据集中
  *      parameters:
  *        - name: datasetId
  *          in: path
- *          description: 数据集的ID
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集的ID
  *          required: true
  *          schema:
  *            type: string
@@ -200,8 +216,10 @@ const embeddingHandler: {
  *                  type: string
  *      responses:
  *        200:
- *          description: 上传数据到当前 datasetId 数据集中
+ *          description: Successfully uploaded data to the dataset
+ *          x-description-zh: 上传数据到当前 datasetId 数据集中
  */
+
 router.post(
   '/:datasetId/items/embedding',
   user(),
@@ -240,12 +258,15 @@ router.post(
  * /api/dataset/{datasetId}/items/file:
  *    post:
  *      type: 'CREATE'
- *      summary: 上传文件到当前 datasetId 数据集中
- *      description: 上传文件到当前 datasetId 数据集中
+ *      summary: Upload a file to the specified dataset by datasetId
+ *      x-summary-zh: 上传文件到当前 datasetId 数据集中
+ *      description: Upload a file to the specified dataset by datasetId
+ *      x-description-zh: 上传文件到当前 datasetId 数据集中
  *      parameters:
  *        - name: datasetId
  *          in: path
- *          description: 数据集的ID
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集的ID
  *          required: true
  *          schema:
  *            type: string
@@ -264,8 +285,10 @@ router.post(
  *                 default: 'file'
  *      responses:
  *        200:
- *          description: 上传文件到当前 datasetId 数据集中
+ *          description: File successfully uploaded to the specified dataset
+ *          x-description-zh: 上传文件到当前 datasetId 数据集中
  */
+
 router.post(
   '/:datasetId/items/file',
   user(),
@@ -332,19 +355,23 @@ router.post(
  * /api/dataset/{datasetId}/items/{itemId}/embedding:
  *    put:
  *      type: 'UPDATE'
- *      summary: 更新数据到当前 datasetId 数据集中
- *      description: 更新数据到当前 datasetId 数据集中
+ *      summary: Update data in the specified dataset by datasetId and itemId
+ *      x-summary-zh: 更新数据到当前 datasetId 数据集中
+ *      description: Update data in the specified dataset by datasetId and itemId
+ *      x-description-zh: 更新数据到当前 datasetId 数据集中
  *      parameters:
  *        - name: datasetId
  *          in: path
- *          description: 数据集 Id
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集 Id
  *          required: true
  *          schema:
  *            type: string
  *            default: ''
  *        - name: itemId
  *          in: path
- *          description: 数据 Id
+ *          description: The ID of the data item
+ *          x-description-zh: 数据 Id
  *          required: true
  *          schema:
  *            type: string
@@ -362,8 +389,10 @@ router.post(
  *                  type: string
  *      responses:
  *        200:
- *          description: 更新数据到当前 datasetId 数据集中
+ *          description: Successfully updated the data in the dataset
+ *          x-description-zh: 更新数据到当前 datasetId 数据集中
  */
+
 router.put(
   '/:datasetId/items/:itemId/embedding',
   user(),
@@ -398,19 +427,23 @@ router.put(
  * /api/dataset/{datasetId}/items/{itemId}/file:
  *    put:
  *      type: 'UPDATE'
- *      summary: 更新上传到当前 datasetId 数据集中
- *      description: 更新上传到当前 datasetId 数据集中
+ *      summary: Update an uploaded file in the dataset by datasetId
+ *      x-summary-zh: 更新上传到当前 datasetId 数据集中
+ *      description: Update an uploaded file in the dataset by datasetId and itemId
+ *      x-description-zh: 更新上传到当前 datasetId 数据集中
  *      parameters:
  *        - name: datasetId
  *          in: path
- *          description: 数据集 Id
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集 Id
  *          required: true
  *          schema:
  *            type: string
  *            default: ''
  *        - name: itemId
  *          in: path
- *          description: 数据 Id
+ *          description: The ID of the data item
+ *          x-description-zh: 数据 Id
  *          required: true
  *          schema:
  *            type: string
@@ -429,7 +462,8 @@ router.put(
  *                 default: 'file'
  *      responses:
  *        200:
- *          description: 更新上传到当前 datasetId 数据集中
+ *          description: Successfully updated the uploaded file in the dataset
+ *          x-description-zh: 更新上传到当前 datasetId 数据集中
  */
 router.put(
   '/:datasetId/items/:itemId/file',
@@ -494,27 +528,33 @@ router.put(
  * /api/dataset/{datasetId}/items/search:
  *    get:
  *      type: 'SEARCH'
- *      summary: 搜索内容
- *      description: 搜索内容
+ *      summary: Search for content within the dataset
+ *      x-summary-zh: 搜索内容
+ *      description: Search for specific content within the dataset by datasetId and search message
+ *      x-description-zh: 搜索内容
  *      parameters:
  *        - name: datasetId
  *          in: path
- *          description: 数据集的ID
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集的ID
  *          required: true
  *          schema:
  *            type: string
  *            default: ''
  *        - name: message
  *          in: query
- *          description: 搜索的内容
+ *          description: The search content or message
+ *          x-description-zh: 搜索的内容
  *          required: true
  *          schema:
  *            type: string
  *            default: ''
  *      responses:
  *        200:
- *          description: 成功获取分页列表
+ *          description: Successfully retrieved the paginated list of search results
+ *          x-description-zh: 成功获取分页列表
  */
+
 router.get(
   '/:datasetId/items/search',
   user(),

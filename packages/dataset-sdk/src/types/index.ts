@@ -17,4 +17,7 @@ export interface DatasetObject extends PathItemObject {
   type: string;
   url?: string;
   name?: string;
+  // 添加索引签名以支持x-summary-和x-description-等自定义字段
+  [key: `x-summary-${string}`]: string | undefined;
+  [key: `x-description-${string}`]: string | undefined;
 }
