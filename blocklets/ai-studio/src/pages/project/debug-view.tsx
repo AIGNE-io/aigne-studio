@@ -38,7 +38,7 @@ import { useLocalStorageState } from 'ahooks';
 import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
-import { ComponentProps, SyntheticEvent, memo, useEffect, useMemo, useRef, useState } from 'react';
+import { ComponentProps, SyntheticEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useScrollToBottom } from 'react-scroll-to-bottom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
@@ -100,6 +100,23 @@ function DebugViewContent({
     assistantId: assistant.id,
   });
 
+  const [showScrollBox, setShowScrollBox] = useState(false);
+
+  const handleScroll = useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      const bottomThreshold = 400;
+      const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight <= bottomThreshold;
+
+      if (!isNearBottom && !showScrollBox) {
+        setShowScrollBox(true);
+      } else if (isNearBottom && showScrollBox) {
+        setShowScrollBox(false);
+      }
+    },
+    [showScrollBox]
+  );
+
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
 
   if (!currentSession) return null;
@@ -126,16 +143,37 @@ function DebugViewContent({
         </Tooltip>
       </Box>
 
-      <Virtuoso
-        ref={virtuoso}
-        style={{ flexGrow: 1, overflowX: 'hidden' }}
-        data={currentSession.messages}
-        overscan={500}
-        totalCount={currentSession.messages.length}
-        computeItemKey={(_, item) => item.id}
-        initialTopMostItemIndex={currentSession.messages.length - 1}
-        itemContent={(_, message) => <MessageView chatType={currentSession.chatType ?? 'chat'} message={message} />}
-      />
+      <Box sx={{ position: 'relative', flexGrow: 1, overflowX: 'hidden' }}>
+        <Virtuoso
+          ref={virtuoso}
+          data={currentSession.messages}
+          onScroll={handleScroll}
+          computeItemKey={(_, item) => item.id}
+          initialTopMostItemIndex={currentSession.messages.length - 1}
+          itemContent={(_, message) => <MessageView chatType={currentSession.chatType ?? 'chat'} message={message} />}
+        />
+        {showScrollBox && (
+          <Box
+            onClick={() => {
+              virtuoso.current?.scrollToIndex({
+                behavior: 'smooth',
+                index: currentSession.messages.length - 1,
+              });
+            }}
+            sx={{
+              bgcolor: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '10px',
+              borderWidth: 0,
+              bottom: 5,
+              cursor: 'pointer',
+              height: 20,
+              position: 'absolute',
+              right: 20,
+              width: 20,
+            }}
+          />
+        )}
+      </Box>
 
       <Stack gap={2} sx={{ bgcolor: 'background.paper', py: 2 }}>
         {currentSession.chatType !== 'debug' ? (
