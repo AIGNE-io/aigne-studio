@@ -4,6 +4,10 @@ export * from './yjs';
 export { default as Mustache } from './mustache/mustache';
 export * from './mustache/directive';
 
+export enum OnTaskCompletion {
+  EXIT = 'EXIT',
+}
+
 export type FileType = Assistant | { $base64: string };
 
 export type Assistant = PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
@@ -12,7 +16,12 @@ export type Role = 'system' | 'user' | 'assistant';
 
 export type ExecuteBlockRole = Role | 'none';
 
-export type Tool = { id: string; from?: 'assistant' | 'dataset'; parameters?: { [key: string]: string } };
+export type Tool = {
+  id: string;
+  from?: 'assistant' | 'dataset';
+  parameters?: { [key: string]: string };
+  onEnd?: OnTaskCompletion;
+};
 
 type ExecuteBlockCommon = {
   id: string;

@@ -36,11 +36,5 @@ export default defineConfig(() => {
         transformMixedEsModules: true,
       },
     },
-    resolve: {
-      alias: {
-        '@blocklet/js-sdk': '@blocklet/js-sdk/dist/index.mjs',
-        '@blocklet/js-sdk/dist/index.cjs': '@blocklet/js-sdk/dist/index.mjs',
-      },
-    },
   };
 });

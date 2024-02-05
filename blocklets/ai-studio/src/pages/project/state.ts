@@ -4,8 +4,9 @@ import { runAssistant } from '@blocklet/ai-runtime/api';
 import {
   AssistantResponseType,
   AssistantYjs,
-  InputMessages,
+  ExecutionPhase,
   Role,
+  RunAssistantInput,
   RunAssistantLog,
   fileToYjs,
   isAssistant,
@@ -174,6 +175,18 @@ export const useProjectState = (projectId: string, gitRef: string) => {
   };
 };
 
+export type ImageType = { b64Json?: string; url?: string }[];
+
+export type MessageInput = RunAssistantInput & {
+  deep: number;
+  output?: string;
+  logs?: Array<RunAssistantLog>;
+  startTime?: number;
+  endTime?: number;
+  images?: ImageType;
+  stop?: boolean;
+};
+
 export interface SessionItem {
   index: number;
   createdAt: string;
@@ -183,22 +196,14 @@ export interface SessionItem {
     createdAt: string;
     role: Role;
     content: string;
-    logs?: Array<RunAssistantLog>;
     gitRef?: string;
     parameters?: { [key: string]: any };
-    images?: { b64Json?: string; url?: string }[];
+    images?: ImageType;
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
     error?: { message: string; [key: string]: unknown };
-    inputMessages?: InputMessages;
-    subMessages?: {
-      taskId: string;
-      assistantId: string;
-      content: string;
-      inputMessages?: InputMessages;
-      images?: { b64Json?: string; url?: string }[];
-    }[];
+    inputMessages?: Array<MessageInput>;
   }[];
   chatType?: 'chat' | 'debug';
   debugForm?: { [key: string]: any };
@@ -414,8 +419,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               content: message.type === 'chat' ? message.content : '',
               gitRef: message.type === 'debug' ? message.gitRef : undefined,
               parameters: message.type === 'debug' ? message.parameters : undefined,
-              subMessages: [],
-              inputMessages: { messages: [] },
+              inputMessages: [],
               loading: true,
             },
             { id: responseId, createdAt: now.toISOString(), role: 'assistant', content: '', loading: true }
@@ -458,31 +462,17 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             } else if (typeof value === 'string') {
               response += value;
             } else if (value.type === AssistantResponseType.INPUT) {
-              if (value.taskId === mainTaskId) {
-                setMessage(sessionIndex, messageId, (message) => {
-                  message.inputMessages = value.input;
-                  message.loading = false;
-                });
-              } else {
-                setMessage(sessionIndex, messageId, (message) => {
-                  if (message.cancelled) return;
+              setMessage(sessionIndex, messageId, (message) => {
+                message.inputMessages ??= [];
 
-                  message.subMessages ??= [];
-
-                  let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
-                  if (!subMessage) {
-                    subMessage = {
-                      taskId: value.taskId,
-                      assistantId: value.assistantId,
-                      inputMessages: value.input,
-                      content: '',
-                    };
-                    message.subMessages.push(subMessage);
-                  } else {
-                    subMessage.inputMessages = value.input;
-                  }
-                });
-              }
+                let lastInput = message.inputMessages.findLast((input) => input.taskId === value.taskId);
+                if (lastInput) {
+                  lastInput = Object.assign(lastInput, value);
+                } else {
+                  const parentTrace = message?.inputMessages.findLast((i) => i.taskId === value.parentTaskId);
+                  message.inputMessages.push({ ...value, deep: parentTrace ? (parentTrace?.deep || 0) + 1 : 0 });
+                }
+              });
             } else if (value.type === AssistantResponseType.CHUNK) {
               const { images } = value.delta;
 
@@ -501,22 +491,47 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               } else {
                 setMessage(sessionIndex, messageId, (message) => {
                   if (message.cancelled) return;
-                  message.subMessages ??= [];
 
-                  let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
-                  if (!subMessage) {
-                    subMessage = { taskId: value.taskId, assistantId: value.assistantId, content: '' };
-                    message.subMessages.push(subMessage);
-                  }
-
-                  subMessage.content += value.delta.content || '';
-
-                  if (images?.length) {
-                    subMessage.images ??= [];
-                    subMessage.images.push(...images);
+                  const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
+                  if (lastInput) {
+                    lastInput.output ??= '';
+                    lastInput.output += value.delta.content || '';
+                    if (images?.length) {
+                      lastInput.images ??= [];
+                      lastInput.images.push(...images);
+                    }
                   }
                 });
               }
+            } else if (value.type === AssistantResponseType.EXECUTE) {
+              setMessage(sessionIndex, messageId, (message) => {
+                message.inputMessages ??= [];
+
+                const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
+                if (value.execution.currentPhase === ExecutionPhase.EXECUTE_ASSISTANT_START) {
+                  if (!lastInput) {
+                    const parentTrace = message?.inputMessages.findLast((i) => i.taskId === value.parentTaskId);
+                    message.inputMessages.push({
+                      type: AssistantResponseType.INPUT,
+                      assistantId: value.assistantId,
+                      assistantName: value.assistantName!,
+                      taskId: value.taskId,
+                      parentTaskId: value.parentTaskId,
+                      startTime: Date.now(),
+                      deep: parentTrace ? (parentTrace?.deep || 0) + 1 : 0,
+                    });
+                  }
+                } else if (value.execution.currentPhase === ExecutionPhase.EXECUTE_ASSISTANT_END) {
+                  if (lastInput) {
+                    lastInput.endTime = Date.now();
+                  }
+                } else if (value.execution.currentPhase === ExecutionPhase.EXECUTE_SELECT_STOP) {
+                  if (lastInput) {
+                    lastInput.endTime = Date.now();
+                    lastInput.stop = true;
+                  }
+                }
+              });
             } else if (value.type === AssistantResponseType.ERROR) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
@@ -526,11 +541,12 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 };
               });
             } else if (value.type === AssistantResponseType.LOG) {
-              setMessage(sessionIndex, responseId, (message) => {
+              setMessage(sessionIndex, messageId, (message) => {
                 if (message.cancelled) return;
-                if (value) {
-                  message.logs ??= [];
-                  message.logs?.push(value);
+                const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
+                if (lastInput) {
+                  lastInput.logs ??= [];
+                  lastInput.logs.push(value);
                 }
               });
             } else {
