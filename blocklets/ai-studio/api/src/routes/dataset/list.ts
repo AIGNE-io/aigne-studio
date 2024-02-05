@@ -3,14 +3,13 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { Op } from 'sequelize';
 
-import { ensureComponentCallOrPromptsEditor } from '../../libs/security';
 import { checkUserAuth } from '../../libs/user';
 import Dataset from '../../store/models/dataset/list';
 
 const router = Router();
 
 const datasetSchema = Joi.object<{ name?: string }>({
-  name: Joi.string().empty(null),
+  name: Joi.string().allow('').empty(null).default(''),
 });
 
 /**
@@ -27,7 +26,7 @@ const datasetSchema = Joi.object<{ name?: string }>({
  *          description: Successfully retrieved the current user's datasets
  *          x-description-zh: 获取当前用户数据集
  */
-router.get('/list', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+router.get('/list', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
   const list = await Dataset.findAll({
     order: [['createdAt', 'ASC']],
@@ -60,7 +59,7 @@ router.get('/list', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(
  *          description: Successfully retrieved the dataset details
  *          x-description-zh: 获取当前用户数据集详情
  */
-router.get('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
 
@@ -99,7 +98,7 @@ router.get('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsE
  *          description: Successfully created a new dataset
  *          x-description-zh: 创建新的数据集
  */
-router.post('/create', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+router.post('/create', user(), checkUserAuth(), async (req, res) => {
   const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
 
@@ -143,7 +142,7 @@ router.post('/create', user(), checkUserAuth(), ensureComponentCallOrPromptsEdit
  *          description: Successfully updated the dataset
  *          x-description-zh: 更新数据集
  */
-router.put('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
 
@@ -189,7 +188,7 @@ router.put('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsE
  *          description: Successfully deleted the dataset
  *          x-description-zh: 删除数据集
  */
-router.delete('/:datasetId', user(), checkUserAuth(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+router.delete('/:datasetId', user(), checkUserAuth(), async (req, res) => {
   const { datasetId } = req.params;
 
   const dataset = await Dataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });
