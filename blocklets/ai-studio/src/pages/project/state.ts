@@ -21,7 +21,7 @@ import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 
@@ -254,21 +254,23 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
 };
 
 const useDebugInitState = (projectId: string, assistantId: string) => {
-  const [key, initialState] = useMemo(() => getInitialDebugState(projectId, assistantId), [projectId, assistantId]);
+  const key = `debugState-${projectId}-${assistantId}` as const;
 
   debugStates[key] ??= atom<DebugState>({
     key,
-    default: initialState,
+    default: getInitialDebugState(projectId, assistantId)[1],
     effects: [
       (() => {
         const setItem = debounce((k, v) => {
           localForage.setItem(k, v);
         }, 2000);
 
-        window.addEventListener('beforeunload', () => setItem.flush());
+        const handleBeforeUnload = () => setItem.flush();
+        window.addEventListener('beforeunload', handleBeforeUnload);
 
         return ({ onSet }) => {
           onSet((value) => setItem(key, value));
+          return () => window.removeEventListener('beforeunload', handleBeforeUnload);
         };
       })(),
     ],

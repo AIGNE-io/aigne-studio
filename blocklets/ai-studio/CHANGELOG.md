@@ -1,3 +1,7 @@
+## 0.1.247 (2024-2-5)
+
+- feat: switch file stuck
+
 ## 0.1.246 (2024-2-4)
 
 - feat: debug info integration

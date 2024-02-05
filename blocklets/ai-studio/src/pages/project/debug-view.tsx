@@ -7,7 +7,7 @@ import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { css, cx } from '@emotion/css';
+import { cx } from '@emotion/css';
 import { Add, CopyAll } from '@mui/icons-material';
 import {
   Accordion,
@@ -38,9 +38,10 @@ import { useLocalStorageState } from 'ahooks';
 import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
-import { ComponentProps, SyntheticEvent, memo, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, SyntheticEvent, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
+import { useScrollToBottom } from 'react-scroll-to-bottom';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
 import Broom from './icons/broom';
@@ -74,20 +75,7 @@ export default function DebugView(props: {
   });
 
   return (
-    <Box
-      key={state.currentSessionIndex}
-      initialScrollBehavior="auto"
-      component={ScrollToBottom}
-      flexGrow={1}
-      height="100%"
-      overflow="auto"
-      scrollViewClassName={css`
-        display: flex;
-        flex-direction: column;
-      `}
-      followButtonClassName={css`
-        display: none;
-      `}>
+    <Box flexGrow={1} display="flex" flexDirection="column" key={state.currentSessionIndex}>
       <DebugViewContent {...props} />
       {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.assistant.id} />}
     </Box>
@@ -106,7 +94,7 @@ function DebugViewContent({
   setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
-
+  const virtuoso = useRef<VirtuosoHandle>(null);
   const { state, setSession, clearCurrentSession } = useDebugState({
     projectId,
     assistantId: assistant.id,
@@ -138,13 +126,18 @@ function DebugViewContent({
         </Tooltip>
       </Box>
 
-      <Box component={ScrollToBottom} initialScrollBehavior="auto" flexGrow={1} sx={{ overflowX: 'hidden' }}>
-        {currentSession.messages.map((message) => (
-          <MessageView chatType={currentSession.chatType ?? 'chat'} message={message} key={message.id} />
-        ))}
-      </Box>
+      <Virtuoso
+        ref={virtuoso}
+        style={{ flexGrow: 1, overflowX: 'hidden' }}
+        data={currentSession.messages}
+        overscan={500}
+        totalCount={currentSession.messages.length}
+        computeItemKey={(_, item) => item.id}
+        initialTopMostItemIndex={currentSession.messages.length - 1}
+        itemContent={(_, message) => <MessageView chatType={currentSession.chatType ?? 'chat'} message={message} />}
+      />
 
-      <Stack gap={2} sx={{ position: 'sticky', bottom: 0, py: 2, bgcolor: 'background.paper' }}>
+      <Stack gap={2} sx={{ bgcolor: 'background.paper', py: 2 }}>
         {currentSession.chatType !== 'debug' ? (
           <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
         ) : (
