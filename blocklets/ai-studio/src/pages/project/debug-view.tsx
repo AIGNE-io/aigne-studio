@@ -147,6 +147,15 @@ function DebugViewContent({
         <Virtuoso
           ref={virtuoso}
           data={currentSession.messages}
+          overscan={2000}
+          alignToBottom
+          followOutput={(isAtBottom: boolean) => {
+            if (isAtBottom) {
+              return 'auto';
+            }
+
+            return false;
+          }}
           onScroll={handleScroll}
           computeItemKey={(_, item) => item.id}
           initialTopMostItemIndex={currentSession.messages.length - 1}
