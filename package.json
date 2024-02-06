@@ -80,7 +80,7 @@
     "@ocap/types": "^1.18.110",
     "@ocap/util": "^1.18.110",
     "@ocap/wallet": "^1.18.110",
-    "@types/react": "^18.2.52",
+    "@types/react": "^18.2.54",
     "@types/react-dom": "^18.2.18",
     "axios": "^1.6.7",
     "lexical": "0.12.5",

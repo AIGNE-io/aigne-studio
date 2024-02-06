@@ -40,8 +40,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
 import { ComponentProps, SyntheticEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useScrollToBottom } from 'react-scroll-to-bottom';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { FlatIndexLocationWithAlign, Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
 import Broom from './icons/broom';
@@ -185,9 +184,20 @@ function DebugViewContent({
 
       <Stack gap={2} sx={{ bgcolor: 'background.paper', py: 2 }}>
         {currentSession.chatType !== 'debug' ? (
-          <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
+          <ChatModeForm
+            scrollToIndex={virtuoso.current?.scrollToIndex}
+            projectId={projectId}
+            gitRef={gitRef}
+            assistant={assistant}
+          />
         ) : (
-          <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
+          <DebugModeForm
+            scrollToIndex={virtuoso.current?.scrollToIndex}
+            projectId={projectId}
+            gitRef={gitRef}
+            assistant={assistant}
+            setCurrentTab={setCurrentTab}
+          />
         )}
 
         <Box textAlign="center">
@@ -376,10 +386,12 @@ function ChatModeForm({
   projectId,
   gitRef,
   assistant,
+  scrollToIndex,
 }: {
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
+  scrollToIndex?: (location: number | FlatIndexLocationWithAlign) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -388,8 +400,6 @@ function ChatModeForm({
   } = useProjectState(projectId, gitRef);
 
   const { state, sendMessage, cancelMessage } = useDebugState({ projectId, assistantId: assistant.id });
-
-  const scrollToBottom = useScrollToBottom();
 
   const [question, setQuestion] = useState('');
 
@@ -421,8 +431,14 @@ function ChatModeForm({
         presencePenalty: promptAssistant?.presencePenalty ?? project?.presencePenalty,
       },
     });
-    scrollToBottom({ behavior: 'smooth' });
 
+    if (currentSession?.messages?.length) {
+      const lastIndex = currentSession.messages.length - 1;
+      scrollToIndex?.({
+        behavior: 'smooth',
+        index: lastIndex,
+      });
+    }
     setQuestion('');
   };
 
@@ -485,11 +501,13 @@ function DebugModeForm({
   gitRef,
   assistant,
   setCurrentTab,
+  scrollToIndex,
 }: {
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
   setCurrentTab: (tab: string) => void;
+  scrollToIndex?: (location: number | FlatIndexLocationWithAlign) => void;
 }) {
   const { t } = useLocaleContext();
   const key = `${projectId}-${gitRef}-${assistant.id}`;
@@ -512,8 +530,6 @@ function DebugModeForm({
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
   const lastMessage = currentSession?.messages.at(-1);
-
-  const scrollToBottom = useScrollToBottom();
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter(
     (i): i is typeof i & { data: { key: string } } => !!i.data.key
@@ -556,7 +572,13 @@ function DebugModeForm({
     setSession(state.currentSessionIndex!, (session) => {
       session.debugForm = { ...parameters };
     });
-    scrollToBottom({ behavior: 'smooth' });
+    if (currentSession?.messages?.length) {
+      const lastIndex = currentSession.messages.length - 1;
+      scrollToIndex?.({
+        behavior: 'smooth',
+        index: lastIndex,
+      });
+    }
   };
 
   const addToTest = () => {
