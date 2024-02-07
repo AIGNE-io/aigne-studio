@@ -55,6 +55,7 @@
     "@iconify-icon/react": "^1.0.8",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@minoru/react-dnd-treeview": "^3.4.4",
+    "prettier": "^3.2.5",
     "@monaco-editor/react": "^4.6.0",
     "@mui/base": "^5.0.0-beta.34",
     "@mui/icons-material": "^5.15.7",
