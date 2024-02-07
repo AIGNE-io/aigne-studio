@@ -25,7 +25,7 @@ export default function FunctionCodeEditor({
   useEffect(() => {
     if (!value.code) {
       value.code = `\
-export default function (args) {
+export default async function (args) {
   return {
     // result
   }
