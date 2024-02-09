@@ -47,7 +47,7 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/sdk": "^1.16.22",
+    "@blocklet/sdk": "^1.16.23",
     "lodash": "^4.17.21",
     "node-fetch": "2",
     "typescript": "^5.3.3"

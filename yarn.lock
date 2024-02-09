@@ -1485,7 +1485,7 @@
     react "^18.2.0"
     react-pdf "^7.7.0"
 
-"@blocklet/sdk@1.16.23", "@blocklet/sdk@^1.16.22", "@blocklet/sdk@^1.16.23":
+"@blocklet/sdk@1.16.23", "@blocklet/sdk@^1.16.23":
   version "1.16.23"
   resolved "https://registry.yarnpkg.com/@blocklet/sdk/-/sdk-1.16.23.tgz#2413ced92a1d6e26afd2489e69f24873998b0038"
   integrity sha512-5yK/Xss1ZVSYAFt7iMht2+qT4Ee/W2ejYtxMt90G4r1Nv9ahp5C8oglJVdZBo7fzl5vAr1NFrx4MGoVRrOj63w==
