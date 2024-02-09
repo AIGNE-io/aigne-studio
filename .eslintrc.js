@@ -11,6 +11,7 @@ module.exports = {
       join(__dirname, 'packages/prompt-editor/tsconfig.json'),
       join(__dirname, 'packages/studio-ui/tsconfig.json'),
       join(__dirname, 'packages/ai-runtime/tsconfig.json'),
+      join(__dirname, 'packages/ai-builtin/tsconfig.json'),
     ],
   },
   rules: {

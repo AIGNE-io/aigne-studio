@@ -1,11 +1,14 @@
+## 0.1.249 (2024-2-9)
+
+- feat: support es module for function assistant
+
 ## 0.1.248 (2024-2-9)
 
-- chore: update deps
 - fix: bundle error
 
 ## 0.1.247 (2024-2-5)
 
-- fix: switch file stuck
+- fix: optimize debug view efficiency
 
 ## 0.1.246 (2024-2-4)
 

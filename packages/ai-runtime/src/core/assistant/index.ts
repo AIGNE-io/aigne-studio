@@ -6,7 +6,6 @@ import {
   ImageGenerationInput,
   ImageGenerationResponse,
 } from '@blocklet/ai-kit/api/types';
-import { call } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick } from 'lodash';
@@ -14,6 +13,7 @@ import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
 
+import { TranspileTs } from '../../builtin/complete';
 import {
   ApiAssistant,
   Assistant,
@@ -218,9 +218,13 @@ async function runFunctionAssistant({
     : [];
 
   if (!assistant.code) throw new Error(`Assistant ${assistant.id}'s code is empty`);
-
+  const code = await TranspileTs(assistant.code);
   const vm = new NodeVM({
     console: 'redirect',
+    require: {
+      builtin: ['*'],
+      external: { modules: ['@blocklet/ai-builtin'], transitive: true },
+    },
     sandbox: {
       context: {
         get: (name: any) => {
@@ -233,7 +237,6 @@ async function runFunctionAssistant({
         },
       },
       URL,
-      call,
       fetch,
       env: {
         languages: env.languages,
@@ -262,7 +265,7 @@ async function runFunctionAssistant({
     });
   });
 
-  const module = await vm.run(assistant.code);
+  const module = await vm.run(code, __dirname);
   if (typeof module.default !== 'function')
     throw new Error('Invalid function file: function file must export default function');
 

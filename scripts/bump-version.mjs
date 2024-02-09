@@ -53,7 +53,13 @@ console.log(chalk.greenBright('[info]: all blocklets version modified.'));
 // modify the /create-app/templates plugin version
 await batchModifyDepsVersion({
   dirPath: './blocklets',
-  depList: ['@blocklet/co-git', '@blocklet/studio-ui', '@blocklet/prompt-editor', '@blocklet/ai-runtime'], // scan the packages directory to get the dep list
+  depList: [
+    '@blocklet/co-git',
+    '@blocklet/studio-ui',
+    '@blocklet/prompt-editor',
+    '@blocklet/ai-runtime',
+    '@blocklet/ai-builtin',
+  ], // scan the packages directory to get the dep list
   version: `^${version}`,
 });
 
