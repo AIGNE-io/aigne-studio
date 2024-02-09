@@ -23,6 +23,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, unstable_useBlocker as useBlocker, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
+import { getSupportedModels } from '../../../../api/src/libs/common';
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
 import Loading from '../../../components/loading';
 import Avatar from '../../../components/project-settings/avatar';
@@ -31,7 +32,6 @@ import SliderNumberField from '../../../components/slider-number-field';
 import { useReadOnly } from '../../../contexts/session';
 import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
-import { getSupportedModels } from '../../../libs/common';
 import useDialog from '../../../utils/use-dialog';
 import InfoOutlined from '../icons/question';
 import { defaultBranch, useProjectState } from '../state';
