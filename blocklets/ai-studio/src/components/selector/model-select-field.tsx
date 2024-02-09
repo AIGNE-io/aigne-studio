@@ -125,4 +125,4 @@ const brandIcon = (brand: string) =>
     'Vertex AI': <VertexAIIcon fontSize="small" />,
     Google: <GoogleIcon fontSize="small" />,
     'Mistral AI': <Box component="img" src={MistralIcon} width={20} height={20} />,
-  }[brand]);
+  })[brand];

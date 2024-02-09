@@ -44,7 +44,7 @@
   "scripts": {
     "start": "vite --host",
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
-    "lint:fix": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx --fix",
+    "lint:fix": "npm run lint -- --fix",
     "clean": "rimraf lib",
     "build": "npm run clean && run-p build:*",
     "build:cjs": "tsc --module commonjs --outDir lib/cjs",
