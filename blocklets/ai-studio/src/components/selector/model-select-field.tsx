@@ -13,7 +13,12 @@ import groupBy from 'lodash/groupBy';
 import { useEffect, useMemo } from 'react';
 import { useAsync } from 'react-use';
 
-import { ImageModelInfo, TextModelInfo, getSupportedImagesModels, getSupportedModels } from '../../libs/common';
+import {
+  ImageModelInfo,
+  TextModelInfo,
+  getSupportedImagesModels,
+  getSupportedModels,
+} from '../../../api/src/libs/common';
 import AzureIcon from './ai-icons/azure';
 import GoogleIcon from './ai-icons/google';
 import HuggingFaceIcon from './ai-icons/hugging-face';
