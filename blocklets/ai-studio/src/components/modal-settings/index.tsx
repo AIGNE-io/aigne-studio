@@ -1,4 +1,4 @@
-import { getSupportedModels } from '@app/libs/common';
+import { getSupportedModels } from '@api/libs/common';
 import Settings from '@app/pages/project/icons/settings';
 import { useProjectState } from '@app/pages/project/state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';

@@ -1,4 +1,4 @@
-import { defaultImageModel, getSupportedImagesModels } from '@app/libs/common';
+import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
 import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import {

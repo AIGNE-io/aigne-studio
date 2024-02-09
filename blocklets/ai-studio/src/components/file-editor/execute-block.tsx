@@ -529,8 +529,8 @@ const ToolDialog = forwardRef<
                         executeBlock.selectType === 'selectByPrompt'
                           ? t('selectByPromptParameterPlaceholder')
                           : assistantParameters.has(parameter.key)
-                          ? `{{ ${parameter.key} }}`
-                          : undefined
+                            ? `{{ ${parameter.key} }}`
+                            : undefined
                       }
                       value={field.value || ''}
                       projectId={projectId}

@@ -6,7 +6,7 @@ import isNil from 'lodash/isNil';
 import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
-import { getSupportedModels } from '../../../libs/common';
+import { getSupportedModels } from '../../../../api/src/libs/common';
 import { useAssistantCompare, useProjectState } from '../../../pages/project/state';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';

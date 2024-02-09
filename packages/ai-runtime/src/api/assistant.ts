@@ -28,7 +28,7 @@ export async function runAssistant<
     working?: boolean;
     assistantId: string;
     parameters?: { [key: string]: string | number };
-  }
+  },
 >({
   url,
   ...input

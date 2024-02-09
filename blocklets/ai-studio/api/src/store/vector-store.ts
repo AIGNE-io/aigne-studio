@@ -26,7 +26,11 @@ HNSWLib.imports = async () => {
 };
 
 export default class VectorStore extends HNSWLib {
-  constructor(private directory: string, embeddings: Embeddings, args: HNSWLibArgs) {
+  constructor(
+    private directory: string,
+    embeddings: Embeddings,
+    args: HNSWLibArgs
+  ) {
     super(embeddings, args);
   }
 
