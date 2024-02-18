@@ -85,7 +85,7 @@
   },
   "dependencies": {
     "@blocklet/ai-builtin": "^0.1.246",
-    "@blocklet/ai-kit": "^0.1.10",
+    "@blocklet/ai-kit": "^0.1.12",
     "@blocklet/sdk": "^1.16.23",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.10",
