@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/co-git",
-  "version": "0.1.244",
+  "version": "0.1.251",
   "description": "The cooperative component library for AI Studio",
   "publishConfig": {
     "access": "public"
@@ -51,6 +51,7 @@
   },
   "scripts": {
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "lint:fix": "npm run lint -- --fix",
     "build": "run-p build:*",
     "build:cjs": "tsc --module commonjs --outDir lib/cjs",
     "build:esm": "tsc --module es2022 --outDir lib/esm",
@@ -63,13 +64,13 @@
   "dependencies": {
     "@syncedstore/core": "^0.6.0",
     "@syncedstore/react": "^0.6.0",
-    "isomorphic-git": "^1.25.3",
-    "lib0": "^0.2.88",
+    "isomorphic-git": "^1.25.5",
+    "lib0": "^0.2.89",
     "lodash": "^4.17.21",
     "queue": "^6.0.2",
     "ws": "^8.16.0",
     "y-protocols": "^1.0.6",
-    "yjs": "^13.6.11"
+    "yjs": "^13.6.12"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.202",

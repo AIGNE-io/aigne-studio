@@ -1,3 +1,31 @@
+## 0.1.251 (2024-2-18)
+
+- fix: downgrade gpt-tokens version
+
+## 0.1.250 (2024-2-18)
+
+- fix: update execute button label
+
+## 0.1.249 (2024-2-9)
+
+- feat: support es module for function assistant
+
+## 0.1.248 (2024-2-9)
+
+- fix: bundle error
+
+## 0.1.247 (2024-2-5)
+
+- fix: optimize debug view efficiency
+
+## 0.1.246 (2024-2-4)
+
+- feat: debug info integration
+
+## 0.1.245 (2024-2-4)
+
+- feat: stop after tools select
+
 ## 0.1.244 (2024-2-3)
 
 - fix: prompt editor crash

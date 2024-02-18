@@ -1,10 +1,29 @@
-import { getSupportedModels } from '@app/libs/common';
+import { getSupportedModels } from '@api/libs/common';
 import Settings from '@app/pages/project/icons/settings';
 import { useProjectState } from '@app/pages/project/state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ExecuteBlockSelectByPromptYjs } from '@blocklet/ai-runtime/types';
+import { ExecuteBlockSelectByPromptYjs, FileTypeYjs, OnTaskCompletion, isAssistant } from '@blocklet/ai-runtime/types';
 import { InfoOutlined } from '@mui/icons-material';
-import { Box, Button, ClickAwayListener, FormLabel, Paper, Popper, Stack, Tooltip } from '@mui/material';
+import {
+  Box,
+  Button,
+  Checkbox,
+  Chip,
+  ClickAwayListener,
+  FormControl,
+  FormLabel,
+  InputLabel,
+  ListItemText,
+  MenuItem,
+  OutlinedInput,
+  Paper,
+  Popper,
+  Select,
+  SelectChangeEvent,
+  Stack,
+  Tooltip,
+} from '@mui/material';
+import { sortBy } from 'lodash';
 import isNil from 'lodash/isNil';
 import { ReactElement, useMemo, useRef, useState } from 'react';
 import { useAsync } from 'react-use';
@@ -18,11 +37,15 @@ export function ModelSetting({
   gitRef,
   value,
   readOnly,
+  files,
 }: {
   projectId: string;
   gitRef: string;
   value: ExecuteBlockSelectByPromptYjs;
   readOnly?: boolean;
+  files: Partial<{
+    [key: string]: FileTypeYjs;
+  }>;
 }) {
   const { t } = useLocaleContext();
   const { state } = useProjectState(projectId, gitRef);
@@ -43,6 +66,38 @@ export function ModelSetting({
       maxTokens: undefined,
     };
   }
+
+  const tools = sortBy(
+    value.tools
+      ? Object.values(value.tools)
+          .map(({ index, data: tool }) => {
+            const f = files[tool.id];
+            const file = f && isAssistant(f) ? f : undefined;
+            if (!file) return null;
+            return { index, data: { ...tool, file } };
+          })
+          .filter((i): i is NonNullable<typeof i> => !!i)
+      : []
+  );
+
+  const toolId = tools.filter((i) => i.data.onEnd === OnTaskCompletion.EXIT).map((i) => i.data.id) ?? [];
+
+  const handleChange = (event: SelectChangeEvent<typeof toolId>) => {
+    const {
+      target: { value: selectValue },
+    } = event;
+
+    const data = typeof selectValue === 'string' ? selectValue.split(',') : selectValue;
+
+    const toolIds = tools.map((tool) => tool.data.id);
+
+    toolIds.forEach((id) => {
+      const tool = value.tools?.[id];
+      if (tool) {
+        tool.data.onEnd = data.includes(id) ? OnTaskCompletion.EXIT : undefined;
+      }
+    });
+  };
 
   return (
     <Stack position="relative" py={1} gap={1}>
@@ -203,6 +258,34 @@ export function ModelSetting({
           )}
         </>
       )}
+
+      {!!tools.length && (
+        <FormControl size="small">
+          <InputLabel>Stop Tools</InputLabel>
+          <Select
+            multiple
+            value={toolId}
+            onChange={handleChange}
+            input={<OutlinedInput label="Stop Tools" />}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => {
+                  const file = tools.find((i) => i.data.id === value);
+                  return <Chip key={value} label={file?.data.file.name} />;
+                })}
+              </Box>
+            )}>
+            {tools?.map(({ data: { id, file } }) => {
+              return (
+                <MenuItem key={id} value={id}>
+                  <Checkbox checked={toolId.indexOf(id || '') > -1} />
+                  <ListItemText primary={file.name} />
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </FormControl>
+      )}
     </Stack>
   );
 }
@@ -225,14 +308,14 @@ export function ModelPopper({ children }: { children: ReactElement }) {
       <Popper
         open={isVisible}
         anchorEl={buttonRef.current}
-        placement="bottom-end"
+        placement="bottom-start"
         sx={{ zIndex: (theme) => theme.zIndex.modal }}>
         <ClickAwayListener
           onClickAway={(e) => {
             if (e.target === document.body) return;
             setIsVisible(false);
           }}>
-          <Paper sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>{children}</Paper>
+          <Paper sx={{ p: 3, width: 380, maxHeight: '80vh', overflow: 'auto' }}>{children}</Paper>
         </ClickAwayListener>
       </Popper>
     </>

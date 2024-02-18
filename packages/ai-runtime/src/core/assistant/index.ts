@@ -6,7 +6,6 @@ import {
   ImageGenerationInput,
   ImageGenerationResponse,
 } from '@blocklet/ai-kit/api/types';
-import { call } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick } from 'lodash';
@@ -14,6 +13,7 @@ import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
 
+import { TranspileTs } from '../../builtin/complete';
 import {
   ApiAssistant,
   Assistant,
@@ -26,25 +26,59 @@ import {
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
-import { ImageAssistant, Mustache, Role, isImageAssistant } from '../../types/assistant';
+import { ImageAssistant, Mustache, OnTaskCompletion, Role, isImageAssistant } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
+
+export class ToolCompletionDirective extends Error {
+  type: OnTaskCompletion;
+
+  constructor(message: string, type: OnTaskCompletion) {
+    super(message);
+    this.type = type;
+  }
+}
 
 export interface GetAssistant {
   (assistantId: string, options: { rejectOnEmpty: true | Error }): Promise<Assistant>;
   (assistantId: string, options?: { rejectOnEmpty?: false }): Promise<Assistant | null>;
 }
 
-export type CallAI = (options: {
+export type Options = {
   assistant: Assistant;
   input: ChatCompletionInput;
-}) => Promise<ReadableStream<ChatCompletionChunk>>;
+};
 
-export type CallAIImage = (options: {
+export type ImageOptions = {
   assistant: Assistant;
   input: ImageGenerationInput;
-}) => Promise<ImageGenerationResponse>;
+};
+
+export type ModelInfo = {
+  model: string;
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+};
+
+export interface CallAI {
+  (options: Options & { outputModel: true }): Promise<{
+    modelInfo: ModelInfo;
+    chatCompletionChunk: ReadableStream<ChatCompletionChunk>;
+  }>;
+  (options: Options & { outputModel?: false }): Promise<ReadableStream<ChatCompletionChunk>>;
+  (options: Options & { outputModel: boolean }): any;
+}
+
+export interface CallAIImage {
+  (options: ImageOptions & { outputModel: true }): Promise<{
+    modelInfo: ModelInfo;
+    imageRes: ImageGenerationResponse;
+  }>;
+  (options: ImageOptions & { outputModel?: false }): Promise<ImageGenerationResponse>;
+}
 
 const taskIdGenerator = new Worker();
 
@@ -57,6 +91,7 @@ export async function runAssistant({
   getAssistant,
   assistant,
   parameters = {},
+  parentTaskId,
   callback,
 }: {
   taskId: string;
@@ -65,54 +100,84 @@ export async function runAssistant({
   getAssistant: GetAssistant;
   assistant: Assistant;
   parameters?: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }): Promise<any> {
-  if (isPromptAssistant(assistant)) {
-    return runPromptAssistant({
-      taskId,
-      callAI,
-      callAIImage,
-      getAssistant,
-      assistant,
-      parameters,
-      callback,
-    });
-  }
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+  try {
+    if (isPromptAssistant(assistant)) {
+      return await runPromptAssistant({
+        taskId,
+        parentTaskId,
+        callAI,
+        callAIImage,
+        getAssistant,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
 
-  if (isImageAssistant(assistant)) {
-    return runImageAssistant({
-      taskId,
-      callAI,
-      callAIImage,
-      getAssistant,
-      assistant,
-      parameters,
-      callback,
-    });
-  }
+    if (isImageAssistant(assistant)) {
+      return await runImageAssistant({
+        taskId,
+        parentTaskId,
+        callAI,
+        callAIImage,
+        getAssistant,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
 
-  if (isFunctionAssistant(assistant)) {
-    return runFunctionAssistant({
-      getAssistant,
-      callAI,
-      callAIImage,
-      taskId,
-      assistant,
-      parameters,
-      callback,
-    });
-  }
+    if (isFunctionAssistant(assistant)) {
+      return await runFunctionAssistant({
+        getAssistant,
+        callAI,
+        callAIImage,
+        taskId,
+        parentTaskId,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
 
-  if (isApiAssistant(assistant)) {
-    return runApiAssistant({
-      getAssistant,
-      callAI,
-      callAIImage,
-      taskId,
-      assistant,
-      parameters,
-      callback,
-    });
+    if (isApiAssistant(assistant)) {
+      return await runApiAssistant({
+        getAssistant,
+        callAI,
+        callAIImage,
+        taskId,
+        parentTaskId,
+        assistant,
+        parameters,
+        callback,
+      });
+    }
+  } catch (e) {
+    if (e instanceof ToolCompletionDirective) {
+      if (e.type === OnTaskCompletion.EXIT) {
+        callback?.({
+          type: AssistantResponseType.EXECUTE,
+          taskId,
+          parentTaskId,
+          assistantId: assistant.id,
+          assistantName: assistant.name,
+          execution: { currentPhase: ExecutionPhase.EXECUTE_SELECT_STOP },
+        });
+        return undefined;
+      }
+    }
+    throw e;
   }
 
   throw new Error('Unimplemented');
@@ -126,6 +191,7 @@ async function runFunctionAssistant({
   assistant,
   context,
   parameters,
+  parentTaskId,
   callback,
 }: {
   callAI: CallAI;
@@ -135,6 +201,7 @@ async function runFunctionAssistant({
   assistant: FunctionAssistant;
   context?: { [key: string]: any };
   parameters?: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   const results = assistant.prepareExecutes?.length
@@ -145,14 +212,19 @@ async function runFunctionAssistant({
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
+        parentTaskId: taskId,
         callback,
       })
     : [];
 
   if (!assistant.code) throw new Error(`Assistant ${assistant.id}'s code is empty`);
-
+  const code = await TranspileTs(assistant.code);
   const vm = new NodeVM({
     console: 'redirect',
+    require: {
+      builtin: ['*'],
+      external: { modules: ['@blocklet/ai-builtin'], transitive: true },
+    },
     sandbox: {
       context: {
         get: (name: any) => {
@@ -165,7 +237,6 @@ async function runFunctionAssistant({
         },
       },
       URL,
-      call,
       fetch,
       env: {
         languages: env.languages,
@@ -194,7 +265,7 @@ async function runFunctionAssistant({
     });
   });
 
-  const module = await vm.run(assistant.code);
+  const module = await vm.run(code, __dirname);
   if (typeof module.default !== 'function')
     throw new Error('Invalid function file: function file must export default function');
 
@@ -209,9 +280,20 @@ async function runFunctionAssistant({
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
+    parentTaskId,
     assistantId: assistant.id,
     assistantName: assistant.name,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    taskId,
+    parentTaskId,
+    assistantName: assistant.name,
+    inputParameters: parameters,
+    fnArgs: args,
   });
 
   const result = await module.default(args);
@@ -221,6 +303,15 @@ async function runFunctionAssistant({
     taskId,
     assistantId: assistant.id,
     delta: { content: typeof result === 'string' ? result : JSON.stringify(result) },
+  });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
   return result;
@@ -233,6 +324,7 @@ async function runApiAssistant({
   taskId,
   assistant,
   parameters,
+  parentTaskId,
   callback,
 }: {
   callAI: CallAI;
@@ -241,6 +333,7 @@ async function runApiAssistant({
   taskId: string;
   assistant: ApiAssistant;
   parameters?: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
@@ -253,6 +346,7 @@ async function runApiAssistant({
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
+        parentTaskId: taskId,
         callback,
       })
     : [];
@@ -275,9 +369,20 @@ async function runApiAssistant({
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
+    parentTaskId,
     assistantId: assistant.id,
     assistantName: assistant.name,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    taskId,
+    assistantName: assistant.name,
+    parentTaskId,
+    inputParameters: parameters,
+    apiArgs: args,
   });
 
   const method = assistant.requestMethod || 'GET';
@@ -311,6 +416,15 @@ async function runApiAssistant({
     delta: { content: typeof result === 'string' ? result : JSON.stringify(result || error) },
   });
 
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
   return result;
 }
 
@@ -327,6 +441,7 @@ async function runPromptAssistant({
   getAssistant,
   assistant,
   parameters,
+  parentTaskId,
   callback,
 }: {
   callAI: CallAI;
@@ -335,6 +450,7 @@ async function runPromptAssistant({
   getAssistant: GetAssistant;
   assistant: PromptAssistant;
   parameters: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
@@ -350,6 +466,7 @@ async function runPromptAssistant({
     getAssistant,
     executeBlocks,
     parameters,
+    parentTaskId: taskId,
     callback,
   });
 
@@ -408,17 +525,28 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  callback?.({ type: AssistantResponseType.INPUT, taskId, assistantId: assistant.id, input: { messages } });
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
+    parentTaskId,
     assistantId: assistant.id,
     assistantName: assistant.name,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    parentTaskId,
+    taskId,
+    assistantName: assistant.name,
+    inputParameters: parameters,
+    promptMessages: messages,
   });
 
   const res = await callAI({
     assistant,
+    outputModel: true,
     input: {
       stream: true,
       messages,
@@ -432,15 +560,39 @@ async function runPromptAssistant({
 
   let result = '';
 
-  for await (const chunk of res) {
+  for await (const chunk of res.chatCompletionChunk) {
+    result += chunk.delta.content || '';
     callback?.({
       type: AssistantResponseType.CHUNK,
       taskId,
       assistantId: assistant.id,
       delta: { content: chunk.delta.content },
     });
-    result += chunk.delta.content || '';
   }
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    ...(parentTaskId
+      ? {
+          parentTaskId,
+          modelParameters: res.modelInfo,
+        }
+      : { parentTaskId }),
+    taskId,
+    assistantName: assistant.name,
+    inputParameters: parameters,
+    promptMessages: messages,
+  });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
 
   return result;
 }
@@ -452,6 +604,7 @@ async function runImageAssistant({
   getAssistant,
   assistant,
   parameters,
+  parentTaskId,
   callback,
 }: {
   callAI: CallAI;
@@ -460,6 +613,7 @@ async function runImageAssistant({
   getAssistant: GetAssistant;
   assistant: ImageAssistant;
   parameters: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
@@ -472,6 +626,7 @@ async function runImageAssistant({
         getAssistant,
         parameters,
         executeBlocks: assistant.prepareExecutes,
+        parentTaskId: taskId,
         callback,
       })
     : [];
@@ -496,13 +651,27 @@ async function runImageAssistant({
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
+    parentTaskId,
     assistantId: assistant.id,
     assistantName: assistant.name,
-    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
   });
 
-  const { data } = await callAIImage({
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    taskId,
+    parentTaskId,
+    assistantName: assistant.name,
+    inputParameters: parameters,
+  });
+
+  const {
+    imageRes: { data },
+    modelInfo,
+  } = await callAIImage({
     assistant,
+    outputModel: true,
     input: {
       prompt,
       n: assistant.n,
@@ -514,7 +683,29 @@ async function runImageAssistant({
     },
   });
 
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    ...(parentTaskId
+      ? {
+          parentTaskId,
+          modelParameters: modelInfo,
+        }
+      : { parentTaskId }),
+    taskId,
+    assistantName: assistant.name,
+  });
+
   callback?.({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: { images: data } });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
 
   return data;
 }
@@ -526,6 +717,7 @@ async function runExecuteBlocks({
   getAssistant,
   parameters,
   executeBlocks,
+  parentTaskId,
   callback,
 }: {
   assistant: Assistant;
@@ -534,6 +726,7 @@ async function runExecuteBlocks({
   getAssistant: GetAssistant;
   parameters?: { [key: string]: any };
   executeBlocks: ExecuteBlock[];
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   const variables = {
@@ -553,6 +746,7 @@ async function runExecuteBlocks({
         getAssistant,
         executeBlock,
         parameters: variables,
+        parentTaskId,
         callback,
       });
 
@@ -577,6 +771,7 @@ async function runExecuteBlock({
   getAssistant,
   executeBlock,
   parameters,
+  parentTaskId,
   callback,
 }: {
   taskId: string;
@@ -586,6 +781,7 @@ async function runExecuteBlock({
   getAssistant: GetAssistant;
   executeBlock: ExecuteBlock;
   parameters?: { [key: string]: any };
+  parentTaskId?: string;
   callback?: RunAssistantCallback;
 }) {
   const { tools } = executeBlock;
@@ -594,6 +790,7 @@ async function runExecuteBlock({
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
+    parentTaskId,
     assistantId: assistant.id,
     assistantName: assistant.name,
     execution: {
@@ -630,6 +827,7 @@ async function runExecuteBlock({
             getAssistant,
             assistant: toolAssistant,
             parameters: args,
+            parentTaskId,
             callback,
           });
         })
@@ -674,6 +872,14 @@ async function runExecuteBlock({
       )
     ).filter((i): i is NonNullable<typeof i> => !isNil(i));
 
+    callback?.({
+      type: AssistantResponseType.INPUT,
+      assistantId: assistant.id,
+      parentTaskId,
+      taskId,
+      modelParameters: executeBlock.executeModel,
+      assistantName: `${executeBlock.variable ?? assistant.name}-select`,
+    });
     const response = await callAI({
       assistant,
       input: {
@@ -698,7 +904,7 @@ async function runExecuteBlock({
           type: AssistantResponseType.CHUNK,
           taskId,
           assistantId: assistant.id,
-          delta: { content: chunk.delta.content },
+          delta: { content: chunk.delta.content || '' },
         });
       }
 
@@ -720,7 +926,6 @@ async function runExecuteBlock({
     }
 
     const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
-
     const result =
       calls &&
       (await Promise.all(
@@ -729,7 +934,6 @@ async function runExecuteBlock({
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
-
           const args = JSON.parse(call.function.arguments);
           const toolAssistant = tool?.assistant;
           await Promise.all(
@@ -741,15 +945,22 @@ async function runExecuteBlock({
             }) ?? []
           );
 
-          return runAssistant({
+          const res = await runAssistant({
             taskId: taskIdGenerator.nextId().toString(),
             callAI,
             callAIImage,
             getAssistant,
             assistant: toolAssistant,
             parameters: args,
+            parentTaskId: taskId,
             callback,
           });
+
+          if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
+            throw new ToolCompletionDirective('The task has been stop. The tool will now exit.', OnTaskCompletion.EXIT);
+          }
+
+          return res;
         })
       ));
 

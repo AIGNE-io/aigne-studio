@@ -4,8 +4,9 @@ import { runAssistant } from '@blocklet/ai-runtime/api';
 import {
   AssistantResponseType,
   AssistantYjs,
-  InputMessages,
+  ExecutionPhase,
   Role,
+  RunAssistantInput,
   RunAssistantLog,
   fileToYjs,
   isAssistant,
@@ -20,7 +21,7 @@ import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 
@@ -174,6 +175,18 @@ export const useProjectState = (projectId: string, gitRef: string) => {
   };
 };
 
+export type ImageType = { b64Json?: string; url?: string }[];
+
+export type MessageInput = RunAssistantInput & {
+  deep: number;
+  output?: string;
+  logs?: Array<RunAssistantLog>;
+  startTime?: number;
+  endTime?: number;
+  images?: ImageType;
+  stop?: boolean;
+};
+
 export interface SessionItem {
   index: number;
   createdAt: string;
@@ -183,22 +196,14 @@ export interface SessionItem {
     createdAt: string;
     role: Role;
     content: string;
-    logs?: Array<RunAssistantLog>;
     gitRef?: string;
     parameters?: { [key: string]: any };
-    images?: { b64Json?: string; url?: string }[];
+    images?: ImageType;
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
     error?: { message: string; [key: string]: unknown };
-    inputMessages?: InputMessages;
-    subMessages?: {
-      taskId: string;
-      assistantId: string;
-      content: string;
-      inputMessages?: InputMessages;
-      images?: { b64Json?: string; url?: string }[];
-    }[];
+    inputMessages?: Array<MessageInput>;
   }[];
   chatType?: 'chat' | 'debug';
   debugForm?: { [key: string]: any };
@@ -214,13 +219,12 @@ export interface DebugState {
 
 const debugStates: { [key: string]: RecoilState<DebugState> } = {};
 
-const getInitialDebugState = (projectId: string, assistantId: string): [string, Promise<DebugState>] => {
+const getDebugState = (projectId: string, assistantId: string) => {
   const key = `debugState-${projectId}-${assistantId}` as const;
-  const now = new Date().toISOString();
 
-  return [
+  debugStates[key] ??= atom<DebugState>({
     key,
-    (async () => {
+    default: (async () => {
       try {
         await debugStateMigration;
 
@@ -238,6 +242,8 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
       } catch (error) {
         console.error('initialize default debug state error', error);
       }
+
+      const now = new Date().toISOString();
       return {
         projectId,
         assistantId,
@@ -245,25 +251,18 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
         nextSessionIndex: 2,
       };
     })(),
-  ];
-};
-
-const useDebugInitState = (projectId: string, assistantId: string) => {
-  const [key, initialState] = useMemo(() => getInitialDebugState(projectId, assistantId), [projectId, assistantId]);
-
-  debugStates[key] ??= atom<DebugState>({
-    key,
-    default: initialState,
     effects: [
       (() => {
         const setItem = debounce((k, v) => {
           localForage.setItem(k, v);
         }, 2000);
 
-        window.addEventListener('beforeunload', () => setItem.flush());
+        const handleBeforeUnload = () => setItem.flush();
+        window.addEventListener('beforeunload', handleBeforeUnload);
 
         return ({ onSet }) => {
           onSet((value) => setItem(key, value));
+          return () => window.removeEventListener('beforeunload', handleBeforeUnload);
         };
       })(),
     ],
@@ -273,7 +272,7 @@ const useDebugInitState = (projectId: string, assistantId: string) => {
 };
 
 export const useDebugState = ({ projectId, assistantId }: { projectId: string; assistantId: string }) => {
-  const debugState = useDebugInitState(projectId, assistantId);
+  const debugState = getDebugState(projectId, assistantId);
   const [state, setState] = useRecoilState(debugState);
 
   const newSession = useCallback(
@@ -414,8 +413,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               content: message.type === 'chat' ? message.content : '',
               gitRef: message.type === 'debug' ? message.gitRef : undefined,
               parameters: message.type === 'debug' ? message.parameters : undefined,
-              subMessages: [],
-              inputMessages: { messages: [] },
+              inputMessages: [],
               loading: true,
             },
             { id: responseId, createdAt: now.toISOString(), role: 'assistant', content: '', loading: true }
@@ -458,31 +456,17 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             } else if (typeof value === 'string') {
               response += value;
             } else if (value.type === AssistantResponseType.INPUT) {
-              if (value.taskId === mainTaskId) {
-                setMessage(sessionIndex, messageId, (message) => {
-                  message.inputMessages = value.input;
-                  message.loading = false;
-                });
-              } else {
-                setMessage(sessionIndex, messageId, (message) => {
-                  if (message.cancelled) return;
+              setMessage(sessionIndex, messageId, (message) => {
+                message.inputMessages ??= [];
 
-                  message.subMessages ??= [];
-
-                  let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
-                  if (!subMessage) {
-                    subMessage = {
-                      taskId: value.taskId,
-                      assistantId: value.assistantId,
-                      inputMessages: value.input,
-                      content: '',
-                    };
-                    message.subMessages.push(subMessage);
-                  } else {
-                    subMessage.inputMessages = value.input;
-                  }
-                });
-              }
+                let lastInput = message.inputMessages.findLast((input) => input.taskId === value.taskId);
+                if (lastInput) {
+                  lastInput = Object.assign(lastInput, value);
+                } else {
+                  const parentTrace = message?.inputMessages.findLast((i) => i.taskId === value.parentTaskId);
+                  message.inputMessages.push({ ...value, deep: parentTrace ? (parentTrace?.deep || 0) + 1 : 0 });
+                }
+              });
             } else if (value.type === AssistantResponseType.CHUNK) {
               const { images } = value.delta;
 
@@ -501,22 +485,47 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               } else {
                 setMessage(sessionIndex, messageId, (message) => {
                   if (message.cancelled) return;
-                  message.subMessages ??= [];
 
-                  let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
-                  if (!subMessage) {
-                    subMessage = { taskId: value.taskId, assistantId: value.assistantId, content: '' };
-                    message.subMessages.push(subMessage);
-                  }
-
-                  subMessage.content += value.delta.content || '';
-
-                  if (images?.length) {
-                    subMessage.images ??= [];
-                    subMessage.images.push(...images);
+                  const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
+                  if (lastInput) {
+                    lastInput.output ??= '';
+                    lastInput.output += value.delta.content || '';
+                    if (images?.length) {
+                      lastInput.images ??= [];
+                      lastInput.images.push(...images);
+                    }
                   }
                 });
               }
+            } else if (value.type === AssistantResponseType.EXECUTE) {
+              setMessage(sessionIndex, messageId, (message) => {
+                message.inputMessages ??= [];
+
+                const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
+                if (value.execution.currentPhase === ExecutionPhase.EXECUTE_ASSISTANT_START) {
+                  if (!lastInput) {
+                    const parentTrace = message?.inputMessages.findLast((i) => i.taskId === value.parentTaskId);
+                    message.inputMessages.push({
+                      type: AssistantResponseType.INPUT,
+                      assistantId: value.assistantId,
+                      assistantName: value.assistantName!,
+                      taskId: value.taskId,
+                      parentTaskId: value.parentTaskId,
+                      startTime: Date.now(),
+                      deep: parentTrace ? (parentTrace?.deep || 0) + 1 : 0,
+                    });
+                  }
+                } else if (value.execution.currentPhase === ExecutionPhase.EXECUTE_ASSISTANT_END) {
+                  if (lastInput) {
+                    lastInput.endTime = Date.now();
+                  }
+                } else if (value.execution.currentPhase === ExecutionPhase.EXECUTE_SELECT_STOP) {
+                  if (lastInput) {
+                    lastInput.endTime = Date.now();
+                    lastInput.stop = true;
+                  }
+                }
+              });
             } else if (value.type === AssistantResponseType.ERROR) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
@@ -526,11 +535,12 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 };
               });
             } else if (value.type === AssistantResponseType.LOG) {
-              setMessage(sessionIndex, responseId, (message) => {
+              setMessage(sessionIndex, messageId, (message) => {
                 if (message.cancelled) return;
-                if (value) {
-                  message.logs ??= [];
-                  message.logs?.push(value);
+                const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
+                if (lastInput) {
+                  lastInput.logs ??= [];
+                  lastInput.logs.push(value);
                 }
               });
             } else {

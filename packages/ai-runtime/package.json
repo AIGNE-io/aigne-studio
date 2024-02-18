@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.244",
+  "version": "0.1.251",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -73,6 +73,7 @@
   },
   "scripts": {
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "lint:fix": "npm run lint -- --fix",
     "build": "run-p build:*",
     "build:cjs": "tsc --module commonjs --outDir lib/cjs",
     "build:esm": "tsc --module es2022 --outDir lib/esm",
@@ -83,20 +84,22 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.8",
-    "@blocklet/sdk": "^1.16.22",
+    "@blocklet/ai-builtin": "^0.1.251",
+    "@blocklet/ai-kit": "^0.1.12",
+    "@blocklet/sdk": "^1.16.23",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.10",
     "axios": "^1.6.7",
     "dayjs": "^1.11.10",
-    "eventsource-parser": "^1.1.1",
+    "eventsource-parser": "^1.1.2",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
     "node-fetch": "2",
-    "react-hook-form": "^7.50.0",
+    "react-hook-form": "^7.50.1",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
-    "ufo": "^1.3.2",
+    "typescript": "^5.3.3",
+    "ufo": "^1.4.0",
     "vm2": "^3.9.19"
   },
   "peerDependencies": {
@@ -110,19 +113,19 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.23",
+    "@arcblock/ux": "^2.9.32",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.3",
-    "@mui/icons-material": "^5.15.7",
-    "@mui/lab": "^5.0.0-alpha.163",
-    "@mui/material": "^5.15.7",
+    "@mui/icons-material": "^5.15.10",
+    "@mui/lab": "^5.0.0-alpha.165",
+    "@mui/material": "^5.15.10",
     "@types/lodash": "^4.14.202",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",
-    "@types/react": "^18.2.51",
+    "@types/react": "^18.2.56",
     "npm-run-all": "^4.1.5",
     "react": "^18.2.0",
-    "react-router-dom": "^6.22.0",
+    "react-router-dom": "^6.22.1",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.3"
   }

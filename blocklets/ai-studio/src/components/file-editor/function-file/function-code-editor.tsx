@@ -25,12 +25,11 @@ export default function FunctionCodeEditor({
   useEffect(() => {
     if (!value.code) {
       value.code = `\
-module.exports.default = async function(args) {
+export default async function (args) {
   return {
     // result
   }
-}
-`;
+}`;
     }
   }, [value]);
 
@@ -66,8 +65,8 @@ module.exports.default = async function(args) {
         }}>
         <CodeEditor
           readOnly={readOnly}
-          language="javascript"
-          path="function.js"
+          language="typescript"
+          path="function.ts"
           value={value.code}
           onChange={(code) => (value.code = code)}
         />

@@ -1,12 +1,13 @@
 import ErrorCard from '@app/components/error-card';
 import MdViewer from '@app/components/md-viewer';
+import BasicTree from '@app/components/trace';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, isAssistant, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { css, cx } from '@emotion/css';
+import { cx } from '@emotion/css';
 import { Add, CopyAll } from '@mui/icons-material';
 import {
   Accordion,
@@ -33,15 +34,13 @@ import {
   selectClasses,
   styled,
 } from '@mui/material';
-import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { useLocalStorageState } from 'ahooks';
-import dayjs from 'dayjs';
-import { isEmpty, pick, sortBy } from 'lodash';
+import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
-import { ComponentProps, SyntheticEvent, memo, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, SyntheticEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
+import { FlatIndexLocationWithAlign, Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
 import Broom from './icons/broom';
@@ -51,7 +50,6 @@ import Record from './icons/record';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
 import { SessionItem, useDebugState, useProjectState } from './state';
-import { useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {
   projectId: string;
@@ -76,20 +74,7 @@ export default function DebugView(props: {
   });
 
   return (
-    <Box
-      key={state.currentSessionIndex}
-      initialScrollBehavior="auto"
-      component={ScrollToBottom}
-      flexGrow={1}
-      height="100%"
-      overflow="auto"
-      scrollViewClassName={css`
-        display: flex;
-        flex-direction: column;
-      `}
-      followButtonClassName={css`
-        display: none;
-      `}>
+    <Box flexGrow={1} display="flex" flexDirection="column" key={state.currentSessionIndex}>
       <DebugViewContent {...props} />
       {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.assistant.id} />}
     </Box>
@@ -108,11 +93,28 @@ function DebugViewContent({
   setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
-
+  const virtuoso = useRef<VirtuosoHandle>(null);
   const { state, setSession, clearCurrentSession } = useDebugState({
     projectId,
     assistantId: assistant.id,
   });
+
+  const [showScrollBox, setShowScrollBox] = useState(false);
+
+  const handleScroll = useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      const bottomThreshold = 400;
+      const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight <= bottomThreshold;
+
+      if (!isNearBottom && !showScrollBox) {
+        setShowScrollBox(true);
+      } else if (isNearBottom && showScrollBox) {
+        setShowScrollBox(false);
+      }
+    },
+    [showScrollBox]
+  );
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
 
@@ -140,23 +142,62 @@ function DebugViewContent({
         </Tooltip>
       </Box>
 
-      <Box component={ScrollToBottom} initialScrollBehavior="auto" flexGrow={1} sx={{ overflowX: 'hidden' }}>
-        {currentSession.messages.map((message) => (
-          <MessageView
-            currentSession={currentSession.chatType}
-            key={message.id}
-            projectId={projectId}
-            gitRef={gitRef}
-            message={message}
+      <Box sx={{ position: 'relative', flexGrow: 1, overflowX: 'hidden' }}>
+        <Virtuoso
+          ref={virtuoso}
+          data={currentSession.messages}
+          overscan={2000}
+          followOutput={(isAtBottom: boolean) => {
+            if (isAtBottom) {
+              return 'auto';
+            }
+
+            return false;
+          }}
+          onScroll={handleScroll}
+          computeItemKey={(_, item) => item.id}
+          initialTopMostItemIndex={currentSession.messages.length - 1}
+          itemContent={(_, message) => <MessageView chatType={currentSession.chatType ?? 'chat'} message={message} />}
+        />
+        {showScrollBox && (
+          <Box
+            onClick={() => {
+              virtuoso.current?.scrollToIndex({
+                behavior: 'smooth',
+                index: currentSession.messages.length - 1,
+              });
+            }}
+            sx={{
+              bgcolor: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '10px',
+              borderWidth: 0,
+              bottom: 5,
+              cursor: 'pointer',
+              height: 20,
+              position: 'absolute',
+              right: 20,
+              width: 20,
+            }}
           />
-        ))}
+        )}
       </Box>
 
-      <Stack gap={2} sx={{ position: 'sticky', bottom: 0, py: 2, bgcolor: 'background.paper' }}>
+      <Stack gap={2} sx={{ bgcolor: 'background.paper', py: 2 }}>
         {currentSession.chatType !== 'debug' ? (
-          <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
+          <ChatModeForm
+            scrollToIndex={virtuoso.current?.scrollToIndex}
+            projectId={projectId}
+            gitRef={gitRef}
+            assistant={assistant}
+          />
         ) : (
-          <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
+          <DebugModeForm
+            scrollToIndex={virtuoso.current?.scrollToIndex}
+            projectId={projectId}
+            gitRef={gitRef}
+            assistant={assistant}
+            setCurrentTab={setCurrentTab}
+          />
         )}
 
         <Box textAlign="center">
@@ -231,177 +272,61 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
 }
 
 const MessageView = memo(
-  ({
-    projectId,
-    gitRef,
-    currentSession,
-    message,
-  }: {
-    projectId: string;
-    currentSession?: 'chat' | 'debug';
-    gitRef: string;
-    message: SessionItem['messages'][number];
-  }) => {
-    const { t } = useLocaleContext();
-    const { store } = useProjectStore(projectId, gitRef);
+  ({ message, chatType }: { message: SessionItem['messages'][number]; chatType?: 'chat' | 'debug' }) => {
     return (
-      <>
-        <Stack px={2} py={1} direction="row" gap={1} position="relative">
-          <Box py={0.5}>
-            <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-          </Box>
-          <Box width="100%">
-            {!!message.logs?.length && (
-              <Box mb={1} bgcolor="grey.50" borderRadius={1} p={1}>
-                {message.logs.map((item, index) => (
-                  <Box my={0.5} key={index}>
-                    <Typography component="span" color="text.secondary">
-                      {`${dayjs(item.timestamp).format('HH:mm:ss:SSS')}: `}
-                    </Typography>
-                    <Typography ml={0.25} component="span">{`${item.log}  `}</Typography>
+      <Stack px={2} py={1} direction="row" gap={1} position="relative">
+        <Box py={0.5}>
+          <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
+        </Box>
+        <Box width="100%">
+          <BasicTree inputs={message.inputMessages} />
+
+          <Box
+            flex={1}
+            sx={{
+              [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
+            }}>
+            {(message.content || message.images?.length || message.loading) &&
+            (chatType !== 'debug' || !message?.inputMessages?.length) ? (
+              <MessageViewContent
+                sx={{
+                  px: 1,
+                  py: 1,
+                  borderRadius: 1,
+                  bgcolor: (theme) =>
+                    message?.inputMessages
+                      ? theme.palette.grey[100]
+                      : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
+                  position: 'relative',
+                }}>
+                <MdViewer content={message.content} />
+
+                {message.images && message.images.length > 0 && (
+                  <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
+                )}
+
+                {message.loading && !message.inputMessages && <WritingIndicator />}
+
+                {message.role === 'assistant' && (
+                  <Box className="actions">
+                    {message.content && <CopyButton key="copy" message={message.content} />}
                   </Box>
-                ))}
-              </Box>
+                )}
+              </MessageViewContent>
+            ) : null}
+
+            {message.error ? (
+              <ErrorCard error={message.error} />
+            ) : (
+              message.cancelled && (
+                <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                  Cancelled
+                </Alert>
+              )
             )}
-            <Box
-              flex={1}
-              sx={{
-                [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
-              }}>
-              {message.content || message.parameters || message.images?.length || message.loading ? (
-                <MessageViewContent
-                  sx={{
-                    px: 1,
-                    py: 1,
-                    borderRadius: 1,
-                    bgcolor: (theme) =>
-                      message?.inputMessages
-                        ? theme.palette.grey[100]
-                        : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
-                    position: 'relative',
-                  }}>
-                  {<MdViewer content={message.content} /> ||
-                    (message.parameters && (
-                      <Box>
-                        {!isEmpty(message.parameters) ? (
-                          Object.entries(message.parameters).map(([key, val]) => (
-                            <Typography key={key}>
-                              <Typography component="span" color="text.secondary">
-                                {key}
-                              </Typography>
-                              : {typeof val === 'string' ? val : JSON.stringify(val)}
-                            </Typography>
-                          ))
-                        ) : (
-                          <span>{t('noParameters')}</span>
-                        )}
-                      </Box>
-                    ))}
-                  {!!message.inputMessages?.messages?.length && (
-                    <Box margin={0.5}>
-                      {message.inputMessages?.messages.map((i, index) => (
-                        <Accordion
-                          sx={{
-                            border: (theme) => `1px solid ${theme.palette.divider}`,
-                            '&:not(:last-child)': {
-                              borderBottom: 0,
-                            },
-                            '&::before': {
-                              display: 'none',
-                            },
-                          }}
-                          disableGutters
-                          elevation={0}
-                          key={index}>
-                          <AccordionSummary
-                            sx={{
-                              backgroundColor: (theme) =>
-                                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
-                              minHeight: 28,
-                              '& .MuiAccordionSummary-content': {
-                                my: 0,
-                              },
-                            }}
-                            expandIcon={<GridExpandMoreIcon />}>
-                            <Typography>{i.role}</Typography>
-                          </AccordionSummary>
-                          <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
-                            <Typography>{i.content}</Typography>
-                          </AccordionDetails>
-                        </Accordion>
-                      ))}
-                    </Box>
-                  )}
-
-                  {message.images && message.images.length > 0 && (
-                    <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
-                  )}
-
-                  {message.loading &&
-                    (message.inputMessages ? (
-                      message?.inputMessages?.messages.length === 0 &&
-                      (currentSession === 'debug' ? <CircularProgress sx={{ marginTop: 1 }} size={18} /> : null)
-                    ) : (
-                      <WritingIndicator />
-                    ))}
-
-                  {message.role === 'assistant' && (
-                    <Box className="actions">
-                      {message.content && <CopyButton key="copy" message={message.content} />}
-                    </Box>
-                  )}
-                </MessageViewContent>
-              ) : null}
-
-              {message.error ? (
-                <ErrorCard error={message.error} />
-              ) : (
-                message.cancelled && (
-                  <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                    Cancelled
-                  </Alert>
-                )
-              )}
-            </Box>
           </Box>
-        </Stack>
-
-        {message.subMessages && (
-          <Box ml={6}>
-            {message.subMessages.map((item) => {
-              const assistant = store.files[item.assistantId];
-              const name = (assistant && isAssistant(assistant) && assistant.name) || item.taskId;
-
-              const avatar = (
-                <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{name?.slice(0, 1).toUpperCase()}</Avatar>
-              );
-
-              return (
-                <Box key={item.taskId}>
-                  <Box py={1} display="flex" alignItems="center" gap={1}>
-                    {avatar}
-                    <Box>{name}</Box>
-                  </Box>
-
-                  <Box ml={4}>
-                    {item.content && (
-                      <Box
-                        component="pre"
-                        sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
-                        dangerouslySetInnerHTML={{ __html: item.content }}
-                      />
-                    )}
-
-                    {item.images && item.images.length > 0 && (
-                      <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={item.images} />
-                    )}
-                  </Box>
-                </Box>
-              );
-            })}
-          </Box>
-        )}
-      </>
+        </Box>
+      </Stack>
     );
   }
 );
@@ -461,10 +386,12 @@ function ChatModeForm({
   projectId,
   gitRef,
   assistant,
+  scrollToIndex,
 }: {
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
+  scrollToIndex?: (location: number | FlatIndexLocationWithAlign) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -473,8 +400,6 @@ function ChatModeForm({
   } = useProjectState(projectId, gitRef);
 
   const { state, sendMessage, cancelMessage } = useDebugState({ projectId, assistantId: assistant.id });
-
-  const scrollToBottom = useScrollToBottom();
 
   const [question, setQuestion] = useState('');
 
@@ -506,8 +431,14 @@ function ChatModeForm({
         presencePenalty: promptAssistant?.presencePenalty ?? project?.presencePenalty,
       },
     });
-    scrollToBottom({ behavior: 'smooth' });
 
+    if (currentSession?.messages?.length) {
+      const lastIndex = currentSession.messages.length - 1;
+      scrollToIndex?.({
+        behavior: 'smooth',
+        index: lastIndex,
+      });
+    }
     setQuestion('');
   };
 
@@ -570,11 +501,13 @@ function DebugModeForm({
   gitRef,
   assistant,
   setCurrentTab,
+  scrollToIndex,
 }: {
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
   setCurrentTab: (tab: string) => void;
+  scrollToIndex?: (location: number | FlatIndexLocationWithAlign) => void;
 }) {
   const { t } = useLocaleContext();
   const key = `${projectId}-${gitRef}-${assistant.id}`;
@@ -597,8 +530,6 @@ function DebugModeForm({
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
   const lastMessage = currentSession?.messages.at(-1);
-
-  const scrollToBottom = useScrollToBottom();
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter(
     (i): i is typeof i & { data: { key: string } } => !!i.data.key
@@ -641,7 +572,13 @@ function DebugModeForm({
     setSession(state.currentSessionIndex!, (session) => {
       session.debugForm = { ...parameters };
     });
-    scrollToBottom({ behavior: 'smooth' });
+    if (currentSession?.messages?.length) {
+      const lastIndex = currentSession.messages.length - 1;
+      scrollToIndex?.({
+        behavior: 'smooth',
+        index: lastIndex,
+      });
+    }
   };
 
   const addToTest = () => {
@@ -794,7 +731,7 @@ function DebugModeForm({
               <PaperPlane />
             )
           }>
-          {lastMessage?.loading ? t('stop') : t('send')}
+          {lastMessage?.loading ? t('stop') : t('execute')}
         </Button>
       </Stack>
     </Stack>
@@ -858,7 +795,7 @@ const CustomAccordion = styled(Accordion)(() => ({
   },
 }));
 
-function ImagePreviewB64({
+export function ImagePreviewB64({
   dataSource,
   ...props
 }: Omit<ComponentProps<typeof ImagePreview>, 'dataSource'> & {

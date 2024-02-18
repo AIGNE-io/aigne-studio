@@ -1,7 +1,7 @@
 {
-  "name": "@blocklet/studio-ui",
+  "name": "@blocklet/ai-builtin",
   "version": "0.1.251",
-  "description": "UI components for studio",
+  "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
   },
@@ -37,7 +37,6 @@
   },
   "scripts": {
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
-    "lint:fix": "npm run lint -- --fix",
     "build": "run-p build:*",
     "build:cjs": "tsc --module commonjs --outDir lib/cjs",
     "build:esm": "tsc --module es2022 --outDir lib/esm",
@@ -47,33 +46,16 @@
     "prepublishOnly": "npm run build",
     "prepare": "npm run build"
   },
-  "dependencies": {},
-  "peerDependencies": {
-    "@arcblock/did-connect": "^2.7.25",
-    "@arcblock/ux": "^2.7.25",
-    "@blocklet/ui-react": "^2.7.25",
-    "@emotion/css": "^11.11.2",
-    "@emotion/react": "^11.11.1",
-    "@mui/icons-material": "^5.14.11",
-    "@mui/lab": "^5.0.0-alpha.146",
-    "@mui/material": "^5.14.11",
-    "react": "^18.2.0",
-    "react-router-dom": "^6.16.0"
+  "dependencies": {
+    "@blocklet/sdk": "^1.16.23",
+    "lodash": "^4.17.21",
+    "node-fetch": "2",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
-    "@arcblock/did-connect": "^2.9.32",
-    "@arcblock/ux": "^2.9.32",
-    "@blocklet/ui-react": "^2.9.32",
-    "@emotion/css": "^11.11.2",
-    "@emotion/react": "^11.11.3",
-    "@mui/icons-material": "^5.15.10",
-    "@mui/lab": "^5.0.0-alpha.165",
-    "@mui/material": "^5.15.10",
-    "@types/react": "^18.2.56",
+    "@types/lodash": "^4.14.202",
+    "@types/node-fetch": "^2.6.11",
     "npm-run-all": "^4.1.5",
-    "react": "^18.2.0",
-    "react-router-dom": "^6.22.1",
-    "rimraf": "^5.0.5",
-    "typescript": "^5.3.3"
+    "rimraf": "^5.0.5"
   }
 }

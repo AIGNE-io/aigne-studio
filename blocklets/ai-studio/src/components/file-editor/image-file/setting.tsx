@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 import { useAssistantCompare } from 'src/pages/project/state';
 
-import { defaultImageModel, getSupportedImagesModels } from '../../../libs/common';
+import { defaultImageModel, getSupportedImagesModels } from '../../../../api/src/libs/common';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';
 import SliderNumberField from '../../slider-number-field';

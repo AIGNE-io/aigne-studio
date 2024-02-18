@@ -149,7 +149,7 @@ export default function ExecuteBlockForm({
                 <MenuItem key="user" value="user">
                   User
                 </MenuItem>,
-                <MenuItem key="user" value="assistant">
+                <MenuItem key="assistant" value="assistant">
                   Assistant
                 </MenuItem>,
                 <MenuItem key="none" value="none">
@@ -168,7 +168,13 @@ export default function ExecuteBlockForm({
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="caption">{t('prompt')}</Typography>
             <ModelPopper>
-              <ModelSetting value={value} readOnly={readOnly} projectId={projectId} gitRef={gitRef} />
+              <ModelSetting
+                files={store.files}
+                value={value}
+                readOnly={readOnly}
+                projectId={projectId}
+                gitRef={gitRef}
+              />
             </ModelPopper>
           </Box>
           <PromptEditorField
@@ -231,6 +237,12 @@ export default function ExecuteBlockForm({
                       e.stopPropagation();
                       const doc = (getYjsValue(value) as Map<any>).doc!;
                       doc.transact(() => {
+                        if (value.selectType === 'selectByPrompt') {
+                          const selectTool = value.tools?.[tool.id];
+                          if (selectTool) {
+                            selectTool.data.onEnd = undefined;
+                          }
+                        }
                         if (value.tools) {
                           delete value.tools[tool.id];
                           sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
@@ -517,8 +529,8 @@ const ToolDialog = forwardRef<
                         executeBlock.selectType === 'selectByPrompt'
                           ? t('selectByPromptParameterPlaceholder')
                           : assistantParameters.has(parameter.key)
-                          ? `{{ ${parameter.key} }}`
-                          : undefined
+                            ? `{{ ${parameter.key} }}`
+                            : undefined
                       }
                       value={field.value || ''}
                       projectId={projectId}
