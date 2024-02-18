@@ -37,6 +37,8 @@ export default flat({
       typeNumber: 'Number',
       typeSelect: 'Select',
       typeLanguage: 'Language',
+      placeholderTip:
+        'You can use the value of this parameter to describe the purpose of your parameter to assist AI recognition, or as a prompt for input.',
       label: 'Label',
       value: 'Value',
       defaultValue: 'Default Value',

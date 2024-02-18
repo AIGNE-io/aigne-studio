@@ -37,6 +37,7 @@ export default flat({
       typeNumber: '数字',
       typeSelect: '选择',
       typeLanguage: '语言选择',
+      placeholderTip: '您可以将此参数的值用于描述您的参数的用途以便于Ai识别，也可以作为输入的提示',
       label: '标签',
       value: '值',
       defaultValue: '默认值',

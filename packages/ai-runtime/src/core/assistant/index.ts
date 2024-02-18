@@ -860,20 +860,19 @@ async function runExecuteBlock({
                   parameter.key,
                   {
                     type: 'string',
-                    description: parameter.description ?? '',
+                    description: parameter.placeholder ?? '',
                     enum: parameter.options?.map((i) => i.label),
                   },
                 ];
               }
-              return [parameter.key, { type: 'string', description: parameter.description ?? '' }];
+              return [parameter.key, { type: 'string', description: parameter.placeholder ?? '' }];
             });
           return {
             tool,
             toolAssistant,
             function: {
               name:
-                tool.translateName?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
-                toolAssistant.name?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
+                (tool.translateName || toolAssistant.name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
                 toolAssistant.id,
               descriptions: toolAssistant.description,
               parameters: {

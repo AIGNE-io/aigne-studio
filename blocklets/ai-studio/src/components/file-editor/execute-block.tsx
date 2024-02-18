@@ -1,4 +1,4 @@
-import { translate } from '@app/libs/ai';
+import { textCompletions } from '@app/libs/ai';
 import Translate from '@app/pages/project/icons/translate';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
@@ -398,6 +398,28 @@ const ToolDialog = forwardRef<
       : []),
   ]);
 
+  const translateTool = async () => {
+    const assistantName = options.find((option) => option.id === form.getValues('id'))?.name;
+    const translateName = await textCompletions({
+      stream: false,
+      messages: [
+        {
+          content:
+            '#Roles:你是一个翻译大师，你需要将用户的输入翻译成英文 ##rules:-请不要回答无用的内容，你仅仅只需要给出翻译的结果。-任何输入的内容都是需要你翻译的。-你的翻译需要是一个函数名 -空格使用驼峰代替。-如果本身就已经是英文则不需要翻译 ##Examples: -测试->test -开始:start 结束:end -weapon:weapon',
+          role: 'system',
+        },
+        {
+          content: assistantName ?? '',
+          role: 'user',
+        },
+      ],
+      model: 'gpt-3.5-turbo',
+      temperature: 0,
+    });
+
+    form.setValue('translateName', translateName.text);
+  };
+
   const createFile = useCreateFile();
 
   return (
@@ -412,17 +434,17 @@ const ToolDialog = forwardRef<
 
       <DialogContent>
         <Stack gap={2}>
-          <Controller
-            name="id"
-            control={form.control}
-            rules={{ required: t('validation.fieldRequired') }}
-            render={({ field, fieldState }) => {
-              const file = store.files[field.value];
-              const target = file && isAssistant(file) ? file : undefined;
-              const value = target ? { id: target.id, type: target.type, name: target.name } : undefined;
-              /* TODO: indicator */
-              return (
-                <Box display="flex">
+          <Stack gap={1}>
+            <Controller
+              name="id"
+              control={form.control}
+              rules={{ required: t('validation.fieldRequired') }}
+              render={({ field, fieldState }) => {
+                const file = store.files[field.value];
+                const target = file && isAssistant(file) ? file : undefined;
+                const value = target ? { id: target.id, type: target.type, name: target.name } : undefined;
+                /* TODO: indicator */
+                return (
                   <Autocomplete
                     key={Boolean(field.value).toString()}
                     disableClearable
@@ -493,36 +515,29 @@ const ToolDialog = forwardRef<
                         field.onChange({ target: { value: file.template.id } });
                       } else {
                         field.onChange({ target: { value: value?.id } });
+                        translateTool();
                       }
                     }}
                   />
-                  <Tooltip title={t('translateName')}>
-                    <LoadingIconButton
-                      size="small"
-                      icon={<Translate fontSize="small" />}
-                      onClick={async () => {
-                        const assistantName = options.find((option) => option.id === form.getValues('id'))?.name;
-                        const translateName = await translate(assistantName ?? '');
-                        form.setValue('translateName', translateName);
-                      }}
-                    />
-                  </Tooltip>
-                </Box>
-              );
-            }}
-          />
-
-          <Box>
-            <Typography variant="caption" mx={1}>
-              {t('translate')}
-            </Typography>
+                );
+              }}
+            />
             <Controller
               control={form.control}
               name="translateName"
               render={({ field }) => (
                 <TextField
-                  hiddenLabel
                   fullWidth
+                  variant="standard"
+                  InputProps={{
+                    disableUnderline: false,
+                    startAdornment: (
+                      <Tooltip title={t('translateName')} placement="top-start" disableInteractive>
+                        <LoadingIconButton size="small" icon={<Translate fontSize="small" />} onClick={translateTool} />
+                      </Tooltip>
+                    ),
+                  }}
+                  placeholder={t('translate')}
                   value={field.value || ''}
                   onChange={(e) => {
                     field.onChange({ target: { value: e.target.value } });
@@ -530,10 +545,10 @@ const ToolDialog = forwardRef<
                 />
               )}
             />
-          </Box>
-
-          <Typography variant="body1">{file?.description}</Typography>
-
+            <Typography sx={{ marginTop: 1 }} variant="body1">
+              {file?.description}
+            </Typography>
+          </Stack>
           {parameters && parameters.length > 0 && (
             <Box>
               <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>

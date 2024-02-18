@@ -5,11 +5,3 @@ import axios from './api';
 export const textCompletions = createTextCompletionApi({ axios, path: '/api/ai/completions' });
 
 export const imageGenerations = createImageGenerationApi({ axios, path: '/api/ai/image/generations' });
-
-export async function translate(content: string): Promise<string> {
-  return axios
-    .post('/api/ai/translate', {
-      content,
-    })
-    .then((res) => res.data);
-}

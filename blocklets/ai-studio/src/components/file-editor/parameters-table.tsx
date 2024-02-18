@@ -2,6 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { languages } from '@blocklet/ai-runtime/components/ParameterField/LanguageField';
 import { AssistantYjs, LanguageParameter, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { InfoOutlined } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -15,6 +16,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
   alpha,
 } from '@mui/material';
@@ -104,7 +106,6 @@ export default function ParametersTable({
         ),
       },
       {
-        flex: 1,
         field: 'label',
         headerName: t('label'),
         renderCell: ({ row: { data: parameter } }) => (
@@ -124,21 +125,31 @@ export default function ParametersTable({
         ),
       },
       {
-        flex: 1,
-        field: 'description',
-        headerName: t('description'),
+        field: 'placeholder',
+        width: 240,
+        renderHeader() {
+          return (
+            <>
+              {t('form.parameter.placeholder')}
+              <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
+                <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
+              </Tooltip>
+            </>
+          );
+        },
         renderCell: ({ row: { data: parameter } }) => (
           <WithAwareness
             projectId={projectId}
             gitRef={gitRef}
             sx={{ top: 4, right: -8 }}
-            path={[value.id, 'parameters', parameter?.id ?? '', 'description']}>
+            path={[value.id, 'parameters', parameter?.id ?? '', 'placeholder']}>
             <Input
               fullWidth
+              multiline
               readOnly={readOnly}
-              placeholder={t('description')}
-              value={parameter.description || ''}
-              onChange={(e) => (parameter.description = e.target.value)}
+              placeholder={t('form.parameter.placeholder')}
+              value={parameter.placeholder || ''}
+              onChange={(e) => (parameter.placeholder = e.target.value)}
             />
           </WithAwareness>
         ),
@@ -148,7 +159,7 @@ export default function ParametersTable({
         headerName: t('type'),
         headerAlign: 'center',
         align: 'center',
-        width: 140,
+        width: 120,
         renderCell: ({ row: { data: parameter } }) => {
           const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
           return (
@@ -259,7 +270,16 @@ export default function ParametersTable({
                 <TableRow>
                   {columns.map((column) => (
                     <TableCell key={column.field} align={column.headerAlign} width={column.width}>
-                      {column.headerName}
+                      {column.field === 'placeholder' ? (
+                        <Box display="flex" alignItems="center">
+                          {t('form.parameter.placeholder')}
+                          <Tooltip title={t('form.parameter.placeholderTip')} disableInteractive>
+                            <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14, marginLeft: 0.5 }} />
+                          </Tooltip>
+                        </Box>
+                      ) : (
+                        column.headerName
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
