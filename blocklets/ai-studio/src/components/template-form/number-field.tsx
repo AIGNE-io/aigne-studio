@@ -4,8 +4,18 @@ import { TextField, TextFieldProps } from '@mui/material';
 export default function NumberField({
   NumberProps,
   ...props
-}: { NumberProps: Parameters<typeof useNumberInput>[0] } & TextFieldProps) {
-  const { getInputProps } = useNumberInput(NumberProps);
+}: {
+  NumberProps: Omit<Parameters<typeof useNumberInput>[0], 'onChange'> & {
+    onChange?: (
+      event: React.FocusEvent<HTMLInputElement> | React.PointerEvent | React.KeyboardEvent,
+      value: number | undefined
+    ) => void;
+  };
+} & TextFieldProps) {
+  const { getInputProps } = useNumberInput({
+    ...NumberProps,
+    onChange: (e, v) => NumberProps.onChange?.(e, v ?? undefined),
+  });
 
   const inputProps = getInputProps();
 

@@ -556,38 +556,38 @@ export const ToolDialog = forwardRef<
     return (
       <Box>
         {parameters?.map(({ data: parameter }: any) => {
-          if (!parameter?.key) return null;
+            if (!parameter?.key) return null;
 
-          return (
-            <Stack key={parameter.id}>
-              <Typography variant="caption" mx={1}>
-                {parameter.label || parameter.key}
-              </Typography>
+            return (
+              <Stack key={parameter.id}>
+                <Typography variant="caption" mx={1}>
+                  {parameter.label || parameter.key}
+                </Typography>
 
-              <Controller
-                control={form.control}
-                name={`parameters.${parameter.key}`}
-                render={({ field }) => (
-                  <PromptEditorField
-                    placeholder={
-                      executeBlock.selectType === 'selectByPrompt'
-                        ? t('selectByPromptParameterPlaceholder')
-                        : assistantParameters.has(parameter.key)
-                        ? `{{ ${parameter.key} }}`
-                        : undefined
-                    }
-                    value={field.value || ''}
-                    projectId={projectId}
-                    gitRef={gitRef}
-                    assistant={assistant}
-                    path={[assistantId, parameter.id]}
-                    onChange={(value) => field.onChange({ target: { value } })}
-                  />
-                )}
-              />
-            </Stack>
-          );
-        })}
+                <Controller
+                  control={form.control}
+                  name={`parameters.${parameter.key}`}
+                  render={({ field }) => (
+                    <PromptEditorField
+                      placeholder={
+                        executeBlock.selectType === 'selectByPrompt'
+                          ? t('selectByPromptParameterPlaceholder')
+                          : assistantParameters.has(parameter.key)
+                            ? `{{ ${parameter.key} }}`
+                            : undefined
+                      }
+                      value={field.value || ''}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      assistant={assistant}
+                      path={[assistantId, parameter.id]}
+                      onChange={(value) => field.onChange({ target: { value } })}
+                    />
+                  )}
+                />
+              </Stack>
+            );
+          })}
       </Box>
     );
   }, [option, parameters, assistantParameters]);

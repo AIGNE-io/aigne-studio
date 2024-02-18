@@ -59,6 +59,7 @@ await batchModifyDepsVersion({
     '@blocklet/prompt-editor',
     '@blocklet/ai-runtime',
     '@blocklet/dataset-sdk',
+    '@blocklet/ai-builtin',
   ], // scan the packages directory to get the dep list
   version: `^${version}`,
 });
