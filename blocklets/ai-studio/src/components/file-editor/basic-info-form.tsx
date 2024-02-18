@@ -25,6 +25,7 @@ export default function BasicInfoForm({
 
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly });
+
   return (
     <Stack gap={0.5}>
       <Box position="relative">
