@@ -128,6 +128,7 @@ export interface ParameterBase {
   id: string;
   key?: string;
   label?: string;
+  description?: string;
   placeholder?: string;
   helper?: string;
   required?: boolean;

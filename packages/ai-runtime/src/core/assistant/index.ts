@@ -850,27 +850,28 @@ async function runExecuteBlock({
     const toolAssistants = (
       await Promise.all(
         tools.map(async (tool) => {
-          const assistant = await getAssistant(tool.id);
-          if (!assistant) return undefined;
-          const parameters = (assistant.parameters ?? [])
+          const toolAssistant = await getAssistant(tool.id);
+          if (!toolAssistant) return undefined;
+          const toolParameters = (toolAssistant.parameters ?? [])
             .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
-            .map((parameter) => [parameter.key, { type: 'string', description: parameter.placeholder ?? '' }]);
-
+            .map((parameter) => [parameter.key, { type: 'string', description: parameter.description ?? '' }]);
           return {
             tool,
-            assistant,
+            toolAssistant,
             function: {
-              name: assistant.name?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || assistant.id,
-              descriptions: assistant.description,
+              name: toolAssistant.name?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || toolAssistant.id,
+              descriptions: toolAssistant.description,
               parameters: {
                 type: 'object',
-                properties: Object.fromEntries(parameters),
+                properties: Object.fromEntries(toolParameters),
               },
             },
           };
         })
       )
     ).filter((i): i is NonNullable<typeof i> => !isNil(i));
+
+    // console.log(JSON.stringify(toolAssistants, null, 2), 'toolAssistants');
 
     callback?.({
       type: AssistantResponseType.INPUT,
@@ -935,7 +936,7 @@ async function runExecuteBlock({
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
           const args = JSON.parse(call.function.arguments);
-          const toolAssistant = tool?.assistant;
+          const toolAssistant = tool?.toolAssistant;
           await Promise.all(
             toolAssistant.parameters?.map(async (item) => {
               const message = tool.tool?.parameters?.[item.key!];

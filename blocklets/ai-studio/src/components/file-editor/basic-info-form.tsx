@@ -1,11 +1,14 @@
+import { translate } from '@app/libs/ai';
+import Translate from '@app/pages/project/icons/translate';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
-import { Box, Stack, TextField, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
+import { Box, Stack, TextField, Tooltip, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
 
 import { useReadOnly } from '../../contexts/session';
 import { useAssistantCompare } from '../../pages/project/state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
+import LoadingIconButton from '../loading/loading-icon-button';
 import TagsAutoComplete from '../template-form/tags-autocomplete';
 
 export default function BasicInfoForm({
@@ -25,27 +28,40 @@ export default function BasicInfoForm({
 
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly });
-
   return (
     <Stack gap={0.5}>
       <Box position="relative">
         <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
-          <HoverBackgroundTextField
-            hiddenLabel
-            fullWidth
-            placeholder={t('unnamed')}
-            value={value.name ?? ''}
-            onChange={(e) => (value.name = e.target.value.replace(/\//g, ''))}
-            InputProps={{
-              readOnly,
-              sx: (theme) => theme.typography.subtitle1,
-            }}
-            sx={{
-              [`.${inputBaseClasses.root}`]: {
-                ...getDiffBackground('name'),
-              },
-            }}
-          />
+          <Stack display="flex" flexDirection="row">
+            <HoverBackgroundTextField
+              hiddenLabel
+              fullWidth
+              placeholder={t('unnamed')}
+              value={value.name ?? ''}
+              onChange={(e) => (value.name = e.target.value.replace(/\//g, ''))}
+              InputProps={{
+                readOnly,
+                sx: (theme) => theme.typography.subtitle1,
+              }}
+              sx={{
+                [`.${inputBaseClasses.root}`]: {
+                  ...getDiffBackground('name'),
+                },
+              }}
+            />
+            <Tooltip title={t('translateName')}>
+              <LoadingIconButton
+                size="small"
+                icon={<Translate fontSize="small" />}
+                onClick={async () => {
+                  if (value.name) {
+                    const data = await translate(value.name);
+                    value.name = data;
+                  }
+                }}
+              />
+            </Tooltip>
+          </Stack>
         </WithAwareness>
 
         <AwarenessIndicator

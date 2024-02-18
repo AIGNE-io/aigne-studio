@@ -123,6 +123,26 @@ export default function ParametersTable({
         ),
       },
       {
+        flex: 1,
+        field: 'description',
+        headerName: t('description'),
+        renderCell: ({ row: { data: parameter } }) => (
+          <WithAwareness
+            projectId={projectId}
+            gitRef={gitRef}
+            sx={{ top: 4, right: -8 }}
+            path={[value.id, 'parameters', parameter?.id ?? '', 'description']}>
+            <Input
+              fullWidth
+              readOnly={readOnly}
+              placeholder={t('description')}
+              value={parameter.description || ''}
+              onChange={(e) => (parameter.description = e.target.value)}
+            />
+          </WithAwareness>
+        ),
+      },
+      {
         field: 'type',
         headerName: t('type'),
         headerAlign: 'center',

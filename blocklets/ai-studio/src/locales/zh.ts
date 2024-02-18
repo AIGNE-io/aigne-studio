@@ -107,6 +107,7 @@ export default flat({
     selectTemplates: '请先选择模板',
     empty: '当前没有可以导入的模板项目',
   },
+  translateName: '主动翻译助手的名称，名称可用作选择模版，如果非英文名则无法识别，已是英文名则无需翻译',
   newFromTemplates: '从模板创建',
   myProjects: '我的项目',
   examples: '示例',
