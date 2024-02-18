@@ -1,3 +1,7 @@
+## 0.1.251 (2024-2-18)
+
+- fix: downgrade gpt-tokens version
+
 ## 0.1.250 (2024-2-18)
 
 - fix: update execute button label
