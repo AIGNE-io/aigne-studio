@@ -80,7 +80,6 @@ export default function PromptEditorField({
       number: t('form.parameter.typeTextMultiline'),
       select: t('form.parameter.typeSelect'),
       language: t('form.parameter.typeLanguage'),
-      horoscope: t('form.parameter.typeHoroscope'),
     };
   }, [t]);
 

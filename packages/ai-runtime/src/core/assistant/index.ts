@@ -854,12 +854,27 @@ async function runExecuteBlock({
           if (!toolAssistant) return undefined;
           const toolParameters = (toolAssistant.parameters ?? [])
             .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
-            .map((parameter) => [parameter.key, { type: 'string', description: parameter.description ?? '' }]);
+            .map((parameter) => {
+              if (parameter.type === 'select' || parameter.type === 'language') {
+                return [
+                  parameter.key,
+                  {
+                    type: 'string',
+                    description: parameter.description ?? '',
+                    enum: parameter.options?.map((i) => i.label),
+                  },
+                ];
+              }
+              return [parameter.key, { type: 'string', description: parameter.description ?? '' }];
+            });
           return {
             tool,
             toolAssistant,
             function: {
-              name: toolAssistant.name?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || toolAssistant.id,
+              name:
+                tool.translateName?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
+                toolAssistant.name?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
+                toolAssistant.id,
               descriptions: toolAssistant.description,
               parameters: {
                 type: 'object',
@@ -870,8 +885,6 @@ async function runExecuteBlock({
         })
       )
     ).filter((i): i is NonNullable<typeof i> => !isNil(i));
-
-    // console.log(JSON.stringify(toolAssistants, null, 2), 'toolAssistants');
 
     callback?.({
       type: AssistantResponseType.INPUT,

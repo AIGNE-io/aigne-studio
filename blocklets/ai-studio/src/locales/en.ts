@@ -37,7 +37,6 @@ export default flat({
       typeNumber: 'Number',
       typeSelect: 'Select',
       typeLanguage: 'Language',
-      typeHoroscope: 'Horoscope',
       label: 'Label',
       value: 'Value',
       defaultValue: 'Default Value',
@@ -107,7 +106,7 @@ export default flat({
     selectTemplates: 'Please select the template first',
     empty: 'No template projects available for import.',
   },
-  translate: 'Tool name translate',
+  translate: 'Tool name english translate',
   translateName:
     'The name of the proactive translation assistant can be used as a template for selection. If the function name is not in English, it cannot be recognized. If it is already in English, there is no need for translation.',
   newFromTemplates: 'New from Templates',
