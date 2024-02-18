@@ -429,4 +429,5 @@ export default flat({
   cancelTemplateProject: 'Cancel Template Project',
   asExampleProject: 'As Example Project',
   cancelExampleProject: 'Cancel Example Project',
+  execute: 'Execute',
 });

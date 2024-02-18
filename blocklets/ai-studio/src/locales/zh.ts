@@ -425,4 +425,5 @@ export default flat({
   cancelTemplateProject: '取消模板项目',
   asExampleProject: '作为示例项目',
   cancelExampleProject: '取消示例项目',
+  execute: '执行',
 });
