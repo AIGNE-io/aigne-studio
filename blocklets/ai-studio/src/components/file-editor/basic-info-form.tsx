@@ -1,14 +1,11 @@
-import { translate } from '@app/libs/ai';
-import Translate from '@app/pages/project/icons/translate';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
-import { Box, Stack, TextField, Tooltip, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
+import { Box, Stack, TextField, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
 
 import { useReadOnly } from '../../contexts/session';
 import { useAssistantCompare } from '../../pages/project/state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
-import LoadingIconButton from '../loading/loading-icon-button';
 import TagsAutoComplete from '../template-form/tags-autocomplete';
 
 export default function BasicInfoForm({
@@ -49,18 +46,6 @@ export default function BasicInfoForm({
                 },
               }}
             />
-            <Tooltip title={t('translateName')}>
-              <LoadingIconButton
-                size="small"
-                icon={<Translate fontSize="small" />}
-                onClick={async () => {
-                  if (value.name) {
-                    const data = await translate(value.name);
-                    value.name = data;
-                  }
-                }}
-              />
-            </Tooltip>
           </Stack>
         </WithAwareness>
 

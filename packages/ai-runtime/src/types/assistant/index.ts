@@ -16,7 +16,12 @@ export type Role = 'system' | 'user' | 'assistant';
 
 export type ExecuteBlockRole = Role | 'none';
 
-export type Tool = { id: string; parameters?: { [key: string]: string }; onEnd?: OnTaskCompletion };
+export type Tool = {
+  id: string;
+  parameters?: { [key: string]: string };
+  translateName?: string;
+  onEnd?: OnTaskCompletion;
+};
 
 type ExecuteBlockCommon = {
   id: string;

@@ -731,7 +731,7 @@ function DebugModeForm({
               <PaperPlane />
             )
           }>
-          {lastMessage?.loading ? t('stop') : t('send')}
+          {lastMessage?.loading ? t('stop') : t('execute')}
         </Button>
       </Stack>
     </Stack>

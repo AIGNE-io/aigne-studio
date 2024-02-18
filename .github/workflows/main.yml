@@ -38,6 +38,7 @@ jobs:
           cd $pwd/packages/studio-ui && npm publish --access public --no-git-checks
           cd $pwd/packages/prompt-editor && npm publish --access public --no-git-checks
           cd $pwd/packages/ai-runtime && npm publish --access public --no-git-checks
+          cd $pwd/packages/ai-builtin && npm publish --access public --no-git-checks
 
       - name: Blocklet workflow
         env:

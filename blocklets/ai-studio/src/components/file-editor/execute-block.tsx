@@ -1,3 +1,5 @@
+import { translate } from '@app/libs/ai';
+import Translate from '@app/pages/project/icons/translate';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
@@ -40,6 +42,7 @@ import InfoOutlined from '../../pages/project/icons/question';
 import Trash from '../../pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
+import LoadingIconButton from '../loading/loading-icon-button';
 import { ModelPopper, ModelSetting } from '../modal-settings';
 import PromptEditorField from './prompt-editor-field';
 
@@ -419,81 +422,115 @@ const ToolDialog = forwardRef<
               const value = target ? { id: target.id, type: target.type, name: target.name } : undefined;
               /* TODO: indicator */
               return (
-                <Autocomplete
-                  key={Boolean(field.value).toString()}
-                  disableClearable
-                  clearOnBlur
-                  selectOnFocus
-                  handleHomeEndKeys
-                  autoSelect
-                  autoHighlight
-                  options={options}
-                  getOptionKey={(i) => i.id || `${i.name}-${i.type}`}
-                  value={value}
-                  isOptionEqualToValue={(i, j) => i.id === j.id}
-                  getOptionLabel={(i) => i.name || t('unnamed')}
-                  renderOption={(props, option) => {
-                    return (
-                      <MenuItem {...props}>
-                        {option.id
-                          ? option.name || t('unnamed')
-                          : t('newObjectWithType', { object: option.name, type: t(option.type || 'prompt') })}
-                      </MenuItem>
-                    );
-                  }}
-                  filterOptions={(_, params) => {
-                    const filtered = filter(options, params);
-
-                    const { inputValue } = params;
-                    const isExisting = options.some((option) => inputValue === option.name);
-                    if (inputValue !== '' && !isExisting) {
-                      filtered.push(
-                        {
-                          id: '',
-                          type: 'prompt',
-                          name: inputValue,
-                        },
-                        {
-                          id: '',
-                          type: 'api',
-                          name: inputValue,
-                        },
-                        {
-                          id: '',
-                          type: 'function',
-                          name: inputValue,
-                        }
+                <Box display="flex">
+                  <Autocomplete
+                    key={Boolean(field.value).toString()}
+                    disableClearable
+                    clearOnBlur
+                    selectOnFocus
+                    handleHomeEndKeys
+                    autoSelect
+                    autoHighlight
+                    sx={{ flex: 1 }}
+                    options={options}
+                    getOptionKey={(i) => i.id || `${i.name}-${i.type}`}
+                    value={value}
+                    isOptionEqualToValue={(i, j) => i.id === j.id}
+                    getOptionLabel={(i) => i.name || t('unnamed')}
+                    renderOption={(props, option) => {
+                      return (
+                        <MenuItem {...props}>
+                          {option.id
+                            ? option.name || t('unnamed')
+                            : t('newObjectWithType', { object: option.name, type: t(option.type || 'prompt') })}
+                        </MenuItem>
                       );
-                    }
+                    }}
+                    filterOptions={(_, params) => {
+                      const filtered = filter(options, params);
 
-                    return filtered;
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      autoFocus
-                      {...params}
-                      label={t('tool')}
-                      error={Boolean(fieldState.error)}
-                      helperText={fieldState.error?.message}
+                      const { inputValue } = params;
+                      const isExisting = options.some((option) => inputValue === option.name);
+                      if (inputValue !== '' && !isExisting) {
+                        filtered.push(
+                          {
+                            id: '',
+                            type: 'prompt',
+                            name: inputValue,
+                          },
+                          {
+                            id: '',
+                            type: 'api',
+                            name: inputValue,
+                          },
+                          {
+                            id: '',
+                            type: 'function',
+                            name: inputValue,
+                          }
+                        );
+                      }
+
+                      return filtered;
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        autoFocus
+                        {...params}
+                        label={t('tool')}
+                        error={Boolean(fieldState.error)}
+                        helperText={fieldState.error?.message}
+                      />
+                    )}
+                    onChange={(_, value) => {
+                      if (!value.id) {
+                        const file = createFile({
+                          store,
+                          parent: [],
+                          rootFolder: PROMPTS_FOLDER_NAME,
+                          meta: { type: value.type, name: value.name },
+                        });
+                        field.onChange({ target: { value: file.template.id } });
+                      } else {
+                        field.onChange({ target: { value: value?.id } });
+                      }
+                    }}
+                  />
+                  <Tooltip title={t('translateName')}>
+                    <LoadingIconButton
+                      size="small"
+                      icon={<Translate fontSize="small" />}
+                      onClick={async () => {
+                        const assistantName = options.find((option) => option.id === form.getValues('id'))?.name;
+                        const translateName = await translate(assistantName ?? '');
+                        form.setValue('translateName', translateName);
+                      }}
                     />
-                  )}
-                  onChange={(_, value) => {
-                    if (!value.id) {
-                      const file = createFile({
-                        store,
-                        parent: [],
-                        rootFolder: PROMPTS_FOLDER_NAME,
-                        meta: { type: value.type, name: value.name },
-                      });
-                      field.onChange({ target: { value: file.template.id } });
-                    } else {
-                      field.onChange({ target: { value: value?.id } });
-                    }
-                  }}
-                />
+                  </Tooltip>
+                </Box>
               );
             }}
           />
+
+          <Box>
+            <Typography variant="caption" mx={1}>
+              {t('translate')}
+            </Typography>
+            <Controller
+              control={form.control}
+              name="translateName"
+              render={({ field }) => (
+                <TextField
+                  hiddenLabel
+                  fullWidth
+                  value={field.value || ''}
+                  onChange={(e) => {
+                    field.onChange({ target: { value: e.target.value } });
+                  }}
+                />
+              )}
+            />
+          </Box>
 
           <Typography variant="body1">{file?.description}</Typography>
 
