@@ -1,3 +1,7 @@
+## 0.1.250 (2024-2-18)
+
+- fix: update execute button label
+
 ## 0.1.249 (2024-2-9)
 
 - feat: support es module for function assistant
