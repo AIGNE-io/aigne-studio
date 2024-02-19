@@ -400,7 +400,7 @@ const ToolDialog = forwardRef<
 
   const translateTool = async () => {
     const assistantName = options.find((option) => option.id === form.getValues('id'))?.name;
-    const translateName = await textCompletions({
+    const translate = await textCompletions({
       stream: false,
       messages: [
         {
@@ -417,7 +417,7 @@ const ToolDialog = forwardRef<
       temperature: 0,
     });
 
-    form.setValue('translateName', translateName.text);
+    form.setValue('functionName', translate.text);
   };
 
   const createFile = useCreateFile();
@@ -524,16 +524,21 @@ const ToolDialog = forwardRef<
             />
             <Controller
               control={form.control}
-              name="translateName"
+              name="functionName"
               render={({ field }) => (
                 <TextField
+                  size="small"
+                  hiddenLabel
                   fullWidth
                   variant="standard"
                   InputProps={{
-                    disableUnderline: false,
                     startAdornment: (
-                      <Tooltip title={t('translateName')} placement="top-start" disableInteractive>
-                        <LoadingIconButton size="small" icon={<Translate fontSize="small" />} onClick={translateTool} />
+                      <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
+                        <LoadingIconButton
+                          size="small"
+                          icon={<Translate sx={{ fontSize: 18 }} />}
+                          onClick={translateTool}
+                        />
                       </Tooltip>
                     ),
                   }}
