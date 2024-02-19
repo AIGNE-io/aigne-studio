@@ -35,6 +35,7 @@ import {
   styled,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
+import dayjs from 'dayjs';
 import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
@@ -146,7 +147,7 @@ function DebugViewContent({
         <Virtuoso
           ref={virtuoso}
           data={currentSession.messages}
-          overscan={2000}
+          overscan={500}
           followOutput={(isAtBottom: boolean) => {
             if (isAtBottom) {
               return 'auto';
@@ -157,7 +158,9 @@ function DebugViewContent({
           onScroll={handleScroll}
           computeItemKey={(_, item) => item.id}
           initialTopMostItemIndex={currentSession.messages.length - 1}
-          itemContent={(_, message) => <MessageView chatType={currentSession.chatType ?? 'chat'} message={message} />}
+          itemContent={(index, message) => (
+            <MessageView index={index} chatType={currentSession.chatType ?? 'chat'} message={message} />
+          )}
         />
         {showScrollBox && (
           <Box
@@ -272,60 +275,72 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
 }
 
 const MessageView = memo(
-  ({ message, chatType }: { message: SessionItem['messages'][number]; chatType?: 'chat' | 'debug' }) => {
+  ({
+    message,
+    chatType,
+    index,
+  }: {
+    message: SessionItem['messages'][number];
+    chatType?: 'chat' | 'debug';
+    index: number;
+  }) => {
     return (
-      <Stack px={2} py={1} direction="row" gap={1} position="relative">
-        <Box py={0.5}>
+      <Stack mt={message.role === 'user' && index !== 0 ? 4 : 0}>
+        {message.role === 'user' && (
+          <Typography alignSelf="center" ml={0.5} component="span" color="text.secondary" whiteSpace="nowrap">
+            {dayjs(message.createdAt).format('YYYY-MM-DD HH:mm:ss')}
+          </Typography>
+        )}
+        <Stack px={4} py={1} gap={1} flexDirection="row" position="relative">
           <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-        </Box>
-        <Box width="100%">
-          <BasicTree inputs={message.inputMessages} />
+          <Box>
+            <BasicTree inputs={message.inputMessages} />
+            <Box
+              flex={1}
+              sx={{
+                [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
+              }}>
+              {(message.content || message.images?.length || message.loading) &&
+              (chatType !== 'debug' || !message?.inputMessages?.length) ? (
+                <MessageViewContent
+                  sx={{
+                    px: 1,
+                    py: 0.5,
+                    borderRadius: 1,
+                    bgcolor: (theme) =>
+                      message?.inputMessages
+                        ? theme.palette.grey[100]
+                        : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
+                    position: 'relative',
+                  }}>
+                  <MdViewer content={message.content} />
 
-          <Box
-            flex={1}
-            sx={{
-              [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
-            }}>
-            {(message.content || message.images?.length || message.loading) &&
-            (chatType !== 'debug' || !message?.inputMessages?.length) ? (
-              <MessageViewContent
-                sx={{
-                  px: 1,
-                  py: 1,
-                  borderRadius: 1,
-                  bgcolor: (theme) =>
-                    message?.inputMessages
-                      ? theme.palette.grey[100]
-                      : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
-                  position: 'relative',
-                }}>
-                <MdViewer content={message.content} />
+                  {message.images && message.images.length > 0 && (
+                    <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
+                  )}
 
-                {message.images && message.images.length > 0 && (
-                  <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
-                )}
+                  {message.loading && !message.inputMessages && <WritingIndicator />}
 
-                {message.loading && !message.inputMessages && <WritingIndicator />}
+                  {message.role === 'assistant' && (
+                    <Box className="actions">
+                      {message.content && <CopyButton key="copy" message={message.content} />}
+                    </Box>
+                  )}
+                </MessageViewContent>
+              ) : null}
 
-                {message.role === 'assistant' && (
-                  <Box className="actions">
-                    {message.content && <CopyButton key="copy" message={message.content} />}
-                  </Box>
-                )}
-              </MessageViewContent>
-            ) : null}
-
-            {message.error ? (
-              <ErrorCard error={message.error} />
-            ) : (
-              message.cancelled && (
-                <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                  Cancelled
-                </Alert>
-              )
-            )}
+              {message.error ? (
+                <ErrorCard error={message.error} />
+              ) : (
+                message.cancelled && (
+                  <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                    Cancelled
+                  </Alert>
+                )
+              )}
+            </Box>
           </Box>
-        </Box>
+        </Stack>
       </Stack>
     );
   }
