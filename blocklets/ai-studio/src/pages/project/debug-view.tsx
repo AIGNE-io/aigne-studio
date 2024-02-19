@@ -304,8 +304,7 @@ const MessageView = memo(
               (chatType !== 'debug' || !message?.inputMessages?.length) ? (
                 <MessageViewContent
                   sx={{
-                    px: 1,
-                    py: 0.5,
+                    p: 1,
                     borderRadius: 1,
                     bgcolor: (theme) =>
                       message?.inputMessages
