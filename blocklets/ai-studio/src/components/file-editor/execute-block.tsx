@@ -147,16 +147,16 @@ export default function ExecuteBlockForm({
                 (value.role = e.target.value as Role),
               children: [
                 <MenuItem key="system" value="system">
-                  Output as system prompt
+                  {t('systemPrompt')}
                 </MenuItem>,
                 <MenuItem key="user" value="user">
-                  Output as user prompt
+                  {t('userPrompt')}
                 </MenuItem>,
                 <MenuItem key="assistant" value="assistant">
-                  Output as assistant
+                  {t('assistantPrompt')}
                 </MenuItem>,
                 <MenuItem key="none" value="none">
-                  Ignore output
+                  {t('ignoreOutput')}
                 </MenuItem>,
               ],
             }}
