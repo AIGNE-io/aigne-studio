@@ -10,7 +10,7 @@ function replaceNodes({
 }: {
   text: string;
   node: LexicalNode;
-  fn?: (_nodes: LexicalNode[]) => void;
+  fn?: (_nodes: TextNode[]) => void;
 }) {
   const list = splitText(text);
 

@@ -80,16 +80,7 @@ export default function VarContextPlugin({
               const text = extractBracketContent(element.innerText) || '';
               const variable = (text || '').split('.')[0] || '';
               const isVariable = (variables || []).includes(variable);
-
-              if (node.getCurrentVariable() !== isVariable) {
-                node.setIsVariable(isVariable);
-
-                if (isVariable) {
-                  element.style.cssText = variableStyle;
-                } else {
-                  element.style.cssText = textStyle;
-                }
-              }
+              element.style.cssText = isVariable ? variableStyle : textStyle;
             }
           }
         });
