@@ -121,7 +121,7 @@ export default function ExecuteBlockForm({
               (value.selectType = e.target.value as any),
             children: [
               <MenuItem key="all" value="all">
-                {t('all')}
+                {t('allTools')}
               </MenuItem>,
               <MenuItem key="selectByPrompt" value="selectByPrompt">
                 {t('selectPrompt')}
@@ -147,16 +147,16 @@ export default function ExecuteBlockForm({
                 (value.role = e.target.value as Role),
               children: [
                 <MenuItem key="system" value="system">
-                  System
+                  {t('systemPrompt')}
                 </MenuItem>,
                 <MenuItem key="user" value="user">
-                  User
+                  {t('userPrompt')}
                 </MenuItem>,
                 <MenuItem key="assistant" value="assistant">
-                  Assistant
+                  {t('assistantPrompt')}
                 </MenuItem>,
                 <MenuItem key="none" value="none">
-                  None
+                  {t('ignoreOutput')}
                 </MenuItem>,
               ],
             }}
@@ -195,6 +195,11 @@ export default function ExecuteBlockForm({
       <Divider />
 
       <Stack gap={0.5}>
+        {(!tools || tools?.length === 0) && (
+          <Typography mt={1} px={1} variant="subtitle2">
+            {t('emptyToolPlaceholder')}
+          </Typography>
+        )}
         {tools?.map(({ data: tool }) => {
           const f = store.files[tool.id];
           const file = f && isAssistant(f) ? f : undefined;

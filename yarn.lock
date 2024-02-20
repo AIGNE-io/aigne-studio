@@ -1266,14 +1266,14 @@
   resolved "https://registry.yarnpkg.com/@blocklet/constant/-/constant-1.16.23.tgz#35234aa8e43c129d468e65e5a9cb54249f98b5fa"
   integrity sha512-UtS3y72AR+WOqQ7niQ6Hf+cFHaqS2iLHncfWWtI+L1xS4tnbOgrOXt6ww5B+d2uYHKgUO640IfZ0FMp30QGnqA==
 
-"@blocklet/discuss-kit-ux@1.6.131":
-  version "1.6.131"
-  resolved "https://registry.yarnpkg.com/@blocklet/discuss-kit-ux/-/discuss-kit-ux-1.6.131.tgz#213eeb73c5787cfde9a012df1e115968ec13854a"
-  integrity sha512-vEPqY8rZuxo5nQ6d6ulV6TUhYTHtORlbhw4r84lW1Tyj7445Xz2WKzgQ7JSiQ1vzUy6lexpoE95sYaS22X1lOw==
+"@blocklet/discuss-kit-ux@1.6.133":
+  version "1.6.133"
+  resolved "https://registry.yarnpkg.com/@blocklet/discuss-kit-ux/-/discuss-kit-ux-1.6.133.tgz#4361bea6c737915930ef6205e74d7e3b14b21264"
+  integrity sha512-ibBrVW3Z/MbF9CkWp9DQVwdYGba1gYoo8zFCBZtSsBw+fj9ac2FM/tuwUFk+6KETqCEP2rarRBZqNmOzGM8hUw==
   dependencies:
     "@arcblock/ws" "^1.18.110"
-    "@blocklet/editor" "1.6.131"
-    "@blocklet/labels" "1.6.131"
+    "@blocklet/editor" "1.6.133"
+    "@blocklet/labels" "1.6.133"
     "@blocklet/uploader" "^0.0.73"
     "@emotion/css" "^11.10.5"
     "@emotion/react" "^11.10.5"
@@ -1293,16 +1293,16 @@
     unstated-next "^1.1.0"
     url-join "^4.0.1"
 
-"@blocklet/discuss-kit@^1.6.131":
-  version "1.6.131"
-  resolved "https://registry.yarnpkg.com/@blocklet/discuss-kit/-/discuss-kit-1.6.131.tgz#fb2ec4644e8696f0dd1382314c360da5fecdaf2a"
-  integrity sha512-0y5iKPtPwyv60AD4eyLGmUwdrl/Nr9jSCtPZ1waoRdMzpDDnczYk/XBIjGQRLFq1QgeU3/eNECBFgNGLHts30g==
+"@blocklet/discuss-kit@^1.6.132":
+  version "1.6.133"
+  resolved "https://registry.yarnpkg.com/@blocklet/discuss-kit/-/discuss-kit-1.6.133.tgz#cb24c3c5f6c92a8808fcd55d895b600f6a22ca93"
+  integrity sha512-seYyoQ6TB5/3e/PzkDBYcCxkne3z1DdHJ0FQyKu/e98VsKU2mp/YKX/kfKTI9MjfMSIXygxcjRik1SrNfuiE9w==
   dependencies:
     "@arcblock/did-connect" "^2.9.32"
     "@arcblock/ux" "^2.9.32"
     "@arcblock/ws" "^1.18.110"
-    "@blocklet/discuss-kit-ux" "1.6.131"
-    "@blocklet/editor" "1.6.131"
+    "@blocklet/discuss-kit-ux" "1.6.133"
+    "@blocklet/editor" "1.6.133"
     "@blocklet/ui-react" "^2.9.32"
     "@emotion/react" "^11.10.5"
     "@emotion/styled" "^11.10.5"
@@ -1322,14 +1322,14 @@
     timeago.js "^4.0.2"
     url-join "^4.0.1"
 
-"@blocklet/editor@1.6.131":
-  version "1.6.131"
-  resolved "https://registry.yarnpkg.com/@blocklet/editor/-/editor-1.6.131.tgz#96be8244d28d5669088ca78010b72ebbc406f721"
-  integrity sha512-b9JlcORbzTH9/TU4sKXO6C0MnFZxG+xmHx3JHS2wEQ5XUG4NOb7mjCotMa27rNXB5SG1ZR4bC8sIaFaH41qxzg==
+"@blocklet/editor@1.6.133":
+  version "1.6.133"
+  resolved "https://registry.yarnpkg.com/@blocklet/editor/-/editor-1.6.133.tgz#263a90ccbea2ae2c3947841d7535ff9b069a2229"
+  integrity sha512-Wi/C1eNmHi2DKXxXgLirXmNwXeYen8LUi0Lza1lBs3kI2mlekWiIcLqQiPGqI0OT1pp8XQVd0Qb0XdJS3CvZ9A==
   dependencies:
     "@arcblock/ux" "^2.9.32"
     "@blocklet/embed" "^0.1.6"
-    "@blocklet/pdf" "1.6.131"
+    "@blocklet/pdf" "1.6.133"
     "@excalidraw/excalidraw" "^0.14.2"
     "@iconify/iconify" "^3.0.1"
     "@lexical/clipboard" "0.13.1"
@@ -1399,12 +1399,12 @@
     js-cookie "^3.0.5"
     ufo "^1.3.2"
 
-"@blocklet/labels@1.6.131":
-  version "1.6.131"
-  resolved "https://registry.yarnpkg.com/@blocklet/labels/-/labels-1.6.131.tgz#c5a5cedb54fe6c63a3bdaba06ed03667336fb0b7"
-  integrity sha512-igkzk0RzM2BtAxw8xqMcqH55k5EP7bT2SJews6ooZBJkE4qMoDxwjDOvUKlJxYgwCIGupX2gBZKGYOXSBwZ+2w==
+"@blocklet/labels@1.6.133":
+  version "1.6.133"
+  resolved "https://registry.yarnpkg.com/@blocklet/labels/-/labels-1.6.133.tgz#5abdcb85d195c835913cdfd6da5832cf1e0e7344"
+  integrity sha512-2f23HrvJEb/Ai7X6Wvat0kusI7kDMjIUNCvfkkbwpxrUfdMeBweOOozzAFO8d5XW6AlrRC3dDb1APRHqXIdFdw==
   dependencies:
-    "@blocklet/translation-input" "1.6.131"
+    "@blocklet/translation-input" "1.6.133"
     "@emotion/css" "^11.10.5"
     "@emotion/react" "^11.10.5"
     "@emotion/styled" "^11.10.5"
@@ -1474,10 +1474,10 @@
   resolved "https://registry.yarnpkg.com/@blocklet/payment-types/-/payment-types-1.13.145.tgz#77de56ae726e197bce63cc80eb78e39df6b620ec"
   integrity sha512-JzqUZauuvudZZJpz53UBy6Lvto57FAvB7ZMOxi+Ra2sMF0NIJU8qT3r/EgO7wRu4ytyIkL+7oNLLhLRbMfC3wg==
 
-"@blocklet/pdf@1.6.131":
-  version "1.6.131"
-  resolved "https://registry.yarnpkg.com/@blocklet/pdf/-/pdf-1.6.131.tgz#edf7ef0b4ff6f4a94e41923782d7fdb5b04fe0c4"
-  integrity sha512-rsvoHfW/xbqmKXKMaiZmq3BLE9zIbVpFQh/I8iFTS6hzVYnhJNvsy7Mv/W/dxdMnpJbRI7OWGHi2RreO09TzAg==
+"@blocklet/pdf@1.6.133":
+  version "1.6.133"
+  resolved "https://registry.yarnpkg.com/@blocklet/pdf/-/pdf-1.6.133.tgz#dd831ab764d1243e97ef70e1de0c05a9b4087d38"
+  integrity sha512-g9/ThNsI2E2n3pPDatmAYAi9NzWwR2+5Uz54+ctY73DgD912a+eepcPapVJe4W/IiPm1EzPogFKqv6wCg2Y87g==
   dependencies:
     "@mui/icons-material" "^5.15.4"
     "@mui/material" "^5.15.4"
@@ -1518,10 +1518,10 @@
     url-join "^4.0.1"
     wait-port "^1.1.0"
 
-"@blocklet/translation-input@1.6.131":
-  version "1.6.131"
-  resolved "https://registry.yarnpkg.com/@blocklet/translation-input/-/translation-input-1.6.131.tgz#08110edbf03cee3aeb31f39152bfdfeff9aa6d61"
-  integrity sha512-6AI9rdI3apRWzOx4oj5ezSMnNg8QEXzHfsfpZdBnEyf74F4mnoMuOOr62pGXbd6gMuf7615dFdabYwVTBTJzbg==
+"@blocklet/translation-input@1.6.133":
+  version "1.6.133"
+  resolved "https://registry.yarnpkg.com/@blocklet/translation-input/-/translation-input-1.6.133.tgz#e281880ff169b3b314b065bc38f92e748ccaa5e8"
+  integrity sha512-tCeE0UWtwsiE9yq2IUsMofrTakeFT3GzczwlEsw8GrCDhOGwWMc11yR5aokjQKnls4aETfmEXVLJmRn7hXwStw==
 
 "@blocklet/ui-react@^2.9.29", "@blocklet/ui-react@^2.9.32", "@blocklet/ui-react@^2.9.34":
   version "2.9.34"

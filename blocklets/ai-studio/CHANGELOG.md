@@ -1,3 +1,7 @@
+## 0.1.259 (2024-2-20)
+
+- feat: tools onboarding word
+
 ## 0.1.258 (2024-2-20)
 
 - fix: view the compare file of deleted files
