@@ -1,3 +1,7 @@
+## 0.1.254 (2024-2-20)
+
+- fix: can't select in chinese assistant name
+
 ## 0.1.253 (2024-2-20)
 
 - fix: prompt Editor supports mustache variables
