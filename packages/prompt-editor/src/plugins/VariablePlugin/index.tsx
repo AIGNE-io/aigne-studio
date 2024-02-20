@@ -77,17 +77,10 @@ export default function VarContextPlugin({
             const node = $getNodeByKey(key);
 
             if (element && node) {
-              const isVariable = (variables || []).includes(extractBracketContent(element.innerText) || '');
-
-              if (node.getCurrentVariable() !== isVariable) {
-                node.setIsVariable(isVariable);
-
-                if (isVariable) {
-                  element.style.cssText = variableStyle;
-                } else {
-                  element.style.cssText = textStyle;
-                }
-              }
+              const text = extractBracketContent(element.innerText) || '';
+              const variable = (text || '').split('.')[0] || '';
+              const isVariable = (variables || []).includes(variable);
+              element.style.cssText = isVariable ? variableStyle : textStyle;
             }
           }
         });

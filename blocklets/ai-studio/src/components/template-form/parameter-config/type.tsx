@@ -27,10 +27,6 @@ export default function ParameterConfigType(props: TextFieldProps) {
         label: t('form.parameter.typeLanguage'),
         value: 'language',
       },
-      {
-        label: t('form.parameter.typeHoroscope'),
-        value: 'horoscope',
-      },
     ];
   }, [t]);
 

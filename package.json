@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.251",
+  "version": "0.1.256",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -62,19 +62,6 @@
     "@arcblock/did-util": "^1.18.110",
     "@arcblock/ws": "^1.18.110",
     "@blocklet/uploader": "^0.0.73",
-    "@lexical/clipboard": "0.12.5",
-    "@lexical/code": "0.12.5",
-    "@lexical/file": "0.12.5",
-    "@lexical/hashtag": "0.12.5",
-    "@lexical/headless": "0.12.5",
-    "@lexical/link": "0.12.5",
-    "@lexical/list": "0.12.5",
-    "@lexical/mark": "0.12.5",
-    "@lexical/overflow": "0.12.5",
-    "@lexical/plain-text": "0.12.5",
-    "@lexical/react": "0.12.5",
-    "@lexical/selection": "0.12.5",
-    "@lexical/utils": "0.12.5",
     "@mui/material": "^5.15.10",
     "@nedb/core": "^2.1.5",
     "@ocap/asset": "^1.18.110",
@@ -82,13 +69,12 @@
     "@ocap/types": "^1.18.110",
     "@ocap/util": "^1.18.110",
     "@ocap/wallet": "^1.18.110",
-    "@types/react": "^18.2.56",
+    "@types/react": "^18.2.57",
     "@types/react-dom": "^18.2.19",
     "axios": "^1.6.7",
-    "lexical": "0.12.5",
+    "gpt-tokens": "1.2.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "react-router-dom": "6.16.0",
-    "gpt-tokens": "1.2.0"
+    "react-router-dom": "6.16.0"
   }
 }
