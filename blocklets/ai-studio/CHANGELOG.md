@@ -1,3 +1,7 @@
+## 0.1.257 (2024-2-20)
+
+- fix: view the compare file of deleted files
+
 ## 0.1.256 (2024-2-20)
 
 - fix: markdown blocks appear randomly
