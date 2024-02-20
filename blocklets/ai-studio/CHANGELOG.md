@@ -1,3 +1,7 @@
+## 0.1.258 (2024-2-20)
+
+- fix: view the compare file of deleted files
+
 ## 0.1.257 (2024-2-20)
 
 - fix: error import in start
