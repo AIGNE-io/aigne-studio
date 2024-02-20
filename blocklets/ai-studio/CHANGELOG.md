@@ -1,3 +1,7 @@
+## 0.1.255 (2024-2-20)
+
+- feat: time interval output
+
 ## 0.1.254 (2024-2-20)
 
 - fix: can't select in chinese assistant name
