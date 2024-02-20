@@ -14,7 +14,7 @@ import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
 
 import { TranspileTs } from '../../builtin/complete';
-import { languages } from '../../constant';
+import { languages } from '../../constant/languages';
 import {
   ApiAssistant,
   Assistant,

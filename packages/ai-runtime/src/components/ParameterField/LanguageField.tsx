@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { MenuItem, TextField, TextFieldProps } from '@mui/material';
 import { forwardRef } from 'react';
 
-import { languages } from '../../constant';
+import { languages } from '../../constant/languages';
 import { SelectParameter } from '../../types/assistant';
 
 const LanguageField = forwardRef<
