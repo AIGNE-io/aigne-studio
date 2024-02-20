@@ -1,3 +1,7 @@
+## 0.1.252 (2024-2-20)
+
+- fix: prompt editor not working
+
 ## 0.1.251 (2024-2-18)
 
 - fix: downgrade gpt-tokens version
