@@ -1,3 +1,7 @@
+## 0.1.256 (2024-2-20)
+
+- fix: markdown blocks appear randomly
+
 ## 0.1.255 (2024-2-20)
 
 - feat: time interval output
