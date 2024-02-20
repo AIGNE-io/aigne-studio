@@ -1,3 +1,7 @@
+## 0.1.253 (2024-2-20)
+
+- fix: prompt Editor supports mustache variables
+
 ## 0.1.252 (2024-2-20)
 
 - fix: prompt editor not working
