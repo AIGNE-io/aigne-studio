@@ -46,6 +46,8 @@ export const textStyle = `
 `;
 
 export class VariableTextNode extends TextNode {
+  public isVariable: boolean;
+
   constructor(text: string, key?: NodeKey) {
     super(text, key);
     this.isVariable = false;
