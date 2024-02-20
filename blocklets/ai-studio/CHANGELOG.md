@@ -1,3 +1,7 @@
+## 0.1.260 (2024-2-20)
+
+- fix: resource blocklet api config
+
 ## 0.1.259 (2024-2-20)
 
 - feat: tools onboarding word
