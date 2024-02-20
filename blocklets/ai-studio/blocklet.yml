@@ -99,3 +99,8 @@ navigation:
       - admin
       - owner
       - promptsEditor
+resource:
+  exportApi: /api/resources/export
+  types:
+    - type: ai
+      description: Used by AI Studio to import one or multiple project

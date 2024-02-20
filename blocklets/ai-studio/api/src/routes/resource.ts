@@ -47,9 +47,7 @@ const locales: { [key: string]: any } = {
 
 export function resourceRoutes(router: Router) {
   router.get('/resources/export', ensurePromptsEditor, async (req, res) => {
-    const projects = await Project.findAll({
-      order: [['updatedAt', 'DESC']],
-    });
+    const projects = await Project.findAll({ order: [['updatedAt', 'DESC']] });
 
     const local = locales[(req.query as { local: string })?.local] || locales.en;
 
