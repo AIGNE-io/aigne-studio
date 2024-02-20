@@ -39,7 +39,7 @@ const LanguageField = forwardRef<
 
 export default LanguageField;
 
-const languages = [
+export const languages = [
   { en: 'English', cn: '英语' },
   { en: 'Simplified Chinese', cn: '中文-简体' },
   { en: 'Traditional Chinese', cn: '中文-繁体' },
