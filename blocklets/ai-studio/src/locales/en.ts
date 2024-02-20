@@ -109,7 +109,7 @@ export default flat({
     empty: 'No template projects available for import.',
   },
   translate: 'Tool name english translate',
-  translateName:
+  functionName:
     'The name of the proactive translation assistant can be used as a template for selection. If the function name is not in English, it cannot be recognized. If it is already in English, there is no need for translation.',
   newFromTemplates: 'New from Templates',
   myProjects: 'My Projects',

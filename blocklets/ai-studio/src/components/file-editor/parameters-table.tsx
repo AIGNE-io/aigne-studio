@@ -1,6 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { languages } from '@blocklet/ai-runtime/components/ParameterField/LanguageField';
-import { AssistantYjs, LanguageParameter, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { InfoOutlined } from '@mui/icons-material';
 import {
@@ -181,13 +180,6 @@ export default function ParametersTable({
                     if (newValue === 'multiline') {
                       parameter.type = 'string';
                       (parameter as StringParameter)!.multiline = true;
-                    } else if (newValue === 'language') {
-                      parameter.type = 'language';
-                      (parameter as LanguageParameter).options = languages.map((language) => ({
-                        id: language.en,
-                        label: language.en,
-                        value: language.en,
-                      }));
                     } else {
                       parameter.type = newValue as any;
                       if (typeof (parameter as StringParameter).multiline !== 'undefined') {

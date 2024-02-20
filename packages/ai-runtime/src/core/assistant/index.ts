@@ -14,6 +14,7 @@ import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
 
 import { TranspileTs } from '../../builtin/complete';
+import { languages } from '../../components/ParameterField/LanguageField';
 import {
   ApiAssistant,
   Assistant,
@@ -855,24 +856,26 @@ async function runExecuteBlock({
           const toolParameters = (toolAssistant.parameters ?? [])
             .filter((i): i is typeof i & Required<Pick<typeof i, 'key'>> => !!i.key && !tool.parameters?.[i.key])
             .map((parameter) => {
-              if (parameter.type === 'select' || parameter.type === 'language') {
-                return [
-                  parameter.key,
-                  {
-                    type: 'string',
-                    description: parameter.placeholder ?? '',
-                    enum: parameter.options?.map((i) => i.label),
-                  },
-                ];
-              }
-              return [parameter.key, { type: 'string', description: parameter.placeholder ?? '' }];
+              return [
+                parameter.key,
+                {
+                  type: 'string',
+                  description: parameter.placeholder ?? '',
+                  enum:
+                    parameter.type === 'select'
+                      ? parameter.options?.map((i) => i.value)
+                      : parameter.type === 'language'
+                        ? languages.map((i) => i.en)
+                        : undefined,
+                },
+              ];
             });
           return {
             tool,
             toolAssistant,
             function: {
               name:
-                (tool.translateName || toolAssistant.name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
+                (tool.functionName || toolAssistant.name)?.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) ||
                 toolAssistant.id,
               descriptions: toolAssistant.description,
               parameters: {

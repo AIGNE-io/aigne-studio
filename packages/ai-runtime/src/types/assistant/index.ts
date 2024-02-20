@@ -19,7 +19,7 @@ export type ExecuteBlockRole = Role | 'none';
 export type Tool = {
   id: string;
   parameters?: { [key: string]: string };
-  translateName?: string;
+  functionName?: string;
   onEnd?: OnTaskCompletion;
 };
 
@@ -167,5 +167,4 @@ export interface LanguageParameter extends ParameterBase {
   type: 'language';
   value?: string;
   defaultValue?: string;
-  options?: { id: string; label: string; value: string }[];
 }
