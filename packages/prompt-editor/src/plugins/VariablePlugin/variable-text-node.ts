@@ -82,24 +82,11 @@ export class VariableTextNode extends TextNode {
     dom.addEventListener('mouseover', this.handleMouseOver.bind(this, dom, this.isVariable));
     dom.addEventListener('mouseleave', this.handleMouseLeave.bind(this, dom));
 
-    if (this.isVariable) {
-      dom.style.cssText = variableStyle;
-    } else {
-      dom.style.cssText = textStyle;
-    }
-
     return dom;
   }
 
   override updateDOM(prevNode: any, dom: HTMLElement, config: EditorConfig): boolean {
     const update = super.updateDOM(prevNode, dom, config);
-
-    if (this.isVariable) {
-      dom.style.cssText = variableStyle;
-    } else {
-      dom.style.cssText = textStyle;
-    }
-
     return update;
   }
 
@@ -129,14 +116,6 @@ export class VariableTextNode extends TextNode {
 
   override isTextEntity(): true {
     return true;
-  }
-
-  setIsVariable(isVariable: boolean) {
-    this.isVariable = isVariable;
-  }
-
-  getCurrentVariable() {
-    return this.isVariable;
   }
 }
 

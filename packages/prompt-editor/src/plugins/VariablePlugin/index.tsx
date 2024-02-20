@@ -78,16 +78,7 @@ export default function VarContextPlugin({
 
             if (element && node) {
               const isVariable = (variables || []).includes(extractBracketContent(element.innerText) || '');
-
-              if (node.getCurrentVariable() !== isVariable) {
-                node.setIsVariable(isVariable);
-
-                if (isVariable) {
-                  element.style.cssText = variableStyle;
-                } else {
-                  element.style.cssText = textStyle;
-                }
-              }
+              element.style.cssText = isVariable ? variableStyle : textStyle;
             }
           }
         });
