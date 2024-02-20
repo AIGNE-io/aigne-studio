@@ -77,7 +77,9 @@ export default function VarContextPlugin({
             const node = $getNodeByKey(key);
 
             if (element && node) {
-              const isVariable = (variables || []).includes(extractBracketContent(element.innerText) || '');
+              const text = extractBracketContent(element.innerText) || '';
+              const variable = (text || '').split('.')[0] || '';
+              const isVariable = (variables || []).includes(variable);
 
               if (node.getCurrentVariable() !== isVariable) {
                 node.setIsVariable(isVariable);
