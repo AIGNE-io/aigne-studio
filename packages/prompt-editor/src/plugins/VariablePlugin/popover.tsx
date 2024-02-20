@@ -21,22 +21,21 @@ export default function VariablePopover({
   }) => any;
 }) {
   const [editor] = useLexicalComposerContext();
-  const [state, setState] = useState<null | { popper: boolean; anchorEl: null | HTMLElement; isVariable: boolean }>({
+  const [state, setState] = useState<null | { popper: boolean; anchorEl: null | HTMLElement }>({
     popper: false,
     anchorEl: null,
-    isVariable: false,
   });
   const ref = useRef<null | boolean>(null);
 
   useEffect(() => {
     if (!popperElement) return;
 
-    VariableTextNode.prototype.handleMouseOver = (dom, isVariable) => {
+    VariableTextNode.prototype.handleMouseOver = (dom) => {
       ref.current = true;
 
       setTimeout(() => {
         if (ref.current) {
-          setState({ popper: true, anchorEl: dom, isVariable });
+          setState({ popper: true, anchorEl: dom });
         }
       }, 500);
     };

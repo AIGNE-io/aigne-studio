@@ -1,3 +1,19 @@
+## 0.1.255 (2024-2-20)
+
+- feat: time interval output
+
+## 0.1.254 (2024-2-20)
+
+- fix: can't select in chinese assistant name
+
+## 0.1.253 (2024-2-20)
+
+- fix: prompt Editor supports mustache variables
+
+## 0.1.252 (2024-2-20)
+
+- fix: prompt editor not working
+
 ## 0.1.251 (2024-2-18)
 
 - fix: downgrade gpt-tokens version

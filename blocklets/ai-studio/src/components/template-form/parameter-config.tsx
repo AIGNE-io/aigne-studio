@@ -14,16 +14,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label={t('form.parameter.placeholder')}
-          size="small"
-          value={value.placeholder || ''}
-          onChange={(e) => (value.placeholder = e.target.value)}
-          InputProps={{ readOnly }}
-        />
-      </Grid>
-      <Grid item xs={12}>
-        <TextField
-          fullWidth
           label={t('form.parameter.helper')}
           size="small"
           value={value.helper || ''}
