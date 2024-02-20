@@ -98,8 +98,10 @@ export default function PromptEditorField({
           sx: { bgcolor: 'grey.100', p: 1, borderRadius: 1, ...props.ContentProps?.sx },
         }}
         popperElement={({ text, handleClose }) => {
-          if ((variables || []).includes(text)) {
-            const parameter = getParameters(text);
+          const variable = (text || '').split('.')[0] || '';
+
+          if ((variables || []).includes(variable)) {
+            const parameter = getParameters(variable);
 
             const type = (parameter as { multiline: boolean })?.multiline ? 'multiline' : parameter?.type || 'string';
 
@@ -114,7 +116,7 @@ export default function PromptEditorField({
                     fontWeight: (theme) => theme.palette.text.disabled,
                   }}>
                   <Box>{`${t('form.parameter.type')}: ${typeMap[type]}`}</Box>
-                  <Box>{`${t('form.parameter.label')}: ${parameter?.label || text}`}</Box>
+                  <Box>{`${t('form.parameter.label')}: ${parameter?.label || variable}`}</Box>
                   {!!parameter?.placeholder && (
                     <Box>{`${t('form.parameter.placeholder')}: ${parameter?.placeholder || ''}`}</Box>
                   )}
@@ -136,14 +138,14 @@ export default function PromptEditorField({
                     fontWeight: (theme) => theme.typography.fontWeightBold,
                     // color: (theme) => theme.palette.error.light,
                   }}>
-                  {t('nonExistentVariable', { data: text })}
+                  {t('nonExistentVariable', { data: variable })}
                 </Box>
 
                 <Stack direction="row" gap={1} justifyContent="flex-end">
                   <Button
                     sx={{ p: 0 }}
                     onClick={() => {
-                      addParameter(text, from);
+                      addParameter(variable, from);
                       handleClose();
                     }}
                     size="small">
