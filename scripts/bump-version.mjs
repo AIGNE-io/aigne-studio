@@ -63,6 +63,18 @@ await batchModifyDepsVersion({
   version: `^${version}`,
 });
 
+await batchModifyDepsVersion({
+  dirPath: './packages',
+  depList: [
+    '@blocklet/co-git',
+    '@blocklet/studio-ui',
+    '@blocklet/prompt-editor',
+    '@blocklet/ai-runtime',
+    '@blocklet/ai-builtin',
+  ], // scan the packages directory to get the dep list
+  version: `^${version}`,
+});
+
 process.stdin.setRawMode(true);
 process.stdin.resume();
 process.stdin.on('data', process.exit.bind(process, 0));
