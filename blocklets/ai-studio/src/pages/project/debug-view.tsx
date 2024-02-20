@@ -147,7 +147,6 @@ function DebugViewContent({
         <Virtuoso
           ref={virtuoso}
           data={currentSession.messages}
-          overscan={500}
           followOutput={(isAtBottom: boolean) => {
             if (isAtBottom) {
               return 'auto';
@@ -293,7 +292,7 @@ const MessageView = memo(
         )}
         <Stack px={4} py={1} gap={1} flexDirection="row" position="relative">
           <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-          <Box>
+          <Box sx={{ overflowX: 'hidden', pb: 1 }}>
             <BasicTree inputs={message.inputMessages} />
             <Box
               flex={1}
