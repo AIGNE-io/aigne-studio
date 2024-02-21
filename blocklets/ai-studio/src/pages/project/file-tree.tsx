@@ -127,6 +127,7 @@ const FileTree = forwardRef<
   const { store, synced } = useProjectStore(projectId, gitRef);
   const { deleted, changes, getOriginTemplate } = useAssistantChangesState(projectId, gitRef);
   const dialogState = usePopupState({ variant: 'dialog' });
+  const [compareAssistant, setCompareAssistant] = useState('');
 
   const [openIds, setOpenIds] = useLocalStorageState<(string | number)[]>('ai-studio.tree.openIds');
 
@@ -394,7 +395,13 @@ const FileTree = forwardRef<
                   onDeleteFile={mutable ? onDeleteFile : undefined}
                   onLaunch={onLaunch}
                   isChanged={Boolean(change?.key === 'M' && getOriginTemplate(meta))}
-                  onCompare={dialogState.toggle}
+                  onCompare={() => {
+                    const assistant = getOriginTemplate(meta);
+                    if (assistant) {
+                      setCompareAssistant([...(assistant?.parent || []), `${assistant.id}.yaml`].join('/'));
+                      dialogState.toggle();
+                    }
+                  }}
                   onUndo={() => {
                     showDialog({
                       fullWidth: true,
@@ -457,6 +464,12 @@ const FileTree = forwardRef<
           changes={changes}
           projectId={projectId}
           onCreateFile={onCreateFile}
+          onCompare={(assistant) => {
+            if (assistant) {
+              setCompareAssistant([...(assistant?.parent || []), `${assistant.id}.yaml`].join('/'));
+              dialogState.toggle();
+            }
+          }}
         />
       )}
 
@@ -465,7 +478,7 @@ const FileTree = forwardRef<
       <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
         <DialogTitle>{t('alert.compare')}</DialogTitle>
         <DialogContent>
-          <Compare projectId={projectId} gitRef={gitRef} filepath={current || ''} />
+          <Compare projectId={projectId} gitRef={gitRef} filepath={compareAssistant || ''} />
         </DialogContent>
         <DialogActions>
           <Button variant="contained" onClick={dialogState.close}>
@@ -888,6 +901,7 @@ function DeletedTemplates({
   projectId,
   gitRef,
   onCreateFile,
+  onCompare,
 }: {
   projectId: string;
   gitRef: string;
@@ -898,6 +912,7 @@ function DeletedTemplates({
     tips: string;
   } | null;
   onCreateFile: (options?: Partial<Omit<Parameters<ReturnType<typeof useCreateFile>>[0], 'store'>>) => void;
+  onCompare: (item: AssistantYjsWithParents) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -960,16 +975,28 @@ function DeletedTemplates({
                 icon={icon}
                 depth={0}
                 otherActions={
-                  <Tooltip title={t('restore')} disableInteractive placement="top">
-                    <Button
-                      sx={{ padding: 0.5, minWidth: 0 }}
-                      onClick={() => {
-                        const { parent, ...meta } = item;
-                        onCreateFile({ parent, meta });
-                      }}>
-                      <Undo sx={{ fontSize: 20 }} />
-                    </Button>
-                  </Tooltip>
+                  <>
+                    <Tooltip title={t('alert.compare')} disableInteractive placement="top">
+                      <Button
+                        sx={{ padding: 0.5, minWidth: 0 }}
+                        onClick={() => {
+                          onCompare(item);
+                        }}>
+                        <CompareIcon sx={{ fontSize: 20 }} />
+                      </Button>
+                    </Tooltip>
+
+                    <Tooltip title={t('restore')} disableInteractive placement="top">
+                      <Button
+                        sx={{ padding: 0.5, minWidth: 0 }}
+                        onClick={() => {
+                          const { parent, ...meta } = item;
+                          onCreateFile({ parent, meta });
+                        }}>
+                        <Undo sx={{ fontSize: 20 }} />
+                      </Button>
+                    </Tooltip>
+                  </>
                 }>
                 <Box
                   sx={{

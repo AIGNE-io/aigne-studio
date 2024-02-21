@@ -1,6 +1,18 @@
-## 0.1.258 (2024-2-21)
+## 0.1.261 (2024-2-21)
 
-- feat: bring up the project name
+- - feat: bring up the project name
+
+## 0.1.260 (2024-2-20)
+
+- fix: resource blocklet api config
+
+## 0.1.259 (2024-2-20)
+
+- feat: tools onboarding word
+
+## 0.1.258 (2024-2-20)
+
+- fix: view the compare file of deleted files
 
 ## 0.1.257 (2024-2-20)
 

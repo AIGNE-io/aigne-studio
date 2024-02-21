@@ -1220,17 +1220,7 @@
   resolved "https://registry.yarnpkg.com/@beskar-labs/gpt-encoder/-/gpt-encoder-1.0.7.tgz#8a612f4939235ffae255ccdc53df8bdb9a0dfb0a"
   integrity sha512-zitUItoaeDMUfjlcKTEs3acWFzbYxDev2YrxRCrb9LCoBVYB5OGFvTHZirMuTWMX0SgZcrdcRpXJqqUi/Pe97A==
 
-"@blocklet/ai-builtin@^0.1.260":
-  version "0.1.260"
-  resolved "https://registry.yarnpkg.com/@blocklet/ai-builtin/-/ai-builtin-0.1.260.tgz#f6e27e0b29d15fdb2ee9d6b7b73e56bf4f928537"
-  integrity sha512-WJXoIEgd0YCIjP7JDxvZElVbHvaErURQcwB2jtQsEz/Pbvs9zqIT0Sr43dEdQrBdnD53sxQoVG19LUS1D4eA1Q==
-  dependencies:
-    "@blocklet/sdk" "^1.16.23"
-    lodash "^4.17.21"
-    node-fetch "2"
-    typescript "^5.3.3"
-
-"@blocklet/ai-kit@^0.1.13", "@blocklet/ai-kit@^0.1.14":
+"@blocklet/ai-kit@^0.1.14":
   version "0.1.14"
   resolved "https://registry.yarnpkg.com/@blocklet/ai-kit/-/ai-kit-0.1.14.tgz#e8f488606ec04348ec5aa205c4b7cdd0d3e01291"
   integrity sha512-KNjyzT7Fo9/Fte5YwsxB5/j+aR4BquMvD7q0gBpp7CqLv7Qmom4tOV+aM/Qw77gnuq08c2NrKXHIWuDe/PpPXA==
@@ -1270,44 +1260,6 @@
     ufo "^1.4.0"
     yaml "^2.3.4"
     zustand "^4.5.1"
-
-"@blocklet/ai-runtime@^0.1.260":
-  version "0.1.260"
-  resolved "https://registry.yarnpkg.com/@blocklet/ai-runtime/-/ai-runtime-0.1.260.tgz#8f818e57683819fc5c8cf195e6cee5192049aa8b"
-  integrity sha512-BIMUCN+bFpbLOq/sHvP2SgJSJwny3CaE0fOZPMwY1racIa05/8YhVVgyDunsbkC3jTqrvbM8G4VdXG/mXkGUoA==
-  dependencies:
-    "@blocklet/ai-builtin" "^0.1.260"
-    "@blocklet/ai-kit" "^0.1.13"
-    "@blocklet/sdk" "^1.16.23"
-    "@microsoft/fetch-event-source" "^2.0.1"
-    ahooks "^3.7.10"
-    axios "^1.6.7"
-    dayjs "^1.11.10"
-    eventsource-parser "^1.1.2"
-    lodash "^4.17.21"
-    nanoid "^3.3.7"
-    node-fetch "2"
-    react-hook-form "^7.50.1"
-    recoil "^0.7.7"
-    snowflake-uuid "^1.0.0"
-    typescript "^5.3.3"
-    ufo "^1.4.0"
-    vm2 "^3.9.19"
-
-"@blocklet/co-git@^0.1.260":
-  version "0.1.260"
-  resolved "https://registry.yarnpkg.com/@blocklet/co-git/-/co-git-0.1.260.tgz#a982ce49ef865a063b2c1dc15f51cdbef1a8aa88"
-  integrity sha512-UVSmFJVmv8MCi0nmOsaVJNFtX2j0KOPKZ/VaLw+923t0ws94bStFRyXj7KWnNhJzh4ZMQqw6wfnv9TLC8GcP7w==
-  dependencies:
-    "@syncedstore/core" "^0.6.0"
-    "@syncedstore/react" "^0.6.0"
-    isomorphic-git "^1.25.6"
-    lib0 "^0.2.89"
-    lodash "^4.17.21"
-    queue "^6.0.2"
-    ws "^8.16.0"
-    y-protocols "^1.0.6"
-    yjs "^13.6.12"
 
 "@blocklet/constant@1.16.23", "@blocklet/constant@^1.16.23":
   version "1.16.23"
@@ -1534,36 +1486,6 @@
     react "^18.2.0"
     react-pdf "^7.7.0"
 
-"@blocklet/prompt-editor@^0.1.260":
-  version "0.1.260"
-  resolved "https://registry.yarnpkg.com/@blocklet/prompt-editor/-/prompt-editor-0.1.260.tgz#d86988e926215917fdc1ad5e5394a8dc3472c5ac"
-  integrity sha512-398Ej1SeL90sOW+M6HRB9QCsp8jIuwXE5XC4Y+8CLlJAyRGcS/IfbzRK/qVhlPYAFZBBYghrEnDEoxz5uo6HYg==
-  dependencies:
-    "@emotion/react" "^11.11.3"
-    "@emotion/styled" "^11.11.0"
-    "@lexical/clipboard" "0.13.1"
-    "@lexical/code" "0.13.1"
-    "@lexical/file" "0.13.1"
-    "@lexical/hashtag" "0.13.1"
-    "@lexical/headless" "0.13.1"
-    "@lexical/link" "0.13.1"
-    "@lexical/list" "0.13.1"
-    "@lexical/mark" "0.13.1"
-    "@lexical/overflow" "0.13.1"
-    "@lexical/plain-text" "0.13.1"
-    "@lexical/react" "0.13.1"
-    "@lexical/selection" "0.13.1"
-    "@lexical/utils" "0.13.1"
-    "@mui/material" "^5.15.10"
-    ahooks "^3.7.10"
-    lexical "0.13.1"
-    lodash-es "^4.17.21"
-    react "^18.2.0"
-    react-dom "^18.2.0"
-    react-error-boundary "^4.0.12"
-    y-websocket "^1.5.3"
-    yjs "^13.6.12"
-
 "@blocklet/sdk@1.16.23", "@blocklet/sdk@^1.16.23":
   version "1.16.23"
   resolved "https://registry.yarnpkg.com/@blocklet/sdk/-/sdk-1.16.23.tgz#2413ced92a1d6e26afd2489e69f24873998b0038"
@@ -1595,11 +1517,6 @@
     ufo "^1.1.1"
     url-join "^4.0.1"
     wait-port "^1.1.0"
-
-"@blocklet/studio-ui@^0.1.260":
-  version "0.1.260"
-  resolved "https://registry.yarnpkg.com/@blocklet/studio-ui/-/studio-ui-0.1.260.tgz#86236b9a3ef068940e9c0dd7772676b601355f29"
-  integrity sha512-RuuHT2GtHH+4Zt7SCzyCr0aB34Az6Z/zLXkox3JLDt9nDxa4R2mMwCr73oJlEyLqux4WD9ho6qUs21E4wU5NEA==
 
 "@blocklet/translation-input@1.6.137":
   version "1.6.137"
@@ -16758,7 +16675,7 @@ y-protocols@^1.0.5, y-protocols@^1.0.6:
   dependencies:
     lib0 "^0.2.85"
 
-y-websocket@^1.5.3, y-websocket@^1.5.4:
+y-websocket@^1.5.4:
   version "1.5.4"
   resolved "https://registry.yarnpkg.com/y-websocket/-/y-websocket-1.5.4.tgz#d14d4033e102a5191c7e78ddcd5da005ef818336"
   integrity sha512-Y3021uy0anOIHqAPyAZbNDoR05JuMEGjRNI8c+K9MHzVS8dWoImdJUjccljAznc8H2L7WkIXhRHZ1igWNRSgPw==
