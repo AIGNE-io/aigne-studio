@@ -275,9 +275,12 @@ export async function getAssistantsOfRepository({ projectId, ref }: { projectId:
       Promise.all(
         files
           .filter((i) => i.startsWith(`${PROMPTS_FOLDER_NAME}/`) && i.endsWith('.yaml'))
-          .map((filepath) =>
-            repository.readBlob({ ref, filepath }).then(({ blob }) => parse(Buffer.from(blob).toString()))
-          )
+          .map((filepath) => {
+            const paths = filepath.split('/').filter(Boolean);
+            return repository
+              .readBlob({ ref, filepath })
+              .then(({ blob }) => ({ ...parse(Buffer.from(blob).toString()), parent: paths.slice(0, -1) }));
+          })
       )
     )
     .then((files) => files.filter((i): i is Assistant => isAssistant(i)));

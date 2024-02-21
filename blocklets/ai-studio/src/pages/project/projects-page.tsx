@@ -51,7 +51,7 @@ import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import * as projectApi from '../../libs/project';
-import { ProjectWithUserInfo, User, createProject } from '../../libs/project';
+import { ProjectWithUserInfo, User, copyProject, createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
@@ -482,16 +482,30 @@ function ProjectList({
                     okText: t('create'),
                     okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {
+                      if ((item as any).fromResourceBlockletFolder) {
+                        const project = await copyProject({
+                          folder: 'template',
+                          projectId: item._id!,
+                          name,
+                          description,
+                        });
+
+                        navigate(joinURL('/projects', project._id!));
+                        return;
+                      }
                       const project = await createProject({ templateId: item._id!, name, description });
                       navigate(joinURL('/projects', project._id!));
                     },
                   });
-                } else if (section === 'projects' || section === 'examples') {
+                } else if (section === 'projects') {
                   navigate(joinURL('/projects', item._id!));
+                } else if (section === 'examples') {
+                  const project = await copyProject({ folder: 'example', projectId: item._id! });
+                  navigate(joinURL('/projects', project._id!));
                 }
               }}
               actions={
-                !(section === 'templates' && !item.projectType) && (
+                !((section === 'templates' || section === 'examples') && !item.projectType) && (
                   <IconButton
                     size="small"
                     sx={{

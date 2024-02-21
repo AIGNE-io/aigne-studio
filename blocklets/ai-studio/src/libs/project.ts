@@ -37,6 +37,15 @@ export async function createProject(input?: CreateProjectInput): Promise<Project
   return axios.post('/api/projects', input).then((res) => res.data);
 }
 
+export async function copyProject(input?: {
+  folder: string;
+  projectId: string;
+  name?: string;
+  description?: string;
+}): Promise<Project> {
+  return axios.post('/api/projects/copy', input).then((res) => res.data);
+}
+
 export async function updateProject(projectId: string, input: UpdateProjectInput): Promise<Project> {
   return axios.patch(`/api/projects/${projectId}`, input).then((res) => res.data);
 }
