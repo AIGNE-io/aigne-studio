@@ -1,3 +1,7 @@
+## 0.1.258 (2024-2-21)
+
+- feat: bring up the project name
+
 ## 0.1.257 (2024-2-20)
 
 - fix: error import in start
