@@ -1,3 +1,7 @@
+## 0.1.261 (2024-2-21)
+
+- fix: support resource blocklet
+
 ## 0.1.260 (2024-2-20)
 
 - fix: resource blocklet api config
