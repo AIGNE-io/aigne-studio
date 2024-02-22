@@ -1,6 +1,7 @@
 import { cpSync, existsSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 
+// import { Config } from '@api/libs/env';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -12,6 +13,7 @@ import pick from 'lodash/pick';
 import sample from 'lodash/sample';
 import uniqBy from 'lodash/uniqBy';
 import { Op } from 'sequelize';
+import { parse } from 'yaml';
 
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { createImageUrl } from '../libs/utils';
@@ -48,6 +50,25 @@ const createProjectSchema = Joi.object<CreateProjectInput>({
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
   isImport: Joi.boolean().default(false),
+});
+
+export interface ImportProjectInput {
+  url: string;
+  username?: string;
+  password?: string;
+  templateId?: string;
+  name?: string;
+  description?: string;
+}
+
+const importProjectSchema = Joi.object<ImportProjectInput>({
+  url: Joi.string()
+    .uri({ scheme: ['https'] })
+    .required(),
+  username: Joi.string().empty([null, '']),
+  password: Joi.string().empty([null, '']),
+  name: Joi.string().empty([null, '']),
+  description: Joi.string().empty([null, '']),
 });
 
 const exportSchema = Joi.object<{
@@ -291,6 +312,68 @@ export function projectRoutes(router: Router) {
       createdBy: did,
       updatedBy: did,
       name,
+      description,
+    });
+
+    res.json(project);
+  });
+  router.post('/projects/import', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+    const { name, username, password, description, url } = await importProjectSchema.validateAsync(req.body, {
+      stripUnknown: true,
+    });
+    const { did } = req.user!;
+
+    if (name && (await Project.findOne({ where: { name } }))) {
+      throw new Error(`Duplicated project ${name}`);
+    }
+
+    const uri = new URL(url);
+    if (username) uri.username = username;
+    if (password) uri.password = password;
+
+    const projectId = nextProjectId();
+
+    const repository = await getRepository({ projectId });
+
+    await repository.getRemoteInfo({ url: uri.toString() });
+
+    await repository.addRemote({ remote: defaultRemote, url: uri.toString() });
+
+    const originDefaultBranch = (await repository.fetch()).defaultBranch?.split('/').pop() || defaultBranch;
+
+    const urlWithoutPassword = new URL(url);
+    urlWithoutPassword.password = '';
+    if (originDefaultBranch !== 'main') {
+      await repository.renameBranch({ ref: originDefaultBranch, oldRef: 'main' });
+    }
+    const branches = await repository.listBranches();
+    for (const ref of branches) {
+      await repository.fetch({ remote: defaultRemote, ref });
+      await repository.branch({ ref, object: `${defaultRemote}/${ref}`, checkout: true, force: true });
+      (await repository.working({ ref })).reset();
+    }
+    await repository.checkout({ ref: originDefaultBranch, force: true });
+
+    const data = parse(
+      Buffer.from(
+        (
+          await repository.readBlob({
+            ref: originDefaultBranch!,
+            filepath: '.settings.yaml',
+          })
+        ).blob
+      ).toString()
+    );
+
+    const project = await Project.create({
+      ...data,
+      _id: projectId,
+      gitUrl: urlWithoutPassword.toString(),
+      model: data.model,
+      createdBy: did,
+      updatedBy: did,
+      name,
+      gitLastSyncedAt: new Date(),
       description,
     });
 

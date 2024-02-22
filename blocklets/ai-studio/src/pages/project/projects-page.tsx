@@ -726,10 +726,6 @@ interface RemoteRepoSettingForm {
 function ImportFromGit() {
   const { t } = useLocaleContext();
   const id = useId();
-  const {
-    state: { templates },
-    createProject,
-  } = useProjectsState();
   const navigate = useNavigate();
   const dialogState = usePopupState({ variant: 'dialog', popupId: id });
 
@@ -747,19 +743,12 @@ function ImportFromGit() {
   const saveSetting = useCallback(
     async (value: RemoteRepoSettingForm) => {
       try {
-        const project = await createProject({
-          templateId: templates?.[0]!._id,
+        const project = await projectApi.projectImport({
           name: value.name,
           description: value.description,
-          isImport: true,
-        });
-        await projectApi.addProjectRemote(project._id, {
           url: value.url,
           username: value.username,
           password: value.password,
-        });
-        await projectApi.projectPull(project._id, {
-          force: true,
         });
         form.reset(value);
         dialogState.close();
@@ -770,7 +759,7 @@ function ImportFromGit() {
         throw error;
       }
     },
-    [createProject, dialogState, form, templates]
+    [dialogState, form, navigate]
   );
 
   return (
