@@ -1,3 +1,11 @@
+## 0.1.262 (2024-2-22)
+
+- feat: file rename
+
+## 0.1.261 (2024-2-21)
+
+- - feat: bring up the project name
+
 ## 0.1.260 (2024-2-20)
 
 - fix: resource blocklet api config
