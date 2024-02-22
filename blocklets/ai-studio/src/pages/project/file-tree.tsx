@@ -38,7 +38,6 @@ import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import {
-  ComponentProps,
   ReactNode,
   SyntheticEvent,
   forwardRef,
@@ -159,6 +158,7 @@ const FileTree = forwardRef<
   );
 
   const [editingFolderPath, setEditingFolderPath] = useState<string>();
+  const [editingFileName, setEditingFileName] = useState<string>();
 
   const onCreateFolder = useCallback(
     (options: Partial<Omit<Parameters<typeof createFolder>[0], 'store'>> = {}) => {
@@ -354,19 +354,11 @@ const FileTree = forwardRef<
 
               if (node.data.type === 'folder') {
                 return (
-                  <EditableTreeItem
+                  <TreeItem
                     key={node.id}
-                    editing={filepath === editingFolderPath}
                     icon={<ChevronDown sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }} />}
                     depth={depth}
                     onClick={onToggle}
-                    onSubmit={async (name) => {
-                      setEditingFolderPath(undefined);
-                      const { data } = node;
-                      if (!data || name === data.name) return;
-                      onMoveFile({ from: data.parent.concat(data.name), to: data.parent.concat(name) });
-                    }}
-                    onCancel={() => setEditingFolderPath(undefined)}
                     actions={
                       <TreeItemMenus
                         item={node.data}
@@ -377,8 +369,18 @@ const FileTree = forwardRef<
                         onLaunch={onLaunch}
                       />
                     }>
-                    {node.text}
-                  </EditableTreeItem>
+                    <EditTextItem
+                      editing={filepath === editingFolderPath}
+                      onCancel={() => setEditingFolderPath(undefined)}
+                      onSubmit={async (name) => {
+                        setEditingFolderPath(undefined);
+                        const { data } = node;
+                        if (!data || name === data.name) return;
+                        onMoveFile({ from: data.parent.concat(data.name), to: data.parent.concat(name) });
+                      }}>
+                      {node.text}
+                    </EditTextItem>
+                  </TreeItem>
                 );
               }
 
@@ -392,6 +394,7 @@ const FileTree = forwardRef<
                 <TreeItemMenus
                   item={node.data}
                   onCreateFile={mutable ? onCreateFile : undefined}
+                  onRenameFile={({ name }) => setEditingFileName(name)}
                   onDeleteFile={mutable ? onDeleteFile : undefined}
                   onLaunch={onLaunch}
                   isChanged={Boolean(change?.key === 'M' && getOriginTemplate(meta))}
@@ -433,7 +436,17 @@ const FileTree = forwardRef<
                     onClick={() => navigate(joinURL('.', filepath))}
                     actions={actions}
                     sx={{ color: change?.color }}>
-                    {meta.name || t('alert.unnamed')}
+                    <EditTextItem
+                      editing={meta.name === editingFileName}
+                      onCancel={() => setEditingFileName(undefined)}
+                      onSubmit={async (name) => {
+                        setEditingFileName(undefined);
+                        const { data } = node;
+                        if (!data || name === data.name) return;
+                        meta.name = name;
+                      }}>
+                      {meta.name || t('alert.unnamed')}
+                    </EditTextItem>
                   </TreeItem>
                   <AwarenessIndicator
                     projectId={projectId}
@@ -534,6 +547,7 @@ function TreeItemMenus({
   item,
   onRenameFolder,
   onCreateFolder,
+  onRenameFile,
   onCreateFile,
   onDeleteFile,
   onLaunch,
@@ -544,6 +558,7 @@ function TreeItemMenus({
   item: EntryWithMeta;
   onRenameFolder?: (options: { path: string[] }) => any;
   onCreateFolder?: (options?: { parent?: string[] }) => any;
+  onRenameFile?: (options: { name: string }) => void;
   onCreateFile?: (options?: Partial<Omit<Parameters<ReturnType<typeof useCreateFile>>[0], 'store'>>) => any;
   onDeleteFile?: (options: { path: string[] }) => any;
   onLaunch?: (assistant: AssistantYjs) => any;
@@ -642,8 +657,17 @@ function TreeItemMenus({
       ),
     ],
     [
+      onRenameFile && (
+        <ListItemButton key="renameFile" onClick={() => onRenameFile(item)}>
+          <ListItemIcon>
+            <Pen />
+          </ListItemIcon>
+
+          <ListItemText primary={t('form.rename')} />
+        </ListItemButton>
+      ),
       onRenameFolder && (
-        <ListItemButton onClick={() => onRenameFolder(item)}>
+        <ListItemButton key="renameFolder" onClick={() => onRenameFolder(item)}>
           <ListItemIcon>
             <Pen />
           </ListItemIcon>
@@ -673,17 +697,15 @@ function TreeItemMenus({
   );
 }
 
-function EditableTreeItem({
+function EditTextItem({
   editing,
   children,
   onCancel,
   onSubmit,
-  ...props
-}: Omit<ComponentProps<typeof TreeItem>, 'children' | 'onSubmit'> & {
+}: {
   editing?: boolean;
   children?: string;
   onCancel?: () => any;
-  onCancelEdit?: () => any;
   onSubmit?: (text: string) => any;
 }) {
   const [value, setValue] = useState(children);
@@ -704,49 +726,44 @@ function EditableTreeItem({
       throw error;
     }
   };
-
-  return (
-    <TreeItem {...props} actions={editing ? null : props.actions}>
-      {editing ? (
-        <Input
-          disableUnderline
-          fullWidth
-          value={value || ''}
-          onChange={(e) => setValue(e.target.value)}
-          sx={{
-            height: 24,
-            lineHeight: '24px',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          classes={{
-            focused: css`
-              outline: 1px solid #1976d2;
-              outline-offset: -1px;
-            `,
-          }}
-          autoFocus
-          inputProps={{ style: { height: '100%', padding: 0 } }}
-          onKeyDown={(e) => {
-            if (e.keyCode === 229) {
-              return;
-            }
-            if (e.key === 'Escape') {
-              setValue(children);
-              onCancel?.();
-              return;
-            }
-            if (!e.shiftKey && e.key === 'Enter') {
-              e.preventDefault();
-              submit();
-            }
-          }}
-          onBlur={submit}
-        />
-      ) : (
-        children
-      )}
-    </TreeItem>
+  return editing ? (
+    <Input
+      disableUnderline
+      fullWidth
+      value={value || ''}
+      onChange={(e) => setValue(e.target.value)}
+      sx={{
+        height: 24,
+        lineHeight: '24px',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+      classes={{
+        focused: css`
+          outline: 1px solid #1976d2;
+          outline-offset: -1px;
+        `,
+      }}
+      autoFocus
+      inputProps={{ style: { height: '100%', padding: 0 } }}
+      onKeyDown={(e) => {
+        if (e.keyCode === 229) {
+          return;
+        }
+        if (e.key === 'Escape') {
+          setValue(children);
+          onCancel?.();
+          return;
+        }
+        if (!e.shiftKey && e.key === 'Enter') {
+          e.preventDefault();
+          submit();
+        }
+      }}
+      onBlur={submit}
+    />
+  ) : (
+    children
   );
 }
 
