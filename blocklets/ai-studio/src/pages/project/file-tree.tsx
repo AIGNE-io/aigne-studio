@@ -359,6 +359,7 @@ const FileTree = forwardRef<
                     icon={<ChevronDown sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }} />}
                     depth={depth}
                     onClick={onToggle}
+                    edited={filepath === editingFolderPath}
                     actions={
                       <TreeItemMenus
                         item={node.data}
@@ -432,6 +433,7 @@ const FileTree = forwardRef<
                     key={node.id}
                     icon={<FileIcon type={meta.type} />}
                     depth={depth}
+                    edited={meta.name === editingFileName}
                     selected={selected}
                     onClick={() => navigate(joinURL('.', filepath))}
                     actions={actions}
@@ -772,6 +774,7 @@ function TreeItem({
   children,
   depth = 0,
   actions,
+  edited,
   selected,
   otherActions,
   ...props
@@ -780,6 +783,7 @@ function TreeItem({
   children?: ReactNode;
   depth?: number;
   actions?: ReactNode;
+  edited?: boolean;
   selected?: boolean;
   otherActions?: ReactNode;
 } & StackProps) {
@@ -801,7 +805,7 @@ function TreeItem({
         mx: 1,
         minHeight: 28,
         borderRadius: 1,
-        bgcolor: selected ? 'action.selected' : open ? 'action.hover' : undefined,
+        bgcolor: edited ? 'action.hover' : selected ? 'action.selected' : open ? 'action.hover' : undefined,
         ':hover': {
           bgcolor: selected ? 'action.selected' : 'action.hover',
           '.hover-visible': { maxWidth: '100%' },
