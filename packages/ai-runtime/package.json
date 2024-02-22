@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.260",
+  "version": "0.1.261",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -84,8 +84,8 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-builtin": "^0.1.260",
-    "@blocklet/ai-kit": "^0.1.13",
+    "@blocklet/ai-builtin": "^0.1.261",
+    "@blocklet/ai-kit": "^0.1.14",
     "@blocklet/sdk": "^1.16.23",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.10",
@@ -113,7 +113,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.34",
+    "@arcblock/ux": "^2.9.35",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.3",
     "@mui/icons-material": "^5.15.10",
