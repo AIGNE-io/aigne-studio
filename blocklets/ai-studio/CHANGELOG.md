@@ -1,3 +1,7 @@
+## 0.1.263 (2024-2-23)
+
+- feat: accordion default expand
+
 ## 0.1.262 (2024-2-22)
 
 - feat: file rename
