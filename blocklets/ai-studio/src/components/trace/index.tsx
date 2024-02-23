@@ -134,7 +134,7 @@ interface ContainerProps {
 }
 
 const Container = styled(Accordion)<ContainerProps>(({ theme, deep = 0 }) => ({
-  margin: `${theme.spacing(deep ? 2 : 1)} 0 0 ${theme.spacing(deep * 3)}`,
+  margin: `${deep === 0 ? '0' : '16px'} 0 0 ${theme.spacing(deep * 3)}`,
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
   '&::before': {
@@ -160,7 +160,7 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
   const arr = Object.entries(pickInput).flatMap(([key, value]) => (isTraceLabel(key) ? [{ label: key, value }] : []));
 
   return (
-    <Container disableGutters deep={deep}>
+    <Container disableGutters defaultExpanded={deep === 0 || deep === 1} deep={deep}>
       <AccordionSummary
         sx={{
           margin: 0,
@@ -183,18 +183,14 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
   );
 }
 
-const Tree = styled(Stack)(({ theme }) => ({
-  paddingRight: theme.spacing(4),
-}));
-
 function BasicTree({ inputs }: { inputs?: SessionItem['messages'][number]['inputMessages'] }) {
   if (!Array.isArray(inputs)) return null;
   return (
-    <Tree>
+    <Stack>
       {inputs.map((item) => {
         return <BaseTrace key={item.taskId} input={item} deep={item.deep} />;
       })}
-    </Tree>
+    </Stack>
   );
 }
 

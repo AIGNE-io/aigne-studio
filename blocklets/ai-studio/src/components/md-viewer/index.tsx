@@ -126,6 +126,8 @@ function MdViewer(props: MdViewerProps) {
       const validLanguage = hljs.getLanguage(language as string) ? language : 'plaintext';
       const highlightedCode = hljs.highlight(validLanguage as string, code).value;
 
+      if (validLanguage === 'markdown') return convertMarkdownToHTML(code);
+
       return `
       <div class="marked-code-block">
         <div class="marked-code-header">

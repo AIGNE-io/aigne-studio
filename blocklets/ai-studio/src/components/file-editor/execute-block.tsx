@@ -1,3 +1,5 @@
+import { textCompletions } from '@app/libs/ai';
+import Translate from '@app/pages/project/icons/translate';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
@@ -40,6 +42,7 @@ import InfoOutlined from '../../pages/project/icons/question';
 import Trash from '../../pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
+import LoadingIconButton from '../loading/loading-icon-button';
 import { ModelPopper, ModelSetting } from '../modal-settings';
 import PromptEditorField from './prompt-editor-field';
 
@@ -118,7 +121,7 @@ export default function ExecuteBlockForm({
               (value.selectType = e.target.value as any),
             children: [
               <MenuItem key="all" value="all">
-                {t('all')}
+                {t('allTools')}
               </MenuItem>,
               <MenuItem key="selectByPrompt" value="selectByPrompt">
                 {t('selectPrompt')}
@@ -144,16 +147,16 @@ export default function ExecuteBlockForm({
                 (value.role = e.target.value as Role),
               children: [
                 <MenuItem key="system" value="system">
-                  System
+                  {t('systemPrompt')}
                 </MenuItem>,
                 <MenuItem key="user" value="user">
-                  User
+                  {t('userPrompt')}
                 </MenuItem>,
                 <MenuItem key="assistant" value="assistant">
-                  Assistant
+                  {t('assistantPrompt')}
                 </MenuItem>,
                 <MenuItem key="none" value="none">
-                  None
+                  {t('ignoreOutput')}
                 </MenuItem>,
               ],
             }}
@@ -192,6 +195,11 @@ export default function ExecuteBlockForm({
       <Divider />
 
       <Stack gap={0.5}>
+        {(!tools || tools?.length === 0) && (
+          <Typography mt={1} px={1} variant="subtitle2">
+            {t('emptyToolPlaceholder')}
+          </Typography>
+        )}
         {tools?.map(({ data: tool }) => {
           const f = store.files[tool.id];
           const file = f && isAssistant(f) ? f : undefined;
@@ -395,6 +403,28 @@ const ToolDialog = forwardRef<
       : []),
   ]);
 
+  const translateTool = async () => {
+    const assistantName = options.find((option) => option.id === form.getValues('id'))?.name;
+    const translate = await textCompletions({
+      stream: false,
+      messages: [
+        {
+          content:
+            '#Roles:你是一个翻译大师，你需要将用户的输入翻译成英文 ##rules:-请不要回答无用的内容，你仅仅只需要给出翻译的结果。-任何输入的内容都是需要你翻译的。-你的翻译需要是一个函数名 -空格使用驼峰代替。-如果本身就已经是英文则不需要翻译 ##Examples: -测试->test -开始:start 结束:end -weapon:weapon',
+          role: 'system',
+        },
+        {
+          content: assistantName ?? '',
+          role: 'user',
+        },
+      ],
+      model: 'gpt-3.5-turbo',
+      temperature: 0,
+    });
+
+    form.setValue('functionName', translate.text);
+  };
+
   const createFile = useCreateFile();
 
   return (
@@ -409,94 +439,126 @@ const ToolDialog = forwardRef<
 
       <DialogContent>
         <Stack gap={2}>
-          <Controller
-            name="id"
-            control={form.control}
-            rules={{ required: t('validation.fieldRequired') }}
-            render={({ field, fieldState }) => {
-              const file = store.files[field.value];
-              const target = file && isAssistant(file) ? file : undefined;
-              const value = target ? { id: target.id, type: target.type, name: target.name } : undefined;
-              /* TODO: indicator */
-              return (
-                <Autocomplete
-                  key={Boolean(field.value).toString()}
-                  disableClearable
-                  clearOnBlur
-                  selectOnFocus
-                  handleHomeEndKeys
-                  autoSelect
-                  autoHighlight
-                  options={options}
-                  getOptionKey={(i) => i.id || `${i.name}-${i.type}`}
-                  value={value}
-                  isOptionEqualToValue={(i, j) => i.id === j.id}
-                  getOptionLabel={(i) => i.name || t('unnamed')}
-                  renderOption={(props, option) => {
-                    return (
-                      <MenuItem {...props}>
-                        {option.id
-                          ? option.name || t('unnamed')
-                          : t('newObjectWithType', { object: option.name, type: t(option.type || 'prompt') })}
-                      </MenuItem>
-                    );
-                  }}
-                  filterOptions={(_, params) => {
-                    const filtered = filter(options, params);
-
-                    const { inputValue } = params;
-                    const isExisting = options.some((option) => inputValue === option.name);
-                    if (inputValue !== '' && !isExisting) {
-                      filtered.push(
-                        {
-                          id: '',
-                          type: 'prompt',
-                          name: inputValue,
-                        },
-                        {
-                          id: '',
-                          type: 'api',
-                          name: inputValue,
-                        },
-                        {
-                          id: '',
-                          type: 'function',
-                          name: inputValue,
-                        }
+          <Stack gap={1}>
+            <Controller
+              name="id"
+              control={form.control}
+              rules={{ required: t('validation.fieldRequired') }}
+              render={({ field, fieldState }) => {
+                const file = store.files[field.value];
+                const target = file && isAssistant(file) ? file : undefined;
+                const value = target ? { id: target.id, type: target.type, name: target.name } : undefined;
+                /* TODO: indicator */
+                return (
+                  <Autocomplete
+                    key={Boolean(field.value).toString()}
+                    disableClearable
+                    clearOnBlur
+                    selectOnFocus
+                    handleHomeEndKeys
+                    autoSelect
+                    autoHighlight
+                    sx={{ flex: 1 }}
+                    options={options}
+                    getOptionKey={(i) => i.id || `${i.name}-${i.type}`}
+                    value={value}
+                    isOptionEqualToValue={(i, j) => i.id === j.id}
+                    getOptionLabel={(i) => i.name || t('unnamed')}
+                    renderOption={(props, option) => {
+                      return (
+                        <MenuItem {...props}>
+                          {option.id
+                            ? option.name || t('unnamed')
+                            : t('newObjectWithType', { object: option.name, type: t(option.type || 'prompt') })}
+                        </MenuItem>
                       );
-                    }
+                    }}
+                    filterOptions={(_, params) => {
+                      const filtered = filter(options, params);
 
-                    return filtered;
+                      const { inputValue } = params;
+                      const isExisting = options.some((option) => inputValue === option.name);
+                      if (inputValue !== '' && !isExisting) {
+                        filtered.push(
+                          {
+                            id: '',
+                            type: 'prompt',
+                            name: inputValue,
+                          },
+                          {
+                            id: '',
+                            type: 'api',
+                            name: inputValue,
+                          },
+                          {
+                            id: '',
+                            type: 'function',
+                            name: inputValue,
+                          }
+                        );
+                      }
+
+                      return filtered;
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        autoFocus
+                        {...params}
+                        label={t('tool')}
+                        error={Boolean(fieldState.error)}
+                        helperText={fieldState.error?.message}
+                      />
+                    )}
+                    onChange={(_, value) => {
+                      if (!value.id) {
+                        const file = createFile({
+                          store,
+                          parent: [],
+                          rootFolder: PROMPTS_FOLDER_NAME,
+                          meta: { type: value.type, name: value.name },
+                        });
+                        field.onChange({ target: { value: file.template.id } });
+                      } else {
+                        field.onChange({ target: { value: value?.id } });
+                        translateTool();
+                      }
+                    }}
+                  />
+                );
+              }}
+            />
+            <Controller
+              control={form.control}
+              name="functionName"
+              render={({ field }) => (
+                <TextField
+                  size="small"
+                  hiddenLabel
+                  fullWidth
+                  variant="standard"
+                  InputProps={{
+                    startAdornment: (
+                      <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
+                        <LoadingIconButton
+                          size="small"
+                          icon={<Translate sx={{ fontSize: 18 }} />}
+                          onClick={translateTool}
+                        />
+                      </Tooltip>
+                    ),
                   }}
-                  renderInput={(params) => (
-                    <TextField
-                      autoFocus
-                      {...params}
-                      label={t('tool')}
-                      error={Boolean(fieldState.error)}
-                      helperText={fieldState.error?.message}
-                    />
-                  )}
-                  onChange={(_, value) => {
-                    if (!value.id) {
-                      const file = createFile({
-                        store,
-                        parent: [],
-                        rootFolder: PROMPTS_FOLDER_NAME,
-                        meta: { type: value.type, name: value.name },
-                      });
-                      field.onChange({ target: { value: file.template.id } });
-                    } else {
-                      field.onChange({ target: { value: value?.id } });
-                    }
+                  placeholder={t('translate')}
+                  value={field.value || ''}
+                  onChange={(e) => {
+                    field.onChange({ target: { value: e.target.value } });
                   }}
                 />
-              );
-            }}
-          />
-
-          <Typography variant="body1">{file?.description}</Typography>
-
+              )}
+            />
+            <Typography sx={{ marginTop: 1 }} variant="body1">
+              {file?.description}
+            </Typography>
+          </Stack>
           {parameters && parameters.length > 0 && (
             <Box>
               <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
