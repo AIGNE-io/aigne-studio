@@ -160,7 +160,7 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
   const arr = Object.entries(pickInput).flatMap(([key, value]) => (isTraceLabel(key) ? [{ label: key, value }] : []));
 
   return (
-    <Container disableGutters deep={deep}>
+    <Container disableGutters defaultExpanded={deep === 0 || deep === 1} deep={deep}>
       <AccordionSummary
         sx={{
           margin: 0,

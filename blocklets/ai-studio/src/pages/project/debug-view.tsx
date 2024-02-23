@@ -129,7 +129,7 @@ function DebugViewContent({
         display="flex"
         justifyContent="space-between"
         bgcolor="background.paper"
-        sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
+        sx={{ zIndex: 2 }}>
         <Box maxWidth={200}>
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
@@ -143,7 +143,15 @@ function DebugViewContent({
         </Tooltip>
       </Box>
 
-      <Box sx={{ position: 'relative', flexGrow: 1, overflowX: 'hidden' }}>
+      <Box
+        sx={{
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          height: 0,
+          flexGrow: 1,
+          overflowX: 'hidden',
+        }}>
         <Virtuoso
           ref={virtuoso}
           data={currentSession.messages}
@@ -184,7 +192,7 @@ function DebugViewContent({
         )}
       </Box>
 
-      <Stack gap={2} sx={{ bgcolor: 'background.paper', py: 2 }}>
+      <Stack gap={2} sx={{ bgcolor: 'background.paper', my: 2 }}>
         {currentSession.chatType !== 'debug' ? (
           <ChatModeForm
             scrollToIndex={virtuoso.current?.scrollToIndex}
@@ -292,7 +300,7 @@ const MessageView = memo(
         )}
         <Stack px={4} py={1} gap={1} flexDirection="row" position="relative">
           <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-          <Box sx={{ overflowX: 'hidden', pb: 1 }}>
+          <Box sx={{ overflowX: 'hidden', pb: 1, flexGrow: 1 }}>
             <BasicTree inputs={message.inputMessages} />
             <Box
               flex={1}
@@ -623,8 +631,6 @@ function DebugModeForm({
           elevation={0}
           sx={{
             ':before': { display: 'none' },
-            position: 'sticky',
-            bottom: 0,
             p: 0,
             borderRadius: 1,
           }}>
