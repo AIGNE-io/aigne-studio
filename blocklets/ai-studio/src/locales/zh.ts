@@ -391,13 +391,13 @@ export default flat({
   executeTools: '执行块工具',
   executeMethods: '执行方式',
   executeMethodsTip:
-    '您可以选择执行所有的工具或者从多个工具中选择其中的一个执行(选择工具是由Ai进行, 因此被选择的工具是取决于您的工具名称和描述)',
+    '您可以选择执行所有的工具或者从多个工具中选择其中的一个执行(选择工具是由Ai进行, 因此被选择的工具是取决于您的工具名称和描述)。',
   executeSettings: '执行块设置',
   executeBlockName: '执行块名称',
   executeBlockNameTip:
     '执行块名称可用于添加变量，举个例子: 执行块名称是"exampleVariable",名称可作为参数传递,在同一个assistant的其他执行块或者Prompt中通过双括号包裹(就像这样{{exampleVariable}})即可使用执行块的输出',
   outputRole: '输出的角色',
-  outputRoleTip: '当忽略输出时您的执行块不会作为交给Ai的上下文, 除此之外的类型为不同类型的提示词类型',
+  outputRoleTip: '当忽略输出时您的执行块不会作为交给Ai的上下文',
   outputPrefix: '输出前缀',
   outputPrefixTip: '为输出增加固定的前缀提示词',
   outputSuffix: '输出后缀',

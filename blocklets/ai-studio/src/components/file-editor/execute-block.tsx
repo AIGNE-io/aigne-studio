@@ -127,12 +127,9 @@ export default function ExecuteBlockForm({
       <Divider textAlign="left">
         <Chip label={t('executeSettings')} size="small" />
       </Divider>
-      <Stack justifyContent="space-between" flexDirection="row" flexWrap="wrap" rowGap={1}>
+      <Stack flexDirection="row" flexWrap="wrap" rowGap={1} columnGap={2}>
         <Box display="flex" alignItems="center" gap={0.5}>
-          <Tooltip
-            title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
-            placement="top"
-            disableInteractive>
+          <Tooltip title={t('executeMethodsTip')} placement="top" disableInteractive>
             <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
           </Tooltip>
           <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>

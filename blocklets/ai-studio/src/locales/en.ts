@@ -394,13 +394,14 @@ export default flat({
   executeBlock: 'Execute Block',
   executeTools: 'Execute Tools',
   executeMethods: 'Execute Methods',
+  executeMethodsTip:
+    'You have the option to run all the tools, or to choose one to execute from among multiple tools (the selection of the tool is made by AI, therefore the chosen tool depends on the names and descriptions of your tools).',
   executeSettings: 'Execute Settings',
   executeBlockName: 'Execute Block Name',
   executeBlockNameTip:
     "The execution block name can be used to add variables. For example: the execution block name is 'exampleVariable', and the name can be passed as a parameter. In other execution blocks of the same assistant or in a Prompt, it can be used by wrapping it with double braces (like this {{exampleVariable}}) to utilize the output of the execution block.",
   outputRole: 'Output Role',
-  outputRoleTip:
-    'When the output is ignored, your execution block will not serve as context given to the AI. Apart from this, it is considered a different type of prompt type.',
+  outputRoleTip: 'When the output is ignored, your execution block will not serve as context given to the AI.',
   outputPrefix: 'Output Prefix',
   outputPrefixTip: 'Add a fixed prefix to the output as a prompt.',
   outputSuffix: 'Output Suffix',
