@@ -124,11 +124,10 @@ export default function ExecuteBlockForm({
         />
       </Box>
 
-      <Stack gap={2} my={1}>
-        <Divider textAlign="left">
-          <Chip label={t('executeSettings')} size="small" />
-        </Divider>
-
+      <Divider textAlign="left">
+        <Chip label={t('executeSettings')} size="small" />
+      </Divider>
+      <Stack justifyContent="space-between" flexDirection="row" flexWrap="wrap" rowGap={1}>
         <Box display="flex" alignItems="center" gap={0.5}>
           <Tooltip
             title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
@@ -231,7 +230,6 @@ export default function ExecuteBlockForm({
             />
           </Box>
         )}
-
         {value.role !== 'none' && value.formatResultType !== 'asHistory' && (
           <>
             <Box display="flex" alignItems="center" gap={0.5}>
@@ -313,10 +311,10 @@ export default function ExecuteBlockForm({
         </Box>
       </Stack>
 
-      <Divider textAlign="left">
-        <Chip label={t('executeTools')} size="small" />
-      </Divider>
       <Stack gap={0.5}>
+        <Divider textAlign="left">
+          <Chip label={t('executeTools')} size="small" />
+        </Divider>
         {(!tools || tools?.length === 0) && (
           <Typography mt={1} px={1} variant="subtitle2">
             {t('emptyToolPlaceholder')}
