@@ -19,7 +19,7 @@ router.use(ensurePromptsEditor, user()).ws('/ws/:projectId/:ref', async (conn, r
 
   const project =
     (await Project.findOne({ where: { _id: projectId } })) ||
-    (await getResourceProjects('example')).find((x) => x._id === projectId);
+    getResourceProjects('example').find((x) => x._id === projectId);
 
   if (!project) {
     conn.close(3001, `Project ${projectId} not found`);
