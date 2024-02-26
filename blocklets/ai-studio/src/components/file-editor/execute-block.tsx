@@ -10,6 +10,9 @@ import {
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
+import type { DatasetObject } from '@blocklet/dataset-sdk/types';
+import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
 import {
   Autocomplete,
   Box,
@@ -30,7 +33,7 @@ import {
 } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
@@ -45,6 +48,8 @@ import IndicatorTextField from '../awareness/indicator-text-field';
 import LoadingIconButton from '../loading/loading-icon-button';
 import { ModelPopper, ModelSetting } from '../modal-settings';
 import PromptEditorField from './prompt-editor-field';
+
+const FROM = 'dataset';
 
 export default function ExecuteBlockForm({
   projectId,
@@ -66,12 +71,12 @@ export default function ExecuteBlockForm({
   compareAssistant?: AssistantYjs;
   isRemoteCompare?: boolean;
 } & StackProps) {
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
   const navigate = useNavigate();
   const toolForm = useRef<ToolDialogImperative>(null);
 
-  const { store } = useProjectStore(projectId, gitRef);
+  const { store, datasets } = useProjectStore(projectId, gitRef);
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
     compareValue: compareAssistant,
@@ -203,7 +208,66 @@ export default function ExecuteBlockForm({
         {tools?.map(({ data: tool }) => {
           const f = store.files[tool.id];
           const file = f && isAssistant(f) ? f : undefined;
-          if (!file) return null;
+          if (!file) {
+            const dataset = datasets.find((x) => x.id === tool.id);
+            if (dataset) {
+              return (
+                <Stack
+                  key={dataset.id}
+                  direction="row"
+                  sx={{
+                    px: 1,
+                    minHeight: 32,
+                    gap: 1,
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    ':hover': {
+                      bgcolor: 'action.hover',
+
+                      '.hover-visible': {
+                        display: 'flex',
+                      },
+                    },
+                    backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
+                  }}
+                  onClick={() => {
+                    if (readOnly) return;
+                    toolForm.current?.form.reset(cloneDeep(tool));
+                    dialogState.open();
+                  }}>
+                  <Typography variant="subtitle2" noWrap maxWidth="50%">
+                    {getDatasetTextByI18n(dataset, 'summary', locale) || t('unnamed')}
+                  </Typography>
+
+                  <Typography variant="body1" color="text.secondary" flex={1} noWrap>
+                    {getDatasetTextByI18n(dataset, 'description', locale)}
+                  </Typography>
+
+                  {!readOnly && (
+                    <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
+                      <Button
+                        sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const doc = (getYjsValue(value) as Map<any>).doc!;
+                          doc.transact(() => {
+                            if (value.tools) {
+                              delete value.tools[tool.id];
+                              sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
+                            }
+                          });
+                        }}>
+                        <Trash sx={{ fontSize: 18 }} />
+                      </Button>
+                    </Stack>
+                  )}
+                </Stack>
+              );
+            }
+
+            return null;
+          }
 
           return (
             <Stack
@@ -317,6 +381,25 @@ export default function ExecuteBlockForm({
         />
 
         <Box flex={1} />
+
+        <Typography variant="body1" component="label">
+          {t('variable')}
+        </Typography>
+
+        <IndicatorTextField
+          projectId={projectId}
+          gitRef={gitRef}
+          path={[value.id, value.variable ?? '']}
+          TextFiledProps={{
+            hiddenLabel: true,
+            InputProps: {
+              readOnly,
+              sx: { backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) } },
+            },
+            value: value.variable ?? '',
+            onChange: (e) => (value.variable = e.target.value),
+          }}
+        />
       </Stack>
 
       <ToolDialog
@@ -326,6 +409,7 @@ export default function ExecuteBlockForm({
         assistant={assistant}
         gitRef={gitRef}
         DialogProps={{ ...bindDialog(dialogState) }}
+        datasets={datasets.map((x) => ({ ...x, from: FROM }))}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
           doc.transact(() => {
@@ -347,11 +431,21 @@ export default function ExecuteBlockForm({
   );
 }
 
-const filter = createFilterOptions<{
-  id: string;
-  type: Exclude<FileTypeYjs, { $base64: string }>['type'];
-  name: string | undefined;
-}>();
+type Option = {
+  id: NonNullable<ExecuteBlock['tools']>[number]['id'];
+  type: Exclude<FileTypeYjs, { $base64: string }>['type'] | string;
+  name?: any;
+  from?: NonNullable<ExecuteBlock['tools']>[number]['from'];
+  fromText?: string;
+};
+
+const filter = createFilterOptions<Option>();
+
+function isDatasetObject(
+  option: any
+): option is DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] } {
+  return option && option.from === FROM;
+}
 
 type ToolDialogForm = NonNullable<ExecuteBlock['tools']>[number];
 
@@ -359,7 +453,7 @@ interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
 
-const ToolDialog = forwardRef<
+export const ToolDialog = forwardRef<
   ToolDialogImperative,
   {
     executeBlock: ExecuteBlockYjs;
@@ -368,9 +462,10 @@ const ToolDialog = forwardRef<
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
     assistant: AssistantYjs;
+    datasets: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   }
->(({ executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
-  const { t } = useLocaleContext();
+>(({ datasets, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+  const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
 
@@ -383,16 +478,11 @@ const ToolDialog = forwardRef<
     .map(([id]) => store.files[id])
     .filter((i): i is AssistantYjs => !!i && isAssistant(i))
     .filter((i) => i.id !== assistantId)
-    .map((i) => ({ id: i.id, type: i.type, name: i.name }));
+    .map((i) => ({ id: i.id, type: i.type, name: i.name, from: undefined }));
 
   const fileId = form.watch('id');
   const f = store.files[fileId];
   const file = f && isAssistant(f) ? f : undefined;
-  const parameters =
-    file?.parameters &&
-    sortBy(Object.values(file.parameters), (i) => i.index).filter(
-      (i): i is typeof i & { data: { key: string } } => !!i.data.key
-    );
 
   const assistantParameters = new Set([
     ...Object.values(assistant.parameters ?? {}).map((i) => i.data.key),
@@ -402,6 +492,22 @@ const ToolDialog = forwardRef<
           .filter(Boolean)
       : []),
   ]);
+
+  const option = [...options, ...datasets].find((x) => x.id === fileId);
+  const formatOptions: Option[] = [
+    ...options,
+    ...datasets.map((dataset) => ({
+      id: dataset.id,
+      type: dataset.type,
+      name:
+        getDatasetTextByI18n(dataset, 'summary', locale) ||
+        getDatasetTextByI18n(dataset, 'description', locale) ||
+        t('unnamed'),
+      from: dataset.from,
+    })),
+  ]
+    .map((x) => ({ ...x, fromText: x.from === FROM ? t('buildInData') : t('assistantData') }))
+    .sort((a, b) => (b.from || '').localeCompare(a.from || ''));
 
   const translateTool = async () => {
     const assistantName = options.find((option) => option.id === form.getValues('id'))?.name;
@@ -425,6 +531,97 @@ const ToolDialog = forwardRef<
     form.setValue('functionName', translate.text);
   };
 
+  const parameters = useMemo(() => {
+    if (isDatasetObject(option)) {
+      return getAllParameters(option);
+    }
+
+    return (
+      file?.parameters &&
+      sortBy(Object.values(file.parameters), (i) => i.index).filter(
+        (i): i is typeof i & { data: { key: string } } => !!i.data.key
+      )
+    );
+  }, [file, option]);
+
+  const renderParameters = useCallback(() => {
+    if (!option) {
+      return null;
+    }
+
+    if (isDatasetObject(option)) {
+      return (
+        <Box>
+          {(parameters || [])?.map((parameter: any) => {
+            if (!parameter) return null;
+
+            return (
+              <Stack key={parameter.name}>
+                <Typography variant="caption" mx={1}>
+                  {parameter.description || parameter.name}
+                </Typography>
+
+                <Controller
+                  control={form.control}
+                  name={`parameters.${parameter.name}`}
+                  render={({ field }) => (
+                    <PromptEditorField
+                      placeholder={`{{ ${parameter.name} }}`}
+                      value={field.value || ''}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      assistant={assistant}
+                      path={[assistantId, parameter.name]}
+                      onChange={(value) => field.onChange({ target: { value } })}
+                    />
+                  )}
+                />
+              </Stack>
+            );
+          })}
+        </Box>
+      );
+    }
+
+    return (
+      <Box>
+        {parameters?.map(({ data: parameter }: any) => {
+          if (!parameter?.key) return null;
+
+          return (
+            <Stack key={parameter.id}>
+              <Typography variant="caption" mx={1}>
+                {parameter.label || parameter.key}
+              </Typography>
+
+              <Controller
+                control={form.control}
+                name={`parameters.${parameter.key}`}
+                render={({ field }) => (
+                  <PromptEditorField
+                    placeholder={
+                      executeBlock.selectType === 'selectByPrompt'
+                        ? t('selectByPromptParameterPlaceholder')
+                        : assistantParameters.has(parameter.key)
+                          ? `{{ ${parameter.key} }}`
+                          : undefined
+                    }
+                    value={field.value || ''}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    assistant={assistant}
+                    path={[assistantId, parameter.id]}
+                    onChange={(value) => field.onChange({ target: { value } })}
+                  />
+                )}
+              />
+            </Stack>
+          );
+        })}
+      </Box>
+    );
+  }, [option, parameters, assistantParameters]);
+
   const createFile = useCreateFile();
 
   return (
@@ -445,10 +642,8 @@ const ToolDialog = forwardRef<
               control={form.control}
               rules={{ required: t('validation.fieldRequired') }}
               render={({ field, fieldState }) => {
-                const file = store.files[field.value];
-                const target = file && isAssistant(file) ? file : undefined;
-                const value = target ? { id: target.id, type: target.type, name: target.name } : undefined;
-                /* TODO: indicator */
+                const value = formatOptions.find((x) => x.id === field.value);
+
                 return (
                   <Autocomplete
                     key={Boolean(field.value).toString()}
@@ -459,11 +654,12 @@ const ToolDialog = forwardRef<
                     autoSelect
                     autoHighlight
                     sx={{ flex: 1 }}
-                    options={options}
+                    options={formatOptions}
                     getOptionKey={(i) => i.id || `${i.name}-${i.type}`}
                     value={value}
                     isOptionEqualToValue={(i, j) => i.id === j.id}
                     getOptionLabel={(i) => i.name || t('unnamed')}
+                    groupBy={(option) => option.fromText || ''}
                     renderOption={(props, option) => {
                       return (
                         <MenuItem {...props}>
@@ -474,7 +670,7 @@ const ToolDialog = forwardRef<
                       );
                     }}
                     filterOptions={(_, params) => {
-                      const filtered = filter(options, params);
+                      const filtered = filter(formatOptions, params);
 
                       const { inputValue } = params;
                       const isExisting = options.some((option) => inputValue === option.name);
@@ -510,12 +706,20 @@ const ToolDialog = forwardRef<
                       />
                     )}
                     onChange={(_, value) => {
+                      // 清理：parameters 数据
+                      form.reset({ id: value?.id, from: value?.from });
+
+                      if (value.from === FROM) {
+                        field.onChange({ target: { value: value?.id } });
+                        return;
+                      }
+
                       if (!value.id) {
                         const file = createFile({
                           store,
                           parent: [],
                           rootFolder: PROMPTS_FOLDER_NAME,
-                          meta: { type: value.type, name: value.name },
+                          meta: { type: value.type as any, name: value.name },
                         });
                         field.onChange({ target: { value: file.template.id } });
                       } else {
@@ -559,7 +763,7 @@ const ToolDialog = forwardRef<
               {file?.description}
             </Typography>
           </Stack>
-          {parameters && parameters.length > 0 && (
+          {!!parameters?.length && (
             <Box>
               <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
                 <Stack gap={0.5} direction="row" alignItems="center">
@@ -573,39 +777,7 @@ const ToolDialog = forwardRef<
             </Box>
           )}
 
-          {parameters?.map(({ data: parameter }) => {
-            if (!parameter?.key) return null;
-
-            return (
-              <Stack key={parameter.id}>
-                <Typography variant="caption" mx={1}>
-                  {parameter.label || parameter.key}
-                </Typography>
-
-                <Controller
-                  control={form.control}
-                  name={`parameters.${parameter.key}`}
-                  render={({ field }) => (
-                    <PromptEditorField
-                      placeholder={
-                        executeBlock.selectType === 'selectByPrompt'
-                          ? t('selectByPromptParameterPlaceholder')
-                          : assistantParameters.has(parameter.key)
-                            ? `{{ ${parameter.key} }}`
-                            : undefined
-                      }
-                      value={field.value || ''}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      assistant={assistant}
-                      path={[assistantId, parameter.id]}
-                      onChange={(value) => field.onChange({ target: { value } })}
-                    />
-                  )}
-                />
-              </Stack>
-            );
-          })}
+          {renderParameters()}
         </Stack>
       </DialogContent>
 

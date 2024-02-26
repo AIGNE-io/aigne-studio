@@ -10,7 +10,7 @@ export interface DatasetInput {
   name?: string | null;
 }
 
-export async function getDatasetList(): Promise<{ list: DatasetObject[] }> {
+export async function getDatasetList(): Promise<DatasetObject[]> {
   return axios.get('/api/collections.json').then((res) => res.data);
 }
 

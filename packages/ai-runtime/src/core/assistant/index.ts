@@ -922,7 +922,7 @@ async function runExecuteBlock({
             const name = dataset.summary || dataset.description || '';
             return {
               tool,
-              assistant: dataset,
+              toolAssistant: dataset,
               function: {
                 name: name.replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
                 descriptions: dataset.description || name || '',
@@ -1037,7 +1037,7 @@ async function runExecuteBlock({
           const args = JSON.parse(call.function.arguments);
 
           if (tool.tool.from === 'dataset') {
-            const assistant = tool?.assistant as DatasetObject;
+            const assistant = tool?.toolAssistant as DatasetObject;
 
             await Promise.all(
               getAllParameters(assistant)?.map(async (item) => {
@@ -1061,7 +1061,6 @@ async function runExecuteBlock({
           }
 
           const toolAssistant = tool?.toolAssistant as Assistant;
-
           await Promise.all(
             toolAssistant.parameters?.map(async (item) => {
               const message = tool.tool?.parameters?.[item.key!];
