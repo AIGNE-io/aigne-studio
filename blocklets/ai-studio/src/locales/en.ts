@@ -304,7 +304,6 @@ export default flat({
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
-  templates: '{count} Prompts',
   validateTools: {
     parameter: {
       name: {
@@ -440,4 +439,8 @@ export default flat({
   asExampleProject: 'As Example Project',
   cancelExampleProject: 'Cancel Example Project',
   execute: 'Execute',
+  publish: 'Publish',
+  templates: 'Templates',
+  options: 'Options',
+  withCollectionManage: 'Collections Manage',
 });

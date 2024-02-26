@@ -300,7 +300,6 @@ export default flat({
   useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
   useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
-  templates: '{count} 个文件',
   validateTools: {
     parameter: {
       name: {
@@ -434,4 +433,8 @@ export default flat({
   asExampleProject: '作为示例项目',
   cancelExampleProject: '取消示例项目',
   execute: '执行',
+  publish: '发布',
+  templates: '模板',
+  options: '选项',
+  withCollectionManage: '知识库管理',
 });
