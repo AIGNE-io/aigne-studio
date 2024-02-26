@@ -20,6 +20,7 @@ export type Tool = {
   id: string;
   from?: 'assistant' | 'dataset';
   parameters?: { [key: string]: string };
+  functionName?: string;
   onEnd?: OnTaskCompletion;
 };
 

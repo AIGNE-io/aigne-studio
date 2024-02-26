@@ -30,6 +30,8 @@ export function PromptMessagesComponent({ value }: { value: PromptMessages }) {
   return value?.map((i, index) => (
     <Accordion
       sx={{
+        borderRadius: 1,
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         '&::before': {
           display: 'none',
         },

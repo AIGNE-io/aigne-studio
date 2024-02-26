@@ -1,3 +1,59 @@
+## 0.1.263 (2024-2-23)
+
+- feat: accordion default expand
+
+## 0.1.262 (2024-2-22)
+
+- feat: file rename
+
+## 0.1.261 (2024-2-21)
+
+- - feat: bring up the project name
+
+## 0.1.260 (2024-2-20)
+
+- fix: resource blocklet api config
+
+## 0.1.259 (2024-2-20)
+
+- feat: tools onboarding word
+
+## 0.1.258 (2024-2-20)
+
+- fix: view the compare file of deleted files
+
+## 0.1.257 (2024-2-20)
+
+- fix: error import in start
+
+## 0.1.256 (2024-2-20)
+
+- fix: markdown blocks appear randomly
+
+## 0.1.255 (2024-2-20)
+
+- feat: time interval output
+
+## 0.1.254 (2024-2-20)
+
+- fix: can't select in chinese assistant name
+
+## 0.1.253 (2024-2-20)
+
+- fix: prompt Editor supports mustache variables
+
+## 0.1.252 (2024-2-20)
+
+- fix: prompt editor not working
+
+## 0.1.251 (2024-2-18)
+
+- fix: downgrade gpt-tokens version
+
+## 0.1.250 (2024-2-18)
+
+- fix: update execute button label
+
 ## 0.1.249 (2024-2-9)
 
 - feat: support es module for function assistant
