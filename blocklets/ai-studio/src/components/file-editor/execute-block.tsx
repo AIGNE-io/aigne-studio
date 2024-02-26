@@ -215,6 +215,7 @@ export default function ExecuteBlockForm({
           const file = f && isAssistant(f) ? f : undefined;
           if (!file) {
             const dataset = datasets.find((x) => x.id === tool.id);
+
             if (dataset) {
               return (
                 <Stack
@@ -369,9 +370,7 @@ export default function ExecuteBlockForm({
           TextFiledProps={{
             select: true,
             hiddenLabel: true,
-            SelectProps: {
-              autoWidth: true,
-            },
+            SelectProps: { autoWidth: true },
             value: value.formatResultType || 'none',
             onChange: (e) => (value.formatResultType = e.target.value as any),
             children: [
@@ -386,25 +385,6 @@ export default function ExecuteBlockForm({
         />
 
         <Box flex={1} />
-
-        <Typography variant="body1" component="label">
-          {t('variable')}
-        </Typography>
-
-        <IndicatorTextField
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, value.variable ?? '']}
-          TextFiledProps={{
-            hiddenLabel: true,
-            InputProps: {
-              readOnly,
-              sx: { backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) } },
-            },
-            value: value.variable ?? '',
-            onChange: (e) => (value.variable = e.target.value),
-          }}
-        />
       </Stack>
 
       <ToolDialog
@@ -443,7 +423,6 @@ type Option = {
   from?: NonNullable<ExecuteBlock['tools']>[number]['from'];
   fromText?: string;
 };
-
 const filter = createFilterOptions<Option>();
 
 function isDatasetObject(
