@@ -21,7 +21,6 @@ import {
   useSyncedStore,
   writeVarUint,
 } from '@blocklet/co-git/yjs';
-import { useRequest } from 'ahooks';
 import Cookies from 'js-cookie';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
@@ -34,7 +33,6 @@ import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
 import { PREFIX } from '../../libs/api';
-import { getDatasetList } from '../../libs/dataset';
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 
@@ -104,9 +102,6 @@ const projectStore = (projectId: string, gitRef: string) => {
 
 export const useProjectStore = (projectId: string, gitRef: string, connect?: boolean) => {
   const [store, setStore] = useRecoilState(projectStore(projectId, gitRef));
-
-  // 放到这里是否比较好?
-  const { data: datasets = [] } = useRequest(() => getDatasetList());
 
   useEffect(() => {
     if (!connect) return undefined;
@@ -190,7 +185,6 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       },
       [syncedStore.files]
     ),
-    datasets,
   };
 };
 

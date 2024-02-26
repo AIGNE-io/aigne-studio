@@ -31,6 +31,7 @@ import {
   Typography,
   createFilterOptions,
 } from '@mui/material';
+import { useRequest } from 'ahooks';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
@@ -39,6 +40,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
 import { joinURL } from 'ufo';
 
+import { getDatasetList } from '../../libs/dataset';
 import Add from '../../pages/project/icons/add';
 import External from '../../pages/project/icons/external';
 import InfoOutlined from '../../pages/project/icons/question';
@@ -76,7 +78,10 @@ export default function ExecuteBlockForm({
   const navigate = useNavigate();
   const toolForm = useRef<ToolDialogImperative>(null);
 
-  const { store, datasets } = useProjectStore(projectId, gitRef);
+  const { store } = useProjectStore(projectId, gitRef);
+
+  const { data: datasets = [] } = useRequest(() => getDatasetList());
+
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
     compareValue: compareAssistant,
