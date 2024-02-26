@@ -817,6 +817,7 @@ function ImportFromGit() {
                   const https = gitUrlParse.stringify(url, 'https');
                   form.setValue('url', https, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
                   form.setValue('username', url.owner, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                  form.setValue('name', url.name, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
 
                   const { password } = url as any;
                   if (password && typeof password === 'string') {
@@ -864,6 +865,7 @@ function ImportFromGit() {
                 readOnly: true,
                 onFocus: (e) => (e.currentTarget.readOnly = false),
               }}
+              InputLabelProps={{ shrink: form.watch('name') ? true : undefined }}
             />
 
             <TextField

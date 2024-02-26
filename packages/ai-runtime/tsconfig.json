@@ -2,6 +2,11 @@
   "extends": "../../tsconfig",
   "compilerOptions": {
     "noEmit": false,
-    "outDir": "lib"
+    "outDir": "lib",
+    "baseUrl": "./",
+    "paths": {
+      "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
+      "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"]
+    }
   }
 }
