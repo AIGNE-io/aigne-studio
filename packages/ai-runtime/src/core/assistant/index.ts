@@ -838,6 +838,7 @@ async function runExecuteBlock({
         tools.map(async (tool) => {
           if (tool?.from === 'dataset') {
             const dataset = (datasets || []).find((x) => x.id === tool.id);
+
             if (dataset) {
               const requestData = Object.fromEntries(
                 await Promise.all(

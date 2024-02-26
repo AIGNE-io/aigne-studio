@@ -726,6 +726,7 @@ export const ToolDialog = forwardRef<
                           rootFolder: PROMPTS_FOLDER_NAME,
                           meta: { type: value.type as any, name: value.name },
                         });
+
                         field.onChange({ target: { value: file.template.id } });
                       } else {
                         field.onChange({ target: { value: value?.id } });
@@ -736,38 +737,43 @@ export const ToolDialog = forwardRef<
                 );
               }}
             />
-            <Controller
-              control={form.control}
-              name="functionName"
-              render={({ field }) => (
-                <TextField
-                  size="small"
-                  hiddenLabel
-                  fullWidth
-                  variant="standard"
-                  InputProps={{
-                    startAdornment: (
-                      <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
-                        <LoadingIconButton
-                          size="small"
-                          icon={<Translate sx={{ fontSize: 18 }} />}
-                          onClick={translateTool}
-                        />
-                      </Tooltip>
-                    ),
-                  }}
-                  placeholder={t('translate')}
-                  value={field.value || ''}
-                  onChange={(e) => {
-                    field.onChange({ target: { value: e.target.value } });
-                  }}
-                />
-              )}
-            />
+
+            {!isDatasetObject(option) && (
+              <Controller
+                control={form.control}
+                name="functionName"
+                render={({ field }) => (
+                  <TextField
+                    size="small"
+                    hiddenLabel
+                    fullWidth
+                    variant="standard"
+                    InputProps={{
+                      startAdornment: (
+                        <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
+                          <LoadingIconButton
+                            size="small"
+                            icon={<Translate sx={{ fontSize: 18 }} />}
+                            onClick={translateTool}
+                          />
+                        </Tooltip>
+                      ),
+                    }}
+                    placeholder={t('translate')}
+                    value={field.value || ''}
+                    onChange={(e) => {
+                      field.onChange({ target: { value: e.target.value } });
+                    }}
+                  />
+                )}
+              />
+            )}
+
             <Typography sx={{ marginTop: 1 }} variant="body1">
               {file?.description}
             </Typography>
           </Stack>
+
           {!!parameters?.length && (
             <Box>
               <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
