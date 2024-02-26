@@ -421,6 +421,7 @@ function ProjectList({
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
+  const [itemLoading, setLoading] = useState<ProjectWithUserInfo | null>(null);
 
   const {
     state: { menuAnchor },
@@ -450,6 +451,7 @@ function ProjectList({
               gitUrl={item.gitUrl}
               model={item.model}
               users={item.users || []}
+              loading={Boolean(itemLoading && item?._id === itemLoading?._id)}
               onClick={async () => {
                 if (section === 'templates') {
                   let name = '';
@@ -500,8 +502,17 @@ function ProjectList({
                 } else if (section === 'projects') {
                   navigate(joinURL('/projects', item._id!));
                 } else if (section === 'examples') {
-                  const project = await copyProject({ folder: 'example', projectId: item._id! });
-                  navigate(joinURL('/projects', project._id!));
+                  if ((item as any)?.fromResourceBlockletFolder) {
+                    try {
+                      setLoading(item);
+                      const project = await copyProject({ folder: 'example', projectId: item._id! });
+                      navigate(joinURL('/projects', project._id!));
+                    } catch (error) {
+                      setLoading(null);
+                    }
+                  } else {
+                    navigate(joinURL('/projects', item._id!));
+                  }
                 }
               }}
               actions={
@@ -574,6 +585,7 @@ function ProjectItem({
   gitUrl,
   model,
   users,
+  loading = false,
   ...props
 }: {
   section: string;
@@ -587,6 +599,7 @@ function ProjectItem({
   model?: string;
   users?: User[];
   actions?: ReactNode;
+  loading: boolean;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
 
@@ -725,6 +738,21 @@ function ProjectItem({
           {actions}
         </Box>
       </Stack>
+
+      {loading && (
+        <Box
+          position="absolute"
+          top={0}
+          bottom={0}
+          left={0}
+          right={0}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          zIndex={(theme) => theme.zIndex.tooltip}>
+          <CircularProgress size={16} />
+        </Box>
+      )}
     </ProjectItemRoot>
   );
 }
