@@ -533,7 +533,10 @@ async function runPromptAssistant({
 
             return {
               role: prompt.data.role ?? 'system',
-              content: typeof result === 'string' ? result : JSON.stringify(result),
+              content:
+                prompt.data.prefix +
+                (typeof result === 'string' ? result : JSON.stringify(result)) +
+                prompt.data.suffix,
             };
           }
 

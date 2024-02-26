@@ -13,10 +13,12 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
+import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
 import {
   Autocomplete,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -93,13 +95,18 @@ export default function ExecuteBlockForm({
 
   return (
     <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
-      <Stack direction="row" gap={1} alignItems="center">
+      <Box display="flex" alignItems="center">
+        <Tooltip
+          title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
+          placement="top"
+          disableInteractive>
+          <MuiInfoOutlined fontSize="small" sx={{ mr: 0.5, color: 'grey.500' }} />
+        </Tooltip>
         <IndicatorTextField
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, value.variable ?? '']}
           TextFiledProps={{
-            size: 'small',
             hiddenLabel: true,
             inputProps: {
               maxLength: 15,
@@ -115,36 +122,27 @@ export default function ExecuteBlockForm({
             onChange: (e) => (value.variable = e.target.value),
           }}
         />
-        <IndicatorTextField
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, value.selectType ?? 'all']}
-          TextFiledProps={{
-            size: 'small',
-            select: true,
-            hiddenLabel: true,
-            SelectProps: {
-              autoWidth: true,
-            },
-            value: value.selectType || 'all',
-            onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-              (value.selectType = e.target.value as any),
-            children: [
-              <MenuItem key="all" value="all">
-                {t('allTools')}
-              </MenuItem>,
-              <MenuItem key="selectByPrompt" value="selectByPrompt">
-                {t('selectPrompt')}
-              </MenuItem>,
-            ],
-          }}
-        />
+      </Box>
 
-        {assistant.type === 'prompt' && (
+      <Stack gap={2} my={1}>
+        <Divider textAlign="left">
+          <Chip label={t('executeSettings')} size="small" />
+        </Divider>
+
+        <Box display="flex" alignItems="center" gap={0.5}>
+          <Tooltip
+            title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
+            placement="top"
+            disableInteractive>
+            <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+          </Tooltip>
+          <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
+            {t('executeMethods')}:
+          </Typography>
           <IndicatorTextField
             projectId={projectId}
             gitRef={gitRef}
-            path={[value.id, value.role ?? 'system']}
+            path={[value.id, value.selectType ?? 'all']}
             TextFiledProps={{
               size: 'small',
               select: true,
@@ -152,58 +150,172 @@ export default function ExecuteBlockForm({
               SelectProps: {
                 autoWidth: true,
               },
-              value: value.role || 'system',
+              value: value.selectType || 'all',
               onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                (value.role = e.target.value as Role),
+                (value.selectType = e.target.value as any),
               children: [
-                <MenuItem key="system" value="system">
-                  {t('systemPrompt')}
+                <MenuItem key="all" value="all">
+                  {t('allTools')}
                 </MenuItem>,
-                <MenuItem key="user" value="user">
-                  {t('userPrompt')}
-                </MenuItem>,
-                <MenuItem key="assistant" value="assistant">
-                  {t('assistantPrompt')}
-                </MenuItem>,
-                <MenuItem key="none" value="none">
-                  {t('ignoreOutput')}
+                <MenuItem key="selectByPrompt" value="selectByPrompt">
+                  {t('selectPrompt')}
                 </MenuItem>,
               ],
             }}
           />
+        </Box>
+        {value.selectType === 'selectByPrompt' && (
+          <Stack>
+            <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
+                {t('prompt')}:
+              </Typography>
+              <ModelPopper>
+                <ModelSetting
+                  files={store.files}
+                  value={value}
+                  readOnly={readOnly}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                />
+              </ModelPopper>
+            </Box>
+            <PromptEditorField
+              readOnly={readOnly}
+              projectId={projectId}
+              gitRef={gitRef}
+              path={path.concat('selectByPrompt')}
+              assistant={assistant}
+              value={value.selectByPrompt}
+              onChange={(prompt) => (value.selectByPrompt = prompt)}
+            />
+          </Stack>
+        )}
+        {assistant.type === 'prompt' && (
+          <Box display="flex" alignItems="center" gap={0.5}>
+            <Tooltip title={t('outputRoleTip')} placement="top" disableInteractive>
+              <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+            </Tooltip>
+            <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
+              {t('outputRole')}:
+            </Typography>
+            <IndicatorTextField
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, value.role ?? 'system']}
+              TextFiledProps={{
+                size: 'small',
+                select: true,
+                hiddenLabel: true,
+                SelectProps: {
+                  autoWidth: true,
+                },
+                value: value.role || 'system',
+                onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                  (value.role = e.target.value as Role),
+                children: [
+                  <MenuItem key="system" value="system">
+                    {t('systemPrompt')}
+                  </MenuItem>,
+                  <MenuItem key="user" value="user">
+                    {t('userPrompt')}
+                  </MenuItem>,
+                  <MenuItem key="assistant" value="assistant">
+                    {t('assistantPrompt')}
+                  </MenuItem>,
+                  <MenuItem key="none" value="none">
+                    {t('ignoreOutput')}
+                  </MenuItem>,
+                ],
+              }}
+            />
+          </Box>
         )}
 
-        <Box flex={1} />
-      </Stack>
+        {value.role !== 'none' && value.formatResultType !== 'asHistory' && (
+          <>
+            <Box display="flex" alignItems="center" gap={0.5}>
+              <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
+                <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+              </Tooltip>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
+                {t('outputPrefix')}:
+              </Typography>
+              {assistant.type === 'prompt' && (
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, 'prefix']}
+                  TextFiledProps={{
+                    hiddenLabel: true,
+                    size: 'small',
+                    placeholder: 'Your output prefix',
 
-      {value.selectType === 'selectByPrompt' && (
-        <Stack>
-          <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Typography variant="caption">{t('prompt')}</Typography>
-            <ModelPopper>
-              <ModelSetting
-                files={store.files}
-                value={value}
-                readOnly={readOnly}
-                projectId={projectId}
-                gitRef={gitRef}
-              />
-            </ModelPopper>
-          </Box>
-          <PromptEditorField
-            readOnly={readOnly}
+                    value: value.prefix || '',
+                    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      (value.prefix = e.target.value as Role),
+                  }}
+                />
+              )}
+            </Box>
+            <Box display="flex" alignItems="center" gap={0.5}>
+              <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
+                <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+              </Tooltip>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
+                {t('outputSuffix')}:
+              </Typography>
+              {assistant.type === 'prompt' && (
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, 'suffix']}
+                  TextFiledProps={{
+                    size: 'small',
+                    hiddenLabel: true,
+                    placeholder: 'Your output suffix',
+                    value: value.suffix || '',
+                    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      (value.suffix = e.target.value as Role),
+                  }}
+                />
+              )}
+            </Box>
+          </>
+        )}
+        <Box display="flex" alignItems="center" gap={0.5}>
+          <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
+            {t('formatResult')}:
+          </Typography>
+          <IndicatorTextField
             projectId={projectId}
             gitRef={gitRef}
-            path={path.concat('selectByPrompt')}
-            assistant={assistant}
-            value={value.selectByPrompt}
-            onChange={(prompt) => (value.selectByPrompt = prompt)}
+            path={[value.id, value.formatResultType ?? 'none']}
+            TextFiledProps={{
+              size: 'small',
+              select: true,
+              hiddenLabel: true,
+              SelectProps: {
+                autoWidth: true,
+              },
+              value: value.formatResultType || 'none',
+              onChange: (e) => (value.formatResultType = e.target.value as any),
+              children: [
+                <MenuItem key="none" value="none">
+                  {t('stayAsIs')}
+                </MenuItem>,
+                <MenuItem key="asHistory" value="asHistory">
+                  {t('asHistory')}
+                </MenuItem>,
+              ],
+            }}
           />
-        </Stack>
-      )}
+        </Box>
+      </Stack>
 
-      <Divider />
-
+      <Divider textAlign="left">
+        <Chip label={t('executeTools')} size="small" />
+      </Divider>
       <Stack gap={0.5}>
         {(!tools || tools?.length === 0) && (
           <Typography mt={1} px={1} variant="subtitle2">
@@ -356,35 +468,6 @@ export default function ExecuteBlockForm({
             </Button>
           </Box>
         )}
-      </Stack>
-
-      <Stack direction="row" alignItems="center" gap={1}>
-        <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
-          {t('formatResult')}
-        </Typography>
-
-        <IndicatorTextField
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, value.formatResultType ?? 'none']}
-          TextFiledProps={{
-            select: true,
-            hiddenLabel: true,
-            SelectProps: { autoWidth: true },
-            value: value.formatResultType || 'none',
-            onChange: (e) => (value.formatResultType = e.target.value as any),
-            children: [
-              <MenuItem key="none" value="none">
-                {t('stayAsIs')}
-              </MenuItem>,
-              <MenuItem key="asHistory" value="asHistory">
-                {t('asHistory')}
-              </MenuItem>,
-            ],
-          }}
-        />
-
-        <Box flex={1} />
       </Stack>
 
       <ToolDialog
