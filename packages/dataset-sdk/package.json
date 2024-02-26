@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/dataset-sdk",
-  "version": "0.1.264",
+  "version": "0.1.265",
   "description": "The SDK for processing dataset protocol",
   "publishConfig": {
     "access": "public"
@@ -21,8 +21,8 @@
       "require": "./lib/cjs/types/index.js"
     },
     "./request": {
-      "import": "./lib/esm/request.js",
-      "require": "./lib/cjs/request.js"
+      "import": "./lib/esm/request/index.js",
+      "require": "./lib/cjs/request/index.js"
     },
     "./request/util": {
       "import": "./lib/esm/request/util.js",
@@ -42,7 +42,10 @@
         "./lib/types/types/index.d.ts"
       ],
       "request": [
-        "./lib/types/request.d.ts"
+        "./lib/types/request/index.d.ts"
+      ],
+      "request/util": [
+        "./lib/types/request/util.d.ts"
       ],
       "openapi": [
         "./lib/types/openapi.d.ts"
