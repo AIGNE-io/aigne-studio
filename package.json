@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.263",
+  "version": "0.1.265",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -14,7 +14,7 @@
     "lint:fix": "yarn workspaces run lint:fix",
     "build": "npm run build:libs && yarn workspace ai-studio build",
     "clean": "yarn workspaces run clean",
-    "build:libs": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspace @blocklet/prompt-editor build && yarn workspace @blocklet/ai-runtime build",
+    "build:libs": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspace @blocklet/prompt-editor build && yarn workspace @blocklet/ai-runtime build && yarn workspace @blocklet/dataset-sdk build",
     "prepare": "husky install",
     "bump-version": "zx scripts/bump-version.mjs",
     "update:deps": "npx -y taze -r -w && yarn install && npx -y yarn-deduplicate yarn.lock && yarn"
