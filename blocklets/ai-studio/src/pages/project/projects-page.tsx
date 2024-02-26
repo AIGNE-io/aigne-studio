@@ -51,7 +51,7 @@ import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import * as projectApi from '../../libs/project';
-import { ProjectWithUserInfo, User, createProject } from '../../libs/project';
+import { ProjectWithUserInfo, User, copyProject, createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
@@ -421,6 +421,7 @@ function ProjectList({
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
+  const [itemLoading, setLoading] = useState<ProjectWithUserInfo | null>(null);
 
   const {
     state: { menuAnchor },
@@ -450,6 +451,7 @@ function ProjectList({
               gitUrl={item.gitUrl}
               model={item.model}
               users={item.users || []}
+              loading={Boolean(itemLoading && item?._id === itemLoading?._id)}
               onClick={async () => {
                 if (section === 'templates') {
                   let name = '';
@@ -482,16 +484,39 @@ function ProjectList({
                     okText: t('create'),
                     okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {
+                      if ((item as any).fromResourceBlockletFolder) {
+                        const project = await copyProject({
+                          folder: 'template',
+                          projectId: item._id!,
+                          name,
+                          description,
+                        });
+
+                        navigate(joinURL('/projects', project._id!));
+                        return;
+                      }
                       const project = await createProject({ templateId: item._id!, name, description });
                       navigate(joinURL('/projects', project._id!));
                     },
                   });
-                } else if (section === 'projects' || section === 'examples') {
+                } else if (section === 'projects') {
                   navigate(joinURL('/projects', item._id!));
+                } else if (section === 'examples') {
+                  if ((item as any)?.fromResourceBlockletFolder) {
+                    try {
+                      setLoading(item);
+                      const project = await copyProject({ folder: 'example', projectId: item._id! });
+                      navigate(joinURL('/projects', project._id!));
+                    } catch (error) {
+                      setLoading(null);
+                    }
+                  } else {
+                    navigate(joinURL('/projects', item._id!));
+                  }
                 }
               }}
               actions={
-                !(section === 'templates' && !item.projectType) && (
+                !((section === 'templates' || section === 'examples') && !item.projectType) && (
                   <IconButton
                     size="small"
                     sx={{
@@ -560,6 +585,7 @@ function ProjectItem({
   gitUrl,
   model,
   users,
+  loading = false,
   ...props
 }: {
   section: string;
@@ -573,6 +599,7 @@ function ProjectItem({
   model?: string;
   users?: User[];
   actions?: ReactNode;
+  loading: boolean;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
 
@@ -711,6 +738,21 @@ function ProjectItem({
           {actions}
         </Box>
       </Stack>
+
+      {loading && (
+        <Box
+          position="absolute"
+          top={0}
+          bottom={0}
+          left={0}
+          right={0}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          zIndex={(theme) => theme.zIndex.tooltip}>
+          <CircularProgress size={16} />
+        </Box>
+      )}
     </ProjectItemRoot>
   );
 }

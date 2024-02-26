@@ -1,6 +1,6 @@
-## 0.1.265 (2024-2-26)
+## 0.1.266 (2024-2-26)
 
-- chore: bump version
+- fix: support resource blocklet
 
 ## 0.1.264 (2024-2-26)
 
