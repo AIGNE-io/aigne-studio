@@ -1,5 +1,5 @@
 {
-  "watch": ["api", "../../packages/co-git/src", "../../packages/ai-runtime/src"],
+  "watch": ["api", "../../packages/co-git/src", "../../packages/ai-runtime/src", "../../packages/dataset-sdk/src"],
   "ext": "ts",
   "ignore": [],
   "exec": "ts-node ./api/dev.ts"
