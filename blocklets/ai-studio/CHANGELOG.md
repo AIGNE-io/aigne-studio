@@ -1,10 +1,10 @@
-## 0.1.265 (2024-2-26)
+## 0.1.266 (2024-2-26)
 
 - fix: support resource blocklet
 
 ## 0.1.264 (2024-2-26)
 
-- chore: dataset protocol
+- feat: dataset protocol
 
 ## 0.1.263 (2024-2-23)
 

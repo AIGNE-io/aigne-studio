@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.265",
+  "version": "0.1.266",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -74,18 +74,18 @@
   "scripts": {
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
     "lint:fix": "npm run lint -- --fix",
-    "build": "run-p build:*",
-    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
-    "build:esm": "tsc --module es2022 --outDir lib/esm",
-    "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
+    "build": "tsc --noEmit && run-p build:*",
+    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --outDir lib/cjs > /dev/null || exit 0",
+    "build:esm": "tsc -p tsconfig.build.json --module es2022 --outDir lib/esm > /dev/null || exit 0",
+    "build:types": "tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/types > /dev/null || exit 0",
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/dataset-sdk": "^0.1.220",
-    "@blocklet/ai-builtin": "^0.1.265",
+    "@blocklet/dataset-sdk": "^0.1.266",
+    "@blocklet/ai-builtin": "^0.1.266",
     "@blocklet/ai-kit": "^0.1.14",
     "@blocklet/sdk": "^1.16.23",
     "@microsoft/fetch-event-source": "^2.0.1",
