@@ -539,11 +539,13 @@ const ToolDialog = forwardRef<
                   InputProps={{
                     startAdornment: (
                       <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
-                        <LoadingIconButton
-                          size="small"
-                          icon={<Translate sx={{ fontSize: 18 }} />}
-                          onClick={translateTool}
-                        />
+                        <span>
+                          <LoadingIconButton
+                            size="small"
+                            icon={<Translate sx={{ fontSize: 18 }} />}
+                            onClick={translateTool}
+                          />
+                        </span>
                       </Tooltip>
                     ),
                   }}
