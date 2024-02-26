@@ -160,7 +160,7 @@ export function projectRoutes(router: Router) {
         [
           ...projectTemplates,
           ...projects.filter((i) => i.projectType === 'template'),
-          ...(await getResourceProjects('template')).map((x) => {
+          ...getResourceProjects('template').map((x) => {
             x.fromResourceBlockletFolder = 'template';
             return x;
           }),
@@ -171,7 +171,7 @@ export function projectRoutes(router: Router) {
       examples: uniqBy(
         [
           ...projects.filter((i) => i.projectType === 'example'),
-          ...(await getResourceProjects('example')).map((x) => {
+          ...getResourceProjects('example').map((x) => {
             x.fromResourceBlockletFolder = 'example';
             return x;
           }),
