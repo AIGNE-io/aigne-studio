@@ -102,10 +102,6 @@ router.post('/create', user(), checkUserAuth(), async (req, res) => {
   const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
 
-  if (name && (await Dataset.findOne({ where: { name } }))) {
-    throw new Error(`Duplicated dataset ${name}`);
-  }
-
   const doc = await Dataset.create({ name, createdBy: did, updatedBy: did });
   res.json(doc);
 });
