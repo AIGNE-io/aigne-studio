@@ -1,3 +1,5 @@
+import path from 'path';
+
 import config from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 
@@ -12,6 +14,10 @@ export const Config = {
 
   get dataDir() {
     return config.env.dataDir;
+  },
+
+  get uploadDir() {
+    return path.join(config.env.dataDir, 'uploads');
   },
 };
 

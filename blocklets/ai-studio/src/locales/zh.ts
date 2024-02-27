@@ -300,7 +300,6 @@ export default flat({
   useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
   useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
-  templates: '{count} 个文件',
   validateTools: {
     parameter: {
       name: {
@@ -429,9 +428,15 @@ export default flat({
     '生成图像的风格。必须为vivid或natural之一。vivid会使模型倾向于生成超现实和戏剧化的图像。natural会使模型生成更自然、不太超现实的图像。此参数仅对dall-e-3支持。',
   parametersTip: '您可以正常输入参数内容，也可采用 {{variable}} 格式输入变量。若未传入参数，变量将会自动透传。',
   selectByPromptParameterPlaceholder: '未设置值的参数将由 AI 根据 Prompt 提供参数值',
+  buildInData: '接口',
+  assistantData: '助手',
   asTemplateProject: '作为模板项目',
   cancelTemplateProject: '取消模板项目',
   asExampleProject: '作为示例项目',
   cancelExampleProject: '取消示例项目',
   execute: '执行',
+  publish: '发布',
+  templates: '模板',
+  options: '选项',
+  withCollectionManage: '知识库管理',
 });

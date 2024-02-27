@@ -7,6 +7,7 @@ import {
   isImageAssistant,
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
+import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -45,7 +46,7 @@ const callInputSchema = Joi.object<{
   parameters: Joi.object().pattern(Joi.string(), Joi.any()),
 });
 
-router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res) => {
+router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
@@ -153,6 +154,7 @@ router.post('/call', compression(), ensureComponentCallOrAuth(), async (req, res
       assistant,
       parameters: input.parameters,
       callback: stream ? emit : undefined,
+      user: req.user,
     });
 
     if (!stream) {

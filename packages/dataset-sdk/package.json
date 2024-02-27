@@ -1,0 +1,99 @@
+{
+  "name": "@blocklet/dataset-sdk",
+  "version": "0.1.268",
+  "description": "The SDK for processing dataset protocol",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
+  "homepage": "https://github.com/blocklet/ai-studio#readme",
+  "license": "ISC",
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "types": "./lib/types/index.d.js",
+  "exports": {
+    ".": {
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
+    },
+    "./types": {
+      "import": "./lib/esm/types/index.js",
+      "require": "./lib/cjs/types/index.js"
+    },
+    "./request": {
+      "import": "./lib/esm/request/index.js",
+      "require": "./lib/cjs/request/index.js"
+    },
+    "./request/util": {
+      "import": "./lib/esm/request/util.js",
+      "require": "./lib/cjs/request/util.js"
+    },
+    "./openapi": {
+      "import": "./lib/esm/openapi.js",
+      "require": "./lib/cjs/openapi.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/types/index.d.ts"
+      ],
+      "types": [
+        "./lib/types/types/index.d.ts"
+      ],
+      "request": [
+        "./lib/types/request/index.d.ts"
+      ],
+      "request/util": [
+        "./lib/types/request/util.d.ts"
+      ],
+      "openapi": [
+        "./lib/types/openapi.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "lib",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "tsconfig.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blocklet/ai-studio.git"
+  },
+  "scripts": {
+    "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",
+    "build": "run-p build:*",
+    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
+    "build:esm": "tsc --module es2022 --outDir lib/esm",
+    "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
+    "dev": "run-p 'build:* -- -w'",
+    "clean": "rimraf lib",
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@blocklet/sdk": "^1.16.23",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.6",
+    "ajv": "^8.12.0",
+    "axios": "^1.6.7",
+    "express": "^4.18.2",
+    "joi": "^17.12.2",
+    "lodash": "^4.17.21",
+    "openapi-enforcer": "^1.22.3",
+    "openapi-types": "^12.1.3",
+    "openapi3-ts": "^4.2.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
+    "ufo": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.202",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^5.0.5",
+    "typescript": "^4.9.5"
+  }
+}

@@ -18,6 +18,7 @@ export type ExecuteBlockRole = Role | 'none';
 
 export type Tool = {
   id: string;
+  from?: 'assistant' | 'dataset';
   parameters?: { [key: string]: string };
   functionName?: string;
   onEnd?: OnTaskCompletion;
@@ -167,4 +168,12 @@ export interface LanguageParameter extends ParameterBase {
   type: 'language';
   value?: string;
   defaultValue?: string;
+}
+
+export interface User {
+  did: string;
+  role: string;
+  fullName: string;
+  provider: string;
+  walletOS: string;
 }

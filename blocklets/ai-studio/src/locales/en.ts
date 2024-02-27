@@ -304,7 +304,6 @@ export default flat({
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
-  templates: '{count} Prompts',
   validateTools: {
     parameter: {
       name: {
@@ -435,9 +434,15 @@ export default flat({
   parametersTip:
     'Parameters can be inputted normally, or you can use the {{variable}} syntax to pass variables. If no parameters are provided, variables will be seamlessly passed through',
   selectByPromptParameterPlaceholder: 'Parameters without value will be provided by AI based on the prompt.',
+  buildInData: 'API',
+  assistantData: 'Assistant',
   asTemplateProject: 'As Template Project',
   cancelTemplateProject: 'Cancel Template Project',
   asExampleProject: 'As Example Project',
   cancelExampleProject: 'Cancel Example Project',
   execute: 'Execute',
+  publish: 'Publish',
+  templates: 'Templates',
+  options: 'Options',
+  withCollectionManage: 'Collections Manage',
 });

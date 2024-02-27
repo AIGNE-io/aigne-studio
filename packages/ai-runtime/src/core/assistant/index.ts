@@ -1,3 +1,5 @@
+import '@blocklet/ai-builtin';
+
 import { ReadableStream } from 'stream/web';
 
 import {
@@ -6,6 +8,10 @@ import {
   ImageGenerationInput,
   ImageGenerationResponse,
 } from '@blocklet/ai-kit/api/types';
+import { getBuildInDatasets } from '@blocklet/dataset-sdk';
+import { getRequest } from '@blocklet/dataset-sdk/request';
+import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
+import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick } from 'lodash';
@@ -27,7 +33,7 @@ import {
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
-import { ImageAssistant, Mustache, OnTaskCompletion, Role, isImageAssistant } from '../../types/assistant';
+import { ImageAssistant, Mustache, OnTaskCompletion, Role, User, isImageAssistant } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
@@ -94,6 +100,7 @@ export async function runAssistant({
   parameters = {},
   parentTaskId,
   callback,
+  user,
 }: {
   taskId: string;
   callAI: CallAI;
@@ -103,6 +110,7 @@ export async function runAssistant({
   parameters?: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
+  user?: User;
 }): Promise<any> {
   callback?.({
     type: AssistantResponseType.EXECUTE,
@@ -123,6 +131,7 @@ export async function runAssistant({
         assistant,
         parameters,
         callback,
+        user,
       });
     }
 
@@ -136,6 +145,7 @@ export async function runAssistant({
         assistant,
         parameters,
         callback,
+        user,
       });
     }
 
@@ -149,6 +159,7 @@ export async function runAssistant({
         assistant,
         parameters,
         callback,
+        user,
       });
     }
 
@@ -162,6 +173,7 @@ export async function runAssistant({
         assistant,
         parameters,
         callback,
+        user,
       });
     }
   } catch (e) {
@@ -194,6 +206,7 @@ async function runFunctionAssistant({
   parameters,
   parentTaskId,
   callback,
+  user,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -204,6 +217,7 @@ async function runFunctionAssistant({
   parameters?: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
+  user?: User;
 }) {
   const results = assistant.prepareExecutes?.length
     ? await runExecuteBlocks({
@@ -215,6 +229,7 @@ async function runFunctionAssistant({
         executeBlocks: assistant.prepareExecutes,
         parentTaskId: taskId,
         callback,
+        user,
       })
     : [];
 
@@ -327,6 +342,7 @@ async function runApiAssistant({
   parameters,
   parentTaskId,
   callback,
+  user,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -336,6 +352,7 @@ async function runApiAssistant({
   parameters?: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
+  user?: User;
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
 
@@ -349,6 +366,7 @@ async function runApiAssistant({
         executeBlocks: assistant.prepareExecutes,
         parentTaskId: taskId,
         callback,
+        user,
       })
     : [];
 
@@ -444,6 +462,7 @@ async function runPromptAssistant({
   parameters,
   parentTaskId,
   callback,
+  user,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -453,6 +472,7 @@ async function runPromptAssistant({
   parameters: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
+  user?: User;
 }) {
   if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
 
@@ -469,6 +489,7 @@ async function runPromptAssistant({
     parameters,
     parentTaskId: taskId,
     callback,
+    user,
   });
 
   const variables = { ...parameters };
@@ -607,6 +628,7 @@ async function runImageAssistant({
   parameters,
   parentTaskId,
   callback,
+  user,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -616,6 +638,7 @@ async function runImageAssistant({
   parameters: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
+  user?: User;
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
@@ -629,6 +652,7 @@ async function runImageAssistant({
         executeBlocks: assistant.prepareExecutes,
         parentTaskId: taskId,
         callback,
+        user,
       })
     : [];
 
@@ -720,6 +744,7 @@ async function runExecuteBlocks({
   executeBlocks,
   parentTaskId,
   callback,
+  user,
 }: {
   assistant: Assistant;
   callAI: CallAI;
@@ -729,6 +754,7 @@ async function runExecuteBlocks({
   executeBlocks: ExecuteBlock[];
   parentTaskId?: string;
   callback?: RunAssistantCallback;
+  user?: User;
 }) {
   const variables = {
     ...parameters,
@@ -736,6 +762,7 @@ async function runExecuteBlocks({
 
   const tasks: [ExecuteBlock, () => () => Promise<any>][] = [];
   const cache: { [key: string]: Promise<any> } = {};
+  const datasets = await getBuildInDatasets();
 
   for (const executeBlock of executeBlocks) {
     const task = () => async () => {
@@ -747,8 +774,10 @@ async function runExecuteBlocks({
         getAssistant,
         executeBlock,
         parameters: variables,
+        datasets,
         parentTaskId,
         callback,
+        user,
       });
 
       return cache[executeBlock.id]!;
@@ -772,8 +801,10 @@ async function runExecuteBlock({
   getAssistant,
   executeBlock,
   parameters,
+  datasets,
   parentTaskId,
   callback,
+  user,
 }: {
   taskId: string;
   assistant: Assistant;
@@ -782,8 +813,10 @@ async function runExecuteBlock({
   getAssistant: GetAssistant;
   executeBlock: ExecuteBlock;
   parameters?: { [key: string]: any };
+  datasets?: DatasetObject[];
   parentTaskId?: string;
   callback?: RunAssistantCallback;
+  user?: User;
 }) {
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
@@ -805,9 +838,39 @@ async function runExecuteBlock({
     const result = (
       await Promise.all(
         tools.map(async (tool) => {
+          if (tool?.from === 'dataset') {
+            const dataset = (datasets || []).find((x) => x.id === tool.id);
+
+            if (dataset) {
+              const requestData = Object.fromEntries(
+                await Promise.all(
+                  (Object.keys(tool?.parameters || {}) ?? [])
+                    .filter((i): i is typeof i => !!i)
+                    .map(async (i) => {
+                      const template = tool.parameters?.[i]?.trim();
+                      const value = template ? await renderMessage(template, parameters) : parameters?.[i];
+                      return [i, value];
+                    })
+                )
+              );
+
+              const response = await getRequest(dataset, requestData, { user });
+
+              callback?.({
+                type: AssistantResponseType.CHUNK,
+                taskId: taskIdGenerator.nextId().toString(),
+                assistantId: tool.id,
+                delta: { content: typeof response.data === 'string' ? response.data : JSON.stringify(response.data) },
+              });
+
+              return response.data;
+            }
+
+            return undefined;
+          }
+
           const toolAssistant = await getAssistant(tool.id);
           if (!toolAssistant) return undefined;
-
           const args = Object.fromEntries(
             await Promise.all(
               (toolAssistant.parameters ?? [])
@@ -851,6 +914,29 @@ async function runExecuteBlock({
     const toolAssistants = (
       await Promise.all(
         tools.map(async (tool) => {
+          if (tool?.from === 'dataset') {
+            const dataset = (datasets || []).find((x) => x.id === tool.id);
+            if (!dataset) return undefined;
+
+            const datasetParameters = getAllParameters(dataset)
+              .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
+              .map((i) => [i.name, { type: 'string', description: i.description ?? '' }]);
+
+            const name = dataset.summary || dataset.description || '';
+            return {
+              tool,
+              toolAssistant: dataset,
+              function: {
+                name: name.replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
+                descriptions: dataset.description || name || '',
+                parameters: {
+                  type: 'object',
+                  properties: Object.fromEntries(datasetParameters),
+                },
+              },
+            };
+          }
+
           const toolAssistant = await getAssistant(tool.id);
           if (!toolAssistant) return undefined;
           const toolParameters = (toolAssistant.parameters ?? [])
@@ -870,6 +956,7 @@ async function runExecuteBlock({
                 },
               ];
             });
+
           return {
             tool,
             toolAssistant,
@@ -951,7 +1038,32 @@ async function runExecuteBlock({
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
           const args = JSON.parse(call.function.arguments);
-          const toolAssistant = tool?.toolAssistant;
+
+          if (tool.tool.from === 'dataset') {
+            const assistant = tool?.toolAssistant as DatasetObject;
+
+            await Promise.all(
+              getAllParameters(assistant)?.map(async (item) => {
+                const message = tool.tool?.parameters?.[item.name!]?.trim();
+                if (message) {
+                  args[item.name!] = await renderMessage(message, parameters);
+                }
+              }) ?? []
+            );
+
+            const response = await getRequest(assistant, args, { user });
+
+            callback?.({
+              type: AssistantResponseType.CHUNK,
+              taskId: taskIdGenerator.nextId().toString(),
+              assistantId: assistant.id,
+              delta: { content: typeof response.data === 'string' ? response.data : JSON.stringify(response.data) },
+            });
+
+            return response.data;
+          }
+
+          const toolAssistant = tool?.toolAssistant as Assistant;
           await Promise.all(
             toolAssistant.parameters?.map(async (item) => {
               const message = tool.tool?.parameters?.[item.key!];
