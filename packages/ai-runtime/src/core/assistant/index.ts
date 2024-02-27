@@ -1,3 +1,5 @@
+import '@blocklet/ai-builtin';
+
 import { ReadableStream } from 'stream/web';
 
 import {
