@@ -1,4 +1,5 @@
 import type { UserInfo } from '@abtnode/client';
+import { NextFunction, Request, Response } from 'express';
 import pick from 'lodash/pick';
 import { LRUCache } from 'lru-cache';
 
@@ -43,4 +44,15 @@ export const getUsers = async (dids: string[]) => {
     });
   }
   return map;
+};
+
+export const checkUserAuth = () => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user?.did) {
+      res.status(401).json({ code: 'forbidden', error: 'not authorized' });
+      return;
+    }
+
+    next();
+  };
 };

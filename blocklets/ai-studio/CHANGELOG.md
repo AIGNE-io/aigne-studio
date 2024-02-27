@@ -1,3 +1,23 @@
+## 0.1.266 (2024-2-26)
+
+- fix: support resource blocklet
+
+## 0.1.264 (2024-2-26)
+
+- feat: dataset protocol
+
+## 0.1.263 (2024-2-23)
+
+- feat: accordion default expand
+
+## 0.1.262 (2024-2-22)
+
+- feat: file rename
+
+## 0.1.261 (2024-2-21)
+
+- - feat: bring up the project name
+
 ## 0.1.260 (2024-2-20)
 
 - fix: resource blocklet api config

@@ -15,6 +15,7 @@ import uniqBy from 'lodash/uniqBy';
 import { Op } from 'sequelize';
 import { parse } from 'yaml';
 
+import { copyAssistantsFromResource, getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { createImageUrl } from '../libs/utils';
 import Project, { nextProjectId } from '../store/models/project';
@@ -176,9 +177,28 @@ export function projectRoutes(router: Router) {
     );
 
     res.json({
-      templates: [...projectTemplates, ...projects.filter((i) => i.projectType === 'template')],
+      templates: uniqBy(
+        [
+          ...projectTemplates,
+          ...projects.filter((i) => i.projectType === 'template'),
+          ...getResourceProjects('template').map((x) => {
+            x.fromResourceBlockletFolder = 'template';
+            return x;
+          }),
+        ],
+        '_id'
+      ),
       projects: projects.filter((i) => !i.projectType || i.projectType === 'project'),
-      examples: projects.filter((i) => i.projectType === 'example'),
+      examples: uniqBy(
+        [
+          ...projects.filter((i) => i.projectType === 'example'),
+          ...getResourceProjects('example').map((x) => {
+            x.fromResourceBlockletFolder = 'example';
+            return x;
+          }),
+        ],
+        '_id'
+      ),
     });
   });
 
@@ -209,6 +229,12 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findOne({ where: { _id: projectId } });
     if (!project) {
+      const found = await getResourceProjects('example').find((x) => x._id === projectId);
+      if (found) {
+        res.json(found);
+        return;
+      }
+
       res.status(404).json({ error: 'No such project' });
       return;
     }
@@ -219,9 +245,7 @@ export function projectRoutes(router: Router) {
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
     const { duplicateFrom, templateId, name, description, isImport } = await createProjectSchema.validateAsync(
       req.body,
-      {
-        stripUnknown: true,
-      }
+      { stripUnknown: true }
     );
     const { did, fullName } = req.user!;
 
@@ -622,6 +646,46 @@ export function projectRoutes(router: Router) {
     ).flat();
 
     return res.json({ assistants: uniqBy(assistants, 'id') });
+  });
+
+  router.post('/projects/copy', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+    const { folder, projectId, name, description } = await Joi.object<{
+      folder: string;
+      projectId: string;
+      name?: string;
+      description?: string;
+    }>({
+      projectId: Joi.string().required().min(1),
+      folder: Joi.string(),
+      name: Joi.string().empty([null, '']),
+      description: Joi.string().empty([null, '']),
+    }).validateAsync(req.body);
+
+    const { fullName, did } = req.user!;
+
+    const id = folder === 'template' ? nextProjectId() : projectId || nextProjectId();
+    const project =
+      folder === 'template'
+        ? {
+            _id: id,
+            name,
+            description,
+            createdBy: did,
+            updatedBy: did,
+            projectType: 'project',
+          }
+        : undefined;
+
+    await copyAssistantsFromResource({
+      folder,
+      findProjectId: projectId,
+      newProjectId: id,
+      fullName,
+      did,
+      projectInfo: project,
+    });
+
+    return res.json({ _id: id });
   });
 }
 
