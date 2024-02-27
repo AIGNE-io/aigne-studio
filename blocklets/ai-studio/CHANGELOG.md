@@ -1,3 +1,7 @@
+## 0.1.268 (2024-2-27)
+
+- fix: missing @blocklet/ai-builtin package
+
 ## 0.1.267 (2024-2-27)
 
 - feat: add publish view
