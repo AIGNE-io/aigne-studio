@@ -59,6 +59,7 @@ import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
 import Picture from './icons/picture';
 import Play from './icons/play';
+import PublishView from './publish-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
@@ -324,6 +325,7 @@ export default function ProjectPage() {
                 }}>
                 <Tab value="debug" label={t('debug')} />
                 <Tab value="test" label={t('test')} />
+                <Tab value="publish" label={t('publish')} />
                 <Tab value="discuss" label={t('discuss')} />
               </Tabs>
 
@@ -340,6 +342,8 @@ export default function ProjectPage() {
               <DebugView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
             ) : currentTab === 'test' ? (
               <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
+            ) : currentTab === 'publish' ? (
+              <PublishView projectId={projectId} gitRef={gitRef} assistant={file} />
             ) : currentTab === 'discuss' ? (
               <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />
             ) : null}
