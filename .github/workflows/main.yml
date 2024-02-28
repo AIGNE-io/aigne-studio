@@ -55,5 +55,8 @@ jobs:
           store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_TEST }}
           slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          abtnode-endpoint: ${{ secrets.STAGING_NODE_ENDPOINT }}
+          access-key: ${{ secrets.STAGING_NODE_ACCESS_KEY }}
+          access-secret: ${{ secrets.STAGING_NODE_ACCESS_SECRET }}
           deploy-app-did: zNKq56yExCXmaQpir9nFRu9aPFSYvSoKQr1e
           deploy-mount-point: /
