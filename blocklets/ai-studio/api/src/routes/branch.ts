@@ -43,8 +43,8 @@ export function branchRoutes(router: Router) {
 
   router.put('/projects/:projectId/branches/:branch', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId, branch } = req.params;
+
     if (!projectId || !branch) throw new Error('Missing required params `projectId` or `branch`');
-    if (branch === defaultBranch) throw new Error('Can not rename default branch');
 
     const input = await updateBranchInputSchema.validateAsync(req.body, { stripUnknown: true });
 

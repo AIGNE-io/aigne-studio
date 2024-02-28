@@ -1,3 +1,4 @@
+import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
@@ -25,7 +26,7 @@ import { getFileIdFromPath } from '../../../utils/path';
 import Branch from '../icons/branch';
 import Empty from '../icons/empty';
 import History from '../icons/history';
-import { defaultBranch, useProjectState } from '../state';
+import { useProjectState } from '../state';
 import { useProjectStore } from '../yjs-state';
 import CompareApiAssistant from './api-assistant';
 import CompareFunctionAssistant from './function-file';
@@ -52,7 +53,9 @@ export default function Compare({
   const [commit, setCommit] = useState(gitRef);
   const [state, setState] = useState<{ loading: boolean; template?: AssistantYjs }>({ loading: true });
 
-  const { data } = useRequest(() => getLogs({ projectId, ref: simpleMode ? defaultBranch : gitRef }));
+  const { data } = useRequest(() =>
+    getLogs({ projectId, ref: simpleMode ? currentGitStore.getState().defaultBranch : gitRef })
+  );
 
   const list = useMemo(() => {
     return [{ oid: gitRef, commit: { message: gitRef } }, ...(data?.commits || [])];

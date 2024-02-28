@@ -1,11 +1,13 @@
-import { cpSync, existsSync, rmSync } from 'fs';
+import fs, { cpSync, existsSync, mkdirSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 
-// import { Config } from '@api/libs/env';
+import { Config } from '@api/libs/env';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
+import * as git from 'isomorphic-git';
+import http from 'isomorphic-git/http/node';
 import Joi from 'joi';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
@@ -42,7 +44,6 @@ export interface CreateProjectInput {
   templateId?: string;
   name?: string;
   description?: string;
-  isImport?: boolean;
 }
 
 const createProjectSchema = Joi.object<CreateProjectInput>({
@@ -50,7 +51,6 @@ const createProjectSchema = Joi.object<CreateProjectInput>({
   templateId: Joi.string().empty([null, '']),
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
-  isImport: Joi.boolean().default(false),
 });
 
 export interface ImportProjectInput {
@@ -171,7 +171,10 @@ export function projectRoutes(router: Router) {
       list.map(async (project) => {
         const repository = await getRepository({ projectId: project._id });
         const branches = await repository.listBranches();
-        const users = await getAuthorsOfProject({ projectId: project._id });
+        const users = await getAuthorsOfProject({
+          projectId: project._id,
+          gitDefaultBranch: project?.gitDefaultBranch!,
+        });
         return { ...project.dataValues, users, branches };
       })
     );
@@ -243,10 +246,10 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-    const { duplicateFrom, templateId, name, description, isImport } = await createProjectSchema.validateAsync(
-      req.body,
-      { stripUnknown: true }
-    );
+    const { duplicateFrom, templateId, name, description } = await createProjectSchema.validateAsync(req.body, {
+      stripUnknown: true,
+    });
+
     const { did, fullName } = req.user!;
 
     if (duplicateFrom) {
@@ -307,21 +310,20 @@ export function projectRoutes(router: Router) {
       });
 
       const repository = await getRepository({ projectId: project._id!, author: { name: fullName, email: did } });
-      if (!isImport) {
-        const working = await repository.working({ ref: defaultBranch });
-        for (const { parent, ...file } of template.files) {
-          const id = nextAssistantId();
-          working.syncedStore.files[id] = fileToYjs({ ...file, id });
-          working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
-        }
-        await commitWorking({
-          project,
-          ref: defaultBranch,
-          branch: defaultBranch,
-          message: 'First Commit',
-          author: { name: fullName, email: did },
-        });
+
+      const working = await repository.working({ ref: defaultBranch });
+      for (const { parent, ...file } of template.files) {
+        const id = nextAssistantId();
+        working.syncedStore.files[id] = fileToYjs({ ...file, id });
+        working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
       }
+      await commitWorking({
+        project,
+        ref: defaultBranch,
+        branch: defaultBranch,
+        message: 'First Commit',
+        author: { name: fullName, email: did },
+      });
 
       res.json(project);
       return;
@@ -341,6 +343,7 @@ export function projectRoutes(router: Router) {
 
     res.json(project);
   });
+
   router.post('/projects/import', user(), ensureComponentCallOrAdmin(), async (req, res) => {
     const { name, username, password, description, url } = await importProjectSchema.validateAsync(req.body, {
       stripUnknown: true,
@@ -355,15 +358,40 @@ export function projectRoutes(router: Router) {
     if (username) uri.username = username;
     if (password) uri.password = password;
 
-    const projectId = nextProjectId();
+    const tempFolder = join(Config.dataDir, 'repositories', 'temp');
+    mkdirSync(tempFolder);
+    await git.init({ fs, dir: tempFolder });
+    await git.addRemote({ fs, dir: tempFolder, remote: defaultRemote, url: uri.toString() });
+
+    const originRepo = await git.fetch({ fs, http, dir: tempFolder, remote: defaultRemote });
+
+    const originDefaultBranch = originRepo.defaultBranch?.split('/').pop() || defaultBranch;
+
+    await git.checkout({ fs, dir: tempFolder, ref: originDefaultBranch });
+    let originProject;
+    if (originRepo.defaultBranch) {
+      const gitdir = join(tempFolder, '.git');
+      const oid = await git.resolveRef({ fs, gitdir, ref: originRepo.defaultBranch });
+      originProject = parse(
+        Buffer.from((await git.readBlob({ fs, gitdir, oid, filepath: '.settings.yaml' })).blob).toString()
+      );
+    }
+
+    rmSync(tempFolder, { recursive: true, force: true });
+
+    if (!originProject?._id) throw new Error('The project ID does not exist; only ai-studio projects can be imported.');
+
+    const oldProject = await Project.findOne({ where: { _id: originProject?._id } });
+    if (oldProject)
+      throw new Error(
+        `The project(${oldProject.name}) already exists and cannot be imported. Please delete the existing project and try again.`
+      );
+
+    const projectId: string = originProject?._id;
 
     const repository = await getRepository({ projectId });
 
-    await repository.getRemoteInfo({ url: uri.toString() });
-
     await repository.addRemote({ remote: defaultRemote, url: uri.toString() });
-
-    const originDefaultBranch = (await repository.fetch()).defaultBranch?.split('/').pop() || defaultBranch;
 
     const urlWithoutPassword = new URL(url);
     urlWithoutPassword.password = '';
@@ -378,7 +406,7 @@ export function projectRoutes(router: Router) {
     }
     await repository.checkout({ ref: originDefaultBranch, force: true });
 
-    const data = parse(
+    const data: Project = parse(
       Buffer.from(
         (
           await repository.readBlob({
@@ -393,6 +421,7 @@ export function projectRoutes(router: Router) {
       ...data,
       _id: projectId,
       gitUrl: urlWithoutPassword.toString(),
+      gitDefaultBranch: originDefaultBranch,
       model: data.model,
       createdBy: did,
       updatedBy: did,
@@ -537,6 +566,7 @@ export function projectRoutes(router: Router) {
 
     const repository = await getRepository({ projectId });
     const branches = await repository.listBranches();
+
     for (const ref of branches) {
       await repository.push({ remote: defaultRemote, ref, force: input.force });
     }
@@ -663,7 +693,8 @@ export function projectRoutes(router: Router) {
 
     const { fullName, did } = req.user!;
 
-    const id = folder === 'template' ? nextProjectId() : projectId || nextProjectId();
+    const id = folder === 'template' ? nextProjectId() : projectId;
+
     const project =
       folder === 'template'
         ? {
@@ -680,6 +711,10 @@ export function projectRoutes(router: Router) {
       folder,
       findProjectId: projectId,
       newProjectId: id,
+      originDefaultBranch:
+        folder === 'template'
+          ? 'main'
+          : (await Project.findOne({ where: { _id: projectId } }))?.gitDefaultBranch || defaultBranch,
       fullName,
       did,
       projectInfo: project,
@@ -689,9 +724,15 @@ export function projectRoutes(router: Router) {
   });
 }
 
-const getAuthorsOfProject = async ({ projectId }: { projectId: string }) => {
+const getAuthorsOfProject = async ({
+  projectId,
+  gitDefaultBranch,
+}: {
+  projectId: string;
+  gitDefaultBranch: string;
+}) => {
   try {
-    const commits = await getCommits({ projectId, ref: defaultBranch });
+    const commits = await getCommits({ projectId, ref: gitDefaultBranch });
     return uniqBy(
       commits
         .map((commit) => pick(commit.commit.author, 'did', 'fullName', 'avatar'))

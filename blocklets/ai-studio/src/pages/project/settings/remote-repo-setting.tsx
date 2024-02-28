@@ -1,3 +1,4 @@
+import currentGitStore from '@app/store/current-git-store';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
@@ -34,7 +35,7 @@ import Eye from '../icons/eye';
 import EyeNo from '../icons/eye-no';
 import Pen from '../icons/pen';
 import { isTheErrorShouldShowMergeConflict, useMergeConflictDialog } from '../save-button';
-import { defaultBranch, useProjectState } from '../state';
+import { useProjectState } from '../state';
 
 interface RemoteRepoSettingForm {
   url: string;
@@ -49,7 +50,10 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
 
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
 
-  const { state, addRemote, deleteProjectRemote, updateProject, sync } = useProjectState(projectId, defaultBranch);
+  const { state, addRemote, deleteProjectRemote, updateProject, sync } = useProjectState(
+    projectId,
+    currentGitStore.getState().defaultBranch
+  );
   const dialogState = usePopupState({ variant: 'dialog' });
 
   const [authSyncUpdating, setAutoSyncUpdating] = useState<boolean | 'success' | 'error'>(false);

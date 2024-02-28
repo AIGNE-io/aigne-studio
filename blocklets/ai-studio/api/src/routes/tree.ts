@@ -1,12 +1,12 @@
 import path from 'path';
 
+import Project from '@api/store/models/project';
 import { Assistant } from '@blocklet/ai-runtime/types';
 import { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import {
   PROMPTS_FOLDER_NAME,
-  defaultBranch,
   getAssistantFromRepository,
   getAssistantIdFromPath,
   getRepository,
@@ -32,8 +32,8 @@ export function treeRoutes(router: Router) {
   router.get('/projects/:projectId/tree/:ref', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
-
-    const ref = req.params.ref || defaultBranch;
+    const project = await Project.findOne({ where: { _id: projectId } });
+    const ref = req.params.ref || project?.gitDefaultBranch!;
 
     const repository = await getRepository({ projectId });
 

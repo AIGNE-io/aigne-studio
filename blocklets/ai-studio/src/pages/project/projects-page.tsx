@@ -1,3 +1,4 @@
+import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -67,7 +68,6 @@ import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
-import { defaultBranch } from './state';
 
 const CARD_HEIGHT = 160;
 const MAX_WIDTH = 300;
@@ -158,7 +158,7 @@ function ProjectMenu() {
 
   const { t } = useLocaleContext();
 
-  const readOnly = useReadOnly({ ref: defaultBranch });
+  const readOnly = useReadOnly({ ref: currentGitStore.getState().defaultBranch });
 
   const {
     state: { menuAnchor, projects, templates, examples },
@@ -491,26 +491,45 @@ function ProjectList({
                           name,
                           description,
                         });
-
+                        currentGitStore.setState({
+                          defaultBranch: project.gitDefaultBranch,
+                          currentBranch: project.gitDefaultBranch,
+                        });
                         navigate(joinURL('/projects', project._id!));
                         return;
                       }
                       const project = await createProject({ templateId: item._id!, name, description });
+                      currentGitStore.setState({
+                        defaultBranch: project.gitDefaultBranch,
+                        currentBranch: project.gitDefaultBranch,
+                      });
                       navigate(joinURL('/projects', project._id!));
                     },
                   });
                 } else if (section === 'projects') {
+                  currentGitStore.setState({
+                    defaultBranch: item.gitDefaultBranch,
+                    currentBranch: item.gitDefaultBranch,
+                  });
                   navigate(joinURL('/projects', item._id!));
                 } else if (section === 'examples') {
                   if ((item as any)?.fromResourceBlockletFolder) {
                     try {
                       setLoading(item);
                       const project = await copyProject({ folder: 'example', projectId: item._id! });
+                      currentGitStore.setState({
+                        defaultBranch: project.gitDefaultBranch,
+                        currentBranch: project.gitDefaultBranch,
+                      });
                       navigate(joinURL('/projects', project._id!));
                     } catch (error) {
                       setLoading(null);
                     }
                   } else {
+                    currentGitStore.setState({
+                      defaultBranch: item.gitDefaultBranch,
+                      currentBranch: item.gitDefaultBranch,
+                    });
                     navigate(joinURL('/projects', item._id!));
                   }
                 }
@@ -793,6 +812,10 @@ function ImportFromGit() {
           password: value.password,
         });
         form.reset(value);
+        currentGitStore.setState({
+          defaultBranch: project.gitDefaultBranch,
+          currentBranch: project.gitDefaultBranch,
+        });
         dialogState.close();
         navigate(joinURL('/projects', project._id!));
       } catch (error) {

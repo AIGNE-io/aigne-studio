@@ -1,3 +1,4 @@
+import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 import { runAssistant } from '@blocklet/ai-runtime/api';
@@ -33,8 +34,6 @@ import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
 import * as api from '../../libs/tree';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
-
-export const defaultBranch = 'main';
 
 export interface ProjectState {
   project?: Project;
@@ -73,9 +72,12 @@ export const useProjectState = (projectId: string, gitRef: string) => {
         branchApi.getBranches({ projectId }),
       ]);
       const simpleMode = project.gitType === 'simple';
-      const { commits } = await getLogs({ projectId, ref: simpleMode ? defaultBranch : gitRef });
-      // NOTE: 简单模式下最新的记录始终指向 defaultBranch
-      if (simpleMode && commits.length) commits[0]!.oid = defaultBranch;
+      const { commits } = await getLogs({
+        projectId,
+        ref: simpleMode ? currentGitStore.getState().defaultBranch : gitRef,
+      });
+      // NOTE: 简单模式下最新的记录始终指向 currentGitStore.getState().defaultBranch
+      if (simpleMode && commits.length) commits[0]!.oid = currentGitStore.getState().defaultBranch;
       setState((v) => ({ ...v, project, branches, commits, error: undefined }));
     } catch (error) {
       setState((v) => ({ ...v, error }));

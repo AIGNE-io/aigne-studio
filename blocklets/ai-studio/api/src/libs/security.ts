@@ -11,6 +11,7 @@ export const ensureAdmin = auth({ roles: ADMIN_ROLES });
 
 export const ensurePromptsEditor = auth({ roles: ['owner', 'admin', 'promptsEditor'] });
 
+// TODO: GIT？
 export const isRefReadOnly = ({ ref, role }: { ref: string; role: string }) =>
   ref === defaultBranch && !['admin', 'owner'].includes(role);
 

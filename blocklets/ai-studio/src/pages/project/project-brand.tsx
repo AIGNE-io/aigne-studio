@@ -1,9 +1,10 @@
+import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Typography } from '@mui/material';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { defaultBranch, useProjectState } from './state';
+import { useProjectState } from './state';
 
 export default function ProjectBrand() {
   const { t } = useLocaleContext();
@@ -14,7 +15,7 @@ export default function ProjectBrand() {
   const {
     state: { project },
     refetch,
-  } = useProjectState(projectId, defaultBranch);
+  } = useProjectState(projectId, currentGitStore.getState().defaultBranch);
 
   useEffect(() => {
     refetch();
