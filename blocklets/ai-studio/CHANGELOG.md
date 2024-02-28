@@ -1,3 +1,15 @@
+## 0.1.269 (2024-2-28)
+
+- chore: add ai-runtime component dependency
+
+## 0.1.268 (2024-2-27)
+
+- fix: missing @blocklet/ai-builtin package
+
+## 0.1.267 (2024-2-27)
+
+- feat: add publish view
+
 ## 0.1.266 (2024-2-26)
 
 - fix: support resource blocklet
