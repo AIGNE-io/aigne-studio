@@ -57,7 +57,7 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.3",
+    "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@lexical/clipboard": "0.13.1",
     "@lexical/code": "0.13.1",
