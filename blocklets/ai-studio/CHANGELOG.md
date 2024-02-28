@@ -1,3 +1,7 @@
+## 0.1.269 (2024-2-28)
+
+- chore: add ai-runtime component dependency
+
 ## 0.1.268 (2024-2-27)
 
 - fix: missing @blocklet/ai-builtin package
