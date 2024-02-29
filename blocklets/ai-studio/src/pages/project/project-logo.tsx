@@ -1,4 +1,4 @@
-import currentGitStore from '@app/store/current-git-store';
+import { getDefaultBranch } from '@app/store/current-git-store';
 import { Box } from '@mui/material';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
@@ -12,7 +12,7 @@ export default function ProjectLogo() {
   const {
     state: { project },
     refetch,
-  } = useProjectState(projectId, currentGitStore.getState().defaultBranch);
+  } = useProjectState(projectId, getDefaultBranch());
 
   useEffect(() => {
     refetch();
