@@ -174,7 +174,7 @@ export function projectRoutes(router: Router) {
         const branches = await repository.listBranches();
         const users = await getAuthorsOfProject({
           projectId: project._id,
-          gitDefaultBranch: project?.gitDefaultBranch!,
+          gitDefaultBranch: project.gitDefaultBranch,
         });
         return { ...project.dataValues, users, branches };
       })
@@ -338,6 +338,7 @@ export function projectRoutes(router: Router) {
       model: '',
       createdBy: did,
       updatedBy: did,
+      gitDefaultBranch: defaultBranch,
       name,
       description,
     });
@@ -364,14 +365,12 @@ export function projectRoutes(router: Router) {
     let originDefaultBranch = defaultBranch;
 
     try {
-      if (!existsSync(tempFolder)) {
-        mkdirSync(tempFolder);
-      }
+      mkdirSync(tempFolder, { recursive: true });
 
-      await git.init({ fs, dir: tempFolder });
+      await git.clone({ fs, dir: tempFolder, http, url: uri.toString() });
 
-      await git.addRemote({ fs, dir: tempFolder, remote: defaultRemote, url: uri.toString() });
       const originRepo = await git.fetch({ fs, http, dir: tempFolder, remote: defaultRemote });
+
       if (originRepo.defaultBranch) {
         originDefaultBranch = originRepo.defaultBranch?.split('/').pop()!;
         await git.checkout({ fs, dir: tempFolder, ref: originDefaultBranch });
@@ -381,9 +380,6 @@ export function projectRoutes(router: Router) {
         originProject = parse(
           Buffer.from((await git.readBlob({ fs, gitdir, oid, filepath: '.settings.yaml' })).blob).toString()
         );
-      }
-      if (existsSync(tempFolder)) {
-        rmSync(tempFolder, { recursive: true, force: true });
       }
 
       if (!originProject?._id)
@@ -439,9 +435,7 @@ export function projectRoutes(router: Router) {
 
       res.json(project);
     } finally {
-      if (existsSync(tempFolder)) {
-        rmSync(tempFolder, { recursive: true, force: true });
-      }
+      rmSync(tempFolder, { recursive: true, force: true });
     }
   });
 

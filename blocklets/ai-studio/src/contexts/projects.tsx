@@ -53,6 +53,15 @@ export const useProjectsState = () => {
     [refetch]
   );
 
+  const importProject: typeof api.projectImport = useCallback(
+    async (...args) => {
+      const res = await api.projectImport(...args);
+      await refetch();
+      return res;
+    },
+    [refetch]
+  );
+
   const updateProject: typeof api.updateProject = useCallback(
     async (...args) => {
       const res = await api.updateProject(...args);
@@ -85,5 +94,5 @@ export const useProjectsState = () => {
     [setState]
   );
 
-  return { state, refetch, createProject, updateProject, deleteProject, setSelected, setMenuAnchor };
+  return { state, refetch, createProject, importProject, updateProject, deleteProject, setSelected, setMenuAnchor };
 };

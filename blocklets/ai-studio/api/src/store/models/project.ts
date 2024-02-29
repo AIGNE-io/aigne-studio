@@ -42,7 +42,7 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare gitUrl?: string;
 
-  declare gitDefaultBranch?: string;
+  declare gitDefaultBranch: string;
 
   declare gitAutoSync?: boolean;
 

@@ -191,7 +191,7 @@ export const autoSyncRemoteRepoIfNeeded = async ({
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
     const repository = await getRepository({ projectId: project._id! });
-    await syncRepository({ repository, ref: project?.gitDefaultBranch!, author });
+    await syncRepository({ repository, ref: project.gitDefaultBranch, author });
     await project.update({ gitLastSyncedAt: new Date() });
   }
 };
@@ -244,7 +244,7 @@ export async function commitProjectSettingWorking({
 }) {
   const repository = await getRepository({ projectId: project._id! });
   await repository.transact(async (tx) => {
-    await tx.checkout({ ref: project?.gitDefaultBranch!, force: true });
+    await tx.checkout({ ref: project.gitDefaultBranch, force: true });
     await addSettingsToGit({ tx, project });
     await tx.commit({ message, author });
   });

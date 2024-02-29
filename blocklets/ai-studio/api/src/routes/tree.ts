@@ -32,8 +32,8 @@ export function treeRoutes(router: Router) {
   router.get('/projects/:projectId/tree/:ref', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
-    const project = await Project.findOne({ where: { _id: projectId } });
-    const ref = req.params.ref || project?.gitDefaultBranch!;
+    const project = await Project.findOne({ where: { _id: projectId }, rejectOnEmpty: new Error('Project not found') });
+    const ref = req.params.ref || project.gitDefaultBranch;
 
     const repository = await getRepository({ projectId });
 

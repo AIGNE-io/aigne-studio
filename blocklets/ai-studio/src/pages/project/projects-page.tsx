@@ -51,7 +51,6 @@ import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
-import * as projectApi from '../../libs/project';
 import { ProjectWithUserInfo, User, copyProject, createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
@@ -784,8 +783,8 @@ function ImportFromGit() {
   const id = useId();
   const navigate = useNavigate();
   const dialogState = usePopupState({ variant: 'dialog', popupId: id });
-
   const [showPassword, setShowPassword] = useState(false);
+  const { importProject } = useProjectsState();
 
   const form = useForm<RemoteRepoSettingForm>({
     defaultValues: {
@@ -799,7 +798,7 @@ function ImportFromGit() {
   const saveSetting = useCallback(
     async (value: RemoteRepoSettingForm) => {
       try {
-        const project = await projectApi.projectImport({
+        const project = await importProject({
           name: value.name,
           description: value.description,
           url: value.url,
@@ -820,7 +819,7 @@ function ImportFromGit() {
         throw error;
       }
     },
-    [dialogState, form, navigate]
+    [dialogState, form, importProject, navigate]
   );
 
   return (
