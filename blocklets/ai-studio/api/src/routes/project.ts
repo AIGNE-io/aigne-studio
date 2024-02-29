@@ -23,6 +23,7 @@ import { createImageUrl } from '../libs/utils';
 import Project, { nextProjectId } from '../store/models/project';
 import {
   autoSyncRemoteRepoIfNeeded,
+  clearRepository,
   commitProjectSettingWorking,
   commitWorking,
   defaultBranch,
@@ -359,78 +360,89 @@ export function projectRoutes(router: Router) {
     if (password) uri.password = password;
 
     const tempFolder = join(Config.dataDir, 'repositories', 'temp');
-    mkdirSync(tempFolder);
-    await git.init({ fs, dir: tempFolder });
-    await git.addRemote({ fs, dir: tempFolder, remote: defaultRemote, url: uri.toString() });
-
-    const originRepo = await git.fetch({ fs, http, dir: tempFolder, remote: defaultRemote });
-
-    const originDefaultBranch = originRepo.defaultBranch?.split('/').pop() || defaultBranch;
-
-    await git.checkout({ fs, dir: tempFolder, ref: originDefaultBranch });
     let originProject;
-    if (originRepo.defaultBranch) {
-      const gitdir = join(tempFolder, '.git');
-      const oid = await git.resolveRef({ fs, gitdir, ref: originRepo.defaultBranch });
-      originProject = parse(
-        Buffer.from((await git.readBlob({ fs, gitdir, oid, filepath: '.settings.yaml' })).blob).toString()
+    let originDefaultBranch = defaultBranch;
+
+    try {
+      if (!existsSync(tempFolder)) {
+        mkdirSync(tempFolder);
+      }
+
+      await git.init({ fs, dir: tempFolder });
+
+      await git.addRemote({ fs, dir: tempFolder, remote: defaultRemote, url: uri.toString() });
+      const originRepo = await git.fetch({ fs, http, dir: tempFolder, remote: defaultRemote });
+      if (originRepo.defaultBranch) {
+        originDefaultBranch = originRepo.defaultBranch?.split('/').pop()!;
+        await git.checkout({ fs, dir: tempFolder, ref: originDefaultBranch });
+
+        const gitdir = join(tempFolder, '.git');
+        const oid = await git.resolveRef({ fs, gitdir, ref: originRepo.defaultBranch });
+        originProject = parse(
+          Buffer.from((await git.readBlob({ fs, gitdir, oid, filepath: '.settings.yaml' })).blob).toString()
+        );
+      }
+      if (existsSync(tempFolder)) {
+        rmSync(tempFolder, { recursive: true, force: true });
+      }
+
+      if (!originProject?._id)
+        throw new Error('The project ID does not exist; only ai-studio projects can be imported.');
+
+      const oldProject = await Project.findOne({ where: { _id: originProject?._id } });
+      if (oldProject)
+        throw new Error(
+          `The project(${oldProject.name}) already exists and cannot be imported. Please delete the existing project and try again.`
+        );
+
+      const projectId: string = originProject?._id;
+
+      const repository = await getRepository({ projectId });
+
+      await repository.addRemote({ remote: defaultRemote, url: uri.toString(), force: true });
+      const urlWithoutPassword = new URL(url);
+      urlWithoutPassword.password = '';
+      if (originDefaultBranch !== 'main') {
+        await repository.renameBranch({ ref: originDefaultBranch, oldRef: 'main' });
+      }
+      const branches = await repository.listBranches();
+      for (const ref of branches) {
+        await repository.fetch({ remote: defaultRemote, ref });
+        await repository.branch({ ref, object: `${defaultRemote}/${ref}`, checkout: true, force: true });
+        (await repository.working({ ref })).reset();
+      }
+      await repository.checkout({ ref: originDefaultBranch, force: true });
+
+      const data: Project = parse(
+        Buffer.from(
+          (
+            await repository.readBlob({
+              ref: originDefaultBranch!,
+              filepath: '.settings.yaml',
+            })
+          ).blob
+        ).toString()
       );
+
+      const project = await Project.create({
+        ...data,
+        _id: projectId,
+        gitUrl: urlWithoutPassword.toString(),
+        gitDefaultBranch: originDefaultBranch,
+        model: data.model,
+        createdBy: did,
+        updatedBy: did,
+        name,
+        gitLastSyncedAt: new Date(),
+        description,
+      });
+
+      res.json(project);
+    } finally {
+      if (existsSync(tempFolder)) {
+        rmSync(tempFolder, { recursive: true, force: true });
+      }
     }
-
-    rmSync(tempFolder, { recursive: true, force: true });
-
-    if (!originProject?._id) throw new Error('The project ID does not exist; only ai-studio projects can be imported.');
-
-    const oldProject = await Project.findOne({ where: { _id: originProject?._id } });
-    if (oldProject)
-      throw new Error(
-        `The project(${oldProject.name}) already exists and cannot be imported. Please delete the existing project and try again.`
-      );
-
-    const projectId: string = originProject?._id;
-
-    const repository = await getRepository({ projectId });
-
-    await repository.addRemote({ remote: defaultRemote, url: uri.toString() });
-
-    const urlWithoutPassword = new URL(url);
-    urlWithoutPassword.password = '';
-    if (originDefaultBranch !== 'main') {
-      await repository.renameBranch({ ref: originDefaultBranch, oldRef: 'main' });
-    }
-    const branches = await repository.listBranches();
-    for (const ref of branches) {
-      await repository.fetch({ remote: defaultRemote, ref });
-      await repository.branch({ ref, object: `${defaultRemote}/${ref}`, checkout: true, force: true });
-      (await repository.working({ ref })).reset();
-    }
-    await repository.checkout({ ref: originDefaultBranch, force: true });
-
-    const data: Project = parse(
-      Buffer.from(
-        (
-          await repository.readBlob({
-            ref: originDefaultBranch!,
-            filepath: '.settings.yaml',
-          })
-        ).blob
-      ).toString()
-    );
-
-    const project = await Project.create({
-      ...data,
-      _id: projectId,
-      gitUrl: urlWithoutPassword.toString(),
-      gitDefaultBranch: originDefaultBranch,
-      model: data.model,
-      createdBy: did,
-      updatedBy: did,
-      name,
-      gitLastSyncedAt: new Date(),
-      description,
-    });
-
-    res.json(project);
   });
 
   router.patch('/projects/:projectId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
@@ -511,6 +523,7 @@ export function projectRoutes(router: Router) {
     const root = repositoryRoot(projectId);
     rmSync(root, { recursive: true, force: true });
     rmSync(`${root}.cooperative`, { recursive: true, force: true });
+    clearRepository(projectId);
 
     res.json(project);
   });

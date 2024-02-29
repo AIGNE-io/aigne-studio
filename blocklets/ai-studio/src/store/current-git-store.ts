@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
 
 type CurrentGitState = {
   defaultBranch: string;
@@ -15,11 +14,9 @@ export const DefaultState: CurrentGitState = {
   currentBranch: 'main',
 };
 
-const currentGitStore = create<CurrentGitStore>()(
-  immer(() => ({
-    ...DefaultState,
-  }))
-);
+const currentGitStore = create<CurrentGitStore>()(() => ({
+  ...DefaultState,
+}));
 
 export default currentGitStore;
 

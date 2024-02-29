@@ -78,7 +78,7 @@ export default function ProjectRoutes() {
                 <Route path="prompts/*" element={<Navigate to="../file" replace />} />
                 <Route path="home" element={<ProjectsPage />} />
                 <Route path="file">
-                  <Route index element={<Navigate to={currentGitStore.getState().defaultBranch} replace />} />
+                  <Route index element={<Navigate to={currentGitStore.getState().currentBranch} replace />} />
                   <Route path=":ref/*" element={<ProjectPage />} />
                 </Route>
                 <Route path="settings">

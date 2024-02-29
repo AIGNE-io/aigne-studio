@@ -24,6 +24,10 @@ export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, '
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
 
+export const clearRepository = (projectId: string) => {
+  delete repositories[projectId];
+};
+
 export async function getRepository({
   projectId,
   author,
