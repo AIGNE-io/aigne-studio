@@ -1,4 +1,4 @@
-import currentGitStore from '@app/store/current-git-store';
+import { getDefaultBranch } from '@app/store/current-git-store';
 import { createAuthServiceSessionContext } from '@arcblock/did-connect/lib/Session';
 import { useContext } from 'react';
 
@@ -21,5 +21,4 @@ export const useIsAdmin = () => useIsRole('owner', 'admin');
 
 export const useIsPromptEditor = () => useIsRole('owner', 'admin', 'promptsEditor');
 
-export const useReadOnly = ({ ref }: { ref: string }) =>
-  !useIsAdmin() && ref === currentGitStore.getState().defaultBranch;
+export const useReadOnly = ({ ref }: { ref: string }) => !useIsAdmin() && ref === getDefaultBranch();

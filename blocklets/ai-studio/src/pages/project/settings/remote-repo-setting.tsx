@@ -1,4 +1,4 @@
-import currentGitStore from '@app/store/current-git-store';
+import { getDefaultBranch } from '@app/store/current-git-store';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
@@ -50,10 +50,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
 
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
 
-  const { state, addRemote, deleteProjectRemote, updateProject, sync } = useProjectState(
-    projectId,
-    currentGitStore.getState().defaultBranch
-  );
+  const { state, addRemote, deleteProjectRemote, updateProject, sync } = useProjectState(projectId, getDefaultBranch());
   const dialogState = usePopupState({ variant: 'dialog' });
 
   const [authSyncUpdating, setAutoSyncUpdating] = useState<boolean | 'success' | 'error'>(false);

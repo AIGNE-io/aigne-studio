@@ -1,4 +1,4 @@
-import currentGitStore from '@app/store/current-git-store';
+import { useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ArrowDropDownRounded, CallSplitRounded, WarningRounded } from '@mui/icons-material';
@@ -44,6 +44,8 @@ export default function BranchButton({
 
   const { createBranch } = useProjectState(projectId, gitRef);
 
+  const setProjectCurrentBranch = useCurrentGitStore((i) => i.setProjectCurrentBranch);
+
   const { dialog, showDialog, closeDialog } = useDialog();
   const { dialog: createBranchDialog, showDialog: createShowDialog } = useDialog();
 
@@ -65,9 +67,7 @@ export default function BranchButton({
             projectId={projectId}
             _ref={gitRef}
             onItemClick={(branch) => {
-              currentGitStore.setState({
-                currentBranch: branch,
-              });
+              setProjectCurrentBranch(projectId, branch);
               return branch !== gitRef && navigate(joinURL('..', branch), { state: { filepath } });
             }}
             onShowAllClick={() => {
@@ -196,6 +196,9 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
 
   const { dialog, showDialog } = useDialog();
 
+  const setProjectCurrentBranch = useCurrentGitStore((i) => i.setProjectCurrentBranch);
+  const getDefaultBranch = useCurrentGitStore((i) => i.getCurrentDefaultBranch);
+
   const { state, updateBranch, deleteBranch } = useProjectState(projectId, ref);
 
   const rows = useMemo(() => {
@@ -221,7 +224,7 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
           try {
             await deleteBranch({ projectId, branch });
 
-            if (branch === ref) navigate(joinURL(`../${currentGitStore.getState().defaultBranch}`, filepath || ''));
+            if (branch === ref) navigate(joinURL(`../${getDefaultBranch()}`, filepath || ''));
             Toast.success(t('alert.deleted'));
           } catch (error) {
             Toast.error(getErrorMessage(error));
@@ -230,7 +233,7 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
         },
       });
     },
-    [deleteBranch, filepath, navigate, projectId, ref, showDialog, t]
+    [deleteBranch, filepath, getDefaultBranch, navigate, projectId, ref, showDialog, t]
   );
 
   const columns = useMemo<GridColDef<{ branch: string }>[]>(() => {
@@ -244,20 +247,18 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
         renderCell: ({ row }) => (
           <>
             <IconButton
-              disabled={row.branch === currentGitStore.getState().defaultBranch}
+              disabled={row.branch === getDefaultBranch()}
               onClick={() => dataGrid.current.startCellEditMode({ id: row.branch, field: 'branch' })}>
               <Pen />
             </IconButton>
-            <IconButton
-              disabled={row.branch === currentGitStore.getState().defaultBranch}
-              onClick={() => onDelete(row.branch)}>
+            <IconButton disabled={row.branch === getDefaultBranch()} onClick={() => onDelete(row.branch)}>
               <Trash />
             </IconButton>
           </>
         ),
       },
     ];
-  }, [dataGrid, onDelete, t]);
+  }, [dataGrid, getDefaultBranch, onDelete, t]);
 
   return (
     <Box sx={{ height: '50vh' }}>
@@ -271,16 +272,14 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
         hideFooterSelectedRowCount
         disableColumnMenu
         autoHeight
-        isCellEditable={(p) => p.row.branch !== currentGitStore.getState().defaultBranch}
+        isCellEditable={(p) => p.row.branch !== getDefaultBranch()}
         pageSizeOptions={[10]}
         initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
         processRowUpdate={(updated, old) => {
           const newName = updated.branch.trim();
           if (newName === old.branch) return old;
           return updateBranch({ projectId, branch: old.branch, input: { name: newName } }).then(() => {
-            currentGitStore.setState({
-              currentBranch: newName,
-            });
+            setProjectCurrentBranch(projectId, newName);
             if (ref === old.branch) navigate(joinURL('..', newName, filepath || ''));
             return { branch: newName };
           });

@@ -1,4 +1,4 @@
-import currentGitStore from '@app/store/current-git-store';
+import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
@@ -53,9 +53,7 @@ export default function Compare({
   const [commit, setCommit] = useState(gitRef);
   const [state, setState] = useState<{ loading: boolean; template?: AssistantYjs }>({ loading: true });
 
-  const { data } = useRequest(() =>
-    getLogs({ projectId, ref: simpleMode ? currentGitStore.getState().defaultBranch : gitRef })
-  );
+  const { data } = useRequest(() => getLogs({ projectId, ref: simpleMode ? getDefaultBranch() : gitRef }));
 
   const list = useMemo(() => {
     return [{ oid: gitRef, commit: { message: gitRef } }, ...(data?.commits || [])];

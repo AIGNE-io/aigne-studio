@@ -1,4 +1,4 @@
-import currentGitStore from '@app/store/current-git-store';
+import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 import { runAssistant } from '@blocklet/ai-runtime/api';
@@ -74,10 +74,10 @@ export const useProjectState = (projectId: string, gitRef: string) => {
       const simpleMode = project.gitType === 'simple';
       const { commits } = await getLogs({
         projectId,
-        ref: simpleMode ? currentGitStore.getState().defaultBranch : gitRef,
+        ref: simpleMode ? getDefaultBranch() : gitRef,
       });
-      // NOTE: 简单模式下最新的记录始终指向 currentGitStore.getState().defaultBranch
-      if (simpleMode && commits.length) commits[0]!.oid = currentGitStore.getState().defaultBranch;
+      // NOTE: 简单模式下最新的记录始终指向 getDefaultBranch()
+      if (simpleMode && commits.length) commits[0]!.oid = getDefaultBranch();
       setState((v) => ({ ...v, project, branches, commits, error: undefined }));
     } catch (error) {
       setState((v) => ({ ...v, error }));

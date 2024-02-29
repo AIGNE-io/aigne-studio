@@ -1,3 +1,4 @@
+import { useCurrentGitStore } from '@app/store/current-git-store';
 import { useCallback } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
@@ -27,11 +28,12 @@ const projectsState = atom<ProjectsState>({
 
 export const useProjectsState = () => {
   const [state, setState] = useRecoilState(projectsState);
-
+  const setProjectGitSettings = useCurrentGitStore((i) => i.setProjectGitSettings);
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
       const { templates, projects, examples } = await api.getProjects();
+      setProjectGitSettings(projects);
       setState((v) => ({ ...v, templates, projects, examples, error: undefined }));
       return { projects, templates, examples };
     } catch (error) {
@@ -40,7 +42,7 @@ export const useProjectsState = () => {
     } finally {
       setState((v) => ({ ...v, loading: false }));
     }
-  }, [setState]);
+  }, [setProjectGitSettings, setState]);
 
   const createProject: typeof api.createProject = useCallback(
     async (...args) => {

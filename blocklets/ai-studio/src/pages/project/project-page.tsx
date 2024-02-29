@@ -1,4 +1,4 @@
-import currentGitStore from '@app/store/current-git-store';
+import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
@@ -72,6 +72,9 @@ const CURRENT_TAB = (projectId: string) => `ai-studio.currentTab.${projectId}`;
 
 export default function ProjectPage() {
   const { projectId, ref: gitRef, '*': filepath } = useParams();
+  currentGitStore.setState({
+    currentProjectId: projectId,
+  });
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
   const { t } = useLocaleContext();
@@ -109,7 +112,7 @@ export default function ProjectPage() {
 
     const p =
       (typeof filepathState === 'string' ? filepathState : undefined) ||
-      (gitRef === currentGitStore.getState().defaultBranch ? previousFilePath?.[gitRef] : undefined);
+      (gitRef === getDefaultBranch() ? previousFilePath?.[gitRef] : undefined);
 
     const filename = p?.split('/').slice(-1)[0];
 

@@ -1,4 +1,4 @@
-import currentGitStore from '@app/store/current-git-store';
+import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -158,7 +158,7 @@ function ProjectMenu() {
 
   const { t } = useLocaleContext();
 
-  const readOnly = useReadOnly({ ref: currentGitStore.getState().defaultBranch });
+  const readOnly = useReadOnly({ ref: getDefaultBranch() });
 
   const {
     state: { menuAnchor, projects, templates, examples },
@@ -492,24 +492,21 @@ function ProjectList({
                           description,
                         });
                         currentGitStore.setState({
-                          defaultBranch: project.gitDefaultBranch,
-                          currentBranch: project.gitDefaultBranch,
+                          currentProjectId: project._id,
                         });
                         navigate(joinURL('/projects', project._id!));
                         return;
                       }
                       const project = await createProject({ templateId: item._id!, name, description });
                       currentGitStore.setState({
-                        defaultBranch: project.gitDefaultBranch,
-                        currentBranch: project.gitDefaultBranch,
+                        currentProjectId: project._id,
                       });
                       navigate(joinURL('/projects', project._id!));
                     },
                   });
                 } else if (section === 'projects') {
                   currentGitStore.setState({
-                    defaultBranch: item.gitDefaultBranch,
-                    currentBranch: item.gitDefaultBranch,
+                    currentProjectId: item._id,
                   });
                   navigate(joinURL('/projects', item._id!));
                 } else if (section === 'examples') {
@@ -518,8 +515,7 @@ function ProjectList({
                       setLoading(item);
                       const project = await copyProject({ folder: 'example', projectId: item._id! });
                       currentGitStore.setState({
-                        defaultBranch: project.gitDefaultBranch,
-                        currentBranch: project.gitDefaultBranch,
+                        currentProjectId: project._id,
                       });
                       navigate(joinURL('/projects', project._id!));
                     } catch (error) {
@@ -527,8 +523,7 @@ function ProjectList({
                     }
                   } else {
                     currentGitStore.setState({
-                      defaultBranch: item.gitDefaultBranch,
-                      currentBranch: item.gitDefaultBranch,
+                      currentProjectId: item._id,
                     });
                     navigate(joinURL('/projects', item._id!));
                   }
@@ -812,10 +807,11 @@ function ImportFromGit() {
           password: value.password,
         });
         form.reset(value);
+
         currentGitStore.setState({
-          defaultBranch: project.gitDefaultBranch,
-          currentBranch: project.gitDefaultBranch,
+          currentProjectId: project._id,
         });
+
         dialogState.close();
         navigate(joinURL('/projects', project._id!));
       } catch (error) {

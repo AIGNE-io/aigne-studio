@@ -1,4 +1,4 @@
-import currentGitStore from '@app/store/current-git-store';
+import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { SaveRounded } from '@mui/icons-material';
@@ -57,7 +57,7 @@ export default function ProjectSettings() {
   const { projectId = '' } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId`');
 
-  const readOnly = useReadOnly({ ref: currentGitStore.getState().defaultBranch });
+  const readOnly = useReadOnly({ ref: getDefaultBranch() });
   const { dialog, showDialog } = useDialog();
   const [submitLoading, setLoading] = useState(false);
   const [value, setValue] = useState<UpdateProjectInput>(init);
@@ -70,7 +70,7 @@ export default function ProjectSettings() {
   const {
     state: { project, error, ...state },
     updateProject,
-  } = useProjectState(projectId, currentGitStore.getState().defaultBranch);
+  } = useProjectState(projectId, getDefaultBranch());
   if (error) throw error;
 
   const loading = state.loading || getSupportedModelsLoading;
