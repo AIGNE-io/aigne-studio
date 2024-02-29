@@ -1,3 +1,4 @@
+import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -50,7 +51,6 @@ import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
-import * as projectApi from '../../libs/project';
 import { ProjectWithUserInfo, User, copyProject, createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
@@ -67,7 +67,6 @@ import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
-import { defaultBranch } from './state';
 
 const CARD_HEIGHT = 160;
 const MAX_WIDTH = 300;
@@ -158,7 +157,7 @@ function ProjectMenu() {
 
   const { t } = useLocaleContext();
 
-  const readOnly = useReadOnly({ ref: defaultBranch });
+  const readOnly = useReadOnly({ ref: getDefaultBranch() });
 
   const {
     state: { menuAnchor, projects, templates, examples },
@@ -491,26 +490,40 @@ function ProjectList({
                           name,
                           description,
                         });
-
+                        currentGitStore.setState({
+                          currentProjectId: project._id,
+                        });
                         navigate(joinURL('/projects', project._id!));
                         return;
                       }
                       const project = await createProject({ templateId: item._id!, name, description });
+                      currentGitStore.setState({
+                        currentProjectId: project._id,
+                      });
                       navigate(joinURL('/projects', project._id!));
                     },
                   });
                 } else if (section === 'projects') {
+                  currentGitStore.setState({
+                    currentProjectId: item._id,
+                  });
                   navigate(joinURL('/projects', item._id!));
                 } else if (section === 'examples') {
                   if ((item as any)?.fromResourceBlockletFolder) {
                     try {
                       setLoading(item);
                       const project = await copyProject({ folder: 'example', projectId: item._id! });
+                      currentGitStore.setState({
+                        currentProjectId: project._id,
+                      });
                       navigate(joinURL('/projects', project._id!));
                     } catch (error) {
                       setLoading(null);
                     }
                   } else {
+                    currentGitStore.setState({
+                      currentProjectId: item._id,
+                    });
                     navigate(joinURL('/projects', item._id!));
                   }
                 }
@@ -768,14 +781,10 @@ interface RemoteRepoSettingForm {
 function ImportFromGit() {
   const { t } = useLocaleContext();
   const id = useId();
-  const {
-    state: { templates },
-    createProject,
-  } = useProjectsState();
   const navigate = useNavigate();
   const dialogState = usePopupState({ variant: 'dialog', popupId: id });
-
   const [showPassword, setShowPassword] = useState(false);
+  const { importProject } = useProjectsState();
 
   const form = useForm<RemoteRepoSettingForm>({
     defaultValues: {
@@ -789,21 +798,19 @@ function ImportFromGit() {
   const saveSetting = useCallback(
     async (value: RemoteRepoSettingForm) => {
       try {
-        const project = await createProject({
-          templateId: templates?.[0]!._id,
+        const project = await importProject({
           name: value.name,
           description: value.description,
-          isImport: true,
-        });
-        await projectApi.addProjectRemote(project._id, {
           url: value.url,
           username: value.username,
           password: value.password,
         });
-        await projectApi.projectPull(project._id, {
-          force: true,
-        });
         form.reset(value);
+
+        currentGitStore.setState({
+          currentProjectId: project._id,
+        });
+
         dialogState.close();
         navigate(joinURL('/projects', project._id!));
       } catch (error) {
@@ -812,7 +819,7 @@ function ImportFromGit() {
         throw error;
       }
     },
-    [createProject, dialogState, form, templates]
+    [dialogState, form, importProject, navigate]
   );
 
   return (

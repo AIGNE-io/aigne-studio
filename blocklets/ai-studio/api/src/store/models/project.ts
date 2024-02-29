@@ -42,6 +42,8 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare gitUrl?: string;
 
+  declare gitDefaultBranch: string;
+
   declare gitAutoSync?: boolean;
 
   declare gitLastSyncedAt?: Date;
@@ -109,6 +111,10 @@ Project.init(
     },
     gitUrl: {
       type: DataTypes.STRING,
+    },
+    gitDefaultBranch: {
+      type: DataTypes.STRING,
+      defaultValue: 'main',
     },
     gitAutoSync: {
       type: DataTypes.BOOLEAN,

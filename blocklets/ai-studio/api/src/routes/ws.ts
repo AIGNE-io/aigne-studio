@@ -4,7 +4,7 @@ import express from 'express';
 import { getResourceProjects } from '../libs/resource';
 import { ensurePromptsEditor, isRefReadOnly } from '../libs/security';
 import Project from '../store/models/project';
-import { getRepository } from '../store/repository';
+import { defaultBranch, getRepository } from '../store/repository';
 
 const router = express.Router();
 
@@ -15,7 +15,6 @@ router.use(ensurePromptsEditor, user()).ws('/ws/:projectId/:ref', async (conn, r
   if (!projectId || !ref) throw new Error('Missing required params projectId or ref');
 
   const { role } = req.user!;
-  const readOnly = isRefReadOnly({ ref, role });
 
   const project =
     (await Project.findOne({ where: { _id: projectId } })) ||
@@ -25,6 +24,8 @@ router.use(ensurePromptsEditor, user()).ws('/ws/:projectId/:ref', async (conn, r
     conn.close(3001, `Project ${projectId} not found`);
     return;
   }
+
+  const readOnly = isRefReadOnly({ ref, role, defaultBranch: project?.gitDefaultBranch ?? defaultBranch });
 
   const repository = await getRepository({ projectId });
   const working = await repository.working({ ref });
