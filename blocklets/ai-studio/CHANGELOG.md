@@ -1,3 +1,7 @@
+## 0.1.270 (2024-2-28)
+
+- feat: bundle use compact
+
 ## 0.1.269 (2024-2-28)
 
 - chore: add ai-runtime component dependency
