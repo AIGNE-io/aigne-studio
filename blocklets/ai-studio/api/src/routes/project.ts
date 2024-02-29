@@ -1,4 +1,4 @@
-import fs, { cpSync, existsSync, mkdirSync, rmSync } from 'fs';
+import fs, { cpSync, existsSync, mkdtempSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
@@ -360,13 +360,11 @@ export function projectRoutes(router: Router) {
     if (username) uri.username = username;
     if (password) uri.password = password;
 
-    const tempFolder = join(Config.dataDir, 'repositories', 'temp');
     let originProject;
     let originDefaultBranch = defaultBranch;
 
+    const tempFolder = mkdtempSync(join(Config.dataDir, 'repositories', 'temp-'));
     try {
-      mkdirSync(tempFolder, { recursive: true });
-
       await git.clone({ fs, dir: tempFolder, http, url: uri.toString() });
 
       const originRepo = await git.fetch({ fs, http, dir: tempFolder, remote: defaultRemote });
