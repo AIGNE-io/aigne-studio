@@ -6,8 +6,6 @@ const logger = console;
 
 const { name } = require('../../package.json');
 
-const files = ['@blocklet/hnswlib-node', 'sqlite3'];
-
 async function ensureBinaryFile(packageName: string) {
   logger.info(`${name} ensure ${packageName} installed`);
 
@@ -55,10 +53,6 @@ async function ensureBinaryFile(packageName: string) {
 }
 
 export default async function init() {
-  for (const file of files) {
-    // eslint-disable-next-line no-await-in-loop
-    await ensureBinaryFile(file);
-  }
-
+  await ensureBinaryFile('@blocklet/hnswlib-node');
   await import('./store/migrate').then((m) => m.default());
 }
