@@ -1,3 +1,4 @@
+import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
@@ -66,13 +67,14 @@ import { TokenUsage } from './token-usage';
 import UndoAndRedo from './undo';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
-const defaultBranch = 'main';
-
 const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
 const CURRENT_TAB = (projectId: string) => `ai-studio.currentTab.${projectId}`;
 
 export default function ProjectPage() {
   const { projectId, ref: gitRef, '*': filepath } = useParams();
+  currentGitStore.setState({
+    currentProjectId: projectId,
+  });
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
   const { t } = useLocaleContext();
@@ -110,7 +112,7 @@ export default function ProjectPage() {
 
     const p =
       (typeof filepathState === 'string' ? filepathState : undefined) ||
-      (gitRef === defaultBranch ? previousFilePath?.[gitRef] : undefined);
+      (gitRef === getDefaultBranch() ? previousFilePath?.[gitRef] : undefined);
 
     const filename = p?.split('/').slice(-1)[0];
 

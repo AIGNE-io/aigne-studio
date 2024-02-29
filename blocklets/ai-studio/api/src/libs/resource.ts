@@ -7,7 +7,7 @@ import { uniqBy } from 'lodash';
 import { parse, stringify } from 'yaml';
 
 import Project from '../store/models/project';
-import { defaultBranch, getRepository, repositoryRoot } from '../store/repository';
+import { getRepository, repositoryRoot } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
@@ -20,6 +20,7 @@ export const copyAssistantsFromResource = async ({
   folder,
   findProjectId,
   newProjectId,
+  originDefaultBranch,
   projectInfo,
 }: {
   folder: string;
@@ -27,6 +28,7 @@ export const copyAssistantsFromResource = async ({
   newProjectId: string;
   fullName: string;
   did: string;
+  originDefaultBranch: string;
   projectInfo?: object;
 }) => {
   const dirs = getResourcePackageAssistantsDirs();
@@ -62,7 +64,7 @@ export const copyAssistantsFromResource = async ({
 
   mkdirSync(repositoryRoot(newProjectId), { recursive: true });
   const repository = await getRepository({ projectId: newProjectId });
-  const working = await repository.working({ ref: defaultBranch });
+  const working = await repository.working({ ref: originDefaultBranch });
 
   if (filePath) {
     const root = dirname(repository.root);

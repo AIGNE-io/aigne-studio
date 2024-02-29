@@ -12,7 +12,7 @@ import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
-import { defaultBranch, getAssistantsOfRepository } from '../store/repository';
+import { getAssistantsOfRepository } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 const TARGET_DIR = path.join(AI_STUDIO_DID, 'ai');
@@ -109,11 +109,11 @@ export function resourceRoutes(router: Router) {
       mkdirSync(folderPath, { recursive: true });
 
       for (const projectId of value) {
-        const [project, assistants] = await Promise.all([
-          Project.findOne({ where: { _id: projectId } }),
-          getAssistantsOfRepository({ projectId, ref: defaultBranch }),
-        ]);
-
+        const project = await Project.findOne({ where: { _id: projectId } });
+        const assistants = await getAssistantsOfRepository({
+          projectId,
+          ref: project?.gitDefaultBranch!,
+        });
         const result = stringify({ assistants: uniqBy(assistants, 'id'), project: project && project.dataValues });
         const assistantsFilename = path.join(folderPath, `${projectId}.yaml`);
         writeFileSync(assistantsFilename, result);
