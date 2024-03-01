@@ -1,3 +1,4 @@
+import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { SaveRounded } from '@mui/icons-material';
@@ -23,6 +24,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, unstable_useBlocker as useBlocker, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
+import { getSupportedModels } from '../../../../api/src/libs/common';
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
 import Loading from '../../../components/loading';
 import Avatar from '../../../components/project-settings/avatar';
@@ -31,10 +33,9 @@ import SliderNumberField from '../../../components/slider-number-field';
 import { useReadOnly } from '../../../contexts/session';
 import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
-import { getSupportedModels } from '../../../libs/common';
 import useDialog from '../../../utils/use-dialog';
 import InfoOutlined from '../icons/question';
-import { defaultBranch, useProjectState } from '../state';
+import { useProjectState } from '../state';
 import RemoteRepoSetting from './remote-repo-setting';
 
 const init = {
@@ -48,6 +49,7 @@ const init = {
   frequencyPenalty: 0,
   maxTokens: undefined,
   gitType: 'simple',
+  homePageUrl: '',
 };
 
 export default function ProjectSettings() {
@@ -55,7 +57,7 @@ export default function ProjectSettings() {
   const { projectId = '' } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId`');
 
-  const readOnly = useReadOnly({ ref: defaultBranch });
+  const readOnly = useReadOnly({ ref: getDefaultBranch() });
   const { dialog, showDialog } = useDialog();
   const [submitLoading, setLoading] = useState(false);
   const [value, setValue] = useState<UpdateProjectInput>(init);
@@ -68,7 +70,7 @@ export default function ProjectSettings() {
   const {
     state: { project, error, ...state },
     updateProject,
-  } = useProjectState(projectId, defaultBranch);
+  } = useProjectState(projectId, getDefaultBranch());
   if (error) throw error;
 
   const loading = state.loading || getSupportedModelsLoading;
@@ -86,6 +88,7 @@ export default function ProjectSettings() {
         'frequencyPenalty',
         'maxTokens',
         'gitType',
+        'homePageUrl',
       ]);
 
       origin.current = merge;
@@ -187,29 +190,38 @@ export default function ProjectSettings() {
                   {t('projectSetting.baseInfo')}
                 </Box>
 
-                <Box display="flex" alignItems="center">
-                  <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
+                <Stack gap={1}>
+                  <Box display="flex" alignItems="center">
+                    <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
 
-                  <Stack spacing={1} flex={1} ml={4}>
-                    <TextField
-                      label={t('projectSetting.name')}
-                      sx={{ flex: 1 }}
-                      value={value.name ?? ''}
-                      onChange={(e) => set('name', e.target.value)}
-                      InputProps={{ readOnly }}
-                    />
+                    <Stack spacing={1} flex={1} ml={4}>
+                      <TextField
+                        label={t('projectSetting.name')}
+                        sx={{ flex: 1 }}
+                        value={value.name ?? ''}
+                        onChange={(e) => set('name', e.target.value)}
+                        InputProps={{ readOnly }}
+                      />
 
-                    <TextField
-                      label={t('projectSetting.description')}
-                      multiline
-                      rows={4}
-                      sx={{ width: 1 }}
-                      value={value.description ?? ''}
-                      onChange={(e) => set('description', e.target.value)}
-                      InputProps={{ readOnly }}
-                    />
-                  </Stack>
-                </Box>
+                      <TextField
+                        label={t('projectSetting.description')}
+                        multiline
+                        rows={4}
+                        sx={{ width: 1 }}
+                        value={value.description ?? ''}
+                        onChange={(e) => set('description', e.target.value)}
+                        InputProps={{ readOnly }}
+                      />
+                    </Stack>
+                  </Box>
+
+                  <TextField
+                    label={t('projectSetting.homePageUrl')}
+                    value={value.homePageUrl ?? ''}
+                    onChange={(e) => set('homePageUrl', e.target.value)}
+                    InputProps={{ readOnly }}
+                  />
+                </Stack>
               </Box>
 
               <Box>

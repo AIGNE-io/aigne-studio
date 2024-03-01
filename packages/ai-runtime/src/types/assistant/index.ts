@@ -4,20 +4,52 @@ export * from './yjs';
 export { default as Mustache } from './mustache/mustache';
 export * from './mustache/directive';
 
+export enum OnTaskCompletion {
+  EXIT = 'EXIT',
+}
+
 export type FileType = Assistant | { $base64: string };
 
 export type Assistant = PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
-export interface ExecuteBlock {
+export type ExecuteBlockRole = Role | 'none';
+
+export type Tool = {
   id: string;
-  selectType?: 'all' | 'selectByPrompt';
+  from?: 'assistant' | 'dataset';
+  parameters?: { [key: string]: string };
+  functionName?: string;
+  onEnd?: OnTaskCompletion;
+};
+
+type ExecuteBlockCommon = {
+  id: string;
+  role?: ExecuteBlockRole;
   selectByPrompt?: string;
-  tools?: { id: string; parameters?: { [key: string]: string } }[];
+  tools?: Tool[];
   formatResultType?: 'none' | 'asHistory';
   variable?: string;
-}
+};
+
+export type ExecuteBlockSelectAll = ExecuteBlockCommon & { selectType: 'all' };
+
+type ModelConfiguration = {
+  temperature?: number;
+  topP?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  maxTokens?: number;
+  model?: string;
+};
+
+export type ExecuteBlockSelectByPrompt = ExecuteBlockCommon & {
+  selectType: 'selectByPrompt';
+  executeModel?: ModelConfiguration;
+};
+
+export type ExecuteBlock = ExecuteBlockSelectAll | ExecuteBlockSelectByPrompt;
 
 export type PromptMessage = {
   id: string;
@@ -135,4 +167,12 @@ export interface LanguageParameter extends ParameterBase {
   type: 'language';
   value?: string;
   defaultValue?: string;
+}
+
+export interface User {
+  did: string;
+  role: string;
+  fullName: string;
+  provider: string;
+  walletOS: string;
 }

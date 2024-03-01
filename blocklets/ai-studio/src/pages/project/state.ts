@@ -1,18 +1,28 @@
+import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { isRunAssistantChunk, isRunAssistantError, isRunAssistantInput, runAssistant } from '@blocklet/ai-runtime/api';
-import { InputMessages } from '@blocklet/ai-runtime/core';
-import { AssistantYjs, Role, fileToYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import { SubscriptionError } from '@blocklet/ai-kit/api';
+import { runAssistant } from '@blocklet/ai-runtime/api';
+import {
+  AssistantResponseType,
+  AssistantYjs,
+  ExecutionPhase,
+  Role,
+  RunAssistantInput,
+  RunAssistantLog,
+  fileToYjs,
+  isAssistant,
+} from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
-import produce, { Draft } from 'immer';
+import { Draft, produce } from 'immer';
 import localForage from 'localforage';
 import { cloneDeep, differenceBy, get, intersectionBy, omitBy } from 'lodash';
 import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 
@@ -24,8 +34,6 @@ import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
 import * as api from '../../libs/tree';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
-
-export const defaultBranch = 'main';
 
 export interface ProjectState {
   project?: Project;
@@ -64,9 +72,12 @@ export const useProjectState = (projectId: string, gitRef: string) => {
         branchApi.getBranches({ projectId }),
       ]);
       const simpleMode = project.gitType === 'simple';
-      const { commits } = await getLogs({ projectId, ref: simpleMode ? defaultBranch : gitRef });
-      // NOTE: 简单模式下最新的记录始终指向 defaultBranch
-      if (simpleMode && commits.length) commits[0]!.oid = defaultBranch;
+      const { commits } = await getLogs({
+        projectId,
+        ref: simpleMode ? getDefaultBranch() : gitRef,
+      });
+      // NOTE: 简单模式下最新的记录始终指向 getDefaultBranch()
+      if (simpleMode && commits.length) commits[0]!.oid = getDefaultBranch();
       setState((v) => ({ ...v, project, branches, commits, error: undefined }));
     } catch (error) {
       setState((v) => ({ ...v, error }));
@@ -166,6 +177,18 @@ export const useProjectState = (projectId: string, gitRef: string) => {
   };
 };
 
+export type ImageType = { b64Json?: string; url?: string }[];
+
+export type MessageInput = RunAssistantInput & {
+  deep: number;
+  output?: string;
+  logs?: Array<RunAssistantLog>;
+  startTime?: number;
+  endTime?: number;
+  images?: ImageType;
+  stop?: boolean;
+};
+
 export interface SessionItem {
   index: number;
   createdAt: string;
@@ -177,19 +200,12 @@ export interface SessionItem {
     content: string;
     gitRef?: string;
     parameters?: { [key: string]: any };
-    images?: { b64Json?: string; url?: string }[];
+    images?: ImageType;
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
-    error?: { message: string };
-    inputMessages?: InputMessages;
-    subMessages?: {
-      taskId: string;
-      assistantId: string;
-      content: string;
-      inputMessages?: InputMessages;
-      images?: { b64Json?: string; url?: string }[];
-    }[];
+    error?: { message: string; [key: string]: unknown };
+    inputMessages?: Array<MessageInput>;
   }[];
   chatType?: 'chat' | 'debug';
   debugForm?: { [key: string]: any };
@@ -205,13 +221,12 @@ export interface DebugState {
 
 const debugStates: { [key: string]: RecoilState<DebugState> } = {};
 
-const getInitialDebugState = (projectId: string, assistantId: string): [string, Promise<DebugState>] => {
+const getDebugState = (projectId: string, assistantId: string) => {
   const key = `debugState-${projectId}-${assistantId}` as const;
-  const now = new Date().toISOString();
 
-  return [
+  debugStates[key] ??= atom<DebugState>({
     key,
-    (async () => {
+    default: (async () => {
       try {
         await debugStateMigration;
 
@@ -229,6 +244,8 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
       } catch (error) {
         console.error('initialize default debug state error', error);
       }
+
+      const now = new Date().toISOString();
       return {
         projectId,
         assistantId,
@@ -236,25 +253,18 @@ const getInitialDebugState = (projectId: string, assistantId: string): [string, 
         nextSessionIndex: 2,
       };
     })(),
-  ];
-};
-
-const useDebugInitState = (projectId: string, assistantId: string) => {
-  const [key, initialState] = useMemo(() => getInitialDebugState(projectId, assistantId), [projectId, assistantId]);
-
-  debugStates[key] ??= atom<DebugState>({
-    key,
-    default: initialState,
     effects: [
       (() => {
         const setItem = debounce((k, v) => {
           localForage.setItem(k, v);
         }, 2000);
 
-        window.addEventListener('beforeunload', () => setItem.flush());
+        const handleBeforeUnload = () => setItem.flush();
+        window.addEventListener('beforeunload', handleBeforeUnload);
 
         return ({ onSet }) => {
           onSet((value) => setItem(key, value));
+          return () => window.removeEventListener('beforeunload', handleBeforeUnload);
         };
       })(),
     ],
@@ -264,7 +274,7 @@ const useDebugInitState = (projectId: string, assistantId: string) => {
 };
 
 export const useDebugState = ({ projectId, assistantId }: { projectId: string; assistantId: string }) => {
-  const debugState = useDebugInitState(projectId, assistantId);
+  const debugState = getDebugState(projectId, assistantId);
   const [state, setState] = useRecoilState(debugState);
 
   const newSession = useCallback(
@@ -307,6 +317,20 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
     },
     [setState]
   );
+
+  const clearCurrentSession = useCallback(() => {
+    setState((state) => {
+      const sessions = state.sessions.map((session) =>
+        session.index === state.currentSessionIndex
+          ? { ...session, messages: [], updatedAt: new Date().toISOString() }
+          : session
+      );
+      return {
+        ...state,
+        sessions,
+      };
+    });
+  }, [setState]);
 
   const setCurrentSession = useCallback(
     (index?: number) => {
@@ -391,8 +415,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               content: message.type === 'chat' ? message.content : '',
               gitRef: message.type === 'debug' ? message.gitRef : undefined,
               parameters: message.type === 'debug' ? message.parameters : undefined,
-              subMessages: [],
-              inputMessages: { messages: [] },
+              inputMessages: [],
               loading: true,
             },
             { id: responseId, createdAt: now.toISOString(), role: 'assistant', content: '', loading: true }
@@ -434,33 +457,19 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               response += decoder.decode(value);
             } else if (typeof value === 'string') {
               response += value;
-            } else if (isRunAssistantInput(value)) {
-              if (value.taskId === mainTaskId) {
-                setMessage(sessionIndex, messageId, (message) => {
-                  message.inputMessages = value.input;
-                  message.loading = false;
-                });
-              } else {
-                setMessage(sessionIndex, messageId, (message) => {
-                  if (message.cancelled) return;
+            } else if (value.type === AssistantResponseType.INPUT) {
+              setMessage(sessionIndex, messageId, (message) => {
+                message.inputMessages ??= [];
 
-                  message.subMessages ??= [];
-
-                  let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
-                  if (!subMessage) {
-                    subMessage = {
-                      taskId: value.taskId,
-                      assistantId: value.assistantId,
-                      inputMessages: value.input,
-                      content: '',
-                    };
-                    message.subMessages.push(subMessage);
-                  } else {
-                    subMessage.inputMessages = value.input;
-                  }
-                });
-              }
-            } else if (isRunAssistantChunk(value)) {
+                let lastInput = message.inputMessages.findLast((input) => input.taskId === value.taskId);
+                if (lastInput) {
+                  lastInput = Object.assign(lastInput, value);
+                } else {
+                  const parentTrace = message?.inputMessages.findLast((i) => i.taskId === value.parentTaskId);
+                  message.inputMessages.push({ ...value, deep: parentTrace ? (parentTrace?.deep || 0) + 1 : 0 });
+                }
+              });
+            } else if (value.type === AssistantResponseType.CHUNK) {
               const { images } = value.delta;
 
               if (!mainTaskId) mainTaskId = value.taskId;
@@ -479,26 +488,62 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 setMessage(sessionIndex, messageId, (message) => {
                   if (message.cancelled) return;
 
-                  message.subMessages ??= [];
-
-                  let subMessage = message.subMessages.findLast((i) => i.taskId === value.taskId);
-                  if (!subMessage) {
-                    subMessage = { taskId: value.taskId, assistantId: value.assistantId, content: '' };
-                    message.subMessages.push(subMessage);
-                  }
-
-                  subMessage.content += value.delta.content || '';
-
-                  if (images?.length) {
-                    subMessage.images ??= [];
-                    subMessage.images.push(...images);
+                  const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
+                  if (lastInput) {
+                    lastInput.output ??= '';
+                    lastInput.output += value.delta.content || '';
+                    if (images?.length) {
+                      lastInput.images ??= [];
+                      lastInput.images.push(...images);
+                    }
                   }
                 });
               }
-            } else if (isRunAssistantError(value)) {
+            } else if (value.type === AssistantResponseType.EXECUTE) {
+              setMessage(sessionIndex, messageId, (message) => {
+                message.inputMessages ??= [];
+
+                const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
+                if (value.execution.currentPhase === ExecutionPhase.EXECUTE_ASSISTANT_START) {
+                  if (!lastInput) {
+                    const parentTrace = message?.inputMessages.findLast((i) => i.taskId === value.parentTaskId);
+                    message.inputMessages.push({
+                      type: AssistantResponseType.INPUT,
+                      assistantId: value.assistantId,
+                      assistantName: value.assistantName!,
+                      taskId: value.taskId,
+                      parentTaskId: value.parentTaskId,
+                      startTime: Date.now(),
+                      deep: parentTrace ? (parentTrace?.deep || 0) + 1 : 0,
+                    });
+                  }
+                } else if (value.execution.currentPhase === ExecutionPhase.EXECUTE_ASSISTANT_END) {
+                  if (lastInput) {
+                    lastInput.endTime = Date.now();
+                  }
+                } else if (value.execution.currentPhase === ExecutionPhase.EXECUTE_SELECT_STOP) {
+                  if (lastInput) {
+                    lastInput.endTime = Date.now();
+                    lastInput.stop = true;
+                  }
+                }
+              });
+            } else if (value.type === AssistantResponseType.ERROR) {
               setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
-                message.error = value.error;
+                message.error = pick(value.error, 'message', 'type', 'timestamp') as {
+                  message: string;
+                  [key: string]: unknown;
+                };
+              });
+            } else if (value.type === AssistantResponseType.LOG) {
+              setMessage(sessionIndex, messageId, (message) => {
+                if (message.cancelled) return;
+                const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
+                if (lastInput) {
+                  lastInput.logs ??= [];
+                  lastInput.logs.push(value);
+                }
               });
             } else {
               console.error('Unknown AI response type', value);
@@ -514,9 +559,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
             break;
           }
         }
-        setMessage(sessionIndex, messageId, (message) => {
-          message.loading = false;
-        });
+
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
 
@@ -526,13 +569,20 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
       } catch (error) {
         setMessage(sessionIndex, responseId, (message) => {
           if (message.cancelled) return;
-
-          message.error = { message: error.message };
+          if (error instanceof SubscriptionError) {
+            message.error = { message: error.message, type: error.type, timestamp: error.timestamp };
+          } else {
+            message.error = { message: error.message };
+          }
+          message.loading = false;
+        });
+      } finally {
+        setMessage(sessionIndex, messageId, (message) => {
           message.loading = false;
         });
       }
     },
-    [setMessage, setState, state]
+    [setMessage, setState, state.sessions]
   );
 
   const cancelMessage = useCallback(
@@ -545,7 +595,16 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
     [setMessage]
   );
 
-  return { state, setSession, setCurrentSession, newSession, deleteSession, sendMessage, cancelMessage };
+  return {
+    state,
+    setSession,
+    setCurrentSession,
+    newSession,
+    clearCurrentSession,
+    deleteSession,
+    sendMessage,
+    cancelMessage,
+  };
 };
 
 async function migrateDebugStateFroMLocalStorageToIndexedDB() {
@@ -632,7 +691,11 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
       const modified = duplicateItems.filter((i) => {
         const item = omit(
           omitBy(i, (x) => !x),
-          'tests'
+          'tests',
+          'createdBy',
+          'updatedBy',
+          'updatedAt',
+          'createdAt'
         );
 
         const found = state.files.find((f) => item.id === f.id);
@@ -642,7 +705,11 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
 
         const file = omit(
           omitBy(found, (x) => !x),
-          'tests'
+          'tests',
+          'createdBy',
+          'updatedBy',
+          'updatedAt',
+          'createdAt'
         );
         return !equal(item, file);
       });

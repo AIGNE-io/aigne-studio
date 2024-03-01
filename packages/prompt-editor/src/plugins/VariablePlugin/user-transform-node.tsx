@@ -10,19 +10,15 @@ export default function useTransformVariableNode(editor: LexicalEditor, variable
     const text = node.getTextContent();
 
     if (hasBrackets(text)) {
-      if (!isBracketStartAndEnd(text)) {
-        replaceNodes({
-          fn: (_nodes) => {
-            _nodes.forEach((_node) => {
-              if ($isVariableTextNode(_node)) {
-                _node.select();
-              }
-            });
-          },
-          node,
-          text,
-        });
-      }
+      replaceNodes({
+        fn: (_nodes) => {
+          _nodes.forEach((_node) => {
+            if ($isVariableTextNode(_node)) _node.select();
+          });
+        },
+        node,
+        text,
+      });
     }
   };
 
@@ -34,9 +30,7 @@ export default function useTransformVariableNode(editor: LexicalEditor, variable
         replaceNodes({
           fn: (_nodes) => {
             _nodes.forEach((_node) => {
-              if (!$isVariableTextNode(_node)) {
-                _node.select();
-              }
+              if (!$isVariableTextNode(_node)) _node.select();
             });
           },
           node,

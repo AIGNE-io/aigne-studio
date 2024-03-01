@@ -32,7 +32,10 @@ export type WorkingStore<T> = {
 };
 
 export default class Working<T> extends Doc {
-  constructor(readonly repo: Repository<T>, readonly options: WorkingOptions) {
+  constructor(
+    readonly repo: Repository<T>,
+    readonly options: WorkingOptions
+  ) {
     super();
 
     try {
@@ -60,9 +63,7 @@ export default class Working<T> extends Doc {
 
   async reset() {
     const files = await Promise.all(
-      (
-        await this.repo.listFiles({ ref: this.options.ref })
-      ).map(async (p) => {
+      (await this.repo.listFiles({ ref: this.options.ref })).map(async (p) => {
         const content = (await this.repo.readBlob({ ref: this.options.ref, filepath: p })).blob;
         const { filepath, data, key } = await this.repo.options.parse(p, content, { ref: this.options.ref });
         return { filepath, key, file: data };

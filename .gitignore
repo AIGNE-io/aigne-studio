@@ -1,5 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# editor
+.vscode
+
 # dependencies
 .pnp
 .pnp.js
@@ -29,3 +32,4 @@ pnpm-debug.log*
 lerna-debug.log*
 
 *.env
+blocklets/ai-studio/.env.development

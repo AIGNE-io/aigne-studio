@@ -5,7 +5,15 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 export default function DatasetsRoutes() {
   return (
-    <AdminLayout footerProps={{ className: 'dashboard-footer' }}>
+    <AdminLayout
+      footerProps={{ className: 'dashboard-footer' }}
+      // FIXME: remove following undefined props after issue https://github.com/ArcBlock/ux/issues/1136 solved
+      meta={undefined}
+      fallbackUrl={undefined}
+      invalidPathFallback={undefined}
+      headerAddons={undefined}
+      sessionManagerProps={undefined}
+      links={undefined}>
       <Routes>
         <Route index element={<DatasetsPageLazy />} />
         <Route path=":datasetId">

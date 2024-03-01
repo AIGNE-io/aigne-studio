@@ -10,6 +10,7 @@ import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
 import { Config } from '../libs/env';
+import logger from '../libs/logger';
 import Project from './models/project';
 
 export const defaultBranch = 'main';
@@ -22,6 +23,10 @@ export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, '
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
+
+export const clearRepository = (projectId: string) => {
+  delete repositories[projectId];
+};
 
 export async function getRepository({
   projectId,
@@ -40,18 +45,23 @@ export async function getRepository({
 
         if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
           const testFilepath = filepath.replace(new RegExp(`^${PROMPTS_FOLDER_NAME}`), TESTS_FOLDER_NAME);
-          // console.log(testFilepath, 'testFilepath');
-          const testFile = (
-            await repository.readBlob({
-              filepath: testFilepath,
-              ref,
-            })
-          ).blob;
           const assistant = parse(Buffer.from(content).toString());
-          const test = parse(Buffer.from(testFile).toString());
-          if (test) {
-            assistant.tests = test.tests;
+
+          try {
+            const testFile = (
+              await repository.readBlob({
+                filepath: testFilepath,
+                ref,
+              })
+            )?.blob;
+            const test = parse(Buffer.from(testFile).toString());
+            if (test) {
+              assistant.tests = test.tests;
+            }
+          } catch (error) {
+            logger.error('read testFile blob failed error', { error });
           }
+
           const data = fileToYjs(assistant);
 
           if (isAssistant(data)) {
@@ -181,7 +191,7 @@ export const autoSyncRemoteRepoIfNeeded = async ({
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
     const repository = await getRepository({ projectId: project._id! });
-    await syncRepository({ repository, ref: defaultBranch, author });
+    await syncRepository({ repository, ref: project.gitDefaultBranch, author });
     await project.update({ gitLastSyncedAt: new Date() });
   }
 };
@@ -234,6 +244,7 @@ export async function commitProjectSettingWorking({
 }) {
   const repository = await getRepository({ projectId: project._id! });
   await repository.transact(async (tx) => {
+    await tx.checkout({ ref: project.gitDefaultBranch, force: true });
     await addSettingsToGit({ tx, project });
     await tx.commit({ message, author });
   });
@@ -268,9 +279,12 @@ export async function getAssistantsOfRepository({ projectId, ref }: { projectId:
       Promise.all(
         files
           .filter((i) => i.startsWith(`${PROMPTS_FOLDER_NAME}/`) && i.endsWith('.yaml'))
-          .map((filepath) =>
-            repository.readBlob({ ref, filepath }).then(({ blob }) => parse(Buffer.from(blob).toString()))
-          )
+          .map((filepath) => {
+            const paths = filepath.split('/').filter(Boolean);
+            return repository
+              .readBlob({ ref, filepath })
+              .then(({ blob }) => ({ ...parse(Buffer.from(blob).toString()), parent: paths.slice(0, -1) }));
+          })
       )
     )
     .then((files) => files.filter((i): i is Assistant => isAssistant(i)));
@@ -287,8 +301,34 @@ export async function getAssistantFromRepository({
   ref: string;
   working?: boolean;
   assistantId: string;
+  rejectOnEmpty: true | Error;
+}): Promise<Assistant>;
+export async function getAssistantFromRepository({
+  repository,
+  ref,
+  working,
+  assistantId,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  assistantId: string;
+  rejectOnEmpty?: false;
+}): Promise<Assistant | undefined>;
+export async function getAssistantFromRepository({
+  repository,
+  ref,
+  working,
+  assistantId,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  assistantId: string;
   rejectOnEmpty?: boolean | Error;
-}): Promise<Assistant> {
+}): Promise<Assistant | undefined> {
   let file: Assistant;
 
   if (working) {
@@ -302,7 +342,9 @@ export async function getAssistantFromRepository({
 
   if (!file || !isAssistant(file)) {
     if (rejectOnEmpty) {
-      throw typeof rejectOnEmpty !== 'boolean' ? rejectOnEmpty : new Error(`no such file ${assistantId}`);
+      throw typeof rejectOnEmpty !== 'boolean'
+        ? rejectOnEmpty
+        : new Error(`no such assistant ${JSON.stringify({ ref, assistantId, working })}`);
     }
   }
 

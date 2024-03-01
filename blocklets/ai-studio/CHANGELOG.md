@@ -1,3 +1,252 @@
+## 0.1.270 (2024-2-29)
+
+- fix: support default branch
+
+## 0.1.269 (2024-2-28)
+
+- chore: add ai-runtime component dependency
+
+## 0.1.268 (2024-2-27)
+
+- fix: missing @blocklet/ai-builtin package
+
+## 0.1.267 (2024-2-27)
+
+- feat: add publish view
+
+## 0.1.266 (2024-2-26)
+
+- fix: support resource blocklet
+
+## 0.1.264 (2024-2-26)
+
+- feat: dataset protocol
+
+## 0.1.263 (2024-2-23)
+
+- feat: accordion default expand
+
+## 0.1.262 (2024-2-22)
+
+- feat: file rename
+
+## 0.1.261 (2024-2-21)
+
+- - feat: bring up the project name
+
+## 0.1.260 (2024-2-20)
+
+- fix: resource blocklet api config
+
+## 0.1.259 (2024-2-20)
+
+- feat: tools onboarding word
+
+## 0.1.258 (2024-2-20)
+
+- fix: view the compare file of deleted files
+
+## 0.1.257 (2024-2-20)
+
+- fix: error import in start
+
+## 0.1.256 (2024-2-20)
+
+- fix: markdown blocks appear randomly
+
+## 0.1.255 (2024-2-20)
+
+- feat: time interval output
+
+## 0.1.254 (2024-2-20)
+
+- fix: can't select in chinese assistant name
+
+## 0.1.253 (2024-2-20)
+
+- fix: prompt Editor supports mustache variables
+
+## 0.1.252 (2024-2-20)
+
+- fix: prompt editor not working
+
+## 0.1.251 (2024-2-18)
+
+- fix: downgrade gpt-tokens version
+
+## 0.1.250 (2024-2-18)
+
+- fix: update execute button label
+
+## 0.1.249 (2024-2-9)
+
+- feat: support es module for function assistant
+
+## 0.1.248 (2024-2-9)
+
+- fix: bundle error
+
+## 0.1.247 (2024-2-5)
+
+- fix: optimize debug view efficiency
+
+## 0.1.246 (2024-2-4)
+
+- feat: debug info integration
+
+## 0.1.245 (2024-2-4)
+
+- feat: stop after tools select
+
+## 0.1.244 (2024-2-3)
+
+- fix: prompt editor crash
+
+## 0.1.243 (2024-2-2)
+
+- fix: checkout files before writing project config
+
+## 0.1.242 (2024-2-2)
+
+- fix: reject an error if assistant not found
+
+## 0.1.239 (2024-1-30)
+
+- fix: init scroll and clear messages
+
+## 0.1.238 (2024-1-29)
+
+- fix: enable subscription after subscribe succeed
+
+## 0.1.237 (2024-1-25)
+
+- fix: introduce dependency exceptions
+
+## 0.1.236 (2024-1-25)
+
+- feat: auto scroll
+
+## 0.1.235 (2024-1-25)
+
+- feat: provide select prompt model settings
+
+## 0.1.234 (2024-1-25)
+
+- feat: reminders for multiple rounds of calls
+
+## 0.1.233 (2024-1-24)
+
+- fix: show description tip of template project
+- fix: disable pointer events when dragging
+
+## 0.1.232 (2024-1-24)
+
+- fix: correct filter of projects
+
+## 0.1.231 (2024-1-24)
+
+- feat: support config home page url
+- feat: support set project as template/example
+
+## 0.1.230 (2024-1-24)
+
+- fix: correct parameters schema
+
+## 0.1.229 (2024-1-23)
+
+- chore: update deps
+
+## 0.1.228 (2024-1-23)
+
+- chore: update deps
+
+## 0.1.227 (2024-1-23)
+
+- fix: update deps
+
+## 0.1.226 (2024-1-22)
+
+- fix: 404 after file deleted
+- fix: show parameter tips base on the type of execute block
+- fix: correct index of tools or blocks
+
+## 0.1.225 (2024-1-22)
+
+- fix: parameter is an object, Tools cannot bring in the parameter
+
+## 0.1.224 (2024-1-20)
+
+- fix: settings data miss
+
+## 0.1.223 (2024-1-20)
+
+- feat: provide execute-block select ability
+
+## 0.1.222 (2024-1-19)
+
+- fix: folders slash error
+
+## 0.1.221 (2024-1-19)
+
+- feat: up zIndex
+
+## 0.1.220 (2024-1-17)
+
+- fix: error is reported when saving to a new branch
+
+## 0.1.219 (2024-1-17)
+
+- fix: keep the id in the original assistant
+
+## 0.1.218 (2024-1-17)
+
+- fix: transform brackets fail
+
+## 0.1.217 (2024-1-17)
+
+- fix: filter import project
+
+## 0.1.216 (2024-1-17)
+
+- feat: support sse error
+
+## 0.1.215 (2024-1-17)
+
+- fix: add parameter tips
+- fix: variables that target the execution block are not added to the variable
+
+## 0.1.214 (2024-1-16)
+
+- fix: markdown optimization
+
+## 0.1.213 (2024-1-16)
+
+- feat: add placeholder
+
+## 0.1.212 (2024-1-14)
+
+- chore: resource blocklet data
+
+## 0.1.211 (2024-1-14)
+
+- fix: fix version of react-router-dom
+
+## 0.1.210 (2024-1-14)
+
+- fix: deduplicate lexical deps
+
+## 0.1.209 (2024-1-13)
+
+- fix: remove incompatible config
+
+## 0.1.208 (2024-1-12)
+
+- feat: remind users to subscribe in advance
+
+## 0.1.207 (2024-1-10)
+
+- feat: optimized logs format
+
 ## 0.1.206 (2024-1-5)
 
 - feat: support remote repo

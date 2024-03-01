@@ -26,7 +26,7 @@ export default class History extends Model<InferAttributes<History>, InferCreati
 
   declare parameters?: { [key: string]: any };
 
-  declare result?: { content?: string; images?: { url: string }[] };
+  declare result?: { content?: string; images?: { url: string }[] } | object;
 
   declare executingLogs?: {
     taskId: string;

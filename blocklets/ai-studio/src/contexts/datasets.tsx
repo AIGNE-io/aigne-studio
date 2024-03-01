@@ -1,6 +1,5 @@
 import { useUpdate } from 'ahooks';
-import produce from 'immer';
-import { WritableDraft } from 'immer/dist/internal';
+import { Draft, produce } from 'immer';
 import { ReactNode, createContext, useCallback, useContext, useRef } from 'react';
 
 import Dataset from '../../api/src/store/models/dataset';
@@ -49,7 +48,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
   const update = useUpdate();
 
   const setValue = useCallback(
-    (u: (draft: WritableDraft<DatasetsContext>) => void) => {
+    (u: (draft: Draft<DatasetsContext>) => void) => {
       value.current = produce(value.current, (draft) => {
         u(draft);
         return draft;

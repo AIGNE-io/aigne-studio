@@ -1,13 +1,15 @@
+import { useCurrentGitStore } from '@app/store/current-git-store';
 import { useCallback } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 import * as api from '../libs/project';
 
-export type ProjectsSection = 'templates' | 'projects' | 'samples';
+export type ProjectsSection = 'templates' | 'projects' | 'examples';
 
 export interface ProjectsState {
   templates: api.ProjectWithUserInfo[];
   projects: api.ProjectWithUserInfo[];
+  examples: api.ProjectWithUserInfo[];
   loading: boolean;
   error?: Error;
   selected?: { section: ProjectsSection; id: string };
@@ -19,29 +21,28 @@ const projectsState = atom<ProjectsState>({
   default: {
     templates: [],
     projects: [],
+    examples: [],
     loading: false,
   },
 });
 
 export const useProjectsState = () => {
   const [state, setState] = useRecoilState(projectsState);
-
+  const setProjectGitSettings = useCurrentGitStore((i) => i.setProjectGitSettings);
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
-      const [{ projects: templates }, { projects }] = await Promise.all([
-        api.getProjects({ type: 'templates' }),
-        api.getProjects(),
-      ]);
-      setState((v) => ({ ...v, templates, projects, error: undefined }));
-      return { projects };
+      const { templates, projects, examples } = await api.getProjects();
+      setProjectGitSettings(projects);
+      setState((v) => ({ ...v, templates, projects, examples, error: undefined }));
+      return { projects, templates, examples };
     } catch (error) {
       setState((v) => ({ ...v, error }));
       throw error;
     } finally {
       setState((v) => ({ ...v, loading: false }));
     }
-  }, [setState]);
+  }, [setProjectGitSettings, setState]);
 
   const createProject: typeof api.createProject = useCallback(
     async (...args) => {
@@ -52,10 +53,19 @@ export const useProjectsState = () => {
     [refetch]
   );
 
+  const importProject: typeof api.projectImport = useCallback(
+    async (...args) => {
+      const res = await api.projectImport(...args);
+      await refetch();
+      return res;
+    },
+    [refetch]
+  );
+
   const updateProject: typeof api.updateProject = useCallback(
     async (...args) => {
       const res = await api.updateProject(...args);
-      await refetch();
+      refetch();
       return res;
     },
     [refetch]
@@ -84,5 +94,5 @@ export const useProjectsState = () => {
     [setState]
   );
 
-  return { state, refetch, createProject, updateProject, deleteProject, setSelected, setMenuAnchor };
+  return { state, refetch, createProject, importProject, updateProject, deleteProject, setSelected, setMenuAnchor };
 };

@@ -1,3 +1,4 @@
+import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
@@ -58,19 +59,22 @@ import LinkIcon from './icons/link';
 import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
 import Picture from './icons/picture';
+import Play from './icons/play';
+import PublishView from './publish-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { TokenUsage } from './token-usage';
 import UndoAndRedo from './undo';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
-const defaultBranch = 'main';
-
 const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
 const CURRENT_TAB = (projectId: string) => `ai-studio.currentTab.${projectId}`;
 
 export default function ProjectPage() {
   const { projectId, ref: gitRef, '*': filepath } = useParams();
+  currentGitStore.setState({
+    currentProjectId: projectId,
+  });
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
   const { t } = useLocaleContext();
@@ -81,7 +85,7 @@ export default function ProjectPage() {
   const file = fileId && getFileById(fileId);
 
   const {
-    state: { error },
+    state: { error, project },
     refetch,
   } = useProjectState(projectId, gitRef);
   if (error) throw error;
@@ -108,11 +112,12 @@ export default function ProjectPage() {
 
     const p =
       (typeof filepathState === 'string' ? filepathState : undefined) ||
-      (gitRef === defaultBranch ? previousFilePath?.[gitRef] : undefined);
+      (gitRef === getDefaultBranch() ? previousFilePath?.[gitRef] : undefined);
 
     const filename = p?.split('/').slice(-1)[0];
 
-    const path = filename && Object.values(store.tree).find((i) => i?.endsWith(filename));
+    const path =
+      filename && Object.values(store.tree).find((i) => i?.startsWith(PROMPTS_FOLDER_NAME) && i?.endsWith(filename));
 
     if (path) navigate(joinURL('.', path), { replace: true });
     else {
@@ -167,6 +172,12 @@ export default function ProjectPage() {
               <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
 
               <Box flex={1} />
+
+              {project?.homePageUrl && (
+                <Button sx={{ minWidth: 0 }} color="secondary" onClick={() => window.open(project.homePageUrl)}>
+                  <Play />
+                </Button>
+              )}
 
               <Tooltip title={t('newObject', { object: t('folder') })} disableInteractive>
                 <span>
@@ -316,6 +327,7 @@ export default function ProjectPage() {
                 }}>
                 <Tab value="debug" label={t('debug')} />
                 <Tab value="test" label={t('test')} />
+                <Tab value="publish" label={t('publish')} />
                 <Tab value="discuss" label={t('discuss')} />
               </Tabs>
 
@@ -332,6 +344,8 @@ export default function ProjectPage() {
               <DebugView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
             ) : currentTab === 'test' ? (
               <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
+            ) : currentTab === 'publish' ? (
+              <PublishView projectId={projectId} gitRef={gitRef} assistant={file} />
             ) : currentTab === 'discuss' ? (
               <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />
             ) : null}

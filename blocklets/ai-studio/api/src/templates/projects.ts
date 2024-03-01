@@ -9,7 +9,9 @@ export const projectTemplates: (Project['dataValues'] & {
   {
     _id: '363299428078977024',
     name: 'blank',
+    description: 'Start a project from scratch.',
     model: '',
+    gitDefaultBranch: 'main',
     createdBy: wallet.address,
     updatedBy: wallet.address,
     createdAt: new Date('2023-09-30T12:23:04.603Z'),

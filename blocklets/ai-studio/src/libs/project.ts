@@ -3,7 +3,7 @@ import { Assistant } from '@blocklet/ai-runtime/types';
 import {
   AddProjectRemoteInput,
   CreateProjectInput,
-  GetProjectsQuery,
+  ImportProjectInput,
   ProjectPullInput,
   ProjectPushInput,
   UpdateProjectInput,
@@ -22,10 +22,12 @@ export type ProjectWithUserInfo = Project & {
   users: User[];
 };
 
-export async function getProjects(query?: GetProjectsQuery): Promise<{
+export async function getProjects(): Promise<{
   projects: ProjectWithUserInfo[];
+  templates: ProjectWithUserInfo[];
+  examples: ProjectWithUserInfo[];
 }> {
-  return axios.get('/api/projects', { params: query }).then((res) => res.data);
+  return axios.get('/api/projects').then((res) => res.data);
 }
 
 export async function getProject(projectId: string): Promise<Project> {
@@ -34,6 +36,15 @@ export async function getProject(projectId: string): Promise<Project> {
 
 export async function createProject(input?: CreateProjectInput): Promise<Project> {
   return axios.post('/api/projects', input).then((res) => res.data);
+}
+
+export async function copyProject(input?: {
+  folder: string;
+  projectId: string;
+  name?: string;
+  description?: string;
+}): Promise<Project> {
+  return axios.post('/api/projects/copy', input).then((res) => res.data);
 }
 
 export async function updateProject(projectId: string, input: UpdateProjectInput): Promise<Project> {
@@ -66,6 +77,10 @@ export async function projectPush(projectId: string, input?: ProjectPushInput): 
 
 export async function projectPull(projectId: string, input?: ProjectPullInput): Promise<{}> {
   return axios.post(`/api/projects/${projectId}/remote/pull`, input).then((res) => res.data);
+}
+
+export async function projectImport(input?: ImportProjectInput): Promise<Project> {
+  return axios.post('/api/projects/import', input).then((res) => res.data);
 }
 
 export async function projectSync(projectId: string): Promise<{}> {

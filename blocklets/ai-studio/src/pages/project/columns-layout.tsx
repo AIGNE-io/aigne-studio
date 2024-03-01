@@ -88,7 +88,11 @@ const ColumnsLayout = forwardRef<
 
   return (
     <Box height="100%">
-      <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
+      <Box
+        component={PanelGroup}
+        autoSaveId="ai-studio-template-layouts"
+        direction="horizontal"
+        disablePointerEventsDuringResize>
         <Box
           component={Panel}
           ref={leftPanel}

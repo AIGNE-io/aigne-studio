@@ -1,3 +1,4 @@
+import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { DownloadRounded, SaveRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
@@ -27,7 +28,7 @@ import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
 import useDialog from '../../utils/use-dialog';
-import { defaultBranch, useAssistantChangesState, useProjectState } from './state';
+import { useAssistantChangesState, useProjectState } from './state';
 
 interface CommitForm {
   branch: string;
@@ -39,7 +40,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const navigate = useNavigate();
 
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
-
+  const setProjectCurrentBranch = useCurrentGitStore((i) => i.setProjectCurrentBranch);
   const dialogState = usePopupState({ variant: 'dialog' });
 
   const {
@@ -67,7 +68,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
       try {
         let needMergeConflict = false;
 
-        const branch = simpleMode ? defaultBranch : input.branch;
+        const branch = simpleMode ? getDefaultBranch() : input.branch;
         try {
           await commitFromWorking({
             projectId,
@@ -93,6 +94,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
 
         refetch();
         run();
+        setProjectCurrentBranch(projectId, branch);
         if (branch !== gitRef) navigate(joinURL('..', branch), { replace: true });
       } catch (error) {
         form.reset(input);
@@ -100,7 +102,19 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         throw error;
       }
     },
-    [simpleMode, dialogState, refetch, gitRef, navigate, projectId, t, showMergeConflictDialog, form]
+    [
+      simpleMode,
+      dialogState,
+      refetch,
+      run,
+      setProjectCurrentBranch,
+      projectId,
+      gitRef,
+      navigate,
+      t,
+      showMergeConflictDialog,
+      form,
+    ]
   );
 
   const submitting = form.formState.isSubmitting;
@@ -222,7 +236,7 @@ export function useMergeConflictDialog({ projectId }: { projectId: string }) {
   const { t } = useLocaleContext();
   const { dialog, showDialog } = useDialog();
 
-  const { push, pull } = useProjectState(projectId, defaultBranch);
+  const { push, pull } = useProjectState(projectId, getDefaultBranch());
 
   const showMergeConflictDialog = useCallback(async () => {
     return new Promise<void>((resolve) => {

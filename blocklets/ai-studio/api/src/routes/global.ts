@@ -32,11 +32,18 @@ export function globalRoutes(router: Router) {
     const { projectId, search } = await getTagsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
     const projectIds = projectId
-      ? [projectId]
-      : (await Project.findAll({ order: [['createdAt', 'ASC']] })).map((i) => i._id);
+      ? [{ projectId, ref: defaultBranch }]
+      : (await Project.findAll({ order: [['createdAt', 'ASC']] })).map((i) => ({
+          projectId: i._id,
+          ref: i.gitDefaultBranch,
+        }));
 
     let tags = uniqBy(
-      (await Promise.all(projectIds.map((projectId) => getAssistantsOfRepository({ projectId, ref: defaultBranch }))))
+      (
+        await Promise.all(
+          projectIds.map((i) => getAssistantsOfRepository({ projectId: i.projectId, ref: i.ref ?? defaultBranch }))
+        )
+      )
         .flatMap((assistants) => assistants.map((i) => i.tags?.map((tag) => ({ tag, type: i.type }))))
         .flatMap((i) => i ?? []),
       'tag'

@@ -1,13 +1,19 @@
+import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import History from '@api/store/models/history';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
-import { isRunAssistantChunk, isRunAssistantError, isRunAssistantInput } from '@blocklet/ai-runtime/api';
-import { CallAI, RunAssistantResponse, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
-import { isPromptAssistant } from '@blocklet/ai-runtime/types';
-import { user } from '@blocklet/sdk/lib/middlewares';
+import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
+import {
+  AssistantResponseType,
+  RunAssistantResponse,
+  isImageAssistant,
+  isPromptAssistant,
+} from '@blocklet/ai-runtime/types';
+import user from '@blocklet/sdk/lib/middlewares/user';
 import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
+import { pick } from 'lodash';
 
 import { ensureComponentCallOrAuth, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
@@ -45,7 +51,7 @@ const callInputSchema = Joi.object<{
   parameters: Joi.object().pattern(Joi.string(), Joi.any()),
 });
 
-router.post('/call', compression(), user(), ensureComponentCallOrAuth(), async (req, res) => {
+router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
@@ -57,31 +63,76 @@ router.post('/call', compression(), user(), ensureComponentCallOrAuth(), async (
 
   const repository = await getRepository({ projectId: input.projectId });
 
-  const callAI: CallAI = ({ assistant, input }) => {
+  const callAI: CallAI = async ({ assistant, input, outputModel = false }) => {
     const promptAssistant = isPromptAssistant(assistant) ? assistant : undefined;
 
-    return chatCompletions({
-      ...input,
+    const model = {
       model: input.model || promptAssistant?.model || project.model || defaultModel,
       temperature: input.temperature ?? promptAssistant?.temperature ?? project.temperature,
       topP: input.topP ?? promptAssistant?.topP ?? project.topP,
       presencePenalty: input.presencePenalty ?? promptAssistant?.presencePenalty ?? project.presencePenalty,
       frequencyPenalty: input.frequencyPenalty ?? promptAssistant?.frequencyPenalty ?? project.frequencyPenalty,
+    };
+    const chatCompletionChunk = await chatCompletions({
+      ...input,
+      ...model,
       // FIXME: should be maxTokens - prompt tokens
       // maxTokens: input.maxTokens ?? project.maxTokens,
     });
+
+    if (outputModel) {
+      return {
+        chatCompletionChunk,
+        modelInfo: model,
+      };
+    }
+    return chatCompletionChunk as any;
   };
 
-  const getAssistant = (fileId: string) => {
+  const callAIImage: CallAIImage = async ({ assistant, input, outputModel = false }) => {
+    const imageAssistant = isImageAssistant(assistant) ? assistant : undefined;
+    const supportImages = await getSupportedImagesModels();
+    const imageModel = supportImages.find((i) => i.model === (imageAssistant?.model || defaultImageModel));
+
+    const model = {
+      model: input.model || imageModel?.model,
+      n: input.n || imageModel?.nDefault,
+      quality: input.quality || imageModel?.qualityDefault,
+      style: input.style || imageModel?.styleDefault,
+      size: input.size || imageModel?.sizeDefault,
+    };
+    const imageRes = await imageGenerations({
+      ...input,
+      ...model,
+      responseFormat: 'b64_json',
+    }).then(async (res) => ({
+      data: await Promise.all(
+        res.data.map(async (item) => ({
+          url: (await uploadImageToImageBin({ filename: `AI Generate ${Date.now()}.png`, data: item })).url,
+        }))
+      ),
+    }));
+
+    if (outputModel) {
+      return {
+        imageRes,
+        modelInfo: model,
+      };
+    }
+    return imageRes as any;
+  };
+
+  const getAssistant: GetAssistant = (fileId: string, options) => {
     return getAssistantFromRepository({
       repository,
       ref: input.ref,
       working: input.working,
       assistantId: fileId,
+      rejectOnEmpty: options?.rejectOnEmpty as any,
     });
   };
 
-  const assistant = await getAssistant(input.assistantId);
+  const assistant = await getAssistant(input.assistantId, { rejectOnEmpty: true });
 
   const history = userId
     ? await History.create({
@@ -100,9 +151,9 @@ router.post('/call', compression(), user(), ensureComponentCallOrAuth(), async (
   const result: { content?: string; images?: { url: string }[] } = {};
   const executingLogs: { [key: string]: NonNullable<History['executingLogs']>[number] } = {};
 
-  const handleChunk = (data: RunAssistantResponse) => {
-    if (isRunAssistantChunk(data) || isRunAssistantInput(data)) {
-      if (isRunAssistantChunk(data)) {
+  const emit = (data: RunAssistantResponse) => {
+    if (data.type === AssistantResponseType.CHUNK || data.type === AssistantResponseType.INPUT) {
+      if (data.type === AssistantResponseType.CHUNK) {
         mainTaskId ??= data.taskId;
         if (mainTaskId === data.taskId) {
           if (data.delta.content) result.content = (result.content || '') + data.delta.content;
@@ -122,13 +173,13 @@ router.post('/call', compression(), user(), ensureComponentCallOrAuth(), async (
       // 最后一次 callback 时间作为 task 结束时间
       log.endTime = new Date().toISOString();
 
-      if (isRunAssistantChunk(data)) {
+      if (data.type === AssistantResponseType.CHUNK) {
         if (data.delta.content) log.content = (log.content || '') + data.delta.content;
         if (data.delta.images?.length) log.images = (log.images || []).concat(data.delta.images);
-      } else if (isRunAssistantInput(data)) {
-        log.input = data.input;
+      } else if (data.type === AssistantResponseType.INPUT) {
+        log.input = data.apiArgs;
       }
-    } else if (isRunAssistantError(data)) {
+    } else if (data.type === AssistantResponseType.ERROR) {
       error = data.error;
     }
 
@@ -146,23 +197,17 @@ router.post('/call', compression(), user(), ensureComponentCallOrAuth(), async (
   try {
     const taskId = nextTaskId();
 
-    handleChunk({ taskId, assistantId: assistant.id, delta: {} });
+    if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: {} });
 
     const result = await runAssistant({
       callAI,
-      callAIImage: ({ input }) =>
-        imageGenerations({ ...input, responseFormat: 'b64_json' }).then(async (res) => ({
-          data: await Promise.all(
-            res.data.map(async (item) => ({
-              url: (await uploadImageToImageBin({ filename: `AI Generate ${Date.now()}.png`, data: item })).url,
-            }))
-          ),
-        })),
+      callAIImage,
       taskId,
       getAssistant,
       assistant,
       parameters: input.parameters,
-      callback: handleChunk,
+      callback: stream ? emit : undefined,
+      user: req.user,
     });
 
     if (!stream) {
@@ -172,7 +217,7 @@ router.post('/call', compression(), user(), ensureComponentCallOrAuth(), async (
     res.end();
   } catch (error) {
     if (stream) {
-      handleChunk({ error: { message: error.message } });
+      emit({ type: AssistantResponseType.ERROR, error: pick(error, 'message', 'type', 'timestamp') });
     } else {
       res.status(500).json({ error: { message: error.message } });
     }

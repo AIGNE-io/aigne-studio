@@ -6,7 +6,7 @@ import isNil from 'lodash/isNil';
 import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
-import { getSupportedModels } from '../../../libs/common';
+import { getSupportedModels } from '../../../../api/src/libs/common';
 import { useAssistantCompare, useProjectState } from '../../../pages/project/state';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';
@@ -217,7 +217,10 @@ export default function PromptSetting({
                       max={model.maxTokensMax}
                       step={1}
                       sx={{ flex: 1, backgroundColor: getDiffBackground('maxTokens') }}
-                      value={value.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault}
+                      value={Math.min(
+                        value?.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault ?? 0,
+                        model.maxTokensMax ?? 0
+                      )}
                       onChange={(_, v) => (value.maxTokens = v)}
                     />
                   </WithAwareness>

@@ -1,10 +1,15 @@
+import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, Typography } from '@mui/material';
+import { ReactNode } from 'react';
 
 export default function Home() {
   return (
-    <Dashboard>
+    <Dashboard
+      HeaderProps={{
+        addons: (exists: ReactNode[]) => [<SubscribeButton />, ...exists],
+      }}>
       <Box mx="auto" flexGrow={1} my={4} maxWidth={800}>
         {blocklet && (
           <Box textAlign="center">
@@ -20,7 +25,11 @@ export default function Home() {
         )}
       </Box>
 
-      <Footer />
+      <Footer
+        // FIXME: remove following undefined props after issue https://github.com/ArcBlock/ux/issues/1136 solved
+        meta={undefined}
+        theme={undefined}
+      />
     </Dashboard>
   );
 }

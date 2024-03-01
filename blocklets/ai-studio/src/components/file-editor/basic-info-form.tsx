@@ -30,22 +30,24 @@ export default function BasicInfoForm({
     <Stack gap={0.5}>
       <Box position="relative">
         <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
-          <HoverBackgroundTextField
-            hiddenLabel
-            fullWidth
-            placeholder={t('unnamed')}
-            value={value.name ?? ''}
-            onChange={(e) => (value.name = e.target.value)}
-            InputProps={{
-              readOnly,
-              sx: (theme) => theme.typography.subtitle1,
-            }}
-            sx={{
-              [`.${inputBaseClasses.root}`]: {
-                ...getDiffBackground('name'),
-              },
-            }}
-          />
+          <Stack display="flex" flexDirection="row">
+            <HoverBackgroundTextField
+              hiddenLabel
+              fullWidth
+              placeholder={t('unnamed')}
+              value={value.name ?? ''}
+              onChange={(e) => (value.name = e.target.value.replace(/\//g, ''))}
+              InputProps={{
+                readOnly,
+                sx: (theme) => theme.typography.subtitle1,
+              }}
+              sx={{
+                [`.${inputBaseClasses.root}`]: {
+                  ...getDiffBackground('name'),
+                },
+              }}
+            />
+          </Stack>
         </WithAwareness>
 
         <AwarenessIndicator

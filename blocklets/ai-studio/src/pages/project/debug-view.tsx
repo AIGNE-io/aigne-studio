@@ -1,11 +1,14 @@
+import ErrorCard from '@app/components/error-card';
+import MdViewer from '@app/components/md-viewer';
+import BasicTree from '@app/components/trace';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, isAssistant, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { css, cx } from '@emotion/css';
-import { Add, CopyAll, ErrorRounded } from '@mui/icons-material';
+import { cx } from '@emotion/css';
+import { Add, CopyAll } from '@mui/icons-material';
 import {
   Accordion,
   AccordionDetails,
@@ -15,6 +18,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  IconButton,
   MenuItem,
   Select,
   Stack,
@@ -25,28 +29,28 @@ import {
   Typography,
   accordionSummaryClasses,
   alertClasses,
+  alpha,
   outlinedInputClasses,
   selectClasses,
   styled,
 } from '@mui/material';
-import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { useLocalStorageState } from 'ahooks';
-import { isEmpty, pick, sortBy } from 'lodash';
+import dayjs from 'dayjs';
+import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
-import { ComponentProps, SyntheticEvent, memo, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, SyntheticEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import Markdown from 'react-markdown';
-import ScrollToBottom, { useScrollToBottom } from 'react-scroll-to-bottom';
+import { FlatIndexLocationWithAlign, Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
+import Broom from './icons/broom';
 import ChevronDown from './icons/chevron-down';
 import Empty from './icons/empty';
 import Record from './icons/record';
 import Trash from './icons/trash';
 import PaperPlane from './paper-plane';
 import { SessionItem, useDebugState, useProjectState } from './state';
-import { useProjectStore } from './yjs-state';
 
 export default function DebugView(props: {
   projectId: string;
@@ -71,20 +75,7 @@ export default function DebugView(props: {
   });
 
   return (
-    <Box
-      key={state.currentSessionIndex}
-      initialScrollBehavior="auto"
-      component={ScrollToBottom}
-      flexGrow={1}
-      height="100%"
-      overflow="auto"
-      scrollViewClassName={css`
-        display: flex;
-        flex-direction: column;
-      `}
-      followButtonClassName={css`
-        display: none;
-      `}>
+    <Box flexGrow={1} display="flex" flexDirection="column" key={state.currentSessionIndex}>
       <DebugViewContent {...props} />
       {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.assistant.id} />}
     </Box>
@@ -103,40 +94,120 @@ function DebugViewContent({
   setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
-
-  const { state, setSession } = useDebugState({
+  const virtuoso = useRef<VirtuosoHandle>(null);
+  const { state, setSession, clearCurrentSession } = useDebugState({
     projectId,
     assistantId: assistant.id,
   });
+
+  const [showScrollBox, setShowScrollBox] = useState(false);
+
+  const handleScroll = useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      const bottomThreshold = 400;
+      const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight <= bottomThreshold;
+
+      if (!isNearBottom && !showScrollBox) {
+        setShowScrollBox(true);
+      } else if (isNearBottom && showScrollBox) {
+        setShowScrollBox(false);
+      }
+    },
+    [showScrollBox]
+  );
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
 
   if (!currentSession) return null;
   return (
     <>
-      <Box px={4} py={2} bgcolor="background.paper" sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <Box mx="auto" maxWidth={200}>
+      <Box
+        px={4}
+        pb={2}
+        pt={1}
+        display="flex"
+        justifyContent="space-between"
+        bgcolor="background.paper"
+        sx={{ zIndex: 2 }}>
+        <Box maxWidth={200}>
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
+        <Tooltip title={t('clearSession')}>
+          <IconButton
+            size="small"
+            sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
+            onClick={clearCurrentSession}>
+            <Broom fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </Box>
 
-      <Box flexGrow={1}>
-        {currentSession.messages.map((message) => (
-          <MessageView
-            currentSession={currentSession.chatType}
-            key={message.id}
+      <Box
+        sx={{
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          height: 0,
+          flexGrow: 1,
+          overflowX: 'hidden',
+        }}>
+        <Virtuoso
+          ref={virtuoso}
+          data={currentSession.messages}
+          followOutput={(isAtBottom: boolean) => {
+            if (isAtBottom) {
+              return 'auto';
+            }
+
+            return false;
+          }}
+          onScroll={handleScroll}
+          computeItemKey={(_, item) => item.id}
+          initialTopMostItemIndex={currentSession.messages.length - 1}
+          itemContent={(index, message) => (
+            <MessageView index={index} chatType={currentSession.chatType ?? 'chat'} message={message} />
+          )}
+        />
+        {showScrollBox && (
+          <Box
+            onClick={() => {
+              virtuoso.current?.scrollToIndex({
+                behavior: 'smooth',
+                index: currentSession.messages.length - 1,
+              });
+            }}
+            sx={{
+              bgcolor: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '10px',
+              borderWidth: 0,
+              bottom: 5,
+              cursor: 'pointer',
+              height: 20,
+              position: 'absolute',
+              right: 20,
+              width: 20,
+            }}
+          />
+        )}
+      </Box>
+
+      <Stack gap={2} sx={{ bgcolor: 'background.paper', my: 2 }}>
+        {currentSession.chatType !== 'debug' ? (
+          <ChatModeForm
+            scrollToIndex={virtuoso.current?.scrollToIndex}
             projectId={projectId}
             gitRef={gitRef}
-            message={message}
+            assistant={assistant}
           />
-        ))}
-      </Box>
-
-      <Stack gap={2} sx={{ position: 'sticky', bottom: 0, py: 2, bgcolor: 'background.paper' }}>
-        {currentSession.chatType !== 'debug' ? (
-          <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
         ) : (
-          <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
+          <DebugModeForm
+            scrollToIndex={virtuoso.current?.scrollToIndex}
+            projectId={projectId}
+            gitRef={gitRef}
+            assistant={assistant}
+            setCurrentTab={setCurrentTab}
+          />
         )}
 
         <Box textAlign="center">
@@ -212,169 +283,71 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
 
 const MessageView = memo(
   ({
-    projectId,
-    gitRef,
-    currentSession,
     message,
+    chatType,
+    index,
   }: {
-    projectId: string;
-    currentSession?: 'chat' | 'debug';
-    gitRef: string;
     message: SessionItem['messages'][number];
+    chatType?: 'chat' | 'debug';
+    index: number;
   }) => {
-    const { t } = useLocaleContext();
-    const { store } = useProjectStore(projectId, gitRef);
-
     return (
-      <>
-        <Stack px={2} py={1} direction="row" gap={1} position="relative">
-          <Box py={0.5}>
-            <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-          </Box>
+      <Stack mt={message.role === 'user' && index !== 0 ? 4 : 0}>
+        {message.role === 'user' && (
+          <Typography alignSelf="center" ml={0.5} component="span" color="text.secondary" whiteSpace="nowrap">
+            {dayjs(message.createdAt).format('YYYY-MM-DD HH:mm:ss')}
+          </Typography>
+        )}
+        <Stack px={4} py={1} gap={1} flexDirection="row" position="relative">
+          <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
+          <Box sx={{ overflowX: 'hidden', pb: 1, flexGrow: 1 }}>
+            <BasicTree inputs={message.inputMessages} />
+            <Box
+              flex={1}
+              sx={{
+                [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
+              }}>
+              {(message.content || message.images?.length || message.loading) &&
+              (chatType !== 'debug' || !message?.inputMessages?.length) ? (
+                <MessageViewContent
+                  sx={{
+                    p: 1,
+                    borderRadius: 1,
+                    bgcolor: (theme) =>
+                      message?.inputMessages
+                        ? theme.palette.grey[100]
+                        : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
+                    position: 'relative',
+                  }}>
+                  <MdViewer content={message.content} />
 
-          <Box
-            flex={1}
-            sx={{
-              [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
-            }}>
-            {message.content || message.parameters || message.images?.length || message.loading ? (
-              <MessageViewContent
-                sx={{
-                  px: 1,
-                  py: 0.5,
-                  borderRadius: 1,
-                  ':hover': {
-                    bgcolor: 'grey.100',
-                  },
-                  position: 'relative',
-                }}>
-                {<Box component={Markdown}>{message.content}</Box> ||
-                  (message.parameters && (
-                    <Box>
-                      {!isEmpty(message.parameters) ? (
-                        Object.entries(message.parameters).map(([key, val]) => (
-                          <Typography key={key}>
-                            <Typography component="span" color="text.secondary">
-                              {key}
-                            </Typography>
-                            : {typeof val === 'string' ? val : JSON.stringify(val)}
-                          </Typography>
-                        ))
-                      ) : (
-                        <span>{t('noParameters')}</span>
-                      )}
+                  {message.images && message.images.length > 0 && (
+                    <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
+                  )}
+
+                  {message.loading && !message.inputMessages && <WritingIndicator />}
+
+                  {message.role === 'assistant' && (
+                    <Box className="actions">
+                      {message.content && <CopyButton key="copy" message={message.content} />}
                     </Box>
-                  ))}
-                {!!message.inputMessages?.messages.length && (
-                  <Box marginTop={1}>
-                    {message.inputMessages?.messages.map((i, index) => (
-                      <Accordion
-                        sx={{
-                          border: (theme) => `1px solid ${theme.palette.divider}`,
-                          '&:not(:last-child)': {
-                            borderBottom: 0,
-                          },
-                          '&::before': {
-                            display: 'none',
-                          },
-                        }}
-                        disableGutters
-                        elevation={0}
-                        key={index}>
-                        <AccordionSummary
-                          sx={{
-                            backgroundColor: (theme) =>
-                              theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
-                            minHeight: 28,
-                            '& .MuiAccordionSummary-content': {
-                              my: 0,
-                            },
-                          }}
-                          expandIcon={<GridExpandMoreIcon />}>
-                          <Typography>{i.role}</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails sx={{ fontSize: 18, py: 1 }}>
-                          <Typography>{i.content}</Typography>
-                        </AccordionDetails>
-                      </Accordion>
-                    ))}
-                  </Box>
-                )}
+                  )}
+                </MessageViewContent>
+              ) : null}
 
-                {message.images && message.images.length > 0 && (
-                  <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
-                )}
-
-                {message.loading &&
-                  (message.inputMessages ? (
-                    message?.inputMessages?.messages.length === 0 &&
-                    (currentSession === 'debug' ? <CircularProgress sx={{ marginTop: 1 }} size={18} /> : null)
-                  ) : (
-                    <WritingIndicator />
-                  ))}
-
-                {message.role === 'assistant' && (
-                  <Box className="actions">
-                    {message.content && <CopyButton key="copy" message={message.content} />}
-                  </Box>
-                )}
-              </MessageViewContent>
-            ) : null}
-
-            {message.error ? (
-              <Alert
-                variant="standard"
-                icon={<ErrorRounded />}
-                color="error"
-                sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                {message.error.message}
-              </Alert>
-            ) : (
-              message.cancelled && (
-                <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                  Cancelled
-                </Alert>
-              )
-            )}
+              {message.error ? (
+                <ErrorCard error={message.error} />
+              ) : (
+                message.cancelled && (
+                  <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                    Cancelled
+                  </Alert>
+                )
+              )}
+            </Box>
           </Box>
         </Stack>
-
-        {message.subMessages && (
-          <Box ml={6}>
-            {message.subMessages.map((item) => {
-              const assistant = store.files[item.assistantId];
-              const name = (assistant && isAssistant(assistant) && assistant.name) || item.taskId;
-
-              const avatar = (
-                <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{name?.slice(0, 1).toUpperCase()}</Avatar>
-              );
-
-              return (
-                <Box key={item.taskId}>
-                  <Box py={1} display="flex" alignItems="center" gap={1}>
-                    {avatar}
-                    <Box>{name}</Box>
-                  </Box>
-
-                  <Box ml={4}>
-                    {item.content && (
-                      <Box
-                        component="pre"
-                        sx={{ whiteSpace: 'pre-wrap', background: 'rgba(0, 0, 0, 0.03)', color: '#000', mr: 2 }}
-                        dangerouslySetInnerHTML={{ __html: item.content }}
-                      />
-                    )}
-
-                    {item.images && item.images.length > 0 && (
-                      <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={item.images} />
-                    )}
-                  </Box>
-                </Box>
-              );
-            })}
-          </Box>
-        )}
-      </>
+      </Stack>
     );
   }
 );
@@ -434,10 +407,12 @@ function ChatModeForm({
   projectId,
   gitRef,
   assistant,
+  scrollToIndex,
 }: {
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
+  scrollToIndex?: (location: number | FlatIndexLocationWithAlign) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -446,8 +421,6 @@ function ChatModeForm({
   } = useProjectState(projectId, gitRef);
 
   const { state, sendMessage, cancelMessage } = useDebugState({ projectId, assistantId: assistant.id });
-
-  const scrollToBottom = useScrollToBottom();
 
   const [question, setQuestion] = useState('');
 
@@ -479,8 +452,14 @@ function ChatModeForm({
         presencePenalty: promptAssistant?.presencePenalty ?? project?.presencePenalty,
       },
     });
-    scrollToBottom({ behavior: 'smooth' });
 
+    if (currentSession?.messages?.length) {
+      const lastIndex = currentSession.messages.length - 1;
+      scrollToIndex?.({
+        behavior: 'smooth',
+        index: lastIndex,
+      });
+    }
     setQuestion('');
   };
 
@@ -543,11 +522,13 @@ function DebugModeForm({
   gitRef,
   assistant,
   setCurrentTab,
+  scrollToIndex,
 }: {
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
   setCurrentTab: (tab: string) => void;
+  scrollToIndex?: (location: number | FlatIndexLocationWithAlign) => void;
 }) {
   const { t } = useLocaleContext();
   const key = `${projectId}-${gitRef}-${assistant.id}`;
@@ -570,8 +551,6 @@ function DebugModeForm({
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
   const lastMessage = currentSession?.messages.at(-1);
-
-  const scrollToBottom = useScrollToBottom();
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter(
     (i): i is typeof i & { data: { key: string } } => !!i.data.key
@@ -614,7 +593,13 @@ function DebugModeForm({
     setSession(state.currentSessionIndex!, (session) => {
       session.debugForm = { ...parameters };
     });
-    scrollToBottom({ behavior: 'smooth' });
+    if (currentSession?.messages?.length) {
+      const lastIndex = currentSession.messages.length - 1;
+      scrollToIndex?.({
+        behavior: 'smooth',
+        index: lastIndex,
+      });
+    }
   };
 
   const addToTest = () => {
@@ -646,8 +631,6 @@ function DebugModeForm({
           elevation={0}
           sx={{
             ':before': { display: 'none' },
-            position: 'sticky',
-            bottom: 0,
             p: 0,
             borderRadius: 1,
           }}>
@@ -767,7 +750,7 @@ function DebugModeForm({
               <PaperPlane />
             )
           }>
-          {lastMessage?.loading ? t('stop') : t('send')}
+          {lastMessage?.loading ? t('stop') : t('execute')}
         </Button>
       </Stack>
     </Stack>
@@ -795,27 +778,29 @@ function EmptySessions({ projectId, templateId }: { projectId: string; templateI
 }
 
 export const WritingIndicator = styled('span')`
-  &:after {
-    content: '';
-    display: inline-block;
-    vertical-align: middle;
-    height: 1.2em;
-    margin-top: -0.2em;
-    margin-left: 0.1em;
-    border-right: 0.2em solid orange;
-    border-radius: 10px;
-    animation: blink-caret 0.75s step-end infinite;
+  ${({ theme }) => `
+    &:after {
+      content: '';
+      display: inline-block;
+      vertical-align: middle;
+      height: 1.2em;
+      margin-top: -0.2em;
+      margin-left: 0.1em;
+      border-right: 0.2em solid ${alpha(theme.palette.primary.main, 0.4)};
+      border-radius: 10px;
+      animation: blink-caret 0.75s step-end infinite;
 
-    @keyframes blink-caret {
-      from,
-      to {
-        border-color: transparent;
-      }
-      50% {
-        border-color: orange;
+      @keyframes blink-caret {
+        from,
+        to {
+          border-color: transparent;
+        }
+        50% {
+          border-color: ${alpha(theme.palette.primary.main, 0.4)};
+        }
       }
     }
-  }
+  `}
 `;
 
 const CustomAccordion = styled(Accordion)(() => ({
@@ -829,7 +814,7 @@ const CustomAccordion = styled(Accordion)(() => ({
   },
 }));
 
-function ImagePreviewB64({
+export function ImagePreviewB64({
   dataSource,
   ...props
 }: Omit<ComponentProps<typeof ImagePreview>, 'dataSource'> & {

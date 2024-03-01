@@ -1,5 +1,6 @@
 import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
+import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
@@ -126,7 +127,14 @@ const DatasetsRoutes = lazy(() => import('./pages/datasets'));
 const EmbedRoutes = lazy(() => import('./pages/embed'));
 
 function Layout({ children }: { children: ReactNode }) {
-  return <Dashboard>{children}</Dashboard>;
+  return (
+    <Dashboard
+      HeaderProps={{
+        addons: (exists: ReactNode[]) => [<SubscribeButton />, ...exists],
+      }}>
+      {children}
+    </Dashboard>
+  );
 }
 
 function NotFound() {
@@ -136,7 +144,11 @@ function NotFound() {
         <div>Not Found.</div>
       </Box>
 
-      <Footer />
+      <Footer
+        // FIXME: remove following undefined props after issue https://github.com/ArcBlock/ux/issues/1136 solved
+        meta={undefined}
+        theme={undefined}
+      />
     </Layout>
   );
 }

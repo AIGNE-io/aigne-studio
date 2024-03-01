@@ -180,11 +180,13 @@ export interface ImageModelInfo extends ModelInfoBase {
   nDefault?: number;
   disabled?: boolean;
   quality?: string[];
-  qualityDefault?: string;
+  qualityDefault?: 'standard' | 'hd';
+  responseFormat?: string[];
+  responseFormatDefault?: 'url' | 'b64_json';
   size?: string[];
-  sizeDefault?: string;
+  sizeDefault?: '256x256' | '512x512' | '1024x1024' | '1024x1792' | '1792x1024';
   style?: string[];
-  styleDefault?: string;
+  styleDefault?: 'vivid' | 'natural';
 }
 
 export const defaultImageModel = 'dall-e-2';
