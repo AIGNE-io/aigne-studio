@@ -1,3 +1,7 @@
+## 0.1.271 (2024-3-1)
+
+- feat: bundle use compact
+
 ## 0.1.270 (2024-2-29)
 
 - fix: support default branch
