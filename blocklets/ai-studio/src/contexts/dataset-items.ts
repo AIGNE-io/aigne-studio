@@ -1,9 +1,11 @@
+import Toast from '@arcblock/ux/lib/Toast';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import Dataset from '../../api/src/store/models/dataset';
-import DatasetItem from '../../api/src/store/models/dataset-item';
-import { getDataset, getDatasetItems } from '../libs/dataset';
+import DatasetItem from '../../api/src/store/models/dataset/item';
+import Dataset from '../../api/src/store/models/dataset/list';
+import { getErrorMessage } from '../libs/api';
+import { deleteUnit, getDataset, getUnits } from '../libs/dataset';
 
 interface DatasetState {
   dataset?: Dataset;
@@ -22,11 +24,9 @@ const dataset = (datasetId: string) => {
   if (!dataset) {
     dataset = atom<DatasetState>({
       key: `dataset-${datasetId}`,
-      default: {
-        page: 0,
-        size: 20,
-      },
+      default: { page: 0, size: 20 },
     });
+
     datasets[datasetId] = dataset;
   }
   return dataset;
@@ -49,7 +49,7 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
         });
         const [dataset, { items, total }] = await Promise.all([
           getDataset(datasetId),
-          getDatasetItems({ datasetId, page: (page ?? 0) + 1, size }),
+          getUnits(datasetId, { page: (page ?? 0) + 1, size }),
         ]);
         setState((v) => ({
           ...v,
@@ -77,11 +77,19 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
     [datasetId, setState]
   );
 
+  const remove = useCallback(async (datasetId: string, unitId: string) => {
+    try {
+      await deleteUnit(datasetId, unitId);
+    } catch (error) {
+      Toast.error(getErrorMessage(error));
+    }
+  }, []);
+
   useEffect(() => {
     if (autoFetch && !state.dataset && !state.loading) {
       refetch();
     }
   }, []);
 
-  return { state, refetch };
+  return { state, refetch, remove };
 };

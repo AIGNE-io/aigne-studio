@@ -173,6 +173,7 @@ export default flat({
   stop: 'Stop',
   session: 'Session',
   setting: 'Setting',
+  knowledge: 'Knowledge',
   chat: 'Chat',
   debug: 'Debug',
   save: 'Save',

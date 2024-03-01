@@ -170,6 +170,7 @@ export default flat({
   stop: '停止',
   session: '会话',
   setting: '设置',
+  knowledge: '知识库',
   chat: '对话',
   debug: '调试',
   save: '保存',

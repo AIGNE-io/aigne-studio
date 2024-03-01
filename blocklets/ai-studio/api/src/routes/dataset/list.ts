@@ -4,12 +4,14 @@ import Joi from 'joi';
 import { Op } from 'sequelize';
 
 import { checkUserAuth } from '../../libs/user';
+import DatasetItem from '../../store/models/dataset/item';
 import Dataset from '../../store/models/dataset/list';
 
 const router = Router();
 
-const datasetSchema = Joi.object<{ name?: string }>({
+const datasetSchema = Joi.object<{ name?: string; description?: string }>({
   name: Joi.string().allow('').empty(null).default(''),
+  description: Joi.string().allow('').empty(null).default(''),
 });
 
 /**
@@ -28,12 +30,20 @@ const datasetSchema = Joi.object<{ name?: string }>({
  */
 router.get('/list', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
+
   const list = await Dataset.findAll({
     order: [['createdAt', 'ASC']],
     where: { [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
   });
 
-  res.json({ datasets: list });
+  res.json({
+    datasets: await Promise.all(
+      list.map(async (item) => {
+        item.dataValues.units = await DatasetItem.count({ where: { datasetId: item.id } });
+        return item;
+      })
+    ),
+  });
 });
 
 /**
@@ -99,10 +109,10 @@ router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
  *          x-description-zh: 创建新的数据集
  */
 router.post('/create', user(), checkUserAuth(), async (req, res) => {
-  const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, description } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
 
-  const doc = await Dataset.create({ name, createdBy: did, updatedBy: did });
+  const doc = await Dataset.create({ name, description, createdBy: did, updatedBy: did });
   res.json(doc);
 });
 

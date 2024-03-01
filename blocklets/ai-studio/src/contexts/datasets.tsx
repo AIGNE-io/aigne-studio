@@ -2,8 +2,8 @@ import { useUpdate } from 'ahooks';
 import { Draft, produce } from 'immer';
 import { ReactNode, createContext, useCallback, useContext, useRef } from 'react';
 
-import Dataset from '../../api/src/store/models/dataset';
-import { createDataset, getDatasets } from '../libs/dataset';
+import Dataset from '../../api/src/store/models/dataset/list';
+import { createDataset, createUnit, deleteDataset, getDatasets, getUnits } from '../libs/dataset';
 
 export interface DatasetsContext {
   datasets: Dataset[];
@@ -11,6 +11,9 @@ export interface DatasetsContext {
   error?: Error;
   refetch: () => Promise<void>;
   createDataset: typeof createDataset;
+  deleteDataset: typeof deleteDataset;
+  createUnit: typeof createUnit;
+  getUnits: typeof getUnits;
 }
 
 const ctx = createContext<DatasetsContext | undefined>(undefined);
@@ -21,9 +24,11 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
     loading: false,
     refetch: async () => {
       const state = value.current;
+
       if (state.loading) {
         return;
       }
+
       setValue((v) => (v.loading = true));
       try {
         const { datasets } = await getDatasets();
@@ -42,6 +47,17 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
       const dataset = await createDataset(input);
       await value.current.refetch();
       return dataset;
+    },
+    deleteDataset: async (datasetId) => {
+      await deleteDataset(datasetId);
+      await value.current.refetch();
+    },
+    createUnit: async (datasetId, input: { type: string; name: string }) => {
+      await createUnit(datasetId, input);
+    },
+    getUnits: async (datasetId) => {
+      const units = await getUnits(datasetId, {});
+      return units;
     },
   });
 
@@ -64,6 +80,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
 
 export function useDatasets() {
   const state = useContext(ctx);
+
   if (!state) {
     throw new Error('`useDatasets()` is only allowed to be used in a child of `DatasetsProvider`');
   }

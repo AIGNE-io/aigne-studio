@@ -1,13 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 
-import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import user from '@blocklet/sdk/lib/middlewares/user';
-import axios from 'axios';
 import { Router } from 'express';
-import SSE from 'express-sse';
 import Joi from 'joi';
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import multer from 'multer';
 import { Op } from 'sequelize';
 
@@ -17,10 +13,9 @@ import { checkUserAuth } from '../../libs/user';
 import DatasetItem from '../../store/models/dataset/item';
 import Dataset from '../../store/models/dataset/list';
 import VectorStore from '../../store/vector-store';
+import { resetDatasetsEmbedding, runHandlerAndSaveContent } from './embeddings';
 
 const router = Router();
-const sse = new SSE();
-const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
 const upload = multer({ storage: multer.memoryStorage() });
 
 const paginationSchema = Joi.object<{ page: number; size: number }>({
@@ -34,6 +29,14 @@ const createItemSchema = Joi.object<{
 }>({
   type: Joi.string().valid('text', 'discussion').required(),
   data: Joi.string().required(),
+});
+
+const idSchema = Joi.object<{
+  datasetId: string;
+  itemId: string;
+}>({
+  datasetId: Joi.string().required(),
+  itemId: Joi.string().required(),
 });
 
 /**
@@ -127,9 +130,8 @@ router.get('/:datasetId/items', user(), checkUserAuth(), async (req, res) => {
  *          x-description-zh: 删除当前 datasetId 数据集中数据信息
  */
 
-router.delete('/:datasetId/items/:itemId', user(), checkUserAuth(), async (req, res) => {
-  const { did } = req.user!;
-  const { datasetId, itemId } = req.params;
+router.delete('/:datasetId/:itemId', user(), checkUserAuth(), async (req, res) => {
+  const { datasetId, itemId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
 
   if (!datasetId || !itemId) {
     throw new Error('Missing required params `datasetId` or `itemId`');
@@ -137,46 +139,34 @@ router.delete('/:datasetId/items/:itemId', user(), checkUserAuth(), async (req, 
 
   await DatasetItem.destroy({ where: { id: itemId, datasetId } });
 
-  await resetDatasetsEmbedding(datasetId, did);
-
   res.json({ data: 'success' });
 });
 
-const embeddingHandler: {
-  [key in NonNullable<DatasetItem['type']>]: (
-    item: DatasetItem & { data: { type: key } }
-  ) => Promise<{ name: string; content: string }>;
-} = {
-  discussion: async (item: DatasetItem) => {
-    const discussion = await getDiscussion((item.data as any).id);
-    await saveContentToVectorStore(discussion.content, item.datasetId);
-    return { name: discussion.title, content: discussion.content };
-  },
-  text: async (item: DatasetItem) => {
-    const content = (item.data as any)?.content;
-    await saveContentToVectorStore(content, item.datasetId);
+router.post('/:datasetId/create', user(), checkUserAuth(), async (req, res) => {
+  const { did } = req.user!;
+  const { datasetId } = req.params;
 
-    return { name: content.slice(0, 10), content };
-  },
-  markdown: async (item: DatasetItem) => {
-    const content = fs.readFileSync((item.data as any).path, 'utf8');
-    await saveContentToVectorStore(content, item.datasetId);
+  const input = await Joi.object<{ type: 'discussion' | 'text' | 'markdown' | 'txt' | 'pdf'; name: string }>({
+    type: Joi.string().valid('discussion', 'text', 'markdown', 'txt', 'pdf').required(),
+    name: Joi.string().required(),
+  }).validateAsync(req.body, { stripUnknown: true });
 
-    return { name: content.slice(0, 10), content };
-  },
-  txt: async (item: DatasetItem) => {
-    const content = fs.readFileSync((item.data as any).path, 'utf8');
-    await saveContentToVectorStore(content, item.datasetId);
+  if (!datasetId) {
+    throw new Error('Missing required params `datasetId`');
+  }
 
-    return { name: content.slice(0, 10), content };
-  },
-  pdf: async (item: DatasetItem) => {
-    const content = fs.readFileSync((item.data as any).path, 'utf8');
-    await saveContentToVectorStore(content, item.datasetId);
+  const { type, name } = input;
 
-    return { name: content.slice(0, 10), content };
-  },
-};
+  await DatasetItem.create({
+    type,
+    name,
+    datasetId,
+    createdBy: did,
+    updatedBy: did,
+  });
+
+  res.json({ data: 'success' });
+});
 
 /**
  * @openapi
@@ -227,6 +217,7 @@ router.post('/:datasetId/items/embedding', user(), checkUserAuth(), async (req, 
       : { type: input.type, id: input.data || '' };
 
   const result = await DatasetItem.create({
+    name: (input.data || '').slice(0, 10),
     type: input.type,
     data,
     datasetId,
@@ -318,6 +309,7 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
   const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'markdown' | 'txt' | 'pdf';
 
   const result = await DatasetItem.create({
+    name: (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
     type: fileExtension,
     data: { type: fileExtension, path: filePath },
     datasetId,
@@ -375,7 +367,8 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
 
 router.put('/:datasetId/items/:itemId/embedding', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user! || {};
-  const { datasetId, itemId } = req.params;
+  const { datasetId, itemId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
+
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
   }
@@ -388,7 +381,7 @@ router.put('/:datasetId/items/:itemId/embedding', user(), checkUserAuth(), async
 
   await DatasetItem.update({ error: '', type: input.type, data, updatedBy: did }, { where: { id: itemId, datasetId } });
 
-  await resetDatasetsEmbedding(datasetId, did);
+  await resetDatasetsEmbedding(datasetId, did, itemId);
 
   res.json({ data: 'success' });
 });
@@ -438,7 +431,8 @@ router.put('/:datasetId/items/:itemId/embedding', user(), checkUserAuth(), async
  */
 router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.single('data'), async (req, res) => {
   const { did } = req.user!;
-  const { datasetId, itemId } = req.params;
+  const { datasetId, itemId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
+
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
   }
@@ -482,7 +476,7 @@ router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.sin
     { where: { id: itemId, datasetId } }
   );
 
-  await resetDatasetsEmbedding(datasetId, did);
+  await resetDatasetsEmbedding(datasetId, did, itemId);
 
   res.json({ data: 'success' });
 });
@@ -556,85 +550,85 @@ router.get('/:datasetId/items/search', user(), checkUserAuth(), async (req, res)
   res.json({ role: 'system', content: contextTemplate });
 });
 
-export default router;
+router.get('/:datasetId/:unitId', user(), checkUserAuth(), async (req, res) => {
+  const { did } = req.user!;
 
-const discussBaseUrl = () => {
-  const url = getComponentWebEndpoint('z8ia1WEiBZ7hxURf6LwH21Wpg99vophFwSJdu');
-  if (!url) {
-    throw new Error('did-comments component not found');
-  }
+  const input = await Joi.object<{ datasetId: string; unitId: string }>({
+    datasetId: Joi.string().required(),
+    unitId: Joi.string().required(),
+  }).validateAsync(req.params);
 
-  return url;
-};
+  const { datasetId, unitId } = input;
 
-async function getDiscussion(discussionId: string): Promise<{ content: string; updatedAt: string; title: string }> {
-  const { data } = await axios.get(`/api/blogs/${discussionId}`, {
-    baseURL: discussBaseUrl(),
-    params: { textContent: 1 },
+  const dataset = await Dataset.findOne({
+    where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
   });
 
-  if (!data) {
-    throw new Error('Discussion not found');
-  }
+  const unit = await DatasetItem.findOne({ where: { datasetId, id: unitId } });
 
-  return data;
+  res.json({ dataset, unit });
+});
+
+export interface CreateItem {
+  name: string;
+  data: { type: 'discussion'; id: string };
 }
 
-const saveContentToVectorStore = async (content: string, datasetId: string) => {
-  const textSplitter = new RecursiveCharacterTextSplitter();
-  const docs = await textSplitter.createDocuments([content]);
-  const embeddings = new AIKitEmbeddings({});
-  const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
-  const store = await VectorStore.load(datasetId, embeddings);
-  await store.addVectors(vectors, docs);
-  await store.save();
-};
+export type CreateItemInput = CreateItem | CreateItem[];
 
-const runHandlerAndSaveContent = async (itemId: string) => {
-  let task = embeddingTasks.get(itemId);
-  if (!task) {
-    task = {
-      promise: (async () => {
-        const item = await DatasetItem.findOne({ where: { id: itemId } });
-        if (!item) throw new Error(`Dataset item ${itemId} not found`);
-        if (!item.data) return;
+const createItemsSchema = Joi.object<CreateItem>({
+  name: Joi.string().required(),
+  data: Joi.object({
+    type: Joi.string().valid('discussion').required(),
+  })
+    .when(Joi.object({ type: 'discussion' }).unknown(), {
+      then: Joi.object({
+        id: Joi.string(),
+      }),
+    })
+    .required(),
+});
 
-        const handler = embeddingHandler[item.type];
-        if (!handler) return;
+const createItemInputSchema = Joi.alternatives<CreateItemInput>().try(
+  Joi.array().items(createItemsSchema),
+  createItemsSchema
+);
 
-        try {
-          const { name, content } = await handler(item as any);
-          await DatasetItem.update({ error: '', content, name }, { where: { id: itemId } });
-        } catch (error) {
-          await DatasetItem.update({ error: error.message }, { where: { id: itemId } });
-
-          throw error;
-        } finally {
-          embeddingTasks.delete(itemId);
-          sse.send({ itemId }, 'complete');
-        }
-      })(),
-    };
-
-    embeddingTasks.set(itemId, task);
-    sse.send({ itemId }, 'change');
+router.post('/:datasetId/items', user(), async (req, res) => {
+  const { datasetId } = req.params;
+  if (!datasetId) {
+    throw new Error('Missing required params `datasetId`');
   }
 
-  await task.promise;
-};
+  const input = await createItemInputSchema.validateAsync(req.body, { stripUnknown: true });
+  const { did } = req.user!;
 
-const resetDatasetsEmbedding = async (datasetId: string, did: string) => {
-  const datasetItems = await DatasetItem.findAll({ where: { datasetId, createdBy: did } });
-  if (!datasetItems?.length) return;
+  const arr = Array.isArray(input) ? input : [input];
 
-  await VectorStore.remove(datasetId);
+  const docs = await Promise.all(
+    arr.map(async (item) => {
+      const { data, name } = item;
+      const found = await DatasetItem.findOne({ where: { datasetId, data } });
+      if (found) {
+        return found.update({ name, data, createdBy: did, updatedBy: did }, { where: { datasetId, data } });
+      }
 
-  // 使用同步还是异步？
-  datasetItems.forEach(async (item) => {
-    const handler = embeddingHandler[item.type];
-    if (!handler) return;
+      return DatasetItem.create({
+        type: 'discussion',
+        name,
+        data,
+        datasetId,
+        createdBy: did,
+        updatedBy: did,
+      });
+    })
+  );
 
-    // eslint-disable-next-line no-await-in-loop
-    await handler(item as any);
-  });
-};
+  for (const doc of docs) {
+    await runHandlerAndSaveContent(doc.id);
+  }
+
+  res.json(Array.isArray(input) ? docs : docs[0]);
+});
+
+export default router;
