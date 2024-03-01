@@ -16,7 +16,7 @@ import { pick } from 'lodash';
 import { ensureComponentCallOrAuth, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Log, { Status } from '../store/models/log';
 import Project from '../store/models/project';
-import { defaultBranch, getAssistantFromRepository, getRepository } from '../store/repository';
+import { getAssistantFromRepository, getRepository } from '../store/repository';
 
 const router = Router();
 
@@ -124,7 +124,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   const startDate = new Date();
   const log = await Log.create({
     templateId: input.assistantId,
-    hash: input.ref || defaultBranch,
+    hash: input.ref || project.gitDefaultBranch,
     projectId: input.projectId,
     prompts: isPromptAssistant(assistant) ? assistant.prompts : undefined,
     parameters: input.parameters,
