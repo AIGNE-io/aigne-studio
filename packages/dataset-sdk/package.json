@@ -88,7 +88,8 @@
     "openapi3-ts": "^4.2.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
-    "ufo": "^1.4.0"
+    "ufo": "^1.4.0",
+    "yaml": "^2.4.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.202",

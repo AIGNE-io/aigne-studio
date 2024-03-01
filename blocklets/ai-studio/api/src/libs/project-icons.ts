@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
+import { readFileSync, readdirSync, statSync } from 'fs';
 import path from 'path';
 
 import { BlockletStatus } from '@blocklet/constant';
@@ -10,16 +10,17 @@ import logger from './logger';
 
 async function handleResource() {
   try {
-    const p1 = path.join(__dirname, '../..', 'images');
     // NOTE: fix wrong path of blocklet bundle monorepo
-    const p2 = path.join(__dirname, '../../../../../api/images');
-    const imageFolderPath = existsSync(p1) ? p1 : p2;
+    const appDir = process.env.BLOCKLET_APP_DIR!;
+    const imageFolderPath = path.join(appDir, 'api/images');
+    logger.info(imageFolderPath, statSync(imageFolderPath).isDirectory());
 
     if (!statSync(imageFolderPath).isDirectory()) {
       return;
     }
 
     const files = readdirSync(imageFolderPath);
+    logger.info(files);
 
     if (files && files.length > 0) {
       const list = files.map((filepath: string) => {
