@@ -24,20 +24,20 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 
-import PromiseLoadingButton from '../../../components/promise-loading-button';
-import { useSegments } from '../../../contexts/dataset-segments';
-import Delete from '../icons/delete';
-import Empty from '../icons/empty';
+import PromiseLoadingButton from '../../components/promise-loading-button';
+import { useSegments } from '../../contexts/dataset-segments';
+import Delete from '../project/icons/delete';
+import Empty from '../project/icons/empty';
 
 export default function KnowledgeSegments() {
   const { t } = useLocaleContext();
   const params = useParams();
-  const { datasetId, unitId } = params;
+  const { datasetId, documentId } = params;
 
   const dialogState = usePopupState({ variant: 'dialog' });
   const form = useForm<{ content: string }>({ defaultValues: { content: '' } });
 
-  const { state, create, refetch, remove } = useSegments(datasetId || '', unitId || '');
+  const { state, create, refetch, remove } = useSegments(datasetId || '', documentId || '');
   const [readContent, setReadContent] = useState('');
   const [currentSegment, setSegment] = useState('');
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -74,7 +74,7 @@ export default function KnowledgeSegments() {
               {state.dataset?.name}
             </Link>
 
-            <Typography color="text.primary">{state.unit?.name}</Typography>
+            <Typography color="text.primary">{state.document?.name}</Typography>
           </Breadcrumbs>
 
           <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -85,11 +85,11 @@ export default function KnowledgeSegments() {
                   fontWeight: 600,
                   lineHeight: '28px',
                 }}>
-                {state.unit?.name}
+                {state.document?.name}
               </Box>
 
               <Box display="flex" gap={2} alignItems="center" mt={1}>
-                <Tag>{state.unit?.type}</Tag>
+                <Tag>{state.document?.type}</Tag>
                 <Tag>Auto segmentation</Tag>
                 <Tag>{state?.segments?.length} Segment</Tag>
               </Box>
@@ -112,7 +112,7 @@ export default function KnowledgeSegments() {
         <Stack px={3} flex={1} height={0}>
           <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>Segments</Box>
           <Stack flex={1}>
-            {!state?.segments?.length && <EmptyUnit />}
+            {!state?.segments?.length && <EmptyDocument />}
 
             {state?.segments?.length && (
               <ListContainer gap={{ xs: 2, sm: 3 }}>
@@ -217,7 +217,7 @@ export default function KnowledgeSegments() {
   );
 }
 
-function EmptyUnit() {
+function EmptyDocument() {
   const { t } = useLocaleContext();
 
   return (

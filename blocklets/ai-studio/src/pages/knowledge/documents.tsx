@@ -29,22 +29,22 @@ import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import PromiseLoadingButton from '../../../components/promise-loading-button';
-import { useDataset } from '../../../contexts/dataset-items';
-import { useDatasets } from '../../../contexts/datasets';
-import { getErrorMessage } from '../../../libs/api';
-import Delete from '../icons/delete';
-import Empty from '../icons/empty';
+import PromiseLoadingButton from '../../components/promise-loading-button';
+import { useDataset } from '../../contexts/dataset-items';
+import { useDatasets } from '../../contexts/datasets';
+import { getErrorMessage } from '../../libs/api';
+import Delete from '../project/icons/delete';
+import Empty from '../project/icons/empty';
 
-export default function KnowledgeUnits() {
+export default function KnowledgeDocuments() {
   const { t } = useLocaleContext();
-  const dialogState = usePopupState({ variant: 'dialog', popupId: 'unit' });
+  const dialogState = usePopupState({ variant: 'dialog', popupId: 'document' });
   const customDialogState = usePopupState({ variant: 'dialog', popupId: 'custom' });
   const form = useForm<{ name: string }>({ defaultValues: { name: '' } });
-  const [currentUnit, setUnit] = useState<'upload' | 'discussion' | 'custom'>('upload');
+  const [currentDocument, setDocument] = useState<'upload' | 'discussion' | 'custom'>('upload');
   const { datasetId } = useParams();
 
-  const { createUnit } = useDatasets();
+  const { createDocument } = useDatasets();
   const navigate = useNavigate();
 
   const { state, refetch, remove } = useDataset(datasetId || '');
@@ -55,7 +55,7 @@ export default function KnowledgeUnits() {
     () => [
       {
         field: 'name',
-        headerName: t('Unit name'),
+        headerName: t('Document name'),
         flex: 1,
         sortable: false,
         renderCell: (params: any) => {
@@ -135,7 +135,7 @@ export default function KnowledgeUnits() {
               </Box>
 
               <Box display="flex" gap={2} alignItems="center" mt={1}>
-                <Tag>{`${rows.length} Units`}</Tag>
+                <Tag>{`${rows.length} Documents`}</Tag>
               </Box>
             </Box>
 
@@ -145,17 +145,17 @@ export default function KnowledgeUnits() {
               onClick={() => {
                 dialogState.open();
               }}>
-              Add unit
+              Add Document
             </Button>
           </Box>
         </Stack>
 
         <Divider />
         <Stack px={3} flex={1} height={0}>
-          <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>Units</Box>
+          <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>Documents</Box>
 
           <Stack flex={1}>
-            {!rows?.length && <EmptyUnit onOpen={() => dialogState.open()} />}
+            {!rows?.length && <EmptyDocument onOpen={() => dialogState.open()} />}
 
             {rows.length && (
               <Table
@@ -197,38 +197,38 @@ export default function KnowledgeUnits() {
         onSubmit={form.handleSubmit(() => {
           dialogState.close();
 
-          if (currentUnit === 'custom') {
+          if (currentDocument === 'custom') {
             customDialogState.open();
           } else {
-            navigate(`upload?type=${currentUnit}`);
+            navigate(`upload?type=${currentDocument}`);
           }
         })}>
-        <DialogTitle>{t('Add unit')}</DialogTitle>
+        <DialogTitle>{t('Add Document')}</DialogTitle>
 
         <DialogContent>
-          <UnitRadioGroup
+          <DocumentRadioGroup
             sx={{ gap: 2 }}
-            value={currentUnit}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUnit((e.target as any).value)}>
+            value={currentDocument}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDocument((e.target as any).value)}>
             <FormControlLabel
               value="upload"
               control={<Radio />}
               label={<Upload />}
-              className={currentUnit === 'upload' ? 'selected' : ''}
+              className={currentDocument === 'upload' ? 'selected' : ''}
             />
             <FormControlLabel
               value="discussion"
               control={<Radio />}
               label={<Discussion />}
-              className={currentUnit === 'discussion' ? 'selected' : ''}
+              className={currentDocument === 'discussion' ? 'selected' : ''}
             />
             <FormControlLabel
               value="custom"
               control={<Radio />}
               label={<Customization />}
-              className={currentUnit === 'custom' ? 'selected' : ''}
+              className={currentDocument === 'custom' ? 'selected' : ''}
             />
-          </UnitRadioGroup>
+          </DocumentRadioGroup>
         </DialogContent>
 
         <DialogActions>
@@ -247,7 +247,7 @@ export default function KnowledgeUnits() {
         component="form"
         onSubmit={form.handleSubmit(async (data) => {
           try {
-            await createUnit(datasetId || '', { type: 'text', name: data.name });
+            await createDocument(datasetId || '', { type: 'text', name: data.name });
             await refetch();
             customDialogState.close();
           } catch (error) {
@@ -255,7 +255,7 @@ export default function KnowledgeUnits() {
             throw error;
           }
         })}>
-        <DialogTitle>{t('Unit name')}</DialogTitle>
+        <DialogTitle>{t('Document name')}</DialogTitle>
 
         <DialogContent>
           <TextField label={t('projectSetting.name')} sx={{ width: 1 }} {...form.register('name')} />
@@ -286,7 +286,7 @@ function Actions({
 }: {
   id: string;
   datasetId: string;
-  remove: (datasetId: string, unitId: string) => any;
+  remove: (datasetId: string, documentId: string) => any;
   refetch: () => any;
 }) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -312,7 +312,7 @@ function Actions({
           vertical: 'bottom',
           horizontal: 'right',
         }}>
-        <DialogTitle>{t('Delete this unit?')}</DialogTitle>
+        <DialogTitle>{t('Delete this Document?')}</DialogTitle>
 
         <DialogContent>After deletion, references in related bots will become invalid.</DialogContent>
 
@@ -338,17 +338,17 @@ function Actions({
   );
 }
 
-function EmptyUnit({ onOpen }: { onOpen: () => any }) {
+function EmptyDocument({ onOpen }: { onOpen: () => any }) {
   const { t } = useLocaleContext();
 
   return (
     <Stack flex={1} justifyContent="center" alignItems="center" gap={1}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
 
-      <Typography color="text.disabled">{t('No unit yet \n Click button to add a unit')}</Typography>
+      <Typography color="text.disabled">{t('No Document yet \n Click button to add a Document')}</Typography>
 
       <Button variant="contained" size="small" onClick={onOpen}>
-        Add unit
+        Add Document
       </Button>
     </Stack>
   );
@@ -357,7 +357,7 @@ function EmptyUnit({ onOpen }: { onOpen: () => any }) {
 function Upload() {
   return (
     <RadioStack gap={0.5}>
-      <Box className="semi-radio-addon">Upload documents</Box>
+      <Box className="semi-radio-addon">Upload Documents</Box>
       <Box className="semi-radio-extra">Upload documents in PDF, TXT, or DOCX format</Box>
     </RadioStack>
   );
@@ -366,7 +366,7 @@ function Upload() {
 function Discussion() {
   return (
     <RadioStack gap={0.5}>
-      <Box className="semi-radio-addon">Discussion documents</Box>
+      <Box className="semi-radio-addon">Discussion Documents</Box>
       <Box className="semi-radio-extra">Get the content from the discuss documents</Box>
     </RadioStack>
   );
@@ -375,13 +375,13 @@ function Discussion() {
 function Customization() {
   return (
     <RadioStack gap={0.5}>
-      <Box className="semi-radio-addon">Customization</Box>
+      <Box className="semi-radio-addon">Customization Documents</Box>
       <Box className="semi-radio-extra">Customize content, support creation & editing</Box>
     </RadioStack>
   );
 }
 
-const UnitRadioGroup = styled(RadioGroup)`
+const DocumentRadioGroup = styled(RadioGroup)`
   .MuiFormControlLabel-root {
     border: 1px solid rgba(28, 31, 35, 0.08);
     padding: 16px;

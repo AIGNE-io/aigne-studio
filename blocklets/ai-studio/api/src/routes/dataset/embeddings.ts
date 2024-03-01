@@ -16,35 +16,35 @@ const embeddingTasks = new Map<string, { promise: Promise<void>; current?: numbe
 const embeddingHandler: {
   [key in NonNullable<DatasetItem['type']>]: (
     item: DatasetItem & { data: { type: key } },
-    unitId: string
+    documentId: string
   ) => Promise<{ name: string; content: string }>;
 } = {
-  discussion: async (item: DatasetItem, unitId: string) => {
+  discussion: async (item: DatasetItem, documentId: string) => {
     const discussion = await getDiscussion((item.data as any).id);
-    await saveContentToVectorStore(discussion.content, item.datasetId, unitId);
+    await saveContentToVectorStore(discussion.content, item.datasetId, documentId);
     return { name: discussion.title, content: discussion.content };
   },
-  text: async (item: DatasetItem, unitId: string) => {
+  text: async (item: DatasetItem, documentId: string) => {
     const content = (item.data as any)?.content;
-    await saveContentToVectorStore(content, item.datasetId, unitId);
+    await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: content.slice(0, 10), content };
   },
-  markdown: async (item: DatasetItem, unitId: string) => {
+  markdown: async (item: DatasetItem, documentId: string) => {
     const content = fs.readFileSync((item.data as any).path, 'utf8');
-    await saveContentToVectorStore(content, item.datasetId, unitId);
+    await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: content.slice(0, 10), content };
   },
-  txt: async (item: DatasetItem, unitId: string) => {
+  txt: async (item: DatasetItem, documentId: string) => {
     const content = fs.readFileSync((item.data as any).path, 'utf8');
-    await saveContentToVectorStore(content, item.datasetId, unitId);
+    await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: content.slice(0, 10), content };
   },
-  pdf: async (item: DatasetItem, unitId: string) => {
+  pdf: async (item: DatasetItem, documentId: string) => {
     const content = fs.readFileSync((item.data as any).path, 'utf8');
-    await saveContentToVectorStore(content, item.datasetId, unitId);
+    await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: content.slice(0, 10), content };
   },
@@ -72,13 +72,13 @@ async function getDiscussion(discussionId: string): Promise<{ content: string; u
   return data;
 }
 
-export const saveContentToVectorStore = async (content: string, datasetId: string, unitId: string) => {
+export const saveContentToVectorStore = async (content: string, datasetId: string, documentId: string) => {
   const textSplitter = new RecursiveCharacterTextSplitter();
   const docs = await textSplitter.createDocuments([content]);
 
   for (const doc of docs) {
     // eslint-disable-next-line no-await-in-loop
-    if (doc.pageContent) await Segment.create({ unitId, content: doc.pageContent });
+    if (doc.pageContent) await Segment.create({ documentId, content: doc.pageContent });
   }
 
   const embeddings = new AIKitEmbeddings({});

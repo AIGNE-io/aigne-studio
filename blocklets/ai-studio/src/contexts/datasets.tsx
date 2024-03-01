@@ -3,7 +3,7 @@ import { Draft, produce } from 'immer';
 import { ReactNode, createContext, useCallback, useContext, useRef } from 'react';
 
 import Dataset from '../../api/src/store/models/dataset/list';
-import { createDataset, createUnit, deleteDataset, getDatasets, getUnits } from '../libs/dataset';
+import { createDataset, createDocument, deleteDataset, getDatasets, getDocuments } from '../libs/dataset';
 
 export interface DatasetsContext {
   datasets: Dataset[];
@@ -12,8 +12,8 @@ export interface DatasetsContext {
   refetch: () => Promise<void>;
   createDataset: typeof createDataset;
   deleteDataset: typeof deleteDataset;
-  createUnit: typeof createUnit;
-  getUnits: typeof getUnits;
+  createDocument: typeof createDocument;
+  getDocuments: typeof getDocuments;
 }
 
 const ctx = createContext<DatasetsContext | undefined>(undefined);
@@ -52,12 +52,12 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
       await deleteDataset(datasetId);
       await value.current.refetch();
     },
-    createUnit: async (datasetId, input: { type: string; name: string }) => {
-      await createUnit(datasetId, input);
+    createDocument: async (datasetId, input: { type: string; name: string }) => {
+      await createDocument(datasetId, input);
     },
-    getUnits: async (datasetId) => {
-      const units = await getUnits(datasetId, {});
-      return units;
+    getDocuments: async (datasetId) => {
+      const documents = await getDocuments(datasetId, {});
+      return documents;
     },
   });
 

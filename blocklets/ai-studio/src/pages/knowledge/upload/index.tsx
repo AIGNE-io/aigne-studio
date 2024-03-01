@@ -1,7 +1,7 @@
 import { Box, Stack, styled } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import Left from '../../icons/left';
+import Left from '../../project/icons/left';
 import Discussion from './discuss';
 
 const components: { [keyof: string]: any } = {
@@ -22,7 +22,7 @@ export default function KnowledgeUpload() {
           <Left sx={{ fontSize: '28px' }} />
         </LeftContainer>
 
-        <LeftContainer>Add unit</LeftContainer>
+        <LeftContainer>Add Document</LeftContainer>
       </Box>
 
       <Box flex={1} overflow="auto">

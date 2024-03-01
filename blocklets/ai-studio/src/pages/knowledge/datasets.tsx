@@ -20,11 +20,11 @@ import { useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
-import { useDatasets } from '../../../contexts/datasets';
-import { getErrorMessage } from '../../../libs/api';
-import Add from '../icons/add';
-import Database from '../icons/database';
-import Delete from '../icons/delete';
+import { useDatasets } from '../../contexts/datasets';
+import { getErrorMessage } from '../../libs/api';
+import Add from '../project/icons/add';
+import Database from '../project/icons/database';
+import Delete from '../project/icons/delete';
 
 export default function Knowledge() {
   const { t } = useLocaleContext();
@@ -41,8 +41,9 @@ export default function Knowledge() {
   const onSave = useCallback(
     async (input: any) => {
       try {
-        await createDataset(input);
+        const dataset = await createDataset(input);
         dialogState.close();
+        navigate(dataset.id);
       } catch (error) {
         Toast.error(getErrorMessage(error));
         throw error;
@@ -81,7 +82,7 @@ export default function Knowledge() {
                 key={item.id}
                 name={item.name}
                 description={item.description}
-                units={item.units}
+                documents={item.documents}
                 onClick={() => navigate(item.id)}
                 onDelete={() => onDelete(item.id)}
                 className="list_listItem"
@@ -150,10 +151,10 @@ function DatasetItemAdd({
 function DatasetItem({
   name,
   description,
-  units,
+  documents,
   onDelete,
   ...props
-}: { name?: string; description?: string; units?: number; onDelete: () => any } & StackProps) {
+}: { name?: string; description?: string; documents?: number; onDelete: () => any } & StackProps) {
   return (
     <DatasetItemRoot {...props}>
       <Box className="list_listItemTitle">
@@ -177,7 +178,7 @@ function DatasetItem({
       <Box className="list_listItemDescription">{description || ''}</Box>
 
       <Box className="list_listItemFooter">
-        <Box className="list_listItemStats">{`${units || 0} 文档`}</Box>
+        <Box className="list_listItemStats">{`${documents || 0} 文档`}</Box>
       </Box>
     </DatasetItemRoot>
   );

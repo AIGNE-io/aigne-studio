@@ -18,6 +18,7 @@ import { Navigate, Outlet, Route, Routes, useLocation, useRoutes } from 'react-r
 import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
 import { DatasetsProvider } from '../../contexts/datasets';
+import KnowledgeRoutes from '../knowledge';
 import AddSource from './add-source';
 import HeaderActions from './header-actions';
 import MainMenus from './main-menus';
@@ -84,12 +85,7 @@ export default function ProjectRoutes() {
                     <Route path=":ref/*" element={<ProjectPage />} />
                   </Route>
                   <Route path="settings" element={<ProjectSettings />} />
-                  <Route path="knowledge">
-                    <Route index element={<Knowledge />} />
-                    <Route path=":datasetId" element={<KnowledgeDocs />} />
-                    <Route path=":datasetId/upload" element={<KnowledgeUpload />} />
-                    <Route path=":datasetId/:unitId" element={<KnowledgeSegments />} />
-                  </Route>
+                  <Route path="knowledge/*" element={<KnowledgeRoutes />} />
                 </Route>
               </Routes>
             </Suspense>
@@ -99,11 +95,6 @@ export default function ProjectRoutes() {
     </DndProvider>
   );
 }
-
-const Knowledge = lazy(() => import('./knowledge/list'));
-const KnowledgeDocs = lazy(() => import('./knowledge/detail'));
-const KnowledgeSegments = lazy(() => import('./knowledge/segment'));
-const KnowledgeUpload = lazy(() => import('./knowledge/upload'));
 
 function BrandRoutes() {
   const element = useRoutes([{ path: ':projectId/*', element: <ProjectBrand /> }]);

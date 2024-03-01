@@ -6,11 +6,11 @@ import DatasetItem from '../../api/src/store/models/dataset/item';
 import Dataset from '../../api/src/store/models/dataset/list';
 import DatasetSegment from '../../api/src/store/models/dataset/segment';
 import { getErrorMessage } from '../libs/api';
-import { createSegment, deleteSegment, getSegments, getUnit } from '../libs/dataset';
+import { createSegment, deleteSegment, getDocument, getSegments } from '../libs/dataset';
 
 interface SegmentState {
   dataset?: Dataset;
-  unit?: DatasetItem;
+  document?: DatasetItem;
   segments?: DatasetSegment[];
   loading?: boolean;
   error?: Error;
@@ -21,8 +21,8 @@ interface SegmentState {
 
 const datasets: Record<string, RecoilState<SegmentState>> = {};
 
-const dataset = (datasetId: string, unitId: string) => {
-  const key = `${datasetId}-${unitId}`;
+const dataset = (datasetId: string, documentId: string) => {
+  const key = `${datasetId}-${documentId}`;
 
   let dataset = datasets[key];
   if (!dataset) {
@@ -37,18 +37,19 @@ const dataset = (datasetId: string, unitId: string) => {
   return dataset;
 };
 
-export const useSegmentState = (datasetId: string, unitId: string) => useRecoilState(dataset(datasetId, unitId));
+export const useSegmentState = (datasetId: string, documentId: string) =>
+  useRecoilState(dataset(datasetId, documentId));
 
-export const useSegments = (datasetId: string, unitId: string, { autoFetch = true }: { autoFetch?: true } = {}) => {
-  const [state, setState] = useSegmentState(datasetId, unitId);
+export const useSegments = (datasetId: string, documentId: string, { autoFetch = true }: { autoFetch?: true } = {}) => {
+  const [state, setState] = useSegmentState(datasetId, documentId);
 
   const refetch = useCallback(async () => {
     try {
       setState((v) => ({ ...v, loading: true }));
 
-      const [{ dataset, unit }, { items, total }] = await Promise.all([
-        getUnit(datasetId, unitId),
-        getSegments(datasetId, unitId),
+      const [{ dataset, document }, { items, total }] = await Promise.all([
+        getDocument(datasetId, documentId),
+        getSegments(datasetId, documentId),
       ]);
 
       setState((v) => ({
@@ -56,7 +57,7 @@ export const useSegments = (datasetId: string, unitId: string, { autoFetch = tru
         loading: false,
         error: undefined,
         dataset,
-        unit,
+        document,
         segments: items,
         total,
       }));
@@ -64,11 +65,11 @@ export const useSegments = (datasetId: string, unitId: string, { autoFetch = tru
       setState((v) => ({ ...v, loading: false, error }));
       throw error;
     }
-  }, [datasetId, unitId, setState]);
+  }, [datasetId, documentId, setState]);
 
   const create = useCallback(async (content: string) => {
     try {
-      await createSegment(datasetId, unitId, content);
+      await createSegment(datasetId, documentId, content);
     } catch (error) {
       Toast.error(getErrorMessage(error));
     }
@@ -86,7 +87,7 @@ export const useSegments = (datasetId: string, unitId: string, { autoFetch = tru
     if (autoFetch && !state.dataset && !state.loading) {
       refetch();
     }
-  }, [datasetId, unitId]);
+  }, [datasetId, documentId]);
 
   return { state, refetch, create, remove };
 };

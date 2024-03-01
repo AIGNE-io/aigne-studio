@@ -3,13 +3,13 @@ import { DataTypes } from 'sequelize';
 import type { Migration } from '../migrate';
 
 export const up: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.createTable('Segments', {
+  await queryInterface.createTable('NewDatasetSegments', {
     id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
     },
-    unitId: {
+    documentId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -31,5 +31,5 @@ export const up: Migration = async ({ context: queryInterface }) => {
 };
 
 export const down: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.dropTable('Segments');
+  await queryInterface.dropTable('NewDatasetSegments');
 };

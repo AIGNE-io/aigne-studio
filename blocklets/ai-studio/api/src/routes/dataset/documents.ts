@@ -550,23 +550,23 @@ router.get('/:datasetId/items/search', user(), checkUserAuth(), async (req, res)
   res.json({ role: 'system', content: contextTemplate });
 });
 
-router.get('/:datasetId/:unitId', user(), checkUserAuth(), async (req, res) => {
+router.get('/:datasetId/:documentId', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
 
-  const input = await Joi.object<{ datasetId: string; unitId: string }>({
+  const input = await Joi.object<{ datasetId: string; documentId: string }>({
     datasetId: Joi.string().required(),
-    unitId: Joi.string().required(),
+    documentId: Joi.string().required(),
   }).validateAsync(req.params);
 
-  const { datasetId, unitId } = input;
+  const { datasetId, documentId } = input;
 
   const dataset = await Dataset.findOne({
     where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
   });
 
-  const unit = await DatasetItem.findOne({ where: { datasetId, id: unitId } });
+  const document = await DatasetItem.findOne({ where: { datasetId, id: documentId } });
 
-  res.json({ dataset, unit });
+  res.json({ dataset, document });
 });
 
 export interface CreateItem {

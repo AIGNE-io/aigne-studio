@@ -2,9 +2,9 @@ import { Router } from 'express';
 
 import ai from './ai';
 import { branchRoutes } from './branch';
-import datasetItems from './dataset/item';
-import dataset from './dataset/list';
-import datasetSegments from './dataset/segment';
+import dataset from './dataset/datasets';
+import datasetItems from './dataset/documents';
+import datasetSegments from './dataset/segments';
 import { globalRoutes } from './global';
 import { logRoutes } from './log';
 import { projectRoutes } from './project';
@@ -25,7 +25,7 @@ resourceRoutes(router);
 
 router.use('/ai', ai);
 router.use('/datasets/datasets', dataset);
-router.use('/datasets/units', datasetItems);
+router.use('/datasets/documents', datasetItems);
 router.use('/datasets/segments', datasetSegments);
 router.use(ws);
 

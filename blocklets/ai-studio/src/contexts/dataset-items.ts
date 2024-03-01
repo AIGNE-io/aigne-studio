@@ -5,7 +5,7 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 import DatasetItem from '../../api/src/store/models/dataset/item';
 import Dataset from '../../api/src/store/models/dataset/list';
 import { getErrorMessage } from '../libs/api';
-import { deleteUnit, getDataset, getUnits } from '../libs/dataset';
+import { deleteDocument, getDataset, getDocuments } from '../libs/dataset';
 
 interface DatasetState {
   dataset?: Dataset;
@@ -49,7 +49,7 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
         });
         const [dataset, { items, total }] = await Promise.all([
           getDataset(datasetId),
-          getUnits(datasetId, { page: (page ?? 0) + 1, size }),
+          getDocuments(datasetId, { page: (page ?? 0) + 1, size }),
         ]);
         setState((v) => ({
           ...v,
@@ -77,9 +77,9 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
     [datasetId, setState]
   );
 
-  const remove = useCallback(async (datasetId: string, unitId: string) => {
+  const remove = useCallback(async (datasetId: string, documentId: string) => {
     try {
-      await deleteUnit(datasetId, unitId);
+      await deleteDocument(datasetId, documentId);
     } catch (error) {
       Toast.error(getErrorMessage(error));
     }

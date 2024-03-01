@@ -22,7 +22,7 @@ export default class NewDataset extends Model<InferAttributes<NewDataset>, Infer
 
   declare updatedBy: string;
 
-  declare units?: number;
+  declare documents?: number;
 }
 
 NewDataset.init(

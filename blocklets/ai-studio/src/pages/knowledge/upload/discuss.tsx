@@ -9,12 +9,12 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
-import { CreateItem } from '../../../../../api/src/routes/dataset-items';
-import { useComponent } from '../../../../contexts/component';
-import { useDataset } from '../../../../contexts/dataset-items';
-import { getErrorMessage } from '../../../../libs/api';
-import { createDatasetItems } from '../../../../libs/dataset';
-import { DiscussionItem, searchDiscussions } from '../../../../libs/discussion';
+import { CreateItem } from '../../../../api/src/routes/dataset-items';
+import { useComponent } from '../../../contexts/component';
+import { useDataset } from '../../../contexts/dataset-items';
+import { getErrorMessage } from '../../../libs/api';
+import { createDatasetItems } from '../../../libs/dataset';
+import { DiscussionItem, searchDiscussions } from '../../../libs/discussion';
 
 export default function AddFilePage() {
   const { datasetId } = useParams();

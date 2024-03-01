@@ -7,10 +7,13 @@ const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
 
-export default class Segment extends Model<InferAttributes<Segment>, InferCreationAttributes<Segment>> {
+export default class NewDatasetSegment extends Model<
+  InferAttributes<NewDatasetSegment>,
+  InferCreationAttributes<NewDatasetSegment>
+> {
   declare id: CreationOptional<string>;
 
-  declare unitId: string;
+  declare documentId: string;
 
   declare content?: string;
 
@@ -21,7 +24,7 @@ export default class Segment extends Model<InferAttributes<Segment>, InferCreati
   declare updatedAt: CreationOptional<Date>;
 }
 
-Segment.init(
+NewDatasetSegment.init(
   {
     id: {
       type: DataTypes.STRING,
@@ -29,7 +32,7 @@ Segment.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    unitId: {
+    documentId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -51,9 +54,9 @@ Segment.init(
   { sequelize }
 );
 
-Segment.beforeCreate(async (segment) => {
+NewDatasetSegment.beforeCreate(async (segment) => {
   if (!segment.index) {
-    const maxIndex: number = await Segment.max('index', { where: { unitId: segment.unitId } });
+    const maxIndex: number = await NewDatasetSegment.max('index', { where: { documentId: segment.documentId } });
     segment.index = maxIndex ? maxIndex + 1 : 1;
   }
 });
