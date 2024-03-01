@@ -13,14 +13,12 @@ async function handleResource() {
     // NOTE: fix wrong path of blocklet bundle monorepo
     const appDir = process.env.BLOCKLET_APP_DIR!;
     const imageFolderPath = path.join(appDir, 'api/images');
-    logger.info(imageFolderPath, statSync(imageFolderPath).isDirectory());
 
     if (!statSync(imageFolderPath).isDirectory()) {
       return;
     }
 
     const files = readdirSync(imageFolderPath);
-    logger.info(files);
 
     if (files && files.length > 0) {
       const list = files.map((filepath: string) => {
