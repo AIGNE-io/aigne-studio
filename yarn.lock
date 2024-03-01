@@ -1414,9 +1414,10 @@
   dependencies:
     "@blocklet/constant" "1.16.23"
 
-"@blocklet/hnswlib-node@https://github.com/blocklet/hnswlib-node.git":
+"@blocklet/hnswlib-node@^1.4.2":
   version "1.4.2"
-  resolved "https://github.com/blocklet/hnswlib-node.git#e18dea12a6b523f0613857ecd240d5528d72b52c"
+  resolved "https://registry.yarnpkg.com/@blocklet/hnswlib-node/-/hnswlib-node-1.4.2.tgz#766d127a3224b84c76cf5d2cb7354b9b5b368cbb"
+  integrity sha512-tskbNpJOvNnSg+HJmI0r4kW2asBFn8SW90mAAGw1RsfdDFQisRj0Scmgdye06ahavvxnxh+akYnZtwJ/XZwbQw==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.10"
     bindings "^1.5.0"
@@ -12747,9 +12748,9 @@ openai@^3.2.0, openai@^3.3.0:
     form-data "^4.0.0"
 
 openai@^4.28.0, openai@^4.6.1:
-  version "4.28.0"
-  resolved "https://registry.yarnpkg.com/openai/-/openai-4.28.0.tgz#ded00e3d98c25758b5406c9675ec27a957e00930"
-  integrity sha512-JM8fhcpmpGN0vrUwGquYIzdcEQHtFuom6sRCbbCM6CfzZXNuRk33G7KfeRAIfnaCxSpzrP5iHtwJzIm6biUZ2Q==
+  version "4.28.4"
+  resolved "https://registry.yarnpkg.com/openai/-/openai-4.28.4.tgz#d4bf1f53a89ef151bf066ef284489e12e7dd1657"
+  integrity sha512-RNIwx4MT/F0zyizGcwS+bXKLzJ8QE9IOyigDG/ttnwB220d58bYjYFp0qjvGwEFBO6+pvFVIDABZPGDl46RFsg==
   dependencies:
     "@types/node" "^18.11.18"
     "@types/node-fetch" "^2.6.4"
