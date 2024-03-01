@@ -1479,9 +1479,10 @@
   dependencies:
     "@blocklet/constant" "1.16.23"
 
-"@blocklet/hnswlib-node@https://github.com/blocklet/hnswlib-node.git":
+"@blocklet/hnswlib-node@^1.4.2":
   version "1.4.2"
-  resolved "https://github.com/blocklet/hnswlib-node.git#e18dea12a6b523f0613857ecd240d5528d72b52c"
+  resolved "https://registry.yarnpkg.com/@blocklet/hnswlib-node/-/hnswlib-node-1.4.2.tgz#766d127a3224b84c76cf5d2cb7354b9b5b368cbb"
+  integrity sha512-tskbNpJOvNnSg+HJmI0r4kW2asBFn8SW90mAAGw1RsfdDFQisRj0Scmgdye06ahavvxnxh+akYnZtwJ/XZwbQw==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.10"
     bindings "^1.5.0"
@@ -1560,17 +1561,17 @@
     validate-npm-package-name "^3.0.0"
 
 "@blocklet/payment-js@^1.13.159":
-  version "1.13.160"
-  resolved "https://registry.yarnpkg.com/@blocklet/payment-js/-/payment-js-1.13.160.tgz#a7d86fe9859da2aa00393eea3907e8bfb0fbcc92"
-  integrity sha512-MbClORxRRu/rJRI5EG0qxrKsnt9lb7OE09QO2eBD8/BOxm7n7fw5zx44346rj4wkXupgBJCDwWBbGR189G3qMA==
+  version "1.13.161"
+  resolved "https://registry.yarnpkg.com/@blocklet/payment-js/-/payment-js-1.13.161.tgz#1d80efa646e3fca16b2ad026c5846edc02177519"
+  integrity sha512-+0ZmOwIVQEbV+za3myQ6txypstaF2Q+hkFAp/vRZoPWVCGMBco6biQUOShuYhn3PGOLw/DlO07cGcYNYJGWkWQ==
   dependencies:
-    "@blocklet/payment-types" "1.13.160"
+    "@blocklet/payment-types" "1.13.161"
     "@blocklet/sdk" "1.16.23"
 
-"@blocklet/payment-types@1.13.160":
-  version "1.13.160"
-  resolved "https://registry.yarnpkg.com/@blocklet/payment-types/-/payment-types-1.13.160.tgz#0c6e71a3351d76475f7d86558bea6a50d094e8a9"
-  integrity sha512-h6U7q0icU6pjMT3GFaTeZ6JFooJtpv/NcefCMiN7SHVZ/R3vxnvecZtZhqzbL28iZdh8LtQRclvwkEQ3k57lZg==
+"@blocklet/payment-types@1.13.161":
+  version "1.13.161"
+  resolved "https://registry.yarnpkg.com/@blocklet/payment-types/-/payment-types-1.13.161.tgz#b824726c1f26077475d45955a939bdc421d99552"
+  integrity sha512-P3frhm4ocJISNETBsdEpXoFBS238GCXcnW+UUMcCgN2rNJTSZbd0v47Hj34zBWW6Hn9i4ropCk7dpslTxJh8UQ==
 
 "@blocklet/pdf@1.6.148":
   version "1.6.148"
