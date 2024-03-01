@@ -121,6 +121,7 @@
     "recoil": "^0.7.7",
     "rimraf": "^3.0.2",
     "sequelize": "^6.37.1",
+    "million": "^3.0.3",
     "snowflake-uuid": "^1.0.0",
     "sqlite3": "^5.1.7",
     "typescript": "^5.3.3",
