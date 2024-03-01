@@ -30,8 +30,8 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import PromiseLoadingButton from '../../components/promise-loading-button';
-import { useDataset } from '../../contexts/dataset-items';
-import { useDatasets } from '../../contexts/datasets';
+import { useDatasets } from '../../contexts/datasets/datasets';
+import { useDataset } from '../../contexts/datasets/documents';
 import { getErrorMessage } from '../../libs/api';
 import Delete from '../project/icons/delete';
 import Empty from '../project/icons/empty';
@@ -41,7 +41,7 @@ export default function KnowledgeDocuments() {
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'document' });
   const customDialogState = usePopupState({ variant: 'dialog', popupId: 'custom' });
   const form = useForm<{ name: string }>({ defaultValues: { name: '' } });
-  const [currentDocument, setDocument] = useState<'upload' | 'discussion' | 'custom'>('upload');
+  const [currentDocument, setDocument] = useState<'file' | 'discussion' | 'custom'>('file');
   const { datasetId } = useParams();
 
   const { createDocument } = useDatasets();
@@ -55,7 +55,7 @@ export default function KnowledgeDocuments() {
     () => [
       {
         field: 'name',
-        headerName: t('Document name'),
+        headerName: t('Document Name'),
         flex: 1,
         sortable: false,
         renderCell: (params: any) => {
@@ -76,7 +76,7 @@ export default function KnowledgeDocuments() {
       },
       {
         field: 'time',
-        headerName: t('Create time'),
+        headerName: t('Create Time'),
         width: 300,
         sortable: false,
         renderCell: (params: any) => {
@@ -211,10 +211,10 @@ export default function KnowledgeDocuments() {
             value={currentDocument}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDocument((e.target as any).value)}>
             <FormControlLabel
-              value="upload"
+              value="file"
               control={<Radio />}
               label={<Upload />}
-              className={currentDocument === 'upload' ? 'selected' : ''}
+              className={currentDocument === 'file' ? 'selected' : ''}
             />
             <FormControlLabel
               value="discussion"
@@ -247,9 +247,10 @@ export default function KnowledgeDocuments() {
         component="form"
         onSubmit={form.handleSubmit(async (data) => {
           try {
-            await createDocument(datasetId || '', { type: 'text', name: data.name });
+            const document = await createDocument(datasetId || '', { type: 'text', name: data.name });
             await refetch();
             customDialogState.close();
+            navigate(document.id);
           } catch (error) {
             Toast.error(getErrorMessage(error));
             throw error;

@@ -10,10 +10,10 @@ import { Op } from 'sequelize';
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
 import { checkUserAuth } from '../../libs/user';
-import DatasetItem from '../../store/models/dataset/item';
-import Dataset from '../../store/models/dataset/list';
+import Dataset from '../../store/models/dataset/dataset';
+import DatasetItem from '../../store/models/dataset/document';
 import VectorStore from '../../store/vector-store';
-import { resetDatasetsEmbedding, runHandlerAndSaveContent } from './embeddings';
+import { runHandlerAndSaveContent } from './embeddings';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -146,8 +146,8 @@ router.post('/:datasetId/create', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
 
-  const input = await Joi.object<{ type: 'discussion' | 'text' | 'markdown' | 'txt' | 'pdf'; name: string }>({
-    type: Joi.string().valid('discussion', 'text', 'markdown', 'txt', 'pdf').required(),
+  const input = await Joi.object<{ type: 'discussion' | 'text' | 'md' | 'txt' | 'pdf' | 'doc'; name: string }>({
+    type: Joi.string().valid('discussion', 'text', 'md', 'txt', 'pdf', 'doc').required(),
     name: Joi.string().required(),
   }).validateAsync(req.body, { stripUnknown: true });
 
@@ -157,7 +157,7 @@ router.post('/:datasetId/create', user(), checkUserAuth(), async (req, res) => {
 
   const { type, name } = input;
 
-  await DatasetItem.create({
+  const document = await DatasetItem.create({
     type,
     name,
     datasetId,
@@ -165,7 +165,7 @@ router.post('/:datasetId/create', user(), checkUserAuth(), async (req, res) => {
     updatedBy: did,
   });
 
-  res.json({ data: 'success' });
+  res.json(document);
 });
 
 /**
@@ -282,7 +282,7 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
   const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
 
   if (!type || !filename || !data) {
-    res.json({ error: 'missing required body `type` or `filename` or `data`' });
+    res.status(500).json({ error: 'missing required body `type` or `filename` or `data`' });
     return;
   }
 
@@ -306,7 +306,7 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
   const filePath = path.join(Config.uploadDir, filename);
   fs.writeFileSync(filePath, buffer, 'utf8');
 
-  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'markdown' | 'txt' | 'pdf';
+  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'md' | 'txt' | 'pdf' | 'doc';
 
   const result = await DatasetItem.create({
     name: (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
@@ -381,7 +381,7 @@ router.put('/:datasetId/items/:itemId/embedding', user(), checkUserAuth(), async
 
   await DatasetItem.update({ error: '', type: input.type, data, updatedBy: did }, { where: { id: itemId, datasetId } });
 
-  await resetDatasetsEmbedding(datasetId, did, itemId);
+  // await resetDatasetsEmbedding(datasetId, did, itemId);
 
   res.json({ data: 'success' });
 });
@@ -445,7 +445,7 @@ router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.sin
   const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
 
   if (!type || !filename || !data) {
-    res.json({ error: 'missing required body `type` or `filename` or `data`' });
+    res.status(500).json({ error: 'missing required body `type` or `filename` or `data`' });
     return;
   }
 
@@ -469,14 +469,14 @@ router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.sin
   const filePath = path.join(Config.uploadDir, filename);
   fs.writeFileSync(filePath, buffer, 'utf8');
 
-  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'markdown' | 'txt' | 'pdf';
+  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'md' | 'txt' | 'pdf' | 'doc';
 
   await DatasetItem.update(
     { error: '', type: fileExtension, data: { type: fileExtension, path: filePath }, updatedBy: did },
     { where: { id: itemId, datasetId } }
   );
 
-  await resetDatasetsEmbedding(datasetId, did, itemId);
+  // await resetDatasetsEmbedding(datasetId, did, itemId);
 
   res.json({ data: 'success' });
 });
@@ -624,9 +624,7 @@ router.post('/:datasetId/items', user(), async (req, res) => {
     })
   );
 
-  for (const doc of docs) {
-    await runHandlerAndSaveContent(doc.id);
-  }
+  docs.forEach((doc) => runHandlerAndSaveContent(doc.id));
 
   res.json(Array.isArray(input) ? docs : docs[0]);
 });

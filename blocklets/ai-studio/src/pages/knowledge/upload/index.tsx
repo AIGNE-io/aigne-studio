@@ -1,17 +1,20 @@
 import { Box, Stack, styled } from '@mui/material';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import Left from '../../project/icons/left';
 import Discussion from './discuss';
+import File from './file';
 
 const components: { [keyof: string]: any } = {
   discussion: Discussion,
+  file: File,
 };
 
 export default function KnowledgeUpload() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const type = searchParams.get('type');
+  const { datasetId } = useParams();
 
   const Component = type ? components[type || ''] : null;
 
@@ -26,7 +29,7 @@ export default function KnowledgeUpload() {
       </Box>
 
       <Box flex={1} overflow="auto">
-        {Component && <Component />}
+        {Component && <Component datasetId={datasetId} />}
       </Box>
     </Stack>
   );

@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 
 import PromiseLoadingButton from '../../components/promise-loading-button';
-import { useSegments } from '../../contexts/dataset-segments';
+import { useSegments } from '../../contexts/datasets/segments';
 import Delete from '../project/icons/delete';
 import Empty from '../project/icons/empty';
 

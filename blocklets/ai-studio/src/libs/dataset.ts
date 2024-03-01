@@ -1,8 +1,8 @@
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 
 import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset-items';
-import DatasetItem from '../../api/src/store/models/dataset/item';
-import Dataset from '../../api/src/store/models/dataset/list';
+import Dataset from '../../api/src/store/models/dataset/dataset';
+import DatasetItem from '../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../api/src/store/models/dataset/segment';
 import axios from './api';
 
@@ -53,8 +53,12 @@ export async function deleteDocument(
   return axios.delete(`/api/datasets/documents/${datasetId}/${documentId}`).then((res) => res.data);
 }
 
-export async function createDocument(datasetId: string, input: { type: string; name: string }): Promise<any> {
+export async function createDocument(datasetId: string, input: { type: string; name: string }): Promise<DatasetItem> {
   return axios.post(`/api/datasets/documents/${datasetId}/create`, input).then((res) => res.data);
+}
+
+export async function uploadDocument(datasetId: string, form: any): Promise<DatasetItem> {
+  return axios.post(`/api/datasets/documents/${datasetId}/items/file`, form).then((res) => res.data);
 }
 
 export async function getSegments(

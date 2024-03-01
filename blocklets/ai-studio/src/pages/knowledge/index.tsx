@@ -4,7 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 export default function KnowledgeRoutes() {
   return (
     <Routes>
-      <Route index element={<Knowledge />} />
+      <Route index element={<KnowledgeDatasets />} />
       <Route path=":datasetId" element={<KnowledgeDocuments />} />
       <Route path=":datasetId/upload" element={<KnowledgeUpload />} />
       <Route path=":datasetId/:documentId" element={<KnowledgeSegments />} />
@@ -12,7 +12,7 @@ export default function KnowledgeRoutes() {
   );
 }
 
-const Knowledge = lazy(() => import('./datasets'));
+const KnowledgeDatasets = lazy(() => import('./datasets'));
 
 const KnowledgeDocuments = lazy(() => import('./documents'));
 

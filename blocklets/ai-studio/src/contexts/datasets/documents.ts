@@ -2,10 +2,10 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import DatasetItem from '../../api/src/store/models/dataset/item';
-import Dataset from '../../api/src/store/models/dataset/list';
-import { getErrorMessage } from '../libs/api';
-import { deleteDocument, getDataset, getDocuments } from '../libs/dataset';
+import Dataset from '../../../api/src/store/models/dataset/dataset';
+import DatasetItem from '../../../api/src/store/models/dataset/document';
+import { getErrorMessage } from '../../libs/api';
+import { deleteDocument, getDataset, getDocuments, uploadDocument } from '../../libs/dataset';
 
 interface DatasetState {
   dataset?: Dataset;
@@ -85,11 +85,13 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
     }
   }, []);
 
+  const upload = useCallback((form: FormData) => uploadDocument(datasetId, form), []);
+
   useEffect(() => {
     if (autoFetch && !state.dataset && !state.loading) {
       refetch();
     }
   }, []);
 
-  return { state, refetch, remove };
+  return { state, refetch, remove, upload };
 };

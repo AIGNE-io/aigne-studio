@@ -2,11 +2,11 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import DatasetItem from '../../api/src/store/models/dataset/item';
-import Dataset from '../../api/src/store/models/dataset/list';
-import DatasetSegment from '../../api/src/store/models/dataset/segment';
-import { getErrorMessage } from '../libs/api';
-import { createSegment, deleteSegment, getDocument, getSegments } from '../libs/dataset';
+import Dataset from '../../../api/src/store/models/dataset/dataset';
+import DatasetItem from '../../../api/src/store/models/dataset/document';
+import DatasetSegment from '../../../api/src/store/models/dataset/segment';
+import { getErrorMessage } from '../../libs/api';
+import { createSegment, deleteSegment, getDocument, getSegments } from '../../libs/dataset';
 
 interface SegmentState {
   dataset?: Dataset;

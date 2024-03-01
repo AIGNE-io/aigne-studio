@@ -2,8 +2,8 @@ import { useUpdate } from 'ahooks';
 import { Draft, produce } from 'immer';
 import { ReactNode, createContext, useCallback, useContext, useRef } from 'react';
 
-import Dataset from '../../api/src/store/models/dataset/list';
-import { createDataset, createDocument, deleteDataset, getDatasets, getDocuments } from '../libs/dataset';
+import Dataset from '../../../api/src/store/models/dataset/dataset';
+import { createDataset, createDocument, deleteDataset, getDatasets, getDocuments } from '../../libs/dataset';
 
 export interface DatasetsContext {
   datasets: Dataset[];

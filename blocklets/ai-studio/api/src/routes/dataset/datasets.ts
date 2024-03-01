@@ -4,8 +4,8 @@ import Joi from 'joi';
 import { Op } from 'sequelize';
 
 import { checkUserAuth } from '../../libs/user';
-import DatasetItem from '../../store/models/dataset/item';
-import Dataset from '../../store/models/dataset/list';
+import Dataset from '../../store/models/dataset/dataset';
+import DatasetItem from '../../store/models/dataset/document';
 
 const router = Router();
 
@@ -112,8 +112,8 @@ router.post('/create', user(), checkUserAuth(), async (req, res) => {
   const { name, description } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
 
-  const doc = await Dataset.create({ name, description, createdBy: did, updatedBy: did });
-  res.json(doc);
+  const dataset = await Dataset.create({ name, description, createdBy: did, updatedBy: did });
+  res.json(dataset);
 });
 
 /**

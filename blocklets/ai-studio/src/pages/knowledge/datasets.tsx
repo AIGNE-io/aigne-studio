@@ -20,7 +20,7 @@ import { useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
-import { useDatasets } from '../../contexts/datasets';
+import { useDatasets } from '../../contexts/datasets/datasets';
 import { getErrorMessage } from '../../libs/api';
 import Add from '../project/icons/add';
 import Database from '../project/icons/database';

@@ -17,7 +17,7 @@ export default class NewDatasetItem extends Model<
 
   declare name?: string;
 
-  declare type: 'discussion' | 'text' | 'markdown' | 'txt' | 'pdf';
+  declare type: 'discussion' | 'text' | 'md' | 'txt' | 'pdf' | 'doc';
 
   declare data?:
     | {
@@ -29,7 +29,7 @@ export default class NewDatasetItem extends Model<
         id: string;
       }
     | {
-        type: 'markdown';
+        type: 'md';
         path: string;
       }
     | {
@@ -38,6 +38,10 @@ export default class NewDatasetItem extends Model<
       }
     | {
         type: 'pdf';
+        path: string;
+      }
+    | {
+        type: 'doc';
         path: string;
       };
 

@@ -17,7 +17,7 @@ import { Navigate, Outlet, Route, Routes, useLocation, useRoutes } from 'react-r
 
 import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
-import { DatasetsProvider } from '../../contexts/datasets';
+import { DatasetsProvider } from '../../contexts/datasets/datasets';
 import KnowledgeRoutes from '../knowledge';
 import AddSource from './add-source';
 import HeaderActions from './header-actions';

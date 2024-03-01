@@ -9,9 +9,9 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
-import { CreateItem } from '../../../../api/src/routes/dataset-items';
+import { CreateItem } from '../../../../api/src/routes/dataset/documents';
 import { useComponent } from '../../../contexts/component';
-import { useDataset } from '../../../contexts/dataset-items';
+import { useDataset } from '../../../contexts/datasets/documents';
 import { getErrorMessage } from '../../../libs/api';
 import { createDatasetDocuments } from '../../../libs/dataset';
 import { DiscussionItem, searchDiscussions } from '../../../libs/discussion';
@@ -39,7 +39,7 @@ export default function AddFilePage() {
       await createDatasetDocuments(datasetId, input);
       refetch();
       Toast.success('Saved');
-      navigate(-1, { replace: true });
+      navigate('..', { replace: true });
     } catch (error) {
       Toast.error(getErrorMessage(error));
       throw error;

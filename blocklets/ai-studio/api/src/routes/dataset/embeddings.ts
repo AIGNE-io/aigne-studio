@@ -6,7 +6,7 @@ import SSE from 'express-sse';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
-import DatasetItem from '../../store/models/dataset/item';
+import DatasetItem from '../../store/models/dataset/document';
 import Segment from '../../store/models/dataset/segment';
 import VectorStore from '../../store/vector-store';
 
@@ -27,26 +27,31 @@ const embeddingHandler: {
   text: async (item: DatasetItem, documentId: string) => {
     const content = (item.data as any)?.content;
     await saveContentToVectorStore(content, item.datasetId, documentId);
-
-    return { name: content.slice(0, 10), content };
+    return { name: '', content };
   },
-  markdown: async (item: DatasetItem, documentId: string) => {
+  md: async (item: DatasetItem, documentId: string) => {
     const content = fs.readFileSync((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
-    return { name: content.slice(0, 10), content };
+    return { name: '', content };
   },
   txt: async (item: DatasetItem, documentId: string) => {
     const content = fs.readFileSync((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
-    return { name: content.slice(0, 10), content };
+    return { name: '', content };
   },
   pdf: async (item: DatasetItem, documentId: string) => {
     const content = fs.readFileSync((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
-    return { name: content.slice(0, 10), content };
+    return { name: '', content };
+  },
+  doc: async (item: DatasetItem, documentId: string) => {
+    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    await saveContentToVectorStore(content, item.datasetId, documentId);
+
+    return { name: '', content };
   },
 };
 
@@ -103,7 +108,9 @@ export const runHandlerAndSaveContent = async (itemId: string) => {
 
         try {
           const { name, content } = await handler(item as any, itemId);
-          await DatasetItem.update({ error: '', content, name }, { where: { id: itemId } });
+          const params = name ? { error: '', content, name } : { error: '', content };
+
+          await DatasetItem.update(params, { where: { id: itemId } });
         } catch (error) {
           await DatasetItem.update({ error: error.message }, { where: { id: itemId } });
 
