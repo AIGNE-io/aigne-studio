@@ -13,7 +13,7 @@ import { CreateItem } from '../../../../api/src/routes/dataset-items';
 import { useComponent } from '../../../contexts/component';
 import { useDataset } from '../../../contexts/dataset-items';
 import { getErrorMessage } from '../../../libs/api';
-import { createDatasetItems } from '../../../libs/dataset';
+import { createDatasetDocuments } from '../../../libs/dataset';
 import { DiscussionItem, searchDiscussions } from '../../../libs/discussion';
 
 export default function AddFilePage() {
@@ -36,7 +36,7 @@ export default function AddFilePage() {
   const save = useCallback(async () => {
     try {
       setSaving(true);
-      await createDatasetItems(datasetId, input);
+      await createDatasetDocuments(datasetId, input);
       refetch();
       Toast.success('Saved');
       navigate(-1, { replace: true });

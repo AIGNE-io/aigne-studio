@@ -1,5 +1,4 @@
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset-items';
 import DatasetItem from '../../api/src/store/models/dataset/item';
@@ -74,52 +73,11 @@ export async function deleteSegment(segmentId: string): Promise<any> {
   return axios.delete(`/api/datasets/segments/${segmentId}`).then((res) => res.data);
 }
 
-export async function createDatasetItems(datasetId: string, input: CreateItem): Promise<DatasetItem>;
-export async function createDatasetItems(datasetId: string, input: CreateItem[]): Promise<DatasetItem[]>;
-export async function createDatasetItems(
+export async function createDatasetDocuments(datasetId: string, input: CreateItem): Promise<DatasetItem>;
+export async function createDatasetDocuments(datasetId: string, input: CreateItem[]): Promise<DatasetItem[]>;
+export async function createDatasetDocuments(
   datasetId: string,
   input: CreateItemInput
 ): Promise<DatasetItem | DatasetItem[]> {
   return axios.post(`/api/datasets/documents/${datasetId}/items`, input).then((res) => res.data);
-}
-
-export async function deleteDatasetItem({ datasetId, itemId }: { datasetId: string; itemId: string }): Promise<{}> {
-  return axios.delete(`/api/datasets/${datasetId}/items/${itemId}`).then((res) => res.data);
-}
-
-export async function processDatasetItem({ datasetId, itemId }: { datasetId: string; itemId: string }): Promise<{}> {
-  return axios.post(`/api/datasets/${datasetId}/items/${itemId}/embedding`).then((res) => res.data);
-}
-
-export async function watchDatasetEmbeddings({
-  datasetId,
-  signal,
-}: {
-  datasetId: string;
-  signal?: AbortSignal | null;
-}) {
-  const prefix = blocklet?.prefix || '';
-
-  return new ReadableStream<
-    | { type: 'list'; list: { itemId: string; total?: number; current?: number }[] }
-    | { type: 'change'; itemId: string; total?: number; current?: number }
-    | { type: 'complete'; itemId: string }
-  >({
-    async start(controller) {
-      await fetchEventSource(`${prefix}/api/datasets/${datasetId}/embeddings`, {
-        signal,
-        method: 'GET',
-        onmessage(e) {
-          const data = JSON.parse(e.data);
-          controller.enqueue({ ...data, type: e.event });
-        },
-        onerror(err) {
-          throw err;
-        },
-        onclose() {
-          controller.close();
-        },
-      });
-    },
-  });
 }
