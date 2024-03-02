@@ -1,3 +1,7 @@
+## 0.1.272 (2024-3-2)
+
+- fix: branch checkout error
+
 ## 0.1.271 (2024-3-1)
 
 - feat: bundle use compact

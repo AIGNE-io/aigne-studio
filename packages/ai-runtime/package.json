@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.271",
+  "version": "0.1.272",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -84,9 +84,9 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-builtin": "^0.1.271",
+    "@blocklet/ai-builtin": "^0.1.272",
     "@blocklet/ai-kit": "^0.1.19",
-    "@blocklet/dataset-sdk": "^0.1.271",
+    "@blocklet/dataset-sdk": "^0.1.272",
     "@blocklet/sdk": "^1.16.23",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.10",
@@ -96,7 +96,7 @@
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
     "node-fetch": "2",
-    "react-hook-form": "^7.50.1",
+    "react-hook-form": "^7.51.0",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
     "typescript": "^5.3.3",
