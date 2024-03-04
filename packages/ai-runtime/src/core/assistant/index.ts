@@ -536,9 +536,9 @@ async function runPromptAssistant({
             return {
               role: prompt.data.role ?? 'system',
               content:
-                prompt.data.prefix +
+                (await renderMessage(prompt.data.prefix ?? '', variables)) +
                 (typeof result === 'string' ? result : JSON.stringify(result)) +
-                prompt.data.suffix,
+                (await renderMessage(prompt.data.suffix ?? '', variables)),
             };
           }
 

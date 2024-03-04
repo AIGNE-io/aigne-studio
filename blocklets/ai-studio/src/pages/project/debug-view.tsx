@@ -126,7 +126,7 @@ function DebugViewContent({
         </Tooltip>
       </Box>
 
-      <ScrollMessages currentSession={currentSession} assistantId={assistant.id} />
+      <ScrollMessages currentSession={currentSession} key={assistant.id} />
 
       <Stack gap={2} sx={{ bgcolor: 'background.paper', pb: 1.875, pt: 0.25 }}>
         {currentSession.chatType !== 'debug' ? (
@@ -154,44 +154,47 @@ function DebugViewContent({
   );
 }
 
-function ScrollMessages({ currentSession, assistantId }: { currentSession: SessionItem; assistantId: string }) {
+function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
   const autoScroll = useRef(true);
   const [hitBottom, setHitBottom] = useState(true);
   const viewportRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = useCallback(() => {
+  const scrollToBottom = useCallback((behavior: ScrollBehavior) => {
     const container = viewportRef.current;
     if (container && autoScroll.current) {
       requestAnimationFrame(() =>
         container.scroll({
           top: container.scrollHeight,
-          behavior: 'smooth',
+          behavior,
         })
       );
     }
   }, []);
 
-  const throttleToBottom = throttle(scrollToBottom, 500);
+  const throttleScrollToBottom = throttle(scrollToBottom, 200);
 
   const handleScroll = (e: HTMLDivElement) => {
     const isTouchBottom = e.scrollTop + e.clientHeight >= e.scrollHeight - 50;
     setHitBottom(isTouchBottom);
   };
 
-  const lastContent = currentSession.messages[currentSession.messages.length - 1]?.content;
+  const assistantArray = currentSession.messages.filter((i) => i.role === 'assistant');
+  const lastAssistantContent = currentSession.messages[currentSession.messages.length - 1]?.content;
 
   useEffect(() => {
     autoScroll.current = true;
-    if (currentSession.messages.length > 0 && autoScroll.current) {
-      scrollToBottom();
+    if (assistantArray.length > 0 && autoScroll.current) {
+      setTimeout(() => {
+        scrollToBottom('smooth');
+      }, 500);
     }
-  }, [currentSession.messages.length, scrollToBottom]);
+  }, [assistantArray.length, scrollToBottom]);
 
   useEffect(() => {
-    if (autoScroll.current) {
-      throttleToBottom();
+    if (autoScroll.current && lastAssistantContent) {
+      throttleScrollToBottom('auto');
     }
-  }, [lastContent, throttleToBottom]);
+  }, [lastAssistantContent, throttleScrollToBottom]);
 
   return (
     <Box
@@ -217,11 +220,6 @@ function ScrollMessages({ currentSession, assistantId }: { currentSession: Sessi
           autoScroll.current = false;
         }}>
         <Virtuoso
-          key={assistantId}
-          increaseViewportBy={{
-            top: 0,
-            bottom: 200,
-          }}
           customScrollParent={viewportRef.current!}
           data={currentSession.messages}
           initialTopMostItemIndex={currentSession.messages.length - 1}
@@ -236,12 +234,10 @@ function ScrollMessages({ currentSession, assistantId }: { currentSession: Sessi
           onClick={() => {
             const container = viewportRef.current;
             if (container) {
-              requestAnimationFrame(() =>
-                container.scroll({
-                  top: container.scrollHeight,
-                  behavior: 'smooth',
-                })
-              );
+              container.scroll({
+                top: container.scrollHeight,
+                behavior: 'smooth',
+              });
             }
           }}
           sx={{
