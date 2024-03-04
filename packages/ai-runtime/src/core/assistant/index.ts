@@ -936,8 +936,6 @@ async function runExecuteBlock({
       delta: { content: JSON.stringify(result) },
     });
 
-    console.log(result, JSON.stringify(tools));
-
     return result;
   }
 
