@@ -1,3 +1,7 @@
+## 0.1.273 (2024-3-4)
+
+- fix: do not expose builtin modules like fs to improve security
+
 ## 0.1.272 (2024-3-2)
 
 - fix: branch checkout error

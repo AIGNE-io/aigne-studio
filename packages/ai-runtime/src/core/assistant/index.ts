@@ -239,7 +239,6 @@ async function runFunctionAssistant({
   const vm = new NodeVM({
     console: 'redirect',
     require: {
-      builtin: ['*'],
       external: { modules: ['@blocklet/ai-builtin'], transitive: true },
     },
     sandbox: {
