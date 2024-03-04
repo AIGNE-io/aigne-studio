@@ -11655,10 +11655,10 @@ miller-rabin@^4.0.0:
     bn.js "^4.0.0"
     brorand "^1.0.1"
 
-million@^3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/million/-/million-3.0.3.tgz#a0c9cf7c6a8150fa6aa80bc02c955b3785f63a34"
-  integrity sha512-fuFF18eBfAQy/+0EnZbqi7lVyJqT0EISboz9bG5tKG0Be3KL2chG4cCp2Bv9wdU6WXI4RZ4mh1gtR4ZPoGn1Vw==
+million@^3.0.4:
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/million/-/million-3.0.4.tgz#ba5a71313a4e9112a8fd2f3349f2a5d2833da8f3"
+  integrity sha512-ioO9dUL4nw6AfNMmZ60k52O3B0UoQSNzoD4pHnoROn7Zr1Cl7b7k//TgbhC/Sazq8eSjIku2+dme67AQn/sB3w==
   dependencies:
     "@babel/core" "^7.23.7"
     "@babel/types" "^7.23.6"
