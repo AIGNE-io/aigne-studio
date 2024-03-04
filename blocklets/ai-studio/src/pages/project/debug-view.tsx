@@ -34,9 +34,9 @@ import {
   selectClasses,
   styled,
 } from '@mui/material';
-import { useLocalStorageState } from 'ahooks';
+import { useLocalStorageState, useThrottleEffect } from 'ahooks';
 import dayjs from 'dayjs';
-import { pick, sortBy, throttle } from 'lodash';
+import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
 import { ComponentProps, SyntheticEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -171,10 +171,8 @@ function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
     }
   }, []);
 
-  const throttleScrollToBottom = throttle(scrollToBottom, 200);
-
   const handleScroll = (e: HTMLDivElement) => {
-    const isTouchBottom = e.scrollTop + e.clientHeight >= e.scrollHeight - 50;
+    const isTouchBottom = e.scrollTop + e.offsetHeight >= e.scrollHeight - 20;
     setHitBottom(isTouchBottom);
   };
 
@@ -190,11 +188,15 @@ function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
     }
   }, [assistantArray.length, scrollToBottom]);
 
-  useEffect(() => {
-    if (autoScroll.current && lastAssistantContent) {
-      throttleScrollToBottom('auto');
-    }
-  }, [lastAssistantContent, throttleScrollToBottom]);
+  useThrottleEffect(
+    () => {
+      if (autoScroll.current && lastAssistantContent) {
+        scrollToBottom('smooth');
+      }
+    },
+    [lastAssistantContent, scrollToBottom],
+    { wait: 300 }
+  );
 
   return (
     <Box
@@ -210,7 +212,10 @@ function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
         flexGrow={1}
         height={0}
         flexDirection="column"
-        overflow="scroll"
+        sx={{
+          overflowY: 'scroll',
+          overflowX: 'hidden',
+        }}
         ref={viewportRef}
         onScroll={(e) => handleScroll(e.currentTarget)}
         onWheel={(e) => {

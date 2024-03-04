@@ -10,7 +10,6 @@ import { memo, useEffect, useMemo, useRef } from 'react';
 
 const MarkdownViewer = styled(Box)`
   padding: 0 4px;
-  font-size: 14px;
   background-color: transparent;
 
   h1,
