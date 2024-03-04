@@ -1,5 +1,6 @@
 import '@blocklet/ai-builtin';
 
+import { join } from 'path';
 import { ReadableStream } from 'stream/web';
 
 import {
@@ -238,7 +239,6 @@ async function runFunctionAssistant({
   const vm = new NodeVM({
     console: 'redirect',
     require: {
-      builtin: ['*'],
       external: { modules: ['@blocklet/ai-builtin'], transitive: true },
     },
     sandbox: {
@@ -281,7 +281,7 @@ async function runFunctionAssistant({
     });
   });
 
-  const module = await vm.run(code, __dirname);
+  const module = await vm.run(code, join(__dirname, 'assistant.js'));
   if (typeof module.default !== 'function')
     throw new Error('Invalid function file: function file must export default function');
 

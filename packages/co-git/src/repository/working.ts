@@ -300,7 +300,6 @@ export default class Working<T> extends Doc {
       }
     } catch (err) {
       console.error(err);
-      this.emit('error', [err]);
     }
 
     this.save();

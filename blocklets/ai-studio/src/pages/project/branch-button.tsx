@@ -105,6 +105,7 @@ export default function BranchButton({
                               }
 
                               await createBranch({ projectId, input: { name: data.new, oid: data.source } });
+                              setProjectCurrentBranch(projectId, data.new);
 
                               Toast.success(t('alert.branchCreated'));
                               closeDialog();
@@ -223,6 +224,7 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
         onOk: async () => {
           try {
             await deleteBranch({ projectId, branch });
+            setProjectCurrentBranch(projectId, getDefaultBranch());
 
             if (branch === ref) navigate(joinURL(`../${getDefaultBranch()}`, filepath || ''));
             Toast.success(t('alert.deleted'));
@@ -233,7 +235,7 @@ function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _r
         },
       });
     },
-    [deleteBranch, filepath, getDefaultBranch, navigate, projectId, ref, showDialog, t]
+    [deleteBranch, filepath, getDefaultBranch, navigate, projectId, ref, setProjectCurrentBranch, showDialog, t]
   );
 
   const columns = useMemo<GridColDef<{ branch: string }>[]>(() => {
