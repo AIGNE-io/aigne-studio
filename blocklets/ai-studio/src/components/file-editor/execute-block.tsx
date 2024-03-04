@@ -40,7 +40,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
 import { joinURL } from 'ufo';
 
-import { getDatasetList } from '../../libs/dataset';
+import NewDataset from '../../../api/src/store/models/dataset/dataset';
+import { getAPIList, getDatasets } from '../../libs/dataset';
 import Add from '../../pages/project/icons/add';
 import External from '../../pages/project/icons/external';
 import InfoOutlined from '../../pages/project/icons/question';
@@ -51,7 +52,8 @@ import LoadingIconButton from '../loading/loading-icon-button';
 import { ModelPopper, ModelSetting } from '../modal-settings';
 import PromptEditorField from './prompt-editor-field';
 
-const FROM = 'dataset';
+const FROM_DATASET = 'dataset';
+const FROM_KNOWLEDGE = 'knowledge';
 
 export default function ExecuteBlockForm({
   projectId,
@@ -80,7 +82,8 @@ export default function ExecuteBlockForm({
 
   const { store } = useProjectStore(projectId, gitRef);
 
-  const { data: datasets = [] } = useRequest(() => getDatasetList());
+  const { data: datasets = [] } = useRequest(() => getAPIList());
+  const { data: knowledges = [] } = useRequest(() => getDatasets());
 
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
@@ -215,7 +218,6 @@ export default function ExecuteBlockForm({
           const file = f && isAssistant(f) ? f : undefined;
           if (!file) {
             const dataset = datasets.find((x) => x.id === tool.id);
-
             if (dataset) {
               return (
                 <Stack
@@ -230,10 +232,7 @@ export default function ExecuteBlockForm({
                     borderRadius: 1,
                     ':hover': {
                       bgcolor: 'action.hover',
-
-                      '.hover-visible': {
-                        display: 'flex',
-                      },
+                      '.hover-visible': { display: 'flex' },
                     },
                     backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
                   }}
@@ -248,6 +247,60 @@ export default function ExecuteBlockForm({
 
                   <Typography variant="body1" color="text.secondary" flex={1} noWrap>
                     {getDatasetTextByI18n(dataset, 'description', locale)}
+                  </Typography>
+
+                  {!readOnly && (
+                    <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
+                      <Button
+                        sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const doc = (getYjsValue(value) as Map<any>).doc!;
+                          doc.transact(() => {
+                            if (value.tools) {
+                              delete value.tools[tool.id];
+                              sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
+                            }
+                          });
+                        }}>
+                        <Trash sx={{ fontSize: 18 }} />
+                      </Button>
+                    </Stack>
+                  )}
+                </Stack>
+              );
+            }
+
+            const knowledge = knowledges.find((x) => x.id === tool.id);
+            if (knowledge) {
+              return (
+                <Stack
+                  key={knowledge.id}
+                  direction="row"
+                  sx={{
+                    px: 1,
+                    minHeight: 32,
+                    gap: 1,
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    ':hover': {
+                      bgcolor: 'action.hover',
+                      '.hover-visible': { display: 'flex' },
+                    },
+                    backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
+                  }}
+                  onClick={() => {
+                    if (readOnly) return;
+                    toolForm.current?.form.reset(cloneDeep(tool));
+                    dialogState.open();
+                  }}>
+                  <Typography variant="subtitle2" noWrap maxWidth="50%">
+                    {knowledge.name}
+                  </Typography>
+
+                  <Typography variant="body1" color="text.secondary" flex={1} noWrap>
+                    {knowledge.description}
                   </Typography>
 
                   {!readOnly && (
@@ -394,7 +447,8 @@ export default function ExecuteBlockForm({
         assistant={assistant}
         gitRef={gitRef}
         DialogProps={{ ...bindDialog(dialogState) }}
-        datasets={datasets.map((x) => ({ ...x, from: FROM }))}
+        datasets={datasets.map((x) => ({ ...x, from: FROM_DATASET }))}
+        knowledges={knowledges.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
           doc.transact(() => {
@@ -428,7 +482,13 @@ const filter = createFilterOptions<Option>();
 function isDatasetObject(
   option: any
 ): option is DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] } {
-  return option && option.from === FROM;
+  return option && option.from === FROM_DATASET;
+}
+
+function isKnowledgeObject(
+  option: any
+): option is DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] } {
+  return option && option.from === FROM_KNOWLEDGE;
 }
 
 type ToolDialogForm = NonNullable<ExecuteBlock['tools']>[number];
@@ -447,8 +507,9 @@ export const ToolDialog = forwardRef<
     DialogProps?: DialogProps;
     assistant: AssistantYjs;
     datasets: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+    knowledges: (NewDataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   }
->(({ datasets, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+>(({ datasets, knowledges, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -477,7 +538,20 @@ export const ToolDialog = forwardRef<
       : []),
   ]);
 
-  const option = [...options, ...datasets].find((x) => x.id === fileId);
+  const getFromText = (from?: string) => {
+    if (from === FROM_DATASET) {
+      return t('buildInData');
+    }
+
+    if (from === FROM_KNOWLEDGE) {
+      return t('knowledge.menu');
+    }
+
+    return t('assistantData');
+  };
+
+  const option = [...options, ...datasets, ...knowledges].find((x) => x.id === fileId);
+
   const formatOptions: Option[] = [
     ...options,
     ...datasets.map((dataset) => ({
@@ -489,8 +563,14 @@ export const ToolDialog = forwardRef<
         t('unnamed'),
       from: dataset.from,
     })),
+    ...knowledges.map((knowledge) => ({
+      id: knowledge.id,
+      type: 'knowledge',
+      name: knowledge.name || t('unnamed'),
+      from: knowledge.from,
+    })),
   ]
-    .map((x) => ({ ...x, fromText: x.from === FROM ? t('buildInData') : t('assistantData') }))
+    .map((x) => ({ ...x, fromText: getFromText(x.from) }))
     .sort((a, b) => (b.from || '').localeCompare(a.from || ''));
 
   const translateTool = async () => {
@@ -520,6 +600,10 @@ export const ToolDialog = forwardRef<
       return getAllParameters(option);
     }
 
+    if (isKnowledgeObject(option)) {
+      return [{ name: 'message', description: 'Search the content of the knowledge' }];
+    }
+
     return (
       file?.parameters &&
       sortBy(Object.values(file.parameters), (i) => i.index).filter(
@@ -534,6 +618,40 @@ export const ToolDialog = forwardRef<
     }
 
     if (isDatasetObject(option)) {
+      return (
+        <Box>
+          {(parameters || [])?.map((parameter: any) => {
+            if (!parameter) return null;
+
+            return (
+              <Stack key={parameter.name}>
+                <Typography variant="caption" mx={1}>
+                  {parameter.description || parameter.name}
+                </Typography>
+
+                <Controller
+                  control={form.control}
+                  name={`parameters.${parameter.name}`}
+                  render={({ field }) => (
+                    <PromptEditorField
+                      placeholder={`{{ ${parameter.name} }}`}
+                      value={field.value || ''}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      assistant={assistant}
+                      path={[assistantId, parameter.name]}
+                      onChange={(value) => field.onChange({ target: { value } })}
+                    />
+                  )}
+                />
+              </Stack>
+            );
+          })}
+        </Box>
+      );
+    }
+
+    if (isKnowledgeObject(option)) {
       return (
         <Box>
           {(parameters || [])?.map((parameter: any) => {
@@ -693,7 +811,7 @@ export const ToolDialog = forwardRef<
                       // 清理：parameters 数据
                       form.reset({ id: value?.id, from: value?.from });
 
-                      if (value.from === FROM) {
+                      if (value.from === FROM_DATASET || value.from === FROM_KNOWLEDGE) {
                         field.onChange({ target: { value: value?.id } });
                         return;
                       }
@@ -717,7 +835,7 @@ export const ToolDialog = forwardRef<
               }}
             />
 
-            {!isDatasetObject(option) && (
+            {!isDatasetObject(option) && !isKnowledgeObject(option) && (
               <Controller
                 control={form.control}
                 name="functionName"

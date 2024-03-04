@@ -18,7 +18,7 @@ export type ExecuteBlockRole = Role | 'none';
 
 export type Tool = {
   id: string;
-  from?: 'assistant' | 'dataset';
+  from?: 'assistant' | 'dataset' | 'knowledge';
   parameters?: { [key: string]: string };
   functionName?: string;
   onEnd?: OnTaskCompletion;

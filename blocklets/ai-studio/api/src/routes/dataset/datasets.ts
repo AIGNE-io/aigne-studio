@@ -36,14 +36,14 @@ router.get('/list', user(), checkUserAuth(), async (req, res) => {
     where: { [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
   });
 
-  res.json({
-    datasets: await Promise.all(
+  res.json(
+    await Promise.all(
       list.map(async (item) => {
         item.dataValues.documents = await DatasetItem.count({ where: { datasetId: item.id } });
         return item;
       })
-    ),
-  });
+    )
+  );
 });
 
 /**

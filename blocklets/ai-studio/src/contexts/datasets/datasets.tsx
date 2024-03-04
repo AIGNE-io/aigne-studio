@@ -31,7 +31,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
 
       setValue((v) => (v.loading = true));
       try {
-        const { datasets } = await getDatasets();
+        const datasets = await getDatasets();
 
         setValue((v) => {
           v.datasets = datasets;

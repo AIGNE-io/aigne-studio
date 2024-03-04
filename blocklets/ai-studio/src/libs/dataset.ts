@@ -11,11 +11,11 @@ export interface DatasetInput {
   description?: string | null;
 }
 
-export async function getDatasetList(): Promise<DatasetObject[]> {
+export async function getAPIList(): Promise<DatasetObject[]> {
   return axios.get('/api/collections.json').then((res) => res.data);
 }
 
-export async function getDatasets(): Promise<{ datasets: Dataset[] }> {
+export async function getDatasets(): Promise<Dataset[]> {
   return axios.get('/api/datasets/datasets/list').then((res) => res.data);
 }
 

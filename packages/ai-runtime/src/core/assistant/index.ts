@@ -13,6 +13,7 @@ import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
+import { call as callFunc } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick } from 'lodash';
@@ -869,6 +870,36 @@ async function runExecuteBlock({
             return undefined;
           }
 
+          if (tool?.from === 'knowledge') {
+            const params = Object.fromEntries(
+              await Promise.all(
+                (Object.keys(tool?.parameters || {}) ?? [])
+                  .filter((i): i is typeof i => !!i)
+                  .map(async (i) => {
+                    const template = tool.parameters?.[i]?.trim();
+                    const value = template ? await renderMessage(template, parameters) : parameters?.[i];
+                    return [i, value];
+                  })
+              )
+            );
+
+            const { data } = await callFunc({
+              name: 'ai-studio',
+              path: `/api/datasets/documents/${tool.id}/items/search`,
+              method: 'GET',
+              params,
+            });
+
+            callback?.({
+              type: AssistantResponseType.CHUNK,
+              taskId: taskIdGenerator.nextId().toString(),
+              assistantId: tool.id,
+              delta: { content: typeof data === 'string' ? data : JSON.stringify(data) },
+            });
+
+            return data;
+          }
+
           const toolAssistant = await getAssistant(tool.id);
           if (!toolAssistant) return undefined;
           const args = Object.fromEntries(
@@ -905,6 +936,8 @@ async function runExecuteBlock({
       delta: { content: JSON.stringify(result) },
     });
 
+    console.log(result, JSON.stringify(tools));
+
     return result;
   }
 
@@ -927,11 +960,38 @@ async function runExecuteBlock({
               tool,
               toolAssistant: dataset,
               function: {
-                name: name.replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
+                name: (tool.functionName || name).replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
                 descriptions: dataset.description || name || '',
                 parameters: {
                   type: 'object',
                   properties: Object.fromEntries(datasetParameters),
+                },
+              },
+            };
+          }
+
+          if (tool?.from === 'knowledge') {
+            const parameters = [{ name: 'message', description: 'Search the content of the knowledge' }]
+              .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
+              .map((i) => [i.name, { type: 'string', description: i.description ?? '' }]);
+
+            const { data } = await callFunc({
+              name: 'ai-studio',
+              path: `/api/datasets/datasets/${tool.id}`,
+              method: 'GET',
+              params: {},
+            });
+
+            const { name, description } = data;
+            return {
+              tool,
+              toolAssistant: data,
+              function: {
+                name: (tool.functionName || name).replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || tool.id,
+                descriptions: description || name || '',
+                parameters: {
+                  type: 'object',
+                  properties: Object.fromEntries(parameters),
                 },
               },
             };
@@ -1061,6 +1121,33 @@ async function runExecuteBlock({
             });
 
             return response.data;
+          }
+
+          if (tool.tool.from === 'knowledge') {
+            await Promise.all(
+              [{ name: 'message', description: 'Search the content of the knowledge' }].map(async (item) => {
+                const message = tool.tool?.parameters?.[item.name!]?.trim();
+                if (message) {
+                  args[item.name!] = await renderMessage(message, parameters);
+                }
+              }) ?? []
+            );
+
+            const { data } = await callFunc({
+              name: 'ai-studio',
+              path: `/api/datasets/documents/${tool.id}/items/search`,
+              method: 'GET',
+              params: args,
+            });
+
+            callback?.({
+              type: AssistantResponseType.CHUNK,
+              taskId: taskIdGenerator.nextId().toString(),
+              assistantId: tool.id,
+              delta: { content: typeof data === 'string' ? data : JSON.stringify(data) },
+            });
+
+            return data;
           }
 
           const toolAssistant = tool?.toolAssistant as Assistant;

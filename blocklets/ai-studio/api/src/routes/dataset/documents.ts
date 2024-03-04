@@ -528,23 +528,18 @@ router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.sin
  *          description: Successfully retrieved the paginated list of search results
  *          x-description-zh: 成功获取分页列表
  */
-router.get('/:datasetId/items/search', user(), checkUserAuth(), async (req, res) => {
-  const { did } = req.user!;
+router.get('/:datasetId/items/search', async (req, res) => {
   const { datasetId } = req.params;
   const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
   const input = await datasetSchema.validateAsync(req.query);
 
-  const dataset = await Dataset.findOne({
-    where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
-  });
+  const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset || !datasetId) {
     res.json({ role: 'system', content: '' });
     return;
   }
 
-  const datasetItems = await DatasetItem.findAll({
-    where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
-  });
+  const datasetItems = await DatasetItem.findAll({ where: { datasetId } });
   if (!datasetItems?.length) {
     res.json({ role: 'system', content: '' });
     return;
