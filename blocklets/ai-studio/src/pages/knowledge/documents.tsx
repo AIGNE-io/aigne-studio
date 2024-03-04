@@ -55,7 +55,7 @@ export default function KnowledgeDocuments() {
     () => [
       {
         field: 'name',
-        headerName: t('Document Name'),
+        headerName: t('knowledge.documents.name'),
         flex: 1,
         sortable: false,
         renderCell: (params: any) => {
@@ -64,7 +64,7 @@ export default function KnowledgeDocuments() {
       },
       {
         field: 'type',
-        headerName: t('Type'),
+        headerName: t('knowledge.documents.type'),
         maxWidth: 200,
         minWidth: 120,
         headerAlign: 'center',
@@ -76,7 +76,7 @@ export default function KnowledgeDocuments() {
       },
       {
         field: 'time',
-        headerName: t('Create Time'),
+        headerName: t('knowledge.documents.time'),
         width: 300,
         sortable: false,
         renderCell: (params: any) => {
@@ -109,15 +109,9 @@ export default function KnowledgeDocuments() {
     <>
       <>
         <Stack gap={3} py={2} px={3}>
-          <Breadcrumbs
-            sx={{
-              a: {
-                color: 'rgba(29,28,35,.35)',
-                textDecoration: 'auto',
-              },
-            }}>
+          <Breadcrumbs sx={{ a: { color: 'rgba(29,28,35,.35)', textDecoration: 'auto' } }}>
             <Link color="inherit" to="../../knowledge">
-              Knowledge
+              {t('knowledge.menu')}
             </Link>
 
             <Typography color="text.primary">{state.dataset?.name}</Typography>
@@ -125,45 +119,33 @@ export default function KnowledgeDocuments() {
 
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <Box>
-              <Box
-                sx={{
-                  fontSize: '20px',
-                  fontWeight: 600,
-                  lineHeight: '28px',
-                }}>
-                {state.dataset?.name}
-              </Box>
+              <Box sx={{ fontSize: '20px', fontWeight: 600, lineHeight: '28px' }}>{state.dataset?.name}</Box>
 
               <Box display="flex" gap={2} alignItems="center" mt={1}>
-                <Tag>{`${rows.length} Documents`}</Tag>
+                <Tag>{`${rows.length} ${t('knowledge.document')}`}</Tag>
               </Box>
             </Box>
 
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => {
-                dialogState.open();
-              }}>
-              Add Document
+            <Button variant="contained" size="small" onClick={dialogState.open}>
+              {t('knowledge.documents.add')}
             </Button>
           </Box>
         </Stack>
 
         <Divider />
         <Stack px={3} flex={1} height={0}>
-          <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>Documents</Box>
+          <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>
+            {t('knowledge.document')}
+          </Box>
 
           <Stack flex={1}>
-            {!rows?.length && <EmptyDocument onOpen={() => dialogState.open()} />}
+            {!rows?.length && <EmptyDocument onOpen={dialogState.open} />}
 
             {rows.length && (
               <Table
                 sx={{
                   border: 0,
-                  [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
-                    outline: 'none',
-                  },
+                  [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: { outline: 'none' },
                   [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]: {
                     outline: 'none',
                   },
@@ -203,7 +185,7 @@ export default function KnowledgeDocuments() {
             navigate(`upload?type=${currentDocument}`);
           }
         })}>
-        <DialogTitle>{t('Add Document')}</DialogTitle>
+        <DialogTitle>{t('knowledge.documents.add')}</DialogTitle>
 
         <DialogContent>
           <DocumentRadioGroup
@@ -256,10 +238,10 @@ export default function KnowledgeDocuments() {
             throw error;
           }
         })}>
-        <DialogTitle>{t('Document name')}</DialogTitle>
+        <DialogTitle>{t('knowledge.documents.add')}</DialogTitle>
 
         <DialogContent>
-          <TextField label={t('projectSetting.name')} sx={{ width: 1 }} {...form.register('name')} />
+          <TextField label={t('knowledge.documents.name')} sx={{ width: 1 }} {...form.register('name')} />
         </DialogContent>
 
         <DialogActions>
@@ -309,13 +291,10 @@ function Actions({
         open={open}
         anchorEl={anchorEl}
         onClose={() => setAnchorEl(null)}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}>
-        <DialogTitle>{t('Delete this Document?')}</DialogTitle>
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <DialogTitle>{t('knowledge.documents.deleteTitle')}</DialogTitle>
 
-        <DialogContent>After deletion, references in related bots will become invalid.</DialogContent>
+        <DialogContent>{t('knowledge.documents.deleteDescription')}</DialogContent>
 
         <DialogActions>
           <Button size="small" onClick={() => setAnchorEl(null)}>
@@ -346,38 +325,44 @@ function EmptyDocument({ onOpen }: { onOpen: () => any }) {
     <Stack flex={1} justifyContent="center" alignItems="center" gap={1}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
 
-      <Typography color="text.disabled">{t('No Document yet \n Click button to add a Document')}</Typography>
+      <Typography color="text.disabled">{t('knowledge.documents.empty')}</Typography>
 
       <Button variant="contained" size="small" onClick={onOpen}>
-        Add Document
+        {t('knowledge.documents.add')}
       </Button>
     </Stack>
   );
 }
 
 function Upload() {
+  const { t } = useLocaleContext();
+
   return (
     <RadioStack gap={0.5}>
-      <Box className="semi-radio-addon">Upload Documents</Box>
-      <Box className="semi-radio-extra">Upload documents in PDF, TXT, or DOCX format</Box>
+      <Box className="radio-addon">{t('knowledge.documents.file.title')}</Box>
+      <Box className="radio-extra">{t('knowledge.documents.file.description')}</Box>
     </RadioStack>
   );
 }
 
 function Discussion() {
+  const { t } = useLocaleContext();
+
   return (
     <RadioStack gap={0.5}>
-      <Box className="semi-radio-addon">Discussion Documents</Box>
-      <Box className="semi-radio-extra">Get the content from the discuss documents</Box>
+      <Box className="radio-addon">{t('knowledge.documents.discussion.title')}</Box>
+      <Box className="radio-extra">{t('knowledge.documents.discussion.description')}</Box>
     </RadioStack>
   );
 }
 
 function Customization() {
+  const { t } = useLocaleContext();
+
   return (
     <RadioStack gap={0.5}>
-      <Box className="semi-radio-addon">Customization Documents</Box>
-      <Box className="semi-radio-extra">Customize content, support creation & editing</Box>
+      <Box className="radio-addon">{t('knowledge.documents.custom.title')}</Box>
+      <Box className="radio-extra">{t('knowledge.documents.custom.description')}</Box>
     </RadioStack>
   );
 }
@@ -410,20 +395,15 @@ const DocumentRadioGroup = styled(RadioGroup)`
 `;
 
 const RadioStack = styled(Stack)`
-  --semi-grey-9: 56, 55, 67;
-  --semi-color-text-0: rgba(var(--semi-grey-9), 1);
-  --semi-color-text-1: rgba(var(--semi-grey-9), 0.8);
-  --semi-color-text-2: rgba(var(--semi-grey-9), 0.6);
-
-  .semi-radio-addon {
-    color: var(--semi-color-text-0);
+  .radio-addon {
+    color: rgba(56, 55, 67, 1);
     font-size: 14px;
     font-weight: 600;
     line-height: 20px;
   }
 
-  .semi-radio-extra {
-    color: var(--semi-color-text-2);
+  .radio-extra {
+    color: rgba(56, 55, 67, 0.6);
     font-size: 14px;
     font-weight: 400;
     line-height: 20px;

@@ -1,6 +1,6 @@
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 
-import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset-items';
+import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset/documents';
 import Dataset from '../../api/src/store/models/dataset/dataset';
 import DatasetItem from '../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../api/src/store/models/dataset/segment';

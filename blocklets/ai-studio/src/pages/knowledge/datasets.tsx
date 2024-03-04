@@ -10,28 +10,31 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Popover,
   Stack,
   StackProps,
   TextField,
   styled,
 } from '@mui/material';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
+import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDatasets } from '../../contexts/datasets/datasets';
 import { getErrorMessage } from '../../libs/api';
 import Add from '../project/icons/add';
 import Database from '../project/icons/database';
 import Delete from '../project/icons/delete';
 
-export default function Knowledge() {
+type DatasetInput = { name: string; description?: string };
+
+export default function KnowledgeDatasets() {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
-  const form = useForm<{ name: string; description?: string }>({ defaultValues: { description: '', name: '' } });
+  const form = useForm<DatasetInput>({ defaultValues: { description: '', name: '' } });
   const navigate = useNavigate();
-
   const { datasets, refetch, createDataset, deleteDataset } = useDatasets();
 
   useEffect(() => {
@@ -39,7 +42,7 @@ export default function Knowledge() {
   }, []);
 
   const onSave = useCallback(
-    async (input: any) => {
+    async (input: DatasetInput) => {
       try {
         const dataset = await createDataset(input);
         dialogState.close();
@@ -70,10 +73,10 @@ export default function Knowledge() {
       <Stack m={{ xs: 2, sm: 3 }}>
         <ListContainer gap={{ xs: 2, sm: 3 }}>
           <DatasetItemAdd
-            name="创建知识库"
-            description="导入您自己的文本数据以增强 LLM 的上下文。"
+            name={t('knowledge.createTitle')}
+            description={t('knowledge.createDescription')}
             onClick={() => dialogState.open()}
-            className="list_listItem list_newItemCard"
+            className="listItem newItemCard"
           />
 
           {datasets.map((item) => {
@@ -85,8 +88,7 @@ export default function Knowledge() {
                 documents={item.documents}
                 onClick={() => navigate(item.id)}
                 onDelete={() => onDelete(item.id)}
-                className="list_listItem"
-                sx={{ '&:focus-visible': { outline: 0 } }}
+                className="listItem"
               />
             );
           })}
@@ -99,12 +101,12 @@ export default function Knowledge() {
         fullWidth
         component="form"
         onSubmit={form.handleSubmit(onSave)}>
-        <DialogTitle>{t('Create Knowledge')}</DialogTitle>
+        <DialogTitle>{t('knowledge.documents.create')}</DialogTitle>
 
         <DialogContent>
           <Stack gap={2}>
-            <TextField label={t('projectSetting.name')} sx={{ width: 1 }} {...form.register('name')} />
-            <TextField label={t('projectSetting.description')} sx={{ width: 1 }} {...form.register('description')} />
+            <TextField label={t('knowledge.name')} sx={{ width: 1 }} {...form.register('name')} />
+            <TextField label={t('knowledge.description')} sx={{ width: 1 }} {...form.register('description')} />
           </Stack>
         </DialogContent>
 
@@ -135,15 +137,15 @@ function DatasetItemAdd({
 } & StackProps) {
   return (
     <DatasetItemRoot {...props}>
-      <Box className="list_listItemTitle">
+      <Box className="itemTitle">
         <Add sx={{ width: '2rem', height: '2rem' }} />
 
-        <Box className="list_listItemHeading">
-          <Box className="list_listItemHeadingContent">{name || ''}</Box>
+        <Box className="itemHeading">
+          <Box className="headingContent">{name || ''}</Box>
         </Box>
       </Box>
 
-      <Box className="list_listItemDescription">{description || ''}</Box>
+      <Box className="itemDescription">{description || ''}</Box>
     </DatasetItemRoot>
   );
 }
@@ -155,32 +157,68 @@ function DatasetItem({
   onDelete,
   ...props
 }: { name?: string; description?: string; documents?: number; onDelete: () => any } & StackProps) {
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const open = Boolean(anchorEl);
+  const { t } = useLocaleContext();
+
   return (
-    <DatasetItemRoot {...props}>
-      <Box className="list_listItemTitle">
-        <Database sx={{ width: '2rem', height: '2rem' }} />
+    <>
+      <DatasetItemRoot {...props}>
+        <Box className="itemTitle">
+          <Database sx={{ width: '2rem', height: '2rem' }} />
 
-        <Box className="list_listItemHeading">
-          <Box className="list_listItemHeadingContent">{name || ''}</Box>
+          <Box className="itemHeading">
+            <Box className="headingContent">{name || ''}</Box>
+          </Box>
+
+          <Box className="deleteIcon">
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+              }}>
+              <Delete sx={{ fontSize: '16px' }} />
+            </IconButton>
+          </Box>
         </Box>
 
-        <Box className="list_deleteDatasetIcon">
-          <IconButton
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
+        <Box className="itemDescription">{description || ''}</Box>
+
+        <Box className="itemFooter">
+          <Box className="itemStats">{`${documents || 0} ${t('knowledge.document')}`}</Box>
+        </Box>
+      </DatasetItemRoot>
+
+      <Popover
+        id={open ? 'simple-popover' : undefined}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}>
+        <DialogTitle>{t('knowledge.deleteTitle')}</DialogTitle>
+
+        <DialogContent>{t('knowledge.deleteDescription')}</DialogContent>
+
+        <DialogActions>
+          <Button size="small" onClick={() => setAnchorEl(null)}>
+            {t('cancel')}
+          </Button>
+
+          <PromiseLoadingButton
+            size="small"
+            variant="contained"
+            color="error"
+            onClick={async () => {
+              await onDelete();
+              setAnchorEl(null);
             }}>
-            <Delete sx={{ fontSize: '16px' }} />
-          </IconButton>
-        </Box>
-      </Box>
-
-      <Box className="list_listItemDescription">{description || ''}</Box>
-
-      <Box className="list_listItemFooter">
-        <Box className="list_listItemStats">{`${documents || 0} 文档`}</Box>
-      </Box>
-    </DatasetItemRoot>
+            {t('delete')}
+          </PromiseLoadingButton>
+        </DialogActions>
+      </Popover>
+    </>
   );
 }
 
@@ -191,39 +229,33 @@ const DatasetItemRoot = styled(Stack)`
   flex-direction: column;
   border-radius: 0.5rem;
   border: 1px solid transparent;
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
-  --tw-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
-  --tw-shadow-colored: 0px 1px 2px 0px var(--tw-shadow-color);
-  transition-property: all;
-  transition-duration: 0.2s;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: rgb(255, 255, 255);
+  box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-  &.list_newItemCard {
-    outline-style: solid;
-    outline-width: 1px;
+  &.newItemCard {
+    outline: 1px solid #e5e7eb;
     outline-offset: -1px;
-    outline-color: #e5e7eb;
     background-color: rgba(229, 231, 235, 0.5);
     border-width: 0;
 
     &:hover {
-      background-color: rgb(255 255 255 / var(--tw-bg-opacity));
-      --tw-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.1);
-      --tw-shadow-colored: 0px 1px 2px 0px var(--tw-shadow-color), 0px 1px 3px 0px var(--tw-shadow-color);
-      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+      background-color: rgb(255, 255, 255);
+      box-shadow:
+        0px 1px 2px rgba(16, 24, 40, 0.06),
+        0px 1px 3px rgba(16, 24, 40, 0.1);
     }
   }
 
-  &.list_listItem {
+  &.listItem {
     border-color: rgba(0, 0, 0, 0.12);
 
     &:hover {
-      --tw-shadow: 0px 4px 6px -2px rgba(16, 24, 40, 0.03), 0px 12px 16px -4px rgba(16, 24, 40, 0.08);
-      --tw-shadow-colored: 0px 4px 6px -2px var(--tw-shadow-color), 0px 12px 16px -4px var(--tw-shadow-color);
-      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+      box-shadow:
+        0px 4px 6px -2px rgba(16, 24, 40, 0.03),
+        0px 12px 16px -4px rgba(16, 24, 40, 0.08);
 
-      .list_deleteDatasetIcon {
+      .deleteIcon {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -231,16 +263,14 @@ const DatasetItemRoot = styled(Stack)`
     }
   }
 
-  .list_listItemTitle {
+  .itemTitle {
     display: flex;
     height: 66px;
-    flex-shrink: 0;
-    flex-grow: 0;
     align-items: center;
     gap: 0.75rem;
     padding: 14px 14px 0.75rem;
 
-    .list_listItemHeading {
+    .itemHeading {
       position: relative;
       height: 2rem;
       flex-grow: 1;
@@ -248,7 +278,7 @@ const DatasetItemRoot = styled(Stack)`
       font-weight: 500;
       line-height: 2rem;
 
-      .list_listItemHeadingContent {
+      .headingContent {
         position: absolute;
         top: 0;
         left: 0;
@@ -260,46 +290,46 @@ const DatasetItemRoot = styled(Stack)`
       }
     }
 
-    .list_deleteDatasetIcon {
+    .deleteIcon {
       display: none;
       border-radius: 4px;
       background-position: 50%;
       background-repeat: no-repeat;
-      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-      transition-duration: 0.2s;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition:
+        color 0.2s,
+        background-color 0.2s,
+        border-color 0.2s,
+        text-decoration-color 0.2s,
+        fill 0.2s,
+        stroke 0.2s;
     }
   }
 
-  .list_listItemDescription {
+  .itemDescription {
     margin-bottom: 0.75rem;
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     height: 2.25rem;
-    padding-left: 14px;
-    padding-right: 14px;
+    padding: 14px;
     font-size: 0.75rem;
-    line-height: 1rem;
     line-height: 1.5;
-    --tw-text-opacity: 1;
-    color: rgb(107 114 128 / var(--tw-text-opacity));
+    color: rgb(107, 114, 128);
   }
 
-  .list_listItemFooter {
+  .itemFooter {
     display: flex;
     align-items: center;
     gap: 1rem;
     font-size: 0.75rem;
     line-height: 1rem;
-    --tw-text-opacity: 1;
-    color: rgb(107 114 128 / var(--tw-text-opacity));
+    color: rgb(107, 114, 128);
     min-height: 42px;
     flex-wrap: wrap;
     padding: 0.5rem 14px 10px;
 
-    .list_listItemStats {
+    .itemStats {
       display: flex;
       align-items: center;
       gap: 0.25rem;
@@ -309,5 +339,5 @@ const DatasetItemRoot = styled(Stack)`
 
 const ListContainer = styled(Box)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 `;

@@ -16,7 +16,7 @@ import { getErrorMessage } from '../../../libs/api';
 import { createDatasetDocuments } from '../../../libs/dataset';
 import { DiscussionItem, searchDiscussions } from '../../../libs/discussion';
 
-export default function AddFilePage() {
+export default function DiscussionPage() {
   const { datasetId } = useParams();
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
@@ -72,11 +72,7 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
   const { t } = useLocaleContext();
 
   const [search, setSearch] = useState('');
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 20,
-  });
-
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 20 });
   const s = useThrottle(search, { wait: 1000 });
 
   const {
@@ -84,12 +80,7 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
     value: res,
     error,
   } = useAsync(
-    () =>
-      searchDiscussions({
-        search: s,
-        page: paginationModel.page + 1,
-        size: paginationModel.pageSize,
-      }),
+    () => searchDiscussions({ search: s, page: paginationModel.page + 1, size: paginationModel.pageSize }),
     [s, paginationModel.page, paginationModel.pageSize]
   );
 

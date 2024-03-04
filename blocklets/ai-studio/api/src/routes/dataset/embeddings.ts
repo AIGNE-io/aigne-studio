@@ -13,16 +13,43 @@ import VectorStore from '../../store/vector-store';
 const sse = new SSE();
 const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
 
+async function embeddingDiscussion({ datasetId, documentId }: { datasetId: string; documentId: string }) {
+  for await (const { id: discussionId } of discussionsIterator()) {
+    try {
+      await embeddingDiscussionItem({ datasetId, documentId, discussionId });
+    } catch (error) {
+      console.error(`embedding discussion ${discussionId} error`, { error });
+    }
+  }
+}
+
+const embeddingDiscussionItem = async ({
+  datasetId,
+  documentId,
+  discussionId,
+}: {
+  datasetId: string;
+  documentId: string;
+  discussionId: string;
+}) => {
+  const discussion = await getDiscussion(discussionId);
+  await saveContentToVectorStore(discussion.content, datasetId, documentId);
+  return { name: discussion?.title, content: discussion?.content };
+};
+
 const embeddingHandler: {
   [key in NonNullable<DatasetItem['type']>]: (
     item: DatasetItem & { data: { type: key } },
     documentId: string
-  ) => Promise<{ name: string; content: string }>;
+  ) => Promise<{ name: string; content: string } | undefined>;
 } = {
   discussion: async (item: DatasetItem, documentId: string) => {
-    const discussion = await getDiscussion((item.data as any).id);
-    await saveContentToVectorStore(discussion.content, item.datasetId, documentId);
-    return { name: discussion.title, content: discussion.content };
+    if ((item?.data as any)?.fullSite) {
+      await embeddingDiscussion({ datasetId: item.datasetId, documentId });
+      return undefined;
+    }
+
+    return embeddingDiscussionItem({ datasetId: item.datasetId, discussionId: (item.data as any).id, documentId });
   },
   text: async (item: DatasetItem, documentId: string) => {
     const content = (item.data as any)?.content;
@@ -60,16 +87,14 @@ const discussBaseUrl = () => {
   if (!url) {
     throw new Error('did-comments component not found');
   }
-
   return url;
 };
 
-async function getDiscussion(discussionId: string): Promise<{ content: string; updatedAt: string; title: string }> {
+async function getDiscussion(discussionId: string): Promise<{ content: string; title: string; updatedAt: string }> {
   const { data } = await axios.get(`/api/blogs/${discussionId}`, {
     baseURL: discussBaseUrl(),
     params: { textContent: 1 },
   });
-
   if (!data) {
     throw new Error('Discussion not found');
   }
@@ -77,12 +102,48 @@ async function getDiscussion(discussionId: string): Promise<{ content: string; u
   return data;
 }
 
+async function* discussionsIterator() {
+  let page = 0;
+  let index = 0;
+  const size = 2;
+
+  while (true) {
+    page += 1;
+    const { data, total } = await searchDiscussions({ page, size });
+
+    if (!data.length) {
+      break;
+    }
+
+    for (const i of data) {
+      index += 1;
+      yield { total, id: i.id, index };
+    }
+  }
+}
+
+async function searchDiscussions({
+  search,
+  page,
+  size,
+}: {
+  search?: string;
+  page?: number;
+  size?: number;
+}): Promise<{ data: { id: string }[]; total: number }> {
+  return axios
+    .get('/api/discussions', {
+      baseURL: discussBaseUrl(),
+      params: { page, size, search },
+    })
+    .then((res) => res.data);
+}
+
 export const saveContentToVectorStore = async (content: string, datasetId: string, documentId: string) => {
   const textSplitter = new RecursiveCharacterTextSplitter();
   const docs = await textSplitter.createDocuments([content]);
 
   for (const doc of docs) {
-    // eslint-disable-next-line no-await-in-loop
     if (doc.pageContent) await Segment.create({ documentId, content: doc.pageContent });
   }
 
@@ -107,10 +168,13 @@ export const runHandlerAndSaveContent = async (itemId: string) => {
         if (!handler) return;
 
         try {
-          const { name, content } = await handler(item as any, itemId);
-          const params = name ? { error: '', content, name } : { error: '', content };
+          const result = await handler(item as any, itemId);
 
-          await DatasetItem.update(params, { where: { id: itemId } });
+          if (result) {
+            const { name, content } = result;
+            const params = name ? { error: '', content, name } : { error: '', content };
+            await DatasetItem.update(params, { where: { id: itemId } });
+          }
         } catch (error) {
           await DatasetItem.update({ error: error.message }, { where: { id: itemId } });
 

@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, Stack, styled } from '@mui/material';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -15,6 +16,7 @@ export default function KnowledgeUpload() {
   const [searchParams] = useSearchParams();
   const type = searchParams.get('type');
   const { datasetId } = useParams();
+  const { t } = useLocaleContext();
 
   const Component = type ? components[type || ''] : null;
 
@@ -25,7 +27,7 @@ export default function KnowledgeUpload() {
           <Left sx={{ fontSize: '28px' }} />
         </LeftContainer>
 
-        <LeftContainer>Add Document</LeftContainer>
+        <LeftContainer>{t('knowledge.documents.add')}</LeftContainer>
       </Box>
 
       <Box flex={1} overflow="auto">

@@ -571,7 +571,7 @@ router.get('/:datasetId/:documentId', user(), checkUserAuth(), async (req, res) 
 
 export interface CreateItem {
   name: string;
-  data: { type: 'discussion'; id: string };
+  data: { type: 'discussion'; fullSite?: boolean; id?: string };
 }
 
 export type CreateItemInput = CreateItem | CreateItem[];
@@ -608,15 +608,16 @@ router.post('/:datasetId/items', user(), async (req, res) => {
   const docs = await Promise.all(
     arr.map(async (item) => {
       const { data, name } = item;
+      const { fullSite, ...other } = data;
       const found = await DatasetItem.findOne({ where: { datasetId, data } });
       if (found) {
-        return found.update({ name, data, createdBy: did, updatedBy: did }, { where: { datasetId, data } });
+        return found.update({ name, data: other, createdBy: did, updatedBy: did }, { where: { datasetId, data } });
       }
 
       return DatasetItem.create({
         type: 'discussion',
         name,
-        data,
+        data: other,
         datasetId,
         createdBy: did,
         updatedBy: did,

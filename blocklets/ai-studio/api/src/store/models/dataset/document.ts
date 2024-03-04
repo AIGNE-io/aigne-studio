@@ -26,7 +26,8 @@ export default class NewDatasetItem extends Model<
       }
     | {
         type: 'discussion';
-        id: string;
+        fullSite?: boolean;
+        id?: string;
       }
     | {
         type: 'md';

@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import Toast from '@arcblock/ux/lib/Toast';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -17,6 +18,7 @@ const steps = ['Upload', 'Processing'];
 
 function Upload({ onUpload }: { onUpload: (file: File) => void }) {
   const inputRef = useRef(null);
+  const { t } = useLocaleContext();
 
   const onInputChange = (e: any) => {
     e.preventDefault();
@@ -49,7 +51,7 @@ function Upload({ onUpload }: { onUpload: (file: File) => void }) {
         alignItems="center">
         <CloudUploadIcon />
 
-        <Box>Click or drag documents here to upload</Box>
+        <Box>{t('knowledge.file.content')}</Box>
       </Stack>
 
       <Box
@@ -65,25 +67,6 @@ function Upload({ onUpload }: { onUpload: (file: File) => void }) {
   );
 }
 
-// function Segmentation() {
-//   return (
-//     <Box>
-//       <DocumentRadioGroup sx={{ gap: 2 }}>
-//         <FormControlLabel
-//           control={<Radio />}
-//           label={
-//             <RadioStack gap={0.5}>
-//               <Box className="semi-radio-addon">Automatic</Box>
-//               <Box className="semi-radio-extra">Automatically set segmentation and preprocessing rules.</Box>
-//             </RadioStack>
-//           }
-//           className="selected"
-//         />
-//       </DocumentRadioGroup>
-//     </Box>
-//   );
-// }
-
 function Processing({
   file,
   datasetId,
@@ -98,6 +81,7 @@ function Processing({
   onEnd: () => any;
 }) {
   const [error, setError] = useState('');
+  const { t } = useLocaleContext();
 
   const upload = async () => {
     try {
@@ -122,14 +106,14 @@ function Processing({
 
   const headerText = useMemo(() => {
     if (error) {
-      return 'Server processing failed';
+      return t('knowledge.file.fail');
     }
 
     if (processing) {
-      return 'Processing';
+      return t('knowledge.file.processing');
     }
 
-    return 'Server processing completed';
+    return t('knowledge.file.completed');
   }, [error, processing]);
 
   const statusText = useMemo(() => {
@@ -146,22 +130,9 @@ function Processing({
 
   return (
     <ProcessingContainer>
+      <Box sx={{ m: '24px 0 17px', fontWeight: 600, lineHeight: '22px', fontSize: '14px' }}>{headerText}</Box>
       <Box
-        sx={{
-          m: '24px 0 17px',
-          fontWeight: 600,
-          lineHeight: '22px',
-          fontSize: '14px',
-        }}>
-        {headerText}
-      </Box>
-      <Box
-        sx={{
-          border: '1px solid rgba(29,28,35,.12)',
-          borderRadius: 1,
-          maxHeight: '532px',
-          p: '23px 35px 23px 24px',
-        }}>
+        sx={{ border: '1px solid rgba(29,28,35,.12)', borderRadius: 1, maxHeight: '532px', p: '23px 35px 23px 24px' }}>
         <Box className="file">
           <Box className="content">
             <Box className="text">{file?.name}</Box>
@@ -188,8 +159,9 @@ export default function UploadFile({ datasetId }: { datasetId: string }) {
 function Steppers({ datasetId }: { datasetId: string }) {
   const [activeStep, setActiveStep] = useState(0);
   const [file, setFile] = useState<File | undefined>();
-  const [processing, setProcessing] = useState(false);
+  const [processing, setProcessing] = useState(true);
   const navigate = useNavigate();
+  const { t } = useLocaleContext();
 
   const totalSteps = useMemo(() => {
     return steps.length;
@@ -249,7 +221,7 @@ function Steppers({ datasetId }: { datasetId: string }) {
 
       <Box sx={{ float: 'right', mt: 5 }}>
         <Button variant="contained" onClick={handleNext} disabled={disabled}>
-          {isLastStep ? 'Completed' : 'Next'}
+          {isLastStep ? t('knowledge.file.Completed') : t('next')}
         </Button>
       </Box>
     </Container>

@@ -53,7 +53,8 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
       await value.current.refetch();
     },
     createDocument: async (datasetId, input: { type: string; name: string }) => {
-      await createDocument(datasetId, input);
+      const document = await createDocument(datasetId, input);
+      return document;
     },
     getDocuments: async (datasetId) => {
       const documents = await getDocuments(datasetId, {});

@@ -59,15 +59,9 @@ export default function KnowledgeSegments() {
     <>
       <>
         <Stack gap={3} py={2} px={3}>
-          <Breadcrumbs
-            sx={{
-              a: {
-                color: 'rgba(29,28,35,.35)',
-                textDecoration: 'auto',
-              },
-            }}>
+          <Breadcrumbs sx={{ a: { color: 'rgba(29,28,35,.35)', textDecoration: 'auto' } }}>
             <Link color="inherit" to="../../knowledge">
-              Knowledge
+              {t('knowledge.menu')}
             </Link>
 
             <Link color="inherit" to={`../${datasetId}`}>
@@ -79,19 +73,14 @@ export default function KnowledgeSegments() {
 
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <Box>
-              <Box
-                sx={{
-                  fontSize: '20px',
-                  fontWeight: 600,
-                  lineHeight: '28px',
-                }}>
-                {state.document?.name}
-              </Box>
+              <Box sx={{ fontSize: '20px', fontWeight: 600, lineHeight: '28px' }}>{state.document?.name}</Box>
 
               <Box display="flex" gap={2} alignItems="center" mt={1}>
                 <Tag>{state.document?.type}</Tag>
-                <Tag>Auto segmentation</Tag>
-                <Tag>{state?.segments?.length} Segment</Tag>
+                <Tag>{t('knowledge.auto')}</Tag>
+                <Tag>
+                  {state?.segments?.length} {t('knowledge.segments.segments')}
+                </Tag>
               </Box>
             </Box>
 
@@ -102,7 +91,7 @@ export default function KnowledgeSegments() {
                 setReadContent('');
                 dialogState.open();
               }}>
-              Create Segment
+              {t('knowledge.segments.create')}
             </Button>
           </Box>
         </Stack>
@@ -110,7 +99,10 @@ export default function KnowledgeSegments() {
         <Divider />
 
         <Stack px={3} flex={1} height={0}>
-          <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>Segments</Box>
+          <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>
+            {t('knowledge.segments.segments')}
+          </Box>
+
           <Stack flex={1}>
             {!state?.segments?.length && <EmptyDocument />}
 
@@ -131,8 +123,7 @@ export default function KnowledgeSegments() {
                         setSegment(item.id);
                         setAnchorEl(e.currentTarget);
                       }}
-                      className="list_listItem"
-                      sx={{ '&:focus-visible': { outline: 0 } }}
+                      className="listItem"
                     />
                   );
                 })}
@@ -152,12 +143,12 @@ export default function KnowledgeSegments() {
           await refetch();
           dialogState.close();
         })}>
-        <DialogTitle>{t('Segment Content')}</DialogTitle>
+        <DialogTitle>{t('knowledge.segments.content')}</DialogTitle>
 
         <DialogContent>
           <TextField
-            label={t('Segment Content')}
-            placeholder="Please Input Content"
+            label={t('knowledge.segments.content')}
+            placeholder={t('knowledge.segments.content')}
             sx={{ width: 1 }}
             multiline
             rows={10}
@@ -191,9 +182,9 @@ export default function KnowledgeSegments() {
           vertical: 'bottom',
           horizontal: 'right',
         }}>
-        <DialogTitle>{t('Confirm whether to delete')}</DialogTitle>
+        <DialogTitle>{t('knowledge.segments.deleteTitle')}</DialogTitle>
 
-        <DialogContent>This operation will not be reversed</DialogContent>
+        <DialogContent>{t('knowledge.segments.deleteDescription')}</DialogContent>
 
         <DialogActions>
           <Button size="small" onClick={() => setAnchorEl(null)}>
@@ -223,7 +214,7 @@ function EmptyDocument() {
   return (
     <Stack flex={1} justifyContent="center" alignItems="center" gap={1}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-      <Typography color="text.disabled">{t('No Segment yet')}</Typography>
+      <Typography color="text.disabled">{t('knowledge.segments.empty')}</Typography>
     </Stack>
   );
 }
@@ -252,14 +243,16 @@ function SegmentsItem({
   onDelete,
   ...props
 }: { index?: number; content?: string; onDelete: (e: React.MouseEvent<HTMLButtonElement>) => any } & StackProps) {
+  const { t } = useLocaleContext();
+
   return (
     <SegmentRoot {...props}>
-      <Box className="list_listItemTitle">
-        <Box className="list_listItemHeading">
-          <Box className="list_listItemHeadingContent">{`# ${index}`}</Box>
+      <Box className="itemTitle">
+        <Box className="itemHeading">
+          <Box className="headingContent">{`# ${index}`}</Box>
         </Box>
 
-        <Box className="list_deleteDatasetIcon">
+        <Box className="deleteIcon">
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
@@ -271,12 +264,12 @@ function SegmentsItem({
       </Box>
 
       <Box height={90}>
-        <Box className="list_listItemDescription">{content || ''}</Box>
+        <Box className="itemDescription">{content || ''}</Box>
       </Box>
 
-      <Box className="list_listItemFooter">
-        <Box className="list_listItemStats">
-          <Tag>{`${content?.length} Bits`}</Tag>
+      <Box className="itemFooter">
+        <Box className="itemStats">
+          <Tag>{`${content?.length} ${t('knowledge.segments.bits')}`}</Tag>
         </Box>
       </Box>
     </SegmentRoot>
@@ -285,28 +278,38 @@ function SegmentsItem({
 
 const SegmentRoot = styled(Stack)`
   display: flex;
-  height: 200px;
+  min-height: 160px;
   cursor: pointer;
   flex-direction: column;
   border-radius: 0.5rem;
   border: 1px solid transparent;
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
-  --tw-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
-  --tw-shadow-colored: 0px 1px 2px 0px var(--tw-shadow-color);
-  transition-property: all;
-  transition-duration: 0.2s;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: rgb(255, 255, 255);
+  box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-  &.list_listItem {
+  &.newItemCard {
+    outline: 1px solid #e5e7eb;
+    outline-offset: -1px;
+    background-color: rgba(229, 231, 235, 0.5);
+    border-width: 0;
+
+    &:hover {
+      background-color: rgb(255, 255, 255);
+      box-shadow:
+        0px 1px 2px rgba(16, 24, 40, 0.06),
+        0px 1px 3px rgba(16, 24, 40, 0.1);
+    }
+  }
+
+  &.listItem {
     border-color: rgba(0, 0, 0, 0.12);
 
     &:hover {
-      --tw-shadow: 0px 4px 6px -2px rgba(16, 24, 40, 0.03), 0px 12px 16px -4px rgba(16, 24, 40, 0.08);
-      --tw-shadow-colored: 0px 4px 6px -2px var(--tw-shadow-color), 0px 12px 16px -4px var(--tw-shadow-color);
-      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+      box-shadow:
+        0px 4px 6px -2px rgba(16, 24, 40, 0.03),
+        0px 12px 16px -4px rgba(16, 24, 40, 0.08);
 
-      .list_deleteDatasetIcon {
+      .deleteIcon {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -314,16 +317,14 @@ const SegmentRoot = styled(Stack)`
     }
   }
 
-  .list_listItemTitle {
+  .itemTitle {
     display: flex;
     height: 66px;
-    flex-shrink: 0;
-    flex-grow: 0;
     align-items: center;
     gap: 0.75rem;
     padding: 14px 14px 0.75rem;
 
-    .list_listItemHeading {
+    .itemHeading {
       position: relative;
       height: 2rem;
       flex-grow: 1;
@@ -331,7 +332,7 @@ const SegmentRoot = styled(Stack)`
       font-weight: 500;
       line-height: 2rem;
 
-      .list_listItemHeadingContent {
+      .headingContent {
         position: absolute;
         top: 0;
         left: 0;
@@ -343,43 +344,46 @@ const SegmentRoot = styled(Stack)`
       }
     }
 
-    .list_deleteDatasetIcon {
+    .deleteIcon {
       display: none;
-      --tw-bg-opacity: 1;
-      background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+      border-radius: 4px;
       background-position: 50%;
       background-repeat: no-repeat;
-      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-      transition-duration: 0.2s;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition:
+        color 0.2s,
+        background-color 0.2s,
+        border-color 0.2s,
+        text-decoration-color 0.2s,
+        fill 0.2s,
+        stroke 0.2s;
     }
   }
 
-  .list_listItemDescription {
+  .itemDescription {
+    margin-bottom: 0.75rem;
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-    padding-left: 14px;
-    padding-right: 14px;
+    -webkit-line-clamp: 2;
+    height: 2.25rem;
+    padding: 14px;
     font-size: 0.75rem;
-    --tw-text-opacity: 1;
-    color: rgb(107 114 128 / var(--tw-text-opacity));
+    line-height: 1.5;
+    color: rgb(107, 114, 128);
   }
 
-  .list_listItemFooter {
+  .itemFooter {
     display: flex;
     align-items: center;
     gap: 1rem;
     font-size: 0.75rem;
     line-height: 1rem;
-    --tw-text-opacity: 1;
-    color: rgb(107 114 128 / var(--tw-text-opacity));
+    color: rgb(107, 114, 128);
     min-height: 42px;
     flex-wrap: wrap;
     padding: 0.5rem 14px 10px;
 
-    .list_listItemStats {
+    .itemStats {
       display: flex;
       align-items: center;
       gap: 0.25rem;

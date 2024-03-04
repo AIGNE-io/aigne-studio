@@ -27,7 +27,7 @@ export default function MainMenus({ ...props }: Omit<MenusProps, 'menus'>) {
     }
 
     if (projectId) {
-      menus.push({ icon: <Database />, title: t('knowledge'), url: 'knowledge' });
+      menus.push({ icon: <Database />, title: t('knowledge.menu'), url: 'knowledge' });
     }
 
     return menus;
