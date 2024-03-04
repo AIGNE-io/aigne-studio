@@ -1,10 +1,13 @@
+import { readFileSync, writeFileSync } from 'fs';
+
 import { Router } from 'express';
 import Enforcer from 'openapi-enforcer';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import { parse, stringify } from 'yaml';
 
 import { COLLECTION, DOCS_API, OPENAPI_API } from './const';
-import { DatasetObject, OpenAPIObject } from './types';
+import { DatasetObject, OpenAPIObject, PathItemObject } from './types';
 import { getBuildInDatasets } from '.';
 
 export async function validate(document: OpenAPIObject) {
@@ -21,7 +24,7 @@ export async function validate(document: OpenAPIObject) {
   return result.value;
 }
 
-const createSwaggerRouter = (blockletName: string, openapiOptions?: swaggerJSDoc.Options) => {
+export const createSwaggerRouter = (blockletName: string, openapiOptions?: swaggerJSDoc.Options) => {
   const router = Router();
 
   if (!blockletName) {
@@ -50,6 +53,12 @@ const createSwaggerRouter = (blockletName: string, openapiOptions?: swaggerJSDoc
   router.use('/docs', swaggerUi.serve);
   router.get('/docs', swaggerUi.setup(swaggerSpec, { explorer: true }));
 
+  router.get('/download-dataset', (req, res) => {
+    const result = stringify(swaggerSpec.paths);
+    writeFileSync(req.query.path as string, result);
+    res.json(result);
+  });
+
   router.get(`/${DOCS_API}`, async (_req, res) => {
     try {
       await validate(swaggerSpec);
@@ -67,4 +76,29 @@ const createSwaggerRouter = (blockletName: string, openapiOptions?: swaggerJSDoc
   return router;
 };
 
-export default createSwaggerRouter;
+export const createDatasetAPIRouter = (blockletName: string, filePath: string) => {
+  const router = Router();
+
+  if (!blockletName) {
+    throw new Error('blockletName must be provided to createSwaggerRouter');
+  }
+
+  router.get(`/${OPENAPI_API}`, async (_req, res) => {
+    const json: { [keyof: string]: PathItemObject } = parse(readFileSync(filePath).toString());
+
+    const list: DatasetObject[] = Object.entries(json || {}).flatMap(([path, pathItem]) =>
+      Object.entries(pathItem).map(([method, info]) => {
+        const id = `${blockletName}:${path}:${method}`;
+        return { id, path, method, ...(info || {}) };
+      })
+    );
+
+    res.json({ list });
+  });
+
+  router.get(`/${COLLECTION}`, async (_req, res) => {
+    res.json(await getBuildInDatasets());
+  });
+
+  return router;
+};

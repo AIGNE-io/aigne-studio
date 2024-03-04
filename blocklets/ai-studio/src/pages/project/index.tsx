@@ -1,3 +1,4 @@
+import currentGitStore from '@app/store/current-git-store';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import {
@@ -19,7 +20,6 @@ import Loading from '../../components/loading';
 import AddSource from './add-source';
 import HeaderActions from './header-actions';
 import MainMenus from './main-menus';
-import { defaultBranch } from './state';
 
 export default function ProjectRoutes() {
   const errorBoundary = useRef<ErrorBoundary>(null);
@@ -78,7 +78,7 @@ export default function ProjectRoutes() {
                 <Route path="prompts/*" element={<Navigate to="../file" replace />} />
                 <Route path="home" element={<ProjectsPage />} />
                 <Route path="file">
-                  <Route index element={<Navigate to={defaultBranch} replace />} />
+                  <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
                   <Route path=":ref/*" element={<ProjectPage />} />
                 </Route>
                 <Route path="settings">

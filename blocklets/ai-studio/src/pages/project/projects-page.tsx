@@ -1,3 +1,4 @@
+import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -50,8 +51,7 @@ import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
-import * as projectApi from '../../libs/project';
-import { ProjectWithUserInfo, User, createProject } from '../../libs/project';
+import { ProjectWithUserInfo, User, copyProject, createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
@@ -67,7 +67,6 @@ import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
-import { defaultBranch } from './state';
 
 const CARD_HEIGHT = 160;
 const MAX_WIDTH = 300;
@@ -158,7 +157,7 @@ function ProjectMenu() {
 
   const { t } = useLocaleContext();
 
-  const readOnly = useReadOnly({ ref: defaultBranch });
+  const readOnly = useReadOnly({ ref: getDefaultBranch() });
 
   const {
     state: { menuAnchor, projects, templates, examples },
@@ -421,6 +420,7 @@ function ProjectList({
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { dialog, showDialog } = useDialog();
+  const [itemLoading, setLoading] = useState<ProjectWithUserInfo | null>(null);
 
   const {
     state: { menuAnchor },
@@ -450,6 +450,7 @@ function ProjectList({
               gitUrl={item.gitUrl}
               model={item.model}
               users={item.users || []}
+              loading={Boolean(itemLoading && item?._id === itemLoading?._id)}
               onClick={async () => {
                 if (section === 'templates') {
                   let name = '';
@@ -482,16 +483,53 @@ function ProjectList({
                     okText: t('create'),
                     okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {
+                      if ((item as any).fromResourceBlockletFolder) {
+                        const project = await copyProject({
+                          folder: 'template',
+                          projectId: item._id!,
+                          name,
+                          description,
+                        });
+                        currentGitStore.setState({
+                          currentProjectId: project._id,
+                        });
+                        navigate(joinURL('/projects', project._id!));
+                        return;
+                      }
                       const project = await createProject({ templateId: item._id!, name, description });
+                      currentGitStore.setState({
+                        currentProjectId: project._id,
+                      });
                       navigate(joinURL('/projects', project._id!));
                     },
                   });
-                } else if (section === 'projects' || section === 'examples') {
+                } else if (section === 'projects') {
+                  currentGitStore.setState({
+                    currentProjectId: item._id,
+                  });
                   navigate(joinURL('/projects', item._id!));
+                } else if (section === 'examples') {
+                  if ((item as any)?.fromResourceBlockletFolder) {
+                    try {
+                      setLoading(item);
+                      const project = await copyProject({ folder: 'example', projectId: item._id! });
+                      currentGitStore.setState({
+                        currentProjectId: project._id,
+                      });
+                      navigate(joinURL('/projects', project._id!));
+                    } catch (error) {
+                      setLoading(null);
+                    }
+                  } else {
+                    currentGitStore.setState({
+                      currentProjectId: item._id,
+                    });
+                    navigate(joinURL('/projects', item._id!));
+                  }
                 }
               }}
               actions={
-                !(section === 'templates' && !item.projectType) && (
+                !((section === 'templates' || section === 'examples') && !item.projectType) && (
                   <IconButton
                     size="small"
                     sx={{
@@ -560,6 +598,7 @@ function ProjectItem({
   gitUrl,
   model,
   users,
+  loading = false,
   ...props
 }: {
   section: string;
@@ -573,6 +612,7 @@ function ProjectItem({
   model?: string;
   users?: User[];
   actions?: ReactNode;
+  loading: boolean;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
 
@@ -711,6 +751,21 @@ function ProjectItem({
           {actions}
         </Box>
       </Stack>
+
+      {loading && (
+        <Box
+          position="absolute"
+          top={0}
+          bottom={0}
+          left={0}
+          right={0}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          zIndex={(theme) => theme.zIndex.tooltip}>
+          <CircularProgress size={16} />
+        </Box>
+      )}
     </ProjectItemRoot>
   );
 }
@@ -726,14 +781,10 @@ interface RemoteRepoSettingForm {
 function ImportFromGit() {
   const { t } = useLocaleContext();
   const id = useId();
-  const {
-    state: { templates },
-    createProject,
-  } = useProjectsState();
   const navigate = useNavigate();
   const dialogState = usePopupState({ variant: 'dialog', popupId: id });
-
   const [showPassword, setShowPassword] = useState(false);
+  const { importProject } = useProjectsState();
 
   const form = useForm<RemoteRepoSettingForm>({
     defaultValues: {
@@ -747,21 +798,19 @@ function ImportFromGit() {
   const saveSetting = useCallback(
     async (value: RemoteRepoSettingForm) => {
       try {
-        const project = await createProject({
-          templateId: templates?.[0]!._id,
+        const project = await importProject({
           name: value.name,
           description: value.description,
-          isImport: true,
-        });
-        await projectApi.addProjectRemote(project._id, {
           url: value.url,
           username: value.username,
           password: value.password,
         });
-        await projectApi.projectPull(project._id, {
-          force: true,
-        });
         form.reset(value);
+
+        currentGitStore.setState({
+          currentProjectId: project._id,
+        });
+
         dialogState.close();
         navigate(joinURL('/projects', project._id!));
       } catch (error) {
@@ -770,7 +819,7 @@ function ImportFromGit() {
         throw error;
       }
     },
-    [createProject, dialogState, form, templates]
+    [dialogState, form, importProject, navigate]
   );
 
   return (

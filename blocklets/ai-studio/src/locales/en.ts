@@ -304,7 +304,6 @@ export default flat({
   useRemoteTip: 'Use <b>remote</b> data to overwrite <b>local</b> data',
   useLocal: 'Use Locale',
   useLocalTip: 'Use <b>local</b> data to overwrite <b>remote</b> data',
-  templates: '{count} Prompts',
   validateTools: {
     parameter: {
       name: {
@@ -392,11 +391,11 @@ export default flat({
   promptPlaceholder: 'Please enter your prompt',
   promptMessage: 'Prompt Message',
   executeBlock: 'Execute Block',
-  executeTools: 'Execute Tools',
   executeMethods: 'Execute Methods',
   executeMethodsTip:
     'You have the option to run all the tools, or to choose one to execute from among multiple tools (the selection of the tool is made by AI, therefore the chosen tool depends on the names and descriptions of your tools).',
   executeSettings: 'Execute Settings',
+  outputSettings: 'Output Settings',
   executeBlockName: 'Execute Block Name',
   executeBlockNameTip:
     "The execution block name can be used to add variables. For example: the execution block name is 'exampleVariable', and the name can be passed as a parameter. In other execution blocks of the same assistant or in a Prompt, it can be used by wrapping it with double braces (like this {{exampleVariable}}) to utilize the output of the execution block.",
@@ -455,4 +454,8 @@ export default flat({
   asExampleProject: 'As Example Project',
   cancelExampleProject: 'Cancel Example Project',
   execute: 'Execute',
+  publish: 'Publish',
+  templates: 'Templates',
+  options: 'Options',
+  withCollectionManage: 'Collections Manage',
 });

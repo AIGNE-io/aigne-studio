@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.265
+version: 0.1.272
 logo: logo.png
 files:
   - dist
@@ -27,6 +27,7 @@ files:
   - api/dist/migration
   - api/dist/store/migrate.js
   - api/dist/store/migrations/*.js
+  - dataset.yml
 interfaces:
   - type: web
     name: publicUrl
@@ -73,6 +74,11 @@ components:
     mountPoint: /discuss-kit
     source:
       name: did-comments
+      version: latest
+  - name: ai-runtime
+    required: true
+    source:
+      name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
       version: latest
 navigation:
   - id: template

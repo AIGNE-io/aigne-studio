@@ -1,6 +1,30 @@
-## 0.1.265 (2024-2-26)
+## 0.1.272 (2024-3-2)
 
-- chore: bump version
+- fix: branch checkout error
+
+## 0.1.271 (2024-3-1)
+
+- feat: bundle use compact
+
+## 0.1.270 (2024-2-29)
+
+- fix: support default branch
+
+## 0.1.269 (2024-2-28)
+
+- chore: add ai-runtime component dependency
+
+## 0.1.268 (2024-2-27)
+
+- fix: missing @blocklet/ai-builtin package
+
+## 0.1.267 (2024-2-27)
+
+- feat: add publish view
+
+## 0.1.266 (2024-2-26)
+
+- fix: support resource blocklet
 
 ## 0.1.264 (2024-2-26)
 

@@ -1,10 +1,13 @@
-import { cpSync, existsSync, rmSync } from 'fs';
+import fs, { cpSync, existsSync, mkdtempSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 
+import { Config } from '@api/libs/env';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
+import * as git from 'isomorphic-git';
+import http from 'isomorphic-git/http/node';
 import Joi from 'joi';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
@@ -12,12 +15,15 @@ import pick from 'lodash/pick';
 import sample from 'lodash/sample';
 import uniqBy from 'lodash/uniqBy';
 import { Op } from 'sequelize';
+import { parse } from 'yaml';
 
+import { copyAssistantsFromResource, getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import { createImageUrl } from '../libs/utils';
 import Project, { nextProjectId } from '../store/models/project';
 import {
   autoSyncRemoteRepoIfNeeded,
+  clearRepository,
   commitProjectSettingWorking,
   commitWorking,
   defaultBranch,
@@ -39,7 +45,6 @@ export interface CreateProjectInput {
   templateId?: string;
   name?: string;
   description?: string;
-  isImport?: boolean;
 }
 
 const createProjectSchema = Joi.object<CreateProjectInput>({
@@ -47,7 +52,25 @@ const createProjectSchema = Joi.object<CreateProjectInput>({
   templateId: Joi.string().empty([null, '']),
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
-  isImport: Joi.boolean().default(false),
+});
+
+export interface ImportProjectInput {
+  url: string;
+  username?: string;
+  password?: string;
+  templateId?: string;
+  name?: string;
+  description?: string;
+}
+
+const importProjectSchema = Joi.object<ImportProjectInput>({
+  url: Joi.string()
+    .uri({ scheme: ['https'] })
+    .required(),
+  username: Joi.string().empty([null, '']),
+  password: Joi.string().empty([null, '']),
+  name: Joi.string().empty([null, '']),
+  description: Joi.string().empty([null, '']),
 });
 
 const exportSchema = Joi.object<{
@@ -149,15 +172,37 @@ export function projectRoutes(router: Router) {
       list.map(async (project) => {
         const repository = await getRepository({ projectId: project._id });
         const branches = await repository.listBranches();
-        const users = await getAuthorsOfProject({ projectId: project._id });
+        const users = await getAuthorsOfProject({
+          projectId: project._id,
+          gitDefaultBranch: project.gitDefaultBranch,
+        });
         return { ...project.dataValues, users, branches };
       })
     );
 
     res.json({
-      templates: [...projectTemplates, ...projects.filter((i) => i.projectType === 'template')],
+      templates: uniqBy(
+        [
+          ...projectTemplates,
+          ...projects.filter((i) => i.projectType === 'template'),
+          ...getResourceProjects('template').map((x) => {
+            x.fromResourceBlockletFolder = 'template';
+            return x;
+          }),
+        ],
+        '_id'
+      ),
       projects: projects.filter((i) => !i.projectType || i.projectType === 'project'),
-      examples: projects.filter((i) => i.projectType === 'example'),
+      examples: uniqBy(
+        [
+          ...projects.filter((i) => i.projectType === 'example'),
+          ...getResourceProjects('example').map((x) => {
+            x.fromResourceBlockletFolder = 'example';
+            return x;
+          }),
+        ],
+        '_id'
+      ),
     });
   });
 
@@ -188,6 +233,12 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findOne({ where: { _id: projectId } });
     if (!project) {
+      const found = await getResourceProjects('example').find((x) => x._id === projectId);
+      if (found) {
+        res.json(found);
+        return;
+      }
+
       res.status(404).json({ error: 'No such project' });
       return;
     }
@@ -196,12 +247,10 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-    const { duplicateFrom, templateId, name, description, isImport } = await createProjectSchema.validateAsync(
-      req.body,
-      {
-        stripUnknown: true,
-      }
-    );
+    const { duplicateFrom, templateId, name, description } = await createProjectSchema.validateAsync(req.body, {
+      stripUnknown: true,
+    });
+
     const { did, fullName } = req.user!;
 
     if (duplicateFrom) {
@@ -262,21 +311,20 @@ export function projectRoutes(router: Router) {
       });
 
       const repository = await getRepository({ projectId: project._id!, author: { name: fullName, email: did } });
-      if (!isImport) {
-        const working = await repository.working({ ref: defaultBranch });
-        for (const { parent, ...file } of template.files) {
-          const id = nextAssistantId();
-          working.syncedStore.files[id] = fileToYjs({ ...file, id });
-          working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
-        }
-        await commitWorking({
-          project,
-          ref: defaultBranch,
-          branch: defaultBranch,
-          message: 'First Commit',
-          author: { name: fullName, email: did },
-        });
+
+      const working = await repository.working({ ref: defaultBranch });
+      for (const { parent, ...file } of template.files) {
+        const id = nextAssistantId();
+        working.syncedStore.files[id] = fileToYjs({ ...file, id });
+        working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
       }
+      await commitWorking({
+        project,
+        ref: defaultBranch,
+        branch: defaultBranch,
+        message: 'First Commit',
+        author: { name: fullName, email: did },
+      });
 
       res.json(project);
       return;
@@ -290,11 +338,103 @@ export function projectRoutes(router: Router) {
       model: '',
       createdBy: did,
       updatedBy: did,
+      gitDefaultBranch: defaultBranch,
       name,
       description,
     });
 
     res.json(project);
+  });
+
+  router.post('/projects/import', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+    const { name, username, password, description, url } = await importProjectSchema.validateAsync(req.body, {
+      stripUnknown: true,
+    });
+    const { did } = req.user!;
+
+    if (name && (await Project.findOne({ where: { name } }))) {
+      throw new Error(`Duplicated project ${name}`);
+    }
+
+    const uri = new URL(url);
+    if (username) uri.username = username;
+    if (password) uri.password = password;
+
+    let originProject;
+    let originDefaultBranch = defaultBranch;
+
+    const tempFolder = mkdtempSync(join(Config.dataDir, 'repositories', 'temp-'));
+    try {
+      await git.clone({ fs, dir: tempFolder, http, url: uri.toString() });
+
+      const originRepo = await git.fetch({ fs, http, dir: tempFolder, remote: defaultRemote });
+
+      if (originRepo.defaultBranch) {
+        originDefaultBranch = originRepo.defaultBranch?.split('/').pop()!;
+        await git.checkout({ fs, dir: tempFolder, ref: originDefaultBranch });
+
+        const gitdir = join(tempFolder, '.git');
+        const oid = await git.resolveRef({ fs, gitdir, ref: originRepo.defaultBranch });
+        originProject = parse(
+          Buffer.from((await git.readBlob({ fs, gitdir, oid, filepath: '.settings.yaml' })).blob).toString()
+        );
+      }
+
+      if (!originProject?._id)
+        throw new Error('The project ID does not exist; only ai-studio projects can be imported.');
+
+      const oldProject = await Project.findOne({ where: { _id: originProject?._id } });
+      if (oldProject)
+        throw new Error(
+          `The project(${oldProject.name}) already exists and cannot be imported. Please delete the existing project and try again.`
+        );
+
+      const projectId: string = originProject?._id;
+
+      const repository = await getRepository({ projectId });
+
+      await repository.addRemote({ remote: defaultRemote, url: uri.toString(), force: true });
+      const urlWithoutPassword = new URL(url);
+      urlWithoutPassword.password = '';
+      if (originDefaultBranch !== 'main') {
+        await repository.renameBranch({ ref: originDefaultBranch, oldRef: 'main' });
+      }
+      const branches = await repository.listBranches();
+      for (const ref of branches) {
+        await repository.fetch({ remote: defaultRemote, ref });
+        await repository.branch({ ref, object: `${defaultRemote}/${ref}`, checkout: true, force: true });
+        (await repository.working({ ref })).reset();
+      }
+      await repository.checkout({ ref: originDefaultBranch, force: true });
+
+      const data: Project = parse(
+        Buffer.from(
+          (
+            await repository.readBlob({
+              ref: originDefaultBranch!,
+              filepath: '.settings.yaml',
+            })
+          ).blob
+        ).toString()
+      );
+
+      const project = await Project.create({
+        ...data,
+        _id: projectId,
+        gitUrl: urlWithoutPassword.toString(),
+        gitDefaultBranch: originDefaultBranch,
+        model: data.model,
+        createdBy: did,
+        updatedBy: did,
+        name,
+        gitLastSyncedAt: new Date(),
+        description,
+      });
+
+      res.json(project);
+    } finally {
+      rmSync(tempFolder, { recursive: true, force: true });
+    }
   });
 
   router.patch('/projects/:projectId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
@@ -375,6 +515,7 @@ export function projectRoutes(router: Router) {
     const root = repositoryRoot(projectId);
     rmSync(root, { recursive: true, force: true });
     rmSync(`${root}.cooperative`, { recursive: true, force: true });
+    clearRepository(projectId);
 
     res.json(project);
   });
@@ -430,6 +571,7 @@ export function projectRoutes(router: Router) {
 
     const repository = await getRepository({ projectId });
     const branches = await repository.listBranches();
+
     for (const ref of branches) {
       await repository.push({ remote: defaultRemote, ref, force: input.force });
     }
@@ -540,11 +682,62 @@ export function projectRoutes(router: Router) {
 
     return res.json({ assistants: uniqBy(assistants, 'id') });
   });
+
+  router.post('/projects/copy', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+    const { folder, projectId, name, description } = await Joi.object<{
+      folder: string;
+      projectId: string;
+      name?: string;
+      description?: string;
+    }>({
+      projectId: Joi.string().required().min(1),
+      folder: Joi.string(),
+      name: Joi.string().empty([null, '']),
+      description: Joi.string().empty([null, '']),
+    }).validateAsync(req.body);
+
+    const { fullName, did } = req.user!;
+
+    const id = folder === 'template' ? nextProjectId() : projectId;
+
+    const project =
+      folder === 'template'
+        ? {
+            _id: id,
+            name,
+            description,
+            createdBy: did,
+            updatedBy: did,
+            projectType: 'project',
+          }
+        : undefined;
+
+    await copyAssistantsFromResource({
+      folder,
+      findProjectId: projectId,
+      newProjectId: id,
+      originDefaultBranch:
+        folder === 'template'
+          ? 'main'
+          : (await Project.findOne({ where: { _id: projectId } }))?.gitDefaultBranch || defaultBranch,
+      fullName,
+      did,
+      projectInfo: project,
+    });
+
+    return res.json({ _id: id });
+  });
 }
 
-const getAuthorsOfProject = async ({ projectId }: { projectId: string }) => {
+const getAuthorsOfProject = async ({
+  projectId,
+  gitDefaultBranch,
+}: {
+  projectId: string;
+  gitDefaultBranch: string;
+}) => {
   try {
-    const commits = await getCommits({ projectId, ref: defaultBranch });
+    const commits = await getCommits({ projectId, ref: gitDefaultBranch });
     return uniqBy(
       commits
         .map((commit) => pick(commit.commit.author, 'did', 'fullName', 'avatar'))

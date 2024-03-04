@@ -20,29 +20,19 @@ jobs:
         with:
           ref: release
 
-      - name: Prepare @blocklet/cli deps
-        run: yarn global add @blocklet/cli@beta
-        shell: bash
-
       - name: Set yarn cache
         uses: c-hive/gha-yarn-cache@v2
 
       - name: Install dependencies
         run: yarn
 
-      - name: Build packages
-        run: yarn build
-
-      - name: Prepare @blocklet/cli deps
-        run: yarn global add @blocklet/cli@beta
-        shell: bash
-
       - name: Upload to production store
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_PROD }}
         uses: blocklet/action-workflow@v1
         with:
-          skip-deps: true
+          deps-server-version: beta
+          skip-deps: false
           skip-release: true
           skip-upload: false
           skip-deploy: true

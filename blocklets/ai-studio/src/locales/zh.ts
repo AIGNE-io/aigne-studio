@@ -300,7 +300,6 @@ export default flat({
   useRemoteTip: '使用<b>远程</b>数据覆盖<b>本地</b>数据',
   useLocal: '使用本地数据',
   useLocalTip: '使用<b>本地</b>数据覆盖<b>远程</b>数据',
-  templates: '{count} 个文件',
   validateTools: {
     parameter: {
       name: {
@@ -388,11 +387,11 @@ export default flat({
   promptPlaceholder: '请输入你的提示',
   promptMessage: '提示文本',
   executeBlock: '执行块',
-  executeTools: '执行块工具',
   executeMethods: '执行方式',
   executeMethodsTip:
     '您可以选择执行所有的工具或者从多个工具中选择其中的一个执行(选择工具是由Ai进行, 因此被选择的工具是取决于您的工具名称和描述)。',
-  executeSettings: '执行块设置',
+  executeSettings: '执行设置',
+  outputSettings: '输出设置',
   executeBlockName: '执行块名称',
   executeBlockNameTip:
     '执行块名称可用于添加变量，举个例子: 执行块名称是"exampleVariable",名称可作为参数传递,在同一个assistant的其他执行块或者Prompt中通过双括号包裹(就像这样{{exampleVariable}})即可使用执行块的输出',
@@ -449,4 +448,8 @@ export default flat({
   asExampleProject: '作为示例项目',
   cancelExampleProject: '取消示例项目',
   execute: '执行',
+  publish: '发布',
+  templates: '模板',
+  options: '选项',
+  withCollectionManage: '知识库管理',
 });

@@ -1,8 +1,9 @@
+import Project from '@api/store/models/project';
 import { Router } from 'express';
 import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { defaultBranch, getRepository } from '../store/repository';
+import { getRepository } from '../store/repository';
 
 export interface CreateBranchInput {
   name: string;
@@ -43,8 +44,8 @@ export function branchRoutes(router: Router) {
 
   router.put('/projects/:projectId/branches/:branch', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId, branch } = req.params;
+
     if (!projectId || !branch) throw new Error('Missing required params `projectId` or `branch`');
-    if (branch === defaultBranch) throw new Error('Can not rename default branch');
 
     const input = await updateBranchInputSchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -58,6 +59,8 @@ export function branchRoutes(router: Router) {
   router.delete('/projects/:projectId/branches/:branch', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId, branch } = req.params;
     if (!projectId || !branch) throw new Error('Missing required params `projectId` or `branch`');
+
+    const defaultBranch = (await Project.findOne({ where: { _id: projectId } }))?.gitDefaultBranch;
 
     if (branch === defaultBranch) throw new Error('Can not delete default branch');
 
