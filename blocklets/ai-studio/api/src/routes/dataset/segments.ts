@@ -4,9 +4,10 @@ import Joi from 'joi';
 
 import { checkUserAuth } from '../../libs/user';
 import DatasetSegment from '../../store/models/dataset/segment';
-import { saveContentToVectorStore } from './embeddings';
+import { resetDatasetsEmbedding, saveContentToVectorStore } from './embeddings';
 
 const router = Router();
+
 router.get('/:datasetId/:documentId', user(), checkUserAuth(), async (req, res) => {
   const { documentId } = await Joi.object<{ documentId: string }>({
     documentId: Joi.string().required(),
@@ -45,12 +46,15 @@ router.post('/:datasetId/:documentId', user(), checkUserAuth(), async (req, res)
   res.json();
 });
 
-router.delete('/:segmentId', user(), checkUserAuth(), async (req, res) => {
-  const { segmentId } = await Joi.object<{ segmentId: string }>({
+router.delete('/:datasetId/:segmentId', user(), checkUserAuth(), async (req, res) => {
+  const { segmentId, datasetId } = await Joi.object<{ segmentId: string; datasetId: string }>({
     segmentId: Joi.string().required(),
+    datasetId: Joi.string().required(),
   }).validateAsync(req.params, { stripUnknown: true });
 
   await DatasetSegment.destroy({ where: { id: segmentId } });
+
+  await resetDatasetsEmbedding(datasetId);
 
   res.json();
 });

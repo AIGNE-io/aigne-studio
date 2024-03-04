@@ -41,7 +41,7 @@ const idSchema = Joi.object<{
 
 /**
  * @openapi
- * /api/dataset/{datasetId}/items:
+ * /api/datasets/documents/{datasetId}/items:
  *    get:
  *      type: 'SEARCH'
  *      summary: Get data items in a dataset by datasetId
@@ -76,7 +76,6 @@ const idSchema = Joi.object<{
  *          description: Successfully retrieved data items in the dataset
  *          x-description-zh: 获取当前 datasetId 数据集中数据信息
  */
-
 router.get('/:datasetId/items', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
@@ -87,7 +86,7 @@ router.get('/:datasetId/items', user(), checkUserAuth(), async (req, res) => {
 
   const [items, total] = await Promise.all([
     DatasetItem.findAll({
-      order: [['createdAt', 'ASC']],
+      order: [['createdAt', 'DESC']],
       where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
       offset: (page - 1) * size,
       limit: size,
@@ -100,7 +99,7 @@ router.get('/:datasetId/items', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/dataset/{datasetId}/items/{itemId}:
+ * /api/datasets/documents/{datasetId}/items/{itemId}:
  *    delete:
  *      type: 'SEARCH'
  *      summary: Delete a data item from the dataset by datasetId and itemId
@@ -129,8 +128,7 @@ router.get('/:datasetId/items', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully deleted the data item from the dataset
  *          x-description-zh: 删除当前 datasetId 数据集中数据信息
  */
-
-router.delete('/:datasetId/:itemId', user(), checkUserAuth(), async (req, res) => {
+router.delete('/:datasetId/items/:itemId', user(), checkUserAuth(), async (req, res) => {
   const { datasetId, itemId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
 
   if (!datasetId || !itemId) {
@@ -168,9 +166,30 @@ router.post('/:datasetId/create', user(), checkUserAuth(), async (req, res) => {
   res.json(document);
 });
 
+router.put('/:datasetId/:documentId', user(), checkUserAuth(), async (req, res) => {
+  const { did } = req.user!;
+  const { datasetId, documentId } = req.params;
+
+  const { name } = await Joi.object<{ name: string }>({ name: Joi.string().required() }).validateAsync(req.body, {
+    stripUnknown: true,
+  });
+
+  if (!datasetId) {
+    throw new Error('Missing required params `datasetId`');
+  }
+
+  if (!documentId) {
+    throw new Error('Missing required params `datasetId`');
+  }
+
+  await DatasetItem.update({ name, updatedBy: did }, { where: { id: documentId, datasetId } });
+
+  res.json({ data: 'success' });
+});
+
 /**
  * @openapi
- * /api/dataset/{datasetId}/items/embedding:
+ * /api/datasets/documents/{datasetId}/items/embedding:
  *    post:
  *      type: 'CREATE'
  *      summary: Upload data to the specified dataset by datasetId
@@ -202,7 +221,6 @@ router.post('/:datasetId/create', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully uploaded data to the dataset
  *          x-description-zh: 上传数据到当前 datasetId 数据集中
  */
-
 router.post('/:datasetId/items/embedding', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
@@ -233,7 +251,7 @@ router.post('/:datasetId/items/embedding', user(), checkUserAuth(), async (req, 
 
 /**
  * @openapi
- * /api/dataset/{datasetId}/items/file:
+ * /api/datasets/documents/{datasetId}/items/file:
  *    post:
  *      type: 'CREATE'
  *      summary: Upload a file to the specified dataset by datasetId
@@ -266,7 +284,6 @@ router.post('/:datasetId/items/embedding', user(), checkUserAuth(), async (req, 
  *          description: File successfully uploaded to the specified dataset
  *          x-description-zh: 上传文件到当前 datasetId 数据集中
  */
-
 router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('data'), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
@@ -319,12 +336,12 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
   const itemId = result.dataValues.id;
   await runHandlerAndSaveContent(itemId);
 
-  res.json({ data: 'success' });
+  res.json(result);
 });
 
 /**
  * @openapi
- * /api/dataset/{datasetId}/items/{itemId}/embedding:
+ * /api/datasets/documents/{datasetId}/items/{itemId}/embedding:
  *    put:
  *      type: 'UPDATE'
  *      summary: Update data in the specified dataset by datasetId and itemId
@@ -364,7 +381,6 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
  *          description: Successfully updated the data in the dataset
  *          x-description-zh: 更新数据到当前 datasetId 数据集中
  */
-
 router.put('/:datasetId/items/:itemId/embedding', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user! || {};
   const { datasetId, itemId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
@@ -388,7 +404,7 @@ router.put('/:datasetId/items/:itemId/embedding', user(), checkUserAuth(), async
 
 /**
  * @openapi
- * /api/dataset/{datasetId}/items/{itemId}/file:
+ * /api/datasets/documents/{datasetId}/items/{itemId}/file:
  *    put:
  *      type: 'UPDATE'
  *      summary: Update an uploaded file in the dataset by datasetId
@@ -483,7 +499,7 @@ router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.sin
 
 /**
  * @openapi
- * /api/dataset/{datasetId}/items/search:
+ * /api/datasets/documents/{datasetId}/items/search:
  *    get:
  *      type: 'SEARCH'
  *      summary: Search for content within the dataset
@@ -512,7 +528,6 @@ router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.sin
  *          description: Successfully retrieved the paginated list of search results
  *          x-description-zh: 成功获取分页列表
  */
-
 router.get('/:datasetId/items/search', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
@@ -578,14 +593,8 @@ export type CreateItemInput = CreateItem | CreateItem[];
 
 const createItemsSchema = Joi.object<CreateItem>({
   name: Joi.string().required(),
-  data: Joi.object({
-    type: Joi.string().valid('discussion').required(),
-  })
-    .when(Joi.object({ type: 'discussion' }).unknown(), {
-      then: Joi.object({
-        id: Joi.string(),
-      }),
-    })
+  data: Joi.object({ type: Joi.string().valid('discussion').required() })
+    .when(Joi.object({ type: 'discussion' }).unknown(), { then: Joi.object({ id: Joi.string() }) })
     .required(),
 });
 

@@ -1,31 +1,42 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { SaveRounded } from '@mui/icons-material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
   Breadcrumbs,
   Button,
+  ButtonGroup,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
+  Grow,
   IconButton,
+  MenuItem,
+  MenuList,
+  Paper,
   Popover,
+  Popper,
   Stack,
   StackProps,
   TextField,
   Typography,
   styled,
 } from '@mui/material';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useSegments } from '../../contexts/datasets/segments';
+import { getErrorMessage } from '../../libs/api';
+import { uploadDocumentName } from '../../libs/dataset';
 import Delete from '../project/icons/delete';
 import Empty from '../project/icons/empty';
 
@@ -54,6 +65,8 @@ export default function KnowledgeSegments() {
 
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
+
+  const isContentType = state.document?.type === 'text';
 
   return (
     <>
@@ -84,15 +97,25 @@ export default function KnowledgeSegments() {
               </Box>
             </Box>
 
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => {
-                setReadContent('');
-                dialogState.open();
-              }}>
-              {t('knowledge.segments.create')}
-            </Button>
+            <Box display="flex" alignItems="center" gap={2}>
+              <SplitButton
+                datasetId={datasetId || ''}
+                documentId={state.document?.id || ''}
+                name={state.document?.name || ''}
+                onUpdate={refetch}
+              />
+
+              <Button
+                disabled={!isContentType}
+                variant="contained"
+                size="small"
+                onClick={() => {
+                  setReadContent('');
+                  dialogState.open();
+                }}>
+                {t('knowledge.segments.create')}
+              </Button>
+            </Box>
           </Box>
         </Stack>
 
@@ -140,6 +163,8 @@ export default function KnowledgeSegments() {
         component="form"
         onSubmit={form.handleSubmit(async ({ content }) => {
           await create(content);
+          form.reset({ content: '' });
+
           await refetch();
           dialogState.close();
         })}>
@@ -214,7 +239,9 @@ function EmptyDocument() {
   return (
     <Stack flex={1} justifyContent="center" alignItems="center" gap={1}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-      <Typography color="text.disabled">{t('knowledge.segments.empty')}</Typography>
+      <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
+        {t('knowledge.segments.empty')}
+      </Typography>
     </Stack>
   );
 }
@@ -276,6 +303,111 @@ function SegmentsItem({
   );
 }
 
+function SplitButton({
+  datasetId,
+  documentId,
+  name,
+  onUpdate,
+}: {
+  datasetId: string;
+  documentId: string;
+  name: string;
+  onUpdate: () => any;
+}) {
+  const { t } = useLocaleContext();
+  const [open, setOpen] = useState(false);
+  const customDialogState = usePopupState({ variant: 'dialog', popupId: 'custom' });
+  const form = useForm<{ name: string }>({ defaultValues: { name: '' } });
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  const handleMenuItemClick = (item: string) => {
+    if (item === 'rename') {
+      form.setValue('name', name);
+      customDialogState.open();
+    }
+
+    setOpen(false);
+  };
+  const handleToggle = () => {
+    setOpen((prevOpen) => !prevOpen);
+  };
+
+  const handleClose = (event: Event) => {
+    if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
+      return;
+    }
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <ButtonGroup size="small" ref={anchorRef}>
+        <Button>{t('knowledge.configure')}</Button>
+        <Button size="small" onClick={handleToggle}>
+          <ArrowDropDownIcon />
+        </Button>
+      </ButtonGroup>
+      <Popper
+        sx={{ zIndex: 1 }}
+        open={open}
+        anchorEl={anchorRef.current}
+        role={undefined}
+        transition
+        disablePortal
+        placement="bottom-end">
+        {({ TransitionProps }) => (
+          <Grow {...TransitionProps}>
+            <Paper>
+              <ClickAwayListener onClickAway={handleClose}>
+                <MenuList id="split-button-menu" autoFocusItem>
+                  <MenuItem onClick={() => handleMenuItemClick('rename')}>{t('knowledge.rename')}</MenuItem>
+                </MenuList>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
+      </Popper>
+
+      <Dialog
+        {...bindDialog(customDialogState)}
+        maxWidth="sm"
+        fullWidth
+        component="form"
+        onSubmit={form.handleSubmit(async (data) => {
+          try {
+            await uploadDocumentName(datasetId || '', documentId || '', data);
+            form.reset({ name: '' });
+
+            onUpdate();
+            customDialogState.close();
+          } catch (error) {
+            Toast.error(getErrorMessage(error));
+            throw error;
+          }
+        })}>
+        <DialogTitle>{t('knowledge.documents.update')}</DialogTitle>
+
+        <DialogContent>
+          <TextField label={t('knowledge.documents.name')} sx={{ width: 1 }} {...form.register('name')} />
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={customDialogState.close}>{t('cancel')}</Button>
+
+          <LoadingButton
+            type="submit"
+            variant="contained"
+            startIcon={<SaveRounded />}
+            loadingPosition="start"
+            loading={form.formState.isSubmitting}>
+            {t('save')}
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
 const SegmentRoot = styled(Stack)`
   display: flex;
   min-height: 160px;
@@ -283,18 +415,18 @@ const SegmentRoot = styled(Stack)`
   flex-direction: column;
   border-radius: 0.5rem;
   border: 1px solid transparent;
-  background-color: rgb(255, 255, 255);
+  background: rgb(255, 255, 255);
   box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.newItemCard {
     outline: 1px solid #e5e7eb;
     outline-offset: -1px;
-    background-color: rgba(229, 231, 235, 0.5);
+    background: rgba(229, 231, 235, 0.5);
     border-width: 0;
 
     &:hover {
-      background-color: rgb(255, 255, 255);
+      background: rgb(255, 255, 255);
       box-shadow:
         0px 1px 2px rgba(16, 24, 40, 0.06),
         0px 1px 3px rgba(16, 24, 40, 0.1);
@@ -319,10 +451,9 @@ const SegmentRoot = styled(Stack)`
 
   .itemTitle {
     display: flex;
-    height: 66px;
     align-items: center;
     gap: 0.75rem;
-    padding: 14px 14px 0.75rem;
+    padding: 14px 14px 0;
 
     .itemHeading {
       position: relative;
@@ -364,12 +495,13 @@ const SegmentRoot = styled(Stack)`
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    height: 2.25rem;
+    -webkit-line-clamp: 4;
+    height: 88px;
     padding: 14px;
     font-size: 0.75rem;
     line-height: 1.5;
     color: rgb(107, 114, 128);
+    word-wrap: break-word;
   }
 
   .itemFooter {

@@ -139,12 +139,14 @@ async function searchDiscussions({
     .then((res) => res.data);
 }
 
-export const saveContentToVectorStore = async (content: string, datasetId: string, documentId: string) => {
+export const saveContentToVectorStore = async (content: string, datasetId: string, documentId?: string) => {
   const textSplitter = new RecursiveCharacterTextSplitter();
   const docs = await textSplitter.createDocuments([content]);
 
-  for (const doc of docs) {
-    if (doc.pageContent) await Segment.create({ documentId, content: doc.pageContent });
+  if (documentId) {
+    for (const doc of docs) {
+      if (doc.pageContent) await Segment.create({ documentId, content: doc.pageContent });
+    }
   }
 
   const embeddings = new AIKitEmbeddings({});
@@ -193,18 +195,20 @@ export const runHandlerAndSaveContent = async (itemId: string) => {
   await task.promise;
 };
 
-export const resetDatasetsEmbedding = async (datasetId: string, did: string, itemId: string) => {
-  const datasetItems = await DatasetItem.findAll({ where: { datasetId, createdBy: did } });
+export const resetDatasetsEmbedding = async (datasetId: string) => {
+  const datasetItems = await DatasetItem.findAll({ where: { datasetId } });
   if (!datasetItems?.length) return;
 
   await VectorStore.remove(datasetId);
 
-  // 使用同步还是异步？
   datasetItems.forEach(async (item) => {
-    const handler = embeddingHandler[item.type];
-    if (!handler) return;
-
-    // eslint-disable-next-line no-await-in-loop
-    await handler(item as any, itemId);
+    const segments = await Segment.findAll({ where: { documentId: item.id } });
+    if (segments?.length) {
+      segments.forEach(async (segment) => {
+        if (segment.content) {
+          await saveContentToVectorStore(segment.content, datasetId);
+        }
+      });
+    }
   });
 };

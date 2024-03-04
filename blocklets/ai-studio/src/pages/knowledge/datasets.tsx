@@ -32,10 +32,11 @@ type DatasetInput = { name: string; description?: string };
 
 export default function KnowledgeDatasets() {
   const { t } = useLocaleContext();
-  const dialogState = usePopupState({ variant: 'dialog' });
-  const form = useForm<DatasetInput>({ defaultValues: { description: '', name: '' } });
   const navigate = useNavigate();
+
+  const dialogState = usePopupState({ variant: 'dialog' });
   const { datasets, refetch, createDataset, deleteDataset } = useDatasets();
+  const form = useForm<DatasetInput>({ defaultValues: { description: '', name: '' } });
 
   useEffect(() => {
     refetch();
@@ -46,10 +47,10 @@ export default function KnowledgeDatasets() {
       try {
         const dataset = await createDataset(input);
         dialogState.close();
+
         navigate(dataset.id);
       } catch (error) {
         Toast.error(getErrorMessage(error));
-        throw error;
       }
     },
     [t, form]
@@ -62,7 +63,6 @@ export default function KnowledgeDatasets() {
         dialogState.close();
       } catch (error) {
         Toast.error(getErrorMessage(error));
-        throw error;
       }
     },
     [t]
@@ -75,7 +75,7 @@ export default function KnowledgeDatasets() {
           <DatasetItemAdd
             name={t('knowledge.createTitle')}
             description={t('knowledge.createDescription')}
-            onClick={() => dialogState.open()}
+            onClick={dialogState.open}
             className="listItem newItemCard"
           />
 
@@ -97,15 +97,16 @@ export default function KnowledgeDatasets() {
 
       <Dialog
         {...bindDialog(dialogState)}
-        maxWidth="sm"
         fullWidth
+        maxWidth="sm"
         component="form"
         onSubmit={form.handleSubmit(onSave)}>
-        <DialogTitle>{t('knowledge.documents.create')}</DialogTitle>
+        <DialogTitle>{t('knowledge.createTitle')}</DialogTitle>
 
         <DialogContent>
           <Stack gap={2}>
             <TextField label={t('knowledge.name')} sx={{ width: 1 }} {...form.register('name')} />
+
             <TextField label={t('knowledge.description')} sx={{ width: 1 }} {...form.register('description')} />
           </Stack>
         </DialogContent>
@@ -175,6 +176,7 @@ function DatasetItem({
             <IconButton
               onClick={(e) => {
                 e.stopPropagation();
+                setAnchorEl(e.currentTarget);
               }}>
               <Delete sx={{ fontSize: '16px' }} />
             </IconButton>
@@ -189,17 +191,13 @@ function DatasetItem({
       </DatasetItemRoot>
 
       <Popover
-        id={open ? 'simple-popover' : undefined}
         open={open}
         anchorEl={anchorEl}
         onClose={() => setAnchorEl(null)}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}>
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <DialogTitle>{t('knowledge.deleteTitle')}</DialogTitle>
 
-        <DialogContent>{t('knowledge.deleteDescription')}</DialogContent>
+        <DialogContent sx={{ fontSize: '14px', lineHeight: '22px' }}>{t('knowledge.deleteDescription')}</DialogContent>
 
         <DialogActions>
           <Button size="small" onClick={() => setAnchorEl(null)}>
@@ -210,9 +208,9 @@ function DatasetItem({
             size="small"
             variant="contained"
             color="error"
-            onClick={async () => {
-              await onDelete();
+            onClick={() => {
               setAnchorEl(null);
+              onDelete();
             }}>
             {t('delete')}
           </PromiseLoadingButton>
@@ -229,18 +227,18 @@ const DatasetItemRoot = styled(Stack)`
   flex-direction: column;
   border-radius: 0.5rem;
   border: 1px solid transparent;
-  background-color: rgb(255, 255, 255);
+  background: rgb(255, 255, 255);
   box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.newItemCard {
     outline: 1px solid #e5e7eb;
     outline-offset: -1px;
-    background-color: rgba(229, 231, 235, 0.5);
+    background: rgba(229, 231, 235, 0.5);
     border-width: 0;
 
     &:hover {
-      background-color: rgb(255, 255, 255);
+      background: rgb(255, 255, 255);
       box-shadow:
         0px 1px 2px rgba(16, 24, 40, 0.06),
         0px 1px 3px rgba(16, 24, 40, 0.1);

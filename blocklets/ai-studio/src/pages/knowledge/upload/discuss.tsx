@@ -1,12 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { HelpOutline } from '@mui/icons-material';
+// import { HelpOutline } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Box, Checkbox, FormControlLabel, TextField, Tooltip } from '@mui/material';
+import { Box, TextField } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useThrottle } from 'ahooks';
 import { useCallback, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
 import { CreateItem } from '../../../../api/src/routes/dataset/documents';
@@ -16,8 +16,7 @@ import { getErrorMessage } from '../../../libs/api';
 import { createDatasetDocuments } from '../../../libs/dataset';
 import { DiscussionItem, searchDiscussions } from '../../../libs/discussion';
 
-export default function DiscussionPage() {
-  const { datasetId } = useParams();
+export default function DiscussionPage({ datasetId }: { datasetId: string }) {
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
   }
@@ -38,8 +37,8 @@ export default function DiscussionPage() {
       setSaving(true);
       await createDatasetDocuments(datasetId, input);
       refetch();
-      Toast.success('Saved');
-      navigate('..', { replace: true });
+      Toast.success(t('alert.saved'));
+      navigate(`../${datasetId}`, { replace: true });
     } catch (error) {
       Toast.error(getErrorMessage(error));
       throw error;
@@ -111,7 +110,7 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
 
   return (
     <>
-      <Box mb={2} display="flex" alignItems="center">
+      {/* <Box mb={2} display="flex" alignItems="center">
         <FormControlLabel
           checked={fullSite}
           onChange={(_, checked) => {
@@ -127,7 +126,7 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
         <Tooltip title={t('form.fullSiteTip')}>
           <HelpOutline fontSize="small" />
         </Tooltip>
-      </Box>
+      </Box> */}
 
       {meilisearch && (
         <Box mb={2}>

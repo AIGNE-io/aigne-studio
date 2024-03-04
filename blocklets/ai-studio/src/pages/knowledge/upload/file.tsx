@@ -1,5 +1,4 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-/* eslint-disable jsx-a11y/label-has-associated-control */
 import Toast from '@arcblock/ux/lib/Toast';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Stack, styled } from '@mui/material';
@@ -8,7 +7,7 @@ import Button from '@mui/material/Button';
 import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
 import Stepper from '@mui/material/Stepper';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getErrorMessage } from '../../../libs/api';
@@ -16,8 +15,7 @@ import { uploadDocument } from '../../../libs/dataset';
 
 const steps = ['Upload', 'Processing'];
 
-function Upload({ onUpload }: { onUpload: (file: File) => void }) {
-  const inputRef = useRef(null);
+function Upload({ onNext, onUpload }: { onNext?: () => any; onUpload: (file: File) => void }) {
   const { t } = useLocaleContext();
 
   const onInputChange = (e: any) => {
@@ -33,116 +31,146 @@ function Upload({ onUpload }: { onUpload: (file: File) => void }) {
   };
 
   return (
-    <Box
-      width={1}
-      height={300}
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      sx={{ border: '1px dashed #ddd', cursor: 'pointer' }}>
-      <Stack
-        htmlFor="upload-avatar"
-        className="avatar-box"
-        component="label"
-        gap={2}
-        width={1}
-        height={1}
-        justifyContent="center"
-        alignItems="center">
-        <CloudUploadIcon />
-
-        <Box>{t('knowledge.file.content')}</Box>
-      </Stack>
-
+    <>
       <Box
-        id="upload-avatar"
-        ref={inputRef}
-        type="file"
-        onChange={onInputChange}
-        accept=".md, .txt, .pdf, .doc"
-        component="input"
-        display="none"
-      />
-    </Box>
+        width={1}
+        height={300}
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        sx={{ border: '1px dashed #ddd' }}>
+        <Stack
+          htmlFor="upload"
+          component="label"
+          gap={2}
+          width={1}
+          height={1}
+          justifyContent="center"
+          alignItems="center"
+          sx={{ cursor: 'pointer' }}>
+          <CloudUploadIcon sx={{ color: (theme) => theme.palette.primary.main }} />
+          <Box sx={{ fontSize: '14px', color: 'rgba( 56,55,67,1)' }}>{t('knowledge.file.content')}</Box>
+        </Stack>
+
+        <Box
+          id="upload"
+          type="file"
+          onChange={onInputChange}
+          accept=".md, .txt, .pdf, .doc"
+          component="input"
+          display="none"
+        />
+      </Box>
+
+      <Box sx={{ float: 'right', mt: 5 }}>
+        <Button variant="contained" onClick={onNext} disabled>
+          {t('next')}
+        </Button>
+      </Box>
+    </>
   );
 }
 
-function Processing({
-  file,
-  datasetId,
-  processing,
-  onStart,
-  onEnd,
-}: {
-  datasetId: string;
-  file?: File;
-  processing?: boolean;
-  onStart: () => any;
-  onEnd: () => any;
-}) {
-  const [error, setError] = useState('');
+function Processing({ file, datasetId }: { datasetId: string; file?: File }) {
   const { t } = useLocaleContext();
+  const navigate = useNavigate();
+
+  const [status, setStatus] = useState<'pending' | 'processing' | 'completed'>('pending');
+  const [error, setError] = useState('');
 
   const upload = async () => {
     try {
-      onStart();
+      setStatus('processing');
+
       if (file) {
         const form = new FormData();
         form.append('data', file);
         form.append('type', 'file');
-        await uploadDocument(datasetId, form);
+        const result = await uploadDocument(datasetId, form);
+        navigate(`../${datasetId}/${result.id}`);
       }
     } catch (error) {
       Toast.error(getErrorMessage(error));
       setError(getErrorMessage(error));
     } finally {
-      onEnd();
+      setStatus('completed');
     }
   };
-
-  useEffect(() => {
-    upload();
-  }, [file]);
 
   const headerText = useMemo(() => {
     if (error) {
       return t('knowledge.file.fail');
     }
 
-    if (processing) {
+    if (status === 'pending') {
+      return t('knowledge.file.pending');
+    }
+
+    if (status === 'processing') {
       return t('knowledge.file.processing');
     }
 
     return t('knowledge.file.completed');
-  }, [error, processing]);
+  }, [error, status, t]);
 
   const statusText = useMemo(() => {
     if (error) {
       return '0%';
     }
 
-    if (processing) {
+    if (status === 'pending') {
+      return '0%';
+    }
+
+    if (status === 'processing') {
       return '1%';
     }
 
     return '100%';
-  }, [error, processing]);
+  }, [error, status]);
 
   return (
-    <ProcessingContainer>
-      <Box sx={{ m: '24px 0 17px', fontWeight: 600, lineHeight: '22px', fontSize: '14px' }}>{headerText}</Box>
-      <Box
-        sx={{ border: '1px solid rgba(29,28,35,.12)', borderRadius: 1, maxHeight: '532px', p: '23px 35px 23px 24px' }}>
-        <Box className="file">
-          <Box className="content">
-            <Box className="text">{file?.name}</Box>
-            <Box className="background" sx={{ width: statusText }} />
-          </Box>
+    <>
+      <ProcessingContainer>
+        <Box sx={{ m: '24px 0 17px', fontWeight: 600, lineHeight: '22px', fontSize: '14px' }}>{headerText}</Box>
+        <Box
+          sx={{
+            border: '1px solid rgba(29,28,35,.12)',
+            borderRadius: 1,
+            maxHeight: '532px',
+            p: '23px 35px 23px 24px',
+          }}>
+          <Box className="file">
+            <Box className="content" sx={{ background: (theme) => theme.palette.action.hover }}>
+              <Box className="text" sx={{ background: (theme) => theme.palette.primary.main }}>
+                {file?.name}
+              </Box>
+              <Box
+                className="background"
+                sx={{ width: statusText, background: (theme) => theme.palette.primary.main }}
+              />
+            </Box>
 
-          <Box className="status">{statusText}</Box>
+            <Box className="status">{statusText}</Box>
+          </Box>
         </Box>
+      </ProcessingContainer>
+
+      <Box sx={{ float: 'right', mt: 5 }}>
+        <Button
+          variant="contained"
+          onClick={() => {
+            if (status === 'pending') {
+              upload();
+            } else if (status === 'completed') {
+              navigate(`../${datasetId}`);
+            }
+          }}
+          disabled={status === 'processing'}>
+          {status === 'pending' ? t('knowledge.file.pending') : t('next')}
+        </Button>
       </Box>
-    </ProcessingContainer>
+    </>
   );
 }
 
@@ -159,37 +187,10 @@ export default function UploadFile({ datasetId }: { datasetId: string }) {
 function Steppers({ datasetId }: { datasetId: string }) {
   const [activeStep, setActiveStep] = useState(0);
   const [file, setFile] = useState<File | undefined>();
-  const [processing, setProcessing] = useState(true);
-  const navigate = useNavigate();
-  const { t } = useLocaleContext();
-
-  const totalSteps = useMemo(() => {
-    return steps.length;
-  }, []);
-
-  const isLastStep = useMemo(() => {
-    return activeStep === totalSteps - 1;
-  }, [totalSteps, activeStep]);
 
   const handleNext = () => {
-    if (!isLastStep) {
-      setActiveStep(activeStep + 1);
-    } else {
-      navigate('..', { replace: true });
-    }
+    setActiveStep(activeStep + 1);
   };
-
-  const disabled = useMemo(() => {
-    if (activeStep === 0) {
-      return !file;
-    }
-
-    if (activeStep === 1) {
-      return processing;
-    }
-
-    return false;
-  }, [activeStep, processing, file]);
 
   const Component = Components[activeStep];
 
@@ -208,21 +209,13 @@ function Steppers({ datasetId }: { datasetId: string }) {
           <Component
             datasetId={datasetId}
             file={file}
-            processing={processing}
             onUpload={(file) => {
               setFile(file);
               handleNext();
             }}
-            onStart={() => setProcessing(true)}
-            onEnd={() => setProcessing(false)}
+            onNext={handleNext}
           />
         )}
-      </Box>
-
-      <Box sx={{ float: 'right', mt: 5 }}>
-        <Button variant="contained" onClick={handleNext} disabled={disabled}>
-          {isLastStep ? t('knowledge.file.Completed') : t('next')}
-        </Button>
       </Box>
     </Container>
   );
@@ -243,11 +236,11 @@ const ProcessingContainer = styled(Box)`
     justify-content: space-between;
 
     .content {
-      background-color: rgba(46, 50, 56, 0.05);
       border-radius: 8px;
       flex: 1 1;
       overflow: hidden;
       position: relative;
+      height: 32px;
 
       .text {
         box-sizing: border-box;
@@ -260,7 +253,6 @@ const ProcessingContainer = styled(Box)`
         max-width: 100%;
         vertical-align: top;
         overflow: hidden;
-        background: rgba(77, 83, 232, 1);
         color: #fff;
         position: absolute;
         top: 0;
@@ -275,7 +267,6 @@ const ProcessingContainer = styled(Box)`
         position: absolute;
         top: 0;
         transition: width 0.3s linear;
-        background: rgba(77, 83, 232, 1);
       }
     }
 

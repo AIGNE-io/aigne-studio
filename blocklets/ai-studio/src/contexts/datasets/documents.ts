@@ -22,11 +22,7 @@ const datasets: Record<string, RecoilState<DatasetState>> = {};
 const dataset = (datasetId: string) => {
   let dataset = datasets[datasetId];
   if (!dataset) {
-    dataset = atom<DatasetState>({
-      key: `dataset-${datasetId}`,
-      default: { page: 0, size: 20 },
-    });
-
+    dataset = atom<DatasetState>({ key: `dataset-${datasetId}`, default: { page: 0, size: 20, loading: true } });
     datasets[datasetId] = dataset;
   }
   return dataset;
@@ -47,6 +43,7 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
           size ??= v.size;
           return { ...v, loading: true };
         });
+
         const [dataset, { items, total }] = await Promise.all([
           getDataset(datasetId),
           getDocuments(datasetId, { page: (page ?? 0) + 1, size }),
@@ -88,7 +85,7 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
   const upload = useCallback((form: FormData) => uploadDocument(datasetId, form), []);
 
   useEffect(() => {
-    if (autoFetch && !state.dataset && !state.loading) {
+    if (autoFetch && !state.dataset) {
       refetch();
     }
   }, []);

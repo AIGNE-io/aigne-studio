@@ -16,7 +16,7 @@ const datasetSchema = Joi.object<{ name?: string; description?: string }>({
 
 /**
  * @openapi
- * /api/dataset/list:
+ * /api/datasets/datasets/list:
  *    get:
  *      type: 'SEARCH'
  *      summary: Retrieve the current user's datasets
@@ -48,7 +48,7 @@ router.get('/list', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/dataset/{datasetId}:
+ * /api/datasets/datasets/{datasetId}:
  *    get:
  *      type: 'SEARCH'
  *      summary: Retrieve details of a specific dataset
@@ -87,7 +87,7 @@ router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/dataset/create:
+ * /api/datasets/datasets/create:
  *    post:
  *      type: 'CREATE'
  *      summary: Create a new dataset
@@ -118,7 +118,7 @@ router.post('/create', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/dataset/{datasetId}:
+ * /api/datasets/datasets/{datasetId}:
  *    put:
  *      type: 'UPDATE'
  *      summary: Update a dataset
@@ -173,7 +173,7 @@ router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/dataset/{datasetId}:
+ * /api/datasets/datasets/{datasetId}:
  *    delete:
  *      type: 'DELETE'  # Changed from 'SEARCH' to 'DELETE' as it's more appropriate for a delete operation
  *      summary: Delete a dataset

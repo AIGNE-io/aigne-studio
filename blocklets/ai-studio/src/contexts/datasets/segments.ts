@@ -26,11 +26,7 @@ const dataset = (datasetId: string, documentId: string) => {
 
   let dataset = datasets[key];
   if (!dataset) {
-    dataset = atom<SegmentState>({
-      key: `dataset-${key}`,
-      default: { page: 0, size: 20 },
-    });
-
+    dataset = atom<SegmentState>({ key: `dataset-${key}`, default: { page: 0, size: 20, loading: true } });
     datasets[key] = dataset;
   }
 
@@ -77,14 +73,14 @@ export const useSegments = (datasetId: string, documentId: string, { autoFetch =
 
   const remove = useCallback(async (segmentId: string) => {
     try {
-      await deleteSegment(segmentId);
+      await deleteSegment(datasetId, segmentId);
     } catch (error) {
       Toast.error(getErrorMessage(error));
     }
   }, []);
 
   useEffect(() => {
-    if (autoFetch && !state.dataset && !state.loading) {
+    if (autoFetch && !state.dataset) {
       refetch();
     }
   }, [datasetId, documentId]);

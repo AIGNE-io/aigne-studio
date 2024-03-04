@@ -133,13 +133,18 @@ export default function KnowledgeDocuments() {
         </Stack>
 
         <Divider />
+
         <Stack px={3} flex={1} height={0}>
           <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>
             {t('knowledge.document')}
           </Box>
 
-          <Stack flex={1}>
-            {!rows?.length && <EmptyDocument onOpen={dialogState.open} />}
+          <>
+            {!rows?.length && (
+              <Stack flex={1}>
+                <EmptyDocument onOpen={dialogState.open} />
+              </Stack>
+            )}
 
             {rows.length && (
               <Table
@@ -149,6 +154,7 @@ export default function KnowledgeDocuments() {
                   [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]: {
                     outline: 'none',
                   },
+                  [`& .${gridClasses.footerContainer}`]: { border: 0 },
                 }}
                 disableColumnMenu
                 columnHeaderHeight={30}
@@ -167,7 +173,7 @@ export default function KnowledgeDocuments() {
                 }}
               />
             )}
-          </Stack>
+          </>
         </Stack>
       </>
 
@@ -230,6 +236,8 @@ export default function KnowledgeDocuments() {
         onSubmit={form.handleSubmit(async (data) => {
           try {
             const document = await createDocument(datasetId || '', { type: 'text', name: data.name });
+            form.reset({ name: '' });
+
             await refetch();
             customDialogState.close();
             navigate(document.id);
@@ -294,7 +302,9 @@ function Actions({
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <DialogTitle>{t('knowledge.documents.deleteTitle')}</DialogTitle>
 
-        <DialogContent>{t('knowledge.documents.deleteDescription')}</DialogContent>
+        <DialogContent sx={{ fontSize: '14px', lineHeight: '22px' }}>
+          {t('knowledge.documents.deleteDescription')}
+        </DialogContent>
 
         <DialogActions>
           <Button size="small" onClick={() => setAnchorEl(null)}>
@@ -325,7 +335,9 @@ function EmptyDocument({ onOpen }: { onOpen: () => any }) {
     <Stack flex={1} justifyContent="center" alignItems="center" gap={1}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
 
-      <Typography color="text.disabled">{t('knowledge.documents.empty')}</Typography>
+      <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
+        {t('knowledge.documents.empty')}
+      </Typography>
 
       <Button variant="contained" size="small" onClick={onOpen}>
         {t('knowledge.documents.add')}
@@ -369,7 +381,7 @@ function Customization() {
 
 const DocumentRadioGroup = styled(RadioGroup)`
   .MuiFormControlLabel-root {
-    border: 1px solid rgba(28, 31, 35, 0.08);
+    border: 1px solid ${({ theme }) => theme.palette.action.selected};
     padding: 16px;
     box-sizing: border-box;
     cursor: pointer;
@@ -384,7 +396,7 @@ const DocumentRadioGroup = styled(RadioGroup)`
     align-items: flex-start;
 
     &.selected {
-      border: 1px solid rgba(77, 83, 232, 1);
+      border: 1px solid ${({ theme }) => theme.palette.primary.main};
     }
   }
 
