@@ -149,7 +149,7 @@ export default function ExecuteBlockForm({
           expandIcon={<GridExpandMoreIcon />}>
           <Typography variant="subtitle2">{t('executeSettings')}</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ fontSize: 18, p: 0, px: 1, gap: 1, display: 'flex', flexDirection: 'column' }}>
+        <AccordionDetails sx={{ p: 0, px: 1, mt: 0.5, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
           <Box display="flex" alignItems="baseline" justifyContent="space-between">
             <Box display="flex">
               <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('executeMethods')}</Typography>
@@ -240,7 +240,7 @@ export default function ExecuteBlockForm({
           expandIcon={<GridExpandMoreIcon />}>
           <Typography variant="subtitle2">{t('outputSettings')}</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ fontSize: 18, p: 0, px: 1, gap: 1, display: 'flex', flexDirection: 'column' }}>
+        <AccordionDetails sx={{ p: 0, mt: 0.5, px: 1, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
           {assistant.type === 'prompt' && (
             <Box display="flex" alignItems="baseline" justifyContent="space-between">
               <Box display="flex">
@@ -369,162 +369,180 @@ export default function ExecuteBlockForm({
           </Box>
         </AccordionDetails>
       </Accordion>
+      <Divider />
 
-      <Stack gap={0.5}>
-        <Divider />
+      <Accordion
+        sx={{
+          '&::before': {
+            display: 'none',
+          },
+        }}
+        square
+        disableGutters
+        elevation={0}>
+        <AccordionSummary
+          sx={{
+            px: 1,
+            minHeight: 28,
+            '& .MuiAccordionSummary-content': {
+              my: 0,
+            },
+          }}
+          expandIcon={<GridExpandMoreIcon />}>
+          <Typography variant="subtitle2">{t('tool')}</Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 0, px: 1, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
+          {(!tools || tools?.length === 0) && (
+            <Typography alignSelf="center" mt={1} px={1} variant="caption" color="text.secondary">
+              {t('emptyToolPlaceholder')}
+            </Typography>
+          )}
+          {tools?.map(({ data: tool }) => {
+            const f = store.files[tool.id];
+            const file = f && isAssistant(f) ? f : undefined;
+            if (!file) {
+              const dataset = datasets.find((x) => x.id === tool.id);
 
-        {(!tools || tools?.length === 0) && (
-          <Typography alignSelf="center" mt={1} px={1} variant="caption" color="text.secondary">
-            {t('emptyToolPlaceholder')}
-          </Typography>
-        )}
-        {tools?.map(({ data: tool }) => {
-          const f = store.files[tool.id];
-          const file = f && isAssistant(f) ? f : undefined;
-          if (!file) {
-            const dataset = datasets.find((x) => x.id === tool.id);
+              if (dataset) {
+                return (
+                  <Stack
+                    key={dataset.id}
+                    direction="row"
+                    sx={{
+                      minHeight: 32,
+                      gap: 1,
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      borderRadius: 1,
+                      ':hover': {
+                        bgcolor: 'action.hover',
 
-            if (dataset) {
-              return (
-                <Stack
-                  key={dataset.id}
-                  direction="row"
-                  sx={{
-                    px: 1,
-                    minHeight: 32,
-                    gap: 1,
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    borderRadius: 1,
-                    ':hover': {
-                      bgcolor: 'action.hover',
-
-                      '.hover-visible': {
-                        display: 'flex',
+                        '.hover-visible': {
+                          display: 'flex',
+                        },
                       },
-                    },
-                    backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
-                  }}
-                  onClick={() => {
-                    if (readOnly) return;
-                    toolForm.current?.form.reset(cloneDeep(tool));
-                    dialogState.open();
-                  }}>
-                  <Typography variant="subtitle2" noWrap maxWidth="50%">
-                    {getDatasetTextByI18n(dataset, 'summary', locale) || t('unnamed')}
-                  </Typography>
+                      backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
+                    }}
+                    onClick={() => {
+                      if (readOnly) return;
+                      toolForm.current?.form.reset(cloneDeep(tool));
+                      dialogState.open();
+                    }}>
+                    <Typography noWrap maxWidth="50%">
+                      {getDatasetTextByI18n(dataset, 'summary', locale) || t('unnamed')}
+                    </Typography>
 
-                  <Typography variant="body1" color="text.secondary" flex={1} noWrap>
-                    {getDatasetTextByI18n(dataset, 'description', locale)}
-                  </Typography>
+                    <Typography variant="body1" color="text.secondary" flex={1} noWrap>
+                      {getDatasetTextByI18n(dataset, 'description', locale)}
+                    </Typography>
 
-                  {!readOnly && (
-                    <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
-                      <Button
-                        sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const doc = (getYjsValue(value) as Map<any>).doc!;
-                          doc.transact(() => {
-                            if (value.tools) {
-                              delete value.tools[tool.id];
-                              sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
-                            }
-                          });
-                        }}>
-                        <Trash sx={{ fontSize: 18 }} />
-                      </Button>
-                    </Stack>
-                  )}
-                </Stack>
-              );
+                    {!readOnly && (
+                      <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
+                        <Button
+                          sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const doc = (getYjsValue(value) as Map<any>).doc!;
+                            doc.transact(() => {
+                              if (value.tools) {
+                                delete value.tools[tool.id];
+                                sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
+                              }
+                            });
+                          }}>
+                          <Trash sx={{ fontSize: 18 }} />
+                        </Button>
+                      </Stack>
+                    )}
+                  </Stack>
+                );
+              }
+
+              return null;
             }
 
-            return null;
-          }
-
-          return (
-            <Stack
-              key={file.id}
-              direction="row"
-              sx={{
-                px: 1,
-                minHeight: 32,
-                gap: 1,
-                alignItems: 'center',
-                cursor: 'pointer',
-                borderRadius: 1,
-                ':hover': {
-                  bgcolor: 'action.hover',
-                  '.hover-visible': {
-                    display: 'flex',
+            return (
+              <Stack
+                key={file.id}
+                direction="row"
+                sx={{
+                  minHeight: 32,
+                  gap: 1,
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  borderRadius: 1,
+                  ':hover': {
+                    bgcolor: 'action.hover',
+                    '.hover-visible': {
+                      display: 'flex',
+                    },
                   },
-                },
-                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
-              }}
-              onClick={() => {
-                if (readOnly) return;
-                toolForm.current?.form.reset(cloneDeep(tool));
-                dialogState.open();
-              }}>
-              <Typography variant="subtitle2" noWrap maxWidth="50%">
-                {file.name || t('unnamed')}
-              </Typography>
+                  backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
+                }}
+                onClick={() => {
+                  if (readOnly) return;
+                  toolForm.current?.form.reset(cloneDeep(tool));
+                  dialogState.open();
+                }}>
+                <Typography noWrap maxWidth="50%">
+                  {file.name || t('unnamed')}
+                </Typography>
 
-              <Typography variant="body1" color="text.secondary" flex={1} noWrap>
-                {file.description}
-              </Typography>
+                <Typography variant="body1" color="text.secondary" flex={1} noWrap>
+                  {file.description}
+                </Typography>
 
-              {!readOnly && (
-                <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
-                  <Button
-                    sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const doc = (getYjsValue(value) as Map<any>).doc!;
-                      doc.transact(() => {
-                        if (value.selectType === 'selectByPrompt') {
-                          const selectTool = value.tools?.[tool.id];
-                          if (selectTool) {
-                            selectTool.data.onEnd = undefined;
+                {!readOnly && (
+                  <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
+                    <Button
+                      sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const doc = (getYjsValue(value) as Map<any>).doc!;
+                        doc.transact(() => {
+                          if (value.selectType === 'selectByPrompt') {
+                            const selectTool = value.tools?.[tool.id];
+                            if (selectTool) {
+                              selectTool.data.onEnd = undefined;
+                            }
                           }
-                        }
-                        if (value.tools) {
-                          delete value.tools[tool.id];
-                          sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
-                        }
-                      });
-                    }}>
-                    <Trash sx={{ fontSize: 18 }} />
-                  </Button>
+                          if (value.tools) {
+                            delete value.tools[tool.id];
+                            sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
+                          }
+                        });
+                      }}>
+                      <Trash sx={{ fontSize: 18 }} />
+                    </Button>
 
-                  <Button
-                    sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(joinURL('.', `${file.id}.yaml`));
-                    }}>
-                    <External sx={{ fontSize: 18 }} />
-                  </Button>
-                </Stack>
-              )}
-            </Stack>
-          );
-        })}
+                    <Button
+                      sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(joinURL('.', `${file.id}.yaml`));
+                      }}>
+                      <External sx={{ fontSize: 18 }} />
+                    </Button>
+                  </Stack>
+                )}
+              </Stack>
+            );
+          })}
 
-        {!readOnly && (
-          <Box>
-            <Button
-              startIcon={<Add />}
-              onClick={() => {
-                toolForm.current?.form.reset({ id: undefined, parameters: undefined });
-                dialogState.open();
-              }}>
-              {t('addObject', { object: t('tool') })}
-            </Button>
-          </Box>
-        )}
-      </Stack>
+          {!readOnly && (
+            <Box>
+              <Button
+                startIcon={<Add />}
+                onClick={() => {
+                  toolForm.current?.form.reset({ id: undefined, parameters: undefined });
+                  dialogState.open();
+                }}>
+                {t('addObject', { object: t('tool') })}
+              </Button>
+            </Box>
+          )}
+        </AccordionDetails>
+      </Accordion>
 
       <ToolDialog
         executeBlock={value}
