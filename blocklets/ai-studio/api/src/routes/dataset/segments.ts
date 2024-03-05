@@ -43,7 +43,24 @@ router.post('/:datasetId/:documentId', user(), checkUserAuth(), async (req, res)
 
   await saveContentToVectorStore(content, datasetId, documentId);
 
-  res.json();
+  res.json({ data: 'success' });
+});
+
+router.put('/:datasetId/:segmentId', user(), checkUserAuth(), async (req, res) => {
+  const { datasetId, segmentId } = await Joi.object<{ datasetId: string; segmentId: string }>({
+    datasetId: Joi.string().required(),
+    segmentId: Joi.string().required(),
+  }).validateAsync(req.params, { stripUnknown: true });
+
+  const { content } = await Joi.object<{ content: string }>({
+    content: Joi.string().required(),
+  }).validateAsync(req.body, { stripUnknown: true });
+
+  await DatasetSegment.update({ content }, { where: { id: segmentId } });
+
+  resetVectorStoreEmbedding(datasetId);
+
+  res.json({ data: 'success' });
 });
 
 router.delete('/:datasetId/:segmentId', user(), checkUserAuth(), async (req, res) => {
@@ -56,7 +73,7 @@ router.delete('/:datasetId/:segmentId', user(), checkUserAuth(), async (req, res
 
   resetVectorStoreEmbedding(datasetId);
 
-  res.json();
+  res.json({ data: 'success' });
 });
 
 export default router;

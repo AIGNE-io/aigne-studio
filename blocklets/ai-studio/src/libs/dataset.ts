@@ -88,6 +88,10 @@ export async function deleteSegment(datasetId: string, segmentId: string): Promi
   return axios.delete(`/api/datasets/segments/${datasetId}/${segmentId}`).then((res) => res.data);
 }
 
+export async function updateSegment(datasetId: string, segmentId: string, content: string): Promise<any> {
+  return axios.put(`/api/datasets/segments/${datasetId}/${segmentId}`, { content }).then((res) => res.data);
+}
+
 export async function createDatasetDocuments(datasetId: string, input: CreateItem): Promise<DatasetItem>;
 export async function createDatasetDocuments(datasetId: string, input: CreateItem[]): Promise<DatasetItem[]>;
 export async function createDatasetDocuments(

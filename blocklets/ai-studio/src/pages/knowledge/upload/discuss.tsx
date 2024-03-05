@@ -41,7 +41,6 @@ export default function DiscussionPage({ datasetId }: { datasetId: string }) {
       navigate(`../${datasetId}`, { replace: true });
     } catch (error) {
       Toast.error(getErrorMessage(error));
-      throw error;
     } finally {
       setSaving(false);
     }

@@ -235,19 +235,14 @@ export default function KnowledgeDocuments() {
         component="form"
         onSubmit={form.handleSubmit(async (data) => {
           try {
-            const document = await createDocument(datasetId || '', {
-              type: 'text',
-              name: data.name,
-              content: data.content,
-            });
+            const document = await createDocument(datasetId || '', { type: 'text', ...data });
             form.reset({ name: '', content: '' });
 
             await refetch();
             customDialogState.close();
-            navigate(document.id);
+            navigate(`./${document.id}`);
           } catch (error) {
             Toast.error(getErrorMessage(error));
-            throw error;
           }
         })}>
         <DialogTitle>{t('knowledge.documents.add')}</DialogTitle>

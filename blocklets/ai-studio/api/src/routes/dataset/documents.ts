@@ -155,7 +155,7 @@ router.post('/:datasetId/create', user(), checkUserAuth(), async (req, res) => {
   }>({
     type: Joi.string().valid('discussion', 'text', 'md', 'txt', 'pdf', 'doc').required(),
     name: Joi.string().required(),
-    content: Joi.string(),
+    content: Joi.string().allow('', null).optional(),
   }).validateAsync(req.body, { stripUnknown: true });
 
   if (!datasetId) {

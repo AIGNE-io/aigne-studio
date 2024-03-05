@@ -6,7 +6,7 @@ import Dataset from '../../../api/src/store/models/dataset/dataset';
 import DatasetItem from '../../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../../api/src/store/models/dataset/segment';
 import { getErrorMessage } from '../../libs/api';
-import { createSegment, deleteSegment, getDocument, getSegments } from '../../libs/dataset';
+import { createSegment, deleteSegment, getDocument, getSegments, updateSegment } from '../../libs/dataset';
 
 interface SegmentState {
   dataset?: Dataset;
@@ -79,11 +79,19 @@ export const useSegments = (datasetId: string, documentId: string, { autoFetch =
     }
   }, []);
 
+  const update = useCallback(async (segmentId: string, content: string) => {
+    try {
+      await updateSegment(datasetId, segmentId, content);
+    } catch (error) {
+      Toast.error(getErrorMessage(error));
+    }
+  }, []);
+
   useEffect(() => {
     if (autoFetch && !state.dataset) {
       refetch();
     }
   }, [datasetId, documentId]);
 
-  return { state, refetch, create, remove };
+  return { state, refetch, create, update, remove };
 };
