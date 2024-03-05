@@ -4,6 +4,7 @@ import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import axios from 'axios';
 import SSE from 'express-sse';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { Op } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import DatasetItem from '../../store/models/dataset/document';
@@ -195,20 +196,25 @@ export const runHandlerAndSaveContent = async (itemId: string) => {
   await task.promise;
 };
 
-export const resetDatasetsEmbedding = async (datasetId: string) => {
+export const resetVectorStoreEmbedding = async (datasetId: string) => {
   const datasetItems = await DatasetItem.findAll({ where: { datasetId } });
   if (!datasetItems?.length) return;
 
-  await VectorStore.remove(datasetId);
+  await VectorStore.reset(datasetId);
 
-  datasetItems.forEach(async (item) => {
-    const segments = await Segment.findAll({ where: { documentId: item.id } });
-    if (segments?.length) {
-      segments.forEach(async (segment) => {
-        if (segment.content) {
-          await saveContentToVectorStore(segment.content, datasetId);
-        }
-      });
-    }
-  });
+  const documentIds = datasetItems.map((item) => item.id);
+  const segments = await Segment.findAll({ where: { documentId: { [Op.in]: documentIds } } });
+
+  const texts = segments.map((x) => x.content).filter((i): i is NonNullable<typeof i> => !!i);
+  if (texts.length === 0) return;
+
+  const textSplitter = new RecursiveCharacterTextSplitter();
+  const docs = await textSplitter.createDocuments(texts);
+  if (docs.length === 0) return;
+
+  const embeddings = new AIKitEmbeddings({});
+  const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
+  const store = await VectorStore.load(datasetId, embeddings);
+  await store.addVectors(vectors, docs);
+  await store.save();
 };

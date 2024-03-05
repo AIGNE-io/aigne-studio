@@ -30,7 +30,7 @@ import {
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 
 import PromiseLoadingButton from '../../components/promise-loading-button';
@@ -171,14 +171,27 @@ export default function KnowledgeSegments() {
         <DialogTitle>{t('knowledge.segments.content')}</DialogTitle>
 
         <DialogContent>
-          <TextField
-            label={t('knowledge.segments.content')}
-            placeholder={t('knowledge.segments.content')}
-            sx={{ width: 1 }}
-            multiline
-            rows={10}
-            InputProps={{ readOnly: Boolean(readContent) }}
-            {...form.register('content')}
+          <Controller
+            control={form.control}
+            name="content"
+            rules={{
+              required: t('validation.fieldRequired'),
+            }}
+            render={({ field, fieldState }) => {
+              return (
+                <TextField
+                  label={t('knowledge.segments.content')}
+                  placeholder={t('knowledge.segments.content')}
+                  sx={{ width: 1 }}
+                  multiline
+                  rows={10}
+                  InputProps={{ readOnly: Boolean(readContent) }}
+                  {...field}
+                  error={Boolean(fieldState.error)}
+                  helperText={fieldState.error?.message}
+                />
+              );
+            }}
           />
         </DialogContent>
 

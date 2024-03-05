@@ -4,7 +4,7 @@ import Joi from 'joi';
 
 import { checkUserAuth } from '../../libs/user';
 import DatasetSegment from '../../store/models/dataset/segment';
-import { resetDatasetsEmbedding, saveContentToVectorStore } from './embeddings';
+import { resetVectorStoreEmbedding, saveContentToVectorStore } from './embeddings';
 
 const router = Router();
 
@@ -54,7 +54,7 @@ router.delete('/:datasetId/:segmentId', user(), checkUserAuth(), async (req, res
 
   await DatasetSegment.destroy({ where: { id: segmentId } });
 
-  await resetDatasetsEmbedding(datasetId);
+  resetVectorStoreEmbedding(datasetId);
 
   res.json();
 });

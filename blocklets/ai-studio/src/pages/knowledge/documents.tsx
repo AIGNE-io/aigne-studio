@@ -26,7 +26,7 @@ import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import PromiseLoadingButton from '../../components/promise-loading-button';
@@ -40,7 +40,7 @@ export default function KnowledgeDocuments() {
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog', popupId: 'document' });
   const customDialogState = usePopupState({ variant: 'dialog', popupId: 'custom' });
-  const form = useForm<{ name: string }>({ defaultValues: { name: '' } });
+  const form = useForm<{ name: string; content: string }>({ defaultValues: { name: '', content: '' } });
   const [currentDocument, setDocument] = useState<'file' | 'discussion' | 'custom'>('file');
   const { datasetId } = useParams();
 
@@ -235,8 +235,12 @@ export default function KnowledgeDocuments() {
         component="form"
         onSubmit={form.handleSubmit(async (data) => {
           try {
-            const document = await createDocument(datasetId || '', { type: 'text', name: data.name });
-            form.reset({ name: '' });
+            const document = await createDocument(datasetId || '', {
+              type: 'text',
+              name: data.name,
+              content: data.content,
+            });
+            form.reset({ name: '', content: '' });
 
             await refetch();
             customDialogState.close();
@@ -249,7 +253,45 @@ export default function KnowledgeDocuments() {
         <DialogTitle>{t('knowledge.documents.add')}</DialogTitle>
 
         <DialogContent>
-          <TextField label={t('knowledge.documents.name')} sx={{ width: 1 }} {...form.register('name')} />
+          <Stack gap={2}>
+            <Controller
+              control={form.control}
+              name="name"
+              rules={{
+                required: t('validation.fieldRequired'),
+              }}
+              render={({ field, fieldState }) => {
+                return (
+                  <TextField
+                    label={t('knowledge.documents.name')}
+                    sx={{ width: 1 }}
+                    {...field}
+                    error={Boolean(fieldState.error)}
+                    helperText={fieldState.error?.message}
+                  />
+                );
+              }}
+            />
+
+            <Controller
+              control={form.control}
+              name="content"
+              render={({ field, fieldState }) => {
+                return (
+                  <TextField
+                    label={t('knowledge.documents.content')}
+                    placeholder={t('knowledge.documents.content')}
+                    sx={{ width: 1 }}
+                    multiline
+                    rows={10}
+                    {...field}
+                    error={Boolean(fieldState.error)}
+                    helperText={fieldState.error?.message}
+                  />
+                );
+              }}
+            />
+          </Stack>
         </DialogContent>
 
         <DialogActions>

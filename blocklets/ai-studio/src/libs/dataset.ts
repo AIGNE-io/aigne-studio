@@ -53,7 +53,10 @@ export async function deleteDocument(
   return axios.delete(`/api/datasets/documents/${datasetId}/items/${documentId}`).then((res) => res.data);
 }
 
-export async function createDocument(datasetId: string, input: { type: string; name: string }): Promise<DatasetItem> {
+export async function createDocument(
+  datasetId: string,
+  input: { type: string; name: string; content?: string }
+): Promise<DatasetItem> {
   return axios.post(`/api/datasets/documents/${datasetId}/create`, input).then((res) => res.data);
 }
 

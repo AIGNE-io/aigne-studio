@@ -894,10 +894,10 @@ async function runExecuteBlock({
               type: AssistantResponseType.CHUNK,
               taskId: taskIdGenerator.nextId().toString(),
               assistantId: tool.id,
-              delta: { content: typeof data === 'string' ? data : JSON.stringify(data) },
+              delta: { content: typeof data?.docs === 'string' ? data?.docs : JSON.stringify(data?.docs) },
             });
 
-            return data;
+            return (data?.docs || []).join('\n');
           }
 
           const toolAssistant = await getAssistant(tool.id);
@@ -1142,10 +1142,10 @@ async function runExecuteBlock({
               type: AssistantResponseType.CHUNK,
               taskId: taskIdGenerator.nextId().toString(),
               assistantId: tool.id,
-              delta: { content: typeof data === 'string' ? data : JSON.stringify(data) },
+              delta: { content: typeof data?.docs === 'string' ? data?.docs : JSON.stringify(data?.docs) },
             });
 
-            return data;
+            return (data?.docs || []).join('\n');
           }
 
           const toolAssistant = tool?.toolAssistant as Assistant;

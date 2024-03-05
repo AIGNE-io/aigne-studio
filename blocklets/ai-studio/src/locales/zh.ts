@@ -453,6 +453,7 @@ export default flat({
       add: '添加文档',
       update: '更新文档',
       name: '文档名称',
+      content: '文档内容',
       type: '文档类型',
       time: '创建时间',
       deleteTitle: '删除本文档？',
@@ -460,7 +461,7 @@ export default flat({
       empty: '还没有文档\n 点击按钮添加文档',
       file: {
         title: '上传文件',
-        description: '上传MARKDOW、TXT、DOCX格式的文档',
+        description: '上传 Markdown、Txt、Doc、PDF 格式的文档',
       },
       discussion: {
         title: '本地论坛文档',
@@ -482,7 +483,7 @@ export default flat({
     },
     auto: '自动分割',
     file: {
-      content: '点击或拖拽文件到此处上传',
+      content: '点击或拖拽文件到此处上传 \n 支持 Markdown、Txt、Doc、PDF 格式的文档',
       fail: '处理失败',
       pending: '等待上传',
       processing: '处理中...',

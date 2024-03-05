@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import PromiseLoadingButton from '../../components/promise-loading-button';
@@ -47,8 +47,7 @@ export default function KnowledgeDatasets() {
       try {
         const dataset = await createDataset(input);
         dialogState.close();
-
-        navigate(dataset.id);
+        navigate(`./${dataset.id}`);
       } catch (error) {
         Toast.error(getErrorMessage(error));
       }
@@ -105,9 +104,43 @@ export default function KnowledgeDatasets() {
 
         <DialogContent>
           <Stack gap={2}>
-            <TextField label={t('knowledge.name')} sx={{ width: 1 }} {...form.register('name')} />
+            <Controller
+              control={form.control}
+              name="name"
+              rules={{
+                required: t('validation.fieldRequired'),
+              }}
+              render={({ field, fieldState }) => {
+                return (
+                  <TextField
+                    label={t('knowledge.name')}
+                    sx={{ width: 1 }}
+                    {...field}
+                    error={Boolean(fieldState.error)}
+                    helperText={fieldState.error?.message}
+                  />
+                );
+              }}
+            />
 
-            <TextField label={t('knowledge.description')} sx={{ width: 1 }} {...form.register('description')} />
+            <Controller
+              control={form.control}
+              name="description"
+              rules={{
+                required: t('validation.fieldRequired'),
+              }}
+              render={({ field, fieldState }) => {
+                return (
+                  <TextField
+                    label={t('knowledge.description')}
+                    sx={{ width: 1 }}
+                    {...field}
+                    error={Boolean(fieldState.error)}
+                    helperText={fieldState.error?.message}
+                  />
+                );
+              }}
+            />
           </Stack>
         </DialogContent>
 

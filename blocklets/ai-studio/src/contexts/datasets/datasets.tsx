@@ -52,7 +52,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
       await deleteDataset(datasetId);
       await value.current.refetch();
     },
-    createDocument: async (datasetId, input: { type: string; name: string }) => {
+    createDocument: async (datasetId, input: { type: string; name: string; content?: string }) => {
       const document = await createDocument(datasetId, input);
       return document;
     },

@@ -12,8 +12,9 @@ import { Config } from '../../libs/env';
 import { checkUserAuth } from '../../libs/user';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetItem from '../../store/models/dataset/document';
+import DatasetSegment from '../../store/models/dataset/segment';
 import VectorStore from '../../store/vector-store';
-import { runHandlerAndSaveContent } from './embeddings';
+import { resetVectorStoreEmbedding, runHandlerAndSaveContent, saveContentToVectorStore } from './embeddings';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -33,10 +34,10 @@ const createItemSchema = Joi.object<{
 
 const idSchema = Joi.object<{
   datasetId: string;
-  itemId: string;
+  documentId: string;
 }>({
   datasetId: Joi.string().required(),
-  itemId: Joi.string().required(),
+  documentId: Joi.string().required(),
 });
 
 /**
@@ -99,12 +100,12 @@ router.get('/:datasetId/items', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/datasets/documents/{datasetId}/items/{itemId}:
+ * /api/datasets/documents/{datasetId}/items/{documentId}:
  *    delete:
  *      type: 'SEARCH'
- *      summary: Delete a data item from the dataset by datasetId and itemId
+ *      summary: Delete a data item from the dataset by datasetId and documentId
  *      x-summary-zh: 删除当前 datasetId 数据集中数据信息
- *      description: Delete a data item from the dataset by datasetId and itemId
+ *      description: Delete a data item from the dataset by datasetId and documentId
  *      x-description-zh: 删除当前 datasetId 数据集中数据信息
  *      parameters:
  *        - name: datasetId
@@ -115,7 +116,7 @@ router.get('/:datasetId/items', user(), checkUserAuth(), async (req, res) => {
  *          schema:
  *            type: string
  *            default: ''
- *        - name: itemId
+ *        - name: documentId
  *          in: path
  *          description: The ID of the data item
  *          x-description-zh: 数据ID
@@ -128,14 +129,17 @@ router.get('/:datasetId/items', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully deleted the data item from the dataset
  *          x-description-zh: 删除当前 datasetId 数据集中数据信息
  */
-router.delete('/:datasetId/items/:itemId', user(), checkUserAuth(), async (req, res) => {
-  const { datasetId, itemId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
+router.delete('/:datasetId/items/:documentId', user(), checkUserAuth(), async (req, res) => {
+  const { datasetId, documentId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
 
-  if (!datasetId || !itemId) {
-    throw new Error('Missing required params `datasetId` or `itemId`');
+  if (!datasetId || !documentId) {
+    throw new Error('Missing required params `datasetId` or `documentId`');
   }
 
-  await DatasetItem.destroy({ where: { id: itemId, datasetId } });
+  await DatasetItem.destroy({ where: { id: documentId, datasetId } });
+  await DatasetSegment.destroy({ where: { documentId } });
+
+  resetVectorStoreEmbedding(datasetId);
 
   res.json({ data: 'success' });
 });
@@ -144,16 +148,21 @@ router.post('/:datasetId/create', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
 
-  const input = await Joi.object<{ type: 'discussion' | 'text' | 'md' | 'txt' | 'pdf' | 'doc'; name: string }>({
+  const input = await Joi.object<{
+    type: 'discussion' | 'text' | 'md' | 'txt' | 'pdf' | 'doc';
+    name: string;
+    content?: string;
+  }>({
     type: Joi.string().valid('discussion', 'text', 'md', 'txt', 'pdf', 'doc').required(),
     name: Joi.string().required(),
+    content: Joi.string(),
   }).validateAsync(req.body, { stripUnknown: true });
 
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
   }
 
-  const { type, name } = input;
+  const { type, name, content } = input;
 
   const document = await DatasetItem.create({
     type,
@@ -162,6 +171,10 @@ router.post('/:datasetId/create', user(), checkUserAuth(), async (req, res) => {
     createdBy: did,
     updatedBy: did,
   });
+
+  if (content) {
+    await saveContentToVectorStore(content, datasetId, document.id);
+  }
 
   res.json(document);
 });
@@ -243,8 +256,8 @@ router.post('/:datasetId/items/embedding', user(), checkUserAuth(), async (req, 
     updatedBy: did,
   });
 
-  const itemId = result.dataValues.id;
-  await runHandlerAndSaveContent(itemId);
+  const documentId = result.dataValues.id;
+  await runHandlerAndSaveContent(documentId);
 
   res.json({ data: 'success' });
 });
@@ -333,20 +346,21 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
     createdBy: did,
     updatedBy: did,
   });
-  const itemId = result.dataValues.id;
-  await runHandlerAndSaveContent(itemId);
+
+  const documentId = result.dataValues.id;
+  await runHandlerAndSaveContent(documentId);
 
   res.json(result);
 });
 
 /**
  * @openapi
- * /api/datasets/documents/{datasetId}/items/{itemId}/embedding:
+ * /api/datasets/documents/{datasetId}/items/{documentId}/embedding:
  *    put:
  *      type: 'UPDATE'
- *      summary: Update data in the specified dataset by datasetId and itemId
+ *      summary: Update data in the specified dataset by datasetId and documentId
  *      x-summary-zh: 更新数据到当前 datasetId 数据集中
- *      description: Update data in the specified dataset by datasetId and itemId
+ *      description: Update data in the specified dataset by datasetId and documentId
  *      x-description-zh: 更新数据到当前 datasetId 数据集中
  *      parameters:
  *        - name: datasetId
@@ -357,7 +371,7 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
  *          schema:
  *            type: string
  *            default: ''
- *        - name: itemId
+ *        - name: documentId
  *          in: path
  *          description: The ID of the data item
  *          x-description-zh: 数据 Id
@@ -381,9 +395,9 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
  *          description: Successfully updated the data in the dataset
  *          x-description-zh: 更新数据到当前 datasetId 数据集中
  */
-router.put('/:datasetId/items/:itemId/embedding', user(), checkUserAuth(), async (req, res) => {
+router.put('/:datasetId/items/:documentId/embedding', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user! || {};
-  const { datasetId, itemId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
+  const { datasetId, documentId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
 
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
@@ -395,21 +409,24 @@ router.put('/:datasetId/items/:itemId/embedding', user(), checkUserAuth(), async
       ? { type: input.type, content: input.data || '' }
       : { type: input.type, id: input.data || '' };
 
-  await DatasetItem.update({ error: '', type: input.type, data, updatedBy: did }, { where: { id: itemId, datasetId } });
+  await DatasetItem.update(
+    { error: '', type: input.type, data, updatedBy: did },
+    { where: { id: documentId, datasetId } }
+  );
 
-  // await resetDatasetsEmbedding(datasetId, did, itemId);
+  // await resetVectorStoreEmbedding(datasetId, did, documentId);
 
   res.json({ data: 'success' });
 });
 
 /**
  * @openapi
- * /api/datasets/documents/{datasetId}/items/{itemId}/file:
+ * /api/datasets/documents/{datasetId}/items/{documentId}/file:
  *    put:
  *      type: 'UPDATE'
  *      summary: Update an uploaded file in the dataset by datasetId
  *      x-summary-zh: 更新上传到当前 datasetId 数据集中
- *      description: Update an uploaded file in the dataset by datasetId and itemId
+ *      description: Update an uploaded file in the dataset by datasetId and documentId
  *      x-description-zh: 更新上传到当前 datasetId 数据集中
  *      parameters:
  *        - name: datasetId
@@ -420,7 +437,7 @@ router.put('/:datasetId/items/:itemId/embedding', user(), checkUserAuth(), async
  *          schema:
  *            type: string
  *            default: ''
- *        - name: itemId
+ *        - name: documentId
  *          in: path
  *          description: The ID of the data item
  *          x-description-zh: 数据 Id
@@ -445,9 +462,9 @@ router.put('/:datasetId/items/:itemId/embedding', user(), checkUserAuth(), async
  *          description: Successfully updated the uploaded file in the dataset
  *          x-description-zh: 更新上传到当前 datasetId 数据集中
  */
-router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.single('data'), async (req, res) => {
+router.put('/:datasetId/items/:documentId/file', user(), checkUserAuth(), upload.single('data'), async (req, res) => {
   const { did } = req.user!;
-  const { datasetId, itemId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
+  const { datasetId, documentId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
 
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
@@ -489,10 +506,10 @@ router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.sin
 
   await DatasetItem.update(
     { error: '', type: fileExtension, data: { type: fileExtension, path: filePath }, updatedBy: did },
-    { where: { id: itemId, datasetId } }
+    { where: { id: documentId, datasetId } }
   );
 
-  // await resetDatasetsEmbedding(datasetId, did, itemId);
+  // await resetVectorStoreEmbedding(datasetId, did, documentId);
 
   res.json({ data: 'success' });
 });
@@ -535,13 +552,13 @@ router.get('/:datasetId/items/search', async (req, res) => {
 
   const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset || !datasetId) {
-    res.json({ role: 'system', content: '' });
+    res.json({ docs: [] });
     return;
   }
 
   const datasetItems = await DatasetItem.findAll({ where: { datasetId } });
   if (!datasetItems?.length) {
-    res.json({ role: 'system', content: '' });
+    res.json({ docs: [] });
     return;
   }
 
@@ -549,15 +566,8 @@ router.get('/:datasetId/items/search', async (req, res) => {
   const store = await VectorStore.load(datasetId, embeddings);
   const docs = await store.similaritySearch(input.message, 4);
 
-  const context = docs.map((i) => i.pageContent).join('\n');
-  const contextTemplate = context
-    ? `Use the following pieces of context to answer the users question.
-  If you don't know the answer, just say that you don't know, don't try to make up an answer.
-  ----------------
-  ${context}`
-    : '';
-
-  res.json({ role: 'system', content: contextTemplate });
+  const content = docs.map((i) => i.pageContent);
+  res.json({ docs: content });
 });
 
 router.get('/:datasetId/:documentId', user(), checkUserAuth(), async (req, res) => {

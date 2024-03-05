@@ -459,6 +459,7 @@ export default flat({
       add: 'Add Document',
       update: 'Update Document',
       name: 'Document Name',
+      content: 'Document Content',
       type: 'Document Type',
       time: 'Creation Time',
       deleteTitle: 'Delete this document?',
@@ -466,7 +467,7 @@ export default flat({
       empty: 'No documents yet\n Click button to add document',
       file: {
         title: 'Upload Documents',
-        description: 'Upload documents in MARKDOWN, TXT, DOCX format',
+        description: 'Upload documents in Markdown、Txt、Doc、PDF format',
       },
       discussion: {
         title: 'Discussion Documents',
@@ -488,7 +489,7 @@ export default flat({
     },
     auto: 'Auto segmentation',
     file: {
-      content: 'Click or drag documents here to upload',
+      content: 'Click or drag documents here to upload \n Support Markdown、Txt、Doc、PDF format Documents',
       fail: 'Server processing failed',
       processing: 'Processing...',
       pending: 'Waiting for upload',

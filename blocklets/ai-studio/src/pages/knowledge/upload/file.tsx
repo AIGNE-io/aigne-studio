@@ -10,6 +10,7 @@ import Stepper from '@mui/material/Stepper';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useDataset } from '../../../contexts/datasets/documents';
 import { getErrorMessage } from '../../../libs/api';
 import { uploadDocument } from '../../../libs/dataset';
 
@@ -49,7 +50,9 @@ function Upload({ onNext, onUpload }: { onNext?: () => any; onUpload: (file: Fil
           alignItems="center"
           sx={{ cursor: 'pointer' }}>
           <CloudUploadIcon sx={{ color: (theme) => theme.palette.primary.main }} />
-          <Box sx={{ fontSize: '14px', color: 'rgba( 56,55,67,1)' }}>{t('knowledge.file.content')}</Box>
+          <Box sx={{ fontSize: '14px', color: 'rgba( 56,55,67,1)', textAlign: 'center', whiteSpace: 'break-spaces' }}>
+            {t('knowledge.file.content')}
+          </Box>
         </Stack>
 
         <Box
@@ -74,6 +77,7 @@ function Upload({ onNext, onUpload }: { onNext?: () => any; onUpload: (file: Fil
 function Processing({ file, datasetId }: { datasetId: string; file?: File }) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
+  const { refetch } = useDataset(datasetId);
 
   const [status, setStatus] = useState<'pending' | 'processing' | 'completed'>('pending');
   const [error, setError] = useState('');
@@ -87,6 +91,7 @@ function Processing({ file, datasetId }: { datasetId: string; file?: File }) {
         form.append('data', file);
         form.append('type', 'file');
         const result = await uploadDocument(datasetId, form);
+        refetch();
         navigate(`../${datasetId}/${result.id}`);
       }
     } catch (error) {
