@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
-import { createDatasetAPIRouter } from '@blocklet/dataset-sdk/openapi';
+import { createSwaggerRouter } from '@blocklet/dataset-sdk/openapi';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -35,8 +35,14 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 
-const appDir = process.env.BLOCKLET_APP_DIR!;
-app.use('/', createDatasetAPIRouter('AI-Studio', path.join(appDir, 'dataset.yml')));
+// const appDir = process.env.BLOCKLET_APP_DIR!;
+app.use(
+  '/',
+  createSwaggerRouter('AI-Studio', {
+    definition: { openapi: '3.0.0', info: { title: 'AI Studio Dataset Protocol', version: '1.0.0' } },
+    apis: [path.join(__dirname, './routes/**/*.*')],
+  })
+);
 app.use('/api', routes);
 
 const isProduction = process.env.NODE_ENV === 'production' || process.env.ABT_NODE_SERVICE_ENV === 'production';

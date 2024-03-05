@@ -73,7 +73,6 @@ const createItemSchema = Joi.object<{
  *          description: Successfully retrieved data items in the dataset
  *          x-description-zh: 获取当前 datasetId 数据集中数据信息
  */
-
 router.get('/:datasetId/items', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
