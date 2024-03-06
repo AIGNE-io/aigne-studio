@@ -111,7 +111,7 @@ export default function PublishView({
           onChange={handleChange}
           row
           sx={{
-            rowGap: 2,
+            rowGap: 1,
           }}>
           <StyledFormControlLabel
             labelPlacement="top"
