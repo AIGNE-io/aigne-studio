@@ -1,3 +1,4 @@
+import UploaderProvider from '@app/contexts/uploader';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
@@ -85,7 +86,7 @@ export default function ProjectPage() {
   const file = fileId && getFileById(fileId);
 
   const {
-    state: { error, project },
+    state: { error, project, projectPublishSettings },
     refetch,
   } = useProjectState(projectId, gitRef);
   if (error) throw error;
@@ -345,7 +346,15 @@ export default function ProjectPage() {
             ) : currentTab === 'test' ? (
               <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
             ) : currentTab === 'publish' ? (
-              <PublishView projectId={projectId} gitRef={gitRef} assistant={file} />
+              <UploaderProvider>
+                <PublishView
+                  key={file.id}
+                  projectId={projectId}
+                  refetch={refetch}
+                  projectPublishSetting={projectPublishSettings?.find((i) => i.assistantId === file?.id)}
+                  assistant={file}
+                />
+              </UploaderProvider>
             ) : currentTab === 'discuss' ? (
               <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />
             ) : null}

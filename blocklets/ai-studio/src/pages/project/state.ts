@@ -1,3 +1,4 @@
+import PublishSetting from '@api/store/models/publish-setting';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
@@ -32,11 +33,13 @@ import { PREFIX } from '../../libs/api';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
+import * as publishApi from '../../libs/publish';
 import * as api from '../../libs/tree';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 export interface ProjectState {
   project?: Project;
+  projectPublishSettings?: PublishSetting[];
   branches: string[];
   commits: Commit[];
   loading?: boolean;
@@ -67,9 +70,10 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     });
     if (loading) return;
     try {
-      const [project, { branches }] = await Promise.all([
+      const [project, { branches }, { projectPublishSettings }] = await Promise.all([
         projectApi.getProject(projectId),
         branchApi.getBranches({ projectId }),
+        publishApi.getProjectPublishSetting(projectId),
       ]);
       const simpleMode = project.gitType === 'simple';
       const { commits } = await getLogs({
@@ -78,7 +82,7 @@ export const useProjectState = (projectId: string, gitRef: string) => {
       });
       // NOTE: 简单模式下最新的记录始终指向 getDefaultBranch()
       if (simpleMode && commits.length) commits[0]!.oid = getDefaultBranch();
-      setState((v) => ({ ...v, project, branches, commits, error: undefined }));
+      setState((v) => ({ ...v, project, branches, projectPublishSettings, commits, error: undefined }));
     } catch (error) {
       setState((v) => ({ ...v, error }));
       throw error;

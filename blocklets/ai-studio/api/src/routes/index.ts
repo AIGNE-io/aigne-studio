@@ -9,6 +9,7 @@ import datasets from './datasets';
 import { globalRoutes } from './global';
 import { logRoutes } from './log';
 import { projectRoutes } from './project';
+import publish from './publish';
 import { resourceRoutes } from './resource';
 import { treeRoutes } from './tree';
 import { workingRoutes } from './working';
@@ -23,8 +24,10 @@ globalRoutes(router);
 workingRoutes(router);
 treeRoutes(router);
 resourceRoutes(router);
+resourceRoutes(router);
 
 router.use('/ai', ai);
+router.use('/publish', publish);
 router.use('/dataset', dataset);
 router.use('/dataset', datasetItems);
 router.use('/datasets', datasets);
