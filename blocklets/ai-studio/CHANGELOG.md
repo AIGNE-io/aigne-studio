@@ -1,3 +1,7 @@
+## 0.1.275 (2024-3-6)
+
+- feat: add supporting for session & history
+
 ## 0.1.274 (2024-3-6)
 
 - fix: correct directory of db migrations

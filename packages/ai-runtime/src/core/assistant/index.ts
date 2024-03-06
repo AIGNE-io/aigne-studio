@@ -3,12 +3,7 @@ import '@blocklet/ai-builtin';
 import { join } from 'path';
 import { ReadableStream } from 'stream/web';
 
-import {
-  ChatCompletionChunk,
-  ChatCompletionInput,
-  ImageGenerationInput,
-  ImageGenerationResponse,
-} from '@blocklet/ai-kit/api/types';
+import { ChatCompletionChunk, ChatCompletionInput, ImageGenerationInput } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
@@ -81,11 +76,10 @@ export interface CallAI {
 }
 
 export interface CallAIImage {
-  (options: ImageOptions & { outputModel: true }): Promise<{
-    modelInfo: ModelInfo;
-    imageRes: ImageGenerationResponse;
-  }>;
-  (options: ImageOptions & { outputModel?: false }): Promise<ImageGenerationResponse>;
+  (
+    options: ImageOptions & { outputModel: true }
+  ): Promise<{ modelInfo: ModelInfo; imageRes: { data: { url: string }[] } }>;
+  (options: ImageOptions & { outputModel?: false }): Promise<{ data: { url: string }[] }>;
 }
 
 const taskIdGenerator = new Worker();
@@ -704,7 +698,6 @@ async function runImageAssistant({
       quality: assistant.quality as any,
       size: assistant.size as any,
       style: assistant.style as any,
-      responseFormat: assistant.responseFormat as any,
     },
   });
 
