@@ -3,7 +3,8 @@ import Joi from 'joi';
 import { Op } from 'sequelize';
 
 import Datasetore from '../store/models/datastore';
-import { sequelize } from '../store/sequelize';
+
+// import { sequelize } from '../store/sequelize';
 
 const router = Router();
 
@@ -27,14 +28,17 @@ const router = Router();
  *         description: A JSON array of datasetores
  */
 router.get('/list', async (req, res) => {
-  const query: { [key: string]: string } = await Joi.object().validateAsync(req.query || {});
-  const conditions = [];
+  const querySchema = Joi.object().pattern(Joi.string(), Joi.string());
+  const query: { [key: string]: string } = await querySchema.validateAsync(req.query || {});
 
-  for (const [key, value] of Object.entries(query)) {
-    conditions.push(sequelize.json(`data.${key}`, value));
-  }
+  const conditions = Object.entries(query).map(([key, value]) => ({
+    [`data.${key}`]: { [Op.like]: `%${value}%` },
+  }));
 
-  const datasetores = await Datasetore.findAll({ order: [['createdAt', 'ASC']], where: { [Op.and]: conditions } });
+  const datasetores = await Datasetore.findAll({
+    order: [['createdAt', 'ASC']],
+    where: { [Op.and]: conditions },
+  });
   res.json(datasetores);
 });
 
