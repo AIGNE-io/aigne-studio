@@ -6,13 +6,13 @@ import { call } from '@blocklet/sdk/lib/component';
 import { Events, components, events } from '@blocklet/sdk/lib/config';
 import { sha3_256 } from 'js-sha3';
 
+import { Config } from './env';
 import logger from './logger';
 
 async function handleResource() {
   try {
     // NOTE: fix wrong path of blocklet bundle monorepo
-    const appDir = process.env.BLOCKLET_APP_DIR!;
-    const imageFolderPath = path.join(appDir, 'api/images');
+    const imageFolderPath = path.join(Config.appDir, 'api/images');
 
     if (!statSync(imageFolderPath).isDirectory()) {
       return;
