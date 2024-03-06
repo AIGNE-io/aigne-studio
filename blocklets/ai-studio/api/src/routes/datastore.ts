@@ -31,9 +31,7 @@ router.get('/list', async (req, res) => {
   const querySchema = Joi.object().pattern(Joi.string(), Joi.string());
   const query: { [key: string]: string } = await querySchema.validateAsync(req.query || {});
 
-  const conditions = Object.entries(query).map(([key, value]) => ({
-    [`data.${key}`]: { [Op.like]: `%${value}%` },
-  }));
+  const conditions = Object.entries(query).map(([key, value]) => ({ [`data.${key}`]: { [Op.like]: `%${value}%` } }));
 
   const datasetores = await Datasetore.findAll({
     order: [['createdAt', 'ASC']],
