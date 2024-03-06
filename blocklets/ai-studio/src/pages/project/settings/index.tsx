@@ -36,6 +36,7 @@ import { getErrorMessage } from '../../../libs/api';
 import useDialog from '../../../utils/use-dialog';
 import InfoOutlined from '../icons/question';
 import { useProjectState } from '../state';
+import DidSpacesSetting from './did-spaces-setting';
 import RemoteRepoSetting from './remote-repo-setting';
 
 const init = {
@@ -432,6 +433,14 @@ export default function ProjectSettings() {
                 {t('remoteGitRepo')}
               </Box>
               <RemoteRepoSetting projectId={projectId} />
+            </Box>
+
+            <Box
+              sx={{ border: '1px solid #ddd', padding: 2, borderRadius: (theme) => `${theme.shape.borderRadius}px` }}>
+              <Box component="h3" sx={{ marginTop: 0 }}>
+                {t('didSpaces.title')}
+              </Box>
+              <DidSpacesSetting projectId={projectId} />
             </Box>
           </Stack>
         </SettingsContainer>

@@ -284,6 +284,9 @@ export default flat({
     },
   },
   remoteGitRepo: 'Remote Git Repo',
+  didSpaces: {
+    title: 'DID Spaces',
+  },
   deleteRemote: 'Unlink remote git repo',
   deleteRemoteTip: 'Are you sure you want to unlink the remote git repo?',
   deleteSucceed: 'Delete Succeed',

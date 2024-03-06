@@ -2,6 +2,7 @@ import fs, { cpSync, existsSync, mkdtempSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
+import type { SyncTarget } from '@app/libs/project';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -32,6 +33,7 @@ import {
   getAssistantIdFromPath,
   getRepository,
   repositoryRoot,
+  syncDidSpace,
   syncRepository,
 } from '../store/repository';
 import { projectTemplates } from '../templates/projects';
@@ -96,6 +98,7 @@ export interface UpdateProjectInput {
   maxTokens?: number;
   gitType?: string;
   gitAutoSync?: boolean;
+  didSpaceAutoSync?: true | false;
   projectType?: Project['projectType'];
   homePageUrl?: string | null;
 }
@@ -621,15 +624,27 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
     const repository = await getRepository({ projectId });
-    const branches = await repository.listBranches();
 
-    for (const ref of branches) {
-      await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
+    const target: SyncTarget = req.query.target as SyncTarget;
+    if (target === 'didSpace') {
+      await syncDidSpace({ projectId });
+      await project.update({ didSpaceLastSyncedAt: new Date() });
+
+      return res.json({});
     }
 
-    await project.update({ gitLastSyncedAt: new Date() });
+    if (target === 'github') {
+      const branches = await repository.listBranches();
+      for (const ref of branches) {
+        // eslint-disable-next-line no-await-in-loop
+        await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
+      }
+      await project.update({ gitLastSyncedAt: new Date() });
 
-    res.json({});
+      return res.json({});
+    }
+
+    throw new Error(`Could not back up to target(${target})`);
   });
 
   router.get('/projects/:projectId/refs/:ref/assistants/:assistantId', async (req, res) => {

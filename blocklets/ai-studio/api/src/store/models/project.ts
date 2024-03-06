@@ -48,6 +48,10 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare gitLastSyncedAt?: Date;
 
+  declare didSpaceAutoSync?: true | false;
+
+  declare didSpaceLastSyncedAt?: Date;
+
   declare projectType?: 'project' | 'template' | 'example';
 
   declare homePageUrl?: string;
@@ -120,6 +124,13 @@ Project.init(
       type: DataTypes.BOOLEAN,
     },
     gitLastSyncedAt: {
+      type: DataTypes.DATE,
+    },
+    didSpaceAutoSync: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+    didSpaceLastSyncedAt: {
       type: DataTypes.DATE,
     },
     projectType: {

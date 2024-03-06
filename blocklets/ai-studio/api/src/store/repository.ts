@@ -128,6 +128,15 @@ export async function getRepository({
   return repositories[projectId]!;
 }
 
+export async function syncDidSpace({ projectId }: { projectId: string }) {
+  const root = repositoryRoot(projectId);
+
+  // eslint-disable-next-line no-console
+  console.log({ root });
+
+  return root;
+}
+
 export async function syncRepository<T>({
   repository,
   ref,

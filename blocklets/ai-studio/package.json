@@ -48,6 +48,7 @@
     "@blocklet/studio-ui": "^0.1.274",
     "@blocklet/ui-react": "^2.9.40",
     "@blocklet/uploader": "^0.0.73",
+    "@did-space/client": "^0.3.67",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",

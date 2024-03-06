@@ -283,6 +283,9 @@ export default flat({
   deleteRemoteTip: '请确认是否取消远程仓库?',
   deleteSucceed: '已取消关联远程仓库',
   remoteGitRepo: '远程 Git 仓库',
+  didSpaces: {
+    title: 'DID Spaces',
+  },
   url: '地址',
   username: '用户名',
   projectName: '项目名称',

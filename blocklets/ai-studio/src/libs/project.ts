@@ -83,6 +83,8 @@ export async function projectImport(input?: ImportProjectInput): Promise<Project
   return axios.post('/api/projects/import', input).then((res) => res.data);
 }
 
-export async function projectSync(projectId: string): Promise<{}> {
-  return axios.post(`/api/projects/${projectId}/remote/sync`).then((res) => res.data);
+export type SyncTarget = 'github' | 'didSpace';
+
+export async function projectSync(projectId: string, target: SyncTarget = 'github'): Promise<{}> {
+  return axios.post(`/api/projects/${projectId}/remote/sync?target=${target}`).then((res) => res.data);
 }
