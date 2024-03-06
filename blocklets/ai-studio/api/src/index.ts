@@ -14,7 +14,7 @@ import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
 import app from './app';
-import { Config, isProduction } from './libs/env';
+import { Config, isDevelopment } from './libs/env';
 import logger from './libs/logger';
 import initProjectIcons from './libs/project-icons';
 import routes from './routes';
@@ -38,7 +38,7 @@ app.use(cors());
 app.use('/', createDatasetAPIRouter('AI-Studio', path.join(Config.appDir, 'dataset.yml')));
 app.use('/api', routes);
 
-if (isProduction) {
+if (!isDevelopment) {
   const staticDir = path.resolve(Config.appDir, 'dist');
   app.use(express.static(staticDir, { maxAge: '30d', index: false }));
   app.use(fallback('index.html', { root: staticDir }));
