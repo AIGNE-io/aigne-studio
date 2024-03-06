@@ -1,3 +1,7 @@
+## 0.1.274 (2024-3-6)
+
+- fix: correct directory of db migrations
+
 ## 0.1.273 (2024-3-4)
 
 - fix: do not expose builtin modules like fs to improve security
