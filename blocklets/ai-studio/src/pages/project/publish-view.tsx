@@ -101,18 +101,17 @@ export default function PublishView({
   };
 
   return (
-    <Stack>
-      <Stack px={2} py={1} gap={1}>
-        <Typography variant="subtitle2" ml={1}>
+    <Stack px={2} mt={1} py={1} gap={2} ml={1}>
+      <FormControl>
+        <Typography variant="subtitle2" mb={1}>
           {t('templates')}
         </Typography>
-
         <RadioGroup
           value={settings.template}
           onChange={handleChange}
+          row
           sx={{
-            display: 'flex',
-            flexDirection: 'row',
+            rowGap: 2,
           }}>
           <StyledFormControlLabel
             labelPlacement="top"
@@ -139,118 +138,116 @@ export default function PublishView({
             label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-4.png')} alt="" />}
           />
         </RadioGroup>
-      </Stack>
+      </FormControl>
 
-      <Stack px={2} mt={1} py={1} gap={2} ml={1}>
-        <FormControl>
-          <Typography mb={1} variant="subtitle2">
-            {t('publish.title')}
-          </Typography>
-          <BaseInput
-            id="project-name"
-            placeholder={t('publish.titlePlaceholder')}
-            value={settings.title}
-            onChange={(e) => setSettings({ ...settings, title: e.target.value })}
-          />
-        </FormControl>
-        <FormControl>
-          <Typography mb={1} variant="subtitle2">
-            {t('publish.description')}
-          </Typography>
-          <BaseInput
-            multiline
-            sx={{
-              padding: 0,
-            }}
-            placeholder={t('publish.descriptionPlaceholder')}
-            minRows={5}
-            id="description"
-            value={settings.description}
-            onChange={(e) => setSettings({ ...settings, description: e.target.value })}
-          />
-        </FormControl>
-
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="subtitle2">{t('publish.collectionManage')}</Typography>
-          <Switch
-            checked={settings.isCollection}
-            onChange={(_, checked) => setSettings({ ...settings, isCollection: checked })}
-          />
-        </Box>
-
-        <Box>
-          <Typography mb={1} variant="subtitle2">
-            {t('publish.favicon')}
-          </Typography>
-
-          <Box mb={0.5} width="40%">
-            <ImageContainer
-              onClick={() => {
-                // @ts-ignore
-                const uploader = uploaderRef?.current?.getUploader();
-
-                uploader?.open();
-
-                uploader.onceUploadSuccess((data: any) => {
-                  const { response } = data;
-                  const url = response?.data?.url || response?.data?.fileUrl;
-                  setSettings({ ...settings, icon: url });
-                });
-              }}>
-              {settings.icon ? (
-                <img className="upload-button" src={settings.icon} alt="" />
-              ) : (
-                <IconButton
-                  className="upload-button"
-                  key="uploader-trigger"
-                  size="small"
-                  sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)' }}>
-                  <UploadIcon />
-                </IconButton>
-              )}
-            </ImageContainer>
-          </Box>
-
-          <Typography variant="caption" color="text.secondary">
-            {t('publish.faviconDescription')}
-          </Typography>
-        </Box>
-        <LoadingButton
+      <FormControl>
+        <Typography mb={1} variant="subtitle2">
+          {t('publish.title')}
+        </Typography>
+        <BaseInput
+          id="project-name"
+          placeholder={t('publish.titlePlaceholder')}
+          value={settings.title}
+          onChange={(e) => setSettings({ ...settings, title: e.target.value })}
+        />
+      </FormControl>
+      <FormControl>
+        <Typography mb={1} variant="subtitle2">
+          {t('publish.description')}
+        </Typography>
+        <BaseInput
+          multiline
           sx={{
-            mt: 3,
+            padding: 0,
           }}
-          loading={loading}
-          variant="contained"
-          onClick={async () => {
-            try {
-              setLoading(true);
-              if (projectPublishSetting) {
-                await updatePublishSetting({
-                  ...settings,
-                  assistantId: assistant.id,
-                  projectId,
-                });
-                refetch();
-                Toast.success(t('alert.saved'));
-              } else {
-                await savaPublishSetting({
-                  ...settings,
-                  assistantId: assistant.id,
-                  projectId,
-                });
-                refetch();
-                Toast.success(t('publish.publishSuccess'));
-              }
-            } catch (error) {
-              Toast.error(getErrorMessage(error));
-              throw error;
-            } finally {
-              setLoading(false);
+          placeholder={t('publish.descriptionPlaceholder')}
+          minRows={5}
+          id="description"
+          value={settings.description}
+          onChange={(e) => setSettings({ ...settings, description: e.target.value })}
+        />
+      </FormControl>
+
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Typography variant="subtitle2">{t('publish.collectionManage')}</Typography>
+        <Switch
+          checked={settings.isCollection}
+          onChange={(_, checked) => setSettings({ ...settings, isCollection: checked })}
+        />
+      </Box>
+
+      <Box>
+        <Typography mb={1} variant="subtitle2">
+          {t('publish.favicon')}
+        </Typography>
+
+        <Box mb={0.5} width="40%">
+          <ImageContainer
+            onClick={() => {
+              // @ts-ignore
+              const uploader = uploaderRef?.current?.getUploader();
+
+              uploader?.open();
+
+              uploader.onceUploadSuccess((data: any) => {
+                const { response } = data;
+                const url = response?.data?.url || response?.data?.fileUrl;
+                setSettings({ ...settings, icon: url });
+              });
+            }}>
+            {settings.icon ? (
+              <img className="upload-button" src={settings.icon} alt="" />
+            ) : (
+              <IconButton
+                className="upload-button"
+                key="uploader-trigger"
+                size="small"
+                sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)' }}>
+                <UploadIcon />
+              </IconButton>
+            )}
+          </ImageContainer>
+        </Box>
+
+        <Typography variant="caption" color="text.secondary">
+          {t('publish.faviconDescription')}
+        </Typography>
+      </Box>
+      <LoadingButton
+        sx={{
+          mt: 3,
+        }}
+        loading={loading}
+        variant="contained"
+        onClick={async () => {
+          try {
+            setLoading(true);
+            if (projectPublishSetting) {
+              await updatePublishSetting({
+                ...settings,
+                assistantId: assistant.id,
+                projectId,
+              });
+              refetch();
+              Toast.success(t('alert.saved'));
+            } else {
+              await savaPublishSetting({
+                ...settings,
+                assistantId: assistant.id,
+                projectId,
+              });
+              refetch();
+              Toast.success(t('publish.publishSuccess'));
             }
-          }}>
-          {projectPublishSetting ? t('publish.save') : t('publish.publishProject')}
-        </LoadingButton>
-      </Stack>
+          } catch (error) {
+            Toast.error(getErrorMessage(error));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        }}>
+        {projectPublishSetting ? t('publish.save') : t('publish.publishProject')}
+      </LoadingButton>
     </Stack>
   );
 }
