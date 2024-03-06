@@ -9,6 +9,10 @@ export const up: Migration = async ({ context: queryInterface }) => {
       primaryKey: true,
       allowNull: false,
     },
+    taskId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     userId: {
       type: DataTypes.STRING,
       allowNull: false,

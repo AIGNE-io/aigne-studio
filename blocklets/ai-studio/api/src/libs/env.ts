@@ -3,7 +3,7 @@ import path from 'path';
 import config from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 
-export const isProduction = process.env.NODE_ENV === 'production' || process.env.ABT_NODE_SERVICE_ENV === 'production';
+export const isDevelopment = config.env.mode === 'development';
 
 export const Config = {
   get appDir() {

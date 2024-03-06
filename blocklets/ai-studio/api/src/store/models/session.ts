@@ -7,10 +7,8 @@ const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
 
-export default class History extends Model<InferAttributes<History>, InferCreationAttributes<History>> {
+export default class Session extends Model<InferAttributes<Session>, InferCreationAttributes<Session>> {
   declare id: CreationOptional<string>;
-
-  declare taskId: string;
 
   declare userId: string;
 
@@ -18,44 +16,39 @@ export default class History extends Model<InferAttributes<History>, InferCreati
 
   declare updatedAt: CreationOptional<Date>;
 
+  declare name?: string;
+
   declare projectId: string;
 
   declare ref: string;
 
   declare assistantId: string;
 
-  declare sessionId?: string;
-
   declare parameters?: { [key: string]: any };
 
-  declare result?: { content?: string; images?: { url: string }[] } | object;
-
-  declare executingLogs?: {
-    taskId: string;
+  static getUserSessions({
+    userId,
+    projectId,
+    assistantId,
+  }: {
+    userId: string;
+    projectId: string;
     assistantId: string;
-    startTime: string;
-    endTime: string;
-    input?: { messages?: { role: string; content: string }[] };
-    content?: string;
-    images?: { url: string }[];
-  }[];
-
-  declare error?: { message: string };
-
-  declare generateStatus?: 'generating' | 'done';
+  }) {
+    return this.findAll({
+      where: { userId, projectId, assistantId },
+      order: [['id', 'desc']],
+    });
+  }
 }
 
-History.init(
+Session.init(
   {
     id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
       defaultValue: nextId,
-    },
-    taskId: {
-      type: DataTypes.STRING,
-      allowNull: false,
     },
     userId: {
       type: DataTypes.STRING,
@@ -69,6 +62,9 @@ History.init(
       type: DataTypes.DATE,
       allowNull: false,
     },
+    name: {
+      type: DataTypes.STRING,
+    },
     projectId: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -81,23 +77,8 @@ History.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    sessionId: {
-      type: DataTypes.STRING,
-    },
     parameters: {
       type: DataTypes.JSON,
-    },
-    result: {
-      type: DataTypes.JSON,
-    },
-    executingLogs: {
-      type: DataTypes.JSON,
-    },
-    error: {
-      type: DataTypes.JSON,
-    },
-    generateStatus: {
-      type: DataTypes.STRING,
     },
   },
   { sequelize }

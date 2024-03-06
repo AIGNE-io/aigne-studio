@@ -134,18 +134,6 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
   const assistant = await getAssistant(input.assistantId, { rejectOnEmpty: true });
 
-  const history = userId
-    ? await History.create({
-        userId,
-        projectId: input.projectId,
-        ref: input.ref,
-        assistantId: input.assistantId,
-        sessionId: input.sessionId,
-        parameters: input.parameters,
-        generateStatus: 'generating',
-      })
-    : undefined;
-
   let mainTaskId: string | undefined;
   let error: { message: string } | undefined;
   const result: { content?: string; images?: { url: string }[] } = {};
@@ -194,11 +182,24 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     res.flush();
   };
 
+  const taskId = nextTaskId();
+
+  if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: {} });
+
+  const history = userId
+    ? await History.create({
+        userId,
+        taskId,
+        projectId: input.projectId,
+        ref: input.ref,
+        assistantId: input.assistantId,
+        sessionId: input.sessionId,
+        parameters: input.parameters,
+        generateStatus: 'generating',
+      })
+    : undefined;
+
   try {
-    const taskId = nextTaskId();
-
-    if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: {} });
-
     const result = await runAssistant({
       callAI,
       callAIImage,
