@@ -328,7 +328,7 @@ export default function ProjectPage() {
                 }}>
                 <Tab value="debug" label={t('debug')} />
                 <Tab value="test" label={t('test')} />
-                <Tab value="publish" label={t('publish')} />
+                <Tab value="publish" label={t('publish.publishProject')} />
                 <Tab value="discuss" label={t('discuss')} />
               </Tabs>
 
