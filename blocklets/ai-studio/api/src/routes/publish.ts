@@ -21,10 +21,10 @@ const publishSchema = Joi.object<PublishInput>({
   template: Joi.string().valid('default', 'blue', 'red', 'green').required(),
   projectId: Joi.string().required(),
   assistantId: Joi.string().required(),
-  title: Joi.string().empty([null, '']),
+  title: Joi.string().allow('', null),
   isCollection: Joi.boolean().default(false),
-  description: Joi.string().empty([null, '']),
-  icon: Joi.string().empty([null, '']),
+  description: Joi.string().allow('', null),
+  icon: Joi.string().allow('', null),
 });
 
 const findSchema = Joi.object<Pick<Partial<PublishInput>, 'projectId' | 'assistantId'>>({
@@ -36,10 +36,10 @@ const updateSchema = Joi.object<PublishInput>({
   projectId: Joi.string(),
   assistantId: Joi.string(),
   template: Joi.string().valid('default', 'blue', 'red', 'green').empty([null, '']),
-  title: Joi.string().empty([null, '']),
+  title: Joi.string().allow('', null),
   isCollection: Joi.boolean().empty([null]),
-  description: Joi.string().empty([null, '']),
-  icon: Joi.string().empty([null, '']),
+  description: Joi.string().allow('', null),
+  icon: Joi.string().allow('', null),
 });
 
 router.get('/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {

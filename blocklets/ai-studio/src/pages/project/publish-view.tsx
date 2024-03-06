@@ -222,15 +222,7 @@ export default function PublishView({
         onClick={async () => {
           try {
             setLoading(true);
-            if (projectPublishSetting) {
-              await updatePublishSetting({
-                ...settings,
-                assistantId: assistant.id,
-                projectId,
-              });
-              refetch();
-              Toast.success(t('alert.saved'));
-            } else {
+            if (!projectPublishSetting) {
               await savaPublishSetting({
                 ...settings,
                 assistantId: assistant.id,
@@ -238,6 +230,14 @@ export default function PublishView({
               });
               refetch();
               Toast.success(t('publish.publishSuccess'));
+            } else {
+              await updatePublishSetting({
+                ...settings,
+                assistantId: assistant.id,
+                projectId,
+              });
+              refetch();
+              Toast.success(t('alert.saved'));
             }
           } catch (error) {
             Toast.error(getErrorMessage(error));
@@ -246,7 +246,7 @@ export default function PublishView({
             setLoading(false);
           }
         }}>
-        {projectPublishSetting ? t('publish.save') : t('publish.publishProject')}
+        {!projectPublishSetting ? t('publish.publishProject') : t('publish.save')}
       </LoadingButton>
     </Stack>
   );
