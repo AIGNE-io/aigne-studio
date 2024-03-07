@@ -1,14 +1,15 @@
 import { readdirSync, rmSync, writeFileSync } from 'fs';
-import path from 'path';
+import path, { join } from 'path';
 
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
+import { SpaceClient, SyncFolderPushCommand } from '@did-space/client';
 import { glob } from 'glob';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { parse, stringify } from 'yaml';
 
-import { wallet } from '../libs/auth';
+import { authClient, wallet } from '../libs/auth';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
@@ -128,13 +129,25 @@ export async function getRepository({
   return repositories[projectId]!;
 }
 
-export async function syncDidSpace({ projectId }: { projectId: string }) {
-  const root = repositoryRoot(projectId);
+export async function syncDidSpace({ projectId, userId }: { projectId: string; userId: string }) {
+  const { user } = await authClient.getUser(userId);
+  const endpoint = user?.didSpace?.endpoint;
 
-  // eslint-disable-next-line no-console
-  console.log({ root });
+  const spaceClient = new SpaceClient({
+    endpoint,
+    wallet,
+  });
 
-  return root;
+  const repositoyPath = repositoryRoot(projectId);
+
+  await spaceClient.send(
+    new SyncFolderPushCommand({
+      source: join(repositoyPath, '/'),
+      target: `${repositoyPath.replace(Config.dataDir, '')}/`,
+    })
+  );
+
+  return repositoyPath;
 }
 
 export async function syncRepository<T>({
