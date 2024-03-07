@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, rmSync, writeFileSync } from 'fs';
-import path, { join } from 'path';
+import path, { relative } from 'path';
 
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
@@ -131,10 +131,9 @@ export async function getRepository({
   return repositories[projectId]!;
 }
 
-export async function syncDidSpace({ project, userId }: { project: Project; userId: string }) {
+export async function syncToDidSpace({ project, userId }: { project: Project; userId: string }) {
   const { user } = await authClient.getUser(userId);
   const endpoint = user?.didSpace?.endpoint;
-
   const spaceClient = new SpaceClient({
     endpoint,
     wallet,
@@ -148,7 +147,7 @@ export async function syncDidSpace({ project, userId }: { project: Project; user
         return spaceClient.send(
           new SyncFolderPushCommand({
             source: path,
-            target: join('repositories', project._id),
+            target: relative(Config.dataDir, path),
             metadata: { ...project.toJSON() },
           })
         );
@@ -220,17 +219,23 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
   await tx.add({ filepath: SETTINGS_FILE });
 };
 
-export const autoSyncRemoteRepoIfNeeded = async ({
+export const autoSyncIfNeeded = async ({
   project,
   author,
+  userId,
 }: {
   project: Project;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+  userId: string;
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
     const repository = await getRepository({ projectId: project._id! });
     await syncRepository({ repository, ref: project.gitDefaultBranch, author });
     await project.update({ gitLastSyncedAt: new Date() });
+  }
+
+  if (project.didSpaceAutoSync) {
+    await syncToDidSpace({ project, userId });
   }
 };
 

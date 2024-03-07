@@ -23,7 +23,7 @@ import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '
 import { createImageUrl } from '../libs/utils';
 import Project, { nextProjectId } from '../store/models/project';
 import {
-  autoSyncRemoteRepoIfNeeded,
+  autoSyncIfNeeded,
   clearRepository,
   commitProjectSettingWorking,
   commitWorking,
@@ -33,8 +33,8 @@ import {
   getAssistantIdFromPath,
   getRepository,
   repositoryRoot,
-  syncDidSpace,
   syncRepository,
+  syncToDidSpace,
 } from '../store/repository';
 import { projectTemplates } from '../templates/projects';
 import { getCommits } from './log';
@@ -470,14 +470,14 @@ export function projectRoutes(router: Router) {
       throw new Error(`Duplicated project ${name}`);
     }
 
-    const { did, fullName } = req.user!;
+    const { did: userId, fullName } = req.user!;
 
     await project.update(
       omitBy(
         {
           name,
           pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
-          updatedBy: did,
+          updatedBy: userId,
           description,
           icon,
           model: model || project.model || '',
@@ -495,10 +495,10 @@ export function projectRoutes(router: Router) {
       )
     );
 
-    const author = { name: fullName, email: did };
+    const author = { name: fullName, email: userId };
     await commitProjectSettingWorking({ project, author });
 
-    await autoSyncRemoteRepoIfNeeded({ project, author });
+    await autoSyncIfNeeded({ project, author, userId });
 
     res.json(project.dataValues);
   });
@@ -627,7 +627,7 @@ export function projectRoutes(router: Router) {
 
     const target: SyncTarget = req.query.target as SyncTarget;
     if (target === 'didSpace') {
-      await syncDidSpace({ project, userId });
+      await syncToDidSpace({ project, userId });
 
       return res.json({});
     }
