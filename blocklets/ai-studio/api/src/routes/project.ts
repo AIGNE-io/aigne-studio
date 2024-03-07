@@ -627,8 +627,7 @@ export function projectRoutes(router: Router) {
 
     const target: SyncTarget = req.query.target as SyncTarget;
     if (target === 'didSpace') {
-      await syncDidSpace({ projectId, userId });
-      await project.update({ didSpaceLastSyncedAt: new Date() });
+      await syncDidSpace({ project, userId });
 
       return res.json({});
     }

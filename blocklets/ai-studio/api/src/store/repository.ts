@@ -1,9 +1,9 @@
-import { readdirSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, readdirSync, rmSync, writeFileSync } from 'fs';
 import path, { join } from 'path';
 
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
-import { SpaceClient, SyncFolderPushCommand } from '@did-space/client';
+import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { glob } from 'glob';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
@@ -21,6 +21,8 @@ export const defaultRemote = 'origin';
 const repositories: { [key: string]: Promise<Repository<FileTypeYjs>> } = {};
 
 export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
+export const repositoryCooperativeRoot = (projectId: string) =>
+  path.join(Config.dataDir, 'repositories', `${projectId}.cooperative`);
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
@@ -129,7 +131,7 @@ export async function getRepository({
   return repositories[projectId]!;
 }
 
-export async function syncDidSpace({ projectId, userId }: { projectId: string; userId: string }) {
+export async function syncDidSpace({ project, userId }: { project: Project; userId: string }) {
   const { user } = await authClient.getUser(userId);
   const endpoint = user?.didSpace?.endpoint;
 
@@ -138,16 +140,30 @@ export async function syncDidSpace({ projectId, userId }: { projectId: string; u
     wallet,
   });
 
-  const repositoyPath = repositoryRoot(projectId);
-
-  await spaceClient.send(
-    new SyncFolderPushCommand({
-      source: join(repositoyPath, '/'),
-      target: `${repositoyPath.replace(Config.dataDir, '')}/`,
+  const repositoyPath = repositoryRoot(project._id);
+  const repositoryCooperativePath = repositoryCooperativeRoot(project._id);
+  const outputs: (SyncFolderPushCommandOutput | null)[] = await Promise.all(
+    [repositoyPath, repositoryCooperativePath].map((path) => {
+      if (existsSync(path)) {
+        return spaceClient.send(
+          new SyncFolderPushCommand({
+            source: path,
+            target: join('repositories', project._id),
+            metadata: { ...project.toJSON() },
+          })
+        );
+      }
+      return null;
     })
   );
 
-  return repositoyPath;
+  // 如果有错误则抛出
+  const errorOutput = outputs.filter(Boolean).find((output) => output?.statusCode !== 200);
+  if (errorOutput) {
+    throw new Error(errorOutput.message);
+  }
+
+  await project.update({ didSpaceLastSyncedAt: new Date() });
 }
 
 export async function syncRepository<T>({
