@@ -61,19 +61,19 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/did-connect": "^2.9.40",
-    "@arcblock/ux": "^2.9.40",
-    "@blocklet/ui-react": "^2.9.40",
+    "@arcblock/did-connect": "^2.9.41",
+    "@arcblock/ux": "^2.9.41",
+    "@blocklet/ui-react": "^2.9.41",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
-    "@mui/icons-material": "^5.15.11",
-    "@mui/lab": "^5.0.0-alpha.166",
-    "@mui/material": "^5.15.11",
-    "@types/react": "^18.2.61",
+    "@mui/icons-material": "^5.15.12",
+    "@mui/lab": "^5.0.0-alpha.167",
+    "@mui/material": "^5.15.12",
+    "@types/react": "^18.2.64",
     "npm-run-all": "^4.1.5",
     "react": "^18.2.0",
     "react-router-dom": "^6.22.2",
     "rimraf": "^5.0.5",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.2"
   }
 }
