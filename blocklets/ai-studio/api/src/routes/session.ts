@@ -6,9 +6,11 @@ import Joi from 'joi';
 export function sessionRoutes(router: Router) {
   const sessionsQuerySchema = Joi.object<{
     projectId: string;
+    projectRef: string;
     assistantId: string;
   }>({
     projectId: Joi.string().required(),
+    projectRef: Joi.string().required(),
     assistantId: Joi.string().required(),
   });
 
@@ -19,6 +21,7 @@ export function sessionRoutes(router: Router) {
     const sessions = await Session.getUserSessions({
       userId,
       projectId: query.projectId,
+      projectRef: query.projectRef,
       assistantId: query.assistantId,
     });
 
@@ -29,11 +32,13 @@ export function sessionRoutes(router: Router) {
 
   const createSessionInput = Joi.object<{
     projectId: string;
+    projectRef: string;
     assistantId: string;
     name?: string;
     parameters?: object;
   }>({
     projectId: Joi.string().required(),
+    projectRef: Joi.string().required(),
     assistantId: Joi.string().required(),
     name: Joi.string().empty(['', null]),
     parameters: Joi.object().pattern(Joi.string(), Joi.any()),
@@ -46,7 +51,7 @@ export function sessionRoutes(router: Router) {
     const session = await Session.create({
       userId,
       projectId: input.projectId,
-      ref: '',
+      projectRef: input.projectRef,
       assistantId: input.assistantId,
       name: input.name,
       parameters: input.parameters,
@@ -55,6 +60,7 @@ export function sessionRoutes(router: Router) {
     const sessions = await Session.getUserSessions({
       userId,
       projectId: input.projectId,
+      projectRef: input.projectRef,
       assistantId: input.assistantId,
     });
 
@@ -90,6 +96,7 @@ export function sessionRoutes(router: Router) {
     const sessions = await Session.getUserSessions({
       userId,
       projectId: session.projectId,
+      projectRef: session.projectRef,
       assistantId: session.assistantId,
     });
 
@@ -112,6 +119,7 @@ export function sessionRoutes(router: Router) {
     const sessions = await Session.getUserSessions({
       userId,
       projectId: session.projectId,
+      projectRef: session.projectRef,
       assistantId: session.assistantId,
     });
 

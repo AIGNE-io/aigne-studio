@@ -86,7 +86,7 @@ export default function ProjectPage() {
   const file = fileId && getFileById(fileId);
 
   const {
-    state: { error, project, projectPublishSettings },
+    state: { error, project },
     refetch,
   } = useProjectState(projectId, gitRef);
   if (error) throw error;
@@ -347,13 +347,7 @@ export default function ProjectPage() {
               <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
             ) : currentTab === 'publish' ? (
               <UploaderProvider>
-                <PublishView
-                  key={file.id}
-                  projectId={projectId}
-                  refetch={refetch}
-                  projectPublishSetting={projectPublishSettings?.find((i) => i.assistantId === file?.id)}
-                  assistant={file}
-                />
+                <PublishView key={file.id} projectId={projectId} projectRef={gitRef} assistant={file} />
               </UploaderProvider>
             ) : currentTab === 'discuss' ? (
               <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />

@@ -3,17 +3,21 @@ import { DataTypes } from 'sequelize';
 import type { Migration } from '../migrate';
 
 export const up: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.createTable('PublishSettings', {
-    _id: {
+  await queryInterface.createTable('Releases', {
+    id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
     },
-    assistantId: {
+    projectRef: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     projectId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    assistantId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -22,14 +26,13 @@ export const up: Migration = async ({ context: queryInterface }) => {
       defaultValue: 'default',
       allowNull: false,
     },
-    title: {
-      type: DataTypes.STRING,
-    },
     createdAt: {
       type: DataTypes.DATE,
+      allowNull: false,
     },
     updatedAt: {
       type: DataTypes.DATE,
+      allowNull: false,
     },
     createdBy: {
       type: DataTypes.STRING,
@@ -39,13 +42,8 @@ export const up: Migration = async ({ context: queryInterface }) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    isCollection: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    isActive: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
+    title: {
+      type: DataTypes.STRING,
     },
     description: {
       type: DataTypes.STRING,
@@ -53,9 +51,17 @@ export const up: Migration = async ({ context: queryInterface }) => {
     icon: {
       type: DataTypes.STRING,
     },
+    withCollection: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
   });
 };
 
 export const down: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.dropTable('PublishSettings');
+  await queryInterface.dropTable('Releases');
 };

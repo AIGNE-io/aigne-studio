@@ -7,15 +7,14 @@ const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
 
-export default class PublishSetting extends Model<
-  InferAttributes<PublishSetting>,
-  InferCreationAttributes<PublishSetting>
-> {
-  declare _id: CreationOptional<string>;
-
-  declare assistantId: string;
+export default class Release extends Model<InferAttributes<Release>, InferCreationAttributes<Release>> {
+  declare id: CreationOptional<string>;
 
   declare projectId: string;
+
+  declare projectRef: string;
+
+  declare assistantId: string;
 
   declare template: 'default' | 'blue' | 'red' | 'green';
 
@@ -27,30 +26,34 @@ export default class PublishSetting extends Model<
 
   declare updatedBy: string;
 
+  declare icon?: string;
+
   declare title?: string;
-
-  declare isCollection?: boolean;
-
-  declare isActive?: boolean;
 
   declare description?: string;
 
-  declare icon?: string;
+  declare withCollection?: boolean;
+
+  declare isActive?: boolean;
 }
 
-PublishSetting.init(
+Release.init(
   {
-    _id: {
+    id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
       defaultValue: nextId,
     },
-    assistantId: {
+    projectRef: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     projectId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    assistantId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -59,34 +62,38 @@ PublishSetting.init(
       defaultValue: 'default',
       allowNull: false,
     },
-    title: {
-      type: DataTypes.STRING,
-    },
     createdAt: {
       type: DataTypes.DATE,
+      allowNull: false,
     },
     updatedAt: {
       type: DataTypes.DATE,
+      allowNull: false,
     },
     createdBy: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
     updatedBy: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
-    isCollection: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    isActive: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
+    title: {
+      type: DataTypes.STRING,
     },
     description: {
       type: DataTypes.STRING,
     },
     icon: {
       type: DataTypes.STRING,
+    },
+    withCollection: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
   },
   { sequelize }

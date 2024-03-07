@@ -1,8 +1,8 @@
-import PublishSetting from '@api/store/models/publish-setting';
+import { UpdateReleaseInput } from '@api/routes/release';
 import LoadingButton from '@app/components/loading/loading-button';
 import { useUploader } from '@app/contexts/uploader';
 import { getErrorMessage } from '@app/libs/api';
-import { savaPublishSetting, updatePublishSetting } from '@app/libs/publish';
+import { createRelease, updateRelease } from '@app/libs/release';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
@@ -10,6 +10,7 @@ import styled from '@emotion/styled';
 import UploadIcon from '@mui/icons-material/Upload';
 import {
   Box,
+  Button,
   FormControl,
   FormControlLabel,
   IconButton,
@@ -21,9 +22,10 @@ import {
   Typography,
 } from '@mui/material';
 import { alpha, styled as muiStyled } from '@mui/material/styles';
-import { pick } from 'lodash';
-import { useState } from 'react';
-import { joinURL } from 'ufo';
+import { useEffect, useState } from 'react';
+import { joinURL, withQuery } from 'ufo';
+
+import { useProjectState } from './state';
 
 const TemplateImage = styled('img')({
   width: '100%',
@@ -71,29 +73,35 @@ const ImageContainer = muiStyled(Box)(() => ({
 
 export default function PublishView({
   projectId,
-  refetch,
+  projectRef,
   assistant,
-  projectPublishSetting,
 }: {
   projectId: string;
-  refetch: () => void;
+  projectRef: string;
   assistant: AssistantYjs;
-  projectPublishSetting?: PublishSetting;
 }) {
   const { t } = useLocaleContext();
   const uploaderRef = useUploader();
 
-  const [settings, setSettings] = useState(
-    !projectPublishSetting
-      ? {
-          template: 'default' as 'default' | 'blue' | 'green' | 'red',
-          description: '',
-          title: '',
-          isCollection: false,
-          icon: '',
-        }
-      : pick(projectPublishSetting, 'template', 'description', 'title', 'isCollection', 'icon')
-  );
+  const {
+    state: { releases },
+    refetch,
+  } = useProjectState(projectId, projectRef);
+
+  const release = releases?.find((i) => i.projectRef === projectRef && i.assistantId === assistant.id);
+
+  const [settings, setSettings] = useState<UpdateReleaseInput>({ template: 'default' });
+
+  useEffect(() => {
+    setSettings({
+      template: release?.template || 'default',
+      icon: release?.icon || '',
+      title: release?.title || '',
+      description: release?.description || '',
+      withCollection: release?.withCollection || false,
+    });
+  }, [release]);
+
   const [loading, setLoading] = useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,8 +179,8 @@ export default function PublishView({
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="subtitle2">{t('publish.collectionManage')}</Typography>
         <Switch
-          checked={settings.isCollection}
-          onChange={(_, checked) => setSettings({ ...settings, isCollection: checked })}
+          checked={settings.withCollection}
+          onChange={(_, checked) => setSettings({ ...settings, withCollection: checked })}
         />
       </Box>
 
@@ -213,41 +221,50 @@ export default function PublishView({
           {t('publish.faviconDescription')}
         </Typography>
       </Box>
-      <LoadingButton
-        sx={{
-          mt: 3,
-        }}
-        loading={loading}
-        variant="contained"
-        onClick={async () => {
-          try {
-            setLoading(true);
-            if (!projectPublishSetting) {
-              await savaPublishSetting({
-                ...settings,
-                assistantId: assistant.id,
-                projectId,
-              });
-              refetch();
-              Toast.success(t('publish.publishSuccess'));
-            } else {
-              await updatePublishSetting({
-                ...settings,
-                assistantId: assistant.id,
-                projectId,
-              });
-              refetch();
-              Toast.success(t('alert.saved'));
+
+      <Stack direction="row" gap={2} alignItems="center" sx={{ mt: 3 }}>
+        <LoadingButton
+          loading={loading}
+          variant="contained"
+          onClick={async () => {
+            try {
+              setLoading(true);
+              if (!release) {
+                await createRelease({
+                  ...settings,
+                  projectRef,
+                  projectId,
+                  assistantId: assistant.id,
+                });
+                refetch();
+                Toast.success(t('publish.publishSuccess'));
+              } else {
+                await updateRelease(release.id, { ...settings });
+                refetch();
+                Toast.success(t('alert.saved'));
+              }
+            } catch (error) {
+              Toast.error(getErrorMessage(error));
+              throw error;
+            } finally {
+              setLoading(false);
             }
-          } catch (error) {
-            Toast.error(getErrorMessage(error));
-            throw error;
-          } finally {
-            setLoading(false);
-          }
-        }}>
-        {!projectPublishSetting ? t('publish.publishProject') : t('publish.save')}
-      </LoadingButton>
+          }}>
+          {t('publish.publishProject')}
+        </LoadingButton>
+
+        {release && (
+          <Button
+            variant="outlined"
+            onClick={() => {
+              const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
+              const url = withQuery(joinURL(pagesPrefix, '/ai/chat'), { aiReleaseId: release.id });
+              window.open(url, '_blank');
+            }}>
+            {t('open')}
+          </Button>
+        )}
+      </Stack>
     </Stack>
   );
 }

@@ -10,7 +10,7 @@ import { globalRoutes } from './global';
 import { logRoutes } from './log';
 import { messageRoutes } from './message';
 import { projectRoutes } from './project';
-import publish from './publish';
+import release from './release';
 import { resourceRoutes } from './resource';
 import { sessionRoutes } from './session';
 import { treeRoutes } from './tree';
@@ -31,7 +31,7 @@ sessionRoutes(router);
 messageRoutes(router);
 
 router.use('/ai', ai);
-router.use('/publish', publish);
+router.use('/releases', release);
 router.use('/dataset', dataset);
 router.use('/dataset', datasetItems);
 router.use('/datasets', datasets);

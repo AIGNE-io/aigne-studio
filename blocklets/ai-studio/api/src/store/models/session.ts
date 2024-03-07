@@ -20,7 +20,7 @@ export default class Session extends Model<InferAttributes<Session>, InferCreati
 
   declare projectId: string;
 
-  declare ref: string;
+  declare projectRef: string;
 
   declare assistantId: string;
 
@@ -29,14 +29,16 @@ export default class Session extends Model<InferAttributes<Session>, InferCreati
   static getUserSessions({
     userId,
     projectId,
+    projectRef,
     assistantId,
   }: {
     userId: string;
     projectId: string;
+    projectRef: string;
     assistantId: string;
   }) {
     return this.findAll({
-      where: { userId, projectId, assistantId },
+      where: { userId, projectId, projectRef, assistantId },
       order: [['id', 'desc']],
     });
   }
@@ -69,9 +71,10 @@ Session.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    ref: {
+    projectRef: {
       type: DataTypes.STRING,
       allowNull: false,
+      field: 'ref',
     },
     assistantId: {
       type: DataTypes.STRING,
