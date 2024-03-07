@@ -1,3 +1,7 @@
+## 0.1.277 (2024-3-7)
+
+- fix: use original hnswlib lib
+
 ## 0.1.276 (2024-3-7)
 
 - feat: support release setting
