@@ -101,6 +101,7 @@ export default flat({
   import: {
     title: 'Import Templates',
     remote: 'Import from git repo',
+    didSpaces: 'Import from DID Spaces',
     remoteDescription: 'Import a project from an existing git repository, such as GitHub.',
     selectProject: 'Select Project',
     selectBranch: 'Select Branch',

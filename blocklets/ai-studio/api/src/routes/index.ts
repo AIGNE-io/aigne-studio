@@ -7,6 +7,7 @@ import datasetItems from './dataset/item';
 import dataset from './dataset/list';
 import datasets from './datasets';
 import { globalRoutes } from './global';
+import importRouter from './import';
 import { logRoutes } from './log';
 import { projectRoutes } from './project';
 import { resourceRoutes } from './resource';
@@ -30,5 +31,7 @@ router.use('/dataset', datasetItems);
 router.use('/datasets', datasets);
 router.use('/datasets', datasetsItems);
 router.use(ws);
+
+router.use('/import', importRouter);
 
 export default router;
