@@ -1,3 +1,7 @@
+## 0.1.276 (2024-3-7)
+
+- feat: support release setting
+
 ## 0.1.275 (2024-3-6)
 
 - feat: add supporting for session & history
