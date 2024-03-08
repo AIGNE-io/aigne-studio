@@ -189,7 +189,7 @@ export async function syncRepository<T>({
   });
 }
 
-const SETTINGS_FILE = '.settings.yaml';
+export const SETTINGS_FILE = '.settings.yaml';
 
 const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: Project }) => {
   const repository = await getRepository({ projectId: project._id! });
