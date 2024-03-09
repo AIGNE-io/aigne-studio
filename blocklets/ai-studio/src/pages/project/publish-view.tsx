@@ -18,7 +18,6 @@ import {
   Radio,
   RadioGroup,
   Stack,
-  Switch,
   Typography,
 } from '@mui/material';
 import { alpha, styled as muiStyled } from '@mui/material/styles';
@@ -98,7 +97,6 @@ export default function PublishView({
       icon: release?.icon || '',
       title: release?.title || '',
       description: release?.description || '',
-      withCollection: release?.withCollection || false,
     });
   }, [release]);
 
@@ -175,14 +173,6 @@ export default function PublishView({
           onChange={(e) => setSettings({ ...settings, description: e.target.value })}
         />
       </FormControl>
-
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="subtitle2">{t('publish.collectionManage')}</Typography>
-        <Switch
-          checked={settings.withCollection}
-          onChange={(_, checked) => setSettings({ ...settings, withCollection: checked })}
-        />
-      </Box>
 
       <Box>
         <Typography mb={1} variant="subtitle2">
