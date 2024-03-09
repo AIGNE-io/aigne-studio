@@ -4,24 +4,27 @@ import { useUploader } from '@app/contexts/uploader';
 import { getErrorMessage } from '@app/libs/api';
 import { createRelease, updateRelease } from '@app/libs/release';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import styled from '@emotion/styled';
+import { LaunchRounded } from '@mui/icons-material';
 import UploadIcon from '@mui/icons-material/Upload';
 import {
   Box,
-  Button,
   FormControl,
   FormControlLabel,
   IconButton,
   InputBase,
+  Link,
   Radio,
   RadioGroup,
   Stack,
   Typography,
 } from '@mui/material';
 import { alpha, styled as muiStyled } from '@mui/material/styles';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import QRCode from 'react-qr-code';
 import { joinURL, withQuery } from 'ufo';
 
 import { useProjectState } from './state';
@@ -79,7 +82,7 @@ export default function PublishView({
   projectRef: string;
   assistant: AssistantYjs;
 }) {
-  const { t } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
   const uploaderRef = useUploader();
 
   const {
@@ -105,6 +108,12 @@ export default function PublishView({
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSettings({ ...settings, template: event.target.value as 'default' | 'blue' | 'green' | 'red' });
   };
+
+  const releaseUrl = useMemo(() => {
+    if (!release) return undefined;
+    const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
+    return withQuery(joinURL(globalThis.location.origin, pagesPrefix, '/ai/chat'), { aiReleaseId: release.id });
+  }, [release]);
 
   return (
     <Stack px={2} mt={1} py={1} gap={2} ml={1}>
@@ -212,6 +221,30 @@ export default function PublishView({
         </Typography>
       </Box>
 
+      {release && releaseUrl && (
+        <Stack gap={1}>
+          <Typography variant="subtitle2">{t('publish.link')}</Typography>
+
+          <Link href={releaseUrl} target="_blank" sx={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+            <Typography component="span" sx={{ textOverflow: 'ellipsis', overflow: 'hidden', flexShrink: 1 }}>
+              {releaseUrl}
+            </Typography>
+
+            <LaunchRounded sx={{ color: 'text.secondary', fontSize: 16 }} />
+          </Link>
+
+          <Box component={QRCode} value={releaseUrl} sx={{ width: 120, height: 120 }} />
+
+          <Box color="text.secondary">
+            <Typography component="span" mr={1}>
+              {t('alert.updatedAt')}
+            </Typography>
+
+            <RelativeTime locale={locale} value={release.updatedAt} relativeRange={3600e3} />
+          </Box>
+        </Stack>
+      )}
+
       <Stack direction="row" gap={2} alignItems="center" sx={{ mt: 3 }}>
         <LoadingButton
           loading={loading}
@@ -231,7 +264,7 @@ export default function PublishView({
               } else {
                 await updateRelease(release.id, { ...settings });
                 refetch();
-                Toast.success(t('alert.saved'));
+                Toast.success(t('publish.updateSuccess'));
               }
             } catch (error) {
               Toast.error(getErrorMessage(error));
@@ -240,20 +273,8 @@ export default function PublishView({
               setLoading(false);
             }
           }}>
-          {t('publish.publishProject')}
+          {release ? t('publish.update') : t('publish.publishProject')}
         </LoadingButton>
-
-        {release && (
-          <Button
-            variant="outlined"
-            onClick={() => {
-              const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
-              const url = withQuery(joinURL(pagesPrefix, '/ai/chat'), { aiReleaseId: release.id });
-              window.open(url, '_blank');
-            }}>
-            {t('open')}
-          </Button>
-        )}
       </Stack>
     </Stack>
   );

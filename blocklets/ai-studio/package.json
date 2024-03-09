@@ -115,6 +115,7 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.0",
+    "react-qr-code": "^2.0.12",
     "react-resizable-panels": "^0.0.55",
     "react-router-dom": "^6.22.2",
     "react-use": "^17.5.0",
