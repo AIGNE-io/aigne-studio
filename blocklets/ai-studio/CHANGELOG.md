@@ -1,3 +1,8 @@
+## 0.1.278 (2024-3-9)
+
+- fix: support set chat type & dataset in parameters
+- fix: show release link and qr code
+
 ## 0.1.277 (2024-3-7)
 
 - fix: use original hnswlib lib
