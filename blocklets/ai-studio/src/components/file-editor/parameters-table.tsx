@@ -11,6 +11,7 @@ import {
   Input,
   List,
   ListItem,
+  ListSubheader,
   Paper,
   Popper,
   Radio,
@@ -253,7 +254,8 @@ export default function ParametersTable({
               <Popper {...bindPopper(settingPopperState)} placement="bottom-end">
                 <ClickAwayListener onClickAway={settingPopperState.close}>
                   <Paper>
-                    <List>
+                    <List dense>
+                      <ListSubheader>{t('mode')}</ListSubheader>
                       <ListItem>
                         <RadioGroup
                           value={parameters.some((i) => i.data.key === 'question') ? 'chat' : 'form'}
@@ -268,6 +270,7 @@ export default function ParametersTable({
                           <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
                         </RadioGroup>
                       </ListItem>
+                      <ListSubheader>{t('dataset')}</ListSubheader>
                       <ListItem>
                         <FormControlLabel
                           control={<Checkbox />}
