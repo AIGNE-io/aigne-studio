@@ -13,7 +13,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
       - name: page
         in: query
         description: The page number of the data
@@ -29,7 +29,7 @@
           type: integer
           default: 20
     responses:
-      "200":
+      '200':
         description: Successfully retrieved data items in the dataset
         x-description-zh: 获取当前 datasetId 数据集中数据信息
 /api/dataset/{datasetId}/items/{itemId}:
@@ -47,7 +47,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
       - name: itemId
         in: path
         description: The ID of the data item
@@ -55,9 +55,9 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
     responses:
-      "200":
+      '200':
         description: Successfully deleted the data item from the dataset
         x-description-zh: 删除当前 datasetId 数据集中数据信息
 /api/dataset/{datasetId}/items/embedding:
@@ -75,7 +75,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
     requestBody:
       required: true
       content:
@@ -88,7 +88,7 @@
               data:
                 type: string
     responses:
-      "200":
+      '200':
         description: Successfully uploaded data to the dataset
         x-description-zh: 上传数据到当前 datasetId 数据集中
 /api/dataset/{datasetId}/items/file:
@@ -106,7 +106,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
     requestBody:
       content:
         multipart/form-data:
@@ -120,7 +120,7 @@
                 type: string
                 default: file
     responses:
-      "200":
+      '200':
         description: File successfully uploaded to the specified dataset
         x-description-zh: 上传文件到当前 datasetId 数据集中
 /api/dataset/{datasetId}/items/{itemId}/embedding:
@@ -138,7 +138,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
       - name: itemId
         in: path
         description: The ID of the data item
@@ -146,7 +146,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
     requestBody:
       required: true
       content:
@@ -159,7 +159,7 @@
               data:
                 type: string
     responses:
-      "200":
+      '200':
         description: Successfully updated the data in the dataset
         x-description-zh: 更新数据到当前 datasetId 数据集中
 /api/dataset/{datasetId}/items/{itemId}/file:
@@ -177,7 +177,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
       - name: itemId
         in: path
         description: The ID of the data item
@@ -185,7 +185,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
     requestBody:
       content:
         multipart/form-data:
@@ -199,7 +199,7 @@
                 type: string
                 default: file
     responses:
-      "200":
+      '200':
         description: Successfully updated the uploaded file in the dataset
         x-description-zh: 更新上传到当前 datasetId 数据集中
 /api/dataset/{datasetId}/items/search:
@@ -218,7 +218,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
       - name: message
         in: query
         description: The search content or message
@@ -226,9 +226,9 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
     responses:
-      "200":
+      '200':
         description: Successfully retrieved the paginated list of search results
         x-description-zh: 成功获取分页列表
 /api/dataset/list:
@@ -239,7 +239,7 @@
     description: Retrieve the current user's datasets
     x-description-zh: 获取当前用户数据集
     responses:
-      "200":
+      '200':
         description: Successfully retrieved the current user's datasets
         x-description-zh: 获取当前用户数据集
 /api/dataset/{datasetId}:
@@ -257,9 +257,9 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
     responses:
-      "200":
+      '200':
         description: Successfully retrieved the dataset details
         x-description-zh: 获取当前用户数据集详情
   put:
@@ -276,7 +276,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
     requestBody:
       required: true
       content:
@@ -287,7 +287,7 @@
               name:
                 type: string
     responses:
-      "200":
+      '200':
         description: Successfully updated the dataset
         x-description-zh: 更新数据集
   delete:
@@ -304,9 +304,9 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
     responses:
-      "200":
+      '200':
         description: Successfully deleted the dataset
         x-description-zh: 删除数据集
 /api/dataset/create:
@@ -326,6 +326,55 @@
               name:
                 type: string
     responses:
-      "200":
+      '200':
         description: Successfully created a new dataset
         x-description-zh: 创建新的数据集
+/api/sessions/messages:
+  get:
+    summary: Get history messages
+    x-summary-zh: 获取历史信息
+    description: Retrieve messages based on sessionId, last N messages, or keyword
+    x-description-zh: 根据 sessionId、最后N条消息或关键字检索历史消息
+    tags:
+      - Sessions
+    parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Number of last messages to retrieve
+        x-description-zh: 检索的消息的数目
+      - in: query
+        name: keyword
+        schema:
+          type: string
+        description: Keyword to search in messages
+        x-description-zh: 在消息中搜索的关键字
+    responses:
+      '200':
+        description: A list of history messages
+        x-description-zh: 检索历史消息列表
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      taskId:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      parameters:
+                        type: object
+                      result:
+                        type: object

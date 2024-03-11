@@ -542,7 +542,8 @@ export const ToolDialog = forwardRef<
             return (
               <Stack key={parameter.name}>
                 <Typography variant="caption" mx={1}>
-                  {parameter.description || parameter.name}
+                  {getDatasetTextByI18n(parameter, 'description', locale) ||
+                    getDatasetTextByI18n(parameter, 'name', locale)}
                 </Typography>
 
                 <Controller

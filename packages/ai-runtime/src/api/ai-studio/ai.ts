@@ -13,6 +13,7 @@ export interface CallAssistantInput {
   working?: boolean;
   assistantId: string;
   parameters: { [key: string]: any };
+  sessionId?: string;
 }
 
 export async function callAssistant(

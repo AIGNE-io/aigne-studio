@@ -96,6 +96,7 @@ export async function runAssistant({
   parentTaskId,
   callback,
   user,
+  sessionId,
 }: {
   taskId: string;
   callAI: CallAI;
@@ -106,6 +107,7 @@ export async function runAssistant({
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
+  sessionId?: string;
 }): Promise<any> {
   callback?.({
     type: AssistantResponseType.EXECUTE,
@@ -127,6 +129,7 @@ export async function runAssistant({
         parameters,
         callback,
         user,
+        sessionId,
       });
     }
 
@@ -141,6 +144,7 @@ export async function runAssistant({
         parameters,
         callback,
         user,
+        sessionId,
       });
     }
 
@@ -155,6 +159,7 @@ export async function runAssistant({
         parameters,
         callback,
         user,
+        sessionId,
       });
     }
 
@@ -169,6 +174,7 @@ export async function runAssistant({
         parameters,
         callback,
         user,
+        sessionId,
       });
     }
   } catch (e) {
@@ -202,6 +208,7 @@ async function runFunctionAssistant({
   parentTaskId,
   callback,
   user,
+  sessionId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -213,6 +220,7 @@ async function runFunctionAssistant({
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
+  sessionId?: string;
 }) {
   const results = assistant.prepareExecutes?.length
     ? await runExecuteBlocks({
@@ -225,6 +233,7 @@ async function runFunctionAssistant({
         parentTaskId: taskId,
         callback,
         user,
+        sessionId,
       })
     : [];
 
@@ -337,6 +346,7 @@ async function runApiAssistant({
   parentTaskId,
   callback,
   user,
+  sessionId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -347,6 +357,7 @@ async function runApiAssistant({
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
+  sessionId?: string;
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
 
@@ -361,6 +372,7 @@ async function runApiAssistant({
         parentTaskId: taskId,
         callback,
         user,
+        sessionId,
       })
     : [];
 
@@ -457,6 +469,7 @@ async function runPromptAssistant({
   parentTaskId,
   callback,
   user,
+  sessionId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -467,6 +480,7 @@ async function runPromptAssistant({
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
+  sessionId?: string;
 }) {
   if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
 
@@ -484,6 +498,7 @@ async function runPromptAssistant({
     parentTaskId: taskId,
     callback,
     user,
+    sessionId,
   });
 
   const variables = { ...parameters };
@@ -623,6 +638,7 @@ async function runImageAssistant({
   parentTaskId,
   callback,
   user,
+  sessionId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -633,6 +649,7 @@ async function runImageAssistant({
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
+  sessionId?: string;
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
@@ -647,6 +664,7 @@ async function runImageAssistant({
         parentTaskId: taskId,
         callback,
         user,
+        sessionId,
       })
     : [];
 
@@ -738,6 +756,7 @@ async function runExecuteBlocks({
   parentTaskId,
   callback,
   user,
+  sessionId,
 }: {
   assistant: Assistant;
   callAI: CallAI;
@@ -748,6 +767,7 @@ async function runExecuteBlocks({
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
+  sessionId?: string;
 }) {
   const variables = {
     ...parameters,
@@ -771,6 +791,7 @@ async function runExecuteBlocks({
         parentTaskId,
         callback,
         user,
+        sessionId,
       });
 
       return cache[executeBlock.id]!;
@@ -798,6 +819,7 @@ async function runExecuteBlock({
   parentTaskId,
   callback,
   user,
+  sessionId,
 }: {
   taskId: string;
   assistant: Assistant;
@@ -810,6 +832,7 @@ async function runExecuteBlock({
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
+  sessionId?: string;
 }) {
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
@@ -847,7 +870,7 @@ async function runExecuteBlock({
                 )
               );
 
-              const response = await getRequest(dataset, requestData, { user });
+              const response = await getRequest(dataset, requestData, { user, params: sessionId ? { sessionId } : {} });
 
               callback?.({
                 type: AssistantResponseType.CHUNK,
@@ -1044,7 +1067,7 @@ async function runExecuteBlock({
               }) ?? []
             );
 
-            const response = await getRequest(assistant, args, { user });
+            const response = await getRequest(assistant, args, { user, params: sessionId ? { sessionId } : {} });
 
             callback?.({
               type: AssistantResponseType.CHUNK,
