@@ -1,3 +1,7 @@
+## 0.1.280 (2024-3-11)
+
+- feat: add prefix and suffix for execute block output
+
 ## 0.1.279 (2024-3-11)
 
 - fix: update runtime url
