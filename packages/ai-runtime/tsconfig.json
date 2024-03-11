@@ -6,7 +6,9 @@
     "baseUrl": "./",
     "paths": {
       "@blocklet/dataset-sdk": ["../../packages/dataset-sdk/src"],
-      "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"]
+      "@blocklet/dataset-sdk/*": ["../../packages/dataset-sdk/src/*"],
+      "@blocklet/ai-builtin": ["../../packages/ai-builtin/src"],
+      "@blocklet/ai-builtin/*": ["../../packages/ai-builtin/src/*"]
     }
   }
 }

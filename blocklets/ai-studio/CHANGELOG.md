@@ -1,3 +1,32 @@
+## 0.1.280 (2024-3-11)
+
+- feat: add prefix and suffix for execute block output
+
+## 0.1.279 (2024-3-11)
+
+- fix: update runtime url
+
+## 0.1.278 (2024-3-9)
+
+- fix: support set chat type & dataset in parameters
+- fix: show release link and qr code
+
+## 0.1.277 (2024-3-7)
+
+- fix: use original hnswlib lib
+
+## 0.1.276 (2024-3-7)
+
+- feat: support release setting
+
+## 0.1.275 (2024-3-6)
+
+- feat: add supporting for session & history
+
+## 0.1.274 (2024-3-6)
+
+- fix: correct directory of db migrations
+
 ## 0.1.273 (2024-3-4)
 
 - fix: do not expose builtin modules like fs to improve security
