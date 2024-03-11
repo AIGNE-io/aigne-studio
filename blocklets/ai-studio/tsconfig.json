@@ -22,7 +22,9 @@
       "@blocklet/co-git/*": ["../../packages/co-git/src/*"],
       "@blocklet/studio-ui": ["../../packages/studio-ui/src"],
       "@blocklet/prompt-editor": ["../../packages/prompt-editor/src"],
-      "@blocklet/prompt-editor/*": ["../../packages/prompt-editor/src/*"]
+      "@blocklet/prompt-editor/*": ["../../packages/prompt-editor/src/*"],
+      "@blocklet/ai-builtin": ["../../packages/ai-builtin/src"],
+      "@blocklet/ai-builtin/*": ["../../packages/ai-builtin/src/*"]
     }
   }
 }
