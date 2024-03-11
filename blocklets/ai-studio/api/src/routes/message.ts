@@ -94,9 +94,9 @@ export function messageRoutes(router: Router) {
    */
   router.get('/sessions/messages', user(), async (req, res) => {
     try {
-      if (req.query?.lastN) {
+      if (req.query?.limit) {
         // @ts-ignore
-        req.query.lastN = Number(req.query.lastN);
+        req.query.limit = Number(req.query.limit);
       }
 
       const { error, value } = searchOptionsSchema.validate(req.query);
