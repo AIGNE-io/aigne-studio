@@ -512,10 +512,11 @@ export function projectRoutes(router: Router) {
 
     await project.destroy();
 
+    clearRepository(projectId);
+
     const root = repositoryRoot(projectId);
     rmSync(root, { recursive: true, force: true });
     rmSync(`${root}.cooperative`, { recursive: true, force: true });
-    clearRepository(projectId);
 
     res.json(project);
   });

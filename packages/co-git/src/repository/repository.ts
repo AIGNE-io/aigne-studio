@@ -230,6 +230,12 @@ export default class Repository<T> {
 
     return filepath;
   }
+
+  async destroy() {
+    for (const i of await Promise.all(Object.values(this.workingMap))) {
+      i.destroy();
+    }
+  }
 }
 
 export class Transaction<T> {
