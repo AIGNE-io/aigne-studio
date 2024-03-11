@@ -513,7 +513,7 @@ export function projectRoutes(router: Router) {
 
     await project.destroy();
 
-    clearRepository(projectId);
+    await clearRepository(projectId);
 
     const root = repositoryRoot(projectId);
     await Promise.all([
