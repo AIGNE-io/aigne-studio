@@ -30,6 +30,8 @@ type ExecuteBlockCommon = {
   selectByPrompt?: string;
   tools?: Tool[];
   formatResultType?: 'none' | 'asHistory';
+  prefix?: string;
+  suffix?: string;
   variable?: string;
 };
 
