@@ -1,3 +1,7 @@
+## 0.1.279 (2024-3-11)
+
+- fix: update runtime url
+
 ## 0.1.278 (2024-3-9)
 
 - fix: support set chat type & dataset in parameters

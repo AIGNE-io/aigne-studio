@@ -112,7 +112,10 @@ export default function PublishView({
   const releaseUrl = useMemo(() => {
     if (!release) return undefined;
     const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
-    return withQuery(joinURL(globalThis.location.origin, pagesPrefix, '/ai/chat'), { aiReleaseId: release.id });
+    return withQuery(
+      joinURL(globalThis.location.origin, pagesPrefix, '@z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D', '/ai/chat'),
+      { aiReleaseId: release.id }
+    );
   }, [release]);
 
   return (
