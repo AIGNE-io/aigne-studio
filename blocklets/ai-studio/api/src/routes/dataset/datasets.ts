@@ -16,7 +16,7 @@ const datasetSchema = Joi.object<{ name?: string; description?: string }>({
 
 /**
  * @openapi
- * /api/datasets/datasets/list:
+ * /api/dataset:
  *    get:
  *      type: 'SEARCH'
  *      summary: Retrieve the current user's datasets
@@ -28,7 +28,7 @@ const datasetSchema = Joi.object<{ name?: string; description?: string }>({
  *          description: Successfully retrieved the current user's datasets
  *          x-description-zh: 获取当前用户数据集
  */
-router.get('/list', user(), checkUserAuth(), async (req, res) => {
+router.get('/', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
 
   const list = await Dataset.findAll({
@@ -48,7 +48,7 @@ router.get('/list', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/datasets/datasets/{datasetId}:
+ * /api/dataset/{datasetId}:
  *    get:
  *      type: 'SEARCH'
  *      summary: Retrieve details of a specific dataset
@@ -87,7 +87,7 @@ router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/datasets/datasets/create:
+ * /api/dataset:
  *    post:
  *      type: 'CREATE'
  *      summary: Create a new dataset
@@ -108,7 +108,7 @@ router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully created a new dataset
  *          x-description-zh: 创建新的数据集
  */
-router.post('/create', user(), checkUserAuth(), async (req, res) => {
+router.post('/', user(), checkUserAuth(), async (req, res) => {
   const { name, description } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
 
@@ -118,7 +118,7 @@ router.post('/create', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/datasets/datasets/{datasetId}:
+ * /api/dataset/{datasetId}:
  *    put:
  *      type: 'UPDATE'
  *      summary: Update a dataset
@@ -173,7 +173,7 @@ router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/datasets/datasets/{datasetId}:
+ * /api/dataset/{datasetId}:
  *    delete:
  *      type: 'DELETE'  # Changed from 'SEARCH' to 'DELETE' as it's more appropriate for a delete operation
  *      summary: Delete a dataset

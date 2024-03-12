@@ -1,4 +1,4 @@
-/api/datasets/datasets/list:
+/api/dataset:
   get:
     type: SEARCH
     summary: Retrieve the current user's datasets
@@ -9,7 +9,26 @@
       "200":
         description: Successfully retrieved the current user's datasets
         x-description-zh: 获取当前用户数据集
-/api/datasets/datasets/{datasetId}:
+  post:
+    type: CREATE
+    summary: Create a new dataset
+    x-summary-zh: 创建新的数据集
+    description: Create a new dataset
+    x-description-zh: 创建新的数据集
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+    responses:
+      "200":
+        description: Successfully created a new dataset
+        x-description-zh: 创建新的数据集
+/api/dataset/{datasetId}:
   get:
     type: SEARCH
     summary: Retrieve details of a specific dataset
@@ -76,27 +95,7 @@
       "200":
         description: Successfully deleted the dataset
         x-description-zh: 删除数据集
-/api/datasets/datasets/create:
-  post:
-    type: CREATE
-    summary: Create a new dataset
-    x-summary-zh: 创建新的数据集
-    description: Create a new dataset
-    x-description-zh: 创建新的数据集
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              name:
-                type: string
-    responses:
-      "200":
-        description: Successfully created a new dataset
-        x-description-zh: 创建新的数据集
-/api/datasets/documents/{datasetId}/items:
+/api/dataset/{datasetId}/document:
   get:
     type: SEARCH
     summary: Get data items in a dataset by datasetId
@@ -130,7 +129,7 @@
       "200":
         description: Successfully retrieved data items in the dataset
         x-description-zh: 获取当前 datasetId 数据集中数据信息
-/api/datasets/documents/{datasetId}/items/{documentId}:
+/api/dataset/{datasetId}/document/{documentId}:
   delete:
     type: SEARCH
     summary: Delete a data item from the dataset by datasetId and documentId
@@ -158,7 +157,7 @@
       "200":
         description: Successfully deleted the data item from the dataset
         x-description-zh: 删除当前 datasetId 数据集中数据信息
-/api/datasets/documents/{datasetId}/items/embedding:
+/api/dataset/{datasetId}/document/embedding:
   post:
     type: CREATE
     summary: Upload data to the specified dataset by datasetId
@@ -189,7 +188,7 @@
       "200":
         description: Successfully uploaded data to the dataset
         x-description-zh: 上传数据到当前 datasetId 数据集中
-/api/datasets/documents/{datasetId}/items/file:
+/api/dataset/{datasetId}/document/file:
   post:
     type: CREATE
     summary: Upload a file to the specified dataset by datasetId
@@ -221,7 +220,7 @@
       "200":
         description: File successfully uploaded to the specified dataset
         x-description-zh: 上传文件到当前 datasetId 数据集中
-/api/datasets/documents/{datasetId}/items/{documentId}/embedding:
+/api/dataset/{datasetId}/document/{documentId}/embedding:
   put:
     type: UPDATE
     summary: Update data in the specified dataset by datasetId and documentId
@@ -260,7 +259,7 @@
       "200":
         description: Successfully updated the data in the dataset
         x-description-zh: 更新数据到当前 datasetId 数据集中
-/api/datasets/documents/{datasetId}/items/{documentId}/file:
+/api/dataset/{datasetId}/document/{documentId}/file:
   put:
     type: UPDATE
     summary: Update an uploaded file in the dataset by datasetId
@@ -300,7 +299,7 @@
       "200":
         description: Successfully updated the uploaded file in the dataset
         x-description-zh: 更新上传到当前 datasetId 数据集中
-/api/datasets/documents/{datasetId}/items/search:
+/api/dataset/{datasetId}/documents:
   get:
     type: SEARCH
     summary: Search for content within the dataset

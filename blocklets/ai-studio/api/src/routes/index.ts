@@ -31,11 +31,9 @@ messageRoutes(router);
 
 router.use('/ai', ai);
 router.use('/releases', release);
-// router.use('/dataset', dataset);
-// router.use('/dataset', datasetItems);
-router.use('/datasets/datasets', dataset);
-router.use('/datasets/documents', datasetItems);
-router.use('/datasets/segments', datasetSegments);
+router.use('/dataset', dataset);
+router.use('/dataset', datasetItems);
+router.use('/dataset', datasetSegments);
 router.use(ws);
 
 export default router;

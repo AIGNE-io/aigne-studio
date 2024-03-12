@@ -73,7 +73,7 @@ export const useSegments = (datasetId: string, documentId: string, { autoFetch =
 
   const remove = useCallback(async (segmentId: string) => {
     try {
-      await deleteSegment(datasetId, segmentId);
+      await deleteSegment(datasetId, documentId, segmentId);
     } catch (error) {
       Toast.error(getErrorMessage(error));
     }
@@ -81,7 +81,7 @@ export const useSegments = (datasetId: string, documentId: string, { autoFetch =
 
   const update = useCallback(async (segmentId: string, content: string) => {
     try {
-      await updateSegment(datasetId, segmentId, content);
+      await updateSegment(datasetId, documentId, segmentId, content);
     } catch (error) {
       Toast.error(getErrorMessage(error));
     }
