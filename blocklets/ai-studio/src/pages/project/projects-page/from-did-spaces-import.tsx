@@ -29,57 +29,67 @@ import { getErrorMessage } from '../../../libs/api';
 import Add from '../icons/add';
 import DidSpacesLogo from '../icons/did-spaces';
 
-type RemoteRepoSettingForm = {
+type ProjectSettingForm = {
+  _id: string;
   name: string;
   description: string;
 };
 
 export default function FromDidSpacesImport() {
   const { t } = useLocaleContext();
-  const [search] = useSearchParams();
+  const [search, setSearchParams] = useSearchParams();
   const endpoint = search.get('endpoint');
   const id = useId();
   const navigate = useNavigate();
   const dialogState = usePopupState({ variant: 'dialog', popupId: id });
   const { listProjectsByDidSpaces, fromDidSpacesImport } = useProjectsState();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<Project | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
 
   useAsyncEffect(async () => {
-    if (!endpoint) {
-      return;
-    }
+    try {
+      setLoading(true);
 
-    dialogState.open();
-    const data = await listProjectsByDidSpaces(endpoint);
-    setProjects(data);
-    setSelectedProject(data[0]);
+      if (!endpoint) {
+        return;
+      }
+
+      dialogState.open();
+      const data = await listProjectsByDidSpaces(endpoint);
+      setProjects(data);
+    } catch (error) {
+      console.error(error);
+      Toast.error(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   }, [endpoint]);
 
-  const form = useForm<RemoteRepoSettingForm>({
+  const form = useForm<ProjectSettingForm>({
     defaultValues: {
+      _id: '',
       name: '',
       description: '',
     },
   });
 
   const importProject = useCallback(
-    async (value: RemoteRepoSettingForm) => {
+    async (value: ProjectSettingForm) => {
       try {
-        if (!selectedProject?._id) {
+        if (!value._id) {
           return null;
         }
 
         const project = await fromDidSpacesImport({
           endpoint: endpoint!,
-          projectId: selectedProject?._id,
+          projectId: value._id,
           props: {
             description: value.description,
           },
         });
 
         currentGitStore.setState({
-          currentProjectId: project?._id,
+          currentProjectId: project._id,
         });
         dialogState.close();
         form.reset(value);
@@ -91,8 +101,17 @@ export default function FromDidSpacesImport() {
         throw error;
       }
     },
-    [dialogState, endpoint, form, fromDidSpacesImport, navigate, selectedProject?._id]
+    [dialogState, endpoint, form, fromDidSpacesImport, navigate]
   );
+
+  const cancelImport = () => {
+    if (search.has('endpoint')) {
+      search.delete('endpoint');
+      setSearchParams(search);
+    }
+
+    dialogState.close();
+  };
 
   const goToDidSpacesImport = () => {
     window.location.href = joinURL(window.origin, window.blocklet?.prefix ?? '/', 'api/import/from-did-spaces');
@@ -115,28 +134,26 @@ export default function FromDidSpacesImport() {
         fullWidth
         component="form"
         onSubmit={form.handleSubmit(importProject)}>
-        <DialogTitle>{t('remoteGitRepo')}</DialogTitle>
+        <DialogTitle>{t('didSpaces.title')}</DialogTitle>
         <DialogContent>
           <Stack gap={2}>
             <TextField
-              {...form.register('name')}
+              {...form.register('name', { required: true })}
               select
               label={t('projectSetting.name')}
-              defaultValue={selectedProject?._id}
+              defaultValue=""
+              disabled={loading}
               onChange={(e) => {
                 const currentProject = projects.find((p) => p._id === e.target.value);
 
                 if (currentProject) {
-                  setSelectedProject(currentProject);
-                  form.setValue('description', currentProject?.description ?? '', {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                    shouldTouch: true,
-                  });
+                  form.setValue('_id', currentProject._id);
+                  form.setValue('name', currentProject?.name!);
+                  form.setValue('description', currentProject?.description!);
                 }
               }}>
               {projects.map((project) => (
-                <MenuItem key={project.name} value={project._id} defaultChecked={project._id === selectedProject?._id}>
+                <MenuItem key={project.name} value={project._id} selected={form.watch('_id') === project._id}>
                   {project.name}
                 </MenuItem>
               ))}
@@ -158,14 +175,15 @@ export default function FromDidSpacesImport() {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={dialogState.close}>{t('cancel')}</Button>
+          <Button onClick={cancelImport}>{t('cancel')}</Button>
           <LoadingButton
             variant="contained"
             type="submit"
             loading={form.formState.isSubmitting}
+            disabled={!form.watch('name')}
             loadingPosition="start"
             startIcon={<Add />}>
-            {t('import.remote')}
+            {t('import.didSpaces')}
           </LoadingButton>
         </DialogActions>
       </Dialog>
