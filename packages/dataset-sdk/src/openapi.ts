@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { readFile, writeFile } from 'fs/promises';
 
 import { Router } from 'express';
 import Enforcer from 'openapi-enforcer';
@@ -53,9 +53,9 @@ export const createSwaggerRouter = (blockletName: string, openapiOptions?: swagg
   router.use('/docs', swaggerUi.serve);
   router.get('/docs', swaggerUi.setup(swaggerSpec, { explorer: true }));
 
-  router.get('/download-dataset', (req, res) => {
+  router.get('/download-dataset', async (req, res) => {
     const result = stringify(swaggerSpec.paths);
-    writeFileSync(req.query.path as string, result);
+    await writeFile(req.query.path as string, result);
     res.json(result);
   });
 
@@ -84,7 +84,7 @@ export const createDatasetAPIRouter = (blockletName: string, filePath: string) =
   }
 
   router.get(`/${OPENAPI_API}`, async (_req, res) => {
-    const json: { [keyof: string]: PathItemObject } = parse(readFileSync(filePath).toString());
+    const json: { [keyof: string]: PathItemObject } = parse(await readFile(filePath).toString());
 
     const list: DatasetObject[] = Object.entries(json || {}).flatMap(([path, pathItem]) =>
       Object.entries(pathItem).map(([method, info]) => {

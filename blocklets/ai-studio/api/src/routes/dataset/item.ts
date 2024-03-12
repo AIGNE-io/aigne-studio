@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 
 import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
@@ -159,19 +159,19 @@ const embeddingHandler: {
     return { name: content.slice(0, 10), content };
   },
   markdown: async (item: DatasetItem) => {
-    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    const content = await readFile((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId);
 
     return { name: content.slice(0, 10), content };
   },
   txt: async (item: DatasetItem) => {
-    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    const content = await readFile((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId);
 
     return { name: content.slice(0, 10), content };
   },
   pdf: async (item: DatasetItem) => {
-    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    const content = await readFile((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId);
 
     return { name: content.slice(0, 10), content };
@@ -300,7 +300,7 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
   if (type === 'base64') {
     buffer = Buffer.from(data, 'base64');
   } else if (type === 'path') {
-    buffer = fs.readFileSync(data);
+    buffer = await readFile(data);
   } else if (type === 'file') {
     buffer = data;
   } else {
@@ -313,7 +313,7 @@ router.post('/:datasetId/items/file', user(), checkUserAuth(), upload.single('da
   }
 
   const filePath = path.join(Config.uploadDir, filename);
-  fs.writeFileSync(filePath, buffer, 'utf8');
+  await writeFile(filePath, buffer, 'utf8');
 
   const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'markdown' | 'txt' | 'pdf';
 
@@ -460,7 +460,7 @@ router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.sin
   if (type === 'base64') {
     buffer = Buffer.from(data, 'base64');
   } else if (type === 'path') {
-    buffer = fs.readFileSync(data);
+    buffer = await readFile(data);
   } else if (type === 'file') {
     buffer = data;
   } else {
@@ -473,7 +473,7 @@ router.put('/:datasetId/items/:itemId/file', user(), checkUserAuth(), upload.sin
   }
 
   const filePath = path.join(Config.uploadDir, filename);
-  fs.writeFileSync(filePath, buffer, 'utf8');
+  await writeFile(filePath, buffer, 'utf8');
 
   const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'markdown' | 'txt' | 'pdf';
 
