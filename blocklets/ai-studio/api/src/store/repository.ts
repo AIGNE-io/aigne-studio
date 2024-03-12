@@ -226,7 +226,7 @@ export async function commitWorking({
 
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
-        if ((await readdir(path.join(repository.options.root, path.dirname(gitkeep))).length) > 1) {
+        if ((await readdir(path.join(repository.options.root, path.dirname(gitkeep)))).length > 1) {
           await rm(path.join(repository.options.root, gitkeep), { force: true });
           await tx.remove({ filepath: gitkeep });
         }
