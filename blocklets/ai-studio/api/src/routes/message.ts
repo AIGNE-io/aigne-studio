@@ -3,6 +3,7 @@ import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 import { uniqBy } from 'lodash';
+import orderBy from 'lodash/orderBy';
 import { FindOptions, Op, cast, col, where } from 'sequelize';
 
 const searchOptionsSchema = Joi.object({
@@ -145,20 +146,23 @@ export function messageRoutes(router: Router) {
         );
       }
 
+      const filterResult = orderBy(
+        results.filter((x) => x.result).filter((x) => !x.error),
+        'createdAt',
+        'asc'
+      );
+
       res.json(
-        results
-          .filter((x) => x.result)
-          .filter((x) => !x.error)
-          .flatMap((i) => [
-            {
-              role: 'user',
-              content: typeof i.parameters === 'string' ? i.parameters : JSON.stringify(i.parameters),
-            },
-            {
-              role: 'assistant',
-              content: typeof i.result === 'string' ? i.result : JSON.stringify(i.result),
-            },
-          ])
+        filterResult.flatMap((i) => [
+          {
+            role: 'user',
+            content: typeof i.parameters === 'string' ? i.parameters : JSON.stringify(i.parameters),
+          },
+          {
+            role: 'assistant',
+            content: typeof i.result === 'string' ? i.result : JSON.stringify(i.result),
+          },
+        ])
       );
     } catch (error) {
       res.status(500).json({ message: error?.message });
