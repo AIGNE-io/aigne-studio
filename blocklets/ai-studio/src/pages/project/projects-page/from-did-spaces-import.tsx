@@ -27,7 +27,7 @@ import { joinURL } from 'ufo';
 import { useProjectsState } from '../../../contexts/projects';
 import { getErrorMessage } from '../../../libs/api';
 import Add from '../icons/add';
-import Git from '../icons/git';
+import DidSpacesLogo from '../icons/did-spaces';
 
 type RemoteRepoSettingForm = {
   name: string;
@@ -103,7 +103,7 @@ export default function FromDidSpacesImport() {
       <Tooltip title={t('import.didSpacesDescription')}>
         <ProjectItemRoot onClick={goToDidSpacesImport} justifyContent="center" alignItems="center">
           <Stack height={60} justifyContent="center" alignItems="center">
-            <Git sx={{ fontSize: 32, color: (theme) => theme.palette.text.disabled }} />
+            <DidSpacesLogo sx={{ fontSize: 32, color: (theme) => theme.palette.text.disabled }} />
           </Stack>
           <Box sx={{ mt: 1, color: (theme) => theme.palette.text.secondary }}>{t('import.didSpaces')}</Box>
         </ProjectItemRoot>

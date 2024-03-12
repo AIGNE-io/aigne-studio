@@ -44,6 +44,7 @@ import { ProjectWithUserInfo, User, copyProject, createProject } from '../../../
 import useDialog from '../../../utils/use-dialog';
 import Add from '../icons/add';
 import ChevronDown from '../icons/chevron-down';
+import DidSpacesLogo from '../icons/did-spaces';
 import DocumentView from '../icons/document-view';
 import Duplicate from '../icons/duplicate';
 import Edit from '../icons/edit';
@@ -438,6 +439,7 @@ function ProjectList({
               gitUrl={item.gitUrl}
               model={item.model}
               users={item.users || []}
+              didSpaceAutoSync={Boolean(item.didSpaceAutoSync)}
               loading={Boolean(itemLoading && item?._id === itemLoading?._id)}
               onClick={async () => {
                 if (section === 'templates') {
@@ -591,6 +593,7 @@ function ProjectItem({
   model,
   users,
   loading = false,
+  didSpaceAutoSync,
   ...props
 }: {
   section: string;
@@ -605,6 +608,7 @@ function ProjectItem({
   users?: User[];
   actions?: ReactNode;
   loading: boolean;
+  didSpaceAutoSync: true | false;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
 
@@ -723,7 +727,7 @@ function ProjectItem({
           {!!formatGitUrl && (
             <Tooltip title={formatGitUrl} placement="top">
               <Box
-                display="flex"
+                display="inline-flex"
                 alignItems="center"
                 mt={0.25}
                 component="a"
@@ -734,6 +738,24 @@ function ProjectItem({
                   e.stopPropagation();
                 }}>
                 <GitHubIcon sx={{ fontSize: 16 }} />
+              </Box>
+            </Tooltip>
+          )}
+          {didSpaceAutoSync && (
+            <Tooltip title="" placement="top">
+              <Box
+                display="inline-flex"
+                alignItems="center"
+                mt={0.25}
+                ml={formatGitUrl ? -1.5 : 'inherit'}
+                component="a"
+                href={formatGitUrl}
+                target="_blank"
+                style={{ color: 'inherit', textDecoration: 'none' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}>
+                <DidSpacesLogo sx={{ fontSize: 16 }} />
               </Box>
             </Tooltip>
           )}
