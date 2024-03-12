@@ -6,6 +6,7 @@ import {
   ImportProjectInput,
   ProjectPullInput,
   ProjectPushInput,
+  SyncTarget,
   UpdateProjectInput,
 } from '../../api/src/routes/project';
 import Project from '../../api/src/store/models/project';
@@ -100,8 +101,6 @@ export async function fromDidSpacesImport({
     .post('/api/import/from-did-spaces/import-project', { endpoint, projectId, props })
     .then((res) => res.data);
 }
-
-export type SyncTarget = 'github' | 'didSpace';
 
 export async function projectSync(projectId: string, target: SyncTarget = 'github'): Promise<{}> {
   return axios.post(`/api/projects/${projectId}/remote/sync?target=${target}`).then((res) => res.data);

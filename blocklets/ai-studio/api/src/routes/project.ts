@@ -3,7 +3,6 @@ import { rm } from 'fs/promises';
 import { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
-import type { SyncTarget } from '@app/libs/project';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -162,6 +161,8 @@ export interface GetTemplateQuery {
 const getTemplateQuerySchema = Joi.object<GetTemplateQuery>({
   working: Joi.boolean().empty([null, '']),
 });
+
+export type SyncTarget = 'github' | 'didSpace';
 
 export function projectRoutes(router: Router) {
   router.get('/projects', ensureComponentCallOrPromptsEditor(), async (_, res) => {
