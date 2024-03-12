@@ -63,7 +63,7 @@ export default function FromDidSpacesImport() {
     },
   });
 
-  const saveSetting = useCallback(
+  const importProject = useCallback(
     async (value: RemoteRepoSettingForm) => {
       try {
         if (!selectedProject?._id) {
@@ -114,7 +114,7 @@ export default function FromDidSpacesImport() {
         maxWidth="sm"
         fullWidth
         component="form"
-        onSubmit={form.handleSubmit(saveSetting)}>
+        onSubmit={form.handleSubmit(importProject)}>
         <DialogTitle>{t('remoteGitRepo')}</DialogTitle>
         <DialogContent>
           <Stack gap={2}>
