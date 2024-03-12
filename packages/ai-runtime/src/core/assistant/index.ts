@@ -870,7 +870,13 @@ async function runExecuteBlock({
                 )
               );
 
-              const response = await getRequest(dataset, requestData, { user, params: sessionId ? { sessionId } : {} });
+              const params: { [key: string]: string } = {
+                sessionId: sessionId || '',
+                userId: user?.did || '',
+                assistantId: assistant.id || '',
+              };
+
+              const response = await getRequest(dataset, requestData, { user, params });
 
               callback?.({
                 type: AssistantResponseType.CHUNK,

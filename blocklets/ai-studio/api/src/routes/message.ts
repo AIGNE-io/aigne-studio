@@ -7,12 +7,19 @@ import { FindOptions, Op, cast, col, where } from 'sequelize';
 
 const searchOptionsSchema = Joi.object({
   sessionId: Joi.string().allow('').optional(),
+  userId: Joi.string().allow('').optional(),
+  assistantId: Joi.string().allow('').optional(),
   limit: Joi.number().integer().min(1).allow('').optional(),
   keyword: Joi.string().allow('').optional(),
 });
 
 interface QueryOptions extends FindOptions {
-  where: { [Op.and]?: any[] };
+  where: {
+    [Op.and]?: any[];
+    sessionId: string;
+    userId?: string;
+    assistantId?: string;
+  };
 }
 
 const getPrevNextHistories = async (currentHistory: History) => {
@@ -21,6 +28,7 @@ const getPrevNextHistories = async (currentHistory: History) => {
       createdAt: {
         [Op.lt]: currentHistory.createdAt,
       },
+      sessionId: currentHistory.sessionId,
     },
     order: [['createdAt', 'DESC']],
     limit: 1,
@@ -31,6 +39,7 @@ const getPrevNextHistories = async (currentHistory: History) => {
       createdAt: {
         [Op.gt]: currentHistory.createdAt,
       },
+      sessionId: currentHistory.sessionId,
     },
     order: [['createdAt', 'ASC']],
     limit: 1,
@@ -42,7 +51,7 @@ const getPrevNextHistories = async (currentHistory: History) => {
 export function messageRoutes(router: Router) {
   /**
    * @openapi
-   * /api/sessions/messages:
+   * /api/messages:
    *   get:
    *     summary: Get history messages
    *     x-summary-zh: 获取历史信息
@@ -92,29 +101,26 @@ export function messageRoutes(router: Router) {
    *                       result:
    *                         type: object
    */
-  router.get('/sessions/messages', user(), async (req, res) => {
+  router.get('/messages', user(), async (req, res) => {
     try {
-      if (req.query?.limit) {
-        // @ts-ignore
-        req.query.limit = Number(req.query.limit);
+      const value = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
+
+      const list = [value.sessionId, value.userId, value.assistantId];
+      if (list.some((x) => !x)) {
+        res.json([{ role: 'assistant', content: '' }]);
+        return;
       }
 
-      const { error, value } = searchOptionsSchema.validate(req.query);
-      if (error) {
-        throw new Error(`Validation error: ${error.message}`);
-      }
-
-      const queryOptions: QueryOptions = { where: {}, order: [['createdAt', 'DESC']] };
-      const conditions = [];
+      const queryOptions: QueryOptions = {
+        where: { sessionId: value.sessionId, userId: value.userId, assistantId: value.assistantId },
+        order: [['createdAt', 'DESC']],
+      };
 
       if (value.limit) {
-        queryOptions.limit = Number(value.limit);
+        queryOptions.limit = value.limit;
       }
 
-      if (value.sessionId) {
-        conditions.push({ sessionId: value.sessionId });
-      }
-
+      const conditions = [];
       if (value.keyword) {
         const condition = `%${value.keyword}%`;
 
@@ -125,7 +131,6 @@ export function messageRoutes(router: Router) {
           ],
         });
       }
-
       if (conditions?.length) {
         queryOptions.where[Op.and] = conditions;
       }
@@ -143,10 +148,17 @@ export function messageRoutes(router: Router) {
       res.json(
         results
           .filter((x) => x.result)
-          .map((i) => ({
-            role: 'system',
-            content: typeof i.result === 'string' ? i.result : JSON.stringify(i.result),
-          }))
+          .filter((x) => !x.error)
+          .flatMap((i) => [
+            {
+              role: 'user',
+              content: typeof i.parameters === 'string' ? i.parameters : JSON.stringify(i.parameters),
+            },
+            {
+              role: 'assistant',
+              content: typeof i.result === 'string' ? i.result : JSON.stringify(i.result),
+            },
+          ])
       );
     } catch (error) {
       res.status(500).json({ message: error?.message });
