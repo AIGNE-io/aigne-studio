@@ -1,3 +1,5 @@
+/* eslint-disable consistent-return */
+import Project from '@api/store/models/project';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -9,13 +11,15 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  MenuItem,
   Stack,
   TextField,
   Tooltip,
   styled,
 } from '@mui/material';
+import { useAsyncEffect } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useEffect, useId } from 'react';
+import { useCallback, useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -30,19 +34,26 @@ type RemoteRepoSettingForm = {
   description: string;
 };
 
-export default function ImportFromDIDSpaces() {
+export default function FromDidSpacesImport() {
   const { t } = useLocaleContext();
   const [search] = useSearchParams();
   const endpoint = search.get('endpoint');
   const id = useId();
   const navigate = useNavigate();
   const dialogState = usePopupState({ variant: 'dialog', popupId: id });
-  const { importProject } = useProjectsState();
+  const { listProjectsByDidSpaces, fromDidSpacesImport } = useProjectsState();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | undefined>(undefined);
 
-  useEffect(() => {
-    if (endpoint) {
-      dialogState.open();
+  useAsyncEffect(async () => {
+    if (!endpoint) {
+      return;
     }
+
+    dialogState.open();
+    const data = await listProjectsByDidSpaces(endpoint);
+    setProjects(data);
+    setSelectedProject(data[0]);
   }, [endpoint]);
 
   const form = useForm<RemoteRepoSettingForm>({
@@ -55,32 +66,42 @@ export default function ImportFromDIDSpaces() {
   const saveSetting = useCallback(
     async (value: RemoteRepoSettingForm) => {
       try {
-        const project = await importProject({} as any);
-        form.reset(value);
+        if (!selectedProject?._id) {
+          return null;
+        }
 
-        currentGitStore.setState({
-          currentProjectId: project._id,
+        const project = await fromDidSpacesImport({
+          endpoint: endpoint!,
+          projectId: selectedProject?._id,
+          props: {
+            description: value.description,
+          },
         });
 
+        currentGitStore.setState({
+          currentProjectId: project?._id,
+        });
         dialogState.close();
-        navigate(joinURL('/projects', project._id!));
+        form.reset(value);
+
+        navigate(joinURL('/projects', project._id));
       } catch (error) {
         form.reset(value);
         Toast.error(getErrorMessage(error));
         throw error;
       }
     },
-    [dialogState, form, importProject, navigate]
+    [dialogState, endpoint, form, fromDidSpacesImport, navigate, selectedProject?._id]
   );
 
-  const fromDidSpacesImport = () => {
+  const goToDidSpacesImport = () => {
     window.location.href = joinURL(window.origin, window.blocklet?.prefix ?? '/', 'api/import/from-did-spaces');
   };
 
   return (
     <>
       <Tooltip title={t('import.didSpaces')}>
-        <ProjectItemRoot onClick={fromDidSpacesImport} justifyContent="center" alignItems="center">
+        <ProjectItemRoot onClick={goToDidSpacesImport} justifyContent="center" alignItems="center">
           <Stack height={60} justifyContent="center" alignItems="center">
             <Git sx={{ fontSize: 32, color: (theme) => theme.palette.text.disabled }} />
           </Stack>
@@ -98,26 +119,40 @@ export default function ImportFromDIDSpaces() {
         <DialogContent>
           <Stack gap={2}>
             <TextField
-              label={t('projectSetting.name')}
-              sx={{ width: 1 }}
               {...form.register('name')}
-              InputProps={{
-                readOnly: true,
-                onFocus: (e) => (e.currentTarget.readOnly = false),
-              }}
-              InputLabelProps={{ shrink: form.watch('name') ? true : undefined }}
-            />
+              select
+              label={t('projectSetting.name')}
+              defaultValue={selectedProject?._id}
+              onChange={(e) => {
+                const currentProject = projects.find((p) => p._id === e.target.value);
+
+                if (currentProject) {
+                  setSelectedProject(currentProject);
+                  form.setValue('description', currentProject?.description ?? '', {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
+                }
+              }}>
+              {projects.map((project) => (
+                <MenuItem key={project.name} value={project._id} defaultChecked={project._id === selectedProject?._id}>
+                  {project.name}
+                </MenuItem>
+              ))}
+            </TextField>
 
             <TextField
+              {...form.register('description')}
               label={t('projectSetting.description')}
               multiline
               rows={4}
               sx={{ width: 1 }}
-              {...form.register('description')}
               InputProps={{
                 readOnly: true,
                 onFocus: (e) => (e.currentTarget.readOnly = false),
               }}
+              focused
             />
           </Stack>
         </DialogContent>

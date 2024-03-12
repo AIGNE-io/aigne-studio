@@ -55,6 +55,10 @@ export async function deleteProject(projectId: string): Promise<Project> {
   return axios.delete(`/api/projects/${projectId}`).then((res) => res.data);
 }
 
+export async function listProjectsByDidSpaces(endpoint: string): Promise<Project[]> {
+  return axios.get(`/api/import/from-did-spaces/list-projects?endpoint=${endpoint}`).then((res) => res.data);
+}
+
 export async function exportAssistantsToProject(
   projectId: string,
   ref: string,
@@ -81,6 +85,20 @@ export async function projectPull(projectId: string, input?: ProjectPullInput): 
 
 export async function projectImport(input?: ImportProjectInput): Promise<Project> {
   return axios.post('/api/projects/import', input).then((res) => res.data);
+}
+
+export async function fromDidSpacesImport({
+  endpoint,
+  projectId,
+  props,
+}: {
+  endpoint: string;
+  projectId: string;
+  props: Pick<Project, 'description'>;
+}): Promise<Project> {
+  return axios
+    .post('/api/import/from-did-spaces/import-project', { endpoint, projectId, props })
+    .then((res) => res.data);
 }
 
 export type SyncTarget = 'github' | 'didSpace';

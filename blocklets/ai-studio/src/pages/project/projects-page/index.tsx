@@ -53,7 +53,7 @@ import Picture from '../icons/picture';
 import Pin from '../icons/pin';
 import PinOff from '../icons/pin-off';
 import Trash from '../icons/trash';
-import ImportFromDIDSpaces from './import-from-did-spaces';
+import FromDidSpacesImport from './from-did-spaces-import';
 import ImportFromGit from './import-from-git';
 
 const CARD_HEIGHT = 160;
@@ -549,7 +549,7 @@ function ProjectList({
 
         {section === 'templates' && (
           <>
-            <ImportFromGit /> <ImportFromDIDSpaces />
+            <ImportFromGit /> <FromDidSpacesImport />
           </>
         )}
       </ProjectListContainer>

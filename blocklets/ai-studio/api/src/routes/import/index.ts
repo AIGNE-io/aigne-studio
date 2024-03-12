@@ -8,7 +8,7 @@ import { listProjects } from './list-projects';
 const importRouter = Router();
 
 importRouter.get('/from-did-spaces/list-projects', user(), listProjects);
-importRouter.get('/from-did-spaces/import-project', user(), importProject);
+importRouter.post('/from-did-spaces/import-project', user(), importProject);
 importRouter.get('/from-did-spaces', user(), fromDidSpaces);
 
 export default importRouter;

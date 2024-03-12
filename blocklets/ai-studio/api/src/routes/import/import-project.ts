@@ -11,7 +11,7 @@ import yaml from 'yaml';
 import { wallet } from '../../libs/auth';
 
 export async function importProject(req: Request, res: Response) {
-  const { endpoint, projectId } = req.query;
+  const { endpoint, projectId, props } = req.body;
 
   const spaceClient = new SpaceClient({
     wallet,
@@ -59,6 +59,7 @@ export async function importProject(req: Request, res: Response) {
   const project = await Project.create({
     ...settings,
     ...projectMetadata,
+    ...props,
   });
 
   return res.send(project);
