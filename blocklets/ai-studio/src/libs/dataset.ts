@@ -9,14 +9,15 @@ import axios from './api';
 export interface DatasetInput {
   name?: string | null;
   description?: string | null;
+  projectId?: string;
 }
 
 export async function getAPIList(): Promise<DatasetObject[]> {
   return axios.get('/api/collections.json').then((res) => res.data);
 }
 
-export async function getDatasets(): Promise<Dataset[]> {
-  return axios.get('/api/dataset').then((res) => res.data);
+export async function getDatasets(projectId?: string): Promise<Dataset[]> {
+  return axios.get('/api/dataset', { params: { projectId } }).then((res) => res.data);
 }
 
 export async function getDataset(datasetId: string): Promise<Dataset> {
@@ -36,7 +37,7 @@ export async function deleteDataset(datasetId: string): Promise<any> {
 }
 
 export async function getDocuments(datasetId: string, params: { page?: number; size?: number }): Promise<any> {
-  return axios.get(`/api/datasets/${datasetId}/document`, { params }).then((res) => res.data);
+  return axios.get(`/api/dataset/${datasetId}/document`, { params }).then((res) => res.data);
 }
 
 export async function getDocument(
@@ -61,10 +62,10 @@ export async function createDocument(
 }
 
 export async function uploadDocument(datasetId: string, form: any): Promise<DatasetItem> {
-  return axios.post(`/api/datasets/${datasetId}/document/file`, form).then((res) => res.data);
+  return axios.post(`/api/dataset/${datasetId}/document/file`, form).then((res) => res.data);
 }
 
-export async function uploadDocumentName(
+export async function uploadDocumentParams(
   datasetId: string,
   documentId: string,
   input: { name: string }

@@ -9,9 +9,9 @@ export interface DatasetsContext {
   datasets: Dataset[];
   loading: boolean;
   error?: Error;
-  refetch: () => Promise<void>;
-  createDataset: typeof createDataset;
-  deleteDataset: typeof deleteDataset;
+  refetch: (projectId?: string) => Promise<void>;
+  createDataset: any;
+  deleteDataset: any;
   createDocument: typeof createDocument;
   getDocuments: typeof getDocuments;
 }
@@ -22,7 +22,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
   const value = useRef<DatasetsContext>({
     datasets: [],
     loading: false,
-    refetch: async () => {
+    refetch: async (projectId?: string) => {
       const state = value.current;
 
       if (state.loading) {
@@ -31,7 +31,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
 
       setValue((v) => (v.loading = true));
       try {
-        const datasets = await getDatasets();
+        const datasets = await getDatasets(projectId);
 
         setValue((v) => {
           v.datasets = datasets;
@@ -43,14 +43,17 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
         setValue((v) => (v.loading = false));
       }
     },
-    createDataset: async (input) => {
+    createDataset: async (
+      projectId: string,
+      input: { name?: string | null; description?: string | null; projectId?: string }
+    ) => {
       const dataset = await createDataset(input);
-      await value.current.refetch();
+      await value.current.refetch(projectId);
       return dataset;
     },
-    deleteDataset: async (datasetId) => {
+    deleteDataset: async (projectId: string, datasetId: string) => {
       await deleteDataset(datasetId);
-      await value.current.refetch();
+      await value.current.refetch(projectId);
     },
     createDocument: async (datasetId, input: { type: string; name: string; content?: string }) => {
       const document = await createDocument(datasetId, input);

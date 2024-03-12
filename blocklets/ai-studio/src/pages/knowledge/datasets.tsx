@@ -19,7 +19,7 @@ import {
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDatasets } from '../../contexts/datasets/datasets';
@@ -33,38 +33,39 @@ type DatasetInput = { name: string; description?: string };
 export default function KnowledgeDatasets() {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
+  const { projectId } = useParams();
 
   const dialogState = usePopupState({ variant: 'dialog' });
   const { datasets, refetch, createDataset, deleteDataset } = useDatasets();
   const form = useForm<DatasetInput>({ defaultValues: { description: '', name: '' } });
 
   useEffect(() => {
-    refetch();
-  }, []);
+    if (projectId) refetch(projectId);
+  }, [projectId]);
 
   const onSave = useCallback(
     async (input: DatasetInput) => {
       try {
-        const dataset = await createDataset(input);
+        const dataset = await createDataset(projectId, { ...input, projectId });
         dialogState.close();
         navigate(`./${dataset.id}`);
       } catch (error) {
         Toast.error(getErrorMessage(error));
       }
     },
-    [t, form]
+    [t, projectId, form]
   );
 
   const onDelete = useCallback(
     async (datasetId: string) => {
       try {
-        await deleteDataset(datasetId);
+        await deleteDataset(projectId, datasetId);
         dialogState.close();
       } catch (error) {
         Toast.error(getErrorMessage(error));
       }
     },
-    [t]
+    [t, projectId]
   );
 
   return (

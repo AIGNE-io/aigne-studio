@@ -36,7 +36,7 @@ import { Link, useParams } from 'react-router-dom';
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useSegments } from '../../contexts/datasets/segments';
 import { getErrorMessage } from '../../libs/api';
-import { uploadDocumentName } from '../../libs/dataset';
+import { uploadDocumentParams } from '../../libs/dataset';
 import Delete from '../project/icons/delete';
 import Edit from '../project/icons/edit';
 import Empty from '../project/icons/empty';
@@ -425,7 +425,7 @@ function UpdateDocumentName({
       component="form"
       onSubmit={form.handleSubmit(async (data) => {
         try {
-          await uploadDocumentName(datasetId || '', documentId || '', data);
+          await uploadDocumentParams(datasetId || '', documentId || '', data);
           form.reset({ name: '' });
 
           onUpdate();

@@ -23,6 +23,8 @@ export default class NewDataset extends Model<InferAttributes<NewDataset>, Infer
   declare updatedBy: string;
 
   declare documents?: number;
+
+  declare projectId?: string;
 }
 
 NewDataset.init(
@@ -52,6 +54,9 @@ NewDataset.init(
     updatedBy: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    projectId: {
+      type: DataTypes.STRING,
     },
   },
   { sequelize }

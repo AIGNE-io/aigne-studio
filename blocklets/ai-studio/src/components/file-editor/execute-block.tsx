@@ -88,7 +88,7 @@ export default function ExecuteBlockForm({
   const { store } = useProjectStore(projectId, gitRef);
 
   const { data: datasets = [] } = useRequest(() => getAPIList());
-  const { data: knowledges = [] } = useRequest(() => getDatasets());
+  const { data: knowledges = [] } = useRequest(() => getDatasets(projectId));
 
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,

@@ -9,9 +9,10 @@ import DatasetItem from '../../store/models/dataset/document';
 
 const router = Router();
 
-const datasetSchema = Joi.object<{ name?: string; description?: string }>({
+const datasetSchema = Joi.object<{ name?: string; description?: string; projectId?: string }>({
   name: Joi.string().allow('').empty(null).default(''),
   description: Joi.string().allow('').empty(null).default(''),
+  projectId: Joi.string().allow('').empty(null).default(''),
 });
 
 /**
@@ -31,10 +32,15 @@ const datasetSchema = Joi.object<{ name?: string; description?: string }>({
 router.get('/', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
 
-  const list = await Dataset.findAll({
-    order: [['createdAt', 'ASC']],
-    where: { [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
-  });
+  const where: any = { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
+
+  const { projectId } = await Joi.object<{ projectId?: string }>({
+    projectId: Joi.string().allow('').empty(null).default(''),
+  }).validateAsync(req.query, { stripUnknown: true });
+
+  if (projectId) where.projectId = projectId;
+
+  const list = await Dataset.findAll({ order: [['createdAt', 'ASC']], where });
 
   res.json(
     await Promise.all(
@@ -72,10 +78,15 @@ router.get('/', user(), checkUserAuth(), async (req, res) => {
 router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
+  const where: { [key: string]: any } = { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
-  const dataset = await Dataset.findOne({
-    where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
-  });
+  const { projectId } = await Joi.object<{ projectId?: string }>({
+    projectId: Joi.string().allow('').empty(null).default(''),
+  }).validateAsync(req.query, { stripUnknown: true });
+
+  if (projectId) where.projectId = projectId;
+
+  const dataset = await Dataset.findOne({ where });
 
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
@@ -109,10 +120,10 @@ router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
  *          x-description-zh: 创建新的数据集
  */
 router.post('/', user(), checkUserAuth(), async (req, res) => {
-  const { name, description } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const { did } = req.user!;
+  const { name, description, projectId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const dataset = await Dataset.create({ name, description, createdBy: did, updatedBy: did });
+  const dataset = await Dataset.create({ name, description, projectId, createdBy: did, updatedBy: did });
   res.json(dataset);
 });
 
@@ -158,8 +169,13 @@ router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
     return;
   }
 
-  const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
-  await Dataset.update({ name, updatedBy: did }, { where: { id: datasetId } });
+  const { name, description, projectId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const params: any = {};
+  if (name) params.name = name;
+  if (description) params.description = description;
+  if (projectId) params.projectId = projectId;
+
+  await Dataset.update({ ...params, updatedBy: did }, { where: { id: datasetId } });
 
   const doc = await Dataset.findOne({ where: { id: datasetId } });
   res.json(doc);
