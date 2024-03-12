@@ -1,3 +1,4 @@
+import { createOrUpdatePaymentForRelease, getPriceFromPaymentLink } from '@api/libs/payment';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -26,7 +27,18 @@ router.get('/', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     order: [['id', 'DESC']],
   });
 
-  res.json({ releases });
+  res.json({
+    releases: await Promise.all(
+      releases.map(async (release) => {
+        return {
+          ...release.dataValues,
+          paymentUnitAmount: release.paymentLinkId
+            ? await getPriceFromPaymentLink({ paymentLinkId: release.paymentLinkId })
+            : undefined,
+        };
+      })
+    ),
+  });
 });
 
 router.get('/:releaseId', async (req, res) => {
@@ -45,7 +57,8 @@ export interface CreateReleaseInput {
   icon?: string;
   title?: string;
   description?: string;
-  withCollection?: boolean;
+  paymentEnabled?: boolean;
+  paymentUnitAmount?: string;
 }
 
 const createReleaseInputSchema = Joi.object<CreateReleaseInput>({
@@ -56,29 +69,42 @@ const createReleaseInputSchema = Joi.object<CreateReleaseInput>({
   icon: Joi.string().allow('', null),
   title: Joi.string().allow('', null),
   description: Joi.string().allow('', null),
-  withCollection: Joi.boolean().default(false),
+  paymentEnabled: Joi.boolean().default(false),
+  paymentUnitAmount: Joi.when('paymentEnabled', {
+    is: true,
+    then: Joi.number().min(0).required().cast('string'),
+  }),
 });
 
 router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-  const { title, template, withCollection, description, assistantId, projectId, projectRef, icon } =
+  const { title, template, description, assistantId, projectId, projectRef, icon, ...input } =
     await createReleaseInputSchema.validateAsync(req.body, { stripUnknown: true });
 
   const { did } = req.user!;
 
-  const doc = await Release.create({
+  const release = await Release.create({
     assistantId,
     projectRef,
     projectId,
     template,
     title,
-    withCollection,
     description,
     icon,
     createdBy: did,
     updatedBy: did,
+    paymentEnabled: input.paymentEnabled,
   });
 
-  res.json(doc);
+  if (input.paymentEnabled && input.paymentUnitAmount) {
+    await createOrUpdatePaymentForRelease(release, { paymentUnitAmount: input.paymentUnitAmount });
+  }
+
+  res.json({
+    ...release.dataValues,
+    paymentUnitAmount: release.paymentLinkId
+      ? await getPriceFromPaymentLink({ paymentLinkId: release.paymentLinkId })
+      : undefined,
+  });
 });
 
 export interface UpdateReleaseInput {
@@ -86,7 +112,8 @@ export interface UpdateReleaseInput {
   icon?: string;
   title?: string;
   description?: string;
-  withCollection?: boolean;
+  paymentEnabled?: boolean;
+  paymentUnitAmount?: string;
 }
 
 const updateReleaseSchema = Joi.object<UpdateReleaseInput>({
@@ -94,7 +121,11 @@ const updateReleaseSchema = Joi.object<UpdateReleaseInput>({
   icon: Joi.string().allow('', null),
   title: Joi.string().allow('', null),
   description: Joi.string().allow('', null),
-  withCollection: Joi.boolean().empty([null]),
+  paymentEnabled: Joi.boolean().default(false),
+  paymentUnitAmount: Joi.when('paymentEnabled', {
+    is: true,
+    then: Joi.number().min(0).required().cast('string'),
+  }),
 });
 
 router.patch('/:releaseId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
@@ -105,9 +136,18 @@ router.patch('/:releaseId', user(), ensureComponentCallOrPromptsEditor(), async 
 
   const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
 
-  await release.update({ ...input, updatedBy: did });
+  await release.update(omitBy({ ...input, updatedBy: did }, (v) => v === undefined));
 
-  res.json(release);
+  if (input.paymentEnabled && input.paymentUnitAmount) {
+    await createOrUpdatePaymentForRelease(release, { paymentUnitAmount: input.paymentUnitAmount });
+  }
+
+  res.json({
+    ...release.dataValues,
+    paymentUnitAmount: release.paymentLinkId
+      ? await getPriceFromPaymentLink({ paymentLinkId: release.paymentLinkId })
+      : undefined,
+  });
 });
 
 router.delete('/:releaseId', ensureComponentCallOrAdmin(), async (req, res) => {

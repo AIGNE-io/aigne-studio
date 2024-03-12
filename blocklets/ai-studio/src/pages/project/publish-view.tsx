@@ -1,4 +1,4 @@
-import { UpdateReleaseInput } from '@api/routes/release';
+import { CreateReleaseInput } from '@api/routes/release';
 import LoadingButton from '@app/components/loading/loading-button';
 import { useUploader } from '@app/contexts/uploader';
 import { getErrorMessage } from '@app/libs/api';
@@ -14,16 +14,21 @@ import {
   Box,
   FormControl,
   FormControlLabel,
+  FormLabel,
   IconButton,
+  InputAdornment,
   InputBase,
   Link,
   Radio,
   RadioGroup,
   Stack,
+  Switch,
+  TextField,
   Typography,
 } from '@mui/material';
 import { alpha, styled as muiStyled } from '@mui/material/styles';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import QRCode from 'react-qr-code';
 import { joinURL, withQuery } from 'ufo';
 
@@ -36,6 +41,7 @@ const TemplateImage = styled('img')({
 
 const StyledFormControlLabel = muiStyled(FormControlLabel)({
   width: '50%',
+  maxWidth: 200,
   margin: 0,
   '& .MuiTypography-root': {
     width: '95%',
@@ -92,22 +98,18 @@ export default function PublishView({
 
   const release = releases?.find((i) => i.projectRef === projectRef && i.assistantId === assistant.id);
 
-  const [settings, setSettings] = useState<UpdateReleaseInput>({ template: 'default' });
+  const form = useForm<CreateReleaseInput>({});
 
   useEffect(() => {
-    setSettings({
+    form.reset({
       template: release?.template || 'default',
       icon: release?.icon || '',
       title: release?.title || '',
       description: release?.description || '',
+      paymentEnabled: release?.paymentEnabled,
+      paymentUnitAmount: release?.paymentUnitAmount,
     });
-  }, [release]);
-
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSettings({ ...settings, template: event.target.value as 'default' | 'blue' | 'green' | 'red' });
-  };
+  }, [form, release]);
 
   const releaseUrl = useMemo(() => {
     if (!release) return undefined;
@@ -118,19 +120,35 @@ export default function PublishView({
     );
   }, [release]);
 
+  const onSubmit = async (input: CreateReleaseInput) => {
+    try {
+      if (!release) {
+        await createRelease({
+          ...input,
+          projectRef,
+          projectId,
+          assistantId: assistant.id,
+        });
+        refetch();
+        Toast.success(t('publish.publishSuccess'));
+      } else {
+        await updateRelease(release.id, input);
+        refetch();
+        Toast.success(t('publish.updateSuccess'));
+      }
+    } catch (error) {
+      Toast.error(getErrorMessage(error));
+      throw error;
+    }
+  };
+
   return (
-    <Stack px={2} mt={1} py={1} gap={2} ml={1}>
+    <Stack px={2} mt={1} py={1} gap={2} ml={1} overflow="auto" component="form" onSubmit={form.handleSubmit(onSubmit)}>
       <FormControl>
         <Typography variant="subtitle2" mb={1}>
           {t('templates')}
         </Typography>
-        <RadioGroup
-          value={settings.template}
-          onChange={handleChange}
-          row
-          sx={{
-            rowGap: 1,
-          }}>
+        <RadioGroup row sx={{ rowGap: 1 }} {...form.register('template')}>
           <StyledFormControlLabel
             labelPlacement="top"
             control={<Radio />}
@@ -165,10 +183,10 @@ export default function PublishView({
         <BaseInput
           id="project-name"
           placeholder={t('publish.titlePlaceholder')}
-          value={settings.title}
-          onChange={(e) => setSettings({ ...settings, title: e.target.value })}
+          {...form.register('title', { setValueAs: (v) => v.trim() })}
         />
       </FormControl>
+
       <FormControl>
         <Typography mb={1} variant="subtitle2">
           {t('publish.description')}
@@ -181,47 +199,81 @@ export default function PublishView({
           placeholder={t('publish.descriptionPlaceholder')}
           minRows={5}
           id="description"
-          value={settings.description}
-          onChange={(e) => setSettings({ ...settings, description: e.target.value })}
+          {...form.register('description', { setValueAs: (v) => v.trim() })}
         />
       </FormControl>
 
       <Box>
         <Typography mb={1} variant="subtitle2">
-          {t('publish.favicon')}
+          {t('publish.logo')}
         </Typography>
 
-        <Box mb={0.5} width="40%">
-          <ImageContainer
-            onClick={() => {
-              // @ts-ignore
-              const uploader = uploaderRef?.current?.getUploader();
+        <Box mb={0.5} width="40%" maxWidth={120}>
+          <Controller
+            name="icon"
+            control={form.control}
+            render={({ field }) => (
+              <ImageContainer
+                onClick={() => {
+                  // @ts-ignore
+                  const uploader = uploaderRef?.current?.getUploader();
 
-              uploader?.open();
+                  uploader?.open();
 
-              uploader.onceUploadSuccess((data: any) => {
-                const { response } = data;
-                const url = response?.data?.url || response?.data?.fileUrl;
-                setSettings({ ...settings, icon: url });
-              });
-            }}>
-            {settings.icon ? (
-              <img className="upload-button" src={settings.icon} alt="" />
-            ) : (
-              <IconButton
-                className="upload-button"
-                key="uploader-trigger"
-                size="small"
-                sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)' }}>
-                <UploadIcon />
-              </IconButton>
+                  uploader.onceUploadSuccess((data: any) => {
+                    const { response } = data;
+                    const url = response?.data?.url || response?.data?.fileUrl;
+                    field.onChange({ target: { value: url } });
+                  });
+                }}>
+                {field.value ? (
+                  <img className="upload-button" src={field.value} alt="" />
+                ) : (
+                  <IconButton
+                    className="upload-button"
+                    key="uploader-trigger"
+                    size="small"
+                    sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)' }}>
+                    <UploadIcon />
+                  </IconButton>
+                )}
+              </ImageContainer>
             )}
-          </ImageContainer>
+          />
         </Box>
+      </Box>
 
-        <Typography variant="caption" color="text.secondary">
-          {t('publish.faviconDescription')}
+      <Box>
+        <Typography mb={1} variant="subtitle2">
+          {t('publish.payment')}
         </Typography>
+
+        <Stack gap={1}>
+          <Stack direction="row" gap={1} alignItems="center">
+            <FormLabel sx={{ width: 60 }}>{t('publish.enabled')}</FormLabel>
+            <Controller
+              name="paymentEnabled"
+              control={form.control}
+              rules={{ required: form.watch('paymentEnabled'), min: 0 }}
+              render={({ field }) => (
+                <FormControl>
+                  <Switch checked={field.value || false} onChange={field.onChange} />
+                </FormControl>
+              )}
+            />
+          </Stack>
+
+          {form.watch('paymentEnabled') && (
+            <Stack direction="row" gap={1} alignItems="center">
+              <FormLabel sx={{ width: 60 }}>{t('publish.price')}</FormLabel>
+              <TextField
+                {...form.register('paymentUnitAmount', { required: form.watch('paymentEnabled') })}
+                hiddenLabel
+                InputProps={{ endAdornment: <InputAdornment position="end">ABT / {t('publish.time')}</InputAdornment> }}
+              />
+            </Stack>
+          )}
+        </Stack>
       </Box>
 
       {release && releaseUrl && (
@@ -249,33 +301,7 @@ export default function PublishView({
       )}
 
       <Stack direction="row" gap={2} alignItems="center" sx={{ mt: 3 }}>
-        <LoadingButton
-          loading={loading}
-          variant="contained"
-          onClick={async () => {
-            try {
-              setLoading(true);
-              if (!release) {
-                await createRelease({
-                  ...settings,
-                  projectRef,
-                  projectId,
-                  assistantId: assistant.id,
-                });
-                refetch();
-                Toast.success(t('publish.publishSuccess'));
-              } else {
-                await updateRelease(release.id, { ...settings });
-                refetch();
-                Toast.success(t('publish.updateSuccess'));
-              }
-            } catch (error) {
-              Toast.error(getErrorMessage(error));
-              throw error;
-            } finally {
-              setLoading(false);
-            }
-          }}>
+        <LoadingButton type="submit" loading={form.formState.isSubmitting} variant="contained">
           {release ? t('publish.update') : t('publish.publishProject')}
         </LoadingButton>
       </Stack>
