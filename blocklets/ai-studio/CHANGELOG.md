@@ -1,6 +1,6 @@
 ## 0.1.282 (2024-3-12)
 
-- fix: use async fs api
+- feat: support history message datasets api
 
 ## 0.1.281 (2024-3-11)
 

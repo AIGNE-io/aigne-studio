@@ -209,6 +209,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       parameters: input.parameters,
       callback: stream ? emit : undefined,
       user: req.user,
+      sessionId: input.sessionId,
     });
 
     if (!stream) {
