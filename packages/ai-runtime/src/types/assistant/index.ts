@@ -30,6 +30,8 @@ type ExecuteBlockCommon = {
   selectByPrompt?: string;
   tools?: Tool[];
   formatResultType?: 'none' | 'asHistory';
+  prefix?: string;
+  suffix?: string;
   variable?: string;
 };
 
@@ -110,7 +112,6 @@ export interface ImageAssistant extends AssistantBase {
   quality?: string;
   style?: string;
   size?: string;
-  responseFormat?: string;
 }
 
 export interface ApiAssistant extends AssistantBase {

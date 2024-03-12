@@ -1,4 +1,6 @@
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
+import { uploadImageToImageBin } from '@api/libs/image-bin';
+import History from '@api/store/models/history';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
 import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import {
@@ -14,7 +16,6 @@ import Joi from 'joi';
 import { pick } from 'lodash';
 
 import { ensureComponentCallOrAuth, ensureComponentCallOrPromptsEditor } from '../libs/security';
-import Log, { Status } from '../store/models/log';
 import Project from '../store/models/project';
 import { getAssistantFromRepository, getRepository } from '../store/repository';
 
@@ -33,12 +34,16 @@ router.post(
 router.post('/image/generations', ensureComponentCallOrPromptsEditor(), proxyToAIKit('/api/v1/image/generations'));
 
 const callInputSchema = Joi.object<{
+  userId?: string;
+  sessionId?: string;
   projectId: string;
   ref: string;
   working?: boolean;
   assistantId: string;
   parameters?: { [key: string]: any };
 }>({
+  userId: Joi.string().empty(['', null]),
+  sessionId: Joi.string().empty(['', null]),
   projectId: Joi.string().required(),
   ref: Joi.string().required(),
   working: Joi.boolean().default(false),
@@ -50,6 +55,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   const stream = req.accepts().includes('text/event-stream');
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
+  const userId = req.user?.did || input.userId;
 
   const project = await Project.findByPk(input.projectId, {
     rejectOnEmpty: new Error(`Project ${input.projectId} not found`),
@@ -98,7 +104,14 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     const imageRes = await imageGenerations({
       ...input,
       ...model,
-    });
+      responseFormat: 'b64_json',
+    }).then(async (res) => ({
+      data: await Promise.all(
+        res.data.map(async (item) => ({
+          url: (await uploadImageToImageBin({ filename: `AI Generate ${Date.now()}.png`, data: item })).url,
+        }))
+      ),
+    }));
 
     if (outputModel) {
       return {
@@ -121,17 +134,45 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
   const assistant = await getAssistant(input.assistantId, { rejectOnEmpty: true });
 
-  const startDate = new Date();
-  const log = await Log.create({
-    templateId: input.assistantId,
-    hash: input.ref || project.gitDefaultBranch,
-    projectId: input.projectId,
-    prompts: isPromptAssistant(assistant) ? assistant.prompts : undefined,
-    parameters: input.parameters,
-    startDate,
-  });
+  let mainTaskId: string | undefined;
+  let error: { message: string } | undefined;
+  const result: { content?: string; images?: { url: string }[] } = {};
+  const executingLogs: { [key: string]: NonNullable<History['executingLogs']>[number] } = {};
 
   const emit = (data: RunAssistantResponse) => {
+    if (data.type === AssistantResponseType.CHUNK || data.type === AssistantResponseType.INPUT) {
+      if (data.type === AssistantResponseType.CHUNK) {
+        mainTaskId ??= data.taskId;
+        if (mainTaskId === data.taskId) {
+          if (data.delta.content) result.content = (result.content || '') + data.delta.content;
+          if (data.delta.images?.length) result.images = (result.images || []).concat(data.delta.images);
+        }
+      }
+
+      executingLogs[data.taskId] ??= {
+        taskId: data.taskId,
+        assistantId: data.assistantId,
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
+      };
+
+      const log = executingLogs[data.taskId]!;
+
+      // 最后一次 callback 时间作为 task 结束时间
+      log.endTime = new Date().toISOString();
+
+      if (data.type === AssistantResponseType.CHUNK) {
+        if (data.delta.content) log.content = (log.content || '') + data.delta.content;
+        if (data.delta.images?.length) log.images = (log.images || []).concat(data.delta.images);
+      } else if (data.type === AssistantResponseType.INPUT) {
+        log.input = data.apiArgs;
+      }
+    } else if (data.type === AssistantResponseType.ERROR) {
+      error = data.error;
+    }
+
+    if (!stream) return;
+
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.flushHeaders();
@@ -141,11 +182,24 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     res.flush();
   };
 
+  const taskId = nextTaskId();
+
+  if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: {} });
+
+  const history = userId
+    ? await History.create({
+        userId,
+        taskId,
+        projectId: input.projectId,
+        ref: input.ref,
+        assistantId: input.assistantId,
+        sessionId: input.sessionId,
+        parameters: input.parameters,
+        generateStatus: 'generating',
+      })
+    : undefined;
+
   try {
-    const taskId = nextTaskId();
-
-    if (stream) emit({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: {} });
-
     const result = await runAssistant({
       callAI,
       callAIImage,
@@ -162,10 +216,6 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     }
 
     res.end();
-
-    const endDate = new Date();
-    const requestTime = endDate.getTime() - startDate.getTime();
-    log.update({ endDate, requestTime, status: Status.SUCCESS, response: result });
   } catch (error) {
     if (stream) {
       emit({ type: AssistantResponseType.ERROR, error: pick(error, 'message', 'type', 'timestamp') });
@@ -173,11 +223,9 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       res.status(500).json({ error: { message: error.message } });
     }
     res.end();
-
-    const endDate = new Date();
-    const requestTime = endDate.getTime() - startDate.getTime();
-    log.update({ endDate, requestTime, status: Status.FAIL, error: error.message });
   }
+
+  await history?.update({ error, result, generateStatus: 'done', executingLogs: Object.values(executingLogs) });
 });
 
 export default router;

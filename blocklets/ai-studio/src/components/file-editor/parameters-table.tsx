@@ -5,10 +5,17 @@ import { InfoOutlined } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Checkbox,
   ClickAwayListener,
+  FormControlLabel,
   Input,
+  List,
+  ListItem,
+  ListSubheader,
   Paper,
   Popper,
+  Radio,
+  RadioGroup,
   Stack,
   Table,
   TableBody,
@@ -21,6 +28,7 @@ import {
 } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { get, sortBy } from 'lodash';
+import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo, useState } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
@@ -78,7 +86,6 @@ export default function ParametersTable({
   const columns = useMemo<GridColDef<(typeof parameters)[number]>[]>(() => {
     return [
       {
-        flex: 1,
         field: 'key',
         headerName: t('variable'),
         renderCell: ({ row: { data: parameter } }) => (
@@ -125,7 +132,6 @@ export default function ParametersTable({
       },
       {
         field: 'placeholder',
-        width: 240,
         renderHeader() {
           return (
             <>
@@ -222,6 +228,17 @@ export default function ParametersTable({
     ];
   }, [t, readOnly, doc, deleteParameter]);
 
+  const settingPopperState = usePopupState({ variant: 'popper' });
+
+  const removeParameter = (key: string) => {
+    doc.transact(() => {
+      if (!value.parameters) return;
+      for (const id of Object.keys(value.parameters)) {
+        if (value.parameters[id]?.data.key === key) delete value.parameters[id];
+      }
+    });
+  };
+
   return (
     <>
       <Box>
@@ -229,16 +246,61 @@ export default function ParametersTable({
           <Typography variant="subtitle1">{t('parameters')}</Typography>
 
           {!readOnly && (
-            <Button
-              sx={{ minWidth: 32, p: 0, minHeight: 32 }}
-              onClick={() => {
-                const id = addParameter('');
-                setTimeout(() => {
-                  document.getElementById(`${id}-key`)?.focus();
-                });
-              }}>
-              <Add />
-            </Button>
+            <Stack direction="row" gap={1}>
+              <Button sx={{ minWidth: 32, p: 0, minHeight: 32 }} {...bindTrigger(settingPopperState)}>
+                <Settings fontSize="small" />
+              </Button>
+
+              <Popper {...bindPopper(settingPopperState)} placement="bottom-end">
+                <ClickAwayListener onClickAway={settingPopperState.close}>
+                  <Paper>
+                    <List dense>
+                      <ListSubheader>{t('mode')}</ListSubheader>
+                      <ListItem>
+                        <RadioGroup
+                          value={parameters.some((i) => i.data.key === 'question') ? 'chat' : 'form'}
+                          onChange={(_, v) => {
+                            if (v === 'chat') {
+                              addParameter('question');
+                            } else {
+                              removeParameter('question');
+                            }
+                          }}>
+                          <FormControlLabel value="form" control={<Radio />} label={t('form.form')} />
+                          <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
+                        </RadioGroup>
+                      </ListItem>
+                      <ListSubheader>{t('dataset')}</ListSubheader>
+                      <ListItem>
+                        <FormControlLabel
+                          control={<Checkbox />}
+                          label={t('withCollectionManage')}
+                          checked={parameters.some((i) => i.data.key === 'datasetId')}
+                          onChange={(_, checked) => {
+                            if (checked) {
+                              addParameter('datasetId');
+                            } else {
+                              removeParameter('datasetId');
+                            }
+                          }}
+                        />
+                      </ListItem>
+                    </List>
+                  </Paper>
+                </ClickAwayListener>
+              </Popper>
+
+              <Button
+                sx={{ minWidth: 32, p: 0, minHeight: 32 }}
+                onClick={() => {
+                  const id = addParameter('');
+                  setTimeout(() => {
+                    document.getElementById(`${id}-key`)?.focus();
+                  });
+                }}>
+                <Add />
+              </Button>
+            </Stack>
           )}
         </Stack>
 

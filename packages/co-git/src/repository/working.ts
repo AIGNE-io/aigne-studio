@@ -316,4 +316,9 @@ export default class Working<T> extends Doc {
     this.autoSave();
     if (flush) this.autoSave.flush();
   };
+
+  override destroy() {
+    this.autoSave.cancel();
+    super.destroy();
+  }
 }
