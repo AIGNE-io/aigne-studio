@@ -94,7 +94,7 @@ export const createDatasetAPIRouter = (
   });
 
   router.get(`/${OPENAPI_API}`, async (_req, res) => {
-    const json: { [keyof: string]: PathItemObject } = parse(await readFile(filePath).toString());
+    const json: { [keyof: string]: PathItemObject } = parse((await readFile(filePath)).toString());
 
     const list: DatasetObject[] = Object.entries(json || {}).flatMap(([path, pathItem]) =>
       Object.entries(pathItem).map(([method, info]) => {
