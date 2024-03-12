@@ -1,3 +1,7 @@
+## 0.1.280 (2024-3-12)
+
+- feat: support history message datasets api
+
 ## 0.1.279 (2024-3-11)
 
 - fix: update runtime url
