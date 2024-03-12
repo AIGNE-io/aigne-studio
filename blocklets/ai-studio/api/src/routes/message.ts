@@ -146,24 +146,14 @@ export function messageRoutes(router: Router) {
         );
       }
 
-      const filterResult = orderBy(
-        results.filter((x) => x.result).filter((x) => !x.error),
-        'createdAt',
-        'asc'
-      );
+      const filterResult = results.filter((x) => x.result && !x.error);
+      const orderResult = orderBy(filterResult, ['createdAt'], ['asc']);
+      const formattedResult = orderResult.flatMap((i) => [
+        { role: 'user', content: typeof i.parameters === 'string' ? i.parameters : JSON.stringify(i.parameters) },
+        { role: 'assistant', content: typeof i.result === 'string' ? i.result : JSON.stringify(i.result) },
+      ]);
 
-      res.json(
-        filterResult.flatMap((i) => [
-          {
-            role: 'user',
-            content: typeof i.parameters === 'string' ? i.parameters : JSON.stringify(i.parameters),
-          },
-          {
-            role: 'assistant',
-            content: typeof i.result === 'string' ? i.result : JSON.stringify(i.result),
-          },
-        ])
-      );
+      res.json(formattedResult);
     } catch (error) {
       res.status(500).json({ message: error?.message });
     }
