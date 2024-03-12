@@ -1,6 +1,9 @@
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
+import { InvalidSubscriptionError } from '@api/libs/error';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
+import { getActiveSubscriptionOfAssistant, reportUsage } from '@api/libs/payment';
 import History from '@api/store/models/history';
+import Release from '@api/store/models/release';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
 import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import {
@@ -56,6 +59,15 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
   const userId = req.user?.did || input.userId;
+
+  const release = await Release.findOne({
+    where: { projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId, paymentEnabled: true },
+  });
+  if (userId && release?.paymentEnabled && release.paymentProductId) {
+    if (!(await getActiveSubscriptionOfAssistant({ release, userId }))) {
+      throw new InvalidSubscriptionError('Your subscription is not available');
+    }
+  }
 
   const project = await Project.findByPk(input.projectId, {
     rejectOnEmpty: new Error(`Project ${input.projectId} not found`),
@@ -217,16 +229,21 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     }
 
     res.end();
-  } catch (error) {
+  } catch (e) {
+    error = { message: e.message };
     if (stream) {
-      emit({ type: AssistantResponseType.ERROR, error: pick(error, 'message', 'type', 'timestamp') });
+      emit({ type: AssistantResponseType.ERROR, error: pick(e, 'message', 'type', 'timestamp') });
     } else {
-      res.status(500).json({ error: { message: error.message } });
+      res.status(500).json({ error: { message: e.message } });
     }
     res.end();
   }
 
   await history?.update({ error, result, generateStatus: 'done', executingLogs: Object.values(executingLogs) });
+
+  if (userId && release?.paymentEnabled && release.paymentProductId) {
+    await reportUsage({ release, userId });
+  }
 });
 
 export default router;

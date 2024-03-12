@@ -25,6 +25,10 @@ export const Config = {
   get uploadDir() {
     return path.join(config.env.dataDir, 'uploads');
   },
+
+  get usageReportThrottleTime() {
+    return 30e3;
+  },
 };
 
 config.events.on(config.Events.envUpdate, () => {

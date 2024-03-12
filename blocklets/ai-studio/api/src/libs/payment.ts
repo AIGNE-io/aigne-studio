@@ -1,7 +1,28 @@
+import History from '@api/store/models/history';
 import Release from '@api/store/models/release';
 import { getAssistantFromRepository, getRepository } from '@api/store/repository';
 import payment from '@blocklet/payment-js';
 import { fromTokenToUnit, fromUnitToToken } from '@ocap/util';
+import { DebouncedFunc, throttle } from 'lodash';
+import { Op } from 'sequelize';
+
+import { Config } from './env';
+import logger from './logger';
+
+export async function getActiveSubscriptionOfAssistant({ release, userId }: { release: Release; userId: string }) {
+  const subscription = (
+    await payment.subscriptions.list({
+      // @ts-ignore TODO: remove ts-ignore after upgrade @did-pay/client
+      'metadata.releaseId': release.id,
+      'metadata.userId': userId,
+    })
+  ).list.find(
+    (i) =>
+      ['active', 'trialing'].includes(i.status) && i.items.some((j) => j.price.product.id === release.paymentProductId)
+  );
+
+  return subscription;
+}
 
 export async function getPriceFromPaymentLink({ paymentLinkId }: { paymentLinkId: string }) {
   const paymentLink = await payment.paymentLinks.retrieve(paymentLinkId);
@@ -77,4 +98,71 @@ export async function createOrUpdatePaymentForRelease(
 
     await release.update({ paymentProductId: product.id, paymentLinkId: paymentLink.id });
   }
+}
+
+const tasks: { [key: string]: DebouncedFunc<(options: { release: Release; userId: string }) => Promise<void>> } = {};
+
+export async function reportUsage({ release, userId }: { release: Release; userId: string }) {
+  const key = `${userId}-${release.id}`;
+  tasks[key] ??= throttle(
+    async ({ release, userId }: { release: Release; userId: string }) => {
+      try {
+        const start = await History.findOne({
+          where: {
+            userId,
+            projectId: release.projectId,
+            ref: release.projectRef,
+            assistantId: release.assistantId,
+            usageReportStatus: { [Op.not]: null },
+          },
+          order: [['id', 'desc']],
+          limit: 1,
+        });
+        const end = await History.findOne({
+          where: {
+            userId,
+            projectId: release.projectId,
+            ref: release.projectRef,
+            assistantId: release.assistantId,
+            id: { [Op.gt]: start?.id || '' },
+          },
+          order: [['id', 'desc']],
+          limit: 1,
+        });
+
+        if (!end) return;
+
+        const count = await History.count({
+          where: {
+            userId,
+            projectId: release.projectId,
+            ref: release.projectRef,
+            assistantId: release.assistantId,
+            id: { [Op.gt]: start?.id || '', [Op.lte]: end.id },
+          },
+        });
+
+        const subscription = await getActiveSubscriptionOfAssistant({ release, userId });
+        if (!subscription) throw new Error('Subscription not active');
+
+        const subscriptionItem = subscription.items.find((i) => i.price.product_id === release.paymentProductId);
+        if (!subscriptionItem) throw new Error(`Subscription item of product ${release.paymentProductId} not found`);
+
+        await end.update({ usageReportStatus: 'counted' });
+
+        await payment.subscriptionItems.createUsageRecord({
+          subscription_item_id: subscriptionItem.id,
+          quantity: count || 0,
+        });
+
+        await end.update({ usageReportStatus: 'reported' });
+      } catch (error) {
+        logger.error('report usage error', { error });
+      }
+    },
+    Config.usageReportThrottleTime,
+    { leading: false, trailing: true }
+  );
+
+  tasks[key]!({ release, userId });
 }

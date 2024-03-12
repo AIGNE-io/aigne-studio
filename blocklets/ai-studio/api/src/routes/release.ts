@@ -1,5 +1,9 @@
-import { createOrUpdatePaymentForRelease, getPriceFromPaymentLink } from '@api/libs/payment';
-import { user } from '@blocklet/sdk/lib/middlewares';
+import {
+  createOrUpdatePaymentForRelease,
+  getActiveSubscriptionOfAssistant,
+  getPriceFromPaymentLink,
+} from '@api/libs/payment';
+import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 import { omitBy } from 'lodash';
@@ -47,6 +51,16 @@ router.get('/:releaseId', async (req, res) => {
   const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
 
   res.json(release);
+});
+
+router.get('/:releaseId/subscription', user(), auth(), async (req, res) => {
+  const { did } = req.user!;
+  const { releaseId } = req.params;
+
+  const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
+  const subscription = await getActiveSubscriptionOfAssistant({ release, userId: did });
+
+  res.json({ subscription });
 });
 
 export interface CreateReleaseInput {
