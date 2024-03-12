@@ -64,12 +64,20 @@ router.get('/:id', async (req, res) => {
     stripUnknown: true,
   });
 
-  const { userId, assistantId } = await Joi.object<{ userId: string; assistantId: string }>({
+  const { userId, assistantId, sessionId } = await Joi.object<{
+    userId: string;
+    assistantId: string;
+    sessionId?: string;
+  }>({
     userId: Joi.string().required(),
     assistantId: Joi.string().required(),
+    sessionId: Joi.string().allow('').empty([null, '']),
   }).validateAsync(req.query, { stripUnknown: true });
 
-  const datasetore = await Datasetore.findOne({ where: { id, userId, assistantId } });
+  const params: any = { id, userId, assistantId };
+  if (sessionId) params.sessionId = sessionId;
+
+  const datasetore = await Datasetore.findOne({ where: params });
   if (!datasetore) {
     res.status(404).json({ error: 'No such datasetore' });
     return;
@@ -101,13 +109,19 @@ router.get('/:id', async (req, res) => {
  *         description: The created datasetore object
  */
 router.post('/', async (req, res) => {
-  const { data, userId, assistantId } = await Joi.object<{ data: object; userId: string; assistantId: string }>({
+  const { data, userId, assistantId, sessionId } = await Joi.object<{
+    data: object;
+    userId: string;
+    assistantId: string;
+    sessionId?: string;
+  }>({
     data: Joi.object().required().default({}),
     userId: Joi.string().required(),
     assistantId: Joi.string().required(),
+    sessionId: Joi.string().allow('').empty([null, '']).default(''),
   }).validateAsync(req.body, { stripUnknown: true });
 
-  const doc = await Datasetore.create({ data, userId, assistantId });
+  const doc = await Datasetore.create({ data, userId, assistantId, sessionId });
   res.json(doc);
 });
 

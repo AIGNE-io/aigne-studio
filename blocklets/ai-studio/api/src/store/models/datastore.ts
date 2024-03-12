@@ -10,6 +10,8 @@ const nextId = () => idGenerator.nextId().toString();
 export default class Datastore extends Model<InferAttributes<Datastore>, InferCreationAttributes<Datastore>> {
   declare id: CreationOptional<string>;
 
+  declare sessionId?: string;
+
   declare userId: string;
 
   declare createdAt: CreationOptional<Date>;
@@ -39,6 +41,9 @@ Datastore.init(
     userId: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    sessionId: {
+      type: DataTypes.STRING,
     },
     createdAt: {
       type: DataTypes.DATE,
