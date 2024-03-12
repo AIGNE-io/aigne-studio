@@ -1,3 +1,4 @@
+import UploaderProvider from '@app/contexts/uploader';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
@@ -289,11 +290,9 @@ export default function ProjectPage() {
         </Stack>
       }
       right={
-        <Stack sx={{ height: '100%', overflow: 'auto' }}>
+        <Stack sx={{ display: 'flex', height: '100%' }}>
           <Box
             sx={{
-              position: 'sticky',
-              top: 0,
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
             }}>
@@ -327,7 +326,7 @@ export default function ProjectPage() {
                 }}>
                 <Tab value="debug" label={t('debug')} />
                 <Tab value="test" label={t('test')} />
-                <Tab value="publish" label={t('publish')} />
+                <Tab value="publish" label={t('publish.publishProject')} />
                 <Tab value="discuss" label={t('discuss')} />
               </Tabs>
 
@@ -345,7 +344,9 @@ export default function ProjectPage() {
             ) : currentTab === 'test' ? (
               <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
             ) : currentTab === 'publish' ? (
-              <PublishView projectId={projectId} gitRef={gitRef} assistant={file} />
+              <UploaderProvider>
+                <PublishView key={file.id} projectId={projectId} projectRef={gitRef} assistant={file} />
+              </UploaderProvider>
             ) : currentTab === 'discuss' ? (
               <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />
             ) : null}
