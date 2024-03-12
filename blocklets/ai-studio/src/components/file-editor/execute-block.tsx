@@ -45,7 +45,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
 import { joinURL } from 'ufo';
 
-import { getDatasetList } from '../../libs/dataset';
+import { getDatasets } from '../../libs/dataset';
 import Add from '../../pages/project/icons/add';
 import External from '../../pages/project/icons/external';
 import InfoOutlined from '../../pages/project/icons/question';
@@ -85,7 +85,7 @@ export default function ExecuteBlockForm({
 
   const { store } = useProjectStore(projectId, gitRef);
 
-  const { data: datasets = [] } = useRequest(() => getDatasetList());
+  const { data: datasets = [] } = useRequest(() => getDatasets());
 
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
