@@ -1,5 +1,3 @@
-import '@blocklet/ai-builtin';
-
 import { join } from 'path';
 import { ReadableStream } from 'stream/web';
 
@@ -31,6 +29,7 @@ import {
 } from '../../types';
 import { ImageAssistant, Mustache, OnTaskCompletion, Role, User, isImageAssistant } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
+import { BuiltinModules } from './builtin';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
@@ -243,6 +242,7 @@ async function runFunctionAssistant({
     console: 'redirect',
     require: {
       external: { modules: ['@blocklet/ai-builtin'], transitive: true },
+      mock: BuiltinModules,
     },
     sandbox: {
       context: {
@@ -544,7 +544,10 @@ async function runPromptAssistant({
 
             return {
               role: prompt.data.role ?? 'system',
-              content: typeof result === 'string' ? result : JSON.stringify(result),
+              content:
+                (await renderMessage(prompt.data.prefix ?? '', variables)) +
+                (typeof result === 'string' ? result : JSON.stringify(result)) +
+                (await renderMessage(prompt.data.suffix ?? '', variables)),
             };
           }
 

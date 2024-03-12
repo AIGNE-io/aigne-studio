@@ -1,6 +1,14 @@
-## 0.1.280 (2024-3-12)
+## 0.1.282 (2024-3-12)
 
 - feat: support history message datasets api
+
+## 0.1.281 (2024-3-11)
+
+- fix: remove useless files after project deleted
+
+## 0.1.280 (2024-3-11)
+
+- feat: add prefix and suffix for execute block output
 
 ## 0.1.279 (2024-3-11)
 

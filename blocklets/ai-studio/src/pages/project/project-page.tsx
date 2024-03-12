@@ -290,11 +290,9 @@ export default function ProjectPage() {
         </Stack>
       }
       right={
-        <Stack sx={{ height: '100%', overflow: 'auto' }}>
+        <Stack sx={{ display: 'flex', height: '100%' }}>
           <Box
             sx={{
-              position: 'sticky',
-              top: 0,
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
             }}>
