@@ -27,9 +27,11 @@ export const repositoryCooperativeRoot = (projectId: string) =>
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
 
-export const clearRepository = (projectId: string) => {
+export async function clearRepository(projectId: string) {
+  const repo = await getRepository({ projectId });
+  await repo.destroy();
   delete repositories[projectId];
-};
+}
 
 export async function getRepository({
   projectId,

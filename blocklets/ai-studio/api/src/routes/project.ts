@@ -1,4 +1,5 @@
-import fs, { cpSync, existsSync, mkdtempSync, rmSync } from 'fs';
+import fs, { cpSync, existsSync, mkdtempSync } from 'fs';
+import { rm } from 'fs/promises';
 import { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
@@ -436,7 +437,7 @@ export function projectRoutes(router: Router) {
 
       res.json(project);
     } finally {
-      rmSync(tempFolder, { recursive: true, force: true });
+      await rm(tempFolder, { recursive: true, force: true });
     }
   });
 
@@ -515,10 +516,13 @@ export function projectRoutes(router: Router) {
 
     await project.destroy();
 
+    await clearRepository(projectId);
+
     const root = repositoryRoot(projectId);
-    rmSync(root, { recursive: true, force: true });
-    rmSync(`${root}.cooperative`, { recursive: true, force: true });
-    clearRepository(projectId);
+    await Promise.all([
+      rm(root, { recursive: true, force: true }),
+      rm(`${root}.cooperative`, { recursive: true, force: true }),
+    ]);
 
     res.json(project);
   });
@@ -656,7 +660,7 @@ export function projectRoutes(router: Router) {
 
     const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
 
-    res.json(pick(assistant, 'id', 'name', 'type', 'parameters', 'createdAt', 'updatedAt'));
+    res.json(pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt'));
   });
 
   router.get(

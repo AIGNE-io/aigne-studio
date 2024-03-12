@@ -92,10 +92,7 @@ export type RunAssistantChunk = {
   assistantId: string;
   delta: {
     content?: string | null;
-    images?: {
-      b64_string?: string;
-      url?: string;
-    }[];
+    images?: { url: string }[];
   };
 };
 

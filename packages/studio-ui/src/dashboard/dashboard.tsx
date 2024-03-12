@@ -60,6 +60,7 @@ export default function Dashboard({
       <Box className="dashboard-header" component="header">
         <Header
           // FIXME: remove following undefined props after issue https://github.com/ArcBlock/ux/issues/1136 solved
+          hideNavMenu={undefined}
           meta={undefined}
           addons={undefined}
           sessionManagerProps={undefined}
