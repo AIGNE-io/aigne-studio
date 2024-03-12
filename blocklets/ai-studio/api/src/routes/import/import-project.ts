@@ -18,10 +18,7 @@ export async function importProject(req: Request, res: Response) {
     // @ts-ignore
     endpoint,
   });
-
   const remoteProjectRootPath: string = `repositories/${projectId}/`;
-  const localeProjectRootPath: string = join(Config.dataDir, `repositories/${projectId}/`);
-
   const { metadata: projectMetadata } = await spaceClient.send(
     new ListObjectCommand({
       key: remoteProjectRootPath,
@@ -34,24 +31,28 @@ export async function importProject(req: Request, res: Response) {
       `The project(${oldProject.name}) already exists and cannot be imported. Please delete the existing project and try again.`
     );
 
-  const output = await spaceClient.send(
-    new SyncFolderPullCommand({
-      source: remoteProjectRootPath,
-      target: localeProjectRootPath,
-    })
-  );
-
-  if (!output) {
-    throw new Error('ok');
-  }
+  const localeProjectRootPath: string = join(Config.dataDir, `repositories/${projectId}/`);
   const remoteProjectCooperativeRootPath: string = `repositories/${projectId}.cooperative`;
   const localeProjectCooperativeRootPath: string = join(Config.dataDir, `repositories/${projectId}.cooperative/`);
-  await spaceClient.send(
-    new SyncFolderPullCommand({
-      source: remoteProjectCooperativeRootPath,
-      target: localeProjectCooperativeRootPath,
-    })
-  );
+  const outputs = await Promise.all([
+    spaceClient.send(
+      new SyncFolderPullCommand({
+        source: remoteProjectRootPath,
+        target: localeProjectRootPath,
+      })
+    ),
+    spaceClient.send(
+      new SyncFolderPullCommand({
+        source: remoteProjectCooperativeRootPath,
+        target: localeProjectCooperativeRootPath,
+      })
+    ),
+  ]);
+  // 如果有错误则抛出
+  const errorOutput = outputs.filter(Boolean).find((output) => output?.statusCode !== 200);
+  if (errorOutput) {
+    throw new Error(errorOutput.message);
+  }
 
   const settingsPath = join(localeProjectRootPath, SETTINGS_FILE);
   const settings: Project = yaml.parse(readFileSync(settingsPath, 'utf-8'));
