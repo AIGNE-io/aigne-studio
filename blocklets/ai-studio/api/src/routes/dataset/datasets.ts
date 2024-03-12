@@ -5,7 +5,7 @@ import { Op } from 'sequelize';
 
 import { checkUserAuth } from '../../libs/user';
 import Dataset from '../../store/models/dataset/dataset';
-import DatasetItem from '../../store/models/dataset/document';
+import DatasetDocument from '../../store/models/dataset/document';
 
 const router = Router();
 
@@ -45,7 +45,7 @@ router.get('/', user(), checkUserAuth(), async (req, res) => {
   res.json(
     await Promise.all(
       list.map(async (item) => {
-        item.dataValues.documents = await DatasetItem.count({ where: { datasetId: item.id } });
+        item.dataValues.documents = await DatasetDocument.count({ where: { datasetId: item.id } });
         return item;
       })
     )

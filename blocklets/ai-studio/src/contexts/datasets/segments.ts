@@ -3,14 +3,14 @@ import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Dataset from '../../../api/src/store/models/dataset/dataset';
-import DatasetItem from '../../../api/src/store/models/dataset/document';
+import DatasetDocument from '../../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../../api/src/store/models/dataset/segment';
 import { getErrorMessage } from '../../libs/api';
 import { createSegment, deleteSegment, getDocument, getSegments, updateSegment } from '../../libs/dataset';
 
 interface SegmentState {
   dataset?: Dataset;
-  document?: DatasetItem;
+  document?: DatasetDocument;
   segments?: DatasetSegment[];
   loading?: boolean;
   error?: Error;

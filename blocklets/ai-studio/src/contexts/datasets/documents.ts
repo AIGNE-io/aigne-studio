@@ -3,13 +3,13 @@ import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Dataset from '../../../api/src/store/models/dataset/dataset';
-import DatasetItem from '../../../api/src/store/models/dataset/document';
+import DatasetDocument from '../../../api/src/store/models/dataset/document';
 import { getErrorMessage } from '../../libs/api';
 import { deleteDocument, getDataset, getDocuments, uploadDocument } from '../../libs/dataset';
 
 interface DatasetState {
   dataset?: Dataset;
-  items?: DatasetItem[];
+  items?: DatasetDocument[];
   page: number;
   size: number;
   total?: number;

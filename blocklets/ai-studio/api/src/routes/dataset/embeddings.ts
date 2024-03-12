@@ -7,7 +7,7 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { Op } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
-import DatasetItem from '../../store/models/dataset/document';
+import DatasetDocument from '../../store/models/dataset/document';
 import Segment from '../../store/models/dataset/segment';
 import VectorStore from '../../store/vector-store';
 
@@ -39,12 +39,12 @@ const embeddingDiscussionItem = async ({
 };
 
 const embeddingHandler: {
-  [key in NonNullable<DatasetItem['type']>]: (
-    item: DatasetItem & { data: { type: key } },
+  [key in NonNullable<DatasetDocument['type']>]: (
+    item: DatasetDocument & { data: { type: key } },
     documentId: string
   ) => Promise<{ name: string; content: string } | undefined>;
 } = {
-  discussion: async (item: DatasetItem, documentId: string) => {
+  discussion: async (item: DatasetDocument, documentId: string) => {
     if ((item?.data as any)?.fullSite) {
       await embeddingDiscussion({ datasetId: item.datasetId, documentId });
       return undefined;
@@ -52,30 +52,30 @@ const embeddingHandler: {
 
     return embeddingDiscussionItem({ datasetId: item.datasetId, discussionId: (item.data as any).id, documentId });
   },
-  text: async (item: DatasetItem, documentId: string) => {
+  text: async (item: DatasetDocument, documentId: string) => {
     const content = (item.data as any)?.content;
     await saveContentToVectorStore(content, item.datasetId, documentId);
     return { name: '', content };
   },
-  md: async (item: DatasetItem, documentId: string) => {
+  md: async (item: DatasetDocument, documentId: string) => {
     const content = fs.readFileSync((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: '', content };
   },
-  txt: async (item: DatasetItem, documentId: string) => {
+  txt: async (item: DatasetDocument, documentId: string) => {
     const content = fs.readFileSync((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: '', content };
   },
-  pdf: async (item: DatasetItem, documentId: string) => {
+  pdf: async (item: DatasetDocument, documentId: string) => {
     const content = fs.readFileSync((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: '', content };
   },
-  doc: async (item: DatasetItem, documentId: string) => {
+  doc: async (item: DatasetDocument, documentId: string) => {
     const content = fs.readFileSync((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
@@ -163,7 +163,7 @@ export const runHandlerAndSaveContent = async (itemId: string) => {
   if (!task) {
     task = {
       promise: (async () => {
-        const item = await DatasetItem.findOne({ where: { id: itemId } });
+        const item = await DatasetDocument.findOne({ where: { id: itemId } });
         if (!item) throw new Error(`Dataset item ${itemId} not found`);
         if (!item.data) return;
 
@@ -176,10 +176,10 @@ export const runHandlerAndSaveContent = async (itemId: string) => {
           if (result) {
             const { name, content } = result;
             const params = name ? { error: '', content, name } : { error: '', content };
-            await DatasetItem.update(params, { where: { id: itemId } });
+            await DatasetDocument.update(params, { where: { id: itemId } });
           }
         } catch (error) {
-          await DatasetItem.update({ error: error.message }, { where: { id: itemId } });
+          await DatasetDocument.update({ error: error.message }, { where: { id: itemId } });
 
           throw error;
         } finally {
@@ -197,7 +197,7 @@ export const runHandlerAndSaveContent = async (itemId: string) => {
 };
 
 export const resetVectorStoreEmbedding = async (datasetId: string) => {
-  const datasetItems = await DatasetItem.findAll({ where: { datasetId } });
+  const datasetItems = await DatasetDocument.findAll({ where: { datasetId } });
   if (!datasetItems?.length) return;
 
   await VectorStore.reset(datasetId);

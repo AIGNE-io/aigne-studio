@@ -2,7 +2,7 @@ import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 
 import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset/documents';
 import Dataset from '../../api/src/store/models/dataset/dataset';
-import DatasetItem from '../../api/src/store/models/dataset/document';
+import DatasetDocument from '../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../api/src/store/models/dataset/segment';
 import axios from './api';
 
@@ -43,25 +43,25 @@ export async function getDocuments(datasetId: string, params: { page?: number; s
 export async function getDocument(
   datasetId: string,
   documentId: string
-): Promise<{ dataset: Dataset; document: DatasetItem }> {
+): Promise<{ dataset: Dataset; document: DatasetDocument }> {
   return axios.get(`/api/dataset/${datasetId}/document/${documentId}`).then((res) => res.data);
 }
 
 export async function deleteDocument(
   datasetId: string,
   documentId: string
-): Promise<{ dataset: Dataset; document: DatasetItem }> {
+): Promise<{ dataset: Dataset; document: DatasetDocument }> {
   return axios.delete(`/api/dataset/${datasetId}/document/${documentId}`).then((res) => res.data);
 }
 
 export async function createDocument(
   datasetId: string,
   input: { type: string; name: string; content?: string }
-): Promise<DatasetItem> {
+): Promise<DatasetDocument> {
   return axios.post(`/api/dataset/${datasetId}/document`, input).then((res) => res.data);
 }
 
-export async function uploadDocument(datasetId: string, form: any): Promise<DatasetItem> {
+export async function uploadDocument(datasetId: string, form: any): Promise<DatasetDocument> {
   return axios.post(`/api/dataset/${datasetId}/document/file`, form).then((res) => res.data);
 }
 
@@ -100,11 +100,11 @@ export async function updateSegment(
     .then((res) => res.data);
 }
 
-export async function createDatasetDocuments(datasetId: string, input: CreateItem): Promise<DatasetItem>;
-export async function createDatasetDocuments(datasetId: string, input: CreateItem[]): Promise<DatasetItem[]>;
+export async function createDatasetDocuments(datasetId: string, input: CreateItem): Promise<DatasetDocument>;
+export async function createDatasetDocuments(datasetId: string, input: CreateItem[]): Promise<DatasetDocument[]>;
 export async function createDatasetDocuments(
   datasetId: string,
   input: CreateItemInput
-): Promise<DatasetItem | DatasetItem[]> {
+): Promise<DatasetDocument | DatasetDocument[]> {
   return axios.post(`/api/dataset/${datasetId}/documents`, input).then((res) => res.data);
 }
