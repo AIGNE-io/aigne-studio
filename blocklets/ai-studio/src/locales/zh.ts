@@ -100,8 +100,9 @@ export default flat({
   import: {
     title: '导入模板数据',
     remote: '从 Git 仓库导入',
-    didSpaces: '从 DID Spaces 导入',
     remoteDescription: '从现有的 git 存储库中导入项目，如 GitHub。',
+    didSpaces: '从 DID Spaces 导入',
+    didSpacesDescription: '从已绑定的 DID Spaces 中导入项目',
     selectProject: '选择项目',
     selectBranch: '选择分支',
     templates: '模板数据',

@@ -264,7 +264,15 @@
   resolved "https://registry.yarnpkg.com/@arcblock/icons/-/icons-2.9.44.tgz#6c1438cae9e33a78d65160530764de7bd03757ed"
   integrity sha512-hWQfT1hT+BSPlIuXs9L3o6w7AHp2L18R6f+URaGAP9wo5Zf2SK+EAuEEzOvKXp2HkrxlsPpRZtI6myK/3vb9tw==
 
-"@arcblock/jwt@1.18.110", "@arcblock/jwt@1.18.113", "@arcblock/jwt@^1.18.113", "@arcblock/jwt@^1.18.95":
+"@arcblock/ipfs-only-hash@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@arcblock/ipfs-only-hash/-/ipfs-only-hash-0.0.2.tgz#9e5d65aa56e5f4c58c8fef1f6f354c8f00ede28a"
+  integrity sha512-dFgQrlZMHlnj3JMvV2uNuBl20+BdIKhicTpmuM2XZRslqEZGwFPdpGYl3g9chCjofO+aWuAaRW2nb3IilC8XmA==
+  dependencies:
+    ipfs-unixfs-importer "9"
+    multiformats "9"
+
+"@arcblock/jwt@1.18.110", "@arcblock/jwt@1.18.113", "@arcblock/jwt@^1.18.110", "@arcblock/jwt@^1.18.113", "@arcblock/jwt@^1.18.95":
   version "1.18.113"
   resolved "https://registry.yarnpkg.com/@arcblock/jwt/-/jwt-1.18.113.tgz#6e4987f874891fe1931068fe7dcfe58f32d2fba2"
   integrity sha512-ZrP6Jw6+Nx/kfjo8vywggf3RnLxA6jCwOVEa8oMJaDFJ3L5ZI1joTpXm1FxqomYezR6iaUYgsyZRqH4kRlUBOQ==
@@ -357,7 +365,7 @@
     topojson-client "^3.1.0"
     versor "^0.0.4"
 
-"@arcblock/validator@1.18.113", "@arcblock/validator@^1.18.95":
+"@arcblock/validator@1.18.113", "@arcblock/validator@^1.18.110", "@arcblock/validator@^1.18.95":
   version "1.18.113"
   resolved "https://registry.yarnpkg.com/@arcblock/validator/-/validator-1.18.113.tgz#19039799871227c25c7fcd1cd384caab3ab4ed02"
   integrity sha512-SQ9BM43JOhK6sFKQZ88Nbi0puVBDKTfohBTYpT2wK9sLOFZ+pydHcIuunoz9gtdTO5qDopKMS23NxAcoeF0fAQ==
@@ -394,6 +402,11 @@
     lodash "^4.17.21"
     phoenix "1.7.2"
     ws "^8.9.0"
+
+"@assemblyscript/loader@^0.9.4":
+  version "0.9.4"
+  resolved "https://registry.yarnpkg.com/@assemblyscript/loader/-/loader-0.9.4.tgz#a483c54c1253656bb33babd464e3154a173e1577"
+  integrity sha512-HazVq9zwTVwGmqdwYzu7WyQ6FQVZ7SwET0KKQuKm55jD0IfUpZgN0OPIiZG3zV1iSrVYcN0bdwLRXI/VNCYsUA==
 
 "@auth0/auth0-react@^2.2.4":
   version "2.2.4"
@@ -1404,7 +1417,7 @@
     resize-observer-polyfill "^1.5.1"
     ufo "^1.1.2"
 
-"@blocklet/env@1.16.24":
+"@blocklet/env@1.16.24", "@blocklet/env@^1.16.23":
   version "1.16.24"
   resolved "https://registry.yarnpkg.com/@blocklet/env/-/env-1.16.24.tgz#efa4acfb266ee465203c343f4ab29bb2d8d08a03"
   integrity sha512-kSTVZ9+o6cP2nZHIxhUPCjGauKpsshuYCtCuIl9r8nqSIwg4WVycYDO6gPFZhrMR4C2PGZTnD0oAKPMXn+r1TQ==
@@ -3051,7 +3064,7 @@
     lodash "^4.17.21"
     utf8 "^3.0.0"
 
-"@ocap/wallet@1.18.110", "@ocap/wallet@1.18.113", "@ocap/wallet@^1.18.113", "@ocap/wallet@^1.18.95":
+"@ocap/wallet@1.18.110", "@ocap/wallet@1.18.113", "@ocap/wallet@^1.18.110", "@ocap/wallet@^1.18.113", "@ocap/wallet@^1.18.95":
   version "1.18.113"
   resolved "https://registry.yarnpkg.com/@ocap/wallet/-/wallet-1.18.113.tgz#99ad6c158447994398da7b8d1f2022613e3e5246"
   integrity sha512-PGXj4p4AqHc13tiL5XxxreylAh0qYCOi6zKRa0ysIE0HN9Kxjp01j8i/xJsFx7nHQUkqPOoCxEGAp8cemE0GqQ==

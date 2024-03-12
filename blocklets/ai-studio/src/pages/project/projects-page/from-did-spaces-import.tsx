@@ -100,7 +100,7 @@ export default function FromDidSpacesImport() {
 
   return (
     <>
-      <Tooltip title={t('import.didSpaces')}>
+      <Tooltip title={t('import.didSpacesDescription')}>
         <ProjectItemRoot onClick={goToDidSpacesImport} justifyContent="center" alignItems="center">
           <Stack height={60} justifyContent="center" alignItems="center">
             <Git sx={{ fontSize: 32, color: (theme) => theme.palette.text.disabled }} />
