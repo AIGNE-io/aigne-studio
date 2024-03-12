@@ -4,13 +4,11 @@ import { Op } from 'sequelize';
 
 import Datasetore from '../store/models/datastore';
 
-// import { sequelize } from '../store/sequelize';
-
 const router = Router();
 
 /**
  * @openapi
- * /api/datastore/list:
+ * /api/datastore:
  *   get:
  *     summary: Lists all datasetores
  *     description: Retrieve a list of datasetores with optional query parameters to filter the results.
@@ -27,7 +25,7 @@ const router = Router();
  *       200:
  *         description: A JSON array of datasetores
  */
-router.get('/list', async (req, res) => {
+router.get('/', async (req, res) => {
   const querySchema = Joi.object().pattern(Joi.string(), Joi.string());
   const query: { [key: string]: string } = await querySchema.validateAsync(req.query || {});
 
@@ -66,7 +64,12 @@ router.get('/:id', async (req, res) => {
     stripUnknown: true,
   });
 
-  const datasetore = await Datasetore.findOne({ where: { id } });
+  const { userId, assistantId } = await Joi.object<{ userId: string; assistantId: string }>({
+    userId: Joi.string().required(),
+    assistantId: Joi.string().required(),
+  }).validateAsync(req.query, { stripUnknown: true });
+
+  const datasetore = await Datasetore.findOne({ where: { id, userId, assistantId } });
   if (!datasetore) {
     res.status(404).json({ error: 'No such datasetore' });
     return;
@@ -77,7 +80,7 @@ router.get('/:id', async (req, res) => {
 
 /**
  * @openapi
- * /api/datastore/create:
+ * /api/datastore:
  *   post:
  *     summary: Creates a new datasetore
  *     description: Add a new datasetore to the collection.
@@ -97,13 +100,14 @@ router.get('/:id', async (req, res) => {
  *       200:
  *         description: The created datasetore object
  */
-router.post('/create', async (req, res) => {
-  const { data } = await Joi.object<{ data: object }>({ data: Joi.object().required().default({}) }).validateAsync(
-    req.body,
-    { stripUnknown: true }
-  );
+router.post('/', async (req, res) => {
+  const { data, userId, assistantId } = await Joi.object<{ data: object; userId: string; assistantId: string }>({
+    data: Joi.object().required().default({}),
+    userId: Joi.string().required(),
+    assistantId: Joi.string().required(),
+  }).validateAsync(req.body, { stripUnknown: true });
 
-  const doc = await Datasetore.create({ data });
+  const doc = await Datasetore.create({ data, userId, assistantId });
   res.json(doc);
 });
 

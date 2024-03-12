@@ -13,6 +13,14 @@ export const up: Migration = async ({ context: queryInterface }) => {
     data: {
       type: DataTypes.JSON,
     },
+    assistantId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    userId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     createdAt: {
       type: DataTypes.DATE,
     },
