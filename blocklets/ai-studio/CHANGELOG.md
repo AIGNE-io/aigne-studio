@@ -1,3 +1,11 @@
+## 0.1.283 (2024-3-12)
+
+- feat: support keystore db for json search
+
+## 0.1.282 (2024-3-12)
+
+- feat: support history message datasets api
+
 ## 0.1.281 (2024-3-11)
 
 - fix: remove useless files after project deleted

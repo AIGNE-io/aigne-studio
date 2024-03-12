@@ -13,8 +13,15 @@ export interface User {
   walletOS: string;
 }
 
-export const getRequest = (pathItem: DatasetObject, requestData: { [key: string]: any }, options?: { user?: User }) => {
-  const requestConfig = getRequestConfig(pathItem, requestData);
+export const getRequest = (
+  pathItem: DatasetObject,
+  requestData: { [key: string]: any },
+  options?: { user?: User; params?: { [key: string]: any }; data?: { [key: string]: any } }
+) => {
+  const requestConfig = getRequestConfig(pathItem, requestData, {
+    params: options?.params || {},
+    data: options?.data || {},
+  });
   const { headers, ...config } = requestConfig;
   let did = '';
 

@@ -53,12 +53,6 @@ export const createSwaggerRouter = (blockletName: string, openapiOptions?: swagg
   router.use('/docs', swaggerUi.serve);
   router.get('/docs', swaggerUi.setup(swaggerSpec, { explorer: true }));
 
-  router.get('/download-dataset', (req, res) => {
-    const result = stringify(swaggerSpec.paths);
-    writeFileSync(req.query.path as string, result);
-    res.json(result);
-  });
-
   router.get(`/${DOCS_API}`, async (_req, res) => {
     try {
       await validate(swaggerSpec);
@@ -76,12 +70,28 @@ export const createSwaggerRouter = (blockletName: string, openapiOptions?: swagg
   return router;
 };
 
-export const createDatasetAPIRouter = (blockletName: string, filePath: string) => {
+export const createDatasetAPIRouter = (
+  blockletName: string,
+  filePath: string,
+  openapiOptions?: swaggerJSDoc.Options
+) => {
   const router = Router();
 
   if (!blockletName) {
     throw new Error('blockletName must be provided to createSwaggerRouter');
   }
+
+  const options = Object.assign(
+    { failOnErrors: true, definition: { openapi: '3.0.0', info: { title: 'Dataset Protocol', version: '1.0.0' } } },
+    openapiOptions || {}
+  );
+  const swaggerSpec = swaggerJSDoc(options) as OpenAPIObject;
+
+  router.get('/download-apis', (req, res) => {
+    const result = stringify(swaggerSpec.paths);
+    writeFileSync(req.query.path as string, result);
+    res.json({ apis: swaggerSpec.paths });
+  });
 
   router.get(`/${OPENAPI_API}`, async (_req, res) => {
     const json: { [keyof: string]: PathItemObject } = parse(readFileSync(filePath).toString());
