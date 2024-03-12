@@ -159,15 +159,9 @@ router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
   }
 
   const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
-
-  if (name && (await Dataset.findOne({ where: { name, id: { [Op.ne]: dataset.id } } }))) {
-    throw new Error(`Duplicated dataset ${name}`);
-  }
-
   await Dataset.update({ name, updatedBy: did }, { where: { id: datasetId } });
 
   const doc = await Dataset.findOne({ where: { id: datasetId } });
-
   res.json(doc);
 });
 
