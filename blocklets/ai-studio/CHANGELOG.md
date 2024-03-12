@@ -1,3 +1,7 @@
+## 0.1.282 (2024-3-12)
+
+- fix: use async fs api
+
 ## 0.1.281 (2024-3-11)
 
 - fix: remove useless files after project deleted
