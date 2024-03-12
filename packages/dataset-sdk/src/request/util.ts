@@ -1,7 +1,11 @@
 import { DatasetObject, RequestBodyObject } from '../types';
 import convertSchemaToObject from '../util/convert-schema';
 
-export const getRequestConfig = (pathItem: DatasetObject, requestData: { [key: string]: any }) => {
+export const getRequestConfig = (
+  pathItem: DatasetObject,
+  requestData: { [key: string]: any },
+  options?: { params: { [key: string]: any }; data: { [key: string]: any } }
+) => {
   let url = pathItem?.path || '';
   const config: {
     url: string;
@@ -15,8 +19,8 @@ export const getRequestConfig = (pathItem: DatasetObject, requestData: { [key: s
     method: pathItem.method,
     url,
     headers: {},
-    params: {},
-    data: {},
+    params: options?.params || {},
+    data: options?.data || {},
     cookies: {},
   };
 
