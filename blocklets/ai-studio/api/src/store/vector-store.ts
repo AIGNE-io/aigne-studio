@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, rmSync } from 'fs';
+import { mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 
+import { pathExists } from 'fs-extra';
 import { Embeddings } from 'langchain/dist/embeddings/base';
 import { HNSWLib, HNSWLibArgs } from 'langchain/vectorstores/hnswlib';
 
@@ -40,14 +41,14 @@ export default class VectorStore extends HNSWLib {
       store = (async () => {
         let hnsw: HNSWLib;
 
-        if (existsSync(storePath)) {
+        if (await pathExists(storePath)) {
           try {
             hnsw = await HNSWLib.load(storePath, embeddings);
           } catch (error) {
             logger.error('HNSWLib load from path error', { error });
           }
         }
-        mkdirSync(storePath, { recursive: true });
+        await mkdir(storePath, { recursive: true });
         hnsw ??= await HNSWLib.fromDocuments([], embeddings);
 
         return new VectorStore(storePath, hnsw.embeddings, hnsw.args);
@@ -64,6 +65,6 @@ export default class VectorStore extends HNSWLib {
   static async remove(datasetId: string) {
     vectorStores.delete(datasetId);
     const path = vectorStorePath(datasetId);
-    await rmSync(path, { recursive: true, force: true });
+    await rm(path, { recursive: true, force: true });
   }
 }
