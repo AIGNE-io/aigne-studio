@@ -1,3 +1,9 @@
+## 0.1.284 (2024-3-13)
+
+- chore: add pages-kit component dep
+- feat: check user subscription and report usage if needed
+- feat: support config payment for release
+
 ## 0.1.283 (2024-3-12)
 
 - fix: use async fs api
