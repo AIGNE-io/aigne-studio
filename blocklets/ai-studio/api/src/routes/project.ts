@@ -1,5 +1,5 @@
-import fs, { cpSync, existsSync, mkdtempSync } from 'fs';
-import { rm } from 'fs/promises';
+import fs from 'fs';
+import { cp, mkdtemp, rm } from 'fs/promises';
 import { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
@@ -7,6 +7,7 @@ import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
+import { pathExists } from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
 import Joi from 'joi';
@@ -186,7 +187,7 @@ export function projectRoutes(router: Router) {
         [
           ...projectTemplates,
           ...projects.filter((i) => i.projectType === 'template'),
-          ...getResourceProjects('template').map((x) => {
+          ...(await getResourceProjects('template')).map((x) => {
             x.fromResourceBlockletFolder = 'template';
             return x;
           }),
@@ -197,7 +198,7 @@ export function projectRoutes(router: Router) {
       examples: uniqBy(
         [
           ...projects.filter((i) => i.projectType === 'example'),
-          ...getResourceProjects('example').map((x) => {
+          ...(await getResourceProjects('example')).map((x) => {
             x.fromResourceBlockletFolder = 'example';
             return x;
           }),
@@ -234,7 +235,7 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findOne({ where: { _id: projectId } });
     if (!project) {
-      const found = await getResourceProjects('example').find((x) => x._id === projectId);
+      const found = (await getResourceProjects('example')).find((x) => x._id === projectId);
       if (found) {
         res.json(found);
         return;
@@ -364,7 +365,7 @@ export function projectRoutes(router: Router) {
     let originProject;
     let originDefaultBranch = defaultBranch;
 
-    const tempFolder = mkdtempSync(join(Config.dataDir, 'repositories', 'temp-'));
+    const tempFolder = await mkdtemp(join(Config.dataDir, 'repositories', 'temp-'));
     try {
       await git.clone({ fs, dir: tempFolder, http, url: uri.toString() });
 
@@ -771,9 +772,9 @@ async function copyProject({
   });
 
   const parent = dirname(repo.root);
-  cpSync(repo.root, join(parent, project._id!), { recursive: true });
-  if (existsSync(`${repo.root}.cooperative`)) {
-    cpSync(`${repo.root}.cooperative`, join(parent, `${project._id}.cooperative`), { recursive: true });
+  await cp(repo.root, join(parent, project._id!), { recursive: true });
+  if (await pathExists(`${repo.root}.cooperative`)) {
+    await cp(`${repo.root}.cooperative`, join(parent, `${project._id}.cooperative`), { recursive: true });
   }
 
   return project;

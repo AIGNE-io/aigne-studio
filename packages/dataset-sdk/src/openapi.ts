@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { readFile, writeFile } from 'fs/promises';
 
 import { Router } from 'express';
 import Enforcer from 'openapi-enforcer';
@@ -87,14 +87,14 @@ export const createDatasetAPIRouter = (
   );
   const swaggerSpec = swaggerJSDoc(options) as OpenAPIObject;
 
-  router.get('/download-apis', (req, res) => {
+  router.get('/download-apis', async (req, res) => {
     const result = stringify(swaggerSpec.paths);
-    writeFileSync(req.query.path as string, result);
+    await writeFile(req.query.path as string, result);
     res.json({ apis: swaggerSpec.paths });
   });
 
   router.get(`/${OPENAPI_API}`, async (_req, res) => {
-    const json: { [keyof: string]: PathItemObject } = parse(readFileSync(filePath).toString());
+    const json: { [keyof: string]: PathItemObject } = parse((await readFile(filePath)).toString());
 
     const list: DatasetObject[] = Object.entries(json || {}).flatMap(([path, pathItem]) =>
       Object.entries(pathItem).map(([method, info]) => {

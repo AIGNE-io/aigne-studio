@@ -1,4 +1,4 @@
-import { readdirSync, rmSync, writeFileSync } from 'fs';
+import { readdir, rm, writeFile } from 'fs/promises';
 import path from 'path';
 
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
@@ -180,7 +180,7 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
 
   const fieldsStr = stringify(fields, { aliasDuplicateObjects: false });
 
-  writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
+  await writeFile(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
 };
 
@@ -219,15 +219,15 @@ export async function commitWorking({
     message,
     author,
     beforeCommit: async ({ tx }) => {
-      writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
+      await writeFile(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
 
       await addSettingsToGit({ tx, project });
 
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
-        if (readdirSync(path.join(repository.options.root, path.dirname(gitkeep))).length > 1) {
-          rmSync(path.join(repository.options.root, gitkeep), { force: true });
+        if ((await readdir(path.join(repository.options.root, path.dirname(gitkeep)))).length > 1) {
+          await rm(path.join(repository.options.root, gitkeep), { force: true });
           await tx.remove({ filepath: gitkeep });
         }
       }
