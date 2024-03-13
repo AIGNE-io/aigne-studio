@@ -50,7 +50,12 @@ router.get('/:releaseId', async (req, res) => {
 
   const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
 
-  res.json(release);
+  res.json({
+    ...release.dataValues,
+    paymentUnitAmount: release.paymentLinkId
+      ? await getPriceFromPaymentLink({ paymentLinkId: release.paymentLinkId })
+      : undefined,
+  });
 });
 
 router.get('/:releaseId/subscription', user(), auth(), async (req, res) => {

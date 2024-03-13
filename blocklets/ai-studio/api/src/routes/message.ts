@@ -177,6 +177,7 @@ export function messageRoutes(router: Router) {
         updatedAt: i.updatedAt,
         parameters: i.parameters,
         result: i.result,
+        error: i.error,
       })),
       count,
     });

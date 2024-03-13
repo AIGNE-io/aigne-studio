@@ -60,15 +60,6 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   const input = await callInputSchema.validateAsync(req.body, { stripUnknown: true });
   const userId = req.user?.did || input.userId;
 
-  const release = await Release.findOne({
-    where: { projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId, paymentEnabled: true },
-  });
-  if (userId && release?.paymentEnabled && release.paymentProductId) {
-    if (!(await getActiveSubscriptionOfAssistant({ release, userId }))) {
-      throw new InvalidSubscriptionError('Your subscription is not available');
-    }
-  }
-
   const project = await Project.findByPk(input.projectId, {
     rejectOnEmpty: new Error(`Project ${input.projectId} not found`),
   });
@@ -147,7 +138,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   const assistant = await getAssistant(input.assistantId, { rejectOnEmpty: true });
 
   let mainTaskId: string | undefined;
-  let error: { message: string } | undefined;
+  let error: { type?: string; message: string } | undefined;
   const result: { content?: string; images?: { url: string }[] } = {};
   const executingLogs: { [key: string]: NonNullable<History['executingLogs']>[number] } = {};
 
@@ -211,7 +202,22 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       })
     : undefined;
 
+  const release = await Release.findOne({
+    where: {
+      projectId: input.projectId,
+      projectRef: input.ref,
+      assistantId: input.assistantId,
+      paymentEnabled: true,
+    },
+  });
+
   try {
+    if (userId && release?.paymentEnabled && release.paymentProductId) {
+      if (!(await getActiveSubscriptionOfAssistant({ release, userId }))) {
+        throw new InvalidSubscriptionError('Your subscription is not available');
+      }
+    }
+
     const result = await runAssistant({
       callAI,
       callAIImage,
@@ -230,11 +236,11 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
     res.end();
   } catch (e) {
-    error = { message: e.message };
+    error = pick(e, 'message', 'type', 'timestamp');
     if (stream) {
-      emit({ type: AssistantResponseType.ERROR, error: pick(e, 'message', 'type', 'timestamp') });
+      emit({ type: AssistantResponseType.ERROR, error });
     } else {
-      res.status(500).json({ error: { message: e.message } });
+      res.status(500).json({ error });
     }
     res.end();
   }
