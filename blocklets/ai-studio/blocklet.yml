@@ -75,6 +75,11 @@ components:
     source:
       name: did-comments
       version: latest
+  - name: pages-kit
+    required: true
+    source:
+      name: z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o
+      version: latest
   - name: ai-runtime
     required: true
     source:
