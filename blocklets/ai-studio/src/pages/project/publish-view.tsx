@@ -7,6 +7,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import styled from '@emotion/styled';
 import { LaunchRounded } from '@mui/icons-material';
 import UploadIcon from '@mui/icons-material/Upload';
@@ -80,6 +81,27 @@ const ImageContainer = muiStyled(Box)(() => ({
 }));
 
 export default function PublishView({
+  projectId,
+  projectRef,
+  assistant,
+}: {
+  projectId: string;
+  projectRef: string;
+  assistant: AssistantYjs;
+}) {
+  return (
+    <ComponentInstaller
+      did={[
+        'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
+        'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
+        'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
+      ]}>
+      <PublishViewContent projectId={projectId} projectRef={projectRef} assistant={assistant} />
+    </ComponentInstaller>
+  );
+}
+
+function PublishViewContent({
   projectId,
   projectRef,
   assistant,

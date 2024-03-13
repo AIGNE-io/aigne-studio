@@ -2,12 +2,15 @@ import History from '@api/store/models/history';
 import Release from '@api/store/models/release';
 import { getAssistantFromRepository, getRepository } from '@api/store/repository';
 import payment from '@blocklet/payment-js';
+import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import { fromTokenToUnit, fromUnitToToken } from '@ocap/util';
 import { DebouncedFunc, throttle } from 'lodash';
 import { Op } from 'sequelize';
 
 import { Config } from './env';
 import logger from './logger';
+
+const isPaymentInstalled = () => !!getComponentWebEndpoint('z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk');
 
 export async function getActiveSubscriptionOfAssistant({ release, userId }: { release: Release; userId: string }) {
   const subscription = (
@@ -25,6 +28,7 @@ export async function getActiveSubscriptionOfAssistant({ release, userId }: { re
 }
 
 export async function getPriceFromPaymentLink({ paymentLinkId }: { paymentLinkId: string }) {
+  if (!isPaymentInstalled()) return undefined;
   const paymentLink = await payment.paymentLinks.retrieve(paymentLinkId);
 
   const unitAmount = paymentLink?.line_items[0]?.price.unit_amount;
