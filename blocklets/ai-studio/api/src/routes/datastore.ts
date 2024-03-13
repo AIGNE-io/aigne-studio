@@ -28,29 +28,34 @@ const router = Router();
  *         description: A JSON array of datastores
  */
 router.get('/', user(), checkUserAuth(), async (req, res) => {
-  const querySchema = Joi.object().pattern(Joi.string(), Joi.string());
-  const query: { [key: string]: string } = await querySchema.validateAsync(req.query || {});
-
-  const { userId, assistantId, sessionId } = await Joi.object<{
+  const { userId, assistantId, sessionId, ...query } = await Joi.object<{
     userId?: string;
-    assistantId?: string;
     sessionId?: string;
+    assistantId?: string;
+    [key: string]: any;
   }>({
     userId: Joi.string().allow('').empty([null, '']),
     assistantId: Joi.string().allow('').empty([null, '']),
     sessionId: Joi.string().allow('').empty([null, '']),
-  }).validateAsync(req.query, { stripUnknown: true });
+  })
+    .unknown()
+    .validateAsync(req.query);
+
   const params: any = {};
   if (userId) params.userId = userId;
   if (sessionId) params.sessionId = sessionId;
   if (assistantId) params.assistantId = assistantId;
 
   const conditions = Object.entries(query).map(([key, value]) => ({ [`data.${key}`]: { [Op.like]: `%${value}%` } }));
+  if (conditions?.length) {
+    params[Op.and] = conditions;
+  }
 
   const datastores = await Datastore.findAll({
     order: [['createdAt', 'ASC']],
-    where: { ...params, [Op.and]: conditions },
+    where: params,
   });
+
   res.json(datastores);
 });
 
@@ -125,19 +130,30 @@ router.get('/:id', user(), checkUserAuth(), async (req, res) => {
  *         description: The created datastore object
  */
 router.post('/', user(), checkUserAuth(), async (req, res) => {
-  const { data, userId, assistantId, sessionId } = await Joi.object<{
-    data: object;
-    userId: string;
-    assistantId: string;
-    sessionId?: string;
+  const { data } = await Joi.object<{
+    data: string;
   }>({
-    data: Joi.object().required().default({}),
-    userId: Joi.string().required(),
-    assistantId: Joi.string().required(),
-    sessionId: Joi.string().allow('').empty([null, '']).default(''),
+    data: Joi.string().required().default({}),
   }).validateAsync(req.body, { stripUnknown: true });
 
-  const datastore = await Datastore.create({ data, userId, assistantId, sessionId });
+  let info = { data };
+  try {
+    info = JSON.parse(data);
+  } catch (error) {
+    info = { data };
+  }
+
+  const { userId, assistantId, sessionId } = await Joi.object<{
+    userId: string;
+    sessionId?: string;
+    assistantId: string;
+  }>({
+    userId: Joi.string().allow('').empty([null, '']),
+    assistantId: Joi.string().allow('').empty([null, '']),
+    sessionId: Joi.string().allow('').empty([null, '']),
+  }).validateAsync(req.query, { stripUnknown: true });
+
+  const datastore = await Datastore.create({ data: info, userId, assistantId, sessionId });
   res.json(datastore);
 });
 
@@ -202,12 +218,20 @@ router.put('/:id', user(), checkUserAuth(), async (req, res) => {
     return;
   }
 
-  const { data } = await Joi.object<{ data: object }>({ data: Joi.object().required().default({}) }).validateAsync(
-    req.body,
-    { stripUnknown: true }
-  );
+  const { data } = await Joi.object<{
+    data: string;
+  }>({
+    data: Joi.string().required().default({}),
+  }).validateAsync(req.body, { stripUnknown: true });
 
-  await Datastore.update({ data: { ...datastore.dataValues.data, ...data } }, { where: { id } });
+  let info = { data };
+  try {
+    info = JSON.parse(data);
+  } catch (error) {
+    info = { data };
+  }
+
+  await Datastore.update({ data: { ...datastore.dataValues.data, ...info } }, { where: { id } });
 
   res.json(await Datastore.findOne({ where: { id } }));
 });

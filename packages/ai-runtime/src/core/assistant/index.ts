@@ -874,8 +874,8 @@ async function runExecuteBlock({
               );
 
               const params: { [key: string]: string } = {
-                sessionId: sessionId || '',
                 userId: user?.did || '',
+                sessionId: sessionId || '',
                 assistantId: assistant.id || '',
               };
 
@@ -918,6 +918,8 @@ async function runExecuteBlock({
             parameters: args,
             parentTaskId,
             callback,
+            user,
+            sessionId,
           });
         })
       )
@@ -1008,6 +1010,7 @@ async function runExecuteBlock({
       modelParameters: executeBlock.executeModel,
       assistantName: `${executeBlock.variable ?? assistant.name}-select`,
     });
+
     const response = await callAI({
       assistant,
       input: {
@@ -1054,6 +1057,7 @@ async function runExecuteBlock({
     }
 
     const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
+
     const result =
       calls &&
       (await Promise.all(
@@ -1076,7 +1080,13 @@ async function runExecuteBlock({
               }) ?? []
             );
 
-            const response = await getRequest(assistant, args, { user, params: sessionId ? { sessionId } : {} });
+            const params: { [key: string]: string } = {
+              userId: user?.did || '',
+              sessionId: sessionId || '',
+              assistantId: assistant.id || '',
+            };
+
+            const response = await getRequest(assistant, args, { user, params });
 
             callback?.({
               type: AssistantResponseType.CHUNK,
@@ -1107,6 +1117,8 @@ async function runExecuteBlock({
             parameters: args,
             parentTaskId: taskId,
             callback,
+            user,
+            sessionId,
           });
 
           if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
