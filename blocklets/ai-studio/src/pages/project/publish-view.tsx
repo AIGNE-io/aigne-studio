@@ -148,32 +148,50 @@ export default function PublishView({
         <Typography variant="subtitle2" mb={1}>
           {t('templates')}
         </Typography>
-        <RadioGroup row sx={{ rowGap: 1 }} {...form.register('template')}>
-          <StyledFormControlLabel
-            labelPlacement="top"
-            control={<Radio />}
-            value="default"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-1.png')} alt="" />}
-          />
-          <StyledFormControlLabel
-            labelPlacement="top"
-            control={<Radio />}
-            value="blue"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-2.png')} alt="" />}
-          />
-          <StyledFormControlLabel
-            labelPlacement="top"
-            control={<Radio />}
-            value="red"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-3.png')} alt="" />}
-          />
-          <StyledFormControlLabel
-            labelPlacement="top"
-            control={<Radio />}
-            value="green"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-4.png')} alt="" />}
-          />
-        </RadioGroup>
+        <Controller
+          name="template"
+          control={form.control}
+          render={({ field }) => (
+            <RadioGroup
+              row
+              sx={{ rowGap: 1 }}
+              value={field.value || ''}
+              onChange={(_, value) => field.onChange({ target: { value } })}>
+              <StyledFormControlLabel
+                labelPlacement="top"
+                control={<Radio />}
+                value="default"
+                label={
+                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-1.png')} alt="" />
+                }
+              />
+              <StyledFormControlLabel
+                labelPlacement="top"
+                control={<Radio />}
+                value="blue"
+                label={
+                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-2.png')} alt="" />
+                }
+              />
+              <StyledFormControlLabel
+                labelPlacement="top"
+                control={<Radio />}
+                value="red"
+                label={
+                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-3.png')} alt="" />
+                }
+              />
+              <StyledFormControlLabel
+                labelPlacement="top"
+                control={<Radio />}
+                value="green"
+                label={
+                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-4.png')} alt="" />
+                }
+              />
+            </RadioGroup>
+          )}
+        />
       </FormControl>
 
       <FormControl>
