@@ -1,7 +1,9 @@
+import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
 import { Op } from 'sequelize';
 
+import { checkUserAuth } from '../libs/user';
 import Datastore from '../store/models/datastore';
 
 const router = Router();
@@ -25,7 +27,7 @@ const router = Router();
  *       200:
  *         description: A JSON array of datastores
  */
-router.get('/', async (req, res) => {
+router.get('/', user(), checkUserAuth(), async (req, res) => {
   const querySchema = Joi.object().pattern(Joi.string(), Joi.string());
   const query: { [key: string]: string } = await querySchema.validateAsync(req.query || {});
 
@@ -73,7 +75,7 @@ router.get('/', async (req, res) => {
  *       404:
  *         description: No such datastore found
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', user(), checkUserAuth(), async (req, res) => {
   const { id } = await Joi.object<{ id: string }>({ id: Joi.string().required() }).validateAsync(req.params, {
     stripUnknown: true,
   });
@@ -122,7 +124,7 @@ router.get('/:id', async (req, res) => {
  *       200:
  *         description: The created datastore object
  */
-router.post('/', async (req, res) => {
+router.post('/', user(), checkUserAuth(), async (req, res) => {
   const { data, userId, assistantId, sessionId } = await Joi.object<{
     data: object;
     userId: string;
@@ -189,7 +191,7 @@ router.post('/', async (req, res) => {
  *       404:
  *         description: No such datastore found
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', user(), checkUserAuth(), async (req, res) => {
   const { id } = await Joi.object<{ id: string }>({ id: Joi.string().required() }).validateAsync(req.params, {
     stripUnknown: true,
   });
@@ -231,7 +233,7 @@ router.put('/:id', async (req, res) => {
  *       404:
  *         description: No such datastore found
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', user(), checkUserAuth(), async (req, res) => {
   const { id } = await Joi.object<{ id: string }>({ id: Joi.string().required() }).validateAsync(req.params, {
     stripUnknown: true,
   });
