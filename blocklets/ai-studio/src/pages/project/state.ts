@@ -39,7 +39,7 @@ import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 export interface ProjectState {
   project?: Project;
-  releases?: Release[];
+  releases?: (Release & { paymentUnitAmount?: string })[];
   branches: string[];
   commits: Commit[];
   loading?: boolean;
