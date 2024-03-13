@@ -331,8 +331,8 @@
         x-description-zh: 创建新的数据集
 /api/datastore:
   get:
-    summary: Lists all datasetores
-    description: Retrieve a list of datasetores with optional query parameters to
+    summary: Lists all datastores
+    description: Retrieve a list of datastores with optional query parameters to
       filter the results.
     x-summary-zh: 列出所有数据存储
     x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
@@ -345,10 +345,10 @@
         description: Optional filter parameters as JSON string.
     responses:
       "200":
-        description: A JSON array of datasetores
+        description: A JSON array of datastores
   post:
-    summary: Creates a new datasetore
-    description: Add a new datasetore to the collection.
+    summary: Creates a new datastore
+    description: Add a new datastore to the collection.
     x-summary-zh: 创建一个新的数据存储
     x-description-zh: 向集合中添加一个新的数据存储。
     requestBody:
@@ -360,14 +360,14 @@
             properties:
               data:
                 type: object
-                description: The new data for the datasetore.
+                description: The new data for the datastore.
     responses:
       "200":
-        description: The created datasetore object
+        description: The created datastore object
 /api/datastore/{id}:
   get:
-    summary: Gets a single datasetore by ID
-    description: Retrieve detailed information of a specific datasetore by its ID.
+    summary: Gets a single datastore by ID
+    description: Retrieve detailed information of a specific datastore by its ID.
     x-summary-zh: 通过 ID 获取单个数据存储
     x-description-zh: 通过其 ID 检索特定数据存储的详细信息。
     parameters:
@@ -376,15 +376,15 @@
         schema:
           type: string
         required: true
-        description: The ID of the datasetore to retrieve.
+        description: The ID of the datastore to retrieve.
     responses:
       "200":
-        description: A datasetore object
+        description: A datastore object
       "404":
-        description: No such datasetore found
+        description: No such datastore found
   put:
-    summary: Updates a datasetore by ID
-    description: Update the information of a datasetore by its ID.
+    summary: Updates a datastore by ID
+    description: Update the information of a datastore by its ID.
     x-summary-zh: 通过 ID 更新数据存储
     x-description-zh: 通过其 ID 更新数据存储的信息。
     parameters:
@@ -393,7 +393,7 @@
         schema:
           type: string
         required: true
-        description: The ID of the datasetore to update.
+        description: The ID of the datastore to update.
     requestBody:
       required: true
       content:
@@ -403,10 +403,10 @@
             properties:
               data:
                 type: object
-                description: The new data for the datasetore.
+                description: The new data for the datastore.
     responses:
       "200":
-        description: The updated datasetore object
+        description: The updated datastore object
         content:
           application/json:
             schema:
@@ -414,23 +414,23 @@
               properties:
                 id:
                   type: string
-                  description: The unique identifier for the datasetore.
+                  description: The unique identifier for the datastore.
                 data:
                   type: object
-                  description: The updated data of the datasetore.
+                  description: The updated data of the datastore.
                 createdAt:
                   type: string
                   format: date-time
-                  description: The creation date of the datasetore.
+                  description: The creation date of the datastore.
                 updatedAt:
                   type: string
                   format: date-time
-                  description: The last update date of the datasetore.
+                  description: The last update date of the datastore.
       "404":
-        description: No such datasetore found
+        description: No such datastore found
   delete:
-    summary: Deletes a datasetore by ID
-    description: Remove a datasetore from the collection by its ID.
+    summary: Deletes a datastore by ID
+    description: Remove a datastore from the collection by its ID.
     x-summary-zh: 通过 ID 删除数据存储
     x-description-zh: 通过其 ID 从集合中删除一个数据存储。
     parameters:
@@ -439,12 +439,12 @@
         schema:
           type: string
         required: true
-        description: The ID of the datasetore to delete.
+        description: The ID of the datastore to delete.
     responses:
       "200":
-        description: The deleted datasetore object
+        description: The deleted datastore object
       "404":
-        description: No such datasetore found
+        description: No such datastore found
 /api/messages:
   get:
     summary: Get history messages

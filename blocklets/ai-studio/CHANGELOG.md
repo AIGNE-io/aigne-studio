@@ -1,6 +1,10 @@
-## 0.1.283 (2024-3-12)
+## 0.1.284 (2024-3-13)
 
 - feat: support keystore db for json search
+
+## 0.1.283 (2024-3-12)
+
+- fix: use async fs api
 
 ## 0.1.282 (2024-3-12)
 
