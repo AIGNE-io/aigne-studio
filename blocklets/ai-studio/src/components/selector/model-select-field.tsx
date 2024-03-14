@@ -47,6 +47,8 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
     return Object.values(groupBy(value, 'brand'));
   }, [value]);
 
+  if (loading) return null;
+
   return (
     <TextField
       {...props}

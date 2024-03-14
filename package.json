@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.281",
+  "version": "0.1.284",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -75,8 +75,8 @@
     "@ocap/types": "^1.18.113",
     "@ocap/util": "^1.18.113",
     "@ocap/wallet": "^1.18.113",
-    "@types/react": "^18.2.64",
-    "@types/react-dom": "^18.2.21",
+    "@types/react": "^18.2.65",
+    "@types/react-dom": "^18.2.22",
     "axios": "^1.6.7",
     "gpt-tokens": "1.2.0",
     "react-dnd": "^16.0.1",

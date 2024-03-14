@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.1.281",
+  "version": "0.1.284",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
@@ -88,7 +88,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "copyfiles": "^2.4.1",
     "rimraf": "^5.0.5",
-    "vite": "^5.1.5",
+    "vite": "^5.1.6",
     "vite-plugin-replace": "^0.1.1",
     "vite-plugin-svgr": "^4.2.0"
   }

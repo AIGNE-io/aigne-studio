@@ -1,9 +1,10 @@
-import { existsSync, readdirSync, rmSync, writeFileSync } from 'fs';
+import { readdir, rm, writeFile } from 'fs/promises';
 import path, { relative } from 'path';
 
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
+import { pathExists, pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
@@ -144,8 +145,8 @@ export async function syncToDidSpace({ project, userId }: { project: Project; us
   const repositoyPath = repositoryRoot(project._id);
   const repositoryCooperativePath = repositoryCooperativeRoot(project._id);
   const outputs: (SyncFolderPushCommandOutput | null)[] = await Promise.all(
-    [repositoyPath, repositoryCooperativePath].map((path) => {
-      if (existsSync(path)) {
+    [repositoyPath, repositoryCooperativePath].map(async (path) => {
+      if (await pathExists(path)) {
         return spaceClient.send(
           new SyncFolderPushCommand({
             source: path,
@@ -217,7 +218,7 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
 
   const fieldsStr = stringify(fields, { aliasDuplicateObjects: false });
 
-  writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
+  await writeFile(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
 };
 
@@ -262,15 +263,15 @@ export async function commitWorking({
     message,
     author,
     beforeCommit: async ({ tx }) => {
-      writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
+      await writeFile(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
 
       await addSettingsToGit({ tx, project });
 
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
-        if (readdirSync(path.join(repository.options.root, path.dirname(gitkeep))).length > 1) {
-          rmSync(path.join(repository.options.root, gitkeep), { force: true });
+        if ((await readdir(path.join(repository.options.root, path.dirname(gitkeep)))).length > 1) {
+          await rm(path.join(repository.options.root, gitkeep), { force: true });
           await tx.remove({ filepath: gitkeep });
         }
       }

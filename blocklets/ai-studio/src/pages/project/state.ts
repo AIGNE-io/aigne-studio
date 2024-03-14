@@ -39,7 +39,7 @@ import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 export interface ProjectState {
   project?: Project;
-  releases?: Release[];
+  releases?: (Release & { paymentUnitAmount?: string })[];
   branches: string[];
   commits: Commit[];
   loading?: boolean;
@@ -213,6 +213,7 @@ export interface SessionItem {
   }[];
   chatType?: 'chat' | 'debug';
   debugForm?: { [key: string]: any };
+  sessionId: string;
 }
 
 export interface DebugState {
@@ -242,6 +243,7 @@ const getDebugState = (projectId: string, assistantId: string) => {
             sessions: json.sessions.map((session) => ({
               ...session,
               messages: session.messages.map((i) => omit(i, 'loading')),
+              sessionId: session.sessionId ?? nanoid(),
             })),
           };
         }
@@ -253,7 +255,7 @@ const getDebugState = (projectId: string, assistantId: string) => {
       return {
         projectId,
         assistantId,
-        sessions: [{ index: 1, createdAt: now, updatedAt: now, messages: [], chatType: 'debug' }],
+        sessions: [{ index: 1, createdAt: now, updatedAt: now, messages: [], chatType: 'debug', sessionId: nanoid() }],
         nextSessionIndex: 2,
       };
     })(),
@@ -300,6 +302,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               updatedAt: now,
               messages: [],
               chatType: currentSession?.chatType,
+              sessionId: nanoid(),
             },
           ],
           nextSessionIndex: index + 1,
@@ -446,6 +449,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 working: true,
                 assistantId: message.assistantId,
                 parameters: message.parameters,
+                sessionId: session?.sessionId,
               });
 
         const reader = result.getReader();

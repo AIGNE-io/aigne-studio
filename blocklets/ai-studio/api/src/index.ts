@@ -35,7 +35,13 @@ app.use(express.json({ limit: '1 mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1 mb' }));
 app.use(cors());
 
-app.use('/', createDatasetAPIRouter('AI-Studio', path.join(Config.appDir, 'dataset.yml')));
+app.use(
+  '/',
+  createDatasetAPIRouter('AI-Studio', path.join(Config.appDir, 'dataset.yml'), {
+    definition: { openapi: '3.0.0', info: { title: 'AI Studio Dataset Protocol', version: '1.0.0' } },
+    apis: [path.join(__dirname, './routes/**/*.*')],
+  })
+);
 app.use('/api', routes);
 
 if (!isDevelopment) {
@@ -53,7 +59,10 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
     if (!res.headersSent) res.status(status).contentType('json');
     if (res.writable)
       res.write(
-        JSON.stringify({ type: AssistantResponseType.ERROR, error: { name: error.name, message: error.message } })
+        JSON.stringify({
+          type: AssistantResponseType.ERROR,
+          error: { type: error.type, message: error.message },
+        })
       );
   } catch (error) {
     logger.error('Write error to client error', error);
