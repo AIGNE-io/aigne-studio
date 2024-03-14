@@ -779,6 +779,7 @@ async function runExecuteBlocks({
   const tasks: [ExecuteBlock, () => () => Promise<any>][] = [];
   const cache: { [key: string]: Promise<any> } = {};
   const datasets = await getBuildInDatasets();
+  const results = [];
 
   for (const executeBlock of executeBlocks) {
     const task = () => async () => {
@@ -807,7 +808,14 @@ async function runExecuteBlocks({
     tasks.push([executeBlock, task]);
   }
 
-  return Promise.all(tasks.map((i) => i[1]()().then((result) => [i[0], result] as const)));
+  // 确保日志输出顺序准确
+  for (const task of tasks) {
+    const result = await task[1]()();
+    results.push([task[0], result] as const);
+  }
+
+  return results;
+  // return Promise.all(tasks.map((i) => i[1]()().then((result) => [i[0], result] as const)));
 }
 
 async function runExecuteBlock({
@@ -945,11 +953,12 @@ async function runExecuteBlock({
             const dataset = (datasets || []).find((x) => x.id === tool.id);
             if (!dataset) return undefined;
 
+            const name = dataset.summary || dataset.description || '';
+
             const datasetParameters = getAllParameters(dataset)
               .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
-              .map((i) => [i.name, { type: 'string', description: i.description ?? '' }]);
+              .map((i) => [i.name, { type: 'string', name, description: i.description ?? '' }]);
 
-            const name = dataset.summary || dataset.description || '';
             return {
               tool,
               toolAssistant: dataset,
@@ -1056,7 +1065,11 @@ async function runExecuteBlock({
       }
     }
 
+    console.log({ calls: calls && JSON.stringify(calls) });
+
     const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
+
+    console.log({ toolAssistantMap: toolAssistantMap && JSON.stringify(toolAssistantMap) });
 
     const result =
       calls &&

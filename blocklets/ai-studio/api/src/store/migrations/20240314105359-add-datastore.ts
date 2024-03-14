@@ -3,7 +3,6 @@ import { DataTypes } from 'sequelize';
 import type { Migration } from '../migrate';
 
 export const up: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.dropTable('Datastores');
   await queryInterface.createTable('Datastores', {
     id: {
       type: DataTypes.STRING,
@@ -12,10 +11,6 @@ export const up: Migration = async ({ context: queryInterface }) => {
     },
     data: {
       type: DataTypes.JSON,
-    },
-    assistantId: {
-      type: DataTypes.STRING,
-      allowNull: false,
     },
     userId: {
       type: DataTypes.STRING,

@@ -18,8 +18,6 @@ export default class Datastore extends Model<InferAttributes<Datastore>, InferCr
 
   declare updatedAt: CreationOptional<Date>;
 
-  declare assistantId: string;
-
   declare data?: {};
 }
 
@@ -33,10 +31,6 @@ Datastore.init(
     },
     data: {
       type: DataTypes.JSON,
-    },
-    assistantId: {
-      type: DataTypes.STRING,
-      allowNull: false,
     },
     userId: {
       type: DataTypes.STRING,

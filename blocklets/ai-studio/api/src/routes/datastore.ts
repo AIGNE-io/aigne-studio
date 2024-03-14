@@ -16,13 +16,6 @@ const router = Router();
  *     description: Retrieve a list of datastores with optional query parameters to filter the results.
  *     x-summary-zh: 列出所有数据存储
  *     x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
- *     parameters:
- *       - in: query
- *         name: filter
- *         schema:
- *           type: string
- *         required: false
- *         description: Optional filter parameters as JSON string.
  *     responses:
  *       200:
  *         description: A JSON array of datastores
@@ -44,7 +37,7 @@ router.get('/', user(), checkUserAuth(), async (req, res) => {
   const params: any = {};
   if (userId) params.userId = userId;
   if (sessionId) params.sessionId = sessionId;
-  if (assistantId) params.assistantId = assistantId;
+  // if (assistantId) params.assistantId = assistantId;
 
   const conditions = Object.entries(query).map(([key, value]) => ({ [`data.${key}`]: { [Op.like]: `%${value}%` } }));
   if (conditions?.length) {
@@ -85,17 +78,17 @@ router.get('/:id', user(), checkUserAuth(), async (req, res) => {
     stripUnknown: true,
   });
 
-  const { userId, assistantId, sessionId } = await Joi.object<{
+  const { userId, sessionId } = await Joi.object<{
     userId: string;
-    assistantId: string;
+    assistantId?: string;
     sessionId?: string;
   }>({
     userId: Joi.string().required(),
-    assistantId: Joi.string().required(),
+    assistantId: Joi.string().allow('').empty([null, '']),
     sessionId: Joi.string().allow('').empty([null, '']),
   }).validateAsync(req.query, { stripUnknown: true });
 
-  const params: any = { id, userId, assistantId };
+  const params: any = { id, userId };
   if (sessionId) params.sessionId = sessionId;
 
   const datastore = await Datastore.findOne({ where: params });
@@ -143,17 +136,15 @@ router.post('/', user(), checkUserAuth(), async (req, res) => {
     info = { data };
   }
 
-  const { userId, assistantId, sessionId } = await Joi.object<{
+  const { userId, sessionId } = await Joi.object<{
     userId: string;
     sessionId?: string;
-    assistantId: string;
   }>({
     userId: Joi.string().allow('').empty([null, '']),
-    assistantId: Joi.string().allow('').empty([null, '']),
     sessionId: Joi.string().allow('').empty([null, '']),
   }).validateAsync(req.query, { stripUnknown: true });
 
-  const datastore = await Datastore.create({ data: info, userId, assistantId, sessionId });
+  const datastore = await Datastore.create({ data: info, userId, sessionId });
   res.json(datastore);
 });
 
@@ -161,8 +152,8 @@ router.post('/', user(), checkUserAuth(), async (req, res) => {
  * @openapi
  * /api/datastore/{id}:
  *   put:
- *     summary: Updates a datastore by ID
- *     description: Update the information of a datastore by its ID.
+ *     summary: update data by id
+ *     description: update data by id
  *     x-summary-zh: 通过 ID 更新数据存储
  *     x-description-zh: 通过其 ID 更新数据存储的信息。
  *     parameters:
@@ -240,8 +231,8 @@ router.put('/:id', user(), checkUserAuth(), async (req, res) => {
  * @openapi
  * /api/datastore/{id}:
  *   delete:
- *     summary: Deletes a datastore by ID
- *     description: Remove a datastore from the collection by its ID.
+ *     summary: delete data
+ *     description: delete data by id
  *     x-summary-zh: 通过 ID 删除数据存储
  *     x-description-zh: 通过其 ID 从集合中删除一个数据存储。
  *     parameters:

@@ -136,6 +136,7 @@ export default flat({
   parameters: '参数',
   model: '模型',
   inputParameters: '输入参数',
+  fnArgs: '函数参数',
   images: '图片',
   promptMessages: 'Prompt输出',
   temperature: '随机性 temperature',

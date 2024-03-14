@@ -336,13 +336,6 @@
       filter the results.
     x-summary-zh: 列出所有数据存储
     x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
-    parameters:
-      - in: query
-        name: filter
-        schema:
-          type: string
-        required: false
-        description: Optional filter parameters as JSON string.
     responses:
       "200":
         description: A JSON array of datastores
@@ -383,8 +376,8 @@
       "404":
         description: No such datastore found
   put:
-    summary: Updates a datastore by ID
-    description: Update the information of a datastore by its ID.
+    summary: update data by id
+    description: update data by id
     x-summary-zh: 通过 ID 更新数据存储
     x-description-zh: 通过其 ID 更新数据存储的信息。
     parameters:
@@ -429,8 +422,8 @@
       "404":
         description: No such datastore found
   delete:
-    summary: Deletes a datastore by ID
-    description: Remove a datastore from the collection by its ID.
+    summary: delete data
+    description: delete data by id
     x-summary-zh: 通过 ID 删除数据存储
     x-description-zh: 通过其 ID 从集合中删除一个数据存储。
     parameters:
