@@ -35,6 +35,12 @@ export default class Release extends Model<InferAttributes<Release>, InferCreati
   declare withCollection?: boolean;
 
   declare isActive?: boolean;
+
+  declare paymentEnabled?: boolean;
+
+  declare paymentProductId?: string;
+
+  declare paymentLinkId?: string;
 }
 
 Release.init(
@@ -94,6 +100,15 @@ Release.init(
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
+    },
+    paymentEnabled: {
+      type: DataTypes.BOOLEAN,
+    },
+    paymentProductId: {
+      type: DataTypes.STRING,
+    },
+    paymentLinkId: {
+      type: DataTypes.STRING,
     },
   },
   { sequelize }

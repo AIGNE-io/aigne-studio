@@ -1,6 +1,8 @@
 ## 0.1.284 (2024-3-13)
 
-- feat: support keystore db for json search
+- chore: add pages-kit component dep
+- feat: check user subscription and report usage if needed
+- feat: support config payment for release
 
 ## 0.1.283 (2024-3-12)
 
