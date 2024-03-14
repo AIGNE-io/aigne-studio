@@ -4,7 +4,7 @@ import path, { relative } from 'path';
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
-import { pathExists, pathExists } from 'fs-extra';
+import { pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';

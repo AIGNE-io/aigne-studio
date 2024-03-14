@@ -199,7 +199,7 @@
     "@ocap/util" "1.18.113"
     "@ocap/wallet" "1.18.113"
 
-"@arcblock/did@1.18.110", "@arcblock/did@1.18.113", "@arcblock/did@^1.18.108", "@arcblock/did@^1.18.113", "@arcblock/did@^1.18.95":
+"@arcblock/did@1.18.110", "@arcblock/did@1.18.113", "@arcblock/did@^1.18.108", "@arcblock/did@^1.18.110", "@arcblock/did@^1.18.113", "@arcblock/did@^1.18.95":
   version "1.18.113"
   resolved "https://registry.yarnpkg.com/@arcblock/did/-/did-1.18.113.tgz#f85bcfa7e698f7fa93026458dbbe434fe0f274d4"
   integrity sha512-d/LkpRFNN3kGkHi9Z/Oc07cehGhgTVv5hCg8RS1/uDv23vG2UvhOpuVdXd/h/OdZPxghWNXo5oOX1aP0DGD4EQ==
