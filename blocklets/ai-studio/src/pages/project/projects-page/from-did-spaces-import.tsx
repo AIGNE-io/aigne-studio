@@ -1,5 +1,7 @@
 /* eslint-disable consistent-return */
 import Project from '@api/store/models/project';
+import { useSessionContext } from '@app/contexts/session';
+import { didSpaceReady } from '@app/libs/did-spaces';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -45,6 +47,7 @@ export default function FromDidSpacesImport() {
   const { listProjectsByDidSpaces, fromDidSpacesImport } = useProjectsState();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
+  const { session } = useSessionContext();
 
   useAsyncEffect(async () => {
     try {
@@ -116,6 +119,10 @@ export default function FromDidSpacesImport() {
   const goToDidSpacesImport = () => {
     window.location.href = joinURL(window.origin, window.blocklet?.prefix ?? '/', 'api/import/from-did-spaces');
   };
+
+  if (!didSpaceReady(session?.user)) {
+    return null;
+  }
 
   return (
     <>
