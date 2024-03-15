@@ -523,7 +523,7 @@ router.get('/:datasetId/items/search', user(), checkUserAuth(), async (req, res)
   const { did } = req.user!;
   const { datasetId } = req.params;
   const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
-  const input = await datasetSchema.validateAsync(req.query);
+  const input = await datasetSchema.validateAsync(req.query, { stripUnknown: true });
 
   const dataset = await Dataset.findOne({
     where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
