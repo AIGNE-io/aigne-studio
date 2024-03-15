@@ -1,3 +1,12 @@
+## 0.1.286 (2024-3-15)
+
+- fix: require save before publish
+- fix: ignore error message when counting usage
+
+## 0.1.285 (2024-3-15)
+
+- chore: change yarn to pnpm
+
 ## 0.1.284 (2024-3-13)
 
 - chore: add pages-kit component dep

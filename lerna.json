@@ -1,6 +1,6 @@
 {
   "version": "independent",
   "private": true,
-  "npmClient": "yarn",
+  "npmClient": "pnpm",
   "packages": ["blocklets/*", "packages/*"]
 }

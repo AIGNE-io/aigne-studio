@@ -40,7 +40,7 @@ export default class History extends Model<InferAttributes<History>, InferCreati
     images?: { url: string }[];
   }[];
 
-  declare error?: { message: string };
+  declare error?: { message: string } | null;
 
   declare generateStatus?: 'generating' | 'done';
 
