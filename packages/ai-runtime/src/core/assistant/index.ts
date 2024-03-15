@@ -4,7 +4,7 @@ import { ReadableStream } from 'stream/web';
 import { ChatCompletionChunk, ChatCompletionInput, ImageGenerationInput } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
-import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
+import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
@@ -865,6 +865,8 @@ async function runExecuteBlock({
     const result = (
       await Promise.all(
         tools.map(async (tool) => {
+          const currentTaskId = taskIdGenerator.nextId().toString();
+
           if (tool?.from === 'dataset') {
             const dataset = (datasets || []).find((x) => x.id === tool.id);
 
@@ -887,13 +889,37 @@ async function runExecuteBlock({
                 assistantId: assistant.id || '',
               };
 
+              const callbackParams = {
+                taskId: currentTaskId,
+                parentTaskId,
+                assistantId: assistant.id,
+                assistantName: `${executeBlock.variable ?? assistant.name}`,
+              };
+
+              callback?.({
+                type: AssistantResponseType.EXECUTE,
+                ...callbackParams,
+                execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+              });
+
+              callback?.({
+                type: AssistantResponseType.INPUT,
+                ...callbackParams,
+                inputParameters: requestData,
+              });
+
               const response = await getRequest(dataset, requestData, { user, params });
 
               callback?.({
                 type: AssistantResponseType.CHUNK,
-                taskId: taskIdGenerator.nextId().toString(),
-                assistantId: tool.id,
-                delta: { content: typeof response.data === 'string' ? response.data : JSON.stringify(response.data) },
+                ...callbackParams,
+                delta: { content: JSON.stringify(response.data) },
+              });
+
+              callback?.({
+                type: AssistantResponseType.EXECUTE,
+                ...callbackParams,
+                execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
               });
 
               return response.data;
@@ -918,7 +944,7 @@ async function runExecuteBlock({
           );
 
           return runAssistant({
-            taskId: taskIdGenerator.nextId().toString(),
+            taskId: currentTaskId,
             callAI,
             callAIImage,
             getAssistant,
@@ -959,6 +985,8 @@ async function runExecuteBlock({
               .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
               .map((i) => [i.name, { type: 'string', name, description: i.description ?? '' }]);
 
+            const required = getRequiredFields(dataset);
+
             return {
               tool,
               toolAssistant: dataset,
@@ -968,6 +996,7 @@ async function runExecuteBlock({
                 parameters: {
                   type: 'object',
                   properties: Object.fromEntries(datasetParameters),
+                  required: required?.length ? required : undefined,
                 },
               },
             };
@@ -993,6 +1022,11 @@ async function runExecuteBlock({
               ];
             });
 
+          const required = (toolAssistant.parameters ?? [])
+            .filter((i): i is typeof i & { key: string } => !!i.key)
+            .filter((x) => x.required)
+            .map((x) => x.key);
+
           return {
             tool,
             toolAssistant,
@@ -1004,6 +1038,7 @@ async function runExecuteBlock({
               parameters: {
                 type: 'object',
                 properties: Object.fromEntries(toolParameters),
+                required: required?.length ? required : undefined,
               },
             },
           };
@@ -1066,10 +1101,7 @@ async function runExecuteBlock({
     }
 
     console.log({ calls: calls && JSON.stringify(calls) });
-
     const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
-
-    console.log({ toolAssistantMap: toolAssistantMap && JSON.stringify(toolAssistantMap) });
 
     const result =
       calls &&
@@ -1080,6 +1112,7 @@ async function runExecuteBlock({
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
           const args = JSON.parse(call.function.arguments);
+          const currentTaskId = taskIdGenerator.nextId().toString();
 
           if (tool.tool.from === 'dataset') {
             const assistant = tool?.toolAssistant as DatasetObject;
@@ -1099,13 +1132,37 @@ async function runExecuteBlock({
               assistantId: assistant.id || '',
             };
 
+            const callbackParams = {
+              taskId: currentTaskId,
+              parentTaskId,
+              assistantId: assistant.id,
+              assistantName: `${executeBlock.variable ?? assistant.name}`,
+            };
+
+            callback?.({
+              type: AssistantResponseType.EXECUTE,
+              ...callbackParams,
+              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+            });
+
+            callback?.({
+              type: AssistantResponseType.INPUT,
+              ...callbackParams,
+              inputParameters: args,
+            });
+
             const response = await getRequest(assistant, args, { user, params });
 
             callback?.({
               type: AssistantResponseType.CHUNK,
-              taskId: taskIdGenerator.nextId().toString(),
-              assistantId: assistant.id,
-              delta: { content: typeof response.data === 'string' ? response.data : JSON.stringify(response.data) },
+              ...callbackParams,
+              delta: { content: JSON.stringify(response.data) },
+            });
+
+            callback?.({
+              type: AssistantResponseType.EXECUTE,
+              ...callbackParams,
+              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
             });
 
             return response.data;
@@ -1122,7 +1179,7 @@ async function runExecuteBlock({
           );
 
           const res = await runAssistant({
-            taskId: taskIdGenerator.nextId().toString(),
+            taskId: currentTaskId,
             callAI,
             callAIImage,
             getAssistant,

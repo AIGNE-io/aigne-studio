@@ -1,3 +1,5 @@
+import uniq from 'lodash/uniq';
+
 import { DatasetObject, RequestBodyObject } from '../types';
 import convertSchemaToObject from '../util/convert-schema';
 
@@ -154,4 +156,37 @@ export function getAllParameters(dataset: DatasetObject): { name: string; descri
   const requestBody = extractRequestBodyParameters(dataset.requestBody);
   const datasetParameters = [...(dataset?.parameters ?? []), ...(requestBody ?? [])];
   return datasetParameters;
+}
+
+export function getRequiredFields(dataset: DatasetObject) {
+  const requiredFields: string[] = [];
+
+  // 处理parameters部分
+  if (Array.isArray(dataset.parameters) && dataset.parameters.length) {
+    dataset.parameters.forEach((param) => {
+      if (param.required) {
+        requiredFields.push(param.name);
+      }
+    });
+  }
+
+  // 处理requestBody部分
+  if (dataset.requestBody && dataset.requestBody.required) {
+    const content = dataset.requestBody?.content || {};
+    if (Object.keys(content)?.length) {
+      Object.keys(content).forEach((mediaType) => {
+        const mediaObject = content[mediaType] || {};
+        if (
+          mediaObject.schema &&
+          'required' in mediaObject.schema &&
+          mediaObject.schema.required &&
+          Array.isArray(mediaObject.schema.required)
+        ) {
+          requiredFields.push(...mediaObject.schema.required);
+        }
+      });
+    }
+  }
+
+  return uniq(requiredFields);
 }

@@ -201,12 +201,7 @@ export default function ExecuteBlockForm({
                   readOnly={readOnly}
                   projectId={projectId}
                   gitRef={gitRef}
-                  ContentProps={{
-                    sx: {
-                      px: 1,
-                      py: 0.5,
-                    },
-                  }}
+                  ContentProps={{ sx: { px: 1, py: 0.5 } }}
                   placeholder="Your select prompt"
                   path={path.concat('selectByPrompt')}
                   assistant={assistant}

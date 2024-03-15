@@ -3,7 +3,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { Op } from 'sequelize';
 
-import { checkUserAuth } from '../libs/user';
+import { ensureComponentCallOrAuth } from '../libs/security';
 import Datastore from '../store/models/datastore';
 
 const router = Router();
@@ -20,24 +20,29 @@ const router = Router();
  *       200:
  *         description: A JSON array of datastores
  */
-router.get('/', user(), checkUserAuth(), async (req, res) => {
+router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const { userId, assistantId, sessionId, ...query } = await Joi.object<{
     userId?: string;
     sessionId?: string;
     assistantId?: string;
     [key: string]: any;
   }>({
-    userId: Joi.string().allow('').empty([null, '']),
+    userId: Joi.string()
+      .allow('')
+      .empty([null, ''])
+      .default(req.user?.did || ''),
     assistantId: Joi.string().allow('').empty([null, '']),
     sessionId: Joi.string().allow('').empty([null, '']),
   })
     .unknown()
     .validateAsync(req.query);
 
-  const params: any = {};
-  if (userId) params.userId = userId;
-  if (sessionId) params.sessionId = sessionId;
-  // if (assistantId) params.assistantId = assistantId;
+  const currentUserId = req.user?.did || userId;
+
+  const params: any = {
+    ...(currentUserId && { userId: currentUserId }),
+    ...(sessionId && { sessionId }),
+  };
 
   const conditions = Object.entries(query).map(([key, value]) => ({ [`data.${key}`]: { [Op.like]: `%${value}%` } }));
   if (conditions?.length) {
@@ -73,22 +78,24 @@ router.get('/', user(), checkUserAuth(), async (req, res) => {
  *       404:
  *         description: No such datastore found
  */
-router.get('/:id', user(), checkUserAuth(), async (req, res) => {
+router.get('/:id', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const { id } = await Joi.object<{ id: string }>({ id: Joi.string().required() }).validateAsync(req.params, {
     stripUnknown: true,
   });
 
   const { userId, sessionId } = await Joi.object<{
-    userId: string;
-    assistantId?: string;
+    userId?: string;
     sessionId?: string;
   }>({
-    userId: Joi.string().required(),
-    assistantId: Joi.string().allow('').empty([null, '']),
+    userId: Joi.string()
+      .allow('')
+      .empty([null, ''])
+      .default(req.user?.did || ''),
     sessionId: Joi.string().allow('').empty([null, '']),
   }).validateAsync(req.query, { stripUnknown: true });
+  const currentUserId = req.user?.did || userId;
 
-  const params: any = { id, userId };
+  const params: any = { id, userId: currentUserId };
   if (sessionId) params.sessionId = sessionId;
 
   const datastore = await Datastore.findOne({ where: params });
@@ -116,18 +123,18 @@ router.get('/:id', user(), checkUserAuth(), async (req, res) => {
  *             type: object
  *             properties:
  *               data:
- *                 type: object
+ *                 type: string
  *                 description: The new data for the datastore.
+ *             required:
+ *               - data
  *     responses:
  *       200:
  *         description: The created datastore object
  */
-router.post('/', user(), checkUserAuth(), async (req, res) => {
-  const { data } = await Joi.object<{
-    data: string;
-  }>({
-    data: Joi.string().required().default({}),
-  }).validateAsync(req.body, { stripUnknown: true });
+router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
+  const { data } = await Joi.object<{ data: string }>({ data: Joi.string().required() }).validateAsync(req.body, {
+    stripUnknown: true,
+  });
 
   let info = { data };
   try {
@@ -137,14 +144,18 @@ router.post('/', user(), checkUserAuth(), async (req, res) => {
   }
 
   const { userId, sessionId } = await Joi.object<{
-    userId: string;
+    userId?: string;
     sessionId?: string;
   }>({
-    userId: Joi.string().allow('').empty([null, '']),
+    userId: Joi.string()
+      .allow('')
+      .empty([null, ''])
+      .default(req.user?.did || ''),
     sessionId: Joi.string().allow('').empty([null, '']),
   }).validateAsync(req.query, { stripUnknown: true });
+  const currentUserId = req.user?.did || userId || '';
 
-  const datastore = await Datastore.create({ data: info, userId, sessionId });
+  const datastore = await Datastore.create({ data: info, userId: currentUserId, sessionId });
   res.json(datastore);
 });
 
@@ -198,7 +209,7 @@ router.post('/', user(), checkUserAuth(), async (req, res) => {
  *       404:
  *         description: No such datastore found
  */
-router.put('/:id', user(), checkUserAuth(), async (req, res) => {
+router.put('/:id', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const { id } = await Joi.object<{ id: string }>({ id: Joi.string().required() }).validateAsync(req.params, {
     stripUnknown: true,
   });
@@ -209,11 +220,9 @@ router.put('/:id', user(), checkUserAuth(), async (req, res) => {
     return;
   }
 
-  const { data } = await Joi.object<{
-    data: string;
-  }>({
-    data: Joi.string().required().default({}),
-  }).validateAsync(req.body, { stripUnknown: true });
+  const { data } = await Joi.object<{ data: string }>({ data: Joi.string().required() }).validateAsync(req.body, {
+    stripUnknown: true,
+  });
 
   let info = { data };
   try {
@@ -248,20 +257,24 @@ router.put('/:id', user(), checkUserAuth(), async (req, res) => {
  *       404:
  *         description: No such datastore found
  */
-router.delete('/:id', user(), checkUserAuth(), async (req, res) => {
+router.delete('/:id', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const { id } = await Joi.object<{ id: string }>({ id: Joi.string().required() }).validateAsync(req.params, {
     stripUnknown: true,
   });
 
-  const datastore = await Datastore.findOne({ where: { id } });
-  if (!datastore) {
-    res.status(404).json({ error: 'No such datastore' });
-    return;
+  try {
+    const datastore = await Datastore.findOne({ where: { id } });
+    if (!datastore) {
+      throw new Error('No such datastore');
+    }
+
+    await Datastore.destroy({ where: { id } });
+
+    res.json({ data: 'success' });
+  } catch (error) {
+    console.error(error?.message);
+    res.status(500).json({ error: error?.message });
   }
-
-  await Datastore.destroy({ where: { id } });
-
-  res.json(datastore);
 });
 
 export default router;

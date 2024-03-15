@@ -77,7 +77,7 @@ export default function VarContextPlugin({
             const node = $getNodeByKey(key);
 
             if (element && node) {
-              const text = extractBracketContent(element.innerText) || '';
+              const text = extractBracketContent(element.textContent || '') || '';
               const variable = (text || '').split('.')[0] || '';
               const isVariable = (variables || []).includes(variable);
               element.style.cssText = isVariable ? variableStyle : textStyle;
