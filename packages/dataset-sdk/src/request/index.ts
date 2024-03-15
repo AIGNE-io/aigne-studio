@@ -22,7 +22,7 @@ export const getRequest = (
     params: options?.params || {},
     data: options?.data || {},
   });
-  const { headers, ...config } = requestConfig;
+  const { headers, body, ...config } = requestConfig;
   let did = '';
 
   if (options?.user) {
@@ -35,7 +35,7 @@ export const getRequest = (
     ...config,
     headers: {
       ...(headers || {}),
-      'x-component-sig': sign(config.data || {}),
+      'x-component-sig': sign(body || {}),
       'x-component-did': process.env.BLOCKLET_COMPONENT_DID,
       'x-user-did': did,
     },
