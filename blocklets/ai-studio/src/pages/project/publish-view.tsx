@@ -33,7 +33,7 @@ import { Controller, useForm } from 'react-hook-form';
 import QRCode from 'react-qr-code';
 import { joinURL, withQuery } from 'ufo';
 
-import { useProjectState } from './state';
+import { saveButtonState, useAssistantChangesState, useProjectState } from './state';
 
 const TemplateImage = styled('img')({
   width: '100%',
@@ -142,8 +142,16 @@ function PublishViewContent({
     );
   }, [release]);
 
+  const { disabled: hasUnsavedChanges } = useAssistantChangesState(projectId, projectRef);
+
   const onSubmit = async (input: CreateReleaseInput) => {
     try {
+      if (!hasUnsavedChanges) {
+        saveButtonState.getState().save?.();
+        Toast.info('Please save your prompt first');
+        return;
+      }
+
       if (!release) {
         await createRelease({
           ...input,

@@ -684,7 +684,7 @@ export function projectRoutes(router: Router) {
   );
 
   router.post('/projects/export/:projectId/:ref', ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { resources, projectId, ref } = await exportSchema.validateAsync(req.body);
+    const { resources, projectId, ref } = await exportSchema.validateAsync(req.body, { stripUnknown: true });
 
     const assistants = (
       await Promise.all(
@@ -714,7 +714,7 @@ export function projectRoutes(router: Router) {
       folder: Joi.string(),
       name: Joi.string().empty([null, '']),
       description: Joi.string().empty([null, '']),
-    }).validateAsync(req.body);
+    }).validateAsync(req.body, { stripUnknown: true });
 
     const { fullName, did } = req.user!;
 
