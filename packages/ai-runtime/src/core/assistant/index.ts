@@ -1100,7 +1100,6 @@ async function runExecuteBlock({
       }
     }
 
-    console.log({ calls: calls && JSON.stringify(calls) });
     const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
 
     const result =
