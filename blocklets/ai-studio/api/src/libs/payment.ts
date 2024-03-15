@@ -143,6 +143,7 @@ export async function reportUsage({ release, userId }: { release: Release; userI
             ref: release.projectRef,
             assistantId: release.assistantId,
             id: { [Op.gt]: start?.id || '', [Op.lte]: end.id },
+            error: { [Op.is]: null },
           },
         });
 
