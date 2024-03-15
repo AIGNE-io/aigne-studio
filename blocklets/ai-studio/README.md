@@ -52,7 +52,7 @@ This blocklet is a dapp project, which means this is a full-stack application. I
    See details in [https://docs.arcblock.io/abtnode/en/introduction/abtnode-setup#configure-abt-node](https://docs.arcblock.io/abtnode/en/introduction/abtnode-setup#configure-abt-node)
 
 3. Go to the project directory `cd [name]`
-4. Install dependencies: `npm install` or `yarn`
+4. Install dependencies: `pnpm install`
 5. Start development server: `blocklet dev`
 
 ## Bundle

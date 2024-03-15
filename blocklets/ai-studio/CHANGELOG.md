@@ -1,7 +1,6 @@
 ## 0.1.285 (2024-3-15)
 
-- fix: require save before publish
-- fix: ignore error message when counting usage
+- chore: change yarn to pnpm
 
 ## 0.1.284 (2024-3-13)
 

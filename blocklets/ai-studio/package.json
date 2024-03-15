@@ -42,7 +42,7 @@
     "@blocklet/dataset-sdk": "^0.1.285",
     "@blocklet/discuss-kit": "^1.6.168",
     "@blocklet/logger": "^1.16.24",
-    "@blocklet/payment-js": "^1.13.184",
+    "@blocklet/payment-js": "^1.13.185",
     "@blocklet/prompt-editor": "^0.1.285",
     "@blocklet/sdk": "^1.16.24",
     "@blocklet/studio-ui": "^0.1.285",
