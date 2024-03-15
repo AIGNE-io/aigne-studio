@@ -182,8 +182,10 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *             type: object
  *             properties:
  *               data:
- *                 type: object
+ *                 type: string
  *                 description: The new data for the datastore.
+ *             required:
+ *               - data
  *     responses:
  *       200:
  *         description: The updated datastore object
