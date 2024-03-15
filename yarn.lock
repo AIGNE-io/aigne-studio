@@ -1497,18 +1497,18 @@
     utility-types "^3.10.0"
     validate-npm-package-name "^3.0.0"
 
-"@blocklet/payment-js@^1.13.176", "@blocklet/payment-js@^1.13.184":
-  version "1.13.184"
-  resolved "https://registry.yarnpkg.com/@blocklet/payment-js/-/payment-js-1.13.184.tgz#967c1ba7666fb04aa18a29cf26e1b5c4d27b1477"
-  integrity sha512-4VvDK+ujhg61XrU/WaHcSzcaO+Jpf2g4+332UnERjWc7VmGf+NZU6PlxmDj0QmEJ9SyoK8EIO2a/19scSFYz0g==
+"@blocklet/payment-js@^1.13.176", "@blocklet/payment-js@^1.13.185":
+  version "1.13.185"
+  resolved "https://registry.yarnpkg.com/@blocklet/payment-js/-/payment-js-1.13.185.tgz#fe790ff9eb917ab98992b8f26dd55515f800c3be"
+  integrity sha512-Krk8P2drbZ7pZxZrfkNVVuMHdN8c05ynceBEuotnv9wWGfvjWjZ7zsAgpxjarMU8dG85ctDpfvlgkuekw/4JSw==
   dependencies:
-    "@blocklet/payment-types" "1.13.184"
+    "@blocklet/payment-types" "1.13.185"
     "@blocklet/sdk" "1.16.23"
 
-"@blocklet/payment-types@1.13.184":
-  version "1.13.184"
-  resolved "https://registry.yarnpkg.com/@blocklet/payment-types/-/payment-types-1.13.184.tgz#6ec8c2fe4031e43fd48a84680a36fc355be1ea9b"
-  integrity sha512-SzyrHhTgz8iPBo2F8Eu62Fj75w5C6GQN6i9k0kWGT+QFJ062MCDULoUSOdHm0eY4Swz4i26nsnLfvktAXsPmdg==
+"@blocklet/payment-types@1.13.185":
+  version "1.13.185"
+  resolved "https://registry.yarnpkg.com/@blocklet/payment-types/-/payment-types-1.13.185.tgz#3bbcff8d087cffc5d05275cf668d0244fb5427b2"
+  integrity sha512-58owgEHXWJDEKzesl3+MBxzFU8uiV0U8qRMy9R77rI3ypcYsHvdwSYtB+DH4rzHO+hXDpz3Nbe++0SyezH3BEQ==
 
 "@blocklet/pdf@1.6.168":
   version "1.6.168"
@@ -16934,6 +16934,17 @@ vite-tsconfig-paths@^4.3.2:
     debug "^4.1.1"
     globrex "^0.1.2"
     tsconfck "^3.0.3"
+
+vite@5.1.4:
+  version "5.1.4"
+  resolved "https://registry.yarnpkg.com/vite/-/vite-5.1.4.tgz#14e9d3e7a6e488f36284ef13cebe149f060bcfb6"
+  integrity sha512-n+MPqzq+d9nMVTKyewqw6kSt+R3CkvF9QAKY8obiQn8g1fwTscKxyfaYnC632HtBXAQGc1Yjomphwn1dtwGAHg==
+  dependencies:
+    esbuild "^0.19.3"
+    postcss "^8.4.35"
+    rollup "^4.2.0"
+  optionalDependencies:
+    fsevents "~2.3.3"
 
 vite@^5.1.6:
   version "5.1.6"
