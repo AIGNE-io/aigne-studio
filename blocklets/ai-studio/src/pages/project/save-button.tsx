@@ -28,7 +28,7 @@ import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
 import useDialog from '../../utils/use-dialog';
-import { useAssistantChangesState, useProjectState } from './state';
+import { saveButtonState, useAssistantChangesState, useProjectState } from './state';
 
 interface CommitForm {
   branch: string;
@@ -126,6 +126,11 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
       dialogState.open();
     }
   );
+
+  useEffect(() => {
+    saveButtonState.getState().setSaveHandler(() => dialogState.open());
+    return () => saveButtonState.getState().setSaveHandler(undefined);
+  }, [dialogState.open]);
 
   return (
     <>
