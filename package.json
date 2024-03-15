@@ -16,7 +16,7 @@
     "clean": "pnpm -r run clean",
     "build:libs": "pnpm -F @blocklet/* build",
     "prepare": "husky install",
-    "bump-version": "zx scripts/bump-version.mjs",
+    "bump-version": "zx scripts/bump-version.mjs && pnpm install",
     "update:deps": "npx -y taze -r -w && pnpm install"
   },
   "lint-staged": {
