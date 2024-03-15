@@ -132,14 +132,14 @@
     semver "^7.3.8"
     tweetnacl-sealedbox-js "^1.2.0"
 
-"@arcblock/did-connect@^2.9.42", "@arcblock/did-connect@^2.9.47":
-  version "2.9.47"
-  resolved "https://registry.yarnpkg.com/@arcblock/did-connect/-/did-connect-2.9.47.tgz#6c17dd75284f9a897b7e5269d272d4d44a1cfca5"
-  integrity sha512-f1PPULPBVMHaD6dS3UqHHAEFXwOqgmjWX/q/VkE+MT22WzTJkILBreTcgOYGDCwv/PWaBz8SSP24JiqHgoVgDg==
+"@arcblock/did-connect@^2.9.42", "@arcblock/did-connect@^2.9.50":
+  version "2.9.50"
+  resolved "https://registry.yarnpkg.com/@arcblock/did-connect/-/did-connect-2.9.50.tgz#deb91b8d8af76686324b9d0460883bd53c2173c8"
+  integrity sha512-U5hwpXbpUsLUhAsuYjI0DklSEn0KPiEIMhwAtDe3jb/MTVZSxLpJiK+2683gwnm+UygS97vF9PE237bDP/HBCA==
   dependencies:
-    "@arcblock/icons" "^2.9.47"
-    "@arcblock/react-hooks" "^2.9.47"
-    "@arcblock/ux" "^2.9.47"
+    "@arcblock/icons" "^2.9.50"
+    "@arcblock/react-hooks" "^2.9.50"
+    "@arcblock/ux" "^2.9.50"
     "@arcblock/ws" "^1.18.110"
     "@auth0/auth0-react" "^2.2.4"
     "@emotion/react" "^11.10.4"
@@ -259,10 +259,10 @@
     amp-message "~0.1.2"
     axon "^2.0.3"
 
-"@arcblock/icons@^2.9.47":
-  version "2.9.47"
-  resolved "https://registry.yarnpkg.com/@arcblock/icons/-/icons-2.9.47.tgz#8b623b1938a7c338a3fdbc649a027d4181728482"
-  integrity sha512-ZuxDvbnYbfDQK2Ie7fz/gBEfYt3pePARq0hpOd58CJg8D/BmcTE4Gbxp3JIjKOaLxwF/2SkY4uU6JkifyXZ/9w==
+"@arcblock/icons@^2.9.50":
+  version "2.9.50"
+  resolved "https://registry.yarnpkg.com/@arcblock/icons/-/icons-2.9.50.tgz#1753c64950cae9e64869db58aee801a614cb7260"
+  integrity sha512-broVKmNIfwvfpMBp9n+CeSccyGs80LiDDE7XQhY4anv7VfaDF/PAGcXbS2iFB8nfUmbqj1NYmw7WYlWutBjnhw==
 
 "@arcblock/ipfs-only-hash@^0.0.2":
   version "0.0.2"
@@ -284,19 +284,19 @@
     json-stable-stringify "^1.0.1"
     semver "^7.3.8"
 
-"@arcblock/nft-display@^2.9.47":
-  version "2.9.47"
-  resolved "https://registry.yarnpkg.com/@arcblock/nft-display/-/nft-display-2.9.47.tgz#75ec4cca2794eb97307768508872a2f36b283834"
-  integrity sha512-nmvhf/UdMj6pViNA3J/JkFQsB2uDuy0ltSFmgecpjGDhJ/BC2I7HVh62VOadwldQzh4lxgIukCVcacnwHjud4A==
+"@arcblock/nft-display@^2.9.50":
+  version "2.9.50"
+  resolved "https://registry.yarnpkg.com/@arcblock/nft-display/-/nft-display-2.9.50.tgz#b4c2d979dd14ed9e12e3a25a0f7f5706cdb96b2d"
+  integrity sha512-raHjF85Wqwvd5HzbsZSv+kiKJYfWALw5xA4OGzioA94xD9R3MCYlziqVvNHAML/HmIpmjAN4yhA2uy4nqIVCTQ==
   dependencies:
     "@arcblock/did-motif" "^1.1.13"
     "@ocap/mcrypto" "^1.18.110"
     "@ocap/util" "^1.18.110"
 
-"@arcblock/react-hooks@^2.9.47":
-  version "2.9.47"
-  resolved "https://registry.yarnpkg.com/@arcblock/react-hooks/-/react-hooks-2.9.47.tgz#ff7885dc22b62ed6be3a4453a192b9b9a81dc067"
-  integrity sha512-le+TyhVepm0qhbij0PHpCuJ6wh8cc/IX1XFickl7wBEOWWOY96yt0ddeZKnG9XylFPCon6QAKnBFHS4afINT3Q==
+"@arcblock/react-hooks@^2.9.50":
+  version "2.9.50"
+  resolved "https://registry.yarnpkg.com/@arcblock/react-hooks/-/react-hooks-2.9.50.tgz#0256acc49236ff3a6421043543357ffba454d002"
+  integrity sha512-qHA7EJkriI4hD8k8wbo4HUQHfl/xwZJUMbUtjszfXqH2yYV5Ea6gMNVCO5X86II1BSR492ksbd0yyoTY/mseEA==
   dependencies:
     core-js "^3.25.5"
     event-target-shim "^5.0.1"
@@ -314,15 +314,15 @@
     lodash.isnull "^3.0.0"
     lodash.set "^4.3.2"
 
-"@arcblock/ux@^2.9.42", "@arcblock/ux@^2.9.45", "@arcblock/ux@^2.9.47":
-  version "2.9.47"
-  resolved "https://registry.yarnpkg.com/@arcblock/ux/-/ux-2.9.47.tgz#da8cb8e4b0e86b5c0d91c63a9fb88cb45693f0bf"
-  integrity sha512-AVIgB+stvVMlq1bV+cT4ieSRb6x4jlxQTYawy56Fs0bwzD6DNZKfdtG+AB4A5CMp1upor7LzxaX/A/xzK8k0pw==
+"@arcblock/ux@^2.9.42", "@arcblock/ux@^2.9.45", "@arcblock/ux@^2.9.50":
+  version "2.9.50"
+  resolved "https://registry.yarnpkg.com/@arcblock/ux/-/ux-2.9.50.tgz#6af2e4b56e6d280e0ef9711a06fd40576bec1e31"
+  integrity sha512-Qw2ebcPiXp8Pia5RaUARSEAF5vaQaTwfZNsTaT30E7lDayTA7IWsoJFVYDuN0e6iqzfQK6s41hOyIyeO0hdGWw==
   dependencies:
     "@arcblock/did-motif" "^1.1.13"
-    "@arcblock/icons" "^2.9.47"
-    "@arcblock/nft-display" "^2.9.47"
-    "@arcblock/react-hooks" "^2.9.47"
+    "@arcblock/icons" "^2.9.50"
+    "@arcblock/nft-display" "^2.9.50"
+    "@arcblock/react-hooks" "^2.9.50"
     "@babel/plugin-syntax-dynamic-import" "^7.8.3"
     "@emotion/react" "^11.10.4"
     "@emotion/styled" "^11.10.4"
@@ -351,6 +351,7 @@
     mui-datatables "^4.3.0"
     notistack "^2.0.5"
     pako "^2.1.0"
+    qrcode.react "^3.1.0"
     react-cookie-consent "^6.4.1"
     react-error-boundary "^3.1.4"
     react-helmet "^6.1.0"
@@ -1558,14 +1559,14 @@
   resolved "https://registry.yarnpkg.com/@blocklet/translation-input/-/translation-input-1.6.167.tgz#42df8f7da0f4f26e8798eb9572e522af1b771a14"
   integrity sha512-4jJsYSb4nKdGsYfOKtZka+QkdrlwVAw7qn7h/oNL41iarzmD3UATIcjrIzNsx0j9tgVYP1IUwudThNlYpCU9aA==
 
-"@blocklet/ui-react@^2.9.29", "@blocklet/ui-react@^2.9.42", "@blocklet/ui-react@^2.9.47":
-  version "2.9.47"
-  resolved "https://registry.yarnpkg.com/@blocklet/ui-react/-/ui-react-2.9.47.tgz#a30779443283835cfa17aee5acf9cdd885d8fea5"
-  integrity sha512-XHiVzRUSYIIq6Sqi9zeKDOCXVvhUWe+VWnWiru45lutK0sJKhwxQ+AZn3NL6XxwlJCAKgM5opaE7+/uHtjn6sA==
+"@blocklet/ui-react@^2.9.29", "@blocklet/ui-react@^2.9.42", "@blocklet/ui-react@^2.9.50":
+  version "2.9.50"
+  resolved "https://registry.yarnpkg.com/@blocklet/ui-react/-/ui-react-2.9.50.tgz#c70f4c0bc53c543b67df6e18d81a76c326dbe62c"
+  integrity sha512-vzb8F9+M3+Iyhbzu2PEOQVYTYqTjM3R8+RIuDAEMFxYcnebhr7OJCBa3b3phyfJAeHVg9alSfB/u5+VbsiWmHA==
   dependencies:
     "@abtnode/constant" "^1.16.24"
-    "@arcblock/did-connect" "^2.9.47"
-    "@arcblock/ux" "^2.9.47"
+    "@arcblock/did-connect" "^2.9.50"
+    "@arcblock/ux" "^2.9.50"
     "@blocklet/js-sdk" "^1.16.24"
     "@emotion/react" "^11.10.4"
     "@emotion/styled" "^11.10.4"
@@ -13918,6 +13919,11 @@ qrcode-generator@^1.4.3:
   version "1.4.4"
   resolved "https://registry.yarnpkg.com/qrcode-generator/-/qrcode-generator-1.4.4.tgz#63f771224854759329a99048806a53ed278740e7"
   integrity sha512-HM7yY8O2ilqhmULxGMpcHSF1EhJJ9yBj8gvDEuZ6M+KGJ0YY2hKpnXvRD+hZPLrDVck3ExIGhmPtSdcjC+guuw==
+
+qrcode.react@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/qrcode.react/-/qrcode.react-3.1.0.tgz#5c91ddc0340f768316fbdb8fff2765134c2aecd8"
+  integrity sha512-oyF+Urr3oAMUG/OiOuONL3HXM+53wvuH3mtIWQrYmsXoAq0DkvZp2RYUWFSMFtbdOpuS++9v+WAkzNVkMlNW6Q==
 
 qs@6.10.3:
   version "6.10.3"
