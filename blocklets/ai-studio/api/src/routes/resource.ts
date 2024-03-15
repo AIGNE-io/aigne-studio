@@ -80,7 +80,9 @@ export function resourceRoutes(router: Router) {
   });
 
   router.post('/resources/export', ensurePromptsEditor, async (req, res) => {
-    const { resources, projectId, releaseId } = await exportResourceSchema.validateAsync(req.body);
+    const { resources, projectId, releaseId } = await exportResourceSchema.validateAsync(req.body, {
+      stripUnknown: true,
+    });
     const splitResources = uniq(resources)
       .map((x) => {
         try {
