@@ -85,12 +85,12 @@
   },
   "dependencies": {
     "@blocklet/ai-builtin": "^0.1.286",
-    "@blocklet/ai-kit": "^0.1.23",
+    "@blocklet/ai-kit": "^0.1.24",
     "@blocklet/dataset-sdk": "^0.1.286",
     "@blocklet/sdk": "^1.16.24",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.10",
-    "axios": "^1.6.7",
+    "axios": "^1.6.8",
     "dayjs": "^1.11.10",
     "eventsource-parser": "^1.1.2",
     "lodash": "^4.17.21",
@@ -100,7 +100,7 @@
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
     "typescript": "^5.4.2",
-    "ufo": "^1.4.0",
+    "ufo": "^1.5.1",
     "vm2": "^3.9.19"
   },
   "peerDependencies": {
