@@ -142,10 +142,10 @@ export async function syncToDidSpace({ project, userId }: { project: Project; us
     wallet,
   });
 
-  const repositoyPath = repositoryRoot(project._id);
+  const repositoryPath = repositoryRoot(project._id);
   const repositoryCooperativePath = repositoryCooperativeRoot(project._id);
   const outputs: (SyncFolderPushCommandOutput | null)[] = await Promise.all(
-    [repositoyPath, repositoryCooperativePath].map(async (path) => {
+    [repositoryPath, repositoryCooperativePath].map(async (path) => {
       if (await pathExists(path)) {
         return spaceClient.send(
           new SyncFolderPushCommand({
