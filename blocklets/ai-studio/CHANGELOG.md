@@ -1,3 +1,7 @@
+## 0.1.287 (2024-3-15)
+
+- feat: add keystore db for json search
+
 ## 0.1.286 (2024-3-15)
 
 - fix: require save before publish

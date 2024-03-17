@@ -129,7 +129,7 @@ function DebugViewContent({
       <ScrollMessages currentSession={currentSession} key={assistant.id} />
 
       <Stack gap={2} sx={{ bgcolor: 'background.paper', pb: 1.875, pt: 0.25 }}>
-        {currentSession.chatType !== 'debug' ? (
+        {currentSession.chatType === 'chat' ? (
           <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
         ) : (
           <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
@@ -138,7 +138,7 @@ function DebugViewContent({
         <Box textAlign="center">
           <ToggleButtonGroup
             exclusive
-            value={currentSession.chatType ?? 'chat'}
+            value={currentSession.chatType ?? 'debug'}
             sx={{ button: { py: 0.25 } }}
             onChange={(_, v) =>
               setSession(currentSession.index, (session) => {

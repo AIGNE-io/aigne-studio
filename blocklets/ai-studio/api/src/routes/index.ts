@@ -6,6 +6,7 @@ import datasetsItems from './dataset-items';
 import datasetItems from './dataset/item';
 import dataset from './dataset/list';
 import datasets from './datasets';
+import datastores from './datastore';
 import { globalRoutes } from './global';
 import { logRoutes } from './log';
 import { messageRoutes } from './message';
@@ -35,6 +36,7 @@ router.use('/releases', release);
 router.use('/dataset', dataset);
 router.use('/dataset', datasetItems);
 router.use('/datasets', datasets);
+router.use('/datastore', datastores);
 router.use('/datasets', datasetsItems);
 router.use(ws);
 

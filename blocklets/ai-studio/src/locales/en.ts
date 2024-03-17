@@ -139,6 +139,7 @@ export default flat({
   model: 'Model',
   images: 'Images',
   inputParameters: 'Input parameters',
+  fnArgs: 'Function parameters',
   promptMessages: 'Prompt output',
   temperature: 'temperature',
   temperatureTip:
