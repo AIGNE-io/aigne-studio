@@ -88,7 +88,7 @@ export default function ExecuteBlockForm({
   const { store } = useProjectStore(projectId, gitRef);
 
   const { data: datasets = [] } = useRequest(() => getAPIList());
-  const { data: knowledges = [] } = useRequest(() => getDatasets(projectId));
+  const { data: knowledge = [] } = useRequest(() => getDatasets(projectId));
 
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
@@ -456,11 +456,11 @@ export default function ExecuteBlockForm({
                 );
               }
 
-              const knowledge = knowledges.find((x) => x.id === tool.id);
-              if (knowledge) {
+              const found = knowledge.find((x) => x.id === tool.id);
+              if (found) {
                 return (
                   <Stack
-                    key={knowledge.id}
+                    key={found.id}
                     direction="row"
                     sx={{
                       minHeight: 32,
@@ -483,11 +483,11 @@ export default function ExecuteBlockForm({
                       dialogState.open();
                     }}>
                     <Typography variant="subtitle2" noWrap maxWidth="50%">
-                      {knowledge.name}
+                      {found.name}
                     </Typography>
 
                     <Typography variant="body1" color="text.secondary" flex={1} noWrap>
-                      {knowledge.description}
+                      {found.description}
                     </Typography>
 
                     {!readOnly && (
@@ -606,7 +606,7 @@ export default function ExecuteBlockForm({
         gitRef={gitRef}
         DialogProps={{ ...bindDialog(dialogState) }}
         datasets={datasets.map((x) => ({ ...x, from: FROM_DATASET }))}
-        knowledges={knowledges.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
+        knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
           doc.transact(() => {
@@ -665,9 +665,9 @@ export const ToolDialog = forwardRef<
     DialogProps?: DialogProps;
     assistant: AssistantYjs;
     datasets: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-    knowledges: (NewDataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+    knowledge: (NewDataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   }
->(({ datasets, knowledges, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+>(({ datasets, knowledge, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -708,7 +708,7 @@ export const ToolDialog = forwardRef<
     return t('assistantData');
   };
 
-  const option = [...options, ...datasets, ...knowledges].find((x) => x.id === fileId);
+  const option = [...options, ...datasets, ...knowledge].find((x) => x.id === fileId);
   const formatOptions: Option[] = [
     ...options,
     ...datasets.map((dataset) => ({
@@ -720,11 +720,11 @@ export const ToolDialog = forwardRef<
         t('unnamed'),
       from: dataset.from,
     })),
-    ...knowledges.map((knowledge) => ({
-      id: knowledge.id,
+    ...knowledge.map((item) => ({
+      id: item.id,
       type: 'knowledge',
-      name: knowledge.name || t('unnamed'),
-      from: knowledge.from,
+      name: item.name || t('unnamed'),
+      from: item.from,
     })),
   ]
     .map((x) => ({ ...x, fromText: getFromText(x.from) }))

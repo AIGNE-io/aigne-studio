@@ -1,7 +1,7 @@
-import { mkdir, rm } from 'fs/promises';
+import { access, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 
-import { existsSync, pathExists } from 'fs-extra';
+import { pathExists } from 'fs-extra';
 import { Embeddings } from 'langchain/dist/embeddings/base';
 import { HNSWLib, HNSWLibArgs } from 'langchain/vectorstores/hnswlib';
 
@@ -23,7 +23,14 @@ HNSWLib.imports = async () => {
     throw new Error('Please install hnswlib-node as a dependency with, e.g. `npm install -S hnswlib-node`');
   }
 };
-
+async function checkFileExists(filePath: string) {
+  try {
+    await access(filePath);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
 export default class VectorStore extends HNSWLib {
   constructor(
     private directory: string,
@@ -65,7 +72,7 @@ export default class VectorStore extends HNSWLib {
   static async reset(datasetId: string): Promise<void> {
     const path = vectorStorePath(datasetId);
 
-    if (existsSync(path)) {
+    if (await checkFileExists(path)) {
       await rm(path, { recursive: true, force: true });
       logger.info(`VectorStore for datasetId ${datasetId} has been reset.`);
     } else {

@@ -944,7 +944,7 @@ async function runExecuteBlock({
 
             const { data } = await callFunc({
               name: 'ai-studio',
-              path: `/api/dataset/${tool.id}/documents`,
+              path: `/api/datasets/${tool.id}/documents`,
               method: 'GET',
               params,
             });
@@ -1040,7 +1040,7 @@ async function runExecuteBlock({
 
             const { data } = await callFunc({
               name: 'ai-studio',
-              path: `/api/dataset/${tool.id}`,
+              path: `/api/datasets/${tool.id}`,
               method: 'GET',
               params: {},
             });
@@ -1237,7 +1237,7 @@ async function runExecuteBlock({
 
             const { data } = await callFunc({
               name: 'ai-studio',
-              path: `/api/dataset/${tool.id}/documents`,
+              path: `/api/datasets/${tool.id}/documents`,
               method: 'GET',
               params: args,
             });

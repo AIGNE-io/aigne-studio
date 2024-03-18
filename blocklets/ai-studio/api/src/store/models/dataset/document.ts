@@ -56,7 +56,7 @@ export default class NewDatasetItem extends Model<
 
   declare updatedBy: string;
 
-  declare error?: string;
+  declare error?: string | null;
 }
 
 NewDatasetItem.init(

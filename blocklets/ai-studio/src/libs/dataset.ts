@@ -17,52 +17,52 @@ export async function getAPIList(): Promise<DatasetObject[]> {
 }
 
 export async function getDatasets(projectId?: string): Promise<Dataset[]> {
-  return axios.get('/api/dataset', { params: { projectId } }).then((res) => res.data);
+  return axios.get('/api/datasets', { params: { projectId } }).then((res) => res.data);
 }
 
 export async function getDataset(datasetId: string): Promise<Dataset> {
-  return axios.get(`/api/dataset/${datasetId}`).then((res) => res.data);
+  return axios.get(`/api/datasets/${datasetId}`).then((res) => res.data);
 }
 
 export async function createDataset(input?: DatasetInput): Promise<Dataset> {
-  return axios.post('/api/dataset', input).then((res) => res.data);
+  return axios.post('/api/datasets', input).then((res) => res.data);
 }
 
 export async function updateDataset(datasetId: string, input: DatasetInput): Promise<Dataset> {
-  return axios.put(`/api/dataset/${datasetId}`, input).then((res) => res.data);
+  return axios.put(`/api/datasets/${datasetId}`, input).then((res) => res.data);
 }
 
 export async function deleteDataset(datasetId: string): Promise<any> {
-  return axios.delete(`/api/dataset/${datasetId}`).then((res) => res.data);
+  return axios.delete(`/api/datasets/${datasetId}`).then((res) => res.data);
 }
 
 export async function getDocuments(datasetId: string, params: { page?: number; size?: number }): Promise<any> {
-  return axios.get(`/api/dataset/${datasetId}/document`, { params }).then((res) => res.data);
+  return axios.get(`/api/datasets/${datasetId}/documents`, { params }).then((res) => res.data);
 }
 
 export async function getDocument(
   datasetId: string,
   documentId: string
 ): Promise<{ dataset: Dataset; document: DatasetDocument }> {
-  return axios.get(`/api/dataset/${datasetId}/document/${documentId}`).then((res) => res.data);
+  return axios.get(`/api/datasets/${datasetId}/documents/${documentId}`).then((res) => res.data);
 }
 
 export async function deleteDocument(
   datasetId: string,
   documentId: string
 ): Promise<{ dataset: Dataset; document: DatasetDocument }> {
-  return axios.delete(`/api/dataset/${datasetId}/document/${documentId}`).then((res) => res.data);
+  return axios.delete(`/api/datasets/${datasetId}/documents/${documentId}`).then((res) => res.data);
 }
 
 export async function createDocument(
   datasetId: string,
   input: { type: string; name: string; content?: string }
 ): Promise<DatasetDocument> {
-  return axios.post(`/api/dataset/${datasetId}/document`, input).then((res) => res.data);
+  return axios.post(`/api/datasets/${datasetId}/documents`, input).then((res) => res.data);
 }
 
 export async function uploadDocument(datasetId: string, form: any): Promise<DatasetDocument> {
-  return axios.post(`/api/dataset/${datasetId}/document/file`, form).then((res) => res.data);
+  return axios.post(`/api/datasets/${datasetId}/documents/file`, form).then((res) => res.data);
 }
 
 export async function uploadDocumentParams(
@@ -70,7 +70,7 @@ export async function uploadDocumentParams(
   documentId: string,
   input: { name: string }
 ): Promise<{ data: string }> {
-  return axios.put(`/api/dataset/${datasetId}/document/${documentId}`, input).then((res) => res.data);
+  return axios.put(`/api/datasets/${datasetId}/documents/${documentId}`, input).then((res) => res.data);
 }
 
 export async function getSegments(
@@ -78,15 +78,17 @@ export async function getSegments(
   documentId: string,
   params: { page?: number; size?: number } = {}
 ): Promise<{ items: DatasetSegment[]; total: number }> {
-  return axios.get(`/api/dataset/${datasetId}/document/${documentId}/segment`, { params }).then((res) => res.data);
+  return axios.get(`/api/datasets/${datasetId}/documents/${documentId}/segment`, { params }).then((res) => res.data);
 }
 
 export async function createSegment(datasetId: string, documentId: string, content: string): Promise<any> {
-  return axios.post(`/api/dataset/${datasetId}/document/${documentId}/segment`, { content }).then((res) => res.data);
+  return axios.post(`/api/datasets/${datasetId}/documents/${documentId}/segment`, { content }).then((res) => res.data);
 }
 
 export async function deleteSegment(datasetId: string, documentId: string, segmentId: string): Promise<any> {
-  return axios.delete(`/api/dataset/${datasetId}/document/${documentId}/segment/${segmentId}`).then((res) => res.data);
+  return axios
+    .delete(`/api/datasets/${datasetId}/documents/${documentId}/segment/${segmentId}`)
+    .then((res) => res.data);
 }
 
 export async function updateSegment(
@@ -96,7 +98,7 @@ export async function updateSegment(
   content: string
 ): Promise<any> {
   return axios
-    .put(`/api/dataset/${datasetId}/document/${documentId}/segment/${segmentId}`, { content })
+    .put(`/api/datasets/${datasetId}/documents/${documentId}/segment/${segmentId}`, { content })
     .then((res) => res.data);
 }
 
@@ -106,5 +108,5 @@ export async function createDatasetDocuments(
   datasetId: string,
   input: CreateItemInput
 ): Promise<DatasetDocument | DatasetDocument[]> {
-  return axios.post(`/api/dataset/${datasetId}/documents`, input).then((res) => res.data);
+  return axios.post(`/api/datasets/${datasetId}/documents/discussion`, input).then((res) => res.data);
 }

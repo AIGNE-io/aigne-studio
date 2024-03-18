@@ -1,4 +1,4 @@
-/api/dataset:
+/api/datasets:
   get:
     type: SEARCH
     summary: Retrieve the current user's datasets
@@ -6,7 +6,7 @@
     description: Retrieve the current user's datasets
     x-description-zh: 获取当前用户数据集
     responses:
-      '200':
+      "200":
         description: Successfully retrieved the current user's datasets
         x-description-zh: 获取当前用户数据集
   post:
@@ -25,10 +25,10 @@
               name:
                 type: string
     responses:
-      '200':
+      "200":
         description: Successfully created a new dataset
         x-description-zh: 创建新的数据集
-/api/dataset/{datasetId}:
+/api/datasets/{datasetId}:
   get:
     type: SEARCH
     summary: Retrieve details of a specific dataset
@@ -43,9 +43,9 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
     responses:
-      '200':
+      "200":
         description: Successfully retrieved the dataset details
         x-description-zh: 获取当前用户数据集详情
   put:
@@ -62,7 +62,7 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
     requestBody:
       required: true
       content:
@@ -73,7 +73,7 @@
               name:
                 type: string
     responses:
-      '200':
+      "200":
         description: Successfully updated the dataset
         x-description-zh: 更新数据集
   delete:
@@ -90,12 +90,12 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
     responses:
-      '200':
+      "200":
         description: Successfully deleted the dataset
         x-description-zh: 删除数据集
-/api/dataset/{datasetId}/document:
+/api/datasets/{datasetId}/documents:
   get:
     type: SEARCH
     summary: Get data items in a dataset by datasetId
@@ -110,7 +110,7 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
       - name: page
         in: query
         description: The page number of the data
@@ -126,10 +126,10 @@
           type: integer
           default: 20
     responses:
-      '200':
+      "200":
         description: Successfully retrieved data items in the dataset
         x-description-zh: 获取当前 datasetId 数据集中数据信息
-/api/dataset/{datasetId}/document/{documentId}:
+/api/datasets/{datasetId}/documents/{documentId}:
   delete:
     type: SEARCH
     summary: Delete a data item from the dataset by datasetId and documentId
@@ -144,7 +144,7 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
       - name: documentId
         in: path
         description: The ID of the data item
@@ -152,12 +152,12 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
     responses:
-      '200':
+      "200":
         description: Successfully deleted the data item from the dataset
         x-description-zh: 删除当前 datasetId 数据集中数据信息
-/api/dataset/{datasetId}/document/embedding:
+/api/datasets/{datasetId}/documents/text:
   post:
     type: CREATE
     summary: Upload data to the specified dataset by datasetId
@@ -172,7 +172,7 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
     requestBody:
       required: true
       content:
@@ -185,10 +185,10 @@
               data:
                 type: string
     responses:
-      '200':
+      "200":
         description: Successfully uploaded data to the dataset
         x-description-zh: 上传数据到当前 datasetId 数据集中
-/api/dataset/{datasetId}/document/file:
+/api/datasets/{datasetId}/documents/file:
   post:
     type: CREATE
     summary: Upload a file to the specified dataset by datasetId
@@ -203,7 +203,7 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
     requestBody:
       content:
         multipart/form-data:
@@ -217,10 +217,10 @@
                 type: string
                 default: file
     responses:
-      '200':
+      "200":
         description: File successfully uploaded to the specified dataset
         x-description-zh: 上传文件到当前 datasetId 数据集中
-/api/dataset/{datasetId}/document/{documentId}/embedding:
+/api/datasets/{datasetId}/documents/{documentId}/text:
   put:
     type: UPDATE
     summary: Update data in the specified dataset by datasetId and documentId
@@ -235,7 +235,7 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
       - name: documentId
         in: path
         description: The ID of the data item
@@ -243,7 +243,7 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
     requestBody:
       required: true
       content:
@@ -256,10 +256,10 @@
               data:
                 type: string
     responses:
-      '200':
+      "200":
         description: Successfully updated the data in the dataset
         x-description-zh: 更新数据到当前 datasetId 数据集中
-/api/dataset/{datasetId}/document/{documentId}/file:
+/api/datasets/{datasetId}/documents/{documentId}/file:
   put:
     type: UPDATE
     summary: Update an uploaded file in the dataset by datasetId
@@ -274,7 +274,7 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
       - name: documentId
         in: path
         description: The ID of the data item
@@ -282,7 +282,7 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
     requestBody:
       content:
         multipart/form-data:
@@ -296,10 +296,10 @@
                 type: string
                 default: file
     responses:
-      '200':
+      "200":
         description: Successfully updated the uploaded file in the dataset
         x-description-zh: 更新上传到当前 datasetId 数据集中
-/api/dataset/{datasetId}/documents:
+/api/datasets/{datasetId}/search:
   get:
     type: SEARCH
     summary: Search for content within the dataset
@@ -315,7 +315,7 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
       - name: message
         in: query
         description: The search content or message
@@ -323,11 +323,124 @@
         required: true
         schema:
           type: string
-          default: ''
+          default: ""
     responses:
-      '200':
+      "200":
         description: Successfully retrieved the paginated list of search results
         x-description-zh: 成功获取分页列表
+/api/datastore:
+  get:
+    summary: Lists all datastores
+    description: Retrieve a list of datastores with optional query parameters to
+      filter the results.
+    x-summary-zh: 列出所有数据存储
+    x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
+    responses:
+      "200":
+        description: A JSON array of datastores
+  post:
+    summary: Creates a new datastore
+    description: Add a new datastore to the collection.
+    x-summary-zh: 创建一个新的数据存储
+    x-description-zh: 向集合中添加一个新的数据存储。
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: string
+                description: The new data for the datastore.
+            required:
+              - data
+    responses:
+      "200":
+        description: The created datastore object
+/api/datastore/{id}:
+  get:
+    summary: Gets a single datastore by ID
+    description: Retrieve detailed information of a specific datastore by its ID.
+    x-summary-zh: 通过 ID 获取单个数据存储
+    x-description-zh: 通过其 ID 检索特定数据存储的详细信息。
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        description: The ID of the datastore to retrieve.
+    responses:
+      "200":
+        description: A datastore object
+      "404":
+        description: No such datastore found
+  put:
+    summary: update data by id
+    description: update data by id
+    x-summary-zh: 通过 ID 更新数据存储
+    x-description-zh: 通过其 ID 更新数据存储的信息。
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        description: The ID of the datastore to update.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: string
+                description: The new data for the datastore.
+            required:
+              - data
+    responses:
+      "200":
+        description: The updated datastore object
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: The unique identifier for the datastore.
+                data:
+                  type: object
+                  description: The updated data of the datastore.
+                createdAt:
+                  type: string
+                  format: date-time
+                  description: The creation date of the datastore.
+                updatedAt:
+                  type: string
+                  format: date-time
+                  description: The last update date of the datastore.
+      "404":
+        description: No such datastore found
+  delete:
+    summary: delete data
+    description: delete data by id
+    x-summary-zh: 通过 ID 删除数据存储
+    x-description-zh: 通过其 ID 从集合中删除一个数据存储。
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        description: The ID of the datastore to delete.
+    responses:
+      "200":
+        description: The deleted datastore object
+      "404":
+        description: No such datastore found
 /api/messages:
   get:
     summary: Get history messages
@@ -350,7 +463,7 @@
         description: Keyword to search in messages
         x-description-zh: 在消息中搜索的关键字
     responses:
-      '200':
+      "200":
         description: A list of history messages
         x-description-zh: 检索历史消息列表
         content:

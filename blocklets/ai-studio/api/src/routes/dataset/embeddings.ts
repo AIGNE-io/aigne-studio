@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { readFile } from 'fs/promises';
 
 import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import axios from 'axios';
@@ -58,25 +58,25 @@ const embeddingHandler: {
     return { name: '', content };
   },
   md: async (item: DatasetDocument, documentId: string) => {
-    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    const content = await readFile((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: '', content };
   },
   txt: async (item: DatasetDocument, documentId: string) => {
-    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    const content = await readFile((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: '', content };
   },
   pdf: async (item: DatasetDocument, documentId: string) => {
-    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    const content = await readFile((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: '', content };
   },
   doc: async (item: DatasetDocument, documentId: string) => {
-    const content = fs.readFileSync((item.data as any).path, 'utf8');
+    const content = await readFile((item.data as any).path, 'utf8');
     await saveContentToVectorStore(content, item.datasetId, documentId);
 
     return { name: '', content };
