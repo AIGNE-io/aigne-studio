@@ -6,7 +6,7 @@ import {
 } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import { Box, alpha, styled } from '@mui/material';
 import Divider from '@mui/material/Divider';
-import Stack from '@mui/material/Stack';
+import Stack, { StackProps } from '@mui/material/Stack';
 import { LexicalEditor, TextNode } from 'lexical';
 import React, { useCallback, useMemo, useState } from 'react';
 import * as ReactDOM from 'react-dom';
@@ -42,19 +42,14 @@ export class VariablePickerOption extends MenuOption {
 
 function VariablePickerMenuItem({
   isSelected,
+  option,
   onClick,
   onMouseEnter,
-  option,
 }: {
   isSelected: boolean;
-  onClick: () => void;
-  onMouseEnter: () => void;
   option: VariablePickerOption;
-}) {
-  let className = 'item';
-  if (isSelected) {
-    className += ' selected';
-  }
+} & StackProps) {
+  const className = ['item', ...(isSelected ? ['selected'] : [])].join(' ');
 
   return (
     <Item

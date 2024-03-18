@@ -2,9 +2,7 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { mergeRegister } from '@lexical/utils';
 import {
   $getNodeByKey,
-  $getSelection,
   $insertNodes,
-  $setSelection,
   COMMAND_PRIORITY_EDITOR,
   LexicalCommand,
   LexicalEditor,
@@ -55,15 +53,6 @@ export default function VarContextPlugin({
     );
   }, [editor]);
 
-  const removeSelection = () => {
-    editor.update(() => {
-      const selection = $getSelection();
-      if (selection !== null) {
-        $setSelection(null);
-      }
-    });
-  };
-
   useEffect(() => {
     if (!editor.hasNodes([VariableTextNode])) {
       throw new Error('VarContextPlugin: VariableTextNode not registered on editor');
@@ -84,15 +73,6 @@ export default function VarContextPlugin({
             }
           }
         });
-      }),
-      editor.registerRootListener((rootElement: null | HTMLElement, prevRootElement: null | HTMLElement) => {
-        if (prevRootElement !== null) {
-          prevRootElement.removeEventListener('blur', removeSelection);
-        }
-
-        if (rootElement !== null) {
-          rootElement.addEventListener('blur', removeSelection);
-        }
       })
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
