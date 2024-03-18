@@ -1,3 +1,7 @@
+## 0.1.288 (2024-3-18)
+
+- fix: prompt editor
+
 ## 0.1.287 (2024-3-15)
 
 - feat: add keystore db for json search

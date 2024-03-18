@@ -281,14 +281,14 @@ export default function ExecuteBlockForm({
           )}
           {value.role !== 'none' && value.formatResultType !== 'asHistory' && (
             <>
-              <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                <Box display="flex">
-                  <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
-                  <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
-                    <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
-                  </Tooltip>
-                </Box>
-                {assistant.type === 'prompt' && (
+              {assistant.type === 'prompt' && (
+                <Box display="flex" alignItems="baseline" justifyContent="space-between">
+                  <Box display="flex">
+                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
+                    <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
+                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+                    </Tooltip>
+                  </Box>
                   <Box width="60%">
                     <PromptEditorField
                       readOnly={readOnly}
@@ -307,16 +307,16 @@ export default function ExecuteBlockForm({
                       onChange={(prefix) => (value.prefix = prefix)}
                     />
                   </Box>
-                )}
-              </Box>
-              <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                <Box display="flex">
-                  <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
-                  <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
-                    <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
-                  </Tooltip>
                 </Box>
-                {assistant.type === 'prompt' && (
+              )}
+              {assistant.type === 'prompt' && (
+                <Box display="flex" alignItems="baseline" justifyContent="space-between">
+                  <Box display="flex">
+                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
+                    <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
+                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+                    </Tooltip>
+                  </Box>
                   <Box width="60%">
                     <PromptEditorField
                       readOnly={readOnly}
@@ -335,8 +335,8 @@ export default function ExecuteBlockForm({
                       onChange={(suffix) => (value.suffix = suffix)}
                     />
                   </Box>
-                )}
-              </Box>
+                </Box>
+              )}
             </>
           )}
           <Box display="flex" alignItems="center" justifyContent="space-between">
