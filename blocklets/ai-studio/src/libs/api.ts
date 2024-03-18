@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// @ts-ignore
 export const PREFIX = window.blocklet?.prefix || '/';
 
 export const API_TIMEOUT = 120 * 1000;
