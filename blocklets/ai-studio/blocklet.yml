@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.282
+version: 0.1.287
 logo: logo.png
 files:
   - dist
@@ -75,8 +75,15 @@ components:
     source:
       name: did-comments
       version: latest
+  - name: pages-kit
+    source:
+      name: pages-kit
+      version: latest
+  - name: payment-kit
+    source:
+      name: z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk
+      version: latest
   - name: ai-runtime
-    required: true
     source:
       name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
       version: latest

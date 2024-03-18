@@ -26,6 +26,8 @@ import { nanoid } from 'nanoid';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
+import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
 
 import Project from '../../../api/src/store/models/project';
 import { textCompletions } from '../../libs/ai';
@@ -39,7 +41,7 @@ import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 export interface ProjectState {
   project?: Project;
-  releases?: Release[];
+  releases?: (Release & { paymentUnitAmount?: string })[];
   branches: string[];
   commits: Commit[];
   loading?: boolean;
@@ -898,3 +900,16 @@ export function useAssistantCompare({
 
   return { getDiffName, getDiffBackground, getBackgroundColor };
 }
+
+export const saveButtonState = create<{
+  save?: () => any;
+  setSaveHandler: (save?: () => any) => void;
+}>()(
+  immer((set) => ({
+    setSaveHandler(save?: () => any) {
+      set((state) => {
+        state.save = save;
+      });
+    },
+  }))
+);

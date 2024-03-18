@@ -14,6 +14,7 @@ export const getRequestConfig = (
     headers: { [key: string]: any };
     params: { [key: string]: any };
     data: { [key: string]: any };
+    body: { [key: string]: any };
     cookies: { [key: string]: any };
   } = {
     method: pathItem.method,
@@ -22,6 +23,7 @@ export const getRequestConfig = (
     params: options?.params || {},
     data: options?.data || {},
     cookies: {},
+    body: {},
   };
 
   const data = { ...requestData };
@@ -57,6 +59,7 @@ export const getRequestConfig = (
   }
 
   config.url = url;
+  config.body = requestBodyData;
   return config;
 };
 
@@ -154,4 +157,14 @@ export function getAllParameters(dataset: DatasetObject): { name: string; descri
   const requestBody = extractRequestBodyParameters(dataset.requestBody);
   const datasetParameters = [...(dataset?.parameters ?? []), ...(requestBody ?? [])];
   return datasetParameters;
+}
+
+export function getRequiredFields(dataset: DatasetObject) {
+  const parameterFields = dataset.parameters?.filter((param) => param.required).map((param) => param.name) || [];
+
+  const requestBodyFields = Object.values(dataset.requestBody?.content || {}).flatMap(
+    (mediaObject) => (mediaObject.schema as any)?.required || []
+  );
+
+  return [...new Set([...parameterFields, ...requestBodyFields])];
 }

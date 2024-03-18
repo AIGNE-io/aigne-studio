@@ -1,23 +1,23 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.282",
+  "version": "0.1.287",
   "workspaces": [
     "blocklets/*",
     "packages/*"
   ],
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
-    "dev": "yarn workspace ai-studio dev",
-    "bundle": "npm run build:libs && yarn workspace ai-studio bundle",
-    "lint": "yarn workspaces run lint",
-    "lint:fix": "yarn workspaces run lint:fix",
-    "build": "npm run build:libs && yarn workspace ai-studio build",
-    "clean": "yarn workspaces run clean",
-    "build:libs": "yarn workspace @blocklet/co-git build && yarn workspace @blocklet/studio-ui build && yarn workspace @blocklet/prompt-editor build && yarn workspace @blocklet/ai-runtime build && yarn workspace @blocklet/dataset-sdk build && yarn workspace @blocklet/ai-builtin build",
+    "dev": "pnpm -F ai-studio dev",
+    "bundle": "pnpm build:libs && pnpm -F ai-studio bundle",
+    "lint": "pnpm -r run lint",
+    "lint:fix": "pnpm -r run lint:fix",
+    "build": "pnpm build:libs && pnpm -F ai-studio build",
+    "clean": "pnpm -r run clean",
+    "build:libs": "pnpm -F @blocklet/* build",
     "prepare": "husky install",
-    "bump-version": "zx scripts/bump-version.mjs",
-    "update:deps": "npx -y taze -r -w && yarn install && npx -y yarn-deduplicate yarn.lock && yarn"
+    "bump-version": "zx scripts/bump-version.mjs && pnpm install",
+    "update:deps": "npx -y taze -r -w && pnpm install"
   },
   "lint-staged": {
     "*.{mjs,js,jsx,ts,tsx}": [
@@ -67,7 +67,7 @@
     "@blocklet/meta": "^1.16.24",
     "@blocklet/sdk": "^1.16.24",
     "@blocklet/uploader": "^0.0.73",
-    "@mui/material": "^5.15.12",
+    "@mui/material": "^5.15.13",
     "@nedb/core": "^2.1.5",
     "@ocap/asset": "^1.18.113",
     "@ocap/mcrypto": "^1.18.113",
@@ -75,8 +75,8 @@
     "@ocap/types": "^1.18.113",
     "@ocap/util": "^1.18.113",
     "@ocap/wallet": "^1.18.113",
-    "@types/react": "^18.2.64",
-    "@types/react-dom": "^18.2.21",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
     "axios": "^1.6.7",
     "gpt-tokens": "1.2.0",
     "react-dnd": "^16.0.1",

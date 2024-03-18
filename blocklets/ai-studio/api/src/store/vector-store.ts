@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, rmSync } from 'fs';
+import { mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 
+import { existsSync, pathExists } from 'fs-extra';
 import { Embeddings } from 'langchain/dist/embeddings/base';
 import { HNSWLib, HNSWLibArgs } from 'langchain/vectorstores/hnswlib';
 
@@ -40,14 +41,14 @@ export default class VectorStore extends HNSWLib {
       store = (async () => {
         let hnsw: HNSWLib;
 
-        if (existsSync(storePath)) {
+        if (await pathExists(storePath)) {
           try {
             hnsw = await HNSWLib.load(storePath, embeddings);
           } catch (error) {
             logger.error('HNSWLib load from path error', { error });
           }
         }
-        mkdirSync(storePath, { recursive: true });
+        await mkdir(storePath, { recursive: true });
         hnsw ??= await HNSWLib.fromDocuments([], embeddings);
 
         return new VectorStore(storePath, hnsw.embeddings, hnsw.args);
@@ -65,7 +66,7 @@ export default class VectorStore extends HNSWLib {
     const path = vectorStorePath(datasetId);
 
     if (existsSync(path)) {
-      rmSync(path, { recursive: true, force: true });
+      await rm(path, { recursive: true, force: true });
       logger.info(`VectorStore for datasetId ${datasetId} has been reset.`);
     } else {
       logger.info(`VectorStore for datasetId ${datasetId} does not exist, no need to reset.`);
@@ -76,5 +77,6 @@ export default class VectorStore extends HNSWLib {
 
     // 从 vectorStores Map 中移除这个存储，因为它已被重置
     vectorStores.delete(path);
+    await rm(path, { recursive: true, force: true });
   }
 }

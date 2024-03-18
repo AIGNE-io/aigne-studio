@@ -59,7 +59,10 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
     if (!res.headersSent) res.status(status).contentType('json');
     if (res.writable)
       res.write(
-        JSON.stringify({ type: AssistantResponseType.ERROR, error: { name: error.name, message: error.message } })
+        JSON.stringify({
+          type: AssistantResponseType.ERROR,
+          error: { type: error.type, message: error.message },
+        })
       );
   } catch (error) {
     logger.error('Write error to client error', error);

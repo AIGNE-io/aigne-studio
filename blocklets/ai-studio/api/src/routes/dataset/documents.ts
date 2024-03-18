@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 
 import user from '@blocklet/sdk/lib/middlewares/user';
@@ -321,7 +321,7 @@ router.post('/:datasetId/document/file', user(), checkUserAuth(), upload.single(
   if (type === 'base64') {
     buffer = Buffer.from(data, 'base64');
   } else if (type === 'path') {
-    buffer = fs.readFileSync(data);
+    buffer = await readFile(data);
   } else if (type === 'file') {
     buffer = data;
   } else {
@@ -334,7 +334,7 @@ router.post('/:datasetId/document/file', user(), checkUserAuth(), upload.single(
   }
 
   const filePath = path.join(Config.uploadDir, filename);
-  fs.writeFileSync(filePath, buffer, 'utf8');
+  await writeFile(filePath, buffer, 'utf8');
 
   const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'md' | 'txt' | 'pdf' | 'doc';
 
@@ -554,7 +554,7 @@ router.put(
 router.get('/:datasetId/documents', async (req, res) => {
   const { datasetId } = req.params;
   const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
-  const input = await datasetSchema.validateAsync(req.query);
+  const input = await datasetSchema.validateAsync(req.query, { stripUnknown: true });
 
   const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset || !datasetId) {
