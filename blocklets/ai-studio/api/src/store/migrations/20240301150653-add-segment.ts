@@ -13,11 +13,6 @@ export const up: Migration = async ({ context: queryInterface }) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    index: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      autoIncrement: true,
-    },
     content: {
       type: DataTypes.STRING,
     },

@@ -1,5 +1,7 @@
 import Toast from '@arcblock/ux/lib/Toast';
+import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
 import { useCallback, useEffect } from 'react';
+import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
 import Dataset from '../../../api/src/store/models/dataset/dataset';
@@ -94,4 +96,34 @@ export const useSegments = (datasetId: string, documentId: string, { autoFetch =
   }, [datasetId, documentId]);
 
   return { state, refetch, create, update, remove };
+};
+
+export const useFetchSegments = (datasetId: string, documentId: string) => {
+  const dataState = useInfiniteScroll(
+    async (
+      d: { list: any[]; next: boolean; size: number; page: number } = {
+        list: [],
+        next: false,
+        size: 20,
+        page: 1,
+      }
+    ) => {
+      const { page = 1, size = 20 } = d || {};
+      const { items, total } = await getSegments(datasetId, documentId, { page, size });
+
+      const list = (d?.list?.length || 0) + items.length;
+      const next = Boolean(list < total);
+      return { list: items || [], next, size, page: (d?.page || 1) + 1 };
+    },
+    { isNoMore: (d) => !d?.next, reloadDeps: [datasetId, documentId] }
+  );
+
+  const [loadingRef] = useInfiniteScrollHook({
+    loading: dataState.loading || dataState.loadingMore,
+    hasNextPage: Boolean(dataState.data?.next),
+    onLoadMore: () => dataState.loadMore(),
+    rootMargin: '0px 0px 200px 0px',
+  });
+
+  return { loadingRef, dataState };
 };

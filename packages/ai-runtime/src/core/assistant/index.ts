@@ -32,6 +32,16 @@ import { ImageAssistant, Mustache, OnTaskCompletion, Role, User, isImageAssistan
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 import { BuiltinModules } from './builtin';
 
+const setUserHeader = (user: any) => {
+  return {
+    'x-user-did': user?.did,
+    'x-user-role': user?.role,
+    'x-user-provider': user?.provider,
+    'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
+    'x-user-wallet-os': user?.walletOS,
+  };
+};
+
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
 export class ToolCompletionDirective extends Error {
@@ -942,18 +952,43 @@ async function runExecuteBlock({
               )
             );
 
+            const callbackParams = {
+              taskId: currentTaskId,
+              parentTaskId,
+              assistantId: assistant.id,
+              assistantName: `${executeBlock.variable ?? assistant.name}`,
+            };
+
+            callback?.({
+              type: AssistantResponseType.EXECUTE,
+              ...callbackParams,
+              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+            });
+
+            callback?.({
+              type: AssistantResponseType.INPUT,
+              ...callbackParams,
+              inputParameters: params,
+            });
+
             const { data } = await callFunc({
               name: 'ai-studio',
-              path: `/api/datasets/${tool.id}/documents`,
+              path: `/api/datasets/${tool.id}/search`,
               method: 'GET',
               params,
+              headers: setUserHeader(user),
             });
 
             callback?.({
               type: AssistantResponseType.CHUNK,
-              taskId: taskIdGenerator.nextId().toString(),
-              assistantId: tool.id,
-              delta: { content: typeof data?.docs === 'string' ? data?.docs : JSON.stringify(data?.docs) },
+              ...callbackParams,
+              delta: { content: JSON.stringify(data?.docs) },
+            });
+
+            callback?.({
+              type: AssistantResponseType.EXECUTE,
+              ...callbackParams,
+              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
             });
 
             return (data?.docs || []).join('\n');
@@ -1043,6 +1078,7 @@ async function runExecuteBlock({
               path: `/api/datasets/${tool.id}`,
               method: 'GET',
               params: {},
+              headers: setUserHeader(user),
             });
 
             const { name, description } = data;
@@ -1235,18 +1271,43 @@ async function runExecuteBlock({
               }) ?? []
             );
 
+            const callbackParams = {
+              taskId: currentTaskId,
+              parentTaskId,
+              assistantId: assistant.id,
+              assistantName: `${executeBlock.variable ?? assistant.name}`,
+            };
+
+            callback?.({
+              type: AssistantResponseType.EXECUTE,
+              ...callbackParams,
+              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+            });
+
+            callback?.({
+              type: AssistantResponseType.INPUT,
+              ...callbackParams,
+              inputParameters: args,
+            });
+
             const { data } = await callFunc({
               name: 'ai-studio',
-              path: `/api/datasets/${tool.id}/documents`,
+              path: `/api/datasets/${tool.id}/search`,
               method: 'GET',
               params: args,
+              headers: setUserHeader(user),
             });
 
             callback?.({
               type: AssistantResponseType.CHUNK,
-              taskId: taskIdGenerator.nextId().toString(),
-              assistantId: tool.id,
-              delta: { content: typeof data?.docs === 'string' ? data?.docs : JSON.stringify(data?.docs) },
+              ...callbackParams,
+              delta: { content: JSON.stringify(data?.docs) },
+            });
+
+            callback?.({
+              type: AssistantResponseType.EXECUTE,
+              ...callbackParams,
+              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
             });
 
             return (data?.docs || []).join('\n');

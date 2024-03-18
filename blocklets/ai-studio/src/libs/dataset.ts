@@ -77,17 +77,17 @@ export async function getSegments(
   datasetId: string,
   documentId: string,
   params: { page?: number; size?: number } = {}
-): Promise<{ items: DatasetSegment[]; total: number }> {
-  return axios.get(`/api/datasets/${datasetId}/documents/${documentId}/segment`, { params }).then((res) => res.data);
+): Promise<{ items: DatasetSegment[]; total: number; page: number }> {
+  return axios.get(`/api/datasets/${datasetId}/documents/${documentId}/segments`, { params }).then((res) => res.data);
 }
 
 export async function createSegment(datasetId: string, documentId: string, content: string): Promise<any> {
-  return axios.post(`/api/datasets/${datasetId}/documents/${documentId}/segment`, { content }).then((res) => res.data);
+  return axios.post(`/api/datasets/${datasetId}/documents/${documentId}/segments`, { content }).then((res) => res.data);
 }
 
 export async function deleteSegment(datasetId: string, documentId: string, segmentId: string): Promise<any> {
   return axios
-    .delete(`/api/datasets/${datasetId}/documents/${documentId}/segment/${segmentId}`)
+    .delete(`/api/datasets/${datasetId}/documents/${documentId}/segments/${segmentId}`)
     .then((res) => res.data);
 }
 
@@ -98,7 +98,7 @@ export async function updateSegment(
   content: string
 ): Promise<any> {
   return axios
-    .put(`/api/datasets/${datasetId}/documents/${documentId}/segment/${segmentId}`, { content })
+    .put(`/api/datasets/${datasetId}/documents/${documentId}/segments/${segmentId}`, { content })
     .then((res) => res.data);
 }
 

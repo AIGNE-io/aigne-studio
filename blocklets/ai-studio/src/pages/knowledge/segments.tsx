@@ -34,7 +34,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 
 import PromiseLoadingButton from '../../components/promise-loading-button';
-import { useSegments } from '../../contexts/datasets/segments';
+import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
 import { getErrorMessage } from '../../libs/api';
 import { uploadDocumentParams } from '../../libs/dataset';
 import Delete from '../project/icons/delete';
@@ -51,12 +51,19 @@ export default function KnowledgeSegments() {
 
   const form = useForm<{ content: string }>({ defaultValues: { content: '' } });
 
-  const { state, refetch, create, update } = useSegments(datasetId || '', documentId || '');
+  const { state, refetch: init, create, update } = useSegments(datasetId || '', documentId || '');
+  const { loadingRef, dataState } = useFetchSegments(datasetId || '', documentId || '');
   const [readContent, setReadContent] = useState('');
   const [currentSegment, setSegment] = useState('');
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [segmentId, setSegmentId] = useState('');
   const isReadOnly = Boolean(readContent);
+  const segments = dataState?.data?.list || [];
+
+  const refetch = async () => {
+    await dataState.reloadAsync();
+    await init();
+  };
 
   useEffect(() => {
     if (!segmentDialogState.isOpen) {
@@ -66,7 +73,7 @@ export default function KnowledgeSegments() {
 
   if (state.error) throw state.error;
 
-  if (state.loading) {
+  if (state.loading || dataState.loading) {
     return (
       <Box flex={1} display="flex" justifyContent="center" alignItems="center">
         <CircularProgress size={20} />
@@ -118,7 +125,7 @@ export default function KnowledgeSegments() {
                 <Tag>{state.document?.type}</Tag>
                 <Tag>{t('knowledge.auto')}</Tag>
                 <Tag>
-                  {state?.segments?.length} {t('knowledge.segments.segments')}
+                  {segments?.length} {t('knowledge.segments.segments')}
                 </Tag>
               </Box>
             </Box>
@@ -143,41 +150,50 @@ export default function KnowledgeSegments() {
 
         <Divider />
 
-        <Stack px={3} flex={1} height={0}>
+        <Stack px={3} flex={1} height={0} overflow="auto">
           <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>
             {t('knowledge.segments.segments')}
           </Box>
 
           <Stack flex={1}>
-            {!state?.segments?.length && <EmptyDocument />}
+            {!segments?.length && <EmptyDocument />}
 
-            {state?.segments?.length && (
-              <ListContainer gap={{ xs: 2, sm: 3 }}>
-                {state?.segments.map((item) => {
-                  return (
-                    <SegmentsItem
-                      key={item.id}
-                      index={item.index}
-                      content={item.content}
-                      onClick={() => {
-                        form.setValue('content', item.content || '');
-                        setReadContent(item.content || '');
-                        segmentDialogState.open();
-                      }}
-                      onEdit={() => {
-                        form.setValue('content', item.content || '');
-                        setSegmentId(item.id);
-                        segmentDialogState.open();
-                      }}
-                      onDelete={(e) => {
-                        setSegment(item.id);
-                        setAnchorEl(e.currentTarget);
-                      }}
-                      className="listItem"
-                    />
-                  );
-                })}
-              </ListContainer>
+            {segments?.length && (
+              <>
+                <ListContainer gap={{ xs: 2, sm: 3 }}>
+                  {segments.map((item, index) => {
+                    return (
+                      <SegmentsItem
+                        key={item.id}
+                        index={index + 1}
+                        content={item.content}
+                        onClick={() => {
+                          form.setValue('content', item.content || '');
+                          setReadContent(item.content || '');
+                          segmentDialogState.open();
+                        }}
+                        onEdit={() => {
+                          form.setValue('content', item.content || '');
+                          setSegmentId(item.id);
+                          segmentDialogState.open();
+                        }}
+                        onDelete={(e) => {
+                          setSegment(item.id);
+                          setAnchorEl(e.currentTarget);
+                        }}
+                        className="listItem"
+                      />
+                    );
+                  })}
+                </ListContainer>
+                {(dataState.loadingMore || dataState?.data?.next) && (
+                  <Box width={1} height={60} className="center" ref={loadingRef}>
+                    <Box display="flex" justifyContent="center">
+                      <CircularProgress size={14} />
+                    </Box>
+                  </Box>
+                )}
+              </>
             )}
           </Stack>
         </Stack>
@@ -248,6 +264,7 @@ export default function KnowledgeSegments() {
         anchorEl={anchorEl}
         setAnchorEl={setAnchorEl}
         currentSegment={currentSegment}
+        refetch={refetch}
       />
 
       <UpdateDocumentName
@@ -462,15 +479,17 @@ function DeleteSegment({
   anchorEl,
   setAnchorEl,
   currentSegment,
+  refetch,
 }: {
   datasetId: string;
   documentId: string;
   currentSegment: string;
   anchorEl: any;
   setAnchorEl: any;
+  refetch: () => void;
 }) {
   const { t } = useLocaleContext();
-  const { refetch, remove } = useSegments(datasetId || '', documentId || '');
+  const { remove } = useSegments(datasetId || '', documentId || '');
 
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
@@ -499,8 +518,8 @@ function DeleteSegment({
           color="error"
           onClick={async () => {
             await remove(currentSegment);
-            await refetch();
             setAnchorEl(null);
+            await refetch();
           }}>
           {t('delete')}
         </PromiseLoadingButton>

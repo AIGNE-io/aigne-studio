@@ -39,11 +39,6 @@ NewDatasetSegment.init(
     content: {
       type: DataTypes.STRING,
     },
-    index: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-    },
     createdAt: {
       type: DataTypes.DATE,
     },
@@ -53,10 +48,3 @@ NewDatasetSegment.init(
   },
   { sequelize }
 );
-
-NewDatasetSegment.beforeCreate(async (segment) => {
-  if (!segment.index) {
-    const maxIndex: number = await NewDatasetSegment.max('index', { where: { documentId: segment.documentId } });
-    segment.index = maxIndex ? maxIndex + 1 : 1;
-  }
-});
