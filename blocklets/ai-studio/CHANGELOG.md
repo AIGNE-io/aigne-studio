@@ -1,3 +1,7 @@
+## 0.1.289 (2024-3-18)
+
+- fix: prompt editor focus
+
 ## 0.1.288 (2024-3-18)
 
 - fix: prompt editor

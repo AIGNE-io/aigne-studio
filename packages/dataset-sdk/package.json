@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/dataset-sdk",
-  "version": "0.1.288",
+  "version": "0.1.289",
   "description": "The SDK for processing dataset protocol",
   "publishConfig": {
     "access": "public"
