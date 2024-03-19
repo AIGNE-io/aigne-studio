@@ -5,7 +5,7 @@ import replaceNodes from './utils/replace-nodes';
 import { hasBrackets, isBracketStartAndEnd } from './utils/util';
 import { $isVariableTextNode, VariableTextNode } from './variable-text-node';
 
-export default function useTransformVariableNode(editor: LexicalEditor, variables: string[] = []) {
+export default function useTransformVariableNode(editor: LexicalEditor) {
   const nodeTextTransform = (node: TextNode) => {
     const text = node.getTextContent();
 
@@ -47,7 +47,7 @@ export default function useTransformVariableNode(editor: LexicalEditor, variable
     return () => {
       handleTransform();
     };
-  }, [editor, variables]);
+  }, [editor]);
 
   useEffect(() => {
     const handleTransform = editor.registerNodeTransform(TextNode, nodeTextTransform);

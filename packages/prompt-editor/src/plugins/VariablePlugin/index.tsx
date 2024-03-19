@@ -53,32 +53,48 @@ export default function VarContextPlugin({
     );
   }, [editor]);
 
+  function updateNodeStyle(editor: LexicalEditor, variables?: string[]) {
+    editor.getEditorState().read(() => {
+      const root = editor.getRootElement();
+      if (!root) return;
+
+      const textNodes = root.querySelectorAll('[data-lexical-variable]');
+      textNodes.forEach((variableElement) => {
+        const key = variableElement.getAttribute('data-lexical-key');
+        if (!key) return;
+
+        const element: null | HTMLElement = editor.getElementByKey(key);
+        const node = $getNodeByKey(key);
+
+        if (element && node && node instanceof VariableTextNode) {
+          const text = extractBracketContent(node.getTextContent() || '') || '';
+          const variable = (text || '').split('.')[0] || '';
+          const isVariable = (variables || []).includes(variable);
+          element.style.cssText = isVariable ? variableStyle : textStyle;
+        }
+      });
+    });
+  }
+
   useEffect(() => {
     if (!editor.hasNodes([VariableTextNode])) {
       throw new Error('VarContextPlugin: VariableTextNode not registered on editor');
     }
 
-    return mergeRegister(
-      editor.registerMutationListener(VariableTextNode, (mutations) => {
-        editor.getEditorState().read(() => {
-          for (const [key] of mutations) {
-            const element: null | HTMLElement = editor.getElementByKey(key);
-            const node = $getNodeByKey(key);
+    // 当编辑器的 VariableTextNode 节点发生变化时
+    const unregisterMutationListener = editor.registerMutationListener(VariableTextNode, () => {
+      updateNodeStyle(editor, variables);
+    });
 
-            if (element && node) {
-              const text = extractBracketContent(element.textContent || '') || '';
-              const variable = (text || '').split('.')[0] || '';
-              const isVariable = (variables || []).includes(variable);
-              element.style.cssText = isVariable ? variableStyle : textStyle;
-            }
-          }
-        });
-      })
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // 立即执行一次，确保当前状态反映
+    updateNodeStyle(editor, variables);
+
+    return () => {
+      unregisterMutationListener();
+    };
   }, [editor, variables]);
 
-  useTransformVariableNode(editor, variables);
+  useTransformVariableNode(editor);
 
   return <VariablePopover popperElement={popperElement} />;
 }
