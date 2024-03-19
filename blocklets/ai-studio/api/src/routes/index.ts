@@ -2,10 +2,9 @@ import { Router } from 'express';
 
 import ai from './ai';
 import { branchRoutes } from './branch';
-import datasetsItems from './dataset-items';
-import datasetItems from './dataset/item';
-import dataset from './dataset/list';
-import datasets from './datasets';
+import datasets from './dataset/datasets';
+import datasetDocuments from './dataset/documents';
+import datasetSegments from './dataset/segments';
 import datastores from './datastore';
 import { globalRoutes } from './global';
 import { logRoutes } from './log';
@@ -33,11 +32,10 @@ messageRoutes(router);
 
 router.use('/ai', ai);
 router.use('/releases', release);
-router.use('/dataset', dataset);
-router.use('/dataset', datasetItems);
 router.use('/datasets', datasets);
+router.use('/datasets', datasetDocuments);
+router.use('/datasets', datasetSegments);
 router.use('/datastore', datastores);
-router.use('/datasets', datasetsItems);
 router.use(ws);
 
 export default router;

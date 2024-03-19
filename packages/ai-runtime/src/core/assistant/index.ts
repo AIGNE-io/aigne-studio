@@ -6,6 +6,7 @@ import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
+import { call as callFunc } from '@blocklet/sdk/lib/component';
 import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick } from 'lodash';
@@ -30,6 +31,16 @@ import {
 import { ImageAssistant, Mustache, OnTaskCompletion, Role, User, isImageAssistant } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 import { BuiltinModules } from './builtin';
+
+const getUserHeader = (user: any) => {
+  return {
+    'x-user-did': user?.did,
+    'x-user-role': user?.role,
+    'x-user-provider': user?.provider,
+    'x-user-fullname': user?.fullName && encodeURIComponent(user?.fullName),
+    'x-user-wallet-os': user?.walletOS,
+  };
+};
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
@@ -893,7 +904,7 @@ async function runExecuteBlock({
                 taskId: currentTaskId,
                 parentTaskId,
                 assistantId: assistant.id,
-                assistantName: `${executeBlock.variable ?? assistant.name}`,
+                assistantName: `${executeBlock.variable ?? dataset.name}`,
               };
 
               callback?.({
@@ -926,6 +937,69 @@ async function runExecuteBlock({
             }
 
             return undefined;
+          }
+
+          if (tool?.from === 'knowledge') {
+            const params = Object.fromEntries(
+              await Promise.all(
+                (Object.keys(tool?.parameters || {}) ?? [])
+                  .filter((i): i is typeof i => !!i)
+                  .map(async (i) => {
+                    const template = tool.parameters?.[i]?.trim();
+                    const value = template ? await renderMessage(template, parameters) : parameters?.[i];
+                    return [i, value];
+                  })
+              )
+            );
+
+            const { data: knowledge } = await callFunc({
+              name: 'ai-studio',
+              path: `/api/datasets/${tool.id}`,
+              method: 'GET',
+              params: {},
+              headers: getUserHeader(user),
+            });
+
+            const callbackParams = {
+              taskId: currentTaskId,
+              parentTaskId,
+              assistantId: assistant.id,
+              assistantName: `${executeBlock.variable ?? knowledge.name}`,
+            };
+
+            callback?.({
+              type: AssistantResponseType.EXECUTE,
+              ...callbackParams,
+              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+            });
+
+            callback?.({
+              type: AssistantResponseType.INPUT,
+              ...callbackParams,
+              inputParameters: params,
+            });
+
+            const { data } = await callFunc({
+              name: 'ai-studio',
+              path: `/api/datasets/${tool.id}/search`,
+              method: 'GET',
+              params,
+              headers: getUserHeader(user),
+            });
+
+            callback?.({
+              type: AssistantResponseType.CHUNK,
+              ...callbackParams,
+              delta: { content: JSON.stringify(data?.docs) },
+            });
+
+            callback?.({
+              type: AssistantResponseType.EXECUTE,
+              ...callbackParams,
+              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+            });
+
+            return (data?.docs || []).join('\n');
           }
 
           const toolAssistant = await getAssistant(tool.id);
@@ -991,12 +1065,40 @@ async function runExecuteBlock({
               tool,
               toolAssistant: dataset,
               function: {
-                name: name.replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
+                name: (tool.functionName || name).replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
                 descriptions: dataset.description || name || '',
                 parameters: {
                   type: 'object',
                   properties: Object.fromEntries(datasetParameters),
                   required: required?.length ? required : undefined,
+                },
+              },
+            };
+          }
+
+          if (tool?.from === 'knowledge') {
+            const parameters = [{ name: 'message', description: 'Search the content of the knowledge' }]
+              .filter((i): i is typeof i => !!i && !tool.parameters?.[i.name])
+              .map((i) => [i.name, { type: 'string', description: i.description ?? '' }]);
+
+            const { data } = await callFunc({
+              name: 'ai-studio',
+              path: `/api/datasets/${tool.id}`,
+              method: 'GET',
+              params: {},
+              headers: getUserHeader(user),
+            });
+
+            const { name, description } = data;
+            return {
+              tool,
+              toolAssistant: data,
+              function: {
+                name: (tool.functionName || name).replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || tool.id,
+                descriptions: description || name || '',
+                parameters: {
+                  type: 'object',
+                  properties: Object.fromEntries(parameters),
                 },
               },
             };
@@ -1165,6 +1267,58 @@ async function runExecuteBlock({
             });
 
             return response.data;
+          }
+
+          if (tool.tool.from === 'knowledge') {
+            await Promise.all(
+              [{ name: 'message', description: 'Search the content of the knowledge' }].map(async (item) => {
+                const message = tool.tool?.parameters?.[item.name!]?.trim();
+                if (message) {
+                  args[item.name!] = await renderMessage(message, parameters);
+                }
+              }) ?? []
+            );
+
+            const callbackParams = {
+              taskId: currentTaskId,
+              parentTaskId,
+              assistantId: assistant.id,
+              assistantName: `${executeBlock.variable ?? assistant.name}`,
+            };
+
+            callback?.({
+              type: AssistantResponseType.EXECUTE,
+              ...callbackParams,
+              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+            });
+
+            callback?.({
+              type: AssistantResponseType.INPUT,
+              ...callbackParams,
+              inputParameters: args,
+            });
+
+            const { data } = await callFunc({
+              name: 'ai-studio',
+              path: `/api/datasets/${tool.id}/search`,
+              method: 'GET',
+              params: args,
+              headers: getUserHeader(user),
+            });
+
+            callback?.({
+              type: AssistantResponseType.CHUNK,
+              ...callbackParams,
+              delta: { content: JSON.stringify(data?.docs) },
+            });
+
+            callback?.({
+              type: AssistantResponseType.EXECUTE,
+              ...callbackParams,
+              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+            });
+
+            return (data?.docs || []).join('\n');
           }
 
           const toolAssistant = tool?.toolAssistant as Assistant;

@@ -3,6 +3,7 @@ import { Menus, MenusProps } from '@blocklet/studio-ui';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
+import Database from './icons/database';
 import DocumentStack from './icons/document-stack';
 import Home from './icons/home';
 import Settings from './icons/settings';
@@ -23,6 +24,10 @@ export default function MainMenus({ ...props }: Omit<MenusProps, 'menus'>) {
 
     if (projectId) {
       menus.push({ icon: <Settings />, title: t('setting'), url: 'settings' });
+    }
+
+    if (projectId) {
+      menus.push({ icon: <Database />, title: t('knowledge.menu'), url: 'knowledge' });
     }
 
     return menus;

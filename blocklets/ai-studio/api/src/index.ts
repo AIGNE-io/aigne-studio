@@ -1,7 +1,7 @@
 import 'express-async-errors';
 import 'nanoid';
 
-import fs from 'fs';
+import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
@@ -25,9 +25,18 @@ dotenv.config();
 
 const { name, version } = require('../../package.json');
 
-if (fs.existsSync(Config.uploadDir) === false) {
-  fs.mkdirSync(Config.uploadDir, { recursive: true });
+async function ensureUploadDirExists() {
+  try {
+    await access(Config.uploadDir);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      await mkdir(Config.uploadDir, { recursive: true });
+    } else {
+      throw error;
+    }
+  }
 }
+ensureUploadDirExists().catch(console.error);
 
 app.set('trust proxy', true);
 app.use(cookieParser());

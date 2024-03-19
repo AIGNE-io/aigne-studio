@@ -1,38 +1,44 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
-import { sequelize } from '../sequelize';
+import { sequelize } from '../../sequelize';
 
 const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
 
-export default class EmbeddingHistory extends Model<
-  InferAttributes<EmbeddingHistory>,
-  InferCreationAttributes<EmbeddingHistory>
-> {
-  declare _id: CreationOptional<string>;
+export default class NewDataset extends Model<InferAttributes<NewDataset>, InferCreationAttributes<NewDataset>> {
+  declare id: CreationOptional<string>;
 
-  declare targetId?: string;
+  declare name?: string;
+
+  declare description?: string;
 
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
 
-  declare targetVersion?: Date;
+  declare createdBy: string;
 
-  declare error?: string;
+  declare updatedBy: string;
+
+  declare documents?: number;
+
+  declare projectId?: string;
 }
 
-EmbeddingHistory.init(
+NewDataset.init(
   {
-    _id: {
+    id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
       defaultValue: nextId,
     },
-    targetId: {
+    name: {
+      type: DataTypes.STRING,
+    },
+    description: {
       type: DataTypes.STRING,
     },
     createdAt: {
@@ -41,10 +47,15 @@ EmbeddingHistory.init(
     updatedAt: {
       type: DataTypes.DATE,
     },
-    targetVersion: {
-      type: DataTypes.DATE,
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
-    error: {
+    updatedBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    projectId: {
       type: DataTypes.STRING,
     },
   },

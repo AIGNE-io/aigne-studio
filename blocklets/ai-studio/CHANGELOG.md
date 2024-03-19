@@ -1,3 +1,7 @@
+## 0.1.290 (2024-3-19)
+
+- feat: support knowledge
+
 ## 0.1.289 (2024-3-18)
 
 - fix: prompt editor focus

@@ -1,4 +1,4 @@
-import { mkdir, rm } from 'fs/promises';
+import { access, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 
 import { pathExists } from 'fs-extra';
@@ -23,7 +23,14 @@ HNSWLib.imports = async () => {
     throw new Error('Please install hnswlib-node as a dependency with, e.g. `npm install -S hnswlib-node`');
   }
 };
-
+async function checkFileExists(filePath: string) {
+  try {
+    await access(filePath);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
 export default class VectorStore extends HNSWLib {
   constructor(
     private directory: string,
@@ -62,9 +69,21 @@ export default class VectorStore extends HNSWLib {
     await super.save(this.directory);
   }
 
-  static async remove(datasetId: string) {
-    vectorStores.delete(datasetId);
+  static async reset(datasetId: string): Promise<void> {
     const path = vectorStorePath(datasetId);
+
+    if (await checkFileExists(path)) {
+      await rm(path, { recursive: true, force: true });
+      logger.info(`VectorStore for datasetId ${datasetId} has been reset.`);
+    } else {
+      logger.info(`VectorStore for datasetId ${datasetId} does not exist, no need to reset.`);
+    }
+
+    // 确保目录被重新创建
+    // mkdirSync(path, { recursive: true });
+
+    // 从 vectorStores Map 中移除这个存储，因为它已被重置
+    vectorStores.delete(path);
     await rm(path, { recursive: true, force: true });
   }
 }

@@ -1,20 +1,26 @@
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 
 import { checkUserAuth } from '../../libs/user';
-import Dataset from '../../store/models/dataset/list';
+import NewDataset from '../../store/models/dataset/dataset';
+import NewDatasetItem from '../../store/models/dataset/document';
+
+NewDataset.hasMany(NewDatasetItem, { as: 'items', foreignKey: 'datasetId' });
+NewDatasetItem.belongsTo(NewDataset, { as: 'dataset', foreignKey: 'datasetId' });
 
 const router = Router();
 
-const datasetSchema = Joi.object<{ name?: string }>({
+const datasetSchema = Joi.object<{ name?: string; description?: string; projectId?: string }>({
   name: Joi.string().allow('').empty(null).default(''),
+  description: Joi.string().allow('').empty(null).default(''),
+  projectId: Joi.string().allow('').empty(null).default(''),
 });
 
 /**
  * @openapi
- * /api/dataset/list:
+ * /api/datasets:
  *    get:
  *      type: 'SEARCH'
  *      summary: Retrieve the current user's datasets
@@ -26,19 +32,34 @@ const datasetSchema = Joi.object<{ name?: string }>({
  *          description: Successfully retrieved the current user's datasets
  *          x-description-zh: 获取当前用户数据集
  */
-router.get('/list', user(), checkUserAuth(), async (req, res) => {
+router.get('/', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
-  const list = await Dataset.findAll({
-    order: [['createdAt', 'ASC']],
-    where: { [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
+
+  const where: any = { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
+
+  const { projectId } = await Joi.object<{ projectId?: string }>({
+    projectId: Joi.string().allow('').empty(null).default(''),
+  }).validateAsync(req.query, { stripUnknown: true });
+
+  if (projectId) where.projectId = projectId;
+
+  const sql = Sequelize.literal(
+    '(SELECT COUNT(*) FROM NewDatasetItems WHERE NewDatasetItems.datasetId = NewDataset.id)'
+  );
+
+  const datasets = await NewDataset.findAll({
+    where,
+    include: [{ model: NewDatasetItem, as: 'items', attributes: [] }],
+    attributes: { include: [[sql, 'documents']] },
+    group: ['NewDataset.id'],
   });
 
-  res.json({ datasets: list });
+  res.json(datasets);
 });
 
 /**
  * @openapi
- * /api/dataset/{datasetId}:
+ * /api/datasets/{datasetId}:
  *    get:
  *      type: 'SEARCH'
  *      summary: Retrieve details of a specific dataset
@@ -62,10 +83,15 @@ router.get('/list', user(), checkUserAuth(), async (req, res) => {
 router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
+  const where: { [key: string]: any } = { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
-  const dataset = await Dataset.findOne({
-    where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
-  });
+  const { projectId } = await Joi.object<{ projectId?: string }>({
+    projectId: Joi.string().allow('').empty(null).default(''),
+  }).validateAsync(req.query, { stripUnknown: true });
+
+  if (projectId) where.projectId = projectId;
+
+  const dataset = await NewDataset.findOne({ where });
 
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
@@ -77,7 +103,7 @@ router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/dataset/create:
+ * /api/datasets:
  *    post:
  *      type: 'CREATE'
  *      summary: Create a new dataset
@@ -98,17 +124,17 @@ router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully created a new dataset
  *          x-description-zh: 创建新的数据集
  */
-router.post('/create', user(), checkUserAuth(), async (req, res) => {
-  const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+router.post('/', user(), checkUserAuth(), async (req, res) => {
   const { did } = req.user!;
+  const { name, description, projectId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const doc = await Dataset.create({ name, createdBy: did, updatedBy: did });
-  res.json(doc);
+  const dataset = await NewDataset.create({ name, description, projectId, createdBy: did, updatedBy: did });
+  res.json(dataset);
 });
 
 /**
  * @openapi
- * /api/dataset/{datasetId}:
+ * /api/datasets/{datasetId}:
  *    put:
  *      type: 'UPDATE'
  *      summary: Update a dataset
@@ -142,28 +168,27 @@ router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
 
-  const dataset = await Dataset.findOne({ where: { id: datasetId } });
+  const dataset = await NewDataset.findOne({ where: { id: datasetId } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
   }
 
-  const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, description, projectId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const params: any = {};
+  if (name) params.name = name;
+  if (description) params.description = description;
+  if (projectId) params.projectId = projectId;
 
-  if (name && (await Dataset.findOne({ where: { name, id: { [Op.ne]: dataset.id } } }))) {
-    throw new Error(`Duplicated dataset ${name}`);
-  }
+  await NewDataset.update({ ...params, updatedBy: did }, { where: { id: datasetId } });
 
-  await Dataset.update({ name, updatedBy: did }, { where: { id: datasetId } });
-
-  const doc = await Dataset.findOne({ where: { id: datasetId } });
-
+  const doc = await NewDataset.findOne({ where: { id: datasetId } });
   res.json(doc);
 });
 
 /**
  * @openapi
- * /api/dataset/{datasetId}:
+ * /api/datasets/{datasetId}:
  *    delete:
  *      type: 'DELETE'  # Changed from 'SEARCH' to 'DELETE' as it's more appropriate for a delete operation
  *      summary: Delete a dataset
@@ -187,13 +212,13 @@ router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
 router.delete('/:datasetId', user(), checkUserAuth(), async (req, res) => {
   const { datasetId } = req.params;
 
-  const dataset = await Dataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });
+  const dataset = await NewDataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
   }
 
-  await Dataset.destroy({ where: { id: datasetId } });
+  await NewDataset.destroy({ where: { id: datasetId } });
 
   res.json(dataset);
 });

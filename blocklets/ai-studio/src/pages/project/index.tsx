@@ -17,6 +17,8 @@ import { Navigate, Outlet, Route, Routes, useLocation, useRoutes } from 'react-r
 
 import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
+import { DatasetsProvider } from '../../contexts/datasets/datasets';
+import KnowledgeRoutes from '../knowledge';
 import AddSource from './add-source';
 import HeaderActions from './header-actions';
 import MainMenus from './main-menus';
@@ -70,23 +72,24 @@ export default function ProjectRoutes() {
           },
         }}>
         <ErrorBoundary ref={errorBoundary}>
-          <Suspense fallback={<Loading fixed />}>
-            <Routes>
-              <Route index element={<ProjectsPage />} />
-              <Route path=":projectId/*">
-                <Route index element={<Navigate to="file" replace />} />
-                <Route path="prompts/*" element={<Navigate to="../file" replace />} />
-                <Route path="home" element={<ProjectsPage />} />
-                <Route path="file">
-                  <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
-                  <Route path=":ref/*" element={<ProjectPage />} />
+          <DatasetsProvider>
+            <Suspense fallback={<Loading fixed />}>
+              <Routes>
+                <Route index element={<ProjectsPage />} />
+                <Route path=":projectId/*">
+                  <Route index element={<Navigate to="file" replace />} />
+                  <Route path="prompts/*" element={<Navigate to="../file" replace />} />
+                  <Route path="home" element={<ProjectsPage />} />
+                  <Route path="file">
+                    <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
+                    <Route path=":ref/*" element={<ProjectPage />} />
+                  </Route>
+                  <Route path="settings" element={<ProjectSettings />} />
+                  <Route path="knowledge/*" element={<KnowledgeRoutes />} />
                 </Route>
-                <Route path="settings">
-                  <Route index element={<ProjectSettings />} />
-                </Route>
-              </Route>
-            </Routes>
-          </Suspense>
+              </Routes>
+            </Suspense>
+          </DatasetsProvider>
         </ErrorBoundary>
       </StyledDashboard>
     </DndProvider>

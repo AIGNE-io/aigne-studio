@@ -103,16 +103,16 @@ importers:
         specifier: ^0.1.23
         version: 0.1.23(@babel/core@7.24.0)(@types/node@18.19.24)(@types/react@18.2.66)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(sqlite3@5.1.7)
       '@blocklet/ai-runtime':
-        specifier: ^0.1.289
+        specifier: ^0.1.290
         version: link:../../packages/ai-runtime
       '@blocklet/co-git':
-        specifier: ^0.1.289
+        specifier: ^0.1.290
         version: link:../../packages/co-git
       '@blocklet/constant':
         specifier: ^1.16.24
         version: 1.16.24
       '@blocklet/dataset-sdk':
-        specifier: ^0.1.289
+        specifier: ^0.1.290
         version: link:../../packages/dataset-sdk
       '@blocklet/discuss-kit':
         specifier: ^1.6.168
@@ -124,13 +124,13 @@ importers:
         specifier: ^1.13.186
         version: 1.13.186
       '@blocklet/prompt-editor':
-        specifier: ^0.1.289
+        specifier: ^0.1.290
         version: link:../../packages/prompt-editor
       '@blocklet/sdk':
         specifier: ^1.16.24
         version: 1.16.24
       '@blocklet/studio-ui':
-        specifier: ^0.1.289
+        specifier: ^0.1.290
         version: link:../../packages/studio-ui
       '@blocklet/ui-react':
         specifier: ^2.9.51
@@ -348,6 +348,9 @@ importers:
       react-hook-form:
         specifier: ^7.51.0
         version: 7.51.0(react@18.2.0)
+      react-infinite-scroll-hook:
+        specifier: ^4.1.1
+        version: 4.1.1(react@18.2.0)
       react-qr-code:
         specifier: ^2.0.12
         version: 2.0.12(react@18.2.0)
@@ -531,13 +534,13 @@ importers:
   packages/ai-runtime:
     dependencies:
       '@blocklet/ai-builtin':
-        specifier: ^0.1.289
+        specifier: ^0.1.290
         version: link:../ai-builtin
       '@blocklet/ai-kit':
         specifier: ^0.1.23
         version: 0.1.23(@babel/core@7.24.0)(@types/node@18.19.24)(@types/react@18.2.66)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(sqlite3@5.1.7)
       '@blocklet/dataset-sdk':
-        specifier: ^0.1.289
+        specifier: ^0.1.290
         version: link:../dataset-sdk
       '@blocklet/sdk':
         specifier: ^1.16.24
@@ -15330,6 +15333,24 @@ packages:
       react: 18.2.0
     dev: false
 
+  /react-infinite-scroll-hook@4.1.1(react@18.2.0):
+    resolution: {integrity: sha512-1bu2572rF3DtjFMhIOzoasLMdYW0vMWxROtl99M5FYGSxm84Ro4aNBZW6ivgE45ofus4Ymo7jIS0Be3zcuLk8g==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>=16.8.0'
+    dependencies:
+      react: 18.2.0
+      react-intersection-observer-hook: 2.1.1(react@18.2.0)
+    dev: false
+
+  /react-intersection-observer-hook@2.1.1(react@18.2.0):
+    resolution: {integrity: sha512-MeFGpYtcfHB9v6oGqQuHAbSwaWBpd7yZ4wMIeVtboWRdGusAF4V+/8QQ0OKZ36Ez19grYnoDVhRUCjtwI2ZVaw==}
+    peerDependencies:
+      react: '>=16.8.0'
+    dependencies:
+      react: 18.2.0
+    dev: false
+
   /react-intersection-observer@8.34.0(react@18.2.0):
     resolution: {integrity: sha512-TYKh52Zc0Uptp5/b4N91XydfSGKubEhgZRtcg1rhTKABXijc4Sdr1uTp5lJ8TN27jwUsdXxjHXtHa0kPj704sw==}
     peerDependencies:
@@ -18418,7 +18439,7 @@ packages:
     peerDependencies:
       yjs: ^13.0.0
     dependencies:
-      lib0: 0.2.91
+      lib0: 0.2.92
       yjs: 13.6.14
     dev: false
 

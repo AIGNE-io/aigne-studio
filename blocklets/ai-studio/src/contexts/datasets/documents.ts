@@ -1,13 +1,15 @@
+import Toast from '@arcblock/ux/lib/Toast';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import Dataset from '../../api/src/store/models/dataset';
-import DatasetItem from '../../api/src/store/models/dataset-item';
-import { getDataset, getDatasetItems } from '../libs/dataset';
+import Dataset from '../../../api/src/store/models/dataset/dataset';
+import DatasetDocument from '../../../api/src/store/models/dataset/document';
+import { getErrorMessage } from '../../libs/api';
+import { deleteDocument, getDataset, getDocuments, uploadDocument } from '../../libs/dataset';
 
 interface DatasetState {
   dataset?: Dataset;
-  items?: DatasetItem[];
+  items?: DatasetDocument[];
   page: number;
   size: number;
   total?: number;
@@ -20,13 +22,7 @@ const datasets: Record<string, RecoilState<DatasetState>> = {};
 const dataset = (datasetId: string) => {
   let dataset = datasets[datasetId];
   if (!dataset) {
-    dataset = atom<DatasetState>({
-      key: `dataset-${datasetId}`,
-      default: {
-        page: 0,
-        size: 20,
-      },
-    });
+    dataset = atom<DatasetState>({ key: `dataset-${datasetId}`, default: { page: 0, size: 20, loading: true } });
     datasets[datasetId] = dataset;
   }
   return dataset;
@@ -47,9 +43,10 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
           size ??= v.size;
           return { ...v, loading: true };
         });
+
         const [dataset, { items, total }] = await Promise.all([
           getDataset(datasetId),
-          getDatasetItems({ datasetId, page: (page ?? 0) + 1, size }),
+          getDocuments(datasetId, { page: (page ?? 0) + 1, size }),
         ]);
         setState((v) => ({
           ...v,
@@ -77,11 +74,21 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
     [datasetId, setState]
   );
 
+  const remove = useCallback(async (datasetId: string, documentId: string) => {
+    try {
+      await deleteDocument(datasetId, documentId);
+    } catch (error) {
+      Toast.error(getErrorMessage(error));
+    }
+  }, []);
+
+  const upload = useCallback((form: FormData) => uploadDocument(datasetId, form), []);
+
   useEffect(() => {
-    if (autoFetch && !state.dataset && !state.loading) {
+    if (autoFetch && !state.dataset) {
       refetch();
     }
   }, []);
 
-  return { state, refetch };
+  return { state, refetch, remove, upload };
 };

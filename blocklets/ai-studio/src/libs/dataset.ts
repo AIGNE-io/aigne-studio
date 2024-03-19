@@ -1,21 +1,23 @@
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
 
-import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset-items';
-import Dataset from '../../api/src/store/models/dataset';
-import DatasetItem from '../../api/src/store/models/dataset-item';
+import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset/documents';
+import Dataset from '../../api/src/store/models/dataset/dataset';
+import DatasetDocument from '../../api/src/store/models/dataset/document';
+import DatasetSegment from '../../api/src/store/models/dataset/segment';
 import axios from './api';
 
 export interface DatasetInput {
   name?: string | null;
+  description?: string | null;
+  projectId?: string;
 }
 
-export async function getDatasetList(): Promise<DatasetObject[]> {
+export async function getAPIList(): Promise<DatasetObject[]> {
   return axios.get('/api/collections.json').then((res) => res.data);
 }
 
-export async function getDatasets(): Promise<{ datasets: Dataset[] }> {
-  return axios.get('/api/datasets').then((res) => res.data);
+export async function getDatasets(projectId?: string): Promise<Dataset[]> {
+  return axios.get('/api/datasets', { params: { projectId } }).then((res) => res.data);
 }
 
 export async function getDataset(datasetId: string): Promise<Dataset> {
@@ -30,68 +32,81 @@ export async function updateDataset(datasetId: string, input: DatasetInput): Pro
   return axios.put(`/api/datasets/${datasetId}`, input).then((res) => res.data);
 }
 
-export async function deleteDataset(datasetId: string): Promise<Dataset> {
+export async function deleteDataset(datasetId: string): Promise<any> {
   return axios.delete(`/api/datasets/${datasetId}`).then((res) => res.data);
 }
 
-export async function getDatasetItems({
-  datasetId,
-  page,
-  size,
-}: {
-  datasetId: string;
-  page?: number;
-  size?: number;
-}): Promise<{ items: DatasetItem[]; total: number }> {
-  return axios.get(`/api/datasets/${datasetId}/items`, { params: { page, size } }).then((res) => res.data);
+export async function getDocuments(datasetId: string, params: { page?: number; size?: number }): Promise<any> {
+  return axios.get(`/api/datasets/${datasetId}/documents`, { params }).then((res) => res.data);
 }
 
-export async function createDatasetItem(datasetId: string, input: CreateItem): Promise<DatasetItem>;
-export async function createDatasetItem(datasetId: string, input: CreateItem[]): Promise<DatasetItem[]>;
-export async function createDatasetItem(
+export async function getDocument(
+  datasetId: string,
+  documentId: string
+): Promise<{ dataset: Dataset; document: DatasetDocument }> {
+  return axios.get(`/api/datasets/${datasetId}/documents/${documentId}`).then((res) => res.data);
+}
+
+export async function deleteDocument(
+  datasetId: string,
+  documentId: string
+): Promise<{ dataset: Dataset; document: DatasetDocument }> {
+  return axios.delete(`/api/datasets/${datasetId}/documents/${documentId}`).then((res) => res.data);
+}
+
+export async function createDocument(
+  datasetId: string,
+  input: { type: string; name: string; content?: string }
+): Promise<DatasetDocument> {
+  return axios.post(`/api/datasets/${datasetId}/documents`, input).then((res) => res.data);
+}
+
+export async function uploadDocument(datasetId: string, form: any): Promise<DatasetDocument> {
+  return axios.post(`/api/datasets/${datasetId}/documents/file`, form).then((res) => res.data);
+}
+
+export async function uploadDocumentParams(
+  datasetId: string,
+  documentId: string,
+  input: { name: string }
+): Promise<{ data: string }> {
+  return axios.put(`/api/datasets/${datasetId}/documents/${documentId}`, input).then((res) => res.data);
+}
+
+export async function getSegments(
+  datasetId: string,
+  documentId: string,
+  params: { page?: number; size?: number } = {}
+): Promise<{ items: DatasetSegment[]; total: number; page: number }> {
+  return axios.get(`/api/datasets/${datasetId}/documents/${documentId}/segments`, { params }).then((res) => res.data);
+}
+
+export async function createSegment(datasetId: string, documentId: string, content: string): Promise<any> {
+  return axios.post(`/api/datasets/${datasetId}/documents/${documentId}/segments`, { content }).then((res) => res.data);
+}
+
+export async function deleteSegment(datasetId: string, documentId: string, segmentId: string): Promise<any> {
+  return axios
+    .delete(`/api/datasets/${datasetId}/documents/${documentId}/segments/${segmentId}`)
+    .then((res) => res.data);
+}
+
+export async function updateSegment(
+  datasetId: string,
+  documentId: string,
+  segmentId: string,
+  content: string
+): Promise<any> {
+  return axios
+    .put(`/api/datasets/${datasetId}/documents/${documentId}/segments/${segmentId}`, { content })
+    .then((res) => res.data);
+}
+
+export async function createDatasetDocuments(datasetId: string, input: CreateItem): Promise<DatasetDocument>;
+export async function createDatasetDocuments(datasetId: string, input: CreateItem[]): Promise<DatasetDocument[]>;
+export async function createDatasetDocuments(
   datasetId: string,
   input: CreateItemInput
-): Promise<DatasetItem | DatasetItem[]> {
-  return axios.post(`/api/datasets/${datasetId}/items`, input).then((res) => res.data);
-}
-
-export async function deleteDatasetItem({ datasetId, itemId }: { datasetId: string; itemId: string }): Promise<{}> {
-  return axios.delete(`/api/datasets/${datasetId}/items/${itemId}`).then((res) => res.data);
-}
-
-export async function processDatasetItem({ datasetId, itemId }: { datasetId: string; itemId: string }): Promise<{}> {
-  return axios.post(`/api/datasets/${datasetId}/items/${itemId}/embedding`).then((res) => res.data);
-}
-
-export async function watchDatasetEmbeddings({
-  datasetId,
-  signal,
-}: {
-  datasetId: string;
-  signal?: AbortSignal | null;
-}) {
-  const prefix = blocklet?.prefix || '';
-
-  return new ReadableStream<
-    | { type: 'list'; list: { itemId: string; total?: number; current?: number }[] }
-    | { type: 'change'; itemId: string; total?: number; current?: number }
-    | { type: 'complete'; itemId: string }
-  >({
-    async start(controller) {
-      await fetchEventSource(`${prefix}/api/datasets/${datasetId}/embeddings`, {
-        signal,
-        method: 'GET',
-        onmessage(e) {
-          const data = JSON.parse(e.data);
-          controller.enqueue({ ...data, type: e.event });
-        },
-        onerror(err) {
-          throw err;
-        },
-        onclose() {
-          controller.close();
-        },
-      });
-    },
-  });
+): Promise<DatasetDocument | DatasetDocument[]> {
+  return axios.post(`/api/datasets/${datasetId}/documents/discussion`, input).then((res) => res.data);
 }
