@@ -3,7 +3,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { Op, Sequelize } from 'sequelize';
 
-import { checkUserAuth } from '../../libs/user';
+import { userAuth } from '../../libs/user';
 import NewDataset from '../../store/models/dataset/dataset';
 import NewDatasetItem from '../../store/models/dataset/document';
 
@@ -32,7 +32,7 @@ const datasetSchema = Joi.object<{ name?: string; description?: string; projectI
  *          description: Successfully retrieved the current user's datasets
  *          x-description-zh: 获取当前用户数据集
  */
-router.get('/', user(), checkUserAuth(), async (req, res) => {
+router.get('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
 
   const where: any = { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
@@ -80,7 +80,7 @@ router.get('/', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully retrieved the dataset details
  *          x-description-zh: 获取当前用户数据集详情
  */
-router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
+router.get('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
   const where: { [key: string]: any } = { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
@@ -124,7 +124,7 @@ router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully created a new dataset
  *          x-description-zh: 创建新的数据集
  */
-router.post('/', user(), checkUserAuth(), async (req, res) => {
+router.post('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { name, description, projectId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -164,7 +164,7 @@ router.post('/', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully updated the dataset
  *          x-description-zh: 更新数据集
  */
-router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
+router.put('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
 
@@ -209,7 +209,7 @@ router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully deleted the dataset
  *          x-description-zh: 删除数据集
  */
-router.delete('/:datasetId', user(), checkUserAuth(), async (req, res) => {
+router.delete('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
 
   const dataset = await NewDataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });

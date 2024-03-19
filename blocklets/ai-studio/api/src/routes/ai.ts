@@ -236,7 +236,8 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
     res.end();
   } catch (e) {
-    error = pick(e, 'message', 'type', 'timestamp');
+    const fetchErrorMessage = e?.response?.data?.error;
+    error = pick(fetchErrorMessage ? { ...e, message: fetchErrorMessage } : e, 'message', 'type', 'timestamp');
     if (stream) {
       emit({ type: AssistantResponseType.ERROR, error });
     } else {

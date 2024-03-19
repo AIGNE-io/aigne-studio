@@ -14,30 +14,6 @@ import VectorStore from '../../store/vector-store';
 const sse = new SSE();
 const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
 
-async function embeddingDiscussion({ datasetId, documentId }: { datasetId: string; documentId: string }) {
-  for await (const { id: discussionId } of discussionsIterator()) {
-    try {
-      await embeddingDiscussionItem({ datasetId, documentId, discussionId });
-    } catch (error) {
-      console.error(`embedding discussion ${discussionId} error`, { error });
-    }
-  }
-}
-
-const embeddingDiscussionItem = async ({
-  datasetId,
-  documentId,
-  discussionId,
-}: {
-  datasetId: string;
-  documentId: string;
-  discussionId: string;
-}) => {
-  const discussion = await getDiscussion(discussionId);
-  await saveContentToVectorStore(discussion.content, datasetId, documentId);
-  return { name: discussion?.title, content: discussion?.content };
-};
-
 const embeddingHandler: {
   [key in NonNullable<DatasetDocument['type']>]: (
     item: DatasetDocument & { data: { type: key } },
@@ -45,12 +21,9 @@ const embeddingHandler: {
   ) => Promise<{ name: string; content: string } | undefined>;
 } = {
   discussion: async (item: DatasetDocument, documentId: string) => {
-    if ((item?.data as any)?.fullSite) {
-      await embeddingDiscussion({ datasetId: item.datasetId, documentId });
-      return undefined;
-    }
-
-    return embeddingDiscussionItem({ datasetId: item.datasetId, discussionId: (item.data as any).id, documentId });
+    const discussion = await getDiscussion((item.data as any).id);
+    await saveContentToVectorStore(discussion.content, item.datasetId, documentId);
+    return { name: discussion?.title, content: discussion?.content };
   },
   text: async (item: DatasetDocument, documentId: string) => {
     const content = (item.data as any)?.content;
@@ -103,7 +76,7 @@ async function getDiscussion(discussionId: string): Promise<{ content: string; t
   return data;
 }
 
-async function* discussionsIterator() {
+export async function* discussionsIterator() {
   let page = 0;
   let index = 0;
   const size = 2;
@@ -123,7 +96,7 @@ async function* discussionsIterator() {
   }
 }
 
-async function searchDiscussions({
+export async function searchDiscussions({
   search,
   page,
   size,

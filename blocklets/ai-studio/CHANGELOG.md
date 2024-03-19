@@ -1,3 +1,8 @@
+## 0.1.291 (2024-3-19)
+
+- feat: add fullsite discussion
+- fix: show api error log
+
 ## 0.1.290 (2024-3-19)
 
 - feat: support knowledge

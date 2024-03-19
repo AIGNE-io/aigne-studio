@@ -1,8 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-// import { HelpOutline } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Box, TextField } from '@mui/material';
+import { Box, Checkbox, FormControlLabel, TextField, Tooltip } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useThrottle } from 'ahooks';
 import { useCallback, useMemo, useState } from 'react';
@@ -15,6 +14,7 @@ import { useDataset } from '../../../contexts/datasets/documents';
 import { getErrorMessage } from '../../../libs/api';
 import { createDatasetDocuments } from '../../../libs/dataset';
 import { DiscussionItem, searchDiscussions } from '../../../libs/discussion';
+import InfoOutlined from '../../project/icons/question';
 
 export default function DiscussionPage({ datasetId }: { datasetId: string }) {
   if (!datasetId) {
@@ -109,23 +109,27 @@ function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (
 
   return (
     <>
-      {/* <Box mb={2} display="flex" alignItems="center">
-        <FormControlLabel
-          checked={fullSite}
-          onChange={(_, checked) => {
-            if (checked) {
-              onChange([{ name: 'Discussion Full Site', data: { type: 'discussion', fullSite: true } }]);
-            } else {
-              onChange(value.filter((i) => !i.data?.fullSite));
-            }
-          }}
-          control={<Checkbox />}
-          label={t('form.fullSite')}
-        />
-        <Tooltip title={t('form.fullSiteTip')}>
-          <HelpOutline fontSize="small" />
-        </Tooltip>
-      </Box> */}
+      <FormControlLabel
+        sx={{ mb: 4 }}
+        checked={fullSite}
+        onChange={(_, checked) => {
+          if (checked) {
+            onChange([{ name: 'Discussion Full Site', data: { type: 'discussion', fullSite: true, id: '' } }]);
+          } else {
+            onChange(value.filter((i) => !i.data?.fullSite));
+          }
+        }}
+        control={<Checkbox />}
+        label={
+          <Box display="flex" gap={1} alignItems="center">
+            <Box mt="-2px">{t('form.fullSite')}</Box>
+
+            <Tooltip title={t('form.fullSiteTip')}>
+              <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
+            </Tooltip>
+          </Box>
+        }
+      />
 
       {meilisearch && (
         <Box mb={2}>

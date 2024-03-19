@@ -904,7 +904,7 @@ async function runExecuteBlock({
                 taskId: currentTaskId,
                 parentTaskId,
                 assistantId: assistant.id,
-                assistantName: `${executeBlock.variable ?? dataset.name}`,
+                assistantName: `${executeBlock.variable ?? dataset.summary}`,
               };
 
               callback?.({
@@ -1065,7 +1065,7 @@ async function runExecuteBlock({
               tool,
               toolAssistant: dataset,
               function: {
-                name: (tool.functionName || name).replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
+                name: name.replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || dataset.path,
                 descriptions: dataset.description || name || '',
                 parameters: {
                   type: 'object',
@@ -1094,7 +1094,7 @@ async function runExecuteBlock({
               tool,
               toolAssistant: data,
               function: {
-                name: (tool.functionName || name).replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || tool.id,
+                name: name.replace(/[^a-zA-Z0-9_-]/g, '_')?.slice(0, 64) || tool.id,
                 descriptions: description || name || '',
                 parameters: {
                   type: 'object',
