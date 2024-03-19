@@ -2,13 +2,13 @@ import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
 
-import { checkUserAuth } from '../../libs/user';
+import { userAuth } from '../../libs/user';
 import DatasetSegment from '../../store/models/dataset/segment';
 import { resetVectorStoreEmbedding, saveContentToVectorStore } from './embeddings';
 
 const router = Router();
 
-router.get('/:datasetId/documents/:documentId/segments', user(), checkUserAuth(), async (req, res) => {
+router.get('/:datasetId/documents/:documentId/segments', user(), userAuth(), async (req, res) => {
   const { documentId } = await Joi.object<{ documentId: string }>({
     documentId: Joi.string().required(),
   }).validateAsync(req.params, { stripUnknown: true });
@@ -31,7 +31,7 @@ router.get('/:datasetId/documents/:documentId/segments', user(), checkUserAuth()
   res.json({ items, total });
 });
 
-router.post('/:datasetId/documents/:documentId/segments', user(), checkUserAuth(), async (req, res) => {
+router.post('/:datasetId/documents/:documentId/segments', user(), userAuth(), async (req, res) => {
   const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
     datasetId: Joi.string().required(),
     documentId: Joi.string().required(),
@@ -46,7 +46,7 @@ router.post('/:datasetId/documents/:documentId/segments', user(), checkUserAuth(
   res.json({ data: 'success' });
 });
 
-router.put('/:datasetId/documents/:documentId/segments/:segmentId', user(), checkUserAuth(), async (req, res) => {
+router.put('/:datasetId/documents/:documentId/segments/:segmentId', user(), userAuth(), async (req, res) => {
   const { datasetId, segmentId } = await Joi.object<{ datasetId: string; segmentId: string }>({
     datasetId: Joi.string().required(),
     segmentId: Joi.string().required(),
@@ -63,7 +63,7 @@ router.put('/:datasetId/documents/:documentId/segments/:segmentId', user(), chec
   res.json({ data: 'success' });
 });
 
-router.delete('/:datasetId/documents/:documentId/segments/:segmentId', user(), checkUserAuth(), async (req, res) => {
+router.delete('/:datasetId/documents/:documentId/segments/:segmentId', user(), userAuth(), async (req, res) => {
   const { segmentId, datasetId } = await Joi.object<{ segmentId: string; datasetId: string }>({
     segmentId: Joi.string().required(),
     datasetId: Joi.string().required(),

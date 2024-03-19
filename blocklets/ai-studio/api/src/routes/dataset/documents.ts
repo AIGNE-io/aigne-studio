@@ -9,7 +9,7 @@ import { Op } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
-import { checkUserAuth } from '../../libs/user';
+import { userAuth } from '../../libs/user';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import DatasetSegment from '../../store/models/dataset/segment';
@@ -77,7 +77,7 @@ const idSchema = Joi.object<{
  *          description: Successfully retrieved data items in the dataset
  *          x-description-zh: 获取当前 datasetId 数据集中数据信息
  */
-router.get('/:datasetId/documents', user(), checkUserAuth(), async (req, res) => {
+router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
 
@@ -129,7 +129,7 @@ router.get('/:datasetId/documents', user(), checkUserAuth(), async (req, res) =>
  *          description: Successfully deleted the data item from the dataset
  *          x-description-zh: 删除当前 datasetId 数据集中数据信息
  */
-router.delete('/:datasetId/documents/:documentId', user(), checkUserAuth(), async (req, res) => {
+router.delete('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
   const { datasetId, documentId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
 
   if (!datasetId || !documentId) {
@@ -146,7 +146,7 @@ router.delete('/:datasetId/documents/:documentId', user(), checkUserAuth(), asyn
   res.json({ data: 'success' });
 });
 
-router.post('/:datasetId/documents', user(), checkUserAuth(), async (req, res) => {
+router.post('/:datasetId/documents', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
 
@@ -181,7 +181,7 @@ router.post('/:datasetId/documents', user(), checkUserAuth(), async (req, res) =
   res.json(document);
 });
 
-router.put('/:datasetId/documents/:documentId', user(), checkUserAuth(), async (req, res) => {
+router.put('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId, documentId } = req.params;
 
@@ -236,7 +236,7 @@ router.put('/:datasetId/documents/:documentId', user(), checkUserAuth(), async (
  *          description: Successfully uploaded data to the dataset
  *          x-description-zh: 上传数据到当前 datasetId 数据集中
  */
-router.post('/:datasetId/documents/text', user(), checkUserAuth(), async (req, res) => {
+router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
   if (!datasetId) {
@@ -299,7 +299,7 @@ router.post('/:datasetId/documents/text', user(), checkUserAuth(), async (req, r
  *          description: File successfully uploaded to the specified dataset
  *          x-description-zh: 上传文件到当前 datasetId 数据集中
  */
-router.post('/:datasetId/documents/file', user(), checkUserAuth(), upload.single('data'), async (req, res) => {
+router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('data'), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
   if (!datasetId) {
@@ -397,7 +397,7 @@ router.post('/:datasetId/documents/file', user(), checkUserAuth(), upload.single
  *          description: Successfully updated the data in the dataset
  *          x-description-zh: 更新数据到当前 datasetId 数据集中
  */
-router.put('/:datasetId/documents/:documentId/text', user(), checkUserAuth(), async (req, res) => {
+router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (req, res) => {
   const { did } = req.user! || {};
   const { datasetId, documentId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
 
@@ -464,63 +464,57 @@ router.put('/:datasetId/documents/:documentId/text', user(), checkUserAuth(), as
  *          description: Successfully updated the uploaded file in the dataset
  *          x-description-zh: 更新上传到当前 datasetId 数据集中
  */
-router.put(
-  '/:datasetId/documents/:documentId/file',
-  user(),
-  checkUserAuth(),
-  upload.single('data'),
-  async (req, res) => {
-    const { did } = req.user!;
-    const { datasetId, documentId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
+router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.single('data'), async (req, res) => {
+  const { did } = req.user!;
+  const { datasetId, documentId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
 
-    if (!datasetId) {
-      throw new Error('Missing required params `datasetId`');
-    }
-
-    if (!req?.file) {
-      res.status(400).send('No file was uploaded.');
-      return;
-    }
-
-    const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
-
-    if (!type || !filename || !data) {
-      res.status(500).json({ error: 'missing required body `type` or `filename` or `data`' });
-      return;
-    }
-
-    let buffer = null;
-
-    if (type === 'base64') {
-      buffer = Buffer.from(data, 'base64');
-    } else if (type === 'path') {
-      buffer = await readFile(data, 'utf8');
-    } else if (type === 'file') {
-      buffer = data;
-    } else {
-      buffer = data;
-    }
-
-    if (!buffer) {
-      res.json({ error: 'invalid upload type, should be [file, path, base64]' });
-      return;
-    }
-
-    const filePath = path.join(Config.uploadDir, filename);
-    await writeFile(filePath, buffer, 'utf8');
-
-    const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'md' | 'txt' | 'pdf' | 'doc';
-
-    await DatasetDocument.update(
-      { error: null, type: fileExtension, data: { type: fileExtension, path: filePath }, updatedBy: did },
-      { where: { id: documentId, datasetId } }
-    );
-
-    // await resetVectorStoreEmbedding(datasetId, did, documentId);
-
-    res.json({ data: 'success' });
+  if (!datasetId) {
+    throw new Error('Missing required params `datasetId`');
   }
-);
+
+  if (!req?.file) {
+    res.status(400).send('No file was uploaded.');
+    return;
+  }
+
+  const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
+
+  if (!type || !filename || !data) {
+    res.status(500).json({ error: 'missing required body `type` or `filename` or `data`' });
+    return;
+  }
+
+  let buffer = null;
+
+  if (type === 'base64') {
+    buffer = Buffer.from(data, 'base64');
+  } else if (type === 'path') {
+    buffer = await readFile(data, 'utf8');
+  } else if (type === 'file') {
+    buffer = data;
+  } else {
+    buffer = data;
+  }
+
+  if (!buffer) {
+    res.json({ error: 'invalid upload type, should be [file, path, base64]' });
+    return;
+  }
+
+  const filePath = path.join(Config.uploadDir, filename);
+  await writeFile(filePath, buffer, 'utf8');
+
+  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'md' | 'txt' | 'pdf' | 'doc';
+
+  await DatasetDocument.update(
+    { error: null, type: fileExtension, data: { type: fileExtension, path: filePath }, updatedBy: did },
+    { where: { id: documentId, datasetId } }
+  );
+
+  // await resetVectorStoreEmbedding(datasetId, did, documentId);
+
+  res.json({ data: 'success' });
+});
 
 /**
  * @openapi
@@ -578,7 +572,7 @@ router.get('/:datasetId/search', async (req, res) => {
   res.json({ docs: content });
 });
 
-router.get('/:datasetId/documents/:documentId', user(), checkUserAuth(), async (req, res) => {
+router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
 
   const input = await Joi.object<{ datasetId: string; documentId: string }>({
