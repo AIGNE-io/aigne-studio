@@ -164,6 +164,7 @@ export default function KnowledgeSegments() {
                   {segments.map((item, index) => {
                     return (
                       <SegmentsItem
+                        isReadOnly={!isContentType}
                         key={item.id}
                         index={index + 1}
                         content={item.content}
@@ -310,12 +311,14 @@ function Tag({ children }: { children: any }) {
 }
 
 function SegmentsItem({
+  isReadOnly,
   index,
   content,
   onDelete,
   onEdit,
   ...props
 }: {
+  isReadOnly: boolean;
   index?: number;
   content?: string;
   onDelete: (e: React.MouseEvent<HTMLButtonElement>) => any;
@@ -331,13 +334,15 @@ function SegmentsItem({
         </Box>
 
         <Box className="deleteIcon">
-          <IconButton
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(e);
-            }}>
-            <Edit sx={{ fontSize: '16px' }} />
-          </IconButton>
+          {!isReadOnly && (
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(e);
+              }}>
+              <Edit sx={{ fontSize: '16px' }} />
+            </IconButton>
+          )}
 
           <IconButton
             onClick={(e) => {

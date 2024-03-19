@@ -32,7 +32,7 @@ import { ImageAssistant, Mustache, OnTaskCompletion, Role, User, isImageAssistan
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 import { BuiltinModules } from './builtin';
 
-const setUserHeader = (user: any) => {
+const getUserHeader = (user: any) => {
   return {
     'x-user-did': user?.did,
     'x-user-role': user?.role,
@@ -904,7 +904,7 @@ async function runExecuteBlock({
                 taskId: currentTaskId,
                 parentTaskId,
                 assistantId: assistant.id,
-                assistantName: `${executeBlock.variable ?? assistant.name}`,
+                assistantName: `${executeBlock.variable ?? dataset.name}`,
               };
 
               callback?.({
@@ -952,11 +952,19 @@ async function runExecuteBlock({
               )
             );
 
+            const { data: knowledge } = await callFunc({
+              name: 'ai-studio',
+              path: `/api/datasets/${tool.id}`,
+              method: 'GET',
+              params: {},
+              headers: getUserHeader(user),
+            });
+
             const callbackParams = {
               taskId: currentTaskId,
               parentTaskId,
               assistantId: assistant.id,
-              assistantName: `${executeBlock.variable ?? assistant.name}`,
+              assistantName: `${executeBlock.variable ?? knowledge.name}`,
             };
 
             callback?.({
@@ -976,7 +984,7 @@ async function runExecuteBlock({
               path: `/api/datasets/${tool.id}/search`,
               method: 'GET',
               params,
-              headers: setUserHeader(user),
+              headers: getUserHeader(user),
             });
 
             callback?.({
@@ -1078,7 +1086,7 @@ async function runExecuteBlock({
               path: `/api/datasets/${tool.id}`,
               method: 'GET',
               params: {},
-              headers: setUserHeader(user),
+              headers: getUserHeader(user),
             });
 
             const { name, description } = data;
@@ -1295,7 +1303,7 @@ async function runExecuteBlock({
               path: `/api/datasets/${tool.id}/search`,
               method: 'GET',
               params: args,
-              headers: setUserHeader(user),
+              headers: getUserHeader(user),
             });
 
             callback?.({

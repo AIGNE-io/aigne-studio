@@ -70,7 +70,7 @@ export default function KnowledgeDatasets() {
 
   return (
     <>
-      <Stack m={{ xs: 2, sm: 3 }}>
+      <Stack m={{ xs: 2, sm: 3 }} overflow="auto">
         <ListContainer gap={{ xs: 2, sm: 3 }}>
           <DatasetItemAdd
             name={t('knowledge.createTitle')}

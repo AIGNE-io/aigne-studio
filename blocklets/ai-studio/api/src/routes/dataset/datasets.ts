@@ -43,22 +43,14 @@ router.get('/', user(), checkUserAuth(), async (req, res) => {
 
   if (projectId) where.projectId = projectId;
 
+  const sql = Sequelize.literal(
+    '(SELECT COUNT(*) FROM NewDatasetItems WHERE NewDatasetItems.datasetId = NewDataset.id)'
+  );
+
   const datasets = await NewDataset.findAll({
-    include: [
-      {
-        model: NewDatasetItem,
-        as: 'items',
-        attributes: [],
-      },
-    ],
-    attributes: {
-      include: [
-        [
-          Sequelize.literal('(SELECT COUNT(*) FROM NewDatasetItems WHERE NewDatasetItems.datasetId = NewDataset.id)'),
-          'documents',
-        ],
-      ],
-    },
+    where,
+    include: [{ model: NewDatasetItem, as: 'items', attributes: [] }],
+    attributes: { include: [[sql, 'documents']] },
     group: ['NewDataset.id'],
   });
 
