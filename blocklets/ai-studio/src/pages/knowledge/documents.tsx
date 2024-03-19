@@ -122,7 +122,7 @@ export default function KnowledgeDocuments() {
               <Box sx={{ fontSize: '20px', fontWeight: 600, lineHeight: '28px' }}>{state.dataset?.name}</Box>
 
               <Box display="flex" gap={2} alignItems="center" mt={1}>
-                <Tag>{`${rows.length} ${t('knowledge.document')}`}</Tag>
+                <Tag>{`${state.total} ${t('knowledge.document')}`}</Tag>
               </Box>
             </Box>
 

@@ -14,7 +14,12 @@ import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import DatasetSegment from '../../store/models/dataset/segment';
 import VectorStore from '../../store/vector-store';
-import { resetVectorStoreEmbedding, runHandlerAndSaveContent, saveContentToVectorStore } from './embeddings';
+import {
+  discussionsIterator,
+  resetVectorStoreEmbedding,
+  runHandlerAndSaveContent,
+  saveContentToVectorStore,
+} from './embeddings';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -593,15 +598,22 @@ router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, 
 
 export interface CreateItem {
   name: string;
-  data: { type: 'discussion'; fullSite?: boolean; id?: string };
+  data: { type: 'discussion'; fullSite?: boolean; id: string };
 }
 
 export type CreateItemInput = CreateItem | CreateItem[];
 
 const createItemsSchema = Joi.object<CreateItem>({
   name: Joi.string().required(),
-  data: Joi.object({ type: Joi.string().valid('discussion').required() })
-    .when(Joi.object({ type: 'discussion' }).unknown(), { then: Joi.object({ id: Joi.string() }) })
+  data: Joi.object({
+    type: Joi.string().valid('discussion').required(),
+  })
+    .when(Joi.object({ type: 'discussion' }).unknown(), {
+      then: Joi.object({
+        fullSite: Joi.boolean().valid(true),
+        id: Joi.string(),
+      }).xor('fullSite', 'id'),
+    })
     .required(),
 });
 
@@ -621,25 +633,42 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
 
   const arr = Array.isArray(input) ? input : [input];
 
-  const docs = await Promise.all(
-    arr.map(async (item) => {
-      const { data, name } = item;
-      const { fullSite, ...other } = data;
-      const found = await DatasetDocument.findOne({ where: { datasetId, data } });
-      if (found) {
-        return found.update({ name, data: other, createdBy: did, updatedBy: did }, { where: { datasetId, data } });
-      }
+  const createOrUpdate = async (name: string, data: { type: 'discussion'; id: string }) => {
+    const found = await DatasetDocument.findOne({ where: { datasetId, data } });
+    if (found) {
+      return found.update({ type: 'discussion', data, updatedBy: did }, { where: { datasetId, data } });
+    }
 
-      return DatasetDocument.create({
-        type: 'discussion',
-        name,
-        data: other,
-        datasetId,
-        createdBy: did,
-        updatedBy: did,
-      });
-    })
-  );
+    return DatasetDocument.create({
+      type: 'discussion',
+      data,
+      name,
+      datasetId,
+      createdBy: did,
+      updatedBy: did,
+    });
+  };
+
+  let docs: DatasetDocument[] = [];
+  if (arr.find((x) => x.data?.fullSite)) {
+    for await (const { id: discussionId } of discussionsIterator()) {
+      const data: { type: 'discussion'; id: string } = { type: 'discussion', id: discussionId };
+
+      try {
+        docs.push(await createOrUpdate('', data));
+      } catch (error) {
+        console.error(`embedding discussion ${discussionId} error`, { error });
+      }
+    }
+  } else {
+    docs = await Promise.all(
+      arr.map((item) => {
+        const { data, name } = item;
+        const { fullSite, ...other } = data;
+        return createOrUpdate(name, other);
+      })
+    );
+  }
 
   docs.forEach((doc) => runHandlerAndSaveContent(doc.id));
 
