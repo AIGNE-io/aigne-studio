@@ -10,7 +10,7 @@ import { useAsync } from 'react-use';
 
 import { CreateItem } from '../../../../api/src/routes/dataset/documents';
 import { useComponent } from '../../../contexts/component';
-import { useDataset } from '../../../contexts/datasets/documents';
+import { useDocuments } from '../../../contexts/datasets/documents';
 import { getErrorMessage } from '../../../libs/api';
 import { createDatasetDocuments } from '../../../libs/dataset';
 import { DiscussionItem, searchDiscussions } from '../../../libs/discussion';
@@ -23,7 +23,7 @@ export default function DiscussionPage({ datasetId }: { datasetId: string }) {
 
   const { t } = useLocaleContext();
 
-  const { state, refetch } = useDataset(datasetId);
+  const { state, refetch } = useDocuments(datasetId);
   if (state.error) throw state.error;
 
   const navigate = useNavigate();

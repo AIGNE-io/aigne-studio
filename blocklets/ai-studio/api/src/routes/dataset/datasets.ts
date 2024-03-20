@@ -72,6 +72,10 @@ router.get('/', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: select
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -119,6 +123,10 @@ router.get('/:datasetId', user(), userAuth(), async (req, res) => {
  *              properties:
  *                name:
  *                  type: string
+ *                description:
+ *                  type: string
+ *                projectId:
+ *                  type: string
  *      responses:
  *        200:
  *          description: Successfully created a new dataset
@@ -147,6 +155,10 @@ router.post('/', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: select
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -158,6 +170,10 @@ router.post('/', user(), userAuth(), async (req, res) => {
  *              type: object
  *              properties:
  *                name:
+ *                  type: string
+ *                description:
+ *                  type: string
+ *                projectId:
  *                  type: string
  *      responses:
  *        200:
@@ -201,6 +217,10 @@ router.put('/:datasetId', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: select
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''

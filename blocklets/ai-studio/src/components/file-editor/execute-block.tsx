@@ -21,6 +21,7 @@ import {
   Autocomplete,
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -37,9 +38,10 @@ import {
 } from '@mui/material';
 import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
+import axios from 'axios';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
@@ -790,23 +792,40 @@ export const ToolDialog = forwardRef<
                 <Controller
                   control={form.control}
                   name={`parameters.${parameter.name}`}
-                  render={({ field }) => (
-                    <PromptEditorField
-                      placeholder={
-                        executeBlock.selectType === 'selectByPrompt'
-                          ? t('selectByPromptParameterPlaceholder')
-                          : assistantParameters.has(parameter.key)
-                            ? `{{ ${parameter.name} }}`
-                            : undefined
-                      }
-                      value={field.value || ''}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      assistant={assistant}
-                      path={[assistantId, parameter.name]}
-                      onChange={(value) => field.onChange({ target: { value } })}
-                    />
-                  )}
+                  render={({ field }) => {
+                    if (parameter['x-input-type'] === 'select') {
+                      return (
+                        <AsyncSelect
+                          label={getDatasetTextByI18n(parameter, 'name', locale)}
+                          remoteAPI={parameter['x-options-api']}
+                          remoteOptions={parameter['x-options-value'] || []}
+                          remoteKey={parameter['x-option-key']}
+                          remoteTitle={parameter['x-name']}
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          queryParams={{ projectId }}
+                        />
+                      );
+                    }
+
+                    return (
+                      <PromptEditorField
+                        placeholder={
+                          executeBlock.selectType === 'selectByPrompt'
+                            ? t('selectByPromptParameterPlaceholder')
+                            : assistantParameters.has(parameter.key)
+                              ? `{{ ${parameter.name} }}`
+                              : undefined
+                        }
+                        value={field.value || ''}
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        assistant={assistant}
+                        path={[assistantId, parameter.name]}
+                        onChange={(value) => field.onChange({ target: { value } })}
+                      />
+                    );
+                  }}
                 />
               </Stack>
             );
@@ -1065,3 +1084,102 @@ export const ToolDialog = forwardRef<
     </Dialog>
   );
 });
+
+interface OptionType {
+  id: string | number;
+  name: string;
+  [key: string]: any;
+}
+
+interface AsyncSelectProps {
+  remoteAPI?: string;
+  remoteOptions?: OptionType[];
+  remoteKey?: string;
+  remoteTitle?: string;
+  label: string;
+  value: any;
+  onChange: (event: { target: { value: any } }) => void;
+  queryParams: { [key: string]: string };
+}
+
+const AsyncSelect: React.FC<AsyncSelectProps> = memo(
+  ({
+    remoteAPI,
+    remoteOptions = [],
+    remoteKey = 'id',
+    remoteTitle = 'name',
+    label,
+    value,
+    onChange,
+    queryParams,
+  }: AsyncSelectProps) => {
+    const [open, setOpen] = useState(false);
+    const [options, setOptions] = useState<OptionType[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const fetchOptions = useCallback(async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        if (remoteOptions && Array.isArray(remoteOptions) && remoteOptions.length > 0) {
+          setOptions(remoteOptions);
+        } else if (remoteAPI) {
+          const query = new URLSearchParams(queryParams).toString();
+          const url = `${remoteAPI}?${query}`;
+          const { data } = await axios(url);
+          setOptions(data);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load options');
+        setOptions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, [remoteAPI, remoteOptions, queryParams]);
+
+    useEffect(() => {
+      fetchOptions();
+    }, [fetchOptions]);
+
+    const currentValue = options.find((x) => x[remoteKey] === value);
+    return (
+      <Autocomplete
+        key={Boolean(currentValue).toString() || ''}
+        open={open}
+        value={currentValue}
+        onChange={(_, newValue) => onChange({ target: { value: newValue?.[remoteKey] } })}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
+        isOptionEqualToValue={(option, val) => option[remoteKey] === val[remoteKey]}
+        getOptionLabel={(option) => option[remoteTitle]}
+        options={options}
+        loading={loading}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={label}
+            error={!!error}
+            helperText={error || ''}
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {loading && <CircularProgress color="inherit" size={20} />}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
+            }}
+          />
+        )}
+        renderOption={(props, option) => (
+          <MenuItem {...props} key={option[remoteKey]}>
+            {option[remoteTitle]}
+          </MenuItem>
+        )}
+      />
+    );
+  }
+);

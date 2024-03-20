@@ -60,6 +60,10 @@ const idSchema = Joi.object<{
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: select
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -118,6 +122,10 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: select
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -222,6 +230,10 @@ router.put('/:datasetId/documents/:documentId', user(), userAuth(), async (req, 
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: select
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -284,6 +296,10 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: select
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -373,8 +389,12 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
  *        - name: datasetId
  *          in: path
  *          description: The ID of the dataset
- *          x-description-zh: 数据集 Id
+ *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: select
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -439,8 +459,12 @@ router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (
  *        - name: datasetId
  *          in: path
  *          description: The ID of the dataset
- *          x-description-zh: 数据集 Id
+ *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: select
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -536,6 +560,10 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: select
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''

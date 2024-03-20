@@ -10,7 +10,7 @@ import Stepper from '@mui/material/Stepper';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useDataset } from '../../../contexts/datasets/documents';
+import { useDocuments } from '../../../contexts/datasets/documents';
 import { getErrorMessage } from '../../../libs/api';
 import { uploadDocument } from '../../../libs/dataset';
 
@@ -77,7 +77,7 @@ function Upload({ onNext, onUpload }: { onNext?: () => any; onUpload: (file: Fil
 function Processing({ file, datasetId }: { datasetId: string; file?: File }) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
-  const { refetch } = useDataset(datasetId);
+  const { refetch } = useDocuments(datasetId);
 
   const [status, setStatus] = useState<'pending' | 'processing' | 'completed'>('pending');
   const [error, setError] = useState('');

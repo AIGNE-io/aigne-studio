@@ -28,12 +28,30 @@ const dataset = (datasetId: string) => {
   return dataset;
 };
 
-export const useDatasetState = (datasetId: string) => useRecoilState(dataset(datasetId));
+export const useDocumentState = (datasetId: string) => useRecoilState(dataset(datasetId));
 
-export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?: true } = {}) => {
-  const [state, setState] = useDatasetState(datasetId);
+export const useDocuments = (datasetId: string, { autoFetch = true }: { autoFetch?: true } = {}) => {
+  const [state, setState] = useDocumentState(datasetId);
 
   const refetch = useCallback(
+    async (options: { page?: number; size?: number } = {}) => {
+      const { page, size } = options;
+
+      try {
+        const { items, total } = await getDocuments(datasetId, { page: (page ?? 0) + 1, size });
+
+        setState((v) => ({ ...v, items, total }));
+      } catch (error) {
+        setState((v) => ({ ...v, error }));
+        throw error;
+      } finally {
+        setState((v) => ({ ...v, page: page ?? v.page, size: size ?? v.size }));
+      }
+    },
+    [datasetId, setState]
+  );
+
+  const init = useCallback(
     async (options: { page?: number; size?: number } = {}) => {
       let { page, size } = options;
 
@@ -44,31 +62,13 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
           return { ...v, loading: true };
         });
 
-        const [dataset, { items, total }] = await Promise.all([
-          getDataset(datasetId),
-          getDocuments(datasetId, { page: (page ?? 0) + 1, size }),
-        ]);
-        setState((v) => ({
-          ...v,
-          loading: false,
-          error: undefined,
-          dataset,
-          items,
-          total,
-        }));
+        const [dataset] = await Promise.all([getDataset(datasetId), refetch()]);
+        setState((v) => ({ ...v, loading: false, error: undefined, dataset }));
       } catch (error) {
-        setState((v) => ({
-          ...v,
-          loading: false,
-          error,
-        }));
+        setState((v) => ({ ...v, loading: false, error }));
         throw error;
       } finally {
-        setState((v) => ({
-          ...v,
-          page: page ?? v.page,
-          size: size ?? v.size,
-        }));
+        setState((v) => ({ ...v, page: page ?? v.page, size: size ?? v.size }));
       }
     },
     [datasetId, setState]
@@ -86,7 +86,7 @@ export const useDataset = (datasetId: string, { autoFetch = true }: { autoFetch?
 
   useEffect(() => {
     if (autoFetch && !state.dataset) {
-      refetch();
+      init();
     }
   }, []);
 
