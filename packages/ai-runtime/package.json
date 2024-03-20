@@ -84,9 +84,9 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-builtin": "^0.1.288",
+    "@blocklet/ai-builtin": "^0.1.295",
     "@blocklet/ai-kit": "^0.1.24",
-    "@blocklet/dataset-sdk": "^0.1.288",
+    "@blocklet/dataset-sdk": "^0.1.295",
     "@blocklet/sdk": "^1.16.24",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.10",
@@ -100,7 +100,7 @@
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
     "typescript": "^5.4.2",
-    "ufo": "^1.5.1",
+    "ufo": "^1.5.2",
     "vm2": "^3.9.19"
   },
   "peerDependencies": {
@@ -114,16 +114,16 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.52",
+    "@arcblock/ux": "^2.9.55",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
-    "@mui/icons-material": "^5.15.13",
-    "@mui/lab": "^5.0.0-alpha.168",
-    "@mui/material": "^5.15.13",
+    "@mui/icons-material": "^5.15.14",
+    "@mui/lab": "^5.0.0-alpha.169",
+    "@mui/material": "^5.15.14",
     "@types/lodash": "^4.17.0",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",
-    "@types/react": "^18.2.66",
+    "@types/react": "^18.2.67",
     "npm-run-all": "^4.1.5",
     "react": "^18.2.0",
     "react-router-dom": "^6.22.3",
