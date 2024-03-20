@@ -7,27 +7,24 @@ const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
 
-export default class Dataset extends Model<InferAttributes<Dataset>, InferCreationAttributes<Dataset>> {
+export default class DatasetEmbeddingHistory extends Model<
+  InferAttributes<DatasetEmbeddingHistory>,
+  InferCreationAttributes<DatasetEmbeddingHistory>
+> {
   declare id: CreationOptional<string>;
 
-  declare name?: string;
-
-  declare description?: string;
+  declare targetId?: string;
 
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
 
-  declare createdBy: string;
+  declare targetVersion?: Date;
 
-  declare updatedBy: string;
-
-  declare documents?: number;
-
-  declare projectId?: string;
+  declare error?: string;
 }
 
-Dataset.init(
+DatasetEmbeddingHistory.init(
   {
     id: {
       type: DataTypes.STRING,
@@ -35,10 +32,7 @@ Dataset.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    name: {
-      type: DataTypes.STRING,
-    },
-    description: {
+    targetId: {
       type: DataTypes.STRING,
     },
     createdAt: {
@@ -47,15 +41,10 @@ Dataset.init(
     updatedAt: {
       type: DataTypes.DATE,
     },
-    createdBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    targetVersion: {
+      type: DataTypes.DATE,
     },
-    updatedBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    projectId: {
+    error: {
       type: DataTypes.STRING,
     },
   },

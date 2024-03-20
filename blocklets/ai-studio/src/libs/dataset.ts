@@ -1,6 +1,6 @@
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 
-import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset/documents';
+import { CreateDiscussionItem, CreateDiscussionItemInput } from '../../api/src/routes/dataset/documents';
 import Dataset from '../../api/src/store/models/dataset/dataset';
 import DatasetDocument from '../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../api/src/store/models/dataset/segment';
@@ -102,11 +102,14 @@ export async function updateSegment(
     .then((res) => res.data);
 }
 
-export async function createDatasetDocuments(datasetId: string, input: CreateItem): Promise<DatasetDocument>;
-export async function createDatasetDocuments(datasetId: string, input: CreateItem[]): Promise<DatasetDocument[]>;
+export async function createDatasetDocuments(datasetId: string, input: CreateDiscussionItem): Promise<DatasetDocument>;
 export async function createDatasetDocuments(
   datasetId: string,
-  input: CreateItemInput
+  input: CreateDiscussionItem[]
+): Promise<DatasetDocument[]>;
+export async function createDatasetDocuments(
+  datasetId: string,
+  input: CreateDiscussionItemInput
 ): Promise<DatasetDocument | DatasetDocument[]> {
   return axios.post(`/api/datasets/${datasetId}/documents/discussion`, input).then((res) => res.data);
 }

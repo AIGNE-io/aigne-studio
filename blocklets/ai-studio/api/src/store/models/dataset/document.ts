@@ -7,17 +7,22 @@ const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
 
-export default class NewDatasetItem extends Model<
-  InferAttributes<NewDatasetItem>,
-  InferCreationAttributes<NewDatasetItem>
+export enum UploadStatus {
+  Idle = 0,
+  Uploading = 1,
+  Success = 2,
+  Error = 3,
+}
+
+export default class DatasetDocument extends Model<
+  InferAttributes<DatasetDocument>,
+  InferCreationAttributes<DatasetDocument>
 > {
   declare id: CreationOptional<string>;
 
   declare datasetId: string;
 
-  declare name?: string;
-
-  declare type: 'discussion' | 'text' | 'md' | 'txt' | 'pdf' | 'doc';
+  declare type: 'discussion' | 'text' | 'file';
 
   declare data?:
     | {
@@ -29,21 +34,11 @@ export default class NewDatasetItem extends Model<
         id: string;
       }
     | {
-        type: 'md';
-        path: string;
-      }
-    | {
-        type: 'txt';
-        path: string;
-      }
-    | {
-        type: 'pdf';
-        path: string;
-      }
-    | {
-        type: 'doc';
+        type: string;
         path: string;
       };
+
+  declare name?: string;
 
   declare content?: string;
 
@@ -56,9 +51,15 @@ export default class NewDatasetItem extends Model<
   declare updatedBy: string;
 
   declare error?: string | null;
+
+  declare embeddingStartAt?: Date;
+
+  declare embeddingEndAt?: Date;
+
+  declare embeddingStatus?: UploadStatus;
 }
 
-NewDatasetItem.init(
+DatasetDocument.init(
   {
     id: {
       type: DataTypes.STRING,
@@ -73,11 +74,14 @@ NewDatasetItem.init(
     type: {
       type: DataTypes.STRING,
     },
+    data: {
+      type: DataTypes.JSON,
+    },
     name: {
       type: DataTypes.STRING,
     },
-    data: {
-      type: DataTypes.JSON,
+    content: {
+      type: DataTypes.STRING,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -95,6 +99,16 @@ NewDatasetItem.init(
     },
     error: {
       type: DataTypes.STRING,
+    },
+    embeddingStartAt: {
+      type: DataTypes.DATE,
+    },
+    embeddingEndAt: {
+      type: DataTypes.DATE,
+    },
+    embeddingStatus: {
+      type: DataTypes.NUMBER,
+      defaultValue: 0,
     },
   },
   { sequelize }

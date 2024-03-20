@@ -4,11 +4,11 @@ import Joi from 'joi';
 import { Op, Sequelize } from 'sequelize';
 
 import { userAuth } from '../../libs/user';
-import NewDataset from '../../store/models/dataset/dataset';
-import NewDatasetItem from '../../store/models/dataset/document';
+import Dataset from '../../store/models/dataset/dataset';
+import DatasetDocument from '../../store/models/dataset/document';
 
-NewDataset.hasMany(NewDatasetItem, { as: 'items', foreignKey: 'datasetId' });
-NewDatasetItem.belongsTo(NewDataset, { as: 'dataset', foreignKey: 'datasetId' });
+Dataset.hasMany(DatasetDocument, { as: 'items', foreignKey: 'datasetId' });
+DatasetDocument.belongsTo(Dataset, { as: 'dataset', foreignKey: 'datasetId' });
 
 const router = Router();
 
@@ -44,14 +44,14 @@ router.get('/', user(), userAuth(), async (req, res) => {
   if (projectId) where.projectId = projectId;
 
   const sql = Sequelize.literal(
-    '(SELECT COUNT(*) FROM NewDatasetItems WHERE NewDatasetItems.datasetId = NewDataset.id)'
+    '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
   );
 
-  const datasets = await NewDataset.findAll({
+  const datasets = await Dataset.findAll({
     where,
-    include: [{ model: NewDatasetItem, as: 'items', attributes: [] }],
+    include: [{ model: DatasetDocument, as: 'items', attributes: [] }],
     attributes: { include: [[sql, 'documents']] },
-    group: ['NewDataset.id'],
+    group: ['Dataset.id'],
   });
 
   res.json(datasets);
@@ -95,7 +95,7 @@ router.get('/:datasetId', user(), userAuth(), async (req, res) => {
 
   if (projectId) where.projectId = projectId;
 
-  const dataset = await NewDataset.findOne({ where });
+  const dataset = await Dataset.findOne({ where });
 
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
@@ -136,7 +136,7 @@ router.post('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { name, description, projectId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const dataset = await NewDataset.create({ name, description, projectId, createdBy: did, updatedBy: did });
+  const dataset = await Dataset.create({ name, description, projectId, createdBy: did, updatedBy: did });
   res.json(dataset);
 });
 
@@ -184,7 +184,7 @@ router.put('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
 
-  const dataset = await NewDataset.findOne({ where: { id: datasetId } });
+  const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
@@ -196,9 +196,9 @@ router.put('/:datasetId', user(), userAuth(), async (req, res) => {
   if (description) params.description = description;
   if (projectId) params.projectId = projectId;
 
-  await NewDataset.update({ ...params, updatedBy: did }, { where: { id: datasetId } });
+  await Dataset.update({ ...params, updatedBy: did }, { where: { id: datasetId } });
 
-  const doc = await NewDataset.findOne({ where: { id: datasetId } });
+  const doc = await Dataset.findOne({ where: { id: datasetId } });
   res.json(doc);
 });
 
@@ -232,13 +232,13 @@ router.put('/:datasetId', user(), userAuth(), async (req, res) => {
 router.delete('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
 
-  const dataset = await NewDataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });
+  const dataset = await Dataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
     return;
   }
 
-  await NewDataset.destroy({ where: { id: datasetId } });
+  await Dataset.destroy({ where: { id: datasetId } });
 
   res.json(dataset);
 });
