@@ -1,3 +1,7 @@
+## 0.1.295 (2024-3-20)
+
+- fix: wait for the working data load finished
+
 ## 0.1.294 (2024-3-20)
 
 - feat: support select dataset Id
