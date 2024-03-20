@@ -38,6 +38,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      ua-parser-js:
+        specifier: ^1.0.37
+        version: 1.0.37
     devDependencies:
       '@arcblock/eslint-config':
         specifier: ^0.2.4
@@ -18157,6 +18161,10 @@ packages:
 
   /tz-lookup@6.1.25:
     resolution: {integrity: sha512-fFewT9o1uDzsW1QnUU1ValqaihFnwiUiiHr1S79/fxOzKXYYvX+EHeRnpvQJ9B3Qg67wPXT6QF2Esc4pFOrvLg==}
+    dev: false
+
+  /ua-parser-js@1.0.37:
+    resolution: {integrity: sha512-bhTyI94tZofjo+Dn8SN6Zv8nBDvyXTymAdM3LDI/0IboIUwTu1rEhW7v2TfiVsoYWgkQ4kOVqnI8APUFbIQIFQ==}
     dev: false
 
   /ufo@1.5.1:

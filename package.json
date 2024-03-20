@@ -85,5 +85,8 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-router-dom": "6.16.0"
+  },
+  "dependencies": {
+    "ua-parser-js": "^1.0.37"
   }
 }

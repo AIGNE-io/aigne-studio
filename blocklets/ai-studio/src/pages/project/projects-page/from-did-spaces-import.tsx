@@ -24,7 +24,7 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { joinURL } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 
 import { useProjectsState } from '../../../contexts/projects';
 import { getErrorMessage } from '../../../libs/api';
@@ -117,7 +117,14 @@ export default function FromDidSpacesImport() {
   };
 
   const goToDidSpacesImport = () => {
-    window.location.href = joinURL(window.origin, window.blocklet?.prefix ?? '/', 'api/import/from-did-spaces');
+    session.connectToDidSpaceForImport({
+      onSuccess: (response: { importUrl: string }, decrypt: (value: string) => string) => {
+        const importUrl = decrypt(response.importUrl);
+        window.location.href = withQuery(importUrl, {
+          redirectUrl: window.location.href,
+        });
+      },
+    });
   };
 
   if (!didSpaceReady(session?.user)) {
