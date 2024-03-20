@@ -31,7 +31,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDatasets } from '../../contexts/datasets/datasets';
-import { useDataset } from '../../contexts/datasets/documents';
+import { useDocuments } from '../../contexts/datasets/documents';
 import { getErrorMessage } from '../../libs/api';
 import Delete from '../project/icons/delete';
 import Empty from '../project/icons/empty';
@@ -47,7 +47,7 @@ export default function KnowledgeDocuments() {
   const { createDocument } = useDatasets();
   const navigate = useNavigate();
 
-  const { state, refetch, remove } = useDataset(datasetId || '');
+  const { state, remove, refetch } = useDocuments(datasetId || '');
   if (state.error) throw state.error;
 
   const rows = state.items ?? [];
