@@ -182,4 +182,15 @@ export function messageRoutes(router: Router) {
       count,
     });
   });
+
+  router.delete('/sessions/:sessionId/messages', user(), auth(), async (req, res) => {
+    const { did: userId } = req.user!;
+    const { sessionId } = req.params;
+
+    const deletedCount = await History.destroy({
+      where: { userId, sessionId },
+    });
+
+    res.json({ deletedCount });
+  });
 }
