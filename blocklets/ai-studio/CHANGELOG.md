@@ -1,3 +1,8 @@
+## 0.1.294 (2024-3-20)
+
+- feat: support select dataset Id
+- fix: local request loading data document
+
 ## 0.1.293 (2024-3-20)
 
 - feat: add api to delete session messages
