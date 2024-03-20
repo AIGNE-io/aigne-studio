@@ -1,3 +1,7 @@
+## 0.1.292 (2024-3-20)
+
+- fix: fullsite discussion save failed
+
 ## 0.1.291 (2024-3-19)
 
 - feat: add fullsite discussion
