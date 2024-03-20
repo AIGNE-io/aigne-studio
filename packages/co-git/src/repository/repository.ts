@@ -102,7 +102,7 @@ export default class Repository<T> {
 
       const exists = await pathExists(workingRoot);
 
-      const working = new Working(this, { ref, root: workingRoot });
+      const working = await Working.load(this, { ref, root: workingRoot });
 
       if (!exists) {
         await mkdir(workingRoot, { recursive: true });
