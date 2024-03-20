@@ -393,6 +393,8 @@ export default flat({
     titlePlaceholder: 'Enter a title for the project',
     description: 'Description',
     descriptionPlaceholder: 'Enter a description for the project',
+    conversionOpener: 'Opener Message',
+    conversionOpenerDescription: 'Write your opener message here like: Welcome to use AIGNE',
     collectionManage: 'Collection Manage',
     logo: 'logo',
     publishProject: 'Publish',

@@ -389,6 +389,8 @@ export default flat({
     titlePlaceholder: '请为了你的项目输入标题',
     description: '描述',
     descriptionPlaceholder: '请为了你的项目输入描述',
+    conversionOpener: '开场白',
+    conversionOpenerDescription: '输入您的开场白，例如：欢迎使用 AIGNE',
     collectionManage: '数据集管理',
     logo: '图标',
     publishProject: '发布',

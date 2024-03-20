@@ -130,6 +130,7 @@ function PublishViewContent({
       description: release?.description || '',
       paymentEnabled: release?.paymentEnabled,
       paymentUnitAmount: release?.paymentUnitAmount,
+      openerMessage: release?.openerMessage || '',
     });
   }, [form, release]);
 
@@ -245,9 +246,25 @@ function PublishViewContent({
             padding: 0,
           }}
           placeholder={t('publish.descriptionPlaceholder')}
-          minRows={5}
+          minRows={3}
           id="description"
           {...form.register('description', { setValueAs: (v) => v.trim() })}
+        />
+      </FormControl>
+
+      <FormControl>
+        <Typography mb={1} variant="subtitle2">
+          {t('publish.conversionOpener')}
+        </Typography>
+        <BaseInput
+          multiline
+          sx={{
+            padding: 0,
+          }}
+          placeholder={t('publish.conversionOpenerDescription')}
+          minRows={3}
+          id="description"
+          {...form.register('openerMessage', { setValueAs: (v) => v.trim() })}
         />
       </FormControl>
 
