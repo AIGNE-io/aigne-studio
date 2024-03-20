@@ -604,17 +604,12 @@ export interface CreateItem {
 export type CreateItemInput = CreateItem | CreateItem[];
 
 const createItemsSchema = Joi.object<CreateItem>({
-  name: Joi.string().required(),
+  name: Joi.string().empty(['', null]),
   data: Joi.object({
     type: Joi.string().valid('discussion').required(),
-  })
-    .when(Joi.object({ type: 'discussion' }).unknown(), {
-      then: Joi.object({
-        fullSite: Joi.boolean().valid(true),
-        id: Joi.string(),
-      }).xor('fullSite', 'id'),
-    })
-    .required(),
+    fullSite: Joi.boolean(),
+    id: Joi.string().empty(['', null]),
+  }).required(),
 });
 
 const createItemInputSchema = Joi.alternatives<CreateItemInput>().try(
@@ -651,11 +646,11 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
 
   let docs: DatasetDocument[] = [];
   if (arr.find((x) => x.data?.fullSite)) {
-    for await (const { id: discussionId } of discussionsIterator()) {
+    for await (const { id: discussionId, name } of discussionsIterator()) {
       const data: { type: 'discussion'; id: string } = { type: 'discussion', id: discussionId };
 
       try {
-        docs.push(await createOrUpdate('', data));
+        docs.push(await createOrUpdate(name, data));
       } catch (error) {
         console.error(`embedding discussion ${discussionId} error`, { error });
       }
