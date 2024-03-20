@@ -98,7 +98,7 @@ export async function* discussionsIterator() {
 
     for (const i of data) {
       index += 1;
-      yield { total, id: i.id, index };
+      yield { total, id: i.id, index, name: i.title };
     }
   }
 }
@@ -111,7 +111,7 @@ export async function searchDiscussions({
   search?: string;
   page?: number;
   size?: number;
-}): Promise<{ data: { id: string }[]; total: number }> {
+}): Promise<{ data: { id: string; title: string }[]; total: number }> {
   return axios
     .get('/api/discussions', {
       baseURL: discussBaseUrl(),

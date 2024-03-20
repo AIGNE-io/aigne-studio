@@ -646,11 +646,11 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
 
   let docs: DatasetDocument[] = [];
   if (arr.find((x) => x.data?.fullSite)) {
-    for await (const { id: discussionId } of discussionsIterator()) {
+    for await (const { id: discussionId, name } of discussionsIterator()) {
       const data: { type: 'discussion'; id: string } = { type: 'discussion', id: discussionId };
 
       try {
-        docs.push(await createOrUpdate('', data));
+        docs.push(await createOrUpdate(name, data));
       } catch (error) {
         console.error(`embedding discussion ${discussionId} error`, { error });
       }
