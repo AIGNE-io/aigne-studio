@@ -163,6 +163,7 @@ export default flat({
   formMode: 'Form',
   chatMode: 'Chat',
   clearSession: 'Clear current session history',
+  deleteSession: 'Delete current session',
   showSidebar: 'Show sidebar',
   hideSidebar: 'Hide sidebar',
   folder: 'folder',

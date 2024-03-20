@@ -160,6 +160,7 @@ export default flat({
   formMode: '表单',
   chatMode: '会话',
   clearSession: '清除当前会话记录',
+  deleteSession: '删除当前会话',
   showSidebar: '显示侧栏',
   hideSidebar: '隐藏侧栏',
   folder: '文件夹',
