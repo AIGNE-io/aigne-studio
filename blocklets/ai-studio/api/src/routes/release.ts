@@ -78,6 +78,7 @@ export interface CreateReleaseInput {
   description?: string;
   paymentEnabled?: boolean;
   paymentUnitAmount?: string;
+  openerMessage?: string;
 }
 
 const createReleaseInputSchema = Joi.object<CreateReleaseInput>({
@@ -93,10 +94,11 @@ const createReleaseInputSchema = Joi.object<CreateReleaseInput>({
     is: true,
     then: Joi.number().min(0).required().cast('string'),
   }),
+  openerMessage: Joi.string().allow('', null),
 });
 
 router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-  const { title, template, description, assistantId, projectId, projectRef, icon, ...input } =
+  const { title, template, description, assistantId, projectId, projectRef, icon, openerMessage, ...input } =
     await createReleaseInputSchema.validateAsync(req.body, { stripUnknown: true });
 
   const { did } = req.user!;
@@ -109,6 +111,7 @@ router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) 
     title,
     description,
     icon,
+    openerMessage,
     createdBy: did,
     updatedBy: did,
     paymentEnabled: input.paymentEnabled,
@@ -133,6 +136,7 @@ export interface UpdateReleaseInput {
   description?: string;
   paymentEnabled?: boolean;
   paymentUnitAmount?: string;
+  openerMessage?: string;
 }
 
 const updateReleaseSchema = Joi.object<UpdateReleaseInput>({
@@ -145,6 +149,7 @@ const updateReleaseSchema = Joi.object<UpdateReleaseInput>({
     is: true,
     then: Joi.number().min(0).required().cast('string'),
   }),
+  openerMessage: Joi.string().allow('', null),
 });
 
 router.patch('/:releaseId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {

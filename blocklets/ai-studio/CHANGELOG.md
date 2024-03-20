@@ -1,3 +1,9 @@
+## 0.1.293 (2024-3-20)
+
+- feat: add api to delete session messages
+- feat: support displaying opener message
+- fix: place delete session button out from menus
+
 ## 0.1.292 (2024-3-20)
 
 - fix: fullsite discussion save failed

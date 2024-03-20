@@ -95,7 +95,7 @@ function DebugViewContent({
 }) {
   const { t } = useLocaleContext();
 
-  const { state, setSession, clearCurrentSession } = useDebugState({
+  const { state, setSession, clearCurrentSession, deleteSession } = useDebugState({
     projectId,
     assistantId: assistant.id,
   });
@@ -116,14 +116,28 @@ function DebugViewContent({
         <Box maxWidth={200}>
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
-        <Tooltip title={t('clearSession')}>
-          <IconButton
-            size="small"
-            sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
-            onClick={clearCurrentSession}>
-            <Broom fontSize="small" />
-          </IconButton>
-        </Tooltip>
+
+        <Stack direction="row" alignItems="center" gap={1}>
+          <Tooltip title={t('clearSession')}>
+            <IconButton
+              size="small"
+              sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
+              onClick={clearCurrentSession}>
+              <Broom fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title={t('deleteSession')}>
+            <IconButton
+              sx={{ minWidth: 0, p: 0.25 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteSession(currentSession.index);
+              }}>
+              <Trash sx={{ color: 'text.secondary' }} />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       </Box>
 
       <ScrollMessages currentSession={currentSession} key={assistant.id} />
@@ -264,7 +278,7 @@ function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
 
 function SessionSelect({ projectId, assistantId }: { projectId: string; assistantId: string }) {
   const { t } = useLocaleContext();
-  const { state, newSession, deleteSession, setCurrentSession } = useDebugState({
+  const { state, newSession, setCurrentSession } = useDebugState({
     projectId,
     assistantId,
   });
@@ -287,18 +301,7 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
       onChange={(e) => setCurrentSession(e.target.value as number)}>
       {state.sessions.map((session) => (
         <MenuItem key={session.index} value={session.index}>
-          <Typography flex={1}>
-            {t('session')} {session.index}
-          </Typography>
-
-          <Button
-            sx={{ minWidth: 0, p: 0.25 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              deleteSession(session.index);
-            }}>
-            <Trash sx={{ fontSize: 14, color: 'text.secondary' }} />
-          </Button>
+          {t('session')} {session.index}
         </MenuItem>
       ))}
       <MenuItem

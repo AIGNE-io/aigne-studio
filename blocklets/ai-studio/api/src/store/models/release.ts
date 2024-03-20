@@ -32,6 +32,8 @@ export default class Release extends Model<InferAttributes<Release>, InferCreati
 
   declare description?: string;
 
+  declare openerMessage?: string;
+
   declare withCollection?: boolean;
 
   declare isActive?: boolean;
@@ -109,6 +111,9 @@ Release.init(
     },
     paymentLinkId: {
       type: DataTypes.STRING,
+    },
+    openerMessage: {
+      type: DataTypes.TEXT,
     },
   },
   { sequelize }
