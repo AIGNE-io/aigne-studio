@@ -604,17 +604,12 @@ export interface CreateItem {
 export type CreateItemInput = CreateItem | CreateItem[];
 
 const createItemsSchema = Joi.object<CreateItem>({
-  name: Joi.string().required(),
+  name: Joi.string().empty(['', null]),
   data: Joi.object({
     type: Joi.string().valid('discussion').required(),
-  })
-    .when(Joi.object({ type: 'discussion' }).unknown(), {
-      then: Joi.object({
-        fullSite: Joi.boolean().valid(true),
-        id: Joi.string(),
-      }).xor('fullSite', 'id'),
-    })
-    .required(),
+    fullSite: Joi.boolean(),
+    id: Joi.string().empty(['', null]),
+  }).required(),
 });
 
 const createItemInputSchema = Joi.alternatives<CreateItemInput>().try(

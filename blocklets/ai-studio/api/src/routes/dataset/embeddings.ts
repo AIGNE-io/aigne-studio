@@ -22,8 +22,8 @@ const embeddingHandler: {
 } = {
   discussion: async (item: DatasetDocument, documentId: string) => {
     const discussion = await getDiscussion((item.data as any).id);
-    await saveContentToVectorStore(discussion.content, item.datasetId, documentId);
-    return { name: discussion?.title, content: discussion?.content };
+    await saveContentToVectorStore(discussion?.content || '', item.datasetId, documentId);
+    return { name: discussion?.title || '', content: discussion?.content || '' };
   },
   text: async (item: DatasetDocument, documentId: string) => {
     const content = (item.data as any)?.content;
@@ -64,16 +64,23 @@ const discussBaseUrl = () => {
   return url;
 };
 
-async function getDiscussion(discussionId: string): Promise<{ content: string; title: string; updatedAt: string }> {
-  const { data } = await axios.get(`/api/blogs/${discussionId}`, {
-    baseURL: discussBaseUrl(),
-    params: { textContent: 1 },
-  });
-  if (!data) {
-    throw new Error('Discussion not found');
-  }
+async function getDiscussion(
+  discussionId: string
+): Promise<{ content: string; title: string; updatedAt: string } | null> {
+  try {
+    const { data } = await axios.get(`/api/blogs/${discussionId}`, {
+      baseURL: discussBaseUrl(),
+      params: { textContent: 1 },
+    });
 
-  return data;
+    if (!data) {
+      throw new Error('Discussion not found');
+    }
+
+    return data;
+  } catch (error) {
+    return null;
+  }
 }
 
 export async function* discussionsIterator() {
@@ -114,6 +121,7 @@ export async function searchDiscussions({
 }
 
 export const saveContentToVectorStore = async (content: string, datasetId: string, documentId?: string) => {
+  if (!content) return;
   const textSplitter = new RecursiveCharacterTextSplitter();
   const docs = await textSplitter.createDocuments([content]);
 
