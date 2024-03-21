@@ -22,7 +22,7 @@ import isEmpty from 'lodash/isEmpty';
 import isNil from 'lodash/isNil';
 import pick from 'lodash/pick';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useBeforeUnload, unstable_useBlocker as useBlocker, useParams } from 'react-router-dom';
+import { useBeforeUnload, useBlocker, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
 import { getSupportedModels } from '../../../../api/src/libs/common';
