@@ -328,7 +328,7 @@ export default function KnowledgeDocuments() {
           if (currentDocument === 'custom') {
             customDialogState.open();
           } else {
-            navigate(`upload?type=${currentDocument}`);
+            navigate(`upload?type=${currentDocument}`, { replace: true });
           }
         })}>
         <DialogTitle>{t('knowledge.documents.add')}</DialogTitle>
