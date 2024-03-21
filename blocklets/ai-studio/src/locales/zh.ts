@@ -102,6 +102,7 @@ export default flat({
     remote: '从 Git 仓库导入',
     remoteDescription: '从现有的 git 存储库中导入项目，如 GitHub。',
     didSpaces: '从 DID Spaces 导入',
+    didSpacesTitle: '从 DID Spaces 导入项目',
     didSpacesDescription: '从已绑定的 DID Spaces 中导入项目',
     selectProject: '选择项目',
     selectBranch: '选择分支',

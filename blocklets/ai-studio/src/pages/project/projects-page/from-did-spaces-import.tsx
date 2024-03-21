@@ -149,7 +149,7 @@ export default function FromDidSpacesImport() {
         fullWidth
         component="form"
         onSubmit={form.handleSubmit(importProject)}>
-        <DialogTitle>{t('didSpaces.title')}</DialogTitle>
+        <DialogTitle>{t('import.didSpacesTitle')}</DialogTitle>
         <DialogContent>
           <Stack gap={2}>
             <TextField
