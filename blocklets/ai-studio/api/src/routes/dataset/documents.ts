@@ -73,8 +73,8 @@ router.get('/:datasetId/search', async (req, res) => {
     return;
   }
 
-  const datasetItems = await DatasetDocument.findAll({ where: { datasetId } });
-  if (!datasetItems?.length) {
+  const documents = await DatasetDocument.findAll({ where: { datasetId } });
+  if (!documents?.length) {
     res.json({ docs: [] });
     return;
   }
@@ -174,7 +174,7 @@ router.delete('/:datasetId/documents/:documentId', user(), userAuth(), async (re
     throw new Error('Missing required params `datasetId` or `documentId`');
   }
 
-  const doc = DatasetDocument.findOne({ where: { id: documentId, datasetId } });
+  const document = DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
   await Promise.all([
     DatasetDocument.destroy({ where: { id: documentId, datasetId } }),
@@ -182,9 +182,7 @@ router.delete('/:datasetId/documents/:documentId', user(), userAuth(), async (re
     DatasetContent.destroy({ where: { documentId } }),
   ]);
 
-  // resetVectorStoreEmbedding(datasetId);
-
-  res.json(doc);
+  res.json(document);
 });
 
 router.put('/:datasetId/documents/:documentId/name', user(), userAuth(), async (req, res) => {
@@ -205,8 +203,8 @@ router.put('/:datasetId/documents/:documentId/name', user(), userAuth(), async (
 
   await DatasetDocument.update({ name, updatedBy: did }, { where: { id: documentId, datasetId } });
 
-  const doc = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-  res.json(doc);
+  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
+  res.json(document);
 });
 
 router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) => {

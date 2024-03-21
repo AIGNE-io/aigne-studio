@@ -1256,7 +1256,7 @@ async function runExecuteBlock({
               taskId: currentTaskId,
               parentTaskId,
               assistantId: assistant.id,
-              assistantName: `${executeBlock.variable ?? tool?.toolAssistant.name}`,
+              assistantName: `${executeBlock.variable ?? tool?.toolAssistant.summary}`,
             };
 
             callback?.({

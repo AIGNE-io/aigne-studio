@@ -46,7 +46,6 @@ router.get('/', user(), userAuth(), async (req, res) => {
   const datasets = await Dataset.findAll({
     where,
     attributes: { include: [[sql, 'documents']] },
-    group: ['Dataset.id'],
   });
 
   res.json(datasets);
@@ -192,8 +191,7 @@ router.put('/:datasetId', user(), userAuth(), async (req, res) => {
 
   await Dataset.update({ ...params, updatedBy: did }, { where: { id: datasetId } });
 
-  const doc = await Dataset.findOne({ where: { id: datasetId } });
-  res.json(doc);
+  res.json(await Dataset.findOne({ where: { id: datasetId } }));
 });
 
 /**
