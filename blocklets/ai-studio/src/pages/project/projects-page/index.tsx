@@ -1,3 +1,4 @@
+import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
@@ -38,7 +39,7 @@ import { joinURL } from 'ufo';
 import Project from '../../../../api/src/store/models/project';
 import DeleteDialog from '../../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../../contexts/projects';
-import { useReadOnly } from '../../../contexts/session';
+import { useReadOnly, useSessionContext } from '../../../contexts/session';
 import { getErrorMessage } from '../../../libs/api';
 import { ProjectWithUserInfo, User, copyProject, createProject } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
@@ -581,6 +582,7 @@ function ProjectItemSkeleton({ ...props }: StackProps) {
 }
 
 function ProjectItem({
+  id,
   pinned,
   icon,
   name,
@@ -596,6 +598,7 @@ function ProjectItem({
   didSpaceAutoSync,
   ...props
 }: {
+  id: string;
   section: string;
   pinned?: boolean;
   icon?: string;
@@ -611,6 +614,7 @@ function ProjectItem({
   didSpaceAutoSync: true | false;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
+  const { session } = useSessionContext();
 
   const formatGitUrl = useMemo(() => {
     try {
@@ -625,6 +629,10 @@ function ProjectItem({
       return '';
     }
   }, [gitUrl]);
+
+  const projectDataUrlInSpace = useMemo(() => {
+    return getProjectDataUrlInSpace(session?.user?.didSpace?.endpoint, id);
+  }, [session?.user?.didSpace?.endpoint, id]);
 
   if (section === 'templates') {
     return (
@@ -741,15 +749,15 @@ function ProjectItem({
               </Box>
             </Tooltip>
           )}
-          {didSpaceAutoSync && (
+          {didSpaceAutoSync && projectDataUrlInSpace && (
             <Tooltip title="" placement="top">
               <Box
                 display="inline-flex"
                 alignItems="center"
                 mt={0.25}
-                ml={formatGitUrl ? -1.5 : 'inherit'}
+                ml={projectDataUrlInSpace ? -1.5 : 'inherit'}
                 component="a"
-                href={formatGitUrl}
+                href={projectDataUrlInSpace}
                 target="_blank"
                 style={{ color: 'inherit', textDecoration: 'none' }}
                 onClick={(e) => {
