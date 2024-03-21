@@ -57,6 +57,7 @@ import { exportAssistantsToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Compare from './compare';
 import ChevronDown from './icons/chevron-down';
+import Clipboard from './icons/clipboard';
 import Code from './icons/code';
 import CompareIcon from './icons/compare';
 import Duplicate from './icons/duplicate';
@@ -362,6 +363,8 @@ const FileTree = forwardRef<
                     edited={filepath === editingFolderPath}
                     actions={
                       <TreeItemMenus
+                        projectId={projectId}
+                        gitRef={gitRef}
                         item={node.data}
                         onCreateFolder={mutable ? onCreateFolder : undefined}
                         onCreateFile={mutable ? onCreateFile : undefined}
@@ -393,6 +396,8 @@ const FileTree = forwardRef<
 
               const actions = (
                 <TreeItemMenus
+                  projectId={projectId}
+                  gitRef={gitRef}
                   item={node.data}
                   onCreateFile={mutable ? onCreateFile : undefined}
                   onRenameFile={({ name }) => setEditingFileName(name)}
@@ -545,6 +550,8 @@ function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 
 }
 
 function TreeItemMenus({
+  projectId,
+  gitRef,
   isChanged,
   item,
   onRenameFolder,
@@ -556,6 +563,8 @@ function TreeItemMenus({
   onCompare,
   onUndo,
 }: {
+  projectId: string;
+  gitRef: string;
   isChanged?: boolean;
   item: EntryWithMeta;
   onRenameFolder?: (options: { path: string[] }) => any;
@@ -636,6 +645,19 @@ function TreeItemMenus({
             <Duplicate />
           </ListItemIcon>
           <ListItemText primary={t('alert.duplicate')} />
+        </ListItemButton>
+      ),
+
+      item.type === 'file' && (
+        <ListItemButton
+          key="copyId"
+          onClick={() => {
+            navigator.clipboard.writeText(joinURL(projectId, gitRef, item.meta.id));
+          }}>
+          <ListItemIcon>
+            <Clipboard />
+          </ListItemIcon>
+          <ListItemText primary={t('alert.copyId')} />
         </ListItemButton>
       ),
     ],

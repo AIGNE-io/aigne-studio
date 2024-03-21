@@ -1204,6 +1204,12 @@ async function runExecuteBlock({
 
     const toolAssistantMap = Object.fromEntries(toolAssistants.map((i) => [i.function.name, i]));
 
+    if (!calls?.length && executeBlock.defaultToolId) {
+      const defaultTool = toolAssistants.find((i) => i.tool.id === executeBlock.defaultToolId);
+      calls ??= [];
+      calls.push({ type: 'function', function: { name: defaultTool?.function.name, arguments: '{}' } });
+    }
+
     const result =
       calls &&
       (await Promise.all(

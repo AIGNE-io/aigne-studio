@@ -1,5 +1,6 @@
 import Button from '@arcblock/ux/lib/Button';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { Tooltip } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Spinner from '@mui/material/CircularProgress';
@@ -51,6 +52,8 @@ export default function ConfirmDialog({ name, onClose, onConfirm, ...rest }: Pro
   const isBreakpointsDownSm = useMediaQuery(theme.breakpoints.down('md'));
   const { minWidth } = useMobileWidth();
 
+  const [copied, setCopied] = useState(false);
+
   return (
     <Dialog
       component="form"
@@ -63,10 +66,27 @@ export default function ConfirmDialog({ name, onClose, onConfirm, ...rest }: Pro
       <DialogTitle>{`${t('alert.delete')} "${name}"`}</DialogTitle>
       <DialogContent style={{ minWidth }}>
         <DialogContentText component="div">
-          <Box
-            style={{ marginTop: 24, marginBottom: 24 }}
-            dangerouslySetInnerHTML={{ __html: t('deleteProject', { name }) || '' }}
-          />
+          <Box sx={{ my: 3 }}>
+            {t('deleteProjectAlertPrefix')}
+            <Tooltip
+              title={copied ? t('copied') : t('copy')}
+              placement="top"
+              onClose={() => setCopied(false)}
+              disableInteractive>
+              <Typography
+                component="span"
+                color="error"
+                sx={{ cursor: 'pointer' }}
+                onClick={() => {
+                  navigator.clipboard.writeText(name);
+                  setCopied(true);
+                }}>
+                {' '}
+                "{name}"{' '}
+              </Typography>
+            </Tooltip>
+            {t('deleteProjectAlertSuffix')}
+          </Box>
           <Typography component="div">
             <TextField
               label={t('confirmDelete', { name })}

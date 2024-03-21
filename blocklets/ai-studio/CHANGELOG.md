@@ -1,3 +1,14 @@
+## 0.1.296 (2024-3-21)
+
+- fix: set deleting button color to warning
+- fix: set created at to now when copying a project
+- chore: update deps
+- fix: display white space for output in test view
+- fix: remove option `None` from select option list
+- fix: support copying project name in deleting confirmation
+- feat: add a file menu to copy assistant id to clipboard
+- feat: support default tool in executing block
+
 ## 0.1.295 (2024-3-20)
 
 - fix: wait for the working data load finished

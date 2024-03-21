@@ -1,4 +1,5 @@
 import { textCompletions } from '@app/libs/ai';
+import Star from '@app/pages/project/icons/star';
 import Translate from '@app/pages/project/icons/translate';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
@@ -7,6 +8,7 @@ import {
   ExecuteBlockYjs,
   FileTypeYjs,
   Role,
+  Tool,
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -82,15 +84,14 @@ export default function ExecuteBlockForm({
   compareAssistant?: AssistantYjs;
   isRemoteCompare?: boolean;
 } & StackProps) {
-  const { t, locale } = useLocaleContext();
+  const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
-  const navigate = useNavigate();
   const toolForm = useRef<ToolDialogImperative>(null);
 
   const { store } = useProjectStore(projectId, gitRef);
 
-  const { data: datasets = [] } = useRequest(() => getAPIList());
-  const { data: knowledge = [] } = useRequest(() => getDatasets(projectId));
+  const { data: openApis = [] } = useRequest(() => getAPIList());
+  const { data: datasets = [] } = useRequest(() => getDatasets(projectId));
 
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
@@ -142,6 +143,7 @@ export default function ExecuteBlockForm({
         }}
         square
         disableGutters
+        defaultExpanded
         elevation={0}>
         <AccordionSummary
           sx={{
@@ -228,6 +230,7 @@ export default function ExecuteBlockForm({
         }}
         square
         disableGutters
+        defaultExpanded
         elevation={0}>
         <AccordionSummary
           sx={{
@@ -379,6 +382,7 @@ export default function ExecuteBlockForm({
         }}
         square
         disableGutters
+        defaultExpanded
         elevation={0}>
         <AccordionSummary
           sx={{
@@ -397,193 +401,24 @@ export default function ExecuteBlockForm({
               {t('emptyToolPlaceholder')}
             </Typography>
           )}
-          {tools?.map(({ data: tool }) => {
-            const f = store.files[tool.id];
-            const file = f && isAssistant(f) ? f : undefined;
-            if (!file) {
-              const dataset = datasets.find((x) => x.id === tool.id);
-
-              if (dataset) {
-                return (
-                  <Stack
-                    key={dataset.id}
-                    direction="row"
-                    sx={{
-                      minHeight: 32,
-                      gap: 1,
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      borderRadius: 1,
-                      ':hover': {
-                        bgcolor: 'action.hover',
-
-                        '.hover-visible': {
-                          display: 'flex',
-                        },
-                      },
-                      backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
-                    }}
-                    onClick={() => {
-                      if (readOnly) return;
-                      toolForm.current?.form.reset(cloneDeep(tool));
-                      dialogState.open();
-                    }}>
-                    <Typography noWrap maxWidth="50%">
-                      {getDatasetTextByI18n(dataset, 'summary', locale) || t('unnamed')}
-                    </Typography>
-
-                    <Typography variant="body1" color="text.secondary" flex={1} noWrap>
-                      {getDatasetTextByI18n(dataset, 'description', locale)}
-                    </Typography>
-
-                    {!readOnly && (
-                      <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
-                        <Button
-                          sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const doc = (getYjsValue(value) as Map<any>).doc!;
-                            doc.transact(() => {
-                              if (value.tools) {
-                                delete value.tools[tool.id];
-                                sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
-                              }
-                            });
-                          }}>
-                          <Trash sx={{ fontSize: 18 }} />
-                        </Button>
-                      </Stack>
-                    )}
-                  </Stack>
-                );
-              }
-
-              const found = knowledge.find((x) => x.id === tool.id);
-              if (found) {
-                return (
-                  <Stack
-                    key={found.id}
-                    direction="row"
-                    sx={{
-                      minHeight: 32,
-                      gap: 1,
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      borderRadius: 1,
-                      ':hover': {
-                        bgcolor: 'action.hover',
-
-                        '.hover-visible': {
-                          display: 'flex',
-                        },
-                      },
-                      backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
-                    }}
-                    onClick={() => {
-                      if (readOnly) return;
-                      toolForm.current?.form.reset(cloneDeep(tool));
-                      dialogState.open();
-                    }}>
-                    <Typography variant="subtitle2" noWrap maxWidth="50%">
-                      {found.name}
-                    </Typography>
-
-                    <Typography variant="body1" color="text.secondary" flex={1} noWrap>
-                      {found.description}
-                    </Typography>
-
-                    {!readOnly && (
-                      <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
-                        <Button
-                          sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const doc = (getYjsValue(value) as Map<any>).doc!;
-                            doc.transact(() => {
-                              if (value.tools) {
-                                delete value.tools[tool.id];
-                                sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
-                              }
-                            });
-                          }}>
-                          <Trash sx={{ fontSize: 18 }} />
-                        </Button>
-                      </Stack>
-                    )}
-                  </Stack>
-                );
-              }
-
-              return null;
-            }
-
-            return (
-              <Stack
-                key={file.id}
-                direction="row"
-                sx={{
-                  minHeight: 32,
-                  gap: 1,
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  borderRadius: 1,
-                  ':hover': {
-                    bgcolor: 'action.hover',
-                    '.hover-visible': {
-                      display: 'flex',
-                    },
-                  },
-                  backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
-                }}
-                onClick={() => {
-                  if (readOnly) return;
-                  toolForm.current?.form.reset(cloneDeep(tool));
-                  dialogState.open();
-                }}>
-                <Typography noWrap maxWidth="50%">
-                  {file.name || t('unnamed')}
-                </Typography>
-
-                <Typography variant="body1" color="text.secondary" flex={1} noWrap>
-                  {file.description}
-                </Typography>
-
-                {!readOnly && (
-                  <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
-                    <Button
-                      sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const doc = (getYjsValue(value) as Map<any>).doc!;
-                        doc.transact(() => {
-                          if (value.selectType === 'selectByPrompt') {
-                            const selectTool = value.tools?.[tool.id];
-                            if (selectTool) {
-                              selectTool.data.onEnd = undefined;
-                            }
-                          }
-                          if (value.tools) {
-                            delete value.tools[tool.id];
-                            sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
-                          }
-                        });
-                      }}>
-                      <Trash sx={{ fontSize: 18 }} />
-                    </Button>
-
-                    <Button
-                      sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(joinURL('.', `${file.id}.yaml`));
-                      }}>
-                      <External sx={{ fontSize: 18 }} />
-                    </Button>
-                  </Stack>
-                )}
-              </Stack>
-            );
-          })}
+          {tools?.map(({ data: tool }) => (
+            <ToolItemView
+              key={tool.id}
+              getDiffBackground={getDiffBackground}
+              projectId={projectId}
+              projectRef={gitRef}
+              tool={tool}
+              executeBlock={value}
+              readOnly={readOnly}
+              openApis={openApis}
+              datasets={datasets}
+              onClick={() => {
+                if (readOnly) return;
+                toolForm.current?.form.reset(cloneDeep(tool));
+                dialogState.open();
+              }}
+            />
+          ))}
 
           {!readOnly && (
             <Box>
@@ -607,8 +442,8 @@ export default function ExecuteBlockForm({
         assistant={assistant}
         gitRef={gitRef}
         DialogProps={{ ...bindDialog(dialogState) }}
-        datasets={datasets.map((x) => ({ ...x, from: FROM_DATASET }))}
-        knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
+        openApis={openApis.map((x) => ({ ...x, from: FROM_DATASET }))}
+        datasets={datasets.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
           doc.transact(() => {
@@ -626,6 +461,140 @@ export default function ExecuteBlockForm({
           dialogState.close();
         }}
       />
+    </Stack>
+  );
+}
+
+function ToolItemView({
+  getDiffBackground,
+  projectId,
+  projectRef,
+  tool,
+  executeBlock,
+  readOnly,
+  openApis,
+  datasets,
+  ...props
+}: {
+  executeBlock: ExecuteBlockYjs;
+  getDiffBackground: (path: any, id?: string | undefined, defaultValue?: string | undefined) => { [x: string]: string };
+  projectId: string;
+  projectRef: string;
+  tool: Tool;
+  readOnly?: boolean;
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  datasets: (NewDataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+} & StackProps) {
+  const navigate = useNavigate();
+
+  const { t, locale } = useLocaleContext();
+  const { store } = useProjectStore(projectId, projectRef);
+
+  const f = store.files[tool.id];
+  const file = f && isAssistant(f) ? f : undefined;
+
+  const dataset = datasets.find((x) => x.id === tool.id);
+  const api = openApis.find((i) => i.id === tool.id);
+
+  const target = file ?? dataset ?? api;
+
+  if (!target) return null;
+
+  const name = api ? getDatasetTextByI18n(api, 'summary', locale) || t('unnamed') : target.name;
+  const description = api ? getDatasetTextByI18n(api, 'description', locale) : target.description;
+
+  return (
+    <Stack
+      direction="row"
+      {...props}
+      sx={{
+        minHeight: 32,
+        gap: 1,
+        alignItems: 'center',
+        cursor: 'pointer',
+        borderRadius: 1,
+        ':hover': {
+          bgcolor: 'action.hover',
+          '.hover-visible': {
+            display: 'flex',
+          },
+        },
+        backgroundColor: { ...getDiffBackground('prepareExecutes', `${executeBlock.id}.data.tools.${tool.id}`) },
+      }}>
+      <Tooltip title={t('defaultTool')}>
+        <Typography
+          noWrap
+          maxWidth="50%"
+          color={
+            executeBlock.selectType === 'selectByPrompt' && executeBlock.defaultToolId === tool.id
+              ? 'primary.main'
+              : undefined
+          }>
+          {name || t('unnamed')}
+        </Typography>
+      </Tooltip>
+
+      <Typography variant="body1" color="text.secondary" flex={1} noWrap>
+        {description}
+      </Typography>
+
+      <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={0.5}>
+        {executeBlock.selectType === 'selectByPrompt' && (
+          <Tooltip title={executeBlock.defaultToolId === tool.id ? t('unsetDefaultTool') : t('setDefaultTool')}>
+            <Button
+              sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const doc = (getYjsValue(executeBlock) as Map<any>).doc!;
+                doc.transact(() => {
+                  if (executeBlock.defaultToolId === tool.id) {
+                    executeBlock.defaultToolId = undefined;
+                  } else {
+                    executeBlock.defaultToolId = tool.id;
+                  }
+                });
+              }}>
+              <Star
+                sx={{ fontSize: 18, color: executeBlock.defaultToolId === tool.id ? 'primary.main' : 'text.secondary' }}
+              />
+            </Button>
+          </Tooltip>
+        )}
+
+        {!readOnly && (
+          <Button
+            sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const doc = (getYjsValue(executeBlock) as Map<any>).doc!;
+              doc.transact(() => {
+                if (executeBlock.selectType === 'selectByPrompt') {
+                  const selectTool = executeBlock.tools?.[tool.id];
+                  if (selectTool) {
+                    selectTool.data.onEnd = undefined;
+                  }
+                }
+                if (executeBlock.tools) {
+                  delete executeBlock.tools[tool.id];
+                  sortBy(Object.values(executeBlock.tools), 'index').forEach((i, index) => (i.index = index));
+                }
+              });
+            }}>
+            <Trash sx={{ fontSize: 18 }} />
+          </Button>
+        )}
+
+        {file && (
+          <Button
+            sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(joinURL('.', `${file.id}.yaml`));
+            }}>
+            <External sx={{ fontSize: 18 }} />
+          </Button>
+        )}
+      </Stack>
     </Stack>
   );
 }
@@ -666,10 +635,10 @@ export const ToolDialog = forwardRef<
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
     assistant: AssistantYjs;
-    datasets: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-    knowledge: (NewDataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+    openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+    datasets: (NewDataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   }
->(({ datasets, knowledge, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+>(({ openApis, datasets, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -710,10 +679,10 @@ export const ToolDialog = forwardRef<
     return t('assistantData');
   };
 
-  const option = [...options, ...datasets, ...knowledge].find((x) => x.id === fileId);
+  const option = [...options, ...openApis, ...datasets].find((x) => x.id === fileId);
   const formatOptions: Option[] = [
     ...options,
-    ...datasets.map((dataset) => ({
+    ...openApis.map((dataset) => ({
       id: dataset.id,
       type: dataset.type,
       name:
@@ -722,7 +691,7 @@ export const ToolDialog = forwardRef<
         t('unnamed'),
       from: dataset.from,
     })),
-    ...knowledge.map((item) => ({
+    ...datasets.map((item) => ({
       id: item.id,
       type: 'knowledge',
       name: item.name || t('unnamed'),
