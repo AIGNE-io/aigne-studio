@@ -183,6 +183,14 @@ const TestCaseView = forwardRef<
   return (
     <>
       <Stack direction="row" justifyContent="flex-end" mb={0.5}>
+        <Tooltip title={t('runThisCase')}>
+          <span>
+            <Button sx={{ minWidth: 32 }} size="small" disabled={loading} onClick={runTest}>
+              <RefreshSquareIcon fontSize="small" />
+            </Button>
+          </span>
+        </Tooltip>
+
         <Tooltip title={t('debugThisCase')}>
           <Button sx={{ minWidth: 32 }} size="small" onClick={debugTest}>
             <RulerCrossPen fontSize="small" />
@@ -190,17 +198,9 @@ const TestCaseView = forwardRef<
         </Tooltip>
 
         <Tooltip title={t('deleteThisCase')}>
-          <Button sx={{ minWidth: 32 }} size="small" onClick={deleteTest}>
+          <Button sx={{ minWidth: 32 }} size="small" onClick={deleteTest} color="warning">
             <TrashBinIcon fontSize="small" />
           </Button>
-        </Tooltip>
-
-        <Tooltip title={t('runThisCase')}>
-          <span>
-            <Button sx={{ minWidth: 32 }} size="small" disabled={loading} onClick={runTest}>
-              <RefreshSquareIcon fontSize="small" />
-            </Button>
-          </span>
         </Tooltip>
       </Stack>
 
