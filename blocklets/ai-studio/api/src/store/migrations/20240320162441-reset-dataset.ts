@@ -109,7 +109,7 @@ export const up: Migration = async ({ context: queryInterface }) => {
   });
 
   await queryInterface.createTable('DatasetEmbeddingHistories', {
-    _id: {
+    id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,

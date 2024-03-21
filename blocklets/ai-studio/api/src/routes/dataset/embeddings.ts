@@ -41,13 +41,13 @@ const embeddingHandler: {
           { where: { targetId: discussionId } }
         );
       } else {
-        await EmbeddingHistory.create({ targetVersion: new Date(discussion?.updatedAt || 0) });
+        await EmbeddingHistory.create({ targetId: discussionId, targetVersion: new Date(discussion?.updatedAt || 0) });
       }
     } catch (error) {
       if (await EmbeddingHistory.findOne({ where: { targetId: discussionId } })) {
         await EmbeddingHistory.update({ error: error.message }, { where: { targetId: discussionId } });
       } else {
-        await EmbeddingHistory.create({ error: error.message });
+        await EmbeddingHistory.create({ targetId: discussionId, error: error.message });
       }
     }
   },
@@ -144,11 +144,11 @@ export const saveContentToVectorStore = async (content: string, datasetId: strin
 
 export const runHandlerAndSaveContent = async (documentId: string) => {
   let task = embeddingTasks.get(documentId);
+  const item = await DatasetDocument.findOne({ where: { id: documentId } });
 
   if (!task) {
     task = {
       promise: (async () => {
-        const item = await DatasetDocument.findOne({ where: { id: documentId } });
         if (!item) throw new Error(`Dataset item ${documentId} not found`);
         if (!item.data) return;
 
@@ -156,27 +156,27 @@ export const runHandlerAndSaveContent = async (documentId: string) => {
         if (!handler) return;
 
         try {
-          await DatasetDocument.update(
+          await item.update(
             { error: '', embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() },
             { where: { id: documentId } }
           );
 
-          sse.send({ documentId, document: await DatasetDocument.findOne({ where: { id: documentId } }) }, 'change');
           await handler(item);
 
-          await DatasetDocument.update(
+          await item.update(
             { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
             { where: { id: documentId } }
           );
         } catch (error) {
-          await DatasetDocument.update(
+          console.error(error);
+          await item.update(
             { error: error.message, embeddingStatus: UploadStatus.Error },
             { where: { id: documentId } }
           );
         } finally {
-          await DatasetDocument.update({ embeddingEndAt: new Date() }, { where: { id: documentId } });
+          await item.update({ embeddingEndAt: new Date() }, { where: { id: documentId } });
           embeddingTasks.delete(documentId);
-          sse.send({ documentId, document: await DatasetDocument.findOne({ where: { id: documentId } }) }, 'complete');
+          sse.send({ documentId, document: '' }, 'complete');
         }
       })(),
     };

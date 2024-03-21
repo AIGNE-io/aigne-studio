@@ -1,4 +1,5 @@
 import user from '@blocklet/sdk/lib/middlewares/user';
+import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
 import { Op, Sequelize } from 'sequelize';
@@ -6,10 +7,10 @@ import { Op, Sequelize } from 'sequelize';
 import { userAuth } from '../../libs/user';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
+import { sse } from './embeddings';
 
 Dataset.hasMany(DatasetDocument, { as: 'items', foreignKey: 'datasetId' });
 DatasetDocument.belongsTo(Dataset, { as: 'dataset', foreignKey: 'datasetId' });
-
 const router = Router();
 
 const datasetSchema = Joi.object<{ name?: string; description?: string; projectId?: string }>({
@@ -242,5 +243,7 @@ router.delete('/:datasetId', user(), userAuth(), async (req, res) => {
 
   res.json(dataset);
 });
+
+router.get('/:datasetId/embeddings', compression(), sse.init);
 
 export default router;

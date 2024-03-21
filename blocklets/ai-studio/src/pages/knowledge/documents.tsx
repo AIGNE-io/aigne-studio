@@ -23,16 +23,19 @@ import {
   styled,
 } from '@mui/material';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
+import { useReactive } from 'ahooks';
 import dayjs from 'dayjs';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import Document from '../../../api/src/store/models/dataset/document';
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDatasets } from '../../contexts/datasets/datasets';
 import { useDocuments } from '../../contexts/datasets/documents';
 import { getErrorMessage } from '../../libs/api';
+import { watchDatasetEmbeddings } from '../../libs/dataset';
 import Delete from '../project/icons/delete';
 import Empty from '../project/icons/empty';
 
@@ -50,7 +53,45 @@ export default function KnowledgeDocuments() {
   const { state, remove, refetch } = useDocuments(datasetId || '');
   if (state.error) throw state.error;
 
-  const rows = state.items ?? [];
+  const embeddings = useReactive<{ [key: string]: Document }>({});
+
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    (async () => {
+      const res = await watchDatasetEmbeddings({ datasetId: datasetId || '', signal: abortController.signal });
+      const reader = res.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        if (value) {
+          switch (value.type) {
+            case 'change': {
+              embeddings[value.documentId] = value.document;
+              break;
+            }
+            case 'complete': {
+              delete embeddings[value.documentId];
+              break;
+            }
+            default:
+              console.warn('Unsupported event', value);
+          }
+        }
+      }
+    })();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [datasetId]);
+
+  const rows = (state.items ?? []).map((i) => {
+    return embeddings[i.id] || i;
+  });
+
   const columns = useMemo(
     () => [
       {
@@ -71,16 +112,52 @@ export default function KnowledgeDocuments() {
         align: 'center',
         sortable: false,
         renderCell: (params: any) => {
-          return <Box>{params.row.type}</Box>;
+          return <Box>{t(params.row.type)}</Box>;
         },
       },
       {
         field: 'time',
         headerName: t('knowledge.documents.time'),
-        width: 300,
+        width: 180,
         sortable: false,
         renderCell: (params: any) => {
           return <Box>{`${dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss')}`}</Box>;
+        },
+      },
+      {
+        field: 'embeddingStartAt',
+        headerName: t('embeddingStartTime'),
+        width: 180,
+        sortable: false,
+        renderCell: (params: any) => {
+          return (
+            <Box>
+              {params.row.embeddingStartAt
+                ? `${dayjs(params.row.embeddingStartAt).format('YYYY-MM-DD HH:mm:ss')}`
+                : '-'}
+            </Box>
+          );
+        },
+      },
+      {
+        field: 'embeddingEndTime',
+        headerName: t('embeddingEndTime'),
+        width: 180,
+        sortable: false,
+        renderCell: (params: any) => {
+          return (
+            <Box>
+              {params.row.embeddingEndAt ? `${dayjs(params.row.embeddingEndAt).format('YYYY-MM-DD HH:mm:ss')}` : '-'}
+            </Box>
+          );
+        },
+      },
+      {
+        field: 'embeddingStatus',
+        headerName: t('embeddingStatus'),
+        sortable: false,
+        renderCell: (params: any) => {
+          return <Box>{t(`embeddingStatus_${params.row.embeddingStatus}`)}</Box>;
         },
       },
       {
