@@ -50,7 +50,7 @@
     "@blocklet/sdk": "^1.16.24",
     "lodash": "^4.17.21",
     "node-fetch": "2",
-    "typescript": "^5.4.2"
+    "typescript": "^5.4.3"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.0",
