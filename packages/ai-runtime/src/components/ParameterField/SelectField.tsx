@@ -21,10 +21,16 @@ const SelectField = forwardRef<
       select
       onChange={(e) => onChange(e.target.value)}
       {...props}
-      InputProps={{ ...props.InputProps, readOnly }}>
-      <MenuItem value="">
-        <em>None</em>
-      </MenuItem>
+      InputProps={{ ...props.InputProps, readOnly }}
+      sx={{
+        ...props.sx,
+        '& .MuiSelect-select .notranslate::after': parameter?.placeholder
+          ? {
+              content: `"${parameter.placeholder}"`,
+              opacity: 0.42,
+            }
+          : {},
+      }}>
       {parameter?.options?.map((option) => (
         <MenuItem key={option.id} value={option.value}>
           {option.label}
