@@ -1,3 +1,7 @@
+## 0.1.297 (2024-3-21)
+
+- fix: dataset select error
+
 ## 0.1.296 (2024-3-21)
 
 - fix: set deleting button color to warning

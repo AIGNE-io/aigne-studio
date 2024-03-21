@@ -60,7 +60,7 @@ const idSchema = Joi.object<{
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: select
+ *          x-input-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -122,7 +122,7 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: select
+ *          x-input-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -230,7 +230,7 @@ router.put('/:datasetId/documents/:documentId', user(), userAuth(), async (req, 
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: select
+ *          x-input-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -296,7 +296,7 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: select
+ *          x-input-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -391,7 +391,7 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: select
+ *          x-input-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -461,7 +461,7 @@ router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: select
+ *          x-input-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -560,7 +560,7 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: select
+ *          x-input-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
