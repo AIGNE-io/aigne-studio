@@ -5,6 +5,7 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { Op } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
+import createQueue from '../../libs/queue';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
 import EmbeddingHistory from '../../store/models/dataset/embedding-history';
 import Segment from '../../store/models/dataset/segment';
@@ -13,7 +14,16 @@ import VectorStore from '../../store/vector-store';
 export const sse = new SSE();
 const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
 
-export const queue = {};
+export const queue = createQueue({
+  options: {
+    concurrency: 3,
+    maxTimeout: 3 * 60 * 1000,
+  },
+  onJob: async (data) => {
+    console.log(data);
+  },
+});
+
 const embeddingHandler: {
   [key in NonNullable<DatasetDocument['type']>]: (item: DatasetDocument) => Promise<void>;
 } = {

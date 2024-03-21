@@ -77,6 +77,7 @@ export default flat({
     downloadBackup: 'Download backup',
     openInAssistant: 'Open in Assistant',
     duplicate: 'Duplicate',
+    copyId: 'Copy Id',
     unnamed: 'Unnamed',
     search: 'Search',
     noCommits: 'No Commits',
@@ -109,6 +110,9 @@ export default flat({
     empty: 'No template projects available for import.',
   },
   emptyToolPlaceholder: 'Add an assistant as a tool to execute, select, and other capabilities.',
+  defaultTool: 'Default tool',
+  setDefaultTool: 'Set as default tool',
+  unsetDefaultTool: 'Unset default tool',
   translate: 'Tool name english translate',
   functionName:
     'The name of the proactive translation assistant can be used as a template for selection. If the function name is not in English, it cannot be recognized. If it is already in English, there is no need for translation.',
@@ -260,7 +264,8 @@ export default flat({
   endTime: 'End Time',
   duration: 'Duration',
   confirmDelete: 'Please input {name} to delete',
-  deleteProject: 'This will permanently delete project with name {name}',
+  deleteProjectAlertPrefix: 'This will permanently delete project with name',
+  deleteProjectAlertSuffix: ' ',
   selectObject: 'Select {object}',
   template: 'Template',
   call: {
