@@ -49,6 +49,7 @@ type ModelConfiguration = {
 export type ExecuteBlockSelectByPrompt = ExecuteBlockCommon & {
   selectType: 'selectByPrompt';
   executeModel?: ModelConfiguration;
+  defaultToolId?: string;
 };
 
 export type ExecuteBlock = ExecuteBlockSelectAll | ExecuteBlockSelectByPrompt;

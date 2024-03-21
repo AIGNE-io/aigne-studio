@@ -109,6 +109,9 @@ export default flat({
     empty: 'No template projects available for import.',
   },
   emptyToolPlaceholder: 'Add an assistant as a tool to execute, select, and other capabilities.',
+  defaultTool: 'Default tool',
+  setDefaultTool: 'Set as default tool',
+  unsetDefaultTool: 'Unset default tool',
   translate: 'Tool name english translate',
   functionName:
     'The name of the proactive translation assistant can be used as a template for selection. If the function name is not in English, it cannot be recognized. If it is already in English, there is no need for translation.',
