@@ -181,6 +181,7 @@ export default flat({
   confirm: '确认',
   projectSetting: {
     homePageUrl: '首页地址',
+    selectProject: '选择项目',
     name: '项目名称',
     description: '项目描述',
     gitType: {

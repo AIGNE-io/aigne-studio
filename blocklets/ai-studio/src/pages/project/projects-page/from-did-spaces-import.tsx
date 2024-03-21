@@ -87,6 +87,7 @@ export default function FromDidSpacesImport() {
           endpoint: endpoint!,
           projectId: value._id,
           props: {
+            name: value.name,
             description: value.description,
           },
         });
@@ -152,9 +153,9 @@ export default function FromDidSpacesImport() {
         <DialogContent>
           <Stack gap={2}>
             <TextField
-              {...form.register('name', { required: true })}
+              {...form.register('_id', { required: true })}
               select
-              label={t('projectSetting.name')}
+              label={t('projectSetting.selectProject')}
               defaultValue=""
               disabled={loading}
               onChange={(e) => {
@@ -172,6 +173,18 @@ export default function FromDidSpacesImport() {
                 </MenuItem>
               ))}
             </TextField>
+
+            <TextField
+              {...form.register('name')}
+              label={t('projectSetting.name')}
+              rows={4}
+              sx={{ width: 1 }}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
+              focused
+            />
 
             <TextField
               {...form.register('description')}

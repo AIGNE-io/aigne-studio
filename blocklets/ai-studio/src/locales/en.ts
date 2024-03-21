@@ -184,6 +184,7 @@ export default flat({
   confirm: 'Confirm',
   projectSetting: {
     homePageUrl: 'Home Page Url',
+    selectProject: 'Select Project',
     name: 'Project name',
     description: 'Project description',
     gitType: {
