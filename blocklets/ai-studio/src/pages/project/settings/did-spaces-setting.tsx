@@ -70,7 +70,7 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
           startIcon={<FolderOpenOutlinedIcon />}
           onClick={async () => {
             try {
-              window.open(getProjectDataUrlInSpace(session?.user?.didSpace?.endpoint, projectId));
+              window.open(getProjectDataUrlInSpace(session.user?.didSpace?.endpoint, projectId));
             } catch (error) {
               console.error(error);
               Toast.error(getErrorMessage(error));

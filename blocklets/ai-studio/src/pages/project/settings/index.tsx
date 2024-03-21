@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import equal from 'fast-deep-equal';
 import cloneDeep from 'lodash/cloneDeep';
+import isEmpty from 'lodash/isEmpty';
 import isNil from 'lodash/isNil';
 import pick from 'lodash/pick';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -30,7 +31,7 @@ import Loading from '../../../components/loading';
 import Avatar from '../../../components/project-settings/avatar';
 import ModelSelectField from '../../../components/selector/model-select-field';
 import SliderNumberField from '../../../components/slider-number-field';
-import { useReadOnly } from '../../../contexts/session';
+import { useReadOnly, useSessionContext } from '../../../contexts/session';
 import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
 import useDialog from '../../../utils/use-dialog';
@@ -64,6 +65,7 @@ export default function ProjectSettings() {
   const [value, setValue] = useState<UpdateProjectInput>(init);
   const isSubmit = useRef(false);
   const origin = useRef<UpdateProjectInput>();
+  const { session } = useSessionContext();
 
   const { value: supportedModels, loading: getSupportedModelsLoading } = useAsync(() => getSupportedModels(), []);
   const model = useMemo(() => supportedModels?.find((i) => i.model === value.model), [value.model, supportedModels]);
@@ -435,13 +437,15 @@ export default function ProjectSettings() {
               <RemoteRepoSetting projectId={projectId} />
             </Box>
 
-            <Box
-              sx={{ border: '1px solid #ddd', padding: 2, borderRadius: (theme) => `${theme.shape.borderRadius}px` }}>
-              <Box component="h3" sx={{ marginTop: 0 }}>
-                {t('didSpaces.title')}
+            {!isEmpty(session.user?.didSpace?.endpoint) && (
+              <Box
+                sx={{ border: '1px solid #ddd', padding: 2, borderRadius: (theme) => `${theme.shape.borderRadius}px` }}>
+                <Box component="h3" sx={{ marginTop: 0 }}>
+                  {t('didSpaces.title')}
+                </Box>
+                <DidSpacesSetting projectId={projectId} />
               </Box>
-              <DidSpacesSetting projectId={projectId} />
-            </Box>
+            )}
           </Stack>
         </SettingsContainer>
       </UploaderProvider>
