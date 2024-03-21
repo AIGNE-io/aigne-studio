@@ -46,7 +46,7 @@ export default function KnowledgeDatasets() {
   const onSave = useCallback(
     async (input: DatasetInput) => {
       try {
-        const dataset = await createDataset(projectId, { ...input, projectId });
+        const dataset = await createDataset(projectId, { ...input, appId: projectId });
         dialogState.close();
         navigate(`./${dataset.id}`);
       } catch (error) {

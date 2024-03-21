@@ -8,11 +8,11 @@ import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
 import Stepper from '@mui/material/Stepper';
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useDocuments } from '../../../contexts/datasets/documents';
 import { getErrorMessage } from '../../../libs/api';
-import { uploadDocument } from '../../../libs/dataset';
+import { createFileDocument, updateFileDocument } from '../../../libs/dataset';
 
 const steps = ['Upload', 'Processing'];
 
@@ -78,6 +78,8 @@ function Processing({ file, datasetId }: { datasetId: string; file?: File }) {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { refetch } = useDocuments(datasetId);
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
 
   const [status, setStatus] = useState<'pending' | 'processing' | 'completed'>('pending');
   const [error, setError] = useState('');
@@ -90,9 +92,15 @@ function Processing({ file, datasetId }: { datasetId: string; file?: File }) {
         const form = new FormData();
         form.append('data', file);
         form.append('type', 'file');
-        const result = await uploadDocument(datasetId, form);
-        refetch();
-        navigate(`../${datasetId}/${result.id}`);
+
+        if (id) {
+          await updateFileDocument(datasetId, id, form);
+        } else {
+          await createFileDocument(datasetId, form);
+        }
+
+        await refetch();
+        navigate(`../${datasetId}`, { replace: true });
       }
     } catch (error) {
       Toast.error(getErrorMessage(error));

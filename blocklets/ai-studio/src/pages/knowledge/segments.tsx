@@ -31,7 +31,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
 import { getErrorMessage } from '../../libs/api';
-import { uploadDocumentParams } from '../../libs/dataset';
+import { uploadDocumentName } from '../../libs/dataset';
 import Edit from '../project/icons/edit';
 import Empty from '../project/icons/empty';
 
@@ -105,10 +105,15 @@ export default function KnowledgeSegments() {
 
               <Box display="flex" gap={2} alignItems="center" mt={1}>
                 <Tag>{t(state.document?.type)}</Tag>
-                <Tag>{t('knowledge.auto')}</Tag>
-                <Tag>
-                  {segments?.length} {t('knowledge.segments.segments')}
-                </Tag>
+
+                {viewType === 'SegmentsView' && (
+                  <>
+                    <Tag>{t('knowledge.auto')}</Tag>
+                    <Tag>
+                      {dataState?.data?.total} {t('knowledge.segments.segments')}
+                    </Tag>
+                  </>
+                )}
               </Box>
             </Box>
 
@@ -348,7 +353,7 @@ function UpdateDocumentName({
       component="form"
       onSubmit={form.handleSubmit(async (data) => {
         try {
-          await uploadDocumentParams(datasetId || '', documentId || '', data);
+          await uploadDocumentName(datasetId || '', documentId || '', data);
           form.reset({ name: '' });
 
           onUpdate();

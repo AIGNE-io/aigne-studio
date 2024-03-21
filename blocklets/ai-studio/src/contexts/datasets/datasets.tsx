@@ -3,7 +3,14 @@ import { Draft, produce } from 'immer';
 import { ReactNode, createContext, useCallback, useContext, useRef } from 'react';
 
 import Dataset from '../../../api/src/store/models/dataset/dataset';
-import { createDataset, createDocument, deleteDataset, getDatasets, getDocuments } from '../../libs/dataset';
+import {
+  createDataset,
+  createTextDocument,
+  deleteDataset,
+  getDatasets,
+  getDocuments,
+  updateTextDocument,
+} from '../../libs/dataset';
 
 export interface DatasetsContext {
   datasets: Dataset[];
@@ -12,7 +19,8 @@ export interface DatasetsContext {
   refetch: (projectId?: string) => Promise<void>;
   createDataset: any;
   deleteDataset: any;
-  createDocument: typeof createDocument;
+  createTextDocument: typeof createTextDocument;
+  updateTextDocument: typeof updateTextDocument;
   getDocuments: typeof getDocuments;
 }
 
@@ -48,7 +56,7 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
     },
     createDataset: async (
       projectId: string,
-      input: { name?: string | null; description?: string | null; projectId?: string }
+      input: { name?: string | null; description?: string | null; appId?: string }
     ) => {
       const dataset = await createDataset(input);
       await value.current.refetch(projectId);
@@ -58,8 +66,12 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
       await deleteDataset(datasetId);
       await value.current.refetch(projectId);
     },
-    createDocument: async (datasetId, input: { type: string; name: string; content?: string }) => {
-      const document = await createDocument(datasetId, input);
+    createTextDocument: async (datasetId, input: { name: string; content?: string }) => {
+      const document = await createTextDocument(datasetId, input);
+      return document;
+    },
+    updateTextDocument: async (datasetId, documentId, input: { name: string; content?: string }) => {
+      const document = await updateTextDocument(datasetId, documentId, input);
       return document;
     },
     getDocuments: async (datasetId) => {

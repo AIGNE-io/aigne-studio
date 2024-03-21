@@ -6,7 +6,6 @@ import { Op, Sequelize } from 'sequelize';
 
 import { userAuth } from '../../libs/user';
 import Dataset from '../../store/models/dataset/dataset';
-import DatasetDocument from '../../store/models/dataset/document';
 import { sse } from './embeddings';
 
 const router = Router();
@@ -22,13 +21,13 @@ const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: 
  * /api/datasets:
  *    get:
  *      type: 'SEARCH'
- *      summary: Retrieve the current user's datasets
+ *      summary: Get the current user's datasets
  *      x-summary-zh: 获取当前用户数据集
- *      description: Retrieve the current user's datasets
+ *      description: Get the current user's datasets
  *      x-description-zh: 获取当前用户数据集
  *      responses:
  *        200:
- *          description: Successfully retrieved the current user's datasets
+ *          description: Successfully get the current user's datasets
  *          x-description-zh: 获取当前用户数据集
  */
 router.get('/', user(), userAuth(), async (req, res) => {
@@ -40,15 +39,12 @@ router.get('/', user(), userAuth(), async (req, res) => {
   }).validateAsync(req.query, { stripUnknown: true });
   if (appId) where.appId = appId;
 
-  Dataset.hasMany(DatasetDocument, { as: 'items', foreignKey: 'datasetId' });
-  DatasetDocument.belongsTo(Dataset, { as: 'dataset', foreignKey: 'datasetId' });
   const sql = Sequelize.literal(
     '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
   );
 
   const datasets = await Dataset.findAll({
     where,
-    include: [{ model: DatasetDocument, as: 'items', attributes: [] }],
     attributes: { include: [[sql, 'documents']] },
     group: ['Dataset.id'],
   });
@@ -61,9 +57,9 @@ router.get('/', user(), userAuth(), async (req, res) => {
  * /api/datasets/{datasetId}:
  *    get:
  *      type: 'SEARCH'
- *      summary: Retrieve details of a specific dataset
+ *      summary: Get details of dataset
  *      x-summary-zh: 获取当前用户数据集详情
- *      description: Retrieve detailed information of a specific dataset by datasetId
+ *      description: Get detailed information of dataset by datasetId
  *      x-description-zh: 通过数据集ID获取某个特定数据集的详细信息
  *      parameters:
  *        - name: datasetId
@@ -132,7 +128,7 @@ router.get('/:datasetId', user(), userAuth(), async (req, res) => {
  */
 router.post('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
-  const { name, description, appId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const { name = '', description = '', appId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
 
   const dataset = await Dataset.create({ name, description, appId, createdBy: did, updatedBy: did });
   res.json(dataset);

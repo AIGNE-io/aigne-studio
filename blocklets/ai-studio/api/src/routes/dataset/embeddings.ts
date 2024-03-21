@@ -5,71 +5,196 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { Op } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
+import logger from '../../libs/logger';
 import createQueue from '../../libs/queue';
+import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
 import EmbeddingHistory from '../../store/models/dataset/embedding-history';
 import Segment from '../../store/models/dataset/segment';
 import VectorStore from '../../store/vector-store';
 
 export const sse = new SSE();
-const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
 
 export const queue = createQueue({
   options: {
     concurrency: 3,
-    maxTimeout: 3 * 60 * 1000,
+    maxTimeout: 5 * 60 * 1000,
   },
-  onJob: async (data) => {
-    console.log(data);
+  onJob: async ({ job }) => {
+    try {
+      const documentId = job?.documentId;
+      if (!documentId) {
+        throw new Error('documentId not found');
+      }
+
+      const [document, content] = await Promise.all([
+        await DatasetDocument.findOne({ where: { id: documentId } }),
+        await DatasetContent.findOne({ where: { documentId } }),
+      ]);
+      if (!document) throw new Error(`Dataset item ${documentId} not found`);
+      if (!document.data) return;
+
+      const handler = embeddingHandler[document.type];
+      if (!handler) return;
+
+      sse.send({ documentId, embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() }, 'change');
+
+      await document.update(
+        { error: '', embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() },
+        { where: { id: documentId } }
+      );
+
+      await handler(document, content);
+
+      if (document.type !== 'fullSite') {
+        const result = await document.update(
+          { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
+          { where: { id: documentId } }
+        );
+
+        sse.send({ documentId, ...result }, 'complete');
+      }
+    } catch (error) {
+      logger.error(error?.message);
+    }
   },
 });
 
-const embeddingHandler: {
-  [key in NonNullable<DatasetDocument['type']>]: (item: DatasetDocument) => Promise<void>;
-} = {
-  discussion: async (document: DatasetDocument) => {
-    const discussionId = (document.data as any).id;
-
-    try {
-      const discussion = await getDiscussion(discussionId);
-      await DatasetDocument.update({ content: discussion?.content || '' }, { where: { id: document.id } });
-
-      const previousEmbedding = await EmbeddingHistory.findOne({ where: { targetId: discussionId } });
-      if (previousEmbedding?.targetVersion) {
-        if (
-          new Date(previousEmbedding?.targetVersion).toISOString() ===
-          new Date(discussion?.updatedAt || 0).toISOString()
-        ) {
-          return;
-        }
-      }
-
-      await saveContentToVectorStore(discussion?.content || '', document.datasetId, document.id);
-
-      if (await EmbeddingHistory.findOne({ where: { targetId: discussionId } })) {
-        await EmbeddingHistory.update(
-          { targetVersion: new Date(discussion?.updatedAt || 0) },
-          { where: { targetId: discussionId } }
-        );
-      } else {
-        await EmbeddingHistory.create({ targetId: discussionId, targetVersion: new Date(discussion?.updatedAt || 0) });
-      }
-    } catch (error) {
-      if (await EmbeddingHistory.findOne({ where: { targetId: discussionId } })) {
-        await EmbeddingHistory.update({ error: error.message }, { where: { targetId: discussionId } });
-      } else {
-        await EmbeddingHistory.create({ targetId: discussionId, error: error.message });
+const updateEmbeddingHistory = async ({
+  datasetId,
+  documentId,
+  targetId,
+  content,
+  updatedAt,
+}: {
+  datasetId: string;
+  documentId: string;
+  targetId: string;
+  content?: string;
+  updatedAt?: Date | string;
+}) => {
+  try {
+    const previousEmbedding = await EmbeddingHistory.findOne({ where: { targetId } });
+    if (previousEmbedding?.targetVersion && updatedAt) {
+      if (
+        new Date(previousEmbedding?.targetVersion).toISOString() === new Date(updatedAt || new Date()).toISOString()
+      ) {
+        return true;
       }
     }
+
+    if (await EmbeddingHistory.findOne({ where: { targetId } })) {
+      await EmbeddingHistory.update({ startAt: new Date(), status: UploadStatus.Uploading }, { where: { targetId } });
+    } else {
+      await EmbeddingHistory.create({ startAt: new Date(), status: UploadStatus.Uploading, targetId });
+    }
+
+    if (content) await saveContentToVectorStore(content, datasetId, documentId);
+
+    if (await EmbeddingHistory.findOne({ where: { targetId } })) {
+      await EmbeddingHistory.update(
+        { targetVersion: new Date(updatedAt || new Date()), endAt: new Date(), status: UploadStatus.Success },
+        { where: { targetId } }
+      );
+    } else {
+      await EmbeddingHistory.create({
+        targetVersion: new Date(updatedAt || new Date()),
+        endAt: new Date(),
+        status: UploadStatus.Success,
+        targetId,
+      });
+    }
+
+    return true;
+  } catch (error) {
+    if (await EmbeddingHistory.findOne({ where: { targetId } })) {
+      await EmbeddingHistory.update({ error: error.message, status: UploadStatus.Error }, { where: { targetId } });
+    } else {
+      await EmbeddingHistory.create({ targetId, error: error.message, status: UploadStatus.Error });
+    }
+
+    await DatasetDocument.update(
+      { error: error.message, embeddingStatus: UploadStatus.Error, embeddingEndAt: new Date() },
+      { where: { id: targetId } }
+    );
+
+    return false;
+  }
+};
+
+const embeddingHandler: {
+  [key in NonNullable<DatasetDocument['type']>]: (
+    item: DatasetDocument,
+    content?: DatasetContent | null
+  ) => Promise<void>;
+} = {
+  discussion: async (document: DatasetDocument) => {
+    const targetId = (document.data as any).id;
+
+    const discussion = await getDiscussion(targetId);
+    await DatasetContent.update({ content: discussion?.content || '' }, { where: { id: document.id } });
+
+    await updateEmbeddingHistory({
+      datasetId: document.datasetId,
+      documentId: document.id,
+      targetId,
+      updatedAt: discussion?.updatedAt,
+      content: discussion?.content,
+    });
   },
-  text: async (document: DatasetDocument) => {
-    await saveContentToVectorStore(document?.content || '', document.datasetId, document.id);
+  text: async (document: DatasetDocument, content?: DatasetContent | null) => {
+    await updateEmbeddingHistory({
+      datasetId: document.datasetId,
+      documentId: document.id,
+      targetId: document.id,
+      updatedAt: content?.updatedAt,
+      content: content?.content,
+    });
   },
-  file: async (document: DatasetDocument) => {
-    await saveContentToVectorStore(document?.content || '', document.datasetId, document.id);
+  file: async (document: DatasetDocument, content?: DatasetContent | null) => {
+    await updateEmbeddingHistory({
+      datasetId: document.datasetId,
+      documentId: document.id,
+      targetId: document.id,
+      updatedAt: content?.updatedAt,
+      content: content?.content,
+    });
   },
-  fullSite: async () => {
-    // await saveContentToVectorStore(document?.content || '', document.datasetId, document.id);
+  fullSite: async (document: DatasetDocument) => {
+    const documentId = document.id;
+    let currentTotal = 0;
+    let currentIndex = 0;
+
+    for await (const { id: discussionId, index: current, total } of discussionsIterator()) {
+      currentTotal = total;
+      currentIndex++;
+      sse.send({ documentId, embeddingStatus: `${current}/${total}`, embeddingEndAt: new Date() }, 'change');
+
+      try {
+        const discussion = await getDiscussion(discussionId);
+        // await DatasetContent.update({ content: discussion?.content || '' }, { where: { id: document.id } });
+
+        const result = await updateEmbeddingHistory({
+          datasetId: document.datasetId,
+          documentId: document.id,
+          targetId: discussionId,
+          updatedAt: discussion?.updatedAt,
+          content: discussion?.content,
+        });
+
+        if (!result) {
+          currentIndex--;
+        }
+      } catch (error) {
+        logger.error(`embedding discussion ${discussionId} error`, { error });
+      }
+    }
+
+    const result = await document.update({
+      embeddingStatus: `${currentIndex}/${currentTotal}`,
+      embeddingEndAt: new Date(),
+    });
+    sse.send({ documentId, ...result }, 'complete');
   },
 };
 
@@ -138,8 +263,6 @@ export async function searchDiscussions({
 }
 
 export const saveContentToVectorStore = async (content: string, datasetId: string, documentId?: string) => {
-  if (!content) return;
-
   const textSplitter = new RecursiveCharacterTextSplitter();
   const docs = await textSplitter.createDocuments([content]);
 
@@ -154,51 +277,6 @@ export const saveContentToVectorStore = async (content: string, datasetId: strin
   const store = await VectorStore.load(datasetId, embeddings);
   await store.addVectors(vectors, docs);
   await store.save();
-};
-
-export const runHandlerAndSaveContent = async (documentId: string) => {
-  let task = embeddingTasks.get(documentId);
-  const item = await DatasetDocument.findOne({ where: { id: documentId } });
-
-  if (!task) {
-    task = {
-      promise: (async () => {
-        if (!item) throw new Error(`Dataset item ${documentId} not found`);
-        if (!item.data) return;
-
-        const handler = embeddingHandler[item.type];
-        if (!handler) return;
-
-        try {
-          await item.update(
-            { error: '', embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() },
-            { where: { id: documentId } }
-          );
-
-          await handler(item);
-
-          await item.update(
-            { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
-            { where: { id: documentId } }
-          );
-        } catch (error) {
-          console.error(error);
-          await item.update(
-            { error: error.message, embeddingStatus: UploadStatus.Error },
-            { where: { id: documentId } }
-          );
-        } finally {
-          await item.update({ embeddingEndAt: new Date() }, { where: { id: documentId } });
-          embeddingTasks.delete(documentId);
-          sse.send({ documentId, document: '' }, 'complete');
-        }
-      })(),
-    };
-
-    embeddingTasks.set(documentId, task);
-  }
-
-  await task.promise;
 };
 
 // 重新考虑如何处理

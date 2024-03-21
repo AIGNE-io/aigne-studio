@@ -5,7 +5,7 @@ import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
 import multer from 'multer';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
@@ -144,6 +144,19 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
       where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
       offset: (page - 1) * size,
       limit: size,
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(`(
+              SELECT content
+              FROM DatasetContents
+              WHERE DatasetContents.documentId = DatasetDocument.id
+              LIMIT 1
+            )`),
+            'content',
+          ],
+        ],
+      },
     }),
     DatasetDocument.count({ where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] } }),
   ]);
@@ -201,8 +214,8 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
   const { datasetId } = req.params;
 
   const input = await Joi.object<{ name: string; content?: string }>({
-    name: Joi.string().allow('', null).optional(),
-    content: Joi.string().allow('', null).optional(),
+    name: Joi.string().required(),
+    content: Joi.string().required(),
   }).validateAsync(req.body, { stripUnknown: true });
 
   if (!datasetId) {
@@ -386,10 +399,13 @@ router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (
   await DatasetDocument.update({ error: null, name, updatedBy: did }, { where: { id: documentId, datasetId } });
   await DatasetContent.update({ content }, { where: { documentId } });
 
-  // await resetVectorStoreEmbedding(datasetId, did, documentId);
+  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  const doc = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-  res.json(doc);
+  if (document) {
+    queue.push({ documentId: document.id });
+  }
+
+  res.json(document);
 });
 
 router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.single('data'), async (req, res) => {
@@ -438,15 +454,23 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
   const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
 
   await DatasetDocument.update(
-    { error: null, data: { type: fileExtension, path: filePath }, updatedBy: did },
+    {
+      error: null,
+      name: (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
+      data: { type: fileExtension, path: filePath },
+      updatedBy: did,
+    },
     { where: { id: documentId, datasetId } }
   );
   await DatasetContent.update({ content: await readFile(filePath, 'utf8') }, { where: { documentId } });
 
-  // await resetVectorStoreEmbedding(datasetId, did, documentId);
+  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  const doc = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
-  res.json(doc);
+  if (document) {
+    queue.push({ documentId: document.id });
+  }
+
+  res.json(document);
 });
 
 router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
@@ -462,11 +486,25 @@ router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, 
       where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
     }),
     DatasetDocument.findOne({ where: { datasetId, id: documentId } }),
-    await DatasetContent.findOne({ where: { documentId }, attributes: ['content'] }),
+    DatasetContent.findOne({ where: { documentId }, attributes: ['content'] }),
   ]);
 
-  if (document) document.content = content;
+  if (document?.dataValues) document.dataValues.content = content?.dataValues.content;
   res.json({ dataset, document });
+});
+
+router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), async (req, res) => {
+  const { documentId } = await Joi.object<{ documentId: string }>({
+    documentId: Joi.string().required(),
+  }).validateAsync(req.params, { stripUnknown: true });
+
+  const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
+
+  if (document) {
+    queue.push({ documentId: document.id });
+  }
+
+  res.json(document);
 });
 
 export default router;

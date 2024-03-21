@@ -152,7 +152,7 @@ export const up: Migration = async ({ context: queryInterface }) => {
     endAt: {
       type: DataTypes.DATE,
     },
-    startStatus: {
+    status: {
       type: DataTypes.STRING,
     },
   });

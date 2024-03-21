@@ -29,15 +29,19 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { joinURL } from 'ufo';
 
 import Document from '../../../api/src/store/models/dataset/document';
 import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDatasets } from '../../contexts/datasets/datasets';
 import { useDocuments } from '../../contexts/datasets/documents';
 import { getErrorMessage } from '../../libs/api';
-import { watchDatasetEmbeddings } from '../../libs/dataset';
+import { reloadEmbedding, watchDatasetEmbeddings } from '../../libs/dataset';
 import Delete from '../project/icons/delete';
+import Edit from '../project/icons/edit';
 import Empty from '../project/icons/empty';
+import LinkIcon from '../project/icons/link';
+import Reload from '../project/icons/reload';
 
 export default function KnowledgeDocuments() {
   const { t } = useLocaleContext();
@@ -47,13 +51,14 @@ export default function KnowledgeDocuments() {
   const [currentDocument, setDocument] = useState<'file' | 'discussion' | 'custom'>('file');
   const { datasetId } = useParams();
 
-  const { createDocument } = useDatasets();
+  const { createTextDocument, updateTextDocument } = useDatasets();
   const navigate = useNavigate();
+  const [editDocument, setEditDocument] = useState<Document | null>(null);
 
   const { state, remove, refetch } = useDocuments(datasetId || '');
   if (state.error) throw state.error;
 
-  const embeddings = useReactive<{ [key: string]: Document }>({});
+  const embeddings = useReactive<{ [key: string]: { [key: string]: any } }>({});
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -61,19 +66,23 @@ export default function KnowledgeDocuments() {
     (async () => {
       const res = await watchDatasetEmbeddings({ datasetId: datasetId || '', signal: abortController.signal });
       const reader = res.getReader();
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
           break;
         }
+
         if (value) {
           switch (value.type) {
             case 'change': {
-              embeddings[value.documentId] = value.document;
+              const { type, ...rest } = value;
+              embeddings[value.documentId] = rest;
               break;
             }
             case 'complete': {
-              delete embeddings[value.documentId];
+              const { type, ...rest } = value;
+              embeddings[value.documentId] = rest;
               break;
             }
             default:
@@ -89,7 +98,7 @@ export default function KnowledgeDocuments() {
   }, [datasetId]);
 
   const rows = (state.items ?? []).map((i) => {
-    return embeddings[i.id] || i;
+    return { ...i, ...(embeddings[i.id] || {}) };
   });
 
   const columns = useMemo(
@@ -157,6 +166,10 @@ export default function KnowledgeDocuments() {
         headerName: t('embeddingStatus'),
         sortable: false,
         renderCell: (params: any) => {
+          if (!['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
+            return <Box>{`${params.row.embeddingStatus}`}</Box>;
+          }
+
           return <Box>{t(`embeddingStatus_${params.row.embeddingStatus}`)}</Box>;
         },
       },
@@ -166,8 +179,45 @@ export default function KnowledgeDocuments() {
         align: 'center',
         headerAlign: 'center',
         sortable: false,
+        width: 180,
         renderCell: (params: any) => (
-          <Actions id={params.row.id} datasetId={datasetId || ''} remove={remove} refetch={refetch} />
+          <Actions
+            id={params.row.id}
+            type={params.row.type}
+            datasetId={datasetId || ''}
+            onRemove={remove}
+            onRefetch={refetch}
+            onEdit={(e) => {
+              setEditDocument(params.row);
+              e.stopPropagation();
+
+              if (params.row.type === 'text') {
+                form.setValue('name', params.row.name);
+                form.setValue('content', params.row.content);
+
+                customDialogState.open();
+              } else {
+                navigate(`upload?type=${params.row.type}&id=${params.row.id}`, { replace: true });
+              }
+            }}
+            onEmbedding={(e) => {
+              e.stopPropagation();
+              reloadEmbedding(params.row.datasetId, params.row.id);
+            }}
+            onLink={() => {
+              const id = params.row.data?.id;
+              const prefix = (window?.blocklet?.componentMountPoints || []).find(
+                (x) => x.name === 'did-comments'
+              )?.mountPoint;
+              let url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', 'discussions');
+
+              if (id) {
+                url = joinURL(url, id);
+              }
+
+              window.open(url, '_blank');
+            }}
+          />
         ),
       },
     ],
@@ -203,7 +253,13 @@ export default function KnowledgeDocuments() {
               </Box>
             </Box>
 
-            <Button variant="contained" size="small" onClick={dialogState.open}>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => {
+                setEditDocument(null);
+                dialogState.open();
+              }}>
               {t('knowledge.documents.add')}
             </Button>
           </Box>
@@ -219,7 +275,12 @@ export default function KnowledgeDocuments() {
           <>
             {!rows?.length && (
               <Stack flex={1}>
-                <EmptyDocument onOpen={dialogState.open} />
+                <EmptyDocument
+                  onOpen={() => {
+                    setEditDocument(null);
+                    dialogState.open();
+                  }}
+                />
               </Stack>
             )}
 
@@ -246,7 +307,9 @@ export default function KnowledgeDocuments() {
                 onPaginationModelChange={({ page, pageSize: size }) => refetch({ page, size })}
                 onRowClick={(params) => {
                   const rowId = params.row.id;
-                  navigate(rowId);
+                  if (params.row.type !== 'fullSite') {
+                    navigate(rowId, { replace: true });
+                  }
                 }}
               />
             )}
@@ -312,17 +375,21 @@ export default function KnowledgeDocuments() {
         component="form"
         onSubmit={form.handleSubmit(async (data) => {
           try {
-            const document = await createDocument(datasetId || '', { type: 'text', ...data });
+            if (editDocument) {
+              await updateTextDocument(datasetId || '', editDocument?.id, data);
+            } else {
+              await createTextDocument(datasetId || '', data);
+            }
             form.reset({ name: '', content: '' });
 
             await refetch();
             customDialogState.close();
-            navigate(`./${document.id}`);
+            navigate(`../${datasetId}`, { replace: true });
           } catch (error) {
             Toast.error(getErrorMessage(error));
           }
         })}>
-        <DialogTitle>{t('knowledge.documents.add')}</DialogTitle>
+        <DialogTitle>{editDocument ? t('knowledge.documents.edit') : t('knowledge.documents.add')}</DialogTitle>
 
         <DialogContent>
           <Stack gap={2}>
@@ -348,6 +415,9 @@ export default function KnowledgeDocuments() {
             <Controller
               control={form.control}
               name="content"
+              rules={{
+                required: t('validation.fieldRequired'),
+              }}
               render={({ field, fieldState }) => {
                 return (
                   <TextField
@@ -375,7 +445,7 @@ export default function KnowledgeDocuments() {
             startIcon={<SaveRounded />}
             loadingPosition="start"
             loading={form.formState.isSubmitting}>
-            {t('save')}
+            {editDocument ? t('update') : t('save')}
           </LoadingButton>
         </DialogActions>
       </Dialog>
@@ -384,15 +454,23 @@ export default function KnowledgeDocuments() {
 }
 
 function Actions({
+  type,
   id,
   datasetId,
-  refetch,
-  remove,
+  onRefetch,
+  onRemove,
+  onEdit,
+  onEmbedding,
+  onLink,
 }: {
+  type: string;
   id: string;
   datasetId: string;
-  remove: (datasetId: string, documentId: string) => any;
-  refetch: () => any;
+  onRemove: (datasetId: string, documentId: string) => void;
+  onRefetch: () => void;
+  onEdit: (e: React.MouseEvent) => void;
+  onEmbedding: (e: React.MouseEvent) => void;
+  onLink: () => void;
 }) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const open = Boolean(anchorEl);
@@ -400,13 +478,30 @@ function Actions({
 
   return (
     <>
-      <IconButton
-        onClick={(e) => {
-          e.stopPropagation();
-          setAnchorEl(e.currentTarget);
-        }}>
-        <Delete sx={{ fontSize: '16px' }} />
-      </IconButton>
+      <Stack flexDirection="row" gap={1}>
+        {['text', 'file'].includes(type) ? (
+          <IconButton onClick={onEdit}>
+            <Edit sx={{ fontSize: '16px' }} />
+          </IconButton>
+        ) : (
+          <>
+            <IconButton onClick={onLink}>
+              <LinkIcon sx={{ fontSize: '16px' }} />
+            </IconButton>
+            <IconButton onClick={onEmbedding}>
+              <Reload sx={{ fontSize: '16px' }} />
+            </IconButton>
+          </>
+        )}
+
+        <IconButton
+          onClick={(e) => {
+            e.stopPropagation();
+            setAnchorEl(e.currentTarget);
+          }}>
+          <Delete sx={{ fontSize: '16px' }} />
+        </IconButton>
+      </Stack>
 
       <Popover
         id={open ? 'simple-popover' : undefined}
@@ -430,8 +525,8 @@ function Actions({
             variant="contained"
             color="error"
             onClick={async () => {
-              await remove(datasetId, id);
-              await refetch();
+              await onRemove(datasetId, id);
+              await onRefetch();
               setAnchorEl(null);
             }}>
             {t('delete')}

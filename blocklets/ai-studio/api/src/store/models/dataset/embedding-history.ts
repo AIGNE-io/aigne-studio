@@ -27,7 +27,7 @@ export default class DatasetEmbeddingHistory extends Model<
 
   declare endAt?: Date;
 
-  declare startStatus?: UploadStatus;
+  declare status?: UploadStatus;
 }
 
 DatasetEmbeddingHistory.init(
@@ -59,7 +59,7 @@ DatasetEmbeddingHistory.init(
     endAt: {
       type: DataTypes.DATE,
     },
-    startStatus: {
+    status: {
       type: DataTypes.STRING,
     },
   },

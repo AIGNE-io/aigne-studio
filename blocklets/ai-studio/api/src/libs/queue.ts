@@ -1,7 +1,9 @@
 import fastq from 'fastq';
 import type { done, queue } from 'fastq';
-// import { Worker } from 'snowflake-uuid';
-// const idGenerator = new Worker();
+import { Worker } from 'snowflake-uuid';
+
+const taskIdGenerator = new Worker();
+const nextTaskId = () => taskIdGenerator.nextId().toString();
 
 type Task = {
   id: string;
@@ -63,7 +65,7 @@ const createQueue = ({
   }, concurrency);
 
   const getJobId = (jobId: string, job: any): string =>
-    jobId || (typeof options.id === 'function' ? options.id(job) : '') || '';
+    jobId || (typeof options.id === 'function' ? options.id(job) : nextTaskId()) || nextTaskId();
 
   const push = (...args: any[]) => {
     let job;

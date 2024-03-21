@@ -87,7 +87,7 @@ export const useFetchSegments = (datasetId: string, documentId: string) => {
 
       const list = (d?.list?.length || 0) + items.length;
       const next = Boolean(list < total);
-      return { list: items || [], next, size, page: (d?.page || 1) + 1 };
+      return { list: items || [], next, size, page: (d?.page || 1) + 1, total };
     },
     { isNoMore: (d) => !d?.next, reloadDeps: [datasetId, documentId] }
   );

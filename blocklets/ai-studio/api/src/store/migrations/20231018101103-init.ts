@@ -1,8 +1,5 @@
-import Sequelize, { DataTypes } from 'sequelize';
+import { DataTypes } from 'sequelize';
 
-import { datasetItems } from '../0.1.157/dataset-items';
-import { datasets } from '../0.1.157/datasets';
-import { embeddingHistories } from '../0.1.157/embedding-history';
 import { projects } from '../0.1.157/projects';
 import type { Migration } from '../migrate';
 
@@ -150,26 +147,8 @@ export const up: Migration = async ({ context: queryInterface }) => {
   if (projectRows.length) {
     await queryInterface.bulkInsert('Projects', projectRows);
   }
-
-  const datasetRows = await datasets.cursor().sort({ updatedAt: -1 }).exec();
-  if (datasetRows.length) {
-    await queryInterface.bulkInsert('Datasets', datasetRows);
-  }
-
-  const datasetItemRows = await datasetItems.cursor().sort({ updatedAt: -1 }).exec();
-  if (datasetItemRows.length) {
-    await queryInterface.bulkInsert('DatasetItems', datasetItemRows, {}, { data: { type: new Sequelize.JSON() } });
-  }
-
-  const embeddingHistoriesRows = await embeddingHistories.cursor().sort({ updatedAt: -1 }).exec();
-  if (embeddingHistoriesRows.length) {
-    await queryInterface.bulkInsert('EmbeddingHistories', embeddingHistoriesRows);
-  }
 };
 
 export const down: Migration = async ({ context: queryInterface }) => {
   await queryInterface.dropTable('Projects');
-  await queryInterface.dropTable('EmbeddingHistories');
-  await queryInterface.dropTable('Datasets');
-  await queryInterface.dropTable('DatasetItems');
 };
