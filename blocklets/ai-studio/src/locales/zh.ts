@@ -76,6 +76,7 @@ export default flat({
     downloadBackup: '下载备份',
     openInAssistant: '在 Assistant 中打开',
     duplicate: '复制',
+    copyId: '复制 id',
     unnamed: '未命名',
     search: '搜索',
     noCommits: '暂无记录',

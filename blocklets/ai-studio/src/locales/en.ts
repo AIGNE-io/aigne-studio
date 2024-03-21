@@ -77,6 +77,7 @@ export default flat({
     downloadBackup: 'Download backup',
     openInAssistant: 'Open in Assistant',
     duplicate: 'Duplicate',
+    copyId: 'Copy Id',
     unnamed: 'Unnamed',
     search: 'Search',
     noCommits: 'No Commits',
