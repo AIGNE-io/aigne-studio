@@ -1,9 +1,12 @@
+import { useSessionContext } from '@app/contexts/session';
+import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { CheckCircleOutlineRounded, ErrorOutlineRounded, SyncRounded } from '@mui/icons-material';
-import { CircularProgress, FormControlLabel, Stack, Switch, Typography } from '@mui/material';
+import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
+import { Button, CircularProgress, FormControlLabel, Stack, Switch, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
 
 import PromiseLoadingButton from '../../../components/promise-loading-button';
@@ -15,6 +18,7 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
   const { t, locale } = useLocaleContext();
   const { showMergeConflictDialog } = useMergeConflictDialog({ projectId });
   const { state, updateProject, sync } = useProjectState(projectId, getDefaultBranch());
+  const { session } = useSessionContext();
 
   const [authSyncUpdating, setAutoSyncUpdating] = useState<boolean | 'success' | 'error'>(false);
 
@@ -60,6 +64,21 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
       </Stack>
 
       <Stack direction="row" alignItems="center" gap={1}>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<FolderOpenOutlinedIcon />}
+          onClick={async () => {
+            try {
+              window.open(getProjectDataUrlInSpace(session?.user?.didSpace?.endpoint, projectId));
+            } catch (error) {
+              console.error(error);
+              Toast.error(getErrorMessage(error));
+              throw error;
+            }
+          }}>
+          {t('viewData')}
+        </Button>
         <PromiseLoadingButton
           size="small"
           variant="outlined"

@@ -303,6 +303,7 @@ export default flat({
   sync: 'Sync',
   synced: 'Synced',
   syncedAt: 'Synced at',
+  viewData: 'View data',
   mergeConflict: 'Merge Conflict',
   mergeConflictTip: 'The remote data has been changed and cannot be automatically merged!',
   useRemote: 'Use Remote',
