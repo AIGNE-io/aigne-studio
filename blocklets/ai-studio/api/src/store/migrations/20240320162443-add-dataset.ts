@@ -31,7 +31,7 @@ export const up: Migration = async ({ context: queryInterface }) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    projectId: {
+    appId: {
       type: DataTypes.STRING,
     },
   });
@@ -53,9 +53,6 @@ export const up: Migration = async ({ context: queryInterface }) => {
       type: DataTypes.JSON,
     },
     name: {
-      type: DataTypes.STRING,
-    },
-    content: {
       type: DataTypes.STRING,
     },
     createdAt: {
@@ -82,8 +79,7 @@ export const up: Migration = async ({ context: queryInterface }) => {
       type: DataTypes.DATE,
     },
     embeddingStatus: {
-      type: DataTypes.NUMBER,
-      defaultValue: 0,
+      type: DataTypes.STRING,
     },
   });
 
@@ -98,7 +94,28 @@ export const up: Migration = async ({ context: queryInterface }) => {
       allowNull: false,
     },
     content: {
+      type: DataTypes.TEXT,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+  });
+
+  await queryInterface.createTable('DatasetContents', {
+    id: {
       type: DataTypes.STRING,
+      primaryKey: true,
+      allowNull: false,
+    },
+    documentId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    content: {
+      type: DataTypes.TEXT,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -129,6 +146,15 @@ export const up: Migration = async ({ context: queryInterface }) => {
     error: {
       type: DataTypes.STRING,
     },
+    startAt: {
+      type: DataTypes.DATE,
+    },
+    endAt: {
+      type: DataTypes.DATE,
+    },
+    startStatus: {
+      type: DataTypes.STRING,
+    },
   });
 };
 
@@ -136,5 +162,6 @@ export const down: Migration = async ({ context: queryInterface }) => {
   await queryInterface.dropTable('Datasets');
   await queryInterface.dropTable('DatasetDocuments');
   await queryInterface.dropTable('DatasetSegments');
+  await queryInterface.dropTable('DatasetContents');
   await queryInterface.dropTable('DatasetEmbeddingHistories');
 };

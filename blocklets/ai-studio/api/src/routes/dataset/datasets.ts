@@ -9,14 +9,12 @@ import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import { sse } from './embeddings';
 
-Dataset.hasMany(DatasetDocument, { as: 'items', foreignKey: 'datasetId' });
-DatasetDocument.belongsTo(Dataset, { as: 'dataset', foreignKey: 'datasetId' });
 const router = Router();
 
-const datasetSchema = Joi.object<{ name?: string; description?: string; projectId?: string }>({
+const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: string }>({
   name: Joi.string().allow('').empty(null).default(''),
   description: Joi.string().allow('').empty(null).default(''),
-  projectId: Joi.string().allow('').empty(null).default(''),
+  appId: Joi.string().allow('').empty(null).default(''),
 });
 
 /**
@@ -35,15 +33,15 @@ const datasetSchema = Joi.object<{ name?: string; description?: string; projectI
  */
 router.get('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
-
   const where: any = { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
-  const { projectId } = await Joi.object<{ projectId?: string }>({
-    projectId: Joi.string().allow('').empty(null).default(''),
+  const { appId } = await Joi.object<{ appId?: string }>({
+    appId: Joi.string().allow('').empty(null).default(''),
   }).validateAsync(req.query, { stripUnknown: true });
+  if (appId) where.appId = appId;
 
-  if (projectId) where.projectId = projectId;
-
+  Dataset.hasMany(DatasetDocument, { as: 'items', foreignKey: 'datasetId' });
+  DatasetDocument.belongsTo(Dataset, { as: 'dataset', foreignKey: 'datasetId' });
   const sql = Sequelize.literal(
     '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
   );
@@ -90,11 +88,10 @@ router.get('/:datasetId', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const where: { [key: string]: any } = { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
-  const { projectId } = await Joi.object<{ projectId?: string }>({
-    projectId: Joi.string().allow('').empty(null).default(''),
+  const { appId } = await Joi.object<{ appId?: string }>({
+    appId: Joi.string().allow('').empty(null).default(''),
   }).validateAsync(req.query, { stripUnknown: true });
-
-  if (projectId) where.projectId = projectId;
+  if (appId) where.appId = appId;
 
   const dataset = await Dataset.findOne({ where });
 
@@ -126,7 +123,7 @@ router.get('/:datasetId', user(), userAuth(), async (req, res) => {
  *                  type: string
  *                description:
  *                  type: string
- *                projectId:
+ *                appId:
  *                  type: string
  *      responses:
  *        200:
@@ -135,9 +132,9 @@ router.get('/:datasetId', user(), userAuth(), async (req, res) => {
  */
 router.post('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
-  const { name, description, projectId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, description, appId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const dataset = await Dataset.create({ name, description, projectId, createdBy: did, updatedBy: did });
+  const dataset = await Dataset.create({ name, description, appId, createdBy: did, updatedBy: did });
   res.json(dataset);
 });
 
@@ -174,7 +171,7 @@ router.post('/', user(), userAuth(), async (req, res) => {
  *                  type: string
  *                description:
  *                  type: string
- *                projectId:
+ *                appId:
  *                  type: string
  *      responses:
  *        200:
@@ -191,11 +188,11 @@ router.put('/:datasetId', user(), userAuth(), async (req, res) => {
     return;
   }
 
-  const { name, description, projectId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, description, appId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
   const params: any = {};
   if (name) params.name = name;
   if (description) params.description = description;
-  if (projectId) params.projectId = projectId;
+  if (appId) params.appId = appId;
 
   await Dataset.update({ ...params, updatedBy: did }, { where: { id: datasetId } });
 

@@ -2,11 +2,11 @@ import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, 
 import { Worker } from 'snowflake-uuid';
 
 import { sequelize } from '../../sequelize';
+import { UploadStatus } from './document';
 
 const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
-
 export default class DatasetEmbeddingHistory extends Model<
   InferAttributes<DatasetEmbeddingHistory>,
   InferCreationAttributes<DatasetEmbeddingHistory>
@@ -22,6 +22,12 @@ export default class DatasetEmbeddingHistory extends Model<
   declare targetVersion?: Date;
 
   declare error?: string;
+
+  declare startAt?: Date;
+
+  declare endAt?: Date;
+
+  declare startStatus?: UploadStatus;
 }
 
 DatasetEmbeddingHistory.init(
@@ -45,6 +51,15 @@ DatasetEmbeddingHistory.init(
       type: DataTypes.DATE,
     },
     error: {
+      type: DataTypes.STRING,
+    },
+    startAt: {
+      type: DataTypes.DATE,
+    },
+    endAt: {
+      type: DataTypes.DATE,
+    },
+    startStatus: {
       type: DataTypes.STRING,
     },
   },

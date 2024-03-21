@@ -7,27 +7,22 @@ const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
 
-export default class Dataset extends Model<InferAttributes<Dataset>, InferCreationAttributes<Dataset>> {
+export default class DatasetContent extends Model<
+  InferAttributes<DatasetContent>,
+  InferCreationAttributes<DatasetContent>
+> {
   declare id: CreationOptional<string>;
 
-  declare name?: string;
+  declare documentId: string;
 
-  declare description?: string;
+  declare content?: string;
 
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
-
-  declare createdBy: string;
-
-  declare updatedBy: string;
-
-  declare documents?: number;
-
-  declare appId?: string;
 }
 
-Dataset.init(
+DatasetContent.init(
   {
     id: {
       type: DataTypes.STRING,
@@ -35,28 +30,18 @@ Dataset.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    name: {
+    documentId: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
-    description: {
-      type: DataTypes.STRING,
+    content: {
+      type: DataTypes.TEXT,
     },
     createdAt: {
       type: DataTypes.DATE,
     },
     updatedAt: {
       type: DataTypes.DATE,
-    },
-    createdBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    updatedBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    appId: {
-      type: DataTypes.STRING,
     },
   },
   { sequelize }

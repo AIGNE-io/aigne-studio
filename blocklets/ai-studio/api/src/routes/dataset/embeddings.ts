@@ -13,6 +13,7 @@ import VectorStore from '../../store/vector-store';
 export const sse = new SSE();
 const embeddingTasks = new Map<string, { promise: Promise<void>; current?: number; total?: number }>();
 
+export const queue = {};
 const embeddingHandler: {
   [key in NonNullable<DatasetDocument['type']>]: (item: DatasetDocument) => Promise<void>;
 } = {
@@ -56,6 +57,9 @@ const embeddingHandler: {
   },
   file: async (document: DatasetDocument) => {
     await saveContentToVectorStore(document?.content || '', document.datasetId, document.id);
+  },
+  fullSite: async () => {
+    // await saveContentToVectorStore(document?.content || '', document.datasetId, document.id);
   },
 };
 

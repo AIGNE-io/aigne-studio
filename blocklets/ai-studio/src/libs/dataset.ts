@@ -18,7 +18,7 @@ export async function getAPIList(): Promise<DatasetObject[]> {
 }
 
 export async function getDatasets(projectId?: string): Promise<Dataset[]> {
-  return axios.get('/api/datasets', { params: { projectId } }).then((res) => res.data);
+  return axios.get('/api/datasets', { params: { appId: projectId } }).then((res) => res.data);
 }
 
 export async function getDataset(datasetId: string): Promise<Dataset> {
@@ -71,7 +71,7 @@ export async function uploadDocumentParams(
   documentId: string,
   input: { name: string }
 ): Promise<{ data: string }> {
-  return axios.put(`/api/datasets/${datasetId}/documents/${documentId}`, input).then((res) => res.data);
+  return axios.put(`/api/datasets/${datasetId}/documents/${documentId}/name`, input).then((res) => res.data);
 }
 
 export async function getSegments(

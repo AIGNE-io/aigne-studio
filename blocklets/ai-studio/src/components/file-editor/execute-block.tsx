@@ -803,7 +803,7 @@ export const ToolDialog = forwardRef<
                           remoteTitle={parameter['x-name']}
                           value={field.value || ''}
                           onChange={field.onChange}
-                          queryParams={{ projectId }}
+                          queryParams={{ appId: projectId }}
                         />
                       );
                     }

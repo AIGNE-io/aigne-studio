@@ -8,10 +8,10 @@ const idGenerator = new Worker();
 const nextId = () => idGenerator.nextId().toString();
 
 export enum UploadStatus {
-  Idle = 0,
-  Uploading = 1,
-  Success = 2,
-  Error = 3,
+  Idle = 'idle',
+  Uploading = 'uploading',
+  Success = 'success',
+  Error = 'error',
 }
 
 export default class DatasetDocument extends Model<
@@ -22,7 +22,7 @@ export default class DatasetDocument extends Model<
 
   declare datasetId: string;
 
-  declare type: 'discussion' | 'text' | 'file';
+  declare type: 'discussion' | 'text' | 'file' | 'fullSite';
 
   declare data?:
     | {
@@ -34,13 +34,17 @@ export default class DatasetDocument extends Model<
         id: string;
       }
     | {
+        type: 'fullSite';
+        ids: string[];
+      }
+    | {
         type: string;
         path: string;
       };
 
   declare name?: string;
 
-  declare content?: string;
+  declare content?: any;
 
   declare createdAt: CreationOptional<Date>;
 
@@ -56,7 +60,7 @@ export default class DatasetDocument extends Model<
 
   declare embeddingEndAt?: Date;
 
-  declare embeddingStatus?: UploadStatus;
+  declare embeddingStatus?: UploadStatus | string;
 }
 
 DatasetDocument.init(
@@ -78,9 +82,6 @@ DatasetDocument.init(
       type: DataTypes.JSON,
     },
     name: {
-      type: DataTypes.STRING,
-    },
-    content: {
       type: DataTypes.STRING,
     },
     createdAt: {
@@ -107,8 +108,7 @@ DatasetDocument.init(
       type: DataTypes.DATE,
     },
     embeddingStatus: {
-      type: DataTypes.NUMBER,
-      defaultValue: 0,
+      type: DataTypes.STRING,
     },
   },
   { sequelize }
