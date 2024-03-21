@@ -260,7 +260,8 @@ export default flat({
   endTime: '结束时间',
   duration: '耗时',
   confirmDelete: '请输入 {name} 以确认删除',
-  deleteProject: '这将永久删除名称为 {name} 的项目',
+  deleteProjectAlertPrefix: '这将永久删除名称为',
+  deleteProjectAlertSuffix: '的项目',
   selectObject: '选择{object}',
   template: '模板',
   call: {

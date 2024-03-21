@@ -264,7 +264,8 @@ export default flat({
   endTime: 'End Time',
   duration: 'Duration',
   confirmDelete: 'Please input {name} to delete',
-  deleteProject: 'This will permanently delete project with name {name}',
+  deleteProjectAlertPrefix: 'This will permanently delete project with name',
+  deleteProjectAlertSuffix: ' ',
   selectObject: 'Select {object}',
   template: 'Template',
   call: {
