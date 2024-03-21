@@ -220,7 +220,7 @@ const TestCaseView = forwardRef<
             <Box>{t('output')}</Box>
           </Box>
           <Box>
-            <Box>
+            <Box whiteSpace="pre-wrap">
               {test.output}
 
               {loading && <WritingIndicator />}
