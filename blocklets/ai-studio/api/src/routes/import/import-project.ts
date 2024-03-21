@@ -26,10 +26,11 @@ export async function importProject(req: Request, res: Response) {
   );
   if (!projectMetadata?._id) throw new Error('The project ID does not exist; only ai-studio projects can be imported.');
   const oldProject = await Project.findOne({ where: { _id: projectMetadata?._id } });
-  if (oldProject)
+  if (oldProject) {
     throw new Error(
       `The project(${oldProject.name}) already exists and cannot be imported. Please delete the existing project and try again.`
     );
+  }
 
   const localeProjectRootPath: string = join(Config.dataDir, `repositories/${projectId}/`);
   const remoteProjectCooperativeRootPath: string = `repositories/${projectId}.cooperative`;

@@ -1,4 +1,5 @@
 import { Assistant } from '@blocklet/ai-runtime/types';
+import pick from 'lodash/pick';
 
 import {
   AddProjectRemoteInput,
@@ -95,10 +96,14 @@ export async function fromDidSpacesImport({
 }: {
   endpoint: string;
   projectId: string;
-  props: Pick<Project, 'description'>;
+  props: Pick<Project, 'name' | 'description'>;
 }): Promise<Project> {
   return axios
-    .post('/api/import/from-did-spaces/import-project', { endpoint, projectId, props })
+    .post('/api/import/from-did-spaces/import-project', {
+      endpoint,
+      projectId,
+      props: pick(props, ['name', 'description']),
+    })
     .then((res) => res.data);
 }
 
