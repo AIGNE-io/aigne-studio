@@ -40,8 +40,8 @@ import { reloadEmbedding, watchDatasetEmbeddings } from '../../libs/dataset';
 import Delete from '../project/icons/delete';
 import Edit from '../project/icons/edit';
 import Empty from '../project/icons/empty';
-import LinkIcon from '../project/icons/link';
-import Reload from '../project/icons/reload';
+import Refresh from '../project/icons/refresh';
+import Share from '../project/icons/share';
 
 export default function KnowledgeDocuments() {
   const { t } = useLocaleContext();
@@ -486,10 +486,10 @@ function Actions({
         ) : (
           <>
             <IconButton onClick={onLink}>
-              <LinkIcon sx={{ fontSize: '16px' }} />
+              <Share sx={{ fontSize: '16px' }} />
             </IconButton>
             <IconButton onClick={onEmbedding}>
-              <Reload sx={{ fontSize: '16px' }} />
+              <Refresh sx={{ fontSize: '16px' }} />
             </IconButton>
           </>
         )}

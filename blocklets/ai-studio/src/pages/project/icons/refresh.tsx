@@ -1,6 +1,6 @@
 import { createSvgIcon } from '@mui/material';
 
-const Reload = createSvgIcon(
+const Refresh = createSvgIcon(
   <svg width="800px" height="800px" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
     <g
       fill="none"
@@ -14,7 +14,7 @@ const Reload = createSvgIcon(
       <path d="m12.5 11.5v4h4" />
     </g>
   </svg>,
-  'Reload'
+  'Refresh'
 );
 
-export default Reload;
+export default Refresh;
