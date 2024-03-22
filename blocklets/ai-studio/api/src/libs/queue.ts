@@ -7,7 +7,7 @@ const nextTaskId = () => taskIdGenerator.nextId().toString();
 
 type Task = {
   id: string;
-  job: any;
+  job: { [key: string]: any };
   persist: boolean;
 };
 
@@ -68,7 +68,7 @@ const createQueue = ({
     jobId || (typeof options.id === 'function' ? options.id(job) : nextTaskId()) || nextTaskId();
 
   const push = (...args: any[]) => {
-    let job;
+    let job: Task['job'];
     let jobId;
     let persist;
 

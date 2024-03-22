@@ -1,3 +1,12 @@
+## 0.1.299 (2024-3-22)
+
+- chore: readjust the dataset data db
+
+## 0.1.298 (2024-3-22)
+
+- chore: update deps
+- feat: add api to delete all sessions of a release
+
 ## 0.1.297 (2024-3-21)
 
 - fix: dataset select error

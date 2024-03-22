@@ -185,10 +185,10 @@ export default function KnowledgeDocuments() {
       {
         field: 'actions',
         headerName: t('form.actions'),
-        align: 'center',
-        headerAlign: 'center',
+        align: 'right',
+        headerAlign: 'right',
+        width: 130,
         sortable: false,
-        width: 180,
         renderCell: (params: any) => (
           <Actions
             id={params.row.id}
