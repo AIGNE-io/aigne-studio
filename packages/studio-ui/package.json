@@ -61,9 +61,9 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/did-connect": "^2.9.57",
-    "@arcblock/ux": "^2.9.57",
-    "@blocklet/ui-react": "^2.9.57",
+    "@arcblock/did-connect": "^2.9.59",
+    "@arcblock/ux": "^2.9.59",
+    "@blocklet/ui-react": "^2.9.59",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@mui/icons-material": "^5.15.14",
