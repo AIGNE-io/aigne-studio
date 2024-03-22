@@ -1,4 +1,3 @@
-import Toast from '@arcblock/ux/lib/Toast';
 import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
 import { useCallback, useEffect } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
@@ -7,8 +6,7 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 import Dataset from '../../../api/src/store/models/dataset/dataset';
 import DatasetDocument from '../../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../../api/src/store/models/dataset/segment';
-import { getErrorMessage } from '../../libs/api';
-import { createSegment, deleteSegment, getDocument, getSegments, updateSegment } from '../../libs/dataset';
+import { getDocument, getSegments } from '../../libs/dataset';
 
 interface SegmentState {
   dataset?: Dataset;
@@ -65,37 +63,13 @@ export const useSegments = (datasetId: string, documentId: string, { autoFetch =
     }
   }, [datasetId, documentId, setState]);
 
-  const create = useCallback(async (content: string) => {
-    try {
-      await createSegment(datasetId, documentId, content);
-    } catch (error) {
-      Toast.error(getErrorMessage(error));
-    }
-  }, []);
-
-  const remove = useCallback(async (segmentId: string) => {
-    try {
-      await deleteSegment(datasetId, documentId, segmentId);
-    } catch (error) {
-      Toast.error(getErrorMessage(error));
-    }
-  }, []);
-
-  const update = useCallback(async (segmentId: string, content: string) => {
-    try {
-      await updateSegment(datasetId, documentId, segmentId, content);
-    } catch (error) {
-      Toast.error(getErrorMessage(error));
-    }
-  }, []);
-
   useEffect(() => {
     if (autoFetch && !state.dataset) {
       refetch();
     }
   }, [datasetId, documentId]);
 
-  return { state, refetch, create, update, remove };
+  return { state, refetch };
 };
 
 export const useFetchSegments = (datasetId: string, documentId: string) => {
@@ -113,7 +87,7 @@ export const useFetchSegments = (datasetId: string, documentId: string) => {
 
       const list = (d?.list?.length || 0) + items.length;
       const next = Boolean(list < total);
-      return { list: items || [], next, size, page: (d?.page || 1) + 1 };
+      return { list: items || [], next, size, page: (d?.page || 1) + 1, total };
     },
     { isNoMore: (d) => !d?.next, reloadDeps: [datasetId, documentId] }
   );

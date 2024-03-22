@@ -1,43 +1,37 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { SaveRounded } from '@mui/icons-material';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
   Breadcrumbs,
   Button,
-  ButtonGroup,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
-  Grow,
+  FormControl,
   IconButton,
+  InputLabel,
   MenuItem,
-  MenuList,
-  Paper,
-  Popover,
-  Popper,
+  Select,
+  SelectChangeEvent,
   Stack,
   StackProps,
   TextField,
   Typography,
   styled,
 } from '@mui/material';
-import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useParams } from 'react-router-dom';
 
-import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
 import { getErrorMessage } from '../../libs/api';
-import { uploadDocumentParams } from '../../libs/dataset';
-import Delete from '../project/icons/delete';
+import { uploadDocumentName } from '../../libs/dataset';
 import Edit from '../project/icons/edit';
 import Empty from '../project/icons/empty';
 
@@ -50,26 +44,16 @@ export default function KnowledgeSegments() {
   const documentDialogState = usePopupState({ variant: 'dialog', popupId: 'document' });
 
   const form = useForm<{ content: string }>({ defaultValues: { content: '' } });
+  const [viewType, setViewType] = useState('ContentView');
 
-  const { state, refetch: init, create, update } = useSegments(datasetId || '', documentId || '');
+  const handleChange = (event: SelectChangeEvent) => {
+    setViewType(event.target.value);
+  };
+  const { state, refetch } = useSegments(datasetId || '', documentId || '');
   const { loadingRef, dataState } = useFetchSegments(datasetId || '', documentId || '');
   const [readContent, setReadContent] = useState('');
-  const [currentSegment, setSegment] = useState('');
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const [segmentId, setSegmentId] = useState('');
   const isReadOnly = Boolean(readContent);
   const segments = dataState?.data?.list || [];
-
-  const refetch = async () => {
-    await dataState.reloadAsync();
-    await init();
-  };
-
-  useEffect(() => {
-    if (!segmentDialogState.isOpen) {
-      setSegmentId('');
-    }
-  }, [segmentDialogState.isOpen]);
 
   if (state.error) throw state.error;
 
@@ -80,8 +64,6 @@ export default function KnowledgeSegments() {
       </Box>
     );
   }
-
-  const isContentType = state.document?.type === 'text';
 
   return (
     <>
@@ -122,15 +104,20 @@ export default function KnowledgeSegments() {
               </Box>
 
               <Box display="flex" gap={2} alignItems="center" mt={1}>
-                <Tag>{state.document?.type}</Tag>
-                <Tag>{t('knowledge.auto')}</Tag>
-                <Tag>
-                  {segments?.length} {t('knowledge.segments.segments')}
-                </Tag>
+                <Tag>{t(state.document?.type)}</Tag>
+
+                {viewType === 'SegmentsView' && (
+                  <>
+                    <Tag>{t('knowledge.auto')}</Tag>
+                    <Tag>
+                      {dataState?.data?.total} {t('knowledge.segments.segments')}
+                    </Tag>
+                  </>
+                )}
               </Box>
             </Box>
 
-            <Box display="flex" alignItems="center" gap={2}>
+            {/* <Box display="flex" alignItems="center" gap={2}>
               <SplitButton onRename={documentDialogState.open} />
 
               <Button
@@ -144,78 +131,83 @@ export default function KnowledgeSegments() {
                 }}>
                 {t('knowledge.segments.create')}
               </Button>
-            </Box>
+            </Box> */}
           </Box>
         </Stack>
 
         <Divider />
 
-        <Stack px={3} flex={1} height={0} overflow="auto">
-          <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>
-            {t('knowledge.segments.segments')}
-          </Box>
+        <Box p="28px 24px 20px">
+          <FormControl>
+            <InputLabel id="select-label">{t('showType')}</InputLabel>
+            <Select labelId="select-label" value={viewType} label={t('showType')} onChange={handleChange}>
+              <MenuItem value="ContentView">{t('contentView')}</MenuItem>
+              <MenuItem value="SegmentsView">{t('segmentsView')}</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
 
-          <Stack flex={1}>
-            {!segments?.length && <EmptyDocument />}
-
-            {segments?.length && (
-              <>
-                <ListContainer gap={{ xs: 2, sm: 3 }}>
-                  {segments.map((item, index) => {
-                    return (
-                      <SegmentsItem
-                        isReadOnly={!isContentType}
-                        key={item.id}
-                        index={index + 1}
-                        content={item.content}
-                        onClick={() => {
-                          form.setValue('content', item.content || '');
-                          setReadContent(item.content || '');
-                          segmentDialogState.open();
-                        }}
-                        onEdit={() => {
-                          form.setValue('content', item.content || '');
-                          setSegmentId(item.id);
-                          segmentDialogState.open();
-                        }}
-                        onDelete={(e) => {
-                          setSegment(item.id);
-                          setAnchorEl(e.currentTarget);
-                        }}
-                        className="listItem"
-                      />
-                    );
-                  })}
-                </ListContainer>
-                {(dataState.loadingMore || dataState?.data?.next) && (
-                  <Box width={1} height={60} className="center" ref={loadingRef}>
-                    <Box display="flex" justifyContent="center">
-                      <CircularProgress size={14} />
-                    </Box>
-                  </Box>
-                )}
-              </>
-            )}
+        {viewType === 'ContentView' && (
+          <Stack flex={1} height={0}>
+            <Box width={1} height={1}>
+              <Box
+                sx={{
+                  border: '1px solid rgba(29,28,35,.12)',
+                  borderRadius: 0.5,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  p: '12px 100px',
+                  m: '0 24px',
+                  height: 'calc(100% - 24px)',
+                  position: 'relative',
+                  wordBreak: 'break-all',
+                  overflow: 'auto',
+                }}>
+                {state.document?.content}
+              </Box>
+            </Box>
           </Stack>
-        </Stack>
+        )}
+
+        {viewType === 'SegmentsView' && (
+          <Stack px={3} flex={1} height={0} overflow="auto">
+            <Stack flex={1}>
+              {!segments?.length && <EmptyDocument />}
+
+              {segments?.length && (
+                <>
+                  <ListContainer gap={{ xs: 2, sm: 3 }}>
+                    {segments.map((item, index) => {
+                      return (
+                        <SegmentsItem
+                          key={item.id}
+                          index={index + 1}
+                          content={item.content}
+                          onClick={() => {
+                            form.setValue('content', item.content || '');
+                            setReadContent(item.content || '');
+                            segmentDialogState.open();
+                          }}
+                          className="listItem"
+                        />
+                      );
+                    })}
+                  </ListContainer>
+                  {(dataState.loadingMore || dataState?.data?.next) && (
+                    <Box width={1} height={60} className="center" ref={loadingRef}>
+                      <Box display="flex" justifyContent="center">
+                        <CircularProgress size={14} />
+                      </Box>
+                    </Box>
+                  )}
+                </>
+              )}
+            </Stack>
+          </Stack>
+        )}
       </>
 
-      <Dialog
-        {...bindDialog(segmentDialogState)}
-        maxWidth="sm"
-        fullWidth
-        component="form"
-        onSubmit={form.handleSubmit(async ({ content }) => {
-          if (segmentId) {
-            await update(segmentId, content);
-          } else {
-            await create(content);
-          }
-
-          form.reset({ content: '' });
-          await refetch();
-          segmentDialogState.close();
-        })}>
+      <Dialog {...bindDialog(segmentDialogState)} maxWidth="sm" fullWidth component="form">
         <DialogTitle>{t('knowledge.segments.content')}</DialogTitle>
 
         <DialogContent>
@@ -242,37 +234,13 @@ export default function KnowledgeSegments() {
             }}
           />
         </DialogContent>
-
-        {!isReadOnly && (
-          <DialogActions>
-            <Button onClick={segmentDialogState.close}>{t('cancel')}</Button>
-
-            <LoadingButton
-              type="submit"
-              variant="contained"
-              startIcon={<SaveRounded />}
-              loadingPosition="start"
-              loading={form.formState.isSubmitting}>
-              {t('save')}
-            </LoadingButton>
-          </DialogActions>
-        )}
       </Dialog>
 
-      <DeleteSegment
-        datasetId={datasetId || ''}
-        documentId={state.document?.id || ''}
-        anchorEl={anchorEl}
-        setAnchorEl={setAnchorEl}
-        currentSegment={currentSegment}
-        refetch={refetch}
-      />
-
       <UpdateDocumentName
+        onUpdate={refetch}
         datasetId={datasetId || ''}
         documentId={state.document?.id || ''}
         name={state.document?.name || ''}
-        onUpdate={refetch}
         documentDialogState={documentDialogState}
       />
     </>
@@ -311,18 +279,12 @@ function Tag({ children }: { children: any }) {
 }
 
 function SegmentsItem({
-  isReadOnly,
   index,
   content,
-  onDelete,
-  onEdit,
   ...props
 }: {
-  isReadOnly: boolean;
   index?: number;
   content?: string;
-  onDelete: (e: React.MouseEvent<HTMLButtonElement>) => any;
-  onEdit: (e: React.MouseEvent<HTMLButtonElement>) => any;
 } & StackProps) {
   const { t } = useLocaleContext();
 
@@ -333,7 +295,7 @@ function SegmentsItem({
           <Box className="headingContent">{`# ${index}`}</Box>
         </Box>
 
-        <Box className="deleteIcon">
+        {/* <Box className="deleteIcon">
           {!isReadOnly && (
             <IconButton
               onClick={(e) => {
@@ -351,7 +313,7 @@ function SegmentsItem({
             }}>
             <Delete sx={{ fontSize: '16px' }} />
           </IconButton>
-        </Box>
+        </Box> */}
       </Box>
 
       <Box height={90}>
@@ -364,62 +326,6 @@ function SegmentsItem({
         </Box>
       </Box>
     </SegmentRoot>
-  );
-}
-
-function SplitButton({ onRename }: { onRename: () => any }) {
-  const { t } = useLocaleContext();
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef<HTMLDivElement>(null);
-
-  const handleMenuItemClick = (item: string) => {
-    if (item === 'rename') {
-      onRename();
-    }
-
-    setOpen(false);
-  };
-
-  const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
-  };
-
-  const handleClose = (event: Event) => {
-    if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
-      return;
-    }
-    setOpen(false);
-  };
-
-  return (
-    <>
-      <ButtonGroup size="small" ref={anchorRef}>
-        <Button>{t('knowledge.configure')}</Button>
-        <Button size="small" onClick={handleToggle}>
-          <ArrowDropDownIcon />
-        </Button>
-      </ButtonGroup>
-      <Popper
-        sx={{ zIndex: 1 }}
-        open={open}
-        anchorEl={anchorRef.current}
-        role={undefined}
-        transition
-        disablePortal
-        placement="bottom-end">
-        {({ TransitionProps }) => (
-          <Grow {...TransitionProps}>
-            <Paper>
-              <ClickAwayListener onClickAway={handleClose}>
-                <MenuList id="split-button-menu" autoFocusItem>
-                  <MenuItem onClick={() => handleMenuItemClick('rename')}>{t('knowledge.rename')}</MenuItem>
-                </MenuList>
-              </ClickAwayListener>
-            </Paper>
-          </Grow>
-        )}
-      </Popper>
-    </>
   );
 }
 
@@ -447,7 +353,7 @@ function UpdateDocumentName({
       component="form"
       onSubmit={form.handleSubmit(async (data) => {
         try {
-          await uploadDocumentParams(datasetId || '', documentId || '', data);
+          await uploadDocumentName(datasetId || '', documentId || '', data);
           form.reset({ name: '' });
 
           onUpdate();
@@ -475,61 +381,6 @@ function UpdateDocumentName({
         </LoadingButton>
       </DialogActions>
     </Dialog>
-  );
-}
-
-function DeleteSegment({
-  datasetId,
-  documentId,
-  anchorEl,
-  setAnchorEl,
-  currentSegment,
-  refetch,
-}: {
-  datasetId: string;
-  documentId: string;
-  currentSegment: string;
-  anchorEl: any;
-  setAnchorEl: any;
-  refetch: () => void;
-}) {
-  const { t } = useLocaleContext();
-  const { remove } = useSegments(datasetId || '', documentId || '');
-
-  const open = Boolean(anchorEl);
-  const id = open ? 'simple-popover' : undefined;
-
-  return (
-    <Popover
-      id={id}
-      open={open}
-      anchorEl={anchorEl}
-      onClose={() => setAnchorEl(null)}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-      <DialogTitle>{t('knowledge.segments.deleteTitle')}</DialogTitle>
-
-      <DialogContent sx={{ fontSize: '14px', lineHeight: '22px' }}>
-        {t('knowledge.segments.deleteDescription')}
-      </DialogContent>
-
-      <DialogActions>
-        <Button size="small" onClick={() => setAnchorEl(null)}>
-          {t('cancel')}
-        </Button>
-
-        <PromiseLoadingButton
-          size="small"
-          variant="contained"
-          color="error"
-          onClick={async () => {
-            await remove(currentSegment);
-            setAnchorEl(null);
-            await refetch();
-          }}>
-          {t('delete')}
-        </PromiseLoadingButton>
-      </DialogActions>
-    </Popover>
   );
 }
 

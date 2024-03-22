@@ -8,7 +8,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
-import { CreateItem } from '../../../../api/src/routes/dataset/documents';
+import { CreateDiscussionItem } from '../../../../api/src/routes/dataset/documents';
 import { useComponent } from '../../../contexts/component';
 import { useDocuments } from '../../../contexts/datasets/documents';
 import { getErrorMessage } from '../../../libs/api';
@@ -28,7 +28,7 @@ export default function DiscussionPage({ datasetId }: { datasetId: string }) {
 
   const navigate = useNavigate();
 
-  const [input, setInput] = useState<CreateItem[]>([]);
+  const [input, setInput] = useState<CreateDiscussionItem[]>([]);
 
   const [saving, setSaving] = useState(false);
 
@@ -66,7 +66,13 @@ export default function DiscussionPage({ datasetId }: { datasetId: string }) {
   );
 }
 
-function DiscussionTable({ value, onChange }: { value: CreateItem[]; onChange: (value: CreateItem[]) => void }) {
+function DiscussionTable({
+  value,
+  onChange,
+}: {
+  value: CreateDiscussionItem[];
+  onChange: (value: CreateDiscussionItem[]) => void;
+}) {
   const { t } = useLocaleContext();
 
   const [search, setSearch] = useState('');

@@ -1,6 +1,7 @@
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 
-import { CreateItem, CreateItemInput } from '../../api/src/routes/dataset/documents';
+import { CreateDiscussionItem, CreateDiscussionItemInput } from '../../api/src/routes/dataset/documents';
 import Dataset from '../../api/src/store/models/dataset/dataset';
 import DatasetDocument from '../../api/src/store/models/dataset/document';
 import DatasetSegment from '../../api/src/store/models/dataset/segment';
@@ -9,15 +10,15 @@ import axios from './api';
 export interface DatasetInput {
   name?: string | null;
   description?: string | null;
-  projectId?: string;
+  appId?: string;
 }
 
 export async function getAPIList(): Promise<DatasetObject[]> {
   return axios.get('/api/collections.json').then((res) => res.data);
 }
 
-export async function getDatasets(projectId?: string): Promise<Dataset[]> {
-  return axios.get('/api/datasets', { params: { projectId } }).then((res) => res.data);
+export async function getDatasets(appId?: string): Promise<Dataset[]> {
+  return axios.get('/api/datasets', { params: { appId } }).then((res) => res.data);
 }
 
 export async function getDataset(datasetId: string): Promise<Dataset> {
@@ -54,23 +55,43 @@ export async function deleteDocument(
   return axios.delete(`/api/datasets/${datasetId}/documents/${documentId}`).then((res) => res.data);
 }
 
-export async function createDocument(
+export async function createTextDocument(
   datasetId: string,
-  input: { type: string; name: string; content?: string }
+  input: { name: string; content?: string }
 ): Promise<DatasetDocument> {
-  return axios.post(`/api/datasets/${datasetId}/documents`, input).then((res) => res.data);
+  return axios.post(`/api/datasets/${datasetId}/documents/text`, input).then((res) => res.data);
 }
 
-export async function uploadDocument(datasetId: string, form: any): Promise<DatasetDocument> {
+export async function updateTextDocument(
+  datasetId: string,
+  documentId: string,
+  input: { name: string; content?: string }
+): Promise<DatasetDocument> {
+  return axios.put(`/api/datasets/${datasetId}/documents/${documentId}/text`, input).then((res) => res.data);
+}
+
+export async function createFileDocument(datasetId: string, form: FormData): Promise<DatasetDocument> {
   return axios.post(`/api/datasets/${datasetId}/documents/file`, form).then((res) => res.data);
 }
 
-export async function uploadDocumentParams(
+export async function updateFileDocument(
+  datasetId: string,
+  documentId: string,
+  form: FormData
+): Promise<DatasetDocument> {
+  return axios.put(`/api/datasets/${datasetId}/documents/${documentId}/file`, form).then((res) => res.data);
+}
+
+export async function uploadDocumentName(
   datasetId: string,
   documentId: string,
   input: { name: string }
 ): Promise<{ data: string }> {
-  return axios.put(`/api/datasets/${datasetId}/documents/${documentId}`, input).then((res) => res.data);
+  return axios.put(`/api/datasets/${datasetId}/documents/${documentId}/name`, input).then((res) => res.data);
+}
+
+export async function reloadEmbedding(datasetId: string, documentId: string): Promise<{ data: string }> {
+  return axios.post(`/api/datasets/${datasetId}/documents/${documentId}/embedding`).then((res) => res.data);
 }
 
 export async function getSegments(
@@ -81,32 +102,47 @@ export async function getSegments(
   return axios.get(`/api/datasets/${datasetId}/documents/${documentId}/segments`, { params }).then((res) => res.data);
 }
 
-export async function createSegment(datasetId: string, documentId: string, content: string): Promise<any> {
-  return axios.post(`/api/datasets/${datasetId}/documents/${documentId}/segments`, { content }).then((res) => res.data);
-}
-
-export async function deleteSegment(datasetId: string, documentId: string, segmentId: string): Promise<any> {
-  return axios
-    .delete(`/api/datasets/${datasetId}/documents/${documentId}/segments/${segmentId}`)
-    .then((res) => res.data);
-}
-
-export async function updateSegment(
-  datasetId: string,
-  documentId: string,
-  segmentId: string,
-  content: string
-): Promise<any> {
-  return axios
-    .put(`/api/datasets/${datasetId}/documents/${documentId}/segments/${segmentId}`, { content })
-    .then((res) => res.data);
-}
-
-export async function createDatasetDocuments(datasetId: string, input: CreateItem): Promise<DatasetDocument>;
-export async function createDatasetDocuments(datasetId: string, input: CreateItem[]): Promise<DatasetDocument[]>;
+export async function createDatasetDocuments(datasetId: string, input: CreateDiscussionItem): Promise<DatasetDocument>;
 export async function createDatasetDocuments(
   datasetId: string,
-  input: CreateItemInput
+  input: CreateDiscussionItem[]
+): Promise<DatasetDocument[]>;
+export async function createDatasetDocuments(
+  datasetId: string,
+  input: CreateDiscussionItemInput
 ): Promise<DatasetDocument | DatasetDocument[]> {
   return axios.post(`/api/datasets/${datasetId}/documents/discussion`, input).then((res) => res.data);
+}
+
+export async function watchDatasetEmbeddings({
+  datasetId,
+  signal,
+}: {
+  datasetId: string;
+  signal?: AbortSignal | null;
+}) {
+  const prefix = blocklet?.prefix || '';
+
+  return new ReadableStream<
+    | { type: 'change'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
+    | { type: 'complete'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
+    | { type: 'event'; documentId: string }
+  >({
+    async start(controller) {
+      await fetchEventSource(`${prefix}/api/datasets/${datasetId}/embeddings`, {
+        signal,
+        method: 'GET',
+        onmessage(e) {
+          const data = JSON.parse(e.data);
+          controller.enqueue({ ...data, type: e.event });
+        },
+        onerror(err) {
+          throw err;
+        },
+        onclose() {
+          controller.close();
+        },
+      });
+    },
+  });
 }

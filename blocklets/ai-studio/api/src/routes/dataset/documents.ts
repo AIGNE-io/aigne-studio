@@ -5,44 +5,85 @@ import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
 import multer from 'multer';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
 import { userAuth } from '../../libs/user';
+import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import DatasetSegment from '../../store/models/dataset/segment';
 import VectorStore from '../../store/vector-store';
-import {
-  discussionsIterator,
-  resetVectorStoreEmbedding,
-  runHandlerAndSaveContent,
-  saveContentToVectorStore,
-} from './embeddings';
+import { discussionsIterator, queue } from './embeddings';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-const paginationSchema = Joi.object<{ page: number; size: number }>({
-  page: Joi.number().integer().min(1).default(1),
-  size: Joi.number().integer().min(1).max(100).default(20),
-});
+export interface CreateDiscussionItem {
+  name: string;
+  data: { type: 'discussion'; fullSite?: boolean; id: string };
+}
 
-const createItemSchema = Joi.object<{
-  type: 'text' | 'discussion';
-  data: string;
-}>({
-  type: Joi.string().valid('text', 'discussion').required(),
-  data: Joi.string().required(),
-});
+export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
-const idSchema = Joi.object<{
-  datasetId: string;
-  documentId: string;
-}>({
-  datasetId: Joi.string().required(),
-  documentId: Joi.string().required(),
+/**
+ * @openapi
+ * /api/datasets/{datasetId}/search:
+ *    get:
+ *      type: 'SEARCH'
+ *      summary: Search for content within the dataset
+ *      x-summary-zh: 搜索内容
+ *      description: Search for specific content within the dataset by datasetId and search message
+ *      x-description-zh: 搜索内容
+ *      parameters:
+ *        - name: datasetId
+ *          in: path
+ *          description: The ID of the dataset
+ *          x-description-zh: 数据集的ID
+ *          required: true
+ *          x-input-type: input
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
+ *          schema:
+ *            type: string
+ *            default: ''
+ *        - name: message
+ *          in: query
+ *          description: The search content or message
+ *          x-description-zh: 搜索的内容
+ *          required: true
+ *          schema:
+ *            type: string
+ *            default: ''
+ *      responses:
+ *        200:
+ *          description: Successfully retrieved the paginated list of search results
+ *          x-description-zh: 成功获取分页列表
+ */
+router.get('/:datasetId/search', async (req, res) => {
+  const { datasetId } = req.params;
+  const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
+  const input = await datasetSchema.validateAsync(req.query, { stripUnknown: true });
+
+  const dataset = await Dataset.findOne({ where: { id: datasetId } });
+  if (!dataset || !datasetId) {
+    res.json({ docs: [] });
+    return;
+  }
+
+  const documents = await DatasetDocument.findAll({ where: { datasetId } });
+  if (!documents?.length) {
+    res.json({ docs: [] });
+    return;
+  }
+
+  const embeddings = new AIKitEmbeddings({});
+  const store = await VectorStore.load(datasetId, embeddings);
+  const docs = await store.similaritySearch(input.message, 4);
+
+  res.json({ docs: docs.map((i) => i.pageContent) });
 });
 
 /**
@@ -92,7 +133,10 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
 
   if (!datasetId) throw new Error('Missing required params `datasetId`');
 
-  const { page, size } = await paginationSchema.validateAsync(req.query, { stripUnknown: true });
+  const { page, size } = await Joi.object<{ page: number; size: number }>({
+    page: Joi.number().integer().min(1).default(1),
+    size: Joi.number().integer().min(1).max(100).default(20),
+  }).validateAsync(req.query, { stripUnknown: true });
 
   const [items, total] = await Promise.all([
     DatasetDocument.findAll({
@@ -100,6 +144,19 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
       where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
       offset: (page - 1) * size,
       limit: size,
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(`(
+              SELECT content
+              FROM DatasetContents
+              WHERE DatasetContents.documentId = DatasetDocument.id
+              LIMIT 1
+            )`),
+            'content',
+          ],
+        ],
+      },
     }),
     DatasetDocument.count({ where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] } }),
   ]);
@@ -107,94 +164,28 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
   res.json({ items, total });
 });
 
-/**
- * @openapi
- * /api/datasets/{datasetId}/documents/{documentId}:
- *    delete:
- *      type: 'SEARCH'
- *      summary: Delete a data item from the dataset by datasetId and documentId
- *      x-summary-zh: 删除当前 datasetId 数据集中数据信息
- *      description: Delete a data item from the dataset by datasetId and documentId
- *      x-description-zh: 删除当前 datasetId 数据集中数据信息
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-input-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          schema:
- *            type: string
- *            default: ''
- *        - name: documentId
- *          in: path
- *          description: The ID of the data item
- *          x-description-zh: 数据ID
- *          required: true
- *          schema:
- *            type: string
- *            default: ''
- *      responses:
- *        200:
- *          description: Successfully deleted the data item from the dataset
- *          x-description-zh: 删除当前 datasetId 数据集中数据信息
- */
 router.delete('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
-  const { datasetId, documentId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
+  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
+    datasetId: Joi.string().required(),
+    documentId: Joi.string().required(),
+  }).validateAsync(req.params, { stripUnknown: true });
 
   if (!datasetId || !documentId) {
     throw new Error('Missing required params `datasetId` or `documentId`');
   }
 
+  const document = DatasetDocument.findOne({ where: { id: documentId, datasetId } });
+
   await Promise.all([
     DatasetDocument.destroy({ where: { id: documentId, datasetId } }),
     DatasetSegment.destroy({ where: { documentId } }),
+    DatasetContent.destroy({ where: { documentId } }),
   ]);
-
-  resetVectorStoreEmbedding(datasetId);
-
-  res.json({ data: 'success' });
-});
-
-router.post('/:datasetId/documents', user(), userAuth(), async (req, res) => {
-  const { did } = req.user!;
-  const { datasetId } = req.params;
-
-  const input = await Joi.object<{
-    type: 'discussion' | 'text' | 'md' | 'txt' | 'pdf' | 'doc';
-    name: string;
-    content?: string;
-  }>({
-    type: Joi.string().valid('discussion', 'text', 'md', 'txt', 'pdf', 'doc').required(),
-    name: Joi.string().required(),
-    content: Joi.string().allow('', null).optional(),
-  }).validateAsync(req.body, { stripUnknown: true });
-
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
-  }
-
-  const { type, name, content } = input;
-
-  const document = await DatasetDocument.create({
-    type,
-    name,
-    datasetId,
-    createdBy: did,
-    updatedBy: did,
-  });
-
-  if (content) {
-    await saveContentToVectorStore(content, datasetId, document.id);
-  }
 
   res.json(document);
 });
 
-router.put('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
+router.put('/:datasetId/documents/:documentId/name', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId, documentId } = req.params;
 
@@ -212,114 +203,122 @@ router.put('/:datasetId/documents/:documentId', user(), userAuth(), async (req, 
 
   await DatasetDocument.update({ name, updatedBy: did }, { where: { id: documentId, datasetId } });
 
-  res.json({ data: 'success' });
+  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
+  res.json(document);
 });
 
-/**
- * @openapi
- * /api/datasets/{datasetId}/documents/text:
- *    post:
- *      type: 'CREATE'
- *      summary: Upload data to the specified dataset by datasetId
- *      x-summary-zh: 上传数据到当前 datasetId 数据集中
- *      description: Upload data to the specified dataset by datasetId
- *      x-description-zh: 上传数据到当前 datasetId 数据集中
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-input-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          schema:
- *            type: string
- *            default: ''
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                type:
- *                  type: string
- *                data:
- *                  type: string
- *      responses:
- *        200:
- *          description: Successfully uploaded data to the dataset
- *          x-description-zh: 上传数据到当前 datasetId 数据集中
- */
 router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
+
+  const input = await Joi.object<{ name: string; content?: string }>({
+    name: Joi.string().required(),
+    content: Joi.string().required(),
+  }).validateAsync(req.body, { stripUnknown: true });
+
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
   }
 
-  const input = await createItemSchema.validateAsync(req.body, { stripUnknown: true });
-  const data =
-    input.type === 'text'
-      ? { type: input.type, content: input.data || '' }
-      : { type: input.type, id: input.data || '' };
+  const { name, content } = input;
+  const type = 'text';
 
-  const result = await DatasetDocument.create({
-    name: (input.data || '').slice(0, 10),
-    type: input.type,
-    data,
+  const document = await DatasetDocument.create({
+    type,
+    name,
+    data: { type, content: content || '' },
     datasetId,
     createdBy: did,
     updatedBy: did,
   });
+  await DatasetContent.create({ documentId: document.id, content });
 
-  const documentId = result.dataValues.id;
-  await runHandlerAndSaveContent(documentId);
+  queue.push({ documentId: document.id });
 
-  res.json({ data: 'success' });
+  res.json(document);
 });
 
-/**
- * @openapi
- * /api/datasets/{datasetId}/documents/file:
- *    post:
- *      type: 'CREATE'
- *      summary: Upload a file to the specified dataset by datasetId
- *      x-summary-zh: 上传文件到当前 datasetId 数据集中
- *      description: Upload a file to the specified dataset by datasetId
- *      x-description-zh: 上传文件到当前 datasetId 数据集中
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-input-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          schema:
- *            type: string
- *            default: ''
- *      requestBody:
- *        content:
- *          multipart/form-data:
- *            schema:
- *             type: object
- *             properties:
- *                data:
- *                 type: string
- *                 format: binary
- *                type:
- *                 type: string
- *                 default: 'file'
- *      responses:
- *        200:
- *          description: File successfully uploaded to the specified dataset
- *          x-description-zh: 上传文件到当前 datasetId 数据集中
- */
+router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
+  const { datasetId } = req.params;
+
+  const createItemsSchema = Joi.object<CreateDiscussionItem>({
+    name: Joi.string().empty(['', null]),
+    data: Joi.object({
+      type: Joi.string().valid('discussion').required(),
+      fullSite: Joi.boolean(),
+      id: Joi.string().empty(['', null]),
+    }).required(),
+  });
+
+  const createItemInputSchema = Joi.alternatives<CreateDiscussionItemInput>().try(
+    Joi.array().items(createItemsSchema),
+    createItemsSchema
+  );
+
+  if (!datasetId) {
+    throw new Error('Missing required params `datasetId`');
+  }
+
+  const input = await createItemInputSchema.validateAsync(req.body, { stripUnknown: true });
+  const { did } = req.user!;
+
+  const arr = Array.isArray(input) ? input : [input];
+
+  const createOrUpdate = async (name: string, id: string) => {
+    const found = await DatasetDocument.findOne({ where: { datasetId, 'data.id': id } });
+    if (found) {
+      return found.update({ name, updatedBy: did }, { where: { datasetId, 'data.id': id } });
+    }
+
+    return DatasetDocument.create({
+      type: 'discussion',
+      data: { type: 'discussion', id },
+      name,
+      datasetId,
+      createdBy: did,
+      updatedBy: did,
+    });
+  };
+
+  let docs: DatasetDocument[] = [];
+  const fullSite = arr.find((x) => x.data?.fullSite);
+  if (fullSite) {
+    const ids = [];
+    for await (const { id: discussionId } of discussionsIterator()) {
+      try {
+        ids.push(discussionId);
+      } catch (error) {
+        console.error(`embedding discussion ${discussionId} error`, { error });
+      }
+    }
+
+    const document = await DatasetDocument.create({
+      type: 'fullSite',
+      data: {
+        type: 'fullSite',
+        ids,
+      },
+      name: fullSite.name,
+      datasetId,
+      createdBy: did,
+      updatedBy: did,
+    });
+    queue.push({ documentId: document.id });
+
+    return res.json(document);
+  }
+
+  docs = await Promise.all(
+    arr.map(async (item) => {
+      const document = await createOrUpdate(item.name, item.data.id);
+      queue.push({ documentId: document.id });
+      return document;
+    })
+  );
+
+  return res.json(Array.isArray(input) ? docs : docs[0]);
+});
+
 router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('data'), async (req, res) => {
   const { did } = req.user!;
   const { datasetId } = req.params;
@@ -359,143 +358,60 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
   const filePath = path.join(Config.uploadDir, filename);
   await writeFile(filePath, buffer, 'utf8');
 
-  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'md' | 'txt' | 'pdf' | 'doc';
+  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
 
-  const result = await DatasetDocument.create({
+  const document = await DatasetDocument.create({
+    type: 'file',
     name: (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
-    type: fileExtension,
     data: { type: fileExtension, path: filePath },
     datasetId,
     createdBy: did,
     updatedBy: did,
   });
+  await DatasetContent.create({ documentId: document.id, content: await readFile(filePath, 'utf8') });
 
-  const documentId = result.dataValues.id;
-  await runHandlerAndSaveContent(documentId);
+  queue.push({ documentId: document.id });
 
-  res.json(result);
+  res.json(document);
 });
 
-/**
- * @openapi
- * /api/datasets/{datasetId}/documents/{documentId}/text:
- *    put:
- *      type: 'UPDATE'
- *      summary: Update data in the specified dataset by datasetId and documentId
- *      x-summary-zh: 更新数据到当前 datasetId 数据集中
- *      description: Update data in the specified dataset by datasetId and documentId
- *      x-description-zh: 更新数据到当前 datasetId 数据集中
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-input-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          schema:
- *            type: string
- *            default: ''
- *        - name: documentId
- *          in: path
- *          description: The ID of the data item
- *          x-description-zh: 数据 Id
- *          required: true
- *          schema:
- *            type: string
- *            default: ''
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                type:
- *                  type: string
- *                data:
- *                  type: string
- *      responses:
- *        200:
- *          description: Successfully updated the data in the dataset
- *          x-description-zh: 更新数据到当前 datasetId 数据集中
- */
 router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (req, res) => {
   const { did } = req.user! || {};
-  const { datasetId, documentId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
+  const { datasetId, documentId } = await Joi.object<{
+    datasetId: string;
+    documentId: string;
+  }>({
+    datasetId: Joi.string().required(),
+    documentId: Joi.string().required(),
+  }).validateAsync(req.params, { stripUnknown: true });
 
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
   }
 
-  const input = await createItemSchema.validateAsync(req.body, { stripUnknown: true });
-  const data =
-    input.type === 'text'
-      ? { type: input.type, content: input.data || '' }
-      : { type: input.type, id: input.data || '' };
+  const { name, content } = await Joi.object<{ name: string; content?: string }>({
+    name: Joi.string().allow('', null).optional(),
+    content: Joi.string().allow('', null).optional(),
+  }).validateAsync(req.body, { stripUnknown: true });
 
-  await DatasetDocument.update(
-    { error: null, type: input.type, data, updatedBy: did },
-    { where: { id: documentId, datasetId } }
-  );
+  await DatasetDocument.update({ error: null, name, updatedBy: did }, { where: { id: documentId, datasetId } });
+  await DatasetContent.update({ content }, { where: { documentId } });
 
-  // await resetVectorStoreEmbedding(datasetId, did, documentId);
+  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  res.json({ data: 'success' });
+  if (document) {
+    queue.push({ documentId: document.id });
+  }
+
+  res.json(document);
 });
 
-/**
- * @openapi
- * /api/datasets/{datasetId}/documents/{documentId}/file:
- *    put:
- *      type: 'UPDATE'
- *      summary: Update an uploaded file in the dataset by datasetId
- *      x-summary-zh: 更新上传到当前 datasetId 数据集中
- *      description: Update an uploaded file in the dataset by datasetId and documentId
- *      x-description-zh: 更新上传到当前 datasetId 数据集中
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-input-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          schema:
- *            type: string
- *            default: ''
- *        - name: documentId
- *          in: path
- *          description: The ID of the data item
- *          x-description-zh: 数据 Id
- *          required: true
- *          schema:
- *            type: string
- *            default: ''
- *      requestBody:
- *        content:
- *          multipart/form-data:
- *            schema:
- *             type: object
- *             properties:
- *                data:
- *                 type: string
- *                 format: binary
- *                type:
- *                 type: string
- *                 default: 'file'
- *      responses:
- *        200:
- *          description: Successfully updated the uploaded file in the dataset
- *          x-description-zh: 更新上传到当前 datasetId 数据集中
- */
 router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.single('data'), async (req, res) => {
   const { did } = req.user!;
-  const { datasetId, documentId } = await idSchema.validateAsync(req.params, { stripUnknown: true });
+  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
+    datasetId: Joi.string().required(),
+    documentId: Joi.string().required(),
+  }).validateAsync(req.params, { stripUnknown: true });
 
   if (!datasetId) {
     throw new Error('Missing required params `datasetId`');
@@ -533,169 +449,60 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
   const filePath = path.join(Config.uploadDir, filename);
   await writeFile(filePath, buffer, 'utf8');
 
-  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '') as 'md' | 'txt' | 'pdf' | 'doc';
+  const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
 
   await DatasetDocument.update(
-    { error: null, type: fileExtension, data: { type: fileExtension, path: filePath }, updatedBy: did },
+    {
+      error: null,
+      name: (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
+      data: { type: fileExtension, path: filePath },
+      updatedBy: did,
+    },
     { where: { id: documentId, datasetId } }
   );
+  await DatasetContent.update({ content: await readFile(filePath, 'utf8') }, { where: { documentId } });
 
-  // await resetVectorStoreEmbedding(datasetId, did, documentId);
+  const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  res.json({ data: 'success' });
-});
-
-/**
- * @openapi
- * /api/datasets/{datasetId}/search:
- *    get:
- *      type: 'SEARCH'
- *      summary: Search for content within the dataset
- *      x-summary-zh: 搜索内容
- *      description: Search for specific content within the dataset by datasetId and search message
- *      x-description-zh: 搜索内容
- *      parameters:
- *        - name: datasetId
- *          in: path
- *          description: The ID of the dataset
- *          x-description-zh: 数据集的ID
- *          required: true
- *          x-input-type: input
- *          x-options-api: /ai-studio/api/datasets
- *          x-option-key: id
- *          x-option-name: name
- *          schema:
- *            type: string
- *            default: ''
- *        - name: message
- *          in: query
- *          description: The search content or message
- *          x-description-zh: 搜索的内容
- *          required: true
- *          schema:
- *            type: string
- *            default: ''
- *      responses:
- *        200:
- *          description: Successfully retrieved the paginated list of search results
- *          x-description-zh: 成功获取分页列表
- */
-router.get('/:datasetId/search', async (req, res) => {
-  const { datasetId } = req.params;
-  const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
-  const input = await datasetSchema.validateAsync(req.query, { stripUnknown: true });
-
-  const dataset = await Dataset.findOne({ where: { id: datasetId } });
-  if (!dataset || !datasetId) {
-    res.json({ docs: [] });
-    return;
+  if (document) {
+    queue.push({ documentId: document.id });
   }
 
-  const datasetItems = await DatasetDocument.findAll({ where: { datasetId } });
-  if (!datasetItems?.length) {
-    res.json({ docs: [] });
-    return;
-  }
-
-  const embeddings = new AIKitEmbeddings({});
-  const store = await VectorStore.load(datasetId, embeddings);
-  const docs = await store.similaritySearch(input.message, 4);
-
-  const content = docs.map((i) => i.pageContent);
-  res.json({ docs: content });
+  res.json(document);
 });
 
 router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
 
-  const input = await Joi.object<{ datasetId: string; documentId: string }>({
+  const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
     datasetId: Joi.string().required(),
     documentId: Joi.string().required(),
   }).validateAsync(req.params);
 
-  const { datasetId, documentId } = input;
+  const [dataset, document, content] = await Promise.all([
+    Dataset.findOne({
+      where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
+    }),
+    DatasetDocument.findOne({ where: { datasetId, id: documentId } }),
+    DatasetContent.findOne({ where: { documentId }, attributes: ['content'] }),
+  ]);
 
-  const dataset = await Dataset.findOne({
-    where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
-  });
-
-  const document = await DatasetDocument.findOne({ where: { datasetId, id: documentId } });
-
+  if (document?.dataValues) document.dataValues.content = content?.dataValues.content;
   res.json({ dataset, document });
 });
 
-export interface CreateItem {
-  name: string;
-  data: { type: 'discussion'; fullSite?: boolean; id: string };
-}
+router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), async (req, res) => {
+  const { documentId } = await Joi.object<{ documentId: string }>({
+    documentId: Joi.string().required(),
+  }).validateAsync(req.params, { stripUnknown: true });
 
-export type CreateItemInput = CreateItem | CreateItem[];
+  const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
 
-const createItemsSchema = Joi.object<CreateItem>({
-  name: Joi.string().empty(['', null]),
-  data: Joi.object({
-    type: Joi.string().valid('discussion').required(),
-    fullSite: Joi.boolean(),
-    id: Joi.string().empty(['', null]),
-  }).required(),
-});
-
-const createItemInputSchema = Joi.alternatives<CreateItemInput>().try(
-  Joi.array().items(createItemsSchema),
-  createItemsSchema
-);
-
-router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
-  const { datasetId } = req.params;
-  if (!datasetId) {
-    throw new Error('Missing required params `datasetId`');
+  if (document) {
+    queue.push({ documentId: document.id });
   }
 
-  const input = await createItemInputSchema.validateAsync(req.body, { stripUnknown: true });
-  const { did } = req.user!;
-
-  const arr = Array.isArray(input) ? input : [input];
-
-  const createOrUpdate = async (name: string, data: { type: 'discussion'; id: string }) => {
-    const found = await DatasetDocument.findOne({ where: { datasetId, data } });
-    if (found) {
-      return found.update({ type: 'discussion', data, updatedBy: did }, { where: { datasetId, data } });
-    }
-
-    return DatasetDocument.create({
-      type: 'discussion',
-      data,
-      name,
-      datasetId,
-      createdBy: did,
-      updatedBy: did,
-    });
-  };
-
-  let docs: DatasetDocument[] = [];
-  if (arr.find((x) => x.data?.fullSite)) {
-    for await (const { id: discussionId, name } of discussionsIterator()) {
-      const data: { type: 'discussion'; id: string } = { type: 'discussion', id: discussionId };
-
-      try {
-        docs.push(await createOrUpdate(name, data));
-      } catch (error) {
-        console.error(`embedding discussion ${discussionId} error`, { error });
-      }
-    }
-  } else {
-    docs = await Promise.all(
-      arr.map((item) => {
-        const { data, name } = item;
-        const { fullSite, ...other } = data;
-        return createOrUpdate(name, other);
-      })
-    );
-  }
-
-  docs.forEach((doc) => runHandlerAndSaveContent(doc.id));
-
-  res.json(Array.isArray(input) ? docs : docs[0]);
+  res.json(document);
 });
 
 export default router;

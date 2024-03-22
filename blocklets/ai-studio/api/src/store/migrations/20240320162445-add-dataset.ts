@@ -1,11 +1,12 @@
 import { DataTypes } from 'sequelize';
 
-import { projects } from '../0.1.157/projects';
 import type { Migration } from '../migrate';
 
 export const up: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.createTable('Projects', {
-    _id: {
+  await queryInterface.dropTable('Datasets');
+
+  await queryInterface.createTable('Datasets', {
+    id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
@@ -16,7 +17,42 @@ export const up: Migration = async ({ context: queryInterface }) => {
     description: {
       type: DataTypes.STRING,
     },
-    model: {
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    updatedBy: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    appId: {
+      type: DataTypes.STRING,
+    },
+  });
+
+  await queryInterface.createTable('DatasetDocuments', {
+    id: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      allowNull: false,
+    },
+    datasetId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    type: {
+      type: DataTypes.STRING,
+    },
+    data: {
+      type: DataTypes.JSON,
+    },
+    name: {
       type: DataTypes.STRING,
     },
     createdAt: {
@@ -27,40 +63,70 @@ export const up: Migration = async ({ context: queryInterface }) => {
     },
     createdBy: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
     updatedBy: {
       type: DataTypes.STRING,
+      allowNull: false,
     },
-    pinnedAt: {
+    error: {
+      type: DataTypes.STRING,
+    },
+    embeddingStartAt: {
       type: DataTypes.DATE,
     },
-    icon: {
+    embeddingEndAt: {
+      type: DataTypes.DATE,
+    },
+    embeddingStatus: {
       type: DataTypes.STRING,
-    },
-    gitType: {
-      type: DataTypes.STRING,
-      defaultValue: 'simple',
-    },
-    temperature: {
-      type: DataTypes.FLOAT,
-      defaultValue: 1.0,
-    },
-    topP: {
-      type: DataTypes.FLOAT,
-      defaultValue: 1.0,
-    },
-    presencePenalty: {
-      type: DataTypes.FLOAT,
-    },
-    frequencyPenalty: {
-      type: DataTypes.FLOAT,
-    },
-    maxTokens: {
-      type: DataTypes.FLOAT,
     },
   });
-  await queryInterface.createTable('EmbeddingHistories', {
-    _id: {
+
+  await queryInterface.createTable('DatasetSegments', {
+    id: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      allowNull: false,
+    },
+    documentId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    content: {
+      type: DataTypes.TEXT,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+  });
+
+  await queryInterface.createTable('DatasetContents', {
+    id: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      allowNull: false,
+    },
+    documentId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    content: {
+      type: DataTypes.TEXT,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+  });
+
+  await queryInterface.createTable('DatasetEmbeddingHistories', {
+    id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
@@ -80,75 +146,22 @@ export const up: Migration = async ({ context: queryInterface }) => {
     error: {
       type: DataTypes.STRING,
     },
-  });
-  await queryInterface.createTable('Datasets', {
-    _id: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
-    },
-    name: {
-      type: DataTypes.STRING,
-    },
-    createdAt: {
+    startAt: {
       type: DataTypes.DATE,
     },
-    updatedAt: {
+    endAt: {
       type: DataTypes.DATE,
     },
-    createdBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    updatedBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  });
-  await queryInterface.createTable('DatasetItems', {
-    _id: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
-    },
-    datasetId: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    name: {
-      type: DataTypes.STRING,
-    },
-    data: {
-      type: DataTypes.JSON,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-    },
-    createdBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    updatedBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    embeddedAt: {
-      type: DataTypes.DATE,
-    },
-    error: {
+    status: {
       type: DataTypes.STRING,
     },
   });
-
-  const projectRows = await projects.cursor().sort({ updatedAt: -1 }).exec();
-  if (projectRows.length) {
-    await queryInterface.bulkInsert('Projects', projectRows);
-  }
 };
 
 export const down: Migration = async ({ context: queryInterface }) => {
-  await queryInterface.dropTable('Projects');
+  await queryInterface.dropTable('Datasets');
+  await queryInterface.dropTable('DatasetDocuments');
+  await queryInterface.dropTable('DatasetSegments');
+  await queryInterface.dropTable('DatasetContents');
+  await queryInterface.dropTable('DatasetEmbeddingHistories');
 };

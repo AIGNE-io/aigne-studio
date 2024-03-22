@@ -49,7 +49,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
 import { joinURL } from 'ufo';
 
-import NewDataset from '../../../api/src/store/models/dataset/dataset';
+import Dataset from '../../../api/src/store/models/dataset/dataset';
 import { getAPIList, getDatasets } from '../../libs/dataset';
 import Add from '../../pages/project/icons/add';
 import External from '../../pages/project/icons/external';
@@ -483,7 +483,7 @@ function ToolItemView({
   tool: Tool;
   readOnly?: boolean;
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  datasets: (NewDataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 } & StackProps) {
   const navigate = useNavigate();
 
@@ -636,7 +636,7 @@ export const ToolDialog = forwardRef<
     DialogProps?: DialogProps;
     assistant: AssistantYjs;
     openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-    datasets: (NewDataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+    datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   }
 >(({ openApis, datasets, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t, locale } = useLocaleContext();
@@ -772,7 +772,7 @@ export const ToolDialog = forwardRef<
                           remoteTitle={parameter['x-name']}
                           value={field.value || ''}
                           onChange={field.onChange}
-                          queryParams={{ projectId }}
+                          queryParams={{ appId: projectId }}
                         />
                       );
                     }

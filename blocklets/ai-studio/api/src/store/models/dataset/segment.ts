@@ -7,9 +7,9 @@ const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
 
-export default class NewDatasetSegment extends Model<
-  InferAttributes<NewDatasetSegment>,
-  InferCreationAttributes<NewDatasetSegment>
+export default class DatasetSegment extends Model<
+  InferAttributes<DatasetSegment>,
+  InferCreationAttributes<DatasetSegment>
 > {
   declare id: CreationOptional<string>;
 
@@ -17,14 +17,12 @@ export default class NewDatasetSegment extends Model<
 
   declare content?: string;
 
-  declare index?: number;
-
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
 }
 
-NewDatasetSegment.init(
+DatasetSegment.init(
   {
     id: {
       type: DataTypes.STRING,
@@ -37,7 +35,7 @@ NewDatasetSegment.init(
       allowNull: false,
     },
     content: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
     },
     createdAt: {
       type: DataTypes.DATE,

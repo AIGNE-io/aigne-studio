@@ -46,7 +46,7 @@ export default function KnowledgeDatasets() {
   const onSave = useCallback(
     async (input: DatasetInput) => {
       try {
-        const dataset = await createDataset(projectId, { ...input, projectId });
+        const dataset = await createDataset(projectId, { ...input, appId: projectId });
         dialogState.close();
         navigate(`./${dataset.id}`);
       } catch (error) {
@@ -127,9 +127,6 @@ export default function KnowledgeDatasets() {
             <Controller
               control={form.control}
               name="description"
-              rules={{
-                required: t('validation.fieldRequired'),
-              }}
               render={({ field, fieldState }) => {
                 return (
                   <TextField
@@ -203,7 +200,7 @@ function DatasetItem({
           <Database sx={{ width: '2rem', height: '2rem' }} />
 
           <Box className="itemHeading">
-            <Box className="headingContent">{name || ''}</Box>
+            <Box className="headingContent">{name || t('unnamed')}</Box>
           </Box>
 
           <Box className="deleteIcon">

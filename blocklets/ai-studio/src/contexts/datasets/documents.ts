@@ -5,7 +5,7 @@ import { RecoilState, atom, useRecoilState } from 'recoil';
 import Dataset from '../../../api/src/store/models/dataset/dataset';
 import DatasetDocument from '../../../api/src/store/models/dataset/document';
 import { getErrorMessage } from '../../libs/api';
-import { deleteDocument, getDataset, getDocuments, uploadDocument } from '../../libs/dataset';
+import { deleteDocument, getDataset, getDocuments } from '../../libs/dataset';
 
 interface DatasetState {
   dataset?: Dataset;
@@ -82,13 +82,11 @@ export const useDocuments = (datasetId: string, { autoFetch = true }: { autoFetc
     }
   }, []);
 
-  const upload = useCallback((form: FormData) => uploadDocument(datasetId, form), []);
-
   useEffect(() => {
     if (autoFetch && !state.dataset) {
       init();
     }
   }, []);
 
-  return { state, refetch, remove, upload };
+  return { state, refetch, remove };
 };
