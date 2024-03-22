@@ -129,6 +129,8 @@ export default function KnowledgeDocuments() {
         field: 'time',
         headerName: t('knowledge.documents.time'),
         width: 180,
+        headerAlign: 'center',
+        align: 'center',
         sortable: false,
         renderCell: (params: any) => {
           return <Box>{`${dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss')}`}</Box>;
@@ -139,6 +141,8 @@ export default function KnowledgeDocuments() {
         headerName: t('embeddingStartTime'),
         width: 180,
         sortable: false,
+        headerAlign: 'center',
+        align: 'center',
         renderCell: (params: any) => {
           return (
             <Box>
@@ -153,6 +157,8 @@ export default function KnowledgeDocuments() {
         field: 'embeddingEndTime',
         headerName: t('embeddingEndTime'),
         width: 180,
+        headerAlign: 'center',
+        align: 'center',
         sortable: false,
         renderCell: (params: any) => {
           return (
@@ -166,6 +172,8 @@ export default function KnowledgeDocuments() {
         field: 'embeddingStatus',
         headerName: t('embeddingStatus'),
         sortable: false,
+        headerAlign: 'center',
+        align: 'center',
         renderCell: (params: any) => {
           if (!['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
             return <Box>{`${params.row.embeddingStatus}`}</Box>;
