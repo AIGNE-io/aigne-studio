@@ -128,4 +128,16 @@ export function sessionRoutes(router: Router) {
       sessions,
     });
   });
+
+  router.delete('/sessions', user(), auth(), async (req, res) => {
+    const { did: userId } = req.user!;
+
+    const query = await sessionsQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+    const deletedCount = await Session.destroy({
+      where: { userId, projectId: query.projectId, projectRef: query.projectRef, assistantId: query.assistantId },
+    });
+
+    res.json({ deletedCount });
+  });
 }
