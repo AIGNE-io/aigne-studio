@@ -18,6 +18,7 @@ import { usePromptsState } from '../../../pages/project/prompt-state';
 import { DragSortItemContainer, DragSortListYjs } from '../../drag-sort-list';
 import ExecuteBlockForm from '../execute-block';
 import PromptEditorField from '../prompt-editor-field';
+import useVariablesEditorOptions from '../use-variables-editor-options';
 import RoleSelectField from './role-select';
 
 export default function PromptPrompts({
@@ -38,7 +39,7 @@ export default function PromptPrompts({
   const { t } = useLocaleContext();
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const { addPrompt, deletePrompt } = usePromptsState({ projectId, gitRef, templateId: value.id });
-
+  const { removeParameter } = useVariablesEditorOptions(value);
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   return (
@@ -112,7 +113,13 @@ export default function PromptPrompts({
                       </Button>
                     </Tooltip>
                   }
-                  onDelete={() => deletePrompt({ promptId: prompt.data.id })}>
+                  onDelete={() => {
+                    if ((prompt.data as any)?.type === 'dataset') {
+                      removeParameter('datasetId');
+                    }
+
+                    deletePrompt({ promptId: prompt.data.id });
+                  }}>
                   {children}
                 </DragSortItemContainer>
               );

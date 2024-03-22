@@ -555,4 +555,5 @@ export default flat({
   segmentsView: 'Segments View',
   shareTip: 'Access link',
   refreshTip: 'Reembedding',
+  datasetDesc: 'Search for the data required by the context from the knowledge base management',
 });

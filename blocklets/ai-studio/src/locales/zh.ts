@@ -549,4 +549,5 @@ export default flat({
   segmentsView: '索引方式',
   shareTip: '访问地址',
   refreshTip: '重新索引',
+  datasetDesc: '从知识库管理中搜索上下文所需的数据',
 });
