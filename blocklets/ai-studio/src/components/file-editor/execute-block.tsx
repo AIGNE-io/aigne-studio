@@ -483,7 +483,7 @@ function ToolItemView({
   tool: Tool;
   readOnly?: boolean;
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  datasets: (NewDataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 } & StackProps) {
   const navigate = useNavigate();
 

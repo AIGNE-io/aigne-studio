@@ -1,4 +1,4 @@
-import { PromptAssistantYjs, isPromptAssistant } from '@blocklet/ai-runtime/types';
+import { PromptAssistantYjs, PromptYjs, Tool, isPromptAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import sortBy from 'lodash/sortBy';
 import { useCallback } from 'react';
@@ -51,6 +51,51 @@ export function usePromptsState({
     [template]
   );
 
+  const addDatasetPrompt = useCallback(() => {
+    if (!template) return;
+
+    const doc = (getYjsValue(template) as Map<any>).doc!;
+    doc.transact(() => {
+      template.prompts ??= {};
+
+      // const prompts = Object.values(template.prompts).filter((x) => x.data.data);
+
+      const tool: Tool = {
+        id: 'AI-Studio:/api/datasets/{datasetId}/search:get',
+        from: 'dataset',
+        parameters: {
+          datasetId: '{{datasetId}}',
+          message: '',
+        },
+      };
+
+      const prompt: PromptYjs = {
+        type: 'executeBlock',
+        data: {
+          id: nextAssistantId(),
+          selectType: 'all',
+          role: 'system',
+          type: 'dataset',
+          tools: {
+            [tool.id]: {
+              index: 0,
+              data: tool,
+            },
+          },
+        },
+      };
+
+      template.prompts[prompt.data.id] = {
+        index: 0.9,
+        data: prompt,
+      };
+
+      sortBy(Object.values(template.prompts), (i) => i.index).forEach((i, index) => (i.index = index));
+    });
+  }, [template]);
+
+  const deleteDatasetPrompt = useCallback(() => {}, [template]);
+
   const renameVariable = useCallback(() => {
     // FIXME:
     // (rename: { [key: string]: string }) => {
@@ -84,5 +129,5 @@ export function usePromptsState({
     // });
   }, [template]);
 
-  return { addPrompt, deletePrompt, renameVariable };
+  return { addPrompt, deletePrompt, addDatasetPrompt, deleteDatasetPrompt, renameVariable };
 }
