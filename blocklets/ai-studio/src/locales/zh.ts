@@ -547,4 +547,6 @@ export default flat({
   showType: '展示方式',
   contentView: '内容方式',
   segmentsView: '索引方式',
+  shareTip: '访问地址',
+  refreshTip: '重新索引',
 });

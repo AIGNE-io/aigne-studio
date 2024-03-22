@@ -553,4 +553,6 @@ export default flat({
   showType: 'View Type',
   contentView: 'Content View',
   segmentsView: 'Segments View',
+  shareTip: 'Access link',
+  refreshTip: 'Reembedding',
 });

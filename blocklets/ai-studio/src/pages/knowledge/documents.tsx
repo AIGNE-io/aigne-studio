@@ -19,6 +19,7 @@ import {
   RadioGroup,
   Stack,
   TextField,
+  Tooltip,
   Typography,
   styled,
 } from '@mui/material';
@@ -486,10 +487,14 @@ function Actions({
         ) : (
           <>
             <IconButton onClick={onLink}>
-              <Share sx={{ fontSize: '16px' }} />
+              <Tooltip placement="top" arrow title={t('shareTip')}>
+                <Share sx={{ fontSize: '16px' }} />
+              </Tooltip>
             </IconButton>
             <IconButton onClick={onEmbedding}>
-              <Refresh sx={{ fontSize: '16px' }} />
+              <Tooltip placement="top" arrow title={t('refreshTip')}>
+                <Refresh sx={{ fontSize: '16px' }} />
+              </Tooltip>
             </IconButton>
           </>
         )}
