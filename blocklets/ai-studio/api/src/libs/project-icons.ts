@@ -1,33 +1,35 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
+import { readFile, readdir, stat } from 'fs/promises';
 import path from 'path';
 
 import { BlockletStatus } from '@blocklet/constant';
 import { call } from '@blocklet/sdk/lib/component';
 import { Events, components, events } from '@blocklet/sdk/lib/config';
+import { pathExists } from 'fs-extra';
 import { sha3_256 } from 'js-sha3';
 
+import { Config } from './env';
 import logger from './logger';
 
 async function handleResource() {
   try {
-    const p1 = path.join(__dirname, '../..', 'images');
     // NOTE: fix wrong path of blocklet bundle monorepo
-    const p2 = path.join(__dirname, '../../../../../api/images');
-    const imageFolderPath = existsSync(p1) ? p1 : p2;
+    const imageFolderPath = path.join(Config.appDir, 'api/images');
 
-    if (!statSync(imageFolderPath).isDirectory()) {
+    if (!(await pathExists(imageFolderPath)) || !(await stat(imageFolderPath)).isDirectory()) {
       return;
     }
 
-    const files = readdirSync(imageFolderPath);
+    const files = await readdir(imageFolderPath);
 
     if (files && files.length > 0) {
-      const list = files.map((filepath: string) => {
-        const exportFile = path.join(imageFolderPath, filepath);
-        const data = readFileSync(exportFile, 'base64');
-        const filename = sha3_256(data);
-        return { base64: data, filename };
-      });
+      const list = await Promise.all(
+        files.map(async (filepath: string) => {
+          const exportFile = path.join(imageFolderPath, filepath);
+          const data = await readFile(exportFile, 'base64');
+          const filename = sha3_256(data);
+          return { base64: data, filename };
+        })
+      );
 
       for (const item of list) {
         const originalname = `${item.filename}.png`;

@@ -1,3 +1,5 @@
+import Release from '@api/store/models/release';
+import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 import { runAssistant } from '@blocklet/ai-runtime/api';
@@ -24,6 +26,8 @@ import { nanoid } from 'nanoid';
 import { useCallback, useEffect } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
+import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
 
 import Project from '../../../api/src/store/models/project';
 import { textCompletions } from '../../libs/ai';
@@ -31,13 +35,13 @@ import { PREFIX } from '../../libs/api';
 import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
+import * as releaseApi from '../../libs/release';
 import * as api from '../../libs/tree';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
-export const defaultBranch = 'main';
-
 export interface ProjectState {
   project?: Project;
+  releases?: (Release & { paymentUnitAmount?: string })[];
   branches: string[];
   commits: Commit[];
   loading?: boolean;
@@ -68,15 +72,19 @@ export const useProjectState = (projectId: string, gitRef: string) => {
     });
     if (loading) return;
     try {
-      const [project, { branches }] = await Promise.all([
+      const [project, { branches }, { releases: projectPublishSettings }] = await Promise.all([
         projectApi.getProject(projectId),
         branchApi.getBranches({ projectId }),
+        releaseApi.getReleases({ projectId }),
       ]);
       const simpleMode = project.gitType === 'simple';
-      const { commits } = await getLogs({ projectId, ref: simpleMode ? defaultBranch : gitRef });
-      // NOTE: 简单模式下最新的记录始终指向 defaultBranch
-      if (simpleMode && commits.length) commits[0]!.oid = defaultBranch;
-      setState((v) => ({ ...v, project, branches, commits, error: undefined }));
+      const { commits } = await getLogs({
+        projectId,
+        ref: simpleMode ? getDefaultBranch() : gitRef,
+      });
+      // NOTE: 简单模式下最新的记录始终指向 getDefaultBranch()
+      if (simpleMode && commits.length) commits[0]!.oid = getDefaultBranch();
+      setState((v) => ({ ...v, project, branches, releases: projectPublishSettings, commits, error: undefined }));
     } catch (error) {
       setState((v) => ({ ...v, error }));
       throw error;
@@ -207,6 +215,7 @@ export interface SessionItem {
   }[];
   chatType?: 'chat' | 'debug';
   debugForm?: { [key: string]: any };
+  sessionId: string;
 }
 
 export interface DebugState {
@@ -236,6 +245,7 @@ const getDebugState = (projectId: string, assistantId: string) => {
             sessions: json.sessions.map((session) => ({
               ...session,
               messages: session.messages.map((i) => omit(i, 'loading')),
+              sessionId: session.sessionId ?? nanoid(),
             })),
           };
         }
@@ -247,7 +257,7 @@ const getDebugState = (projectId: string, assistantId: string) => {
       return {
         projectId,
         assistantId,
-        sessions: [{ index: 1, createdAt: now, updatedAt: now, messages: [], chatType: 'debug' }],
+        sessions: [{ index: 1, createdAt: now, updatedAt: now, messages: [], chatType: 'debug', sessionId: nanoid() }],
         nextSessionIndex: 2,
       };
     })(),
@@ -294,6 +304,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               updatedAt: now,
               messages: [],
               chatType: currentSession?.chatType,
+              sessionId: nanoid(),
             },
           ],
           nextSessionIndex: index + 1,
@@ -440,6 +451,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 working: true,
                 assistantId: message.assistantId,
                 parameters: message.parameters,
+                sessionId: session?.sessionId,
               });
 
         const reader = result.getReader();
@@ -888,3 +900,16 @@ export function useAssistantCompare({
 
   return { getDiffName, getDiffBackground, getBackgroundColor };
 }
+
+export const saveButtonState = create<{
+  save?: () => any;
+  setSaveHandler: (save?: () => any) => void;
+}>()(
+  immer((set) => ({
+    setSaveHandler(save?: () => any) {
+      set((state) => {
+        state.save = save;
+      });
+    },
+  }))
+);

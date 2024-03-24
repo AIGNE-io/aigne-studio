@@ -2,6 +2,7 @@ declare var blocklet:
   | {
       prefix: string;
       appId: string;
+      appUrl: string;
       appName: string;
       appLogo: string;
       appDescription: string;

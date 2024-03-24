@@ -18,7 +18,7 @@ export type ExecuteBlockRole = Role | 'none';
 
 export type Tool = {
   id: string;
-  from?: 'assistant' | 'dataset';
+  from?: 'assistant' | 'dataset' | 'knowledge';
   parameters?: { [key: string]: string };
   functionName?: string;
   onEnd?: OnTaskCompletion;
@@ -30,6 +30,8 @@ type ExecuteBlockCommon = {
   selectByPrompt?: string;
   tools?: Tool[];
   formatResultType?: 'none' | 'asHistory';
+  prefix?: string;
+  suffix?: string;
   variable?: string;
 };
 
@@ -47,6 +49,7 @@ type ModelConfiguration = {
 export type ExecuteBlockSelectByPrompt = ExecuteBlockCommon & {
   selectType: 'selectByPrompt';
   executeModel?: ModelConfiguration;
+  defaultToolId?: string;
 };
 
 export type ExecuteBlock = ExecuteBlockSelectAll | ExecuteBlockSelectByPrompt;
@@ -110,7 +113,6 @@ export interface ImageAssistant extends AssistantBase {
   quality?: string;
   style?: string;
   size?: string;
-  responseFormat?: string;
 }
 
 export interface ApiAssistant extends AssistantBase {

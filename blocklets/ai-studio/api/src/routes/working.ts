@@ -4,7 +4,7 @@ import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
 import Project from '../store/models/project';
-import { autoSyncRemoteRepoIfNeeded, commitWorking } from '../store/repository';
+import { autoSyncRemoteRepoIfNeeded, commitWorking, defaultBranch } from '../store/repository';
 
 export interface WorkingCommitInput {
   branch: string;
@@ -29,11 +29,12 @@ export function workingRoutes(router: Router) {
 
       const input = await createBranchInputSchema.validateAsync(req.body, { stripUnknown: true });
 
-      if (isRefReadOnly({ ref: input.branch, role })) {
+      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+      if (isRefReadOnly({ ref: input.branch, role, defaultBranch: project?.gitDefaultBranch ?? defaultBranch })) {
         throw new Error(`commit to read only branch ${input.branch} is forbidden`);
       }
 
-      const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
       const author = { name: fullName, email: userId };
       await commitWorking({
         project,

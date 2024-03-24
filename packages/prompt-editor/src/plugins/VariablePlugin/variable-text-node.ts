@@ -79,8 +79,8 @@ export class VariableTextNode extends TextNode {
     const dom = super.createDOM(config);
 
     dom.className = 'variable';
-    dom.setAttribute('data-custom-node', 'variable');
-    dom.setAttribute('data-node-id', String(+new Date()));
+    dom.setAttribute('data-lexical-key', this.getKey());
+    dom.setAttribute('data-lexical-variable', this.getKey());
     dom.addEventListener('mouseover', this.handleMouseOver.bind(this, dom, this.isVariable));
     dom.addEventListener('mouseleave', this.handleMouseLeave.bind(this, dom));
 

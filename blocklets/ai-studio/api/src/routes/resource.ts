@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 
 import component from '@blocklet/sdk/lib/component';
@@ -12,16 +12,16 @@ import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
-import { defaultBranch, getAssistantsOfRepository } from '../store/repository';
+import { getAssistantsOfRepository } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 const TARGET_DIR = path.join(AI_STUDIO_DID, 'ai');
 
-const getResourceDir = ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
+const getResourceDir = async ({ projectId, releaseId }: { projectId: string; releaseId: string }) => {
   const exportDir = component.getResourceExportDir({ projectId, releaseId });
   const resourceDir = path.join(exportDir, TARGET_DIR);
 
-  mkdirSync(resourceDir, { recursive: true });
+  await mkdir(resourceDir, { recursive: true });
 
   return resourceDir;
 };
@@ -80,7 +80,9 @@ export function resourceRoutes(router: Router) {
   });
 
   router.post('/resources/export', ensurePromptsEditor, async (req, res) => {
-    const { resources, projectId, releaseId } = await exportResourceSchema.validateAsync(req.body);
+    const { resources, projectId, releaseId } = await exportResourceSchema.validateAsync(req.body, {
+      stripUnknown: true,
+    });
     const splitResources = uniq(resources)
       .map((x) => {
         try {
@@ -99,24 +101,24 @@ export function resourceRoutes(router: Router) {
       value: uniq(value.map((x) => x.value).filter(Boolean)).filter(Boolean),
     }));
 
-    const resourceDir = getResourceDir({ projectId, releaseId: releaseId || '' });
+    const resourceDir = await getResourceDir({ projectId, releaseId: releaseId || '' });
     const arr = [];
 
     for (const item of formatResources) {
       const { key, value } = item;
 
       const folderPath = path.join(resourceDir, key);
-      mkdirSync(folderPath, { recursive: true });
+      await mkdir(folderPath, { recursive: true });
 
       for (const projectId of value) {
-        const [project, assistants] = await Promise.all([
-          Project.findOne({ where: { _id: projectId } }),
-          getAssistantsOfRepository({ projectId, ref: defaultBranch }),
-        ]);
-
+        const project = await Project.findOne({ where: { _id: projectId } });
+        const assistants = await getAssistantsOfRepository({
+          projectId,
+          ref: project?.gitDefaultBranch!,
+        });
         const result = stringify({ assistants: uniqBy(assistants, 'id'), project: project && project.dataValues });
         const assistantsFilename = path.join(folderPath, `${projectId}.yaml`);
-        writeFileSync(assistantsFilename, result);
+        await writeFile(assistantsFilename, result);
 
         arr.push(result);
       }

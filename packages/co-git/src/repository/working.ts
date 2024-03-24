@@ -1,8 +1,9 @@
-import fs from 'fs';
+import { readFile } from 'fs/promises';
 import path from 'path';
 
 import { syncedStore } from '@syncedstore/core';
 import { MappedTypeDescription } from '@syncedstore/core/types/doc';
+import { mkdir, pathExists, rm, writeFile } from 'fs-extra';
 import * as decoding from 'lib0/decoding';
 import * as encoding from 'lib0/encoding';
 import debounce from 'lodash/debounce';
@@ -31,18 +32,24 @@ export type WorkingStore<T> = {
   tree: { [key: string]: string };
 };
 
+const YJS_STATE_FILE_PATH = (root: string) => path.join(root, 'state.yjs');
+
 export default class Working<T> extends Doc {
-  constructor(
+  static async load<T>(repo: Repository<T>, options: WorkingOptions) {
+    const yjsPath = YJS_STATE_FILE_PATH(options.root);
+    const initial = (await pathExists(yjsPath)) ? await readFile(yjsPath) : undefined;
+    return new Working<T>(repo, options, { initial });
+  }
+
+  private constructor(
     readonly repo: Repository<T>,
-    readonly options: WorkingOptions
+    readonly options: WorkingOptions,
+    { initial }: { initial?: Buffer }
   ) {
     super();
 
     try {
-      const { yjsPath } = this;
-      if (fs.existsSync(yjsPath)) {
-        applyUpdate(this, fs.readFileSync(yjsPath));
-      }
+      if (initial) applyUpdate(this, initial);
     } catch (error) {
       console.error(`co-git: apply update from file ${this.yjsPath} error`, error);
     }
@@ -58,7 +65,7 @@ export default class Working<T> extends Doc {
   readonly syncedStore: MappedTypeDescription<WorkingStore<T>>;
 
   private get yjsPath() {
-    return path.join(this.options.root, 'state.yjs');
+    return YJS_STATE_FILE_PATH(this.options.root);
   }
 
   async reset() {
@@ -108,9 +115,9 @@ export default class Working<T> extends Doc {
       // Delete all files
       const originalFiles = await this.repo.listFiles({ ref: branch });
       for (const filepath of originalFiles) {
-        fs.rmSync(path.join(this.repo.root, filepath), { recursive: true, force: true });
+        await rm(path.join(this.repo.root, filepath), { recursive: true, force: true });
         await tx.remove({ filepath });
-        await fs.rmSync(path.join(this.repo.options.root, filepath), { force: true });
+        await rm(path.join(this.repo.options.root, filepath), { force: true });
       }
 
       // Add all files from working
@@ -126,8 +133,8 @@ export default class Working<T> extends Doc {
 
         for (const { filepath, data } of fileObjects) {
           const newPath = path.join(this.repo.options.root, filepath);
-          fs.mkdirSync(path.dirname(newPath), { recursive: true });
-          fs.writeFileSync(newPath, data);
+          await mkdir(path.dirname(newPath), { recursive: true });
+          await writeFile(newPath, data);
 
           await tx.add({ filepath });
         }
@@ -300,21 +307,25 @@ export default class Working<T> extends Doc {
       }
     } catch (err) {
       console.error(err);
-      this.emit('error', [err]);
     }
 
     this.save();
   };
 
-  private autoSave = debounce(() => {
+  private autoSave = debounce(async () => {
     const { yjsPath } = this;
     const blob = encodeStateAsUpdate(this);
-    fs.mkdirSync(path.dirname(yjsPath), { recursive: true });
-    fs.writeFileSync(yjsPath, blob);
+    await mkdir(path.dirname(yjsPath), { recursive: true });
+    await writeFile(yjsPath, blob);
   }, autoSaveTimeout);
 
-  save = ({ flush = false }: { flush?: boolean } = {}) => {
-    this.autoSave();
-    if (flush) this.autoSave.flush();
+  save = async ({ flush = false }: { flush?: boolean } = {}) => {
+    await this.autoSave();
+    if (flush) await this.autoSave.flush();
   };
+
+  override destroy() {
+    this.autoSave.cancel();
+    super.destroy();
+  }
 }

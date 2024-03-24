@@ -1,6 +1,8 @@
 import fs from 'fs';
+import { mkdir } from 'fs/promises';
 import path from 'path';
 
+import { pathExists } from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
 import Queue from 'queue';
@@ -43,8 +45,8 @@ export default class Repository<T> {
     initialCommit?: Pick<Parameters<typeof git.commit>[0], 'message' | 'author'>;
     defaultBranch?: string;
   }) {
-    if (!fs.existsSync(path.join(options.root, '.git'))) {
-      fs.mkdirSync(path.dirname(options.root), { recursive: true });
+    if (!(await pathExists(path.join(options.root, '.git')))) {
+      await mkdir(path.dirname(options.root), { recursive: true });
       await git.init({ fs, dir: options.root, defaultBranch });
     }
 
@@ -64,11 +66,7 @@ export default class Repository<T> {
     return repo;
   }
 
-  constructor(readonly options: RepositoryOptions<T>) {
-    if (!fs.existsSync(this.gitdir)) {
-      throw new Error(`repository ${this.root} is not initialized`);
-    }
-  }
+  constructor(readonly options: RepositoryOptions<T>) {}
 
   get root() {
     return this.options.root;
@@ -102,12 +100,12 @@ export default class Repository<T> {
       const { base, dir } = path.parse(this.root);
       const workingRoot = path.join(dir, `${base}.cooperative`, ref);
 
-      const exists = fs.existsSync(workingRoot);
+      const exists = await pathExists(workingRoot);
 
-      const working = new Working(this, { ref, root: workingRoot });
+      const working = await Working.load(this, { ref, root: workingRoot });
 
       if (!exists) {
-        fs.mkdirSync(workingRoot, { recursive: true });
+        await mkdir(workingRoot, { recursive: true });
         await working.reset();
         working.save({ flush: true });
       }
@@ -229,6 +227,12 @@ export default class Repository<T> {
     }
 
     return filepath;
+  }
+
+  async destroy() {
+    for (const i of await Promise.all(Object.values(this.workingMap))) {
+      i.destroy();
+    }
   }
 }
 

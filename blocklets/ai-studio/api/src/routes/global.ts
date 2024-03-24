@@ -4,7 +4,7 @@ import { uniqBy } from 'lodash';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
-import { defaultBranch, getAssistantsOfRepository } from '../store/repository';
+import { getAssistantsOfRepository } from '../store/repository';
 
 const getAssistantsQuerySchema = Joi.object<{
   projectId?: string;
@@ -31,12 +31,36 @@ export function globalRoutes(router: Router) {
   router.get('/tags', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId, search } = await getTagsQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-    const projectIds = projectId
-      ? [projectId]
-      : (await Project.findAll({ order: [['createdAt', 'ASC']] })).map((i) => i._id);
+    let defaultBranch: string;
+    let projectIds: Array<{
+      projectId: string;
+      ref: string;
+    }>;
+    if (projectId) {
+      defaultBranch = (
+        await Project.findByPk(projectId, {
+          rejectOnEmpty: new Error(`Project ${projectId} not found`),
+        })
+      ).gitDefaultBranch;
+      projectIds = [
+        {
+          projectId,
+          ref: defaultBranch,
+        },
+      ];
+    } else {
+      projectIds = (await Project.findAll({ order: [['createdAt', 'ASC']] })).map((i) => ({
+        projectId: i._id,
+        ref: i.gitDefaultBranch,
+      }));
+    }
 
     let tags = uniqBy(
-      (await Promise.all(projectIds.map((projectId) => getAssistantsOfRepository({ projectId, ref: defaultBranch }))))
+      (
+        await Promise.all(
+          projectIds.map((i) => getAssistantsOfRepository({ projectId: i.projectId, ref: i.ref ?? defaultBranch }))
+        )
+      )
         .flatMap((assistants) => assistants.map((i) => i.tags?.map((tag) => ({ tag, type: i.type }))))
         .flatMap((i) => i ?? []),
       'tag'
@@ -51,25 +75,27 @@ export function globalRoutes(router: Router) {
   });
 
   router.get('/assistants', ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const {
-      offset,
-      limit,
-      projectId,
-      tag,
-      type,
-      ref = defaultBranch,
-    } = await getAssistantsQuerySchema.validateAsync(req.query, {
+    const { offset, limit, projectId, tag, type, ref } = await getAssistantsQuerySchema.validateAsync(req.query, {
       stripUnknown: true,
     });
 
     const projectIds = projectId
       ? [projectId]
-      : (await Project.findAll({ order: [['createdAt', 'ASC']] })).map((i) => i._id!);
+      : (await Project.findAll({ order: [['createdAt', 'ASC']] })).map((i) => i._id);
 
     let assistants = (
       await Promise.all(
         projectIds.map(async (projectId) =>
-          getAssistantsOfRepository({ projectId, ref }).then((assistants) =>
+          getAssistantsOfRepository({
+            projectId,
+            ref:
+              ref ||
+              (
+                await Project.findByPk(projectId, {
+                  rejectOnEmpty: new Error(`Project ${projectId} not found`),
+                })
+              ).gitDefaultBranch,
+          }).then((assistants) =>
             assistants.map((assistant) => ({
               ...assistant,
               projectId,

@@ -1,4 +1,4 @@
-import { readdirSync, rmSync, writeFileSync } from 'fs';
+import { readdir, rm, writeFile } from 'fs/promises';
 import path from 'path';
 
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
@@ -23,6 +23,12 @@ export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, '
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
+
+export async function clearRepository(projectId: string) {
+  const repo = await getRepository({ projectId });
+  await repo.destroy();
+  delete repositories[projectId];
+}
 
 export async function getRepository({
   projectId,
@@ -174,7 +180,7 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
 
   const fieldsStr = stringify(fields, { aliasDuplicateObjects: false });
 
-  writeFileSync(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
+  await writeFile(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
 };
 
@@ -187,7 +193,7 @@ export const autoSyncRemoteRepoIfNeeded = async ({
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
     const repository = await getRepository({ projectId: project._id! });
-    await syncRepository({ repository, ref: defaultBranch, author });
+    await syncRepository({ repository, ref: project.gitDefaultBranch, author });
     await project.update({ gitLastSyncedAt: new Date() });
   }
 };
@@ -213,15 +219,15 @@ export async function commitWorking({
     message,
     author,
     beforeCommit: async ({ tx }) => {
-      writeFileSync(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
+      await writeFile(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
 
       await addSettingsToGit({ tx, project });
 
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
-        if (readdirSync(path.join(repository.options.root, path.dirname(gitkeep))).length > 1) {
-          rmSync(path.join(repository.options.root, gitkeep), { force: true });
+        if ((await readdir(path.join(repository.options.root, path.dirname(gitkeep)))).length > 1) {
+          await rm(path.join(repository.options.root, gitkeep), { force: true });
           await tx.remove({ filepath: gitkeep });
         }
       }
@@ -240,7 +246,7 @@ export async function commitProjectSettingWorking({
 }) {
   const repository = await getRepository({ projectId: project._id! });
   await repository.transact(async (tx) => {
-    await tx.checkout({ ref: defaultBranch, force: true });
+    await tx.checkout({ ref: project.gitDefaultBranch, force: true });
     await addSettingsToGit({ tx, project });
     await tx.commit({ message, author });
   });

@@ -1,0 +1,350 @@
+/api/datasets:
+  get:
+    type: SEARCH
+    summary: Get the current user's datasets
+    x-summary-zh: 获取当前用户数据集
+    description: Get the current user's datasets
+    x-description-zh: 获取当前用户数据集
+    responses:
+      '200':
+        description: Successfully get the current user's datasets
+        x-description-zh: 获取当前用户数据集
+  post:
+    type: CREATE
+    summary: Create a new dataset
+    x-summary-zh: 创建新的数据集
+    description: Create a new dataset
+    x-description-zh: 创建新的数据集
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              appId:
+                type: string
+    responses:
+      '200':
+        description: Successfully created a new dataset
+        x-description-zh: 创建新的数据集
+/api/datasets/{datasetId}:
+  get:
+    type: SEARCH
+    summary: Get details of dataset
+    x-summary-zh: 获取当前用户数据集详情
+    description: Get detailed information of dataset by datasetId
+    x-description-zh: 通过数据集ID获取某个特定数据集的详细信息
+    parameters:
+      - name: datasetId
+        in: path
+        description: The ID of the dataset
+        x-description-zh: 数据集的ID
+        required: true
+        x-input-type: input
+        x-options-api: /ai-studio/api/datasets
+        x-option-key: id
+        x-option-name: name
+        schema:
+          type: string
+          default: ''
+    responses:
+      '200':
+        description: Successfully retrieved the dataset details
+        x-description-zh: 获取当前用户数据集详情
+  put:
+    type: UPDATE
+    summary: Update a dataset
+    x-summary-zh: 更新数据集
+    description: Update a dataset
+    x-description-zh: 更新数据集
+    parameters:
+      - name: datasetId
+        in: path
+        description: The ID of the dataset
+        x-description-zh: 数据集的ID
+        required: true
+        x-input-type: input
+        x-options-api: /ai-studio/api/datasets
+        x-option-key: id
+        x-option-name: name
+        schema:
+          type: string
+          default: ''
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              appId:
+                type: string
+    responses:
+      '200':
+        description: Successfully updated the dataset
+        x-description-zh: 更新数据集
+  delete:
+    type: DELETE
+    summary: Delete a dataset
+    x-summary-zh: 删除数据集
+    description: Delete a dataset
+    x-description-zh: 删除数据集
+    parameters:
+      - name: datasetId
+        in: path
+        description: The ID of the dataset
+        x-description-zh: 数据集的ID
+        required: true
+        x-input-type: input
+        x-options-api: /ai-studio/api/datasets
+        x-option-key: id
+        x-option-name: name
+        schema:
+          type: string
+          default: ''
+    responses:
+      '200':
+        description: Successfully deleted the dataset
+        x-description-zh: 删除数据集
+/api/datasets/{datasetId}/search:
+  get:
+    type: SEARCH
+    summary: Search for content within the dataset
+    x-summary-zh: 搜索内容
+    description: Search for specific content within the dataset by datasetId and
+      search message
+    x-description-zh: 搜索内容
+    parameters:
+      - name: datasetId
+        in: path
+        description: The ID of the dataset
+        x-description-zh: 数据集的ID
+        required: true
+        x-input-type: input
+        x-options-api: /ai-studio/api/datasets
+        x-option-key: id
+        x-option-name: name
+        schema:
+          type: string
+          default: ''
+      - name: message
+        in: query
+        description: The search content or message
+        x-description-zh: 搜索的内容
+        required: true
+        schema:
+          type: string
+          default: ''
+    responses:
+      '200':
+        description: Successfully retrieved the paginated list of search results
+        x-description-zh: 成功获取分页列表
+/api/datasets/{datasetId}/documents:
+  get:
+    type: SEARCH
+    summary: Get data items in a dataset by datasetId
+    x-summary-zh: 获取当前 datasetId 数据集中数据信息
+    description: Get data items in a dataset by datasetId
+    x-description-zh: 获取当前 datasetId 数据集中数据信息
+    parameters:
+      - name: datasetId
+        in: path
+        description: The ID of the dataset
+        x-description-zh: 数据集的ID
+        required: true
+        x-input-type: select
+        x-options-api: /ai-studio/api/datasets
+        x-option-key: id
+        x-option-name: name
+        schema:
+          type: string
+          default: ''
+      - name: page
+        in: query
+        description: The page number of the data
+        x-description-zh: 当前数据页
+        schema:
+          type: integer
+          default: 1
+      - name: size
+        in: query
+        description: The number of items per page
+        x-description-zh: 每页数据量
+        schema:
+          type: integer
+          default: 20
+    responses:
+      '200':
+        description: Successfully retrieved data items in the dataset
+        x-description-zh: 获取当前 datasetId 数据集中数据信息
+/api/datastore:
+  get:
+    summary: Lists all datastores
+    description: Retrieve a list of datastores with optional query parameters to
+      filter the results.
+    x-summary-zh: 列出所有数据存储
+    x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
+    responses:
+      '200':
+        description: A JSON array of datastores
+  post:
+    summary: Creates a new datastore
+    description: Add a new datastore to the collection.
+    x-summary-zh: 创建一个新的数据存储
+    x-description-zh: 向集合中添加一个新的数据存储。
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: string
+                description: The new data for the datastore.
+            required:
+              - data
+    responses:
+      '200':
+        description: The created datastore object
+/api/datastore/{id}:
+  get:
+    summary: Gets a single datastore by ID
+    description: Retrieve detailed information of a specific datastore by its ID.
+    x-summary-zh: 通过 ID 获取单个数据存储
+    x-description-zh: 通过其 ID 检索特定数据存储的详细信息。
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        description: The ID of the datastore to retrieve.
+    responses:
+      '200':
+        description: A datastore object
+      '404':
+        description: No such datastore found
+  put:
+    summary: update data by id
+    description: update data by id
+    x-summary-zh: 通过 ID 更新数据存储
+    x-description-zh: 通过其 ID 更新数据存储的信息。
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        description: The ID of the datastore to update.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: string
+                description: The new data for the datastore.
+            required:
+              - data
+    responses:
+      '200':
+        description: The updated datastore object
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: The unique identifier for the datastore.
+                data:
+                  type: object
+                  description: The updated data of the datastore.
+                createdAt:
+                  type: string
+                  format: date-time
+                  description: The creation date of the datastore.
+                updatedAt:
+                  type: string
+                  format: date-time
+                  description: The last update date of the datastore.
+      '404':
+        description: No such datastore found
+  delete:
+    summary: delete data
+    description: delete data by id
+    x-summary-zh: 通过 ID 删除数据存储
+    x-description-zh: 通过其 ID 从集合中删除一个数据存储。
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        description: The ID of the datastore to delete.
+    responses:
+      '200':
+        description: The deleted datastore object
+      '404':
+        description: No such datastore found
+/api/messages:
+  get:
+    summary: Get history messages
+    x-summary-zh: 获取历史信息
+    description: Retrieve messages based on sessionId, last N messages, or keyword
+    x-description-zh: 根据 sessionId、最后N条消息或关键字检索历史消息
+    tags:
+      - Sessions
+    parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Number of last messages to retrieve
+        x-description-zh: 检索的消息的数目
+      - in: query
+        name: keyword
+        schema:
+          type: string
+        description: Keyword to search in messages
+        x-description-zh: 在消息中搜索的关键字
+    responses:
+      '200':
+        description: A list of history messages
+        x-description-zh: 检索历史消息列表
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      taskId:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      parameters:
+                        type: object
+                      result:
+                        type: object

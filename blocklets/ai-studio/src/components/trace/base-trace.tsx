@@ -37,6 +37,7 @@ export function PromptMessagesComponent({ value }: { value: PromptMessages }) {
         },
       }}
       disableGutters
+      square
       elevation={0}
       key={index}>
       <AccordionSummary

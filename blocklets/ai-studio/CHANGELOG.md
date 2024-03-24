@@ -1,3 +1,143 @@
+## 0.1.299 (2024-3-22)
+
+- chore: readjust the dataset data db
+
+## 0.1.298 (2024-3-22)
+
+- chore: update deps
+- feat: add api to delete all sessions of a release
+
+## 0.1.297 (2024-3-21)
+
+- fix: dataset select error
+
+## 0.1.296 (2024-3-21)
+
+- fix: set deleting button color to warning
+- fix: set created at to now when copying a project
+- chore: update deps
+- fix: display white space for output in test view
+- fix: remove option `None` from select option list
+- fix: support copying project name in deleting confirmation
+- feat: add a file menu to copy assistant id to clipboard
+- feat: support default tool in executing block
+
+## 0.1.295 (2024-3-20)
+
+- fix: wait for the working data load finished
+
+## 0.1.294 (2024-3-20)
+
+- feat: support select dataset Id
+- fix: local request loading data document
+
+## 0.1.293 (2024-3-20)
+
+- feat: add api to delete session messages
+- feat: support displaying opener message
+- fix: place delete session button out from menus
+
+## 0.1.292 (2024-3-20)
+
+- fix: fullsite discussion save failed
+
+## 0.1.291 (2024-3-19)
+
+- feat: add fullsite discussion
+- fix: show api error log
+
+## 0.1.290 (2024-3-19)
+
+- feat: support knowledge
+
+## 0.1.289 (2024-3-18)
+
+- fix: prompt editor focus
+
+## 0.1.288 (2024-3-18)
+
+- fix: prompt editor
+
+## 0.1.287 (2024-3-15)
+
+- feat: add keystore db for json search
+
+## 0.1.286 (2024-3-15)
+
+- fix: require save before publish
+- fix: ignore error message when counting usage
+
+## 0.1.285 (2024-3-15)
+
+- chore: change yarn to pnpm
+
+## 0.1.284 (2024-3-13)
+
+- chore: add pages-kit component dep
+- feat: check user subscription and report usage if needed
+- feat: support config payment for release
+
+## 0.1.283 (2024-3-12)
+
+- fix: use async fs api
+
+## 0.1.282 (2024-3-12)
+
+- feat: support history message datasets api
+
+## 0.1.281 (2024-3-11)
+
+- fix: remove useless files after project deleted
+
+## 0.1.280 (2024-3-11)
+
+- feat: add prefix and suffix for execute block output
+
+## 0.1.279 (2024-3-11)
+
+- fix: update runtime url
+
+## 0.1.278 (2024-3-9)
+
+- fix: support set chat type & dataset in parameters
+- fix: show release link and qr code
+
+## 0.1.277 (2024-3-7)
+
+- fix: use original hnswlib lib
+
+## 0.1.276 (2024-3-7)
+
+- feat: support release setting
+
+## 0.1.275 (2024-3-6)
+
+- feat: add supporting for session & history
+
+## 0.1.274 (2024-3-6)
+
+- fix: correct directory of db migrations
+
+## 0.1.273 (2024-3-4)
+
+- fix: do not expose builtin modules like fs to improve security
+
+## 0.1.272 (2024-3-2)
+
+- fix: branch checkout error
+
+## 0.1.271 (2024-3-1)
+
+- feat: bundle use compact
+
+## 0.1.270 (2024-2-29)
+
+- fix: support default branch
+
+## 0.1.269 (2024-2-28)
+
+- chore: add ai-runtime component dependency
+
 ## 0.1.268 (2024-2-27)
 
 - fix: missing @blocklet/ai-builtin package

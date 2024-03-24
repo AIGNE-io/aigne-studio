@@ -1,3 +1,4 @@
+import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { SaveRounded } from '@mui/icons-material';
@@ -20,7 +21,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import isNil from 'lodash/isNil';
 import pick from 'lodash/pick';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useBeforeUnload, unstable_useBlocker as useBlocker, useParams } from 'react-router-dom';
+import { useBeforeUnload, useBlocker, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
 import { getSupportedModels } from '../../../../api/src/libs/common';
@@ -34,7 +35,7 @@ import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
 import useDialog from '../../../utils/use-dialog';
 import InfoOutlined from '../icons/question';
-import { defaultBranch, useProjectState } from '../state';
+import { useProjectState } from '../state';
 import RemoteRepoSetting from './remote-repo-setting';
 
 const init = {
@@ -56,7 +57,7 @@ export default function ProjectSettings() {
   const { projectId = '' } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId`');
 
-  const readOnly = useReadOnly({ ref: defaultBranch });
+  const readOnly = useReadOnly({ ref: getDefaultBranch() });
   const { dialog, showDialog } = useDialog();
   const [submitLoading, setLoading] = useState(false);
   const [value, setValue] = useState<UpdateProjectInput>(init);
@@ -69,7 +70,7 @@ export default function ProjectSettings() {
   const {
     state: { project, error, ...state },
     updateProject,
-  } = useProjectState(projectId, defaultBranch);
+  } = useProjectState(projectId, getDefaultBranch());
   if (error) throw error;
 
   const loading = state.loading || getSupportedModelsLoading;

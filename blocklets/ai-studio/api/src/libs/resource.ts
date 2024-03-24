@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
+import { mkdir, readFile, readdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 
 import { fileToYjs } from '@blocklet/ai-runtime/types';
@@ -7,7 +7,7 @@ import { uniqBy } from 'lodash';
 import { parse, stringify } from 'yaml';
 
 import Project from '../store/models/project';
-import { defaultBranch, getRepository, repositoryRoot } from '../store/repository';
+import { getRepository, repositoryRoot } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
@@ -20,6 +20,7 @@ export const copyAssistantsFromResource = async ({
   folder,
   findProjectId,
   newProjectId,
+  originDefaultBranch,
   projectInfo,
 }: {
   folder: string;
@@ -27,29 +28,32 @@ export const copyAssistantsFromResource = async ({
   newProjectId: string;
   fullName: string;
   did: string;
+  originDefaultBranch: string;
   projectInfo?: object;
 }) => {
   const dirs = getResourcePackageAssistantsDirs();
   const project = `${findProjectId}.yaml`;
 
-  const files = dirs
-    .map((dir) => {
-      const root = dir.path;
-      try {
-        const folderPath = join(root, folder);
+  const files = (
+    await Promise.all(
+      dirs.map(async (dir) => {
+        const root = dir.path;
+        try {
+          const folderPath = join(root, folder);
 
-        return {
-          path: (readdirSync(folderPath) || [])
-            .filter((filename) => filename.endsWith('.yaml'))
-            .map((filename) => join(folderPath, filename)),
-          did: dir.did,
-        };
-      } catch (error) {
-        console.error(error);
-        return null;
-      }
-    })
-    .filter(Boolean);
+          return {
+            path: ((await readdir(folderPath)) || [])
+              .filter((filename) => filename.endsWith('.yaml'))
+              .map((filename) => join(folderPath, filename)),
+            did: dir.did,
+          };
+        } catch (error) {
+          console.error(error);
+          return null;
+        }
+      })
+    )
+  ).filter(Boolean);
 
   let filePath = '';
   for (let index = 0; index < files.length; index++) {
@@ -60,22 +64,22 @@ export const copyAssistantsFromResource = async ({
     }
   }
 
-  mkdirSync(repositoryRoot(newProjectId), { recursive: true });
+  await mkdir(repositoryRoot(newProjectId), { recursive: true });
   const repository = await getRepository({ projectId: newProjectId });
-  const working = await repository.working({ ref: defaultBranch });
+  const working = await repository.working({ ref: originDefaultBranch });
 
   if (filePath) {
     const root = dirname(repository.root);
-    const json = parse(readFileSync(filePath).toString());
+    const json = parse((await readFile(filePath)).toString());
     const assistants = uniqBy(json?.assistants || [], 'id') as any;
 
     for (const { parent, ...file } of assistants) {
       // 保存prompt文件
       const filename = `${file.name || 'Unnamed'}.${file.id}.yaml`;
       const newFilepath = join(root, newProjectId, parent.join('/'), filename);
-      mkdirSync(join(root, newProjectId, parent.join('/')), { recursive: true });
+      await mkdir(join(root, newProjectId, parent.join('/')), { recursive: true });
       const result = stringify(file);
-      writeFileSync(newFilepath, result);
+      await writeFile(newFilepath, result);
 
       // 保存.cooperative
       working.syncedStore.files[file.id] = fileToYjs({ ...file });
@@ -91,39 +95,49 @@ export const copyAssistantsFromResource = async ({
   }
 };
 
-export const getResourceProjects = (folder: string) => {
+export const getResourceProjects = async (folder: string) => {
   const dirs = getResourcePackageAssistantsDirs();
 
-  const files = dirs.map((dir) => {
-    const folderPath = join(dir.path, folder);
+  const files = await Promise.all(
+    dirs.map(async (dir) => {
+      const folderPath = join(dir.path, folder);
 
-    return {
-      paths: (readdirSync(folderPath) || [])
-        .filter((filename) => filename.endsWith('.yaml'))
-        .map((filename) => join(folderPath, filename)),
-      did: dir.did,
-    };
-  });
+      return {
+        paths: ((await readdir(folderPath)) || [])
+          .filter((filename) => filename.endsWith('.yaml'))
+          .map((filename) => join(folderPath, filename)),
+        did: dir.did,
+      };
+    })
+  );
 
-  const projects = files.flatMap(({ paths }) => {
-    if (!paths?.length) return null;
+  const projects = (
+    await Promise.all(
+      files.map(async ({ paths }) => {
+        if (!paths?.length) return null;
 
-    return paths.flatMap((filepath) => {
-      try {
-        const json = parse(readFileSync(filepath).toString());
-        if (json.project) {
-          delete json.project.projectType;
+        return (
+          await Promise.all(
+            paths.map(async (filepath) => {
+              try {
+                const json = parse((await readFile(filepath)).toString());
+                if (json.project) {
+                  delete json.project.projectType;
 
-          return json.project;
-        }
+                  return json.project;
+                }
 
-        return null;
-      } catch (error) {
-        console.error('yaml parse assistants resource file error', error);
-        return null;
-      }
-    });
-  });
+                return null;
+              } catch (error) {
+                console.error('yaml parse assistants resource file error', error);
+                return null;
+              }
+            })
+          )
+        ).flat();
+      })
+    )
+  ).flat();
 
   return projects.filter(Boolean);
 };

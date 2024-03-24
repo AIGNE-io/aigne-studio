@@ -18,7 +18,6 @@ import { RecoilRoot } from 'recoil';
 
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
-import { DatasetsProvider } from './contexts/datasets';
 import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
 import { translations } from './locales';
 import { theme } from './theme/theme';
@@ -92,14 +91,6 @@ function AppRoutes({ basename }: { basename: string }) {
           <>
             <Route path="playground/*" element={<Navigate to="../projects" replace />} />
             <Route path="projects/*" element={<ProjectsRoutes />} />
-            <Route
-              path="datasets/*"
-              element={
-                <DatasetsProvider>
-                  <DatasetsRoutes />
-                </DatasetsProvider>
-              }
-            />
             <Route path="embed/*" element={<EmbedRoutes />} />
           </>
         ) : (
@@ -121,8 +112,6 @@ function AppRoutes({ basename }: { basename: string }) {
 const Home = lazy(() => import('./pages/home/home'));
 
 const ProjectsRoutes = lazy(() => import('./pages/project'));
-
-const DatasetsRoutes = lazy(() => import('./pages/datasets'));
 
 const EmbedRoutes = lazy(() => import('./pages/embed'));
 

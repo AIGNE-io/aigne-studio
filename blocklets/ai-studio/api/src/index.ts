@@ -1,11 +1,11 @@
 import 'express-async-errors';
 import 'nanoid';
 
-import fs from 'fs';
+import { access, mkdir } from 'fs/promises';
 import path from 'path';
 
 import { AssistantResponseType } from '@blocklet/ai-runtime/types';
-import createSwaggerRouter from '@blocklet/dataset-sdk/openapi';
+import { createDatasetAPIRouter } from '@blocklet/dataset-sdk/openapi';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv-flow';
@@ -14,7 +14,7 @@ import fallback from 'express-history-api-fallback';
 import { Errors } from 'isomorphic-git';
 
 import app from './app';
-import { Config } from './libs/env';
+import { Config, isDevelopment } from './libs/env';
 import logger from './libs/logger';
 import initProjectIcons from './libs/project-icons';
 import routes from './routes';
@@ -25,9 +25,18 @@ dotenv.config();
 
 const { name, version } = require('../../package.json');
 
-if (fs.existsSync(Config.uploadDir) === false) {
-  fs.mkdirSync(Config.uploadDir, { recursive: true });
+async function ensureUploadDirExists() {
+  try {
+    await access(Config.uploadDir);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      await mkdir(Config.uploadDir, { recursive: true });
+    } else {
+      throw error;
+    }
+  }
 }
+ensureUploadDirExists().catch(console.error);
 
 app.set('trust proxy', true);
 app.use(cookieParser());
@@ -37,17 +46,15 @@ app.use(cors());
 
 app.use(
   '/',
-  createSwaggerRouter('AI-Studio', {
+  createDatasetAPIRouter('AI-Studio', path.join(Config.appDir, 'dataset.yml'), {
     definition: { openapi: '3.0.0', info: { title: 'AI Studio Dataset Protocol', version: '1.0.0' } },
     apis: [path.join(__dirname, './routes/**/*.*')],
   })
 );
 app.use('/api', routes);
 
-const isProduction = process.env.NODE_ENV === 'production' || process.env.ABT_NODE_SERVICE_ENV === 'production';
-
-if (isProduction) {
-  const staticDir = path.resolve(process.env.BLOCKLET_APP_DIR!, 'dist');
+if (!isDevelopment) {
+  const staticDir = path.resolve(Config.appDir, 'dist');
   app.use(express.static(staticDir, { maxAge: '30d', index: false }));
   app.use(fallback('index.html', { root: staticDir }));
 }
@@ -61,7 +68,10 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
     if (!res.headersSent) res.status(status).contentType('json');
     if (res.writable)
       res.write(
-        JSON.stringify({ type: AssistantResponseType.ERROR, error: { name: error.name, message: error.message } })
+        JSON.stringify({
+          type: AssistantResponseType.ERROR,
+          error: { type: error.type, message: error.message },
+        })
       );
   } catch (error) {
     logger.error('Write error to client error', error);

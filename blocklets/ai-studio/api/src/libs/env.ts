@@ -3,7 +3,13 @@ import path from 'path';
 import config from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 
+export const isDevelopment = config.env.mode === 'development';
+
 export const Config = {
+  get appDir() {
+    return process.env.BLOCKLET_APP_DIR!;
+  },
+
   _verbose: undefined as boolean | undefined,
   get verbose() {
     if (this._verbose === undefined) {
@@ -18,6 +24,10 @@ export const Config = {
 
   get uploadDir() {
     return path.join(config.env.dataDir, 'uploads');
+  },
+
+  get usageReportThrottleTime() {
+    return 30e3;
   },
 };
 

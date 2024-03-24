@@ -23,12 +23,6 @@ window.addEventListener('unhandledrejection', ({ reason }) => showErrorOverlay(r
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <PromptEditor
-      isDebug
-      onChange={(editorState) => {
-        // eslint-disable-next-line no-console
-        console.log(editorState.toJSON());
-      }}
-    />
+    <PromptEditor isDebug onChange={() => {}} />
   </React.StrictMode>
 );

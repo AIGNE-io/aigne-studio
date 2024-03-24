@@ -1,4 +1,5 @@
 import { textCompletions } from '@app/libs/ai';
+import Star from '@app/pages/project/icons/star';
 import Translate from '@app/pages/project/icons/translate';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
@@ -7,16 +8,22 @@ import {
   ExecuteBlockYjs,
   FileTypeYjs,
   Role,
+  Tool,
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
+import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Autocomplete,
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -31,16 +38,19 @@ import {
   Typography,
   createFilterOptions,
 } from '@mui/material';
+import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
+import axios from 'axios';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
 import { joinURL } from 'ufo';
 
-import { getDatasetList } from '../../libs/dataset';
+import Dataset from '../../../api/src/store/models/dataset/dataset';
+import { getAPIList, getDatasets } from '../../libs/dataset';
 import Add from '../../pages/project/icons/add';
 import External from '../../pages/project/icons/external';
 import InfoOutlined from '../../pages/project/icons/question';
@@ -51,7 +61,8 @@ import LoadingIconButton from '../loading/loading-icon-button';
 import { ModelPopper, ModelSetting } from '../modal-settings';
 import PromptEditorField from './prompt-editor-field';
 
-const FROM = 'dataset';
+const FROM_DATASET = 'dataset';
+const FROM_KNOWLEDGE = 'knowledge';
 
 export default function ExecuteBlockForm({
   projectId,
@@ -73,14 +84,14 @@ export default function ExecuteBlockForm({
   compareAssistant?: AssistantYjs;
   isRemoteCompare?: boolean;
 } & StackProps) {
-  const { t, locale } = useLocaleContext();
+  const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
-  const navigate = useNavigate();
   const toolForm = useRef<ToolDialogImperative>(null);
 
   const { store } = useProjectStore(projectId, gitRef);
 
-  const { data: datasets = [] } = useRequest(() => getDatasetList());
+  const { data: openApis = [] } = useRequest(() => getAPIList());
+  const { data: datasets = [] } = useRequest(() => getDatasets(projectId));
 
   const { getDiffBackground } = useAssistantCompare({
     value: assistant,
@@ -93,14 +104,20 @@ export default function ExecuteBlockForm({
 
   return (
     <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
-      <Stack direction="row" gap={1} alignItems="center">
+      <Box display="flex" alignItems="center">
+        <Tooltip
+          title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
+          placement="top"
+          disableInteractive>
+          <MuiInfoOutlined fontSize="small" sx={{ mr: 0.5, color: 'grey.500' }} />
+        </Tooltip>
         <IndicatorTextField
           projectId={projectId}
           gitRef={gitRef}
           path={[value.id, value.variable ?? '']}
           TextFiledProps={{
-            size: 'small',
             hiddenLabel: true,
+            size: 'small',
             inputProps: {
               maxLength: 15,
             },
@@ -115,277 +132,308 @@ export default function ExecuteBlockForm({
             onChange: (e) => (value.variable = e.target.value),
           }}
         />
-        <IndicatorTextField
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, value.selectType ?? 'all']}
-          TextFiledProps={{
-            size: 'small',
-            select: true,
-            hiddenLabel: true,
-            SelectProps: {
-              autoWidth: true,
-            },
-            value: value.selectType || 'all',
-            onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-              (value.selectType = e.target.value as any),
-            children: [
-              <MenuItem key="all" value="all">
-                {t('allTools')}
-              </MenuItem>,
-              <MenuItem key="selectByPrompt" value="selectByPrompt">
-                {t('selectPrompt')}
-              </MenuItem>,
-            ],
-          }}
-        />
-
-        {assistant.type === 'prompt' && (
-          <IndicatorTextField
-            projectId={projectId}
-            gitRef={gitRef}
-            path={[value.id, value.role ?? 'system']}
-            TextFiledProps={{
-              size: 'small',
-              select: true,
-              hiddenLabel: true,
-              SelectProps: {
-                autoWidth: true,
-              },
-              value: value.role || 'system',
-              onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                (value.role = e.target.value as Role),
-              children: [
-                <MenuItem key="system" value="system">
-                  {t('systemPrompt')}
-                </MenuItem>,
-                <MenuItem key="user" value="user">
-                  {t('userPrompt')}
-                </MenuItem>,
-                <MenuItem key="assistant" value="assistant">
-                  {t('assistantPrompt')}
-                </MenuItem>,
-                <MenuItem key="none" value="none">
-                  {t('ignoreOutput')}
-                </MenuItem>,
-              ],
-            }}
-          />
-        )}
-
-        <Box flex={1} />
-      </Stack>
-
-      {value.selectType === 'selectByPrompt' && (
-        <Stack>
-          <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Typography variant="caption">{t('prompt')}</Typography>
-            <ModelPopper>
-              <ModelSetting
-                files={store.files}
-                value={value}
-                readOnly={readOnly}
-                projectId={projectId}
-                gitRef={gitRef}
-              />
-            </ModelPopper>
-          </Box>
-          <PromptEditorField
-            readOnly={readOnly}
-            projectId={projectId}
-            gitRef={gitRef}
-            path={path.concat('selectByPrompt')}
-            assistant={assistant}
-            value={value.selectByPrompt}
-            onChange={(prompt) => (value.selectByPrompt = prompt)}
-          />
-        </Stack>
-      )}
+      </Box>
 
       <Divider />
-
-      <Stack gap={0.5}>
-        {(!tools || tools?.length === 0) && (
-          <Typography mt={1} px={1} variant="subtitle2">
-            {t('emptyToolPlaceholder')}
-          </Typography>
-        )}
-        {tools?.map(({ data: tool }) => {
-          const f = store.files[tool.id];
-          const file = f && isAssistant(f) ? f : undefined;
-          if (!file) {
-            const dataset = datasets.find((x) => x.id === tool.id);
-
-            if (dataset) {
-              return (
-                <Stack
-                  key={dataset.id}
-                  direction="row"
-                  sx={{
-                    px: 1,
-                    minHeight: 32,
-                    gap: 1,
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    borderRadius: 1,
-                    ':hover': {
-                      bgcolor: 'action.hover',
-
-                      '.hover-visible': {
-                        display: 'flex',
-                      },
-                    },
-                    backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
-                  }}
-                  onClick={() => {
-                    if (readOnly) return;
-                    toolForm.current?.form.reset(cloneDeep(tool));
-                    dialogState.open();
-                  }}>
-                  <Typography variant="subtitle2" noWrap maxWidth="50%">
-                    {getDatasetTextByI18n(dataset, 'summary', locale) || t('unnamed')}
-                  </Typography>
-
-                  <Typography variant="body1" color="text.secondary" flex={1} noWrap>
-                    {getDatasetTextByI18n(dataset, 'description', locale)}
-                  </Typography>
-
-                  {!readOnly && (
-                    <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
-                      <Button
-                        sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const doc = (getYjsValue(value) as Map<any>).doc!;
-                          doc.transact(() => {
-                            if (value.tools) {
-                              delete value.tools[tool.id];
-                              sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
-                            }
-                          });
-                        }}>
-                        <Trash sx={{ fontSize: 18 }} />
-                      </Button>
-                    </Stack>
-                  )}
-                </Stack>
-              );
-            }
-
-            return null;
-          }
-
-          return (
-            <Stack
-              key={file.id}
-              direction="row"
-              sx={{
-                px: 1,
-                minHeight: 32,
-                gap: 1,
-                alignItems: 'center',
-                cursor: 'pointer',
-                borderRadius: 1,
-                ':hover': {
-                  bgcolor: 'action.hover',
-                  '.hover-visible': {
-                    display: 'flex',
-                  },
+      <Accordion
+        sx={{
+          '&::before': {
+            display: 'none',
+          },
+        }}
+        square
+        disableGutters
+        defaultExpanded
+        elevation={0}>
+        <AccordionSummary
+          sx={{
+            px: 1,
+            minHeight: 28,
+            '& .MuiAccordionSummary-content': {
+              my: 0,
+            },
+          }}
+          expandIcon={<GridExpandMoreIcon />}>
+          <Typography variant="subtitle2">{t('executeSettings')}</Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 0, px: 1, mt: 0.5, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
+          <Box display="flex" alignItems="baseline" justifyContent="space-between">
+            <Box display="flex">
+              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('executeMethods')}</Typography>
+              <Tooltip title={t('executeMethodsTip')} placement="top" disableInteractive>
+                <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+              </Tooltip>
+            </Box>
+            <IndicatorTextField
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, value.selectType ?? 'all']}
+              TextFiledProps={{
+                size: 'small',
+                select: true,
+                hiddenLabel: true,
+                SelectProps: {
+                  autoWidth: true,
                 },
-                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.tools.${tool.id}`) },
+                value: value.selectType || 'all',
+                onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                  (value.selectType = e.target.value as any),
+                children: [
+                  <MenuItem key="all" value="all">
+                    {t('allTools')}
+                  </MenuItem>,
+                  <MenuItem key="selectByPrompt" value="selectByPrompt">
+                    {t('selectPrompt')}
+                  </MenuItem>,
+                ],
               }}
+            />
+          </Box>
+          {value.selectType === 'selectByPrompt' && (
+            <Box display="flex" justifyContent="space-between">
+              <Box display="flex" alignItems="center">
+                <Typography sx={{ whiteSpace: 'nowrap' }}>{t('prompt')}</Typography>
+                <ModelPopper>
+                  <ModelSetting
+                    files={store.files}
+                    value={value}
+                    readOnly={readOnly}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                  />
+                </ModelPopper>
+              </Box>
+              <Box width="60%">
+                <PromptEditorField
+                  readOnly={readOnly}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  ContentProps={{ sx: { px: 1, py: 0.5 } }}
+                  placeholder="Your select prompt"
+                  path={path.concat('selectByPrompt')}
+                  assistant={assistant}
+                  value={value.selectByPrompt}
+                  onChange={(prompt) => (value.selectByPrompt = prompt)}
+                />
+              </Box>
+            </Box>
+          )}
+        </AccordionDetails>
+      </Accordion>
+      <Divider />
+
+      <Accordion
+        sx={{
+          '&::before': {
+            display: 'none',
+          },
+        }}
+        square
+        disableGutters
+        defaultExpanded
+        elevation={0}>
+        <AccordionSummary
+          sx={{
+            px: 1,
+            minHeight: 28,
+            '& .MuiAccordionSummary-content': {
+              my: 0,
+            },
+          }}
+          expandIcon={<GridExpandMoreIcon />}>
+          <Typography variant="subtitle2">{t('outputSettings')}</Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 0, mt: 0.5, px: 1, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
+          {assistant.type === 'prompt' && (
+            <Box display="flex" alignItems="baseline" justifyContent="space-between">
+              <Box display="flex">
+                <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputRole')}</Typography>
+                <Tooltip title={t('outputRoleTip')} placement="top" disableInteractive>
+                  <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+                </Tooltip>
+              </Box>
+              <IndicatorTextField
+                projectId={projectId}
+                gitRef={gitRef}
+                path={[value.id, value.role ?? 'system']}
+                TextFiledProps={{
+                  size: 'small',
+                  select: true,
+                  hiddenLabel: true,
+                  SelectProps: {
+                    autoWidth: true,
+                  },
+                  value: value.role || 'system',
+                  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                    (value.role = e.target.value as Role),
+                  children: [
+                    <MenuItem key="system" value="system">
+                      {t('systemPrompt')}
+                    </MenuItem>,
+                    <MenuItem key="user" value="user">
+                      {t('userPrompt')}
+                    </MenuItem>,
+                    <MenuItem key="assistant" value="assistant">
+                      {t('assistantPrompt')}
+                    </MenuItem>,
+                    <MenuItem key="none" value="none">
+                      {t('ignoreOutput')}
+                    </MenuItem>,
+                  ],
+                }}
+              />
+            </Box>
+          )}
+          {value.role !== 'none' && value.formatResultType !== 'asHistory' && (
+            <>
+              {assistant.type === 'prompt' && (
+                <Box display="flex" alignItems="baseline" justifyContent="space-between">
+                  <Box display="flex">
+                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
+                    <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
+                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+                    </Tooltip>
+                  </Box>
+                  <Box width="60%">
+                    <PromptEditorField
+                      readOnly={readOnly}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      ContentProps={{
+                        sx: {
+                          px: 1,
+                          py: 0.5,
+                        },
+                      }}
+                      placeholder="Your output prefix"
+                      path={[value.id, 'prefix']}
+                      assistant={assistant}
+                      value={value.prefix}
+                      onChange={(prefix) => (value.prefix = prefix)}
+                    />
+                  </Box>
+                </Box>
+              )}
+              {assistant.type === 'prompt' && (
+                <Box display="flex" alignItems="baseline" justifyContent="space-between">
+                  <Box display="flex">
+                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
+                    <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
+                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+                    </Tooltip>
+                  </Box>
+                  <Box width="60%">
+                    <PromptEditorField
+                      readOnly={readOnly}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      ContentProps={{
+                        sx: {
+                          px: 1,
+                          py: 0.5,
+                        },
+                      }}
+                      placeholder="Your output suffix"
+                      path={[value.id, 'suffix']}
+                      assistant={assistant}
+                      value={value.suffix}
+                      onChange={(suffix) => (value.suffix = suffix)}
+                    />
+                  </Box>
+                </Box>
+              )}
+            </>
+          )}
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Typography sx={{ whiteSpace: 'nowrap' }}>{t('formatResult')}</Typography>
+            <IndicatorTextField
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, value.formatResultType ?? 'none']}
+              TextFiledProps={{
+                size: 'small',
+                select: true,
+                hiddenLabel: true,
+                SelectProps: {
+                  autoWidth: true,
+                },
+                value: value.formatResultType || 'none',
+                onChange: (e) => (value.formatResultType = e.target.value as any),
+                children: [
+                  <MenuItem key="none" value="none">
+                    {t('stayAsIs')}
+                  </MenuItem>,
+                  <MenuItem key="asHistory" value="asHistory">
+                    {t('asHistory')}
+                  </MenuItem>,
+                ],
+              }}
+            />
+          </Box>
+        </AccordionDetails>
+      </Accordion>
+      <Divider />
+
+      <Accordion
+        sx={{
+          '&::before': {
+            display: 'none',
+          },
+        }}
+        square
+        disableGutters
+        defaultExpanded
+        elevation={0}>
+        <AccordionSummary
+          sx={{
+            px: 1,
+            minHeight: 28,
+            '& .MuiAccordionSummary-content': {
+              my: 0,
+            },
+          }}
+          expandIcon={<GridExpandMoreIcon />}>
+          <Typography variant="subtitle2">{t('tool')}</Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 0, px: 1, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
+          {(!tools || tools?.length === 0) && (
+            <Typography alignSelf="center" mt={1} px={1} variant="caption" color="text.secondary">
+              {t('emptyToolPlaceholder')}
+            </Typography>
+          )}
+          {tools?.map(({ data: tool }) => (
+            <ToolItemView
+              key={tool.id}
+              getDiffBackground={getDiffBackground}
+              projectId={projectId}
+              projectRef={gitRef}
+              tool={tool}
+              executeBlock={value}
+              readOnly={readOnly}
+              openApis={openApis}
+              datasets={datasets}
               onClick={() => {
                 if (readOnly) return;
                 toolForm.current?.form.reset(cloneDeep(tool));
                 dialogState.open();
-              }}>
-              <Typography variant="subtitle2" noWrap maxWidth="50%">
-                {file.name || t('unnamed')}
-              </Typography>
+              }}
+            />
+          ))}
 
-              <Typography variant="body1" color="text.secondary" flex={1} noWrap>
-                {file.description}
-              </Typography>
-
-              {!readOnly && (
-                <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={1}>
-                  <Button
-                    sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const doc = (getYjsValue(value) as Map<any>).doc!;
-                      doc.transact(() => {
-                        if (value.selectType === 'selectByPrompt') {
-                          const selectTool = value.tools?.[tool.id];
-                          if (selectTool) {
-                            selectTool.data.onEnd = undefined;
-                          }
-                        }
-                        if (value.tools) {
-                          delete value.tools[tool.id];
-                          sortBy(Object.values(value.tools), 'index').forEach((i, index) => (i.index = index));
-                        }
-                      });
-                    }}>
-                    <Trash sx={{ fontSize: 18 }} />
-                  </Button>
-
-                  <Button
-                    sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(joinURL('.', `${file.id}.yaml`));
-                    }}>
-                    <External sx={{ fontSize: 18 }} />
-                  </Button>
-                </Stack>
-              )}
-            </Stack>
-          );
-        })}
-
-        {!readOnly && (
-          <Box>
-            <Button
-              startIcon={<Add />}
-              onClick={() => {
-                toolForm.current?.form.reset({ id: undefined, parameters: undefined });
-                dialogState.open();
-              }}>
-              {t('addObject', { object: t('tool') })}
-            </Button>
-          </Box>
-        )}
-      </Stack>
-
-      <Stack direction="row" alignItems="center" gap={1}>
-        <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
-          {t('formatResult')}
-        </Typography>
-
-        <IndicatorTextField
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, value.formatResultType ?? 'none']}
-          TextFiledProps={{
-            select: true,
-            hiddenLabel: true,
-            SelectProps: { autoWidth: true },
-            value: value.formatResultType || 'none',
-            onChange: (e) => (value.formatResultType = e.target.value as any),
-            children: [
-              <MenuItem key="none" value="none">
-                {t('stayAsIs')}
-              </MenuItem>,
-              <MenuItem key="asHistory" value="asHistory">
-                {t('asHistory')}
-              </MenuItem>,
-            ],
-          }}
-        />
-
-        <Box flex={1} />
-      </Stack>
+          {!readOnly && (
+            <Box>
+              <Button
+                startIcon={<Add />}
+                onClick={() => {
+                  toolForm.current?.form.reset({ id: undefined, parameters: undefined });
+                  dialogState.open();
+                }}>
+                {t('addObject', { object: t('tool') })}
+              </Button>
+            </Box>
+          )}
+        </AccordionDetails>
+      </Accordion>
 
       <ToolDialog
         executeBlock={value}
@@ -394,7 +442,8 @@ export default function ExecuteBlockForm({
         assistant={assistant}
         gitRef={gitRef}
         DialogProps={{ ...bindDialog(dialogState) }}
-        datasets={datasets.map((x) => ({ ...x, from: FROM }))}
+        openApis={openApis.map((x) => ({ ...x, from: FROM_DATASET }))}
+        datasets={datasets.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
           doc.transact(() => {
@@ -416,6 +465,140 @@ export default function ExecuteBlockForm({
   );
 }
 
+function ToolItemView({
+  getDiffBackground,
+  projectId,
+  projectRef,
+  tool,
+  executeBlock,
+  readOnly,
+  openApis,
+  datasets,
+  ...props
+}: {
+  executeBlock: ExecuteBlockYjs;
+  getDiffBackground: (path: any, id?: string | undefined, defaultValue?: string | undefined) => { [x: string]: string };
+  projectId: string;
+  projectRef: string;
+  tool: Tool;
+  readOnly?: boolean;
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+} & StackProps) {
+  const navigate = useNavigate();
+
+  const { t, locale } = useLocaleContext();
+  const { store } = useProjectStore(projectId, projectRef);
+
+  const f = store.files[tool.id];
+  const file = f && isAssistant(f) ? f : undefined;
+
+  const dataset = datasets.find((x) => x.id === tool.id);
+  const api = openApis.find((i) => i.id === tool.id);
+
+  const target = file ?? dataset ?? api;
+
+  if (!target) return null;
+
+  const name = api ? getDatasetTextByI18n(api, 'summary', locale) || t('unnamed') : target.name;
+  const description = api ? getDatasetTextByI18n(api, 'description', locale) : target.description;
+
+  return (
+    <Stack
+      direction="row"
+      {...props}
+      sx={{
+        minHeight: 32,
+        gap: 1,
+        alignItems: 'center',
+        cursor: 'pointer',
+        borderRadius: 1,
+        ':hover': {
+          bgcolor: 'action.hover',
+          '.hover-visible': {
+            display: 'flex',
+          },
+        },
+        backgroundColor: { ...getDiffBackground('prepareExecutes', `${executeBlock.id}.data.tools.${tool.id}`) },
+      }}>
+      <Tooltip title={t('defaultTool')}>
+        <Typography
+          noWrap
+          maxWidth="50%"
+          color={
+            executeBlock.selectType === 'selectByPrompt' && executeBlock.defaultToolId === tool.id
+              ? 'primary.main'
+              : undefined
+          }>
+          {name || t('unnamed')}
+        </Typography>
+      </Tooltip>
+
+      <Typography variant="body1" color="text.secondary" flex={1} noWrap>
+        {description}
+      </Typography>
+
+      <Stack direction="row" className="hover-visible" sx={{ display: 'none' }} gap={0.5}>
+        {executeBlock.selectType === 'selectByPrompt' && (
+          <Tooltip title={executeBlock.defaultToolId === tool.id ? t('unsetDefaultTool') : t('setDefaultTool')}>
+            <Button
+              sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const doc = (getYjsValue(executeBlock) as Map<any>).doc!;
+                doc.transact(() => {
+                  if (executeBlock.defaultToolId === tool.id) {
+                    executeBlock.defaultToolId = undefined;
+                  } else {
+                    executeBlock.defaultToolId = tool.id;
+                  }
+                });
+              }}>
+              <Star
+                sx={{ fontSize: 18, color: executeBlock.defaultToolId === tool.id ? 'primary.main' : 'text.secondary' }}
+              />
+            </Button>
+          </Tooltip>
+        )}
+
+        {!readOnly && (
+          <Button
+            sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const doc = (getYjsValue(executeBlock) as Map<any>).doc!;
+              doc.transact(() => {
+                if (executeBlock.selectType === 'selectByPrompt') {
+                  const selectTool = executeBlock.tools?.[tool.id];
+                  if (selectTool) {
+                    selectTool.data.onEnd = undefined;
+                  }
+                }
+                if (executeBlock.tools) {
+                  delete executeBlock.tools[tool.id];
+                  sortBy(Object.values(executeBlock.tools), 'index').forEach((i, index) => (i.index = index));
+                }
+              });
+            }}>
+            <Trash sx={{ fontSize: 18 }} />
+          </Button>
+        )}
+
+        {file && (
+          <Button
+            sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(joinURL('.', `${file.id}.yaml`));
+            }}>
+            <External sx={{ fontSize: 18 }} />
+          </Button>
+        )}
+      </Stack>
+    </Stack>
+  );
+}
+
 type Option = {
   id: NonNullable<ExecuteBlock['tools']>[number]['id'];
   type: Exclude<FileTypeYjs, { $base64: string }>['type'] | string;
@@ -428,7 +611,13 @@ const filter = createFilterOptions<Option>();
 function isDatasetObject(
   option: any
 ): option is DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] } {
-  return option && option.from === FROM;
+  return option && option.from === FROM_DATASET;
+}
+
+function isKnowledgeObject(
+  option: any
+): option is DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] } {
+  return option && option.from === FROM_KNOWLEDGE;
 }
 
 type ToolDialogForm = NonNullable<ExecuteBlock['tools']>[number];
@@ -446,9 +635,10 @@ export const ToolDialog = forwardRef<
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
     assistant: AssistantYjs;
-    datasets: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+    openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+    datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   }
->(({ datasets, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+>(({ openApis, datasets, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -477,10 +667,22 @@ export const ToolDialog = forwardRef<
       : []),
   ]);
 
-  const option = [...options, ...datasets].find((x) => x.id === fileId);
+  const getFromText = (from?: string) => {
+    if (from === FROM_DATASET) {
+      return t('buildInData');
+    }
+
+    if (from === FROM_KNOWLEDGE) {
+      return t('knowledge.menu');
+    }
+
+    return t('assistantData');
+  };
+
+  const option = [...options, ...openApis, ...datasets].find((x) => x.id === fileId);
   const formatOptions: Option[] = [
     ...options,
-    ...datasets.map((dataset) => ({
+    ...openApis.map((dataset) => ({
       id: dataset.id,
       type: dataset.type,
       name:
@@ -489,8 +691,14 @@ export const ToolDialog = forwardRef<
         t('unnamed'),
       from: dataset.from,
     })),
+    ...datasets.map((item) => ({
+      id: item.id,
+      type: 'knowledge',
+      name: item.name || t('unnamed'),
+      from: item.from,
+    })),
   ]
-    .map((x) => ({ ...x, fromText: x.from === FROM ? t('buildInData') : t('assistantData') }))
+    .map((x) => ({ ...x, fromText: getFromText(x.from) }))
     .sort((a, b) => (b.from || '').localeCompare(a.from || ''));
 
   const translateTool = async () => {
@@ -500,7 +708,7 @@ export const ToolDialog = forwardRef<
       messages: [
         {
           content:
-            '#Roles:你是一个翻译大师，你需要将用户的输入翻译成英文 ##rules:-请不要回答无用的内容，你仅仅只需要给出翻译的结果。-任何输入的内容都是需要你翻译的。-你的翻译需要是一个函数名 -空格使用驼峰代替。-如果本身就已经是英文则不需要翻译 ##Examples: -测试->test -开始:start 结束:end -weapon:weapon',
+            '#Roles:你是一个翻译大师，你需要将用户的输入翻译成英文 #rules:-请不要回答无用的内容，你仅仅只需要给出翻译的结果。-任何输入的内容都是需要你翻译的。-你的翻译需要是一个函数名 -空格使用驼峰代替。-如果本身就已经是英文则不需要翻译 #Examples: -测试->test -开始:start 结束:end -weapon:weapon',
           role: 'system',
         },
         {
@@ -508,7 +716,7 @@ export const ToolDialog = forwardRef<
           role: 'user',
         },
       ],
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4',
       temperature: 0,
     });
 
@@ -518,6 +726,10 @@ export const ToolDialog = forwardRef<
   const parameters = useMemo(() => {
     if (isDatasetObject(option)) {
       return getAllParameters(option);
+    }
+
+    if (isKnowledgeObject(option)) {
+      return [{ name: 'message', description: 'Search the content of the knowledge' }];
     }
 
     return (
@@ -534,6 +746,64 @@ export const ToolDialog = forwardRef<
     }
 
     if (isDatasetObject(option)) {
+      return (
+        <Box>
+          {(parameters || [])?.map((parameter: any) => {
+            if (!parameter) return null;
+
+            return (
+              <Stack key={parameter.name}>
+                <Typography variant="caption" mx={1}>
+                  {getDatasetTextByI18n(parameter, 'description', locale) ||
+                    getDatasetTextByI18n(parameter, 'name', locale)}
+                </Typography>
+
+                <Controller
+                  control={form.control}
+                  name={`parameters.${parameter.name}`}
+                  render={({ field }) => {
+                    if (parameter['x-input-type'] === 'select') {
+                      return (
+                        <AsyncSelect
+                          label={getDatasetTextByI18n(parameter, 'name', locale)}
+                          remoteAPI={parameter['x-options-api']}
+                          remoteOptions={parameter['x-options-value'] || []}
+                          remoteKey={parameter['x-option-key']}
+                          remoteTitle={parameter['x-name']}
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          queryParams={{ appId: projectId }}
+                        />
+                      );
+                    }
+
+                    return (
+                      <PromptEditorField
+                        placeholder={
+                          executeBlock.selectType === 'selectByPrompt'
+                            ? t('selectByPromptParameterPlaceholder')
+                            : assistantParameters.has(parameter.key)
+                              ? `{{ ${parameter.name} }}`
+                              : undefined
+                        }
+                        value={field.value || ''}
+                        projectId={projectId}
+                        gitRef={gitRef}
+                        assistant={assistant}
+                        path={[assistantId, parameter.name]}
+                        onChange={(value) => field.onChange({ target: { value } })}
+                      />
+                    );
+                  }}
+                />
+              </Stack>
+            );
+          })}
+        </Box>
+      );
+    }
+
+    if (isKnowledgeObject(option)) {
       return (
         <Box>
           {(parameters || [])?.map((parameter: any) => {
@@ -693,7 +963,7 @@ export const ToolDialog = forwardRef<
                       // 清理：parameters 数据
                       form.reset({ id: value?.id, from: value?.from });
 
-                      if (value.from === FROM) {
+                      if (value.from === FROM_DATASET || value.from === FROM_KNOWLEDGE) {
                         field.onChange({ target: { value: value?.id } });
                         return;
                       }
@@ -717,7 +987,7 @@ export const ToolDialog = forwardRef<
               }}
             />
 
-            {!isDatasetObject(option) && (
+            {!isDatasetObject(option) && !isKnowledgeObject(option) && (
               <Controller
                 control={form.control}
                 name="functionName"
@@ -756,7 +1026,7 @@ export const ToolDialog = forwardRef<
           {!!parameters?.length && (
             <Box>
               <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
-                <Stack gap={0.5} direction="row" alignItems="center">
+                <Stack justifyContent="space-between" direction="row" alignItems="center">
                   <Typography variant="subtitle2" color="text.secondary">
                     {t('parameters')}
                   </Typography>
@@ -783,3 +1053,102 @@ export const ToolDialog = forwardRef<
     </Dialog>
   );
 });
+
+interface OptionType {
+  id: string | number;
+  name: string;
+  [key: string]: any;
+}
+
+interface AsyncSelectProps {
+  remoteAPI?: string;
+  remoteOptions?: OptionType[];
+  remoteKey?: string;
+  remoteTitle?: string;
+  label: string;
+  value: any;
+  onChange: (event: { target: { value: any } }) => void;
+  queryParams: { [key: string]: string };
+}
+
+const AsyncSelect: React.FC<AsyncSelectProps> = memo(
+  ({
+    remoteAPI,
+    remoteOptions = [],
+    remoteKey = 'id',
+    remoteTitle = 'name',
+    label,
+    value,
+    onChange,
+    queryParams,
+  }: AsyncSelectProps) => {
+    const [open, setOpen] = useState(false);
+    const [options, setOptions] = useState<OptionType[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const fetchOptions = useCallback(async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        if (remoteOptions && Array.isArray(remoteOptions) && remoteOptions.length > 0) {
+          setOptions(remoteOptions);
+        } else if (remoteAPI) {
+          const query = new URLSearchParams(queryParams).toString();
+          const url = `${remoteAPI}?${query}`;
+          const { data } = await axios(url);
+          setOptions(data);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load options');
+        setOptions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, [remoteAPI, remoteOptions, queryParams]);
+
+    useEffect(() => {
+      fetchOptions();
+    }, [fetchOptions]);
+
+    const currentValue = options.find((x) => x[remoteKey] === value);
+    return (
+      <Autocomplete
+        key={Boolean(currentValue).toString() || ''}
+        open={open}
+        value={currentValue}
+        onChange={(_, newValue) => onChange({ target: { value: newValue?.[remoteKey] } })}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
+        isOptionEqualToValue={(option, val) => option[remoteKey] === val[remoteKey]}
+        getOptionLabel={(option) => option[remoteTitle]}
+        options={options}
+        loading={loading}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={label}
+            error={!!error}
+            helperText={error || ''}
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {loading && <CircularProgress color="inherit" size={20} />}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
+            }}
+          />
+        )}
+        renderOption={(props, option) => (
+          <MenuItem {...props} key={option[remoteKey]}>
+            {option[remoteTitle]}
+          </MenuItem>
+        )}
+      />
+    );
+  }
+);

@@ -10,7 +10,6 @@ import { memo, useEffect, useMemo, useRef } from 'react';
 
 const MarkdownViewer = styled(Box)`
   padding: 0 4px;
-  font-size: 14px;
   background-color: transparent;
 
   h1,
@@ -25,7 +24,8 @@ const MarkdownViewer = styled(Box)`
 
   p {
     word-break: break-word;
-    margin: ${({ theme }) => theme.spacing(1)} 0px;
+    margin: 0;
+    padding: ${({ theme }) => theme.spacing(1)} 0px;
   }
 
   ul,
@@ -126,6 +126,7 @@ function MdViewer(props: MdViewerProps) {
       const validLanguage = hljs.getLanguage(language as string) ? language : 'plaintext';
       const highlightedCode = hljs.highlight(validLanguage as string, code).value;
 
+      if (validLanguage === 'md') return convertMarkdownToHTML(code);
       if (validLanguage === 'markdown') return convertMarkdownToHTML(code);
 
       return `

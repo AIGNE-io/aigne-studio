@@ -1,0 +1,19 @@
+import { createSvgIcon } from '@mui/material';
+
+const Database = createSvgIcon(
+  <svg width="800px" height="800px" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
+    <g
+      fill="none"
+      fillRule="evenodd"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      transform="translate(4 2)">
+      <path d="m.5 3.20588235c0-1.29949353 2.5-2.74110534 6-2.70588235s6 1.55344765 6 2.85294118v10.29411762c0 1.2994936-2.5 2.8529412-6 2.8529412s-6-1.7005065-6-3c0-.6412832 0-9.65283449 0-10.29411765z" />
+      <path d="m.5 3.5c0 1.38071187 2 3 6 3s6-1.63689962 6-3.0176115m-12 5.0176115c0 1.38071187 2 3 6 3s6-1.63689962 6-3.0176115" />
+    </g>
+  </svg>,
+  'Database'
+);
+
+export default Database;

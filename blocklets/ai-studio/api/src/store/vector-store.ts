@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, rmSync } from 'fs';
+import { access, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 
+import { pathExists } from 'fs-extra';
 import { Embeddings } from 'langchain/dist/embeddings/base';
 import { HNSWLib, HNSWLibArgs } from 'langchain/vectorstores/hnswlib';
 
@@ -9,22 +10,27 @@ import logger from '../libs/logger';
 
 const vectorStores = new Map<string, Promise<VectorStore>>();
 
-const vectorStorePath = (datasetId: string) => join(Config.dataDir, 'vectors', datasetId);
+const vectorStorePath = (path: string) => join(Config.dataDir, 'vectors', path);
 
 HNSWLib.imports = async () => {
   try {
     const {
       default: { HierarchicalNSW },
-    } = await import('@blocklet/hnswlib-node');
+    } = await import('hnswlib-node');
     return { HierarchicalNSW };
   } catch (error) {
     logger.error('import HNSWLib error', { error });
-    throw new Error(
-      'Please install @blocklet/hnswlib-node as a dependency with, e.g. `npm install -S @blocklet/hnswlib-node`'
-    );
+    throw new Error('Please install hnswlib-node as a dependency with, e.g. `npm install -S hnswlib-node`');
   }
 };
-
+async function checkFileExists(filePath: string) {
+  try {
+    await access(filePath);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
 export default class VectorStore extends HNSWLib {
   constructor(
     private directory: string,
@@ -34,27 +40,27 @@ export default class VectorStore extends HNSWLib {
     super(embeddings, args);
   }
 
-  static override async load(datasetId: string, embeddings: Embeddings): Promise<VectorStore> {
-    const path = vectorStorePath(datasetId);
+  static override async load(path: string, embeddings: Embeddings): Promise<VectorStore> {
+    const storePath = vectorStorePath(path);
 
-    let store = vectorStores.get(path);
+    let store = vectorStores.get(storePath);
     if (!store) {
       store = (async () => {
         let hnsw: HNSWLib;
 
-        if (existsSync(path)) {
+        if (await pathExists(storePath)) {
           try {
-            hnsw = await HNSWLib.load(path, embeddings);
+            hnsw = await HNSWLib.load(storePath, embeddings);
           } catch (error) {
             logger.error('HNSWLib load from path error', { error });
           }
         }
-        mkdirSync(path, { recursive: true });
+        await mkdir(storePath, { recursive: true });
         hnsw ??= await HNSWLib.fromDocuments([], embeddings);
 
-        return new VectorStore(path, hnsw.embeddings, hnsw.args);
+        return new VectorStore(storePath, hnsw.embeddings, hnsw.args);
       })();
-      vectorStores.set(path, store);
+      vectorStores.set(storePath, store);
     }
     return store;
   }
@@ -63,9 +69,21 @@ export default class VectorStore extends HNSWLib {
     await super.save(this.directory);
   }
 
-  static async remove(datasetId: string) {
-    vectorStores.delete(datasetId);
+  static async reset(datasetId: string): Promise<void> {
     const path = vectorStorePath(datasetId);
-    await rmSync(path, { recursive: true, force: true });
+
+    if (await checkFileExists(path)) {
+      await rm(path, { recursive: true, force: true });
+      logger.info(`VectorStore for datasetId ${datasetId} has been reset.`);
+    } else {
+      logger.info(`VectorStore for datasetId ${datasetId} does not exist, no need to reset.`);
+    }
+
+    // 确保目录被重新创建
+    // mkdirSync(path, { recursive: true });
+
+    // 从 vectorStores Map 中移除这个存储，因为它已被重置
+    vectorStores.delete(path);
+    await rm(path, { recursive: true, force: true });
   }
 }

@@ -16,17 +16,17 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Prepare @blocklet/cli deps
-        run: yarn global add @blocklet/cli@beta
-        shell: bash
-
-      - name: Set yarn cache
-        uses: c-hive/gha-yarn-cache@v2
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
 
       - name: Install dependencies
-        run: yarn
+        run: pnpm install
+
+      - name: Build libs
+        run: pnpm build:libs
 
       - name: Publish to NPM
         run: |
@@ -46,12 +46,18 @@ jobs:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
         uses: blocklet/action-workflow@v1
         with:
-          skip-deps: true
+          deps-server-version: beta
+          skip-deps: false
           skip-upload: false
-          skip-deploy: true
+          skip-deploy: false
           working-directory: blocklets/ai-studio
-          bundle-command: yarn bundle
+          bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}
           store-access-token: ${{ secrets.STORE_ACCESS_TOKEN_TEST }}
           slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          abtnode-endpoint: ${{ secrets.STAGING_NODE_ENDPOINT }}
+          access-key: ${{ secrets.STAGING_NODE_ACCESS_KEY }}
+          access-secret: ${{ secrets.STAGING_NODE_ACCESS_SECRET }}
+          deploy-app-did: zNKq56yExCXmaQpir9nFRu9aPFSYvSoKQr1e
+          deploy-mount-point: /

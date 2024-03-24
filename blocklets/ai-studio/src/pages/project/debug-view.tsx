@@ -34,14 +34,14 @@ import {
   selectClasses,
   styled,
 } from '@mui/material';
-import { useLocalStorageState } from 'ahooks';
+import { useLocalStorageState, useThrottleEffect } from 'ahooks';
 import dayjs from 'dayjs';
 import { pick, sortBy } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import { nanoid } from 'nanoid';
 import { ComponentProps, SyntheticEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { FlatIndexLocationWithAlign, Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { Virtuoso } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
 import Broom from './icons/broom';
@@ -75,7 +75,7 @@ export default function DebugView(props: {
   });
 
   return (
-    <Box flexGrow={1} display="flex" flexDirection="column" key={state.currentSessionIndex}>
+    <Box display="flex" flexDirection="column" flex={1} key={state.currentSessionIndex}>
       <DebugViewContent {...props} />
       {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.assistant.id} />}
     </Box>
@@ -94,28 +94,11 @@ function DebugViewContent({
   setCurrentTab: (tab: string) => void;
 }) {
   const { t } = useLocaleContext();
-  const virtuoso = useRef<VirtuosoHandle>(null);
-  const { state, setSession, clearCurrentSession } = useDebugState({
+
+  const { state, setSession, clearCurrentSession, deleteSession } = useDebugState({
     projectId,
     assistantId: assistant.id,
   });
-
-  const [showScrollBox, setShowScrollBox] = useState(false);
-
-  const handleScroll = useCallback(
-    (event: React.UIEvent<HTMLDivElement>) => {
-      const bottomThreshold = 400;
-      const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight <= bottomThreshold;
-
-      if (!isNearBottom && !showScrollBox) {
-        setShowScrollBox(true);
-      } else if (isNearBottom && showScrollBox) {
-        setShowScrollBox(false);
-      }
-    },
-    [showScrollBox]
-  );
 
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
 
@@ -123,9 +106,9 @@ function DebugViewContent({
   return (
     <>
       <Box
-        px={4}
-        pb={2}
-        pt={1}
+        mx={4}
+        mb={2}
+        mt={1}
         display="flex"
         justifyContent="space-between"
         bgcolor="background.paper"
@@ -133,87 +116,43 @@ function DebugViewContent({
         <Box maxWidth={200}>
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
-        <Tooltip title={t('clearSession')}>
-          <IconButton
-            size="small"
-            sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
-            onClick={clearCurrentSession}>
-            <Broom fontSize="small" />
-          </IconButton>
-        </Tooltip>
+
+        <Stack direction="row" alignItems="center" gap={1}>
+          <Tooltip title={t('clearSession')}>
+            <IconButton
+              size="small"
+              sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
+              onClick={clearCurrentSession}>
+              <Broom fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title={t('deleteSession')}>
+            <IconButton
+              sx={{ minWidth: 0, p: 0.25 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteSession(currentSession.index);
+              }}>
+              <Trash sx={{ color: 'text.secondary' }} />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       </Box>
 
-      <Box
-        sx={{
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-          height: 0,
-          flexGrow: 1,
-          overflowX: 'hidden',
-        }}>
-        <Virtuoso
-          ref={virtuoso}
-          data={currentSession.messages}
-          followOutput={(isAtBottom: boolean) => {
-            if (isAtBottom) {
-              return 'auto';
-            }
+      <ScrollMessages currentSession={currentSession} key={assistant.id} />
 
-            return false;
-          }}
-          onScroll={handleScroll}
-          computeItemKey={(_, item) => item.id}
-          initialTopMostItemIndex={currentSession.messages.length - 1}
-          itemContent={(index, message) => (
-            <MessageView index={index} chatType={currentSession.chatType ?? 'chat'} message={message} />
-          )}
-        />
-        {showScrollBox && (
-          <Box
-            onClick={() => {
-              virtuoso.current?.scrollToIndex({
-                behavior: 'smooth',
-                index: currentSession.messages.length - 1,
-              });
-            }}
-            sx={{
-              bgcolor: 'rgba(0, 0, 0, 0.2)',
-              borderRadius: '10px',
-              borderWidth: 0,
-              bottom: 5,
-              cursor: 'pointer',
-              height: 20,
-              position: 'absolute',
-              right: 20,
-              width: 20,
-            }}
-          />
-        )}
-      </Box>
-
-      <Stack gap={2} sx={{ bgcolor: 'background.paper', my: 2 }}>
-        {currentSession.chatType !== 'debug' ? (
-          <ChatModeForm
-            scrollToIndex={virtuoso.current?.scrollToIndex}
-            projectId={projectId}
-            gitRef={gitRef}
-            assistant={assistant}
-          />
+      <Stack gap={2} sx={{ bgcolor: 'background.paper', pb: 1.875, pt: 0.25 }}>
+        {currentSession.chatType === 'chat' ? (
+          <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
         ) : (
-          <DebugModeForm
-            scrollToIndex={virtuoso.current?.scrollToIndex}
-            projectId={projectId}
-            gitRef={gitRef}
-            assistant={assistant}
-            setCurrentTab={setCurrentTab}
-          />
+          <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
         )}
 
         <Box textAlign="center">
           <ToggleButtonGroup
             exclusive
-            value={currentSession.chatType ?? 'chat'}
+            value={currentSession.chatType ?? 'debug'}
             sx={{ button: { py: 0.25 } }}
             onChange={(_, v) =>
               setSession(currentSession.index, (session) => {
@@ -229,9 +168,117 @@ function DebugViewContent({
   );
 }
 
+function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
+  const autoScroll = useRef(true);
+  const [hitBottom, setHitBottom] = useState(true);
+  const viewportRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior) => {
+    const container = viewportRef.current;
+    if (container && autoScroll.current) {
+      requestAnimationFrame(() =>
+        container.scroll({
+          top: container.scrollHeight,
+          behavior,
+        })
+      );
+    }
+  }, []);
+
+  const handleScroll = (e: HTMLDivElement) => {
+    const isTouchBottom = e.scrollTop + e.offsetHeight >= e.scrollHeight - 20;
+    setHitBottom(isTouchBottom);
+  };
+
+  const assistantArray = currentSession.messages.filter((i) => i.role === 'assistant');
+  const lastAssistantContent = currentSession.messages[currentSession.messages.length - 1]?.content;
+
+  useEffect(() => {
+    autoScroll.current = true;
+    if (assistantArray.length > 0 && autoScroll.current) {
+      setTimeout(() => {
+        scrollToBottom('smooth');
+      }, 500);
+    }
+  }, [assistantArray.length, scrollToBottom]);
+
+  useThrottleEffect(
+    () => {
+      if (autoScroll.current && lastAssistantContent) {
+        scrollToBottom('smooth');
+      }
+    },
+    [lastAssistantContent, scrollToBottom],
+    { wait: 300 }
+  );
+
+  return (
+    <Box
+      style={{
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        flexGrow: 1,
+      }}>
+      <Box
+        position="relative"
+        display="flex"
+        flexGrow={1}
+        height={0}
+        flexDirection="column"
+        sx={{
+          overflowY: 'scroll',
+          overflowX: 'hidden',
+        }}
+        ref={viewportRef}
+        onScroll={(e) => handleScroll(e.currentTarget)}
+        onWheel={(e) => {
+          return (autoScroll.current = hitBottom && e.deltaY > 0);
+        }}
+        onTouchStart={() => {
+          autoScroll.current = false;
+        }}>
+        <Virtuoso
+          customScrollParent={viewportRef.current!}
+          data={currentSession.messages}
+          initialTopMostItemIndex={currentSession.messages.length - 1}
+          computeItemKey={(_, item) => item.id}
+          itemContent={(index, message) => (
+            <MessageView index={index} chatType={currentSession.chatType ?? 'chat'} message={message} />
+          )}
+        />
+      </Box>
+      {!hitBottom && (
+        <Box
+          onClick={() => {
+            const container = viewportRef.current;
+            if (container) {
+              container.scroll({
+                top: container.scrollHeight,
+                behavior: 'smooth',
+              });
+            }
+          }}
+          sx={{
+            bgcolor: 'rgba(0, 0, 0, 0.2)',
+            borderRadius: '10px',
+            borderWidth: 0,
+            bottom: 5,
+            cursor: 'pointer',
+            height: 20,
+            position: 'absolute',
+            right: 20,
+            width: 20,
+          }}
+        />
+      )}
+    </Box>
+  );
+}
+
 function SessionSelect({ projectId, assistantId }: { projectId: string; assistantId: string }) {
   const { t } = useLocaleContext();
-  const { state, newSession, deleteSession, setCurrentSession } = useDebugState({
+  const { state, newSession, setCurrentSession } = useDebugState({
     projectId,
     assistantId,
   });
@@ -254,18 +301,7 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
       onChange={(e) => setCurrentSession(e.target.value as number)}>
       {state.sessions.map((session) => (
         <MenuItem key={session.index} value={session.index}>
-          <Typography flex={1}>
-            {t('session')} {session.index}
-          </Typography>
-
-          <Button
-            sx={{ minWidth: 0, p: 0.25 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              deleteSession(session.index);
-            }}>
-            <Trash sx={{ fontSize: 14, color: 'text.secondary' }} />
-          </Button>
+          {t('session')} {session.index}
         </MenuItem>
       ))}
       <MenuItem
@@ -300,7 +336,7 @@ const MessageView = memo(
         )}
         <Stack px={4} py={1} gap={1} flexDirection="row" position="relative">
           <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-          <Box sx={{ overflowX: 'hidden', pb: 1, flexGrow: 1 }}>
+          <Box sx={{ overflowX: 'hidden', flexGrow: 1 }}>
             <BasicTree inputs={message.inputMessages} />
             <Box
               flex={1}
@@ -311,7 +347,7 @@ const MessageView = memo(
               (chatType !== 'debug' || !message?.inputMessages?.length) ? (
                 <MessageViewContent
                   sx={{
-                    p: 1,
+                    px: 1,
                     borderRadius: 1,
                     bgcolor: (theme) =>
                       message?.inputMessages
@@ -407,12 +443,10 @@ function ChatModeForm({
   projectId,
   gitRef,
   assistant,
-  scrollToIndex,
 }: {
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
-  scrollToIndex?: (location: number | FlatIndexLocationWithAlign) => void;
 }) {
   const { t } = useLocaleContext();
 
@@ -453,13 +487,6 @@ function ChatModeForm({
       },
     });
 
-    if (currentSession?.messages?.length) {
-      const lastIndex = currentSession.messages.length - 1;
-      scrollToIndex?.({
-        behavior: 'smooth',
-        index: lastIndex,
-      });
-    }
     setQuestion('');
   };
 
@@ -522,13 +549,11 @@ function DebugModeForm({
   gitRef,
   assistant,
   setCurrentTab,
-  scrollToIndex,
 }: {
   projectId: string;
   gitRef: string;
   assistant: AssistantYjs;
   setCurrentTab: (tab: string) => void;
-  scrollToIndex?: (location: number | FlatIndexLocationWithAlign) => void;
 }) {
   const { t } = useLocaleContext();
   const key = `${projectId}-${gitRef}-${assistant.id}`;
@@ -593,13 +618,6 @@ function DebugModeForm({
     setSession(state.currentSessionIndex!, (session) => {
       session.debugForm = { ...parameters };
     });
-    if (currentSession?.messages?.length) {
-      const lastIndex = currentSession.messages.length - 1;
-      scrollToIndex?.({
-        behavior: 'smooth',
-        index: lastIndex,
-      });
-    }
   };
 
   const addToTest = () => {
