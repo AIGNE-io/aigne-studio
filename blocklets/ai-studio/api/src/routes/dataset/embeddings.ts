@@ -20,8 +20,11 @@ export const queue = createQueue({
     concurrency: 3,
     maxTimeout: 5 * 60 * 1000,
   },
-  onJob: async ({ job }) => {
+  onJob: async (task) => {
     try {
+      const { job } = task;
+      logger.info('Job Start', task);
+
       const documentId = job?.documentId;
       if (!documentId) {
         throw new Error('documentId not found');
@@ -169,6 +172,7 @@ const embeddingHandler: {
       currentTotal = total;
       currentIndex++;
       sse.send({ documentId, embeddingStatus: `${current}/${total}`, embeddingEndAt: new Date() }, 'change');
+      logger.info('embedding fullSite discussion', { total, current });
 
       try {
         const discussion = await getDiscussion(discussionId);
@@ -228,7 +232,7 @@ export async function getDiscussion(
 export async function* discussionsIterator() {
   let page = 0;
   let index = 0;
-  const size = 2;
+  const size = 20;
 
   while (true) {
     page += 1;
@@ -255,10 +259,7 @@ export async function searchDiscussions({
   size?: number;
 }): Promise<{ data: { id: string; title: string }[]; total: number }> {
   return axios
-    .get('/api/discussions', {
-      baseURL: discussBaseUrl(),
-      params: { page, size, search },
-    })
+    .get('/api/discussions', { baseURL: discussBaseUrl(), params: { page, size, search } })
     .then((res) => res.data);
 }
 
