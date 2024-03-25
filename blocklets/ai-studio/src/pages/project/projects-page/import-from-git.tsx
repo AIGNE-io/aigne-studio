@@ -68,9 +68,7 @@ export default function ImportFromGit() {
         });
         form.reset(value);
 
-        currentGitStore.setState({
-          currentProjectId: project._id,
-        });
+        currentGitStore.setState({ currentProjectId: project._id });
 
         dialogState.close();
         navigate(joinURL('/projects', project._id!));
