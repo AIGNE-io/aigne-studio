@@ -1,49 +1,64 @@
 import user from '@blocklet/sdk/lib/middlewares/user';
+import compression from 'compression';
 import { Router } from 'express';
 import Joi from 'joi';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 
-import { checkUserAuth } from '../../libs/user';
-import Dataset from '../../store/models/dataset/list';
+import { userAuth } from '../../libs/user';
+import Dataset from '../../store/models/dataset/dataset';
+import { sse } from './embeddings';
 
 const router = Router();
 
-const datasetSchema = Joi.object<{ name?: string }>({
+const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: string }>({
   name: Joi.string().allow('').empty(null).default(''),
+  description: Joi.string().allow('').empty(null).default(''),
+  appId: Joi.string().allow('').empty(null).default(''),
 });
 
 /**
  * @openapi
- * /api/dataset/list:
+ * /api/datasets:
  *    get:
  *      type: 'SEARCH'
- *      summary: Retrieve the current user's datasets
+ *      summary: Get the current user's datasets
  *      x-summary-zh: 获取当前用户数据集
- *      description: Retrieve the current user's datasets
+ *      description: Get the current user's datasets
  *      x-description-zh: 获取当前用户数据集
  *      responses:
  *        200:
- *          description: Successfully retrieved the current user's datasets
+ *          description: Successfully get the current user's datasets
  *          x-description-zh: 获取当前用户数据集
  */
-router.get('/list', user(), checkUserAuth(), async (req, res) => {
+router.get('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
-  const list = await Dataset.findAll({
-    order: [['createdAt', 'ASC']],
-    where: { [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
+  const where: any = { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
+
+  const { appId } = await Joi.object<{ appId?: string }>({
+    appId: Joi.string().allow('').empty(null).default(''),
+  }).validateAsync(req.query, { stripUnknown: true });
+  if (appId) where.appId = appId;
+
+  const sql = Sequelize.literal(
+    '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
+  );
+
+  const datasets = await Dataset.findAll({
+    where,
+    attributes: { include: [[sql, 'documents']] },
   });
 
-  res.json({ datasets: list });
+  res.json(datasets);
 });
 
 /**
  * @openapi
- * /api/dataset/{datasetId}:
+ * /api/datasets/{datasetId}:
  *    get:
  *      type: 'SEARCH'
- *      summary: Retrieve details of a specific dataset
+ *      summary: Get details of dataset
  *      x-summary-zh: 获取当前用户数据集详情
- *      description: Retrieve detailed information of a specific dataset by datasetId
+ *      description: Get detailed information of dataset by datasetId
  *      x-description-zh: 通过数据集ID获取某个特定数据集的详细信息
  *      parameters:
  *        - name: datasetId
@@ -51,6 +66,10 @@ router.get('/list', user(), checkUserAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: input
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -59,13 +78,17 @@ router.get('/list', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully retrieved the dataset details
  *          x-description-zh: 获取当前用户数据集详情
  */
-router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
+router.get('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
+  const where: { [key: string]: any } = { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
-  const dataset = await Dataset.findOne({
-    where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
-  });
+  const { appId } = await Joi.object<{ appId?: string }>({
+    appId: Joi.string().allow('').empty(null).default(''),
+  }).validateAsync(req.query, { stripUnknown: true });
+  if (appId) where.appId = appId;
+
+  const dataset = await Dataset.findOne({ where });
 
   if (!dataset) {
     res.status(404).json({ error: 'No such dataset' });
@@ -77,7 +100,7 @@ router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
 
 /**
  * @openapi
- * /api/dataset/create:
+ * /api/datasets:
  *    post:
  *      type: 'CREATE'
  *      summary: Create a new dataset
@@ -93,22 +116,26 @@ router.get('/:datasetId', user(), checkUserAuth(), async (req, res) => {
  *              properties:
  *                name:
  *                  type: string
+ *                description:
+ *                  type: string
+ *                appId:
+ *                  type: string
  *      responses:
  *        200:
  *          description: Successfully created a new dataset
  *          x-description-zh: 创建新的数据集
  */
-router.post('/create', user(), checkUserAuth(), async (req, res) => {
-  const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+router.post('/', user(), userAuth(), async (req, res) => {
   const { did } = req.user!;
+  const { name = '', description = '', appId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
 
-  const doc = await Dataset.create({ name, createdBy: did, updatedBy: did });
-  res.json(doc);
+  const dataset = await Dataset.create({ name, description, appId, createdBy: did, updatedBy: did });
+  res.json(dataset);
 });
 
 /**
  * @openapi
- * /api/dataset/{datasetId}:
+ * /api/datasets/{datasetId}:
  *    put:
  *      type: 'UPDATE'
  *      summary: Update a dataset
@@ -121,6 +148,10 @@ router.post('/create', user(), checkUserAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: input
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -133,12 +164,16 @@ router.post('/create', user(), checkUserAuth(), async (req, res) => {
  *              properties:
  *                name:
  *                  type: string
+ *                description:
+ *                  type: string
+ *                appId:
+ *                  type: string
  *      responses:
  *        200:
  *          description: Successfully updated the dataset
  *          x-description-zh: 更新数据集
  */
-router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
+router.put('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
   const { did } = req.user!;
 
@@ -148,22 +183,20 @@ router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
     return;
   }
 
-  const { name } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const { name, description, appId } = await datasetSchema.validateAsync(req.body, { stripUnknown: true });
+  const params: any = {};
+  if (name) params.name = name;
+  if (description) params.description = description;
+  if (appId) params.appId = appId;
 
-  if (name && (await Dataset.findOne({ where: { name, id: { [Op.ne]: dataset.id } } }))) {
-    throw new Error(`Duplicated dataset ${name}`);
-  }
+  await Dataset.update({ ...params, updatedBy: did }, { where: { id: datasetId } });
 
-  await Dataset.update({ name, updatedBy: did }, { where: { id: datasetId } });
-
-  const doc = await Dataset.findOne({ where: { id: datasetId } });
-
-  res.json(doc);
+  res.json(await Dataset.findOne({ where: { id: datasetId } }));
 });
 
 /**
  * @openapi
- * /api/dataset/{datasetId}:
+ * /api/datasets/{datasetId}:
  *    delete:
  *      type: 'DELETE'  # Changed from 'SEARCH' to 'DELETE' as it's more appropriate for a delete operation
  *      summary: Delete a dataset
@@ -176,6 +209,10 @@ router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
+ *          x-input-type: input
+ *          x-options-api: /ai-studio/api/datasets
+ *          x-option-key: id
+ *          x-option-name: name
  *          schema:
  *            type: string
  *            default: ''
@@ -184,7 +221,7 @@ router.put('/:datasetId', user(), checkUserAuth(), async (req, res) => {
  *          description: Successfully deleted the dataset
  *          x-description-zh: 删除数据集
  */
-router.delete('/:datasetId', user(), checkUserAuth(), async (req, res) => {
+router.delete('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
 
   const dataset = await Dataset.findOne({ where: { [Op.or]: [{ id: datasetId }, { name: datasetId }] } });
@@ -197,5 +234,7 @@ router.delete('/:datasetId', user(), checkUserAuth(), async (req, res) => {
 
   res.json(dataset);
 });
+
+router.get('/:datasetId/embeddings', compression(), sse.init);
 
 export default router;

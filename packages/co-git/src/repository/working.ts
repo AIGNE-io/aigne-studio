@@ -32,22 +32,27 @@ export type WorkingStore<T> = {
   tree: { [key: string]: string };
 };
 
+const YJS_STATE_FILE_PATH = (root: string) => path.join(root, 'state.yjs');
+
 export default class Working<T> extends Doc {
-  constructor(
+  static async load<T>(repo: Repository<T>, options: WorkingOptions) {
+    const yjsPath = YJS_STATE_FILE_PATH(options.root);
+    const initial = (await pathExists(yjsPath)) ? await readFile(yjsPath) : undefined;
+    return new Working<T>(repo, options, { initial });
+  }
+
+  private constructor(
     readonly repo: Repository<T>,
-    readonly options: WorkingOptions
+    readonly options: WorkingOptions,
+    { initial }: { initial?: Buffer }
   ) {
     super();
 
-    const { yjsPath } = this;
-    pathExists(yjsPath)
-      .then((exist) => {
-        if (!exist) {
-          return undefined;
-        }
-        return readFile(yjsPath).then((res) => applyUpdate(this, res));
-      })
-      .catch((error) => console.error(`co-git: apply update from file ${this.yjsPath} error`, error));
+    try {
+      if (initial) applyUpdate(this, initial);
+    } catch (error) {
+      console.error(`co-git: apply update from file ${this.yjsPath} error`, error);
+    }
 
     this.on('update', this.updateHandler);
 
@@ -60,7 +65,7 @@ export default class Working<T> extends Doc {
   readonly syncedStore: MappedTypeDescription<WorkingStore<T>>;
 
   private get yjsPath() {
-    return path.join(this.options.root, 'state.yjs');
+    return YJS_STATE_FILE_PATH(this.options.root);
   }
 
   async reset() {

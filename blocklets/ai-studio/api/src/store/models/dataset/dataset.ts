@@ -7,41 +7,12 @@ const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
 
-export default class NewDatasetItem extends Model<
-  InferAttributes<NewDatasetItem>,
-  InferCreationAttributes<NewDatasetItem>
-> {
+export default class Dataset extends Model<InferAttributes<Dataset>, InferCreationAttributes<Dataset>> {
   declare id: CreationOptional<string>;
-
-  declare datasetId: string;
 
   declare name?: string;
 
-  declare type: 'discussion' | 'text' | 'markdown' | 'txt' | 'pdf';
-
-  declare data?:
-    | {
-        type: 'text';
-        content: string;
-      }
-    | {
-        type: 'discussion';
-        id: string;
-      }
-    | {
-        type: 'markdown';
-        path: string;
-      }
-    | {
-        type: 'txt';
-        path: string;
-      }
-    | {
-        type: 'pdf';
-        path: string;
-      };
-
-  declare content?: string;
+  declare description?: string;
 
   declare createdAt: CreationOptional<Date>;
 
@@ -51,10 +22,12 @@ export default class NewDatasetItem extends Model<
 
   declare updatedBy: string;
 
-  declare error?: string;
+  declare documents?: number;
+
+  declare appId?: string;
 }
 
-NewDatasetItem.init(
+Dataset.init(
   {
     id: {
       type: DataTypes.STRING,
@@ -62,18 +35,11 @@ NewDatasetItem.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    datasetId: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    type: {
-      type: DataTypes.STRING,
-    },
     name: {
       type: DataTypes.STRING,
     },
-    data: {
-      type: DataTypes.JSON,
+    description: {
+      type: DataTypes.STRING,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -89,7 +55,7 @@ NewDatasetItem.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    error: {
+    appId: {
       type: DataTypes.STRING,
     },
   },

@@ -46,10 +46,13 @@ export const getUsers = async (dids: string[]) => {
   return map;
 };
 
-export const checkUserAuth = () => {
+export const userAuth = () => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user?.did) {
-      res.status(401).json({ code: 'forbidden', error: 'not authorized' });
+      res.status(401).json({
+        code: 'forbidden',
+        error: 'The current user information is not obtained, and access to data is prohibited.',
+      });
       return;
     }
 

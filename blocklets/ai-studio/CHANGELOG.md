@@ -1,3 +1,67 @@
+## 0.1.299 (2024-3-22)
+
+- chore: readjust the dataset data db
+
+## 0.1.298 (2024-3-22)
+
+- chore: update deps
+- feat: add api to delete all sessions of a release
+
+## 0.1.297 (2024-3-21)
+
+- fix: dataset select error
+
+## 0.1.296 (2024-3-21)
+
+- fix: set deleting button color to warning
+- fix: set created at to now when copying a project
+- chore: update deps
+- fix: display white space for output in test view
+- fix: remove option `None` from select option list
+- fix: support copying project name in deleting confirmation
+- feat: add a file menu to copy assistant id to clipboard
+- feat: support default tool in executing block
+
+## 0.1.295 (2024-3-20)
+
+- fix: wait for the working data load finished
+
+## 0.1.294 (2024-3-20)
+
+- feat: support select dataset Id
+- fix: local request loading data document
+
+## 0.1.293 (2024-3-20)
+
+- feat: add api to delete session messages
+- feat: support displaying opener message
+- fix: place delete session button out from menus
+
+## 0.1.292 (2024-3-20)
+
+- fix: fullsite discussion save failed
+
+## 0.1.291 (2024-3-19)
+
+- feat: add fullsite discussion
+- fix: show api error log
+
+## 0.1.290 (2024-3-19)
+
+- feat: support knowledge
+
+## 0.1.289 (2024-3-18)
+
+- fix: prompt editor focus
+
+## 0.1.288 (2024-3-18)
+
+- fix: prompt editor
+
+## 0.1.287 (2024-3-15)
+
+- feat: add keystore db for json search
+
 ## 0.1.286 (2024-3-15)
 
 - fix: require save before publish

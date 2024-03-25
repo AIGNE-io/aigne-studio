@@ -779,11 +779,11 @@ async function copyProject({
   const repo = await getRepository({ projectId: original._id! });
 
   const project = await Project.create({
-    ...original.dataValues,
+    ...omit(original.dataValues, 'createdAt', 'updatedAt'),
     _id: nextProjectId(),
     model: original.model || '',
-    ...patch,
     name: patch.name || (original.name && `${original.name}-copy`),
+    ...patch,
   });
 
   const parent = dirname(repo.root);

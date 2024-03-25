@@ -25,10 +25,16 @@ const LanguageField = forwardRef<
       select
       onChange={(e) => onChange(e.target.value)}
       {...props}
-      InputProps={{ ...props.InputProps, readOnly }}>
-      <MenuItem value="">
-        <em>None</em>
-      </MenuItem>
+      InputProps={{ ...props.InputProps, readOnly }}
+      sx={{
+        ...props.sx,
+        '& .MuiSelect-select .notranslate::after': parameter?.placeholder
+          ? {
+              content: `"${parameter.placeholder}"`,
+              opacity: 0.42,
+            }
+          : {},
+      }}>
       {languages.map((option) => (
         <MenuItem key={option.en} value={option.en}>
           {locale === 'zh' ? option.cn : option.en}

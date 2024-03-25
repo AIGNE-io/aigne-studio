@@ -1,30 +1,50 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
-import { sequelize } from '../sequelize';
+import { sequelize } from '../../sequelize';
 
 const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
 
-export default class DatasetItem extends Model<InferAttributes<DatasetItem>, InferCreationAttributes<DatasetItem>> {
-  declare _id: CreationOptional<string>;
+export enum UploadStatus {
+  Idle = 'idle',
+  Uploading = 'uploading',
+  Success = 'success',
+  Error = 'error',
+}
+
+export default class DatasetDocument extends Model<
+  InferAttributes<DatasetDocument>,
+  InferCreationAttributes<DatasetDocument>
+> {
+  declare id: CreationOptional<string>;
 
   declare datasetId: string;
 
-  declare name?: string;
+  declare type: 'discussion' | 'text' | 'file' | 'fullSite';
 
   declare data?:
     | {
-        type: 'discussion';
-        fullSite?: false;
-        id: string;
+        type: 'text';
+        content: string;
       }
     | {
         type: 'discussion';
-        fullSite: true;
-        id?: undefined;
+        id: string;
+      }
+    | {
+        type: 'fullSite';
+        ids: string[];
+      }
+    | {
+        type: string;
+        path: string;
       };
+
+  declare name?: string;
+
+  declare content?: any;
 
   declare createdAt: CreationOptional<Date>;
 
@@ -34,14 +54,18 @@ export default class DatasetItem extends Model<InferAttributes<DatasetItem>, Inf
 
   declare updatedBy: string;
 
-  declare embeddedAt?: Date;
+  declare error?: string | null;
 
-  declare error?: string;
+  declare embeddingStartAt?: Date;
+
+  declare embeddingEndAt?: Date;
+
+  declare embeddingStatus?: UploadStatus | string;
 }
 
-DatasetItem.init(
+DatasetDocument.init(
   {
-    _id: {
+    id: {
       type: DataTypes.STRING,
       primaryKey: true,
       allowNull: false,
@@ -51,11 +75,14 @@ DatasetItem.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    name: {
+    type: {
       type: DataTypes.STRING,
     },
     data: {
       type: DataTypes.JSON,
+    },
+    name: {
+      type: DataTypes.STRING,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -71,10 +98,16 @@ DatasetItem.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    embeddedAt: {
+    error: {
+      type: DataTypes.STRING,
+    },
+    embeddingStartAt: {
       type: DataTypes.DATE,
     },
-    error: {
+    embeddingEndAt: {
+      type: DataTypes.DATE,
+    },
+    embeddingStatus: {
       type: DataTypes.STRING,
     },
   },
