@@ -1,3 +1,7 @@
+## 0.1.300 (2024-3-25)
+
+- fix: add logger for fullSite discussion
+
 ## 0.1.299 (2024-3-22)
 
 - chore: readjust the dataset data db
