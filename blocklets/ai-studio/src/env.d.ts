@@ -18,4 +18,11 @@ declare module 'circular-natal-horoscope-js/dist' {
   export { Horoscope, Origin } from 'circular-natal-horoscope-js';
 }
 
-declare var blocklet: import('@blocklet/sdk').WindowBlocklet;
+declare var blocklet: import('@blocklet/sdk').WindowBlocklet & {
+  /**
+   * @example zNKhZCE3RSaC4UDpB3dR1CxD3vpGkawEkStz/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB
+   * @description
+   * @type {string}
+   */
+  componentId: string;
+};

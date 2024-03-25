@@ -19,8 +19,9 @@ export function getProjectDataUrlInSpace(endpoint: string, projectId: string): s
   const strArray = endpoint.replace(/\/$/, '').split('/');
   const spaceDid = strArray.at(-4) as string;
   const appDid = strArray.at(-2);
+  const [, componentDid] = window.blocklet.componentId.split('/');
 
   return withQuery(joinURL(baseUrl, `space/${spaceDid}/apps/${appDid}/explorer`), {
-    key: joinURL(`/apps/${appDid}/.components/${window.blocklet.did}/repositories/${projectId}/`),
+    key: joinURL(`/apps/${appDid}/.components/${componentDid}/repositories/${projectId}/`),
   });
 }
