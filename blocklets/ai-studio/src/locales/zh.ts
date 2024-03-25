@@ -549,4 +549,5 @@ export default flat({
   segmentsView: '索引方式',
   shareTip: '访问地址',
   refreshTip: '重新索引',
+  loginAsAdminButton: '使用管理员账号登录查看项目',
 });

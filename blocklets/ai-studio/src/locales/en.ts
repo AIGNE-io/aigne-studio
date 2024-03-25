@@ -555,4 +555,5 @@ export default flat({
   segmentsView: 'Segments View',
   shareTip: 'Access link',
   refreshTip: 'Reembedding',
+  loginAsAdminButton: 'Login as Admin to view projects',
 });
