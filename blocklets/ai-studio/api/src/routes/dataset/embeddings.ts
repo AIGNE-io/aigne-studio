@@ -2,7 +2,7 @@ import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
 import axios from 'axios';
 import SSE from 'express-sse';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { Op } from 'sequelize';
+import { intersection } from 'lodash';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import logger from '../../libs/logger';
@@ -11,7 +11,8 @@ import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
 import EmbeddingHistory from '../../store/models/dataset/embedding-history';
 import Segment from '../../store/models/dataset/segment';
-import VectorStore from '../../store/vector-store';
+import UpdateHistory from '../../store/models/dataset/update-history';
+import VectorStoreFaiss from '../../store/vector-store-faiss';
 
 export const sse = new SSE();
 
@@ -20,8 +21,11 @@ export const queue = createQueue({
     concurrency: 3,
     maxTimeout: 5 * 60 * 1000,
   },
-  onJob: async ({ job }) => {
+  onJob: async (task) => {
     try {
+      const { job } = task;
+      logger.info('Job Start', task);
+
       const documentId = job?.documentId;
       if (!documentId) {
         throw new Error('documentId not found');
@@ -74,7 +78,7 @@ const updateEmbeddingHistory = async ({
   updatedAt?: Date | string;
 }) => {
   try {
-    const previousEmbedding = await EmbeddingHistory.findOne({ where: { targetId } });
+    const previousEmbedding = await EmbeddingHistory.findOne({ where: { targetId, datasetId } });
     if (previousEmbedding?.targetVersion && updatedAt) {
       if (
         new Date(previousEmbedding?.targetVersion).toISOString() === new Date(updatedAt || new Date()).toISOString()
@@ -84,17 +88,20 @@ const updateEmbeddingHistory = async ({
     }
 
     if (await EmbeddingHistory.findOne({ where: { targetId } })) {
-      await EmbeddingHistory.update({ startAt: new Date(), status: UploadStatus.Uploading }, { where: { targetId } });
+      await EmbeddingHistory.update(
+        { startAt: new Date(), status: UploadStatus.Uploading },
+        { where: { targetId, datasetId } }
+      );
     } else {
-      await EmbeddingHistory.create({ startAt: new Date(), status: UploadStatus.Uploading, targetId });
+      await EmbeddingHistory.create({ startAt: new Date(), status: UploadStatus.Uploading, targetId, datasetId });
     }
 
     if (content) await saveContentToVectorStore(content, datasetId, documentId);
 
-    if (await EmbeddingHistory.findOne({ where: { targetId } })) {
+    if (await EmbeddingHistory.findOne({ where: { targetId, datasetId } })) {
       await EmbeddingHistory.update(
         { targetVersion: new Date(updatedAt || new Date()), endAt: new Date(), status: UploadStatus.Success },
-        { where: { targetId } }
+        { where: { targetId, datasetId } }
       );
     } else {
       await EmbeddingHistory.create({
@@ -102,20 +109,24 @@ const updateEmbeddingHistory = async ({
         endAt: new Date(),
         status: UploadStatus.Success,
         targetId,
+        datasetId,
       });
     }
 
     return true;
   } catch (error) {
-    if (await EmbeddingHistory.findOne({ where: { targetId } })) {
-      await EmbeddingHistory.update({ error: error.message, status: UploadStatus.Error }, { where: { targetId } });
+    if (await EmbeddingHistory.findOne({ where: { targetId, datasetId } })) {
+      await EmbeddingHistory.update(
+        { error: error.message, status: UploadStatus.Error },
+        { where: { targetId, datasetId } }
+      );
     } else {
-      await EmbeddingHistory.create({ targetId, error: error.message, status: UploadStatus.Error });
+      await EmbeddingHistory.create({ targetId, datasetId, error: error.message, status: UploadStatus.Error });
     }
 
     await DatasetDocument.update(
       { error: error.message, embeddingStatus: UploadStatus.Error, embeddingEndAt: new Date() },
-      { where: { id: targetId } }
+      { where: { id: targetId, datasetId } }
     );
 
     return false;
@@ -169,6 +180,7 @@ const embeddingHandler: {
       currentTotal = total;
       currentIndex++;
       sse.send({ documentId, embeddingStatus: `${current}/${total}`, embeddingEndAt: new Date() }, 'change');
+      logger.info('embedding fullSite discussion', { total, current });
 
       try {
         const discussion = await getDiscussion(discussionId);
@@ -228,7 +240,7 @@ export async function getDiscussion(
 export async function* discussionsIterator() {
   let page = 0;
   let index = 0;
-  const size = 2;
+  const size = 20;
 
   while (true) {
     page += 1;
@@ -255,50 +267,58 @@ export async function searchDiscussions({
   size?: number;
 }): Promise<{ data: { id: string; title: string }[]; total: number }> {
   return axios
-    .get('/api/discussions', {
-      baseURL: discussBaseUrl(),
-      params: { page, size, search },
-    })
+    .get('/api/discussions', { baseURL: discussBaseUrl(), params: { page, size, search } })
     .then((res) => res.data);
 }
+
+export const deleteStore = async (datasetId: string, ids: string[]) => {
+  const embeddings = new AIKitEmbeddings({});
+  const store = await VectorStoreFaiss.load(datasetId, embeddings);
+
+  const remoteIds = Object.values(store.getMapping()) || [];
+  const deleteIds = intersection(remoteIds, ids);
+
+  // 直接删除时最保险的，但这样更严谨
+  if (deleteIds.length) {
+    await store.delete({ ids: deleteIds });
+    await store.save();
+  }
+};
+
+export const updateHistories = async (datasetId: string, documentId: string) => {
+  const { rows: messages, count } = await Segment.findAndCountAll({ where: { documentId } });
+  if (count > 0) {
+    const ids = messages.map((x) => x.id);
+    const found = await UpdateHistory.findOne({ where: { datasetId, documentId } });
+    if (found) {
+      await UpdateHistory.update({ segmentId: ids }, { where: { datasetId, documentId } });
+    } else {
+      await UpdateHistory.create({ segmentId: ids, datasetId, documentId });
+    }
+
+    await deleteStore(datasetId, ids);
+  }
+};
 
 export const saveContentToVectorStore = async (content: string, datasetId: string, documentId?: string) => {
   const textSplitter = new RecursiveCharacterTextSplitter();
   const docs = await textSplitter.createDocuments([content]);
 
+  let ids: string[] = [];
   if (documentId) {
-    for (const doc of docs) {
-      if (doc.pageContent) await Segment.create({ documentId, content: doc.pageContent });
-    }
+    await updateHistories(datasetId, documentId);
+
+    const savePromises = docs.map((doc) =>
+      doc.pageContent ? Segment.create({ documentId, content: doc.pageContent }) : Promise.resolve(null)
+    );
+    const results = await Promise.all(savePromises);
+    ids = results.filter((i): i is NonNullable<typeof i> => !!i).map((result) => result?.id);
   }
 
   const embeddings = new AIKitEmbeddings({});
   const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
-  const store = await VectorStore.load(datasetId, embeddings);
-  await store.addVectors(vectors, docs);
-  await store.save();
-};
 
-// 重新考虑如何处理
-export const resetVectorStoreEmbedding = async (datasetId: string) => {
-  const datasetItems = await DatasetDocument.findAll({ where: { datasetId } });
-  if (!datasetItems?.length) return;
-
-  await VectorStore.reset(datasetId);
-
-  const documentIds = datasetItems.map((item) => item.id);
-  const segments = await Segment.findAll({ where: { documentId: { [Op.in]: documentIds } } });
-
-  const texts = segments.map((x) => x.content).filter((i): i is NonNullable<typeof i> => !!i);
-  if (texts.length === 0) return;
-
-  const textSplitter = new RecursiveCharacterTextSplitter();
-  const docs = await textSplitter.createDocuments(texts);
-  if (docs.length === 0) return;
-
-  const embeddings = new AIKitEmbeddings({});
-  const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
-  const store = await VectorStore.load(datasetId, embeddings);
-  await store.addVectors(vectors, docs);
+  const store = await VectorStoreFaiss.load(datasetId, embeddings);
+  await store.addVectors(vectors, docs, { ids });
   await store.save();
 };

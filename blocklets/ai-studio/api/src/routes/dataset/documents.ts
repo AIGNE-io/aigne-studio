@@ -13,9 +13,9 @@ import { userAuth } from '../../libs/user';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
-import DatasetSegment from '../../store/models/dataset/segment';
-import VectorStore from '../../store/vector-store';
-import { discussionsIterator, queue } from './embeddings';
+import UpdateHistories from '../../store/models/dataset/update-history';
+import FaissStore from '../../store/vector-store-faiss';
+import { deleteStore, discussionsIterator, queue, updateHistories } from './embeddings';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -80,10 +80,26 @@ router.get('/:datasetId/search', async (req, res) => {
   }
 
   const embeddings = new AIKitEmbeddings({});
-  const store = await VectorStore.load(datasetId, embeddings);
-  const docs = await store.similaritySearch(input.message, 4);
+  const store = await FaissStore.load(datasetId, embeddings);
 
-  res.json({ docs: docs.map((i) => i.pageContent) });
+  try {
+    const records = await UpdateHistories.findAll({ where: { datasetId }, attributes: ['segmentId'] });
+    const uniqueSegmentIds = [...new Set(records.map((record) => record.segmentId).flat())];
+    await deleteStore(datasetId, uniqueSegmentIds);
+
+    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+      res.json({ docs: [] });
+      return;
+    }
+
+    const docs = await store.similaritySearch(input.message, 3);
+    const result = docs.map((x) => x?.pageContent);
+
+    res.json({ docs: result });
+  } catch (error) {
+    console.error(error);
+    res.json({ docs: [] });
+  }
 });
 
 /**
@@ -176,9 +192,10 @@ router.delete('/:datasetId/documents/:documentId', user(), userAuth(), async (re
 
   const document = DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
+  await updateHistories(datasetId, documentId);
+
   await Promise.all([
     DatasetDocument.destroy({ where: { id: documentId, datasetId } }),
-    DatasetSegment.destroy({ where: { documentId } }),
     DatasetContent.destroy({ where: { documentId } }),
   ]);
 
@@ -399,9 +416,7 @@ router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  if (document) {
-    queue.push({ documentId: document.id });
-  }
+  if (document) queue.push({ documentId: document.id });
 
   res.json(document);
 });
@@ -464,9 +479,7 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  if (document) {
-    queue.push({ documentId: document.id });
-  }
+  if (document) queue.push({ documentId: document.id });
 
   res.json(document);
 });
@@ -498,9 +511,7 @@ router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), a
 
   const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
 
-  if (document) {
-    queue.push({ documentId: document.id });
-  }
+  if (document) queue.push({ documentId: document.id });
 
   res.json(document);
 });

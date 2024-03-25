@@ -68,8 +68,6 @@ router.get('/:datasetId/documents/:documentId/segments', user(), userAuth(), asy
 //     datasetId: Joi.string().required(),
 //   }).validateAsync(req.params, { stripUnknown: true });
 
-//   await DatasetSegment.destroy({ where: { id: segmentId } });
-
 //   resetVectorStoreEmbedding(datasetId);
 
 //   res.json({ data: 'success' });
