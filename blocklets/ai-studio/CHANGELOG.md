@@ -1,3 +1,7 @@
+## 0.1.306 (2024-3-26)
+
+- chore: add HongHong simulator example project by resource component dependency
+
 ## 0.1.305 (2024-3-26)
 
 - fix: example project not working
