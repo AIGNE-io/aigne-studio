@@ -1,3 +1,7 @@
+## 0.1.303 (2024-3-26)
+
+- chore: replace vector-store-hnswlib to vector-store-faiss
+
 ## 0.1.302 (2024-3-26)
 
 - fix: catch the error of message rendering
