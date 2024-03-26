@@ -22,6 +22,18 @@ const SelectField = forwardRef<
       onChange={(e) => onChange(e.target.value)}
       {...props}
       InputProps={{ ...props.InputProps, readOnly }}
+      SelectProps={{
+        ...props.SelectProps,
+        MenuProps: {
+          ...props.SelectProps?.MenuProps,
+          sx: {
+            ...props.SelectProps?.MenuProps?.sx,
+            '.MuiMenuItem-root': {
+              whiteSpace: 'pre-wrap',
+            },
+          },
+        },
+      }}
       sx={{
         ...props.sx,
         '& .MuiSelect-select .notranslate::after': parameter?.placeholder

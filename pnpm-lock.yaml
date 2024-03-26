@@ -99,23 +99,23 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7
       '@blocklet/ai-kit':
-        specifier: ^0.1.25
-        version: 0.1.25(@babel/core@7.24.0)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(sqlite3@5.1.7)
+        specifier: ^0.1.26
+        version: 0.1.26(@babel/core@7.24.0)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(sqlite3@5.1.7)
       '@blocklet/ai-runtime':
-        specifier: ^0.1.303
+        specifier: ^0.1.304
         version: link:../../packages/ai-runtime
       '@blocklet/co-git':
-        specifier: ^0.1.303
+        specifier: ^0.1.304
         version: link:../../packages/co-git
       '@blocklet/constant':
         specifier: ^1.16.24
         version: 1.16.24
       '@blocklet/dataset-sdk':
-        specifier: ^0.1.303
+        specifier: ^0.1.304
         version: link:../../packages/dataset-sdk
       '@blocklet/discuss-kit':
-        specifier: ^1.6.184
-        version: 1.6.184(@babel/core@7.24.0)(@emotion/css@11.11.2)(@types/node@18.19.26)(@types/react@18.2.70)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)(yjs@13.6.14)
+        specifier: ^1.6.186
+        version: 1.6.186(@babel/core@7.24.0)(@emotion/css@11.11.2)(@types/node@18.19.26)(@types/react@18.2.70)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)(yjs@13.6.14)
       '@blocklet/logger':
         specifier: ^1.16.24
         version: 1.16.24
@@ -123,13 +123,13 @@ importers:
         specifier: ^1.13.201
         version: 1.13.201
       '@blocklet/prompt-editor':
-        specifier: ^0.1.303
+        specifier: ^0.1.304
         version: link:../../packages/prompt-editor
       '@blocklet/sdk':
         specifier: ^1.16.24
         version: 1.16.24
       '@blocklet/studio-ui':
-        specifier: ^0.1.303
+        specifier: ^0.1.304
         version: link:../../packages/studio-ui
       '@blocklet/ui-react':
         specifier: ^2.9.63
@@ -545,13 +545,13 @@ importers:
   packages/ai-runtime:
     dependencies:
       '@blocklet/ai-builtin':
-        specifier: ^0.1.303
+        specifier: ^0.1.304
         version: link:../ai-builtin
       '@blocklet/ai-kit':
-        specifier: ^0.1.25
-        version: 0.1.25(@babel/core@7.24.0)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(sqlite3@5.1.7)
+        specifier: ^0.1.26
+        version: 0.1.26(@babel/core@7.24.0)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(sqlite3@5.1.7)
       '@blocklet/dataset-sdk':
-        specifier: ^0.1.303
+        specifier: ^0.1.304
         version: link:../dataset-sdk
       '@blocklet/sdk':
         specifier: ^1.16.24
@@ -2235,8 +2235,8 @@ packages:
     deprecated: This package has been deprecated in favor of https://www.npmjs.com/package/gpt-tokenizer
     dev: false
 
-  /@blocklet/ai-kit@0.1.25(@babel/core@7.24.0)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(sqlite3@5.1.7):
-    resolution: {integrity: sha512-eWSZl+oLLKDejGPWEGmPaA499k6V1LbVb9aKMwNeKmOo8CV6Dbd+4L1IpTwUTrg3MauW92UvFCEqjcIW0pCtlQ==}
+  /@blocklet/ai-kit@0.1.26(@babel/core@7.24.0)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(sqlite3@5.1.7):
+    resolution: {integrity: sha512-QaExe+ssBwXDEJsr/UmegqeqkZJQWjVylk9YjSdMtNfVga8zUWUOSn/NbsxuxEGNE5ifT4VyLK/n/H2eJNmqCQ==}
     peerDependencies:
       react: ^18.2.0
     dependencies:
@@ -2305,8 +2305,8 @@ packages:
     resolution: {integrity: sha512-aB+tdql/og+to48p0JeGbt0N9M8lM8K3n04kfiXh3uPZszIgxnwAeQdNokYG7J1FpQbYCKPRXt/xO4IYU6riWw==}
     dev: false
 
-  /@blocklet/discuss-kit-ux@1.6.184(@arcblock/did-connect@2.9.63)(@arcblock/ux@2.9.63)(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/lab@5.0.0-alpha.169)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(clsx@1.2.1)(lodash@4.17.21)(prop-types@15.8.1)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)(yjs@13.6.14):
-    resolution: {integrity: sha512-bhQZ+x+2YFvzJUPq9FMd2FTEZ/vNIQvIZjTdVsQ5b0WTGQVL+R4gsxdaKDYW4PTbZFRJtWkgvrU8B70HansY/w==}
+  /@blocklet/discuss-kit-ux@1.6.186(@arcblock/did-connect@2.9.63)(@arcblock/ux@2.9.63)(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/lab@5.0.0-alpha.169)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(clsx@1.2.1)(lodash@4.17.21)(prop-types@15.8.1)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)(yjs@13.6.14):
+    resolution: {integrity: sha512-zU3fOH4kjnk/jvE31V2voDCKVcHWEfZt0XIiX7/Unm1nClB1HMPh3i97+oR5yzadxt64JMXeCx032NPviY61eg==}
     peerDependencies:
       '@arcblock/did-connect': ^2.4.61
       '@arcblock/ux': ^2.4.61
@@ -2322,8 +2322,8 @@ packages:
       '@arcblock/did-connect': 2.9.63(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
       '@arcblock/ux': 2.9.63(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
       '@arcblock/ws': 1.18.113
-      '@blocklet/editor': 1.6.184(@babel/core@7.24.0)(@emotion/css@11.11.2)(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(yjs@13.6.14)
-      '@blocklet/labels': 1.6.184(@arcblock/ux@2.9.63)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(lodash@4.17.21)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)
+      '@blocklet/editor': 1.6.186(@babel/core@7.24.0)(@emotion/css@11.11.2)(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(yjs@13.6.14)
+      '@blocklet/labels': 1.6.186(@arcblock/ux@2.9.63)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(lodash@4.17.21)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)
       '@blocklet/uploader': 0.0.73(@babel/core@7.24.0)(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@types/node@18.19.26)(@types/react@18.2.70)(react-dom@18.2.0)(react@18.2.0)
       '@emotion/css': 11.11.2
       '@emotion/react': 11.11.4(@types/react@18.2.70)(react@18.2.0)
@@ -2367,8 +2367,8 @@ packages:
       - yjs
     dev: false
 
-  /@blocklet/discuss-kit@1.6.184(@babel/core@7.24.0)(@emotion/css@11.11.2)(@types/node@18.19.26)(@types/react@18.2.70)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)(yjs@13.6.14):
-    resolution: {integrity: sha512-YDtuFBf1Cjto5eXxweVlIMUJ/hIj+VmBCjz51Zb4rg0AzEQ0A47vnj2/439P1GkhiGovCVqCn6DgrKRn25GQbQ==}
+  /@blocklet/discuss-kit@1.6.186(@babel/core@7.24.0)(@emotion/css@11.11.2)(@types/node@18.19.26)(@types/react@18.2.70)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)(yjs@13.6.14):
+    resolution: {integrity: sha512-d3/kJx78usQxx7EfWafa0tDsrUGdX0wtIZv1iyuDgWEnkQMlNJAqrYn9+rUvcbieRxnSI3ikAfilEfDupnKvTQ==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
@@ -2376,8 +2376,8 @@ packages:
       '@arcblock/did-connect': 2.9.63(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
       '@arcblock/ux': 2.9.63(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
       '@arcblock/ws': 1.18.113
-      '@blocklet/discuss-kit-ux': 1.6.184(@arcblock/did-connect@2.9.63)(@arcblock/ux@2.9.63)(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/lab@5.0.0-alpha.169)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(clsx@1.2.1)(lodash@4.17.21)(prop-types@15.8.1)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)(yjs@13.6.14)
-      '@blocklet/editor': 1.6.184(@babel/core@7.24.0)(@emotion/css@11.11.2)(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(yjs@13.6.14)
+      '@blocklet/discuss-kit-ux': 1.6.186(@arcblock/did-connect@2.9.63)(@arcblock/ux@2.9.63)(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/lab@5.0.0-alpha.169)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(clsx@1.2.1)(lodash@4.17.21)(prop-types@15.8.1)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)(yjs@13.6.14)
+      '@blocklet/editor': 1.6.186(@babel/core@7.24.0)(@emotion/css@11.11.2)(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(yjs@13.6.14)
       '@blocklet/ui-react': 2.9.63(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(react-dom@18.2.0)(react@18.2.0)
       '@emotion/react': 11.11.4(@types/react@18.2.70)(react@18.2.0)
       '@emotion/styled': 11.11.0(@emotion/react@11.11.4)(@types/react@18.2.70)(react@18.2.0)
@@ -2415,8 +2415,8 @@ packages:
       - yjs
     dev: false
 
-  /@blocklet/editor@1.6.184(@babel/core@7.24.0)(@emotion/css@11.11.2)(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(yjs@13.6.14):
-    resolution: {integrity: sha512-PSHzWYV8dmfUlopuD7J2ARacLrgA363ok7rlrQE65ZF9/FBedGw8pU72v2qpdmjTqs9aNuKimKsjAxuhd1+7Sg==}
+  /@blocklet/editor@1.6.186(@babel/core@7.24.0)(@emotion/css@11.11.2)(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(yjs@13.6.14):
+    resolution: {integrity: sha512-Zm4nZfl8krmwtrxtQV6mVpQcMRbI07GupsT/ZH64WkunQzQPj1smbqv88koiPZ5CuqESP+Kb4fNVa10hBeNH8g==}
     peerDependencies:
       '@emotion/css': '*'
       '@emotion/react': '*'
@@ -2427,7 +2427,7 @@ packages:
     dependencies:
       '@arcblock/ux': 2.9.63(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
       '@blocklet/embed': 0.1.11(react@18.2.0)
-      '@blocklet/pdf': 1.6.184(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@types/react@18.2.70)(react-dom@18.2.0)
+      '@blocklet/pdf': 1.6.186(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@types/react@18.2.70)(react-dom@18.2.0)
       '@emotion/css': 11.11.2
       '@emotion/react': 11.11.4(@types/react@18.2.70)(react@18.2.0)
       '@emotion/styled': 11.11.0(@emotion/react@11.11.4)(@types/react@18.2.70)(react@18.2.0)
@@ -2510,8 +2510,8 @@ packages:
     transitivePeerDependencies:
       - debug
 
-  /@blocklet/labels@1.6.184(@arcblock/ux@2.9.63)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(lodash@4.17.21)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0):
-    resolution: {integrity: sha512-ttKjz4Eld4OuwRtst6TvKX6zRRAweYDmMzy7CbDq6FTSUtyqb921l9emjCp6njokGT+qeR2J6r4JUhLn8xm10g==}
+  /@blocklet/labels@1.6.186(@arcblock/ux@2.9.63)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(lodash@4.17.21)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0):
+    resolution: {integrity: sha512-a5+qtAg9KUGXblGEikZa5xzymtqCmrWyET36xoE05eEYMJpIdjxrBZTqmtne+fpBpWi2g8XLMA4sE9k5LzPPmg==}
     peerDependencies:
       '@arcblock/ux': ^2.4.61
       '@mui/icons-material': ^5.14.3
@@ -2522,7 +2522,7 @@ packages:
       react-router-dom: ^6.4.0
     dependencies:
       '@arcblock/ux': 2.9.63(@babel/core@7.24.0)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(@types/node@18.19.26)(@types/react@18.2.70)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
-      '@blocklet/translation-input': 1.6.184(@arcblock/ux@2.9.63)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(react-dom@18.2.0)(react@18.2.0)
+      '@blocklet/translation-input': 1.6.186(@arcblock/ux@2.9.63)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(react-dom@18.2.0)(react@18.2.0)
       '@emotion/css': 11.11.2
       '@emotion/react': 11.11.4(@types/react@18.2.70)(react@18.2.0)
       '@emotion/styled': 11.11.0(@emotion/react@11.11.4)(@types/react@18.2.70)(react@18.2.0)
@@ -2610,8 +2610,8 @@ packages:
     resolution: {integrity: sha512-ggbfig0TuHfLRvuWMR7t0z3PNgkE5Oz/kvCe1SPpCfVs/JYLYFU4xlJIsJUdNpXYPfKULgT5a97WaqqXJ+oLBA==}
     dev: false
 
-  /@blocklet/pdf@1.6.184(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@types/react@18.2.70)(react-dom@18.2.0):
-    resolution: {integrity: sha512-Zyd6FtUwk6axPmUHciXjPOOBycwRrkbf+Jt1Icmv0n8aY9cMOtWWCYNBEpqq3EQbZKFt7PH0OUbFFlhAamU+IQ==}
+  /@blocklet/pdf@1.6.186(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@types/react@18.2.70)(react-dom@18.2.0):
+    resolution: {integrity: sha512-3Lcqe4JOJh9KKqnWsP1gGAarqdfTYdWtUgYoPhkatW5iMRxN5d4OGIvXcKBj90Vr+gv7y8sgLOeboX0DIJ7Zxw==}
     dependencies:
       '@mui/icons-material': 5.15.14(@mui/material@5.15.14)(@types/react@18.2.70)(react@18.2.0)
       '@mui/material': 5.15.14(@emotion/react@11.11.4)(@emotion/styled@11.11.0)(@types/react@18.2.70)(react-dom@18.2.0)(react@18.2.0)
@@ -2665,8 +2665,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@blocklet/translation-input@1.6.184(@arcblock/ux@2.9.63)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-t+fsDT5cJAnrFq+iZn1iP/i54aXvh9Yf2MfHzTnPjgo3zv1nbaPrnlnsvsgJUb339eNHwOtN6Xh5b0C35dxV8A==}
+  /@blocklet/translation-input@1.6.186(@arcblock/ux@2.9.63)(@mui/icons-material@5.15.14)(@mui/material@5.15.14)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-fpatSDeJ8om65yyBrx/JmwY0DF9nHw5bKvzJ/ZWVwHpGxuObR0YwOdKpYS+Qo0Xq4BrG6BsCoVSGPxmY2oZ0iQ==}
     peerDependencies:
       '@arcblock/ux': ^2.4.61
       '@mui/icons-material': ^5.10.9

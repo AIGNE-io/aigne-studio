@@ -6,12 +6,11 @@ import { uniqBy } from 'lodash';
 import orderBy from 'lodash/orderBy';
 import { FindOptions, Op, cast, col, where } from 'sequelize';
 
-const searchOptionsSchema = Joi.object({
-  sessionId: Joi.string().allow('').optional(),
-  userId: Joi.string().allow('').optional(),
-  assistantId: Joi.string().allow('').optional(),
-  limit: Joi.number().integer().min(1).allow('').optional(),
-  keyword: Joi.string().allow('').optional(),
+const searchOptionsSchema = Joi.object<{ sessionId: string; userId: string; limit?: number; keyword?: string }>({
+  sessionId: Joi.string().required(),
+  userId: Joi.string().required(),
+  limit: Joi.number().empty([null, '']).integer().min(1).optional(),
+  keyword: Joi.string().empty([null, '']),
 });
 
 interface QueryOptions extends FindOptions {
@@ -106,14 +105,14 @@ export function messageRoutes(router: Router) {
     try {
       const value = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
 
-      const list = [value.sessionId, value.userId, value.assistantId];
+      const list = [value.sessionId, value.userId];
       if (list.some((x) => !x)) {
-        res.json([{ role: 'assistant', content: '' }]);
+        res.json([]);
         return;
       }
 
       const queryOptions: QueryOptions = {
-        where: { sessionId: value.sessionId, userId: value.userId, assistantId: value.assistantId },
+        where: { sessionId: value.sessionId, userId: value.userId },
         order: [['createdAt', 'DESC']],
       };
 
@@ -149,8 +148,14 @@ export function messageRoutes(router: Router) {
       const filterResult = results.filter((x) => x.result && !x.error);
       const orderResult = orderBy(filterResult, ['createdAt'], ['asc']);
       const formattedResult = orderResult.flatMap((i) => [
-        { role: 'user', content: typeof i.parameters === 'string' ? i.parameters : JSON.stringify(i.parameters) },
-        { role: 'assistant', content: typeof i.result === 'string' ? i.result : JSON.stringify(i.result) },
+        {
+          role: 'user',
+          content: typeof i.parameters?.question === 'string' ? i.parameters.question : JSON.stringify(i.parameters),
+        },
+        {
+          role: 'assistant',
+          content: typeof i.result?.content === 'string' ? i.result.content : JSON.stringify(i.result),
+        },
       ]);
 
       res.json(formattedResult);

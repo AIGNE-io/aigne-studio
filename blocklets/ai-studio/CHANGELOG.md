@@ -1,6 +1,14 @@
+## 0.1.304 (2024-3-26)
+
+- feat: embedding discuss all data (#725)
+- fix: replace vector-store-hnswlib to vector-store-faiss
+
 ## 0.1.303 (2024-3-26)
 
-- chore: replace vector-store-hnswlib to vector-store-faiss
+- fix: allow text wrapping for select field options
+- fix: correct format of chat history
+- feat: pass context to the function assistants
+- fix: reset parameters after assistant changed
 
 ## 0.1.302 (2024-3-26)
 

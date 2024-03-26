@@ -162,7 +162,6 @@ export default function ExecuteBlockForm({
         }}
         square
         disableGutters
-        defaultExpanded
         elevation={0}>
         <AccordionSummary
           sx={{
@@ -249,7 +248,6 @@ export default function ExecuteBlockForm({
         }}
         square
         disableGutters
-        defaultExpanded
         elevation={0}>
         <AccordionSummary
           sx={{

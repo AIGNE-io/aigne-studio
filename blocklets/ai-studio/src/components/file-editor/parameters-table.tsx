@@ -1,3 +1,4 @@
+import DragVertical from '@app/pages/project/icons/drag-vertical';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -87,6 +88,7 @@ export default function ParametersTable({
     return [
       {
         field: 'key',
+        width: '16%' as any,
         headerName: t('variable'),
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter?.key === 'datasetId') {
@@ -119,6 +121,7 @@ export default function ParametersTable({
       },
       {
         field: 'label',
+        width: '16%',
         headerName: t('label'),
         renderCell: ({ row: { data: parameter } }) => (
           <WithAwareness
@@ -156,7 +159,6 @@ export default function ParametersTable({
             path={[value.id, 'parameters', parameter?.id ?? '', 'placeholder']}>
             <Input
               fullWidth
-              multiline
               readOnly={readOnly}
               placeholder={t('form.parameter.placeholder')}
               value={parameter.placeholder || ''}
@@ -211,25 +213,6 @@ export default function ParametersTable({
         headerAlign: 'center',
         align: 'center',
         width: 100,
-        renderCell: ({ row: { data: parameter } }) => {
-          return (
-            <>
-              <Button
-                disabled={readOnly}
-                sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
-                onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
-                <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
-              </Button>
-
-              <Button
-                disabled={readOnly}
-                sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
-                onClick={() => deleteParameter(parameter)}>
-                <Trash fontSize="small" sx={{ color: 'text.secondary', opacity: 0.9 }} />
-              </Button>
-            </>
-          );
-        },
       },
     ];
   }, [t, readOnly, doc, deleteParameter]);
@@ -355,7 +338,7 @@ export default function ParametersTable({
                       key={parameter.id}
                       ref={(ref) => {
                         params.drop(ref);
-                        params.drag(ref);
+                        // params.drag(ref);
                         params.preview(ref);
                       }}
                       sx={{
@@ -365,16 +348,39 @@ export default function ParametersTable({
                             : 'transparent',
                         transition: 'all 2s',
                       }}>
-                      {columns.map((column) => (
-                        <TableCell
-                          key={column.field}
-                          align={column.align}
-                          sx={{
-                            ...getDiffBackground('parameters', parameter.id),
-                          }}>
-                          {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
-                        </TableCell>
-                      ))}
+                      {columns.map(
+                        (column, index) =>
+                          index !== columns.length - 1 && (
+                            <TableCell
+                              key={column.field}
+                              align={column.align}
+                              sx={{
+                                ...getDiffBackground('parameters', parameter.id),
+                              }}>
+                              {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
+                            </TableCell>
+                          )
+                      )}
+
+                      <TableCell sx={{ pr: 0.5 }}>
+                        <Button
+                          disabled={readOnly}
+                          sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+                          onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
+                          <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
+                        </Button>
+
+                        <Button
+                          disabled={readOnly}
+                          sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+                          onClick={() => deleteParameter(parameter)}>
+                          <Trash sx={{ color: 'text.secondary', opacity: 0.9, fontSize: 18 }} />
+                        </Button>
+
+                        <Button disabled={readOnly} sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }} ref={params.drag}>
+                          <DragVertical sx={{ color: 'text.secondary', fontSize: 22 }} />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 }}
