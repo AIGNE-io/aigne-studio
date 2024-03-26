@@ -155,7 +155,7 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
     const isEmbed = await updateEmbedding(post.locale, post.updatedAt, post.content);
 
     for (const language of languages) {
-      if (language !== post.locale) {
+      if (language !== post?.locale) {
         const res = await getDiscussion(discussionId, language);
         if (res?.post) await updateEmbedding(res.post.locale, res.post.updatedAt, res.post.content);
       }
@@ -358,26 +358,24 @@ const saveContentToVectorStore = async ({
   content: string;
   datasetId: string;
   targetId: string;
-  documentId?: string;
+  documentId: string;
 }) => {
   const textSplitter = new RecursiveCharacterTextSplitter();
   const docs = await textSplitter.createDocuments([content]);
-
-  let ids: string[] = [];
-  if (documentId) {
-    // 清除历史 Vectors Store
-    await updateHistoriesAndStore(datasetId, documentId, targetId);
-
-    const savePromises = docs.map((doc) =>
-      doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : Promise.resolve(null)
-    );
-    const results = await Promise.all(savePromises);
-    ids = results.filter((i): i is NonNullable<typeof i> => !!i).map((result) => result?.id);
-  }
-
   const embeddings = new AIKitEmbeddings({});
   const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
 
+  // 清除历史 Vectors Store
+  await updateHistoriesAndStore(datasetId, documentId, targetId);
+
+  // 获取索引数据，保存id
+  const savePromises = docs.map((doc) =>
+    doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : Promise.resolve(null)
+  );
+  const results = await Promise.all(savePromises);
+  const ids = results.filter((i): i is NonNullable<typeof i> => !!i).map((result) => result?.id);
+
+  // 保存到向量数据库
   const store = await VectorStoreFaiss.load(datasetId, embeddings);
   await store.addVectors(vectors, docs, { ids });
   await store.save();
