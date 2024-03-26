@@ -1,3 +1,5 @@
+## 0.1.308 (2024-3-26)
+
 ## 0.1.307 (2024-3-26)
 
 - fix: missing import statement for `ReadableStream`
