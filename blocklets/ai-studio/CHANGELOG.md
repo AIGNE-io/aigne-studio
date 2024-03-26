@@ -1,8 +1,6 @@
-## 0.1.300 (2024-3-26)
+## 0.1.300 (2024-3-25)
 
-- chore: update deps
-- fix: remove useless menu
-- fix: add a login button in home page
+- chore: support dataset execute
 
 ## 0.1.299 (2024-3-22)
 

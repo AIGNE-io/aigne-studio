@@ -88,28 +88,34 @@ export default function ParametersTable({
       {
         field: 'key',
         headerName: t('variable'),
-        renderCell: ({ row: { data: parameter } }) => (
-          <WithAwareness
-            projectId={projectId}
-            gitRef={gitRef}
-            sx={{ top: 4, right: -8 }}
-            path={[value.id, 'parameters', parameter?.id ?? '', 'key']}>
-            <Input
-              id={`${parameter.id}-key`}
-              fullWidth
-              readOnly={readOnly}
-              placeholder={t('variable')}
-              value={parameter.key || ''}
-              onChange={(e) => {
-                const value = e.target.value.trim();
+        renderCell: ({ row: { data: parameter } }) => {
+          if (parameter?.key === 'datasetId') {
+            return <Box>{t('knowledge.documents.parameter')}</Box>;
+          }
 
-                if (isValidVariableName(value)) {
-                  parameter.key = value;
-                }
-              }}
-            />
-          </WithAwareness>
-        ),
+          return (
+            <WithAwareness
+              projectId={projectId}
+              gitRef={gitRef}
+              sx={{ top: 4, right: -8 }}
+              path={[value.id, 'parameters', parameter?.id ?? '', 'key']}>
+              <Input
+                id={`${parameter.id}-key`}
+                fullWidth
+                readOnly={readOnly}
+                placeholder={t('variable')}
+                value={parameter.key || ''}
+                onChange={(e) => {
+                  const value = e.target.value.trim();
+
+                  if (isValidVariableName(value)) {
+                    parameter.key = value;
+                  }
+                }}
+              />
+            </WithAwareness>
+          );
+        },
       },
       {
         field: 'label',
@@ -123,7 +129,7 @@ export default function ParametersTable({
             <Input
               fullWidth
               readOnly={readOnly}
-              placeholder={parameter.key}
+              placeholder={parameter?.key === 'datasetId' ? t('knowledge.documents.parameter') : parameter.key}
               value={parameter.label || ''}
               onChange={(e) => (parameter.label = e.target.value)}
             />

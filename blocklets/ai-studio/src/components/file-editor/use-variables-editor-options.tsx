@@ -116,5 +116,19 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
     [assistant]
   );
 
-  return { from, options, variables, addParameter, deleteParameter, highlightedId };
+  const removeParameter = useCallback(
+    (key: string) => {
+      if (!assistant) return;
+
+      const doc = (getYjsValue(assistant) as Map<any>).doc!;
+      doc.transact(() => {
+        if (!assistant.parameters) return;
+        for (const id of Object.keys(assistant.parameters)) {
+          if (assistant.parameters[id]?.data.key === key) delete assistant.parameters[id];
+        }
+      });
+    },
+    [assistant]
+  );
+  return { from, options, variables, addParameter, deleteParameter, removeParameter, highlightedId };
 }
