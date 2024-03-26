@@ -42,6 +42,10 @@ const SelectField = forwardRef<
               opacity: 0.42,
             }
           : {},
+        '& .MuiFormLabel-root:not(.MuiInputLabel-shrink) + .MuiInputBase-root > .MuiSelect-select .notranslate::after':
+          {
+            opacity: 0,
+          },
       }}>
       {parameter?.options?.map((option) => (
         <MenuItem key={option.id} value={option.value}>

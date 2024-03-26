@@ -1,3 +1,8 @@
+## 0.1.305 (2024-3-26)
+
+- fix: example project not working
+- fix: check resource path exists
+
 ## 0.1.304 (2024-3-26)
 
 - feat: embedding discuss all data (#725)

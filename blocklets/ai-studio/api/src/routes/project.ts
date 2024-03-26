@@ -3,6 +3,7 @@ import { cp, mkdtemp, rm } from 'fs/promises';
 import { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
+import { sampleIcon } from '@api/libs/icon';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -14,14 +15,12 @@ import Joi from 'joi';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
-import sample from 'lodash/sample';
 import uniqBy from 'lodash/uniqBy';
 import { Op } from 'sequelize';
 import { parse } from 'yaml';
 
-import { copyAssistantsFromResource, getResourceProjects } from '../libs/resource';
+import { getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { createImageUrl } from '../libs/utils';
 import Project, { nextProjectId } from '../store/models/project';
 import {
   autoSyncRemoteRepoIfNeeded,
@@ -39,18 +38,15 @@ import {
 import { projectTemplates } from '../templates/projects';
 import { getCommits } from './log';
 
-let icons: { filename: string }[] = [];
 const AI_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export interface CreateProjectInput {
-  duplicateFrom?: string;
   templateId?: string;
   name?: string;
   description?: string;
 }
 
 const createProjectSchema = Joi.object<CreateProjectInput>({
-  duplicateFrom: Joi.string().empty([null, '']),
   templateId: Joi.string().empty([null, '']),
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
@@ -182,29 +178,30 @@ export function projectRoutes(router: Router) {
       })
     );
 
+    const resourceTemplates = (await getResourceProjects('template')).map((i) => i.project);
+    const resourceExamples = (await getResourceProjects('example')).map((i) => i.project);
+
+    const resourceExampleIds = new Set(resourceExamples.map((i) => i._id));
+
+    const exampleProjects = projects.filter(
+      (i) => i.projectType === 'example' || resourceExampleIds.has(i.duplicateFrom!)
+    );
+    const exampleProjectFromIds = new Set(exampleProjects.map((i) => i.duplicateFrom));
+    const notCreatedExamples = resourceExamples.filter((i) => !exampleProjectFromIds.has(i._id));
+
     res.json({
       templates: uniqBy(
         [
-          ...projectTemplates,
+          ...projectTemplates.map((i) => i.project),
+          ...resourceTemplates,
           ...projects.filter((i) => i.projectType === 'template'),
-          ...(await getResourceProjects('template')).map((x) => {
-            x.fromResourceBlockletFolder = 'template';
-            return x;
-          }),
         ],
         '_id'
       ),
-      projects: projects.filter((i) => !i.projectType || i.projectType === 'project'),
-      examples: uniqBy(
-        [
-          ...projects.filter((i) => i.projectType === 'example'),
-          ...(await getResourceProjects('example')).map((x) => {
-            x.fromResourceBlockletFolder = 'example';
-            return x;
-          }),
-        ],
-        '_id'
+      projects: projects.filter(
+        (i) => (!i.projectType || i.projectType === 'project') && !resourceExampleIds.has(i.duplicateFrom!)
       ),
+      examples: uniqBy([...exampleProjects, ...notCreatedExamples], '_id'),
     });
   });
 
@@ -235,7 +232,7 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findOne({ where: { _id: projectId } });
     if (!project) {
-      const found = (await getResourceProjects('example')).find((x) => x._id === projectId);
+      const found = (await getResourceProjects('example')).find((x) => x.project._id === projectId);
       if (found) {
         res.json(found);
         return;
@@ -249,101 +246,52 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-    const { duplicateFrom, templateId, name, description } = await createProjectSchema.validateAsync(req.body, {
+    const { did } = req.user!;
+
+    const { templateId, name, description } = await createProjectSchema.validateAsync(req.body, {
       stripUnknown: true,
     });
 
-    const { did, fullName } = req.user!;
-
-    if (duplicateFrom) {
-      const original = await Project.findOne({ where: { _id: duplicateFrom } });
-      if (!original) throw new Error(`Project ${duplicateFrom} not found`);
-
-      const project = await copyProject({ project: original, name, description, createdBy: did, updatedBy: did });
-
-      res.json(project);
-      return;
-    }
+    let project: Project | undefined;
 
     if (templateId) {
-      const templateOfProject = await Project.findOne({ where: { _id: templateId, projectType: 'template' } });
-      if (templateOfProject) {
-        const project = await copyProject({
-          project: templateOfProject,
-          name,
-          description,
-          createdBy: did,
-          updatedBy: did,
-          projectType: 'project',
-        });
-        res.json(project);
-        return;
+      // duplicate a project
+      const original = await Project.findOne({ where: { _id: templateId } });
+      if (original) {
+        project = await copyProject({ project: original, name, description, author: req.user! });
       }
 
-      const template = projectTemplates.find((i) => i._id === templateId);
-      if (!template) throw new Error(`Template project ${templateId} not found`);
-
-      let icon = '';
-
-      if (!icons.length) {
-        try {
-          const params = { pageSize: 100, tags: 'default-project-icon' };
-          const { data } = await call({ name: 'image-bin', path: '/api/sdk/uploads', method: 'GET', params });
-
-          icons = data?.uploads || [];
-        } catch (error) {
-          // error
+      // create project from builtin templates
+      if (!project) {
+        const template = projectTemplates.find((i) => i.project._id === templateId);
+        if (template) {
+          project = await createProjectFromTemplate(template, { name, description, author: req.user! });
         }
       }
 
-      const item = sample(icons);
-      if (item?.filename) {
-        icon = createImageUrl(`${req.protocol}://${req.hostname}`, item.filename);
+      // create project from resource blocklet
+      if (!project) {
+        const resource =
+          (await getResourceProjects('template')).find((i) => i.project._id === templateId) ||
+          (await getResourceProjects('example')).find((i) => i.project._id === templateId);
+        if (resource) {
+          project = await createProjectFromTemplate(resource, { name, description, author: req.user! });
+        }
       }
 
-      const project = await Project.create({
-        ...omit(template, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
-        _id: nextProjectId(),
-        model: template.model || '',
-        icon,
+      if (!project) {
+        throw new Error(`No such template project ${templateId}`);
+      }
+    } else {
+      project = await Project.create({
+        model: '',
         createdBy: did,
         updatedBy: did,
+        gitDefaultBranch: defaultBranch,
         name,
         description,
       });
-
-      const repository = await getRepository({ projectId: project._id!, author: { name: fullName, email: did } });
-
-      const working = await repository.working({ ref: defaultBranch });
-      for (const { parent, ...file } of template.files) {
-        const id = nextAssistantId();
-        working.syncedStore.files[id] = fileToYjs({ ...file, id });
-        working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
-      }
-      await commitWorking({
-        project,
-        ref: defaultBranch,
-        branch: defaultBranch,
-        message: 'First Commit',
-        author: { name: fullName, email: did },
-      });
-
-      res.json(project);
-      return;
     }
-
-    if (name && (await Project.findOne({ where: { name } }))) {
-      throw new Error(`Duplicated project ${name}`);
-    }
-
-    const project = await Project.create({
-      model: '',
-      createdBy: did,
-      updatedBy: did,
-      gitDefaultBranch: defaultBranch,
-      name,
-      description,
-    });
 
     res.json(project);
   });
@@ -687,51 +635,6 @@ export function projectRoutes(router: Router) {
 
     return res.json({ assistants: uniqBy(assistants, 'id') });
   });
-
-  router.post('/projects/copy', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-    const { folder, projectId, name, description } = await Joi.object<{
-      folder: string;
-      projectId: string;
-      name?: string;
-      description?: string;
-    }>({
-      projectId: Joi.string().required().min(1),
-      folder: Joi.string(),
-      name: Joi.string().empty([null, '']),
-      description: Joi.string().empty([null, '']),
-    }).validateAsync(req.body, { stripUnknown: true });
-
-    const { fullName, did } = req.user!;
-
-    const id = folder === 'template' ? nextProjectId() : projectId;
-
-    const project =
-      folder === 'template'
-        ? {
-            _id: id,
-            name,
-            description,
-            createdBy: did,
-            updatedBy: did,
-            projectType: 'project',
-          }
-        : undefined;
-
-    await copyAssistantsFromResource({
-      folder,
-      findProjectId: projectId,
-      newProjectId: id,
-      originDefaultBranch:
-        folder === 'template'
-          ? 'main'
-          : (await Project.findOne({ where: { _id: projectId } }))?.gitDefaultBranch || defaultBranch,
-      fullName,
-      did,
-      projectInfo: project,
-    });
-
-    return res.json({ _id: id });
-  });
 }
 
 const getAuthorsOfProject = async ({
@@ -757,17 +660,23 @@ const getAuthorsOfProject = async ({
 
 async function copyProject({
   project: original,
+  author,
   ...patch
 }: {
   project: Project;
+  author: { fullName: string; did: string };
 } & Partial<Project['dataValues']>) {
   const repo = await getRepository({ projectId: original._id! });
+  await repo.flush();
 
   const project = await Project.create({
     ...omit(original.dataValues, 'createdAt', 'updatedAt'),
     _id: nextProjectId(),
+    duplicateFrom: original._id,
     model: original.model || '',
     name: patch.name || (original.name && `${original.name}-copy`),
+    createdBy: author.did,
+    updatedBy: author.did,
     ...patch,
   });
 
@@ -776,6 +685,44 @@ async function copyProject({
   if (await pathExists(`${repo.root}.cooperative`)) {
     await cp(`${repo.root}.cooperative`, join(parent, `${project._id}.cooperative`), { recursive: true });
   }
+
+  return project;
+}
+
+async function createProjectFromTemplate(
+  template: (typeof projectTemplates)[number],
+  { name, description, author }: { name?: string; description?: string; author: { fullName: string; did: string } }
+) {
+  const project = await Project.create({
+    ...omit(template.project, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
+    _id: nextProjectId(),
+    duplicateFrom: template.project._id,
+    model: template.project.model || '',
+    icon: await sampleIcon(),
+    createdBy: author.did,
+    updatedBy: author.did,
+    name,
+    description,
+  });
+
+  const repository = await getRepository({
+    projectId: project._id!,
+    author: { name: author.fullName, email: author.did },
+  });
+
+  const working = await repository.working({ ref: defaultBranch });
+  for (const { parent, ...file } of template.assistants) {
+    const id = nextAssistantId();
+    working.syncedStore.files[id] = fileToYjs({ ...file, id });
+    working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
+  }
+  await commitWorking({
+    project,
+    ref: defaultBranch,
+    branch: defaultBranch,
+    message: 'First Commit',
+    author: { name: author.fullName, email: author.did },
+  });
 
   return project;
 }

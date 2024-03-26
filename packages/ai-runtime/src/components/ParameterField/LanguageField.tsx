@@ -34,6 +34,10 @@ const LanguageField = forwardRef<
               opacity: 0.42,
             }
           : {},
+        '& .MuiFormLabel-root:not(.MuiInputLabel-shrink) + .MuiInputBase-root > .MuiSelect-select .notranslate::after':
+          {
+            opacity: 0,
+          },
       }}>
       {languages.map((option) => (
         <MenuItem key={option.en} value={option.en}>
