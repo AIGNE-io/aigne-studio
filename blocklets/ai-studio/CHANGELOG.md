@@ -1,3 +1,7 @@
+## 0.1.302 (2024-3-26)
+
+- fix: catch the error of message rendering
+
 ## 0.1.301 (2024-3-26)
 
 - chore: update deps
