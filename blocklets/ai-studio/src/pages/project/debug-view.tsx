@@ -594,10 +594,14 @@ function DebugModeForm({
         ),
         params
       ),
-    [currentSession?.debugForm, parameters]
+    [currentSession?.debugForm, parameters, assistant.id]
   );
 
   const form = useForm<{ [key: string]: any }>({ defaultValues: initForm });
+
+  useEffect(() => {
+    form.reset(initForm);
+  }, [assistant.id]);
 
   const submit = (parameters: { [key: string]: any }) => {
     parameters = pick(parameters, params);

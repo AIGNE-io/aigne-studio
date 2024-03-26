@@ -7,10 +7,6 @@ import { getRequestConfig } from './util';
 
 export interface User {
   did: string;
-  role: string;
-  fullName: string;
-  provider: string;
-  walletOS: string;
 }
 
 export const getRequest = (

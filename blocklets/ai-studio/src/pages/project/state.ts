@@ -331,7 +331,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
     setState((state) => {
       const sessions = state.sessions.map((session) =>
         session.index === state.currentSessionIndex
-          ? { ...session, messages: [], updatedAt: new Date().toISOString() }
+          ? { ...session, sessionId: nanoid(), messages: [], updatedAt: new Date().toISOString() }
           : session
       );
       return {
