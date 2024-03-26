@@ -36,7 +36,7 @@
     "@arcblock/did-connect": "^2.9.63",
     "@arcblock/ux": "^2.9.63",
     "@beskar-labs/gpt-encoder": "^1.0.7",
-    "@blocklet/ai-kit": "^0.1.25",
+    "@blocklet/ai-kit": "^0.1.26",
     "@blocklet/ai-runtime": "^0.1.302",
     "@blocklet/co-git": "^0.1.302",
     "@blocklet/constant": "^1.16.24",
