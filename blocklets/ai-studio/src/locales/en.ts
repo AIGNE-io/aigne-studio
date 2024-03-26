@@ -558,4 +558,8 @@ export default flat({
   refreshTip: 'Reembedding',
   loginAsAdminButton: 'Login as Admin to view projects',
   datasetDesc: 'Search for the data required by the context from the user dataset',
+  types: 'Type',
+  atLeastOne: 'Choose at least one type.',
+  doc: 'Document',
+  blog: 'Blog',
 });

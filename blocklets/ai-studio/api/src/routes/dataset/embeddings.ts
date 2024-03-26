@@ -1,5 +1,4 @@
-import { getComponentWebEndpoint } from '@blocklet/sdk/lib/component';
-import axios from 'axios';
+import { call } from '@blocklet/sdk/lib/component';
 import SSE from 'express-sse';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { intersection } from 'lodash';
@@ -50,14 +49,6 @@ export const queue = createQueue({
 
       await handler(document, content);
 
-      if (document.type !== 'fullSite') {
-        const result = await document.update(
-          { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
-          { where: { id: documentId } }
-        );
-
-        sse.send({ documentId, ...result }, 'complete');
-      }
       logger.info('Job End', task);
     } catch (error) {
       logger.error('Job Error', error?.message);
@@ -134,6 +125,38 @@ const updateEmbeddingHistory = async ({
   }
 };
 
+async function updateDiscussionEmbeddings(discussionId: string, datasetId: string, documentId: string) {
+  try {
+    const updateEmbedding = async (locale: string, updatedAt: string, content: string) => {
+      return updateEmbeddingHistory({
+        datasetId,
+        documentId,
+        targetId: `${discussionId}-${locale}`,
+        updatedAt,
+        content,
+      });
+    };
+
+    const discussion = await getDiscussion(discussionId);
+    if (!discussion?.post) return false;
+
+    const { post, languages = [] } = discussion;
+    const isEmbed = await updateEmbedding(post.locale, post.updatedAt, post.content);
+
+    for (const language of languages) {
+      if (language !== post.locale) {
+        const res = await getDiscussion(discussionId, language);
+        if (res?.post) await updateEmbedding(res.post.locale, res.post.updatedAt, res.post.content);
+      }
+    }
+
+    return isEmbed;
+  } catch (error) {
+    logger.error(`embedding discussion ${discussionId} error`, { error });
+    return false;
+  }
+}
+
 const embeddingHandler: {
   [key in NonNullable<DatasetDocument['type']>]: (
     item: DatasetDocument,
@@ -143,16 +166,16 @@ const embeddingHandler: {
   discussion: async (document: DatasetDocument) => {
     const targetId = (document.data as any).id;
 
-    const discussion = await getDiscussion(targetId);
+    const { post: discussion } = await getDiscussion(targetId);
     await DatasetContent.update({ content: discussion?.content || '' }, { where: { id: document.id } });
 
-    await updateEmbeddingHistory({
-      datasetId: document.datasetId,
-      documentId: document.id,
-      targetId,
-      updatedAt: discussion?.updatedAt,
-      content: discussion?.content,
-    });
+    await updateDiscussionEmbeddings(targetId, document.datasetId, document.id);
+
+    const result = await document.update(
+      { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
+      { where: { id: document.id } }
+    );
+    sse.send({ documentId: document.id, ...result }, 'complete');
   },
   text: async (document: DatasetDocument, content?: DatasetContent | null) => {
     await updateEmbeddingHistory({
@@ -162,6 +185,12 @@ const embeddingHandler: {
       updatedAt: content?.updatedAt,
       content: content?.content,
     });
+
+    const result = await document.update(
+      { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
+      { where: { id: document.id } }
+    );
+    sse.send({ documentId: document.id, ...result }, 'complete');
   },
   file: async (document: DatasetDocument, content?: DatasetContent | null) => {
     await updateEmbeddingHistory({
@@ -171,33 +200,31 @@ const embeddingHandler: {
       updatedAt: content?.updatedAt,
       content: content?.content,
     });
+
+    const result = await document.update(
+      { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
+      { where: { id: document.id } }
+    );
+    sse.send({ documentId: document.id, ...result }, 'complete');
   },
   fullSite: async (document: DatasetDocument) => {
     const documentId = document.id;
-    let currentTotal = 0;
+    const ids = await getDiscussionIds((document.data as any).types || []);
+
+    const currentTotal = ids.length;
     let currentIndex = 0;
 
-    for await (const { id: discussionId, index: current, total } of discussionsIterator()) {
-      currentTotal = total;
+    for (const discussionId of ids) {
       currentIndex++;
-      sse.send({ documentId, embeddingStatus: `${current}/${total}`, embeddingEndAt: new Date() }, 'change');
-      logger.info('embedding fullSite discussion', { total, current });
+      sse.send(
+        { documentId, embeddingStatus: `${currentIndex}/${currentTotal}`, embeddingEndAt: new Date() },
+        'change'
+      );
+      logger.info('embedding fullSite discussion', { currentTotal, currentIndex });
 
       try {
-        const discussion = await getDiscussion(discussionId);
-        // await DatasetContent.update({ content: discussion?.content || '' }, { where: { id: document.id } });
-
-        const result = await updateEmbeddingHistory({
-          datasetId: document.datasetId,
-          documentId: document.id,
-          targetId: discussionId,
-          updatedAt: discussion?.updatedAt,
-          content: discussion?.content,
-        });
-
-        if (!result) {
-          currentIndex--;
-        }
+        const result = await updateDiscussionEmbeddings(discussionId, document.datasetId, document.id);
+        if (!result) currentIndex--;
       } catch (error) {
         logger.error(`embedding discussion ${discussionId} error`, { error });
       }
@@ -211,21 +238,33 @@ const embeddingHandler: {
   },
 };
 
-const discussBaseUrl = () => {
-  const url = getComponentWebEndpoint('z8ia1WEiBZ7hxURf6LwH21Wpg99vophFwSJdu');
-  if (!url) {
-    throw new Error('did-comments component not found');
+export const getDiscussionIds = async (types = ['discussion']) => {
+  const ids = [];
+
+  for (const type of types) {
+    if (!type) continue;
+    // eslint-disable-next-line no-await-in-loop
+    for await (const { id: discussionId } of discussionsIterator(type as 'discussion' | 'blog' | 'doc')) {
+      ids.push(discussionId);
+    }
   }
-  return url;
+
+  return [...new Set(ids)];
 };
 
 export async function getDiscussion(
-  discussionId: string
-): Promise<{ content: string; title: string; updatedAt: string } | null> {
+  discussionId: string,
+  locale?: string
+): Promise<{
+  post: { content: string; title: string; updatedAt: string; locale: string } | null;
+  languages: string[];
+}> {
   try {
-    const { data } = await axios.get(`/api/blogs/${discussionId}`, {
-      baseURL: discussBaseUrl(),
-      params: { textContent: 1 },
+    const { data } = await call({
+      method: 'GET',
+      name: 'did-comments',
+      path: `/api/call/posts/${discussionId}`,
+      params: { textContent: 1, locale },
     });
 
     if (!data) {
@@ -234,18 +273,21 @@ export async function getDiscussion(
 
     return data;
   } catch (error) {
-    return null;
+    return {
+      post: null,
+      languages: [],
+    };
   }
 }
 
-export async function* discussionsIterator() {
+export async function* discussionsIterator(type: 'discussion' | 'blog' | 'doc' = 'discussion') {
   let page = 0;
   let index = 0;
   const size = 20;
 
   while (true) {
     page += 1;
-    const { data, total } = await searchDiscussions({ page, size });
+    const { data, total } = await searchDiscussions({ page, size, type });
 
     if (!data.length) {
       break;
@@ -259,17 +301,20 @@ export async function* discussionsIterator() {
 }
 
 export async function searchDiscussions({
-  search,
   page,
   size,
+  type = 'discussion',
 }: {
-  search?: string;
   page?: number;
   size?: number;
+  type: 'discussion' | 'blog' | 'doc';
 }): Promise<{ data: { id: string; title: string }[]; total: number }> {
-  return axios
-    .get('/api/discussions', { baseURL: discussBaseUrl(), params: { page, size, search } })
-    .then((res) => res.data);
+  return call({
+    method: 'GET',
+    name: 'did-comments',
+    path: '/api/call/posts',
+    params: { page, size, type },
+  }).then((res) => res.data);
 }
 
 export const deleteStore = async (datasetId: string, ids: string[]) => {

@@ -14,14 +14,14 @@ import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import FaissStore from '../../store/vector-store-faiss';
-import { discussionsIterator, queue, updateHistoriesAndStore } from './embeddings';
+import { getDiscussionIds, queue, updateHistoriesAndStore } from './embeddings';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 export interface CreateDiscussionItem {
   name: string;
-  data: { type: 'discussion'; fullSite?: boolean; id: string };
+  data: { type: 'discussion'; fullSite?: boolean; types?: string[]; id: string };
 }
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
@@ -257,15 +257,27 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
 router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   const { datasetId } = req.params;
 
-  const createItemsSchema = Joi.object<CreateDiscussionItem>({
+  const createItemsSchema = Joi.object({
     name: Joi.string().empty(['', null]),
     data: Joi.object({
       type: Joi.string().valid('discussion').required(),
       fullSite: Joi.boolean(),
+      types: Joi.array().items(Joi.string()).sparse(false),
       id: Joi.string().empty(['', null]),
-    }).required(),
+    })
+      .required()
+      .when('.fullSite', {
+        is: true,
+        then: Joi.object({
+          types: Joi.array().items(Joi.string()).min(1).required(),
+          id: Joi.any().optional(),
+        }),
+        otherwise: Joi.object({
+          types: Joi.array().items(Joi.string()).sparse(true).default([]),
+          id: Joi.string().required(),
+        }),
+      }),
   });
-
   const createItemInputSchema = Joi.alternatives<CreateDiscussionItemInput>().try(
     Joi.array().items(createItemsSchema),
     createItemsSchema
@@ -299,20 +311,14 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   let docs: DatasetDocument[] = [];
   const fullSite = arr.find((x) => x.data?.fullSite);
   if (fullSite) {
-    const ids = [];
-    for await (const { id: discussionId } of discussionsIterator()) {
-      try {
-        ids.push(discussionId);
-      } catch (error) {
-        console.error(`embedding discussion ${discussionId} error`, { error });
-      }
-    }
+    const ids = await getDiscussionIds(fullSite.data.types || []);
 
     const document = await DatasetDocument.create({
       type: 'fullSite',
       data: {
         type: 'fullSite',
         ids,
+        types: fullSite.data.types || [],
       },
       name: fullSite.name,
       datasetId,
