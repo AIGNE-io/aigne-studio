@@ -154,7 +154,7 @@ export function extractRequestBodyParameters(
 }
 
 export function getAllParameters(dataset: DatasetObject): { name: string; description?: string }[] {
-  const requestBody = extractRequestBodyParameters(dataset.requestBody);
+  const requestBody = extractRequestBodyParameters(dataset?.requestBody);
   const datasetParameters = [...(dataset?.parameters ?? []), ...(requestBody ?? [])];
   return datasetParameters;
 }

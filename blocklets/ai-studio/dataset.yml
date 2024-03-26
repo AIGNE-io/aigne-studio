@@ -138,8 +138,8 @@
           default: ''
       - name: message
         in: query
-        description: The search content or message
-        x-description-zh: 搜索的内容
+        description: The content to be retrieved
+        x-description-zh: 需要检索的内容
         required: true
         schema:
           type: string

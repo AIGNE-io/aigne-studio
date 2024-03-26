@@ -278,7 +278,7 @@ export const deleteStore = async (datasetId: string, ids: string[]) => {
   const remoteIds = Object.values(store.getMapping()) || [];
   const deleteIds = intersection(remoteIds, ids);
 
-  // 直接删除时最保险的，但这样更严谨
+  // 直接删除既可以，但这样更严谨
   if (deleteIds.length) {
     await store.delete({ ids: deleteIds });
     await store.save();
@@ -289,6 +289,7 @@ export const updateHistories = async (datasetId: string, documentId: string) => 
   const { rows: messages, count } = await Segment.findAndCountAll({ where: { documentId } });
   if (count > 0) {
     const ids = messages.map((x) => x.id);
+    // 仅仅做了报错，没有其他地方使用
     const found = await UpdateHistory.findOne({ where: { datasetId, documentId } });
     if (found) {
       await UpdateHistory.update({ segmentId: ids }, { where: { datasetId, documentId } });
