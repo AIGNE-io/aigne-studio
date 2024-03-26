@@ -40,7 +40,7 @@ export default function PromptEditorField({
 
         // 添加新增的变量
         variables.forEach((variable) => {
-          const name = variable?.name;
+          const name = (variable?.name || '').split('.')[0];
           if (name && !currentVariables.some((v) => v?.data?.key === name)) {
             addParameter(name, from);
           }
@@ -49,7 +49,7 @@ export default function PromptEditorField({
         // 删除移除的变量
         (currentVariables || []).forEach((variable) => {
           const key = variable?.data?.key;
-          if (assistant.parameters && key && !variables.some((v) => v.name === key)) {
+          if (assistant.parameters && key && !variables.some((v) => (v?.name || '').split('.')[0] === key)) {
             delete assistant.parameters[variable?.data.id];
           }
         });

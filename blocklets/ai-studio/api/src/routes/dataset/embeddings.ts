@@ -175,7 +175,7 @@ const embeddingHandler: {
       { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
       { where: { id: document.id } }
     );
-    sse.send({ documentId: document.id, ...result }, 'complete');
+    sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
   },
   text: async (document: DatasetDocument, content?: DatasetContent | null) => {
     await updateEmbeddingHistory({
@@ -190,7 +190,7 @@ const embeddingHandler: {
       { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
       { where: { id: document.id } }
     );
-    sse.send({ documentId: document.id, ...result }, 'complete');
+    sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
   },
   file: async (document: DatasetDocument, content?: DatasetContent | null) => {
     await updateEmbeddingHistory({
@@ -205,7 +205,7 @@ const embeddingHandler: {
       { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
       { where: { id: document.id } }
     );
-    sse.send({ documentId: document.id, ...result }, 'complete');
+    sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
   },
   fullSite: async (document: DatasetDocument) => {
     const documentId = document.id;
@@ -234,7 +234,7 @@ const embeddingHandler: {
       embeddingStatus: `${currentIndex}/${currentTotal}`,
       embeddingEndAt: new Date(),
     });
-    sse.send({ documentId, ...result }, 'complete');
+    sse.send({ documentId, ...result.dataValues }, 'complete');
   },
 };
 
