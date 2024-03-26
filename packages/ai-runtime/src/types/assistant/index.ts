@@ -33,6 +33,7 @@ type ExecuteBlockCommon = {
   prefix?: string;
   suffix?: string;
   variable?: string;
+  type?: 'dataset';
 };
 
 export type ExecuteBlockSelectAll = ExecuteBlockCommon & { selectType: 'all' };

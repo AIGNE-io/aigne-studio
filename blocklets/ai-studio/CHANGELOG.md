@@ -1,3 +1,7 @@
+## 0.1.300 (2024-3-25)
+
+- chore: support dataset execute
+
 ## 0.1.299 (2024-3-22)
 
 - chore: readjust the dataset data db
