@@ -49,7 +49,12 @@ export default function DiscussionPage({ datasetId }: { datasetId: string }) {
   return (
     <Box>
       <Box mx={2} my={4}>
-        <DiscussionTable value={input} onChange={setInput} />
+        <DiscussionTable
+          value={input}
+          onChange={(data) => {
+            setInput(data);
+          }}
+        />
       </Box>
 
       <Box m={2}>
@@ -62,6 +67,38 @@ export default function DiscussionPage({ datasetId }: { datasetId: string }) {
           {t('save')}
         </LoadingButton>
       </Box>
+    </Box>
+  );
+}
+
+const types = ['discussion', 'blog', 'doc'];
+
+function CheckBoxGroup({ value, onChange }: { value: string[]; onChange: (data: string[]) => any }) {
+  const { t } = useLocaleContext();
+
+  const [checkedValues, setCheckedValues] = useState(value);
+
+  const handleChange = (event: any) => {
+    const { name, checked } = event.target;
+    const newCheckedValues = checked ? [...checkedValues, name] : checkedValues.filter((value) => value !== name);
+
+    if (newCheckedValues.length > 0) {
+      setCheckedValues(newCheckedValues);
+      onChange(newCheckedValues);
+    } else {
+      Toast.warning(t('atLeastOne'));
+    }
+  };
+
+  return (
+    <Box>
+      {types.map((name) => (
+        <FormControlLabel
+          key={name}
+          control={<Checkbox checked={checkedValues.includes(name)} onChange={handleChange} name={name} />}
+          label={t(name)}
+        />
+      ))}
     </Box>
   );
 }
@@ -115,27 +152,48 @@ function DiscussionTable({
 
   return (
     <>
-      <FormControlLabel
-        sx={{ mb: 4 }}
-        checked={fullSite}
-        onChange={(_, checked) => {
-          if (checked) {
-            onChange([{ name: 'Discussion Full Site', data: { type: 'discussion', fullSite: true, id: '' } }]);
-          } else {
-            onChange(value.filter((i) => !i.data?.fullSite));
-          }
-        }}
-        control={<Checkbox />}
-        label={
-          <Box display="flex" gap={1} alignItems="center">
-            <Box mt="-2px">{t('form.fullSite')}</Box>
+      <Box sx={{ mb: 4 }}>
+        <FormControlLabel
+          checked={fullSite}
+          onChange={(_, checked) => {
+            if (checked) {
+              onChange([
+                {
+                  name: 'Discussion Full Site',
+                  data: { type: 'discussion', fullSite: true, id: '', types },
+                },
+              ]);
+            } else {
+              onChange(value.filter((i) => !i.data?.fullSite));
+            }
+          }}
+          control={<Checkbox />}
+          label={
+            <Box display="flex" gap={1} alignItems="center">
+              <Box mt="-2px">{t('form.fullSite')}</Box>
 
-            <Tooltip title={t('form.fullSiteTip')}>
-              <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
-            </Tooltip>
+              <Tooltip title={t('form.fullSiteTip')}>
+                <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
+              </Tooltip>
+            </Box>
+          }
+        />
+
+        {fullSite && (
+          <Box display="flex" alignItems="center">
+            <Box mt={-0.2}>{`${t('types')}:`}</Box>
+
+            <CheckBoxGroup
+              value={types || []}
+              onChange={(val) => {
+                const full = value.find((i) => i.data?.fullSite);
+                if (full) full.data.types = val;
+                onChange(value);
+              }}
+            />
           </Box>
-        }
-      />
+        )}
+      </Box>
 
       {meilisearch && (
         <Box mb={2}>

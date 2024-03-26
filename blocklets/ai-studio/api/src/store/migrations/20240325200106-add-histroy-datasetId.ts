@@ -4,6 +4,8 @@ import type { Migration } from '../migrate';
 
 export const up: Migration = async ({ context: queryInterface }) => {
   await queryInterface.addColumn('DatasetEmbeddingHistories', 'datasetId', { type: DataTypes.STRING });
+  await queryInterface.addColumn('DatasetEmbeddingHistories', 'documentId', { type: DataTypes.STRING });
+  await queryInterface.addColumn('DatasetSegments', 'targetId', { type: DataTypes.STRING });
 
   await queryInterface.createTable('DatasetUpdateHistories', {
     id: {
@@ -32,5 +34,8 @@ export const up: Migration = async ({ context: queryInterface }) => {
 
 export const down: Migration = async ({ context: queryInterface }) => {
   await queryInterface.removeColumn('DatasetEmbeddingHistories', 'datasetId');
+  await queryInterface.removeColumn('DatasetEmbeddingHistories', 'documentId');
+  await queryInterface.removeColumn('DatasetSegments', 'targetId');
+
   await queryInterface.dropTable('DatasetUpdateHistories');
 };

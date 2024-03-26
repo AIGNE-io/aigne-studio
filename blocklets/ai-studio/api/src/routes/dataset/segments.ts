@@ -40,8 +40,6 @@ router.get('/:datasetId/documents/:documentId/segments', user(), userAuth(), asy
 //     content: Joi.string().required(),
 //   }).validateAsync(req.body, { stripUnknown: true });
 
-//   await saveContentToVectorStore(content, datasetId, documentId);
-
 //   res.json({ data: 'success' });
 // });
 

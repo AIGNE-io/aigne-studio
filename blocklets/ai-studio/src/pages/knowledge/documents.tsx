@@ -293,7 +293,7 @@ export default function KnowledgeDocuments() {
               </Stack>
             )}
 
-            {rows.length && (
+            {!!rows.length && (
               <Table
                 sx={{
                   border: 0,
