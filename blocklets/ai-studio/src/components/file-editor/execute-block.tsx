@@ -59,6 +59,7 @@ import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages
 import IndicatorTextField from '../awareness/indicator-text-field';
 import LoadingIconButton from '../loading/loading-icon-button';
 import { ModelPopper, ModelSetting } from '../modal-settings';
+import ExecuteDatasetBlockForm from './execute-dataset-block';
 import PromptEditorField from './prompt-editor-field';
 
 const FROM_DATASET = 'dataset';
@@ -101,6 +102,24 @@ export default function ExecuteBlockForm({
   });
 
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
+
+  if (value.type === 'dataset') {
+    return (
+      <ExecuteDatasetBlockForm
+        assistant={assistant}
+        projectId={projectId}
+        gitRef={gitRef}
+        path={path}
+        value={value}
+        readOnly={readOnly}
+        compareAssistant={compareAssistant}
+        isRemoteCompare={isRemoteCompare}
+        openApis={openApis}
+        {...props}
+        sx={{ borderColor: 'warning.light' }}
+      />
+    );
+  }
 
   return (
     <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>

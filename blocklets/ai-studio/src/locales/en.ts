@@ -505,6 +505,7 @@ export default flat({
     document: 'Document',
     documents: {
       create: 'Create Document',
+      parameter: 'User Dataset',
       add: 'Add Document',
       edit: 'Edit Document',
       update: 'Update Document',
@@ -563,4 +564,6 @@ export default flat({
   segmentsView: 'Segments View',
   shareTip: 'Access link',
   refreshTip: 'Reembedding',
+  loginAsAdminButton: 'Login as Admin to view projects',
+  datasetDesc: 'Search for the data required by the context from the user dataset',
 });
