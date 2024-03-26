@@ -3,6 +3,7 @@ import { dirname, join } from 'path';
 
 import { fileToYjs } from '@blocklet/ai-runtime/types';
 import { getResources } from '@blocklet/sdk/lib/component';
+import { exists } from 'fs-extra';
 import { uniqBy } from 'lodash';
 import { parse, stringify } from 'yaml';
 
@@ -98,18 +99,21 @@ export const copyAssistantsFromResource = async ({
 export const getResourceProjects = async (folder: string) => {
   const dirs = getResourcePackageAssistantsDirs();
 
-  const files = await Promise.all(
-    dirs.map(async (dir) => {
-      const folderPath = join(dir.path, folder);
+  const files = (
+    await Promise.all(
+      dirs.map(async (dir) => {
+        const folderPath = join(dir.path, folder);
+        if (!(await exists(folderPath))) return null;
 
-      return {
-        paths: ((await readdir(folderPath)) || [])
-          .filter((filename) => filename.endsWith('.yaml'))
-          .map((filename) => join(folderPath, filename)),
-        did: dir.did,
-      };
-    })
-  );
+        return {
+          paths: ((await readdir(folderPath)) || [])
+            .filter((filename) => filename.endsWith('.yaml'))
+            .map((filename) => join(folderPath, filename)),
+          did: dir.did,
+        };
+      })
+    )
+  ).filter((i): i is NonNullable<typeof i> => !!i);
 
   const projects = (
     await Promise.all(
