@@ -13,9 +13,8 @@ import { userAuth } from '../../libs/user';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
-import UpdateHistories from '../../store/models/dataset/update-history';
 import FaissStore from '../../store/vector-store-faiss';
-import { deleteStore, discussionsIterator, queue, updateHistories } from './embeddings';
+import { discussionsIterator, queue, updateHistoriesAndStore } from './embeddings';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -83,9 +82,9 @@ router.get('/:datasetId/search', async (req, res) => {
   const store = await FaissStore.load(datasetId, embeddings);
 
   try {
-    const records = await UpdateHistories.findAll({ where: { datasetId }, attributes: ['segmentId'] });
-    const uniqueSegmentIds = [...new Set(records.map((record) => record.segmentId).flat())];
-    await deleteStore(datasetId, uniqueSegmentIds);
+    // const records = await UpdateHistories.findAll({ where: { datasetId }, attributes: ['segmentId'] });
+    // const uniqueSegmentIds = [...new Set(records.map((record) => record.segmentId).flat())];
+    // await deleteStore(datasetId, uniqueSegmentIds);
 
     if (store.getMapping() && !Object.keys(store.getMapping()).length) {
       res.json({ docs: [] });
@@ -192,7 +191,7 @@ router.delete('/:datasetId/documents/:documentId', user(), userAuth(), async (re
 
   const document = DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  await updateHistories(datasetId, documentId);
+  await updateHistoriesAndStore(datasetId, documentId);
 
   await Promise.all([
     DatasetDocument.destroy({ where: { id: documentId, datasetId } }),

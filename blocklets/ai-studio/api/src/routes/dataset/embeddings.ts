@@ -11,7 +11,7 @@ import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
 import EmbeddingHistory from '../../store/models/dataset/embedding-history';
 import Segment from '../../store/models/dataset/segment';
-import UpdateHistory from '../../store/models/dataset/update-history';
+import UpdateHistories from '../../store/models/dataset/update-history';
 import VectorStoreFaiss from '../../store/vector-store-faiss';
 
 export const sse = new SSE();
@@ -286,19 +286,21 @@ export const deleteStore = async (datasetId: string, ids: string[]) => {
   }
 };
 
-export const updateHistories = async (datasetId: string, documentId: string) => {
+export const updateHistoriesAndStore = async (datasetId: string, documentId: string) => {
   const { rows: messages, count } = await Segment.findAndCountAll({ where: { documentId } });
   if (count > 0) {
     const ids = messages.map((x) => x.id);
-    // 仅仅做了报错，没有其他地方使用
-    const found = await UpdateHistory.findOne({ where: { datasetId, documentId } });
+    // 仅仅做了save，没有其他地方使用,记录更新了哪些数据
+    const found = await UpdateHistories.findOne({ where: { datasetId, documentId } });
     if (found) {
-      await UpdateHistory.update({ segmentId: ids }, { where: { datasetId, documentId } });
+      await UpdateHistories.update({ segmentId: ids }, { where: { datasetId, documentId } });
     } else {
-      await UpdateHistory.create({ segmentId: ids, datasetId, documentId });
+      await UpdateHistories.create({ segmentId: ids, datasetId, documentId });
     }
 
     await deleteStore(datasetId, ids);
+
+    await Segment.destroy({ where: { documentId } });
   }
 };
 
@@ -308,7 +310,7 @@ export const saveContentToVectorStore = async (content: string, datasetId: strin
 
   let ids: string[] = [];
   if (documentId) {
-    await updateHistories(datasetId, documentId);
+    await updateHistoriesAndStore(datasetId, documentId);
 
     const savePromises = docs.map((doc) =>
       doc.pageContent ? Segment.create({ documentId, content: doc.pageContent }) : Promise.resolve(null)
