@@ -71,9 +71,15 @@ export default function DiscussionPage({ datasetId }: { datasetId: string }) {
   );
 }
 
-const types = ['discussion', 'blog', 'doc'];
+const types = ['discussion', 'blog', 'doc'] as ['discussion', 'blog', 'doc'];
 
-function CheckBoxGroup({ value, onChange }: { value: string[]; onChange: (data: string[]) => any }) {
+function CheckBoxGroup({
+  value,
+  onChange,
+}: {
+  value: ('discussion' | 'blog' | 'doc')[];
+  onChange: (data: ('discussion' | 'blog' | 'doc')[]) => any;
+}) {
   const { t } = useLocaleContext();
 
   const [checkedValues, setCheckedValues] = useState(value);
