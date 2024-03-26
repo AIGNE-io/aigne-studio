@@ -556,5 +556,6 @@ export default flat({
   segmentsView: 'Segments View',
   shareTip: 'Access link',
   refreshTip: 'Reembedding',
+  loginAsAdminButton: 'Login as Admin to view projects',
   datasetDesc: 'Search for the data required by the context from the user dataset',
 });
