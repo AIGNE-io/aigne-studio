@@ -1,3 +1,5 @@
+import { ReadableStream } from 'stream/web';
+
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 
