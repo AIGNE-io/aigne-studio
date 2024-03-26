@@ -149,8 +149,14 @@ export function messageRoutes(router: Router) {
       const filterResult = results.filter((x) => x.result && !x.error);
       const orderResult = orderBy(filterResult, ['createdAt'], ['asc']);
       const formattedResult = orderResult.flatMap((i) => [
-        { role: 'user', content: typeof i.parameters === 'string' ? i.parameters : JSON.stringify(i.parameters) },
-        { role: 'assistant', content: typeof i.result === 'string' ? i.result : JSON.stringify(i.result) },
+        {
+          role: 'user',
+          content: typeof i.parameters?.question === 'string' ? i.parameters.question : JSON.stringify(i.parameters),
+        },
+        {
+          role: 'assistant',
+          content: typeof i.result?.content === 'string' ? i.result.content : JSON.stringify(i.result),
+        },
       ]);
 
       res.json(formattedResult);
