@@ -114,11 +114,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-<<<<<<< HEAD
-    "@arcblock/ux": "^2.9.61",
-=======
     "@arcblock/ux": "^2.9.63",
->>>>>>> origin/main
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@mui/icons-material": "^5.15.14",
@@ -127,11 +123,7 @@
     "@types/lodash": "^4.17.0",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",
-<<<<<<< HEAD
-    "@types/react": "^18.2.69",
-=======
     "@types/react": "^18.2.70",
->>>>>>> origin/main
     "npm-run-all": "^4.1.5",
     "react": "^18.2.0",
     "react-router-dom": "^6.22.3",
