@@ -6,25 +6,24 @@ import { sequelize } from '../../sequelize';
 const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
-
-export default class DatasetSegment extends Model<
-  InferAttributes<DatasetSegment>,
-  InferCreationAttributes<DatasetSegment>
+export default class DatasetUpdateHistory extends Model<
+  InferAttributes<DatasetUpdateHistory>,
+  InferCreationAttributes<DatasetUpdateHistory>
 > {
   declare id: CreationOptional<string>;
 
+  declare datasetId: string;
+
   declare documentId: string;
 
-  declare targetId: string;
-
-  declare content?: string;
+  declare segmentId: string[];
 
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
 }
 
-DatasetSegment.init(
+DatasetUpdateHistory.init(
   {
     id: {
       type: DataTypes.STRING,
@@ -32,15 +31,15 @@ DatasetSegment.init(
       allowNull: false,
       defaultValue: nextId,
     },
+    datasetId: {
+      type: DataTypes.STRING,
+    },
     documentId: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
-    targetId: {
-      type: DataTypes.STRING,
-    },
-    content: {
-      type: DataTypes.TEXT,
+    segmentId: {
+      type: DataTypes.JSON,
+      defaultValue: [],
     },
     createdAt: {
       type: DataTypes.DATE,

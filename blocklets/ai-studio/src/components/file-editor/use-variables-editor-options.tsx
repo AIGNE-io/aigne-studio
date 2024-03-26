@@ -86,10 +86,11 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
       doc.transact(() => {
         assistant.parameters ??= {};
 
-        if (!parameter || !variables.includes(parameter)) {
+        const key = (parameter || '').split('.')[0] || '';
+        if (!parameter || !variables.includes(key)) {
           assistant.parameters[id] = {
             index: Math.max(-1, ...Object.values(assistant.parameters).map((i) => i.index)) + 1,
-            data: { id, key: parameter, from },
+            data: { id, key, from },
           };
 
           setHighlightedId(id);

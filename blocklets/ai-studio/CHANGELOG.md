@@ -1,3 +1,8 @@
+## 0.1.304 (2024-3-26)
+
+- feat: embedding discuss all data (#725)
+- fix: replace vector-store-hnswlib to vector-store-faiss
+
 ## 0.1.303 (2024-3-26)
 
 - fix: allow text wrapping for select field options
