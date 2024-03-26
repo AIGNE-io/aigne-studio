@@ -307,6 +307,11 @@ async function runFunctionAssistant({
     )
   );
 
+  const ctx = Object.freeze({
+    user,
+    session: { id: sessionId },
+  });
+
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
@@ -326,7 +331,7 @@ async function runFunctionAssistant({
     fnArgs: args,
   });
 
-  const result = await module.default(args);
+  const result = await module.default(args, ctx);
 
   callback?.({
     type: AssistantResponseType.CHUNK,
