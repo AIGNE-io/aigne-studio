@@ -14,6 +14,8 @@ export default class Datastore extends Model<InferAttributes<Datastore>, InferCr
 
   declare userId: string;
 
+  declare type?: string;
+
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
@@ -29,9 +31,6 @@ Datastore.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    data: {
-      type: DataTypes.JSON,
-    },
     userId: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -39,11 +38,17 @@ Datastore.init(
     sessionId: {
       type: DataTypes.STRING,
     },
+    type: {
+      type: DataTypes.STRING,
+    },
     createdAt: {
       type: DataTypes.DATE,
     },
     updatedAt: {
       type: DataTypes.DATE,
+    },
+    data: {
+      type: DataTypes.JSON,
     },
   },
   { sequelize }

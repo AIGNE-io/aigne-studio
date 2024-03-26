@@ -66,7 +66,7 @@ router.get('/', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: input
+ *          x-parameter-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -148,7 +148,7 @@ router.post('/', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: input
+ *          x-parameter-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -209,7 +209,7 @@ router.put('/:datasetId', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: input
+ *          x-parameter-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name

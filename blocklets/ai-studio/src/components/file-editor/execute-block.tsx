@@ -23,6 +23,7 @@ import {
   Autocomplete,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -779,7 +780,7 @@ export const ToolDialog = forwardRef<
                   control={form.control}
                   name={`parameters.${parameter.name}`}
                   render={({ field }) => {
-                    if (parameter['x-input-type'] === 'select') {
+                    if (parameter['x-parameter-type'] === 'select') {
                       return (
                         <AsyncSelect
                           label={getDatasetTextByI18n(parameter, 'name', locale)}
@@ -791,6 +792,17 @@ export const ToolDialog = forwardRef<
                           onChange={field.onChange}
                           queryParams={{ appId: projectId }}
                         />
+                      );
+                    }
+
+                    if (parameter['x-parameter-type'] === 'boolean') {
+                      return (
+                        <Box>
+                          <Checkbox
+                            checked={Boolean(field.value)}
+                            onChange={(e) => field.onChange({ target: { value: e.target.checked } })}
+                          />
+                        </Box>
                       );
                     }
 
