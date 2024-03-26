@@ -8,7 +8,7 @@ import logger from '../../libs/logger';
 import createQueue from '../../libs/queue';
 import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
-import EmbeddingHistory from '../../store/models/dataset/embedding-history';
+import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import Segment from '../../store/models/dataset/segment';
 import UpdateHistories from '../../store/models/dataset/update-history';
 import VectorStoreFaiss from '../../store/vector-store-faiss';
@@ -40,12 +40,8 @@ export const queue = createQueue({
       const handler = embeddingHandler[document.type];
       if (!handler) return;
 
-      sse.send({ documentId, embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() }, 'change');
-
-      await document.update(
-        { error: '', embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() },
-        { where: { id: documentId } }
-      );
+      const res = await document.update({ embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() });
+      sse.send({ documentId, ...res.dataValues }, 'change');
 
       await handler(document, content);
 
@@ -70,7 +66,7 @@ const updateEmbeddingHistory = async ({
   updatedAt?: Date | string;
 }) => {
   try {
-    const previousEmbedding = await EmbeddingHistory.findOne({ where: { targetId, datasetId } });
+    const previousEmbedding = await EmbeddingHistories.findOne({ where: { targetId, datasetId, documentId } });
     if (previousEmbedding?.targetVersion && updatedAt) {
       if (
         new Date(previousEmbedding?.targetVersion).toISOString() === new Date(updatedAt || new Date()).toISOString()
@@ -79,41 +75,54 @@ const updateEmbeddingHistory = async ({
       }
     }
 
-    if (await EmbeddingHistory.findOne({ where: { targetId } })) {
-      await EmbeddingHistory.update(
+    if (await EmbeddingHistories.findOne({ where: { targetId } })) {
+      await EmbeddingHistories.update(
         { startAt: new Date(), status: UploadStatus.Uploading },
-        { where: { targetId, datasetId } }
+        { where: { targetId, datasetId, documentId } }
       );
     } else {
-      await EmbeddingHistory.create({ startAt: new Date(), status: UploadStatus.Uploading, targetId, datasetId });
+      await EmbeddingHistories.create({
+        startAt: new Date(),
+        status: UploadStatus.Uploading,
+        targetId,
+        datasetId,
+        documentId,
+      });
     }
 
-    if (content) await saveContentToVectorStore(content, datasetId, documentId);
+    if (content) await saveContentToVectorStore({ content, datasetId, targetId, documentId });
 
-    if (await EmbeddingHistory.findOne({ where: { targetId, datasetId } })) {
-      await EmbeddingHistory.update(
+    if (await EmbeddingHistories.findOne({ where: { targetId, datasetId, documentId } })) {
+      await EmbeddingHistories.update(
         { targetVersion: new Date(updatedAt || new Date()), endAt: new Date(), status: UploadStatus.Success },
-        { where: { targetId, datasetId } }
+        { where: { targetId, datasetId, documentId } }
       );
     } else {
-      await EmbeddingHistory.create({
+      await EmbeddingHistories.create({
         targetVersion: new Date(updatedAt || new Date()),
         endAt: new Date(),
         status: UploadStatus.Success,
         targetId,
         datasetId,
+        documentId,
       });
     }
 
     return true;
   } catch (error) {
-    if (await EmbeddingHistory.findOne({ where: { targetId, datasetId } })) {
-      await EmbeddingHistory.update(
+    if (await EmbeddingHistories.findOne({ where: { targetId, datasetId, documentId } })) {
+      await EmbeddingHistories.update(
         { error: error.message, status: UploadStatus.Error },
-        { where: { targetId, datasetId } }
+        { where: { targetId, datasetId, documentId } }
       );
     } else {
-      await EmbeddingHistory.create({ targetId, datasetId, error: error.message, status: UploadStatus.Error });
+      await EmbeddingHistories.create({
+        targetId,
+        datasetId,
+        documentId,
+        error: error.message,
+        status: UploadStatus.Error,
+      });
     }
 
     await DatasetDocument.update(
@@ -128,10 +137,12 @@ const updateEmbeddingHistory = async ({
 async function updateDiscussionEmbeddings(discussionId: string, datasetId: string, documentId: string) {
   try {
     const updateEmbedding = async (locale: string, updatedAt: string, content: string) => {
+      const targetId = locale ? `${discussionId}-${locale}` : discussionId;
+
       return updateEmbeddingHistory({
         datasetId,
         documentId,
-        targetId: `${discussionId}-${locale}`,
+        targetId,
         updatedAt,
         content,
       });
@@ -171,10 +182,7 @@ const embeddingHandler: {
 
     await updateDiscussionEmbeddings(targetId, document.datasetId, document.id);
 
-    const result = await document.update(
-      { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
-      { where: { id: document.id } }
-    );
+    const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
     sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
   },
   text: async (document: DatasetDocument, content?: DatasetContent | null) => {
@@ -186,10 +194,7 @@ const embeddingHandler: {
       content: content?.content,
     });
 
-    const result = await document.update(
-      { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
-      { where: { id: document.id } }
-    );
+    const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
     sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
   },
   file: async (document: DatasetDocument, content?: DatasetContent | null) => {
@@ -201,10 +206,7 @@ const embeddingHandler: {
       content: content?.content,
     });
 
-    const result = await document.update(
-      { error: '', embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() },
-      { where: { id: document.id } }
-    );
+    const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
     sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
   },
   fullSite: async (document: DatasetDocument) => {
@@ -230,21 +232,17 @@ const embeddingHandler: {
       }
     }
 
-    const result = await document.update({
-      embeddingStatus: `${currentIndex}/${currentTotal}`,
-      embeddingEndAt: new Date(),
-    });
+    const embeddingStatus = `${currentIndex}/${currentTotal}`;
+    const result = await document.update({ embeddingStatus, embeddingEndAt: new Date() });
     sse.send({ documentId, ...result.dataValues }, 'complete');
   },
 };
 
-export const getDiscussionIds = async (types = ['discussion']) => {
+export const getDiscussionIds = async (types: ('discussion' | 'blog' | 'doc')[] = ['discussion']) => {
   const ids = [];
 
   for (const type of types) {
-    if (!type) continue;
-    // eslint-disable-next-line no-await-in-loop
-    for await (const { id: discussionId } of discussionsIterator(type as 'discussion' | 'blog' | 'doc')) {
+    for await (const { id: discussionId } of discussionsIterator(type)) {
       ids.push(discussionId);
     }
   }
@@ -317,7 +315,7 @@ export async function searchDiscussions({
   }).then((res) => res.data);
 }
 
-export const deleteStore = async (datasetId: string, ids: string[]) => {
+const deleteStore = async (datasetId: string, ids: string[]) => {
   const embeddings = new AIKitEmbeddings({});
   const store = await VectorStoreFaiss.load(datasetId, embeddings);
 
@@ -331,8 +329,10 @@ export const deleteStore = async (datasetId: string, ids: string[]) => {
   }
 };
 
-export const updateHistoriesAndStore = async (datasetId: string, documentId: string) => {
-  const { rows: messages, count } = await Segment.findAndCountAll({ where: { documentId } });
+export const updateHistoriesAndStore = async (datasetId: string, documentId: string, targetId?: string) => {
+  const where = targetId ? { documentId, targetId } : { documentId };
+  const { rows: messages, count } = await Segment.findAndCountAll({ where });
+
   if (count > 0) {
     const ids = messages.map((x) => x.id);
     // 仅仅做了save，没有其他地方使用,记录更新了哪些数据
@@ -345,20 +345,31 @@ export const updateHistoriesAndStore = async (datasetId: string, documentId: str
 
     await deleteStore(datasetId, ids);
 
-    await Segment.destroy({ where: { documentId } });
+    await Segment.destroy({ where });
   }
 };
 
-export const saveContentToVectorStore = async (content: string, datasetId: string, documentId?: string) => {
+const saveContentToVectorStore = async ({
+  content,
+  datasetId,
+  targetId = '',
+  documentId,
+}: {
+  content: string;
+  datasetId: string;
+  targetId: string;
+  documentId?: string;
+}) => {
   const textSplitter = new RecursiveCharacterTextSplitter();
   const docs = await textSplitter.createDocuments([content]);
 
   let ids: string[] = [];
   if (documentId) {
-    await updateHistoriesAndStore(datasetId, documentId);
+    // 清除历史 Vectors Store
+    await updateHistoriesAndStore(datasetId, documentId, targetId);
 
     const savePromises = docs.map((doc) =>
-      doc.pageContent ? Segment.create({ documentId, content: doc.pageContent }) : Promise.resolve(null)
+      doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : Promise.resolve(null)
     );
     const results = await Promise.all(savePromises);
     ids = results.filter((i): i is NonNullable<typeof i> => !!i).map((result) => result?.id);
