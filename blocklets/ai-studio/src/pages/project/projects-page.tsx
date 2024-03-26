@@ -51,7 +51,7 @@ import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
-import { ProjectWithUserInfo, User, copyProject, createProject } from '../../libs/project';
+import { ProjectWithUserInfo, User, createProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
@@ -248,7 +248,11 @@ function ProjectMenu() {
                   <LoadingMenuItem
                     disabled={readOnly}
                     onClick={() =>
-                      createProject({ duplicateFrom: menuAnchor!.id })
+                      createProject({
+                        templateId: menuAnchor!.id,
+                        name: `${item?.name || 'Unnamed'} Copy`,
+                        description: item?.description,
+                      })
                         .catch((error) => {
                           Toast.error(getErrorMessage(error));
                           throw error;
@@ -483,24 +487,11 @@ function ProjectList({
                     okText: t('create'),
                     okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {
-                      if ((item as any).fromResourceBlockletFolder) {
-                        const project = await copyProject({
-                          folder: 'template',
-                          projectId: item._id!,
-                          name,
-                          description,
-                        });
-                        currentGitStore.setState({
-                          currentProjectId: project._id,
-                        });
-                        navigate(joinURL('/projects', project._id!));
-                        return;
-                      }
-                      const project = await createProject({ templateId: item._id!, name, description });
+                      const project = await createProject({ templateId: item._id, name, description });
                       currentGitStore.setState({
                         currentProjectId: project._id,
                       });
-                      navigate(joinURL('/projects', project._id!));
+                      navigate(joinURL('/projects', project._id));
                     },
                   });
                 } else if (section === 'projects') {
@@ -509,10 +500,14 @@ function ProjectList({
                   });
                   navigate(joinURL('/projects', item._id!));
                 } else if (section === 'examples') {
-                  if ((item as any)?.fromResourceBlockletFolder) {
+                  if (!item.duplicateFrom) {
                     try {
                       setLoading(item);
-                      const project = await copyProject({ folder: 'example', projectId: item._id! });
+                      const project = await createProject({
+                        templateId: item._id!,
+                        name: item.name,
+                        description: item.description,
+                      });
                       currentGitStore.setState({
                         currentProjectId: project._id,
                       });

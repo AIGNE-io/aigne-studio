@@ -1,7 +1,6 @@
 import { user } from '@blocklet/sdk/lib/middlewares';
 import express from 'express';
 
-import { getResourceProjects } from '../libs/resource';
 import { ensurePromptsEditor, isRefReadOnly } from '../libs/security';
 import Project from '../store/models/project';
 import { defaultBranch, getRepository } from '../store/repository';
@@ -16,9 +15,7 @@ router.use(ensurePromptsEditor, user()).ws('/ws/:projectId/:ref', async (conn, r
 
   const { role } = req.user!;
 
-  const project =
-    (await Project.findOne({ where: { _id: projectId } })) ||
-    (await getResourceProjects('example')).find((x) => x._id === projectId);
+  const project = await Project.findOne({ where: { _id: projectId } });
 
   if (!project) {
     conn.close(3001, `Project ${projectId} not found`);

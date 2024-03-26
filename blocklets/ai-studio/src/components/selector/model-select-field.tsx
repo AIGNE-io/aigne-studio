@@ -10,7 +10,7 @@ import {
   menuItemClasses,
 } from '@mui/material';
 import groupBy from 'lodash/groupBy';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 
 import {
@@ -35,13 +35,6 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
   }, [isImageModel]);
 
   if (error) throw error;
-
-  useEffect(() => {
-    const first = value?.[0]?.model;
-    if (!props.value && first) {
-      props.onChange?.({ target: { value: first } } as any);
-    }
-  }, [value, props.value]);
 
   const groups = useMemo(() => {
     return Object.values(groupBy(value, 'brand'));
