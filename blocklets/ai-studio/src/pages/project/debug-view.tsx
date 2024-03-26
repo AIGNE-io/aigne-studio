@@ -1,4 +1,5 @@
 import ErrorCard from '@app/components/error-card';
+import ErrorBoundary from '@app/components/error/error-boundary';
 import MdViewer from '@app/components/md-viewer';
 import BasicTree from '@app/components/trace';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -328,62 +329,64 @@ const MessageView = memo(
     index: number;
   }) => {
     return (
-      <Stack mt={message.role === 'user' && index !== 0 ? 4 : 0}>
-        {message.role === 'user' && (
-          <Typography alignSelf="center" ml={0.5} component="span" color="text.secondary" whiteSpace="nowrap">
-            {dayjs(message.createdAt).format('YYYY-MM-DD HH:mm:ss')}
-          </Typography>
-        )}
-        <Stack px={4} py={1} gap={1} flexDirection="row" position="relative">
-          <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-          <Box sx={{ overflowX: 'hidden', flexGrow: 1 }}>
-            <BasicTree inputs={message.inputMessages} />
-            <Box
-              flex={1}
-              sx={{
-                [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
-              }}>
-              {(message.content || message.images?.length || message.loading) &&
-              (chatType !== 'debug' || !message?.inputMessages?.length) ? (
-                <MessageViewContent
-                  sx={{
-                    px: 1,
-                    borderRadius: 1,
-                    bgcolor: (theme) =>
-                      message?.inputMessages
-                        ? theme.palette.grey[100]
-                        : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
-                    position: 'relative',
-                  }}>
-                  <MdViewer content={message.content} />
+      <ErrorBoundary>
+        <Stack mt={message.role === 'user' && index !== 0 ? 4 : 0}>
+          {message.role === 'user' && (
+            <Typography alignSelf="center" ml={0.5} component="span" color="text.secondary" whiteSpace="nowrap">
+              {dayjs(message.createdAt).format('YYYY-MM-DD HH:mm:ss')}
+            </Typography>
+          )}
+          <Stack px={4} py={1} gap={1} flexDirection="row" position="relative">
+            <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
+            <Box sx={{ overflowX: 'hidden', flexGrow: 1 }}>
+              <BasicTree inputs={message.inputMessages} />
+              <Box
+                flex={1}
+                sx={{
+                  [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
+                }}>
+                {(message.content || message.images?.length || message.loading) &&
+                (chatType !== 'debug' || !message?.inputMessages?.length) ? (
+                  <MessageViewContent
+                    sx={{
+                      px: 1,
+                      borderRadius: 1,
+                      bgcolor: (theme) =>
+                        message?.inputMessages
+                          ? theme.palette.grey[100]
+                          : alpha(theme.palette.primary.main, theme.palette.action.hoverOpacity),
+                      position: 'relative',
+                    }}>
+                    <MdViewer content={message.content} />
 
-                  {message.images && message.images.length > 0 && (
-                    <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
-                  )}
+                    {message.images && message.images.length > 0 && (
+                      <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
+                    )}
 
-                  {message.loading && !message.inputMessages && <WritingIndicator />}
+                    {message.loading && !message.inputMessages && <WritingIndicator />}
 
-                  {message.role === 'assistant' && (
-                    <Box className="actions">
-                      {message.content && <CopyButton key="copy" message={message.content} />}
-                    </Box>
-                  )}
-                </MessageViewContent>
-              ) : null}
+                    {message.role === 'assistant' && (
+                      <Box className="actions">
+                        {message.content && <CopyButton key="copy" message={message.content} />}
+                      </Box>
+                    )}
+                  </MessageViewContent>
+                ) : null}
 
-              {message.error ? (
-                <ErrorCard error={message.error} />
-              ) : (
-                message.cancelled && (
-                  <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                    Cancelled
-                  </Alert>
-                )
-              )}
+                {message.error ? (
+                  <ErrorCard error={message.error} />
+                ) : (
+                  message.cancelled && (
+                    <Alert variant="standard" color="warning" sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                      Cancelled
+                    </Alert>
+                  )
+                )}
+              </Box>
             </Box>
-          </Box>
+          </Stack>
         </Stack>
-      </Stack>
+      </ErrorBoundary>
     );
   }
 );
