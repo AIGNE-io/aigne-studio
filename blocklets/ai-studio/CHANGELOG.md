@@ -1,3 +1,10 @@
+## 0.1.303 (2024-3-26)
+
+- fix: allow text wrapping for select field options
+- fix: correct format of chat history
+- feat: pass context to the function assistants
+- fix: reset parameters after assistant changed
+
 ## 0.1.302 (2024-3-26)
 
 - fix: catch the error of message rendering
