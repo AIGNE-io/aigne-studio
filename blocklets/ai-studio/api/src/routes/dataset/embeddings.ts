@@ -58,8 +58,9 @@ export const queue = createQueue({
 
         sse.send({ documentId, ...result }, 'complete');
       }
+      logger.info('Job End', task);
     } catch (error) {
-      logger.error(error?.message);
+      logger.error('Job Error', error?.message);
     }
   },
 });
