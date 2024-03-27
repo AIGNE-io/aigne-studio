@@ -1,3 +1,8 @@
+## 0.1.310 (2024-3-27)
+
+- fix: support resetting an example project
+- fix: keep assistant id unchanged when copying
+
 ## 0.1.309 (2024-3-27)
 
 - fix: optimized queue. no push queue if in progress
