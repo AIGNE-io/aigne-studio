@@ -258,7 +258,13 @@ export function projectRoutes(router: Router) {
       // duplicate a project
       const original = await Project.findOne({ where: { _id: templateId } });
       if (original) {
-        project = await copyProject({ project: original, name, description, author: req.user! });
+        project = await copyProject({
+          project: original,
+          name,
+          description,
+          author: req.user!,
+          projectType: 'project',
+        });
       }
 
       // create project from builtin templates
