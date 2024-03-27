@@ -1,54 +1,87 @@
 import { call } from '@blocklet/sdk/lib/component';
 import SSE from 'express-sse';
+import { sha3_256 } from 'js-sha3';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { intersection } from 'lodash';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import logger from '../../libs/logger';
-import createQueue from '../../libs/queue';
+import createQueue, { EmbeddingQueue, FullSiteQueue, isEmbeddingQueue, isFullSiteQueue } from '../../libs/queue';
 import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import Segment from '../../store/models/dataset/segment';
 import UpdateHistories from '../../store/models/dataset/update-history';
-import VectorStoreFaiss from '../../store/vector-store-faiss';
+import VectorStore from '../../store/vector-store-hnswlib';
 
 export const sse = new SSE();
+
+const embeddingsJob = async (job: EmbeddingQueue) => {
+  try {
+    const documentId = job?.documentId;
+    if (!documentId) {
+      throw new Error('documentId not found');
+    }
+
+    const [document, content] = await Promise.all([
+      await DatasetDocument.findOne({ where: { id: documentId } }),
+      await DatasetContent.findOne({ where: { documentId } }),
+    ]);
+    if (!document) throw new Error(`Dataset item ${documentId} not found`);
+    if (!document.data) return;
+
+    const handler = embeddingHandler[document.type];
+    if (!handler) return;
+
+    const res = await document.update({ embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() });
+    sse.send({ documentId, ...res.dataValues }, 'change');
+
+    await handler(document, content);
+  } catch (error) {
+    logger.error('Job Error', error?.message);
+  }
+};
+
+const fullSiteItemJob = async (job: FullSiteQueue) => {
+  const { documentId, currentIndex, currentTotal, discussionId } = job;
+  if (!documentId) {
+    throw new Error('documentId not found');
+  }
+
+  const [document] = await Promise.all([await DatasetDocument.findOne({ where: { id: documentId } })]);
+  if (!document) throw new Error(`Dataset item ${documentId} not found`);
+
+  const embeddingStatus = `${currentIndex}/${currentTotal}`;
+  const result = await document.update({ embeddingStatus, embeddingEndAt: new Date() });
+  sse.send({ documentId, ...result.dataValues }, 'change');
+  logger.info('embedding fullSite discussion', { currentTotal, currentIndex, embeddingStatus });
+
+  try {
+    await updateDiscussionEmbeddings(discussionId, document.datasetId, document.id);
+  } catch (error) {
+    logger.error(`embedding discussion ${discussionId} error`, { error });
+  }
+};
 
 export const queue = createQueue({
   options: {
     concurrency: 3,
     maxTimeout: 5 * 60 * 1000,
+    id: (job) => sha3_256(JSON.stringify(job)),
   },
   onJob: async (task) => {
-    try {
-      const { job } = task;
-      logger.info('Job Start', task);
+    const { job } = task;
+    logger.info('Job Start', task);
 
-      const documentId = job?.documentId;
-      if (!documentId) {
-        throw new Error('documentId not found');
-      }
-
-      const [document, content] = await Promise.all([
-        await DatasetDocument.findOne({ where: { id: documentId } }),
-        await DatasetContent.findOne({ where: { documentId } }),
-      ]);
-      if (!document) throw new Error(`Dataset item ${documentId} not found`);
-      if (!document.data) return;
-
-      const handler = embeddingHandler[document.type];
-      if (!handler) return;
-
-      const res = await document.update({ embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() });
-      sse.send({ documentId, ...res.dataValues }, 'change');
-
-      await handler(document, content);
-
-      logger.info('Job End', task);
-    } catch (error) {
-      logger.error('Job Error', error?.message);
+    if (isEmbeddingQueue(job)) {
+      await embeddingsJob(job);
     }
+
+    if (isFullSiteQueue(job)) {
+      await fullSiteItemJob(job);
+    }
+
+    logger.info('Job End', task);
   },
 });
 
@@ -137,7 +170,7 @@ const updateEmbeddingHistory = async ({
 async function updateDiscussionEmbeddings(discussionId: string, datasetId: string, documentId: string) {
   try {
     const updateEmbedding = async (locale: string, updatedAt: string, content: string) => {
-      const targetId = locale ? `${discussionId}-${locale}` : discussionId;
+      const targetId = locale ? `${discussionId}_$$$_${locale}` : discussionId;
 
       return updateEmbeddingHistory({
         datasetId,
@@ -178,7 +211,12 @@ const embeddingHandler: {
     const targetId = (document.data as any).id;
 
     const { post: discussion } = await getDiscussion(targetId);
-    await DatasetContent.update({ content: discussion?.content || '' }, { where: { id: document.id } });
+    const found = await DatasetContent.findOne({ where: { documentId: document.id } });
+    if (found) {
+      await found.update({ content: discussion?.content || '' });
+    } else {
+      await DatasetContent.create({ documentId: document.id, content: discussion?.content || '' });
+    }
 
     await updateDiscussionEmbeddings(targetId, document.datasetId, document.id);
 
@@ -210,31 +248,21 @@ const embeddingHandler: {
     sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
   },
   fullSite: async (document: DatasetDocument) => {
-    const documentId = document.id;
     const ids = await getDiscussionIds((document.data as any).types || []);
-
     const currentTotal = ids.length;
     let currentIndex = 0;
 
     for (const discussionId of ids) {
       currentIndex++;
-      sse.send(
-        { documentId, embeddingStatus: `${currentIndex}/${currentTotal}`, embeddingEndAt: new Date() },
-        'change'
-      );
-      logger.info('embedding fullSite discussion', { currentTotal, currentIndex });
 
-      try {
-        const result = await updateDiscussionEmbeddings(discussionId, document.datasetId, document.id);
-        if (!result) currentIndex--;
-      } catch (error) {
-        logger.error(`embedding discussion ${discussionId} error`, { error });
-      }
+      queue.push({
+        type: 'fullSite',
+        documentId: document.id,
+        currentIndex,
+        currentTotal,
+        discussionId,
+      });
     }
-
-    const embeddingStatus = `${currentIndex}/${currentTotal}`;
-    const result = await document.update({ embeddingStatus, embeddingEndAt: new Date() });
-    sse.send({ documentId, ...result.dataValues }, 'complete');
   },
 };
 
@@ -315,16 +343,16 @@ export async function searchDiscussions({
   }).then((res) => res.data);
 }
 
-const deleteStore = async (datasetId: string, ids: string[]) => {
+export const deleteStore = async (datasetId: string, ids: string[]) => {
   const embeddings = new AIKitEmbeddings({});
-  const store = await VectorStoreFaiss.load(datasetId, embeddings);
+  const store = await VectorStore.load(datasetId, embeddings);
 
-  const remoteIds = Object.values(store.getMapping()) || [];
-  const deleteIds = intersection(remoteIds, ids);
+  // const remoteIds = Object.values(store.getMapping()) || [];
+  const deleteIds = intersection([], ids);
 
   // 直接删除既可以，但这样更严谨
   if (deleteIds.length) {
-    await store.delete({ ids: deleteIds });
+    // await store.delete({ ids: deleteIds });
     await store.save();
   }
 };
@@ -343,7 +371,7 @@ export const updateHistoriesAndStore = async (datasetId: string, documentId: str
       await UpdateHistories.create({ segmentId: ids, datasetId, documentId });
     }
 
-    await deleteStore(datasetId, ids);
+    // await deleteStore(datasetId, ids);
 
     await Segment.destroy({ where });
   }
@@ -372,11 +400,11 @@ const saveContentToVectorStore = async ({
   const savePromises = docs.map((doc) =>
     doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : Promise.resolve(null)
   );
-  const results = await Promise.all(savePromises);
-  const ids = results.filter((i): i is NonNullable<typeof i> => !!i).map((result) => result?.id);
+  await Promise.all(savePromises);
+  // const ids = results.filter((i): i is NonNullable<typeof i> => !!i).map((result) => result?.id);
 
   // 保存到向量数据库
-  const store = await VectorStoreFaiss.load(datasetId, embeddings);
-  await store.addVectors(vectors, docs, { ids });
+  const store = await VectorStore.load(datasetId, embeddings);
+  await store.addVectors(vectors, docs);
   await store.save();
 };

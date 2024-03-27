@@ -18,6 +18,7 @@ export type User = {
 };
 
 export type ProjectWithUserInfo = Project & {
+  isFromResource?: boolean;
   branches: string[];
   users: User[];
 };

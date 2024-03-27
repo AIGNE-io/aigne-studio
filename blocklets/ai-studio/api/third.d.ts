@@ -16,6 +16,7 @@ namespace Express {
       fullName: string;
       provider: string;
       walletOS: string;
+      isAdmin: boolean;
     };
   }
 }

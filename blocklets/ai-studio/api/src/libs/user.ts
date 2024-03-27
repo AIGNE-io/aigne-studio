@@ -56,6 +56,7 @@ export const userAuth = () => {
       return;
     }
 
+    req.user.isAdmin = ['owner', 'admin'].includes(req.user?.role);
     next();
   };
 };

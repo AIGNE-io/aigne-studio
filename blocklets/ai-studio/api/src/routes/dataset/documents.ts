@@ -9,12 +9,13 @@ import { Op, Sequelize } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
+import logger from '../../libs/logger';
 import { userAuth } from '../../libs/user';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import FaissStore from '../../store/vector-store-faiss';
+import VectorStore from '../../store/vector-store-hnswlib';
 import { getDiscussionIds, queue, updateHistoriesAndStore } from './embeddings';
 
 const router = Router();
@@ -69,34 +70,36 @@ router.get('/:datasetId/search', async (req, res) => {
 
   const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset || !datasetId) {
+    logger.error('search vector info', 'datasetId or dataset is not Found');
     res.json({ docs: [] });
     return;
   }
 
   const documents = await DatasetDocument.findAll({ where: { datasetId } });
   if (!documents?.length) {
+    logger.error('search vector info', 'documents is not Found');
     res.json({ docs: [] });
     return;
   }
 
   const embeddings = new AIKitEmbeddings({});
-  const store = await FaissStore.load(datasetId, embeddings);
+  const store = await VectorStore.load(datasetId, embeddings);
 
   try {
     // const records = await UpdateHistories.findAll({ where: { datasetId }, attributes: ['segmentId'] });
     // const uniqueSegmentIds = [...new Set(records.map((record) => record.segmentId).flat())];
 
-    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
-      res.json({ docs: [] });
-      return;
-    }
+    // if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+    //   res.json({ docs: [] });
+    //   return;
+    // }
 
-    const docs = await store.similaritySearch(input.message, 3);
+    const docs = await store.similaritySearch(input.message, 4);
     const result = docs.map((x) => x?.pageContent);
 
     res.json({ docs: result });
   } catch (error) {
-    console.error(error);
+    logger.error('search vector info', error?.message);
     res.json({ docs: [] });
   }
 });
@@ -143,8 +146,9 @@ router.get('/:datasetId/search', async (req, res) => {
  *          x-description-zh: 获取当前 datasetId 数据集中数据信息
  */
 router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
-  const { did } = req.user!;
+  const { did, isAdmin } = req.user!;
   const { datasetId } = req.params;
+  const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
   if (!datasetId) throw new Error('Missing required params `datasetId`');
 
@@ -156,7 +160,7 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
   const [items, total] = await Promise.all([
     DatasetDocument.findAll({
       order: [['createdAt', 'DESC']],
-      where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
+      where: { datasetId, ...user },
       offset: (page - 1) * size,
       limit: size,
       attributes: {
@@ -173,7 +177,7 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
         ],
       },
     }),
-    DatasetDocument.count({ where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] } }),
+    DatasetDocument.count({ where: { datasetId, ...user } }),
   ]);
 
   res.json({ items, total });
@@ -250,7 +254,7 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
   });
   await DatasetContent.create({ documentId: document.id, content });
 
-  queue.push({ documentId: document.id });
+  queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
 });
@@ -326,7 +330,7 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
       createdBy: did,
       updatedBy: did,
     });
-    queue.push({ documentId: document.id });
+    queue.checkAndPush({ type: 'document', documentId: document.id });
 
     return res.json(document);
   }
@@ -334,7 +338,7 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   docs = await Promise.all(
     arr.map(async (item) => {
       const document = await createOrUpdate(item.name, item.data.id);
-      queue.push({ documentId: document.id });
+      queue.checkAndPush({ type: 'document', documentId: document.id });
       return document;
     })
   );
@@ -393,7 +397,7 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
   });
   await DatasetContent.create({ documentId: document.id, content: await readFile(filePath, 'utf8') });
 
-  queue.push({ documentId: document.id });
+  queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
 });
@@ -422,7 +426,7 @@ router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  if (document) queue.push({ documentId: document.id });
+  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
 });
@@ -485,13 +489,14 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  if (document) queue.push({ documentId: document.id });
+  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
 });
 
 router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
-  const { did } = req.user!;
+  const { did, isAdmin } = req.user!;
+  const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
   const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
     datasetId: Joi.string().required(),
@@ -499,9 +504,7 @@ router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, 
   }).validateAsync(req.params);
 
   const [dataset, document, content] = await Promise.all([
-    Dataset.findOne({
-      where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
-    }),
+    Dataset.findOne({ where: { id: datasetId, ...user } }),
     DatasetDocument.findOne({ where: { datasetId, id: documentId } }),
     DatasetContent.findOne({ where: { documentId }, attributes: ['content'] }),
   ]);
@@ -517,7 +520,7 @@ router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), a
 
   const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
 
-  if (document) queue.push({ documentId: document.id });
+  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
 });
