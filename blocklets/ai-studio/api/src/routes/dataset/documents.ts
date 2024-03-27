@@ -9,12 +9,13 @@ import { Op, Sequelize } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
+import logger from '../../libs/logger';
 import { userAuth } from '../../libs/user';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import FaissStore from '../../store/vector-store-faiss';
+import VectorStore from '../../store/vector-store-hnswlib';
 import { getDiscussionIds, queue, updateHistoriesAndStore } from './embeddings';
 
 const router = Router();
@@ -69,34 +70,36 @@ router.get('/:datasetId/search', async (req, res) => {
 
   const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset || !datasetId) {
+    logger.error('search vector info', 'datasetId or dataset is not Found');
     res.json({ docs: [] });
     return;
   }
 
   const documents = await DatasetDocument.findAll({ where: { datasetId } });
   if (!documents?.length) {
+    logger.error('search vector info', 'documents is not Found');
     res.json({ docs: [] });
     return;
   }
 
   const embeddings = new AIKitEmbeddings({});
-  const store = await FaissStore.load(datasetId, embeddings);
+  const store = await VectorStore.load(datasetId, embeddings);
 
   try {
     // const records = await UpdateHistories.findAll({ where: { datasetId }, attributes: ['segmentId'] });
     // const uniqueSegmentIds = [...new Set(records.map((record) => record.segmentId).flat())];
 
-    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
-      res.json({ docs: [] });
-      return;
-    }
+    // if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+    //   res.json({ docs: [] });
+    //   return;
+    // }
 
-    const docs = await store.similaritySearch(input.message, 3);
+    const docs = await store.similaritySearch(input.message, 4);
     const result = docs.map((x) => x?.pageContent);
 
     res.json({ docs: result });
   } catch (error) {
-    console.error(error);
+    logger.error('search vector info', error?.message);
     res.json({ docs: [] });
   }
 });

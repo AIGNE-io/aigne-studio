@@ -20,7 +20,7 @@ FaissStore.importFaiss = async () => {
     return { IndexFlatL2 };
   } catch (error) {
     logger.error('import Faiss error', { error });
-    throw new Error('Please install Faiss-node as a dependency with, e.g. `npm install -S Faiss-node`');
+    throw new Error('Please install faiss-node as a dependency with, e.g. `npm install -S faiss-node`');
   }
 };
 
