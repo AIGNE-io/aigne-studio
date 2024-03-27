@@ -1,3 +1,9 @@
+## 0.1.309 (2024-3-27)
+
+- fix: optimized queue. no push queue if in progress
+- fix: split fullsite queue to a smaller queue, it will time out when the number is large.
+- fix: the administrator has permission to view all datasets
+
 ## 0.1.308 (2024-3-26)
 
 ## 0.1.307 (2024-3-26)

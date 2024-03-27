@@ -116,8 +116,6 @@ export default function KnowledgeDocuments() {
       {
         field: 'type',
         headerName: t('knowledge.documents.type'),
-        maxWidth: 200,
-        minWidth: 120,
         headerAlign: 'center',
         align: 'center',
         sortable: false,
@@ -186,7 +184,7 @@ export default function KnowledgeDocuments() {
         field: 'actions',
         headerName: t('form.actions'),
         align: 'right',
-        headerAlign: 'right',
+        headerAlign: 'center',
         width: 130,
         sortable: false,
         renderCell: (params: any) => (
