@@ -1,3 +1,15 @@
+## 0.1.313 (2024-3-27)
+
+- fix: datastore dataset api
+
+## 0.1.312 (2024-3-27)
+
+- fix: filter the deleted dataset data
+
+## 0.1.311 (2024-3-27)
+
+- fix: back vector store to hnswlib because of the installation environment
+
 ## 0.1.310 (2024-3-27)
 
 - fix: support resetting an example project
