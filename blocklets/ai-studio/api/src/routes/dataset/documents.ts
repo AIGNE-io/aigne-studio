@@ -15,7 +15,7 @@ import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import FaissStore from '../../store/vector-store-faiss';
+import VectorStore from '../../store/vector-store-hnswlib';
 import { getDiscussionIds, queue, updateHistoriesAndStore } from './embeddings';
 
 const router = Router();
@@ -83,18 +83,18 @@ router.get('/:datasetId/search', async (req, res) => {
   }
 
   const embeddings = new AIKitEmbeddings({});
-  const store = await FaissStore.load(datasetId, embeddings);
+  const store = await VectorStore.load(datasetId, embeddings);
 
   try {
     // const records = await UpdateHistories.findAll({ where: { datasetId }, attributes: ['segmentId'] });
     // const uniqueSegmentIds = [...new Set(records.map((record) => record.segmentId).flat())];
 
-    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
-      res.json({ docs: [] });
-      return;
-    }
+    // if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+    //   res.json({ docs: [] });
+    //   return;
+    // }
 
-    const docs = await store.similaritySearch(input.message, 3);
+    const docs = await store.similaritySearch(input.message, 4);
     const result = docs.map((x) => x?.pageContent);
 
     res.json({ docs: result });

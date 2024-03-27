@@ -12,7 +12,7 @@ import DatasetDocument, { UploadStatus } from '../../store/models/dataset/docume
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import Segment from '../../store/models/dataset/segment';
 import UpdateHistories from '../../store/models/dataset/update-history';
-import VectorStoreFaiss from '../../store/vector-store-faiss';
+import VectorStore from '../../store/vector-store-hnswlib';
 
 export const sse = new SSE();
 
@@ -170,7 +170,7 @@ const updateEmbeddingHistory = async ({
 async function updateDiscussionEmbeddings(discussionId: string, datasetId: string, documentId: string) {
   try {
     const updateEmbedding = async (locale: string, updatedAt: string, content: string) => {
-      const targetId = locale ? `${discussionId}-${locale}` : discussionId;
+      const targetId = locale ? `${discussionId}_$$$_${locale}` : discussionId;
 
       return updateEmbeddingHistory({
         datasetId,
@@ -343,16 +343,16 @@ export async function searchDiscussions({
   }).then((res) => res.data);
 }
 
-const deleteStore = async (datasetId: string, ids: string[]) => {
+export const deleteStore = async (datasetId: string, ids: string[]) => {
   const embeddings = new AIKitEmbeddings({});
-  const store = await VectorStoreFaiss.load(datasetId, embeddings);
+  const store = await VectorStore.load(datasetId, embeddings);
 
-  const remoteIds = Object.values(store.getMapping()) || [];
-  const deleteIds = intersection(remoteIds, ids);
+  // const remoteIds = Object.values(store.getMapping()) || [];
+  const deleteIds = intersection([], ids);
 
   // 直接删除既可以，但这样更严谨
   if (deleteIds.length) {
-    await store.delete({ ids: deleteIds });
+    // await store.delete({ ids: deleteIds });
     await store.save();
   }
 };
@@ -371,7 +371,7 @@ export const updateHistoriesAndStore = async (datasetId: string, documentId: str
       await UpdateHistories.create({ segmentId: ids, datasetId, documentId });
     }
 
-    await deleteStore(datasetId, ids);
+    // await deleteStore(datasetId, ids);
 
     await Segment.destroy({ where });
   }
@@ -400,11 +400,11 @@ const saveContentToVectorStore = async ({
   const savePromises = docs.map((doc) =>
     doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : Promise.resolve(null)
   );
-  const results = await Promise.all(savePromises);
-  const ids = results.filter((i): i is NonNullable<typeof i> => !!i).map((result) => result?.id);
+  await Promise.all(savePromises);
+  // const ids = results.filter((i): i is NonNullable<typeof i> => !!i).map((result) => result?.id);
 
   // 保存到向量数据库
-  const store = await VectorStoreFaiss.load(datasetId, embeddings);
-  await store.addVectors(vectors, docs, { ids });
+  const store = await VectorStore.load(datasetId, embeddings);
+  await store.addVectors(vectors, docs);
   await store.save();
 };
