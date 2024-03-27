@@ -92,7 +92,7 @@ export default function ParametersTable({
         headerName: t('variable'),
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter?.key === 'datasetId') {
-            return <Box>{t('knowledge.documents.parameter')}</Box>;
+            return <Box>{t('knowledge.parameter')}</Box>;
           }
 
           return (
@@ -132,7 +132,7 @@ export default function ParametersTable({
             <Input
               fullWidth
               readOnly={readOnly}
-              placeholder={parameter?.key === 'datasetId' ? t('knowledge.documents.parameter') : parameter.key}
+              placeholder={parameter?.key === 'datasetId' ? t('knowledge.parameter') : parameter.key}
               value={parameter.label || ''}
               onChange={(e) => (parameter.label = e.target.value)}
             />
