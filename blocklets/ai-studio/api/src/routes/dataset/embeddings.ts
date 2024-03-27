@@ -211,7 +211,12 @@ const embeddingHandler: {
     const targetId = (document.data as any).id;
 
     const { post: discussion } = await getDiscussion(targetId);
-    await DatasetContent.update({ content: discussion?.content || '' }, { where: { id: document.id } });
+    const found = await DatasetContent.findOne({ where: { documentId: document.id } });
+    if (found) {
+      await found.update({ content: discussion?.content || '' });
+    } else {
+      await DatasetContent.create({ documentId: document.id, content: discussion?.content || '' });
+    }
 
     await updateDiscussionEmbeddings(targetId, document.datasetId, document.id);
 

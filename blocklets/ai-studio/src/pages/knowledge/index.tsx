@@ -7,7 +7,7 @@ export default function KnowledgeRoutes() {
       <Route index element={<KnowledgeDatasets />} />
       <Route path=":datasetId" element={<KnowledgeDocuments />} />
       <Route path=":datasetId/upload" element={<KnowledgeUpload />} />
-      <Route path=":datasetId/:documentId" element={<KnowledgeSegments />} />
+      <Route path=":datasetId/document/:documentId" element={<KnowledgeSegments />} />
     </Routes>
   );
 }

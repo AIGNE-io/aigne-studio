@@ -9,6 +9,7 @@ import { Op, Sequelize } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
+import logger from '../../libs/logger';
 import { userAuth } from '../../libs/user';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
@@ -69,12 +70,14 @@ router.get('/:datasetId/search', async (req, res) => {
 
   const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset || !datasetId) {
+    logger.error('search vector info', 'datasetId or dataset is not Found');
     res.json({ docs: [] });
     return;
   }
 
   const documents = await DatasetDocument.findAll({ where: { datasetId } });
   if (!documents?.length) {
+    logger.error('search vector info', 'documents is not Found');
     res.json({ docs: [] });
     return;
   }
@@ -96,7 +99,7 @@ router.get('/:datasetId/search', async (req, res) => {
 
     res.json({ docs: result });
   } catch (error) {
-    console.error(error);
+    logger.error('search vector info', error?.message);
     res.json({ docs: [] });
   }
 });

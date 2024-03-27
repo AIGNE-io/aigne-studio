@@ -315,7 +315,7 @@ export default function KnowledgeDocuments() {
                 onRowClick={(params) => {
                   const rowId = params.row.id;
                   if (params.row.type !== 'fullSite') {
-                    navigate(rowId, { replace: true });
+                    navigate(`document/${rowId}`, { replace: true });
                   }
                 }}
               />
