@@ -42,12 +42,14 @@ const AI_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export interface CreateProjectInput {
   templateId?: string;
+  withDuplicateFrom?: boolean;
   name?: string;
   description?: string;
 }
 
 const createProjectSchema = Joi.object<CreateProjectInput>({
   templateId: Joi.string().empty([null, '']),
+  withDuplicateFrom: Joi.boolean().empty([null, '']),
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
 });
@@ -178,8 +180,14 @@ export function projectRoutes(router: Router) {
       })
     );
 
-    const resourceTemplates = (await getResourceProjects('template')).map((i) => i.project);
-    const resourceExamples = (await getResourceProjects('example')).map((i) => i.project);
+    const resourceTemplates = (await getResourceProjects('template')).map((i) => ({
+      ...i.project,
+      isFromResource: true,
+    }));
+    const resourceExamples = (await getResourceProjects('example')).map((i) => ({
+      ...i.project,
+      isFromResource: true,
+    }));
 
     const resourceExampleIds = new Set(resourceExamples.map((i) => i._id));
 
@@ -248,7 +256,7 @@ export function projectRoutes(router: Router) {
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
     const { did } = req.user!;
 
-    const { templateId, name, description } = await createProjectSchema.validateAsync(req.body, {
+    const { templateId, name, description, withDuplicateFrom } = await createProjectSchema.validateAsync(req.body, {
       stripUnknown: true,
     });
 
@@ -281,7 +289,12 @@ export function projectRoutes(router: Router) {
           (await getResourceProjects('template')).find((i) => i.project._id === templateId) ||
           (await getResourceProjects('example')).find((i) => i.project._id === templateId);
         if (resource) {
-          project = await createProjectFromTemplate(resource, { name, description, author: req.user! });
+          project = await createProjectFromTemplate(resource, {
+            name,
+            description,
+            author: req.user!,
+            withDuplicateFrom,
+          });
         }
       }
 
@@ -697,12 +710,22 @@ async function copyProject({
 
 async function createProjectFromTemplate(
   template: (typeof projectTemplates)[number],
-  { name, description, author }: { name?: string; description?: string; author: { fullName: string; did: string } }
+  {
+    name,
+    description,
+    author,
+    withDuplicateFrom,
+  }: {
+    name?: string;
+    description?: string;
+    author: { fullName: string; did: string };
+    withDuplicateFrom?: boolean;
+  }
 ) {
   const project = await Project.create({
     ...omit(template.project, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
     _id: nextProjectId(),
-    duplicateFrom: template.project._id,
+    duplicateFrom: withDuplicateFrom ? template.project._id : undefined,
     model: template.project.model || '',
     icon: await sampleIcon(),
     createdBy: author.did,
