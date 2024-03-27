@@ -1,3 +1,7 @@
+## 0.1.311 (2024-3-27)
+
+- fix: filter the deleted dataset data
+
 ## 0.1.310 (2024-3-27)
 
 - fix: support resetting an example project
