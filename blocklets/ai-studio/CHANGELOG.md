@@ -1,3 +1,7 @@
+## 0.1.309 (2024-3-27)
+
+- fix: keep assistant id unchanged when copying
+
 ## 0.1.308 (2024-3-26)
 
 ## 0.1.307 (2024-3-26)
