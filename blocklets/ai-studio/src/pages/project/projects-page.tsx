@@ -51,7 +51,7 @@ import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
-import { ProjectWithUserInfo, User, createProject } from '../../libs/project';
+import { ProjectWithUserInfo, User, createProject, getProjectIconUrl } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
@@ -470,7 +470,7 @@ function ProjectList({
               key={item._id}
               pinned={!!item.pinnedAt}
               height={CARD_HEIGHT}
-              icon={item.icon}
+              icon={item.icon || section === 'examples' ? getProjectIconUrl(item._id) : ''}
               name={section === 'templates' && item.name ? t(item.name) : item.name}
               description={item.description}
               updatedAt={item.updatedAt}

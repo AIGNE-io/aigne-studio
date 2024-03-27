@@ -1,4 +1,5 @@
 import { Assistant } from '@blocklet/ai-runtime/types';
+import { joinURL } from 'ufo';
 
 import {
   AddProjectRemoteInput,
@@ -77,4 +78,10 @@ export async function projectImport(input?: ImportProjectInput): Promise<Project
 
 export async function projectSync(projectId: string): Promise<{}> {
   return axios.post(`/api/projects/${projectId}/remote/sync`).then((res) => res.data);
+}
+
+export function getProjectIconUrl(projectId?: string) {
+  if (!projectId) return '';
+  const component = blocklet?.componentMountPoints.find((i) => i.did === 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB');
+  return joinURL(component?.mountPoint || '', `/api/projects/${projectId}/logo.png`);
 }

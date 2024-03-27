@@ -197,7 +197,6 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
 
   try {
     if (project.dataValues.icon && project.dataValues.icon.startsWith('http')) {
-      console.log(project.dataValues.icon);
       await downloadLogo(project.dataValues.icon, path.join(repository.options.root, LOGO_NAME));
       await tx.add({ filepath: LOGO_NAME });
     }

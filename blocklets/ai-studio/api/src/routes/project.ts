@@ -4,8 +4,7 @@ import path, { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
-import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
-import config from '@blocklet/sdk/lib/config';
+import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import { pathExists } from 'fs-extra';
@@ -313,6 +312,20 @@ export function projectRoutes(router: Router) {
             author: req.user!,
             withDuplicateFrom,
           });
+
+          if (resource.gitLogoPath && project) {
+            const repository = await getRepository({
+              projectId: project._id!,
+              author: { name: req.user!.fullName, email: req.user!.did },
+            });
+            const copied = await copyLogoFile(resource.gitLogoPath, path.join(repository.options.root, LOGO_NAME));
+            if (copied) {
+              await repository.transact(async (tx) => {
+                await tx.add({ filepath: LOGO_NAME });
+                await tx.commit({ message: 'Add Logo', author: { name: req.user!.fullName, email: req.user!.did } });
+              });
+            }
+          }
         }
       }
 
@@ -771,20 +784,6 @@ async function createProjectFromTemplate(
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
   });
-
-  if (withDuplicateFrom && template.gitLogoPath) {
-    const copied = await copyLogoFile(template.gitLogoPath, path.join(repository.options.root, LOGO_NAME));
-    if (copied) {
-      await repository.transact(async (tx) => {
-        await tx.add({ filepath: LOGO_NAME });
-        await tx.commit({ message: 'Add Logo', author: { name: author.fullName, email: author.did } });
-
-        const obj = new URL(config.env.appUrl);
-        obj.pathname = join(getComponentMountPoint('ai-studio'), `/api/projects/${project._id}/logo.png`);
-        await project.update({ icon: obj.href });
-      });
-    }
-  }
 
   return project;
 }
