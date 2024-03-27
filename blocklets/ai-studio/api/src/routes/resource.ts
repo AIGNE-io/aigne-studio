@@ -10,9 +10,10 @@ import uniq from 'lodash/uniq';
 import uniqBy from 'lodash/uniqBy';
 import { stringify } from 'yaml';
 
+import downloadLogo from '../libs/download-logo';
 import { ensurePromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
-import { getAssistantsOfRepository } from '../store/repository';
+import { LOGO_NAME, copyLogoFile, getAssistantsOfRepository, getRepository } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 const TARGET_DIR = path.join(AI_STUDIO_DID, 'ai');
@@ -109,6 +110,7 @@ export function resourceRoutes(router: Router) {
 
       const folderPath = path.join(resourceDir, key);
       await mkdir(folderPath, { recursive: true });
+      await mkdir(path.join(folderPath, 'icons'), { recursive: true });
 
       for (const projectId of value) {
         const project = await Project.findOne({ where: { _id: projectId } });
@@ -119,6 +121,22 @@ export function resourceRoutes(router: Router) {
         const result = stringify({ assistants: uniqBy(assistants, 'id'), project: project && project.dataValues });
         const assistantsFilename = path.join(folderPath, `${projectId}.yaml`);
         await writeFile(assistantsFilename, result);
+
+        const repository = await getRepository({ projectId });
+        const logoPath = path.join(repository.options.root, LOGO_NAME);
+        const resourceLogoPath = path.join(folderPath, `icons/${projectId}.png`);
+
+        const copied = await copyLogoFile(logoPath, path.join(folderPath, resourceLogoPath));
+        if (!copied && project?.dataValues?.icon) {
+          try {
+            await Promise.all([
+              downloadLogo(project.dataValues.icon, path.join(resourceLogoPath)),
+              downloadLogo(project.dataValues.icon, path.join(logoPath)),
+            ]);
+          } catch (error) {
+            console.error(error);
+          }
+        }
 
         arr.push(result);
       }

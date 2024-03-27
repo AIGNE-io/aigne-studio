@@ -6,6 +6,7 @@ import Project from '../store/models/project';
 export const projectTemplates: {
   project: Project['dataValues'];
   assistants: (Assistant & { parent: string[] })[];
+  gitLogoPath?: string;
 }[] = [
   {
     project: {

@@ -3,9 +3,9 @@ import { access, cp, mkdtemp, rm } from 'fs/promises';
 import path, { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
-import { sampleIcon } from '@api/libs/icon';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
-import { call } from '@blocklet/sdk/lib/component';
+import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
+import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import { pathExists } from 'fs-extra';
@@ -23,10 +23,12 @@ import { getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
+  LOGO_NAME,
   autoSyncRemoteRepoIfNeeded,
   clearRepository,
   commitProjectSettingWorking,
   commitWorking,
+  copyLogoFile,
   defaultBranch,
   defaultRemote,
   getAssistantFromRepository,
@@ -235,6 +237,22 @@ export function projectRoutes(router: Router) {
     res.json({ icons: data?.uploads || [] });
   });
 
+  router.get('/projects/:projectId/logo.png', async (req, res) => {
+    const { projectId } = await Joi.object<{ projectId: string }>({
+      projectId: Joi.string().empty([null, '']),
+    }).validateAsync(req.params, { stripUnknown: true });
+
+    try {
+      const repository = await getRepository({ projectId });
+      const logoPath = path.join(repository.options.root, 'logo.png');
+      await access(logoPath);
+
+      res.sendFile(logoPath);
+    } catch (error) {
+      res.status(404).send('Image not found');
+    }
+  });
+
   router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
 
@@ -251,29 +269,6 @@ export function projectRoutes(router: Router) {
     }
 
     res.json(project);
-  });
-
-  router.get('/projects/:projectId/logo.png', async (req, res) => {
-    const { projectId } = await Joi.object<{ projectId: string }>({
-      projectId: Joi.string().empty([null, '']),
-    }).validateAsync(req.params, { stripUnknown: true });
-
-    try {
-      const repository = await getRepository({ projectId });
-      const logoPath = path.join(repository.options.root, 'logo.png');
-      await access(logoPath);
-
-      res.setHeader('Content-Type', 'image/png');
-      const readStream = fs.createReadStream(logoPath);
-      readStream.pipe(res);
-    } catch (error) {
-      const original = await Project.findOne({ where: { _id: projectId } });
-      if (original?.dataValues.icon) {
-        res.setHeader('Content-Type', 'image/png');
-        const readStream = fs.createReadStream(original?.dataValues.icon);
-        readStream.pipe(res);
-      }
-    }
   });
 
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
@@ -750,7 +745,7 @@ async function createProjectFromTemplate(
     _id: nextProjectId(),
     duplicateFrom: withDuplicateFrom ? template.project._id : undefined,
     model: template.project.model || '',
-    icon: await sampleIcon(),
+    icon: '',
     createdBy: author.did,
     updatedBy: author.did,
     name,
@@ -768,6 +763,7 @@ async function createProjectFromTemplate(
     working.syncedStore.files[id] = fileToYjs({ ...file, id });
     working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
   }
+
   await commitWorking({
     project,
     ref: defaultBranch,
@@ -775,6 +771,20 @@ async function createProjectFromTemplate(
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
   });
+
+  if (withDuplicateFrom && template.gitLogoPath) {
+    const copied = await copyLogoFile(template.gitLogoPath, path.join(repository.options.root, LOGO_NAME));
+    if (copied) {
+      await repository.transact(async (tx) => {
+        await tx.add({ filepath: LOGO_NAME });
+        await tx.commit({ message: 'Add Logo', author: { name: author.fullName, email: author.did } });
+
+        const obj = new URL(config.env.appUrl);
+        obj.pathname = join(getComponentMountPoint('ai-studio'), `/api/projects/${project._id}/logo.png`);
+        await project.update({ icon: obj.href });
+      });
+    }
+  }
 
   return project;
 }

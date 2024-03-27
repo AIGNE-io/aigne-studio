@@ -1,4 +1,4 @@
-import { readdir, rm, writeFile } from 'fs/promises';
+import { access, copyFile, readdir, rm, writeFile } from 'fs/promises';
 import path from 'path';
 
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
@@ -24,6 +24,17 @@ export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, '
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
+export const LOGO_NAME = 'logo.png';
+
+export const copyLogoFile = async (filePath: string, destPath: string) => {
+  try {
+    await access(filePath);
+    await copyFile(filePath, destPath);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
 
 export async function clearRepository(projectId: string) {
   const repo = await getRepository({ projectId });
@@ -156,7 +167,6 @@ export async function syncRepository<T>({
 }
 
 const SETTINGS_FILE = '.settings.yaml';
-const LOGO = 'logo.png';
 
 const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: Project }) => {
   const repository = await getRepository({ projectId: project._id! });
@@ -185,9 +195,14 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
   await writeFile(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
 
-  if (project.dataValues.icon && project.dataValues.icon.startsWith('http')) {
-    await downloadLogo(project.dataValues.icon, path.join(repository.options.root, LOGO));
-    await tx.add({ filepath: LOGO });
+  try {
+    if (project.dataValues.icon && project.dataValues.icon.startsWith('http')) {
+      console.log(project.dataValues.icon);
+      await downloadLogo(project.dataValues.icon, path.join(repository.options.root, LOGO_NAME));
+      await tx.add({ filepath: LOGO_NAME });
+    }
+  } catch (error) {
+    console.error(error.message);
   }
 };
 
@@ -220,6 +235,7 @@ export async function commitWorking({
 }) {
   const repository = await getRepository({ projectId: project._id! });
   const working = await repository.working({ ref });
+
   await working.commit({
     ref,
     branch,

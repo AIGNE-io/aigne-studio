@@ -27,6 +27,7 @@ export const getResourceProjects = async (folder: 'template' | 'example') => {
             .filter((filename) => filename.endsWith('.yaml'))
             .map((filename) => join(folderPath, filename)),
           did: item.did,
+          folderPath,
         };
       })
     )
@@ -34,7 +35,7 @@ export const getResourceProjects = async (folder: 'template' | 'example') => {
 
   const projects = (
     await Promise.all(
-      files.map(async ({ paths }) => {
+      files.map(async ({ paths, folderPath }) => {
         return (
           await Promise.all(
             paths.map(async (filepath) => {
@@ -42,6 +43,8 @@ export const getResourceProjects = async (folder: 'template' | 'example') => {
                 const json: (typeof projectTemplates)[number] = parse((await readFile(filepath)).toString());
                 if (json.project) {
                   delete json?.project?.projectType;
+
+                  json.gitLogoPath = join(folderPath, `/icons/${json.project._id}.png`);
                 }
 
                 return json;
