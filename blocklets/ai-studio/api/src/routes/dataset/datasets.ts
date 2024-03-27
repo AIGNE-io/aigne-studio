@@ -89,19 +89,7 @@ router.get('/:datasetId', user(), userAuth(), async (req, res) => {
     appId: Joi.string().allow('').empty(null).default(''),
   }).validateAsync(req.query, { stripUnknown: true });
 
-  const dataset = await Dataset.findOne({
-    where: {
-      id: datasetId,
-      ...(appId && { appId }),
-      ...user,
-    },
-  });
-
-  if (!dataset) {
-    res.status(404).json({ error: 'No such dataset' });
-    return;
-  }
-
+  const dataset = await Dataset.findOne({ where: { id: datasetId, ...(appId && { appId }), ...user } });
   res.json(dataset);
 });
 

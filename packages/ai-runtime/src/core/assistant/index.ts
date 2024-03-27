@@ -956,6 +956,10 @@ async function runExecuteBlock({
               headers: getUserHeader(user),
             });
 
+            if (!knowledge) {
+              return undefined;
+            }
+
             const callbackParams = {
               taskId: currentTaskId,
               parentTaskId,
