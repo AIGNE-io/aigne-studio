@@ -1,3 +1,7 @@
+## 0.1.314 (2024-3-27)
+
+- fix: bundle with external hnswlib-node dependency
+
 ## 0.1.313 (2024-3-27)
 
 - fix: datastore dataset api
