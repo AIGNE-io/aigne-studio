@@ -63,7 +63,7 @@ import Eye from './icons/eye';
 import EyeNo from './icons/eye-no';
 import Git from './icons/git';
 import LayoutPictureRight from './icons/layout-picture-right';
-import Picture from './icons/picture';
+// import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
@@ -470,7 +470,7 @@ function ProjectList({
               key={item._id}
               pinned={!!item.pinnedAt}
               height={CARD_HEIGHT}
-              icon={item.icon || section === 'examples' ? getProjectIconUrl(item._id) : ''}
+              icon={item.icon}
               name={section === 'templates' && item.name ? t(item.name) : item.name}
               description={item.description}
               updatedAt={item.updatedAt}
@@ -617,6 +617,7 @@ function ProjectItem({
   model,
   users,
   loading = false,
+  id,
   ...props
 }: {
   section: string;
@@ -631,6 +632,7 @@ function ProjectItem({
   users?: User[];
   actions?: ReactNode;
   loading: boolean;
+  id: string;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
 
@@ -678,7 +680,7 @@ function ProjectItem({
     <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center">
         <Box className="logo" sx={{ width: '32px', height: '32px' }}>
-          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 32 }} />}
+          {icon ? <Box component="img" src={icon} /> : <Box component="img" src={getProjectIconUrl(id)} />}
         </Box>
 
         <Box flex={1} />
