@@ -1,6 +1,6 @@
 import fs from 'fs';
-import { cp, mkdtemp, rm } from 'fs/promises';
-import { dirname, join } from 'path';
+import { access, cp, mkdtemp, rm } from 'fs/promises';
+import path, { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
 import { sampleIcon } from '@api/libs/icon';
@@ -251,6 +251,29 @@ export function projectRoutes(router: Router) {
     }
 
     res.json(project);
+  });
+
+  router.get('/projects/:projectId/logo.png', async (req, res) => {
+    const { projectId } = await Joi.object<{ projectId: string }>({
+      projectId: Joi.string().empty([null, '']),
+    }).validateAsync(req.params, { stripUnknown: true });
+
+    try {
+      const repository = await getRepository({ projectId });
+      const logoPath = path.join(repository.options.root, 'logo.png');
+      await access(logoPath);
+
+      res.setHeader('Content-Type', 'image/png');
+      const readStream = fs.createReadStream(logoPath);
+      readStream.pipe(res);
+    } catch (error) {
+      const original = await Project.findOne({ where: { _id: projectId } });
+      if (original?.dataValues.icon) {
+        res.setHeader('Content-Type', 'image/png');
+        const readStream = fs.createReadStream(original?.dataValues.icon);
+        readStream.pipe(res);
+      }
+    }
   });
 
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {

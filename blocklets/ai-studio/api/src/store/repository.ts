@@ -9,6 +9,7 @@ import { nanoid } from 'nanoid';
 import { parse, stringify } from 'yaml';
 
 import { wallet } from '../libs/auth';
+import downloadLogo from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
@@ -155,6 +156,7 @@ export async function syncRepository<T>({
 }
 
 const SETTINGS_FILE = '.settings.yaml';
+const LOGO = 'logo.png';
 
 const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: Project }) => {
   const repository = await getRepository({ projectId: project._id! });
@@ -182,6 +184,11 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
 
   await writeFile(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
+
+  if (project.dataValues.icon && project.dataValues.icon.startsWith('http')) {
+    await downloadLogo(project.dataValues.icon, path.join(repository.options.root, LOGO));
+    await tx.add({ filepath: LOGO });
+  }
 };
 
 export const autoSyncRemoteRepoIfNeeded = async ({
