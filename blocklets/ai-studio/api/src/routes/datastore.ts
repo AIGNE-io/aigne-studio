@@ -74,7 +74,7 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *     x-description-zh: 新增或设置数据存储
  *     parameters:
  *       - in: query
- *         name: isUpdate
+ *         name: truncateOld
  *         schema:
  *           type: boolean
  *         required: false
@@ -121,23 +121,23 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     content = {};
   }
 
-  const { userId, sessionId, isUpdate } = await Joi.object<{
+  const { userId, sessionId, truncateOld } = await Joi.object<{
     userId?: string;
     sessionId?: string;
-    isUpdate: boolean;
+    truncateOld: boolean;
   }>({
     userId: Joi.string()
       .allow('')
       .empty([null, ''])
       .default(req.user?.did || ''),
     sessionId: Joi.string().allow('').empty([null, '']),
-    isUpdate: Joi.boolean().default(false),
+    truncateOld: Joi.boolean().default(false),
   })
     .unknown()
     .validateAsync(req.query, { stripUnknown: true });
   const currentUserId = req.user?.did || userId || '';
 
-  if (isUpdate) await Datastore.destroy({ where: { type } });
+  if (truncateOld) await Datastore.destroy({ where: { type } });
 
   const datastore = await Datastore.create({ type, data: content, userId: currentUserId, sessionId });
   res.json(datastore);
