@@ -4,7 +4,7 @@ import { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
 import { sampleIcon } from '@api/libs/icon';
-import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { fileToYjs } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
@@ -712,9 +712,8 @@ async function createProjectFromTemplate(
 
   const working = await repository.working({ ref: defaultBranch });
   for (const { parent, ...file } of template.assistants) {
-    const id = nextAssistantId();
-    working.syncedStore.files[id] = fileToYjs({ ...file, id });
-    working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
+    working.syncedStore.files[file.id] = fileToYjs(file);
+    working.syncedStore.tree[file.id] = parent.concat(`${file.id}.yaml`).join('/');
   }
   await commitWorking({
     project,
