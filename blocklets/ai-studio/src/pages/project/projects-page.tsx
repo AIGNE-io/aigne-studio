@@ -178,6 +178,158 @@ function ProjectMenu() {
     setDeleteItem(item);
   };
 
+  const menus = useMemo(() => {
+    if (!item) return [];
+
+    const result: {
+      condition?: (item: ProjectWithUserInfo) => boolean;
+      title: ReactNode;
+      icon: ReactNode;
+      color?: string;
+      onClick: () => any;
+    }[][] = [
+      [
+        {
+          condition: () => menuAnchor?.section === 'templates',
+          title: t('newFromTemplates'),
+          icon: <Add />,
+          onClick: () => {},
+        },
+        {
+          condition: () => menuAnchor?.section === 'projects',
+          title: t('alert.edit'),
+          icon: <Edit />,
+          onClick: () => {
+            const id = menuAnchor?.id;
+            if (!id) return;
+            setMenuAnchor(undefined);
+
+            let name = item?.name || '';
+            let description = item?.description || '';
+
+            showDialog({
+              disableEnforceFocus: true,
+              fullWidth: true,
+              maxWidth: 'sm',
+              title: `${t('alert.edit')} ${t('form.project')}`,
+              content: (
+                <Stack overflow="auto" gap={2}>
+                  <TextField
+                    autoFocus
+                    label={t('projectSetting.name')}
+                    sx={{ width: 1 }}
+                    defaultValue={item?.name || ''}
+                    onChange={(e) => (name = e.target.value)}
+                  />
+
+                  <TextField
+                    label={t('projectSetting.description')}
+                    multiline
+                    rows={4}
+                    sx={{ width: 1 }}
+                    defaultValue={item?.description || ''}
+                    onChange={(e) => (description = e.target.value)}
+                  />
+                </Stack>
+              ),
+              cancelText: t('alert.cancel'),
+              okText: t('save'),
+              okIcon: <SaveRoundedIcon />,
+              onOk: async () => {
+                updateProject(id, { name, description })
+                  .catch((error) => {
+                    Toast.error(getErrorMessage(error));
+                    throw error;
+                  })
+                  .finally(() => {
+                    setMenuAnchor(undefined);
+                  });
+              },
+            });
+          },
+        },
+        {
+          condition: () => menuAnchor?.section === 'projects' || menuAnchor?.section === 'examples',
+          title: t('duplicate'),
+          icon: <Duplicate />,
+          onClick: async () => {
+            await createProject({
+              templateId: menuAnchor!.id,
+              name: `${item?.name || 'Unnamed'} Copy`,
+              description: item?.description,
+            })
+              .catch((error) => {
+                Toast.error(getErrorMessage(error));
+                throw error;
+              })
+              .finally(() => {
+                setMenuAnchor(undefined);
+              });
+          },
+        },
+        {
+          condition: () => menuAnchor?.section === 'projects',
+          title: item?.pinnedAt ? t('unpin') : t('pin'),
+          icon: item?.pinnedAt ? <PinOff /> : <Pin />,
+          onClick: async () => {
+            const id = menuAnchor?.id;
+            if (!id) return;
+            await updateProject(id, { pinned: !item?.pinnedAt })
+              .catch((error) => {
+                Toast.error(getErrorMessage(error));
+                throw error;
+              })
+              .finally(() => {
+                setMenuAnchor(undefined);
+              });
+          },
+        },
+      ],
+      [
+        {
+          condition: () =>
+            !(['templates', 'example'].includes(menuAnchor?.section) && !item?.projectType) &&
+            !item.isFromResource &&
+            !(menuAnchor.section === 'examples' && item.projectType !== 'example'),
+          icon: <LayoutPictureRight />,
+          title: item.projectType !== 'template' ? t('asTemplateProject') : t('cancelTemplateProject'),
+          onClick: () =>
+            menuAnchor &&
+            updateProject(menuAnchor.id, {
+              projectType: item.projectType === 'template' ? 'project' : 'template',
+            }).finally(() => setMenuAnchor(undefined)),
+        },
+        {
+          condition: () =>
+            !(['templates', 'example'].includes(menuAnchor?.section) && !item?.projectType) &&
+            !item.isFromResource &&
+            !(menuAnchor.section === 'examples' && item.projectType !== 'example'),
+          title: item.projectType !== 'example' ? t('asExampleProject') : t('cancelExampleProject'),
+          icon: <DocumentView />,
+          onClick: () =>
+            menuAnchor &&
+            updateProject(menuAnchor.id, {
+              projectType: item.projectType === 'example' ? 'project' : 'example',
+            }).finally(() => setMenuAnchor(undefined)),
+        },
+      ],
+      [
+        {
+          condition: () => !item.isFromResource,
+          icon: <Trash color="inherit" />,
+          title: t('delete'),
+          color: 'warning.main',
+          onClick: () => {
+            onDelete();
+            setMenuAnchor(undefined);
+          },
+        },
+      ],
+    ];
+
+    return result.map((i) => i.filter((j) => j.condition?.(item) ?? true)).filter((i) => !!i.length);
+  }, [t, item, menuAnchor]);
+
   return (
     <>
       <Popper
@@ -185,156 +337,28 @@ function ProjectMenu() {
         open={Boolean(menuAnchor)}
         anchorEl={menuAnchor?.anchor}
         placement="right-start"
-        sx={{ ml: '4px !important' }}>
+        sx={{ ml: '4px !important', zIndex: (theme) => theme.zIndex.drawer }}>
         <ClickAwayListener onClickAway={() => setMenuAnchor(undefined)}>
           <Paper>
             <List dense>
-              {menuAnchor?.section === 'projects' && (
-                <>
+              {menus.map((group, i) => {
+                const submenus = group.map((menu, j) => (
                   <LoadingMenuItem
+                    key={`${i}-${j}`}
                     disabled={readOnly}
-                    onClick={() => {
-                      setMenuAnchor(undefined);
-
-                      let name = item?.name || '';
-                      let description = item?.description || '';
-
-                      showDialog({
-                        disableEnforceFocus: true,
-                        fullWidth: true,
-                        maxWidth: 'sm',
-                        title: `${t('alert.edit')} ${t('form.project')}`,
-                        content: (
-                          <Stack overflow="auto" gap={2}>
-                            <TextField
-                              autoFocus
-                              label={t('projectSetting.name')}
-                              sx={{ width: 1 }}
-                              defaultValue={item?.name || ''}
-                              onChange={(e) => (name = e.target.value)}
-                            />
-
-                            <TextField
-                              label={t('projectSetting.description')}
-                              multiline
-                              rows={4}
-                              sx={{ width: 1 }}
-                              defaultValue={item?.description || ''}
-                              onChange={(e) => (description = e.target.value)}
-                            />
-                          </Stack>
-                        ),
-                        cancelText: t('alert.cancel'),
-                        okText: t('save'),
-                        okIcon: <SaveRoundedIcon />,
-                        onOk: async () => {
-                          updateProject(menuAnchor.id, { name, description })
-                            .catch((error) => {
-                              Toast.error(getErrorMessage(error));
-                              throw error;
-                            })
-                            .finally(() => {
-                              setMenuAnchor(undefined);
-                            });
-                        },
-                      });
-                    }}>
-                    <ListItemIcon>
-                      <Edit />
-                    </ListItemIcon>
-                    {`${t('alert.edit')}`}
+                    onClick={menu.onClick}
+                    sx={{ color: menu.color, svg: { color: menu.color } }}>
+                    <ListItemIcon>{menu.icon}</ListItemIcon>
+                    {menu.title}
                   </LoadingMenuItem>
+                ));
 
-                  <LoadingMenuItem
-                    disabled={readOnly}
-                    onClick={() =>
-                      createProject({
-                        templateId: menuAnchor!.id,
-                        name: `${item?.name || 'Unnamed'} Copy`,
-                        description: item?.description,
-                      })
-                        .catch((error) => {
-                          Toast.error(getErrorMessage(error));
-                          throw error;
-                        })
-                        .finally(() => {
-                          setMenuAnchor(undefined);
-                        })
-                    }>
-                    <ListItemIcon>
-                      <Duplicate />
-                    </ListItemIcon>
-                    {t('duplicate')}
-                  </LoadingMenuItem>
+                if (i !== menus.length - 1) {
+                  submenus.push(<Divider key={`divider-${i}`} />);
+                }
 
-                  <LoadingMenuItem
-                    disabled={readOnly}
-                    onClick={() =>
-                      updateProject(menuAnchor.id, { pinned: !item?.pinnedAt })
-                        .catch((error) => {
-                          Toast.error(getErrorMessage(error));
-                          throw error;
-                        })
-                        .finally(() => {
-                          setMenuAnchor(undefined);
-                        })
-                    }>
-                    <ListItemIcon>{item?.pinnedAt ? <PinOff /> : <Pin />}</ListItemIcon>
-                    {item?.pinnedAt ? t('unpin') : t('pin')}
-                  </LoadingMenuItem>
-
-                  <Divider />
-                </>
-              )}
-
-              {item && !(menuAnchor?.section === 'templates' && !item?.projectType) && (
-                <MenuItem
-                  onClick={() =>
-                    menuAnchor &&
-                    updateProject(menuAnchor.id, {
-                      projectType: item.projectType === 'template' ? 'project' : 'template',
-                    }).finally(() => setMenuAnchor(undefined))
-                  }>
-                  <ListItemIcon>
-                    <LayoutPictureRight />
-                  </ListItemIcon>
-                  {item.projectType !== 'template' ? t('asTemplateProject') : t('cancelTemplateProject')}
-                </MenuItem>
-              )}
-
-              {item && !(menuAnchor?.section === 'templates' && !item?.projectType) && (
-                <MenuItem
-                  onClick={() =>
-                    menuAnchor &&
-                    updateProject(menuAnchor.id, {
-                      projectType: item.projectType === 'example' ? 'project' : 'example',
-                    }).finally(() => setMenuAnchor(undefined))
-                  }>
-                  <ListItemIcon>
-                    <DocumentView />
-                  </ListItemIcon>
-                  {item.projectType !== 'example' ? t('asExampleProject') : t('cancelExampleProject')}
-                </MenuItem>
-              )}
-
-              {!(menuAnchor?.section === 'templates' && !item?.projectType) && (
-                <>
-                  <Divider />
-
-                  <MenuItem
-                    disabled={readOnly}
-                    sx={{ color: 'warning.main' }}
-                    onClick={() => {
-                      onDelete();
-                      setMenuAnchor(undefined);
-                    }}>
-                    <ListItemIcon sx={{ color: 'inherit' }}>
-                      <Trash color="inherit" />
-                    </ListItemIcon>
-                    {t('delete')}
-                  </MenuItem>
-                </>
-              )}
+                return submenus;
+              })}
             </List>
           </Paper>
         </ClickAwayListener>
@@ -504,6 +528,7 @@ function ProjectList({
                     try {
                       setLoading(item);
                       const project = await createProject({
+                        withDuplicateFrom: true,
                         templateId: item._id!,
                         name: item.name,
                         description: item.description,
@@ -524,26 +549,24 @@ function ProjectList({
                 }
               }}
               actions={
-                !((section === 'templates' || section === 'examples') && !item.projectType) && (
-                  <IconButton
-                    size="small"
-                    sx={{
-                      backgroundColor: (theme) => theme.palette.background.paper,
-                      color: (theme) => theme.palette.text.disabled,
-                      borderRadius: 1,
-                      padding: 0,
+                <IconButton
+                  size="small"
+                  sx={{
+                    backgroundColor: (theme) => theme.palette.background.paper,
+                    color: (theme) => theme.palette.text.disabled,
+                    borderRadius: 1,
+                    padding: 0,
 
-                      '&:hover': {
-                        backgroundColor: (theme) => theme.palette.background.paper,
-                      },
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
-                    }}>
-                    <MoreVertIcon fontSize="small" />
-                  </IconButton>
-                )
+                    '&:hover': {
+                      backgroundColor: (theme) => theme.palette.background.paper,
+                    },
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
+                  }}>
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
               }
               sx={{
                 '&:focus-visible': {
