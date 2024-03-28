@@ -305,27 +305,15 @@ export function projectRoutes(router: Router) {
         const resource =
           (await getResourceProjects('template')).find((i) => i.project._id === templateId) ||
           (await getResourceProjects('example')).find((i) => i.project._id === templateId);
+
         if (resource) {
           project = await createProjectFromTemplate(resource, {
             name,
             description,
             author: req.user!,
             withDuplicateFrom,
+            copyFromResource: true,
           });
-
-          if (resource.gitLogoPath && project) {
-            const repository = await getRepository({
-              projectId: project._id!,
-              author: { name: req.user!.fullName, email: req.user!.did },
-            });
-            const copied = await copyLogoFile(resource.gitLogoPath, path.join(repository.options.root, LOGO_NAME));
-            if (copied) {
-              await repository.transact(async (tx) => {
-                await tx.add({ filepath: LOGO_NAME });
-                await tx.commit({ message: 'Add Logo', author: { name: req.user!.fullName, email: req.user!.did } });
-              });
-            }
-          }
         }
       }
 
@@ -476,7 +464,6 @@ export function projectRoutes(router: Router) {
           pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
           updatedBy: did,
           description,
-          icon,
           model: model || project.model || '',
           temperature,
           topP,
@@ -493,7 +480,8 @@ export function projectRoutes(router: Router) {
     );
 
     const author = { name: fullName, email: did };
-    await commitProjectSettingWorking({ project, author });
+
+    await commitProjectSettingWorking({ project, author, icon });
 
     await autoSyncRemoteRepoIfNeeded({ project, author });
 
@@ -746,11 +734,13 @@ async function createProjectFromTemplate(
     description,
     author,
     withDuplicateFrom,
+    copyFromResource,
   }: {
     name?: string;
     description?: string;
     author: { fullName: string; did: string };
     withDuplicateFrom?: boolean;
+    copyFromResource?: boolean;
   }
 ) {
   const project = await Project.create({
@@ -783,6 +773,12 @@ async function createProjectFromTemplate(
     branch: defaultBranch,
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
+    beforeCommit: async (tx) => {
+      if (copyFromResource && template.gitLogoPath) {
+        const copied = await copyLogoFile(template.gitLogoPath, path.join(repository.options.root, LOGO_NAME));
+        if (copied) await tx.add({ filepath: LOGO_NAME });
+      }
+    },
   });
 
   return project;

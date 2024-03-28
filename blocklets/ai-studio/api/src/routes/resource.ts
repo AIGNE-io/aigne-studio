@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 
@@ -13,7 +14,7 @@ import { stringify } from 'yaml';
 import downloadLogo from '../libs/download-logo';
 import { ensurePromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
-import { LOGO_NAME, copyLogoFile, getAssistantsOfRepository, getRepository } from '../store/repository';
+import { LOGO_NAME, copyLogoFile, defaultBranch, getAssistantsOfRepository, getRepository } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 const TARGET_DIR = path.join(AI_STUDIO_DID, 'ai');
@@ -110,29 +111,32 @@ export function resourceRoutes(router: Router) {
 
       const folderPath = path.join(resourceDir, key);
       await mkdir(folderPath, { recursive: true });
-      await mkdir(path.join(folderPath, 'icons'), { recursive: true });
 
       for (const projectId of value) {
         const project = await Project.findOne({ where: { _id: projectId } });
-        const assistants = await getAssistantsOfRepository({
-          projectId,
-          ref: project?.gitDefaultBranch!,
-        });
+        const assistants = await getAssistantsOfRepository({ projectId, ref: project?.gitDefaultBranch! });
+
+        await mkdir(path.join(folderPath, projectId), { recursive: true });
+
         const result = stringify({ assistants: uniqBy(assistants, 'id'), project: project && project.dataValues });
-        const assistantsFilename = path.join(folderPath, `${projectId}.yaml`);
-        await writeFile(assistantsFilename, result);
 
+        // TODO 兼容老的 ai assistant, 晚些去掉
+        await writeFile(path.join(folderPath, `${projectId}.yaml`), result);
+
+        // 新的保存方式，可以存储更多内容
+        await writeFile(path.join(folderPath, projectId, `${projectId}.yaml`), result);
+
+        // 写入logo.png
         const repository = await getRepository({ projectId });
+        await repository.checkout({ ref: project?.gitDefaultBranch || defaultBranch, force: true });
         const logoPath = path.join(repository.options.root, LOGO_NAME);
-        const resourceLogoPath = path.join(folderPath, `icons/${projectId}.png`);
+        const resourceLogoPath = path.join(folderPath, projectId, LOGO_NAME);
 
-        const copied = await copyLogoFile(logoPath, path.join(folderPath, resourceLogoPath));
+        const copied = await copyLogoFile(logoPath, resourceLogoPath);
         if (!copied && project?.dataValues?.icon) {
           try {
-            await Promise.all([
-              downloadLogo(project.dataValues.icon, path.join(resourceLogoPath)),
-              downloadLogo(project.dataValues.icon, path.join(logoPath)),
-            ]);
+            await downloadLogo(project.dataValues.icon, logoPath);
+            await copyLogoFile(logoPath, resourceLogoPath);
           } catch (error) {
             console.error(error);
           }

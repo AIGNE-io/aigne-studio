@@ -168,7 +168,17 @@ export async function syncRepository<T>({
 
 const SETTINGS_FILE = '.settings.yaml';
 
-const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: Project }) => {
+const addSettingsToGit = async ({
+  tx,
+  project,
+  ref,
+  icon,
+}: {
+  tx: Transaction<FileTypeYjs>;
+  project: Project;
+  ref: string;
+  icon?: string;
+}) => {
   const repository = await getRepository({ projectId: project._id! });
   const fields = pick(project.dataValues, [
     '_id',
@@ -180,7 +190,6 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
     'createdBy',
     'updatedBy',
     'pinnedAt',
-    'icon',
     'gitType',
     'temperature',
     'topP',
@@ -195,13 +204,14 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
   await writeFile(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
 
-  try {
-    if (project.dataValues.icon && project.dataValues.icon.startsWith('http')) {
-      await downloadLogo(project.dataValues.icon, path.join(repository.options.root, LOGO_NAME));
+  // icon 存在，并且不是之前上传的
+  if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
+    if (ref === defaultBranch) {
+      await downloadLogo(icon, path.join(repository.options.root, LOGO_NAME));
       await tx.add({ filepath: LOGO_NAME });
+    } else {
+      // 从main分支复制
     }
-  } catch (error) {
-    console.error(error.message);
   }
 };
 
@@ -225,12 +235,14 @@ export async function commitWorking({
   branch,
   message,
   author,
+  beforeCommit,
 }: {
   project: Project;
   ref: string;
   branch: string;
   message: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+  beforeCommit?: (tx: Transaction<FileTypeYjs>) => Promise<void>;
 }) {
   const repository = await getRepository({ projectId: project._id! });
   const working = await repository.working({ ref });
@@ -244,7 +256,11 @@ export async function commitWorking({
       await writeFile(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
 
-      await addSettingsToGit({ tx, project });
+      if (beforeCommit && typeof beforeCommit === 'function') {
+        await beforeCommit(tx);
+      }
+
+      await addSettingsToGit({ tx, project, ref });
 
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
@@ -261,15 +277,17 @@ export async function commitProjectSettingWorking({
   project,
   message = 'update settings',
   author,
+  icon,
 }: {
   project: Project;
   message?: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+  icon?: string;
 }) {
   const repository = await getRepository({ projectId: project._id! });
   await repository.transact(async (tx) => {
     await tx.checkout({ ref: project.gitDefaultBranch, force: true });
-    await addSettingsToGit({ tx, project });
+    await addSettingsToGit({ tx, project, ref: project.gitDefaultBranch, icon });
     await tx.commit({ message, author });
   });
 }
