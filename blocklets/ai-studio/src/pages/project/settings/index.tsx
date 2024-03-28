@@ -138,7 +138,17 @@ export default function ProjectSettings() {
   };
 
   const changed = useMemo(() => {
-    return !!origin.current && !!value && !equal({ ...origin.current }, value);
+    return (
+      !!origin.current &&
+      !!value &&
+      !equal(
+        { ...origin.current, model: origin.current?.model || 'gpt-3.5-turbo' },
+        {
+          ...value,
+          model: value?.model || 'gpt-3.5-turbo',
+        }
+      )
+    );
   }, [value]);
 
   useBeforeUnload((e) => {
