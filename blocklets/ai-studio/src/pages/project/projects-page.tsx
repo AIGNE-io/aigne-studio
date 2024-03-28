@@ -479,6 +479,7 @@ function ProjectList({
               model={item.model}
               users={item.users || []}
               loading={Boolean(itemLoading && item?._id === itemLoading?._id)}
+              isFromResource={Boolean(item.isFromResource)}
               onClick={async () => {
                 if (section === 'templates') {
                   let name = '';
@@ -618,6 +619,7 @@ function ProjectItem({
   users,
   loading = false,
   id,
+  isFromResource,
   ...props
 }: {
   section: string;
@@ -633,6 +635,7 @@ function ProjectItem({
   actions?: ReactNode;
   loading: boolean;
   id: string;
+  isFromResource: boolean;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
 
@@ -662,6 +665,8 @@ function ProjectItem({
           <Stack height={60} justifyContent="center" alignItems="center">
             {icon ? (
               <Box component="img" src={icon} sx={{ width: 60, height: 60, borderRadius: 1 }} />
+            ) : id && isFromResource ? (
+              <Box component="img" src={getProjectIconUrl(id)} sx={{ width: 60, height: 60, borderRadius: 1 }} />
             ) : (
               <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
             )}

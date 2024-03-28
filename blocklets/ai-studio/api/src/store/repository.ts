@@ -204,20 +204,24 @@ const addSettingsToGit = async ({
   await writeFile(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
 
-  // icon 存在，并且不是之前上传的
+  // 新上传的图片
   if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
-    if (ref === defaultBranch) {
-      await downloadLogo(icon, path.join(repository.options.root, LOGO_NAME));
-    } else {
-      try {
-        const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_NAME })).blob;
-        await writeFile(path.join(repository.options.root, LOGO_NAME), file);
-      } catch (error) {
-        console.error(error);
+    try {
+      if (ref === defaultBranch) {
+        await downloadLogo(icon, path.join(repository.options.root, LOGO_NAME));
+      } else {
+        try {
+          const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_NAME })).blob;
+          await writeFile(path.join(repository.options.root, LOGO_NAME), file);
+        } catch (error) {
+          console.error(error);
+        }
       }
-    }
 
-    await tx.add({ filepath: LOGO_NAME });
+      await tx.add({ filepath: LOGO_NAME });
+    } catch (error) {
+      console.error(error);
+    }
   }
 };
 

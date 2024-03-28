@@ -3,6 +3,7 @@ import { access, cp, mkdtemp, rm } from 'fs/promises';
 import path, { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
+import { sampleIcon } from '@api/libs/icon';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -18,6 +19,7 @@ import uniqBy from 'lodash/uniqBy';
 import { Op } from 'sequelize';
 import { parse } from 'yaml';
 
+import downloadLogo from '../libs/download-logo';
 import { getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
@@ -251,7 +253,6 @@ export function projectRoutes(router: Router) {
         return;
       }
 
-      // create project from resource blocklet
       const resource =
         (await getResourceProjects('template')).find((i) => i.project._id === projectId) ||
         (await getResourceProjects('example')).find((i) => i.project._id === projectId);
@@ -312,7 +313,11 @@ export function projectRoutes(router: Router) {
       if (!project) {
         const template = projectTemplates.find((i) => i.project._id === templateId);
         if (template) {
-          project = await createProjectFromTemplate(template, { name, description, author: req.user! });
+          project = await createProjectFromTemplate(template, {
+            name,
+            description,
+            author: req.user!,
+          });
         }
       }
 
@@ -328,7 +333,6 @@ export function projectRoutes(router: Router) {
             description,
             author: req.user!,
             withDuplicateFrom,
-            copyFromResource: true,
           });
         }
       }
@@ -750,13 +754,11 @@ async function createProjectFromTemplate(
     description,
     author,
     withDuplicateFrom,
-    copyFromResource,
   }: {
     name?: string;
     description?: string;
     author: { fullName: string; did: string };
     withDuplicateFrom?: boolean;
-    copyFromResource?: boolean;
   }
 ) {
   const project = await Project.create({
@@ -790,9 +792,21 @@ async function createProjectFromTemplate(
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
     beforeCommit: async (tx) => {
-      if (copyFromResource && template.gitLogoPath) {
-        const copied = await copyLogoFile(template.gitLogoPath, path.join(repository.options.root, LOGO_NAME));
-        if (copied) await tx.add({ filepath: LOGO_NAME });
+      const logoPath = path.join(repository.options.root, LOGO_NAME);
+
+      try {
+        if (template.gitLogoPath) {
+          const copied = await copyLogoFile(template.gitLogoPath, logoPath);
+          if (copied) await tx.add({ filepath: LOGO_NAME });
+        } else {
+          const icon = await sampleIcon();
+          if (icon) {
+            await downloadLogo(icon, logoPath);
+            await tx.add({ filepath: LOGO_NAME });
+          }
+        }
+      } catch (error) {
+        console.error(error);
       }
     },
   });
