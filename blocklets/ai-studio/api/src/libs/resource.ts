@@ -66,6 +66,7 @@ export const getResourceProjects = async (folder: 'template' | 'example') => {
                 const json: (typeof projectTemplates)[number] = parse((await readFile(filepath)).toString());
                 if (json.project) {
                   delete json?.project?.projectType;
+
                   json.gitLogoPath = join(resourcePath, json.project._id, 'logo.png');
                 }
 

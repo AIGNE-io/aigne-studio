@@ -242,11 +242,27 @@ export function projectRoutes(router: Router) {
     }).validateAsync(req.params, { stripUnknown: true });
 
     try {
-      const repository = await getRepository({ projectId });
-      const logoPath = path.join(repository.options.root, 'logo.png');
-      await access(logoPath);
+      const original = await Project.findOne({ where: { _id: projectId } });
+      if (original) {
+        const repository = await getRepository({ projectId });
+        const logoPath = path.join(repository.options.root, 'logo.png');
+        await access(logoPath);
+        res.sendFile(logoPath);
+        return;
+      }
 
-      res.sendFile(logoPath);
+      // create project from resource blocklet
+      const resource =
+        (await getResourceProjects('template')).find((i) => i.project._id === projectId) ||
+        (await getResourceProjects('example')).find((i) => i.project._id === projectId);
+
+      if (resource?.gitLogoPath) {
+        await access(resource.gitLogoPath);
+        res.sendFile(resource.gitLogoPath);
+        return;
+      }
+
+      res.status(404).send('Image not found');
     } catch (error) {
       res.status(404).send('Image not found');
     }
