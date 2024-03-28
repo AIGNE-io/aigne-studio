@@ -98,7 +98,12 @@ router.get('/:datasetId/search', async (req, res) => {
     // }
 
     const docs = await store.similaritySearch(input.message, 4);
-    const result = docs.map((x) => x?.pageContent);
+    const result = docs.map((x) => {
+      return {
+        content: x?.pageContent,
+        ...(x?.metadata?.metadata || {}),
+      };
+    });
 
     res.json({ docs: result });
   } catch (error) {
