@@ -1,3 +1,8 @@
+## 0.1.315 (2024-3-28)
+
+- fix: the request knowledge error when selecting prompt
+- feat: when embedding data, add title information
+
 ## 0.1.314 (2024-3-27)
 
 - fix: bundle with external hnswlib-node dependency
