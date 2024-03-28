@@ -564,12 +564,11 @@ const saveContentToVectorStore = async ({
     const arr = Object.keys(metadata)
       .map((key) => (metadata[key] ? `${key}: ${metadata[key]}` : ''))
       .filter((i) => i);
-    console.log(arr);
 
-    // docs.forEach((doc) => {
-    //   arr.push(`content: ${doc.pageContent}`);
-    //   doc.pageContent = arr.join('\n');
-    // });
+    docs.forEach((doc) => {
+      arr.push(`content: ${doc.pageContent}`);
+      doc.pageContent = arr.join('\n');
+    });
   }
 
   const embeddings = new AIKitEmbeddings({});
