@@ -90,12 +90,14 @@ const updateEmbeddingHistory = async ({
   documentId,
   targetId,
   content,
+  title,
   updatedAt,
 }: {
   datasetId: string;
   documentId: string;
   targetId: string;
   content?: string;
+  title?: string;
   updatedAt?: Date | string;
 }) => {
   try {
@@ -123,7 +125,23 @@ const updateEmbeddingHistory = async ({
       });
     }
 
-    if (content) await saveContentToVectorStore({ content, datasetId, targetId, documentId });
+    if (String(content).trim()) {
+      const otherInfo = [
+        {
+          key: 'title',
+          value: String(title || '').trim(),
+        },
+      ];
+
+      const prefix = otherInfo.map((info) => `${info.key}: ${info.value}`).join(', ');
+      await saveContentToVectorStore({
+        prefix,
+        content: String(content || '').trim(),
+        datasetId,
+        targetId,
+        documentId,
+      });
+    }
 
     if (await EmbeddingHistories.findOne({ where: { targetId, datasetId, documentId } })) {
       await EmbeddingHistories.update(
@@ -169,7 +187,7 @@ const updateEmbeddingHistory = async ({
 
 async function updateDiscussionEmbeddings(discussionId: string, datasetId: string, documentId: string) {
   try {
-    const updateEmbedding = async (locale: string, updatedAt: string, content: string) => {
+    const updateEmbedding = async (locale: string, updatedAt: string, content: string, title?: string) => {
       const targetId = locale ? `${discussionId}_$$$_${locale}` : discussionId;
 
       return updateEmbeddingHistory({
@@ -178,6 +196,7 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
         targetId,
         updatedAt,
         content,
+        title,
       });
     };
 
@@ -185,12 +204,12 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
     if (!discussion?.post) return false;
 
     const { post, languages = [] } = discussion;
-    const isEmbed = await updateEmbedding(post.locale, post.updatedAt, post.content);
+    const isEmbed = await updateEmbedding(post.locale, post.updatedAt, post.content, post.title);
 
     for (const language of languages) {
       if (language !== post?.locale) {
         const res = await getDiscussion(discussionId, language);
-        if (res?.post) await updateEmbedding(res.post.locale, res.post.updatedAt, res.post.content);
+        if (res?.post) await updateEmbedding(res.post.locale, res.post.updatedAt, res.post.content, res.post.title);
       }
     }
 
@@ -282,22 +301,22 @@ export async function getDiscussion(
   discussionId: string,
   locale?: string
 ): Promise<{
-  post: { content: string; title: string; updatedAt: string; locale: string } | null;
+  post: { content: string; title: string; updatedAt: string; locale: string; author: string } | null;
   languages: string[];
 }> {
   try {
-    const { data } = await call({
+    const result = await call({
       method: 'GET',
       name: 'did-comments',
       path: `/api/call/posts/${discussionId}`,
       params: { textContent: 1, locale },
     });
 
-    if (!data) {
+    if (!result.data) {
       throw new Error('Discussion not found');
     }
 
-    return data;
+    return result.data;
   } catch (error) {
     return {
       post: null,
@@ -378,11 +397,13 @@ export const updateHistoriesAndStore = async (datasetId: string, documentId: str
 };
 
 const saveContentToVectorStore = async ({
+  prefix,
   content,
   datasetId,
   targetId = '',
   documentId,
 }: {
+  prefix?: string;
   content: string;
   datasetId: string;
   targetId: string;
@@ -390,6 +411,11 @@ const saveContentToVectorStore = async ({
 }) => {
   const textSplitter = new RecursiveCharacterTextSplitter();
   const docs = await textSplitter.createDocuments([content]);
+
+  if (prefix) {
+    docs.forEach((doc) => (doc.pageContent = `${prefix}: ${doc.pageContent}`));
+  }
+
   const embeddings = new AIKitEmbeddings({});
   const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
 
