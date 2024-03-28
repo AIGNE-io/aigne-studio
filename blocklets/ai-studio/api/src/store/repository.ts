@@ -208,10 +208,16 @@ const addSettingsToGit = async ({
   if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
     if (ref === defaultBranch) {
       await downloadLogo(icon, path.join(repository.options.root, LOGO_NAME));
-      await tx.add({ filepath: LOGO_NAME });
     } else {
-      // 从main分支复制
+      try {
+        const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_NAME })).blob;
+        await writeFile(path.join(repository.options.root, LOGO_NAME), file);
+      } catch (error) {
+        console.error(error);
+      }
     }
+
+    await tx.add({ filepath: LOGO_NAME });
   }
 };
 

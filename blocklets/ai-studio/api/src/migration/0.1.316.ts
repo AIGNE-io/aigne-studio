@@ -1,4 +1,4 @@
-import { mkdtemp, rename } from 'fs/promises';
+import { mkdtemp, rename, rm } from 'fs/promises';
 import path, { join } from 'path';
 
 import { customAlphabet } from 'nanoid';
@@ -14,7 +14,7 @@ import { LOGO_NAME, defaultBranch } from '../store/repository';
 
 const { name } = require('../../../package.json');
 
-const version = path.parse(__filename).name;
+const version = '0.1.316';
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 
@@ -23,35 +23,39 @@ async function migrate() {
 
   const tmp = await mkdtemp(Config.dataDir);
 
-  await Promise.all(
-    projects.map(async (project) => {
-      const repo = await getRepository({ projectId: project._id });
-      const { icon } = project;
+  try {
+    await Promise.all(
+      projects.map(async (project) => {
+        const repo = await getRepository({ projectId: project._id });
+        const { icon } = project;
 
-      try {
-        if (icon && icon.startsWith('http')) {
-          const tmpFile = join(tmp, project._id);
-          await downloadLogo(icon, tmpFile);
+        try {
+          if (icon && icon.startsWith('http')) {
+            const tmpFile = join(tmp, project._id);
+            await downloadLogo(icon, tmpFile);
 
-          await repo.transact(async (tx) => {
-            await tx.checkout({ ref: defaultBranch, force: true });
+            await repo.transact(async (tx) => {
+              await tx.checkout({ ref: defaultBranch, force: true });
 
-            await rename(tmpFile, path.join(repo.options.root, LOGO_NAME));
+              await rename(tmpFile, path.join(repo.options.root, LOGO_NAME));
 
-            await tx.add({ filepath: LOGO_NAME });
-            await tx.commit({
-              message: 'Migrate to v0.1.316 for logo.png',
-              author: { name: 'AI Studio', email: wallet.address },
+              await tx.add({ filepath: LOGO_NAME });
+              await tx.commit({
+                message: 'Migrate to v0.1.316 for logo.png',
+                author: { name: 'AI Studio', email: wallet.address },
+              });
             });
-          });
 
-          await project.update({ icon: '' });
+            await project.update({ icon: '' });
+          }
+        } catch (error) {
+          console.error(error.message);
         }
-      } catch (error) {
-        console.error(error.message);
-      }
-    })
-  );
+      })
+    );
+  } finally {
+    await rm(tmp, { force: true, recursive: true });
+  }
 }
 
 (async () => {
