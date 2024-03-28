@@ -161,12 +161,10 @@ const SETTINGS_FILE = '.settings.yaml';
 const addSettingsToGit = async ({
   tx,
   project,
-  ref,
   icon,
 }: {
   tx: Transaction<FileTypeYjs>;
   project: Project;
-  ref: string;
   icon?: string;
 }) => {
   const repository = await getRepository({ projectId: project._id! });
@@ -195,23 +193,16 @@ const addSettingsToGit = async ({
   await tx.add({ filepath: SETTINGS_FILE });
 
   // 新上传的图片
-  if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
-    try {
-      if (ref === defaultBranch) {
-        await downloadLogo(icon, path.join(repository.options.root, LOGO_FILENAME));
-      } else {
-        try {
-          const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_FILENAME })).blob;
-          await writeFile(path.join(repository.options.root, LOGO_FILENAME), file);
-        } catch (error) {
-          logger.error('failed to save project icon', { error });
-        }
-      }
-
-      await tx.add({ filepath: LOGO_FILENAME });
-    } catch (error) {
-      console.error(error);
+  try {
+    if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
+      await downloadLogo(icon, path.join(repository.options.root, LOGO_FILENAME));
+    } else {
+      const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_FILENAME })).blob;
+      await writeFile(path.join(repository.options.root, LOGO_FILENAME), file);
     }
+    await tx.add({ filepath: LOGO_FILENAME });
+  } catch (error) {
+    logger.error('failed to save project icon', { error });
   }
 };
 
@@ -260,7 +251,7 @@ export async function commitWorking({
         await beforeCommit(tx);
       }
 
-      await addSettingsToGit({ tx, project, ref });
+      await addSettingsToGit({ tx, project });
 
       // Remove unnecessary .gitkeep files
       for (const gitkeep of await glob('**/.gitkeep', { cwd: repository.options.root })) {
@@ -287,7 +278,7 @@ export async function commitProjectSettingWorking({
   const repository = await getRepository({ projectId: project._id! });
   await repository.transact(async (tx) => {
     await tx.checkout({ ref: project.gitDefaultBranch, force: true });
-    await addSettingsToGit({ tx, project, ref: project.gitDefaultBranch, icon });
+    await addSettingsToGit({ tx, project, icon });
     await tx.commit({ message, author });
   });
 }
