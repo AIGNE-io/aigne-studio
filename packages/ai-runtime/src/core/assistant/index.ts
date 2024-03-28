@@ -1320,7 +1320,7 @@ async function runExecuteBlock({
 
             const { data } = await callFunc({
               name: 'ai-studio',
-              path: `/api/datasets/${tool.id}/search`,
+              path: `/api/datasets/${tool.tool.id}/search`,
               method: 'GET',
               params: args,
               headers: getUserHeader(user),
