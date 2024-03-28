@@ -133,9 +133,9 @@ export function resourceRoutes(router: Router) {
         const resourceLogoPath = path.join(folderPath, projectId, LOGO_NAME);
 
         const copied = await copyLogoFile(logoPath, resourceLogoPath);
-        if (!copied && project?.dataValues?.icon) {
+        if (!copied && project?.icon) {
           try {
-            await downloadLogo(project.dataValues.icon, logoPath);
+            await downloadLogo(project.icon, logoPath);
             await copyLogoFile(logoPath, resourceLogoPath);
           } catch (error) {
             console.error(error);
