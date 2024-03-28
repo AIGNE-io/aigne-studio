@@ -21,7 +21,7 @@ export default flat({
     file: '文件',
     processedAt: '处理时间',
     actions: '操作',
-    fullSite: '全部',
+    fullSite: '全站选择',
     fullSiteTip: '相当于选中了整个 discussion 站点数据',
     title: '标题',
     author: '作者',
@@ -482,6 +482,7 @@ export default flat({
   update: '更新',
   knowledge: {
     menu: '知识库',
+    parameter: '用户知识库',
     createTitle: '创建知识库',
     createDescription: '导入您自己的文本数据以增强LLM 的上下文。',
     name: '知识库名称',
@@ -549,4 +550,10 @@ export default flat({
   segmentsView: '索引方式',
   shareTip: '访问地址',
   refreshTip: '重新索引',
+  loginAsAdminButton: '使用管理员账号登录查看项目',
+  datasetDesc: '从用户知识库中搜索上下文所需的数据',
+  types: '类型',
+  atLeastOne: '至少选择一个类型',
+  doc: '文档数据',
+  blog: '博客数据',
 });

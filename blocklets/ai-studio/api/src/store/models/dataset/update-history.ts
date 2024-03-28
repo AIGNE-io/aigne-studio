@@ -1,29 +1,29 @@
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
-import { sequelize } from '../sequelize';
+import { sequelize } from '../../sequelize';
 
 const idGenerator = new Worker();
 
 const nextId = () => idGenerator.nextId().toString();
-
-export default class Datastore extends Model<InferAttributes<Datastore>, InferCreationAttributes<Datastore>> {
+export default class DatasetUpdateHistory extends Model<
+  InferAttributes<DatasetUpdateHistory>,
+  InferCreationAttributes<DatasetUpdateHistory>
+> {
   declare id: CreationOptional<string>;
 
-  declare sessionId?: string;
+  declare datasetId: string;
 
-  declare userId: string;
+  declare documentId: string;
 
-  declare type?: string;
+  declare segmentId: string[];
 
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
-
-  declare data?: {};
 }
 
-Datastore.init(
+DatasetUpdateHistory.init(
   {
     id: {
       type: DataTypes.STRING,
@@ -31,24 +31,21 @@ Datastore.init(
       allowNull: false,
       defaultValue: nextId,
     },
-    userId: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    sessionId: {
+    datasetId: {
       type: DataTypes.STRING,
     },
-    type: {
+    documentId: {
       type: DataTypes.STRING,
+    },
+    segmentId: {
+      type: DataTypes.JSON,
+      defaultValue: [],
     },
     createdAt: {
       type: DataTypes.DATE,
     },
     updatedAt: {
       type: DataTypes.DATE,
-    },
-    data: {
-      type: DataTypes.JSON,
     },
   },
   { sequelize }

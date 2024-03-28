@@ -5,11 +5,31 @@ import { Worker } from 'snowflake-uuid';
 const taskIdGenerator = new Worker();
 const nextTaskId = () => taskIdGenerator.nextId().toString();
 
-type Task = {
-  id: string;
-  job: { [key: string]: any };
-  persist: boolean;
+export type EmbeddingQueue = {
+  type: 'document';
+  documentId: string;
 };
+
+export type FullSiteQueue = {
+  type: 'fullSite';
+  documentId: string;
+  currentIndex: number;
+  currentTotal: number;
+  discussionId: string;
+};
+
+export type Task = {
+  id: string;
+  job: EmbeddingQueue | FullSiteQueue;
+};
+
+export const isEmbeddingQueue = (job: any): job is EmbeddingQueue => {
+  return job && job.type === 'document';
+};
+
+export function isFullSiteQueue(job: any): job is FullSiteQueue {
+  return job && job.type === 'fullSite';
+}
 
 const tryWithTimeout = (asyncFn: () => Promise<any>, timeout = 5000) => {
   if (typeof asyncFn !== 'function') {
@@ -41,11 +61,12 @@ const createQueue = ({
   options: {
     concurrency: number;
     maxTimeout: number;
-    id?: any;
+    id?: (job: Task['job']) => string;
   };
 }): {
   queue: queue<Task>;
-  push: (...args: any[]) => void;
+  push: (job: Task['job'], jobId?: string) => void;
+  checkAndPush: (job: Task['job'], jobId?: string) => void;
 } => {
   const defaults = {
     concurrency: 1,
@@ -67,34 +88,40 @@ const createQueue = ({
   const getJobId = (jobId: string, job: any): string =>
     jobId || (typeof options.id === 'function' ? options.id(job) : nextTaskId()) || nextTaskId();
 
-  const push = (...args: any[]) => {
-    let job: Task['job'];
-    let jobId;
-    let persist;
+  const getJob = (id: string) => {
+    const list = q.getQueue();
+    return list.find((x) => x.id === id);
+  };
 
-    if (
-      args.length === 1 &&
-      args[0] &&
-      typeof args[0] === 'object' &&
-      (args[0].job || args[0].jobId || args[0].persist)
-    ) {
-      [{ job, jobId, persist = true }] = args;
-    } else {
-      [job, jobId, persist = true] = args;
-    }
+  const getDocumentJob = (documentId: string) => {
+    const list = q.getQueue();
+    return Boolean(list.find((x) => x.job.documentId === documentId));
+  };
 
+  const push = (job: Task['job'], jobId?: string) => {
     if (!job) {
-      throw new Error('Can not queue empty job');
+      throw new Error('can not queue empty job');
     }
+    const id = getJobId(jobId || '', job);
 
-    const id = getJobId(jobId, job);
+    const isExist = getJob(id);
+    if (isExist) return;
 
     setImmediate(() => {
-      q.push({ id, job, persist }, () => {});
+      q.push({ id, job }, (err) => {
+        if (err) console.error(err?.message);
+      });
     });
   };
 
-  return { queue: q, push };
+  const checkAndPush = (job: Task['job']) => {
+    const isExit = getDocumentJob(job.documentId);
+    if (isExit) return;
+
+    push(job);
+  };
+
+  return { queue: q, push, checkAndPush };
 };
 
 export default createQueue;

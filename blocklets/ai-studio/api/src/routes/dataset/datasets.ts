@@ -31,20 +31,22 @@ const datasetSchema = Joi.object<{ name?: string; description?: string; appId?: 
  *          x-description-zh: 获取当前用户数据集
  */
 router.get('/', user(), userAuth(), async (req, res) => {
-  const { did } = req.user!;
-  const where: any = { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
+  const { did, isAdmin } = req.user!;
+  const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
   const { appId } = await Joi.object<{ appId?: string }>({
     appId: Joi.string().allow('').empty(null).default(''),
   }).validateAsync(req.query, { stripUnknown: true });
-  if (appId) where.appId = appId;
 
   const sql = Sequelize.literal(
     '(SELECT COUNT(*) FROM DatasetDocuments WHERE DatasetDocuments.datasetId = Dataset.id)'
   );
 
   const datasets = await Dataset.findAll({
-    where,
+    where: {
+      ...(appId && { appId }),
+      ...user,
+    },
     attributes: { include: [[sql, 'documents']] },
   });
 
@@ -66,7 +68,7 @@ router.get('/', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: input
+ *          x-parameter-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -80,21 +82,14 @@ router.get('/', user(), userAuth(), async (req, res) => {
  */
 router.get('/:datasetId', user(), userAuth(), async (req, res) => {
   const { datasetId } = req.params;
-  const { did } = req.user!;
-  const where: { [key: string]: any } = { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
+  const { did, isAdmin } = req.user!;
+  const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
   const { appId } = await Joi.object<{ appId?: string }>({
     appId: Joi.string().allow('').empty(null).default(''),
   }).validateAsync(req.query, { stripUnknown: true });
-  if (appId) where.appId = appId;
 
-  const dataset = await Dataset.findOne({ where });
-
-  if (!dataset) {
-    res.status(404).json({ error: 'No such dataset' });
-    return;
-  }
-
+  const dataset = await Dataset.findOne({ where: { id: datasetId, ...(appId && { appId }), ...user } });
   res.json(dataset);
 });
 
@@ -148,7 +143,7 @@ router.post('/', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: input
+ *          x-parameter-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -209,7 +204,7 @@ router.put('/:datasetId', user(), userAuth(), async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: input
+ *          x-parameter-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name

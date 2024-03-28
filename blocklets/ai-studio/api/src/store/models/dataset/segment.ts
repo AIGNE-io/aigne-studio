@@ -15,6 +15,8 @@ export default class DatasetSegment extends Model<
 
   declare documentId: string;
 
+  declare targetId: string;
+
   declare content?: string;
 
   declare createdAt: CreationOptional<Date>;
@@ -33,6 +35,9 @@ DatasetSegment.init(
     documentId: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    targetId: {
+      type: DataTypes.STRING,
     },
     content: {
       type: DataTypes.TEXT,

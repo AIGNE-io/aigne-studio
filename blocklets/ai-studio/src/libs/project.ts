@@ -18,6 +18,7 @@ export type User = {
 };
 
 export type ProjectWithUserInfo = Project & {
+  isFromResource?: boolean;
   branches: string[];
   users: User[];
 };
@@ -36,15 +37,6 @@ export async function getProject(projectId: string): Promise<Project> {
 
 export async function createProject(input?: CreateProjectInput): Promise<Project> {
   return axios.post('/api/projects', input).then((res) => res.data);
-}
-
-export async function copyProject(input?: {
-  folder: string;
-  projectId: string;
-  name?: string;
-  description?: string;
-}): Promise<Project> {
-  return axios.post('/api/projects/copy', input).then((res) => res.data);
 }
 
 export async function updateProject(projectId: string, input: UpdateProjectInput): Promise<Project> {

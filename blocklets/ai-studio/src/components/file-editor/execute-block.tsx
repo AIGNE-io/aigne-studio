@@ -23,6 +23,7 @@ import {
   Autocomplete,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -59,6 +60,7 @@ import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages
 import IndicatorTextField from '../awareness/indicator-text-field';
 import LoadingIconButton from '../loading/loading-icon-button';
 import { ModelPopper, ModelSetting } from '../modal-settings';
+import ExecuteDatasetBlockForm from './execute-dataset-block';
 import PromptEditorField from './prompt-editor-field';
 
 const FROM_DATASET = 'dataset';
@@ -102,6 +104,24 @@ export default function ExecuteBlockForm({
 
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
+  if (value.type === 'dataset') {
+    return (
+      <ExecuteDatasetBlockForm
+        assistant={assistant}
+        projectId={projectId}
+        gitRef={gitRef}
+        path={path}
+        value={value}
+        readOnly={readOnly}
+        compareAssistant={compareAssistant}
+        isRemoteCompare={isRemoteCompare}
+        openApis={openApis}
+        {...props}
+        sx={{ borderColor: 'warning.light' }}
+      />
+    );
+  }
+
   return (
     <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
       <Box display="flex" alignItems="center">
@@ -143,7 +163,6 @@ export default function ExecuteBlockForm({
         }}
         square
         disableGutters
-        defaultExpanded
         elevation={0}>
         <AccordionSummary
           sx={{
@@ -230,7 +249,6 @@ export default function ExecuteBlockForm({
         }}
         square
         disableGutters
-        defaultExpanded
         elevation={0}>
         <AccordionSummary
           sx={{
@@ -762,7 +780,7 @@ export const ToolDialog = forwardRef<
                   control={form.control}
                   name={`parameters.${parameter.name}`}
                   render={({ field }) => {
-                    if (parameter['x-input-type'] === 'select') {
+                    if (parameter['x-parameter-type'] === 'select') {
                       return (
                         <AsyncSelect
                           label={getDatasetTextByI18n(parameter, 'name', locale)}
@@ -774,6 +792,17 @@ export const ToolDialog = forwardRef<
                           onChange={field.onChange}
                           queryParams={{ appId: projectId }}
                         />
+                      );
+                    }
+
+                    if (parameter['x-parameter-type'] === 'boolean') {
+                      return (
+                        <Box>
+                          <Checkbox
+                            checked={Boolean(field.value)}
+                            onChange={(e) => field.onChange({ target: { value: e.target.checked } })}
+                          />
+                        </Box>
                       );
                     }
 

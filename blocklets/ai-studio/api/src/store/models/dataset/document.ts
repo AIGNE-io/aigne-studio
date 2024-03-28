@@ -36,6 +36,7 @@ export default class DatasetDocument extends Model<
     | {
         type: 'fullSite';
         ids: string[];
+        types: string[];
       }
     | {
         type: string;

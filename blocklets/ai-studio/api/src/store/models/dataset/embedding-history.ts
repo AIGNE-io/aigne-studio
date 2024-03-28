@@ -15,6 +15,10 @@ export default class DatasetEmbeddingHistory extends Model<
 
   declare targetId?: string;
 
+  declare datasetId: string;
+
+  declare documentId: string;
+
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
@@ -39,6 +43,12 @@ DatasetEmbeddingHistory.init(
       defaultValue: nextId,
     },
     targetId: {
+      type: DataTypes.STRING,
+    },
+    datasetId: {
+      type: DataTypes.STRING,
+    },
+    documentId: {
       type: DataTypes.STRING,
     },
     createdAt: {

@@ -226,7 +226,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       assistant,
       parameters: input.parameters,
       callback: stream ? emit : undefined,
-      user: req.user,
+      user: userId ? { id: userId, did: userId, ...req.user } : undefined,
       sessionId: input.sessionId,
     });
 
@@ -236,8 +236,10 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
     res.end();
   } catch (e) {
-    const fetchErrorMessage = e?.response?.data?.error;
-    error = pick(fetchErrorMessage ? { ...e, message: fetchErrorMessage } : e, 'message', 'type', 'timestamp');
+    let fetchErrorMsg = e?.response?.data?.error;
+    if (typeof fetchErrorMsg !== 'string') fetchErrorMsg = fetchErrorMsg?.message;
+
+    error = { ...pick(e, 'type', 'timestamp'), message: fetchErrorMsg || e.message };
     if (stream) {
       emit({ type: AssistantResponseType.ERROR, error });
     } else {

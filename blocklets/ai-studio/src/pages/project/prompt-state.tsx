@@ -1,7 +1,14 @@
-import { PromptAssistantYjs, isPromptAssistant } from '@blocklet/ai-runtime/types';
+import {
+  ExecuteBlockYjs,
+  PromptAssistantYjs,
+  PromptYjs,
+  Tool,
+  isPromptAssistant,
+  nextAssistantId,
+} from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import sortBy from 'lodash/sortBy';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import { useProjectStore } from './yjs-state';
 
@@ -51,6 +58,67 @@ export function usePromptsState({
     [template]
   );
 
+  const addDatasetPrompt = useCallback(() => {
+    if (!template) return;
+
+    const doc = (getYjsValue(template) as Map<any>).doc!;
+    doc.transact(() => {
+      template.prompts ??= {};
+      const exit = Object.values(template.prompts).find((x) => (x?.data?.data as ExecuteBlockYjs)?.type === 'dataset');
+      if (exit) return;
+
+      const tool: Tool = {
+        id: 'AI-Studio:/api/datasets/{datasetId}/search:get',
+        from: 'dataset',
+        parameters: {
+          datasetId: '{{datasetId}}',
+          message: '',
+        },
+      };
+
+      const prompt: PromptYjs = {
+        type: 'executeBlock',
+        data: {
+          id: nextAssistantId(),
+          selectType: 'all',
+          role: 'system',
+          type: 'dataset',
+          prefix: 'Please use the following as context:',
+          tools: {
+            [tool.id]: {
+              index: 0,
+              data: tool,
+            },
+          },
+        },
+      };
+
+      template.prompts[prompt.data.id] = {
+        index: -1,
+        data: prompt,
+      };
+
+      sortBy(Object.values(template.prompts), (i) => i.index).forEach((i, index) => (i.index = index));
+    });
+  }, [template]);
+
+  const deleteDatasetPrompt = useCallback(() => {
+    if (!template?.prompts) return;
+
+    const doc = (getYjsValue(template) as Map<any>).doc!;
+    doc.transact(() => {
+      const prompts = template?.prompts || {};
+      const promptId = Object.keys(prompts).find((x) => {
+        return (prompts[x]?.data?.data as ExecuteBlockYjs)?.type === 'dataset';
+      });
+
+      if (promptId) {
+        delete template.prompts![promptId];
+        sortBy(Object.values(template.prompts!), (i) => i.index).forEach((i, index) => (i.index = index));
+      }
+    });
+  }, [template]);
+
   const renameVariable = useCallback(() => {
     // FIXME:
     // (rename: { [key: string]: string }) => {
@@ -84,5 +152,17 @@ export function usePromptsState({
     // });
   }, [template]);
 
-  return { addPrompt, deletePrompt, renameVariable };
+  const assistantParameters = [...new Set([...Object.values(template?.parameters ?? {}).map((i) => i.data.key)])];
+
+  useEffect(() => {
+    if (template) {
+      if (assistantParameters.includes('datasetId')) {
+        addDatasetPrompt();
+      } else {
+        deleteDatasetPrompt();
+      }
+    }
+  }, [assistantParameters]);
+
+  return { addPrompt, deletePrompt, addDatasetPrompt, deleteDatasetPrompt, renameVariable };
 }

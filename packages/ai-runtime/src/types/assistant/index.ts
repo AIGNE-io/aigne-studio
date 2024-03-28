@@ -33,6 +33,7 @@ type ExecuteBlockCommon = {
   prefix?: string;
   suffix?: string;
   variable?: string;
+  type?: 'dataset';
 };
 
 export type ExecuteBlockSelectAll = ExecuteBlockCommon & { selectType: 'all' };
@@ -173,9 +174,10 @@ export interface LanguageParameter extends ParameterBase {
 }
 
 export interface User {
+  id: string;
   did: string;
-  role: string;
-  fullName: string;
-  provider: string;
-  walletOS: string;
+  role?: string;
+  fullName?: string;
+  provider?: string;
+  walletOS?: string;
 }

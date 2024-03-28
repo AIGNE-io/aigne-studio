@@ -1,3 +1,71 @@
+## 0.1.314 (2024-3-27)
+
+- fix: bundle with external hnswlib-node dependency
+
+## 0.1.313 (2024-3-27)
+
+- fix: datastore dataset api
+
+## 0.1.312 (2024-3-27)
+
+- fix: filter the deleted dataset data
+
+## 0.1.311 (2024-3-27)
+
+- fix: back vector store to hnswlib because of the installation environment
+
+## 0.1.310 (2024-3-27)
+
+- fix: support resetting an example project
+- fix: keep assistant id unchanged when copying
+
+## 0.1.309 (2024-3-27)
+
+- fix: optimized queue. no push queue if in progress
+- fix: split fullsite queue to a smaller queue, it will time out when the number is large.
+- fix: the administrator has permission to view all datasets
+
+## 0.1.308 (2024-3-26)
+
+## 0.1.307 (2024-3-26)
+
+- fix: missing import statement for `ReadableStream`
+
+## 0.1.306 (2024-3-26)
+
+- chore: add HongHong simulator example project by resource component dependency
+
+## 0.1.305 (2024-3-26)
+
+- fix: example project not working
+- fix: check resource path exists
+
+## 0.1.304 (2024-3-26)
+
+- feat: embedding discuss all data (#725)
+- fix: replace vector-store-hnswlib to vector-store-faiss
+
+## 0.1.303 (2024-3-26)
+
+- fix: allow text wrapping for select field options
+- fix: correct format of chat history
+- feat: pass context to the function assistants
+- fix: reset parameters after assistant changed
+
+## 0.1.302 (2024-3-26)
+
+- fix: catch the error of message rendering
+
+## 0.1.301 (2024-3-26)
+
+- chore: update deps
+- fix: remove useless menu
+- fix: add a login button in home page
+
+## 0.1.300 (2024-3-25)
+
+- chore: support dataset execute
+
 ## 0.1.299 (2024-3-22)
 
 - chore: readjust the dataset data db

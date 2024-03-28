@@ -40,8 +40,6 @@ router.get('/:datasetId/documents/:documentId/segments', user(), userAuth(), asy
 //     content: Joi.string().required(),
 //   }).validateAsync(req.body, { stripUnknown: true });
 
-//   await saveContentToVectorStore(content, datasetId, documentId);
-
 //   res.json({ data: 'success' });
 // });
 
@@ -67,8 +65,6 @@ router.get('/:datasetId/documents/:documentId/segments', user(), userAuth(), asy
 //     segmentId: Joi.string().required(),
 //     datasetId: Joi.string().required(),
 //   }).validateAsync(req.params, { stripUnknown: true });
-
-//   await DatasetSegment.destroy({ where: { id: segmentId } });
 
 //   resetVectorStoreEmbedding(datasetId);
 
