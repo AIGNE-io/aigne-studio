@@ -8,6 +8,7 @@ function downloadImage(imageUrl: string, savePath: string) {
       method: 'get',
       url: imageUrl,
       responseType: 'stream',
+      timeout: 20 * 1000,
     })
       .then((response) => {
         const writer = fs.createWriteStream(savePath);

@@ -1,10 +1,12 @@
-import path from 'path';
+import { mkdtemp, rename } from 'fs/promises';
+import path, { join } from 'path';
 
 import { customAlphabet } from 'nanoid';
 
 import init from '../init';
 import { wallet } from '../libs/auth';
 import downloadLogo from '../libs/download-logo';
+import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { getRepository } from '../store/0.1.157/projects';
 import Project from '../store/models/project';
@@ -19,24 +21,31 @@ export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN
 async function migrate() {
   const projects = await Project.findAll();
 
+  const tmp = await mkdtemp(Config.dataDir);
+
   await Promise.all(
     projects.map(async (project) => {
       const repo = await getRepository({ projectId: project._id });
-      await repo.checkout({ ref: defaultBranch, force: true });
+      const { icon } = project;
 
       try {
-        if (project.dataValues.icon && project.dataValues.icon.startsWith('http')) {
-          await downloadLogo(project.dataValues.icon, path.join(repo.options.root, LOGO_NAME));
+        if (icon && icon.startsWith('http')) {
+          const tmpFile = join(tmp, project._id);
+          await downloadLogo(icon, tmpFile);
 
           await repo.transact(async (tx) => {
+            await tx.checkout({ ref: defaultBranch, force: true });
+
+            await rename(tmpFile, path.join(repo.options.root, LOGO_NAME));
+
             await tx.add({ filepath: LOGO_NAME });
             await tx.commit({
-              message: 'Migrate to v0.1.315 for logo.png',
+              message: 'Migrate to v0.1.316 for logo.png',
               author: { name: 'AI Studio', email: wallet.address },
             });
           });
 
-          project.update({ icon: '' });
+          await project.update({ icon: '' });
         }
       } catch (error) {
         console.error(error.message);
