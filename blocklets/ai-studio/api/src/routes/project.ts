@@ -17,7 +17,6 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { Op } from 'sequelize';
 import { parse } from 'yaml';
 
 import downloadLogo from '../libs/download-logo';
@@ -356,10 +355,6 @@ export function projectRoutes(router: Router) {
     });
     const { did } = req.user!;
 
-    if (name && (await Project.findOne({ where: { name } }))) {
-      throw new Error(`Duplicated project ${name}`);
-    }
-
     const uri = new URL(url);
     if (username) uri.username = username;
     if (password) uri.password = password;
@@ -467,10 +462,6 @@ export function projectRoutes(router: Router) {
       homePageUrl,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
-    if (name && (await Project.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
-      throw new Error(`Duplicated project ${name}`);
-    }
-
     const { did, fullName } = req.user!;
 
     await project.update(
@@ -481,6 +472,7 @@ export function projectRoutes(router: Router) {
           updatedBy: did,
           description,
           model: model || project.model || '',
+          icon: '',
           temperature,
           topP,
           presencePenalty,
