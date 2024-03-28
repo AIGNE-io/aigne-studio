@@ -1,9 +1,10 @@
 import fs from 'fs';
-import { access, cp, mkdtemp, rm } from 'fs/promises';
+import { access, copyFile, cp, mkdtemp, rm } from 'fs/promises';
 import path, { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
 import { sampleIcon } from '@api/libs/icon';
+import logger from '@api/libs/logger';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -24,12 +25,11 @@ import { getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
-  LOGO_NAME,
+  LOGO_FILENAME,
   autoSyncRemoteRepoIfNeeded,
   clearRepository,
   commitProjectSettingWorking,
   commitWorking,
-  copyLogoFile,
   defaultBranch,
   defaultRemote,
   getAssistantFromRepository,
@@ -262,11 +262,11 @@ export function projectRoutes(router: Router) {
         res.sendFile(resource.gitLogoPath);
         return;
       }
-
-      res.status(404).send('Image not found');
     } catch (error) {
-      res.status(404).send('Image not found');
+      logger.error('Get icon error', { error });
     }
+
+    res.status(404).send('Image not found');
   });
 
   router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
@@ -313,11 +313,7 @@ export function projectRoutes(router: Router) {
       if (!project) {
         const template = projectTemplates.find((i) => i.project._id === templateId);
         if (template) {
-          project = await createProjectFromTemplate(template, {
-            name,
-            description,
-            author: req.user!,
-          });
+          project = await createProjectFromTemplate(template, { name, description, author: req.user! });
         }
       }
 
@@ -766,7 +762,6 @@ async function createProjectFromTemplate(
     _id: nextProjectId(),
     duplicateFrom: withDuplicateFrom ? template.project._id : undefined,
     model: template.project.model || '',
-    icon: '',
     createdBy: author.did,
     updatedBy: author.did,
     name,
@@ -792,21 +787,21 @@ async function createProjectFromTemplate(
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
     beforeCommit: async (tx) => {
-      const logoPath = path.join(repository.options.root, LOGO_NAME);
+      const logoPath = path.join(repository.options.root, LOGO_FILENAME);
 
       try {
         if (template.gitLogoPath) {
-          const copied = await copyLogoFile(template.gitLogoPath, logoPath);
-          if (copied) await tx.add({ filepath: LOGO_NAME });
+          await copyFile(template.gitLogoPath, logoPath);
+          await tx.add({ filepath: LOGO_FILENAME });
         } else {
           const icon = await sampleIcon();
           if (icon) {
             await downloadLogo(icon, logoPath);
-            await tx.add({ filepath: LOGO_NAME });
+            await tx.add({ filepath: LOGO_FILENAME });
           }
         }
       } catch (error) {
-        console.error(error);
+        logger.error('failed to download icon', { error });
       }
     },
   });

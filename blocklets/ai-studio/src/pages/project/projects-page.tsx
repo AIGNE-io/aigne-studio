@@ -63,7 +63,6 @@ import Eye from './icons/eye';
 import EyeNo from './icons/eye-no';
 import Git from './icons/git';
 import LayoutPictureRight from './icons/layout-picture-right';
-// import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';

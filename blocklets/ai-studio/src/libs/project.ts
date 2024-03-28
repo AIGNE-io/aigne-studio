@@ -11,6 +11,7 @@ import {
 } from '../../api/src/routes/project';
 import Project from '../../api/src/store/models/project';
 import axios from './api';
+import { AI_STUDIO_COMPONENT_DID } from './constants';
 
 export type User = {
   did?: string;
@@ -82,6 +83,6 @@ export async function projectSync(projectId: string): Promise<{}> {
 
 export function getProjectIconUrl(projectId?: string) {
   if (!projectId) return '';
-  const component = blocklet?.componentMountPoints.find((i) => i.did === 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB');
+  const component = blocklet?.componentMountPoints.find((i) => i.did === AI_STUDIO_COMPONENT_DID);
   return joinURL(component?.mountPoint || '', `/api/projects/${projectId}/logo.png`);
 }

@@ -2,6 +2,7 @@
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 
+import logger from '@api/libs/logger';
 import component from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -11,10 +12,9 @@ import uniq from 'lodash/uniq';
 import uniqBy from 'lodash/uniqBy';
 import { stringify } from 'yaml';
 
-import downloadLogo from '../libs/download-logo';
 import { ensurePromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
-import { LOGO_NAME, copyLogoFile, defaultBranch, getAssistantsOfRepository, getRepository } from '../store/repository';
+import { LOGO_FILENAME, defaultBranch, getAssistantsOfRepository, getRepository } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 const TARGET_DIR = path.join(AI_STUDIO_DID, 'ai');
@@ -128,18 +128,16 @@ export function resourceRoutes(router: Router) {
 
         // 写入logo.png
         const repository = await getRepository({ projectId });
-        await repository.checkout({ ref: project?.gitDefaultBranch || defaultBranch, force: true });
-        const logoPath = path.join(repository.options.root, LOGO_NAME);
-        const resourceLogoPath = path.join(folderPath, projectId, LOGO_NAME);
+        const resourceLogoPath = path.join(folderPath, projectId, LOGO_FILENAME);
 
-        const copied = await copyLogoFile(logoPath, resourceLogoPath);
-        if (!copied && project?.icon) {
-          try {
-            await downloadLogo(project.icon, logoPath);
-            await copyLogoFile(logoPath, resourceLogoPath);
-          } catch (error) {
-            console.error(error);
-          }
+        try {
+          const icon = await repository.readBlob({
+            ref: project?.gitDefaultBranch || defaultBranch,
+            filepath: LOGO_FILENAME,
+          });
+          await writeFile(resourceLogoPath, icon.blob);
+        } catch (error) {
+          logger.error('failed to save icon file to resource dir', { error });
         }
 
         arr.push(result);

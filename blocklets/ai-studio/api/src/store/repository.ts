@@ -1,4 +1,4 @@
-import { access, copyFile, readdir, rm, writeFile } from 'fs/promises';
+import { readdir, rm, writeFile } from 'fs/promises';
 import path from 'path';
 
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
@@ -24,17 +24,7 @@ export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, '
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
-export const LOGO_NAME = 'logo.png';
-
-export const copyLogoFile = async (filePath: string, destPath: string) => {
-  try {
-    await access(filePath);
-    await copyFile(filePath, destPath);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
+export const LOGO_FILENAME = 'logo.png';
 
 export async function clearRepository(projectId: string) {
   const repo = await getRepository({ projectId });
@@ -208,17 +198,17 @@ const addSettingsToGit = async ({
   if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
     try {
       if (ref === defaultBranch) {
-        await downloadLogo(icon, path.join(repository.options.root, LOGO_NAME));
+        await downloadLogo(icon, path.join(repository.options.root, LOGO_FILENAME));
       } else {
         try {
-          const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_NAME })).blob;
-          await writeFile(path.join(repository.options.root, LOGO_NAME), file);
+          const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_FILENAME })).blob;
+          await writeFile(path.join(repository.options.root, LOGO_FILENAME), file);
         } catch (error) {
-          console.error(error);
+          logger.error('failed to save project icon', { error });
         }
       }
 
-      await tx.add({ filepath: LOGO_NAME });
+      await tx.add({ filepath: LOGO_FILENAME });
     } catch (error) {
       console.error(error);
     }

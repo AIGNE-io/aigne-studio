@@ -1,4 +1,4 @@
-import { mkdtemp, rename, rm } from 'fs/promises';
+import { mkdtemp, rename, rm, stat } from 'fs/promises';
 import path, { join } from 'path';
 
 import { customAlphabet } from 'nanoid';
@@ -10,7 +10,7 @@ import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import { getRepository } from '../store/0.1.157/projects';
 import Project from '../store/models/project';
-import { LOGO_NAME, defaultBranch } from '../store/repository';
+import { LOGO_FILENAME, defaultBranch } from '../store/repository';
 
 const { name } = require('../../../package.json');
 
@@ -21,7 +21,7 @@ export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN
 async function migrate() {
   const projects = await Project.findAll();
 
-  const tmp = await mkdtemp(Config.dataDir);
+  const tmp = await mkdtemp(join(Config.dataDir, 'icons-'));
 
   try {
     await Promise.all(
@@ -33,13 +33,16 @@ async function migrate() {
           if (icon && icon.startsWith('http')) {
             const tmpFile = join(tmp, project._id);
             await downloadLogo(icon, tmpFile);
+            if (!(await stat(tmpFile)).size) {
+              throw new Error('Invalid icon file downloaded');
+            }
 
             await repo.transact(async (tx) => {
               await tx.checkout({ ref: defaultBranch, force: true });
 
-              await rename(tmpFile, path.join(repo.options.root, LOGO_NAME));
+              await rename(tmpFile, path.join(repo.options.root, LOGO_FILENAME));
 
-              await tx.add({ filepath: LOGO_NAME });
+              await tx.add({ filepath: LOGO_FILENAME });
               await tx.commit({
                 message: 'Migrate to v0.1.316 for logo.png',
                 author: { name: 'AI Studio', email: wallet.address },
