@@ -1,3 +1,7 @@
+## 0.1.316 (2024-3-28)
+
+- chore: save project logo to git
+
 ## 0.1.315 (2024-3-28)
 
 - fix: the request knowledge error when selecting prompt
