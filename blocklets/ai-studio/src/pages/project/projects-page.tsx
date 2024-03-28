@@ -63,7 +63,7 @@ import Eye from './icons/eye';
 import EyeNo from './icons/eye-no';
 import Git from './icons/git';
 import LayoutPictureRight from './icons/layout-picture-right';
-// import Picture from './icons/picture';
+import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
@@ -685,7 +685,13 @@ function ProjectItem({
     <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center">
         <Box className="logo" sx={{ width: '32px', height: '32px' }}>
-          {icon ? <Box component="img" src={icon} /> : <Box component="img" src={getProjectIconUrl(id)} />}
+          {icon ? (
+            <Box component="img" src={icon} />
+          ) : id && isFromResource ? (
+            <Box component="img" src={getProjectIconUrl(id)} />
+          ) : (
+            <Picture sx={{ color: 'grey.400', fontSize: 32 }} />
+          )}
         </Box>
 
         <Box flex={1} />

@@ -128,7 +128,6 @@ export default function ProjectSettings() {
     setLoading(true);
 
     try {
-      console.log(temp);
       await updateProject(projectId, temp);
       Toast.success('Saved');
     } catch (error) {
