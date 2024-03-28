@@ -1,4 +1,4 @@
-import { readFile, readdir } from 'fs/promises';
+import { access, readFile, readdir, stat } from 'fs/promises';
 import { join } from 'path';
 
 import { projectTemplates } from '@api/templates/projects';
@@ -22,11 +22,35 @@ export const getResourceProjects = async (folder: 'template' | 'example') => {
         const folderPath = join(item.path, folder);
         if (!(await exists(folderPath))) return null;
 
+        const list = (await readdir(folderPath)) || [];
+
+        const paths = list.map(async (filename: string) => {
+          const dirPath = join(folderPath, filename);
+          const filePath = join(dirPath, `${filename}.yaml`);
+
+          try {
+            const stats = await stat(dirPath);
+            if (stats.isDirectory()) {
+              try {
+                await access(filePath);
+                return filePath;
+              } catch {
+                // 文件夹存在，但是.yaml文件不存在，不做处理，将执行后续的文件存在性检查
+              }
+            }
+            await access(dirPath);
+            return dirPath;
+          } catch (error) {
+            return '';
+          }
+        });
+
         return {
-          paths: ((await readdir(folderPath)) || [])
-            .filter((filename) => filename.endsWith('.yaml'))
-            .map((filename) => join(folderPath, filename)),
+          paths: (await Promise.all(paths))
+            .filter((i): i is NonNullable<typeof i> => !!i)
+            .filter((i) => i.endsWith('yaml')),
           did: item.did,
+          resourcePath: folderPath,
         };
       })
     )
@@ -34,7 +58,7 @@ export const getResourceProjects = async (folder: 'template' | 'example') => {
 
   const projects = (
     await Promise.all(
-      files.map(async ({ paths }) => {
+      files.map(async ({ paths, resourcePath }) => {
         return (
           await Promise.all(
             paths.map(async (filepath) => {
@@ -42,6 +66,8 @@ export const getResourceProjects = async (folder: 'template' | 'example') => {
                 const json: (typeof projectTemplates)[number] = parse((await readFile(filepath)).toString());
                 if (json.project) {
                   delete json?.project?.projectType;
+
+                  json.gitLogoPath = join(resourcePath, json.project._id, 'logo.png');
                 }
 
                 return json;
