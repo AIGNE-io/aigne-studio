@@ -70,14 +70,17 @@ router.get('/:datasetId/search', async (req, res) => {
 
   const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset || !datasetId) {
-    logger.error('search vector info', 'datasetId or dataset is not Found');
+    logger.error(
+      'search vector info',
+      datasetId ? `dataset with ${datasetId} is not found` : 'datasetId can not be empty'
+    );
     res.json({ docs: [] });
     return;
   }
 
   const documents = await DatasetDocument.findAll({ where: { datasetId } });
   if (!documents?.length) {
-    logger.error('search vector info', 'documents is not Found');
+    logger.error('search vector info', 'dataset documents is empty');
     res.json({ docs: [] });
     return;
   }
