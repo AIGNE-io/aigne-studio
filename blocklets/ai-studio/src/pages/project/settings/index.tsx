@@ -33,6 +33,7 @@ import SliderNumberField from '../../../components/slider-number-field';
 import { useReadOnly } from '../../../contexts/session';
 import UploaderProvider from '../../../contexts/uploader';
 import { getErrorMessage } from '../../../libs/api';
+import { getProjectIconUrl } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
 import InfoOutlined from '../icons/question';
 import { useProjectState } from '../state';
@@ -90,11 +91,12 @@ export default function ProjectSettings() {
         'gitType',
         'homePageUrl',
       ]);
+      merge.icon = getProjectIconUrl(projectId);
 
       origin.current = merge;
       setValue(merge);
     }
-  }, [project]);
+  }, [project, projectId]);
 
   const set = (key: string, value: any) => {
     setValue((r) => ({ ...r, [key]: value }));
@@ -139,7 +141,13 @@ export default function ProjectSettings() {
     return (
       !!origin.current &&
       !!value &&
-      !equal({ ...origin.current, model: origin.current?.model || 'gpt-3.5-turbo' }, value)
+      !equal(
+        { ...origin.current, model: origin.current?.model || 'gpt-3.5-turbo' },
+        {
+          ...value,
+          model: value?.model || 'gpt-3.5-turbo',
+        }
+      )
     );
   }, [value]);
 

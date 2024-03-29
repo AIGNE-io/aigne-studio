@@ -3,6 +3,7 @@ import { Box } from '@mui/material';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { getProjectIconUrl } from '../../libs/project';
 import { useProjectState } from './state';
 
 export default function ProjectLogo() {
@@ -20,5 +21,11 @@ export default function ProjectLogo() {
 
   if (!project) return null;
 
-  return <Box component="img" src={project.icon || blocklet?.appLogo} sx={{ borderRadius: 1 }} />;
+  return (
+    <Box
+      component="img"
+      src={project.icon || getProjectIconUrl(projectId) || blocklet?.appLogo}
+      sx={{ borderRadius: 1 }}
+    />
+  );
 }

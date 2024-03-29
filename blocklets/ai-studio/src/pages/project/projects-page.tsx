@@ -51,7 +51,7 @@ import DeleteDialog from '../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../contexts/projects';
 import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
-import { ProjectWithUserInfo, User, createProject } from '../../libs/project';
+import { ProjectWithUserInfo, User, createProject, getProjectIconUrl } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
@@ -63,7 +63,6 @@ import Eye from './icons/eye';
 import EyeNo from './icons/eye-no';
 import Git from './icons/git';
 import LayoutPictureRight from './icons/layout-picture-right';
-import Picture from './icons/picture';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
@@ -479,6 +478,7 @@ function ProjectList({
               model={item.model}
               users={item.users || []}
               loading={Boolean(itemLoading && item?._id === itemLoading?._id)}
+              isFromResource={Boolean(item.isFromResource)}
               onClick={async () => {
                 if (section === 'templates') {
                   let name = '';
@@ -617,6 +617,8 @@ function ProjectItem({
   model,
   users,
   loading = false,
+  id,
+  isFromResource,
   ...props
 }: {
   section: string;
@@ -631,6 +633,8 @@ function ProjectItem({
   users?: User[];
   actions?: ReactNode;
   loading: boolean;
+  id: string;
+  isFromResource: boolean;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
 
@@ -660,6 +664,8 @@ function ProjectItem({
           <Stack height={60} justifyContent="center" alignItems="center">
             {icon ? (
               <Box component="img" src={icon} sx={{ width: 60, height: 60, borderRadius: 1 }} />
+            ) : id && isFromResource ? (
+              <Box component="img" src={getProjectIconUrl(id)} sx={{ width: 60, height: 60, borderRadius: 1 }} />
             ) : (
               <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
             )}
@@ -678,7 +684,7 @@ function ProjectItem({
     <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center">
         <Box className="logo" sx={{ width: '32px', height: '32px' }}>
-          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 32 }} />}
+          {icon ? <Box component="img" src={icon} /> : <Box component="img" src={getProjectIconUrl(id)} />}
         </Box>
 
         <Box flex={1} />

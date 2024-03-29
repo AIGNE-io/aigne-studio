@@ -16,7 +16,7 @@ import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-hnswlib';
-import { getDiscussionIds, queue, updateHistoriesAndStore } from './embeddings';
+import { queue, updateHistoriesAndStore } from './embeddings';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -324,13 +324,11 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   let docs: DatasetDocument[] = [];
   const fullSite = arr.find((x) => x.data?.fullSite);
   if (fullSite) {
-    const ids = await getDiscussionIds(fullSite.data.types || []);
-
     const document = await DatasetDocument.create({
       type: 'fullSite',
       data: {
         type: 'fullSite',
-        ids,
+        ids: [],
         types: fullSite.data.types || [],
       },
       name: fullSite.name,

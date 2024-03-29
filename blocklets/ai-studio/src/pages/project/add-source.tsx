@@ -44,7 +44,7 @@ export default function Exporter() {
             width: '100vw',
             height: '100vh',
             zIndex: 9999,
-            backgroundColor: 'transparent',
+            backgroundColor: '#fff',
             border: 0,
           }}
         />

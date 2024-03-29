@@ -1,4 +1,5 @@
 import { Assistant } from '@blocklet/ai-runtime/types';
+import { joinURL } from 'ufo';
 
 import {
   AddProjectRemoteInput,
@@ -10,6 +11,7 @@ import {
 } from '../../api/src/routes/project';
 import Project from '../../api/src/store/models/project';
 import axios from './api';
+import { AI_STUDIO_COMPONENT_DID } from './constants';
 
 export type User = {
   did?: string;
@@ -77,4 +79,10 @@ export async function projectImport(input?: ImportProjectInput): Promise<Project
 
 export async function projectSync(projectId: string): Promise<{}> {
   return axios.post(`/api/projects/${projectId}/remote/sync`).then((res) => res.data);
+}
+
+export function getProjectIconUrl(projectId?: string) {
+  if (!projectId) return '';
+  const component = blocklet?.componentMountPoints.find((i) => i.did === AI_STUDIO_COMPONENT_DID);
+  return joinURL(component?.mountPoint || '', `/api/projects/${projectId}/logo.png`);
 }
