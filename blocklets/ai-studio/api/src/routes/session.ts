@@ -137,7 +137,7 @@ export function sessionRoutes(router: Router) {
 
     await Promise.all([Datastore.destroy({ where: { sessionId } }), Histories.destroy({ where: { sessionId } })]);
 
-    res.json({ deleted: 'success' });
+    res.json({});
   });
 
   router.delete('/sessions', user(), auth(), async (req, res) => {
