@@ -152,8 +152,9 @@ const updateEmbeddingHistory = async ({
   metadata?: any;
   updatedAt?: Date | string;
 }) => {
+  const ids = { targetId, datasetId, documentId };
   try {
-    const previousEmbedding = await EmbeddingHistories.findOne({ where: { targetId, datasetId, documentId } });
+    const previousEmbedding = await EmbeddingHistories.findOne({ where: { ...ids } });
     if (previousEmbedding?.targetVersion && updatedAt) {
       if (
         new Date(previousEmbedding?.targetVersion).toISOString() === new Date(updatedAt || new Date()).toISOString()
@@ -162,19 +163,10 @@ const updateEmbeddingHistory = async ({
       }
     }
 
-    if (await EmbeddingHistories.findOne({ where: { targetId } })) {
-      await EmbeddingHistories.update(
-        { startAt: new Date(), status: UploadStatus.Uploading },
-        { where: { targetId, datasetId, documentId } }
-      );
+    if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
+      await EmbeddingHistories.update({ startAt: new Date(), status: UploadStatus.Uploading }, { where: { ...ids } });
     } else {
-      await EmbeddingHistories.create({
-        startAt: new Date(),
-        status: UploadStatus.Uploading,
-        targetId,
-        datasetId,
-        documentId,
-      });
+      await EmbeddingHistories.create({ startAt: new Date(), status: UploadStatus.Uploading, ...ids });
     }
 
     if (String(content).trim()) {
@@ -187,37 +179,26 @@ const updateEmbeddingHistory = async ({
       });
     }
 
-    if (await EmbeddingHistories.findOne({ where: { targetId, datasetId, documentId } })) {
+    if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
       await EmbeddingHistories.update(
         { targetVersion: new Date(updatedAt || new Date()), endAt: new Date(), status: UploadStatus.Success },
-        { where: { targetId, datasetId, documentId } }
+        { where: { ...ids } }
       );
     } else {
       await EmbeddingHistories.create({
         targetVersion: new Date(updatedAt || new Date()),
         endAt: new Date(),
         status: UploadStatus.Success,
-        targetId,
-        datasetId,
-        documentId,
+        ...ids,
       });
     }
 
     return true;
   } catch (error) {
-    if (await EmbeddingHistories.findOne({ where: { targetId, datasetId, documentId } })) {
-      await EmbeddingHistories.update(
-        { error: error.message, status: UploadStatus.Error },
-        { where: { targetId, datasetId, documentId } }
-      );
+    if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
+      await EmbeddingHistories.update({ error: error.message, status: UploadStatus.Error }, { where: { ...ids } });
     } else {
-      await EmbeddingHistories.create({
-        targetId,
-        datasetId,
-        documentId,
-        error: error.message,
-        status: UploadStatus.Error,
-      });
+      await EmbeddingHistories.create({ error: error.message, status: UploadStatus.Error, ...ids });
     }
 
     await DatasetDocument.update(
