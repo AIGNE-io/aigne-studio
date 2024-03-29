@@ -9,7 +9,7 @@ import { parse } from 'yaml';
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 const getResourcePackageAssistantsDirs = () => {
-  const resources = getResources({ types: [{ did: AI_STUDIO_DID, type: 'ai' }] });
+  const resources = getResources({ types: [{ did: AI_STUDIO_DID, type: 'ai' }], skipRunningCheck: true });
   return resources.map((resource) => ({ path: resource.path!, did: resource.did! })).filter((x) => !!x.path);
 };
 
