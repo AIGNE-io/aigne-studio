@@ -78,6 +78,7 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         schema:
  *           type: boolean
  *         required: false
+ *         x-parameter-type: boolean
  *         description: Whether to overwrite old data
  *         x-description-zh: 是否覆盖旧数据
  *     requestBody:
