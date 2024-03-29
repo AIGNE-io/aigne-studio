@@ -203,7 +203,7 @@
     x-description-zh: 新增或设置数据存储
     parameters:
       - in: query
-        name: truncateOld
+        name: reset
         schema:
           type: boolean
         required: false
