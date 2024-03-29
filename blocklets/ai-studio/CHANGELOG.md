@@ -1,3 +1,7 @@
+## 0.1.320 (2024-3-29)
+
+- feat: add reset session api
+
 ## 0.1.319 (2024-3-29)
 
 - fix: remove the function to set a project as a template/example
