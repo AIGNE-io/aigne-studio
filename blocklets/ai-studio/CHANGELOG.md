@@ -1,3 +1,8 @@
+## 0.1.319 (2024-3-29)
+
+- fix: remove the function to set a project as a template/example
+- fix: skip running check for example projects from the resource blocklets
+
 ## 0.1.318 (2024-3-29)
 
 - feat: better embedding semantics

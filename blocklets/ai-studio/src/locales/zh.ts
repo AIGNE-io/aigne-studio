@@ -260,8 +260,11 @@ export default flat({
   endTime: '结束时间',
   duration: '耗时',
   confirmDelete: '请输入 {name} 以确认删除',
+  confirmReset: '请输入 {name} 以确认重置',
   deleteProjectAlertPrefix: '这将永久删除名称为',
+  resetProjectAlertPrefix: '这将重置名称为',
   deleteProjectAlertSuffix: '的项目',
+  resetProjectAlertSuffix: '的项目',
   selectObject: '选择{object}',
   template: '模板',
   call: {
@@ -556,4 +559,5 @@ export default flat({
   atLeastOne: '至少选择一个类型',
   doc: '文档数据',
   blog: '博客数据',
+  reset: '重置',
 });
