@@ -1,12 +1,21 @@
-import { call } from '@blocklet/sdk/lib/component';
+import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
+import config from '@blocklet/sdk/lib/config';
 import SSE from 'express-sse';
 import { sha3_256 } from 'js-sha3';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { intersection } from 'lodash';
+import { intersection, isNil, omitBy } from 'lodash';
+import { joinURL } from 'ufo';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import logger from '../../libs/logger';
-import createQueue, { EmbeddingQueue, FullSiteQueue, isEmbeddingQueue, isFullSiteQueue } from '../../libs/queue';
+import createQueue, {
+  CommentQueue,
+  EmbeddingQueue,
+  FullSiteQueue,
+  isCommentQueue,
+  isEmbeddingQueue,
+  isFullSiteQueue,
+} from '../../libs/queue';
 import DatasetContent from '../../store/models/dataset/content';
 import DatasetDocument, { UploadStatus } from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
@@ -48,7 +57,7 @@ const fullSiteItemJob = async (job: FullSiteQueue) => {
     throw new Error('documentId not found');
   }
 
-  const [document] = await Promise.all([await DatasetDocument.findOne({ where: { id: documentId } })]);
+  const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
   if (!document) throw new Error(`Dataset item ${documentId} not found`);
 
   const embeddingStatus = `${currentIndex}/${currentTotal}`;
@@ -60,6 +69,45 @@ const fullSiteItemJob = async (job: FullSiteQueue) => {
     await updateDiscussionEmbeddings(discussionId, document.datasetId, document.id);
   } catch (error) {
     logger.error(`embedding discussion ${discussionId} error`, { error });
+  }
+};
+
+const CommentQueueJob = async (job: CommentQueue) => {
+  const { documentId, discussionId, metadata } = job;
+
+  try {
+    if (!documentId) {
+      throw new Error('documentId not found');
+    }
+
+    const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
+    if (!document) throw new Error(`Dataset item ${documentId} not found`);
+
+    for await (const { id, content, commentAuthorName, commentCreateAt, commentUpdatedAt } of commentsIterator(
+      discussionId
+    )) {
+      const commentMetaData = {
+        commentAuthorName,
+        commentCreateAt,
+        commentUpdatedAt,
+      };
+
+      await updateEmbeddingHistory({
+        datasetId: document.datasetId,
+        documentId: document.id,
+        targetId: id,
+        updatedAt: commentUpdatedAt,
+        content,
+        metadata: {
+          ...(metadata || {}),
+          ...commentMetaData,
+        },
+      });
+    }
+
+    logger.info('embedding comment discussion');
+  } catch (error) {
+    logger.error(`embedding discussion comment ${discussionId} error`, { error });
   }
 };
 
@@ -81,6 +129,10 @@ export const queue = createQueue({
       await fullSiteItemJob(job);
     }
 
+    if (isCommentQueue(job)) {
+      await CommentQueueJob(job);
+    }
+
     logger.info('Job End', task);
   },
 });
@@ -90,18 +142,19 @@ const updateEmbeddingHistory = async ({
   documentId,
   targetId,
   content,
-  title,
+  metadata,
   updatedAt,
 }: {
   datasetId: string;
   documentId: string;
   targetId: string;
   content?: string;
-  title?: string;
+  metadata?: any;
   updatedAt?: Date | string;
 }) => {
+  const ids = { targetId, datasetId, documentId };
   try {
-    const previousEmbedding = await EmbeddingHistories.findOne({ where: { targetId, datasetId, documentId } });
+    const previousEmbedding = await EmbeddingHistories.findOne({ where: { ...ids } });
     if (previousEmbedding?.targetVersion && updatedAt) {
       if (
         new Date(previousEmbedding?.targetVersion).toISOString() === new Date(updatedAt || new Date()).toISOString()
@@ -110,32 +163,15 @@ const updateEmbeddingHistory = async ({
       }
     }
 
-    if (await EmbeddingHistories.findOne({ where: { targetId } })) {
-      await EmbeddingHistories.update(
-        { startAt: new Date(), status: UploadStatus.Uploading },
-        { where: { targetId, datasetId, documentId } }
-      );
+    if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
+      await EmbeddingHistories.update({ startAt: new Date(), status: UploadStatus.Uploading }, { where: { ...ids } });
     } else {
-      await EmbeddingHistories.create({
-        startAt: new Date(),
-        status: UploadStatus.Uploading,
-        targetId,
-        datasetId,
-        documentId,
-      });
+      await EmbeddingHistories.create({ startAt: new Date(), status: UploadStatus.Uploading, ...ids });
     }
 
     if (String(content).trim()) {
-      const otherInfo = [
-        {
-          key: 'title',
-          value: String(title || '').trim(),
-        },
-      ];
-
-      const prefix = otherInfo.map((info) => `${info.key}: ${info.value}`).join(', ');
       await saveContentToVectorStore({
-        prefix,
+        metadata,
         content: String(content || '').trim(),
         datasetId,
         targetId,
@@ -143,37 +179,26 @@ const updateEmbeddingHistory = async ({
       });
     }
 
-    if (await EmbeddingHistories.findOne({ where: { targetId, datasetId, documentId } })) {
+    if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
       await EmbeddingHistories.update(
         { targetVersion: new Date(updatedAt || new Date()), endAt: new Date(), status: UploadStatus.Success },
-        { where: { targetId, datasetId, documentId } }
+        { where: { ...ids } }
       );
     } else {
       await EmbeddingHistories.create({
         targetVersion: new Date(updatedAt || new Date()),
         endAt: new Date(),
         status: UploadStatus.Success,
-        targetId,
-        datasetId,
-        documentId,
+        ...ids,
       });
     }
 
     return true;
   } catch (error) {
-    if (await EmbeddingHistories.findOne({ where: { targetId, datasetId, documentId } })) {
-      await EmbeddingHistories.update(
-        { error: error.message, status: UploadStatus.Error },
-        { where: { targetId, datasetId, documentId } }
-      );
+    if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
+      await EmbeddingHistories.update({ error: error.message, status: UploadStatus.Error }, { where: { ...ids } });
     } else {
-      await EmbeddingHistories.create({
-        targetId,
-        datasetId,
-        documentId,
-        error: error.message,
-        status: UploadStatus.Error,
-      });
+      await EmbeddingHistories.create({ error: error.message, status: UploadStatus.Error, ...ids });
     }
 
     await DatasetDocument.update(
@@ -187,8 +212,15 @@ const updateEmbeddingHistory = async ({
 
 async function updateDiscussionEmbeddings(discussionId: string, datasetId: string, documentId: string) {
   try {
-    const updateEmbedding = async (locale: string, updatedAt: string, content: string, title?: string) => {
+    const updateEmbedding = async (
+      locale: string,
+      updatedAt: string,
+      content: string,
+      metadata: { [key: string]: string }
+    ) => {
       const targetId = locale ? `${discussionId}_$$$_${locale}` : discussionId;
+
+      queue.push({ type: 'comment', documentId, discussionId, metadata });
 
       return updateEmbeddingHistory({
         datasetId,
@@ -196,7 +228,7 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
         targetId,
         updatedAt,
         content,
-        title,
+        metadata,
       });
     };
 
@@ -204,12 +236,42 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
     if (!discussion?.post) return false;
 
     const { post, languages = [] } = discussion;
-    const isEmbed = await updateEmbedding(post.locale, post.updatedAt, post.content, post.title);
+
+    const getPostLink = (type: string, locale?: string) => {
+      switch (type) {
+        case 'blog':
+          return joinURL('blog', locale || '');
+        case 'doc':
+          return joinURL('docs', post.board.id, locale || '');
+        case 'post':
+          return 'discussions';
+        default:
+          return 'discussions';
+      }
+    };
+
+    const link = new URL(config.env.appUrl);
+    link.pathname = joinURL(getComponentMountPoint('did-comments'), getPostLink(post.type, post.locale), discussionId);
+
+    const metadata = omitBy(
+      {
+        title: post.title,
+        author: post?.author?.fullName,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        board: post.board.title,
+        labels: (post.labels || []).map((x) => x.name).join(','),
+        link: link.href,
+      },
+      isNil
+    );
+
+    const isEmbed = await updateEmbedding(post.locale, post.updatedAt, post.content, metadata);
 
     for (const language of languages) {
       if (language !== post?.locale) {
         const res = await getDiscussion(discussionId, language);
-        if (res?.post) await updateEmbedding(res.post.locale, res.post.updatedAt, res.post.content, res.post.title);
+        if (res?.post) await updateEmbedding(res.post.locale, res.post.updatedAt, res.post.content, metadata);
       }
     }
 
@@ -249,6 +311,9 @@ const embeddingHandler: {
       targetId: document.id,
       updatedAt: content?.updatedAt,
       content: content?.content,
+      metadata: {
+        title: document.name,
+      },
     });
 
     const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
@@ -261,6 +326,9 @@ const embeddingHandler: {
       targetId: document.id,
       updatedAt: content?.updatedAt,
       content: content?.content,
+      metadata: {
+        title: document.name,
+      },
     });
 
     const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
@@ -301,7 +369,19 @@ export async function getDiscussion(
   discussionId: string,
   locale?: string
 ): Promise<{
-  post: { content: string; title: string; updatedAt: string; locale: string; author: string } | null;
+  post: {
+    content: string;
+    title: string;
+    createdAt: string;
+    updatedAt: string;
+    locale: string;
+    author: {
+      fullName: string;
+    };
+    labels: { name: string }[];
+    board: { title: string; desc: string; id: string };
+    type: string;
+  } | null;
   languages: string[];
 }> {
   try {
@@ -362,6 +442,54 @@ export async function searchDiscussions({
   }).then((res) => res.data);
 }
 
+export async function* commentsIterator(discussionId: string) {
+  let page = 0;
+  let index = 0;
+  const size = 20;
+
+  while (true) {
+    page += 1;
+    const { data } = await getDiscussionComments(discussionId, { page, size });
+
+    if (!data.length) {
+      break;
+    }
+
+    for (const i of data) {
+      index += 1;
+      yield {
+        id: i.id,
+        index,
+        content: i.content,
+        commentAuthorName: i.author.fullName,
+        commentCreateAt: i.createdAt,
+        commentUpdatedAt: i.updatedAt,
+      };
+    }
+  }
+}
+
+export async function getDiscussionComments(
+  discussionId: string,
+  {
+    page,
+    size,
+  }: {
+    page?: number;
+    size?: number;
+  }
+): Promise<{
+  data: { id: string; content: string; author: { fullName: string }; createdAt: string; updatedAt: string }[];
+  total: number;
+}> {
+  return call({
+    method: 'GET',
+    name: 'did-comments',
+    path: `/api/call/posts/${discussionId}/comments`,
+    params: { page, size, textContent: 1 },
+  }).then((res) => res.data);
+}
+
 export const deleteStore = async (datasetId: string, ids: string[]) => {
   const embeddings = new AIKitEmbeddings({});
   const store = await VectorStore.load(datasetId, embeddings);
@@ -397,23 +525,31 @@ export const updateHistoriesAndStore = async (datasetId: string, documentId: str
 };
 
 const saveContentToVectorStore = async ({
-  prefix,
+  metadata,
   content,
   datasetId,
   targetId = '',
   documentId,
 }: {
-  prefix?: string;
+  metadata?: any;
   content: string;
   datasetId: string;
   targetId: string;
   documentId: string;
 }) => {
   const textSplitter = new RecursiveCharacterTextSplitter();
-  const docs = await textSplitter.createDocuments([content]);
+  const docs = await textSplitter.createDocuments([content], metadata ? [{ metadata }] : undefined);
 
-  if (prefix) {
-    docs.forEach((doc) => (doc.pageContent = `${prefix}: ${doc.pageContent}`));
+  // 这个其实可以不存在
+  if (metadata && typeof metadata === 'object' && Object.keys(metadata).length) {
+    const arr = Object.keys(metadata)
+      .map((key) => (metadata[key] ? `${key}: ${metadata[key]}` : ''))
+      .filter((i) => i);
+
+    docs.forEach((doc) => {
+      arr.push(`content: ${doc.pageContent}`);
+      doc.pageContent = arr.join('\n');
+    });
   }
 
   const embeddings = new AIKitEmbeddings({});

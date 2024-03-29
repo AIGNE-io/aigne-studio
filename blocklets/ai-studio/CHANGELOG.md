@@ -1,3 +1,7 @@
+## 0.1.317 (2024-3-29)
+
+- chore: add some metadata information to the vector database
+
 ## 0.1.316 (2024-3-28)
 
 - chore: save project logo to git

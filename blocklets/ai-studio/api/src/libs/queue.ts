@@ -18,9 +18,16 @@ export type FullSiteQueue = {
   discussionId: string;
 };
 
+export type CommentQueue = {
+  type: 'comment';
+  documentId: string;
+  discussionId: string;
+  metadata?: any;
+};
+
 export type Task = {
   id: string;
-  job: EmbeddingQueue | FullSiteQueue;
+  job: EmbeddingQueue | FullSiteQueue | CommentQueue;
 };
 
 export const isEmbeddingQueue = (job: any): job is EmbeddingQueue => {
@@ -29,6 +36,10 @@ export const isEmbeddingQueue = (job: any): job is EmbeddingQueue => {
 
 export function isFullSiteQueue(job: any): job is FullSiteQueue {
   return job && job.type === 'fullSite';
+}
+
+export function isCommentQueue(job: any): job is CommentQueue {
+  return job && job.type === 'comment';
 }
 
 const tryWithTimeout = (asyncFn: () => Promise<any>, timeout = 5000) => {

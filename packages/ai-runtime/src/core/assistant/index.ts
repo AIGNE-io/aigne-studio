@@ -999,7 +999,7 @@ async function runExecuteBlock({
               execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
             });
 
-            return (data?.docs || []).join('\n');
+            return JSON.stringify(data?.docs || []);
           }
 
           const toolAssistant = await getAssistant(tool.id);
