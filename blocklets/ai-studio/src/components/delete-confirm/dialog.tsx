@@ -24,11 +24,12 @@ function useMobileWidth() {
 
 export type Props = {
   name: string;
+  isReset?: boolean;
   onClose: () => any;
   onConfirm: () => any;
 };
 
-export default function ConfirmDialog({ name, onClose, onConfirm, ...rest }: Props) {
+export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...rest }: Props) {
   const [params, setParams] = useState({ __disableConfirm: true, inputVal: '' });
   const [open, setOpen] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -63,11 +64,11 @@ export default function ConfirmDialog({ name, onClose, onConfirm, ...rest }: Pro
       style={{ minWidth }}
       onClose={onClose}
       {...rest}>
-      <DialogTitle>{`${t('alert.delete')} "${name}"`}</DialogTitle>
+      <DialogTitle>{`${t(isReset ? 'reset' : 'alert.delete')} "${name}"`}</DialogTitle>
       <DialogContent style={{ minWidth }}>
         <DialogContentText component="div">
           <Box sx={{ my: 3 }}>
-            {t('deleteProjectAlertPrefix')}
+            {t(isReset ? 'resetProjectAlertPrefix' : 'deleteProjectAlertPrefix')}
             <Tooltip
               title={copied ? t('copied') : t('copy')}
               placement="top"
@@ -85,11 +86,11 @@ export default function ConfirmDialog({ name, onClose, onConfirm, ...rest }: Pro
                 "{name}"{' '}
               </Typography>
             </Tooltip>
-            {t('deleteProjectAlertSuffix')}
+            {t(isReset ? 'resetProjectAlertSuffix' : 'deleteProjectAlertSuffix')}
           </Box>
           <Typography component="div">
             <TextField
-              label={t('confirmDelete', { name })}
+              label={t(isReset ? 'confirmReset' : 'confirmDelete', { name })}
               autoComplete="off"
               variant="outlined"
               fullWidth
@@ -118,7 +119,7 @@ export default function ConfirmDialog({ name, onClose, onConfirm, ...rest }: Pro
           autoFocus
           color="warning">
           {loading && <Spinner size={16} sx={{ mr: 1 }} />}
-          {t('alert.delete')}
+          {t(isReset ? 'reset' : 'alert.delete')}
         </Button>
       </DialogActions>
     </Dialog>

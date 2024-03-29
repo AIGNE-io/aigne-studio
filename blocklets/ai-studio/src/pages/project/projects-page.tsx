@@ -3,6 +3,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { cx } from '@emotion/css';
+import { Icon } from '@iconify-icon/react';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
@@ -55,14 +56,12 @@ import { ProjectWithUserInfo, User, createProject, getProjectIconUrl } from '../
 import useDialog from '../../utils/use-dialog';
 import Add from './icons/add';
 import ChevronDown from './icons/chevron-down';
-import DocumentView from './icons/document-view';
 import Duplicate from './icons/duplicate';
 import Edit from './icons/edit';
 import Empty from './icons/empty';
 import Eye from './icons/eye';
 import EyeNo from './icons/eye-no';
 import Git from './icons/git';
-import LayoutPictureRight from './icons/layout-picture-right';
 import Pin from './icons/pin';
 import PinOff from './icons/pin-off';
 import Trash from './icons/trash';
@@ -151,7 +150,7 @@ function ProjectMenu() {
   const { projectId } = useParams();
 
   const navigate = useNavigate();
-  const [deleteItem, setDeleteItem] = useState<null | Project>();
+  const [deleteItem, setDeleteItem] = useState<null | { project: Project; isReset?: boolean }>();
   const { dialog, showDialog } = useDialog();
 
   const { t } = useLocaleContext();
@@ -172,16 +171,16 @@ function ProjectMenu() {
       templates.find((i) => i._id === menuAnchor.id) ??
       examples.find((i) => i._id === menuAnchor.id));
 
-  const onDelete = () => {
+  const onDelete = ({ isReset }: { isReset?: boolean } = {}) => {
     if (!item) return;
-    setDeleteItem(item);
+    setDeleteItem({ project: item, isReset });
   };
 
   const menus = useMemo(() => {
     if (!item) return [];
 
     const result: {
-      condition?: (item: ProjectWithUserInfo) => boolean;
+      visible?: (item: ProjectWithUserInfo) => boolean;
       title: ReactNode;
       icon: ReactNode;
       color?: string;
@@ -189,13 +188,7 @@ function ProjectMenu() {
     }[][] = [
       [
         {
-          condition: () => menuAnchor?.section === 'templates',
-          title: t('newFromTemplates'),
-          icon: <Add />,
-          onClick: () => {},
-        },
-        {
-          condition: () => menuAnchor?.section === 'projects',
+          visible: () => menuAnchor?.section === 'projects',
           title: t('alert.edit'),
           icon: <Edit />,
           onClick: () => {
@@ -248,7 +241,7 @@ function ProjectMenu() {
           },
         },
         {
-          condition: () => menuAnchor?.section === 'projects' || menuAnchor?.section === 'examples',
+          visible: () => menuAnchor?.section === 'projects' || menuAnchor?.section === 'examples',
           title: t('duplicate'),
           icon: <Duplicate />,
           onClick: async () => {
@@ -267,7 +260,7 @@ function ProjectMenu() {
           },
         },
         {
-          condition: () => menuAnchor?.section === 'projects',
+          visible: () => menuAnchor?.section === 'projects',
           title: item?.pinnedAt ? t('unpin') : t('pin'),
           icon: item?.pinnedAt ? <PinOff /> : <Pin />,
           onClick: async () => {
@@ -286,35 +279,7 @@ function ProjectMenu() {
       ],
       [
         {
-          condition: () =>
-            !(['templates', 'example'].includes(menuAnchor?.section) && !item?.projectType) &&
-            !item.isFromResource &&
-            !(menuAnchor.section === 'examples' && item.projectType !== 'example'),
-          icon: <LayoutPictureRight />,
-          title: item.projectType !== 'template' ? t('asTemplateProject') : t('cancelTemplateProject'),
-          onClick: () =>
-            menuAnchor &&
-            updateProject(menuAnchor.id, {
-              projectType: item.projectType === 'template' ? 'project' : 'template',
-            }).finally(() => setMenuAnchor(undefined)),
-        },
-        {
-          condition: () =>
-            !(['templates', 'example'].includes(menuAnchor?.section) && !item?.projectType) &&
-            !item.isFromResource &&
-            !(menuAnchor.section === 'examples' && item.projectType !== 'example'),
-          title: item.projectType !== 'example' ? t('asExampleProject') : t('cancelExampleProject'),
-          icon: <DocumentView />,
-          onClick: () =>
-            menuAnchor &&
-            updateProject(menuAnchor.id, {
-              projectType: item.projectType === 'example' ? 'project' : 'example',
-            }).finally(() => setMenuAnchor(undefined)),
-        },
-      ],
-      [
-        {
-          condition: () => !item.isFromResource,
+          visible: () => menuAnchor.section === 'projects',
           icon: <Trash color="inherit" />,
           title: t('delete'),
           color: 'warning.main',
@@ -323,10 +288,20 @@ function ProjectMenu() {
             setMenuAnchor(undefined);
           },
         },
+        {
+          visible: () => menuAnchor.section === 'examples' && !item.isFromResource && !!item.duplicateFrom,
+          icon: <Box component={Icon} icon="system-uicons:reset" fontSize={20} color="warning.main" />,
+          title: t('reset'),
+          color: 'warning.main',
+          onClick: () => {
+            onDelete({ isReset: true });
+            setMenuAnchor(undefined);
+          },
+        },
       ],
     ];
 
-    return result.map((i) => i.filter((j) => j.condition?.(item) ?? true)).filter((i) => !!i.length);
+    return result.map((i) => i.filter((j) => j.visible?.(item) ?? true)).filter((i) => !!i.length);
   }, [t, item, menuAnchor]);
 
   return (
@@ -365,15 +340,16 @@ function ProjectMenu() {
 
       {deleteItem && (
         <DeleteDialog
-          name={deleteItem?.name || deleteItem._id!}
+          name={deleteItem.project?.name || deleteItem.project._id}
+          isReset={deleteItem.isReset}
           onClose={() => {
             setDeleteItem(null);
           }}
           onConfirm={async () => {
             try {
-              await deleteProject(deleteItem._id!);
+              await deleteProject(deleteItem.project._id!);
               setDeleteItem(null);
-              if (projectId === deleteItem._id) {
+              if (projectId === deleteItem.project._id) {
                 navigate('/projects', { replace: true });
               }
             } catch (error) {
@@ -549,24 +525,26 @@ function ProjectList({
                 }
               }}
               actions={
-                <IconButton
-                  size="small"
-                  sx={{
-                    backgroundColor: (theme) => theme.palette.background.paper,
-                    color: (theme) => theme.palette.text.disabled,
-                    borderRadius: 1,
-                    padding: 0,
-
-                    '&:hover': {
+                section !== 'templates' && (
+                  <IconButton
+                    size="small"
+                    sx={{
                       backgroundColor: (theme) => theme.palette.background.paper,
-                    },
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
-                  }}>
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
+                      color: (theme) => theme.palette.text.disabled,
+                      borderRadius: 1,
+                      padding: 0,
+
+                      '&:hover': {
+                        backgroundColor: (theme) => theme.palette.background.paper,
+                      },
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
+                    }}>
+                    <MoreVertIcon fontSize="small" />
+                  </IconButton>
+                )
               }
               sx={{
                 '&:focus-visible': {

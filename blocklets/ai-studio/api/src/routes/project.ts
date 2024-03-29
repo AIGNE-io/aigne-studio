@@ -98,7 +98,6 @@ export interface UpdateProjectInput {
   maxTokens?: number;
   gitType?: string;
   gitAutoSync?: boolean;
-  projectType?: Project['projectType'];
   homePageUrl?: string | null;
 }
 
@@ -115,7 +114,6 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   maxTokens: Joi.number().integer().empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
   gitAutoSync: Joi.boolean().empty([null]),
-  projectType: Joi.string().valid('project', 'template', 'example').empty([null, '']),
   homePageUrl: Joi.string().allow(null, ''),
 });
 
@@ -193,24 +191,13 @@ export function projectRoutes(router: Router) {
 
     const resourceExampleIds = new Set(resourceExamples.map((i) => i._id));
 
-    const exampleProjects = projects.filter(
-      (i) => i.projectType === 'example' || resourceExampleIds.has(i.duplicateFrom!)
-    );
+    const exampleProjects = projects.filter((i) => resourceExampleIds.has(i.duplicateFrom!));
     const exampleProjectFromIds = new Set(exampleProjects.map((i) => i.duplicateFrom));
     const notCreatedExamples = resourceExamples.filter((i) => !exampleProjectFromIds.has(i._id));
 
     res.json({
-      templates: uniqBy(
-        [
-          ...projectTemplates.map((i) => i.project),
-          ...resourceTemplates,
-          ...projects.filter((i) => i.projectType === 'template'),
-        ],
-        '_id'
-      ),
-      projects: projects.filter(
-        (i) => (!i.projectType || i.projectType === 'project') && !resourceExampleIds.has(i.duplicateFrom!)
-      ),
+      templates: uniqBy([...projectTemplates.map((i) => i.project), ...resourceTemplates], '_id'),
+      projects: projects.filter((i) => !resourceExampleIds.has(i.duplicateFrom!)),
       examples: uniqBy([...exampleProjects, ...notCreatedExamples], '_id'),
     });
   });
@@ -304,7 +291,7 @@ export function projectRoutes(router: Router) {
           name,
           description,
           author: req.user!,
-          projectType: 'project',
+          projectType: undefined,
         });
       }
 
@@ -458,7 +445,6 @@ export function projectRoutes(router: Router) {
       maxTokens,
       gitType,
       gitAutoSync,
-      projectType,
       homePageUrl,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -480,7 +466,6 @@ export function projectRoutes(router: Router) {
           maxTokens,
           gitType,
           gitAutoSync,
-          projectType,
           homePageUrl,
         },
         (v) => v === undefined

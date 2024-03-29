@@ -264,8 +264,11 @@ export default flat({
   endTime: 'End Time',
   duration: 'Duration',
   confirmDelete: 'Please input {name} to delete',
+  confirmReset: 'Please input {name} to reset',
   deleteProjectAlertPrefix: 'This will permanently delete project with name',
+  resetProjectAlertPrefix: 'This will reset example project with name',
   deleteProjectAlertSuffix: ' ',
+  resetProjectAlertSuffix: 'to initial state',
   selectObject: 'Select {object}',
   template: 'Template',
   call: {
@@ -562,4 +565,5 @@ export default flat({
   atLeastOne: 'Choose at least one type.',
   doc: 'Document',
   blog: 'Blog',
+  reset: 'Reset',
 });

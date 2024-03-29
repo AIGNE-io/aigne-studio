@@ -51,7 +51,8 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare gitLastSyncedAt?: Date;
 
-  declare projectType?: 'project' | 'template' | 'example';
+  // @deprecated
+  declare projectType?: string;
 
   declare homePageUrl?: string;
 }
