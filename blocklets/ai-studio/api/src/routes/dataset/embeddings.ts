@@ -256,7 +256,7 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
     const metadata = omitBy(
       {
         articleTitle: post.title,
-        articleAuthor: post?.author?.fullName,
+        articleAuthorName: post?.author?.fullName,
         articleCreatedAt: post.createdAt,
         articleUpdatedAt: post.updatedAt,
         articleBoard: post.board.title,
