@@ -1,3 +1,7 @@
+## 0.1.318 (2024-3-29)
+
+- feat: better embedding semantics
+
 ## 0.1.317 (2024-3-29)
 
 - chore: add some metadata information to the vector database

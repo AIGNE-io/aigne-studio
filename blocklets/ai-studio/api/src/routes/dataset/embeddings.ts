@@ -83,12 +83,12 @@ const CommentQueueJob = async (job: CommentQueue) => {
     const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
     if (!document) throw new Error(`Dataset item ${documentId} not found`);
 
-    for await (const { id, content, commentAuthorName, commentCreateAt, commentUpdatedAt } of commentsIterator(
+    for await (const { id, content, commentAuthorName, commentCreatedAt, commentUpdatedAt } of commentsIterator(
       discussionId
     )) {
       const commentMetaData = {
         commentAuthorName,
-        commentCreateAt,
+        commentCreatedAt,
         commentUpdatedAt,
       };
 
@@ -255,13 +255,13 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
 
     const metadata = omitBy(
       {
-        title: post.title,
-        author: post?.author?.fullName,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-        board: post.board.title,
-        labels: (post.labels || []).map((x) => x.name).join(','),
-        link: link.href,
+        articleTitle: post.title,
+        articleAuthorName: post?.author?.fullName,
+        articleCreatedAt: post.createdAt,
+        articleUpdatedAt: post.updatedAt,
+        articleBoard: post.board.title,
+        articleLabels: (post.labels || []).map((x) => x.name).join(','),
+        articleLink: link.href,
       },
       isNil
     );
@@ -462,7 +462,7 @@ export async function* commentsIterator(discussionId: string) {
         index,
         content: i.content,
         commentAuthorName: i.author.fullName,
-        commentCreateAt: i.createdAt,
+        commentCreatedAt: i.createdAt,
         commentUpdatedAt: i.updatedAt,
       };
     }
