@@ -42,7 +42,7 @@ import DeleteDialog from '../../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../../contexts/projects';
 import { useReadOnly, useSessionContext } from '../../../contexts/session';
 import { getErrorMessage } from '../../../libs/api';
-import { ProjectWithUserInfo, User, createProject } from '../../../libs/project';
+import { ProjectWithUserInfo, User, createProject, getProjectIconUrl } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
 import Add from '../icons/add';
 import ChevronDown from '../icons/chevron-down';
@@ -55,7 +55,6 @@ import PinOff from '../icons/pin-off';
 import Trash from '../icons/trash';
 import FromDidSpacesImport from './from-did-spaces-import';
 import ImportFromGit from './import-from-git';
-import { getProjectIconUrl } from '../../libs/project';
 
 const CARD_HEIGHT = 160;
 const MAX_WIDTH = 300;

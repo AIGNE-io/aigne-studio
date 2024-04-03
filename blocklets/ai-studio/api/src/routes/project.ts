@@ -1,4 +1,3 @@
-import { Op } from 'sequelize';
 import fs from 'fs';
 import { access, copyFile, cp, mkdtemp, rm } from 'fs/promises';
 import path, { dirname, join } from 'path';
@@ -18,6 +17,7 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
+import { Op } from 'sequelize';
 import { parse } from 'yaml';
 
 import downloadLogo from '../libs/download-logo';
@@ -25,8 +25,8 @@ import { getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
-  autoSyncIfNeeded,
   LOGO_FILENAME,
+  autoSyncIfNeeded,
   clearRepository,
   commitProjectSettingWorking,
   commitWorking,
