@@ -6,16 +6,31 @@ import Project from '@api/store/models/project';
 import { SETTINGS_FILE } from '@api/store/repository';
 import { ListObjectCommand, SpaceClient, SyncFolderPullCommand } from '@did-space/client';
 import { Request, Response } from 'express';
+import Joi from 'joi';
 import yaml from 'yaml';
 
 import { wallet } from '../../libs/auth';
 
+const importProjectBodySchema = Joi.object<{
+  endpoint: string;
+  projectId: string;
+  props: Pick<Project, 'name' | 'description'>;
+}>({
+  endpoint: Joi.string()
+    .uri({ scheme: ['https', 'http'] })
+    .required(),
+  projectId: Joi.string().required(),
+  props: Joi.object({
+    name: Joi.string().required(),
+    description: Joi.string().required(),
+  }).required(),
+});
+
 export async function importProject(req: Request, res: Response) {
-  const { endpoint, projectId, props } = req.body;
+  const { endpoint, projectId, props } = await importProjectBodySchema.validateAsync(req.body);
 
   const spaceClient = new SpaceClient({
     wallet,
-    // @ts-ignore
     endpoint,
   });
   const remoteProjectRootPath: string = `repositories/${projectId}/`;

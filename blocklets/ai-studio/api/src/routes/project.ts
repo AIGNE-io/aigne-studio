@@ -454,7 +454,7 @@ export function projectRoutes(router: Router) {
       homePageUrl,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
-    if (name && (await Project.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
+    if (await Project.findOne({ where: { _id: { [Op.ne]: project._id } } })) {
       throw new Error(`Duplicated project ${name}`);
     }
 
