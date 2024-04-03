@@ -1,3 +1,105 @@
+## 0.1.320 (2024-4-3)
+
+- fix: conflicts
+- fix: skip running check for example projects from the resource blocklets (#741)
+- feat: better semantics (#740)
+- feat: support add metadata for vector db (#739)
+- fix: ressouce logo broken and read from git (#733)
+- fix: the request knowledge error when selecting prompt (#737)
+- fix: external hnswlib-node
+- fix: datastore dataset api (#727)
+- fix: filter the deleted dataset data (#732)
+- fix: back vector store to hnswlib (#731)
+- fix: keep assistant id unchanged when copying (#729)
+- fix: queue (#730)
+- fix: polyfill `ReadableStream`
+- fix: missing import statement for `ReadableStream`
+- chore: add honghong-simulator component dependency
+- fix: resource project not working (#726)
+- chore: replace vector store to faiss (#722)
+- fix: reset parameters after assistant changed (#723)
+- chore: update deps
+- fix: conflicts
+- fix: conflicts
+- fix: catch the error of message rendering (#721)
+- fix: add a button on home page to switch the admin passport in order to view projects (#720)
+- chore: support dataset execute (#717)
+- feat: use latest git component code
+- fix: env.d.ts
+- fix: conflicts
+- fix: the componentDid was obtained incorrectly
+- fix: the componentDid was obtained incorrectly
+- chore: update deps
+- chore: dataset embedding (#714)
+- feat: add api to delete all sessions of a release (#715)
+- chore: remove useless codes
+- fix: dataset select error (#698)
+- feat: support default tool in executing block & fix some issues (#696)
+- feat: update did spaces import dialog title
+- feat: support navigate to project data page in space v6
+- feat: support navigate to project data page in space v5
+- feat: support navigate to project data page in space v43
+- feat: support navigate to project data page in space v3
+- feat: support navigate to project data page in space v2
+- feat: support navigate to project data page in space
+- chore: update deps
+- feat: support authorize for import
+- fix: wait for the working data loading finished (#695)
+- feat: support select dataset Id (#694)
+- feat: support displaying opener message (#693)
+- fix: fullsite failed  (#692)
+- feat: add fullsite discussion (#690)
+- feat: support knowledge (#651)
+- fix: prompt editor focus (#687)
+- chore: remove useless codes
+- chore: update deps
+- fix: prompt editor (#682)
+- feat: add keystore db for json search (#653)
+- fix: use withQuery function
+- fix: cspell error
+- chore: update deps
+- chore: update deps
+- fix: lock file
+- fix: lock file
+- fix: conflict
+- chore: add scripts
+- fix: ignore error message when counting usage (#680)
+- fix: stripe unknown properties (#679)
+- chore: update deps
+- chore: update deps
+- feat: update code
+- fix: conflict
+- fix: conflict
+- feat: integrate with payment (#671)
+- feat: define type in api
+- fix: use async fs api (#670)
+- feat: support history message datasets (#667)
+- feat: better import project function
+- feat: better import project function
+- fix: import error
+- feat: add did-spaces import text
+- fix: conflict
+- feat: support import project from did space v2
+- feat: support import project from did space
+- fix: delete useless files after project deleted (#668)
+- feat: add prefix and suffix for execute block output (#640)
+- fix: update runtime url (#666)
+- fix: use endpoint
+- fix: polish publish settings (#660)
+- chore: build libs before blocklet workflow
+- feat: support import project
+- feat: support list objects by endpoint
+- fix: use original hnswlib-node dep (#658)
+- feat: support sync to did space v6
+- feat: support sync to did space v5
+- feat: support sync to did space v2
+- feat: support release setting (#656)
+- feat: add supporting for session & history (#494)
+- feat: support sync to did space
+- Merge remote-tracking branch 'origin/main' into feat-serverless
+- fix: correct directory of db migrations (#654)
+- feat: add didSpace: requiredOnConnect capabilities
+
 ## 0.1.319 (2024-3-29)
 
 - fix: remove the function to set a project as a template/example
