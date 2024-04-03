@@ -74,10 +74,11 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *     x-description-zh: 新增或设置数据存储
  *     parameters:
  *       - in: query
- *         name: truncateOld
+ *         name: reset
  *         schema:
  *           type: boolean
  *         required: false
+ *         x-parameter-type: boolean
  *         description: Whether to overwrite old data
  *         x-description-zh: 是否覆盖旧数据
  *     requestBody:
@@ -121,23 +122,23 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     content = {};
   }
 
-  const { userId, sessionId, truncateOld } = await Joi.object<{
+  const { userId, sessionId, reset } = await Joi.object<{
     userId?: string;
     sessionId?: string;
-    truncateOld: boolean;
+    reset: boolean;
   }>({
     userId: Joi.string()
       .allow('')
       .empty([null, ''])
       .default(req.user?.did || ''),
     sessionId: Joi.string().allow('').empty([null, '']),
-    truncateOld: Joi.boolean().default(false),
+    reset: Joi.boolean().default(false),
   })
     .unknown()
     .validateAsync(req.query, { stripUnknown: true });
   const currentUserId = req.user?.did || userId || '';
 
-  if (truncateOld) await Datastore.destroy({ where: { type } });
+  if (reset) await Datastore.destroy({ where: { type } });
 
   const datastore = await Datastore.create({ type, data: content, userId: currentUserId, sessionId });
   res.json(datastore);
