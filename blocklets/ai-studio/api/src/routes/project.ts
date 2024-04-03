@@ -17,7 +17,6 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { Op } from 'sequelize';
 import { parse } from 'yaml';
 
 import downloadLogo from '../libs/download-logo';
@@ -118,6 +117,7 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   maxTokens: Joi.number().integer().empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
   gitAutoSync: Joi.boolean().empty([null]),
+  didSpaceAutoSync: Joi.boolean().optional(),
   homePageUrl: Joi.string().allow(null, ''),
 });
 
@@ -451,12 +451,9 @@ export function projectRoutes(router: Router) {
       maxTokens,
       gitType,
       gitAutoSync,
+      didSpaceAutoSync,
       homePageUrl,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
-
-    if (await Project.findOne({ where: { _id: { [Op.ne]: project._id } } })) {
-      throw new Error(`Duplicated project ${name}`);
-    }
 
     const { did: userId, fullName } = req.user!;
 
@@ -476,6 +473,7 @@ export function projectRoutes(router: Router) {
           maxTokens,
           gitType,
           gitAutoSync,
+          didSpaceAutoSync,
           homePageUrl,
         },
         (v) => v === undefined
