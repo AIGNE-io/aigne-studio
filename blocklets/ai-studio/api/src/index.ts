@@ -1,6 +1,8 @@
 import 'express-async-errors';
 import 'nanoid';
 
+import './polyfills';
+
 import { access, mkdir } from 'fs/promises';
 import path from 'path';
 

@@ -11,6 +11,7 @@ import { nanoid } from 'nanoid';
 import { parse, stringify } from 'yaml';
 
 import { authClient, wallet } from '../libs/auth';
+import downloadLogo from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
@@ -27,6 +28,7 @@ export const repositoryCooperativeRoot = (projectId: string) =>
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
+export const LOGO_FILENAME = 'logo.png';
 
 export async function clearRepository(projectId: string) {
   const repo = await getRepository({ projectId });
@@ -194,7 +196,15 @@ export async function syncRepository<T>({
 
 export const SETTINGS_FILE = '.settings.yaml';
 
-const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: Project }) => {
+const addSettingsToGit = async ({
+  tx,
+  project,
+  icon,
+}: {
+  tx: Transaction<FileTypeYjs>;
+  project: Project;
+  icon?: string;
+}) => {
   const repository = await getRepository({ projectId: project._id! });
   const fields = pick(project.dataValues, [
     '_id',
@@ -206,7 +216,6 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
     'createdBy',
     'updatedBy',
     'pinnedAt',
-    'icon',
     'gitType',
     'temperature',
     'topP',
@@ -220,6 +229,19 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
 
   await writeFile(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
+
+  // 新上传的图片
+  try {
+    if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
+      await downloadLogo(icon, path.join(repository.options.root, LOGO_FILENAME));
+    } else {
+      const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_FILENAME })).blob;
+      await writeFile(path.join(repository.options.root, LOGO_FILENAME), file);
+    }
+    await tx.add({ filepath: LOGO_FILENAME });
+  } catch (error) {
+    logger.error('failed to save project icon', { error });
+  }
 };
 
 export const autoSyncIfNeeded = async ({
@@ -248,15 +270,18 @@ export async function commitWorking({
   branch,
   message,
   author,
+  beforeCommit,
 }: {
   project: Project;
   ref: string;
   branch: string;
   message: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+  beforeCommit?: (tx: Transaction<FileTypeYjs>) => Promise<void>;
 }) {
   const repository = await getRepository({ projectId: project._id! });
   const working = await repository.working({ ref });
+
   await working.commit({
     ref,
     branch,
@@ -265,6 +290,10 @@ export async function commitWorking({
     beforeCommit: async ({ tx }) => {
       await writeFile(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
+
+      if (beforeCommit && typeof beforeCommit === 'function') {
+        await beforeCommit(tx);
+      }
 
       await addSettingsToGit({ tx, project });
 
@@ -283,15 +312,17 @@ export async function commitProjectSettingWorking({
   project,
   message = 'update settings',
   author,
+  icon,
 }: {
   project: Project;
   message?: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+  icon?: string;
 }) {
   const repository = await getRepository({ projectId: project._id! });
   await repository.transact(async (tx) => {
     await tx.checkout({ ref: project.gitDefaultBranch, force: true });
-    await addSettingsToGit({ tx, project });
+    await addSettingsToGit({ tx, project, icon });
     await tx.commit({ message, author });
   });
 }

@@ -4,6 +4,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { cx } from '@emotion/css';
+import { Icon } from '@iconify-icon/react';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
@@ -41,22 +42,20 @@ import DeleteDialog from '../../../components/delete-confirm/dialog';
 import { useProjectsState } from '../../../contexts/projects';
 import { useReadOnly, useSessionContext } from '../../../contexts/session';
 import { getErrorMessage } from '../../../libs/api';
-import { ProjectWithUserInfo, User, copyProject, createProject } from '../../../libs/project';
+import { ProjectWithUserInfo, User, createProject } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
 import Add from '../icons/add';
 import ChevronDown from '../icons/chevron-down';
 import DidSpacesLogo from '../icons/did-spaces';
-import DocumentView from '../icons/document-view';
 import Duplicate from '../icons/duplicate';
 import Edit from '../icons/edit';
 import Empty from '../icons/empty';
-import LayoutPictureRight from '../icons/layout-picture-right';
-import Picture from '../icons/picture';
 import Pin from '../icons/pin';
 import PinOff from '../icons/pin-off';
 import Trash from '../icons/trash';
 import FromDidSpacesImport from './from-did-spaces-import';
 import ImportFromGit from './import-from-git';
+import { getProjectIconUrl } from '../../libs/project';
 
 const CARD_HEIGHT = 160;
 const MAX_WIDTH = 300;
@@ -142,7 +141,7 @@ function ProjectMenu() {
   const { projectId } = useParams();
 
   const navigate = useNavigate();
-  const [deleteItem, setDeleteItem] = useState<null | Project>();
+  const [deleteItem, setDeleteItem] = useState<null | { project: Project; isReset?: boolean }>();
   const { dialog, showDialog } = useDialog();
 
   const { t } = useLocaleContext();
@@ -163,10 +162,138 @@ function ProjectMenu() {
       templates.find((i) => i._id === menuAnchor.id) ??
       examples.find((i) => i._id === menuAnchor.id));
 
-  const onDelete = () => {
+  const onDelete = ({ isReset }: { isReset?: boolean } = {}) => {
     if (!item) return;
-    setDeleteItem(item);
+    setDeleteItem({ project: item, isReset });
   };
+
+  const menus = useMemo(() => {
+    if (!item) return [];
+
+    const result: {
+      visible?: (item: ProjectWithUserInfo) => boolean;
+      title: ReactNode;
+      icon: ReactNode;
+      color?: string;
+      onClick: () => any;
+    }[][] = [
+      [
+        {
+          visible: () => menuAnchor?.section === 'projects',
+          title: t('alert.edit'),
+          icon: <Edit />,
+          onClick: () => {
+            const id = menuAnchor?.id;
+            if (!id) return;
+            setMenuAnchor(undefined);
+
+            let name = item?.name || '';
+            let description = item?.description || '';
+
+            showDialog({
+              disableEnforceFocus: true,
+              fullWidth: true,
+              maxWidth: 'sm',
+              title: `${t('alert.edit')} ${t('form.project')}`,
+              content: (
+                <Stack overflow="auto" gap={2}>
+                  <TextField
+                    autoFocus
+                    label={t('projectSetting.name')}
+                    sx={{ width: 1 }}
+                    defaultValue={item?.name || ''}
+                    onChange={(e) => (name = e.target.value)}
+                  />
+
+                  <TextField
+                    label={t('projectSetting.description')}
+                    multiline
+                    rows={4}
+                    sx={{ width: 1 }}
+                    defaultValue={item?.description || ''}
+                    onChange={(e) => (description = e.target.value)}
+                  />
+                </Stack>
+              ),
+              cancelText: t('alert.cancel'),
+              okText: t('save'),
+              okIcon: <SaveRoundedIcon />,
+              onOk: async () => {
+                updateProject(id, { name, description })
+                  .catch((error) => {
+                    Toast.error(getErrorMessage(error));
+                    throw error;
+                  })
+                  .finally(() => {
+                    setMenuAnchor(undefined);
+                  });
+              },
+            });
+          },
+        },
+        {
+          visible: () => menuAnchor?.section === 'projects' || menuAnchor?.section === 'examples',
+          title: t('duplicate'),
+          icon: <Duplicate />,
+          onClick: async () => {
+            await createProject({
+              templateId: menuAnchor!.id,
+              name: `${item?.name || 'Unnamed'} Copy`,
+              description: item?.description,
+            })
+              .catch((error) => {
+                Toast.error(getErrorMessage(error));
+                throw error;
+              })
+              .finally(() => {
+                setMenuAnchor(undefined);
+              });
+          },
+        },
+        {
+          visible: () => menuAnchor?.section === 'projects',
+          title: item?.pinnedAt ? t('unpin') : t('pin'),
+          icon: item?.pinnedAt ? <PinOff /> : <Pin />,
+          onClick: async () => {
+            const id = menuAnchor?.id;
+            if (!id) return;
+            await updateProject(id, { pinned: !item?.pinnedAt })
+              .catch((error) => {
+                Toast.error(getErrorMessage(error));
+                throw error;
+              })
+              .finally(() => {
+                setMenuAnchor(undefined);
+              });
+          },
+        },
+      ],
+      [
+        {
+          visible: () => menuAnchor.section === 'projects',
+          icon: <Trash color="inherit" />,
+          title: t('delete'),
+          color: 'warning.main',
+          onClick: () => {
+            onDelete();
+            setMenuAnchor(undefined);
+          },
+        },
+        {
+          visible: () => menuAnchor.section === 'examples' && !item.isFromResource && !!item.duplicateFrom,
+          icon: <Box component={Icon} icon="system-uicons:reset" fontSize={20} color="warning.main" />,
+          title: t('reset'),
+          color: 'warning.main',
+          onClick: () => {
+            onDelete({ isReset: true });
+            setMenuAnchor(undefined);
+          },
+        },
+      ],
+    ];
+
+    return result.map((i) => i.filter((j) => j.visible?.(item) ?? true)).filter((i) => !!i.length);
+  }, [t, item, menuAnchor]);
 
   return (
     <>
@@ -175,152 +302,28 @@ function ProjectMenu() {
         open={Boolean(menuAnchor)}
         anchorEl={menuAnchor?.anchor}
         placement="right-start"
-        sx={{ ml: '4px !important' }}>
+        sx={{ ml: '4px !important', zIndex: (theme) => theme.zIndex.drawer }}>
         <ClickAwayListener onClickAway={() => setMenuAnchor(undefined)}>
           <Paper>
             <List dense>
-              {menuAnchor?.section === 'projects' && (
-                <>
+              {menus.map((group, i) => {
+                const submenus = group.map((menu, j) => (
                   <LoadingMenuItem
+                    key={`${i}-${j}`}
                     disabled={readOnly}
-                    onClick={() => {
-                      setMenuAnchor(undefined);
-
-                      let name = item?.name || '';
-                      let description = item?.description || '';
-
-                      showDialog({
-                        disableEnforceFocus: true,
-                        fullWidth: true,
-                        maxWidth: 'sm',
-                        title: `${t('alert.edit')} ${t('form.project')}`,
-                        content: (
-                          <Stack overflow="auto" gap={2}>
-                            <TextField
-                              autoFocus
-                              label={t('projectSetting.name')}
-                              sx={{ width: 1 }}
-                              defaultValue={item?.name || ''}
-                              onChange={(e) => (name = e.target.value)}
-                            />
-
-                            <TextField
-                              label={t('projectSetting.description')}
-                              multiline
-                              rows={4}
-                              sx={{ width: 1 }}
-                              defaultValue={item?.description || ''}
-                              onChange={(e) => (description = e.target.value)}
-                            />
-                          </Stack>
-                        ),
-                        cancelText: t('alert.cancel'),
-                        okText: t('save'),
-                        okIcon: <SaveRoundedIcon />,
-                        onOk: async () => {
-                          updateProject(menuAnchor.id, { name, description })
-                            .catch((error) => {
-                              Toast.error(getErrorMessage(error));
-                              throw error;
-                            })
-                            .finally(() => {
-                              setMenuAnchor(undefined);
-                            });
-                        },
-                      });
-                    }}>
-                    <ListItemIcon>
-                      <Edit />
-                    </ListItemIcon>
-                    {`${t('alert.edit')}`}
+                    onClick={menu.onClick}
+                    sx={{ color: menu.color, svg: { color: menu.color } }}>
+                    <ListItemIcon>{menu.icon}</ListItemIcon>
+                    {menu.title}
                   </LoadingMenuItem>
+                ));
 
-                  <LoadingMenuItem
-                    disabled={readOnly}
-                    onClick={() =>
-                      createProject({ duplicateFrom: menuAnchor!.id })
-                        .catch((error) => {
-                          Toast.error(getErrorMessage(error));
-                          throw error;
-                        })
-                        .finally(() => {
-                          setMenuAnchor(undefined);
-                        })
-                    }>
-                    <ListItemIcon>
-                      <Duplicate />
-                    </ListItemIcon>
-                    {t('duplicate')}
-                  </LoadingMenuItem>
+                if (i !== menus.length - 1) {
+                  submenus.push(<Divider key={`divider-${i}`} />);
+                }
 
-                  <LoadingMenuItem
-                    disabled={readOnly}
-                    onClick={() =>
-                      updateProject(menuAnchor.id, { pinned: !item?.pinnedAt })
-                        .catch((error) => {
-                          Toast.error(getErrorMessage(error));
-                          throw error;
-                        })
-                        .finally(() => {
-                          setMenuAnchor(undefined);
-                        })
-                    }>
-                    <ListItemIcon>{item?.pinnedAt ? <PinOff /> : <Pin />}</ListItemIcon>
-                    {item?.pinnedAt ? t('unpin') : t('pin')}
-                  </LoadingMenuItem>
-
-                  <Divider />
-                </>
-              )}
-
-              {item && !(menuAnchor?.section === 'templates' && !item?.projectType) && (
-                <MenuItem
-                  onClick={() =>
-                    menuAnchor &&
-                    updateProject(menuAnchor.id, {
-                      projectType: item.projectType === 'template' ? 'project' : 'template',
-                    }).finally(() => setMenuAnchor(undefined))
-                  }>
-                  <ListItemIcon>
-                    <LayoutPictureRight />
-                  </ListItemIcon>
-                  {item.projectType !== 'template' ? t('asTemplateProject') : t('cancelTemplateProject')}
-                </MenuItem>
-              )}
-
-              {item && !(menuAnchor?.section === 'templates' && !item?.projectType) && (
-                <MenuItem
-                  onClick={() =>
-                    menuAnchor &&
-                    updateProject(menuAnchor.id, {
-                      projectType: item.projectType === 'example' ? 'project' : 'example',
-                    }).finally(() => setMenuAnchor(undefined))
-                  }>
-                  <ListItemIcon>
-                    <DocumentView />
-                  </ListItemIcon>
-                  {item.projectType !== 'example' ? t('asExampleProject') : t('cancelExampleProject')}
-                </MenuItem>
-              )}
-
-              {!(menuAnchor?.section === 'templates' && !item?.projectType) && (
-                <>
-                  <Divider />
-
-                  <MenuItem
-                    disabled={readOnly}
-                    sx={{ color: 'warning.main' }}
-                    onClick={() => {
-                      onDelete();
-                      setMenuAnchor(undefined);
-                    }}>
-                    <ListItemIcon sx={{ color: 'inherit' }}>
-                      <Trash color="inherit" />
-                    </ListItemIcon>
-                    {t('delete')}
-                  </MenuItem>
-                </>
-              )}
+                return submenus;
+              })}
             </List>
           </Paper>
         </ClickAwayListener>
@@ -328,15 +331,16 @@ function ProjectMenu() {
 
       {deleteItem && (
         <DeleteDialog
-          name={deleteItem?.name || deleteItem._id!}
+          name={deleteItem.project?.name || deleteItem.project._id}
+          isReset={deleteItem.isReset}
           onClose={() => {
             setDeleteItem(null);
           }}
           onConfirm={async () => {
             try {
-              await deleteProject(deleteItem._id!);
+              await deleteProject(deleteItem.project._id!);
               setDeleteItem(null);
-              if (projectId === deleteItem._id) {
+              if (projectId === deleteItem.project._id) {
                 navigate('/projects', { replace: true });
               }
             } catch (error) {
@@ -442,6 +446,7 @@ function ProjectList({
               users={item.users || []}
               didSpaceAutoSync={Boolean(item.didSpaceAutoSync)}
               loading={Boolean(itemLoading && item?._id === itemLoading?._id)}
+              isFromResource={Boolean(item.isFromResource)}
               onClick={async () => {
                 if (section === 'templates') {
                   let name = '';
@@ -474,24 +479,11 @@ function ProjectList({
                     okText: t('create'),
                     okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {
-                      if ((item as any).fromResourceBlockletFolder) {
-                        const project = await copyProject({
-                          folder: 'template',
-                          projectId: item._id!,
-                          name,
-                          description,
-                        });
-                        currentGitStore.setState({
-                          currentProjectId: project._id,
-                        });
-                        navigate(joinURL('/projects', project._id!));
-                        return;
-                      }
-                      const project = await createProject({ templateId: item._id!, name, description });
+                      const project = await createProject({ templateId: item._id, name, description });
                       currentGitStore.setState({
                         currentProjectId: project._id,
                       });
-                      navigate(joinURL('/projects', project._id!));
+                      navigate(joinURL('/projects', project._id));
                     },
                   });
                 } else if (section === 'projects') {
@@ -500,10 +492,15 @@ function ProjectList({
                   });
                   navigate(joinURL('/projects', item._id!));
                 } else if (section === 'examples') {
-                  if ((item as any)?.fromResourceBlockletFolder) {
+                  if (!item.duplicateFrom) {
                     try {
                       setLoading(item);
-                      const project = await copyProject({ folder: 'example', projectId: item._id! });
+                      const project = await createProject({
+                        withDuplicateFrom: true,
+                        templateId: item._id!,
+                        name: item.name,
+                        description: item.description,
+                      });
                       currentGitStore.setState({
                         currentProjectId: project._id,
                       });
@@ -520,7 +517,7 @@ function ProjectList({
                 }
               }}
               actions={
-                !((section === 'templates' || section === 'examples') && !item.projectType) && (
+                section !== 'templates' && (
                   <IconButton
                     size="small"
                     sx={{
@@ -582,7 +579,6 @@ function ProjectItemSkeleton({ ...props }: StackProps) {
 }
 
 function ProjectItem({
-  id,
   pinned,
   icon,
   name,
@@ -596,9 +592,10 @@ function ProjectItem({
   users,
   loading = false,
   didSpaceAutoSync,
+  id,
+  isFromResource,
   ...props
 }: {
-  id: string;
   section: string;
   pinned?: boolean;
   icon?: string;
@@ -612,6 +609,8 @@ function ProjectItem({
   actions?: ReactNode;
   loading: boolean;
   didSpaceAutoSync: true | false;
+  id: string;
+  isFromResource: boolean;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
   const { session } = useSessionContext();
@@ -646,6 +645,8 @@ function ProjectItem({
           <Stack height={60} justifyContent="center" alignItems="center">
             {icon ? (
               <Box component="img" src={icon} sx={{ width: 60, height: 60, borderRadius: 1 }} />
+            ) : id && isFromResource ? (
+              <Box component="img" src={getProjectIconUrl(id)} sx={{ width: 60, height: 60, borderRadius: 1 }} />
             ) : (
               <Add sx={{ fontSize: 40, color: (theme) => theme.palette.text.disabled }} />
             )}
@@ -664,7 +665,7 @@ function ProjectItem({
     <ProjectItemRoot {...props} className={cx(props.className)}>
       <Stack direction="row" gap={1} alignItems="center">
         <Box className="logo" sx={{ width: '32px', height: '32px' }}>
-          {icon ? <Box component="img" src={icon} /> : <Picture sx={{ color: 'grey.400', fontSize: 32 }} />}
+          {icon ? <Box component="img" src={icon} /> : <Box component="img" src={getProjectIconUrl(id)} />}
         </Box>
 
         <Box flex={1} />

@@ -1,5 +1,5 @@
 import { embeddings } from '@blocklet/ai-kit/api/call';
-import { Embeddings, EmbeddingsParams } from 'langchain/embeddings/base';
+import { Embeddings, EmbeddingsParams } from '@langchain/core/embeddings';
 import { CreateEmbeddingRequest } from 'openai';
 
 import { chunkArray } from '../utils/chunk';

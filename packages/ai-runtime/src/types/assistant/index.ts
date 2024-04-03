@@ -174,9 +174,10 @@ export interface LanguageParameter extends ParameterBase {
 }
 
 export interface User {
+  id: string;
   did: string;
-  role: string;
-  fullName: string;
-  provider: string;
-  walletOS: string;
+  role?: string;
+  fullName?: string;
+  provider?: string;
+  walletOS?: string;
 }

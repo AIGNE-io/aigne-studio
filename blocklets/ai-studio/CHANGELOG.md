@@ -1,3 +1,79 @@
+## 0.1.319 (2024-3-29)
+
+- fix: remove the function to set a project as a template/example
+- fix: skip running check for example projects from the resource blocklets
+
+## 0.1.318 (2024-3-29)
+
+- feat: better embedding semantics
+
+## 0.1.317 (2024-3-29)
+
+- chore: add some metadata information to the vector database
+
+## 0.1.316 (2024-3-28)
+
+- chore: save project logo to git
+
+## 0.1.315 (2024-3-28)
+
+- fix: the request knowledge error when selecting prompt
+- feat: when embedding data, add title information
+
+## 0.1.314 (2024-3-27)
+
+- fix: bundle with external hnswlib-node dependency
+
+## 0.1.313 (2024-3-27)
+
+- fix: datastore dataset api
+
+## 0.1.312 (2024-3-27)
+
+- fix: filter the deleted dataset data
+
+## 0.1.311 (2024-3-27)
+
+- fix: back vector store to hnswlib because of the installation environment
+
+## 0.1.310 (2024-3-27)
+
+- fix: support resetting an example project
+- fix: keep assistant id unchanged when copying
+
+## 0.1.309 (2024-3-27)
+
+- fix: optimized queue. no push queue if in progress
+- fix: split fullsite queue to a smaller queue, it will time out when the number is large.
+- fix: the administrator has permission to view all datasets
+
+## 0.1.308 (2024-3-26)
+
+## 0.1.307 (2024-3-26)
+
+- fix: missing import statement for `ReadableStream`
+
+## 0.1.306 (2024-3-26)
+
+- chore: add HongHong simulator example project by resource component dependency
+
+## 0.1.305 (2024-3-26)
+
+- fix: example project not working
+- fix: check resource path exists
+
+## 0.1.304 (2024-3-26)
+
+- feat: embedding discuss all data (#725)
+- fix: replace vector-store-hnswlib to vector-store-faiss
+
+## 0.1.303 (2024-3-26)
+
+- fix: allow text wrapping for select field options
+- fix: correct format of chat history
+- feat: pass context to the function assistants
+- fix: reset parameters after assistant changed
+
 ## 0.1.302 (2024-3-26)
 
 - fix: catch the error of message rendering

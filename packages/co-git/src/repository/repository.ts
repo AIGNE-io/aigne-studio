@@ -116,6 +116,12 @@ export default class Repository<T> {
     return this.workingMap[ref]!;
   }
 
+  async flush() {
+    for (const i of Object.values(this.workingMap)) {
+      await (await i).save({ flush: true });
+    }
+  }
+
   async listFiles({ ref }: { ref: string }) {
     return git.listFiles({ fs, gitdir: this.gitdir, ref });
   }

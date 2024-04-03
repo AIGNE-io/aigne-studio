@@ -1,8 +1,11 @@
+import { Op } from 'sequelize';
 import fs from 'fs';
-import { cp, mkdtemp, rm } from 'fs/promises';
-import { dirname, join } from 'path';
+import { access, copyFile, cp, mkdtemp, rm } from 'fs/promises';
+import path, { dirname, join } from 'path';
 
 import { Config } from '@api/libs/env';
+import { sampleIcon } from '@api/libs/icon';
+import logger from '@api/libs/logger';
 import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
@@ -14,17 +17,16 @@ import Joi from 'joi';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
-import sample from 'lodash/sample';
 import uniqBy from 'lodash/uniqBy';
-import { Op } from 'sequelize';
 import { parse } from 'yaml';
 
-import { copyAssistantsFromResource, getResourceProjects } from '../libs/resource';
+import downloadLogo from '../libs/download-logo';
+import { getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
-import { createImageUrl } from '../libs/utils';
 import Project, { nextProjectId } from '../store/models/project';
 import {
   autoSyncIfNeeded,
+  LOGO_FILENAME,
   clearRepository,
   commitProjectSettingWorking,
   commitWorking,
@@ -40,19 +42,18 @@ import {
 import { projectTemplates } from '../templates/projects';
 import { getCommits } from './log';
 
-let icons: { filename: string }[] = [];
 const AI_STUDIO_COMPONENT_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 
 export interface CreateProjectInput {
-  duplicateFrom?: string;
   templateId?: string;
+  withDuplicateFrom?: boolean;
   name?: string;
   description?: string;
 }
 
 const createProjectSchema = Joi.object<CreateProjectInput>({
-  duplicateFrom: Joi.string().empty([null, '']),
   templateId: Joi.string().empty([null, '']),
+  withDuplicateFrom: Joi.boolean().empty([null, '']),
   name: Joi.string().empty([null, '']),
   description: Joi.string().empty([null, '']),
 });
@@ -117,7 +118,6 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   maxTokens: Joi.number().integer().empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
   gitAutoSync: Joi.boolean().empty([null]),
-  projectType: Joi.string().valid('project', 'template', 'example').empty([null, '']),
   homePageUrl: Joi.string().allow(null, ''),
 });
 
@@ -186,29 +186,25 @@ export function projectRoutes(router: Router) {
       })
     );
 
+    const resourceTemplates = (await getResourceProjects('template')).map((i) => ({
+      ...i.project,
+      isFromResource: true,
+    }));
+    const resourceExamples = (await getResourceProjects('example')).map((i) => ({
+      ...i.project,
+      isFromResource: true,
+    }));
+
+    const resourceExampleIds = new Set(resourceExamples.map((i) => i._id));
+
+    const exampleProjects = projects.filter((i) => resourceExampleIds.has(i.duplicateFrom!));
+    const exampleProjectFromIds = new Set(exampleProjects.map((i) => i.duplicateFrom));
+    const notCreatedExamples = resourceExamples.filter((i) => !exampleProjectFromIds.has(i._id));
+
     res.json({
-      templates: uniqBy(
-        [
-          ...projectTemplates,
-          ...projects.filter((i) => i.projectType === 'template'),
-          ...(await getResourceProjects('template')).map((x) => {
-            x.fromResourceBlockletFolder = 'template';
-            return x;
-          }),
-        ],
-        '_id'
-      ),
-      projects: projects.filter((i) => !i.projectType || i.projectType === 'project'),
-      examples: uniqBy(
-        [
-          ...projects.filter((i) => i.projectType === 'example'),
-          ...(await getResourceProjects('example')).map((x) => {
-            x.fromResourceBlockletFolder = 'example';
-            return x;
-          }),
-        ],
-        '_id'
-      ),
+      templates: uniqBy([...projectTemplates.map((i) => i.project), ...resourceTemplates], '_id'),
+      projects: projects.filter((i) => !resourceExampleIds.has(i.duplicateFrom!)),
+      examples: uniqBy([...exampleProjects, ...notCreatedExamples], '_id'),
     });
   });
 
@@ -234,12 +230,43 @@ export function projectRoutes(router: Router) {
     res.json({ icons: data?.uploads || [] });
   });
 
+  router.get('/projects/:projectId/logo.png', async (req, res) => {
+    const { projectId } = await Joi.object<{ projectId: string }>({
+      projectId: Joi.string().empty([null, '']),
+    }).validateAsync(req.params, { stripUnknown: true });
+
+    try {
+      const original = await Project.findOne({ where: { _id: projectId } });
+      if (original) {
+        const repository = await getRepository({ projectId });
+        const logoPath = path.join(repository.options.root, 'logo.png');
+        await access(logoPath);
+        res.sendFile(logoPath);
+        return;
+      }
+
+      const resource =
+        (await getResourceProjects('template')).find((i) => i.project._id === projectId) ||
+        (await getResourceProjects('example')).find((i) => i.project._id === projectId);
+
+      if (resource?.gitLogoPath) {
+        await access(resource.gitLogoPath);
+        res.sendFile(resource.gitLogoPath);
+        return;
+      }
+    } catch (error) {
+      logger.error('Get icon error', { error });
+    }
+
+    res.status(404).send('Image not found');
+  });
+
   router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
 
     const project = await Project.findOne({ where: { _id: projectId } });
     if (!project) {
-      const found = (await getResourceProjects('example')).find((x) => x._id === projectId);
+      const found = (await getResourceProjects('example')).find((x) => x.project._id === projectId);
       if (found) {
         res.json(found);
         return;
@@ -253,101 +280,64 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-    const { duplicateFrom, templateId, name, description } = await createProjectSchema.validateAsync(req.body, {
+    const { did } = req.user!;
+
+    const { templateId, name, description, withDuplicateFrom } = await createProjectSchema.validateAsync(req.body, {
       stripUnknown: true,
     });
 
-    const { did, fullName } = req.user!;
-
-    if (duplicateFrom) {
-      const original = await Project.findOne({ where: { _id: duplicateFrom } });
-      if (!original) throw new Error(`Project ${duplicateFrom} not found`);
-
-      const project = await copyProject({ project: original, name, description, createdBy: did, updatedBy: did });
-
-      res.json(project);
-      return;
-    }
+    let project: Project | undefined;
 
     if (templateId) {
-      const templateOfProject = await Project.findOne({ where: { _id: templateId, projectType: 'template' } });
-      if (templateOfProject) {
-        const project = await copyProject({
-          project: templateOfProject,
+      // duplicate a project
+      const original = await Project.findOne({ where: { _id: templateId } });
+      if (original) {
+        project = await copyProject({
+          project: original,
           name,
           description,
-          createdBy: did,
-          updatedBy: did,
-          projectType: 'project',
+          author: req.user!,
+          projectType: undefined,
         });
-        res.json(project);
-        return;
       }
 
-      const template = projectTemplates.find((i) => i._id === templateId);
-      if (!template) throw new Error(`Template project ${templateId} not found`);
-
-      let icon = '';
-
-      if (!icons.length) {
-        try {
-          const params = { pageSize: 100, tags: 'default-project-icon' };
-          const { data } = await call({ name: 'image-bin', path: '/api/sdk/uploads', method: 'GET', params });
-
-          icons = data?.uploads || [];
-        } catch (error) {
-          // error
+      // create project from builtin templates
+      if (!project) {
+        const template = projectTemplates.find((i) => i.project._id === templateId);
+        if (template) {
+          project = await createProjectFromTemplate(template, { name, description, author: req.user! });
         }
       }
 
-      const item = sample(icons);
-      if (item?.filename) {
-        icon = createImageUrl(`${req.protocol}://${req.hostname}`, item.filename);
+      // create project from resource blocklet
+      if (!project) {
+        const resource =
+          (await getResourceProjects('template')).find((i) => i.project._id === templateId) ||
+          (await getResourceProjects('example')).find((i) => i.project._id === templateId);
+
+        if (resource) {
+          project = await createProjectFromTemplate(resource, {
+            name,
+            description,
+            author: req.user!,
+            withDuplicateFrom,
+          });
+        }
       }
 
-      const project = await Project.create({
-        ...omit(template, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
-        _id: nextProjectId(),
-        model: template.model || '',
-        icon,
+      if (!project) {
+        throw new Error(`No such template project ${templateId}`);
+      }
+    } else {
+      project = await Project.create({
+        model: '',
         createdBy: did,
         updatedBy: did,
+        gitDefaultBranch: defaultBranch,
         name,
         description,
       });
-
-      const repository = await getRepository({ projectId: project._id!, author: { name: fullName, email: did } });
-
-      const working = await repository.working({ ref: defaultBranch });
-      for (const { parent, ...file } of template.files) {
-        const id = nextAssistantId();
-        working.syncedStore.files[id] = fileToYjs({ ...file, id });
-        working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
-      }
-      await commitWorking({
-        project,
-        ref: defaultBranch,
-        branch: defaultBranch,
-        message: 'First Commit',
-        author: { name: fullName, email: did },
-      });
-
-      res.json(project);
-      return;
     }
-
-    if (name && (await Project.findOne({ where: { name } }))) {
-      throw new Error(`Duplicated project ${name}`);
-    }
-
-    const project = await Project.create({
-      model: '',
-      createdBy: did,
-      updatedBy: did,
-      gitDefaultBranch: defaultBranch,
-      name,
-      description,
-    });
 
     res.json(project);
   });
@@ -357,10 +347,6 @@ export function projectRoutes(router: Router) {
       stripUnknown: true,
     });
     const { did } = req.user!;
-
-    if (name && (await Project.findOne({ where: { name } }))) {
-      throw new Error(`Duplicated project ${name}`);
-    }
 
     const uri = new URL(url);
     if (username) uri.username = username;
@@ -465,7 +451,6 @@ export function projectRoutes(router: Router) {
       maxTokens,
       gitType,
       gitAutoSync,
-      projectType,
       homePageUrl,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -482,8 +467,8 @@ export function projectRoutes(router: Router) {
           pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
           updatedBy: userId,
           description,
-          icon,
           model: model || project.model || '',
+          icon: '',
           temperature,
           topP,
           presencePenalty,
@@ -491,7 +476,6 @@ export function projectRoutes(router: Router) {
           maxTokens,
           gitType,
           gitAutoSync,
-          projectType,
           homePageUrl,
         },
         (v) => v === undefined
@@ -500,6 +484,8 @@ export function projectRoutes(router: Router) {
 
     const author = { name: fullName, email: userId };
     await commitProjectSettingWorking({ project, author });
+
+    await commitProjectSettingWorking({ project, author, icon });
 
     await autoSyncIfNeeded({ project, author, userId });
 
@@ -702,51 +688,6 @@ export function projectRoutes(router: Router) {
 
     return res.json({ assistants: uniqBy(assistants, 'id') });
   });
-
-  router.post('/projects/copy', user(), ensureComponentCallOrAdmin(), async (req, res) => {
-    const { folder, projectId, name, description } = await Joi.object<{
-      folder: string;
-      projectId: string;
-      name?: string;
-      description?: string;
-    }>({
-      projectId: Joi.string().required().min(1),
-      folder: Joi.string(),
-      name: Joi.string().empty([null, '']),
-      description: Joi.string().empty([null, '']),
-    }).validateAsync(req.body, { stripUnknown: true });
-
-    const { fullName, did } = req.user!;
-
-    const id = folder === 'template' ? nextProjectId() : projectId;
-
-    const project =
-      folder === 'template'
-        ? {
-            _id: id,
-            name,
-            description,
-            createdBy: did,
-            updatedBy: did,
-            projectType: 'project',
-          }
-        : undefined;
-
-    await copyAssistantsFromResource({
-      folder,
-      findProjectId: projectId,
-      newProjectId: id,
-      originDefaultBranch:
-        folder === 'template'
-          ? 'main'
-          : (await Project.findOne({ where: { _id: projectId } }))?.gitDefaultBranch || defaultBranch,
-      fullName,
-      did,
-      projectInfo: project,
-    });
-
-    return res.json({ _id: id });
-  });
 }
 
 const getAuthorsOfProject = async ({
@@ -772,17 +713,23 @@ const getAuthorsOfProject = async ({
 
 async function copyProject({
   project: original,
+  author,
   ...patch
 }: {
   project: Project;
+  author: { fullName: string; did: string };
 } & Partial<Project['dataValues']>) {
   const repo = await getRepository({ projectId: original._id! });
+  await repo.flush();
 
   const project = await Project.create({
     ...omit(original.dataValues, 'createdAt', 'updatedAt'),
     _id: nextProjectId(),
+    duplicateFrom: original._id,
     model: original.model || '',
     name: patch.name || (original.name && `${original.name}-copy`),
+    createdBy: author.did,
+    updatedBy: author.did,
     ...patch,
   });
 
@@ -791,6 +738,72 @@ async function copyProject({
   if (await pathExists(`${repo.root}.cooperative`)) {
     await cp(`${repo.root}.cooperative`, join(parent, `${project._id}.cooperative`), { recursive: true });
   }
+
+  return project;
+}
+
+async function createProjectFromTemplate(
+  template: (typeof projectTemplates)[number],
+  {
+    name,
+    description,
+    author,
+    withDuplicateFrom,
+  }: {
+    name?: string;
+    description?: string;
+    author: { fullName: string; did: string };
+    withDuplicateFrom?: boolean;
+  }
+) {
+  const project = await Project.create({
+    ...omit(template.project, 'name', 'files', 'createdAt', 'updatedAt', 'pinnedAt'),
+    _id: nextProjectId(),
+    duplicateFrom: withDuplicateFrom ? template.project._id : undefined,
+    model: template.project.model || '',
+    createdBy: author.did,
+    updatedBy: author.did,
+    name,
+    description,
+  });
+
+  const repository = await getRepository({
+    projectId: project._id!,
+    author: { name: author.fullName, email: author.did },
+  });
+
+  const working = await repository.working({ ref: defaultBranch });
+  for (const { parent, ...file } of template.assistants) {
+    const id = file.id || nextAssistantId();
+    working.syncedStore.files[id] = fileToYjs({ ...file, id });
+    working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
+  }
+
+  await commitWorking({
+    project,
+    ref: defaultBranch,
+    branch: defaultBranch,
+    message: 'First Commit',
+    author: { name: author.fullName, email: author.did },
+    beforeCommit: async (tx) => {
+      const logoPath = path.join(repository.options.root, LOGO_FILENAME);
+
+      try {
+        if (template.gitLogoPath) {
+          await copyFile(template.gitLogoPath, logoPath);
+          await tx.add({ filepath: LOGO_FILENAME });
+        } else {
+          const icon = await sampleIcon();
+          if (icon) {
+            await downloadLogo(icon, logoPath);
+            await tx.add({ filepath: LOGO_FILENAME });
+          }
+        }
+      } catch (error) {
+        logger.error('failed to download icon', { error });
+      }
+    },
+  });
 
   return project;
 }

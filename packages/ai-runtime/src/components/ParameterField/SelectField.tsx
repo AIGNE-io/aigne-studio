@@ -22,6 +22,18 @@ const SelectField = forwardRef<
       onChange={(e) => onChange(e.target.value)}
       {...props}
       InputProps={{ ...props.InputProps, readOnly }}
+      SelectProps={{
+        ...props.SelectProps,
+        MenuProps: {
+          ...props.SelectProps?.MenuProps,
+          sx: {
+            ...props.SelectProps?.MenuProps?.sx,
+            '.MuiMenuItem-root': {
+              whiteSpace: 'pre-wrap',
+            },
+          },
+        },
+      }}
       sx={{
         ...props.sx,
         '& .MuiSelect-select .notranslate::after': parameter?.placeholder
@@ -30,6 +42,10 @@ const SelectField = forwardRef<
               opacity: 0.42,
             }
           : {},
+        '& .MuiFormLabel-root:not(.MuiInputLabel-shrink) + .MuiInputBase-root > .MuiSelect-select .notranslate::after':
+          {
+            opacity: 0,
+          },
       }}>
       {parameter?.options?.map((option) => (
         <MenuItem key={option.id} value={option.value}>

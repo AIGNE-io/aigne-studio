@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.302
+version: 0.1.319
 logo: logo.png
 files:
   - dist
@@ -87,6 +87,10 @@ components:
   - name: ai-runtime
     source:
       name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
+      version: latest
+  - name: honghong-simulator
+    source:
+      name: z2qZyjnsRffFtn2PDnDwDHTRbAu53RpKqDtFZ
       version: latest
 navigation:
   - id: projects

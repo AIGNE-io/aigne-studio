@@ -9,20 +9,21 @@ import { Op, Sequelize } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
 import { Config } from '../../libs/env';
+import logger from '../../libs/logger';
 import { userAuth } from '../../libs/user';
 import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
-import DatasetSegment from '../../store/models/dataset/segment';
-import VectorStore from '../../store/vector-store';
-import { discussionsIterator, queue } from './embeddings';
+import EmbeddingHistories from '../../store/models/dataset/embedding-history';
+import VectorStore from '../../store/vector-store-hnswlib';
+import { queue, updateHistoriesAndStore } from './embeddings';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 export interface CreateDiscussionItem {
   name: string;
-  data: { type: 'discussion'; fullSite?: boolean; id: string };
+  data: { type: 'discussion'; fullSite?: boolean; types?: ('discussion' | 'blog' | 'doc')[]; id: string };
 }
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
@@ -42,7 +43,7 @@ export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionI
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: input
+ *          x-parameter-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -69,21 +70,46 @@ router.get('/:datasetId/search', async (req, res) => {
 
   const dataset = await Dataset.findOne({ where: { id: datasetId } });
   if (!dataset || !datasetId) {
+    logger.error(
+      'search vector info',
+      datasetId ? `dataset with ${datasetId} is not found` : 'datasetId can not be empty'
+    );
     res.json({ docs: [] });
     return;
   }
 
   const documents = await DatasetDocument.findAll({ where: { datasetId } });
   if (!documents?.length) {
+    logger.error('search vector info', 'dataset documents is empty');
     res.json({ docs: [] });
     return;
   }
 
   const embeddings = new AIKitEmbeddings({});
   const store = await VectorStore.load(datasetId, embeddings);
-  const docs = await store.similaritySearch(input.message, 4);
 
-  res.json({ docs: docs.map((i) => i.pageContent) });
+  try {
+    // const records = await UpdateHistories.findAll({ where: { datasetId }, attributes: ['segmentId'] });
+    // const uniqueSegmentIds = [...new Set(records.map((record) => record.segmentId).flat())];
+
+    // if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+    //   res.json({ docs: [] });
+    //   return;
+    // }
+
+    const docs = await store.similaritySearch(input.message, 4);
+    const result = docs.map((x) => {
+      return {
+        content: x?.pageContent,
+        ...(x?.metadata?.metadata || {}),
+      };
+    });
+
+    res.json({ docs: result });
+  } catch (error) {
+    logger.error('search vector info', error?.message);
+    res.json({ docs: [] });
+  }
 });
 
 /**
@@ -101,7 +127,7 @@ router.get('/:datasetId/search', async (req, res) => {
  *          description: The ID of the dataset
  *          x-description-zh: 数据集的ID
  *          required: true
- *          x-input-type: input
+ *          x-parameter-type: input
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
@@ -128,8 +154,9 @@ router.get('/:datasetId/search', async (req, res) => {
  *          x-description-zh: 获取当前 datasetId 数据集中数据信息
  */
 router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
-  const { did } = req.user!;
+  const { did, isAdmin } = req.user!;
   const { datasetId } = req.params;
+  const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
   if (!datasetId) throw new Error('Missing required params `datasetId`');
 
@@ -141,7 +168,7 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
   const [items, total] = await Promise.all([
     DatasetDocument.findAll({
       order: [['createdAt', 'DESC']],
-      where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
+      where: { datasetId, ...user },
       offset: (page - 1) * size,
       limit: size,
       attributes: {
@@ -158,7 +185,7 @@ router.get('/:datasetId/documents', user(), userAuth(), async (req, res) => {
         ],
       },
     }),
-    DatasetDocument.count({ where: { datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] } }),
+    DatasetDocument.count({ where: { datasetId, ...user } }),
   ]);
 
   res.json({ items, total });
@@ -176,10 +203,12 @@ router.delete('/:datasetId/documents/:documentId', user(), userAuth(), async (re
 
   const document = DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
+  await updateHistoriesAndStore(datasetId, documentId);
+
   await Promise.all([
     DatasetDocument.destroy({ where: { id: documentId, datasetId } }),
-    DatasetSegment.destroy({ where: { documentId } }),
     DatasetContent.destroy({ where: { documentId } }),
+    EmbeddingHistories.destroy({ where: { documentId, datasetId } }),
   ]);
 
   res.json(document);
@@ -233,7 +262,7 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
   });
   await DatasetContent.create({ documentId: document.id, content });
 
-  queue.push({ documentId: document.id });
+  queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
 });
@@ -241,15 +270,27 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
 router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   const { datasetId } = req.params;
 
-  const createItemsSchema = Joi.object<CreateDiscussionItem>({
+  const createItemsSchema = Joi.object({
     name: Joi.string().empty(['', null]),
     data: Joi.object({
       type: Joi.string().valid('discussion').required(),
       fullSite: Joi.boolean(),
+      types: Joi.array().items(Joi.string()).sparse(false),
       id: Joi.string().empty(['', null]),
-    }).required(),
+    })
+      .required()
+      .when('.fullSite', {
+        is: true,
+        then: Joi.object({
+          types: Joi.array().items(Joi.string()).min(1).required(),
+          id: Joi.any().optional(),
+        }),
+        otherwise: Joi.object({
+          types: Joi.array().items(Joi.string()).sparse(true).default([]),
+          id: Joi.string().required(),
+        }),
+      }),
   });
-
   const createItemInputSchema = Joi.alternatives<CreateDiscussionItemInput>().try(
     Joi.array().items(createItemsSchema),
     createItemsSchema
@@ -283,27 +324,19 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   let docs: DatasetDocument[] = [];
   const fullSite = arr.find((x) => x.data?.fullSite);
   if (fullSite) {
-    const ids = [];
-    for await (const { id: discussionId } of discussionsIterator()) {
-      try {
-        ids.push(discussionId);
-      } catch (error) {
-        console.error(`embedding discussion ${discussionId} error`, { error });
-      }
-    }
-
     const document = await DatasetDocument.create({
       type: 'fullSite',
       data: {
         type: 'fullSite',
-        ids,
+        ids: [],
+        types: fullSite.data.types || [],
       },
       name: fullSite.name,
       datasetId,
       createdBy: did,
       updatedBy: did,
     });
-    queue.push({ documentId: document.id });
+    queue.checkAndPush({ type: 'document', documentId: document.id });
 
     return res.json(document);
   }
@@ -311,7 +344,7 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   docs = await Promise.all(
     arr.map(async (item) => {
       const document = await createOrUpdate(item.name, item.data.id);
-      queue.push({ documentId: document.id });
+      queue.checkAndPush({ type: 'document', documentId: document.id });
       return document;
     })
   );
@@ -370,7 +403,7 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
   });
   await DatasetContent.create({ documentId: document.id, content: await readFile(filePath, 'utf8') });
 
-  queue.push({ documentId: document.id });
+  queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
 });
@@ -399,9 +432,7 @@ router.put('/:datasetId/documents/:documentId/text', user(), userAuth(), async (
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  if (document) {
-    queue.push({ documentId: document.id });
-  }
+  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
 });
@@ -464,15 +495,14 @@ router.put('/:datasetId/documents/:documentId/file', user(), userAuth(), upload.
 
   const document = await DatasetDocument.findOne({ where: { id: documentId, datasetId } });
 
-  if (document) {
-    queue.push({ documentId: document.id });
-  }
+  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
 });
 
 router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, res) => {
-  const { did } = req.user!;
+  const { did, isAdmin } = req.user!;
+  const user = isAdmin ? {} : { [Op.or]: [{ createdBy: did }, { updatedBy: did }] };
 
   const { datasetId, documentId } = await Joi.object<{ datasetId: string; documentId: string }>({
     datasetId: Joi.string().required(),
@@ -480,9 +510,7 @@ router.get('/:datasetId/documents/:documentId', user(), userAuth(), async (req, 
   }).validateAsync(req.params);
 
   const [dataset, document, content] = await Promise.all([
-    Dataset.findOne({
-      where: { id: datasetId, [Op.or]: [{ createdBy: did }, { updatedBy: did }] },
-    }),
+    Dataset.findOne({ where: { id: datasetId, ...user } }),
     DatasetDocument.findOne({ where: { datasetId, id: documentId } }),
     DatasetContent.findOne({ where: { documentId }, attributes: ['content'] }),
   ]);
@@ -498,9 +526,7 @@ router.post('/:datasetId/documents/:documentId/embedding', user(), userAuth(), a
 
   const [document] = await Promise.all([DatasetDocument.findOne({ where: { id: documentId } })]);
 
-  if (document) {
-    queue.push({ documentId: document.id });
-  }
+  if (document) queue.checkAndPush({ type: 'document', documentId: document.id });
 
   res.json(document);
 });

@@ -10,6 +10,9 @@ export const nextProjectId = () => idGenerator.nextId().toString();
 export default class Project extends Model<InferAttributes<Project>, InferCreationAttributes<Project>> {
   declare _id: CreationOptional<string>;
 
+  // original project/template/example id
+  declare duplicateFrom?: string;
+
   declare name?: string;
 
   declare description?: string;
@@ -52,7 +55,8 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare didSpaceLastSyncedAt?: Date;
 
-  declare projectType?: 'project' | 'template' | 'example';
+  // @deprecated
+  declare projectType?: string;
 
   declare homePageUrl?: string;
 }
@@ -64,6 +68,9 @@ Project.init(
       primaryKey: true,
       allowNull: false,
       defaultValue: nextProjectId,
+    },
+    duplicateFrom: {
+      type: DataTypes.STRING,
     },
     name: {
       type: DataTypes.STRING,

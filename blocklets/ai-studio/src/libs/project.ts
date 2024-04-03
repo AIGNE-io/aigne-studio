@@ -1,5 +1,6 @@
 import { Assistant } from '@blocklet/ai-runtime/types';
 import pick from 'lodash/pick';
+import { joinURL } from 'ufo';
 
 import {
   AddProjectRemoteInput,
@@ -12,6 +13,7 @@ import {
 } from '../../api/src/routes/project';
 import Project from '../../api/src/store/models/project';
 import axios from './api';
+import { AI_STUDIO_COMPONENT_DID } from './constants';
 
 export type User = {
   did?: string;
@@ -20,6 +22,7 @@ export type User = {
 };
 
 export type ProjectWithUserInfo = Project & {
+  isFromResource?: boolean;
   branches: string[];
   users: User[];
 };
@@ -38,15 +41,6 @@ export async function getProject(projectId: string): Promise<Project> {
 
 export async function createProject(input?: CreateProjectInput): Promise<Project> {
   return axios.post('/api/projects', input).then((res) => res.data);
-}
-
-export async function copyProject(input?: {
-  folder: string;
-  projectId: string;
-  name?: string;
-  description?: string;
-}): Promise<Project> {
-  return axios.post('/api/projects/copy', input).then((res) => res.data);
 }
 
 export async function updateProject(projectId: string, input: UpdateProjectInput): Promise<Project> {
@@ -109,4 +103,10 @@ export async function fromDidSpacesImport({
 
 export async function projectSync(projectId: string, target: SyncTarget = 'github'): Promise<{}> {
   return axios.post(`/api/projects/${projectId}/remote/sync?target=${target}`).then((res) => res.data);
+}
+
+export function getProjectIconUrl(projectId?: string) {
+  if (!projectId) return '';
+  const component = blocklet?.componentMountPoints.find((i) => i.did === AI_STUDIO_COMPONENT_DID);
+  return joinURL(component?.mountPoint || '', `/api/projects/${projectId}/logo.png`);
 }

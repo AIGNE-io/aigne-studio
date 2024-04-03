@@ -307,6 +307,11 @@ async function runFunctionAssistant({
     )
   );
 
+  const ctx = Object.freeze({
+    user,
+    session: { id: sessionId },
+  });
+
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
@@ -326,7 +331,7 @@ async function runFunctionAssistant({
     fnArgs: args,
   });
 
-  const result = await module.default(args);
+  const result = await module.default(args, ctx);
 
   callback?.({
     type: AssistantResponseType.CHUNK,
@@ -790,7 +795,6 @@ async function runExecuteBlocks({
   const tasks: [ExecuteBlock, () => () => Promise<any>][] = [];
   const cache: { [key: string]: Promise<any> } = {};
   const datasets = await getBuildInDatasets();
-  const results = [];
 
   for (const executeBlock of executeBlocks) {
     const task = () => async () => {
@@ -819,14 +823,7 @@ async function runExecuteBlocks({
     tasks.push([executeBlock, task]);
   }
 
-  // 确保日志输出顺序准确
-  for (const task of tasks) {
-    const result = await task[1]()();
-    results.push([task[0], result] as const);
-  }
-
-  return results;
-  // return Promise.all(tasks.map((i) => i[1]()().then((result) => [i[0], result] as const)));
+  return Promise.all(tasks.map((i) => i[1]()().then((result) => [i[0], result] as const)));
 }
 
 async function runExecuteBlock({
@@ -959,6 +956,10 @@ async function runExecuteBlock({
               headers: getUserHeader(user),
             });
 
+            if (!knowledge) {
+              return undefined;
+            }
+
             const callbackParams = {
               taskId: currentTaskId,
               parentTaskId,
@@ -998,7 +999,7 @@ async function runExecuteBlock({
               execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
             });
 
-            return (data?.docs || []).join('\n');
+            return JSON.stringify(data?.docs || []);
           }
 
           const toolAssistant = await getAssistant(tool.id);
@@ -1319,7 +1320,7 @@ async function runExecuteBlock({
 
             const { data } = await callFunc({
               name: 'ai-studio',
-              path: `/api/datasets/${tool.id}/search`,
+              path: `/api/datasets/${tool.tool.id}/search`,
               method: 'GET',
               params: args,
               headers: getUserHeader(user),
