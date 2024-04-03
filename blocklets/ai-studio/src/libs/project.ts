@@ -1,4 +1,5 @@
 import { Assistant } from '@blocklet/ai-runtime/types';
+import pick from 'lodash/pick';
 import { joinURL } from 'ufo';
 
 import {
@@ -7,6 +8,7 @@ import {
   ImportProjectInput,
   ProjectPullInput,
   ProjectPushInput,
+  SyncTarget,
   UpdateProjectInput,
 } from '../../api/src/routes/project';
 import Project from '../../api/src/store/models/project';
@@ -49,6 +51,10 @@ export async function deleteProject(projectId: string): Promise<Project> {
   return axios.delete(`/api/projects/${projectId}`).then((res) => res.data);
 }
 
+export async function listProjectsByDidSpaces(endpoint: string): Promise<Project[]> {
+  return axios.get(`/api/import/from-did-spaces/list-projects?endpoint=${endpoint}`).then((res) => res.data);
+}
+
 export async function exportAssistantsToProject(
   projectId: string,
   ref: string,
@@ -77,8 +83,26 @@ export async function projectImport(input?: ImportProjectInput): Promise<Project
   return axios.post('/api/projects/import', input).then((res) => res.data);
 }
 
-export async function projectSync(projectId: string): Promise<{}> {
-  return axios.post(`/api/projects/${projectId}/remote/sync`).then((res) => res.data);
+export async function fromDidSpacesImport({
+  endpoint,
+  projectId,
+  props,
+}: {
+  endpoint: string;
+  projectId: string;
+  props: Pick<Project, 'name' | 'description'>;
+}): Promise<Project> {
+  return axios
+    .post('/api/import/from-did-spaces/import-project', {
+      endpoint,
+      projectId,
+      props: pick(props, ['name', 'description']),
+    })
+    .then((res) => res.data);
+}
+
+export async function projectSync(projectId: string, target: SyncTarget = 'github'): Promise<{}> {
+  return axios.post(`/api/projects/${projectId}/remote/sync?target=${target}`).then((res) => res.data);
 }
 
 export function getProjectIconUrl(projectId?: string) {

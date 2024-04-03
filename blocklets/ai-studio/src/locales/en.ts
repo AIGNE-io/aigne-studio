@@ -103,6 +103,9 @@ export default flat({
     title: 'Import Templates',
     remote: 'Import from git repo',
     remoteDescription: 'Import a project from an existing git repository, such as GitHub.',
+    didSpaces: 'Import from DID Spaces',
+    didSpacesTitle: 'Import project from DID Spaces',
+    didSpacesDescription: 'Import projects from already bound DID Spaces',
     selectProject: 'Select Project',
     selectBranch: 'Select Branch',
     templates: 'Templates',
@@ -188,6 +191,7 @@ export default flat({
   confirm: 'Confirm',
   projectSetting: {
     homePageUrl: 'Home Page Url',
+    selectProject: 'Select Project',
     name: 'Project name',
     description: 'Project description',
     gitType: {
@@ -294,6 +298,9 @@ export default flat({
     },
   },
   remoteGitRepo: 'Remote Git Repo',
+  didSpaces: {
+    title: 'DID Spaces',
+  },
   deleteRemote: 'Unlink remote git repo',
   deleteRemoteTip: 'Are you sure you want to unlink the remote git repo?',
   deleteSucceed: 'Delete Succeed',
@@ -308,6 +315,7 @@ export default flat({
   sync: 'Sync',
   synced: 'Synced',
   syncedAt: 'Synced at',
+  viewData: 'View data',
   mergeConflict: 'Merge Conflict',
   mergeConflictTip: 'The remote data has been changed and cannot be automatically merged!',
   useRemote: 'Use Remote',

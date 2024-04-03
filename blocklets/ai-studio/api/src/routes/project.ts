@@ -25,7 +25,7 @@ import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '
 import Project, { nextProjectId } from '../store/models/project';
 import {
   LOGO_FILENAME,
-  autoSyncRemoteRepoIfNeeded,
+  autoSyncIfNeeded,
   clearRepository,
   commitProjectSettingWorking,
   commitWorking,
@@ -36,6 +36,7 @@ import {
   getRepository,
   repositoryRoot,
   syncRepository,
+  syncToDidSpace,
 } from '../store/repository';
 import { projectTemplates } from '../templates/projects';
 import { getCommits } from './log';
@@ -98,6 +99,8 @@ export interface UpdateProjectInput {
   maxTokens?: number;
   gitType?: string;
   gitAutoSync?: boolean;
+  didSpaceAutoSync?: true | false;
+  projectType?: Project['projectType'];
   homePageUrl?: string | null;
 }
 
@@ -114,6 +117,7 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   maxTokens: Joi.number().integer().empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
   gitAutoSync: Joi.boolean().empty([null]),
+  didSpaceAutoSync: Joi.boolean().optional(),
   homePageUrl: Joi.string().allow(null, ''),
 });
 
@@ -158,6 +162,8 @@ export interface GetTemplateQuery {
 const getTemplateQuerySchema = Joi.object<GetTemplateQuery>({
   working: Joi.boolean().empty([null, '']),
 });
+
+export type SyncTarget = 'github' | 'didSpace';
 
 export function projectRoutes(router: Router) {
   router.get('/projects', ensureComponentCallOrPromptsEditor(), async (_, res) => {
@@ -445,17 +451,18 @@ export function projectRoutes(router: Router) {
       maxTokens,
       gitType,
       gitAutoSync,
+      didSpaceAutoSync,
       homePageUrl,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
-    const { did, fullName } = req.user!;
+    const { did: userId, fullName } = req.user!;
 
     await project.update(
       omitBy(
         {
           name,
           pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
-          updatedBy: did,
+          updatedBy: userId,
           description,
           model: model || project.model || '',
           icon: '',
@@ -466,17 +473,19 @@ export function projectRoutes(router: Router) {
           maxTokens,
           gitType,
           gitAutoSync,
+          didSpaceAutoSync,
           homePageUrl,
         },
         (v) => v === undefined
       )
     );
 
-    const author = { name: fullName, email: did };
+    const author = { name: fullName, email: userId };
+    await commitProjectSettingWorking({ project, author });
 
     await commitProjectSettingWorking({ project, author, icon });
 
-    await autoSyncRemoteRepoIfNeeded({ project, author });
+    await autoSyncIfNeeded({ project, author, userId });
 
     res.json(project.dataValues);
   });
@@ -605,15 +614,26 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
     const repository = await getRepository({ projectId });
-    const branches = await repository.listBranches();
 
-    for (const ref of branches) {
-      await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
+    const target: SyncTarget = req.query.target as SyncTarget;
+    if (target === 'didSpace') {
+      await syncToDidSpace({ project, userId });
+
+      return res.json({});
     }
 
-    await project.update({ gitLastSyncedAt: new Date() });
+    if (target === 'github') {
+      const branches = await repository.listBranches();
+      for (const ref of branches) {
+        // eslint-disable-next-line no-await-in-loop
+        await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
+      }
+      await project.update({ gitLastSyncedAt: new Date() });
 
-    res.json({});
+      return res.json({});
+    }
+
+    throw new Error(`Could not back up to target(${target})`);
   });
 
   router.get('/projects/:projectId/refs/:ref/assistants/:assistantId', async (req, res) => {

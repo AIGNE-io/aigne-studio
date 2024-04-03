@@ -102,6 +102,9 @@ export default flat({
     title: '导入模板数据',
     remote: '从 Git 仓库导入',
     remoteDescription: '从现有的 git 存储库中导入项目，如 GitHub。',
+    didSpaces: '从 DID Spaces 导入',
+    didSpacesTitle: '从 DID Spaces 导入项目',
+    didSpacesDescription: '从已绑定的 DID Spaces 中导入项目',
     selectProject: '选择项目',
     selectBranch: '选择分支',
     templates: '模板数据',
@@ -185,6 +188,7 @@ export default flat({
   confirm: '确认',
   projectSetting: {
     homePageUrl: '首页地址',
+    selectProject: '选择项目',
     name: '项目名称',
     description: '项目描述',
     gitType: {
@@ -293,6 +297,9 @@ export default flat({
   deleteRemoteTip: '请确认是否取消远程仓库?',
   deleteSucceed: '已取消关联远程仓库',
   remoteGitRepo: '远程 Git 仓库',
+  didSpaces: {
+    title: 'DID Spaces',
+  },
   url: '地址',
   username: '用户名',
   projectName: '项目名称',
@@ -304,6 +311,7 @@ export default flat({
   sync: '同步',
   synced: '已同步',
   syncedAt: '同步于',
+  viewData: '查看数据',
   mergeConflict: '合并冲突',
   mergeConflictTip: '远程数据已被更改，无法自动合并！',
   useRemote: '使用远程数据',

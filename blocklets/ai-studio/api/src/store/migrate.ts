@@ -1,6 +1,7 @@
 import { join } from 'path';
 
 import { Config, isDevelopment } from '@api/libs/env';
+import type { ColumnsDescription, QueryInterface } from 'sequelize';
 import { SequelizeStorage, Umzug } from 'umzug';
 
 import { sequelize } from './sequelize';
@@ -25,6 +26,11 @@ const umzug = new Umzug({
 
 export default async function migrate() {
   await umzug.up();
+}
+
+export async function existsColumn(context: QueryInterface, tableName: string, columnName: string) {
+  const columnsDescription: ColumnsDescription = await context.describeTable(tableName);
+  return columnName in columnsDescription;
 }
 
 export type Migration = typeof umzug._types.migration;

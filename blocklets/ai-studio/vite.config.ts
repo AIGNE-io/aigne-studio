@@ -31,6 +31,9 @@ const dotPathFixPlugin: () => PluginOption = () => ({
 // https://vitejs.dev/config/
 export default defineConfig(() => {
   return {
+    optimizeDeps: {
+      force: true,
+    },
     plugins: [
       tsconfigPaths(),
       dotPathFixPlugin(),

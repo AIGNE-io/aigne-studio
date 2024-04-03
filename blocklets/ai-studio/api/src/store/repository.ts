@@ -1,14 +1,16 @@
 import { readdir, rm, writeFile } from 'fs/promises';
-import path from 'path';
+import path, { relative } from 'path';
 
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
+import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
+import { pathExists } from 'fs-extra';
 import { glob } from 'glob';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { parse, stringify } from 'yaml';
 
-import { wallet } from '../libs/auth';
+import { authClient, wallet } from '../libs/auth';
 import downloadLogo from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
@@ -21,6 +23,8 @@ export const defaultRemote = 'origin';
 const repositories: { [key: string]: Promise<Repository<FileTypeYjs>> } = {};
 
 export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
+export const repositoryCooperativeRoot = (projectId: string) =>
+  path.join(Config.dataDir, 'repositories', `${projectId}.cooperative`);
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
@@ -132,6 +136,40 @@ export async function getRepository({
   return repositories[projectId]!;
 }
 
+export async function syncToDidSpace({ project, userId }: { project: Project; userId: string }) {
+  const { user } = await authClient.getUser(userId);
+  const endpoint = user?.didSpace?.endpoint;
+  const spaceClient = new SpaceClient({
+    endpoint,
+    wallet,
+  });
+
+  const repositoryPath = repositoryRoot(project._id);
+  const repositoryCooperativePath = repositoryCooperativeRoot(project._id);
+  const outputs: (SyncFolderPushCommandOutput | null)[] = await Promise.all(
+    [repositoryPath, repositoryCooperativePath].map(async (path) => {
+      if (await pathExists(path)) {
+        return spaceClient.send(
+          new SyncFolderPushCommand({
+            source: path,
+            target: relative(Config.dataDir, path),
+            metadata: { ...project.toJSON() },
+          })
+        );
+      }
+      return null;
+    })
+  );
+
+  // 如果有错误则抛出
+  const errorOutput = outputs.filter(Boolean).find((output) => output?.statusCode !== 200);
+  if (errorOutput) {
+    throw new Error(errorOutput.message);
+  }
+
+  await project.update({ didSpaceLastSyncedAt: new Date() });
+}
+
 export async function syncRepository<T>({
   repository,
   ref,
@@ -156,7 +194,7 @@ export async function syncRepository<T>({
   });
 }
 
-const SETTINGS_FILE = '.settings.yaml';
+export const SETTINGS_FILE = '.settings.yaml';
 
 const addSettingsToGit = async ({
   tx,
@@ -206,17 +244,23 @@ const addSettingsToGit = async ({
   }
 };
 
-export const autoSyncRemoteRepoIfNeeded = async ({
+export const autoSyncIfNeeded = async ({
   project,
   author,
+  userId,
 }: {
   project: Project;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+  userId: string;
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
     const repository = await getRepository({ projectId: project._id! });
     await syncRepository({ repository, ref: project.gitDefaultBranch, author });
     await project.update({ gitLastSyncedAt: new Date() });
+  }
+
+  if (project.didSpaceAutoSync) {
+    await syncToDidSpace({ project, userId });
   }
 };
 

@@ -4,7 +4,7 @@ import Joi from 'joi';
 
 import { ensureComponentCallOrPromptsEditor, isRefReadOnly } from '../libs/security';
 import Project from '../store/models/project';
-import { autoSyncRemoteRepoIfNeeded, commitWorking, defaultBranch } from '../store/repository';
+import { autoSyncIfNeeded, commitWorking, defaultBranch } from '../store/repository';
 
 export interface WorkingCommitInput {
   branch: string;
@@ -44,7 +44,7 @@ export function workingRoutes(router: Router) {
         author,
       });
 
-      await autoSyncRemoteRepoIfNeeded({ project, author });
+      await autoSyncIfNeeded({ project, author, userId });
 
       project.changed('updatedAt', true);
       await project.update({ updatedAt: new Date() });

@@ -62,6 +62,15 @@ export const useProjectsState = () => {
     [refetch]
   );
 
+  const fromDidSpacesImport: typeof api.fromDidSpacesImport = useCallback(
+    async (...args) => {
+      const res = await api.fromDidSpacesImport(...args);
+      await refetch();
+      return res;
+    },
+    [refetch]
+  );
+
   const updateProject: typeof api.updateProject = useCallback(
     async (...args) => {
       const res = await api.updateProject(...args);
@@ -74,6 +83,15 @@ export const useProjectsState = () => {
   const deleteProject: typeof api.deleteProject = useCallback(
     async (...args) => {
       const res = await api.deleteProject(...args);
+      await refetch();
+      return res;
+    },
+    [refetch]
+  );
+
+  const listProjectsByDidSpaces: typeof api.listProjectsByDidSpaces = useCallback(
+    async (...args) => {
+      const res = await api.listProjectsByDidSpaces(...args);
       await refetch();
       return res;
     },
@@ -94,5 +112,16 @@ export const useProjectsState = () => {
     [setState]
   );
 
-  return { state, refetch, createProject, importProject, updateProject, deleteProject, setSelected, setMenuAnchor };
+  return {
+    state,
+    refetch,
+    createProject,
+    importProject,
+    fromDidSpacesImport,
+    updateProject,
+    deleteProject,
+    listProjectsByDidSpaces,
+    setSelected,
+    setMenuAnchor,
+  };
 };

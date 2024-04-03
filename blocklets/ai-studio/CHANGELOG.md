@@ -1,3 +1,7 @@
+## 0.1.321 (2024-4-3)
+
+- feat: support lightweight serverless
+
 ## 0.1.320 (2024-3-29)
 
 - feat: add reset session api

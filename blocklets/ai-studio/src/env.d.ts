@@ -9,19 +9,6 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-declare var blocklet:
-  | {
-      prefix: string;
-      appId: string;
-      appUrl: string;
-      appName: string;
-      appLogo: string;
-      appDescription: string;
-      version: string;
-      componentMountPoints: { title: string; name: string; did: string; mountPoint: string }[];
-    }
-  | undefined;
-
 declare module '@arcblock/ux/*';
 declare module '@arcblock/did-connect/*';
 declare module '@blocklet/ui-react/*';
@@ -30,3 +17,12 @@ declare module '@blocklet/discuss-kit';
 declare module 'circular-natal-horoscope-js/dist' {
   export { Horoscope, Origin } from 'circular-natal-horoscope-js';
 }
+
+declare var blocklet: import('@blocklet/sdk').WindowBlocklet & {
+  /**
+   * @example zNKhZCE3RSaC4UDpB3dR1CxD3vpGkawEkStz/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB
+   * @description
+   * @type {string}
+   */
+  componentId: string;
+};

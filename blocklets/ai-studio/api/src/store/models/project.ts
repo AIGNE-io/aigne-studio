@@ -51,6 +51,10 @@ export default class Project extends Model<InferAttributes<Project>, InferCreati
 
   declare gitLastSyncedAt?: Date;
 
+  declare didSpaceAutoSync?: true | false;
+
+  declare didSpaceLastSyncedAt?: Date;
+
   // @deprecated
   declare projectType?: string;
 
@@ -127,6 +131,13 @@ Project.init(
       type: DataTypes.BOOLEAN,
     },
     gitLastSyncedAt: {
+      type: DataTypes.DATE,
+    },
+    didSpaceAutoSync: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+    didSpaceLastSyncedAt: {
       type: DataTypes.DATE,
     },
     projectType: {
