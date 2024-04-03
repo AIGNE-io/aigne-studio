@@ -3,6 +3,9 @@ import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
+import Datastore from '../store/models/datastore';
+import Histories from '../store/models/history';
+
 export function sessionRoutes(router: Router) {
   const sessionsQuerySchema = Joi.object<{
     projectId: string;
@@ -127,6 +130,14 @@ export function sessionRoutes(router: Router) {
       deleted: session,
       sessions,
     });
+  });
+
+  router.post('/sessions/:sessionId/reset', user(), auth(), async (req, res) => {
+    const { sessionId } = req.params;
+
+    await Promise.all([Datastore.destroy({ where: { sessionId } }), Histories.destroy({ where: { sessionId } })]);
+
+    res.json({});
   });
 
   router.delete('/sessions', user(), auth(), async (req, res) => {

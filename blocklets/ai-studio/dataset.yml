@@ -203,10 +203,11 @@
     x-description-zh: 新增或设置数据存储
     parameters:
       - in: query
-        name: truncateOld
+        name: reset
         schema:
           type: boolean
         required: false
+        x-parameter-type: boolean
         description: Whether to overwrite old data
         x-description-zh: 是否覆盖旧数据
     requestBody:
