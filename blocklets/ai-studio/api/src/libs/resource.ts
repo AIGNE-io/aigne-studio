@@ -1,5 +1,5 @@
 import { access, readFile, readdir, stat } from 'fs/promises';
-import { join } from 'path';
+import { dirname, join } from 'path';
 
 import { projectTemplates } from '@api/templates/projects';
 import { getResources } from '@blocklet/sdk/lib/component';
@@ -68,6 +68,13 @@ export const getResourceProjects = async (folder: 'template' | 'example') => {
                   delete json?.project?.projectType;
 
                   json.gitLogoPath = join(resourcePath, json.project._id, 'logo.png');
+                  await Promise.all(
+                    json.assistants.map(async (i) => {
+                      if (!i.release?.logo) return;
+                      const logoPath = join(dirname(filepath), i.release.logo);
+                      if (await exists(logoPath)) i.release.logo = logoPath;
+                    })
+                  );
                 }
 
                 return json;

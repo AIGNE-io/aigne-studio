@@ -72,34 +72,25 @@ export interface CreateReleaseInput {
   projectId: string;
   projectRef: string;
   assistantId: string;
-  template: 'default' | 'blue' | 'red' | 'green';
-  icon?: string;
-  title?: string;
-  description?: string;
   paymentEnabled?: boolean;
   paymentUnitAmount?: string;
-  openerMessage?: string;
 }
 
 const createReleaseInputSchema = Joi.object<CreateReleaseInput>({
   projectId: Joi.string().required(),
   projectRef: Joi.string().required(),
   assistantId: Joi.string().required(),
-  template: Joi.string().valid('default', 'blue', 'red', 'green').required(),
-  icon: Joi.string().allow('', null),
-  title: Joi.string().allow('', null),
-  description: Joi.string().allow('', null),
   paymentEnabled: Joi.boolean().default(false),
   paymentUnitAmount: Joi.when('paymentEnabled', {
     is: true,
     then: Joi.number().min(0).required().cast('string'),
   }),
-  openerMessage: Joi.string().allow('', null),
 });
 
 router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-  const { title, template, description, assistantId, projectId, projectRef, icon, openerMessage, ...input } =
-    await createReleaseInputSchema.validateAsync(req.body, { stripUnknown: true });
+  const { assistantId, projectId, projectRef, ...input } = await createReleaseInputSchema.validateAsync(req.body, {
+    stripUnknown: true,
+  });
 
   const { did } = req.user!;
 
@@ -107,14 +98,8 @@ router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) 
     assistantId,
     projectRef,
     projectId,
-    template,
-    title,
-    description,
-    icon,
-    openerMessage,
     createdBy: did,
     updatedBy: did,
-    paymentEnabled: input.paymentEnabled,
   });
 
   if (input.paymentEnabled && input.paymentUnitAmount) {
@@ -130,9 +115,6 @@ router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) 
 });
 
 export interface UpdateReleaseInput {
-  template: 'default' | 'blue' | 'red' | 'green';
-  icon?: string;
-  title?: string;
   description?: string;
   paymentEnabled?: boolean;
   paymentUnitAmount?: string;
@@ -140,9 +122,6 @@ export interface UpdateReleaseInput {
 }
 
 const updateReleaseSchema = Joi.object<UpdateReleaseInput>({
-  template: Joi.string().valid('default', 'blue', 'red', 'green').empty([null, '']),
-  icon: Joi.string().allow('', null),
-  title: Joi.string().allow('', null),
   description: Joi.string().allow('', null),
   paymentEnabled: Joi.boolean().default(false),
   paymentUnitAmount: Joi.when('paymentEnabled', {

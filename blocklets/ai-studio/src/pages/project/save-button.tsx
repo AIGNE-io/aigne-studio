@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { useKeyPress } from 'ahooks';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -96,9 +96,11 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         run();
         setProjectCurrentBranch(projectId, branch);
         if (branch !== gitRef) navigate(joinURL('..', branch), { replace: true });
+        savePromise.current?.resolve?.();
       } catch (error) {
         form.reset(input);
         Toast.error(getErrorMessage(error));
+        savePromise.current?.reject?.(error);
         throw error;
       }
     },
@@ -127,8 +129,15 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     }
   );
 
+  const savePromise = useRef<{ resolve: () => void; reject: (error: Error) => void }>();
+
   useEffect(() => {
-    saveButtonState.getState().setSaveHandler(() => dialogState.open());
+    saveButtonState.getState().setSaveHandler(() => {
+      return new Promise<void>((resolve, reject) => {
+        savePromise.current = { resolve, reject };
+        dialogState.open();
+      });
+    });
     return () => saveButtonState.getState().setSaveHandler(undefined);
   }, [dialogState.open]);
 
