@@ -58,6 +58,10 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     if (branches.includes(gitRef)) {
       form.setValue('branch', gitRef);
     }
+
+    if (!dialogState.isOpen) {
+      savePromise.current?.resolve({ saved: false });
+    }
   }, [dialogState.isOpen]);
 
   const branch = form.getValues('branch');
@@ -96,7 +100,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         run();
         setProjectCurrentBranch(projectId, branch);
         if (branch !== gitRef) navigate(joinURL('..', branch), { replace: true });
-        savePromise.current?.resolve?.();
+        savePromise.current?.resolve?.({ saved: true });
       } catch (error) {
         form.reset(input);
         Toast.error(getErrorMessage(error));
@@ -129,11 +133,11 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     }
   );
 
-  const savePromise = useRef<{ resolve: () => void; reject: (error: Error) => void }>();
+  const savePromise = useRef<{ resolve: (result: { saved?: boolean }) => void; reject: (error: Error) => void }>();
 
   useEffect(() => {
     saveButtonState.getState().setSaveHandler(() => {
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<{ saved?: boolean } | undefined>((resolve, reject) => {
         savePromise.current = { resolve, reject };
         dialogState.open();
       });

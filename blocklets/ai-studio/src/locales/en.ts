@@ -574,4 +574,7 @@ export default flat({
   doc: 'Document',
   blog: 'Blog',
   reset: 'Reset',
+  entries: 'Entries',
+  entry: 'Entry',
+  untitled: 'Untitled',
 });

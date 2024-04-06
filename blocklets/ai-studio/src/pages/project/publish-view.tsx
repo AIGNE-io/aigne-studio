@@ -1,4 +1,5 @@
 import LoadingButton from '@app/components/loading/loading-button';
+import PublishEntries from '@app/components/publish/PublishEntries';
 import { useUploader } from '@app/contexts/uploader';
 import { getErrorMessage } from '@app/libs/api';
 import { AI_RUNTIME_COMPONENT_DID } from '@app/libs/constants';
@@ -146,8 +147,7 @@ function PublishViewContent({
       const paymentEnabled = assistant.release?.payment?.enable;
       const paymentUnitAmount = assistant.release?.payment?.price;
 
-      await saveButtonState.getState().save?.();
-      Toast.success(t('publish.publishSuccess'));
+      if (!(await saveButtonState.getState().save?.())?.saved) return;
 
       if (!release) {
         await createRelease({
@@ -175,6 +175,14 @@ function PublishViewContent({
 
   return (
     <Stack px={2} mt={1} py={1} gap={2} ml={1} overflow="auto" component="form" onSubmit={form.handleSubmit(onSubmit)}>
+      <Stack>
+        <Typography variant="subtitle2" mb={1}>
+          {t('entries')}
+        </Typography>
+
+        <PublishEntries assistant={assistant} />
+      </Stack>
+
       <FormControl>
         <Typography variant="subtitle2" mb={1}>
           {t('templates')}

@@ -104,6 +104,8 @@ export interface AssistantBase {
       price?: string;
     };
   };
+
+  entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
 }
 
 export interface PromptAssistant extends AssistantBase {

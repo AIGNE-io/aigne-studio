@@ -647,7 +647,9 @@ export function projectRoutes(router: Router) {
 
     const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
 
-    res.json(pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'release'));
+    res.json(
+      pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'release', 'entries')
+    );
   });
 
   router.get(
