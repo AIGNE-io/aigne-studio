@@ -1,4 +1,3 @@
-import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   ExecuteBlockYjs,
   PromptAssistantYjs,
@@ -23,7 +22,6 @@ export function usePromptsState({
   templateId: string;
 }) {
   const { store } = useProjectStore(projectId, gitRef);
-  const { t } = useLocaleContext();
 
   const file = store.files[templateId];
   const template = file && isPromptAssistant(file) ? file : undefined;
