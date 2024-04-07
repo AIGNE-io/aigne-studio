@@ -26,6 +26,8 @@ export default class Session extends Model<InferAttributes<Session>, InferCreati
 
   declare parameters?: { [key: string]: any };
 
+  declare entry?: { id: string; title?: string };
+
   static getUserSessions({
     userId,
     projectId,
@@ -81,6 +83,9 @@ Session.init(
       allowNull: false,
     },
     parameters: {
+      type: DataTypes.JSON,
+    },
+    entry: {
       type: DataTypes.JSON,
     },
   },
