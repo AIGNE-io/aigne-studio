@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.321
+version: 0.1.322
 logo: logo.png
 files:
   - dist
@@ -56,8 +56,6 @@ capabilities:
   clusterMode: false
   component: true
   navigation: true
-  # 暂时禁用
-  # didSpace: requiredOnConnect
 screenshots:
   - studio.gif
 components:
