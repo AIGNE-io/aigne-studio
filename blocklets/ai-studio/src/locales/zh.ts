@@ -568,4 +568,10 @@ export default flat({
   doc: '文档数据',
   blog: '博客数据',
   reset: '重置',
+  multipleCall: '运行多个工具',
+  toolCalling: '运行 Function Call',
+  historyMessage: '获取历史消息',
+  getStore: '获取全局状态',
+  setStore: '设置全局状态',
+  retrieveData: '从数据集获取数据',
 });

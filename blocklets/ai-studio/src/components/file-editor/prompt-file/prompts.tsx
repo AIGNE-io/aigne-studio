@@ -7,11 +7,27 @@ import {
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
 import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
+import {
+  Box,
+  Button,
+  ClickAwayListener,
+  Grow,
+  MenuItem,
+  MenuList,
+  Paper,
+  Popper,
+  Stack,
+  Tooltip,
+  Typography,
+  alpha,
+  styled,
+} from '@mui/material';
+import { useRef, useState } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
 import Add from '../../../pages/project/icons/add';
+import ArrowDown from '../../../pages/project/icons/chevron-down';
 import Eye from '../../../pages/project/icons/eye';
 import EyeNo from '../../../pages/project/icons/eye-no';
 import { usePromptsState } from '../../../pages/project/prompt-state';
@@ -134,11 +150,8 @@ export default function PromptPrompts({
               onClick={() => addPrompt({ type: 'message', data: { id: nextAssistantId(), role: 'user' } })}>
               {t('addObject', { object: t('promptMessage') })}
             </Button>
-            <Button
-              startIcon={<Add />}
-              onClick={() => addPrompt({ type: 'executeBlock', data: { id: nextAssistantId(), selectType: 'all' } })}>
-              {t('addObject', { object: t('executeBlock') })}
-            </Button>
+
+            <SplitExecuteBlockButton projectId={projectId} gitRef={gitRef} templateId={value.id} />
           </Stack>
         )}
       </Stack>
@@ -260,3 +273,101 @@ const StyledPromptEditor = styled(PromptEditorField)(({ theme }) =>
     },
   })
 );
+
+function SplitExecuteBlockButton({
+  projectId,
+  gitRef,
+  templateId,
+}: {
+  projectId: string;
+  gitRef: string;
+  templateId: string;
+}) {
+  const { t } = useLocaleContext();
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  const { addPrompt, addCustomPrompt } = usePromptsState({ projectId, gitRef, templateId });
+
+  const handleToggle = () => {
+    setOpen((prevOpen) => !prevOpen);
+  };
+
+  const handleClose = (event: Event) => {
+    if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
+      return;
+    }
+
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <Box ref={anchorRef}>
+        <Button endIcon={<ArrowDown />} onClick={handleToggle}>
+          {t('addObject', { object: t('executeBlock') })}
+        </Button>
+      </Box>
+
+      <Popper sx={{ zIndex: 1 }} open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal>
+        {({ TransitionProps, placement }) => (
+          <Grow
+            {...TransitionProps}
+            style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom' }}>
+            <Paper>
+              <ClickAwayListener onClickAway={handleClose}>
+                <MenuList autoFocusItem>
+                  <MenuItem
+                    onClick={() => {
+                      addPrompt({ type: 'executeBlock', data: { id: nextAssistantId(), selectType: 'all' } });
+                      setOpen(false);
+                    }}>
+                    {t('multipleCall')}
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      addPrompt({
+                        type: 'executeBlock',
+                        data: { id: nextAssistantId(), selectType: 'selectByPrompt' },
+                      });
+                      setOpen(false);
+                    }}>
+                    {t('toolCalling')}
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      addCustomPrompt('history');
+                      setOpen(false);
+                    }}>
+                    {t('historyMessage')}
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      addCustomPrompt('getStore');
+                      setOpen(false);
+                    }}>
+                    {t('getStore')}
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      addCustomPrompt('setStore');
+                      setOpen(false);
+                    }}>
+                    {t('setStore')}
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      addCustomPrompt('knowledge');
+                      setOpen(false);
+                    }}>
+                    {t('retrieveData')}
+                  </MenuItem>
+                </MenuList>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
+      </Popper>
+    </>
+  );
+}

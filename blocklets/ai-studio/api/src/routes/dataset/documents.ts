@@ -47,6 +47,7 @@ export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionI
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
+ *          x-hide: true
  *          schema:
  *            type: string
  *            default: ''

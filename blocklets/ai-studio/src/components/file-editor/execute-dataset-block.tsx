@@ -4,23 +4,15 @@ import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
 import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Divider,
-  Stack,
-  StackProps,
-  Tooltip,
-  Typography,
-} from '@mui/material';
-import { GridExpandMoreIcon } from '@mui/x-data-grid';
+import { Box, CircularProgress, Collapse, IconButton, Stack, StackProps, Tooltip, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
-import { useMemo } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
+import { TransitionGroup } from 'react-transition-group';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import Dataset from '../../../api/src/store/models/dataset/dataset';
+import Add from '../../pages/project/icons/add';
+import Sub from '../../pages/project/icons/sub';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
 import PromptEditorField from './prompt-editor-field';
@@ -59,7 +51,7 @@ export default function ExecuteDatasetBlockForm({
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
   return (
-    <Stack {...props} sx={{ border: 2, borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
+    <Stack {...props} sx={{ border: 2, borderRadius: 1, p: 1, ...props.sx }}>
       <Box display="flex" alignItems="center">
         <Tooltip
           title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
@@ -90,32 +82,22 @@ export default function ExecuteDatasetBlockForm({
         />
       </Box>
 
-      <Divider />
-
-      <Accordion
-        sx={{
-          '&::before': {
-            display: 'none',
-          },
-        }}
-        square
-        disableGutters
-        elevation={0}>
-        <AccordionSummary
-          sx={{
-            px: 1,
-            minHeight: 28,
-            '& .MuiAccordionSummary-content': {
-              my: 0,
-            },
-          }}
-          expandIcon={<GridExpandMoreIcon />}>
-          <Typography variant="subtitle2">{t('outputSettings')}</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 0, mt: 0.5, px: 1, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
-          {value.role !== 'none' && value.formatResultType !== 'asHistory' && (
-            <>
-              {assistant.type === 'prompt' && (
+      {tools?.map(({ data: tool }) => (
+        <ToolItemView
+          key={tool.id}
+          assistant={assistant}
+          getDiffBackground={getDiffBackground}
+          projectId={projectId}
+          projectRef={gitRef}
+          tool={tool}
+          executeBlock={value}
+          readOnly={readOnly}
+          openApis={openApis}
+          datasets={[]}
+          gitRef={gitRef}
+          action={
+            value.role !== 'none' && value.formatResultType !== 'asHistory' && assistant.type === 'prompt' ? (
+              <Stack gap={1} px={1}>
                 <Box display="flex" alignItems="baseline" justifyContent="space-between">
                   <Box display="flex">
                     <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
@@ -142,8 +124,7 @@ export default function ExecuteDatasetBlockForm({
                     />
                   </Box>
                 </Box>
-              )}
-              {assistant.type === 'prompt' && (
+
                 <Box display="flex" alignItems="baseline" justifyContent="space-between">
                   <Box display="flex">
                     <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
@@ -170,27 +151,9 @@ export default function ExecuteDatasetBlockForm({
                     />
                   </Box>
                 </Box>
-              )}
-            </>
-          )}
-        </AccordionDetails>
-      </Accordion>
-
-      <Divider />
-
-      {tools?.map(({ data: tool }) => (
-        <ToolItemView
-          key={tool.id}
-          assistant={assistant}
-          getDiffBackground={getDiffBackground}
-          projectId={projectId}
-          projectRef={gitRef}
-          tool={tool}
-          executeBlock={value}
-          readOnly={readOnly}
-          openApis={openApis}
-          datasets={[]}
-          gitRef={gitRef}
+              </Stack>
+            ) : null
+          }
         />
       ))}
     </Stack>
@@ -208,6 +171,7 @@ function ToolItemView({
   openApis,
   datasets,
   assistant,
+  action,
   ...props
 }: {
   assistant: AssistantYjs;
@@ -220,9 +184,11 @@ function ToolItemView({
   readOnly?: boolean;
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  action?: ReactNode;
 } & StackProps) {
-  const { t, locale } = useLocaleContext();
+  const { locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, projectRef);
+  const [renderAction, setRender] = useState(false);
 
   const f = store.files[tool.id];
   const file = f && isAssistant(f) ? f : undefined;
@@ -233,18 +199,6 @@ function ToolItemView({
   const target = file ?? dataset ?? api;
 
   const parameters = useMemo(() => {
-    if (!target) {
-      return [
-        {
-          name: 'message',
-          in: 'query',
-          description: 'The content to be retrieved',
-          'x-description-zh': '需要检索的内容',
-          required: true,
-        },
-      ];
-    }
-
     return getAllParameters(target as DatasetObject);
   }, [target]);
 
@@ -257,28 +211,41 @@ function ToolItemView({
       : []),
   ]);
 
+  if (!target) {
+    return (
+      <Box display="flex" justifyContent="center" minHeight={100} alignItems="center" width={1}>
+        <CircularProgress size="20px" />
+      </Box>
+    );
+  }
+
   return (
     <>
       <Stack
         direction="row"
         {...props}
         sx={{
-          minHeight: 32,
-          gap: 1,
           alignItems: 'center',
+          justifyContent: 'space-between',
           cursor: 'pointer',
           borderRadius: 1,
           backgroundColor: { ...getDiffBackground('prepareExecutes', `${executeBlock.id}.data.tools.${tool.id}`) },
         }}>
-        <Typography noWrap px={1} variant="subtitle2">
-          {t('datasetDesc')}
+        <Typography noWrap variant="subtitle2">
+          {getDatasetTextByI18n(target || {}, 'summary', locale)}
         </Typography>
+
+        <IconButton size="small" onClick={() => setRender(!renderAction)}>
+          {renderAction ? <Sub /> : <Add />}
+        </IconButton>
       </Stack>
+
+      <TransitionGroup>{renderAction ? <Collapse>{action}</Collapse> : null}</TransitionGroup>
 
       <Stack>
         {(parameters || [])?.map((parameter: any) => {
           if (!parameter) return null;
-          if (parameter.name === 'datasetId') return null;
+          if (parameter['x-hide']) return null;
 
           tool.parameters ??= {};
           const value = tool.parameters[parameter.name];

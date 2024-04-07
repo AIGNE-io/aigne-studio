@@ -574,4 +574,10 @@ export default flat({
   doc: 'Document',
   blog: 'Blog',
   reset: 'Reset',
+  multipleCall: 'Run Multiple Tool',
+  toolCalling: 'Run Tool Calling',
+  historyMessage: 'Get History Message',
+  getStore: 'Get a Global State',
+  setStore: 'Set a Global State',
+  retrieveData: 'Get Data From Datasets',
 });
