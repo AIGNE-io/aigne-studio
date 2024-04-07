@@ -56,7 +56,8 @@ capabilities:
   clusterMode: false
   component: true
   navigation: true
-  didSpace: requiredOnConnect
+  # 暂时禁用
+  # didSpace: requiredOnConnect
 screenshots:
   - studio.gif
 components:
