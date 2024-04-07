@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import { joinURL, withQuery } from 'ufo';
 
 export function didSpaceReady(user: any) {
@@ -15,6 +16,10 @@ export function didSpaceReady(user: any) {
 }
 
 export function getProjectDataUrlInSpace(endpoint: string, projectId: string): string {
+  if (isEmpty(endpoint)) {
+    return '';
+  }
+
   const baseUrl = endpoint.replace(/\/api\/space\/.+/, '');
   const strArray = endpoint.replace(/\/$/, '').split('/');
   const spaceDid = strArray.at(-4) as string;

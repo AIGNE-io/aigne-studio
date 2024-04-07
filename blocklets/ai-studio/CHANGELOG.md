@@ -1,3 +1,7 @@
+## 0.1.322 (2024-4-7)
+
+- fix: disable did spaces
+
 ## 0.1.321 (2024-4-3)
 
 - feat: support lightweight serverless
