@@ -157,14 +157,14 @@ function PublishViewContent({
           paymentEnabled,
           paymentUnitAmount,
         });
-        await refetch();
+        await refetch({ force: true });
         Toast.success(t('publish.publishSuccess'));
       } else {
         await updateRelease(release.id, {
           paymentEnabled,
           paymentUnitAmount,
         });
-        await refetch();
+        await refetch({ force: true });
         Toast.success(t('publish.updateSuccess'));
       }
     } catch (error) {
