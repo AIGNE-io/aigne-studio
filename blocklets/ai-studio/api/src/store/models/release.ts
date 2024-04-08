@@ -16,7 +16,8 @@ export default class Release extends Model<InferAttributes<Release>, InferCreati
 
   declare assistantId: string;
 
-  declare template: 'default' | 'blue' | 'red' | 'green';
+  // deprecated: use assistant.release.xxx instead
+  declare template?: 'default' | 'blue' | 'red' | 'green';
 
   declare createdAt: CreationOptional<Date>;
 
@@ -26,18 +27,24 @@ export default class Release extends Model<InferAttributes<Release>, InferCreati
 
   declare updatedBy: string;
 
+  // deprecated: use assistant.release.xxx instead
   declare icon?: string;
 
+  // deprecated: use assistant.release.xxx instead
   declare title?: string;
 
+  // deprecated: use assistant.release.xxx instead
   declare description?: string;
 
+  // deprecated: use assistant.release.xxx instead
   declare openerMessage?: string;
 
+  // deprecated: use assistant.release.xxx instead
   declare withCollection?: boolean;
 
   declare isActive?: boolean;
 
+  // deprecated: use assistant.release.xxx instead
   declare paymentEnabled?: boolean;
 
   declare paymentProductId?: string;

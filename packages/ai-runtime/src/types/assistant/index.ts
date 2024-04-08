@@ -92,6 +92,20 @@ export interface AssistantBase {
     createdBy: string;
   }[];
   formatResultType?: 'none';
+
+  release?: {
+    template?: string;
+    title?: string;
+    description?: string;
+    openerMessage?: string;
+    logo?: string;
+    payment?: {
+      enable?: boolean;
+      price?: string;
+    };
+  };
+
+  entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
 }
 
 export interface PromptAssistant extends AssistantBase {

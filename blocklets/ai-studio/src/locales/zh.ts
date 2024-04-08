@@ -568,4 +568,7 @@ export default flat({
   doc: '文档数据',
   blog: '博客数据',
   reset: '重置',
+  entries: '入口',
+  entry: '入口',
+  untitled: '无标题',
 });

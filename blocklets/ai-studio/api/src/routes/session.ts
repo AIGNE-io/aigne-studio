@@ -39,12 +39,14 @@ export function sessionRoutes(router: Router) {
     assistantId: string;
     name?: string;
     parameters?: object;
+    entry?: { id: string; title?: string };
   }>({
     projectId: Joi.string().required(),
     projectRef: Joi.string().required(),
     assistantId: Joi.string().required(),
     name: Joi.string().empty(['', null]),
     parameters: Joi.object().pattern(Joi.string(), Joi.any()),
+    entry: Joi.object({ id: Joi.string().required(), title: Joi.string().empty([null, '']) }),
   });
 
   router.post('/sessions', user(), auth(), async (req, res) => {
@@ -58,6 +60,7 @@ export function sessionRoutes(router: Router) {
       assistantId: input.assistantId,
       name: input.name,
       parameters: input.parameters,
+      entry: input.entry,
     });
 
     const sessions = await Session.getUserSessions({

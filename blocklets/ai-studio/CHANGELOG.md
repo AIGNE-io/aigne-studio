@@ -1,3 +1,8 @@
+## 0.1.323 (2024-4-8)
+
+- feat: add entries configuration for release
+- fix: persist release metadata in assistant
+
 ## 0.1.322 (2024-4-7)
 
 - fix: disable did spaces

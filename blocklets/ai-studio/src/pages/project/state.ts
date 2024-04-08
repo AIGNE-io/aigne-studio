@@ -902,11 +902,11 @@ export function useAssistantCompare({
 }
 
 export const saveButtonState = create<{
-  save?: () => any;
-  setSaveHandler: (save?: () => any) => void;
+  save?: () => Promise<{ saved?: boolean } | undefined>;
+  setSaveHandler: (save?: () => Promise<{ saved?: boolean } | undefined>) => void;
 }>()(
   immer((set) => ({
-    setSaveHandler(save?: () => any) {
+    setSaveHandler(save?: () => Promise<{ saved?: boolean } | undefined>) {
       set((state) => {
         state.save = save;
       });

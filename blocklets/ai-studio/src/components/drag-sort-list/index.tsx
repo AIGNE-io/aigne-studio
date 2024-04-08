@@ -18,7 +18,7 @@ export function DragSortListYjs<T>({
 }: {
   disabled?: boolean;
   list: { [key: string]: { index: number; data: T } };
-  renderItem: (item: T, index: number, params: ItemRenderParams) => ReactNode;
+  renderItem: (item: T, index: number, params: DragSortItemRenderParams) => ReactNode;
 } & StackProps) {
   const ref = useRef<HTMLDivElement>(null);
   const type = useId();
@@ -94,7 +94,7 @@ export function DragSortListYjs<T>({
   );
 }
 
-type ItemRenderParams = {
+export type DragSortItemRenderParams = {
   isDragging: boolean;
   drag: ConnectDragSource;
   drop: ConnectDropTarget;
@@ -114,7 +114,7 @@ function ItemDND({
   id: string;
   index: number;
   type: string;
-  children?: ReactNode | ((params: ItemRenderParams) => ReactNode);
+  children?: ReactNode | ((params: DragSortItemRenderParams) => ReactNode);
   itemIndex: (id: string) => number;
   move: (src: { id: string; index: number }, dst: { id: string; index: number }) => void;
 }) {
