@@ -6,6 +6,7 @@ import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { pathExists } from 'fs-extra';
 import { glob } from 'glob';
+import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
 import { parse, stringify } from 'yaml';
@@ -139,6 +140,11 @@ export async function getRepository({
 export async function syncToDidSpace({ project, userId }: { project: Project; userId: string }) {
   const { user } = await authClient.getUser(userId);
   const endpoint = user?.didSpace?.endpoint;
+
+  if (isEmpty(endpoint)) {
+    return;
+  }
+
   const spaceClient = new SpaceClient({
     endpoint,
     wallet,
