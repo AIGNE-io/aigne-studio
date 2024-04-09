@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.1.322",
+  "version": "0.1.324",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.0",
+    "@emotion/styled": "^11.11.5",
     "@lexical/clipboard": "0.13.1",
     "@lexical/code": "0.13.1",
     "@lexical/file": "0.13.1",
@@ -72,8 +72,8 @@
     "@lexical/react": "0.13.1",
     "@lexical/selection": "0.13.1",
     "@lexical/utils": "0.13.1",
-    "@mui/material": "^5.15.14",
-    "ahooks": "^3.7.10",
+    "@mui/material": "^5.15.15",
+    "ahooks": "^3.7.11",
     "lexical": "0.13.1",
     "lodash-es": "^4.17.21",
     "react": "^18.2.0",
@@ -88,7 +88,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "copyfiles": "^2.4.1",
     "rimraf": "^5.0.5",
-    "vite": "^5.2.6",
+    "vite": "^5.2.8",
     "vite-plugin-replace": "^0.1.1",
     "vite-plugin-svgr": "^4.2.0"
   }

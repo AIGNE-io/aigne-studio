@@ -1,12 +1,14 @@
-import { CreateReleaseInput } from '@api/routes/release';
 import LoadingButton from '@app/components/loading/loading-button';
+import PublishEntries from '@app/components/publish/PublishEntries';
 import { useUploader } from '@app/contexts/uploader';
 import { getErrorMessage } from '@app/libs/api';
+import { AI_RUNTIME_COMPONENT_DID } from '@app/libs/constants';
 import { createRelease, updateRelease } from '@app/libs/release';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import styled from '@emotion/styled';
 import { LaunchRounded } from '@mui/icons-material';
@@ -28,12 +30,12 @@ import {
   Typography,
 } from '@mui/material';
 import { alpha, styled as muiStyled } from '@mui/material/styles';
-import { useEffect, useMemo } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useMemo } from 'react';
+import { useForm } from 'react-hook-form';
 import QRCode from 'react-qr-code';
 import { joinURL, withQuery } from 'ufo';
 
-import { saveButtonState, useAssistantChangesState, useProjectState } from './state';
+import { saveButtonState, useProjectState } from './state';
 
 const TemplateImage = styled('img')({
   width: '100%',
@@ -110,6 +112,15 @@ function PublishViewContent({
   projectRef: string;
   assistant: AssistantYjs;
 }) {
+  const doc = (getYjsValue(assistant) as Map<any>).doc!;
+
+  const setRelease = (update: (release: NonNullable<AssistantYjs['release']>) => void) => {
+    doc.transact(() => {
+      assistant.release ??= {};
+      update(assistant.release);
+    });
+  };
+
   const { t, locale } = useLocaleContext();
   const uploaderRef = useUploader();
 
@@ -120,51 +131,40 @@ function PublishViewContent({
 
   const release = releases?.find((i) => i.projectRef === projectRef && i.assistantId === assistant.id);
 
-  const form = useForm<CreateReleaseInput>({});
-
-  useEffect(() => {
-    form.reset({
-      template: release?.template || 'default',
-      icon: release?.icon || '',
-      title: release?.title || '',
-      description: release?.description || '',
-      paymentEnabled: release?.paymentEnabled,
-      paymentUnitAmount: release?.paymentUnitAmount,
-      openerMessage: release?.openerMessage || '',
-    });
-  }, [form, release]);
-
   const releaseUrl = useMemo(() => {
     if (!release) return undefined;
     const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
-    return withQuery(
-      joinURL(globalThis.location.origin, pagesPrefix, '@z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D', '/ai/chat'),
-      { aiReleaseId: release.id }
-    );
+    return withQuery(joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/chat'), {
+      aiReleaseId: release.id,
+    });
   }, [release]);
 
-  const { disabled: hasUnsavedChanges } = useAssistantChangesState(projectId, projectRef);
+  const form = useForm();
 
-  const onSubmit = async (input: CreateReleaseInput) => {
+  const onSubmit = async () => {
     try {
-      if (!hasUnsavedChanges) {
-        saveButtonState.getState().save?.();
-        Toast.info('Please save your prompt first');
-        return;
-      }
+      const assistantId = assistant.id;
+      const paymentEnabled = assistant.release?.payment?.enable;
+      const paymentUnitAmount = assistant.release?.payment?.price;
+
+      if (!(await saveButtonState.getState().save?.())?.saved) return;
 
       if (!release) {
         await createRelease({
-          ...input,
           projectRef,
           projectId,
-          assistantId: assistant.id,
+          assistantId,
+          paymentEnabled,
+          paymentUnitAmount,
         });
-        refetch();
+        await refetch();
         Toast.success(t('publish.publishSuccess'));
       } else {
-        await updateRelease(release.id, input);
-        refetch();
+        await updateRelease(release.id, {
+          paymentEnabled,
+          paymentUnitAmount,
+        });
+        await refetch();
         Toast.success(t('publish.updateSuccess'));
       }
     } catch (error) {
@@ -175,54 +175,48 @@ function PublishViewContent({
 
   return (
     <Stack px={2} mt={1} py={1} gap={2} ml={1} overflow="auto" component="form" onSubmit={form.handleSubmit(onSubmit)}>
+      <Stack>
+        <Typography variant="subtitle2" mb={1}>
+          {t('entries')}
+        </Typography>
+
+        <PublishEntries assistant={assistant} />
+      </Stack>
+
       <FormControl>
         <Typography variant="subtitle2" mb={1}>
           {t('templates')}
         </Typography>
-        <Controller
-          name="template"
-          control={form.control}
-          render={({ field }) => (
-            <RadioGroup
-              row
-              sx={{ rowGap: 1 }}
-              value={field.value || ''}
-              onChange={(_, value) => field.onChange({ target: { value } })}>
-              <StyledFormControlLabel
-                labelPlacement="top"
-                control={<Radio />}
-                value="default"
-                label={
-                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-1.png')} alt="" />
-                }
-              />
-              <StyledFormControlLabel
-                labelPlacement="top"
-                control={<Radio />}
-                value="blue"
-                label={
-                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-2.png')} alt="" />
-                }
-              />
-              <StyledFormControlLabel
-                labelPlacement="top"
-                control={<Radio />}
-                value="red"
-                label={
-                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-3.png')} alt="" />
-                }
-              />
-              <StyledFormControlLabel
-                labelPlacement="top"
-                control={<Radio />}
-                value="green"
-                label={
-                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-4.png')} alt="" />
-                }
-              />
-            </RadioGroup>
-          )}
-        />
+        <RadioGroup
+          row
+          sx={{ rowGap: 1 }}
+          value={assistant.release?.template || ''}
+          onChange={(_, value) => setRelease((release) => (release.template = value))}>
+          <StyledFormControlLabel
+            labelPlacement="top"
+            control={<Radio />}
+            value="default"
+            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-1.png')} alt="" />}
+          />
+          <StyledFormControlLabel
+            labelPlacement="top"
+            control={<Radio />}
+            value="blue"
+            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-2.png')} alt="" />}
+          />
+          <StyledFormControlLabel
+            labelPlacement="top"
+            control={<Radio />}
+            value="red"
+            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-3.png')} alt="" />}
+          />
+          <StyledFormControlLabel
+            labelPlacement="top"
+            control={<Radio />}
+            value="green"
+            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-4.png')} alt="" />}
+          />
+        </RadioGroup>
       </FormControl>
 
       <FormControl>
@@ -230,9 +224,9 @@ function PublishViewContent({
           {t('publish.title')}
         </Typography>
         <BaseInput
-          id="project-name"
           placeholder={t('publish.titlePlaceholder')}
-          {...form.register('title', { setValueAs: (v) => v.trim() })}
+          value={assistant.release?.title || ''}
+          onChange={(e) => setRelease((release) => (release.title = e.target.value))}
         />
       </FormControl>
 
@@ -242,13 +236,11 @@ function PublishViewContent({
         </Typography>
         <BaseInput
           multiline
-          sx={{
-            padding: 0,
-          }}
+          sx={{ padding: 0 }}
           placeholder={t('publish.descriptionPlaceholder')}
           minRows={3}
-          id="description"
-          {...form.register('description', { setValueAs: (v) => v.trim() })}
+          value={assistant.release?.description || ''}
+          onChange={(e) => setRelease((release) => (release.description = e.target.value))}
         />
       </FormControl>
 
@@ -258,13 +250,11 @@ function PublishViewContent({
         </Typography>
         <BaseInput
           multiline
-          sx={{
-            padding: 0,
-          }}
+          sx={{ padding: 0 }}
           placeholder={t('publish.conversionOpenerDescription')}
           minRows={3}
-          id="description"
-          {...form.register('openerMessage', { setValueAs: (v) => v.trim() })}
+          value={assistant.release?.openerMessage || ''}
+          onChange={(e) => setRelease((release) => (release.openerMessage = e.target.value))}
         />
       </FormControl>
 
@@ -274,37 +264,31 @@ function PublishViewContent({
         </Typography>
 
         <Box mb={0.5} width="40%" maxWidth={120}>
-          <Controller
-            name="icon"
-            control={form.control}
-            render={({ field }) => (
-              <ImageContainer
-                onClick={() => {
-                  // @ts-ignore
-                  const uploader = uploaderRef?.current?.getUploader();
+          <ImageContainer
+            onClick={() => {
+              // @ts-ignore
+              const uploader = uploaderRef?.current?.getUploader();
 
-                  uploader?.open();
+              uploader?.open();
 
-                  uploader.onceUploadSuccess((data: any) => {
-                    const { response } = data;
-                    const url = response?.data?.url || response?.data?.fileUrl;
-                    field.onChange({ target: { value: url } });
-                  });
-                }}>
-                {field.value ? (
-                  <img className="upload-button" src={field.value} alt="" />
-                ) : (
-                  <IconButton
-                    className="upload-button"
-                    key="uploader-trigger"
-                    size="small"
-                    sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)' }}>
-                    <UploadIcon />
-                  </IconButton>
-                )}
-              </ImageContainer>
+              uploader.onceUploadSuccess((data: any) => {
+                const { response } = data;
+                const url = response?.data?.url || response?.data?.fileUrl;
+                setRelease((release) => (release.logo = url));
+              });
+            }}>
+            {assistant.release?.logo ? (
+              <img className="upload-button" src={assistant.release.logo} alt="" />
+            ) : (
+              <IconButton
+                className="upload-button"
+                key="uploader-trigger"
+                size="small"
+                sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)' }}>
+                <UploadIcon />
+              </IconButton>
             )}
-          />
+          </ImageContainer>
         </Box>
       </Box>
 
@@ -316,25 +300,32 @@ function PublishViewContent({
         <Stack gap={1}>
           <Stack direction="row" gap={1} alignItems="center">
             <FormLabel sx={{ width: 60 }}>{t('publish.enabled')}</FormLabel>
-            <Controller
-              name="paymentEnabled"
-              control={form.control}
-              rules={{ required: form.watch('paymentEnabled'), min: 0 }}
-              render={({ field }) => (
-                <FormControl>
-                  <Switch checked={field.value || false} onChange={field.onChange} />
-                </FormControl>
-              )}
-            />
+            <FormControl>
+              <Switch
+                checked={assistant.release?.payment?.enable || false}
+                onChange={(_, checked) =>
+                  setRelease((release) => {
+                    release.payment ??= {};
+                    release.payment.enable = checked;
+                  })
+                }
+              />
+            </FormControl>
           </Stack>
 
-          {form.watch('paymentEnabled') && (
+          {assistant.release?.payment?.enable && (
             <Stack direction="row" gap={1} alignItems="center">
               <FormLabel sx={{ width: 60 }}>{t('publish.price')}</FormLabel>
               <TextField
-                {...form.register('paymentUnitAmount', { required: form.watch('paymentEnabled') })}
                 hiddenLabel
                 InputProps={{ endAdornment: <InputAdornment position="end">ABT / {t('publish.time')}</InputAdornment> }}
+                value={assistant.release.payment.price ?? ''}
+                onChange={(e) =>
+                  setRelease((release) => {
+                    release.payment ??= {};
+                    release.payment.price = e.target.value;
+                  })
+                }
               />
             </Stack>
           )}

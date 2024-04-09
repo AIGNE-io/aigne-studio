@@ -173,6 +173,7 @@ export function fileToYjs(file: FileType): FileTypeYjs {
           (i) => promptToYjs(i.data)
         ),
       tests: file.tests && arrayToYjs(file.tests),
+      entries: file.entries && arrayToYjs(file.entries),
     };
   }
   if (isImageAssistant(file)) {
@@ -181,6 +182,7 @@ export function fileToYjs(file: FileType): FileTypeYjs {
       parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
       prepareExecutes: file.prepareExecutes && arrayToYjs(file.prepareExecutes, executeBlockToYjs),
       tests: file.tests && arrayToYjs(file.tests),
+      entries: file.entries && arrayToYjs(file.entries),
     };
   }
   if (isFunctionAssistant(file)) {
@@ -189,6 +191,7 @@ export function fileToYjs(file: FileType): FileTypeYjs {
       parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
       prepareExecutes: file.prepareExecutes && arrayToYjs(file.prepareExecutes, executeBlockToYjs),
       tests: file.tests && arrayToYjs(file.tests),
+      entries: file.entries && arrayToYjs(file.entries),
     };
   }
   if (isApiAssistant(file)) {
@@ -198,6 +201,7 @@ export function fileToYjs(file: FileType): FileTypeYjs {
       prepareExecutes: file.prepareExecutes && arrayToYjs(file.prepareExecutes, executeBlockToYjs),
       tests: file.tests && arrayToYjs(file.tests),
       requestParameters: file.requestParameters && arrayToYjs(file.requestParameters),
+      entries: file.entries && arrayToYjs(file.entries),
     };
   }
 
@@ -211,6 +215,7 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
       prompts: file.prompts && arrayFromYjs(file.prompts, promptFromYjs),
       tests: file.tests && arrayFromYjs(file.tests),
+      entries: file.entries && arrayFromYjs(file.entries),
     };
   }
   if (isImageAssistant(file)) {
@@ -219,6 +224,7 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
       prepareExecutes: file.prepareExecutes && arrayFromYjs(file.prepareExecutes, executeBlockFromYjs),
       tests: file.tests && arrayFromYjs(file.tests),
+      entries: file.entries && arrayFromYjs(file.entries),
     };
   }
   if (isFunctionAssistant(file)) {
@@ -227,6 +233,7 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
       prepareExecutes: file.prepareExecutes && arrayFromYjs(file.prepareExecutes, executeBlockFromYjs),
       tests: file.tests && arrayFromYjs(file.tests),
+      entries: file.entries && arrayFromYjs(file.entries),
     };
   }
   if (isApiAssistant(file)) {
@@ -236,6 +243,7 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       prepareExecutes: file.prepareExecutes && arrayFromYjs(file.prepareExecutes, executeBlockFromYjs),
       tests: file.tests && arrayFromYjs(file.tests),
       requestParameters: file.requestParameters && arrayFromYjs(file.requestParameters),
+      entries: file.entries && arrayFromYjs(file.entries),
     };
   }
 

@@ -580,4 +580,7 @@ export default flat({
   getStore: 'Get a Global State',
   setStore: 'Set a Global State',
   retrieveData: 'Get Data From Datasets',
+  entries: 'Entries',
+  entry: 'Entry',
+  untitled: 'Untitled',
 });

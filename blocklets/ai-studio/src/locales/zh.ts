@@ -574,4 +574,7 @@ export default flat({
   getStore: '获取全局状态',
   setStore: '设置全局状态',
   retrieveData: '从数据集获取数据',
+  entries: '入口',
+  entry: '入口',
+  untitled: '无标题',
 });

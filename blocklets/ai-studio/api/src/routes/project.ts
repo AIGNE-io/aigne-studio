@@ -1,15 +1,16 @@
 import fs from 'fs';
-import { access, copyFile, cp, mkdtemp, rm } from 'fs/promises';
-import path, { dirname, join } from 'path';
+import { access, copyFile, cp, mkdtemp, readFile, rm } from 'fs/promises';
+import path, { basename, dirname, isAbsolute, join } from 'path';
 
 import { Config } from '@api/libs/env';
 import { sampleIcon } from '@api/libs/icon';
+import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
-import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
-import { pathExists } from 'fs-extra';
+import { exists, pathExists } from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
 import Joi from 'joi';
@@ -646,7 +647,9 @@ export function projectRoutes(router: Router) {
 
     const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
 
-    res.json(pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt'));
+    res.json(
+      pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'release', 'entries')
+    );
   });
 
   router.get(
@@ -773,7 +776,20 @@ async function createProjectFromTemplate(
   const working = await repository.working({ ref: defaultBranch });
   for (const { parent, ...file } of template.assistants) {
     const id = file.id || nextAssistantId();
-    working.syncedStore.files[id] = fileToYjs({ ...file, id });
+    const assistant = fileToYjs({ ...file, id });
+
+    if (isAssistant(assistant) && assistant.release?.logo) {
+      const { logo } = assistant.release;
+      if ((await exists(logo)) && isAbsolute(logo)) {
+        const result = await uploadImageToImageBin({
+          filename: basename(logo),
+          data: { b64Json: await readFile(logo, { encoding: 'base64' }) },
+        });
+        assistant.release.logo = result.url;
+      }
+    }
+
+    working.syncedStore.files[id] = assistant;
     working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
   }
 

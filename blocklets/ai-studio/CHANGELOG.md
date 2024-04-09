@@ -1,6 +1,18 @@
+## 0.1.324 (2024-4-9)
+
+- Merge branch 'main' into custom-execute-block
+- chore: bump version
+- chore: bump version
+- feat: add multiple type execute block
+
+## 0.1.323 (2024-4-8)
+
+- feat: add entries configuration for release
+- fix: persist release metadata in assistant
+
 ## 0.1.322 (2024-4-7)
 
-- feat: add multiple type execute block
+- fix: disable did spaces
 
 ## 0.1.321 (2024-4-3)
 
