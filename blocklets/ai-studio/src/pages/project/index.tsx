@@ -12,9 +12,7 @@ import Loading from '../../components/loading';
 import { DatasetsProvider } from '../../contexts/datasets/datasets';
 import KnowledgeRoutes from '../knowledge';
 import AddSource from './add-source';
-import HeaderActions from './header-actions';
-
-// import MainMenus from './main-menus';
+import ProjectHeader from './project-header';
 
 export default function ProjectRoutes() {
   const errorBoundary = useRef<ErrorBoundary>(null);
@@ -65,7 +63,7 @@ export default function ProjectRoutes() {
             <Suspense fallback={<Loading fixed />}>
               <Routes>
                 <Route index element={<ProjectsPage />} />
-                <Route path=":projectId/*">
+                <Route path=":projectId/*" element={<ProjectHeader />}>
                   <Route index element={<Navigate to="file" replace />} />
                   <Route path="prompts/*" element={<Navigate to="../file" replace />} />
                   <Route path="home" element={<ProjectsPage />} />
@@ -95,25 +93,6 @@ function AddonsRoutes() {
           <AddSource />
         </Stack>
       ),
-      children: [
-        {
-          path: 'file',
-          children: [
-            {
-              path: ':ref/*',
-              element: <HeaderActions />,
-            },
-            {
-              path: '*',
-              element: null,
-            },
-          ],
-        },
-        {
-          path: '*',
-          element: null,
-        },
-      ],
     },
   ]);
   return <Suspense>{element}</Suspense>;

@@ -1,7 +1,7 @@
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { DownloadRounded, SaveRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
+import { DownloadRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
@@ -28,6 +28,7 @@ import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
 import useDialog from '../../utils/use-dialog';
+import Save from './icons/save';
 import { saveButtonState, useAssistantChangesState, useProjectState } from './state';
 
 interface CommitForm {
@@ -152,8 +153,8 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
       <Button
         {...bindTrigger(dialogState)}
         disabled={submitting || disabled}
-        sx={{ position: 'relative', minWidth: 32, minHeight: 32 }}>
-        <SaveRounded sx={{ opacity: submitting ? 0 : 1 }} />
+        sx={{ position: 'relative', minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}>
+        <Save sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: '#030712' }} />
         {submitting && (
           <Box
             sx={{
@@ -232,7 +233,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
                 disabled={readOnly}
                 type="submit"
                 variant="contained"
-                startIcon={<SaveRounded />}
+                startIcon={<Save sx={{ fontSize: 20, color: '#fff' }} />}
                 loadingPosition="start"
                 loading={form.formState.isSubmitting}>
                 {t('save')}

@@ -387,8 +387,23 @@ export const theme = createTheme({
       styleOverrides: {
         root: ({ theme }) =>
           theme.unstable_sx({
+            padding: '6px 12px',
             fontSize: '0.875rem',
           }),
+      },
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          padding: '6px 12px',
+        },
+      },
+    },
+    MuiList: {
+      styleOverrides: {
+        root: {
+          padding: 4,
+        },
       },
     },
     MuiListItemText: {

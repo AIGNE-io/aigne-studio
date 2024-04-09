@@ -1,10 +1,9 @@
-import { HistoryRounded } from '@mui/icons-material';
-import { Button } from '@mui/material';
+import { Button, Stack } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import CommitsTip from '../../components/template-form/commits-tip';
-import BranchButton from './branch-button';
+import History from './icons/history';
 import SaveButton from './save-button';
 import { useProjectState } from './state';
 
@@ -15,14 +14,11 @@ export default function HeaderActions() {
   const navigate = useNavigate();
 
   const {
-    state: { loading, commits, project },
+    state: { loading, commits },
   } = useProjectState(projectId, gitRef);
 
-  const simpleMode = !project || project?.gitType === 'simple';
-
   return (
-    <>
-      {!simpleMode && <BranchButton projectId={projectId} gitRef={gitRef} filepath={filepath} />}
+    <Stack flexDirection="row" gap={1} alignItems="center">
       <CommitsTip
         loading={loading}
         commits={commits}
@@ -30,11 +26,11 @@ export default function HeaderActions() {
         onCommitSelect={(commit) => {
           navigate(joinURL('..', commit.oid), { state: { filepath } });
         }}>
-        <Button sx={{ minWidth: 32, minHeight: 32 }}>
-          <HistoryRounded />
+        <Button sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}>
+          <History sx={{ fontSize: 20 }} />
         </Button>
       </CommitsTip>
       <SaveButton projectId={projectId} gitRef={gitRef} />
-    </>
+    </Stack>
   );
 }

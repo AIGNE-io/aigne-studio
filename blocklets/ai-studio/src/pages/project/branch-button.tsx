@@ -52,6 +52,7 @@ export default function BranchButton({
   return (
     <>
       {dialog}
+
       {createBranchDialog}
 
       <Dropdown

@@ -843,9 +843,9 @@ function TreeItem({
         gap={0.5}
         sx={{
           position: 'relative',
-          pl: depth * 2 + 1,
-          pr: 1,
-          py: 1,
+          pl: depth * 2 + 1.5,
+          pr: 1.5,
+          py: 0.5,
           flex: 1,
           cursor: 'pointer',
           overflow: 'hidden',

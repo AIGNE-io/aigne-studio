@@ -56,7 +56,6 @@ import File from './icons/file';
 import Folder from './icons/folder';
 import ImportAssistant from './icons/import-assistant';
 import LinkIcon from './icons/link';
-import PanelRight from './icons/panel-right';
 import Picture from './icons/picture';
 import Play from './icons/play';
 import Plus from './icons/plus';
@@ -183,7 +182,7 @@ export default function ProjectPage() {
               <Tooltip title={t('import.title')} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
-                    <ImportAssistant />
+                    <ImportAssistant sx={{ fontSize: 20 }} />
                   </Button>
                 </span>
               </Tooltip>
@@ -197,7 +196,7 @@ export default function ProjectPage() {
                       const dir = dirname(filepath);
                       fileTree.current?.newFolder({ parent: dir.length ? dir : [PROMPTS_FOLDER_NAME] });
                     }}>
-                    <Folder />
+                    <Folder sx={{ fontSize: 20 }} />
                   </Button>
                 </span>
               </Tooltip>
@@ -205,7 +204,7 @@ export default function ProjectPage() {
               <Tooltip title={t('newObject', { object: t('file') })} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} {...bindTrigger(createFileMenuState)}>
-                    <Plus sx={{ color: '#3B82F6' }} />
+                    <Plus sx={{ fontSize: 20, color: '#3B82F6' }} />
                   </Button>
                 </span>
               </Tooltip>
@@ -444,7 +443,7 @@ function PanelToggleButton({
   return (
     <Tooltip title={collapsed ? t('showSidebar') : t('hideSidebar')}>
       <Button {...props} sx={{ minWidth: 0, flexShrink: 0, ...props.sx }}>
-        {placement === 'left' ? <SideBar /> : <PanelRight />}
+        <SideBar sx={{ transform: placement === 'left' ? 0 : 'rotate(180deg)', fontSize: 20 }} />
       </Button>
     </Tooltip>
   );
