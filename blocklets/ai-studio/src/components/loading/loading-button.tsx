@@ -8,7 +8,7 @@ export default function LoadingButton({ onClick, ...props }: LoadingButtonProps)
     async (e: MouseEvent<HTMLButtonElement>) => {
       try {
         setLoading(true);
-        onClick?.(e);
+        await onClick?.(e);
       } finally {
         setLoading(false);
       }

@@ -64,34 +64,37 @@ const projectState = (projectId: string, gitRef: string) => {
 export const useProjectState = (projectId: string, gitRef: string) => {
   const [state, setState] = useRecoilState(projectState(projectId, gitRef));
 
-  const refetch = useCallback(async () => {
-    let loading: boolean | undefined = false;
-    setState((v) => {
-      loading = v.loading;
-      return { ...v, loading: true };
-    });
-    if (loading) return;
-    try {
-      const [project, { branches }, { releases: projectPublishSettings }] = await Promise.all([
-        projectApi.getProject(projectId),
-        branchApi.getBranches({ projectId }),
-        releaseApi.getReleases({ projectId }),
-      ]);
-      const simpleMode = project.gitType === 'simple';
-      const { commits } = await getLogs({
-        projectId,
-        ref: simpleMode ? getDefaultBranch() : gitRef,
+  const refetch = useCallback(
+    async ({ force }: { force?: boolean } = {}) => {
+      let loading: boolean | undefined = false;
+      setState((v) => {
+        loading = v.loading;
+        return { ...v, loading: true };
       });
-      // NOTE: 简单模式下最新的记录始终指向 getDefaultBranch()
-      if (simpleMode && commits.length) commits[0]!.oid = getDefaultBranch();
-      setState((v) => ({ ...v, project, branches, releases: projectPublishSettings, commits, error: undefined }));
-    } catch (error) {
-      setState((v) => ({ ...v, error }));
-      throw error;
-    } finally {
-      setState((v) => ({ ...v, loading: false }));
-    }
-  }, [projectId, gitRef, setState]);
+      if (loading && !force) return;
+      try {
+        const [project, { branches }, { releases: projectPublishSettings }] = await Promise.all([
+          projectApi.getProject(projectId),
+          branchApi.getBranches({ projectId }),
+          releaseApi.getReleases({ projectId }),
+        ]);
+        const simpleMode = project.gitType === 'simple';
+        const { commits } = await getLogs({
+          projectId,
+          ref: simpleMode ? getDefaultBranch() : gitRef,
+        });
+        // NOTE: 简单模式下最新的记录始终指向 getDefaultBranch()
+        if (simpleMode && commits.length) commits[0]!.oid = getDefaultBranch();
+        setState((v) => ({ ...v, project, branches, releases: projectPublishSettings, commits, error: undefined }));
+      } catch (error) {
+        setState((v) => ({ ...v, error }));
+        throw error;
+      } finally {
+        setState((v) => ({ ...v, loading: false }));
+      }
+    },
+    [projectId, gitRef, setState]
+  );
 
   const createBranch = useCallback(
     async (...args: Parameters<typeof branchApi.createBranch>) => {

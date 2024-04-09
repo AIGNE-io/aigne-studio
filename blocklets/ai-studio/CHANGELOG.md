@@ -1,3 +1,8 @@
+## 0.1.325 (2024-4-10)
+
+- fix: adjust configuration item location
+- fix: force reload release status after published
+
 ## 0.1.324 (2024-4-9)
 
 - fix: document name/content is optional
