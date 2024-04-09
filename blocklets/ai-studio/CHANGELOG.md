@@ -1,3 +1,7 @@
+## 0.1.324 (2024-4-9)
+
+- fix: document name/content is optional
+
 ## 0.1.323 (2024-4-8)
 
 - feat: add entries configuration for release
