@@ -825,9 +825,11 @@ function TreeItem({
       direction="row"
       sx={{
         mx: 1,
-        minHeight: 28,
         borderRadius: 1,
-        bgcolor: edited ? 'action.hover' : selected ? 'action.selected' : open ? 'action.hover' : undefined,
+        bgcolor: edited ? 'action.hover' : selected ? '#EFF6FF' : open ? 'action.hover' : undefined,
+        color: selected ? '#3B82F6' : undefined,
+        fontWeight: 500,
+        fontSize: 13,
         ':hover': {
           bgcolor: selected ? 'action.selected' : 'action.hover',
           '.hover-visible': { maxWidth: '100%' },
@@ -837,11 +839,13 @@ function TreeItem({
         ref={ref}
         {...props}
         direction="row"
-        alignItems="center"
+        alignItems="flex-end"
+        gap={0.5}
         sx={{
           position: 'relative',
           pl: depth * 2 + 1,
           pr: 1,
+          py: 1,
           flex: 1,
           cursor: 'pointer',
           overflow: 'hidden',
@@ -851,8 +855,12 @@ function TreeItem({
           sx={{
             display: 'flex',
             alignItems: 'center',
-            width: (theme) => theme.spacing(3),
-            [`.${svgIconClasses.root}`]: { fontSize: '1.25rem', color: 'text.secondary' },
+            width: (theme) => theme.spacing(2.5),
+            [`.${svgIconClasses.root}`]: {
+              fontSize: '1.25rem',
+              fontWeight: 500,
+              color: selected ? '#3B82F6' : 'text.secondary',
+            },
           }}>
           {icon}
         </Box>

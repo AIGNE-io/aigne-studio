@@ -272,6 +272,7 @@ export default flat({
   deleteProjectAlertPrefix: 'This will permanently delete project with name',
   resetProjectAlertPrefix: 'This will reset example project with name',
   deleteProjectAlertSuffix: ' ',
+  confirmTip: 'To confirm, please enter the name of the Project',
   resetProjectAlertSuffix: 'to initial state',
   selectObject: 'Select {object}',
   template: 'Template',
@@ -298,6 +299,7 @@ export default flat({
     },
   },
   remoteGitRepo: 'Remote Git Repo',
+  gitRepo: 'Git Repo',
   didSpaces: {
     title: 'DID Spaces',
   },
@@ -577,4 +579,8 @@ export default flat({
   entries: 'Entries',
   entry: 'Entry',
   untitled: 'Untitled',
+  emptyProjectTitle: 'No Project Yet',
+  emptyProjectSubtitle: "You haven't created a project yet.",
+  newProject: 'New Project',
+  choose: 'Choose Template',
 });

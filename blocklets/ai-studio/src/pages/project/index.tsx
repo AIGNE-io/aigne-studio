@@ -1,16 +1,8 @@
 import currentGitStore from '@app/store/current-git-store';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
-import {
-  Box,
-  GlobalStyles,
-  Stack,
-  backdropClasses,
-  circularProgressClasses,
-  paperClasses,
-  styled,
-} from '@mui/material';
-import { ComponentProps, Suspense, lazy, useEffect, useRef } from 'react';
+import { GlobalStyles, Stack, backdropClasses, circularProgressClasses, paperClasses, styled } from '@mui/material';
+import { Suspense, lazy, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Navigate, Outlet, Route, Routes, useLocation, useRoutes } from 'react-router-dom';
@@ -21,12 +13,13 @@ import { DatasetsProvider } from '../../contexts/datasets/datasets';
 import KnowledgeRoutes from '../knowledge';
 import AddSource from './add-source';
 import HeaderActions from './header-actions';
-import MainMenus from './main-menus';
+
+// import MainMenus from './main-menus';
 
 export default function ProjectRoutes() {
   const errorBoundary = useRef<ErrorBoundary>(null);
-
   const location = useLocation();
+
   useEffect(() => {
     errorBoundary.current?.reset();
   }, [location]);
@@ -42,18 +35,16 @@ export default function ProjectRoutes() {
       />
       <StyledDashboard
         HeaderProps={{
-          logo: <LogoRoutes />,
-          brandAddon: <BrandRoutes />,
+          logo: <ProjectLogo />,
           addons: (exists) => [<SubscribeButton />, <AddonsRoutes />, ...exists],
         }}
-        menus={<MenuRoutes />}
         MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
         sx={{
           bgcolor: 'background.default',
 
           '> .dashboard-header': {
             border: 'none',
-            bgcolor: 'transparent',
+            borderBottom: '1px solid #E5E7EB',
           },
 
           '> .dashboard-body': {
@@ -65,8 +56,6 @@ export default function ProjectRoutes() {
             },
             '> .dashboard-content': {
               bgcolor: 'background.paper',
-              borderTopLeftRadius: (theme) => theme.shape.borderRadius * 2,
-              borderTopRightRadius: (theme) => theme.shape.borderRadius * 2,
               overflow: 'hidden',
             },
           },
@@ -94,19 +83,6 @@ export default function ProjectRoutes() {
       </StyledDashboard>
     </DndProvider>
   );
-}
-
-function BrandRoutes() {
-  const element = useRoutes([{ path: ':projectId/*', element: <ProjectBrand /> }]);
-  return <Suspense>{element}</Suspense>;
-}
-
-function LogoRoutes() {
-  const element = useRoutes([
-    { path: ':projectId/*', element: <ProjectLogo /> },
-    { path: '*', element: <Box component="img" src={blocklet?.appLogo} /> },
-  ]);
-  return <Suspense>{element}</Suspense>;
 }
 
 function AddonsRoutes() {
@@ -143,17 +119,9 @@ function AddonsRoutes() {
   return <Suspense>{element}</Suspense>;
 }
 
-function MenuRoutes({ ...props }: ComponentProps<typeof MainMenus>) {
-  const element = useRoutes([{ path: ':projectId?/*', element: <MainMenus {...props} /> }]);
-
-  return <Suspense>{element}</Suspense>;
-}
-
 const ProjectsPage = lazy(() => import('./projects-page'));
 
 const ProjectPage = lazy(() => import('./project-page'));
-
-const ProjectBrand = lazy(() => import('./project-brand'));
 
 const ProjectLogo = lazy(() => import('./project-logo'));
 
@@ -184,6 +152,13 @@ const StyledDashboard = styled(Dashboard)`
       border-radius: ${({ theme }) => theme.shape.borderRadius}px;
       box-shadow: ${({ theme }) => theme.shadows[1]};
       margin-top: ${({ theme }) => theme.spacing(1.5)}px;
+    }
+  }
+
+  .header-brand-wrapper {
+    .header-logo {
+      height: auto;
+      margin: 0;
     }
   }
 `;

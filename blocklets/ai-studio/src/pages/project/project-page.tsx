@@ -49,18 +49,18 @@ import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import DiscussView from './discuss-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
-import Add from './icons/add';
 import Code from './icons/code';
 import DeveloperTools from './icons/developer-tools';
 import Empty from './icons/empty';
 import File from './icons/file';
-import FolderAdd from './icons/folder-add';
-import Import from './icons/import';
+import Folder from './icons/folder';
+import ImportAssistant from './icons/import-assistant';
 import LinkIcon from './icons/link';
-import PanelLeft from './icons/panel-left';
 import PanelRight from './icons/panel-right';
 import Picture from './icons/picture';
 import Play from './icons/play';
+import Plus from './icons/plus';
+import SideBar from './icons/sidebar';
 import PublishView from './publish-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
@@ -180,6 +180,14 @@ export default function ProjectPage() {
                 </Button>
               )}
 
+              <Tooltip title={t('import.title')} disableInteractive>
+                <span>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
+                    <ImportAssistant />
+                  </Button>
+                </span>
+              </Tooltip>
+
               <Tooltip title={t('newObject', { object: t('folder') })} disableInteractive>
                 <span>
                   <Button
@@ -189,7 +197,7 @@ export default function ProjectPage() {
                       const dir = dirname(filepath);
                       fileTree.current?.newFolder({ parent: dir.length ? dir : [PROMPTS_FOLDER_NAME] });
                     }}>
-                    <FolderAdd />
+                    <Folder />
                   </Button>
                 </span>
               </Tooltip>
@@ -197,7 +205,7 @@ export default function ProjectPage() {
               <Tooltip title={t('newObject', { object: t('file') })} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} {...bindTrigger(createFileMenuState)}>
-                    <Add />
+                    <Plus sx={{ color: '#3B82F6' }} />
                   </Button>
                 </span>
               </Tooltip>
@@ -267,14 +275,6 @@ export default function ProjectPage() {
                   </Paper>
                 </ClickAwayListener>
               </Popper>
-
-              <Tooltip title={t('import.title')} disableInteractive>
-                <span>
-                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
-                    <Import />
-                  </Button>
-                </span>
-              </Tooltip>
             </Toolbar>
           </Box>
 
@@ -444,7 +444,7 @@ function PanelToggleButton({
   return (
     <Tooltip title={collapsed ? t('showSidebar') : t('hideSidebar')}>
       <Button {...props} sx={{ minWidth: 0, flexShrink: 0, ...props.sx }}>
-        {placement === 'left' ? <PanelLeft /> : <PanelRight />}
+        {placement === 'left' ? <SideBar /> : <PanelRight />}
       </Button>
     </Tooltip>
   );

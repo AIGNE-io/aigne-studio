@@ -398,5 +398,51 @@ export const theme = createTheme({
         },
       },
     },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: {
+          padding: '16px 24px',
+          borderBottom: '1px solid #E5E7EB',
+        },
+      },
+    },
+    MuiDialogActions: {
+      styleOverrides: {
+        root: {
+          borderTop: '1px solid #E5E7EB',
+          padding: '16px 24px',
+
+          '.cancel': {
+            border: '1px solid #E5E7EB',
+            color: '#000',
+            padding: '5px 12px',
+          },
+
+          '.save': {
+            border: 0,
+            background: '#000',
+            color: '#fff',
+            padding: '5px 12px',
+
+            '&:hover': {
+              background: '#000',
+            },
+
+            [`.${svgIconClasses.root}`]: {
+              fontSize: 15,
+              fontWeight: 500,
+              color: '#fff',
+            },
+          },
+        },
+      },
+    },
+    MuiDialogContent: {
+      styleOverrides: {
+        root: {
+          padding: '12px 24px !important',
+        },
+      },
+    },
   },
 });

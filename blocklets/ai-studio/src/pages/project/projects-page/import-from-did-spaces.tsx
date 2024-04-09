@@ -1,7 +1,6 @@
 /* eslint-disable consistent-return */
 import Project from '@api/store/models/project';
 import { useSessionContext } from '@app/contexts/session';
-import { didSpaceReady } from '@app/libs/did-spaces';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -13,15 +12,14 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   MenuItem,
   Stack,
   TextField,
-  Tooltip,
-  styled,
 } from '@mui/material';
 import { useAsyncEffect } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useId, useState } from 'react';
+import { cloneElement, useCallback, useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
@@ -29,7 +27,7 @@ import { joinURL, withQuery } from 'ufo';
 import { useProjectsState } from '../../../contexts/projects';
 import { getErrorMessage } from '../../../libs/api';
 import Add from '../icons/add';
-import DidSpacesLogo from '../icons/did-spaces';
+import Close from '../icons/close';
 
 type ProjectSettingForm = {
   _id: string;
@@ -37,7 +35,7 @@ type ProjectSettingForm = {
   description: string;
 };
 
-export default function FromDidSpacesImport() {
+export default function FromDidSpacesImport({ children }: { children: any }) {
   const { t } = useLocaleContext();
   const [search, setSearchParams] = useSearchParams();
   const endpoint = search.get('endpoint');
@@ -128,20 +126,9 @@ export default function FromDidSpacesImport() {
     });
   };
 
-  if (!didSpaceReady(session?.user)) {
-    return null;
-  }
-
   return (
     <>
-      <Tooltip title={t('import.didSpacesDescription')}>
-        <ProjectItemRoot onClick={goToDidSpacesImport} justifyContent="center" alignItems="center">
-          <Stack height={60} justifyContent="center" alignItems="center">
-            <DidSpacesLogo sx={{ fontSize: 32, color: (theme) => theme.palette.text.disabled }} />
-          </Stack>
-          <Box sx={{ mt: 1, color: (theme) => theme.palette.text.secondary }}>{t('import.didSpaces')}</Box>
-        </ProjectItemRoot>
-      </Tooltip>
+      {cloneElement(children, { onClick: () => goToDidSpacesImport() })}
 
       <Dialog
         {...bindDialog(dialogState)}
@@ -149,61 +136,88 @@ export default function FromDidSpacesImport() {
         fullWidth
         component="form"
         onSubmit={form.handleSubmit(importProject)}>
-        <DialogTitle>{t('import.didSpacesTitle')}</DialogTitle>
+        <DialogTitle className="between">
+          <Box>{t('import.didSpacesTitle')}</Box>
+
+          <IconButton size="small" onClick={() => dialogState.close()}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
         <DialogContent>
           <Stack gap={2}>
-            <TextField
-              {...form.register('_id', { required: true })}
-              select
-              label={t('projectSetting.selectProject')}
-              defaultValue=""
-              disabled={loading}
-              onChange={(e) => {
-                const currentProject = projects.find((p) => p._id === e.target.value);
+            <Box>
+              <Box fontWeight={500} fontSize={14} lineHeight="24px">
+                {t('projectSetting.selectProject')}
+              </Box>
+              <TextField
+                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                {...form.register('_id', { required: true })}
+                select
+                label={t('projectSetting.selectProject')}
+                defaultValue=""
+                disabled={loading}
+                onChange={(e) => {
+                  const currentProject = projects.find((p) => p._id === e.target.value);
 
-                if (currentProject) {
-                  form.setValue('_id', currentProject._id);
-                  form.setValue('name', currentProject?.name!);
-                  form.setValue('description', currentProject?.description!);
-                }
-              }}>
-              {projects.map((project) => (
-                <MenuItem key={project.name} value={project._id} selected={form.watch('_id') === project._id}>
-                  {project.name}
-                </MenuItem>
-              ))}
-            </TextField>
+                  if (currentProject) {
+                    form.setValue('_id', currentProject._id);
+                    form.setValue('name', currentProject?.name!);
+                    form.setValue('description', currentProject?.description!);
+                  }
+                }}>
+                {projects.map((project) => (
+                  <MenuItem key={project.name} value={project._id} selected={form.watch('_id') === project._id}>
+                    {project.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
 
-            <TextField
-              {...form.register('name')}
-              label={t('projectSetting.name')}
-              rows={4}
-              sx={{ width: 1 }}
-              InputProps={{
-                readOnly: true,
-                onFocus: (e) => (e.currentTarget.readOnly = false),
-              }}
-              focused
-            />
+            <Box>
+              <Box fontWeight={500} fontSize={14} lineHeight="24px">
+                {t('projectSetting.name')}
+              </Box>
+              <TextField
+                {...form.register('name')}
+                label={t('projectSetting.name')}
+                rows={4}
+                InputProps={{
+                  readOnly: true,
+                  onFocus: (e) => (e.currentTarget.readOnly = false),
+                }}
+                focused
+                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+              />
+            </Box>
 
-            <TextField
-              {...form.register('description')}
-              label={t('projectSetting.description')}
-              multiline
-              rows={4}
-              sx={{ width: 1 }}
-              InputProps={{
-                readOnly: true,
-                onFocus: (e) => (e.currentTarget.readOnly = false),
-              }}
-              focused
-            />
+            <Box>
+              <Box fontWeight={500} fontSize={14} lineHeight="24px">
+                {t('projectSetting.description')}
+              </Box>
+              <TextField
+                {...form.register('description')}
+                label={t('projectSetting.description')}
+                multiline
+                rows={4}
+                InputProps={{
+                  readOnly: true,
+                  onFocus: (e) => (e.currentTarget.readOnly = false),
+                }}
+                focused
+                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+              />
+            </Box>
           </Stack>
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={cancelImport}>{t('cancel')}</Button>
+          <Button onClick={cancelImport} className="cancel">
+            {t('cancel')}
+          </Button>
+
           <LoadingButton
+            className="save"
             variant="contained"
             type="submit"
             loading={form.formState.isSubmitting}
@@ -217,53 +231,3 @@ export default function FromDidSpacesImport() {
     </>
   );
 }
-
-const ProjectItemRoot = styled(Stack)`
-  width: 100%;
-  cursor: pointer;
-  overflow: hidden;
-  padding: ${({ theme }) => theme.shape.borderRadius * 1.5}px;
-  position: relative;
-  border-width: 1px;
-  border-style: solid;
-  border-color: ${({ theme }) => theme.palette.divider};
-  border-radius: 16px;
-
-  &.selected,
-  &:hover {
-    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.08);
-
-    .action {
-      display: flex;
-    }
-  }
-
-  .logo {
-    border-radius: ${({ theme }) => theme.shape.borderRadius}px;
-    overflow: hidden;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: ${({ theme }) => theme.shape.borderRadius}px;
-    }
-  }
-
-  .name {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .desc {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  .action {
-    display: none;
-  }
-`;

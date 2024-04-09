@@ -46,6 +46,11 @@ export default function App() {
             '*': {
               WebkitTapHighlightColor: 'transparent',
             },
+            '.between': {
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            },
           }}
         />
 

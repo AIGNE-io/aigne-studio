@@ -1,8 +1,9 @@
 import Button from '@arcblock/ux/lib/Button';
-import UploadIcon from '@mui/icons-material/Upload';
+import { svgIconClasses } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 
 import { PUBLISH_RESOURCE_PATH } from '../../libs/constants';
+import UploadIcon from './icons/upload';
 
 export default function Exporter() {
   const [showCreateResource, setShowCreateResource] = useState(false);
@@ -27,7 +28,17 @@ export default function Exporter() {
 
   return (
     <>
-      <Button sx={{ position: 'relative', minWidth: 32, minHeight: 32 }} onClick={() => setShowCreateResource(true)}>
+      <Button
+        sx={{
+          position: 'relative',
+          minWidth: 40,
+          minHeight: 40,
+          borderRadius: '100%',
+          [`.${svgIconClasses.root}`]: {
+            color: 'text.secondary',
+          },
+        }}
+        onClick={() => setShowCreateResource(true)}>
         <UploadIcon />
       </Button>
 

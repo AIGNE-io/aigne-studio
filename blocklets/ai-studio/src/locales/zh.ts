@@ -268,6 +268,7 @@ export default flat({
   deleteProjectAlertPrefix: '这将永久删除名称为',
   resetProjectAlertPrefix: '这将重置名称为',
   deleteProjectAlertSuffix: '的项目',
+  confirmTip: '请输入项目名称',
   resetProjectAlertSuffix: '的项目',
   selectObject: '选择{object}',
   template: '模板',
@@ -297,6 +298,7 @@ export default flat({
   deleteRemoteTip: '请确认是否取消远程仓库?',
   deleteSucceed: '已取消关联远程仓库',
   remoteGitRepo: '远程 Git 仓库',
+  gitRepo: 'Git 仓库',
   didSpaces: {
     title: 'DID Spaces',
   },
@@ -571,4 +573,8 @@ export default flat({
   entries: '入口',
   entry: '入口',
   untitled: '无标题',
+  emptyProjectTitle: '还没有项目',
+  emptyProjectSubtitle: '你还没有创建一个项目。',
+  newProject: '新项目',
+  choose: '选择模板',
 });
