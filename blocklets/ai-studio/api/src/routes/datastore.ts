@@ -12,10 +12,15 @@ const router = Router();
  * @openapi
  * /api/datastore:
  *   get:
- *     summary: Lists all datastores
+ *     summary: get datastores
  *     description: Retrieve a list of datastores with optional query parameters to filter the results.
- *     x-summary-zh: 列出数据存储
+ *     x-summary-zh: 获取数据存储
  *     x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         description: stored alias name
+ *         x-description-zh: 存储的名称
  *     responses:
  *       200:
  *         description: A JSON array of datastores
@@ -68,10 +73,10 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  * @openapi
  * /api/datastore:
  *   post:
- *     summary: Create / Set a new datastore
- *     description: Create / Set a new datastore
- *     x-summary-zh: 新增或设置数据存储
- *     x-description-zh: 新增或设置数据存储
+ *     summary: set a new datastore
+ *     description: set a new datastore
+ *     x-summary-zh: 设置数据存储
+ *     x-description-zh: 设置数据存储
  *     parameters:
  *       - in: query
  *         name: reset
@@ -81,6 +86,7 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         x-parameter-type: boolean
  *         description: Whether to overwrite old data
  *         x-description-zh: 是否覆盖旧数据
+ *         x-hide: true
  *     requestBody:
  *       required: true
  *       content:
@@ -93,7 +99,7 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *             properties:
  *               type:
  *                 type: string
- *                 description: 全局对象别名
+ *                 description: 别名
  *               data:
  *                 type: object
  *                 description: 存储对象数据

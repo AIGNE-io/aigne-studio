@@ -104,7 +104,7 @@ export default function ExecuteBlockForm({
 
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
-  if (value.type === 'dataset') {
+  if (value.type) {
     return (
       <ExecuteDatasetBlockForm
         assistant={assistant}
@@ -155,28 +155,31 @@ export default function ExecuteBlockForm({
       </Box>
 
       <Divider />
-      <Accordion
-        sx={{
-          '&::before': {
-            display: 'none',
-          },
-        }}
-        square
-        disableGutters
-        elevation={0}>
-        <AccordionSummary
-          sx={{
-            px: 1,
-            minHeight: 28,
-            '& .MuiAccordionSummary-content': {
-              my: 0,
-            },
-          }}
-          expandIcon={<GridExpandMoreIcon />}>
-          <Typography variant="subtitle2">{t('executeSettings')}</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 0, px: 1, mt: 0.5, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
-          <Box display="flex" alignItems="baseline" justifyContent="space-between">
+
+      {value.selectType === 'selectByPrompt' && (
+        <>
+          <Accordion
+            sx={{
+              '&::before': {
+                display: 'none',
+              },
+            }}
+            square
+            disableGutters
+            elevation={0}>
+            <AccordionSummary
+              sx={{
+                px: 1,
+                minHeight: 28,
+                '& .MuiAccordionSummary-content': {
+                  my: 0,
+                },
+              }}
+              expandIcon={<GridExpandMoreIcon />}>
+              <Typography variant="subtitle2">{t('executeSettings')}</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 0, px: 1, mt: 0.5, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
+              {/* <Box display="flex" alignItems="baseline" justifyContent="space-between">
             <Box display="flex">
               <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('executeMethods')}</Typography>
               <Tooltip title={t('executeMethodsTip')} placement="top" disableInteractive>
@@ -207,39 +210,40 @@ export default function ExecuteBlockForm({
                 ],
               }}
             />
-          </Box>
-          {value.selectType === 'selectByPrompt' && (
-            <Box display="flex" justifyContent="space-between">
-              <Box display="flex" alignItems="center">
-                <Typography sx={{ whiteSpace: 'nowrap' }}>{t('prompt')}</Typography>
-                <ModelPopper>
-                  <ModelSetting
-                    files={store.files}
-                    value={value}
+          </Box> */}
+              <Box display="flex" justifyContent="space-between">
+                <Box display="flex" alignItems="center">
+                  <Typography sx={{ whiteSpace: 'nowrap' }}>{t('prompt')}</Typography>
+                  <ModelPopper>
+                    <ModelSetting
+                      files={store.files}
+                      value={value}
+                      readOnly={readOnly}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                    />
+                  </ModelPopper>
+                </Box>
+                <Box width="60%">
+                  <PromptEditorField
                     readOnly={readOnly}
                     projectId={projectId}
                     gitRef={gitRef}
+                    ContentProps={{ sx: { px: 1, py: 0.5 } }}
+                    placeholder="Your select prompt"
+                    path={path.concat('selectByPrompt')}
+                    assistant={assistant}
+                    value={value.selectByPrompt}
+                    onChange={(prompt) => (value.selectByPrompt = prompt)}
                   />
-                </ModelPopper>
+                </Box>
               </Box>
-              <Box width="60%">
-                <PromptEditorField
-                  readOnly={readOnly}
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  ContentProps={{ sx: { px: 1, py: 0.5 } }}
-                  placeholder="Your select prompt"
-                  path={path.concat('selectByPrompt')}
-                  assistant={assistant}
-                  value={value.selectByPrompt}
-                  onChange={(prompt) => (value.selectByPrompt = prompt)}
-                />
-              </Box>
-            </Box>
-          )}
-        </AccordionDetails>
-      </Accordion>
-      <Divider />
+            </AccordionDetails>
+          </Accordion>
+
+          <Divider />
+        </>
+      )}
 
       <Accordion
         sx={{

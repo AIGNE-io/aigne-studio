@@ -30,7 +30,7 @@ import {
   tabsClasses,
 } from '@mui/material';
 import { useLocalStorageState } from 'ahooks';
-import { bindMenu, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
@@ -205,7 +205,7 @@ export default function ProjectPage() {
               </Tooltip>
 
               <Popper
-                {...bindMenu(createFileMenuState)}
+                {...bindPopper(createFileMenuState)}
                 sx={{ zIndex: (theme) => theme.zIndex.modal }}
                 placement="bottom-start">
                 <ClickAwayListener onClickAway={createFileMenuState.close}>

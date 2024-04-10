@@ -136,14 +136,14 @@ function PublishViewContent({
           paymentEnabled,
           paymentUnitAmount,
         });
-        await refetch();
+        await refetch({ force: true });
         Toast.success(t('publish.publishSuccess'));
       } else {
         await updateRelease(release.id, {
           paymentEnabled,
           paymentUnitAmount,
         });
-        await refetch();
+        await refetch({ force: true });
         Toast.success(t('publish.updateSuccess'));
       }
     } catch (error) {
@@ -154,7 +154,7 @@ function PublishViewContent({
   };
 
   return (
-    <Stack gap={2} p={2} overflow="auto">
+    <Stack px={2} mt={1} py={1} gap={2} ml={1} overflow="auto" component="form" onSubmit={form.handleSubmit(onSubmit)}>
       <FormControl>
         <Typography variant="subtitle2" mb={0.5}>
           {t('templates')}
@@ -339,11 +339,7 @@ function PublishViewContent({
       )}
 
       <Stack direction="row" gap={2} alignItems="center">
-        <LoadingButton
-          loading={form.formState.isSubmitting}
-          variant="contained"
-          startIcon={<Publish />}
-          onClick={form.handleSubmit(onSubmit)}>
+        <LoadingButton type="submit" loading={form.formState.isSubmitting} variant="contained" startIcon={<Publish />}>
           {release ? t('publish.update') : t('publish.publishProject')}
         </LoadingButton>
       </Stack>
