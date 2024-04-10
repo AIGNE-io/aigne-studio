@@ -101,6 +101,7 @@ export interface AssistantBase {
     openerMessage?: string;
     logo?: string;
     maxRoundLimit?: number;
+    reachMaxRoundLimitTip?: string;
     payment?: {
       enable?: boolean;
       price?: string;
