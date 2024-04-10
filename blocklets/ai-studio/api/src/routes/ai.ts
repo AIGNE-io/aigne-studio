@@ -230,6 +230,13 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   });
 
   try {
+    if (assistant.release?.maxRoundLimit && input.sessionId) {
+      const rounds = await History.count({ where: { userId, sessionId: input.sessionId } });
+      if (rounds > assistant.release.maxRoundLimit) {
+        throw new Error('Max round limitation has been reached');
+      }
+    }
+
     if (userId && release?.paymentEnabled && release.paymentProductId) {
       if (!(await getActiveSubscriptionOfAssistant({ release, userId }))) {
         throw new InvalidSubscriptionError('Your subscription is not available');
