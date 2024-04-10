@@ -1,6 +1,6 @@
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 
-import { Role } from '../assistant';
+import { ExecuteBlock, Role } from '../assistant';
 
 export enum ExecutionPhase {
   EXECUTE_BLOCK_START = 'EXECUTE_BLOCK_START',
@@ -90,6 +90,7 @@ export type RunAssistantChunk = {
   type: AssistantResponseType.CHUNK;
   taskId: string;
   assistantId: string;
+  respondAs?: ExecuteBlock['respondAs'];
   delta: {
     content?: string | null;
     images?: { url: string }[];

@@ -423,6 +423,9 @@ export default flat({
     price: 'Price',
     enabled: 'Enabled',
     time: 'Time',
+    settings: 'Settings',
+    maxRoundLimit: 'Round Limit',
+    reachMaxRoundLimitTip: 'Round Limit Tip',
   },
   addObject: 'Add {object}',
   formatPrompt: 'Format Prompt',
@@ -577,4 +580,8 @@ export default flat({
   entries: 'Entries',
   entry: 'Entry',
   untitled: 'Untitled',
+  respondAs: 'Respond',
+  none: 'None',
+  respondAsMessage: 'Respond as a message',
+  respondAsSystemMessage: 'Respond as a system message',
 });

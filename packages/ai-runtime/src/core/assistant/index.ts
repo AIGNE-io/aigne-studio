@@ -28,7 +28,7 @@ import {
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
-import { ImageAssistant, Mustache, OnTaskCompletion, Role, User, isImageAssistant } from '../../types/assistant';
+import { ImageAssistant, Mustache, OnTaskCompletion, Role, Tool, User, isImageAssistant } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
 import { BuiltinModules } from './builtin';
 
@@ -575,6 +575,8 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
+  if (!messages.length) return undefined;
+
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
@@ -856,6 +858,16 @@ async function runExecuteBlock({
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
 
+  const cb: ((taskId: string) => RunAssistantCallback) | undefined =
+    callback &&
+    ((taskId) => (args) => {
+      if (args.type === AssistantResponseType.CHUNK && args.taskId === taskId) {
+        callback({ ...args, respondAs: executeBlock.respondAs });
+        return;
+      }
+      callback(args);
+    });
+
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
@@ -877,129 +889,34 @@ async function runExecuteBlock({
 
           if (tool?.from === 'dataset') {
             const dataset = (datasets || []).find((x) => x.id === tool.id);
-
-            if (dataset) {
-              const requestData = Object.fromEntries(
-                await Promise.all(
-                  (Object.keys(tool?.parameters || {}) ?? [])
-                    .filter((i): i is typeof i => !!i)
-                    .map(async (i) => {
-                      const template = tool.parameters?.[i]?.trim?.();
-                      const value = template ? await renderMessage(template, parameters) : parameters?.[i];
-                      return [i, value];
-                    })
-                )
-              );
-
-              const params: { [key: string]: string } = {
-                userId: user?.did || '',
-                sessionId: sessionId || '',
-                assistantId: assistant.id || '',
-              };
-
-              const callbackParams = {
+            return (
+              dataset &&
+              runDatasetTool({
+                tool,
                 taskId: currentTaskId,
+                assistant,
+                executeBlock,
+                parameters,
+                dataset,
                 parentTaskId,
-                assistantId: assistant.id,
-                assistantName: `${executeBlock.variable ?? dataset.summary}`,
-              };
-
-              callback?.({
-                type: AssistantResponseType.EXECUTE,
-                ...callbackParams,
-                execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
-              });
-
-              callback?.({
-                type: AssistantResponseType.INPUT,
-                ...callbackParams,
-                inputParameters: requestData,
-              });
-
-              const response = await getRequest(dataset, requestData, { user, params });
-
-              callback?.({
-                type: AssistantResponseType.CHUNK,
-                ...callbackParams,
-                delta: { content: JSON.stringify(response.data) },
-              });
-
-              callback?.({
-                type: AssistantResponseType.EXECUTE,
-                ...callbackParams,
-                execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
-              });
-
-              return response.data;
-            }
-
-            return undefined;
+                callback: cb?.(currentTaskId),
+                user,
+                sessionId,
+              })
+            );
           }
 
           if (tool?.from === 'knowledge') {
-            const params = Object.fromEntries(
-              await Promise.all(
-                (Object.keys(tool?.parameters || {}) ?? [])
-                  .filter((i): i is typeof i => !!i)
-                  .map(async (i) => {
-                    const template = tool.parameters?.[i]?.trim?.();
-                    const value = template ? await renderMessage(template, parameters) : parameters?.[i];
-                    return [i, value];
-                  })
-              )
-            );
-
-            const { data: knowledge } = await callFunc({
-              name: 'ai-studio',
-              path: `/api/datasets/${tool.id}`,
-              method: 'GET',
-              headers: getUserHeader(user),
-            });
-
-            if (!knowledge) {
-              return undefined;
-            }
-
-            const callbackParams = {
+            return runKnowledgeTool({
+              tool,
               taskId: currentTaskId,
+              assistant,
+              executeBlock,
+              parameters,
               parentTaskId,
-              assistantId: assistant.id,
-              assistantName: `${executeBlock.variable ?? knowledge.name}`,
-            };
-
-            callback?.({
-              type: AssistantResponseType.EXECUTE,
-              ...callbackParams,
-              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+              callback: cb?.(currentTaskId),
+              user,
             });
-
-            callback?.({
-              type: AssistantResponseType.INPUT,
-              ...callbackParams,
-              inputParameters: params,
-            });
-
-            const { data } = await callFunc({
-              name: 'ai-studio',
-              path: `/api/datasets/${tool.id}/search`,
-              method: 'GET',
-              params,
-              headers: getUserHeader(user),
-            });
-
-            callback?.({
-              type: AssistantResponseType.CHUNK,
-              ...callbackParams,
-              delta: { content: JSON.stringify(data?.docs) },
-            });
-
-            callback?.({
-              type: AssistantResponseType.EXECUTE,
-              ...callbackParams,
-              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
-            });
-
-            return JSON.stringify(data?.docs || []);
           }
 
           const toolAssistant = await getAssistant(tool.id);
@@ -1025,7 +942,7 @@ async function runExecuteBlock({
             assistant: toolAssistant,
             parameters: args,
             parentTaskId,
-            callback,
+            callback: cb?.(currentTaskId),
             user,
             sessionId,
           });
@@ -1234,111 +1151,35 @@ async function runExecuteBlock({
 
           const tool = toolAssistantMap[call.function.name];
           if (!tool) return undefined;
-          const args = JSON.parse(call.function.arguments);
+          const requestData = JSON.parse(call.function.arguments);
           const currentTaskId = taskIdGenerator.nextId().toString();
 
           if (tool.tool.from === 'dataset') {
-            await Promise.all(
-              getAllParameters(tool?.toolAssistant)?.map(async (item) => {
-                const message = tool.tool?.parameters?.[item.name!]?.trim();
-                if (message) {
-                  args[item.name!] = await renderMessage(message, parameters);
-                }
-              }) ?? []
-            );
-
-            const params: { [key: string]: string } = {
-              userId: user?.did || '',
-              sessionId: sessionId || '',
-              assistantId: assistant.id || '',
-            };
-
-            const callbackParams = {
+            return runDatasetTool({
+              tool: tool.tool,
               taskId: currentTaskId,
+              assistant,
+              executeBlock,
+              parameters: { ...parameters, ...requestData },
+              dataset: tool.toolAssistant,
               parentTaskId,
-              assistantId: assistant.id,
-              assistantName: `${executeBlock.variable ?? tool?.toolAssistant.summary}`,
-            };
-
-            callback?.({
-              type: AssistantResponseType.EXECUTE,
-              ...callbackParams,
-              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+              callback: cb?.(currentTaskId),
+              user,
+              sessionId,
             });
-
-            callback?.({
-              type: AssistantResponseType.INPUT,
-              ...callbackParams,
-              inputParameters: args,
-            });
-
-            const response = await getRequest(tool?.toolAssistant, args, { user, params });
-
-            callback?.({
-              type: AssistantResponseType.CHUNK,
-              ...callbackParams,
-              delta: { content: JSON.stringify(response.data) },
-            });
-
-            callback?.({
-              type: AssistantResponseType.EXECUTE,
-              ...callbackParams,
-              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
-            });
-
-            return response.data;
           }
 
           if (tool.tool.from === 'knowledge') {
-            await Promise.all(
-              [{ name: 'message', description: 'Search the content of the knowledge' }].map(async (item) => {
-                const message = tool.tool?.parameters?.[item.name!]?.trim();
-                if (message) {
-                  args[item.name!] = await renderMessage(message, parameters);
-                }
-              }) ?? []
-            );
-
-            const callbackParams = {
+            return runKnowledgeTool({
+              tool: tool.tool,
               taskId: currentTaskId,
+              assistant,
+              executeBlock,
+              parameters: { ...parameters, ...requestData },
               parentTaskId,
-              assistantId: assistant.id,
-              assistantName: `${executeBlock.variable ?? tool?.toolAssistant.name}`,
-            };
-
-            callback?.({
-              type: AssistantResponseType.EXECUTE,
-              ...callbackParams,
-              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+              callback: cb?.(currentTaskId),
+              user,
             });
-
-            callback?.({
-              type: AssistantResponseType.INPUT,
-              ...callbackParams,
-              inputParameters: args,
-            });
-
-            const { data } = await callFunc({
-              name: 'ai-studio',
-              path: `/api/datasets/${tool.tool.id}/search`,
-              method: 'GET',
-              params: args,
-              headers: getUserHeader(user),
-            });
-
-            callback?.({
-              type: AssistantResponseType.CHUNK,
-              ...callbackParams,
-              delta: { content: JSON.stringify(data?.docs) },
-            });
-
-            callback?.({
-              type: AssistantResponseType.EXECUTE,
-              ...callbackParams,
-              execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
-            });
-
-            return (data?.docs || []).join('\n');
           }
 
           const toolAssistant = tool?.toolAssistant as Assistant;
@@ -1346,7 +1187,7 @@ async function runExecuteBlock({
             toolAssistant.parameters?.map(async (item) => {
               const message = tool.tool?.parameters?.[item.key!];
               if (message) {
-                args[item.key!] = await renderMessage(message, parameters);
+                requestData[item.key!] = await renderMessage(message, parameters);
               }
             }) ?? []
           );
@@ -1357,9 +1198,9 @@ async function runExecuteBlock({
             callAIImage,
             getAssistant,
             assistant: toolAssistant,
-            parameters: args,
+            parameters: requestData,
             parentTaskId: taskId,
-            callback,
+            callback: cb?.(currentTaskId),
             user,
             sessionId,
           });
@@ -1383,4 +1224,159 @@ async function runExecuteBlock({
   }
 
   return undefined;
+}
+
+async function runDatasetTool({
+  tool,
+  dataset,
+  taskId,
+  assistant,
+  executeBlock,
+  parameters,
+  parentTaskId,
+  callback,
+  user,
+  sessionId,
+}: {
+  tool: Tool;
+  dataset: DatasetObject;
+  taskId: string;
+  assistant: Assistant;
+  executeBlock: ExecuteBlock;
+  parameters?: { [key: string]: any };
+  parentTaskId?: string;
+  callback?: RunAssistantCallback;
+  user?: User;
+  sessionId?: string;
+}) {
+  const requestData = Object.fromEntries(
+    await Promise.all(
+      getAllParameters(dataset).map(async (item) => {
+        const template = tool.parameters?.[item.name!]?.trim();
+        return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
+      }) ?? []
+    )
+  );
+
+  const params: { [key: string]: string } = {
+    userId: user?.did || '',
+    sessionId: sessionId || '',
+    assistantId: assistant.id || '',
+  };
+
+  const callbackParams = {
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: `${executeBlock.variable ?? dataset.summary}`,
+  };
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    ...callbackParams,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    ...callbackParams,
+    inputParameters: requestData,
+  });
+
+  const response = await getRequest(dataset, requestData, { user, params });
+
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    ...callbackParams,
+    delta: { content: JSON.stringify(response.data) },
+  });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    ...callbackParams,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
+  return response.data;
+}
+
+async function runKnowledgeTool({
+  tool,
+  taskId,
+  assistant,
+  executeBlock,
+  parameters,
+  parentTaskId,
+  callback,
+  user,
+}: {
+  tool: Tool;
+  taskId: string;
+  assistant: Assistant;
+  executeBlock: ExecuteBlock;
+  parameters?: { [key: string]: any };
+  parentTaskId?: string;
+  callback?: RunAssistantCallback;
+  user?: User;
+}) {
+  const params = Object.fromEntries(
+    await Promise.all(
+      [{ name: 'message', description: 'Search the content of the knowledge' }].map(async (item) => {
+        const template = tool.parameters?.[item.name!]?.trim();
+        return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
+      }) ?? []
+    )
+  );
+
+  const { data: knowledge } = await callFunc({
+    name: 'ai-studio',
+    path: `/api/datasets/${tool.id}`,
+    method: 'GET',
+    headers: getUserHeader(user),
+  });
+
+  if (!knowledge) {
+    return undefined;
+  }
+
+  const callbackParams = {
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: `${executeBlock.variable ?? knowledge.name}`,
+  };
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    ...callbackParams,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    ...callbackParams,
+    inputParameters: params,
+  });
+
+  const { data } = await callFunc({
+    name: 'ai-studio',
+    path: `/api/datasets/${tool.id}/search`,
+    method: 'GET',
+    params,
+    headers: getUserHeader(user),
+  });
+
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    ...callbackParams,
+    delta: { content: JSON.stringify(data?.docs) },
+  });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    ...callbackParams,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
+  return JSON.stringify(data?.docs || []);
 }

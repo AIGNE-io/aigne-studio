@@ -388,6 +388,36 @@ export default function ExecuteBlockForm({
               }}
             />
           </Box>
+
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Typography sx={{ whiteSpace: 'nowrap' }}>{t('respondAs')}</Typography>
+            <IndicatorTextField
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, value.respondAs ?? 'none']}
+              TextFiledProps={{
+                size: 'small',
+                select: true,
+                hiddenLabel: true,
+                SelectProps: {
+                  autoWidth: true,
+                },
+                value: value.respondAs || 'none',
+                onChange: (e) => (value.respondAs = e.target.value as any),
+                children: [
+                  <MenuItem key="none" value="none" sx={{ color: 'text.secondary' }}>
+                    {t('none')}
+                  </MenuItem>,
+                  <MenuItem key="message" value="message">
+                    {t('respondAsMessage')}
+                  </MenuItem>,
+                  <MenuItem key="systemMessage" value="systemMessage">
+                    {t('respondAsSystemMessage')}
+                  </MenuItem>,
+                ],
+              }}
+            />
+          </Box>
         </AccordionDetails>
       </Accordion>
       <Divider />

@@ -419,6 +419,9 @@ export default flat({
     price: '价格',
     enabled: '启用',
     time: '次',
+    settings: '设置',
+    maxRoundLimit: '轮次限制',
+    reachMaxRoundLimitTip: '轮次限制提示',
   },
   addObject: '添加{object}',
   formatPrompt: '格式化提示',
@@ -571,4 +574,8 @@ export default flat({
   entries: '入口',
   entry: '入口',
   untitled: '无标题',
+  respondAs: '响应',
+  none: '忽略',
+  respondAsMessage: '作为消息返回',
+  respondAsSystemMessage: '作为系统消息返回',
 });

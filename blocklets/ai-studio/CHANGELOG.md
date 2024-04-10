@@ -1,3 +1,8 @@
+## 0.1.326 (2024-4-11)
+
+- feat: support setting max rounds limit
+- feat: support respond the tool result as a message to the client
+
 ## 0.1.325 (2024-4-10)
 
 - fix: adjust configuration item location
