@@ -16,6 +16,7 @@ import {
   MenuItem,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material';
 import { useAsyncEffect } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
@@ -147,9 +148,7 @@ export default function FromDidSpacesImport({ children }: { children: any }) {
         <DialogContent>
           <Stack gap={2}>
             <Box>
-              <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                {t('projectSetting.selectProject')}
-              </Box>
+              <Typography variant="subtitle2">{t('projectSetting.selectProject')}</Typography>
               <TextField
                 sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
                 {...form.register('_id', { required: true })}
@@ -175,9 +174,7 @@ export default function FromDidSpacesImport({ children }: { children: any }) {
             </Box>
 
             <Box>
-              <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                {t('projectSetting.name')}
-              </Box>
+              <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
               <TextField
                 {...form.register('name')}
                 label={t('projectSetting.name')}
@@ -192,9 +189,7 @@ export default function FromDidSpacesImport({ children }: { children: any }) {
             </Box>
 
             <Box>
-              <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                {t('projectSetting.description')}
-              </Box>
+              <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
               <TextField
                 {...form.register('description')}
                 label={t('projectSetting.description')}

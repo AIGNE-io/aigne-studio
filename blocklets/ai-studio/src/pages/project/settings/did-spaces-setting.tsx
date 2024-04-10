@@ -6,14 +6,14 @@ import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { CheckCircleOutlineRounded, ErrorOutlineRounded, SyncRounded } from '@mui/icons-material';
 import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
-import { Box, Button, CircularProgress, FormControlLabel, Stack, Typography } from '@mui/material';
+import { Button, CircularProgress, FormControlLabel, Stack, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
 
+import Switch from '../../../components/custom/switch';
 import PromiseLoadingButton from '../../../components/promise-loading-button';
 import { getErrorMessage } from '../../../libs/api';
 import { isTheErrorShouldShowMergeConflict, useMergeConflictDialog } from '../save-button';
 import { useProjectState } from '../state';
-import Switch from './switch';
 
 export default function DidSpacesSetting({ projectId }: { projectId: string }) {
   const { t, locale } = useLocaleContext();
@@ -40,9 +40,7 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
 
   return (
     <Stack gap={2.5}>
-      <Box fontWeight={500} fontSize={14} lineHeight="24px">
-        {t('didSpaces.title')}
-      </Box>
+      <Typography variant="subtitle2">{t('didSpaces.title')}</Typography>
 
       <Stack direction="row" alignItems="center" gap={1}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>

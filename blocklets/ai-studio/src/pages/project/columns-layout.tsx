@@ -63,7 +63,7 @@ const ColumnsLayout = forwardRef<
 
   if (!isLargeScreen) {
     return (
-      <Box height="100%" overflow="auto">
+      <Box height="100%" overflow="auto" bgcolor="background.paper">
         {children}
 
         <Drawer
@@ -87,7 +87,7 @@ const ColumnsLayout = forwardRef<
   }
 
   return (
-    <Box height="100%">
+    <Box height="100%" bgcolor="background.paper">
       <Box
         component={PanelGroup}
         autoSaveId="ai-studio-template-layouts"

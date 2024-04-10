@@ -1,4 +1,3 @@
-import UploaderProvider from '@app/contexts/uploader';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
@@ -59,7 +58,6 @@ import Picture from './icons/picture';
 import Play from './icons/play';
 import Plus from './icons/plus';
 import SideBar from './icons/sidebar';
-import PublishView from './publish-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
@@ -323,7 +321,6 @@ export default function ProjectPage() {
                 }}>
                 <Tab value="debug" label={t('debug')} />
                 <Tab value="test" label={t('test')} />
-                <Tab value="publish" label={t('publish.publishProject')} />
                 <Tab value="discuss" label={t('discuss')} />
               </Tabs>
 
@@ -340,10 +337,6 @@ export default function ProjectPage() {
               <DebugView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
             ) : currentTab === 'test' ? (
               <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
-            ) : currentTab === 'publish' ? (
-              <UploaderProvider>
-                <PublishView key={file.id} projectId={projectId} projectRef={gitRef} assistant={file} />
-              </UploaderProvider>
             ) : currentTab === 'discuss' ? (
               <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />
             ) : null}

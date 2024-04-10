@@ -12,6 +12,7 @@ import {
   IconButton,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { cloneElement, useCallback, useId } from 'react';
@@ -82,9 +83,7 @@ export default function ImportFromBlank({ children, item }: { children: any; ite
         <DialogContent>
           <Stack overflow="auto" gap={1.5}>
             <Box>
-              <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                {t('projectSetting.name')}
-              </Box>
+              <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
               <TextField
                 autoFocus
                 label={t('projectSetting.name')}
@@ -94,9 +93,7 @@ export default function ImportFromBlank({ children, item }: { children: any; ite
             </Box>
 
             <Box>
-              <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                {t('projectSetting.description')}
-              </Box>
+              <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
               <TextField
                 label={t('projectSetting.description')}
                 multiline

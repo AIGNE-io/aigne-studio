@@ -14,6 +14,7 @@ import {
   Stack,
   TextField,
   Tooltip,
+  Typography,
   styled,
 } from '@mui/material';
 import equal from 'fast-deep-equal';
@@ -204,9 +205,9 @@ export default function ProjectSettings() {
 
                       <Stack gap={1.5} flex={1} ml={1.5}>
                         <Box>
-                          <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+                          <Typography variant="subtitle2" mb={0.5}>
                             {t('projectSetting.name')}
-                          </Box>
+                          </Typography>
 
                           <TextField
                             label={t('projectSetting.name')}
@@ -218,9 +219,9 @@ export default function ProjectSettings() {
                         </Box>
 
                         <Box>
-                          <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+                          <Typography variant="subtitle2" mb={0.5}>
                             {t('projectSetting.description')}
-                          </Box>
+                          </Typography>
                           <TextField
                             label={t('projectSetting.description')}
                             multiline
@@ -235,9 +236,9 @@ export default function ProjectSettings() {
                     </Box>
 
                     <Box>
-                      <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+                      <Typography variant="subtitle2" mb={0.5}>
                         {t('projectSetting.homePageUrl')}
-                      </Box>
+                      </Typography>
 
                       <TextField
                         label={t('projectSetting.homePageUrl')}
@@ -252,9 +253,9 @@ export default function ProjectSettings() {
 
                 <Box>
                   <Box>
-                    <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+                    <Typography variant="subtitle2" mb={0.5}>
                       {t('model')}
-                    </Box>
+                    </Typography>
 
                     <ModelSelectField
                       hiddenLabel
@@ -403,9 +404,9 @@ export default function ProjectSettings() {
 
                 <Box>
                   <Box>
-                    <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+                    <Typography variant="subtitle2" mb={0.5}>
                       {t('Git Version')}
-                    </Box>
+                    </Typography>
                   </Box>
 
                   <FormControl className="version" sx={{ width: 1 }}>

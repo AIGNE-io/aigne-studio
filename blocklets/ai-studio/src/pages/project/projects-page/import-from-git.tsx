@@ -15,6 +15,7 @@ import {
   Stack,
   TextField,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import gitUrlParse from 'git-url-parse';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
@@ -101,9 +102,7 @@ export default function ImportFromGit({ children }: { children: any }) {
         <DialogContent>
           <Stack gap={1.5}>
             <Box>
-              <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                {`${t('url')}*`}
-              </Box>
+              <Typography variant="subtitle2">{`${t('url')}*`}</Typography>
               <TextField
                 autoFocus
                 fullWidth
@@ -152,9 +151,7 @@ export default function ImportFromGit({ children }: { children: any }) {
             </Box>
 
             <Box>
-              <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                {t('username')}
-              </Box>
+              <Typography variant="subtitle2">{t('username')}</Typography>
               <TextField
                 fullWidth
                 label={t('username')}
@@ -167,9 +164,7 @@ export default function ImportFromGit({ children }: { children: any }) {
             </Box>
 
             <Box>
-              <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                {t('projectSetting.name')}
-              </Box>
+              <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
               <TextField
                 label={t('projectSetting.name')}
                 {...form.register('name')}
@@ -183,9 +178,7 @@ export default function ImportFromGit({ children }: { children: any }) {
             </Box>
 
             <Box>
-              <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                {t('projectSetting.description')}
-              </Box>
+              <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
               <TextField
                 label={t('projectSetting.description')}
                 multiline
@@ -200,9 +193,7 @@ export default function ImportFromGit({ children }: { children: any }) {
             </Box>
 
             <Box>
-              <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                {t('accessToken')}
-              </Box>
+              <Box variant="subtitle2">{t('accessToken')}</Box>
               <TextField
                 fullWidth
                 label={t('accessToken')}

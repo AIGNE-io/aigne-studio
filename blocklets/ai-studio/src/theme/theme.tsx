@@ -1,7 +1,6 @@
 import { ArrowDropDownRounded } from '@mui/icons-material';
 import {
   autocompleteClasses,
-  createTheme,
   filledInputClasses,
   inputBaseClasses,
   inputClasses,
@@ -12,6 +11,7 @@ import {
   svgIconClasses,
   switchClasses,
 } from '@mui/material';
+import { createTheme } from '@mui/material/styles';
 
 export const lightThemeRoot = `
 :root {
@@ -261,6 +261,18 @@ export const theme = createTheme({
       'ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji',
     button: {
       textTransform: 'none',
+    },
+    subtitle2: {
+      fontSize: '14px',
+      lineHeight: '24px',
+      fontWeight: 500,
+      color: '#121618',
+    },
+    subtitle3: {
+      fontSize: '13px',
+      lineHeight: '23px',
+      fontWeight: 400,
+      color: '#4B5563',
     },
   },
   palette: {
@@ -701,6 +713,21 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           padding: '12px 24px !important',
+        },
+      },
+    },
+    MuiButton: {
+      defaultProps: {
+        size: 'small',
+      },
+      styleOverrides: {
+        contained: {
+          backgroundColor: '#030712',
+          color: 'white',
+
+          '&:hover': {
+            backgroundColor: '#030712',
+          },
         },
       },
     },

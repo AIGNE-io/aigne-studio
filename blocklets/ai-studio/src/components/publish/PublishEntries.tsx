@@ -32,6 +32,26 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
 
   return (
     <Stack>
+      <Box className="between">
+        <Typography variant="subtitle2" mb={0.5}>
+          {t('entries')}
+        </Typography>
+
+        <Box
+          sx={{ cursor: 'pointer', color: '#3B82F6' }}
+          onClick={() => {
+            const id = nanoid();
+            doc.transact(() => {
+              assistant.entries ??= {};
+              const index = Object.values(assistant.entries).length;
+              assistant.entries[id] = { index, data: { id } };
+            });
+            setCurrentId(id);
+          }}>
+          <Add />
+        </Box>
+      </Box>
+
       {assistant.entries && (
         <DragSortListYjs
           list={assistant.entries}
@@ -52,20 +72,6 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
           )}
         />
       )}
-
-      <Button
-        startIcon={<Add />}
-        onClick={() => {
-          const id = nanoid();
-          doc.transact(() => {
-            assistant.entries ??= {};
-            const index = Object.values(assistant.entries).length;
-            assistant.entries[id] = { index, data: { id } };
-          });
-          setCurrentId(id);
-        }}>
-        {t('addObject', { object: t('entry') })}
-      </Button>
 
       <Dialog
         component="form"
@@ -168,7 +174,7 @@ function PublishEntriesForm({
         onChange={(e) => (entry.title = e.target.value)}
       />
 
-      <Typography variant="subtitle2">{t('parameters')}</Typography>
+      <Typography variant="subtitle1">{t('parameters')}</Typography>
 
       {parameters.map(({ data: parameter }) => {
         if (parameter.key === 'question') return null;

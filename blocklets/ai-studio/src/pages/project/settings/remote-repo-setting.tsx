@@ -22,13 +22,13 @@ import gitUrlParse from 'git-url-parse';
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import Switch from '../../../components/custom/switch';
 import PromiseLoadingButton from '../../../components/promise-loading-button';
 import { getErrorMessage } from '../../../libs/api';
 import Eye from '../icons/eye';
 import EyeNo from '../icons/eye-no';
 import { isTheErrorShouldShowMergeConflict, useMergeConflictDialog } from '../save-button';
 import { useProjectState } from '../state';
-import Switch from './switch';
 
 interface RemoteRepoSettingForm {
   url: string;
@@ -103,9 +103,9 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
       {dialog}
       <>
         <Box>
-          <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+          <Typography variant="subtitle2" mb={0.5}>
             {`${t('url')}*`}
-          </Box>
+          </Typography>
 
           <TextField
             autoFocus
@@ -145,9 +145,9 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
         </Box>
 
         <Box>
-          <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+          <Typography variant="subtitle2" mb={0.5}>
             {t('username')}
-          </Box>
+          </Typography>
 
           <TextField
             fullWidth
@@ -160,9 +160,9 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
         </Box>
 
         <Box>
-          <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+          <Typography variant="subtitle2" mb={0.5}>
             {t('accessToken')}
-          </Box>
+          </Typography>
 
           <TextField
             fullWidth

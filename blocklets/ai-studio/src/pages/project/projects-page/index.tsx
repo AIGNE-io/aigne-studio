@@ -274,9 +274,7 @@ function ProjectMenu() {
               content: (
                 <Stack overflow="auto" gap={2}>
                   <Box>
-                    <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                      {t('projectSetting.name')}
-                    </Box>
+                    <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
                     <TextField
                       autoFocus
                       label={t('projectSetting.name')}
@@ -287,9 +285,7 @@ function ProjectMenu() {
                   </Box>
 
                   <Box>
-                    <Box fontWeight={500} fontSize={14} lineHeight="24px">
-                      {t('projectSetting.description')}
-                    </Box>
+                    <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
                     <TextField
                       label={t('projectSetting.description')}
                       multiline
@@ -935,7 +931,7 @@ function ButtonPopper({ children, list }: { children: any; list?: any }) {
 
   return (
     <>
-      <Box ref={anchorRef}> {cloneElement(children, { onClick: handleToggle })}</Box>
+      <Box ref={anchorRef}>{cloneElement(children, { onClick: handleToggle })}</Box>
 
       <Popper sx={{ zIndex: 1 }} open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal>
         {({ TransitionProps, placement }) => (

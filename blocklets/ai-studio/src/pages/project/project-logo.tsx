@@ -2,8 +2,14 @@
 // import { useEffect } from 'react';
 // import { useParams } from 'react-router-dom';
 
-import Logo from './icons/logo';
+import styled from '@emotion/styled';
+import { joinURL } from 'ufo';
+
+const TemplateImage = styled('img')({
+  width: '100%',
+  height: '100%',
+});
 
 export default function ProjectLogo() {
-  return <Logo />;
+  return <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/logo.png')} alt="" />;
 }

@@ -70,8 +70,8 @@ export default function KnowledgeDatasets() {
 
   return (
     <>
-      <Stack m={{ xs: 2, sm: 3 }} overflow="auto">
-        <ListContainer gap={{ xs: 2, sm: 3 }}>
+      <Stack m={2.5} overflow="auto">
+        <ListContainer gap={2.5}>
           <DatasetItemAdd
             name={t('knowledge.createTitle')}
             description={t('knowledge.createDescription')}
@@ -168,16 +168,14 @@ function DatasetItemAdd({
   description?: string;
 } & StackProps) {
   return (
-    <DatasetItemRoot {...props}>
-      <Box className="itemTitle">
+    <DatasetItemRoot {...props} display="flex" justifyContent="center" alignItems="center">
+      <Stack display="flex" justifyContent="center" alignItems="center">
         <Add sx={{ width: '2rem', height: '2rem' }} />
 
         <Box className="itemHeading">
           <Box className="headingContent">{name || ''}</Box>
         </Box>
-      </Box>
-
-      <Box className="itemDescription">{description || ''}</Box>
+      </Stack>
     </DatasetItemRoot>
   );
 }
@@ -253,7 +251,7 @@ function DatasetItem({
 
 const DatasetItemRoot = styled(Stack)`
   display: flex;
-  min-height: 160px;
+  min-height: 140px;
   cursor: pointer;
   flex-direction: column;
   border-radius: 0.5rem;
@@ -265,7 +263,6 @@ const DatasetItemRoot = styled(Stack)`
   &.newItemCard {
     outline: 1px solid #e5e7eb;
     outline-offset: -1px;
-    background: rgba(229, 231, 235, 0.5);
     border-width: 0;
 
     &:hover {
@@ -368,5 +365,5 @@ const DatasetItemRoot = styled(Stack)`
 
 const ListContainer = styled(Box)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
 `;
