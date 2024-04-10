@@ -242,8 +242,8 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
   const { datasetId } = req.params;
 
   const input = await Joi.object<{ name: string; content?: string }>({
-    name: Joi.string().required(),
-    content: Joi.string().required(),
+    name: Joi.string().allow('').default(''),
+    content: Joi.string().allow('').default(''),
   }).validateAsync(req.body, { stripUnknown: true });
 
   if (!datasetId) {

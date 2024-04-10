@@ -157,14 +157,14 @@ function PublishViewContent({
           paymentEnabled,
           paymentUnitAmount,
         });
-        await refetch();
+        await refetch({ force: true });
         Toast.success(t('publish.publishSuccess'));
       } else {
         await updateRelease(release.id, {
           paymentEnabled,
           paymentUnitAmount,
         });
-        await refetch();
+        await refetch({ force: true });
         Toast.success(t('publish.updateSuccess'));
       }
     } catch (error) {
@@ -175,14 +175,6 @@ function PublishViewContent({
 
   return (
     <Stack px={2} mt={1} py={1} gap={2} ml={1} overflow="auto" component="form" onSubmit={form.handleSubmit(onSubmit)}>
-      <Stack>
-        <Typography variant="subtitle2" mb={1}>
-          {t('entries')}
-        </Typography>
-
-        <PublishEntries assistant={assistant} />
-      </Stack>
-
       <FormControl>
         <Typography variant="subtitle2" mb={1}>
           {t('templates')}
@@ -218,6 +210,14 @@ function PublishViewContent({
           />
         </RadioGroup>
       </FormControl>
+
+      <Stack>
+        <Typography variant="subtitle2" mb={1}>
+          {t('entries')}
+        </Typography>
+
+        <PublishEntries assistant={assistant} />
+      </Stack>
 
       <FormControl>
         <Typography mb={1} variant="subtitle2">
