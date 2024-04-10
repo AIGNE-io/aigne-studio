@@ -33,9 +33,8 @@ import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/
 import { useMemo, useState } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
-import Add from '../../pages/project/icons/add';
+import Add from '../../pages/project/icons/plus';
 import Settings from '../../pages/project/icons/settings';
-import Trash from '../../pages/project/icons/trash';
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
@@ -46,11 +45,17 @@ function CustomNoRowsOverlay() {
   const { t } = useLocaleContext();
 
   return (
-    <Box width={1} height={1} display="flex" justifyContent="center" alignItems="center">
-      <Typography variant="caption" color="text.disabled">
-        {t('noVariables')}
+    <Stack width={1} textAlign="center">
+      <Box lineHeight="28px">🔢</Box>
+
+      <Typography variant="caption" color="#030712" fontSize={13} lineHeight="22px" fontWeight={500}>
+        {t('No variables Yet')}
       </Typography>
-    </Box>
+
+      <Typography variant="caption" color="#9CA3AF" fontSize={12} lineHeight="20px" fontWeight={500}>
+        {t("You haven't added any variables yet.")}
+      </Typography>
+    </Stack>
   );
 }
 
@@ -170,8 +175,6 @@ export default function ParametersTable({
       {
         field: 'type',
         headerName: t('type'),
-        headerAlign: 'center',
-        align: 'center',
         width: 120,
         renderCell: ({ row: { data: parameter } }) => {
           const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
@@ -185,7 +188,6 @@ export default function ParametersTable({
                 variant="standard"
                 hiddenLabel
                 SelectProps={{ autoWidth: true }}
-                sx={{ ml: 2 }}
                 value={multiline ? 'multiline' : parameter?.type ?? 'string'}
                 InputProps={{ readOnly }}
                 onChange={(e) => {
@@ -210,8 +212,6 @@ export default function ParametersTable({
       {
         field: 'actions',
         headerName: t('actions'),
-        headerAlign: 'center',
-        align: 'center',
         width: 100,
       },
     ];
@@ -231,13 +231,13 @@ export default function ParametersTable({
   return (
     <>
       <Box>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
           <Typography variant="subtitle1">{t('parameters')}</Typography>
 
           {!readOnly && (
-            <Stack direction="row" gap={1}>
+            <Stack direction="row">
               <Button sx={{ minWidth: 32, p: 0, minHeight: 32 }} {...bindTrigger(settingPopperState)}>
-                <Settings fontSize="small" />
+                <Settings sx={{ fontSize: 16 }} />
               </Button>
 
               <Popper {...bindPopper(settingPopperState)} placement="bottom-end">
@@ -287,7 +287,7 @@ export default function ParametersTable({
                     document.getElementById(`${id}-key`)?.focus();
                   });
                 }}>
-                <Add />
+                <Add sx={{ fontSize: 16 }} />
               </Button>
             </Stack>
           )}
@@ -296,11 +296,9 @@ export default function ParametersTable({
         {parameters.length ? (
           <Box
             sx={{
-              border: (theme) => `1px solid ${theme.palette.divider}`,
-              borderRadius: 1,
+              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
               whiteSpace: 'nowrap',
               maxWidth: '100%',
-              overflow: 'auto',
               table: {
                 td: { py: 0 },
                 'tbody tr:last-of-type td': {
@@ -312,7 +310,11 @@ export default function ParametersTable({
               <TableHead>
                 <TableRow>
                   {columns.map((column) => (
-                    <TableCell key={column.field} align={column.headerAlign} width={column.width}>
+                    <TableCell
+                      key={column.field}
+                      align={column.headerAlign}
+                      width={column.width}
+                      sx={{ px: 0, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
                       {column.field === 'placeholder' ? (
                         <Box display="flex" alignItems="center">
                           {t('form.parameter.placeholder')}
@@ -348,37 +350,53 @@ export default function ParametersTable({
                             : 'transparent',
                         transition: 'all 2s',
                       }}>
-                      {columns.map(
-                        (column, index) =>
+                      {columns.map((column, index) => {
+                        return (
                           index !== columns.length - 1 && (
                             <TableCell
                               key={column.field}
                               align={column.align}
                               sx={{
+                                px: 0,
                                 ...getDiffBackground('parameters', parameter.id),
                               }}>
-                              {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
+                              <Box display="flex" alignItems="center" position="relative">
+                                {index === 0 && (
+                                  <Box
+                                    sx={{
+                                      minWidth: 0,
+                                      p: 0.5,
+                                      borderRadius: 100,
+                                      cursor: 'pointer',
+                                      ml: -3,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                    }}
+                                    ref={params.drag}>
+                                    <DragVertical sx={{ color: '#9CA3AF', fontSize: 22 }} />
+                                  </Box>
+                                )}
+                                {column.renderCell?.({ row: { data: parameter } } as any) ||
+                                  get(parameter, column.field)}
+                              </Box>
                             </TableCell>
                           )
-                      )}
+                        );
+                      })}
 
-                      <TableCell sx={{ pr: 0.5 }}>
+                      <TableCell sx={{ px: 0, display: 'flex', gap: 1 }}>
                         <Button
                           disabled={readOnly}
-                          sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+                          sx={{ minWidth: 0, p: 0.5, borderRadius: 100, ml: -0.5 }}
                           onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
-                          <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
+                          <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('setting')}</Box>
                         </Button>
 
                         <Button
                           disabled={readOnly}
-                          sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
+                          sx={{ minWidth: 0, p: 0.5, borderRadius: 100, ml: -0.5 }}
                           onClick={() => deleteParameter(parameter)}>
-                          <Trash sx={{ color: 'text.secondary', opacity: 0.9, fontSize: 18 }} />
-                        </Button>
-
-                        <Button disabled={readOnly} sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }} ref={params.drag}>
-                          <DragVertical sx={{ color: 'text.secondary', fontSize: 22 }} />
+                          <Box sx={{ color: '#E11D48', fontSize: 13 }}>{t('delete')}</Box>
                         </Button>
                       </TableCell>
                     </TableRow>

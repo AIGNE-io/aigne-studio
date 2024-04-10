@@ -1,12 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
-import { Box, Stack, TextField, chipClasses, inputBaseClasses, inputClasses, styled } from '@mui/material';
+import { Box, Stack, TextField, inputBaseClasses, inputClasses, styled } from '@mui/material';
 
 import { useReadOnly } from '../../contexts/session';
 import { useAssistantCompare } from '../../pages/project/state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
-import TagsAutoComplete from '../template-form/tags-autocomplete';
+
+// import TagsAutoComplete from '../template-form/tags-autocomplete';
 
 export default function BasicInfoForm({
   projectId,
@@ -27,7 +28,7 @@ export default function BasicInfoForm({
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly });
 
   return (
-    <Stack gap={0.5}>
+    <Stack>
       <Box position="relative">
         <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
           <Stack display="flex" flexDirection="row">
@@ -43,6 +44,9 @@ export default function BasicInfoForm({
               }}
               sx={{
                 [`.${inputBaseClasses.root}`]: {
+                  fontSize: 18,
+                  fontWeight: 600,
+                  lineHeight: '28px',
                   ...getDiffBackground('name'),
                 },
               }}
@@ -71,6 +75,9 @@ export default function BasicInfoForm({
             InputProps={{ readOnly, sx: { color: 'text.secondary' } }}
             sx={{
               [`.${inputBaseClasses.root}`]: {
+                fontSize: 14,
+                fontWeight: 400,
+                lineHeight: '24px',
                 ...getDiffBackground('description'),
               },
             }}
@@ -85,7 +92,7 @@ export default function BasicInfoForm({
         />
       </Box>
 
-      <Box position="relative">
+      {/* <Box position="relative">
         <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
           <TagsAutoComplete
             readOnly={readOnly}
@@ -118,7 +125,7 @@ export default function BasicInfoForm({
           path={[value.id, 'tag']}
           sx={{ position: 'absolute', right: 0, top: 0 }}
         />
-      </Box>
+      </Box> */}
     </Stack>
   );
 }

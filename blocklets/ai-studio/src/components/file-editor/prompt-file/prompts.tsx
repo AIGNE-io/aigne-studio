@@ -43,18 +43,20 @@ export default function PromptPrompts({
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   return (
-    <Box
+    <Stack
+      gap={1}
       sx={{
         borderRadius: 1,
         bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+        px: 2,
+        py: 1.5,
       }}>
-      <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
+      <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
         <TipsAndUpdatesRounded fontSize="small" color="primary" />
-
         <Typography variant="subtitle1">{t('formatPrompt')}</Typography>
       </Stack>
 
-      <Stack gap={2} p={2}>
+      <>
         {value.prompts && (
           <DragSortListYjs
             sx={{ gap: 2 }}
@@ -141,8 +143,8 @@ export default function PromptPrompts({
             </Button>
           </Stack>
         )}
-      </Stack>
-    </Box>
+      </>
+    </Stack>
   );
 }
 

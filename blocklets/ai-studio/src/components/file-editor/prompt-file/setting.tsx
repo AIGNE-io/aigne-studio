@@ -43,8 +43,18 @@ export default function PromptSetting({
   }, [value.model, project?.model, supportedModels]);
 
   return (
-    <>
-      <Stack direction="row" alignItems="center" gap={2}>
+    <Box sx={{ border: '1px solid #E5E7EB', p: '8px 16px', borderRadius: 1 }}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        sx={{
+          fontWeight: 500,
+          fontSize: 14,
+          lineHeight: '24px',
+          color: '#030712',
+          cursor: 'pointer',
+        }}
+        onClick={() => setOpen(!open)}>
         <Typography variant="subtitle1">{t('callPrompt')}</Typography>
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end">
@@ -53,8 +63,6 @@ export default function PromptSetting({
               <Typography
                 component="span"
                 sx={{
-                  bgcolor: 'rgba(241, 243, 245, 1)',
-                  p: 1,
                   borderRadius: 1,
                   lineHeight: 1,
                   backgroundColor: getDiffBackground('model'),
@@ -65,14 +73,14 @@ export default function PromptSetting({
           )}
         </Stack>
 
-        <Button sx={{ minWidth: 32, minHeight: 32 }} onClick={() => setOpen(!open)}>
-          <ExpandMoreRounded
-            sx={{
-              transform: open ? 'rotateZ(180deg)' : undefined,
-              transition: (theme) => theme.transitions.create('all'),
-            }}
-          />
-        </Button>
+        <ExpandMoreRounded
+          sx={{
+            transform: !open ? 'rotateZ(270deg)' : 'rotateZ(360deg)',
+            transition: (theme) => theme.transitions.create('all'),
+            color: '#030712',
+            fontSize: 18,
+          }}
+        />
       </Stack>
 
       <Collapse in={open}>
@@ -230,6 +238,6 @@ export default function PromptSetting({
           )}
         </Stack>
       </Collapse>
-    </>
+    </Box>
   );
 }

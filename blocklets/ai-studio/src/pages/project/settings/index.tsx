@@ -191,74 +191,83 @@ export default function ProjectSettings() {
   }
 
   return (
-    <Box overflow="auto">
+    <Box overflow="auto" height={1}>
       <UploaderProvider>
-        <SettingsContainer sx={{ pb: 10 }} maxWidth="sm">
-          <Stack gap={2}>
+        <SettingsContainer maxWidth="sm" sx={{ my: 2.5 }}>
+          <Stack gap={2.5}>
             <Form onSubmit={(e) => e.preventDefault()}>
-              <Box>
-                <Box component="h3" mt={0}>
-                  {t('projectSetting.baseInfo')}
-                </Box>
+              <Stack gap={2.5}>
+                <Box>
+                  <Stack gap={1}>
+                    <Box display="flex" alignItems="center">
+                      <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
 
-                <Stack gap={1}>
-                  <Box display="flex" alignItems="center">
-                    <Avatar value={value.icon ?? ''} onChange={(d: any) => set('icon', d)} />
+                      <Stack gap={1.5} flex={1} ml={1.5}>
+                        <Box>
+                          <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+                            {t('projectSetting.name')}
+                          </Box>
 
-                    <Stack spacing={1} flex={1} ml={4}>
+                          <TextField
+                            label={t('projectSetting.name')}
+                            sx={{ width: 1 }}
+                            value={value.name ?? ''}
+                            onChange={(e) => set('name', e.target.value)}
+                            InputProps={{ readOnly }}
+                          />
+                        </Box>
+
+                        <Box>
+                          <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+                            {t('projectSetting.description')}
+                          </Box>
+                          <TextField
+                            label={t('projectSetting.description')}
+                            multiline
+                            rows={2}
+                            sx={{ width: 1 }}
+                            value={value.description ?? ''}
+                            onChange={(e) => set('description', e.target.value)}
+                            InputProps={{ readOnly }}
+                          />
+                        </Box>
+                      </Stack>
+                    </Box>
+
+                    <Box>
+                      <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+                        {t('projectSetting.homePageUrl')}
+                      </Box>
+
                       <TextField
-                        label={t('projectSetting.name')}
-                        sx={{ flex: 1 }}
-                        value={value.name ?? ''}
-                        onChange={(e) => set('name', e.target.value)}
+                        label={t('projectSetting.homePageUrl')}
+                        value={value.homePageUrl ?? ''}
+                        onChange={(e) => set('homePageUrl', e.target.value)}
                         InputProps={{ readOnly }}
-                      />
-
-                      <TextField
-                        label={t('projectSetting.description')}
-                        multiline
-                        rows={4}
                         sx={{ width: 1 }}
-                        value={value.description ?? ''}
-                        onChange={(e) => set('description', e.target.value)}
-                        InputProps={{ readOnly }}
                       />
-                    </Stack>
-                  </Box>
-
-                  <TextField
-                    label={t('projectSetting.homePageUrl')}
-                    value={value.homePageUrl ?? ''}
-                    onChange={(e) => set('homePageUrl', e.target.value)}
-                    InputProps={{ readOnly }}
-                  />
-                </Stack>
-              </Box>
-
-              <Box>
-                <Box component="h3" mt={4}>
-                  {t('projectSetting.defaultModel')}
+                    </Box>
+                  </Stack>
                 </Box>
 
                 <Box>
-                  <Box className="prefer-inline">
-                    <Box>
-                      <FormLabel>{t('model')}</FormLabel>
+                  <Box>
+                    <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+                      {t('model')}
                     </Box>
 
-                    <Box>
-                      <ModelSelectField
-                        hiddenLabel
-                        fullWidth
-                        value={value.model ?? ''}
-                        onChange={(e) => set('model', e.target.value)}
-                        InputProps={{ readOnly }}
-                      />
-                    </Box>
+                    <ModelSelectField
+                      hiddenLabel
+                      fullWidth
+                      value={value.model ?? ''}
+                      onChange={(e) => set('model', e.target.value)}
+                      InputProps={{ readOnly }}
+                      sx={{ width: 1 }}
+                    />
                   </Box>
 
                   {model && (
-                    <>
+                    <Stack gap={1} py={1}>
                       <Box className="prefer-inline">
                         <Box>
                           <Tooltip title={t('temperatureTip')} placement="top" disableInteractive>
@@ -388,18 +397,18 @@ export default function ProjectSettings() {
                           />
                         </Box>
                       </Box>
-                    </>
+                    </Stack>
                   )}
-                </Box>
-              </Box>
-
-              <Box>
-                <Box component="h3" mt={4}>
-                  {t('projectSetting.gitType.title')}
                 </Box>
 
                 <Box>
-                  <FormControl className="version">
+                  <Box>
+                    <Box fontWeight={500} fontSize={14} lineHeight="24px" mb={0.5}>
+                      {t('Git Version')}
+                    </Box>
+                  </Box>
+
+                  <FormControl className="version" sx={{ width: 1 }}>
                     <RadioGroup
                       value={value.gitType ?? 'default'}
                       onChange={(e) => !readOnly && set('gitType', e.target.value)}>
@@ -409,7 +418,7 @@ export default function ProjectSettings() {
                             key={version.value}
                             sx={{ mb: 1, mr: 0, ':last-child': { m: 0 }, alignItems: 'flex-start' }}
                             value={version.value}
-                            control={<Radio />}
+                            control={<Radio sx={{ ml: -0.5 }} />}
                             label={
                               <Box mt={0.25} ml={0.5}>
                                 <Box className="title">{version.title}</Box>
@@ -422,37 +431,36 @@ export default function ProjectSettings() {
                     </RadioGroup>
                   </FormControl>
                 </Box>
-              </Box>
 
-              <Box sx={{ textAlign: 'right' }}>
-                <LoadingButton
-                  disabled={readOnly}
-                  variant="contained"
-                  loadingPosition="start"
-                  loading={submitLoading}
-                  startIcon={<SaveRounded />}
-                  onClick={onSubmit}>
-                  {t('save')}
-                </LoadingButton>
-              </Box>
+                <Box>
+                  <LoadingButton
+                    sx={{
+                      bgcolor: '#030712',
+                      color: '#fff',
+                      '&hover': {
+                        bgcolor: '#030712',
+                      },
+                    }}
+                    disabled={readOnly}
+                    variant="contained"
+                    loadingPosition="start"
+                    loading={submitLoading}
+                    startIcon={<SaveRounded />}
+                    onClick={onSubmit}>
+                    {t('save')}
+                  </LoadingButton>
+                </Box>
+              </Stack>
             </Form>
 
-            <Box
-              sx={{ border: '1px solid #ddd', padding: 2, borderRadius: (theme) => `${theme.shape.borderRadius}px` }}>
-              <Box component="h3" sx={{ marginTop: 0 }}>
-                {t('remoteGitRepo')}
-              </Box>
+            <Form>
               <RemoteRepoSetting projectId={projectId} />
-            </Box>
+            </Form>
 
             {!isEmpty(session.user?.didSpace?.endpoint) && (
-              <Box
-                sx={{ border: '1px solid #ddd', padding: 2, borderRadius: (theme) => `${theme.shape.borderRadius}px` }}>
-                <Box component="h3" sx={{ marginTop: 0 }}>
-                  {t('didSpaces.title')}
-                </Box>
+              <Form>
                 <DidSpacesSetting projectId={projectId} />
-              </Box>
+              </Form>
             )}
           </Stack>
         </SettingsContainer>
@@ -464,12 +472,9 @@ export default function ProjectSettings() {
 }
 
 const SettingsContainer = styled(Container)`
-  margin-top: 16px;
-
   .prefer-inline {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
 
     &:last-child {
       margin: 0;
@@ -501,7 +506,8 @@ const SettingsContainer = styled(Container)`
 `;
 
 const Form = styled('form')`
-  border: 1px solid #ddd;
-  padding: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 16px 20px;
   border-radius: ${({ theme }) => theme.shape.borderRadius}px;
+  background: #fff;
 `;

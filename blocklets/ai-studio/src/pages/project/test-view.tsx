@@ -53,18 +53,14 @@ export default function DebugView({
         alignItems="center"
         justifyContent="space-between"
         px={2}
-        py={1}
+        py={1.5}
         bgcolor="background.paper"
         sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <Typography ml={1} variant="subtitle1">
+        <Typography variant="subtitle1" fontSize={14} lineHeight="24px" fontWeight={500} color="#9CA3AF">
           {t('testCaseCount', { count: tests.length })}{' '}
         </Typography>
 
-        <LoadingButton
-          loading={running}
-          loadingPosition="end"
-          endIcon={<RefreshSquareIcon fontSize="small" />}
-          onClick={runAll}>
+        <LoadingButton loading={running} loadingPosition="end" onClick={runAll}>
           {t('runAll')}
         </LoadingButton>
       </Stack>

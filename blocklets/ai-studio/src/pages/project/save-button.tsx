@@ -153,8 +153,16 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
       <Button
         {...bindTrigger(dialogState)}
         disabled={submitting || disabled}
-        sx={{ position: 'relative', minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}>
-        <Save sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: '#030712' }} />
+        sx={{
+          position: 'relative',
+          minWidth: 0,
+          minHeight: 0,
+          width: 32,
+          height: 32,
+          border: '1px solid #E5E7EB',
+          color: '#030712',
+        }}>
+        <Save sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }} />
         {submitting && (
           <Box
             sx={{

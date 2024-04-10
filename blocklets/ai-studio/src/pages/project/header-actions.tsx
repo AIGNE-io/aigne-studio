@@ -30,6 +30,7 @@ export default function HeaderActions() {
           <History sx={{ fontSize: 20 }} />
         </Button>
       </CommitsTip>
+
       <SaveButton projectId={projectId} gitRef={gitRef} />
     </Stack>
   );

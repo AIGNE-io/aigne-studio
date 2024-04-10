@@ -4,7 +4,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   isApiAssistant,
-  isAssistant,
   isFunctionAssistant,
   isImageAssistant,
   isPromptAssistant,
@@ -63,8 +62,6 @@ import SideBar from './icons/sidebar';
 import PublishView from './publish-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
-import { TokenUsage } from './token-usage';
-import UndoAndRedo from './undo';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
@@ -294,8 +291,9 @@ export default function ProjectPage() {
             sx={{
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
+              borderBottom: '1px solid #E5E7EB',
             }}>
-            <Toolbar variant="dense" sx={{ gap: 1, px: { xs: 1 } }}>
+            <Toolbar variant="dense" sx={{ gap: 1, px: 2.5 }}>
               <Tabs
                 variant="scrollable"
                 scrollButtons={false}
@@ -303,7 +301,7 @@ export default function ProjectPage() {
                 onChange={(_, tab) => setCurrentTab(tab)}
                 TabIndicatorProps={{ children: <Box component="span" /> }}
                 sx={{
-                  ml: 1,
+                  ml: -1,
                   minHeight: 32,
                   [`.${tabClasses.root}`]: {
                     py: 1,
@@ -361,30 +359,30 @@ export default function ProjectPage() {
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
             }}>
-            <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
-              {!leftOpen && (
-                <PanelToggleButton
-                  placement="left"
-                  collapsed
-                  onClick={() => (leftOpen ? layout.current?.collapseLeft() : layout.current?.expandLeft())}
-                />
-              )}
+            {(!leftOpen || !rightOpen) && (
+              <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
+                {!leftOpen && (
+                  <PanelToggleButton
+                    placement="left"
+                    collapsed
+                    onClick={() => (leftOpen ? layout.current?.collapseLeft() : layout.current?.expandLeft())}
+                  />
+                )}
 
-              <Box flex={1} />
+                <Box flex={1} />
 
-              {file && <UndoAndRedo projectId={projectId} gitRef={gitRef} id={fileId} />}
-
-              {!rightOpen && (
-                <PanelToggleButton
-                  placement="right"
-                  collapsed
-                  onClick={() => (rightOpen ? layout.current?.collapseRight() : layout.current?.expandRight())}
-                />
-              )}
-            </Toolbar>
+                {!rightOpen && (
+                  <PanelToggleButton
+                    placement="right"
+                    collapsed
+                    onClick={() => (rightOpen ? layout.current?.collapseRight() : layout.current?.expandRight())}
+                  />
+                )}
+              </Toolbar>
+            )}
           </Box>
 
-          <Box mx={{ xs: 2 }} flexGrow={1}>
+          <Box my={2.5} flexGrow={1}>
             {!synced ? (
               <Box sx={{ textAlign: 'center', mt: 10 }}>
                 <CircularProgress size={32} />
@@ -409,24 +407,6 @@ export default function ProjectPage() {
               <EmptyView />
             )}
           </Box>
-
-          {file && (
-            <Box
-              sx={{
-                position: 'sticky',
-                bottom: 0,
-                bgcolor: 'background.paper',
-                zIndex: (theme) => theme.zIndex.appBar,
-                borderTop: (theme) => `1px solid ${theme.palette.grey[50]}`,
-              }}>
-              {isAssistant(file) && (
-                <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
-                  <TokenUsage assistant={file} />
-                  <Box />
-                </Toolbar>
-              )}
-            </Box>
-          )}
         </Stack>
       )}
     </ColumnsLayout>

@@ -46,35 +46,37 @@ export default function CommitsTip({
 
   return (
     <ClickAwayListener onClickAway={handleTooltipClose}>
-      <Tooltip
-        PopperProps={{
-          disablePortal: true,
-        }}
-        onClose={handleTooltipClose}
-        open={open}
-        disableFocusListener
-        disableHoverListener
-        disableTouchListener
-        sx={{
-          [`.${tooltipClasses.tooltip}`]: {
-            minWidth: 200,
-            maxHeight: '60vh',
-            overflow: 'auto',
-          },
-        }}
-        title={
-          <CommitListView
-            loading={loading}
-            selected={hash}
-            commits={commits}
-            onClick={async (commit) => {
-              await onCommitSelect(commit);
-              handleTooltipClose();
-            }}
-          />
-        }>
-        {cloneElement(children, { onClick: handleTooltipOpen })}
-      </Tooltip>
+      <div>
+        <Tooltip
+          PopperProps={{
+            disablePortal: true,
+          }}
+          onClose={handleTooltipClose}
+          open={open}
+          disableFocusListener
+          disableHoverListener
+          disableTouchListener
+          sx={{
+            [`.${tooltipClasses.tooltip}`]: {
+              minWidth: 200,
+              maxHeight: '60vh',
+              overflow: 'auto',
+            },
+          }}
+          title={
+            <CommitListView
+              loading={loading}
+              selected={hash}
+              commits={commits}
+              onClick={async (commit) => {
+                await onCommitSelect(commit);
+                handleTooltipClose();
+              }}
+            />
+          }>
+          {cloneElement(children, { onClick: handleTooltipOpen })}
+        </Tooltip>
+      </div>
     </ClickAwayListener>
   );
 }

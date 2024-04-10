@@ -6,13 +6,14 @@ import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { CheckCircleOutlineRounded, ErrorOutlineRounded, SyncRounded } from '@mui/icons-material';
 import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
-import { Button, CircularProgress, FormControlLabel, Stack, Switch, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, FormControlLabel, Stack, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
 
 import PromiseLoadingButton from '../../../components/promise-loading-button';
 import { getErrorMessage } from '../../../libs/api';
 import { isTheErrorShouldShowMergeConflict, useMergeConflictDialog } from '../save-button';
 import { useProjectState } from '../state';
+import Switch from './switch';
 
 export default function DidSpacesSetting({ projectId }: { projectId: string }) {
   const { t, locale } = useLocaleContext();
@@ -38,28 +39,66 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
   );
 
   return (
-    <Stack gap={1}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
-        <FormControlLabel
-          label={t('autoSync')}
-          labelPlacement="start"
-          slotProps={{ typography: { sx: { mr: 2 } } }}
-          control={
-            <Switch
-              defaultChecked={state?.project?.didSpaceAutoSync ?? false}
-              onChange={(_, checked) => changeDidSpaceAutoSync(checked)}
-            />
-          }
-        />
+    <Stack gap={2.5}>
+      <Box fontWeight={500} fontSize={14} lineHeight="24px">
+        {t('didSpaces.title')}
+      </Box>
 
-        <Stack justifyContent="center" alignItems="center" width={24} height={24}>
-          {authSyncUpdating === true ? (
-            <CircularProgress size={20} />
-          ) : authSyncUpdating === 'success' ? (
-            <CheckCircleOutlineRounded color="success" sx={{ fontSize: 24 }} />
-          ) : authSyncUpdating === 'error' ? (
-            <ErrorOutlineRounded color="error" sx={{ fontSize: 24 }} />
+      <Stack direction="row" alignItems="center" gap={1}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+          <FormControlLabel
+            sx={{ m: 0 }}
+            label={t('autoSync')}
+            labelPlacement="end"
+            slotProps={{ typography: { sx: { ml: 1 } } }}
+            control={
+              <Switch
+                defaultChecked={state?.project?.didSpaceAutoSync ?? false}
+                onChange={(_, checked) => changeDidSpaceAutoSync(checked)}
+              />
+            }
+          />
+
+          {authSyncUpdating ? (
+            <Stack justifyContent="center" alignItems="center" width={24} height={24}>
+              {authSyncUpdating === true ? (
+                <CircularProgress size={16} />
+              ) : authSyncUpdating === 'success' ? (
+                <CheckCircleOutlineRounded color="success" sx={{ fontSize: 20 }} />
+              ) : authSyncUpdating === 'error' ? (
+                <ErrorOutlineRounded color="error" sx={{ fontSize: 20 }} />
+              ) : null}
+            </Stack>
           ) : null}
+        </Stack>
+
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+          <PromiseLoadingButton
+            sx={{ p: 0 }}
+            size="small"
+            loadingPosition="start"
+            startIcon={<SyncRounded />}
+            onClick={async () => {
+              try {
+                await sync(projectId, 'didSpace');
+                Toast.success(t('synced'));
+              } catch (error) {
+                if (isTheErrorShouldShowMergeConflict(error)) {
+                  showMergeConflictDialog();
+                  return;
+                }
+                Toast.error(getErrorMessage(error));
+                throw error;
+              }
+            }}>
+            {t('sync')}
+          </PromiseLoadingButton>
+
+          {state?.project?.didSpaceLastSyncedAt && (
+            <Typography variant="caption" color="#9CA3AF">
+              <RelativeTime locale={locale} value={state.project.didSpaceLastSyncedAt} />
+            </Typography>
+          )}
         </Stack>
       </Stack>
 
@@ -79,32 +118,6 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
           }}>
           {t('viewData')}
         </Button>
-        <PromiseLoadingButton
-          size="small"
-          variant="outlined"
-          loadingPosition="start"
-          startIcon={<SyncRounded />}
-          onClick={async () => {
-            try {
-              await sync(projectId, 'didSpace');
-              Toast.success(t('synced'));
-            } catch (error) {
-              if (isTheErrorShouldShowMergeConflict(error)) {
-                showMergeConflictDialog();
-                return;
-              }
-              Toast.error(getErrorMessage(error));
-              throw error;
-            }
-          }}>
-          {t('sync')}
-        </PromiseLoadingButton>
-
-        {state?.project?.didSpaceLastSyncedAt && (
-          <Typography variant="caption" color="text.secondary">
-            {t('syncedAt')}: <RelativeTime locale={locale} value={state.project.didSpaceLastSyncedAt} />
-          </Typography>
-        )}
       </Stack>
     </Stack>
   );

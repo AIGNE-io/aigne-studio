@@ -17,7 +17,7 @@ export default function ProjectSettingsAvatar({ value, onChange }: { value: stri
     <>
       <Avatar
         variant="square"
-        sx={{ width: 80, height: 80, cursor: 'pointer', borderRadius: 1 }}
+        sx={{ width: 172, height: 172, cursor: 'pointer', borderRadius: 1 }}
         alt="Project Logo"
         src={logoUrl}
         onClick={() => {

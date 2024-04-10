@@ -23,7 +23,7 @@ export default function ProjectHeader() {
     }
 
     if (pathname.includes(`${projectId}/setting`)) {
-      return 'setting';
+      return 'settings';
     }
 
     if (pathname.includes(`${projectId}/knowledge`)) {
@@ -34,40 +34,46 @@ export default function ProjectHeader() {
   }, [pathname, projectId]);
 
   return (
-    <Box height={1} overflow="hidden">
+    <Stack height={1} overflow="hidden">
       <Box height={64} borderBottom="1px solid #E5E7EB" px={2.5} className="between">
-        <Box>
+        <Box flex={1}>
           <ProjectBrand />
         </Box>
 
-        <Box>
+        <Box flex={1} display="flex" justifyContent="center">
           <SegmentedControl
             value={current}
             options={[
               { value: 'prompts', label: t('prompts'), icon: <Prompts sx={{ fontSize: 15, mr: 1 }} /> },
-              { value: 'setting', label: t('setting'), icon: <Settings sx={{ fontSize: 15, mr: 1 }} /> },
+              {
+                value: 'settings',
+                label: t('setting'),
+                icon: <Settings sx={{ fontSize: 15, mr: 1, color: '#4B5563' }} />,
+              },
               { value: 'knowledge', label: t('knowledge.menu'), icon: <Knowledge sx={{ fontSize: 15, mr: 1 }} /> },
             ]}
             onChange={(value) => {
-              if (value) navigate(joinURL('/projects', value));
+              if (value) navigate(joinURL('..', projectId || '', value));
             }}
           />
         </Box>
 
-        <Box>
+        <Box flex={1} display="flex" justifyContent="flex-end">
           <ActionRoutes />
         </Box>
       </Box>
 
-      <Outlet />
-    </Box>
+      <Box flex={1} height={0} overflow="hidden" bgcolor="background.default">
+        <Outlet />
+      </Box>
+    </Stack>
   );
 }
 
 function ActionRoutes() {
   const element = useRoutes([
     {
-      path: ':projectId/*',
+      path: ':projectId?/*',
       element: (
         <Stack direction="row" alignItems="center">
           <Outlet />
@@ -76,7 +82,16 @@ function ActionRoutes() {
       children: [
         {
           path: 'file',
-          element: <HeaderActions />,
+          children: [
+            {
+              path: ':ref/*',
+              element: <HeaderActions />,
+            },
+            {
+              path: '*',
+              element: null,
+            },
+          ],
         },
         {
           path: '*',

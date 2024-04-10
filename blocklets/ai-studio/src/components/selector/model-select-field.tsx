@@ -54,7 +54,6 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
           return (
             <Box mt={-0.5}>
               <ListItemIcon sx={{ verticalAlign: 'middle', minWidth: 32 }}>{brandIcon(model.brand)}</ListItemIcon>
-
               <ListItemText
                 sx={{ display: 'inline-flex', alignItems: 'baseline' }}
                 primary={model.name || model.model}
