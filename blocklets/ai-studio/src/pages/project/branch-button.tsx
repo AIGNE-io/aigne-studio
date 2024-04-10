@@ -76,7 +76,7 @@ export default function BranchButton({
                 maxWidth: 'sm',
                 fullWidth: true,
                 title: (
-                  <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box className="between">
                     <Box>{t('form.branch')}</Box>
                     <Button
                       size="small"
@@ -88,11 +88,7 @@ export default function BranchButton({
                         createShowDialog({
                           maxWidth: 'xs',
                           fullWidth: true,
-                          title: (
-                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                              {t('newObject', { object: t('branch') })}
-                            </Box>
-                          ),
+                          title: <Box className="between">{t('newObject', { object: t('branch') })}</Box>,
                           content: (
                             <CreateBranch projectId={projectId} _ref={gitRef} onChange={(_data) => (data = _data)} />
                           ),

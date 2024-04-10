@@ -168,8 +168,8 @@ function DatasetItemAdd({
   description?: string;
 } & StackProps) {
   return (
-    <DatasetItemRoot {...props} display="flex" justifyContent="center" alignItems="center">
-      <Stack display="flex" justifyContent="center" alignItems="center">
+    <DatasetItemRoot {...props} className="center">
+      <Stack className="center">
         <Add sx={{ width: '2rem', height: '2rem' }} />
 
         <Box className="itemHeading">

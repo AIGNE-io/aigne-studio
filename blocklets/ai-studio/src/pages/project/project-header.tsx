@@ -4,11 +4,11 @@ import { Suspense, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate, useParams, useRoutes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import HeaderActions from './header-actions';
 import Knowledge from './icons/knowledge';
 import Prompts from './icons/prompts';
 import Settings from './icons/settings';
 import ProjectBrand from './project-brand';
+import PromptActions from './prompt-actions';
 import SegmentedControl from './segmented-control';
 
 export default function ProjectHeader() {
@@ -74,18 +74,14 @@ function ActionRoutes() {
   const element = useRoutes([
     {
       path: ':projectId?/*',
-      element: (
-        <Stack direction="row" alignItems="center">
-          <Outlet />
-        </Stack>
-      ),
+      element: <Outlet />,
       children: [
         {
           path: 'file',
           children: [
             {
               path: ':ref/*',
-              element: <HeaderActions />,
+              element: <PromptActions />,
             },
             {
               path: '*',

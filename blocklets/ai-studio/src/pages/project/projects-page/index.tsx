@@ -734,7 +734,7 @@ function ProjectItem({
               )}
             </Box>
 
-            <Box ml={1} width={24} display="flex" justifyContent="center" alignItems="center">
+            <Box ml={1} width={24} className="center">
               <Box className="action">{actions}</Box>
             </Box>
           </Box>

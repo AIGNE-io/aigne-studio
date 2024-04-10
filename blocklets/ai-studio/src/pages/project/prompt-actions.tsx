@@ -1,6 +1,8 @@
 import UploaderProvider from '@app/contexts/uploader';
-import { Box, Button, ClickAwayListener, Grow, Paper, Popper, Stack } from '@mui/material';
-import { useRef, useState } from 'react';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { isAssistant } from '@blocklet/ai-runtime/types';
+import { Box, Button, ClickAwayListener, Grow, Paper, Popper } from '@mui/material';
+import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -11,27 +13,16 @@ import Publish from './icons/publish';
 import PublishView from './publish-view';
 import SaveButton from './save-button';
 import { useProjectState } from './state';
+import TokenUsage from './token-usage';
 import { useProjectStore } from './yjs-state';
 
 export default function HeaderActions() {
+  const { t } = useLocaleContext();
   const { projectId, ref: gitRef, '*': filepath } = useParams();
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef<HTMLDivElement>(null);
-
-  const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
-  };
-
-  const handleClose = (event: Event) => {
-    if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
-      return;
-    }
-
-    setOpen(false);
-  };
+  const popperState = usePopupState({ variant: 'popper' });
 
   const {
     state: { loading, commits },
@@ -42,7 +33,9 @@ export default function HeaderActions() {
   const file = fileId && getFileById(fileId);
 
   return (
-    <Stack flexDirection="row" gap={1} alignItems="center">
+    <Box gap={1} className="center">
+      {file && isAssistant(file) && <TokenUsage assistant={file} />}
+
       <CommitsTip
         loading={loading}
         commits={commits}
@@ -57,41 +50,32 @@ export default function HeaderActions() {
 
       <SaveButton projectId={projectId} gitRef={gitRef} />
 
-      {file && (
-        <>
-          <Box ref={anchorRef}>
-            <Button variant="contained" onClick={handleToggle} startIcon={<Publish />} size="small">
-              Publish
-            </Button>
-          </Box>
+      <Button variant="contained" startIcon={<Publish />} size="small" {...bindTrigger(popperState)}>
+        {t('publish.publishProject')}
+      </Button>
 
-          <Popper
-            sx={{ zIndex: 1101 }}
-            open={open}
-            anchorEl={anchorRef.current}
-            role={undefined}
-            transition
-            placement="bottom-end"
-            disablePortal>
-            {({ TransitionProps }) => (
-              <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-                <Paper sx={{ border: '1px solid #ddd', maxWidth: 350, maxHeight: '80vh', overflow: 'auto' }}>
-                  <ClickAwayListener onClickAway={handleClose}>
-                    <UploaderProvider>
+      <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
+        {({ TransitionProps }) => (
+          <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
+            <Paper sx={{ border: '1px solid #ddd', maxWidth: 350, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
+              <ClickAwayListener onClickAway={() => popperState.close()}>
+                <Box>
+                  <UploaderProvider>
+                    {file ? (
                       <PublishView
                         projectId={projectId}
                         projectRef={gitRef}
                         assistant={file}
-                        onSubmitChange={handleClose}
+                        onSubmitChange={popperState.close}
                       />
-                    </UploaderProvider>
-                  </ClickAwayListener>
-                </Paper>
-              </Grow>
-            )}
-          </Popper>
-        </>
-      )}
-    </Stack>
+                    ) : null}
+                  </UploaderProvider>
+                </Box>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
+      </Popper>
+    </Box>
   );
 }

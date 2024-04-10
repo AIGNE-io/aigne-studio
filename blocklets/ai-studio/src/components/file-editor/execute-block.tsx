@@ -362,7 +362,7 @@ export default function ExecuteBlockForm({
               )}
             </>
           )}
-          <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box className="between">
             <Typography sx={{ whiteSpace: 'nowrap' }}>{t('formatResult')}</Typography>
             <IndicatorTextField
               projectId={projectId}

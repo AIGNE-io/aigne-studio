@@ -12,7 +12,6 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import styled from '@emotion/styled';
 import { LaunchRounded } from '@mui/icons-material';
-import UploadIcon from '@mui/icons-material/Upload';
 import {
   Box,
   FormControl,
@@ -35,6 +34,8 @@ import { joinURL, withQuery } from 'ufo';
 
 import BaseInput from '../../components/custom/input';
 import Switch from '../../components/custom/switch';
+import Publish from './icons/publish';
+import UploadIcon from './icons/publish-upload';
 import { saveButtonState, useProjectState } from './state';
 
 const TemplateImage = styled('img')({
@@ -153,7 +154,7 @@ function PublishViewContent({
   };
 
   return (
-    <Stack gap={2} p={2} overflow="auto" component="form" onSubmit={form.handleSubmit(onSubmit)}>
+    <Stack gap={2} p={2} overflow="auto">
       <FormControl>
         <Typography variant="subtitle2" mb={0.5}>
           {t('templates')}
@@ -264,7 +265,7 @@ function PublishViewContent({
                   key="uploader-trigger"
                   size="small"
                   sx={{ borderRadius: 1, bgcolor: 'rgba(0, 0, 0, 0.06)', width: 100, height: 100 }}>
-                  <UploadIcon />
+                  <UploadIcon sx={{ fontSize: 100 }} />
                 </IconButton>
 
                 <Typography variant="subtitle3">Supported file formats include PNG, JPG, and SVG.</Typography>
@@ -338,7 +339,11 @@ function PublishViewContent({
       )}
 
       <Stack direction="row" gap={2} alignItems="center">
-        <LoadingButton type="submit" loading={form.formState.isSubmitting} variant="contained">
+        <LoadingButton
+          loading={form.formState.isSubmitting}
+          variant="contained"
+          startIcon={<Publish />}
+          onClick={form.handleSubmit(onSubmit)}>
           {release ? t('publish.update') : t('publish.publishProject')}
         </LoadingButton>
       </Stack>

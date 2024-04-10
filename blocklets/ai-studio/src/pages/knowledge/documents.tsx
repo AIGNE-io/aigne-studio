@@ -233,7 +233,7 @@ export default function KnowledgeDocuments() {
 
   if (state.loading) {
     return (
-      <Box flex={1} display="flex" justifyContent="center" alignItems="center">
+      <Box flex={1} className="center">
         <CircularProgress size={20} />
       </Box>
     );

@@ -59,7 +59,7 @@ export default function KnowledgeSegments() {
 
   if (state.loading || dataState.loading) {
     return (
-      <Box flex={1} display="flex" justifyContent="center" alignItems="center">
+      <Box flex={1} className="center">
         <CircularProgress size={20} />
       </Box>
     );
