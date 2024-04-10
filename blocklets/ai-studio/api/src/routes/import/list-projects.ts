@@ -20,7 +20,7 @@ export async function listProjects(req: Request, res: Response) {
     endpoint,
   });
 
-  const output: ListObjectsCommandOutput = await spaceClient.send(
+  const { data: output }: ListObjectsCommandOutput = await spaceClient.send(
     new ListObjectsCommand({
       key: 'repositories/',
       recursive: false,
