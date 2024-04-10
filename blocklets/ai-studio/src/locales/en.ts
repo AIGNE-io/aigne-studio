@@ -577,4 +577,8 @@ export default flat({
   entries: 'Entries',
   entry: 'Entry',
   untitled: 'Untitled',
+  respondAs: 'Respond',
+  none: 'None',
+  respondAsMessage: 'Respond as a message',
+  respondAsSystemMessage: 'Respond as a system message',
 });

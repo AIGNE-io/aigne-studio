@@ -571,4 +571,8 @@ export default flat({
   entries: '入口',
   entry: '入口',
   untitled: '无标题',
+  respondAs: '响应',
+  none: '忽略',
+  respondAsMessage: '作为消息返回',
+  respondAsSystemMessage: '作为系统消息返回',
 });

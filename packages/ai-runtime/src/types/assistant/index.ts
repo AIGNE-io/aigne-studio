@@ -34,6 +34,7 @@ type ExecuteBlockCommon = {
   suffix?: string;
   variable?: string;
   type?: 'dataset';
+  respondAs?: 'none' | 'message' | 'systemMessage';
 };
 
 export type ExecuteBlockSelectAll = ExecuteBlockCommon & { selectType: 'all' };

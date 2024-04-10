@@ -1,3 +1,4 @@
+import { ExecuteBlock } from '@blocklet/ai-runtime/types';
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
@@ -28,7 +29,15 @@ export default class History extends Model<InferAttributes<History>, InferCreati
 
   declare parameters?: { [key: string]: any };
 
-  declare result?: { content?: string; images?: { url: string }[] };
+  declare result?: {
+    content?: string;
+    images?: { url: string }[];
+    messages?: {
+      taskId: string;
+      respondAs?: ExecuteBlock['respondAs'];
+      result?: Pick<NonNullable<History['result']>, 'content' | 'images'>;
+    }[];
+  };
 
   declare executingLogs?: {
     taskId: string;

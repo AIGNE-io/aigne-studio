@@ -147,16 +147,25 @@ export function messageRoutes(router: Router) {
 
       const filterResult = results.filter((x) => x.result && !x.error);
       const orderResult = orderBy(filterResult, ['createdAt'], ['asc']);
-      const formattedResult = orderResult.flatMap((i) => [
-        {
-          role: 'user',
-          content: typeof i.parameters?.question === 'string' ? i.parameters.question : JSON.stringify(i.parameters),
-        },
-        {
-          role: 'assistant',
-          content: typeof i.result?.content === 'string' ? i.result.content : JSON.stringify(i.result),
-        },
-      ]);
+      const formattedResult = orderResult
+        .flatMap((i) => [
+          {
+            role: 'user',
+            content: typeof i.parameters?.question === 'string' ? i.parameters.question : '',
+          },
+          {
+            role: 'assistant',
+            content:
+              typeof i.result?.content === 'string'
+                ? i.result.content
+                : i.result?.messages
+                    ?.filter((i) => i.respondAs === 'message')
+                    .map((i) => (typeof i.result?.content === 'string' ? i.result.content : ''))
+                    .filter((i) => !!i)
+                    .join('\n') || '',
+          },
+        ])
+        .filter((i) => !!i.content);
 
       res.json(formattedResult);
     } catch (error) {
