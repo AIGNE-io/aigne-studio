@@ -326,6 +326,7 @@ export function ModelPopper({ children }: { children: ReactElement }) {
         }}>
         <Settings sx={{ fontSize: 18 }} />
       </Button>
+
       <Popper
         open={isVisible}
         anchorEl={buttonRef.current}

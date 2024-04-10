@@ -22,7 +22,7 @@ export default function PromptAssistantEditor({
 
   return (
     <Stack gap={2.5} p={2.5}>
-      <Box sx={{ borderRadius: 1 }}>
+      <Box sx={{ mx: -1 }}>
         <BasicInfoForm projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Box>
 

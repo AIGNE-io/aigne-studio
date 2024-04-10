@@ -266,11 +266,11 @@ export const theme = createTheme({
       fontSize: '14px',
       lineHeight: '24px',
       fontWeight: 500,
-      color: '#121618',
+      color: '#030712',
     },
     subtitle3: {
       fontSize: '13px',
-      lineHeight: '23px',
+      lineHeight: '22px',
       fontWeight: 400,
       color: '#4B5563',
     },

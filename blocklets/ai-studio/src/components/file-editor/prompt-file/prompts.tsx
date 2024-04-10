@@ -27,7 +27,6 @@ import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
 import Add from '../../../pages/project/icons/add';
-import ArrowDown from '../../../pages/project/icons/chevron-down';
 import Eye from '../../../pages/project/icons/eye';
 import EyeNo from '../../../pages/project/icons/eye-no';
 import { usePromptsState } from '../../../pages/project/prompt-state';
@@ -63,13 +62,13 @@ export default function PromptPrompts({
       gap={1}
       sx={{
         borderRadius: 1,
-        bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+        bgcolor: '#EFF6FF',
         px: 2,
         py: 1.5,
       }}>
       <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
         <TipsAndUpdatesRounded fontSize="small" color="primary" />
-        <Typography variant="subtitle1">{t('formatPrompt')}</Typography>
+        <Typography variant="subtitle2">{t('formatPrompt')}</Typography>
       </Stack>
 
       <>
@@ -146,11 +145,11 @@ export default function PromptPrompts({
         )}
 
         {!disabled && (
-          <Stack direction="row" gap={2}>
+          <Stack direction="row" gap={1.5}>
             <Button
               startIcon={<Add />}
               onClick={() => addPrompt({ type: 'message', data: { id: nextAssistantId(), role: 'user' } })}>
-              {t('addObject', { object: t('promptMessage') })}
+              {t('promptMessage')}
             </Button>
 
             <SplitExecuteBlockButton projectId={projectId} gitRef={gitRef} templateId={value.id} />
@@ -184,17 +183,14 @@ function PromptItemMessage({
     <Stack
       sx={{
         border: 2,
-        borderColor: (theme) =>
-          alpha(theme.palette.primary.main, promptHidden ? theme.palette.action.disabledOpacity : 1),
+        borderColor: '#3B82F6',
         borderRadius: 1,
         '*': {
           color: promptHidden ? 'text.disabled' : undefined,
         },
         backgroundColor,
       }}>
-      <Stack direction="row" alignItems="center" gap={1} p={1}>
-        <Typography variant="subtitle2">{t('prompt')}</Typography>
-
+      <Stack direction="row" alignItems="center" gap={1} p={1} px={1.5} borderBottom="1px solid #BFDBFE">
         <RoleSelectField
           projectId={projectId}
           gitRef={gitRef}
@@ -202,6 +198,26 @@ function PromptItemMessage({
           size="small"
           value={value.role}
           onChange={(e) => (value.role = e.target.value as any)}
+          boxProps={{
+            sx: {
+              '.MuiInputBase-root': {
+                ml: -1,
+                background: 'transparent',
+                '&:hover': {
+                  background: 'transparent',
+                },
+                '&:focus': {
+                  background: 'transparent',
+                },
+              },
+              '&:focus-within': {
+                background: 'transparent',
+              },
+              '.Mui-focused': {
+                background: 'transparent',
+              },
+            },
+          }}
         />
       </Stack>
 
@@ -214,6 +230,13 @@ function PromptItemMessage({
         assistant={assistant}
         value={value.content}
         onChange={(content) => (value.content = content)}
+        ContentProps={{
+          sx: {
+            '&:hover': {
+              bgcolor: 'transparent !important',
+            },
+          },
+        }}
       />
     </Stack>
   );
@@ -261,7 +284,8 @@ const StyledPromptEditor = styled(PromptEditorField)(({ theme }) =>
     p: 0,
     '.ContentEditable__root': {
       p: 1,
-      minHeight: 48,
+      px: 1.5,
+      minHeight: 64,
       ...theme.typography.body1,
       bgcolor: 'transparent',
 
@@ -272,6 +296,14 @@ const StyledPromptEditor = styled(PromptEditorField)(({ theme }) =>
       ':focus': {
         bgcolor: 'action.hover',
       },
+    },
+
+    '.Placeholder__root': {
+      top: '8px',
+      left: '12px',
+      bottom: 'inherit',
+      fontSize: '14px',
+      lineHeight: '24px',
     },
   })
 );
@@ -306,8 +338,8 @@ function SplitExecuteBlockButton({
   return (
     <>
       <Box ref={anchorRef}>
-        <Button endIcon={<ArrowDown />} onClick={handleToggle}>
-          {t('addObject', { object: t('executeBlock') })}
+        <Button startIcon={<Add />} onClick={handleToggle}>
+          {t('executeBlock')}
         </Button>
       </Box>
 
@@ -324,7 +356,9 @@ function SplitExecuteBlockButton({
                       addPrompt({ type: 'executeBlock', data: { id: nextAssistantId(), selectType: 'all' } });
                       setOpen(false);
                     }}>
-                    {t('multipleCall')}
+                    <Typography variant="subtitle3" color="#030712">
+                      {t('multipleCall')}
+                    </Typography>
                   </MenuItem>
                   <MenuItem
                     onClick={() => {
@@ -334,35 +368,45 @@ function SplitExecuteBlockButton({
                       });
                       setOpen(false);
                     }}>
-                    {t('toolCalling')}
+                    <Typography variant="subtitle3" color="#030712">
+                      {t('toolCalling')}
+                    </Typography>
                   </MenuItem>
                   <MenuItem
                     onClick={() => {
                       addCustomPrompt('history');
                       setOpen(false);
                     }}>
-                    {t('historyMessage')}
+                    <Typography variant="subtitle3" color="#030712">
+                      {t('historyMessage')}
+                    </Typography>
                   </MenuItem>
                   <MenuItem
                     onClick={() => {
                       addCustomPrompt('getStore');
                       setOpen(false);
                     }}>
-                    {t('getStore')}
+                    <Typography variant="subtitle3" color="#030712">
+                      {t('getStore')}
+                    </Typography>
                   </MenuItem>
                   <MenuItem
                     onClick={() => {
                       addCustomPrompt('setStore');
                       setOpen(false);
                     }}>
-                    {t('setStore')}
+                    <Typography variant="subtitle3" color="#030712">
+                      {t('setStore')}
+                    </Typography>
                   </MenuItem>
                   <MenuItem
                     onClick={() => {
                       addCustomPrompt('knowledge');
                       setOpen(false);
                     }}>
-                    {t('retrieveData')}
+                    <Typography variant="subtitle3" color="#030712">
+                      {t('retrieveData')}
+                    </Typography>
                   </MenuItem>
                 </MenuList>
               </ClickAwayListener>

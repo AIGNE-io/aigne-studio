@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { PromptAssistantYjs } from '@blocklet/ai-runtime/types';
 import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
-import { Box, Collapse, FormLabel, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Collapse, FormLabel, ListItemIcon, Stack, Tooltip, Typography } from '@mui/material';
 import isNil from 'lodash/isNil';
 import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
@@ -9,7 +9,7 @@ import { useAsync } from 'react-use';
 import { getSupportedModels } from '../../../../api/src/libs/common';
 import { useAssistantCompare, useProjectState } from '../../../pages/project/state';
 import WithAwareness from '../../awareness/with-awareness';
-import ModelSelectField from '../../selector/model-select-field';
+import ModelSelectField, { brandIcon } from '../../selector/model-select-field';
 import SliderNumberField from '../../slider-number-field';
 
 export default function PromptSetting({
@@ -47,6 +47,7 @@ export default function PromptSetting({
       <Stack
         direction="row"
         alignItems="center"
+        gap={0.5}
         sx={{
           fontWeight: 500,
           fontSize: 14,
@@ -59,14 +60,9 @@ export default function PromptSetting({
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end">
           {!open && (
-            <Stack direction="row" alignItems="center" gap={1}>
-              <Typography
-                component="span"
-                sx={{
-                  borderRadius: 1,
-                  lineHeight: 1,
-                  backgroundColor: getDiffBackground('model'),
-                }}>
+            <Stack direction="row" alignItems="center" gap={0.5}>
+              {model && <Box className="center">{brandIcon(model!.brand)}</Box>}
+              <Typography variant="subtitle3" color="#030712">
                 {model?.name || model?.model || project?.model}
               </Typography>
             </Stack>
@@ -79,6 +75,7 @@ export default function PromptSetting({
             transition: (theme) => theme.transitions.create('all'),
             color: '#030712',
             fontSize: 18,
+            mt: 0.25,
           }}
         />
       </Stack>

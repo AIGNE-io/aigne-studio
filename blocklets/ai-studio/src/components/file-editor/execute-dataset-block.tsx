@@ -1,18 +1,27 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, Role, Tool, isAssistant } from '@blocklet/ai-runtime/types';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
 import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
-import { Box, CircularProgress, Collapse, IconButton, Stack, StackProps, Tooltip, Typography } from '@mui/material';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  CircularProgress,
+  Divider,
+  Stack,
+  StackProps,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { sortBy } from 'lodash';
-import { ReactNode, useMemo, useState } from 'react';
-import { TransitionGroup } from 'react-transition-group';
+import { useMemo } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import Dataset from '../../../api/src/store/models/dataset/dataset';
-import Add from '../../pages/project/icons/add';
-import Sub from '../../pages/project/icons/sub';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
 import PromptEditorField from './prompt-editor-field';
@@ -51,14 +60,8 @@ export default function ExecuteDatasetBlockForm({
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
   return (
-    <Stack {...props} sx={{ border: 2, borderRadius: 1, p: 1, ...props.sx }}>
-      <Box display="flex" alignItems="center">
-        <Tooltip
-          title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
-          placement="top"
-          disableInteractive>
-          <MuiInfoOutlined fontSize="small" sx={{ mr: 0.5, color: 'grey.500' }} />
-        </Tooltip>
+    <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, ...props.sx }}>
+      <Box display="flex" alignItems="center" px={1.5} py={1} gap={1}>
         <IndicatorTextField
           projectId={projectId}
           gitRef={gitRef}
@@ -73,87 +76,49 @@ export default function ExecuteDatasetBlockForm({
               placeholder: t('executeBlockName'),
               readOnly,
               sx: {
+                ml: -1,
                 backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
               },
             },
             value: value.variable ?? '',
             onChange: (e) => (value.variable = e.target.value),
           }}
+          boxProps={{
+            sx: {
+              '.MuiInputBase-root': {
+                background: 'transparent',
+                '&:hover': {
+                  background: 'transparent',
+                },
+              },
+              '.Mui-focused': {
+                background: 'transparent',
+              },
+            },
+          }}
         />
+        <Tooltip
+          title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
+          placement="top"
+          disableInteractive>
+          <MuiInfoOutlined fontSize="small" sx={{ mr: 0.5, color: 'grey.500' }} />
+        </Tooltip>
       </Box>
+
+      <Divider />
 
       {tools?.map(({ data: tool }) => (
         <ToolItemView
           key={tool.id}
           assistant={assistant}
-          getDiffBackground={getDiffBackground}
           projectId={projectId}
           projectRef={gitRef}
           tool={tool}
-          executeBlock={value}
           readOnly={readOnly}
           openApis={openApis}
           datasets={[]}
           gitRef={gitRef}
-          action={
-            value.role !== 'none' && value.formatResultType !== 'asHistory' && assistant.type === 'prompt' ? (
-              <Stack gap={1} px={1}>
-                <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                  <Box display="flex">
-                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
-                    <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
-                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
-                    </Tooltip>
-                  </Box>
-                  <Box width="60%">
-                    <PromptEditorField
-                      readOnly={readOnly}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      ContentProps={{
-                        sx: {
-                          px: 1,
-                          py: 0.5,
-                        },
-                      }}
-                      placeholder="Your output prefix"
-                      path={[value.id, 'prefix']}
-                      assistant={assistant}
-                      value={value.prefix}
-                      onChange={(prefix) => (value.prefix = prefix)}
-                    />
-                  </Box>
-                </Box>
-
-                <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                  <Box display="flex">
-                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
-                    <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
-                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
-                    </Tooltip>
-                  </Box>
-                  <Box width="60%">
-                    <PromptEditorField
-                      readOnly={readOnly}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      ContentProps={{
-                        sx: {
-                          px: 1,
-                          py: 0.5,
-                        },
-                      }}
-                      placeholder="Your output suffix"
-                      path={[value.id, 'suffix']}
-                      assistant={assistant}
-                      value={value.suffix}
-                      onChange={(suffix) => (value.suffix = suffix)}
-                    />
-                  </Box>
-                </Box>
-              </Stack>
-            ) : null
-          }
+          value={value}
         />
       ))}
     </Stack>
@@ -161,22 +126,17 @@ export default function ExecuteDatasetBlockForm({
 }
 
 function ToolItemView({
-  getDiffBackground,
   projectId,
   projectRef,
   tool,
   gitRef,
-  executeBlock,
   readOnly,
   openApis,
   datasets,
   assistant,
-  action,
-  ...props
+  value,
 }: {
   assistant: AssistantYjs;
-  executeBlock: ExecuteBlockYjs;
-  getDiffBackground: (path: any, id?: string | undefined, defaultValue?: string | undefined) => { [x: string]: string };
   projectId: string;
   projectRef: string;
   gitRef: string;
@@ -184,11 +144,10 @@ function ToolItemView({
   readOnly?: boolean;
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  action?: ReactNode;
+  value: ExecuteBlockYjs;
 } & StackProps) {
-  const { locale } = useLocaleContext();
+  const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, projectRef);
-  const [renderAction, setRender] = useState(false);
 
   const f = store.files[tool.id];
   const file = f && isAssistant(f) ? f : undefined;
@@ -221,28 +180,98 @@ function ToolItemView({
 
   return (
     <>
-      <Stack
-        direction="row"
-        {...props}
+      <Accordion
         sx={{
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          cursor: 'pointer',
-          borderRadius: 1,
-          backgroundColor: { ...getDiffBackground('prepareExecutes', `${executeBlock.id}.data.tools.${tool.id}`) },
-        }}>
-        <Typography noWrap variant="subtitle2">
-          {getDatasetTextByI18n(target || {}, 'summary', locale)}
-        </Typography>
+          px: 1.5,
+          py: 1,
+          '&::before': {
+            display: 'none',
+          },
+          pb: 0,
+        }}
+        square
+        disableGutters
+        elevation={0}>
+        <AccordionSummary
+          sx={{
+            p: 0,
+            minHeight: 28,
+            '& .MuiAccordionSummary-content': {
+              my: 0,
+            },
+          }}
+          expandIcon={<GridExpandMoreIcon />}>
+          <Typography noWrap variant="subtitle3" color="#4B5563" fontWeight={500}>
+            {getDatasetTextByI18n(target || {}, 'summary', locale)}
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 0, mt: 1.5, gap: 1.5, display: 'flex', flexDirection: 'column' }}>
+          {value.role !== 'none' && value.formatResultType !== 'asHistory' && (
+            <>
+              {assistant.type === 'prompt' && (
+                <Box display="flex" alignItems="baseline" justifyContent="space-between">
+                  <Box display="flex" flex={1}>
+                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
+                    <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
+                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+                    </Tooltip>
+                  </Box>
+                  <Box flex={1}>
+                    <PromptEditorField
+                      readOnly={readOnly}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      ContentProps={{
+                        sx: {
+                          px: 1,
+                          py: 0.5,
+                        },
+                      }}
+                      placeholder="Your output prefix"
+                      path={[value.id, 'prefix']}
+                      assistant={assistant}
+                      value={value.prefix}
+                      onChange={(prefix) => (value.prefix = prefix)}
+                    />
+                  </Box>
+                </Box>
+              )}
+              {assistant.type === 'prompt' && (
+                <Box display="flex" alignItems="baseline" justifyContent="space-between">
+                  <Box display="flex" flex={1}>
+                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
+                    <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
+                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+                    </Tooltip>
+                  </Box>
+                  <Box flex={1}>
+                    <PromptEditorField
+                      readOnly={readOnly}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      ContentProps={{
+                        sx: {
+                          px: 1,
+                          py: 0.5,
+                        },
+                      }}
+                      placeholder="Your output suffix"
+                      path={[value.id, 'suffix']}
+                      assistant={assistant}
+                      value={value.suffix}
+                      onChange={(suffix) => (value.suffix = suffix)}
+                    />
+                  </Box>
+                </Box>
+              )}
 
-        <IconButton size="small" onClick={() => setRender(!renderAction)}>
-          {renderAction ? <Sub /> : <Add />}
-        </IconButton>
-      </Stack>
+              <Divider />
+            </>
+          )}
+        </AccordionDetails>
+      </Accordion>
 
-      <TransitionGroup>{renderAction ? <Collapse>{action}</Collapse> : null}</TransitionGroup>
-
-      <Stack>
+      <Stack m={1.5} gap={1.5} mt={1.5}>
         {(parameters || [])?.map((parameter: any) => {
           if (!parameter) return null;
           if (parameter['x-hide']) return null;
@@ -252,7 +281,7 @@ function ToolItemView({
 
           return (
             <Stack key={parameter.name}>
-              <Typography variant="caption" mx={1}>
+              <Typography variant="subtitle2" mb={0.5}>
                 {getDatasetTextByI18n(parameter, 'description', locale) ||
                   getDatasetTextByI18n(parameter, 'name', locale)}
               </Typography>

@@ -49,11 +49,11 @@ function CustomNoRowsOverlay() {
       <Box lineHeight="28px">🔢</Box>
 
       <Typography variant="caption" color="#030712" fontSize={13} lineHeight="22px" fontWeight={500}>
-        {t('No variables Yet')}
+        {t('emptyVariablesTitle')}
       </Typography>
 
       <Typography variant="caption" color="#9CA3AF" fontSize={12} lineHeight="20px" fontWeight={500}>
-        {t("You haven't added any variables yet.")}
+        {t('emptyVariablesSubtitle')}
       </Typography>
     </Stack>
   );
@@ -137,7 +137,7 @@ export default function ParametersTable({
             <Input
               fullWidth
               readOnly={readOnly}
-              placeholder={parameter?.key === 'datasetId' ? t('knowledge.parameter') : parameter.key}
+              placeholder={parameter?.key === 'datasetId' ? t('knowledge.parameter') : parameter.key || t('label')}
               value={parameter.label || ''}
               onChange={(e) => (parameter.label = e.target.value)}
             />
@@ -232,7 +232,7 @@ export default function ParametersTable({
     <>
       <Box>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-          <Typography variant="subtitle1">{t('parameters')}</Typography>
+          <Typography variant="subtitle2">{t('parameters')}</Typography>
 
           {!readOnly && (
             <Stack direction="row">
@@ -314,7 +314,7 @@ export default function ParametersTable({
                       key={column.field}
                       align={column.headerAlign}
                       width={column.width}
-                      sx={{ px: 0, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
+                      sx={{ px: 0, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
                       {column.field === 'placeholder' ? (
                         <Box display="flex" alignItems="center">
                           {t('form.parameter.placeholder')}
@@ -340,7 +340,6 @@ export default function ParametersTable({
                       key={parameter.id}
                       ref={(ref) => {
                         params.drop(ref);
-                        // params.drag(ref);
                         params.preview(ref);
                       }}
                       sx={{
@@ -384,21 +383,23 @@ export default function ParametersTable({
                         );
                       })}
 
-                      <TableCell sx={{ px: 0, display: 'flex', gap: 1 }}>
-                        <Button
-                          disabled={readOnly}
-                          sx={{ minWidth: 0, p: 0.5, borderRadius: 100, ml: -0.5 }}
-                          onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
-                          <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('setting')}</Box>
-                        </Button>
+                      {!readOnly && (
+                        <TableCell sx={{ px: 0 }}>
+                          <Stack flexDirection="row" gap={1}>
+                            <Box
+                              sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
+                              onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
+                              <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('setting')}</Box>
+                            </Box>
 
-                        <Button
-                          disabled={readOnly}
-                          sx={{ minWidth: 0, p: 0.5, borderRadius: 100, ml: -0.5 }}
-                          onClick={() => deleteParameter(parameter)}>
-                          <Box sx={{ color: '#E11D48', fontSize: 13 }}>{t('delete')}</Box>
-                        </Button>
-                      </TableCell>
+                            <Box
+                              sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
+                              onClick={() => deleteParameter(parameter)}>
+                              <Box sx={{ color: '#E11D48', fontSize: 13 }}>{t('delete')}</Box>
+                            </Box>
+                          </Stack>
+                        </TableCell>
+                      )}
                     </TableRow>
                   );
                 }}

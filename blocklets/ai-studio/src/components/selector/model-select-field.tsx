@@ -57,14 +57,15 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
             value={model.model}
             disabled={model.disabled}
             sx={{ [`&.${menuItemClasses.disabled}`]: { opacity: 1 } }}>
-            <ListItemIcon sx={{ verticalAlign: 'middle', minWidth: '32px !important' }}>{icon}</ListItemIcon>
-
-            <ListItemText
-              sx={{ display: 'inline-flex', alignItems: 'baseline' }}
-              primary={model.name || model.model}
-              secondary={model.disabled ? '(coming soon)' : undefined}
-              secondaryTypographyProps={{ fontStyle: 'italic', ml: 1 }}
-            />
+            <Box display="flex" gap={1} alignItems="center">
+              <Box className="center">{icon}</Box>
+              <ListItemText
+                sx={{ display: 'inline-flex', alignItems: 'baseline' }}
+                primary={model.name || model.model}
+                secondary={model.disabled ? '(coming soon)' : undefined}
+                secondaryTypographyProps={{ fontStyle: 'italic', ml: 1 }}
+              />
+            </Box>
           </MenuItem>
         );
       })}
@@ -83,7 +84,7 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
   );
 }
 
-const brandIcon = (brand: string) =>
+export const brandIcon = (brand: string) =>
   ({
     OpenAI: <OpenAIIcon fontSize="small" />,
     'Azure OpenAI': <AzureIcon fontSize="small" />,
