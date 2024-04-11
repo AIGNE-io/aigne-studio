@@ -146,7 +146,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                 <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('blank')}</ListItemText>
               </MenuItem>
 
-              {resource.length && (
+              {!!resource.length && (
                 <MenuItem
                   onClick={() => {
                     setDialog(<ImportFromTemplates templates={resource} onClose={() => setDialog(null)} />);
@@ -158,7 +158,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
             </MenuList>
           }>
           <Button startIcon={<Box component={Icon} icon="tabler:plus" />} variant="contained">
-            {t('newProject')}
+            {t('newObject', { object: t('form.project') })}
           </Button>
         </ButtonPopper>
       </Stack>

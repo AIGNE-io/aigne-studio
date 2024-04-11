@@ -590,7 +590,6 @@ export default flat({
   untitled: 'Untitled',
   emptyProjectTitle: 'No Project Yet',
   emptyProjectSubtitle: "You haven't created a project yet.",
-  newProject: 'New Project',
   choose: 'Choose Template',
   emptyVariablesTitle: 'No variables Yet',
   emptyVariablesSubtitle: "You haven't added any variables yet.",

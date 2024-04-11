@@ -584,7 +584,6 @@ export default flat({
   untitled: '无标题',
   emptyProjectTitle: '还没有项目',
   emptyProjectSubtitle: '你还没有创建一个项目。',
-  newProject: '新项目',
   choose: '选择模板',
   emptyVariablesTitle: '还没有变量',
   emptyVariablesSubtitle: '你还没有添加任何变量。',
