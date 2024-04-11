@@ -139,7 +139,11 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
   let mainTaskId: string | undefined;
   let error: { type?: string; message: string } | undefined;
-  const result: { content?: string; images?: { url: string }[] } = {};
+
+  const result: History['result'] = {};
+
+  const childMessagesMap: { [id: string]: NonNullable<(typeof result)['messages']>[number] } = {};
+
   const executingLogs: { [key: string]: NonNullable<History['executingLogs']>[number] } = {};
 
   const emit = (data: RunAssistantResponse) => {
@@ -149,6 +153,20 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
         if (mainTaskId === data.taskId) {
           if (data.delta.content) result.content = (result.content || '') + data.delta.content;
           if (data.delta.images?.length) result.images = (result.images || []).concat(data.delta.images);
+        } else if (data.respondAs && data.respondAs !== 'none') {
+          let childMsg = childMessagesMap[data.taskId];
+          if (!childMsg) {
+            childMsg = { taskId: data.taskId, respondAs: data.respondAs };
+            childMessagesMap[data.taskId] = childMsg;
+            result.messages ??= [];
+            result.messages.push(childMsg);
+          }
+
+          childMsg.result ??= {};
+          childMsg.result.content = (childMsg.result.content || '') + (data.delta.content || '');
+          if (data.delta?.images?.length) {
+            childMsg.result.images = (childMsg.result.images ?? []).concat(data.delta.images);
+          }
         }
       }
 
@@ -212,6 +230,13 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   });
 
   try {
+    if (assistant.release?.maxRoundLimit && input.sessionId) {
+      const rounds = await History.count({ where: { userId, sessionId: input.sessionId } });
+      if (rounds > assistant.release.maxRoundLimit) {
+        throw new Error('Max round limitation has been reached');
+      }
+    }
+
     if (userId && release?.paymentEnabled && release.paymentProductId) {
       if (!(await getActiveSubscriptionOfAssistant({ release, userId }))) {
         throw new InvalidSubscriptionError('Your subscription is not available');

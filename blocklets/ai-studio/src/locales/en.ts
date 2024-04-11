@@ -425,6 +425,9 @@ export default flat({
     price: 'Price',
     enabled: 'Enabled',
     time: 'Time',
+    settings: 'Settings',
+    maxRoundLimit: 'Round Limit',
+    reachMaxRoundLimitTip: 'Round Limit Tip',
   },
   addObject: 'Add {object}',
   formatPrompt: 'Format Prompt',
@@ -593,4 +596,8 @@ export default flat({
   emptyVariablesSubtitle: "You haven't added any variables yet.",
   emptyExecute: 'No execute Yet',
   branchName: 'Branch Name',
+  respondAs: 'Respond',
+  none: 'None',
+  respondAsMessage: 'Respond as a message',
+  respondAsSystemMessage: 'Respond as a system message',
 });

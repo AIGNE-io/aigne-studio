@@ -34,6 +34,7 @@ type ExecuteBlockCommon = {
   suffix?: string;
   variable?: string;
   type?: 'dataset' | 'history' | 'setStore' | 'getStore' | 'knowledge';
+  respondAs?: 'none' | 'message' | 'systemMessage';
 };
 
 export type ExecuteBlockSelectAll = ExecuteBlockCommon & { selectType: 'all' };
@@ -99,6 +100,8 @@ export interface AssistantBase {
     description?: string;
     openerMessage?: string;
     logo?: string;
+    maxRoundLimit?: number;
+    reachMaxRoundLimitTip?: string;
     payment?: {
       enable?: boolean;
       price?: string;

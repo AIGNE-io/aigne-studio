@@ -3,6 +3,7 @@ import { TextField, TextFieldProps } from '@mui/material';
 
 export default function NumberField({
   NumberProps,
+  component: C = TextField,
   ...props
 }: {
   NumberProps: Omit<Parameters<typeof useNumberInput>[0], 'onChange'> & {
@@ -19,5 +20,5 @@ export default function NumberField({
 
   const inputProps = getInputProps();
 
-  return <TextField {...props} inputProps={inputProps} />;
+  return <C {...props} inputProps={inputProps} />;
 }
