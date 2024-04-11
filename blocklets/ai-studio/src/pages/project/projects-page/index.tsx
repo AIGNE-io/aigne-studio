@@ -576,7 +576,7 @@ function ProjectList({
                       e.stopPropagation();
                       setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
                     }}>
-                    <Box component={Icon} icon="tabler:dots-vertical" style={{ fontSize: 20 }} />
+                    <Box component={Icon} icon="tabler:dots-vertical" fontSize={20} />
                   </IconButton>
                 )
               }
@@ -724,7 +724,7 @@ function ProjectItem({
                   onClick={(e) => {
                     e.stopPropagation();
                   }}>
-                  <Box component={Icon} icon="tabler:brand-github-filled" style={{ fontSize: 16 }} />
+                  <Box component={Icon} icon="tabler:brand-github-filled" fontSize={16} />
                 </Box>
               </Tooltip>
             )}
@@ -889,11 +889,15 @@ function ButtonPopper({ children, list }: { children: any; list?: any }) {
     <>
       <Box ref={anchorRef}>{cloneElement(children, { onClick: handleToggle })}</Box>
 
-      <Popper sx={{ zIndex: 1 }} open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal>
-        {({ TransitionProps, placement }) => (
-          <Grow
-            {...TransitionProps}
-            style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom' }}>
+      <Popper
+        sx={{ zIndex: 1 }}
+        open={open}
+        anchorEl={anchorRef.current}
+        transition
+        disablePortal
+        placement="bottom-end">
+        {({ TransitionProps }) => (
+          <Grow {...TransitionProps}>
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>{list}</ClickAwayListener>
             </Paper>

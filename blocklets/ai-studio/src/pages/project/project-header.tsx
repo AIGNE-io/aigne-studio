@@ -1,6 +1,5 @@
-import Loading from '@app/components/loading';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, Stack } from '@mui/material';
+import { Box, CircularProgress, Stack } from '@mui/material';
 import { Suspense, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate, useParams, useRoutes } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -65,7 +64,12 @@ export default function ProjectHeader() {
       </Box>
 
       <Box flex={1} height={0} overflow="hidden" bgcolor="background.default">
-        <Suspense fallback={<Loading fixed />}>
+        <Suspense
+          fallback={
+            <Box flex={1} className="center" width={1} height={1}>
+              <CircularProgress size={30} />
+            </Box>
+          }>
           <Outlet />
         </Suspense>
       </Box>

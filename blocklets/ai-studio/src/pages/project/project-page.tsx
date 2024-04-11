@@ -48,16 +48,8 @@ import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import DiscussView from './discuss-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
-import Code from './icons/code';
 import DeveloperTools from './icons/developer-tools';
 import Empty from './icons/empty';
-import File from './icons/file';
-import Folder from './icons/folder';
-import ImportAssistant from './icons/import-assistant';
-import LinkIcon from './icons/link';
-import Picture from './icons/picture';
-import Play from './icons/play';
-import SideBar from './icons/sidebar';
 import { useProjectState } from './state';
 import TestView from './test-view';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
@@ -170,14 +162,14 @@ export default function ProjectPage() {
 
               {project?.homePageUrl && (
                 <Button sx={{ minWidth: 0 }} color="secondary" onClick={() => window.open(project.homePageUrl)}>
-                  <Play />
+                  <Box component={Icon} icon="tabler:player-play" fontSize={20} color="#3B82F6" />
                 </Button>
               )}
 
               <Tooltip title={t('import.title')} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
-                    <ImportAssistant sx={{ fontSize: 20 }} />
+                    <Box component={Icon} icon="tabler:table-import" fontSize={20} color="#3B82F6" />
                   </Button>
                 </span>
               </Tooltip>
@@ -191,7 +183,7 @@ export default function ProjectPage() {
                       const dir = dirname(filepath);
                       fileTree.current?.newFolder({ parent: dir.length ? dir : [PROMPTS_FOLDER_NAME] });
                     }}>
-                    <Folder sx={{ fontSize: 20 }} />
+                    <Box component={Icon} icon="tabler:folder-plus" fontSize={20} color="#3B82F6" />
                   </Button>
                 </span>
               </Tooltip>
@@ -199,7 +191,7 @@ export default function ProjectPage() {
               <Tooltip title={t('newObject', { object: t('file') })} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} {...bindTrigger(createFileMenuState)}>
-                    <Icon icon="tabler:plus" style={{ fontSize: 20, color: '#3B82F6' }} />
+                    <Box component={Icon} icon="tabler:plus" fontSize={20} color="#3B82F6" />
                   </Button>
                 </span>
               </Tooltip>
@@ -220,8 +212,8 @@ export default function ProjectPage() {
                             meta: { type: 'prompt' },
                           });
                         }}>
-                        <ListItemIcon>
-                          <File />
+                        <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
+                          <Box component={Icon} icon="tabler:file-description" />
                         </ListItemIcon>
                         <ListItemText primary={t('prompt')} />
                       </MenuItem>
@@ -234,8 +226,8 @@ export default function ProjectPage() {
                             meta: { type: 'image' },
                           });
                         }}>
-                        <ListItemIcon>
-                          <Picture />
+                        <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
+                          <Box component={Icon} icon="tabler:photo" />
                         </ListItemIcon>
                         <ListItemText primary={t('image')} />
                       </MenuItem>
@@ -247,8 +239,8 @@ export default function ProjectPage() {
                             rootFolder: PROMPTS_FOLDER_NAME,
                           })
                         }>
-                        <ListItemIcon>
-                          <LinkIcon />
+                        <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
+                          <Box component={Icon} icon="tabler:link" />
                         </ListItemIcon>
                         <ListItemText primary={t('api')} />
                       </MenuItem>
@@ -260,8 +252,8 @@ export default function ProjectPage() {
                             rootFolder: PROMPTS_FOLDER_NAME,
                           })
                         }>
-                        <ListItemIcon>
-                          <Code />
+                        <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
+                          <Box component={Icon} icon="tabler:code" />
                         </ListItemIcon>
                         <ListItemText primary={t('function')} />
                       </MenuItem>
@@ -436,7 +428,12 @@ function PanelToggleButton({
   return (
     <Tooltip title={collapsed ? t('showSidebar') : t('hideSidebar')}>
       <Button {...props} sx={{ minWidth: 0, flexShrink: 0, ...props.sx }}>
-        <SideBar sx={{ transform: placement === 'left' ? 0 : 'rotate(180deg)', fontSize: 20 }} />
+        <Box
+          component={Icon}
+          icon={placement === 'left' ? 'tabler:layout-sidebar' : 'tabler:layout-sidebar-right'}
+          fontSize={20}
+          color="#3B82F6"
+        />
       </Button>
     </Tooltip>
   );

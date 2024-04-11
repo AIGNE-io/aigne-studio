@@ -679,13 +679,9 @@ function DebugModeForm({
                 justifyContent: 'space-between',
                 width: 1,
               }}>
-              <Box
-                sx={{
-                  fontSize: (theme) => theme.typography.caption.fontSize,
-                  color: (theme) => theme.palette.text.disabled,
-                }}>
+              <Typography variant="subtitle2" mb={0}>
                 {t('parameter')}
-              </Box>
+              </Typography>
 
               {parameters.length > 1 && (
                 <ChevronDown
@@ -700,7 +696,7 @@ function DebugModeForm({
             </Box>
           </AccordionSummary>
 
-          <AccordionDetails sx={{ py: 1, px: 0, maxHeight: '50vh', overflow: !isExpanded ? 'hidden' : 'auto' }}>
+          <AccordionDetails sx={{ p: 0, maxHeight: '50vh', overflow: !isExpanded ? 'hidden' : 'auto' }}>
             <Stack gap={1}>
               {parameters.map(({ data: parameter }) => {
                 const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};

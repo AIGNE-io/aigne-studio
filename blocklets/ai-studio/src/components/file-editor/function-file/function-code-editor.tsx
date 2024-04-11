@@ -44,7 +44,9 @@ export default async function (args) {
       }}>
       <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
         <TipsAndUpdatesRounded sx={{ color: '#3B82F6', fontSize: 15 }} />
-        <Typography variant="subtitle2">{t('function')}</Typography>
+        <Typography variant="subtitle2" mb={0}>
+          {t('function')}
+        </Typography>
       </Stack>
 
       <Box border="1px solid #3B82F6" borderRadius={1} bgcolor="background.paper" px={1.5} py={1}>

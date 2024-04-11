@@ -201,7 +201,6 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
       <Stack flexDirection="row" justifyContent="space-between">
         <Stack flexDirection="row" gap={1}>
           <LoadingButton
-            size="medium"
             variant="contained"
             loading={form.formState.isSubmitting}
             loadingPosition="start"
@@ -212,7 +211,6 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
 
           {state.project && state.project.gitUrl ? (
             <Button
-              size="medium"
               sx={{ background: '#E11D48' }}
               variant="contained"
               onClick={() => {
@@ -244,7 +242,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
           <Stack flexDirection="row" gap={1}>
             <Stack direction="row" alignItems="center" gap={1}>
               <FormControlLabel
-                sx={{ m: 0 }}
+                sx={{ m: 0, lineHeight: 1 }}
                 label={t('autoSync')}
                 labelPlacement="end"
                 slotProps={{ typography: { sx: { ml: 1 } } }}
@@ -271,8 +269,8 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
 
             <Stack direction="row" alignItems="center" gap={1}>
               <PromiseLoadingButton
-                sx={{ p: 0 }}
                 size="small"
+                variant="text"
                 loadingPosition="start"
                 startIcon={<SyncRounded />}
                 onClick={async () => {

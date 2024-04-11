@@ -301,7 +301,8 @@ export default function ExecuteBlockForm({
                   <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
                 </Tooltip>
               </Box>
-              <Box flex={1}>
+
+              <Box>
                 <IndicatorTextField
                   projectId={projectId}
                   gitRef={gitRef}
@@ -331,14 +332,6 @@ export default function ExecuteBlockForm({
                       </MenuItem>,
                     ],
                   }}
-                  boxProps={{
-                    sx: {
-                      width: 1,
-                      '.MuiTextField-root': {
-                        width: 1,
-                      },
-                    },
-                  }}
                 />
               </Box>
             </Box>
@@ -348,7 +341,8 @@ export default function ExecuteBlockForm({
             <Typography sx={{ whiteSpace: 'nowrap' }} flex={1}>
               {t('formatResult')}
             </Typography>
-            <Box flex={1}>
+
+            <Box>
               <IndicatorTextField
                 projectId={projectId}
                 gitRef={gitRef}
@@ -370,14 +364,6 @@ export default function ExecuteBlockForm({
                       {t('asHistory')}
                     </MenuItem>,
                   ],
-                }}
-                boxProps={{
-                  sx: {
-                    width: 1,
-                    '.MuiTextField-root': {
-                      width: 1,
-                    },
-                  },
                 }}
               />
             </Box>
@@ -443,61 +429,40 @@ export default function ExecuteBlockForm({
               )}
             </>
           )}
-          <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Typography sx={{ whiteSpace: 'nowrap' }}>{t('formatResult')}</Typography>
-            <IndicatorTextField
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[value.id, value.formatResultType ?? 'none']}
-              TextFiledProps={{
-                size: 'small',
-                select: true,
-                hiddenLabel: true,
-                SelectProps: {
-                  autoWidth: true,
-                },
-                value: value.formatResultType || 'none',
-                onChange: (e) => (value.formatResultType = e.target.value as any),
-                children: [
-                  <MenuItem key="none" value="none">
-                    {t('stayAsIs')}
-                  </MenuItem>,
-                  <MenuItem key="asHistory" value="asHistory">
-                    {t('asHistory')}
-                  </MenuItem>,
-                ],
-              }}
-            />
-          </Box>
 
           <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Typography sx={{ whiteSpace: 'nowrap' }}>{t('respondAs')}</Typography>
-            <IndicatorTextField
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[value.id, value.respondAs ?? 'none']}
-              TextFiledProps={{
-                size: 'small',
-                select: true,
-                hiddenLabel: true,
-                SelectProps: {
-                  autoWidth: true,
-                },
-                value: value.respondAs || 'none',
-                onChange: (e) => (value.respondAs = e.target.value as any),
-                children: [
-                  <MenuItem key="none" value="none" sx={{ color: 'text.secondary' }}>
-                    {t('none')}
-                  </MenuItem>,
-                  <MenuItem key="message" value="message">
-                    {t('respondAsMessage')}
-                  </MenuItem>,
-                  <MenuItem key="systemMessage" value="systemMessage">
-                    {t('respondAsSystemMessage')}
-                  </MenuItem>,
-                ],
-              }}
-            />
+            <Box flex={1}>
+              <Typography sx={{ whiteSpace: 'nowrap' }}>{t('respondAs')}</Typography>
+            </Box>
+
+            <Box>
+              <IndicatorTextField
+                projectId={projectId}
+                gitRef={gitRef}
+                path={[value.id, value.respondAs ?? 'none']}
+                TextFiledProps={{
+                  size: 'small',
+                  select: true,
+                  hiddenLabel: true,
+                  SelectProps: {
+                    autoWidth: true,
+                  },
+                  value: value.respondAs || 'none',
+                  onChange: (e) => (value.respondAs = e.target.value as any),
+                  children: [
+                    <MenuItem key="none" value="none" sx={{ color: 'text.secondary' }}>
+                      {t('none')}
+                    </MenuItem>,
+                    <MenuItem key="message" value="message">
+                      {t('respondAsMessage')}
+                    </MenuItem>,
+                    <MenuItem key="systemMessage" value="systemMessage">
+                      {t('respondAsSystemMessage')}
+                    </MenuItem>,
+                  ],
+                }}
+              />
+            </Box>
           </Box>
         </AccordionDetails>
       </Accordion>

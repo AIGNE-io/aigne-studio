@@ -14,9 +14,7 @@ import useDialog from '../../utils/use-dialog';
 import Branch from './icons/branch';
 import ArrowDropDownRounded from './icons/chevron-down';
 import Floppy from './icons/floppy';
-import Pen from './icons/pen';
 import Selected from './icons/selected';
-import Trash from './icons/trash';
 import { useProjectState } from './state';
 
 export default function BranchButton({
@@ -176,12 +174,11 @@ export default function BranchButton({
           />
         }>
         <Stack flexDirection="row" gap={0.5} className="center" sx={{ cursor: 'pointer' }}>
-          <CallSplitRounded sx={{ fontSize: 15, color: '#9CA3AF' }} />
+          <Box component={Icon} icon="tabler:arrow-ramp-right" width={15} color="#9CA3AF" />
           <Typography variant="subtitle3" color="#9CA3AF" lineHeight={1}>
             {gitRef}
           </Typography>
-          <Icon icon="tabler:accessible-filled" />
-          <ArrowDropDownRounded sx={{ fontSize: 15, color: '#030712' }} />
+          <Box component={Icon} icon="tabler:chevron-down" width={15} color="#030712" />
         </Stack>
       </Dropdown>
     </>
@@ -230,7 +227,7 @@ function BranchList({
       }}>
       {branches.map((branch) => (
         <MenuItem key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
-          {branch === ref ? <Selected sx={{ color: '#030712' }} /> : <Box mr={1} width={15} />}
+          {branch === ref ? <Box component={Icon} icon="tabler:check" mr={1} width={15} /> : <Box mr={1} width={15} />}
           {branch}
         </MenuItem>
       ))}
@@ -238,7 +235,7 @@ function BranchList({
       <Divider sx={{ m: '0 !important' }} />
 
       <MenuItem onClick={onCreate} sx={{ color: '#3B82F6' }}>
-        <Branch sx={{ color: '#3B82F6' }} />
+        <Box component={Icon} icon="tabler:arrow-bear-left-2" mr={1} width={15} color="'#3B82F6'" />
         {t('newObject', { object: t('branch') })}
       </MenuItem>
 
@@ -247,12 +244,12 @@ function BranchList({
           <Divider sx={{ m: '0 !important' }} />
 
           <MenuItem onClick={onRename}>
-            <Pen sx={{ color: '#030712' }} />
+            <Box component={Icon} icon="tabler:pencil" mr={1} width={15} color="#030712" />
             {t('rename')}
           </MenuItem>
 
           <MenuItem onClick={onDelete} sx={{ color: '#E11D48' }}>
-            <Trash sx={{ color: '#E11D48' }} />
+            <Box component={Icon} icon="tabler:trash" mr={1} width={15} color="#E11D48" />
             {t('delete')}
           </MenuItem>
         </>

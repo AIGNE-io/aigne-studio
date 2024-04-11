@@ -72,7 +72,6 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
 
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
           <PromiseLoadingButton
-            sx={{ p: 0 }}
             size="small"
             loadingPosition="start"
             startIcon={<SyncRounded />}
@@ -86,7 +85,6 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
                   return;
                 }
                 Toast.error(getErrorMessage(error));
-                throw error;
               }
             }}>
             {t('sync')}
@@ -111,7 +109,6 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
             } catch (error) {
               console.error(error);
               Toast.error(getErrorMessage(error));
-              throw error;
             }
           }}>
           {t('viewData')}

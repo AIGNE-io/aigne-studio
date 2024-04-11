@@ -435,13 +435,6 @@ export default function ProjectSettings() {
 
                 <Box>
                   <LoadingButton
-                    sx={{
-                      bgcolor: '#030712',
-                      color: '#fff',
-                      '&hover': {
-                        bgcolor: '#030712',
-                      },
-                    }}
                     disabled={readOnly}
                     variant="contained"
                     loadingPosition="start"

@@ -287,7 +287,7 @@ export default function ParametersTable({
                     document.getElementById(`${id}-key`)?.focus();
                   });
                 }}>
-                <Icon icon="tabler:plus" style={{ fontSize: 16, color: '#3B82F6' }} />
+                <Box component={Icon} icon="tabler:plus" fontSize={16} color="#3B82F6" />
               </Button>
             </Stack>
           )}
