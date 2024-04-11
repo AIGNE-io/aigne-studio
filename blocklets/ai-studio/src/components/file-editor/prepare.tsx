@@ -38,7 +38,9 @@ export default function Prepare({
       }}>
       <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
         <TipsAndUpdatesRounded sx={{ color: '#7C3AED', fontSize: 15 }} />
-        <Typography variant="subtitle2">{t('prepareExecutes')}</Typography>
+        <Typography variant="subtitle2" sx={{ m: 0 }}>
+          {t('prepareExecutes')}
+        </Typography>
       </Stack>
 
       {value.prepareExecutes && Object.values(value.prepareExecutes).length ? (

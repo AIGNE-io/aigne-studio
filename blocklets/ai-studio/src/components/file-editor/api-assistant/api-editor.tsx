@@ -41,7 +41,9 @@ export default function ApiEditor({
       }}>
       <Stack direction="row" alignItems="center" gap={1}>
         <TipsAndUpdatesRounded sx={{ color: '#3B82F6', fontSize: 15 }} />
-        <Typography variant="subtitle2">{t('api')}</Typography>
+        <Typography variant="subtitle2" sx={{ m: 0 }}>
+          {t('api')}
+        </Typography>
       </Stack>
 
       <Box border="1px solid #3B82F6" borderRadius={1} bgcolor="background.paper" px={1.5} py={1}>
