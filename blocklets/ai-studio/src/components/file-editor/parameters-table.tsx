@@ -174,7 +174,7 @@ export default function ParametersTable({
       {
         field: 'type',
         headerName: t('type'),
-        width: 120,
+        width: 100,
         renderCell: ({ row: { data: parameter } }) => {
           const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
           return (
@@ -211,7 +211,9 @@ export default function ParametersTable({
       {
         field: 'actions',
         headerName: t('actions'),
-        width: 100,
+        width: 70,
+        headerAlign: 'center',
+        align: 'right',
       },
     ];
   }, [t, readOnly, doc, deleteParameter]);
@@ -347,6 +349,14 @@ export default function ParametersTable({
                             ? (theme) => alpha(theme.palette.warning.light, theme.palette.action.focusOpacity)
                             : 'transparent',
                         transition: 'all 2s',
+                        '.hover-visible': {
+                          display: 'none',
+                        },
+                        ':hover': {
+                          '.hover-visible': {
+                            display: 'flex',
+                          },
+                        },
                       }}>
                       {columns.map((column, index) => {
                         return (
@@ -355,48 +365,39 @@ export default function ParametersTable({
                               key={column.field}
                               align={column.align}
                               sx={{
+                                position: 'relative',
                                 px: 0,
                                 ...getDiffBackground('parameters', parameter.id),
                               }}>
-                              <Box display="flex" alignItems="center" position="relative">
-                                {index === 0 && (
-                                  <Box
-                                    sx={{
-                                      minWidth: 0,
-                                      p: 0.5,
-                                      borderRadius: 100,
-                                      cursor: 'pointer',
-                                      ml: -3,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                    }}
-                                    ref={params.drag}>
-                                    <DragVertical sx={{ color: '#9CA3AF', fontSize: 22 }} />
-                                  </Box>
-                                )}
-                                {column.renderCell?.({ row: { data: parameter } } as any) ||
-                                  get(parameter, column.field)}
-                              </Box>
+                              {index === 0 && (
+                                <Stack
+                                  className="hover-visible"
+                                  ref={params.drag}
+                                  alignItems="center"
+                                  sx={{ p: 0.5, cursor: 'move', position: 'absolute', left: -24, top: 0, bottom: 0 }}>
+                                  <DragVertical sx={{ color: '#9CA3AF', fontSize: 22 }} />
+                                </Stack>
+                              )}
+
+                              {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
                             </TableCell>
                           )
                         );
                       })}
 
                       {!readOnly && (
-                        <TableCell sx={{ px: 0 }}>
-                          <Stack flexDirection="row" gap={1}>
-                            <Box
-                              sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
-                              onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
-                              <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('setting')}</Box>
-                            </Box>
+                        <TableCell sx={{ px: 0 }} align="right">
+                          <Button
+                            sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
+                            onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
+                            <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('setting')}</Box>
+                          </Button>
 
-                            <Box
-                              sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
-                              onClick={() => deleteParameter(parameter)}>
-                              <Box sx={{ color: '#E11D48', fontSize: 13 }}>{t('delete')}</Box>
-                            </Box>
-                          </Stack>
+                          <Button
+                            sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
+                            onClick={() => deleteParameter(parameter)}>
+                            <Box sx={{ color: '#E11D48', fontSize: 13 }}>{t('delete')}</Box>
+                          </Button>
                         </TableCell>
                       )}
                     </TableRow>
