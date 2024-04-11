@@ -56,7 +56,7 @@ export default function HeaderActions() {
       <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
         {({ TransitionProps }) => (
           <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-            <Paper sx={{ border: '1px solid #ddd', maxWidth: 350, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
+            <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
               <ClickAwayListener onClickAway={() => popperState.close()}>
                 <Box>{file ? <PublishView projectId={projectId} projectRef={gitRef} assistant={file} /> : null}</Box>
               </ClickAwayListener>
