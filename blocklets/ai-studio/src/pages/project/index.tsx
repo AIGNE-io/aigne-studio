@@ -1,3 +1,4 @@
+import UploaderProvider from '@app/contexts/uploader';
 import currentGitStore from '@app/store/current-git-store';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
@@ -23,63 +24,65 @@ export default function ProjectRoutes() {
   }, [location]);
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <GlobalStyles
-        styles={(theme) => ({
-          html: {
-            backgroundColor: theme.palette.background.default,
-          },
-        })}
-      />
-      <StyledDashboard
-        HeaderProps={{
-          logo: <ProjectLogo />,
-          addons: (exists) => [<SubscribeButton />, <AddonsRoutes />, ...exists],
-        }}
-        MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
-        sx={{
-          bgcolor: 'background.default',
+    <UploaderProvider>
+      <DndProvider backend={HTML5Backend}>
+        <GlobalStyles
+          styles={(theme) => ({
+            html: {
+              backgroundColor: theme.palette.background.default,
+            },
+          })}
+        />
+        <StyledDashboard
+          HeaderProps={{
+            logo: <ProjectLogo />,
+            addons: (exists) => [<SubscribeButton />, <AddonsRoutes />, ...exists],
+          }}
+          MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
+          sx={{
+            bgcolor: 'background.default',
 
-          '> .dashboard-header': {
-            border: 'none',
-            borderBottom: '1px solid #E5E7EB',
-          },
+            '> .dashboard-header': {
+              border: 'none',
+              borderBottom: '1px solid #E5E7EB',
+            },
 
-          '> .dashboard-body': {
-            '> .dashboard-aside': {
-              [`.${paperClasses.root}`]: {
-                border: 'none',
-                bgcolor: 'background.default',
+            '> .dashboard-body': {
+              '> .dashboard-aside': {
+                [`.${paperClasses.root}`]: {
+                  border: 'none',
+                  bgcolor: 'background.default',
+                },
+              },
+              '> .dashboard-content': {
+                bgcolor: 'background.paper',
+                overflow: 'hidden',
               },
             },
-            '> .dashboard-content': {
-              bgcolor: 'background.paper',
-              overflow: 'hidden',
-            },
-          },
-        }}>
-        <ErrorBoundary ref={errorBoundary}>
-          <DatasetsProvider>
-            <Suspense fallback={<Loading fixed />}>
-              <Routes>
-                <Route index element={<ProjectsPage />} />
-                <Route path=":projectId/*" element={<ProjectHeader />}>
-                  <Route index element={<Navigate to="file" replace />} />
-                  <Route path="prompts/*" element={<Navigate to="../file" replace />} />
-                  <Route path="home" element={<ProjectsPage />} />
-                  <Route path="file">
-                    <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
-                    <Route path=":ref/*" element={<ProjectPage />} />
+          }}>
+          <ErrorBoundary ref={errorBoundary}>
+            <DatasetsProvider>
+              <Suspense fallback={<Loading fixed />}>
+                <Routes>
+                  <Route index element={<ProjectsPage />} />
+                  <Route path=":projectId/*" element={<ProjectHeader />}>
+                    <Route index element={<Navigate to="file" replace />} />
+                    <Route path="prompts/*" element={<Navigate to="../file" replace />} />
+                    <Route path="home" element={<ProjectsPage />} />
+                    <Route path="file">
+                      <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
+                      <Route path=":ref/*" element={<ProjectPage />} />
+                    </Route>
+                    <Route path="settings" element={<ProjectSettings />} />
+                    <Route path="knowledge/*" element={<KnowledgeRoutes />} />
                   </Route>
-                  <Route path="settings" element={<ProjectSettings />} />
-                  <Route path="knowledge/*" element={<KnowledgeRoutes />} />
-                </Route>
-              </Routes>
-            </Suspense>
-          </DatasetsProvider>
-        </ErrorBoundary>
-      </StyledDashboard>
-    </DndProvider>
+                </Routes>
+              </Suspense>
+            </DatasetsProvider>
+          </ErrorBoundary>
+        </StyledDashboard>
+      </DndProvider>
+    </UploaderProvider>
   );
 }
 
