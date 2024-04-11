@@ -48,11 +48,11 @@ const Logo = createSvgIcon(
         x2="21.4671"
         y2="16.1254"
         gradientUnits="userSpaceOnUse">
-        <stop stopColor="#8D91FF" stopOpacity="0" style={{stopColor:'none', stopOpacity:0 }} />
+        <stop stopColor="#8D91FF" stopOpacity="0" style={{ stopColor: 'none', stopOpacity: 0 }} />
         <stop
           offset="1"
           stopColor="#8D91FF"
-	  style={{stopColor: 'color(display-p3 0.5529 0.5686 1.0000)', stopOpacity: 1}}
+          style={{ stopColor: 'color(display-p3 0.5529 0.5686 1.0000)', stopOpacity: 1 }}
         />
       </linearGradient>
       <linearGradient
@@ -62,11 +62,11 @@ const Logo = createSvgIcon(
         x2="12.1872"
         y2="27.1362"
         gradientUnits="userSpaceOnUse">
-        <stop stopColor="#8D91FF" stopOpacity="0" style={{stopColor:'none', stopOpacity:0 }} />
+        <stop stopColor="#8D91FF" stopOpacity="0" style={{ stopColor: 'none', stopOpacity: 0 }} />
         <stop
           offset="1"
           stopColor="#8D91FF"
-          style={{stopColor: 'color(display-p3 0.5529 0.5686 1.0000)', stopOpacity: 1}}
+          style={{ stopColor: 'color(display-p3 0.5529 0.5686 1.0000)', stopOpacity: 1 }}
         />
       </linearGradient>
       <linearGradient
@@ -76,11 +76,11 @@ const Logo = createSvgIcon(
         x2="26.2895"
         y2="29.6094"
         gradientUnits="userSpaceOnUse">
-        <stop stopColor="#8D91FF" stopOpacity="0" style={{stopColor:'none', stopOpacity:0 }} />
+        <stop stopColor="#8D91FF" stopOpacity="0" style={{ stopColor: 'none', stopOpacity: 0 }} />
         <stop
           offset="1"
           stopColor="#8D91FF"
-          style={{stopColor: 'color(display-p3 0.5529 0.5686 1.0000)', stopOpacity: 1}}
+          style={{ stopColor: 'color(display-p3 0.5529 0.5686 1.0000)', stopOpacity: 1 }}
         />
       </linearGradient>
       <image

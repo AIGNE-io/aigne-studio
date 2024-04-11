@@ -1,10 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { FunctionAssistantYjs } from '@blocklet/ai-runtime/types';
-import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import { Box, Stack, Typography, alpha } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
+import TipsAndUpdatesRounded from '../../../pages/project/icons/tips';
 import CodeEditor from '../../template-form/code-editor';
 
 export default function FunctionCodeEditor({
@@ -34,43 +34,44 @@ export default async function (args) {
   }, [value]);
 
   return (
-    <Box
+    <Stack
+      gap={1}
       sx={{
-        border: 2,
-        borderColor: 'primary.main',
-        borderRadius: 2,
-        bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-        overflow: 'hidden',
-        backgroundColor: getDiffBackground('code'),
+        borderRadius: 1,
+        bgcolor: '#EFF6FF',
+        px: 2,
+        py: 1.5,
       }}>
-      <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
-        <TipsAndUpdatesRounded fontSize="small" color="primary" />
-        <Typography variant="subtitle1">{t('function')}</Typography>
+      <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
+        <TipsAndUpdatesRounded sx={{ color: '#3B82F6', fontSize: 15 }} />
+        <Typography variant="subtitle2">{t('function')}</Typography>
       </Stack>
 
-      <Box
-        sx={{
-          zIndex: (theme) => theme.zIndex.tooltip,
-          height: '300px',
-          '.monaco-editor': {
-            borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
-            borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
-            '.overflow-guard': {
+      <Box border="1px solid #3B82F6" borderRadius={1} bgcolor="background.paper" px={1.5} py={1}>
+        <Box
+          sx={{
+            zIndex: (theme) => theme.zIndex.tooltip,
+            height: '300px',
+            '.monaco-editor': {
               borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
               borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
+              '.overflow-guard': {
+                borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
+                borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
+                backgroundColor: getDiffBackground('code'),
+              },
               backgroundColor: getDiffBackground('code'),
             },
-            backgroundColor: getDiffBackground('code'),
-          },
-        }}>
-        <CodeEditor
-          readOnly={readOnly}
-          language="typescript"
-          path="function.ts"
-          value={value.code}
-          onChange={(code) => (value.code = code)}
-        />
+          }}>
+          <CodeEditor
+            readOnly={readOnly}
+            language="typescript"
+            path="function.ts"
+            value={value.code}
+            onChange={(code) => (value.code = code)}
+          />
+        </Box>
       </Box>
-    </Box>
+    </Stack>
   );
 }

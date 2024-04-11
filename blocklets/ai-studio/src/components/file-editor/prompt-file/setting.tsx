@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { PromptAssistantYjs } from '@blocklet/ai-runtime/types';
 import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
-import { Box, Collapse, FormLabel, ListItemIcon, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Collapse, FormLabel, Stack, Tooltip, Typography } from '@mui/material';
 import isNil from 'lodash/isNil';
 import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';

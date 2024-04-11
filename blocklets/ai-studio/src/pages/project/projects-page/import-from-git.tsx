@@ -193,7 +193,7 @@ export default function ImportFromGit({ children }: { children: any }) {
             </Box>
 
             <Box>
-              <Box variant="subtitle2">{t('accessToken')}</Box>
+              <Typography variant="subtitle2">{t('accessToken')}</Typography>
               <TextField
                 fullWidth
                 label={t('accessToken')}

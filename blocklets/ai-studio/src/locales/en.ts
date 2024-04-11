@@ -591,4 +591,5 @@ export default flat({
   choose: 'Choose Template',
   emptyVariablesTitle: 'No variables Yet',
   emptyVariablesSubtitle: "You haven't added any variables yet.",
+  emptyExecute: 'No execute Yet',
 });

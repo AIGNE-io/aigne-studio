@@ -141,7 +141,10 @@ export default ColumnsLayout;
 
 function ResizeHandle({ collapsed, ...props }: { collapsed?: boolean } & BoxProps) {
   return (
-    <ResizeHandleRoot component={PanelResizeHandle} className={cx(collapsed && 'collapsed')}>
+    <ResizeHandleRoot
+      component={PanelResizeHandle}
+      className={cx(collapsed && 'collapsed')}
+      sx={{ borderColor: '#E5E7EB' }}>
       <Box {...props} className="handler" />
     </ResizeHandleRoot>
   );
