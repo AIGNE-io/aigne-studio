@@ -501,7 +501,7 @@ async function runPromptAssistant({
   if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
 
   const executeBlocks = assistant.prompts
-    .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i))
+    .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i) && i.visibility !== 'hidden')
     .map((i) => i.data);
 
   const blockResults = await runExecuteBlocks({
