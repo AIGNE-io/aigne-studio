@@ -2,6 +2,7 @@ import DragVertical from '@app/pages/project/icons/drag-vertical';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { Icon } from '@iconify-icon/react';
 import { InfoOutlined } from '@mui/icons-material';
 import {
   Box,
@@ -33,7 +34,6 @@ import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/
 import { useMemo, useState } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
-import Add from '../../pages/project/icons/plus';
 import Settings from '../../pages/project/icons/settings';
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
@@ -287,7 +287,7 @@ export default function ParametersTable({
                     document.getElementById(`${id}-key`)?.focus();
                   });
                 }}>
-                <Add sx={{ fontSize: 16 }} />
+                <Icon icon="tabler:plus" style={{ fontSize: 16, color: '#3B82F6' }} />
               </Button>
             </Stack>
           )}

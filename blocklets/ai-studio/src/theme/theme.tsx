@@ -262,17 +262,36 @@ export const theme = createTheme({
     button: {
       textTransform: 'none',
     },
+    subtitle1: {
+      fontWeight: 600,
+      fontSize: 18,
+      color: '#000',
+      lineHeight: 1.5,
+    },
     subtitle2: {
       fontSize: '14px',
       lineHeight: '24px',
       fontWeight: 500,
       color: '#030712',
+      marginBottom: '4px',
     },
     subtitle3: {
       fontSize: '13px',
       lineHeight: '22px',
       fontWeight: 400,
       color: '#4B5563',
+    },
+    subtitle4: {
+      fontSize: '13px',
+      lineHeight: '22px',
+      fontWeight: 500,
+      color: '#030712',
+    },
+    subtitle5: {
+      fontSize: '12px',
+      lineHeight: '20px',
+      fontWeight: 400,
+      color: '#9CA3AF',
     },
   },
   palette: {
@@ -683,12 +702,6 @@ export const theme = createTheme({
         root: {
           borderTop: '1px solid #E5E7EB',
           padding: '16px 24px',
-
-          '.cancel': {
-            border: '1px solid #E5E7EB',
-            color: '#000',
-            padding: '5px 12px',
-          },
         },
       },
     },
@@ -710,6 +723,18 @@ export const theme = createTheme({
 
           '&:hover': {
             backgroundColor: '#030712',
+          },
+        },
+        outlined: {
+          bgcolor: '#fff',
+          color: '#000',
+          border: '1px solid #E5E7EB',
+          fontSize: '13px',
+          fontWeight: 500,
+          p: '5px 12px',
+
+          '&:hover': {
+            border: '1px solid #E5E7EB',
           },
         },
       },

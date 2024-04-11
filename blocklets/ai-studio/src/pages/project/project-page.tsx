@@ -7,6 +7,7 @@ import {
   isImageAssistant,
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
 import {
   Alert,
   Box,
@@ -56,7 +57,6 @@ import ImportAssistant from './icons/import-assistant';
 import LinkIcon from './icons/link';
 import Picture from './icons/picture';
 import Play from './icons/play';
-import Plus from './icons/plus';
 import SideBar from './icons/sidebar';
 import { useProjectState } from './state';
 import TestView from './test-view';
@@ -199,7 +199,7 @@ export default function ProjectPage() {
               <Tooltip title={t('newObject', { object: t('file') })} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} {...bindTrigger(createFileMenuState)}>
-                    <Plus sx={{ fontSize: 20, color: '#3B82F6' }} />
+                    <Icon icon="tabler:plus" style={{ fontSize: 20, color: '#3B82F6' }} />
                   </Button>
                 </span>
               </Tooltip>

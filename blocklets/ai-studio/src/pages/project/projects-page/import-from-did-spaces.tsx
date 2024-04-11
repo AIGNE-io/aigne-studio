@@ -1,6 +1,7 @@
 /* eslint-disable consistent-return */
 import Project from '@api/store/models/project';
 import { useSessionContext } from '@app/contexts/session';
+import { didSpaceReady } from '@app/libs/did-spaces';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -13,6 +14,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  ListItemText,
   MenuItem,
   Stack,
   TextField,
@@ -20,7 +22,7 @@ import {
 } from '@mui/material';
 import { useAsyncEffect } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { cloneElement, useCallback, useId, useState } from 'react';
+import { useCallback, useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
@@ -29,6 +31,7 @@ import { useProjectsState } from '../../../contexts/projects';
 import { getErrorMessage } from '../../../libs/api';
 import Add from '../icons/add';
 import Close from '../icons/close';
+import DidSpacesLogo from '../icons/did-spaces';
 
 type ProjectSettingForm = {
   _id: string;
@@ -36,7 +39,7 @@ type ProjectSettingForm = {
   description: string;
 };
 
-export default function FromDidSpacesImport({ children }: { children: any }) {
+export default function FromDidSpacesImport() {
   const { t } = useLocaleContext();
   const [search, setSearchParams] = useSearchParams();
   const endpoint = search.get('endpoint');
@@ -127,12 +130,20 @@ export default function FromDidSpacesImport({ children }: { children: any }) {
     });
   };
 
+  if (!didSpaceReady(session?.user)) {
+    return null;
+  }
+
   return (
     <>
-      {cloneElement(children, { onClick: () => goToDidSpacesImport() })}
+      <MenuItem onClick={goToDidSpacesImport}>
+        <DidSpacesLogo sx={{ mr: 1, fontSize: 14 }} />
+        <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('didSpaces.title')}</ListItemText>
+      </MenuItem>
 
       <Dialog
         {...bindDialog(dialogState)}
+        open
         maxWidth="sm"
         fullWidth
         component="form"

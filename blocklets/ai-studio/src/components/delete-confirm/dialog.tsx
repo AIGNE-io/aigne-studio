@@ -1,6 +1,5 @@
-import Button from '@arcblock/ux/lib/Button';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { IconButton, Stack, Tooltip } from '@mui/material';
+import { Button, IconButton, Stack, Tooltip } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Spinner from '@mui/material/CircularProgress';
@@ -123,7 +122,7 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
       </DialogContent>
 
       <DialogActions sx={{ border: 0 }}>
-        <Button onClick={onClose} className="cancel">
+        <Button onClick={onClose} variant="outlined">
           {t('alert.close')}
         </Button>
 
@@ -138,7 +137,6 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
             border: 0,
             background: '#E11D48',
             color: '#fff',
-            padding: '5px 12px',
 
             '&:hover': {
               background: '#E11D48',

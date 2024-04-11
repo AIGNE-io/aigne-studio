@@ -174,7 +174,7 @@ function PublishEntriesForm({
         onChange={(e) => (entry.title = e.target.value)}
       />
 
-      <Typography variant="subtitle1">{t('parameters')}</Typography>
+      <Typography variant="subtitle2">{t('parameters')}</Typography>
 
       {parameters.map(({ data: parameter }) => {
         if (parameter.key === 'question') return null;

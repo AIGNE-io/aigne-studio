@@ -14,8 +14,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { cloneElement, useCallback, useId } from 'react';
+import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -31,11 +30,9 @@ interface BlankForm {
   name: string;
 }
 
-export default function ImportFromBlank({ children, item }: { children: any; item?: ProjectWithUserInfo }) {
+export default function ImportFromBlank({ onClose, item }: { onClose: () => void; item?: ProjectWithUserInfo }) {
   const { t } = useLocaleContext();
-  const id = useId();
   const navigate = useNavigate();
-  const dialogState = usePopupState({ variant: 'dialog', popupId: id });
   const { importProject } = useProjectsState();
 
   const form = useForm<BlankForm>({
@@ -58,69 +55,66 @@ export default function ImportFromBlank({ children, item }: { children: any; ite
         throw error;
       }
     },
-    [dialogState, form, importProject, navigate]
+    [form, importProject, navigate]
   );
 
   return (
-    <>
-      {cloneElement(children, { onClick: () => dialogState.open() })}
+    <Dialog
+      open
+      disableEnforceFocus
+      maxWidth="sm"
+      fullWidth
+      component="form"
+      onSubmit={form.handleSubmit(save)}
+      onClose={onClose}>
+      <DialogTitle className="between">
+        <Box>{t('newObject', { object: t('form.project') })}</Box>
 
-      <Dialog
-        {...bindDialog(dialogState)}
-        disableEnforceFocus
-        maxWidth="sm"
-        fullWidth
-        component="form"
-        onSubmit={form.handleSubmit(save)}>
-        <DialogTitle className="between">
-          <Box>{t('newObject', { object: t('form.project') })}</Box>
+        <IconButton size="small" onClick={() => onClose()}>
+          <Close />
+        </IconButton>
+      </DialogTitle>
 
-          <IconButton size="small" onClick={() => dialogState.close()}>
-            <Close />
-          </IconButton>
-        </DialogTitle>
+      <DialogContent>
+        <Stack overflow="auto" gap={1.5}>
+          <Box>
+            <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
+            <TextField
+              autoFocus
+              label={t('projectSetting.name')}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+              {...form.register('name')}
+            />
+          </Box>
 
-        <DialogContent>
-          <Stack overflow="auto" gap={1.5}>
-            <Box>
-              <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
-              <TextField
-                autoFocus
-                label={t('projectSetting.name')}
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-                {...form.register('name')}
-              />
-            </Box>
+          <Box>
+            <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
+            <TextField
+              label={t('projectSetting.description')}
+              multiline
+              rows={4}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+              {...form.register('description')}
+            />
+          </Box>
+        </Stack>
+      </DialogContent>
 
-            <Box>
-              <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
-              <TextField
-                label={t('projectSetting.description')}
-                multiline
-                rows={4}
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-                {...form.register('description')}
-              />
-            </Box>
-          </Stack>
-        </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} className="cancel">
+          {t('cancel')}
+        </Button>
 
-        <DialogActions>
-          <Button onClick={dialogState.close} className="cancel">
-            {t('cancel')}
-          </Button>
-
-          <LoadingButton
-            className="save"
-            variant="contained"
-            type="submit"
-            loading={form.formState.isSubmitting}
-            loadingPosition="start"
-            startIcon={<Add />}>
-            {t('create')}
-          </LoadingButton>
-        </DialogActions>
-      </Dialog>
-    </>
+        <LoadingButton
+          className="save"
+          variant="contained"
+          type="submit"
+          loading={form.formState.isSubmitting}
+          loadingPosition="start"
+          startIcon={<Add />}>
+          {t('create')}
+        </LoadingButton>
+      </DialogActions>
+    </Dialog>
   );
 }

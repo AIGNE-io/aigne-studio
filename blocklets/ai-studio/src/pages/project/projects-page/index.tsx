@@ -1,12 +1,10 @@
-import { didSpaceReady, getProjectDataUrlInSpace } from '@app/libs/did-spaces';
+import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import {
@@ -36,7 +34,6 @@ import {
   Typography,
   avatarClasses,
   styled,
-  svgIconClasses,
 } from '@mui/material';
 import { MouseEvent, ReactNode, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -51,15 +48,7 @@ import { ProjectWithUserInfo, User, createProject, getProjectIconUrl } from '../
 import useDialog from '../../../utils/use-dialog';
 import ChevronDown from '../icons/chevron-down';
 import DidSpacesLogo from '../icons/did-spaces';
-import Duplicate from '../icons/duplicate';
-import Edit from '../icons/edit';
-import Github from '../icons/github';
 import Pin from '../icons/pin';
-import PinOff from '../icons/pin-off';
-import PinOn from '../icons/pin-on';
-import Plus from '../icons/plus';
-import Template from '../icons/template';
-import Trash from '../icons/trash';
 import ImportFromBlank from './import-from-blank';
 import ImportFromDidSpaces from './import-from-did-spaces';
 import ImportFromGit from './import-from-git';
@@ -103,15 +92,9 @@ export default function ProjectsPage() {
             </Stack>
           ) : (
             <Stack alignItems="center">
-              <Box fontSize="18px" fontWeight="600" lineHeight="28px" color="#000000">
-                💻
-              </Box>
-              <Box fontSize="13px" fontWeight="500" lineHeight="22px" color="#030712">
-                {t('emptyProjectTitle')}
-              </Box>
-              <Box fontSize="12px" lineHeight="20px" color="#9CA3AF">
-                {t('emptyProjectSubtitle')}
-              </Box>
+              <Typography variant="subtitle1">💻</Typography>
+              <Typography variant="subtitle4">{t('emptyProjectTitle')}</Typography>
+              <Typography variant="subtitle5">{t('emptyProjectSubtitle')}</Typography>
             </Stack>
           )}
         </Section>
@@ -127,89 +110,61 @@ export default function ProjectsPage() {
 }
 
 function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
-  const { session } = useSessionContext();
   const blank = (list || []).find((x) => !x.isFromResource);
   const resource = (list || []).filter((x) => x.isFromResource);
   const { t } = useLocaleContext();
+  const [dialog, setDialog] = useState<any>(null);
 
   return (
-    <Stack gap={1} flexDirection="row">
-      <ButtonPopper
-        list={
-          <MenuList autoFocusItem>
-            <ImportFromGit>
-              <MenuItem>
-                <Github sx={{ mr: 1, fontSize: 16, color: '#000' }} />
+    <>
+      <Stack gap={1} flexDirection="row">
+        <ButtonPopper
+          list={
+            <MenuList autoFocusItem>
+              <MenuItem
+                onClick={() => {
+                  setDialog(<ImportFromGit onClose={() => setDialog(null)} />);
+                }}>
+                <Box component={Icon} icon="tabler:brand-github" sx={{ mr: 1 }} />
                 <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('gitRepo')}</ListItemText>
               </MenuItem>
-            </ImportFromGit>
 
-            {didSpaceReady(session?.user) && (
-              <ImportFromDidSpaces>
-                <MenuItem onClick={() => {}}>
-                  <DidSpacesLogo sx={{ mr: 1, fontSize: 16 }} />
-                  <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('didSpaces.title')}</ListItemText>
-                </MenuItem>
-              </ImportFromDidSpaces>
-            )}
-          </MenuList>
-        }>
-        <Button
-          sx={{
-            bgcolor: '#fff',
-            color: '#000',
-            border: '1px solid #E5E7EB',
-            fontSize: '13px',
-            fontWeight: 500,
-            p: '5px 12px',
-          }}>
-          {t('alert.import')}
-        </Button>
-      </ButtonPopper>
+              <ImportFromDidSpaces />
+            </MenuList>
+          }>
+          <Button variant="outlined">{t('alert.import')}</Button>
+        </ButtonPopper>
 
-      <ButtonPopper
-        list={
-          <MenuList autoFocusItem>
-            <ImportFromBlank item={blank}>
-              <MenuItem>
-                <Plus sx={{ mr: 1, fontSize: 16, color: '#000' }} />
+        <ButtonPopper
+          list={
+            <MenuList autoFocusItem>
+              <MenuItem
+                onClick={() => {
+                  setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
+                }}>
+                <Box component={Icon} icon="tabler:plus" sx={{ mr: 1 }} />
                 <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('blank')}</ListItemText>
               </MenuItem>
-            </ImportFromBlank>
 
-            {resource.length && (
-              <ImportFromTemplates templates={resource}>
-                <MenuItem>
-                  <Template sx={{ mr: 1, fontSize: 16 }} />
+              {resource.length && (
+                <MenuItem
+                  onClick={() => {
+                    setDialog(<ImportFromTemplates templates={resource} onClose={() => setDialog(null)} />);
+                  }}>
+                  <Box component={Icon} icon="tabler:file-plus" sx={{ mr: 1 }} />
                   <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('import.templates')}</ListItemText>
                 </MenuItem>
-              </ImportFromTemplates>
-            )}
-          </MenuList>
-        }>
-        <Button
-          startIcon={<Plus sx={{}} />}
-          sx={{
-            bgcolor: '#000',
-            color: '#fff',
-            fontSize: '13px',
-            fontWeight: 500,
-            p: '5px 12px',
+              )}
+            </MenuList>
+          }>
+          <Button startIcon={<Box component={Icon} icon="tabler:plus" />} variant="contained">
+            {t('newProject')}
+          </Button>
+        </ButtonPopper>
+      </Stack>
 
-            '&:hover': {
-              bgcolor: '#000',
-            },
-
-            [`.${svgIconClasses.root}`]: {
-              fontSize: '15px',
-              fontWeight: 500,
-              color: '#fff',
-            },
-          }}>
-          {t('newProject')}
-        </Button>
-      </ButtonPopper>
-    </Stack>
+      {dialog}
+    </>
   );
 }
 
@@ -257,7 +212,7 @@ function ProjectMenu() {
         {
           visible: () => menuAnchor?.section === 'projects',
           title: t('alert.edit'),
-          icon: <Edit />,
+          icon: <Box component={Icon} icon="tabler:pencil" />,
           onClick: () => {
             const id = menuAnchor?.id;
             if (!id) return;
@@ -316,7 +271,7 @@ function ProjectMenu() {
         {
           visible: () => menuAnchor?.section === 'projects' || menuAnchor?.section === 'examples',
           title: t('duplicate'),
-          icon: <Duplicate />,
+          icon: <Box component={Icon} icon="tabler:copy" />,
           onClick: async () => {
             await createProject({
               templateId: menuAnchor!.id,
@@ -335,7 +290,11 @@ function ProjectMenu() {
         {
           visible: () => menuAnchor?.section === 'projects',
           title: item?.pinnedAt ? t('unpin') : t('pin'),
-          icon: item?.pinnedAt ? <PinOff /> : <PinOn />,
+          icon: item?.pinnedAt ? (
+            <Box component={Icon} icon="tabler:pinned-off" />
+          ) : (
+            <Box component={Icon} icon="tabler:pin" />
+          ),
           onClick: async () => {
             const id = menuAnchor?.id;
             if (!id) return;
@@ -351,7 +310,7 @@ function ProjectMenu() {
         },
         {
           visible: () => menuAnchor.section === 'projects',
-          icon: <Trash color="inherit" />,
+          icon: <Box component={Icon} icon="tabler:trash" color="warning.main" />,
           title: t('delete'),
           color: 'warning.main',
           onClick: () => {
@@ -361,7 +320,7 @@ function ProjectMenu() {
         },
         {
           visible: () => menuAnchor.section === 'examples' && !item.isFromResource && !!item.duplicateFrom,
-          icon: <Box component={Icon} icon="system-uicons:reset" fontSize={20} color="warning.main" />,
+          icon: <Box component={Icon} icon="tabler:refresh" color="warning.main" />,
           title: t('reset'),
           color: 'warning.main',
           onClick: () => {
@@ -393,7 +352,7 @@ function ProjectMenu() {
                     disabled={readOnly}
                     onClick={menu.onClick}
                     sx={{ color: menu.color, svg: { color: menu.color } }}>
-                    <ListItemIcon>{menu.icon}</ListItemIcon>
+                    <ListItemIcon sx={{ minWidth: '0 !important', mr: 1 }}>{menu.icon}</ListItemIcon>
                     {menu.title}
                   </LoadingMenuItem>
                 ));
@@ -452,8 +411,8 @@ function Section({
   const [templatesVisible, setTemplatesVisible] = useState(true);
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+    <Stack gap={1.5}>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
         <Stack
           direction="row"
           sx={{
@@ -465,9 +424,7 @@ function Section({
             gap: 1,
           }}
           onClick={() => setTemplatesVisible(!templatesVisible)}>
-          <Typography fontWeight="bold" fontSize="18px" lineHeight="28px">
-            {title}
-          </Typography>
+          <Typography variant="subtitle1">{title}</Typography>
 
           {enableCollapse && (
             <IconButton size="small" sx={{ m: 0, p: 0 }}>
@@ -487,7 +444,7 @@ function Section({
       <Collapse in={enableCollapse ? templatesVisible : true} sx={{ position: 'relative' }}>
         {children}
       </Collapse>
-    </Box>
+    </Stack>
   );
 }
 
@@ -608,7 +565,6 @@ function ProjectList({
                     size="small"
                     sx={{
                       backgroundColor: 'transparent',
-                      color: '#3B82F6',
                       borderRadius: 1,
                       padding: 0,
 
@@ -620,7 +576,7 @@ function ProjectList({
                       e.stopPropagation();
                       setMenuAnchor({ section, anchor: e.currentTarget, id: item._id! });
                     }}>
-                    <MoreVertIcon fontSize="small" sx={{ fontSize: 20 }} />
+                    <Box component={Icon} icon="tabler:dots-vertical" style={{ fontSize: 20 }} />
                   </IconButton>
                 )
               }
@@ -768,7 +724,7 @@ function ProjectItem({
                   onClick={(e) => {
                     e.stopPropagation();
                   }}>
-                  <GitHubIcon sx={{ fontSize: 16 }} />
+                  <Box component={Icon} icon="tabler:brand-github-filled" style={{ fontSize: 16 }} />
                 </Box>
               </Tooltip>
             )}
@@ -910,7 +866,7 @@ function LoadingMenuItem({ ...props }: MenuItemProps) {
 
 const ProjectListContainer = styled(Box)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
 `;
 
 function ButtonPopper({ children, list }: { children: any; list?: any }) {

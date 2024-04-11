@@ -278,7 +278,7 @@ export function useMergeConflictDialog({ projectId }: { projectId: string }) {
 
         content: (
           <Stack gap={0.25} sx={{ b: { color: 'warning.main', mx: 0.25 } }}>
-            <Typography variant="subtitle1">{t('mergeConflictTip')}</Typography>
+            <Typography variant="subtitle2">{t('mergeConflictTip')}</Typography>
             <Box>
               <Typography component="span" fontWeight="bold">
                 {t('useRemote')}:{' '}

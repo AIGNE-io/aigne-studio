@@ -17,8 +17,6 @@ import {
   avatarClasses,
   styled,
 } from '@mui/material';
-import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { cloneElement, useId } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
@@ -27,27 +25,23 @@ import useDialog from '../../../utils/use-dialog';
 import Close from '../icons/close';
 
 export default function ImportFromTemplates({
-  children,
+  onClose,
   templates,
 }: {
-  children: any;
+  onClose: () => void;
   templates: ProjectWithUserInfo[];
 }) {
   const { t, locale } = useLocaleContext();
-  const id = useId();
-  const dialogState = usePopupState({ variant: 'dialog', popupId: id });
   const { dialog, showDialog } = useDialog();
   const navigate = useNavigate();
 
   return (
     <>
-      {cloneElement(children, { onClick: () => dialogState.open() })}
-
-      <Dialog {...bindDialog(dialogState)} disableEnforceFocus maxWidth="md" fullWidth component="form">
+      <Dialog open disableEnforceFocus maxWidth="md" fullWidth component="form" onClose={onClose}>
         <DialogTitle className="between">
           <Box>{t('choose')}</Box>
 
-          <IconButton size="small" onClick={() => dialogState.close()}>
+          <IconButton size="small" onClick={() => onClose()}>
             <Close />
           </IconButton>
         </DialogTitle>
@@ -139,11 +133,7 @@ export default function ImportFromTemplates({
                         gap={2}
                         sx={{ fontSize: '12px', color: 'text.disabled' }}
                         alignItems="center">
-                        {createdAt && (
-                          <Box>
-                            <RelativeTime value={createdAt} locale={locale} />
-                          </Box>
-                        )}
+                        {createdAt && <RelativeTime value={createdAt} locale={locale} />}
                       </Stack>
 
                       {users && Array.isArray(users) && !!users.length && (

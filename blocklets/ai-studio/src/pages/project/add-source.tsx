@@ -1,9 +1,8 @@
-import Button from '@arcblock/ux/lib/Button';
-import { svgIconClasses } from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import { Box, IconButton, svgIconClasses } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 
 import { PUBLISH_RESOURCE_PATH } from '../../libs/constants';
-import UploadIcon from './icons/upload';
 
 export default function Exporter() {
   const [showCreateResource, setShowCreateResource] = useState(false);
@@ -28,7 +27,7 @@ export default function Exporter() {
 
   return (
     <>
-      <Button
+      <IconButton
         sx={{
           position: 'relative',
           minWidth: 40,
@@ -39,8 +38,8 @@ export default function Exporter() {
           },
         }}
         onClick={() => setShowCreateResource(true)}>
-        <UploadIcon />
-      </Button>
+        <Box component={Icon} icon="tabler:arrow-big-up-line" style={{ fontSize: 24 }} />
+      </IconButton>
 
       {showCreateResource && (
         <iframe

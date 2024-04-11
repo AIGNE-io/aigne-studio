@@ -40,7 +40,7 @@ export default function BasicInfoForm({
               onChange={(e) => (value.name = e.target.value.replace(/\//g, ''))}
               InputProps={{
                 readOnly,
-                sx: (theme) => theme.typography.subtitle1,
+                sx: (theme) => theme.typography.subtitle2,
               }}
               sx={{
                 [`.${inputBaseClasses.root}`]: {
