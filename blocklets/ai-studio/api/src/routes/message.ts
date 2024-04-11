@@ -2,51 +2,16 @@ import History from '@api/store/models/history';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
-import { uniqBy } from 'lodash';
+import { uniqBy, zip } from 'lodash';
 import orderBy from 'lodash/orderBy';
-import { FindOptions, Op, cast, col, where } from 'sequelize';
+import { Attributes, FindOptions, Op, cast, col, where } from 'sequelize';
 
-const searchOptionsSchema = Joi.object<{ sessionId: string; userId: string; limit?: number; keyword?: string }>({
+const searchOptionsSchema = Joi.object<{ sessionId: string; userId: string; limit: number; keyword?: string }>({
   sessionId: Joi.string().required(),
   userId: Joi.string().required(),
-  limit: Joi.number().empty([null, '']).integer().min(1).optional(),
+  limit: Joi.number().empty([null, '']).integer().min(1).optional().default(10),
   keyword: Joi.string().empty([null, '']),
 });
-
-interface QueryOptions extends FindOptions {
-  where: {
-    [Op.and]?: any[];
-    sessionId: string;
-    userId?: string;
-    assistantId?: string;
-  };
-}
-
-const getPrevNextHistories = async (currentHistory: History) => {
-  const prevHistory = await History.findOne({
-    where: {
-      createdAt: {
-        [Op.lt]: currentHistory.createdAt,
-      },
-      sessionId: currentHistory.sessionId,
-    },
-    order: [['createdAt', 'DESC']],
-    limit: 1,
-  });
-
-  const nextHistory = await History.findOne({
-    where: {
-      createdAt: {
-        [Op.gt]: currentHistory.createdAt,
-      },
-      sessionId: currentHistory.sessionId,
-    },
-    order: [['createdAt', 'ASC']],
-    limit: 1,
-  });
-
-  return [prevHistory, currentHistory, nextHistory].filter((i): i is NonNullable<typeof i> => !!i);
-};
 
 export function messageRoutes(router: Router) {
   /**
@@ -102,75 +67,75 @@ export function messageRoutes(router: Router) {
    *                         type: object
    */
   router.get('/messages', user(), async (req, res) => {
-    try {
-      const value = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
+    const query = await searchOptionsSchema.validateAsync(req.query, { stripUnknown: true });
 
-      const list = [value.sessionId, value.userId];
-      if (list.some((x) => !x)) {
-        res.json([]);
-        return;
-      }
-
-      const queryOptions: QueryOptions = {
-        where: { sessionId: value.sessionId, userId: value.userId },
-        order: [['createdAt', 'DESC']],
-      };
-
-      if (value.limit) {
-        queryOptions.limit = value.limit;
-      }
-
-      const conditions = [];
-      if (value.keyword) {
-        const condition = `%${value.keyword}%`;
-
-        conditions.push({
-          [Op.or]: [
-            where(cast(col('parameters'), 'CHAR'), 'LIKE', condition),
-            where(cast(col('result'), 'CHAR'), 'LIKE', condition),
-          ],
-        });
-      }
-      if (conditions?.length) {
-        queryOptions.where[Op.and] = conditions;
-      }
-
-      const { rows: messages } = await History.findAndCountAll(queryOptions);
-
-      let results: History[] = messages;
-      if (queryOptions.limit) {
-        results = uniqBy(
-          (await Promise.all(messages.map(async (message) => getPrevNextHistories(message)))).flat(),
-          'id'
-        );
-      }
-
-      const filterResult = results.filter((x) => x.result && !x.error);
-      const orderResult = orderBy(filterResult, ['createdAt'], ['asc']);
-      const formattedResult = orderResult
-        .flatMap((i) => [
-          {
-            role: 'user',
-            content: typeof i.parameters?.question === 'string' ? i.parameters.question : '',
-          },
-          {
-            role: 'assistant',
-            content:
-              typeof i.result?.content === 'string'
-                ? i.result.content
-                : i.result?.messages
-                    ?.filter((i) => i.respondAs === 'message')
-                    .map((i) => (typeof i.result?.content === 'string' ? i.result.content : ''))
-                    .filter((i) => !!i)
-                    .join('\n') || '',
-          },
-        ])
-        .filter((i) => !!i.content);
-
-      res.json(formattedResult);
-    } catch (error) {
-      res.status(500).json({ message: error?.message });
+    if (!query.sessionId || !query.userId) {
+      res.json([]);
+      return;
     }
+
+    const conditions = [];
+
+    if (query.keyword) {
+      const condition = `%${query.keyword}%`;
+
+      conditions.push({
+        [Op.or]: [
+          where(cast(col('parameters'), 'CHAR'), 'LIKE', condition),
+          where(cast(col('result'), 'CHAR'), 'LIKE', condition),
+        ],
+      });
+    }
+
+    const queryOptions: FindOptions<Attributes<History>> = {
+      where: {
+        sessionId: query.sessionId,
+        userId: query.userId,
+        result: { [Op.not]: null },
+        error: { [Op.is]: null },
+      },
+      order: [['createdAt', 'DESC']],
+      limit: query.limit,
+    };
+
+    // 查找历史记录：最后 n 条 + 关键词匹配 n 条
+    const lastMessages = await History.findAll(queryOptions);
+    const searchMessages =
+      lastMessages.length && conditions.length
+        ? await History.findAll({
+            ...queryOptions,
+            where: {
+              ...queryOptions.where,
+              id: { [Op.lt]: lastMessages[lastMessages.length - 1]?.id },
+              [Op.and]: conditions,
+            },
+          })
+        : [];
+
+    // 交替组合最后n条消息和关键词匹配到的n条消息，去重后取n条，并按时间排序
+    const messages = orderBy(uniqBy(zip(lastMessages, searchMessages).flat(), 'id'), 'createdAt', 'asc')
+      .map((i) => {
+        const question = i?.parameters?.question;
+        const result =
+          i?.result?.content ||
+          i?.result?.messages
+            ?.filter((i) => i.respondAs === 'message')
+            .map((i) => (typeof i.result?.content === 'string' ? i.result.content : ''))
+            .join('\n');
+
+        if (typeof question === 'string' && question && typeof result === 'string' && result) {
+          return [
+            { role: 'user', content: question },
+            { role: 'assistant', content: result },
+          ];
+        }
+
+        return [];
+      })
+      .slice(0, query.limit)
+      .flat();
+
+    res.json(messages);
   });
 
   router.get('/sessions/:sessionId/messages', user(), auth(), async (req, res) => {
