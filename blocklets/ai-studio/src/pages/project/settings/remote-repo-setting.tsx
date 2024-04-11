@@ -233,7 +233,7 @@ export default function RemoteRepoSetting({ projectId }: { projectId: string }) 
                   },
                 });
               }}>
-              Delete
+              {t('delete')}
             </Button>
           ) : null}
         </Stack>

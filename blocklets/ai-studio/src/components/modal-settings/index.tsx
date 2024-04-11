@@ -1,8 +1,8 @@
 import { getSupportedModels } from '@api/libs/common';
-import Settings from '@app/pages/project/icons/settings';
 import { useProjectState } from '@app/pages/project/state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ExecuteBlockSelectByPromptYjs, FileTypeYjs, OnTaskCompletion, isAssistant } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
 import { InfoOutlined } from '@mui/icons-material';
 import {
   Box,
@@ -324,7 +324,7 @@ export function ModelPopper({ children }: { children: ReactElement }) {
           e.stopPropagation();
           setIsVisible(true);
         }}>
-        <Settings sx={{ fontSize: 18 }} />
+        <Box fontSize={18} component={Icon} icon="tabler:settings-2" />
       </Button>
 
       <Popper

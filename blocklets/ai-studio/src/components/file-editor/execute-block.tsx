@@ -495,9 +495,11 @@ export default function ExecuteBlockForm({
         </AccordionSummary>
         <AccordionDetails sx={{ p: 0, mt: 1.5, gap: 1.5, display: 'flex', flexDirection: 'column' }}>
           {(!tools || tools?.length === 0) && (
-            <Typography alignSelf="center" mt={1} px={1} variant="caption" color="text.secondary">
-              {t('emptyToolPlaceholder')}
-            </Typography>
+            <Stack alignItems="center">
+              <Typography variant="subtitle1">🔨</Typography>
+              {/* <Typography variant="subtitle4">{t('emptyProjectTitle')}</Typography> */}
+              <Typography variant="subtitle5">{t('emptyToolPlaceholder')}</Typography>
+            </Stack>
           )}
 
           {tools?.map(({ data: tool }) => (

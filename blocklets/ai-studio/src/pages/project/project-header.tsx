@@ -1,12 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { Icon } from '@iconify-icon/react';
 import { Box, CircularProgress, Stack } from '@mui/material';
 import { Suspense, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate, useParams, useRoutes } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import Knowledge from './icons/knowledge';
-import Prompts from './icons/prompts';
-import Settings from './icons/settings';
 import ProjectBrand from './project-brand';
 import PromptActions from './prompt-actions';
 import SegmentedControl from './segmented-control';
@@ -44,13 +42,21 @@ export default function ProjectHeader() {
           <SegmentedControl
             value={current}
             options={[
-              { value: 'prompts', label: t('prompts'), icon: <Prompts sx={{ fontSize: 15, mr: 1 }} /> },
+              {
+                value: 'prompts',
+                label: t('prompts'),
+                icon: <Box fontSize={15} component={Icon} icon="tabler:bulb" mr={1} />,
+              },
               {
                 value: 'settings',
                 label: t('setting'),
-                icon: <Settings sx={{ fontSize: 15, mr: 1, color: '#4B5563' }} />,
+                icon: <Box fontSize={15} component={Icon} icon="tabler:settings-2" mr={1} />,
               },
-              { value: 'knowledge', label: t('knowledge.menu'), icon: <Knowledge sx={{ fontSize: 15, mr: 1 }} /> },
+              {
+                value: 'knowledge',
+                label: t('knowledge.menu'),
+                icon: <Box fontSize={15} component={Icon} icon="tabler:book-2" mr={1} />,
+              },
             ]}
             onChange={(value) => {
               if (value) navigate(joinURL('..', projectId || '', value));

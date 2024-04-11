@@ -34,7 +34,6 @@ import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/
 import { useMemo, useState } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
-import Settings from '../../pages/project/icons/settings';
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
@@ -237,7 +236,7 @@ export default function ParametersTable({
           {!readOnly && (
             <Stack direction="row">
               <Button sx={{ minWidth: 32, p: 0, minHeight: 32 }} {...bindTrigger(settingPopperState)}>
-                <Settings sx={{ fontSize: 16 }} />
+                <Box fontSize={16} component={Icon} icon="tabler:settings-2" />
               </Button>
 
               <Popper {...bindPopper(settingPopperState)} placement="bottom-end">
@@ -287,7 +286,7 @@ export default function ParametersTable({
                     document.getElementById(`${id}-key`)?.focus();
                   });
                 }}>
-                <Box component={Icon} icon="tabler:plus" fontSize={16} color="#3B82F6" />
+                <Box fontSize={16} component={Icon} icon="tabler:plus" />
               </Button>
             </Stack>
           )}

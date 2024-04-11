@@ -2,7 +2,6 @@ import { useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import { CallSplitRounded } from '@mui/icons-material';
 import { Box, Divider, MenuItem, MenuList, Stack, TextField, Typography, alpha, tooltipClasses } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,10 +10,7 @@ import { joinURL } from 'ufo';
 import Dropdown from '../../components/template-form/dropdown';
 import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
-import Branch from './icons/branch';
-import ArrowDropDownRounded from './icons/chevron-down';
 import Floppy from './icons/floppy';
-import Selected from './icons/selected';
 import { useProjectState } from './state';
 
 export default function BranchButton({

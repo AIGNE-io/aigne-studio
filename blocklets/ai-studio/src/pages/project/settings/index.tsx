@@ -194,7 +194,7 @@ export default function ProjectSettings() {
   return (
     <Box overflow="auto" height={1}>
       <UploaderProvider>
-        <SettingsContainer maxWidth="sm" sx={{ my: 2.5 }}>
+        <SettingsContainer maxWidth="md" sx={{ my: 2.5 }}>
           <Stack gap={2.5}>
             <Form onSubmit={(e) => e.preventDefault()}>
               <Stack gap={2.5}>

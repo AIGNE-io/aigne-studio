@@ -8,6 +8,7 @@ import {
   isImageAssistant,
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
 import { Box, CircularProgress, Divider, MenuItem, Select, Stack, Typography, styled } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useEffect, useMemo, useState } from 'react';
@@ -23,7 +24,6 @@ import ParametersTable from '../../../components/file-editor/parameters-table';
 import PromptAssistantEditor from '../../../components/file-editor/prompt-file';
 import { getLogs } from '../../../libs/log';
 import { getFileIdFromPath } from '../../../utils/path';
-import Branch from '../icons/branch';
 import Empty from '../icons/empty';
 import History from '../icons/history';
 import { useProjectState } from '../state';
@@ -85,7 +85,7 @@ export default function Compare({
       <Box display="flex" gap={1}>
         {!simpleMode && (
           <Select
-            startAdornment={<Branch sx={{ mr: 1, fontSize: 16 }} />}
+            startAdornment={<Box component={Icon} icon="tabler:arrow-ramp-right" width={16} mr={1} />}
             value={branch}
             onChange={(e) => {
               setBranch(e.target.value);
