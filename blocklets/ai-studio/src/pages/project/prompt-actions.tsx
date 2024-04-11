@@ -1,4 +1,3 @@
-import UploaderProvider from '@app/contexts/uploader';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Box, Button, ClickAwayListener, Grow, Paper, Popper } from '@mui/material';
@@ -60,16 +59,14 @@ export default function HeaderActions() {
             <Paper sx={{ border: '1px solid #ddd', maxWidth: 350, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
               <ClickAwayListener onClickAway={() => popperState.close()}>
                 <Box>
-                  <UploaderProvider>
-                    {file ? (
-                      <PublishView
-                        projectId={projectId}
-                        projectRef={gitRef}
-                        assistant={file}
-                        onSubmitChange={popperState.close}
-                      />
-                    ) : null}
-                  </UploaderProvider>
+                  {file ? (
+                    <PublishView
+                      projectId={projectId}
+                      projectRef={gitRef}
+                      assistant={file}
+                      onSubmitChange={popperState.close}
+                    />
+                  ) : null}
                 </Box>
               </ClickAwayListener>
             </Paper>

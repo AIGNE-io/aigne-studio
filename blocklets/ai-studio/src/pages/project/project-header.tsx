@@ -1,3 +1,4 @@
+import Loading from '@app/components/loading';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, Stack } from '@mui/material';
 import { Suspense, useMemo } from 'react';
@@ -64,7 +65,9 @@ export default function ProjectHeader() {
       </Box>
 
       <Box flex={1} height={0} overflow="hidden" bgcolor="background.default">
-        <Outlet />
+        <Suspense fallback={<Loading fixed />}>
+          <Outlet />
+        </Suspense>
       </Box>
     </Stack>
   );
