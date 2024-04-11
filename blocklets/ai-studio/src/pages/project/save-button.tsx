@@ -69,7 +69,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const readOnly = useReadOnly({ ref: branch });
 
   const onSave = useCallback(
-    async (input: CommitForm) => {
+    async (input: CommitForm, { skipToast }: { skipToast?: boolean } = {}) => {
       try {
         let needMergeConflict = false;
 
@@ -93,9 +93,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         if (needMergeConflict) {
           Toast.warning(t('alert.savedButSyncConflicted'));
           await showMergeConflictDialog();
-        } else {
-          Toast.success(t('alert.saved'));
-        }
+        } else if (!skipToast) Toast.success(t('alert.saved'));
 
         refetch();
         run();
@@ -137,14 +135,17 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const savePromise = useRef<{ resolve: (result: { saved?: boolean }) => void; reject: (error: Error) => void }>();
 
   useEffect(() => {
-    saveButtonState.getState().setSaveHandler(() => {
+    saveButtonState.getState().setSaveHandler(async (options) => {
+      if (options?.skipConfirm) {
+        return onSave({ branch: gitRef, message: '' }, { skipToast: true }).then(() => ({ saved: true }));
+      }
       return new Promise<{ saved?: boolean } | undefined>((resolve, reject) => {
         savePromise.current = { resolve, reject };
         dialogState.open();
       });
     });
     return () => saveButtonState.getState().setSaveHandler(undefined);
-  }, [dialogState.open]);
+  }, [dialogState.open, onSave, gitRef]);
 
   return (
     <>
@@ -184,7 +185,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         {...bindDialog(dialogState)}
         keepMounted={false}
         component="form"
-        onSubmit={form.handleSubmit(onSave)}
+        onSubmit={form.handleSubmit((values) => onSave(values))}
         maxWidth="sm"
         fullWidth>
         <DialogTitle>{t('save')}</DialogTitle>

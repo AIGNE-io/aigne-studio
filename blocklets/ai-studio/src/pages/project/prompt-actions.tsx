@@ -58,16 +58,7 @@ export default function HeaderActions() {
           <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
             <Paper sx={{ border: '1px solid #ddd', maxWidth: 350, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
               <ClickAwayListener onClickAway={() => popperState.close()}>
-                <Box>
-                  {file ? (
-                    <PublishView
-                      projectId={projectId}
-                      projectRef={gitRef}
-                      assistant={file}
-                      onSubmitChange={popperState.close}
-                    />
-                  ) : null}
-                </Box>
+                <Box>{file ? <PublishView projectId={projectId} projectRef={gitRef} assistant={file} /> : null}</Box>
               </ClickAwayListener>
             </Paper>
           </Grow>

@@ -57,12 +57,10 @@ export default function PublishView({
   projectId,
   projectRef,
   assistant,
-  onSubmitChange,
 }: {
   projectId: string;
   projectRef: string;
   assistant: AssistantYjs;
-  onSubmitChange: any;
 }) {
   return (
     <Suspense fallback={<CircularProgress />}>
@@ -72,12 +70,7 @@ export default function PublishView({
           'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
           'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
         ]}>
-        <PublishViewContent
-          projectId={projectId}
-          projectRef={projectRef}
-          assistant={assistant}
-          onSubmitChange={onSubmitChange}
-        />
+        <PublishViewContent projectId={projectId} projectRef={projectRef} assistant={assistant} />
       </ComponentInstaller>
     </Suspense>
   );
@@ -87,12 +80,10 @@ function PublishViewContent({
   projectId,
   projectRef,
   assistant,
-  onSubmitChange,
 }: {
   projectId: string;
   projectRef: string;
   assistant: AssistantYjs;
-  onSubmitChange: () => void;
 }) {
   const doc = (getYjsValue(assistant) as Map<any>).doc!;
 
@@ -129,7 +120,7 @@ function PublishViewContent({
       const paymentEnabled = assistant.release?.payment?.enable;
       const paymentUnitAmount = assistant.release?.payment?.price;
 
-      if (!(await saveButtonState.getState().save?.())?.saved) return;
+      if (!(await saveButtonState.getState().save?.({ skipConfirm: true }))?.saved) return;
 
       if (!release) {
         await createRelease({
@@ -150,9 +141,8 @@ function PublishViewContent({
         Toast.success(t('publish.updateSuccess'));
       }
     } catch (error) {
+      console.error('failed to publish', { error });
       Toast.error(getErrorMessage(error));
-    } finally {
-      onSubmitChange();
     }
   };
 
@@ -343,7 +333,7 @@ function PublishViewContent({
 
       <Stack direction="row" gap={2} alignItems="center">
         <LoadingButton type="submit" loading={form.formState.isSubmitting} variant="contained" startIcon={<Publish />}>
-          {release ? t('publish.update') : t('publish.publishProject')}
+          {release ? t('publish.republishProject') : t('publish.publishProject')}
         </LoadingButton>
       </Stack>
     </Stack>
