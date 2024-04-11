@@ -839,7 +839,7 @@ function TreeItem({
         ref={ref}
         {...props}
         direction="row"
-        alignItems="flex-end"
+        alignItems="center"
         gap={0.5}
         sx={{
           position: 'relative',
@@ -855,9 +855,10 @@ function TreeItem({
           sx={{
             display: 'flex',
             alignItems: 'center',
+            lineHeight: 1,
             width: (theme) => theme.spacing(2.5),
             [`.${svgIconClasses.root}`]: {
-              fontSize: '1.25rem',
+              fontSize: '1rem',
               fontWeight: 500,
               color: selected ? '#3B82F6' : 'text.secondary',
             },
@@ -871,6 +872,7 @@ function TreeItem({
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            lineHeight: 1,
           }}>
           {children}
         </Box>

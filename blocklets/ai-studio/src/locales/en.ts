@@ -592,4 +592,5 @@ export default flat({
   emptyVariablesTitle: 'No variables Yet',
   emptyVariablesSubtitle: "You haven't added any variables yet.",
   emptyExecute: 'No execute Yet',
+  branchName: 'Branch Name',
 });

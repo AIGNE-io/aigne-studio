@@ -14,6 +14,7 @@ import styled from '@emotion/styled';
 import { LaunchRounded } from '@mui/icons-material';
 import {
   Box,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -27,7 +28,7 @@ import {
   Typography,
 } from '@mui/material';
 import { styled as muiStyled } from '@mui/material/styles';
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import QRCode from 'react-qr-code';
 import { joinURL, withQuery } from 'ufo';
@@ -64,19 +65,21 @@ export default function PublishView({
   onSubmitChange: any;
 }) {
   return (
-    <ComponentInstaller
-      did={[
-        'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
-        'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
-        'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
-      ]}>
-      <PublishViewContent
-        projectId={projectId}
-        projectRef={projectRef}
-        assistant={assistant}
-        onSubmitChange={onSubmitChange}
-      />
-    </ComponentInstaller>
+    <Suspense fallback={<CircularProgress />}>
+      <ComponentInstaller
+        did={[
+          'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
+          'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
+          'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
+        ]}>
+        <PublishViewContent
+          projectId={projectId}
+          projectRef={projectRef}
+          assistant={assistant}
+          onSubmitChange={onSubmitChange}
+        />
+      </ComponentInstaller>
+    </Suspense>
   );
 }
 

@@ -1,31 +1,21 @@
 import { useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { ArrowDropDownRounded, CallSplitRounded, WarningRounded } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  IconButton,
-  List,
-  ListItemButton,
-  ListItemText,
-  MenuItem,
-  Stack,
-  TextField,
-  buttonClasses,
-  tooltipClasses,
-} from '@mui/material';
-import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Icon } from '@iconify-icon/react';
+import { CallSplitRounded } from '@mui/icons-material';
+import { Box, Divider, MenuItem, MenuList, Stack, TextField, Typography, alpha, tooltipClasses } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import Dropdown from '../../components/template-form/dropdown';
 import { getErrorMessage } from '../../libs/api';
 import useDialog from '../../utils/use-dialog';
-import Add from './icons/add';
+import Branch from './icons/branch';
+import ArrowDropDownRounded from './icons/chevron-down';
 import Floppy from './icons/floppy';
 import Pen from './icons/pen';
+import Selected from './icons/selected';
 import Trash from './icons/trash';
 import { useProjectState } from './state';
 
@@ -48,6 +38,8 @@ export default function BranchButton({
 
   const { dialog, showDialog, closeDialog } = useDialog();
   const { dialog: createBranchDialog, showDialog: createShowDialog } = useDialog();
+  const getDefaultBranch = useCurrentGitStore((i) => i.getCurrentDefaultBranch);
+  const { updateBranch, deleteBranch } = useProjectState(projectId, gitRef);
 
   return (
     <>
@@ -56,6 +48,7 @@ export default function BranchButton({
       {createBranchDialog}
 
       <Dropdown
+        placement="bottom-start"
         sx={{
           [`.${tooltipClasses.tooltip}`]: {
             minWidth: 200,
@@ -67,84 +60,129 @@ export default function BranchButton({
           <BranchList
             projectId={projectId}
             _ref={gitRef}
+            isDefault={gitRef === getDefaultBranch()}
             onItemClick={(branch) => {
               setProjectCurrentBranch(projectId, branch);
-              return branch !== gitRef && navigate(joinURL('..', branch), { state: { filepath } });
+              return branch !== gitRef && navigate(joinURL('..', projectId, 'file', branch), { state: { filepath } });
             }}
-            onShowAllClick={() => {
+            onCreate={() => {
+              let data: { new: string; source: string };
+
+              createShowDialog({
+                maxWidth: 'sm',
+                fullWidth: true,
+                title: <Box className="between">{t('newObject', { object: t('branch') })}</Box>,
+                content: <CreateBranch projectId={projectId} _ref={gitRef} onChange={(_data) => (data = _data)} />,
+                cancelText: t('cancel'),
+                okIcon: <Floppy />,
+                okText: t('save'),
+                onOk: async () => {
+                  try {
+                    if (!data.new) {
+                      throw new Error(t('alert.newBranchRequired'));
+                    }
+
+                    await createBranch({ projectId, input: { name: data.new, oid: data.source } });
+                    setProjectCurrentBranch(projectId, data.new);
+
+                    Toast.success(t('alert.branchCreated'));
+                    closeDialog();
+
+                    navigate(joinURL('..', projectId, 'file', gitRef), { state: { filepath } });
+                  } catch (error) {
+                    Toast.error(getErrorMessage(error));
+                  }
+                },
+              });
+            }}
+            onDelete={() => {
+              showDialog({
+                formSx: {
+                  '.MuiDialogTitle-root': {
+                    border: 0,
+                  },
+                  '.MuiDialogActions-root': {
+                    border: 0,
+                  },
+                  '.save': {
+                    background: '#d32f2f',
+                  },
+                },
+                maxWidth: 'sm',
+                fullWidth: true,
+                title: <Box sx={{ wordWrap: 'break-word' }}>{t('alert.deleteBranch', { branch: gitRef })}</Box>,
+                content: (
+                  <Box>
+                    <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                      This will permanently delete this branch
+                    </Typography>
+                  </Box>
+                ),
+                okText: t('alert.delete'),
+                okColor: 'error',
+                cancelText: t('alert.cancel'),
+                onOk: async () => {
+                  try {
+                    await deleteBranch({ projectId, branch: gitRef });
+                    setProjectCurrentBranch(projectId, getDefaultBranch());
+
+                    navigate(joinURL('..', projectId, 'file', getDefaultBranch()), { state: { filepath } });
+                    Toast.success(t('alert.deleted'));
+                  } catch (error) {
+                    Toast.error(getErrorMessage(error));
+                  }
+                },
+              });
+            }}
+            onRename={() => {
+              let newName = gitRef;
+
               showDialog({
                 maxWidth: 'sm',
                 fullWidth: true,
-                title: (
-                  <Box className="between">
-                    <Box>{t('form.branch')}</Box>
-                    <Button
-                      size="small"
-                      startIcon={<Add />}
-                      variant="contained"
-                      onClick={() => {
-                        let data: { new: string; source: string };
-
-                        createShowDialog({
-                          maxWidth: 'xs',
-                          fullWidth: true,
-                          title: <Box className="between">{t('newObject', { object: t('branch') })}</Box>,
-                          content: (
-                            <CreateBranch projectId={projectId} _ref={gitRef} onChange={(_data) => (data = _data)} />
-                          ),
-                          cancelText: t('cancel'),
-                          okIcon: <Floppy />,
-                          okText: t('save'),
-                          onOk: async () => {
-                            try {
-                              if (!data.new) {
-                                throw new Error(t('alert.newBranchRequired'));
-                              }
-
-                              await createBranch({ projectId, input: { name: data.new, oid: data.source } });
-                              setProjectCurrentBranch(projectId, data.new);
-
-                              Toast.success(t('alert.branchCreated'));
-                              closeDialog();
-
-                              navigate(joinURL('..', data.new), { state: { filepath } });
-                            } catch (error) {
-                              Toast.error(getErrorMessage(error));
-                              throw error;
-                            }
-                          },
-                        });
-                      }}>
-                      {t('newObject', { object: t('branch') })}
-                    </Button>
-                  </Box>
+                title: <Box sx={{ wordWrap: 'break-word' }}>{t('form.rename')}</Box>,
+                content: (
+                  <Stack>
+                    <Box>
+                      <Typography variant="subtitle2" mb={0.5}>
+                        {t('branchName')}
+                      </Typography>
+                      <TextField
+                        autoFocus
+                        label={t('branchName')}
+                        fullWidth
+                        defaultValue={gitRef}
+                        onChange={(e) => (newName = e.target.value)}
+                      />
+                    </Box>
+                  </Stack>
                 ),
-                content: <AllBranches projectId={projectId} _ref={gitRef} filepath={filepath} />,
-                cancelText: t('alert.close'),
+                okText: t('save'),
+                cancelText: t('alert.cancel'),
+                onOk: async () => {
+                  try {
+                    await updateBranch({ projectId, branch: gitRef, input: { name: newName } }).then(() => {
+                      setProjectCurrentBranch(projectId, newName);
+                      navigate(joinURL('..', projectId, 'file', newName), { state: { filepath } });
+                    });
+
+                    Toast.success(t('alert.deleted'));
+                  } catch (error) {
+                    Toast.error(getErrorMessage(error));
+                  }
+                },
               });
             }}
           />
         }>
-        <Button
-          startIcon={<CallSplitRounded />}
-          endIcon={<ArrowDropDownRounded />}
-          sx={{
-            minHeight: 32,
-            [`.${buttonClasses.startIcon}`]: { mr: 0.25 },
-            [`.${buttonClasses.endIcon}`]: { ml: 0.25 },
-          }}>
-          <Box
-            component="span"
-            sx={{
-              display: 'block',
-              maxWidth: 40,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}>
+        <Stack flexDirection="row" gap={0.5} className="center" sx={{ cursor: 'pointer' }}>
+          <CallSplitRounded sx={{ fontSize: 15, color: '#9CA3AF' }} />
+          <Typography variant="subtitle3" color="#9CA3AF" lineHeight={1}>
             {gitRef}
-          </Box>
-        </Button>
+          </Typography>
+          <Icon icon="tabler:accessible-filled" />
+          <ArrowDropDownRounded sx={{ fontSize: 15, color: '#030712' }} />
+        </Stack>
       </Dropdown>
     </>
   );
@@ -153,13 +191,19 @@ export default function BranchButton({
 function BranchList({
   projectId,
   _ref: ref,
+  isDefault,
   onItemClick,
-  onShowAllClick,
+  onCreate,
+  onRename,
+  onDelete,
 }: {
   projectId: string;
   _ref: string;
+  isDefault: boolean;
   onItemClick?: (branch: string) => any;
-  onShowAllClick?: () => any;
+  onCreate?: () => any;
+  onRename?: () => any;
+  onDelete?: () => any;
 }) {
   const { t } = useLocaleContext();
 
@@ -168,124 +212,52 @@ function BranchList({
   } = useProjectState(projectId, ref);
 
   return (
-    <List disablePadding dense>
-      {branches.map((branch) => (
-        <ListItemButton key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
-          <ListItemText primary={branch} primaryTypographyProps={{ noWrap: true }} />
-        </ListItemButton>
-      ))}
-      {onShowAllClick && (
-        <ListItemButton onClick={onShowAllClick}>
-          <ListItemText
-            primary={t('alert.showAllBranches')}
-            primaryTypographyProps={{ noWrap: true, textAlign: 'center', color: 'primary.main' }}
-          />
-        </ListItemButton>
-      )}
-    </List>
-  );
-}
-
-function AllBranches({ projectId, _ref: ref, filepath }: { projectId: string; _ref: string; filepath?: string }) {
-  const { t } = useLocaleContext();
-  const navigate = useNavigate();
-
-  const dataGrid = useGridApiRef();
-
-  const { dialog, showDialog } = useDialog();
-
-  const setProjectCurrentBranch = useCurrentGitStore((i) => i.setProjectCurrentBranch);
-  const getDefaultBranch = useCurrentGitStore((i) => i.getCurrentDefaultBranch);
-
-  const { state, updateBranch, deleteBranch } = useProjectState(projectId, ref);
-
-  const rows = useMemo(() => {
-    return state.branches.map((branch) => ({ branch }));
-  }, [state.branches]);
-
-  const onDelete = useCallback(
-    (branch: string) => {
-      showDialog({
-        maxWidth: 'sm',
-        fullWidth: true,
-        title: (
-          <Box sx={{ wordWrap: 'break-word' }}>
-            <WarningRounded color="warning" sx={{ verticalAlign: 'text-bottom', mr: 0.5 }} />
-
-            {t('alert.deleteBranch', { branch })}
-          </Box>
-        ),
-        okText: t('alert.delete'),
-        okColor: 'error',
-        cancelText: t('alert.cancel'),
-        onOk: async () => {
-          try {
-            await deleteBranch({ projectId, branch });
-            setProjectCurrentBranch(projectId, getDefaultBranch());
-
-            if (branch === ref) navigate(joinURL(`../${getDefaultBranch()}`, filepath || ''));
-            Toast.success(t('alert.deleted'));
-          } catch (error) {
-            Toast.error(getErrorMessage(error));
-            throw error;
-          }
+    <MenuList
+      autoFocusItem
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.25,
+        '& .MuiMenuItem-root': {
+          '& .MuiSvgIcon-root': {
+            fontSize: 15,
+            marginRight: (theme: any) => theme.spacing(1),
+          },
+          '&:active': {
+            backgroundColor: (theme: any) => alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
+          },
         },
-      });
-    },
-    [deleteBranch, filepath, getDefaultBranch, navigate, projectId, ref, setProjectCurrentBranch, showDialog, t]
-  );
+      }}>
+      {branches.map((branch) => (
+        <MenuItem key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
+          {branch === ref ? <Selected sx={{ color: '#030712' }} /> : <Box mr={1} width={15} />}
+          {branch}
+        </MenuItem>
+      ))}
 
-  const columns = useMemo<GridColDef<{ branch: string }>[]>(() => {
-    return [
-      { flex: 1, field: 'branch', headerName: t('form.branch'), sortable: false, editable: true },
-      {
-        field: '',
-        headerName: t('form.actions'),
-        sortable: false,
-        align: 'center',
-        renderCell: ({ row }) => (
-          <>
-            <IconButton
-              disabled={row.branch === getDefaultBranch()}
-              onClick={() => dataGrid.current.startCellEditMode({ id: row.branch, field: 'branch' })}>
-              <Pen />
-            </IconButton>
-            <IconButton disabled={row.branch === getDefaultBranch()} onClick={() => onDelete(row.branch)}>
-              <Trash />
-            </IconButton>
-          </>
-        ),
-      },
-    ];
-  }, [dataGrid, getDefaultBranch, onDelete, t]);
+      <Divider sx={{ m: '0 !important' }} />
 
-  return (
-    <Box sx={{ height: '50vh' }}>
-      {dialog}
+      <MenuItem onClick={onCreate} sx={{ color: '#3B82F6' }}>
+        <Branch sx={{ color: '#3B82F6' }} />
+        {t('newObject', { object: t('branch') })}
+      </MenuItem>
 
-      <DataGrid
-        apiRef={dataGrid}
-        getRowId={(v) => v.branch}
-        rows={rows}
-        columns={columns}
-        hideFooterSelectedRowCount
-        disableColumnMenu
-        autoHeight
-        isCellEditable={(p) => p.row.branch !== getDefaultBranch()}
-        pageSizeOptions={[10]}
-        initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-        processRowUpdate={(updated, old) => {
-          const newName = updated.branch.trim();
-          if (newName === old.branch) return old;
-          return updateBranch({ projectId, branch: old.branch, input: { name: newName } }).then(() => {
-            setProjectCurrentBranch(projectId, newName);
-            if (ref === old.branch) navigate(joinURL('..', newName, filepath || ''));
-            return { branch: newName };
-          });
-        }}
-        onProcessRowUpdateError={(error) => Toast.error(getErrorMessage(error))}
-      />
-    </Box>
+      {!isDefault && (
+        <>
+          <Divider sx={{ m: '0 !important' }} />
+
+          <MenuItem onClick={onRename}>
+            <Pen sx={{ color: '#030712' }} />
+            {t('rename')}
+          </MenuItem>
+
+          <MenuItem onClick={onDelete} sx={{ color: '#E11D48' }}>
+            <Trash sx={{ color: '#E11D48' }} />
+            {t('delete')}
+          </MenuItem>
+        </>
+      )}
+    </MenuList>
   );
 }
 
@@ -299,7 +271,7 @@ function CreateBranch({
   onChange: (data: { new: string; source: string }) => void;
 }) {
   const { t } = useLocaleContext();
-  const [states, setStates] = useState({ new: '', source: '' });
+  const [states, setStates] = useState({ new: '', source: _ref });
 
   const { state } = useProjectState(projectId, _ref);
 
@@ -316,8 +288,11 @@ function CreateBranch({
   }, [states, rows]);
 
   return (
-    <Stack gap={1}>
+    <Stack gap={1.5}>
       <Box>
+        <Typography variant="subtitle2" mb={0.5}>
+          {t('form.name')}
+        </Typography>
         <TextField
           autoFocus
           label={t('form.name')}
@@ -328,6 +303,9 @@ function CreateBranch({
       </Box>
 
       <Box>
+        <Typography variant="subtitle2" mb={0.5}>
+          {t('sourceBranch')}
+        </Typography>
         <TextField
           select
           label={t('sourceBranch')}

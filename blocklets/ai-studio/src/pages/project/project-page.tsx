@@ -163,7 +163,7 @@ export default function ProjectPage() {
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
             }}>
-            <Toolbar variant="dense" sx={{ px: { xs: 1 }, overflow: 'hidden' }}>
+            <Toolbar variant="dense" sx={{ px: { xs: 2, gap: 1.5 }, overflow: 'hidden', minHeight: 36 }}>
               <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
 
               <Box flex={1} />
@@ -291,7 +291,27 @@ export default function ProjectPage() {
               zIndex: (theme) => theme.zIndex.appBar,
               borderBottom: '1px solid #E5E7EB',
             }}>
-            <Toolbar variant="dense" sx={{ gap: 1, px: 2.5 }}>
+            <Box
+              className="between"
+              sx={{
+                px: 2.5,
+                '.MuiTab-root': {
+                  py: 1.5,
+                  lineHeight: '24px',
+                  fontWeight: 500,
+                  fontSize: 14,
+
+                  '&.Mui-selected': {
+                    color: '#3B82F6',
+                  },
+                },
+
+                '.MuiTabs-indicator': {
+                  span: {
+                    background: '#3B82F6 !important',
+                  },
+                },
+              }}>
               <Tabs
                 variant="scrollable"
                 scrollButtons={false}
@@ -327,7 +347,7 @@ export default function ProjectPage() {
               <Box flex={1} />
 
               <PanelToggleButton placement="right" collapsed={false} onClick={() => layout.current?.collapseRight()} />
-            </Toolbar>
+            </Box>
           </Box>
 
           <Suspense>

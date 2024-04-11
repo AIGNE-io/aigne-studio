@@ -40,6 +40,7 @@ export default function useDialog() {
       onOk,
       onMiddleClick,
       onCancel,
+      formSx,
       ...props
     }: {
       title?: ReactNode;
@@ -57,12 +58,13 @@ export default function useDialog() {
       onMiddleClick?: () => Promise<any> | any;
       onCancel?: () => Promise<any> | any;
       onClose?: () => any;
+      formSx?: any;
     } & Omit<DialogProps, 'title' | 'open' | 'content' | 'onClose'>) => {
       setProps({
         ...props,
         open: true,
         children: (
-          <form onSubmit={(e) => e.preventDefault()}>
+          <Box component="form" onSubmit={(e) => e.preventDefault()} sx={{ ...(formSx || {}) }}>
             {title && (
               <DialogTitle className="between">
                 <Box>{title}</Box>
@@ -123,7 +125,7 @@ export default function useDialog() {
                 )}
               </Stack>
             </DialogActions>
-          </form>
+          </Box>
         ),
         onClose: async () => {
           await onCancel?.();

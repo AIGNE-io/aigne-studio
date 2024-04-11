@@ -43,8 +43,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { Virtuoso } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
-import Broom from './icons/broom';
 import ChevronDown from './icons/chevron-down';
+import Clear from './icons/clear';
 import Empty from './icons/empty';
 import Record from './icons/record';
 import Trash from './icons/trash';
@@ -115,24 +115,22 @@ function DebugViewContent({
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
 
-        <Stack direction="row" alignItems="center" gap={1}>
-          <Tooltip title={t('clearSession')}>
-            <IconButton
-              size="small"
-              sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
-              onClick={clearCurrentSession}>
-              <Broom fontSize="small" />
+        <Stack direction="row" alignItems="center" gap={1} overflow="hidden">
+          <Tooltip title={t('clearSession')} placement="bottom-end">
+            <IconButton size="small" sx={{ color: '#000000' }} onClick={clearCurrentSession}>
+              <Clear fontSize="small" />
             </IconButton>
           </Tooltip>
 
-          <Tooltip title={t('deleteSession')}>
+          <Tooltip title={t('deleteSession')} placement="bottom-end">
             <IconButton
-              sx={{ minWidth: 0, p: 0.25 }}
+              size="small"
+              sx={{ color: '#E11D48' }}
               onClick={(e) => {
                 e.stopPropagation();
                 deleteSession(currentSession.index);
               }}>
-              <Trash sx={{ color: 'text.secondary' }} />
+              <Trash fontSize="small" />
             </IconButton>
           </Tooltip>
         </Stack>
@@ -221,6 +219,7 @@ function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
         background: '#F9FAFB',
       }}>
       <Box
+        py={1.5}
         position="relative"
         display="flex"
         flexGrow={1}
@@ -338,7 +337,7 @@ const MessageView = memo(
               {dayjs(message.createdAt).format('YYYY-MM-DD HH:mm:ss')}
             </Typography>
           )}
-          <Stack px={4} py={1} gap={1} flexDirection="row" position="relative">
+          <Stack px={2.5} py={1} gap={1} flexDirection="row" position="relative">
             <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
             <Box sx={{ overflowX: 'hidden', flexGrow: 1 }}>
               <BasicTree inputs={message.inputMessages} />

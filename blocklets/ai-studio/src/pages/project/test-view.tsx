@@ -4,15 +4,15 @@ import { AssistantResponseType, AssistantYjs } from '@blocklet/ai-runtime/types'
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Error } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Alert, Box, Button, Stack, Tooltip, Typography, styled } from '@mui/material';
+import { Alert, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { joinURL } from 'ufo';
 
 import { PREFIX } from '../../libs/api';
 import { WritingIndicator } from './debug-view';
-import RefreshSquareIcon from './solar-linear-icons/refresh-square';
-import RulerCrossPen from './solar-linear-icons/ruler-cross-pen';
+import Bug from './icons/bug';
+import Publish from './icons/publish';
 import TrashBinIcon from './solar-linear-icons/trash-bin';
 import { useDebugState } from './state';
 
@@ -47,26 +47,32 @@ export default function DebugView({
   };
 
   return (
-    <Box>
+    <Stack gap={1.5}>
+      <Box />
+
       <Stack
         direction="row"
         alignItems="center"
         justifyContent="space-between"
         px={2}
-        py={1.5}
         bgcolor="background.paper"
         sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <Typography variant="subtitle1" fontSize={14} lineHeight="24px" fontWeight={500} color="#9CA3AF">
+        <Typography variant="subtitle3" color="#9CA3AF">
           {t('testCaseCount', { count: tests.length })}{' '}
         </Typography>
 
-        <LoadingButton loading={running} loadingPosition="end" onClick={runAll}>
+        <LoadingButton
+          sx={{ py: 0 }}
+          loading={running}
+          loadingPosition="end"
+          onClick={runAll}
+          startIcon={<Publish sx={{ fontSize: 16 }} />}>
           {t('runAll')}
         </LoadingButton>
       </Stack>
 
       {tests.map(({ data }) => (
-        <Box px={2} key={data.id} mb={2}>
+        <Box px={2} key={data.id}>
           <TestCaseView
             ref={(ref) => (refs.current[data.id] = ref)}
             projectId={projectId}
@@ -77,7 +83,9 @@ export default function DebugView({
           />
         </Box>
       ))}
-    </Box>
+
+      <Box />
+    </Stack>
   );
 }
 
@@ -178,106 +186,68 @@ const TestCaseView = forwardRef<
 
   return (
     <>
-      <Stack direction="row" justifyContent="flex-end" mb={0.5}>
-        <Tooltip title={t('runThisCase')}>
-          <span>
-            <Button sx={{ minWidth: 32 }} size="small" disabled={loading} onClick={runTest}>
-              <RefreshSquareIcon fontSize="small" />
+      <Box className="between" mb={0.5}>
+        <Typography variant="subtitle3">{t('output')}</Typography>
+
+        <Stack direction="row" justifyContent="flex-end" mb={0.5}>
+          <Tooltip title={t('runThisCase')}>
+            <span>
+              <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" disabled={loading} onClick={runTest}>
+                <Publish sx={{ fontSize: 15 }} />
+              </Button>
+            </span>
+          </Tooltip>
+
+          <Tooltip title={t('debugThisCase')}>
+            <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" onClick={debugTest}>
+              <Bug sx={{ fontSize: 15 }} />
             </Button>
-          </span>
-        </Tooltip>
+          </Tooltip>
 
-        <Tooltip title={t('debugThisCase')}>
-          <Button sx={{ minWidth: 32 }} size="small" onClick={debugTest}>
-            <RulerCrossPen fontSize="small" />
-          </Button>
-        </Tooltip>
+          <Tooltip title={t('deleteThisCase')}>
+            <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" onClick={deleteTest} color="warning">
+              <TrashBinIcon sx={{ fontSize: 15 }} />
+            </Button>
+          </Tooltip>
+        </Stack>
+      </Box>
 
-        <Tooltip title={t('deleteThisCase')}>
-          <Button sx={{ minWidth: 32 }} size="small" onClick={deleteTest} color="warning">
-            <TrashBinIcon fontSize="small" />
-          </Button>
-        </Tooltip>
-      </Stack>
-
-      <Table>
+      <Box
+        sx={{
+          border: '1px solid #E5E7EB',
+          background: '#F9FAFB',
+          borderRadius: 1,
+          whiteSpace: 'pre-wrap',
+          p: 1.5,
+        }}>
         {Object.entries(test.parameters).map(([key, value]) => (
-          <Box key={key}>
-            <Box>
-              <Box>{key}</Box>
-            </Box>
-            <Box>
-              <Box>{value}</Box>
-            </Box>
+          <Box
+            key={key}
+            sx={{
+              background: '#fff',
+              p: '6px 12px',
+              borderRadius: 1,
+              mb: 1,
+              border: '1px solid #E5E7EB',
+            }}>
+            <Typography variant="subtitle3">{`${key}: ${value}`}</Typography>
           </Box>
         ))}
-        <Box>
-          <Box>
-            <Box>{t('output')}</Box>
-          </Box>
-          <Box>
-            <Box whiteSpace="pre-wrap">
-              {test.output}
 
-              {loading && <WritingIndicator />}
+        <Typography variant="subtitle2" fontWeight={400}>
+          {test.output}
 
-              {test.error ? (
-                <Box>
-                  <Alert
-                    variant="standard"
-                    color="error"
-                    icon={<Error />}
-                    sx={{ display: 'inline-flex', px: 1, py: 0 }}>
-                    {test.error.message}
-                  </Alert>
-                </Box>
-              ) : null}
+          {loading && <WritingIndicator />}
+
+          {test.error ? (
+            <Box>
+              <Alert variant="standard" color="error" icon={<Error />} sx={{ display: 'inline-flex', px: 1, py: 0 }}>
+                {test.error.message}
+              </Alert>
             </Box>
-          </Box>
-        </Box>
-      </Table>
+          ) : null}
+        </Typography>
+      </Box>
     </>
   );
 });
-
-const Table = styled(Box)`
-  display: table;
-  width: 100%;
-  border: 0.5px solid ${({ theme }) => theme.palette.divider};
-  border-radius: ${({ theme }) => theme.shape.borderRadius}px;
-
-  > div {
-    display: table-row;
-
-    > div {
-      display: table-cell;
-      border-bottom: 0.5px solid ${({ theme }) => theme.palette.divider};
-      border-right: 0.5px solid ${({ theme }) => theme.palette.divider};
-
-      > div {
-        max-height: 200px;
-        overflow-x: hidden;
-        overflow-y: auto;
-        padding: 4px 8px;
-        word-break: break-word;
-      }
-
-      &:first-of-type {
-        min-width: 100px;
-        vertical-align: top;
-        color: ${({ theme }) => theme.palette.text.secondary};
-      }
-
-      &:last-of-type {
-        width: 100%;
-        border-right: none;
-      }
-    }
-
-    &:last-of-type {
-      > div {
-        border-bottom: none;
-      }
-    }
-  }
-`;

@@ -689,23 +689,6 @@ export const theme = createTheme({
             color: '#000',
             padding: '5px 12px',
           },
-
-          '.save': {
-            border: 0,
-            background: '#000',
-            color: '#fff',
-            padding: '5px 12px',
-
-            '&:hover': {
-              background: '#000',
-            },
-
-            [`.${svgIconClasses.root}`]: {
-              fontSize: 15,
-              fontWeight: 500,
-              color: '#fff',
-            },
-          },
         },
       },
     },
