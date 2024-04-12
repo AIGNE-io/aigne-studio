@@ -120,7 +120,19 @@ export default function KnowledgeDocuments() {
             );
           }
 
-          return <Box>{`${params.row.embeddingStatus}`}</Box>;
+          return (
+            <Box
+              borderRadius={20}
+              border="1px solid #E5E7EB"
+              p="4px 12px"
+              color="#030712"
+              fontSize={13}
+              display="flex"
+              alignItems="center"
+              gap={1}>
+              {params.row.embeddingStatus}
+            </Box>
+          );
         },
       },
       {
