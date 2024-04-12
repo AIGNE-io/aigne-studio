@@ -25,7 +25,6 @@ import PromptAssistantEditor from '../../../components/file-editor/prompt-file';
 import { getLogs } from '../../../libs/log';
 import { getFileIdFromPath } from '../../../utils/path';
 import Empty from '../icons/empty';
-import History from '../icons/history';
 import { useProjectState } from '../state';
 import { useProjectStore } from '../yjs-state';
 import CompareApiAssistant from './api-assistant';
@@ -103,7 +102,7 @@ export default function Compare({
         <Select
           sx={{ width: 150 }}
           value={commit}
-          startAdornment={<History sx={{ mr: 1, fontSize: 16 }} />}
+          startAdornment={<Box component={Icon} icon="tabler:history-toggle" sx={{ fontSize: 20, color: '#030712' }} />}
           onChange={(e) => {
             setCommit(e.target.value);
             init(e.target.value);
