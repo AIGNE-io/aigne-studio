@@ -52,6 +52,7 @@ const searchQuerySchema = Joi.object<{ message?: string; n: number }>({
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
+ *          x-hide: true
  *          schema:
  *            type: string
  *            default: ''

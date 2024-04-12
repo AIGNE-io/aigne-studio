@@ -1,5 +1,7 @@
-import { Slider, Stack, StackProps, TextField } from '@mui/material';
+import { Stack, StackProps, TextField } from '@mui/material';
 import { ChangeEvent } from 'react';
+
+import Slider from '../custom/slider';
 
 export default function SliderNumberField({
   readOnly,
@@ -48,7 +50,7 @@ export default function SliderNumberField({
 
           onChange?.(e as any, v);
         }}
-        sx={{ minWidth: 80 }}
+        sx={{ minWidth: 80, border: '1px solid #E5E7EB', borderRadius: 1 }}
       />
     </Stack>
   );

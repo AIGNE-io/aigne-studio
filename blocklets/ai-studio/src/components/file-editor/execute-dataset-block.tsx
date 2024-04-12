@@ -9,6 +9,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
+  CircularProgress,
   Divider,
   Stack,
   StackProps,
@@ -59,14 +60,8 @@ export default function ExecuteDatasetBlockForm({
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
   return (
-    <Stack {...props} sx={{ border: 2, borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
-      <Box display="flex" alignItems="center">
-        <Tooltip
-          title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
-          placement="top"
-          disableInteractive>
-          <MuiInfoOutlined fontSize="small" sx={{ mr: 0.5, color: 'grey.500' }} />
-        </Tooltip>
+    <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, ...props.sx }}>
+      <Box display="flex" alignItems="center" px={1.5} py={1} gap={1}>
         <IndicatorTextField
           projectId={projectId}
           gitRef={gitRef}
@@ -81,49 +76,147 @@ export default function ExecuteDatasetBlockForm({
               placeholder: t('executeBlockName'),
               readOnly,
               sx: {
+                ml: -1,
                 backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
               },
             },
             value: value.variable ?? '',
             onChange: (e) => (value.variable = e.target.value),
           }}
+          boxProps={{
+            sx: {
+              '.MuiInputBase-root': {
+                background: 'transparent',
+                '&:hover': {
+                  background: 'transparent',
+                },
+              },
+              '.Mui-focused': {
+                background: 'transparent',
+              },
+            },
+          }}
         />
+        <Tooltip
+          title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
+          placement="top"
+          disableInteractive>
+          <MuiInfoOutlined fontSize="small" sx={{ mr: 0.5, color: 'grey.500' }} />
+        </Tooltip>
       </Box>
 
       <Divider />
 
+      {tools?.map(({ data: tool }) => (
+        <ToolItemView
+          key={tool.id}
+          assistant={assistant}
+          projectId={projectId}
+          projectRef={gitRef}
+          tool={tool}
+          readOnly={readOnly}
+          openApis={openApis}
+          datasets={[]}
+          gitRef={gitRef}
+          value={value}
+        />
+      ))}
+    </Stack>
+  );
+}
+
+function ToolItemView({
+  projectId,
+  projectRef,
+  tool,
+  gitRef,
+  readOnly,
+  openApis,
+  datasets,
+  assistant,
+  value,
+}: {
+  assistant: AssistantYjs;
+  projectId: string;
+  projectRef: string;
+  gitRef: string;
+  tool: Tool;
+  readOnly?: boolean;
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  value: ExecuteBlockYjs;
+} & StackProps) {
+  const { t, locale } = useLocaleContext();
+  const { store } = useProjectStore(projectId, projectRef);
+
+  const f = store.files[tool.id];
+  const file = f && isAssistant(f) ? f : undefined;
+
+  const dataset = datasets.find((x) => x.id === tool.id);
+  const api = openApis.find((i) => i.id === tool.id);
+
+  const target = file ?? dataset ?? api;
+
+  const parameters = useMemo(() => {
+    return getAllParameters(target as DatasetObject);
+  }, [target]);
+
+  const assistantParameters = new Set([
+    ...Object.values(assistant.parameters ?? {}).map((i) => i.data.key),
+    ...(assistant.type === 'prompt'
+      ? Object.values(assistant.prompts ?? {})
+          .map((i) => (i.data.type === 'executeBlock' ? i.data.data.variable : undefined))
+          .filter(Boolean)
+      : []),
+  ]);
+
+  if (!target) {
+    return (
+      <Box display="flex" justifyContent="center" minHeight={100} alignItems="center" width={1}>
+        <CircularProgress size="20px" />
+      </Box>
+    );
+  }
+
+  return (
+    <>
       <Accordion
         sx={{
+          px: 1.5,
+          py: 1,
           '&::before': {
             display: 'none',
           },
+          pb: 0,
         }}
         square
         disableGutters
         elevation={0}>
         <AccordionSummary
           sx={{
-            px: 1,
+            p: 0,
             minHeight: 28,
             '& .MuiAccordionSummary-content': {
               my: 0,
             },
           }}
           expandIcon={<GridExpandMoreIcon />}>
-          <Typography variant="subtitle2">{t('outputSettings')}</Typography>
+          <Typography noWrap variant="subtitle3" color="#4B5563" fontWeight={500}>
+            {getDatasetTextByI18n(target || {}, 'summary', locale)}
+          </Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ p: 0, mt: 0.5, px: 1, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
+        <AccordionDetails sx={{ p: 0, mt: 1.5, gap: 1.5, display: 'flex', flexDirection: 'column' }}>
           {value.role !== 'none' && value.formatResultType !== 'asHistory' && (
             <>
               {assistant.type === 'prompt' && (
                 <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                  <Box display="flex">
+                  <Box display="flex" flex={1}>
                     <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
                     <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
                       <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
                     </Tooltip>
                   </Box>
-                  <Box width="60%">
+                  <Box flex={1}>
                     <PromptEditorField
                       readOnly={readOnly}
                       projectId={projectId}
@@ -145,13 +238,13 @@ export default function ExecuteDatasetBlockForm({
               )}
               {assistant.type === 'prompt' && (
                 <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                  <Box display="flex">
+                  <Box display="flex" flex={1}>
                     <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
                     <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
                       <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
                     </Tooltip>
                   </Box>
-                  <Box width="60%">
+                  <Box flex={1}>
                     <PromptEditorField
                       readOnly={readOnly}
                       projectId={projectId}
@@ -171,121 +264,24 @@ export default function ExecuteDatasetBlockForm({
                   </Box>
                 </Box>
               )}
+
+              <Divider />
             </>
           )}
         </AccordionDetails>
       </Accordion>
 
-      <Divider />
-
-      {tools?.map(({ data: tool }) => (
-        <ToolItemView
-          key={tool.id}
-          assistant={assistant}
-          getDiffBackground={getDiffBackground}
-          projectId={projectId}
-          projectRef={gitRef}
-          tool={tool}
-          executeBlock={value}
-          readOnly={readOnly}
-          openApis={openApis}
-          datasets={[]}
-          gitRef={gitRef}
-        />
-      ))}
-    </Stack>
-  );
-}
-
-function ToolItemView({
-  getDiffBackground,
-  projectId,
-  projectRef,
-  tool,
-  gitRef,
-  executeBlock,
-  readOnly,
-  openApis,
-  datasets,
-  assistant,
-  ...props
-}: {
-  assistant: AssistantYjs;
-  executeBlock: ExecuteBlockYjs;
-  getDiffBackground: (path: any, id?: string | undefined, defaultValue?: string | undefined) => { [x: string]: string };
-  projectId: string;
-  projectRef: string;
-  gitRef: string;
-  tool: Tool;
-  readOnly?: boolean;
-  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-} & StackProps) {
-  const { t, locale } = useLocaleContext();
-  const { store } = useProjectStore(projectId, projectRef);
-
-  const f = store.files[tool.id];
-  const file = f && isAssistant(f) ? f : undefined;
-
-  const dataset = datasets.find((x) => x.id === tool.id);
-  const api = openApis.find((i) => i.id === tool.id);
-
-  const target = file ?? dataset ?? api;
-
-  const parameters = useMemo(() => {
-    if (!target) {
-      return [
-        {
-          name: 'message',
-          in: 'query',
-          description: 'The content to be retrieved',
-          'x-description-zh': '需要检索的内容',
-          required: true,
-        },
-      ];
-    }
-
-    return getAllParameters(target as DatasetObject);
-  }, [target]);
-
-  const assistantParameters = new Set([
-    ...Object.values(assistant.parameters ?? {}).map((i) => i.data.key),
-    ...(assistant.type === 'prompt'
-      ? Object.values(assistant.prompts ?? {})
-          .map((i) => (i.data.type === 'executeBlock' ? i.data.data.variable : undefined))
-          .filter(Boolean)
-      : []),
-  ]);
-
-  return (
-    <>
-      <Stack
-        direction="row"
-        {...props}
-        sx={{
-          minHeight: 32,
-          gap: 1,
-          alignItems: 'center',
-          cursor: 'pointer',
-          borderRadius: 1,
-          backgroundColor: { ...getDiffBackground('prepareExecutes', `${executeBlock.id}.data.tools.${tool.id}`) },
-        }}>
-        <Typography noWrap px={1} variant="subtitle2">
-          {t('datasetDesc')}
-        </Typography>
-      </Stack>
-
-      <Stack>
+      <Stack m={1.5} gap={1.5} mt={1.5}>
         {(parameters || [])?.map((parameter: any) => {
           if (!parameter) return null;
-          if (parameter.name === 'datasetId') return null;
+          if (parameter['x-hide']) return null;
 
           tool.parameters ??= {};
           const value = tool.parameters[parameter.name];
 
           return (
             <Stack key={parameter.name}>
-              <Typography variant="caption" mx={1}>
+              <Typography variant="subtitle2" mb={0.5}>
                 {getDatasetTextByI18n(parameter, 'description', locale) ||
                   getDatasetTextByI18n(parameter, 'name', locale)}
               </Typography>

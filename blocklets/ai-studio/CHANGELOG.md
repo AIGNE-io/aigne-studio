@@ -1,3 +1,7 @@
+## 0.1.328 (2024-4-12)
+
+- chore: ai studio new ui/ux
+
 ## 0.1.327 (2024-4-11)
 
 - fix: add parameter `n` for dataset search api

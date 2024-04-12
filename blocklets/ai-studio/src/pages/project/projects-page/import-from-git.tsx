@@ -15,11 +15,10 @@ import {
   Stack,
   TextField,
   Tooltip,
-  styled,
+  Typography,
 } from '@mui/material';
 import gitUrlParse from 'git-url-parse';
-import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useId, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -27,9 +26,9 @@ import { joinURL } from 'ufo';
 import { useProjectsState } from '../../../contexts/projects';
 import { getErrorMessage } from '../../../libs/api';
 import Add from '../icons/add';
+import Close from '../icons/close';
 import Eye from '../icons/eye';
 import EyeNo from '../icons/eye-no';
-import Git from '../icons/git';
 
 interface RemoteRepoSettingForm {
   url: string;
@@ -39,11 +38,9 @@ interface RemoteRepoSettingForm {
   name: string;
 }
 
-export default function ImportFromGit() {
+export default function ImportFromGit({ onClose }: { onClose: () => void }) {
   const { t } = useLocaleContext();
-  const id = useId();
   const navigate = useNavigate();
-  const dialogState = usePopupState({ variant: 'dialog', popupId: id });
   const [showPassword, setShowPassword] = useState(false);
   const { importProject } = useProjectsState();
 
@@ -70,7 +67,7 @@ export default function ImportFromGit() {
 
         currentGitStore.setState({ currentProjectId: project._id });
 
-        dialogState.close();
+        onClose();
         navigate(joinURL('/projects', project._id!));
       } catch (error) {
         form.reset(value);
@@ -78,29 +75,23 @@ export default function ImportFromGit() {
         throw error;
       }
     },
-    [dialogState, form, importProject, navigate]
+    [form, importProject, navigate]
   );
 
   return (
-    <>
-      <Tooltip title={t('import.remoteDescription')}>
-        <ProjectItemRoot onClick={() => dialogState.open()} justifyContent="center" alignItems="center">
-          <Stack height={60} justifyContent="center" alignItems="center">
-            <Git sx={{ fontSize: 32, color: (theme) => theme.palette.text.disabled }} />
-          </Stack>
-          <Box sx={{ mt: 1, color: (theme) => theme.palette.text.secondary }}>{t('import.remote')}</Box>
-        </ProjectItemRoot>
-      </Tooltip>
+    <Dialog open maxWidth="sm" fullWidth component="form" onSubmit={form.handleSubmit(saveSetting)} onClose={onClose}>
+      <DialogTitle className="between">
+        <Box>{t('remoteGitRepo')}</Box>
 
-      <Dialog
-        {...bindDialog(dialogState)}
-        maxWidth="sm"
-        fullWidth
-        component="form"
-        onSubmit={form.handleSubmit(saveSetting)}>
-        <DialogTitle>{t('remoteGitRepo')}</DialogTitle>
-        <DialogContent>
-          <Stack gap={2}>
+        <IconButton size="small" onClick={() => onClose()}>
+          <Close />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent>
+        <Stack gap={1.5}>
+          <Box>
+            <Typography variant="subtitle2">{`${t('url')}*`}</Typography>
             <TextField
               autoFocus
               fullWidth
@@ -110,7 +101,11 @@ export default function ImportFromGit() {
                   const url = gitUrlParse(e.clipboardData.getData('text/plain'));
                   const https = gitUrlParse.stringify(url, 'https');
                   form.setValue('url', https, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-                  form.setValue('username', url.owner, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                  form.setValue('username', url.owner, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
                   form.setValue('name', url.name, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
 
                   const { password } = url as any;
@@ -140,8 +135,12 @@ export default function ImportFromGit() {
               InputLabelProps={{ shrink: form.watch('url') ? true : undefined }}
               error={Boolean(form.formState.errors.url)}
               helperText={form.formState.errors.url?.message}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
             />
+          </Box>
 
+          <Box>
+            <Typography variant="subtitle2">{t('username')}</Typography>
             <TextField
               fullWidth
               label={t('username')}
@@ -149,31 +148,41 @@ export default function ImportFromGit() {
               error={Boolean(form.formState.errors.username)}
               helperText={form.formState.errors.username?.message}
               InputLabelProps={{ shrink: form.watch('username') ? true : undefined }}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
             />
+          </Box>
 
+          <Box>
+            <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
             <TextField
               label={t('projectSetting.name')}
-              sx={{ width: 1 }}
               {...form.register('name')}
               InputProps={{
                 readOnly: true,
                 onFocus: (e) => (e.currentTarget.readOnly = false),
               }}
               InputLabelProps={{ shrink: form.watch('name') ? true : undefined }}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
             />
+          </Box>
 
+          <Box>
+            <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
             <TextField
               label={t('projectSetting.description')}
               multiline
               rows={4}
-              sx={{ width: 1 }}
               {...form.register('description')}
               InputProps={{
                 readOnly: true,
                 onFocus: (e) => (e.currentTarget.readOnly = false),
               }}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
             />
+          </Box>
 
+          <Box>
+            <Typography variant="subtitle2">{t('accessToken')}</Typography>
             <TextField
               fullWidth
               label={t('accessToken')}
@@ -208,72 +217,25 @@ export default function ImportFromGit() {
                   </InputAdornment>
                 ),
               }}
+              sx={{ '.MuiInputBase-root': { width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' } }}
             />
-          </Stack>
-        </DialogContent>
+          </Box>
+        </Stack>
+      </DialogContent>
 
-        <DialogActions>
-          <Button onClick={dialogState.close}>{t('cancel')}</Button>
-          <LoadingButton
-            variant="contained"
-            type="submit"
-            loading={form.formState.isSubmitting}
-            loadingPosition="start"
-            startIcon={<Add />}>
-            {t('import.remote')}
-          </LoadingButton>
-        </DialogActions>
-      </Dialog>
-    </>
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">
+          {t('cancel')}
+        </Button>
+        <LoadingButton
+          variant="contained"
+          type="submit"
+          loading={form.formState.isSubmitting}
+          loadingPosition="start"
+          startIcon={<Add />}>
+          {t('import.remote')}
+        </LoadingButton>
+      </DialogActions>
+    </Dialog>
   );
 }
-
-const ProjectItemRoot = styled(Stack)`
-  width: 100%;
-  cursor: pointer;
-  overflow: hidden;
-  padding: ${({ theme }) => theme.shape.borderRadius * 1.5}px;
-  position: relative;
-  border-width: 1px;
-  border-style: solid;
-  border-color: ${({ theme }) => theme.palette.divider};
-  border-radius: 16px;
-
-  &.selected,
-  &:hover {
-    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.08);
-
-    .action {
-      display: flex;
-    }
-  }
-
-  .logo {
-    border-radius: ${({ theme }) => theme.shape.borderRadius}px;
-    overflow: hidden;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: ${({ theme }) => theme.shape.borderRadius}px;
-    }
-  }
-
-  .name {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .desc {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  .action {
-    display: none;
-  }
-`;

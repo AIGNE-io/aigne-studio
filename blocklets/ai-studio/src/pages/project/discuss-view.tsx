@@ -56,7 +56,7 @@ export default function DiscussView({
 }
 
 const Views = styled(Box)`
-  padding: 16px;
+  padding: 20px;
 
   .comment-editor {
     margin-top: 0;

@@ -1,7 +1,7 @@
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { DownloadRounded, SaveRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
+import { DownloadRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
@@ -28,6 +28,7 @@ import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
 import useDialog from '../../utils/use-dialog';
+import Save from './icons/save';
 import { saveButtonState, useAssistantChangesState, useProjectState } from './state';
 
 interface CommitForm {
@@ -68,7 +69,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const readOnly = useReadOnly({ ref: branch });
 
   const onSave = useCallback(
-    async (input: CommitForm) => {
+    async (input: CommitForm, { skipToast }: { skipToast?: boolean } = {}) => {
       try {
         let needMergeConflict = false;
 
@@ -92,9 +93,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         if (needMergeConflict) {
           Toast.warning(t('alert.savedButSyncConflicted'));
           await showMergeConflictDialog();
-        } else {
-          Toast.success(t('alert.saved'));
-        }
+        } else if (!skipToast) Toast.success(t('alert.saved'));
 
         refetch();
         run();
@@ -136,14 +135,17 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const savePromise = useRef<{ resolve: (result: { saved?: boolean }) => void; reject: (error: Error) => void }>();
 
   useEffect(() => {
-    saveButtonState.getState().setSaveHandler(() => {
+    saveButtonState.getState().setSaveHandler(async (options) => {
+      if (options?.skipConfirm) {
+        return onSave({ branch: gitRef, message: '' }, { skipToast: true }).then(() => ({ saved: true }));
+      }
       return new Promise<{ saved?: boolean } | undefined>((resolve, reject) => {
         savePromise.current = { resolve, reject };
         dialogState.open();
       });
     });
     return () => saveButtonState.getState().setSaveHandler(undefined);
-  }, [dialogState.open]);
+  }, [dialogState.open, onSave, gitRef]);
 
   return (
     <>
@@ -152,8 +154,16 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
       <Button
         {...bindTrigger(dialogState)}
         disabled={submitting || disabled}
-        sx={{ position: 'relative', minWidth: 32, minHeight: 32 }}>
-        <SaveRounded sx={{ opacity: submitting ? 0 : 1 }} />
+        sx={{
+          position: 'relative',
+          minWidth: 0,
+          minHeight: 0,
+          width: 32,
+          height: 32,
+          border: '1px solid #E5E7EB',
+          color: '#030712',
+        }}>
+        <Save sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }} />
         {submitting && (
           <Box
             sx={{
@@ -175,7 +185,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         {...bindDialog(dialogState)}
         keepMounted={false}
         component="form"
-        onSubmit={form.handleSubmit(onSave)}
+        onSubmit={form.handleSubmit((values) => onSave(values))}
         maxWidth="sm"
         fullWidth>
         <DialogTitle>{t('save')}</DialogTitle>
@@ -232,7 +242,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
                 disabled={readOnly}
                 type="submit"
                 variant="contained"
-                startIcon={<SaveRounded />}
+                startIcon={<Save sx={{ fontSize: 20, color: '#fff' }} />}
                 loadingPosition="start"
                 loading={form.formState.isSubmitting}>
                 {t('save')}
@@ -269,7 +279,7 @@ export function useMergeConflictDialog({ projectId }: { projectId: string }) {
 
         content: (
           <Stack gap={0.25} sx={{ b: { color: 'warning.main', mx: 0.25 } }}>
-            <Typography variant="subtitle1">{t('mergeConflictTip')}</Typography>
+            <Typography variant="subtitle2">{t('mergeConflictTip')}</Typography>
             <Box>
               <Typography component="span" fontWeight="bold">
                 {t('useRemote')}:{' '}

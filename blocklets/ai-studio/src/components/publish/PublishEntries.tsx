@@ -29,10 +29,32 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
 
   const [currentId, setCurrentId] = useState<string>();
   const current = assistant.entries?.[currentId!]?.data;
+  const withCollectionManage = !!Object.values(assistant.parameters ?? {}).find((i) => i.data.key === 'datasetId');
 
   return (
     <Stack>
-      {assistant.entries && (
+      <Box className="between">
+        <Typography variant="subtitle2" mb={0.5}>
+          {t('entries')}
+        </Typography>
+
+        <Button
+          disabled={withCollectionManage}
+          sx={{ cursor: 'pointer', color: '#3B82F6', minWidth: 32, minHeight: 32, p: 0 }}
+          onClick={() => {
+            const id = nanoid();
+            doc.transact(() => {
+              assistant.entries ??= {};
+              const index = Object.values(assistant.entries).length;
+              assistant.entries[id] = { index, data: { id } };
+            });
+            setCurrentId(id);
+          }}>
+          <Add />
+        </Button>
+      </Box>
+
+      {!withCollectionManage && assistant.entries && (
         <DragSortListYjs
           list={assistant.entries}
           renderItem={(item, _, params) => (
@@ -52,20 +74,6 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
           )}
         />
       )}
-
-      <Button
-        startIcon={<Add />}
-        onClick={() => {
-          const id = nanoid();
-          doc.transact(() => {
-            assistant.entries ??= {};
-            const index = Object.values(assistant.entries).length;
-            assistant.entries[id] = { index, data: { id } };
-          });
-          setCurrentId(id);
-        }}>
-        {t('addObject', { object: t('entry') })}
-      </Button>
 
       <Dialog
         component="form"

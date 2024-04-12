@@ -55,7 +55,7 @@ function setupMonaco(monaco: typeof import('monaco-editor')) {
     inherit: true,
     rules: [],
     colors: {
-      'editor.background': '#F2F2F2',
+      'editor.background': '#ffffff',
     },
   });
   monaco.editor.setTheme(themeName);

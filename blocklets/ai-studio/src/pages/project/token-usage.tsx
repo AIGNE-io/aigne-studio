@@ -4,7 +4,7 @@ import { Typography } from '@mui/material';
 import { GPTTokens } from 'gpt-tokens';
 import { useDeferredValue, useMemo } from 'react';
 
-export function TokenUsage({ assistant }: { assistant: AssistantYjs }) {
+function TokenUsage({ assistant }: { assistant: AssistantYjs }) {
   const { t } = useLocaleContext();
 
   const prompts = useDeferredValue(isPromptAssistant(assistant) ? Object.values(assistant.prompts ?? {}) : []);
@@ -30,5 +30,7 @@ export function TokenUsage({ assistant }: { assistant: AssistantYjs }) {
       : undefined;
   }, [assistant, prompts]);
 
-  return <Typography variant="caption">{t('aboutTokens', { tokens: tokens?.usedTokens || 0 })}</Typography>;
+  return <Typography variant="subtitle3">{t('aboutTokens', { tokens: tokens?.usedTokens || 0 })}</Typography>;
 }
+
+export default TokenUsage;

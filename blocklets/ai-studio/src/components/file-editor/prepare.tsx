@@ -1,6 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ApiAssistantYjs, FunctionAssistantYjs, ImageAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { Icon } from '@iconify-icon/react';
 import { Box, Button, Stack, Typography } from '@mui/material';
 
 import { useReadOnly } from '../../contexts/session';
@@ -27,27 +28,19 @@ export default function Prepare({
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
-    <>
-      <Stack direction="row" justifyContent="space-between">
-        <Typography variant="subtitle1">{t('prepareExecutes')}</Typography>
-
-        {!readOnly && (
-          <Button
-            sx={{ minWidth: 32, minHeight: 32, p: 0 }}
-            onClick={() => {
-              const doc = (getYjsValue(value) as Map<any>).doc!;
-              doc.transact(() => {
-                const id = nextAssistantId();
-                value.prepareExecutes ??= {};
-                value.prepareExecutes[id] = {
-                  index: Math.max(-1, ...Object.values(value.prepareExecutes).map((i) => i.index)) + 1,
-                  data: { id, selectType: 'all' },
-                };
-              });
-            }}>
-            <Add />
-          </Button>
-        )}
+    <Stack
+      gap={1}
+      sx={{
+        borderRadius: 1,
+        bgcolor: '#EDE9FE',
+        px: 2,
+        py: 1.5,
+      }}>
+      <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
+        <Box component={Icon} icon="tabler:bule" sx={{ color: '#7C3AED', fontSize: 15 }} />
+        <Typography variant="subtitle2" sx={{ m: 0 }}>
+          {t('prepareExecutes')}
+        </Typography>
       </Stack>
 
       {value.prepareExecutes && Object.values(value.prepareExecutes).length ? (
@@ -62,13 +55,28 @@ export default function Prepare({
             isRemoteCompare={isRemoteCompare}
           />
         </Stack>
-      ) : (
-        <Box textAlign="center">
-          <Typography variant="caption" color="text.disabled">
-            {t('haveNotAddedTip', { object: t('executeBlock') })}
-          </Typography>
-        </Box>
+      ) : null}
+
+      {!readOnly && (
+        <Stack direction="row" gap={1.5}>
+          <Button
+            sx={{ color: '#6D28D9' }}
+            startIcon={<Add />}
+            onClick={() => {
+              const doc = (getYjsValue(value) as Map<any>).doc!;
+              doc.transact(() => {
+                const id = nextAssistantId();
+                value.prepareExecutes ??= {};
+                value.prepareExecutes[id] = {
+                  index: Math.max(-1, ...Object.values(value.prepareExecutes).map((i) => i.index)) + 1,
+                  data: { id, selectType: 'all' },
+                };
+              });
+            }}>
+            {t('executeBlock')}
+          </Button>
+        </Stack>
       )}
-    </>
+    </Stack>
   );
 }

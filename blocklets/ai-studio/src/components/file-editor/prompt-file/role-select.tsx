@@ -1,13 +1,14 @@
 import IndicatorTextField from '@app/components/awareness/indicator-text-field';
-import { MenuItem, TextFieldProps } from '@mui/material';
+import { BoxProps, MenuItem, TextFieldProps } from '@mui/material';
 
 type Props = {
   projectId: string;
   gitRef: string;
   path: string[];
+  boxProps?: BoxProps;
 } & TextFieldProps;
 
-export default function RoleSelectField({ projectId, gitRef, path, ...props }: Props) {
+export default function RoleSelectField({ projectId, gitRef, path, boxProps, ...props }: Props) {
   return (
     <IndicatorTextField
       projectId={projectId}
@@ -33,6 +34,7 @@ export default function RoleSelectField({ projectId, gitRef, path, ...props }: P
           </MenuItem>,
         ],
       }}
+      boxProps={boxProps || {}}
     />
   );
 }
