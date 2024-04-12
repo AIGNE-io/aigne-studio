@@ -105,16 +105,16 @@ importers:
         specifier: ^0.1.26
         version: 0.1.26(@babel/core@7.24.0)(@types/node@18.19.31)(@types/react@18.2.75)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(sqlite3@5.1.7)
       '@blocklet/ai-runtime':
-        specifier: ^0.1.325
+        specifier: ^0.1.327
         version: link:../../packages/ai-runtime
       '@blocklet/co-git':
-        specifier: ^0.1.325
+        specifier: ^0.1.327
         version: link:../../packages/co-git
       '@blocklet/constant':
         specifier: ^1.16.25
         version: 1.16.25
       '@blocklet/dataset-sdk':
-        specifier: ^0.1.325
+        specifier: ^0.1.327
         version: link:../../packages/dataset-sdk
       '@blocklet/discuss-kit':
         specifier: ^1.6.206
@@ -126,13 +126,13 @@ importers:
         specifier: ^1.13.210
         version: 1.13.210
       '@blocklet/prompt-editor':
-        specifier: ^0.1.325
+        specifier: ^0.1.327
         version: link:../../packages/prompt-editor
       '@blocklet/sdk':
         specifier: ^1.16.25
         version: 1.16.25
       '@blocklet/studio-ui':
-        specifier: ^0.1.325
+        specifier: ^0.1.327
         version: link:../../packages/studio-ui
       '@blocklet/ui-react':
         specifier: ^2.9.65
@@ -554,13 +554,13 @@ importers:
   packages/ai-runtime:
     dependencies:
       '@blocklet/ai-builtin':
-        specifier: ^0.1.325
+        specifier: ^0.1.327
         version: link:../ai-builtin
       '@blocklet/ai-kit':
         specifier: ^0.1.26
         version: 0.1.26(@babel/core@7.24.0)(@types/node@18.19.31)(@types/react@18.2.75)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(sqlite3@5.1.7)
       '@blocklet/dataset-sdk':
-        specifier: ^0.1.325
+        specifier: ^0.1.327
         version: link:../dataset-sdk
       '@blocklet/sdk':
         specifier: ^1.16.25
