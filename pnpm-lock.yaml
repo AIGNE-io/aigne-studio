@@ -141,8 +141,8 @@ importers:
         specifier: ^0.0.73
         version: 0.0.73(@babel/core@7.24.0)(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(@types/node@18.19.31)(@types/react@18.2.75)(react-dom@18.2.0)(react@18.2.0)
       '@did-space/client':
-        specifier: ^0.3.78
-        version: 0.3.78(sqlite3@5.1.7)
+        specifier: ^0.4.1
+        version: 0.4.1(sqlite3@5.1.7)
       '@emotion/css':
         specifier: ^11.11.2
         version: 11.11.2
@@ -2904,14 +2904,14 @@ packages:
       - supports-color
     dev: false
 
-  /@did-space/client@0.3.78(sqlite3@5.1.7):
-    resolution: {integrity: sha512-jg3DgKgd/LyLpEnCyvmTfJSX6FqrFaM4N05BDNo58utEN1ZC4sRIMaEsCdJ74gWZYS3tzr8odpWZy34vR6YTyw==}
+  /@did-space/client@0.4.1(sqlite3@5.1.7):
+    resolution: {integrity: sha512-BJDg+wF59DkSgNYrsZtb1xVIhwVb42riD5ZO0O1HqalQ9XSCmum84RP+YoKjCPHiZly6PdflmCrrPvaQI4pf6A==}
     dependencies:
       '@arcblock/did': 1.18.115
       '@arcblock/jwt': 1.18.115
       '@arcblock/validator': 1.18.115
       '@blocklet/env': 1.16.25
-      '@did-space/core': 0.3.78(sqlite3@5.1.7)
+      '@did-space/core': 0.4.1(sqlite3@5.1.7)
       '@ocap/mcrypto': 1.18.115
       '@ocap/util': 1.18.115
       '@ocap/wallet': 1.18.115
@@ -2948,8 +2948,8 @@ packages:
       - tedious
     dev: false
 
-  /@did-space/core@0.3.78(sqlite3@5.1.7):
-    resolution: {integrity: sha512-pYWuIZ3AkI24x6OQtK3N+2nBVfF4n9MEMHxpxMEmjufXaQhnHFRp0D/1tFTLZ5pgH1qCZW8fLUgJbO78AqDbwg==}
+  /@did-space/core@0.4.1(sqlite3@5.1.7):
+    resolution: {integrity: sha512-ZwHNbl5Ago5enZRGFQoAjRWbQGYn9SKZtM7hJatvweoOsG7fj4I5WXdu43uV0806NdKH+rrCByq/JNPkxn5ROQ==}
     dependencies:
       '@arcblock/ipfs-only-hash': 0.0.2
       '@arcblock/validator': 1.18.115
