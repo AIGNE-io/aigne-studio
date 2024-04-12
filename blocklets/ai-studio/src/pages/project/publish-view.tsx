@@ -11,6 +11,7 @@ import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import styled from '@emotion/styled';
+import { Icon } from '@iconify-icon/react';
 import { LaunchRounded } from '@mui/icons-material';
 import {
   Box,
@@ -35,7 +36,6 @@ import { joinURL, withQuery } from 'ufo';
 
 import BaseInput from '../../components/custom/input';
 import Switch from '../../components/custom/switch';
-import Publish from './icons/publish';
 import UploadIcon from './icons/publish-upload';
 import { saveButtonState, useProjectState } from './state';
 
@@ -332,7 +332,11 @@ function PublishViewContent({
       )}
 
       <Stack direction="row" gap={2} alignItems="center">
-        <LoadingButton type="submit" loading={form.formState.isSubmitting} variant="contained" startIcon={<Publish />}>
+        <LoadingButton
+          type="submit"
+          loading={form.formState.isSubmitting}
+          variant="contained"
+          startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}>
           {release ? t('publish.republishProject') : t('publish.publishProject')}
         </LoadingButton>
       </Stack>

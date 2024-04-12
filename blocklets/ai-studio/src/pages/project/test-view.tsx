@@ -2,6 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { runAssistant } from '@blocklet/ai-runtime/api';
 import { AssistantResponseType, AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { Icon } from '@iconify-icon/react';
 import { Error } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import { Alert, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
@@ -11,9 +12,6 @@ import { joinURL } from 'ufo';
 
 import { PREFIX } from '../../libs/api';
 import { WritingIndicator } from './debug-view';
-import Bug from './icons/bug';
-import Publish from './icons/publish';
-import TrashBinIcon from './solar-linear-icons/trash-bin';
 import { useDebugState } from './state';
 
 export default function DebugView({
@@ -66,7 +64,7 @@ export default function DebugView({
           loading={running}
           loadingPosition="end"
           onClick={runAll}
-          startIcon={<Publish sx={{ fontSize: 16 }} />}>
+          startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}>
           {t('runAll')}
         </LoadingButton>
       </Stack>
@@ -193,21 +191,25 @@ const TestCaseView = forwardRef<
           <Tooltip title={t('runThisCase')}>
             <span>
               <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" disabled={loading} onClick={runTest}>
-                <Publish sx={{ fontSize: 15 }} />
+                <Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 15 }} />
               </Button>
             </span>
           </Tooltip>
 
           <Tooltip title={t('debugThisCase')}>
-            <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" onClick={debugTest}>
-              <Bug sx={{ fontSize: 15 }} />
-            </Button>
+            <span>
+              <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" onClick={debugTest}>
+                <Box component={Icon} icon="tabler:bug" sx={{ fontSize: 15 }} />
+              </Button>
+            </span>
           </Tooltip>
 
           <Tooltip title={t('deleteThisCase')}>
-            <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" onClick={deleteTest} color="warning">
-              <TrashBinIcon sx={{ fontSize: 15 }} />
-            </Button>
+            <span>
+              <Button sx={{ minWidth: 0, width: 32, height: 32 }} size="small" onClick={deleteTest} color="warning">
+                <Box component={Icon} icon="tabler:trash" sx={{ fontSize: 15 }} />
+              </Button>
+            </span>
           </Tooltip>
         </Stack>
       </Box>

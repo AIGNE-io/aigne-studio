@@ -2,7 +2,7 @@ import IndicatorTextField from '@app/components/awareness/indicator-text-field';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ApiAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Icon, Icon } from '@iconify-icon/react';
+import { Icon } from '@iconify-icon/react';
 import { Box, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
 import { useAssistantCompare } from 'src/pages/project/state';

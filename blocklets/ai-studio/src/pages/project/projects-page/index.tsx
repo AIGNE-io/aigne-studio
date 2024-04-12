@@ -685,7 +685,9 @@ function ProjectItem({
 
               {pinned && (
                 <Tooltip title={t('pin')} placement="top">
-                  <Pin />
+                  <Box className="center">
+                    <Pin />
+                  </Box>
                 </Tooltip>
               )}
             </Box>

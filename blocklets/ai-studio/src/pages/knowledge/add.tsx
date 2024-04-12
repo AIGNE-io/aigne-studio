@@ -21,6 +21,7 @@ import {
   updateFileDocument,
   updateTextDocument,
 } from '../../libs/dataset';
+import Discuss from '../project/icons/discuss';
 
 function formatBytes(bytes: number, decimals = 2) {
   if (bytes === 0) return '0 Bytes';
@@ -33,8 +34,6 @@ function formatBytes(bytes: number, decimals = 2) {
 
   return `${parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
-
-// import Discuss from '../project/icons/discuss';
 const CardContainer = styled(Stack)`
   border: 1px solid #e5e7eb;
   padding: 16px;
@@ -71,9 +70,7 @@ function Card({
   const classNames = [disabled ? 'disabled' : '', selected ? 'selected' : ''].filter((x) => x);
   return (
     <CardContainer onClick={onClick} flexDirection="row" gap={1.5} className={classNames.join(',')}>
-      <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
-        <Box component={Icon} icon={icon} fontSize={20} color="#3B82F6" />
-      </Box>
+      {icon}
 
       <Box flex={1} width={0}>
         <Box fontSize={16} fontWeight={500} lineHeight="28px" color="#030712">
@@ -181,7 +178,6 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
           <LoadingButton
             type="submit"
             variant="contained"
-            loadingPosition="start"
             disabled={!file}
             startIcon={loading ? <CircularProgress sx={{ color: '#fff' }} size={16} /> : null}
             onClick={async () => {
@@ -412,22 +408,34 @@ export default function KnowledgeDocumentsAdd() {
     );
   }
 
-  const cards: { id: 'file' | 'discussion' | 'custom'; icon: string; title: string; subtitle: string }[] = [
+  const cards: { id: 'file' | 'discussion' | 'custom'; icon: any; title: string; subtitle: string }[] = [
     {
       id: 'file',
-      icon: 'tabler:file-description',
+      icon: (
+        <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
+          <Box component={Icon} icon="tabler:file-description" fontSize={20} color="#3B82F6" />
+        </Box>
+      ),
       title: t('knowledge.documents.file.title'),
       subtitle: t('knowledge.documents.file.description'),
     },
     {
       id: 'discussion',
-      icon: 'custom:iconDiscuss', // 替换为实际的图标名称
+      icon: (
+        <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
+          <Discuss sx={{ width: '100%', height: '100%' }} />
+        </Box>
+      ),
       title: t('knowledge.documents.discussion.title'),
       subtitle: t('knowledge.documents.discussion.description'),
     },
     {
       id: 'custom',
-      icon: 'tabler:pencil',
+      icon: (
+        <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
+          <Box component={Icon} icon="tabler:pencil" fontSize={20} color="#3B82F6" />
+        </Box>
+      ),
       title: t('knowledge.documents.custom.title'),
       subtitle: t('knowledge.documents.custom.description'),
     },

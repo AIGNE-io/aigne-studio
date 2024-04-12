@@ -305,7 +305,7 @@ function Actions({
             {error ? (
               <Button onClick={onEmbedding} color="error">
                 <Tooltip placement="top" arrow title={t('refreshTip')}>
-                  {t('refresh')}
+                  <Box>{t('refresh')}</Box>
                 </Tooltip>
               </Button>
             ) : null}
@@ -314,12 +314,12 @@ function Actions({
           <>
             <Button onClick={onLink}>
               <Tooltip placement="top" arrow title={t('shareTip')}>
-                {t('share')}
+                <Box>{t('share')}</Box>
               </Tooltip>
             </Button>
             <Button onClick={onEmbedding}>
               <Tooltip placement="top" arrow title={t('refreshTip')}>
-                {t('refresh')}
+                <Box>{t('refresh')}</Box>
               </Tooltip>
             </Button>
           </>

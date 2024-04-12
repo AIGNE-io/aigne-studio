@@ -202,7 +202,13 @@ export default function ProjectPage() {
                 placement="bottom-start">
                 <ClickAwayListener onClickAway={createFileMenuState.close}>
                   <Paper elevation={2} onClick={createFileMenuState.close}>
-                    <List>
+                    <List
+                      sx={{
+                        '.MuiListItemIcon-root': {
+                          minWidth: 0,
+                          mr: 1,
+                        },
+                      }}>
                       <MenuItem
                         onClick={() => {
                           const dir = dirname(filepath);
@@ -212,7 +218,7 @@ export default function ProjectPage() {
                             meta: { type: 'prompt' },
                           });
                         }}>
-                        <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
+                        <ListItemIcon>
                           <Box component={Icon} icon="tabler:file-description" />
                         </ListItemIcon>
                         <ListItemText primary={t('prompt')} />
@@ -226,7 +232,7 @@ export default function ProjectPage() {
                             meta: { type: 'image' },
                           });
                         }}>
-                        <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
+                        <ListItemIcon>
                           <Box component={Icon} icon="tabler:photo" />
                         </ListItemIcon>
                         <ListItemText primary={t('image')} />
@@ -239,7 +245,7 @@ export default function ProjectPage() {
                             rootFolder: PROMPTS_FOLDER_NAME,
                           })
                         }>
-                        <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
+                        <ListItemIcon>
                           <Box component={Icon} icon="tabler:link" />
                         </ListItemIcon>
                         <ListItemText primary={t('api')} />
@@ -252,7 +258,7 @@ export default function ProjectPage() {
                             rootFolder: PROMPTS_FOLDER_NAME,
                           })
                         }>
-                        <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
+                        <ListItemIcon>
                           <Box component={Icon} icon="tabler:code" />
                         </ListItemIcon>
                         <ListItemText primary={t('function')} />

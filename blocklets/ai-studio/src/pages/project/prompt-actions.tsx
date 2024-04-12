@@ -8,8 +8,6 @@ import { joinURL } from 'ufo';
 
 import CommitsTip from '../../components/template-form/commits-tip';
 import { getFileIdFromPath } from '../../utils/path';
-import History from './icons/history';
-import Publish from './icons/publish';
 import PublishView from './publish-view';
 import SaveButton from './save-button';
 import Settings from './settings';
@@ -46,7 +44,7 @@ export default function HeaderActions() {
           navigate(joinURL('..', commit.oid), { state: { filepath } });
         }}>
         <Button sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}>
-          <History sx={{ fontSize: 20 }} />
+          <Box component={Icon} icon="tabler:history-toggle" sx={{ fontSize: 20, color: '#030712' }} />
         </Button>
       </CommitsTip>
 
@@ -75,7 +73,11 @@ export default function HeaderActions() {
       </>
 
       <>
-        <Button variant="contained" startIcon={<Publish />} size="small" {...bindTrigger(publishPopperState)}>
+        <Button
+          variant="contained"
+          startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}
+          size="small"
+          {...bindTrigger(publishPopperState)}>
           {t('publish.publishProject')}
         </Button>
 
