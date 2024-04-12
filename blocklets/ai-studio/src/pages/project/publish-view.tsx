@@ -1,5 +1,6 @@
 import LoadingButton from '@app/components/loading/loading-button';
 import PublishEntries from '@app/components/publish/PublishEntries';
+import NumberField from '@app/components/template-form/number-field';
 import { useUploader } from '@app/contexts/uploader';
 import { getErrorMessage } from '@app/libs/api';
 import { AI_RUNTIME_COMPONENT_DID } from '@app/libs/constants';
@@ -267,6 +268,66 @@ function PublishViewContent({
           </Box>
         </Box>
       </Box>
+
+      <Stack
+        sx={{
+          display: 'table',
+          '.row': {
+            display: 'table-row',
+            '> div': {
+              display: 'table-cell',
+              whiteSpace: 'nowrap',
+              '&:first-of-type': {
+                pr: 2,
+              },
+
+              '&:last-of-type': {
+                width: '100%',
+              },
+            },
+          },
+        }}>
+        <Typography mb={1} variant="subtitle2">
+          {t('publish.settings')}
+        </Typography>
+
+        <Box className="row">
+          <Box>
+            <FormLabel>{t('publish.maxRoundLimit')}</FormLabel>
+          </Box>
+          <Box>
+            <NumberField
+              component={BaseInput}
+              NumberProps={{
+                min: 0,
+                value: assistant.release?.maxRoundLimit ?? null,
+                onChange: (_, value) =>
+                  setRelease((release) => {
+                    release.maxRoundLimit = value;
+                  }),
+              }}
+            />
+          </Box>
+        </Box>
+
+        <Box className="row">
+          <Box>
+            <FormLabel>{t('publish.reachMaxRoundLimitTip')}</FormLabel>
+          </Box>
+          <Box>
+            <BaseInput
+              fullWidth
+              multiline
+              value={assistant.release?.reachMaxRoundLimitTip ?? ''}
+              onChange={(e) =>
+                setRelease((release) => {
+                  release.reachMaxRoundLimitTip = e.target.value;
+                })
+              }
+            />
+          </Box>
+        </Box>
+      </Stack>
 
       <Stack>
         <Stack direction="row" gap={1} alignItems="center" className="between">
