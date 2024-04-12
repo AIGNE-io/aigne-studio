@@ -100,6 +100,7 @@ export default function useDialog() {
               <Stack direction="row" gap={1} alignItems="center">
                 <Button
                   className="cancel"
+                  variant="outlined"
                   onClick={async () => {
                     await onCancel?.();
                     closeDialog();

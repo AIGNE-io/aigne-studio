@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
 import { Box, Button, ClickAwayListener, Grow, Paper, Popper } from '@mui/material';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -11,6 +12,7 @@ import History from './icons/history';
 import Publish from './icons/publish';
 import PublishView from './publish-view';
 import SaveButton from './save-button';
+import Settings from './settings';
 import { useProjectState } from './state';
 import TokenUsage from './token-usage';
 import { useProjectStore } from './yjs-state';
@@ -21,7 +23,8 @@ export default function HeaderActions() {
   if (!projectId || !gitRef) throw new Error('Missing required params `projectId` or `ref`');
 
   const navigate = useNavigate();
-  const popperState = usePopupState({ variant: 'popper' });
+  const publishPopperState = usePopupState({ variant: 'popper', popupId: 'publish' });
+  const settingPopperState = usePopupState({ variant: 'popper', popupId: 'settings' });
 
   const {
     state: { loading, commits },
@@ -49,21 +52,45 @@ export default function HeaderActions() {
 
       <SaveButton projectId={projectId} gitRef={gitRef} />
 
-      <Button variant="contained" startIcon={<Publish />} size="small" {...bindTrigger(popperState)}>
-        {t('publish.publishProject')}
-      </Button>
+      <>
+        <Button
+          sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
+          {...bindTrigger(settingPopperState)}>
+          <Box component={Icon} icon="tabler:settings-2" sx={{ fontSize: 18, color: '#030712' }} />
+        </Button>
 
-      <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
-        {({ TransitionProps }) => (
-          <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-            <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
-              <ClickAwayListener onClickAway={() => popperState.close()}>
-                <Box>{file ? <PublishView projectId={projectId} projectRef={gitRef} assistant={file} /> : null}</Box>
-              </ClickAwayListener>
-            </Paper>
-          </Grow>
-        )}
-      </Popper>
+        <Popper {...bindPopper(settingPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
+          {({ TransitionProps }) => (
+            <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
+              <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
+                <ClickAwayListener onClickAway={() => settingPopperState.close()}>
+                  <Box>
+                    <Settings />
+                  </Box>
+                </ClickAwayListener>
+              </Paper>
+            </Grow>
+          )}
+        </Popper>
+      </>
+
+      <>
+        <Button variant="contained" startIcon={<Publish />} size="small" {...bindTrigger(publishPopperState)}>
+          {t('publish.publishProject')}
+        </Button>
+
+        <Popper {...bindPopper(publishPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
+          {({ TransitionProps }) => (
+            <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
+              <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
+                <ClickAwayListener onClickAway={() => publishPopperState.close()}>
+                  <Box>{file ? <PublishView projectId={projectId} projectRef={gitRef} assistant={file} /> : null}</Box>
+                </ClickAwayListener>
+              </Paper>
+            </Grow>
+          )}
+        </Popper>
+      </>
     </Box>
   );
 }

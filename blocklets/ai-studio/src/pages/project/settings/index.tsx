@@ -5,7 +5,7 @@ import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
-  Container,
+  Divider,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -194,10 +194,10 @@ export default function ProjectSettings() {
   return (
     <Box overflow="auto" height={1}>
       <UploaderProvider>
-        <SettingsContainer maxWidth="md" sx={{ my: 2.5 }}>
-          <Stack gap={2.5}>
+        <SettingsContainer maxWidth="md" sx={{ p: 2 }}>
+          <Stack gap={2}>
             <Form onSubmit={(e) => e.preventDefault()}>
-              <Stack gap={2.5}>
+              <Stack gap={2}>
                 <Box>
                   <Stack gap={1}>
                     <Box display="flex" alignItems="center">
@@ -447,14 +447,20 @@ export default function ProjectSettings() {
               </Stack>
             </Form>
 
+            <Divider />
+
             <Form>
               <RemoteRepoSetting projectId={projectId} />
             </Form>
 
             {!isEmpty(session.user?.didSpace?.endpoint) && (
-              <Form>
-                <DidSpacesSetting projectId={projectId} />
-              </Form>
+              <>
+                <Divider />
+
+                <Form>
+                  <DidSpacesSetting projectId={projectId} />
+                </Form>
+              </>
             )}
           </Stack>
         </SettingsContainer>
@@ -465,7 +471,7 @@ export default function ProjectSettings() {
   );
 }
 
-const SettingsContainer = styled(Container)`
+const SettingsContainer = styled(Box)`
   .prefer-inline {
     display: flex;
     align-items: center;
@@ -499,9 +505,4 @@ const SettingsContainer = styled(Container)`
   }
 `;
 
-const Form = styled('form')`
-  border: 1px solid #e5e7eb;
-  padding: 16px 20px;
-  border-radius: ${({ theme }) => theme.shape.borderRadius}px;
-  background: #fff;
-`;
+const Form = styled('form')``;

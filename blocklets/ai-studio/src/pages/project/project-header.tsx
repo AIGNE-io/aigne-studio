@@ -48,11 +48,6 @@ export default function ProjectHeader() {
                 icon: <Box fontSize={15} component={Icon} icon="tabler:bulb" mr={1} />,
               },
               {
-                value: 'settings',
-                label: t('setting'),
-                icon: <Box fontSize={15} component={Icon} icon="tabler:settings-2" mr={1} />,
-              },
-              {
                 value: 'knowledge',
                 label: t('knowledge.menu'),
                 icon: <Box fontSize={15} component={Icon} icon="tabler:book-2" mr={1} />,

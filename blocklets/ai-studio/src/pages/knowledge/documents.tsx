@@ -1,60 +1,21 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import Toast from '@arcblock/ux/lib/Toast';
-import { SaveRounded } from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
-import {
-  Box,
-  Breadcrumbs,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  FormControlLabel,
-  IconButton,
-  Popover,
-  Radio,
-  RadioGroup,
-  Stack,
-  TextField,
-  Tooltip,
-  Typography,
-  styled,
-} from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import { Box, Button, CircularProgress, Stack, Tooltip, Typography, styled } from '@mui/material';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { useReactive } from 'ahooks';
-import dayjs from 'dayjs';
-import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useEffect, useMemo, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
-import Document from '../../../api/src/store/models/dataset/document';
-import PromiseLoadingButton from '../../components/promise-loading-button';
-import { useDatasets } from '../../contexts/datasets/datasets';
 import { useDocuments } from '../../contexts/datasets/documents';
-import { getErrorMessage } from '../../libs/api';
 import { reloadEmbedding, watchDatasetEmbeddings } from '../../libs/dataset';
-import Delete from '../project/icons/delete';
-import Edit from '../project/icons/edit';
-import Empty from '../project/icons/empty';
-import Refresh from '../project/icons/refresh';
-import Share from '../project/icons/share';
+import useDialog from '../../utils/use-dialog';
 
 export default function KnowledgeDocuments() {
   const { t } = useLocaleContext();
-  const dialogState = usePopupState({ variant: 'dialog', popupId: 'document' });
-  const customDialogState = usePopupState({ variant: 'dialog', popupId: 'custom' });
-  const form = useForm<{ name: string; content: string }>({ defaultValues: { name: '', content: '' } });
-  const [currentDocument, setDocument] = useState<'file' | 'discussion' | 'custom'>('file');
   const { datasetId } = useParams();
 
-  const { createTextDocument, updateTextDocument } = useDatasets();
   const navigate = useNavigate();
-  const [editDocument, setEditDocument] = useState<Document | null>(null);
 
   const { state, remove, refetch } = useDocuments(datasetId || '');
   if (state.error) throw state.error;
@@ -116,62 +77,17 @@ export default function KnowledgeDocuments() {
       {
         field: 'type',
         headerName: t('knowledge.documents.type'),
-        headerAlign: 'center',
-        align: 'center',
+        flex: 1,
         sortable: false,
         renderCell: (params: any) => {
           return <Box>{t(params.row.type)}</Box>;
         },
       },
       {
-        field: 'time',
-        headerName: t('knowledge.documents.time'),
-        width: 180,
-        headerAlign: 'center',
-        align: 'center',
-        sortable: false,
-        renderCell: (params: any) => {
-          return <Box>{`${dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss')}`}</Box>;
-        },
-      },
-      {
-        field: 'embeddingStartAt',
-        headerName: t('embeddingStartTime'),
-        width: 180,
-        sortable: false,
-        headerAlign: 'center',
-        align: 'center',
-        renderCell: (params: any) => {
-          return (
-            <Box>
-              {params.row.embeddingStartAt
-                ? `${dayjs(params.row.embeddingStartAt).format('YYYY-MM-DD HH:mm:ss')}`
-                : '-'}
-            </Box>
-          );
-        },
-      },
-      {
-        field: 'embeddingEndTime',
-        headerName: t('embeddingEndTime'),
-        width: 180,
-        headerAlign: 'center',
-        align: 'center',
-        sortable: false,
-        renderCell: (params: any) => {
-          return (
-            <Box>
-              {params.row.embeddingEndAt ? `${dayjs(params.row.embeddingEndAt).format('YYYY-MM-DD HH:mm:ss')}` : '-'}
-            </Box>
-          );
-        },
-      },
-      {
         field: 'embeddingStatus',
         headerName: t('embeddingStatus'),
+        flex: 1,
         sortable: false,
-        headerAlign: 'center',
-        align: 'center',
         renderCell: (params: any) => {
           if (!['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
             return <Box>{`${params.row.embeddingStatus}`}</Box>;
@@ -183,9 +99,7 @@ export default function KnowledgeDocuments() {
       {
         field: 'actions',
         headerName: t('form.actions'),
-        align: 'right',
-        headerAlign: 'center',
-        width: 130,
+        flex: 1,
         sortable: false,
         renderCell: (params: any) => (
           <Actions
@@ -194,18 +108,17 @@ export default function KnowledgeDocuments() {
             datasetId={datasetId || ''}
             onRemove={remove}
             onRefetch={refetch}
-            onEdit={(e) => {
-              setEditDocument(params.row);
-              e.stopPropagation();
-
-              if (params.row.type === 'text') {
-                form.setValue('name', params.row.name);
-                form.setValue('content', params.row.content);
-
-                customDialogState.open();
-              } else {
-                navigate(`upload?type=${params.row.type}&id=${params.row.id}`, { replace: true });
-              }
+            onEdit={() => {
+              navigate(`edit?type=${params.row.type}&id=${params.row.id}`, { replace: true });
+              // setEditDocument(params.row);
+              // e.stopPropagation();
+              // if (params.row.type === 'text') {
+              //   form.setValue('name', params.row.name);
+              //   form.setValue('content', params.row.content);
+              //   customDialogState.open();
+              // } else {
+              //   navigate(`upload?type=${params.row.type}&id=${params.row.id}`, { replace: true });
+              // }
             }}
             onEmbedding={(e) => {
               e.stopPropagation();
@@ -233,230 +146,97 @@ export default function KnowledgeDocuments() {
 
   if (state.loading) {
     return (
-      <Box flex={1} className="center">
+      <Box width={1} height={1} className="center">
         <CircularProgress size={20} />
       </Box>
     );
   }
 
   return (
-    <>
-      <>
-        <Stack gap={3} py={2} px={3}>
-          <Breadcrumbs sx={{ a: { color: 'rgba(29,28,35,.35)', textDecoration: 'auto' } }}>
-            <Link color="inherit" to="../../knowledge">
-              {t('knowledge.menu')}
-            </Link>
+    <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5}>
+      <Stack flexDirection="row" className="between">
+        <Box>
+          <Box
+            display="flex"
+            alignItems="center"
+            sx={{ cursor: 'pointer' }}
+            onClick={() => {
+              navigate(joinURL('..'));
+            }}>
+            <Box component={Icon} icon="tabler:chevron-left" width={20} />
+            <Typography variant="subtitle2" mb={0}>
+              {state.dataset?.name}
+            </Typography>
+          </Box>
 
-            <Typography color="text.primary">{state.dataset?.name}</Typography>
-          </Breadcrumbs>
+          <Box display="flex" alignItems="center">
+            <Box width={20} />
+            <Typography variant="subtitle2" color="#4B5563" fontWeight={400} mb={0}>
+              {state.dataset?.description}
+            </Typography>
+          </Box>
+        </Box>
 
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Box>
-              <Box sx={{ fontSize: '20px', fontWeight: 600, lineHeight: '28px' }}>{state.dataset?.name}</Box>
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => {
+            navigate('add');
+          }}>
+          {t('knowledge.documents.add')}
+        </Button>
+      </Stack>
 
-              <Box display="flex" gap={2} alignItems="center" mt={1}>
-                <Tag>{`${state.total} ${t('knowledge.document')}`}</Tag>
+      <Stack flex={1} height={0}>
+        <Table
+          sx={{
+            border: 0,
+            [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: { outline: 'none' },
+            [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]: {
+              outline: 'none',
+            },
+            [`& .${gridClasses.footerContainer}`]: { border: 0 },
+          }}
+          disableColumnMenu
+          columnHeaderHeight={30}
+          rowHeight={40}
+          getRowId={(v) => v.id}
+          rows={rows}
+          columns={columns as any}
+          rowCount={state.total ?? 0}
+          pageSizeOptions={[20]}
+          paginationModel={{ page: state.page, pageSize: state.size }}
+          paginationMode="server"
+          onPaginationModelChange={({ page, pageSize: size }) => refetch({ page, size })}
+          // onRowClick={(params) => {
+          //   const rowId = params.row.id;
+          //   if (params.row.type !== 'fullSite') {
+          //     navigate(`document/${rowId}`, { replace: true });
+          //   }
+          // }}
+          slots={{
+            noRowsOverlay: () => (
+              <Box className="center" height={1}>
+                <Stack alignItems="center">
+                  <Typography variant="subtitle1">💻</Typography>
+                  <Typography variant="subtitle4">{t('No Document Here')}</Typography>
+                  <Typography variant="subtitle5">{t('Your document list is currently empty. ')}</Typography>
+
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => {
+                      navigate('add');
+                    }}>
+                    {t('knowledge.documents.add')}
+                  </Button>
+                </Stack>
               </Box>
-            </Box>
-
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => {
-                setEditDocument(null);
-                dialogState.open();
-              }}>
-              {t('knowledge.documents.add')}
-            </Button>
-          </Box>
-        </Stack>
-
-        <Divider />
-
-        <Stack px={3} flex={1} height={0}>
-          <Box sx={{ margin: '30px 0 20px', fontSize: '18px', fontWeight: 600, lineHeight: '24px' }}>
-            {t('knowledge.document')}
-          </Box>
-
-          <>
-            {!rows?.length && (
-              <Stack flex={1}>
-                <EmptyDocument
-                  onOpen={() => {
-                    setEditDocument(null);
-                    dialogState.open();
-                  }}
-                />
-              </Stack>
-            )}
-
-            {!!rows.length && (
-              <Table
-                sx={{
-                  border: 0,
-                  [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: { outline: 'none' },
-                  [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]: {
-                    outline: 'none',
-                  },
-                  [`& .${gridClasses.footerContainer}`]: { border: 0 },
-                }}
-                disableColumnMenu
-                columnHeaderHeight={30}
-                rowHeight={40}
-                getRowId={(v) => v.id}
-                rows={rows}
-                columns={columns as any}
-                rowCount={state.total ?? 0}
-                pageSizeOptions={[20]}
-                paginationModel={{ page: state.page, pageSize: state.size }}
-                paginationMode="server"
-                onPaginationModelChange={({ page, pageSize: size }) => refetch({ page, size })}
-                onRowClick={(params) => {
-                  const rowId = params.row.id;
-                  if (params.row.type !== 'fullSite') {
-                    navigate(`document/${rowId}`, { replace: true });
-                  }
-                }}
-              />
-            )}
-          </>
-        </Stack>
-      </>
-
-      <Dialog
-        {...bindDialog(dialogState)}
-        maxWidth="md"
-        fullWidth
-        component="form"
-        onSubmit={form.handleSubmit(() => {
-          dialogState.close();
-
-          if (currentDocument === 'custom') {
-            customDialogState.open();
-          } else {
-            navigate(`upload?type=${currentDocument}`, { replace: true });
-          }
-        })}>
-        <DialogTitle>{t('knowledge.documents.add')}</DialogTitle>
-
-        <DialogContent>
-          <DocumentRadioGroup
-            sx={{ gap: 2 }}
-            value={currentDocument}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDocument((e.target as any).value)}>
-            <FormControlLabel
-              value="file"
-              control={<Radio />}
-              label={<Upload />}
-              className={currentDocument === 'file' ? 'selected' : ''}
-            />
-            <FormControlLabel
-              value="discussion"
-              control={<Radio />}
-              label={<Discussion />}
-              className={currentDocument === 'discussion' ? 'selected' : ''}
-            />
-            <FormControlLabel
-              value="custom"
-              control={<Radio />}
-              label={<Customization />}
-              className={currentDocument === 'custom' ? 'selected' : ''}
-            />
-          </DocumentRadioGroup>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={dialogState.close}>{t('cancel')}</Button>
-
-          <LoadingButton type="submit" variant="contained">
-            {t('next')}
-          </LoadingButton>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        {...bindDialog(customDialogState)}
-        maxWidth="sm"
-        fullWidth
-        component="form"
-        onSubmit={form.handleSubmit(async (data) => {
-          try {
-            if (editDocument) {
-              await updateTextDocument(datasetId || '', editDocument?.id, data);
-            } else {
-              await createTextDocument(datasetId || '', data);
-            }
-            form.reset({ name: '', content: '' });
-
-            await refetch();
-            customDialogState.close();
-            navigate(`../${datasetId}`, { replace: true });
-          } catch (error) {
-            Toast.error(getErrorMessage(error));
-          }
-        })}>
-        <DialogTitle>{editDocument ? t('knowledge.documents.edit') : t('knowledge.documents.add')}</DialogTitle>
-
-        <DialogContent>
-          <Stack gap={2}>
-            <Controller
-              control={form.control}
-              name="name"
-              rules={{
-                required: t('validation.fieldRequired'),
-              }}
-              render={({ field, fieldState }) => {
-                return (
-                  <TextField
-                    label={t('knowledge.documents.name')}
-                    sx={{ width: 1 }}
-                    {...field}
-                    error={Boolean(fieldState.error)}
-                    helperText={fieldState.error?.message}
-                  />
-                );
-              }}
-            />
-
-            <Controller
-              control={form.control}
-              name="content"
-              rules={{
-                required: t('validation.fieldRequired'),
-              }}
-              render={({ field, fieldState }) => {
-                return (
-                  <TextField
-                    label={t('knowledge.documents.content')}
-                    placeholder={t('knowledge.documents.content')}
-                    sx={{ width: 1 }}
-                    multiline
-                    rows={10}
-                    {...field}
-                    error={Boolean(fieldState.error)}
-                    helperText={fieldState.error?.message}
-                  />
-                );
-              }}
-            />
-          </Stack>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={customDialogState.close}>{t('cancel')}</Button>
-
-          <LoadingButton
-            type="submit"
-            variant="contained"
-            startIcon={<SaveRounded />}
-            loadingPosition="start"
-            loading={form.formState.isSubmitting}>
-            {editDocument ? t('update') : t('save')}
-          </LoadingButton>
-        </DialogActions>
-      </Dialog>
-    </>
+            ),
+          }}
+        />
+      </Stack>
+    </Stack>
   );
 }
 
@@ -479,186 +259,88 @@ function Actions({
   onEmbedding: (e: React.MouseEvent) => void;
   onLink: () => void;
 }) {
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const open = Boolean(anchorEl);
   const { t } = useLocaleContext();
+  const { dialog, showDialog } = useDialog();
 
   return (
     <>
-      <Stack flexDirection="row" gap={1}>
+      <Stack flexDirection="row">
         {['text', 'file'].includes(type) ? (
-          <IconButton onClick={onEdit}>
-            <Edit sx={{ fontSize: '16px' }} />
-          </IconButton>
+          <Button onClick={onEdit}>{t('edit')}</Button>
         ) : (
           <>
-            <IconButton onClick={onLink}>
+            <Button onClick={onLink}>
               <Tooltip placement="top" arrow title={t('shareTip')}>
-                <Share sx={{ fontSize: '16px' }} />
+                {t('share')}
               </Tooltip>
-            </IconButton>
-            <IconButton onClick={onEmbedding}>
+            </Button>
+            <Button onClick={onEmbedding}>
               <Tooltip placement="top" arrow title={t('refreshTip')}>
-                <Refresh sx={{ fontSize: '16px' }} />
+                {t('refresh')}
               </Tooltip>
-            </IconButton>
+            </Button>
           </>
         )}
 
-        <IconButton
+        <Button
+          color="error"
           onClick={(e) => {
             e.stopPropagation();
-            setAnchorEl(e.currentTarget);
+
+            showDialog({
+              formSx: {
+                '.MuiDialogTitle-root': {
+                  border: 0,
+                },
+                '.MuiDialogActions-root': {
+                  border: 0,
+                },
+                '.save': {
+                  background: '#d32f2f',
+                },
+              },
+              maxWidth: 'sm',
+              fullWidth: true,
+              title: <Box sx={{ wordWrap: 'break-word' }}>{t('knowledge.documents.deleteTitle')}</Box>,
+              content: (
+                <Box>
+                  <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                    {t('knowledge.documents.deleteDescription')}
+                  </Typography>
+                </Box>
+              ),
+              okText: t('alert.delete'),
+              okColor: 'error',
+              cancelText: t('alert.cancel'),
+              onOk: async () => {
+                await onRemove(datasetId, id);
+                await onRefetch();
+              },
+            });
           }}>
-          <Delete sx={{ fontSize: '16px' }} />
-        </IconButton>
+          {t('delete')}
+        </Button>
       </Stack>
 
-      <Popover
-        id={open ? 'simple-popover' : undefined}
-        open={open}
-        anchorEl={anchorEl}
-        onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-        <DialogTitle>{t('knowledge.documents.deleteTitle')}</DialogTitle>
-
-        <DialogContent sx={{ fontSize: '14px', lineHeight: '22px' }}>
-          {t('knowledge.documents.deleteDescription')}
-        </DialogContent>
-
-        <DialogActions>
-          <Button size="small" onClick={() => setAnchorEl(null)}>
-            {t('cancel')}
-          </Button>
-
-          <PromiseLoadingButton
-            size="small"
-            variant="contained"
-            color="error"
-            onClick={async () => {
-              await onRemove(datasetId, id);
-              await onRefetch();
-              setAnchorEl(null);
-            }}>
-            {t('delete')}
-          </PromiseLoadingButton>
-        </DialogActions>
-      </Popover>
+      {dialog}
     </>
   );
 }
 
-function EmptyDocument({ onOpen }: { onOpen: () => any }) {
-  const { t } = useLocaleContext();
+const Table = styled(DataGrid)`
+  .MuiDataGrid-columnSeparator {
+    display: none;
+  }
 
-  return (
-    <Stack flex={1} justifyContent="center" alignItems="center" gap={1}>
-      <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
+  .MuiDataGrid-columnHeader {
+    padding: 0;
 
-      <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
-        {t('knowledge.documents.empty')}
-      </Typography>
-
-      <Button variant="contained" size="small" onClick={onOpen}>
-        {t('knowledge.documents.add')}
-      </Button>
-    </Stack>
-  );
-}
-
-function Upload() {
-  const { t } = useLocaleContext();
-
-  return (
-    <RadioStack gap={0.5}>
-      <Box className="radio-addon">{t('knowledge.documents.file.title')}</Box>
-      <Box className="radio-extra">{t('knowledge.documents.file.description')}</Box>
-    </RadioStack>
-  );
-}
-
-function Discussion() {
-  const { t } = useLocaleContext();
-
-  return (
-    <RadioStack gap={0.5}>
-      <Box className="radio-addon">{t('knowledge.documents.discussion.title')}</Box>
-      <Box className="radio-extra">{t('knowledge.documents.discussion.description')}</Box>
-    </RadioStack>
-  );
-}
-
-function Customization() {
-  const { t } = useLocaleContext();
-
-  return (
-    <RadioStack gap={0.5}>
-      <Box className="radio-addon">{t('knowledge.documents.custom.title')}</Box>
-      <Box className="radio-extra">{t('knowledge.documents.custom.description')}</Box>
-    </RadioStack>
-  );
-}
-
-const DocumentRadioGroup = styled(RadioGroup)`
-  .MuiFormControlLabel-root {
-    border: 1px solid ${({ theme }) => theme.palette.action.selected};
-    padding: 16px;
-    box-sizing: border-box;
-    cursor: pointer;
-    display: flex;
-    font-size: 14px;
-    line-height: 22px;
-    min-height: 20px;
-    min-width: 16px;
-    text-align: left;
-    border-radius: 4px;
-    flex-wrap: nowrap;
-    align-items: flex-start;
-
-    &.selected {
-      border: 1px solid ${({ theme }) => theme.palette.primary.main};
+    &:last-child {
+      padding-left: 18px;
     }
   }
 
-  .MuiRadio-root {
+  .MuiDataGrid-cell {
     padding: 0;
-    padding-right: 8px;
   }
 `;
-
-const RadioStack = styled(Stack)`
-  .radio-addon {
-    color: rgba(56, 55, 67, 1);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 20px;
-  }
-
-  .radio-extra {
-    color: rgba(56, 55, 67, 0.6);
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 20px;
-    padding-left: 0;
-  }
-`;
-
-function Tag({ children }: { children: any }) {
-  return (
-    <Box
-      sx={{
-        borderRadius: '6px',
-        fontWeight: 500,
-        background: 'rgba(139,139,149,0.15)',
-        color: 'rgba(75,74,88,1)',
-        padding: '2px 8px',
-        fontSize: '12px',
-        height: '20px',
-        lineHeight: '16px',
-      }}>
-      {children}
-    </Box>
-  );
-}
-
-const Table = styled(DataGrid)``;
