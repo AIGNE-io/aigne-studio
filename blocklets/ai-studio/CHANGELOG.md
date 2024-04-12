@@ -1,3 +1,9 @@
+## 0.1.327 (2024-4-11)
+
+- fix: add parameter `n` for dataset search api
+- fix: skip hidden executing blocks
+- fix: combine the searched history and the last n history records
+
 ## 0.1.326 (2024-4-11)
 
 - feat: support setting max rounds limit

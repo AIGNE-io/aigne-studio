@@ -28,6 +28,11 @@ export interface CreateDiscussionItem {
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
 
+const searchQuerySchema = Joi.object<{ message?: string; n: number }>({
+  message: Joi.string().empty(['', null]),
+  n: Joi.number().empty(['', null]).min(1).default(4),
+});
+
 /**
  * @openapi
  * /api/datasets/{datasetId}/search:
@@ -59,6 +64,14 @@ export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionI
  *          schema:
  *            type: string
  *            default: ''
+ *        - name: n
+ *          in: query
+ *          description: How many records to return
+ *          x-description-zh: 返回多少条数据
+ *          required: false
+ *          schema:
+ *            type: number
+ *            default: 4
  *      responses:
  *        200:
  *          description: Successfully retrieved the paginated list of search results
@@ -66,22 +79,16 @@ export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionI
  */
 router.get('/:datasetId/search', async (req, res) => {
   const { datasetId } = req.params;
-  const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
-  const input = await datasetSchema.validateAsync(req.query, { stripUnknown: true });
+  const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
 
-  const dataset = await Dataset.findOne({ where: { id: datasetId } });
-  if (!dataset || !datasetId) {
-    logger.error(
-      'search vector info',
-      datasetId ? `dataset with ${datasetId} is not found` : 'datasetId can not be empty'
-    );
+  if (!input.message) {
     res.json({ docs: [] });
     return;
   }
 
-  const documents = await DatasetDocument.findAll({ where: { datasetId } });
-  if (!documents?.length) {
-    logger.error('search vector info', 'dataset documents is empty');
+  const dataset = await Dataset.findOne({ where: { id: datasetId } });
+  if (!dataset) {
+    logger.error(`dataset ${datasetId} not found`);
     res.json({ docs: [] });
     return;
   }
@@ -98,7 +105,7 @@ router.get('/:datasetId/search', async (req, res) => {
     //   return;
     // }
 
-    const docs = await store.similaritySearch(input.message, 4);
+    const docs = await store.similaritySearch(input.message, input.n);
     const result = docs.map((x) => {
       return {
         content: x?.pageContent,

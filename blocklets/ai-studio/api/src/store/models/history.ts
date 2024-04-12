@@ -37,7 +37,7 @@ export default class History extends Model<InferAttributes<History>, InferCreati
       respondAs?: ExecuteBlock['respondAs'];
       result?: Pick<NonNullable<History['result']>, 'content' | 'images'>;
     }[];
-  };
+  } | null;
 
   declare executingLogs?: {
     taskId: string;

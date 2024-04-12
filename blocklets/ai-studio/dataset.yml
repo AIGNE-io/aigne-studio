@@ -145,6 +145,14 @@
         schema:
           type: string
           default: ''
+      - name: n
+        in: query
+        description: How many records to return
+        x-description-zh: 返回多少条数据
+        required: false
+        schema:
+          type: number
+          default: 4
     responses:
       '200':
         description: Successfully retrieved the paginated list of search results
