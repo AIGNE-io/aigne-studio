@@ -1,11 +1,11 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ApiAssistantYjs, FunctionAssistantYjs, ImageAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Button, Stack, Typography } from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import { Box, Button, Stack, Typography } from '@mui/material';
 
 import { useReadOnly } from '../../contexts/session';
 import Add from '../../pages/project/icons/add';
-import TipsAndUpdatesRounded from '../../pages/project/icons/tips';
 import PrepareExecuteList from './prepare-execute-list';
 
 export default function Prepare({
@@ -37,7 +37,7 @@ export default function Prepare({
         py: 1.5,
       }}>
       <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
-        <TipsAndUpdatesRounded sx={{ color: '#7C3AED', fontSize: 15 }} />
+        <Box component={Icon} icon="tabler:bule" sx={{ color: '#7C3AED', fontSize: 15 }} />
         <Typography variant="subtitle2" sx={{ m: 0 }}>
           {t('prepareExecutes')}
         </Typography>

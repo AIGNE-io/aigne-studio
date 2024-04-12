@@ -6,6 +6,7 @@ import {
   PromptMessage,
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
 import {
   Box,
   Button,
@@ -28,7 +29,6 @@ import { useReadOnly } from '../../../contexts/session';
 import Add from '../../../pages/project/icons/add';
 import Eye from '../../../pages/project/icons/eye';
 import EyeNo from '../../../pages/project/icons/eye-no';
-import TipsAndUpdatesRounded from '../../../pages/project/icons/tips';
 import { usePromptsState } from '../../../pages/project/prompt-state';
 import { DragSortItemContainer, DragSortListYjs } from '../../drag-sort-list';
 import ExecuteBlockForm from '../execute-block';
@@ -67,7 +67,7 @@ export default function PromptPrompts({
         py: 1.5,
       }}>
       <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
-        <TipsAndUpdatesRounded sx={{ color: '#3B82F6', fontSize: 15 }} />
+        <Box component={Icon} icon="tabler:bule" sx={{ color: '#3B82F6', fontSize: 15 }} />
         <Typography variant="subtitle2" sx={{ m: 0 }}>
           {t('formatPrompt')}
         </Typography>

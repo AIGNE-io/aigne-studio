@@ -599,4 +599,7 @@ export default flat({
   none: 'None',
   respondAsMessage: 'Respond as a message',
   respondAsSystemMessage: 'Respond as a system message',
+  edit: 'Edit',
+  share: 'View',
+  refresh: 'Refresh',
 });

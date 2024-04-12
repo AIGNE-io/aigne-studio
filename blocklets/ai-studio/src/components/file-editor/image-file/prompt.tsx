@@ -1,10 +1,10 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
 import { Box, Stack, Typography } from '@mui/material';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
-import TipsAndUpdatesRounded from '../../../pages/project/icons/tips';
 import PromptEditorField from '../prompt-editor-field';
 
 export default function ImageFilePrompt({
@@ -37,7 +37,7 @@ export default function ImageFilePrompt({
         py: 1.5,
       }}>
       <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
-        <TipsAndUpdatesRounded sx={{ color: '#3B82F6', fontSize: 15 }} />
+        <Box component={Icon} icon="tabler:bule" sx={{ color: '#3B82F6', fontSize: 15 }} />
         <Typography variant="subtitle2" sx={{ m: 0 }}>
           {t('formatPrompt')}
         </Typography>

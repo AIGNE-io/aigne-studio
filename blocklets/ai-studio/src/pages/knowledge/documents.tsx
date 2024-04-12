@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import { Box, Button, CircularProgress, Stack, Tooltip, Typography, styled } from '@mui/material';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
@@ -47,6 +48,12 @@ export default function KnowledgeDocuments() {
               embeddings[value.documentId] = rest;
               break;
             }
+            case 'error': {
+              const { type, message, ...rest } = value;
+              embeddings[value.documentId] = rest;
+              Toast.error(message);
+              break;
+            }
             default:
               console.warn('Unsupported event', value);
           }
@@ -89,11 +96,31 @@ export default function KnowledgeDocuments() {
         flex: 1,
         sortable: false,
         renderCell: (params: any) => {
-          if (!['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
-            return <Box>{`${params.row.embeddingStatus}`}</Box>;
+          const colors: any = {
+            idle: '##D97706',
+            uploading: '#D97706',
+            success: '#059669',
+            error: '#E11D48',
+          };
+
+          if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
+            return (
+              <Box
+                borderRadius={20}
+                border="1px solid #E5E7EB"
+                p="4px 12px"
+                color="#030712"
+                fontSize={13}
+                display="flex"
+                alignItems="center"
+                gap={1}>
+                <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
+                {t(`embeddingStatus_${params.row.embeddingStatus}`)}
+              </Box>
+            );
           }
 
-          return <Box>{t(`embeddingStatus_${params.row.embeddingStatus}`)}</Box>;
+          return <Box>{`${params.row.embeddingStatus}`}</Box>;
         },
       },
       {
@@ -106,23 +133,16 @@ export default function KnowledgeDocuments() {
             id={params.row.id}
             type={params.row.type}
             datasetId={datasetId || ''}
+            error={params.row?.error}
             onRemove={remove}
             onRefetch={refetch}
             onEdit={() => {
               navigate(`edit?type=${params.row.type}&id=${params.row.id}`, { replace: true });
-              // setEditDocument(params.row);
-              // e.stopPropagation();
-              // if (params.row.type === 'text') {
-              //   form.setValue('name', params.row.name);
-              //   form.setValue('content', params.row.content);
-              //   customDialogState.open();
-              // } else {
-              //   navigate(`upload?type=${params.row.type}&id=${params.row.id}`, { replace: true });
-              // }
             }}
-            onEmbedding={(e) => {
+            onEmbedding={async (e) => {
               e.stopPropagation();
-              reloadEmbedding(params.row.datasetId, params.row.id);
+              await reloadEmbedding(params.row.datasetId, params.row.id);
+              Toast.success('success');
             }}
             onLink={() => {
               const id = params.row.data?.id;
@@ -243,6 +263,7 @@ export default function KnowledgeDocuments() {
 function Actions({
   type,
   id,
+  error,
   datasetId,
   onRefetch,
   onRemove,
@@ -252,6 +273,7 @@ function Actions({
 }: {
   type: string;
   id: string;
+  error?: string;
   datasetId: string;
   onRemove: (datasetId: string, documentId: string) => void;
   onRefetch: () => void;
@@ -266,7 +288,16 @@ function Actions({
     <>
       <Stack flexDirection="row">
         {['text', 'file'].includes(type) ? (
-          <Button onClick={onEdit}>{t('edit')}</Button>
+          <>
+            <Button onClick={onEdit}>{t('edit')}</Button>
+            {error ? (
+              <Button onClick={onEmbedding} color="error">
+                <Tooltip placement="top" arrow title={t('refreshTip')}>
+                  {t('refresh')}
+                </Tooltip>
+              </Button>
+            ) : null}
+          </>
         ) : (
           <>
             <Button onClick={onLink}>
@@ -336,7 +367,7 @@ const Table = styled(DataGrid)`
     padding: 0;
 
     &:last-child {
-      padding-left: 18px;
+      padding-left: 16px;
     }
   }
 

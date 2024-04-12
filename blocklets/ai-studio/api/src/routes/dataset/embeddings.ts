@@ -40,7 +40,11 @@ const embeddingsJob = async (job: EmbeddingQueue) => {
     if (!document.data) return;
 
     const handler = embeddingHandler[document.type];
-    if (!handler) return;
+    if (!handler) {
+      sse.send({ documentId, embeddingStatus: UploadStatus.Error, message: 'no handler to embedding' }, 'error');
+
+      return;
+    }
 
     const res = await document.update({ embeddingStatus: UploadStatus.Uploading, embeddingStartAt: new Date() });
     sse.send({ documentId, ...res.dataValues }, 'change');
@@ -69,6 +73,7 @@ const fullSiteItemJob = async (job: FullSiteQueue) => {
     await updateDiscussionEmbeddings(discussionId, document.datasetId, document.id);
   } catch (error) {
     logger.error(`embedding discussion ${discussionId} error`, { error });
+    sse.send({ documentId, embeddingStatus: UploadStatus.Error, message: 'embedding failed' }, 'error');
   }
 };
 
@@ -108,6 +113,7 @@ const CommentQueueJob = async (job: CommentQueue) => {
     logger.info('embedding comment discussion');
   } catch (error) {
     logger.error(`embedding discussion comment ${discussionId} error`, { error });
+    sse.send({ documentId, embeddingStatus: UploadStatus.Error, message: 'embedding failed' }, 'error');
   }
 };
 
@@ -195,6 +201,8 @@ const updateEmbeddingHistory = async ({
 
     return true;
   } catch (error) {
+    sse.send({ documentId, embeddingStatus: UploadStatus.Error, message: error?.message }, 'error');
+
     if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
       await EmbeddingHistories.update({ error: error.message, status: UploadStatus.Error }, { where: { ...ids } });
     } else {
@@ -305,7 +313,7 @@ const embeddingHandler: {
     sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
   },
   text: async (document: DatasetDocument, content?: DatasetContent | null) => {
-    await updateEmbeddingHistory({
+    const embed = await updateEmbeddingHistory({
       datasetId: document.datasetId,
       documentId: document.id,
       targetId: document.id,
@@ -316,11 +324,13 @@ const embeddingHandler: {
       },
     });
 
-    const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
-    sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
+    if (embed) {
+      const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
+      sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
+    }
   },
   file: async (document: DatasetDocument, content?: DatasetContent | null) => {
-    await updateEmbeddingHistory({
+    const embed = await updateEmbeddingHistory({
       datasetId: document.datasetId,
       documentId: document.id,
       targetId: document.id,
@@ -331,13 +341,16 @@ const embeddingHandler: {
       },
     });
 
-    const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
-    sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
+    if (embed) {
+      const result = await document.update({ embeddingStatus: UploadStatus.Success, embeddingEndAt: new Date() });
+      sse.send({ documentId: document.id, ...result.dataValues }, 'complete');
+    }
   },
   fullSite: async (document: DatasetDocument) => {
     const ids = await getDiscussionIds((document.data as any).types || []);
     const currentTotal = ids.length;
     let currentIndex = 0;
+    logger.info('fullsite ids', ids);
 
     for (const discussionId of ids) {
       currentIndex++;
@@ -357,8 +370,12 @@ export const getDiscussionIds = async (types: ('discussion' | 'blog' | 'doc')[] 
   const ids = [];
 
   for (const type of types) {
-    for await (const { id: discussionId } of discussionsIterator(type)) {
-      ids.push(discussionId);
+    try {
+      for await (const { id: discussionId } of discussionsIterator(type)) {
+        ids.push(discussionId);
+      }
+    } catch (error) {
+      logger.error(error?.message);
     }
   }
 

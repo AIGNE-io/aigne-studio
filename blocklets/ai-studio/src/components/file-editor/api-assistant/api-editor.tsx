@@ -2,12 +2,12 @@ import IndicatorTextField from '@app/components/awareness/indicator-text-field';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ApiAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { Icon, Icon } from '@iconify-icon/react';
 import { Box, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import Add from '../../../pages/project/icons/add';
-import TipsAndUpdatesRounded from '../../../pages/project/icons/tips';
 import Trash from '../../../pages/project/icons/trash';
 import PromptEditorField from '../prompt-editor-field';
 
@@ -40,7 +40,7 @@ export default function ApiEditor({
         py: 1.5,
       }}>
       <Stack direction="row" alignItems="center" gap={1}>
-        <TipsAndUpdatesRounded sx={{ color: '#3B82F6', fontSize: 15 }} />
+        <Box component={Icon} icon="tabler:bule" sx={{ color: '#3B82F6', fontSize: 15 }} />
         <Typography variant="subtitle2" sx={{ m: 0 }}>
           {t('api')}
         </Typography>

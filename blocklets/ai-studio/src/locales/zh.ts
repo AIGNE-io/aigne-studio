@@ -593,4 +593,7 @@ export default flat({
   none: '忽略',
   respondAsMessage: '作为消息返回',
   respondAsSystemMessage: '作为系统消息返回',
+  edit: '编辑',
+  share: '查看',
+  refresh: '刷新',
 });
