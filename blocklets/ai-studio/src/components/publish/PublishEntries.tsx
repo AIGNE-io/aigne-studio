@@ -29,6 +29,7 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
 
   const [currentId, setCurrentId] = useState<string>();
   const current = assistant.entries?.[currentId!]?.data;
+  const withCollectionManage = !!Object.values(assistant.parameters ?? {}).find((i) => i.data.key === 'datasetId');
 
   return (
     <Stack>
@@ -37,8 +38,9 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
           {t('entries')}
         </Typography>
 
-        <Box
-          sx={{ cursor: 'pointer', color: '#3B82F6' }}
+        <Button
+          disabled={withCollectionManage}
+          sx={{ cursor: 'pointer', color: '#3B82F6', minWidth: 32, minHeight: 32, p: 0 }}
           onClick={() => {
             const id = nanoid();
             doc.transact(() => {
@@ -49,10 +51,10 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
             setCurrentId(id);
           }}>
           <Add />
-        </Box>
+        </Button>
       </Box>
 
-      {assistant.entries && (
+      {!withCollectionManage && assistant.entries && (
         <DragSortListYjs
           list={assistant.entries}
           renderItem={(item, _, params) => (

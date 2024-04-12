@@ -345,7 +345,13 @@ const FileTree = forwardRef<
                 return (
                   <TreeItem
                     key={node.id}
-                    icon={<ChevronDown sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }} />}
+                    icon={
+                      <Box
+                        component={Icon}
+                        icon="tabler:chevron-down"
+                        sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }}
+                      />
+                    }
                     depth={depth}
                     onClick={onToggle}
                     edited={filepath === editingFolderPath}

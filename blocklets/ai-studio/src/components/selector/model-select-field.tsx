@@ -32,6 +32,7 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
       {...props}
       select
       SelectProps={{
+        ...props.SelectProps,
         renderValue: (m) => {
           const model = value?.find((i) => i.model === m);
           if (!model) return null;
