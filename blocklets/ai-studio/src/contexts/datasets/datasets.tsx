@@ -9,6 +9,7 @@ import {
   deleteDataset,
   getDatasets,
   getDocuments,
+  updateDataset,
   updateTextDocument,
 } from '../../libs/dataset';
 
@@ -19,6 +20,7 @@ export interface DatasetsContext {
   refetch: (projectId?: string) => Promise<void>;
   createDataset: any;
   deleteDataset: any;
+  updateDataset: (projectId: string, datasetId: string, data: { name: string; description: string }) => Promise<void>;
   createTextDocument: typeof createTextDocument;
   updateTextDocument: typeof updateTextDocument;
   getDocuments: typeof getDocuments;
@@ -61,6 +63,10 @@ export function DatasetsProvider({ children }: { children: ReactNode }) {
       const dataset = await createDataset(input);
       await value.current.refetch(projectId);
       return dataset;
+    },
+    updateDataset: async (projectId: string, datasetId: string, input: { name: string; description: string }) => {
+      await updateDataset(datasetId, input);
+      await value.current.refetch(projectId);
     },
     deleteDataset: async (projectId: string, datasetId: string) => {
       await deleteDataset(datasetId);

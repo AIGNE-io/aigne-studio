@@ -15,6 +15,7 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
+import { Icon } from '@iconify-icon/react';
 import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
 import {
   Accordion,
@@ -53,7 +54,6 @@ import { joinURL } from 'ufo';
 import Dataset from '../../../api/src/store/models/dataset/dataset';
 import { getAPIList, getDatasets } from '../../libs/dataset';
 import Add from '../../pages/project/icons/add';
-import External from '../../pages/project/icons/external';
 import InfoOutlined from '../../pages/project/icons/question';
 import Trash from '../../pages/project/icons/trash';
 import { PROMPTS_FOLDER_NAME, useCreateFile, useProjectStore } from '../../pages/project/yjs-state';
@@ -696,7 +696,7 @@ function ToolItemView({
               e.stopPropagation();
               navigate(joinURL('.', `${file.id}.yaml`));
             }}>
-            <External sx={{ fontSize: 18 }} />
+            <Box component={Icon} icon="tabler:external-link" sx={{ fontSize: 18 }} />
           </Button>
         )}
       </Stack>

@@ -46,7 +46,6 @@ import { useReadOnly, useSessionContext } from '../../../contexts/session';
 import { getErrorMessage } from '../../../libs/api';
 import { ProjectWithUserInfo, User, createProject, getProjectIconUrl } from '../../../libs/project';
 import useDialog from '../../../utils/use-dialog';
-import ChevronDown from '../icons/chevron-down';
 import DidSpacesLogo from '../icons/did-spaces';
 import Pin from '../icons/pin';
 import ImportFromBlank from './import-from-blank';
@@ -428,7 +427,9 @@ function Section({
 
           {enableCollapse && (
             <IconButton size="small" sx={{ m: 0, p: 0 }}>
-              <ChevronDown
+              <Box
+                component={Icon}
+                icon="tabler:chevron-down"
                 sx={{
                   transform: `rotateZ(${templatesVisible ? '-180deg' : '0deg'})`,
                   transition: (theme) => theme.transitions.create('all'),

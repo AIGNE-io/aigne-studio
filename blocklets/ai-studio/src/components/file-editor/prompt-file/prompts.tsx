@@ -27,8 +27,6 @@ import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
 import Add from '../../../pages/project/icons/add';
-import Eye from '../../../pages/project/icons/eye';
-import EyeNo from '../../../pages/project/icons/eye-no';
 import { usePromptsState } from '../../../pages/project/prompt-state';
 import { DragSortItemContainer, DragSortListYjs } from '../../drag-sort-list';
 import ExecuteBlockForm from '../execute-block';
@@ -118,18 +116,13 @@ export default function PromptPrompts({
                       title={hidden ? t('activeMessageTip') : t('hideMessageTip')}
                       disableInteractive
                       placement="top">
-                      <Button
-                        sx={{
-                          color: 'grey.500',
-                          bgcolor: hidden ? 'action.selected' : undefined,
-                        }}
-                        onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')}>
+                      <Box onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')}>
                         {prompt.visibility === 'hidden' ? (
-                          <EyeNo sx={{ fontSize: '1.25rem' }} />
+                          <Box component={Icon} icon="tabler:eye-off" sx={{ color: 'grey.500' }} />
                         ) : (
-                          <Eye sx={{ fontSize: '1.25rem' }} />
+                          <Box component={Icon} icon="tabler:eye" sx={{ color: 'grey.500' }} />
                         )}
-                      </Button>
+                      </Box>
                     </Tooltip>
                   }
                   onDelete={() => {

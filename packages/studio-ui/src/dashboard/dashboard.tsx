@@ -22,6 +22,7 @@ export interface DashboardProps extends StackProps {
     description?: ReactNode;
     brandAddon?: ReactNode;
     addons?: ReactNode | ((builtin: ReactNode[]) => ReactNode[] | ReactNode);
+    homeLink?: string;
   };
   MenusDrawerProps?: DrawerProps;
   menus?: ReactElement<{ collapsed?: boolean; onClick?: () => void }> | null;

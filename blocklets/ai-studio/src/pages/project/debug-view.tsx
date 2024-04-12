@@ -44,7 +44,6 @@ import { Controller, useForm } from 'react-hook-form';
 import { Virtuoso } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
-import ChevronDown from './icons/chevron-down';
 import Empty from './icons/empty';
 import Record from './icons/record';
 import SegmentedControl from './segmented-control';
@@ -684,7 +683,9 @@ function DebugModeForm({
               </Typography>
 
               {parameters.length > 1 && (
-                <ChevronDown
+                <Box
+                  component={Icon}
+                  icon="tabler:chevron-down"
                   sx={{
                     fontSize: 20,
                     transform: `rotateZ(${expanded ? '0' : '-180deg'})`,

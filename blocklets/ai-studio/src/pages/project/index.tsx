@@ -7,6 +7,7 @@ import { Suspense, lazy, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Navigate, Outlet, Route, Routes, useLocation, useRoutes } from 'react-router-dom';
+import { joinURL } from 'ufo';
 
 import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
@@ -37,6 +38,7 @@ export default function ProjectRoutes() {
           HeaderProps={{
             logo: <ProjectLogo />,
             addons: (exists) => [<SubscribeButton />, <AddonsRoutes />, ...exists],
+            homeLink: joinURL(blocklet?.prefix || '', 'projects'),
           }}
           MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
           sx={{
