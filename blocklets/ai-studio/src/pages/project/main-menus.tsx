@@ -25,7 +25,6 @@ export default function MainMenus({ ...props }: Omit<MenusProps, 'menus'>) {
       menus.push({ icon: <Settings />, title: t('setting'), url: 'settings' });
     }
 
-
     return menus;
   }, [projectId, t]);
 
