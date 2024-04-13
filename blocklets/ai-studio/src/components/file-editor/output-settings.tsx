@@ -20,7 +20,7 @@ export default function OutputSettings({
   return (
     <Box>
       <Stack direction="row" alignItems="center" gap={1}>
-        <Typography variant="subtitle1">{t('formatResult')}</Typography>
+        <Typography variant="subtitle2">{t('formatResult')}</Typography>
 
         <IndicatorTextField
           projectId={projectId}

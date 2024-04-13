@@ -127,6 +127,7 @@ export async function watchDatasetEmbeddings({
     | { type: 'change'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
     | { type: 'complete'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
     | { type: 'event'; documentId: string }
+    | { type: 'error'; documentId: string; embeddingStatus: string; message: string }
   >({
     async start(controller) {
       await fetchEventSource(`${prefix}/api/datasets/${datasetId}/embeddings`, {

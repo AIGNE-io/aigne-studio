@@ -2,6 +2,7 @@ import DragVertical from '@app/pages/project/icons/drag-vertical';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { Icon } from '@iconify-icon/react';
 import { InfoOutlined } from '@mui/icons-material';
 import {
   Box,
@@ -33,9 +34,6 @@ import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/
 import { useMemo, useState } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
-import Add from '../../pages/project/icons/add';
-import Settings from '../../pages/project/icons/settings';
-import Trash from '../../pages/project/icons/trash';
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
@@ -46,11 +44,17 @@ function CustomNoRowsOverlay() {
   const { t } = useLocaleContext();
 
   return (
-    <Box width={1} height={1} display="flex" justifyContent="center" alignItems="center">
-      <Typography variant="caption" color="text.disabled">
-        {t('noVariables')}
+    <Stack width={1} textAlign="center">
+      <Box lineHeight="28px">🔢</Box>
+
+      <Typography variant="caption" color="#030712" fontSize={13} lineHeight="22px" fontWeight={500}>
+        {t('emptyVariablesTitle')}
       </Typography>
-    </Box>
+
+      <Typography variant="caption" color="#9CA3AF" fontSize={12} lineHeight="20px" fontWeight={500}>
+        {t('emptyVariablesSubtitle')}
+      </Typography>
+    </Stack>
   );
 }
 
@@ -132,7 +136,7 @@ export default function ParametersTable({
             <Input
               fullWidth
               readOnly={readOnly}
-              placeholder={parameter?.key === 'datasetId' ? t('knowledge.parameter') : parameter.key}
+              placeholder={parameter?.key === 'datasetId' ? t('knowledge.parameter') : parameter.key || t('label')}
               value={parameter.label || ''}
               onChange={(e) => (parameter.label = e.target.value)}
             />
@@ -170,9 +174,7 @@ export default function ParametersTable({
       {
         field: 'type',
         headerName: t('type'),
-        headerAlign: 'center',
-        align: 'center',
-        width: 120,
+        width: 100,
         renderCell: ({ row: { data: parameter } }) => {
           const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
           return (
@@ -185,7 +187,6 @@ export default function ParametersTable({
                 variant="standard"
                 hiddenLabel
                 SelectProps={{ autoWidth: true }}
-                sx={{ ml: 2 }}
                 value={multiline ? 'multiline' : parameter?.type ?? 'string'}
                 InputProps={{ readOnly }}
                 onChange={(e) => {
@@ -210,9 +211,9 @@ export default function ParametersTable({
       {
         field: 'actions',
         headerName: t('actions'),
+        width: 70,
         headerAlign: 'center',
-        align: 'center',
-        width: 100,
+        align: 'right',
       },
     ];
   }, [t, readOnly, doc, deleteParameter]);
@@ -231,13 +232,13 @@ export default function ParametersTable({
   return (
     <>
       <Box>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-          <Typography variant="subtitle1">{t('parameters')}</Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
+          <Typography variant="subtitle2">{t('parameters')}</Typography>
 
           {!readOnly && (
-            <Stack direction="row" gap={1}>
+            <Stack direction="row">
               <Button sx={{ minWidth: 32, p: 0, minHeight: 32 }} {...bindTrigger(settingPopperState)}>
-                <Settings fontSize="small" />
+                <Box fontSize={16} component={Icon} icon="tabler:settings-2" />
               </Button>
 
               <Popper {...bindPopper(settingPopperState)} placement="bottom-end">
@@ -287,7 +288,7 @@ export default function ParametersTable({
                     document.getElementById(`${id}-key`)?.focus();
                   });
                 }}>
-                <Add />
+                <Box fontSize={16} component={Icon} icon="tabler:plus" />
               </Button>
             </Stack>
           )}
@@ -296,11 +297,9 @@ export default function ParametersTable({
         {parameters.length ? (
           <Box
             sx={{
-              border: (theme) => `1px solid ${theme.palette.divider}`,
-              borderRadius: 1,
+              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
               whiteSpace: 'nowrap',
               maxWidth: '100%',
-              overflow: 'auto',
               table: {
                 td: { py: 0 },
                 'tbody tr:last-of-type td': {
@@ -312,7 +311,11 @@ export default function ParametersTable({
               <TableHead>
                 <TableRow>
                   {columns.map((column) => (
-                    <TableCell key={column.field} align={column.headerAlign} width={column.width}>
+                    <TableCell
+                      key={column.field}
+                      align={column.headerAlign}
+                      width={column.width}
+                      sx={{ px: 0, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
                       {column.field === 'placeholder' ? (
                         <Box display="flex" alignItems="center">
                           {t('form.parameter.placeholder')}
@@ -338,7 +341,6 @@ export default function ParametersTable({
                       key={parameter.id}
                       ref={(ref) => {
                         params.drop(ref);
-                        // params.drag(ref);
                         params.preview(ref);
                       }}
                       sx={{
@@ -347,40 +349,57 @@ export default function ParametersTable({
                             ? (theme) => alpha(theme.palette.warning.light, theme.palette.action.focusOpacity)
                             : 'transparent',
                         transition: 'all 2s',
+                        '.hover-visible': {
+                          display: 'none',
+                        },
+                        ':hover': {
+                          '.hover-visible': {
+                            display: 'flex',
+                          },
+                        },
                       }}>
-                      {columns.map(
-                        (column, index) =>
+                      {columns.map((column, index) => {
+                        return (
                           index !== columns.length - 1 && (
                             <TableCell
                               key={column.field}
                               align={column.align}
                               sx={{
+                                position: 'relative',
+                                px: 0,
                                 ...getDiffBackground('parameters', parameter.id),
                               }}>
+                              {index === 0 && (
+                                <Stack
+                                  className="hover-visible"
+                                  ref={params.drag}
+                                  alignItems="center"
+                                  sx={{ p: 0.5, cursor: 'move', position: 'absolute', left: -24, top: 0, bottom: 0 }}>
+                                  <DragVertical sx={{ color: '#9CA3AF', fontSize: 22 }} />
+                                </Stack>
+                              )}
+
                               {column.renderCell?.({ row: { data: parameter } } as any) || get(parameter, column.field)}
                             </TableCell>
                           )
+                        );
+                      })}
+
+                      {!readOnly && (
+                        <TableCell sx={{ px: 0 }} align="right">
+                          <Button
+                            sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
+                            onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
+                            <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('setting')}</Box>
+                          </Button>
+
+                          <Button
+                            sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
+                            onClick={() => deleteParameter(parameter)}>
+                            <Box sx={{ color: '#E11D48', fontSize: 13 }}>{t('delete')}</Box>
+                          </Button>
+                        </TableCell>
                       )}
-
-                      <TableCell sx={{ pr: 0.5 }}>
-                        <Button
-                          disabled={readOnly}
-                          sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
-                          onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
-                          <Settings fontSize="small" sx={{ color: 'text.secondary' }} />
-                        </Button>
-
-                        <Button
-                          disabled={readOnly}
-                          sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }}
-                          onClick={() => deleteParameter(parameter)}>
-                          <Trash sx={{ color: 'text.secondary', opacity: 0.9, fontSize: 18 }} />
-                        </Button>
-
-                        <Button disabled={readOnly} sx={{ minWidth: 0, p: 0.5, borderRadius: 100 }} ref={params.drag}>
-                          <DragVertical sx={{ color: 'text.secondary', fontSize: 22 }} />
-                        </Button>
-                      </TableCell>
                     </TableRow>
                   );
                 }}

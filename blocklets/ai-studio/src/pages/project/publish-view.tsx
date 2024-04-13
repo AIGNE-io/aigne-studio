@@ -12,30 +12,32 @@ import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import styled from '@emotion/styled';
+import { Icon } from '@iconify-icon/react';
 import { LaunchRounded } from '@mui/icons-material';
-import UploadIcon from '@mui/icons-material/Upload';
 import {
   Box,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   FormLabel,
   IconButton,
   InputAdornment,
-  InputBase,
   Link,
   Radio,
   RadioGroup,
   Stack,
-  Switch,
   TextField,
   Typography,
 } from '@mui/material';
-import { alpha, styled as muiStyled } from '@mui/material/styles';
-import { useMemo } from 'react';
+import { styled as muiStyled } from '@mui/material/styles';
+import { Suspense, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import QRCode from 'react-qr-code';
 import { joinURL, withQuery } from 'ufo';
 
+import BaseInput from '../../components/custom/input';
+import Switch from '../../components/custom/switch';
+import UploadIcon from './icons/publish-upload';
 import { saveButtonState, useProjectState } from './state';
 
 const TemplateImage = styled('img')({
@@ -52,37 +54,6 @@ const StyledFormControlLabel = muiStyled(FormControlLabel)({
   },
 });
 
-const BaseInput = muiStyled(InputBase)(({ theme }) => ({
-  '& .MuiInputBase-input': {
-    borderRadius: 6,
-    padding: '4px 12px',
-    backgroundColor: theme.palette.mode === 'light' ? '#F3F6F9' : '#1A2027',
-    border: '1px solid',
-    borderColor: theme.palette.mode === 'light' ? '#E0E3E7' : '#2D3843',
-    transition: theme.transitions.create(['border-color', 'background-color', 'box-shadow']),
-    '&:focus': {
-      boxShadow: `${alpha(theme.palette.primary.main, 0.25)} 0 0 0 0.2rem`,
-      borderColor: theme.palette.primary.main,
-    },
-  },
-}));
-
-const ImageContainer = muiStyled(Box)(() => ({
-  width: '100%',
-  paddingBottom: '100%',
-  position: 'relative',
-  borderRadius: 8,
-  '.upload-button': {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    cursor: 'pointer',
-  },
-}));
-
 export default function PublishView({
   projectId,
   projectRef,
@@ -93,14 +64,16 @@ export default function PublishView({
   assistant: AssistantYjs;
 }) {
   return (
-    <ComponentInstaller
-      did={[
-        'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
-        'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
-        'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
-      ]}>
-      <PublishViewContent projectId={projectId} projectRef={projectRef} assistant={assistant} />
-    </ComponentInstaller>
+    <Suspense fallback={<CircularProgress />}>
+      <ComponentInstaller
+        did={[
+          'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
+          'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
+          'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
+        ]}>
+        <PublishViewContent projectId={projectId} projectRef={projectRef} assistant={assistant} />
+      </ComponentInstaller>
+    </Suspense>
   );
 }
 
@@ -148,7 +121,7 @@ function PublishViewContent({
       const paymentEnabled = assistant.release?.payment?.enable;
       const paymentUnitAmount = assistant.release?.payment?.price;
 
-      if (!(await saveButtonState.getState().save?.())?.saved) return;
+      if (!(await saveButtonState.getState().save?.({ skipConfirm: true }))?.saved) return;
 
       if (!release) {
         await createRelease({
@@ -169,17 +142,18 @@ function PublishViewContent({
         Toast.success(t('publish.updateSuccess'));
       }
     } catch (error) {
+      console.error('failed to publish', { error });
       Toast.error(getErrorMessage(error));
-      throw error;
     }
   };
 
   return (
     <Stack px={2} mt={1} py={1} gap={2} ml={1} overflow="auto" component="form" onSubmit={form.handleSubmit(onSubmit)}>
       <FormControl>
-        <Typography variant="subtitle2" mb={1}>
+        <Typography variant="subtitle2" mb={0.5}>
           {t('templates')}
         </Typography>
+
         <RadioGroup
           row
           sx={{ rowGap: 1 }}
@@ -212,16 +186,10 @@ function PublishViewContent({
         </RadioGroup>
       </FormControl>
 
-      <Stack>
-        <Typography variant="subtitle2" mb={1}>
-          {t('entries')}
-        </Typography>
-
-        <PublishEntries assistant={assistant} />
-      </Stack>
+      <PublishEntries assistant={assistant} />
 
       <FormControl>
-        <Typography mb={1} variant="subtitle2">
+        <Typography mb={0.5} variant="subtitle2">
           {t('publish.title')}
         </Typography>
         <BaseInput
@@ -232,7 +200,7 @@ function PublishViewContent({
       </FormControl>
 
       <FormControl>
-        <Typography mb={1} variant="subtitle2">
+        <Typography mb={0.5} variant="subtitle2">
           {t('publish.description')}
         </Typography>
         <BaseInput
@@ -246,7 +214,7 @@ function PublishViewContent({
       </FormControl>
 
       <FormControl>
-        <Typography mb={1} variant="subtitle2">
+        <Typography mb={0.5} variant="subtitle2">
           {t('publish.conversionOpener')}
         </Typography>
         <BaseInput
@@ -260,12 +228,12 @@ function PublishViewContent({
       </FormControl>
 
       <Box>
-        <Typography mb={1} variant="subtitle2">
+        <Typography mb={0.5} variant="subtitle2">
           {t('publish.logo')}
         </Typography>
 
-        <Box mb={0.5} width="40%" maxWidth={120}>
-          <ImageContainer
+        <Box mb={0.5}>
+          <Box
             onClick={() => {
               // @ts-ignore
               const uploader = uploaderRef?.current?.getUploader();
@@ -279,17 +247,25 @@ function PublishViewContent({
               });
             }}>
             {assistant.release?.logo ? (
-              <img className="upload-button" src={assistant.release.logo} alt="" />
+              <Box
+                component="img"
+                src={assistant.release.logo}
+                alt=""
+                sx={{ width: 100, height: 100, borderRadius: 1, cursor: 'pointer' }}
+              />
             ) : (
-              <IconButton
-                className="upload-button"
-                key="uploader-trigger"
-                size="small"
-                sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)' }}>
-                <UploadIcon />
-              </IconButton>
+              <Box width={1} display="flex" gap={1.5}>
+                <IconButton
+                  key="uploader-trigger"
+                  size="small"
+                  sx={{ borderRadius: 1, bgcolor: 'rgba(0, 0, 0, 0.06)', width: 100, height: 100 }}>
+                  <UploadIcon sx={{ fontSize: 100 }} />
+                </IconButton>
+
+                <Typography variant="subtitle3">Supported file formats include PNG, JPG, and SVG.</Typography>
+              </Box>
             )}
-          </ImageContainer>
+          </Box>
         </Box>
       </Box>
 
@@ -353,49 +329,48 @@ function PublishViewContent({
         </Box>
       </Stack>
 
-      <Box>
-        <Typography mb={1} variant="subtitle2">
-          {t('publish.payment')}
-        </Typography>
+      <Stack>
+        <Stack direction="row" gap={1} alignItems="center" className="between">
+          <Typography mb={0.5} variant="subtitle2">
+            {t('publish.payment')}
+          </Typography>
 
-        <Stack gap={1}>
-          <Stack direction="row" gap={1} alignItems="center">
-            <FormLabel sx={{ width: 60 }}>{t('publish.enabled')}</FormLabel>
-            <FormControl>
-              <Switch
-                checked={assistant.release?.payment?.enable || false}
-                onChange={(_, checked) =>
-                  setRelease((release) => {
-                    release.payment ??= {};
-                    release.payment.enable = checked;
-                  })
-                }
-              />
-            </FormControl>
-          </Stack>
-
-          {assistant.release?.payment?.enable && (
-            <Stack direction="row" gap={1} alignItems="center">
-              <FormLabel sx={{ width: 60 }}>{t('publish.price')}</FormLabel>
-              <TextField
-                hiddenLabel
-                InputProps={{ endAdornment: <InputAdornment position="end">ABT / {t('publish.time')}</InputAdornment> }}
-                value={assistant.release.payment.price ?? ''}
-                onChange={(e) =>
-                  setRelease((release) => {
-                    release.payment ??= {};
-                    release.payment.price = e.target.value;
-                  })
-                }
-              />
-            </Stack>
-          )}
+          <FormControl>
+            <Switch
+              checked={assistant.release?.payment?.enable || false}
+              onChange={(_, checked) =>
+                setRelease((release) => {
+                  release.payment ??= {};
+                  release.payment.enable = checked;
+                })
+              }
+            />
+          </FormControl>
         </Stack>
-      </Box>
+
+        {assistant.release?.payment?.enable && (
+          <Stack direction="row" gap={1} alignItems="center" className="between">
+            <FormLabel sx={{ width: 60 }}>{t('publish.price')}</FormLabel>
+            <TextField
+              hiddenLabel
+              InputProps={{ endAdornment: <InputAdornment position="end">ABT / {t('publish.time')}</InputAdornment> }}
+              value={assistant.release.payment.price ?? ''}
+              onChange={(e) =>
+                setRelease((release) => {
+                  release.payment ??= {};
+                  release.payment.price = e.target.value;
+                })
+              }
+            />
+          </Stack>
+        )}
+      </Stack>
 
       {release && releaseUrl && (
         <Stack gap={1}>
-          <Typography variant="subtitle2">{t('publish.link')}</Typography>
+          <Typography mb={0.5} variant="subtitle2">
+            {t('publish.link')}
+          </Typography>
 
           <Link href={releaseUrl} target="_blank" sx={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
             <Typography component="span" sx={{ textOverflow: 'ellipsis', overflow: 'hidden', flexShrink: 1 }}>
@@ -417,9 +392,13 @@ function PublishViewContent({
         </Stack>
       )}
 
-      <Stack direction="row" gap={2} alignItems="center" sx={{ mt: 3 }}>
-        <LoadingButton type="submit" loading={form.formState.isSubmitting} variant="contained">
-          {release ? t('publish.update') : t('publish.publishProject')}
+      <Stack direction="row" gap={2} alignItems="center">
+        <LoadingButton
+          type="submit"
+          loading={form.formState.isSubmitting}
+          variant="contained"
+          startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}>
+          {release ? t('publish.republishProject') : t('publish.publishProject')}
         </LoadingButton>
       </Stack>
     </Stack>

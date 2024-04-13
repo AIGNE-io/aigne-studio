@@ -129,6 +129,7 @@
     "react-qr-code": "^2.0.12",
     "react-resizable-panels": "^0.0.55",
     "react-router-dom": "^6.22.3",
+    "react-transition-group": "^4.4.5",
     "react-use": "^17.5.0",
     "react-virtuoso": "^4.7.8",
     "recoil": "^0.7.7",

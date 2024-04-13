@@ -1,14 +1,13 @@
-import UploaderProvider from '@app/contexts/uploader';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   isApiAssistant,
-  isAssistant,
   isFunctionAssistant,
   isImageAssistant,
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
 import {
   Alert,
   Box,
@@ -49,23 +48,10 @@ import ColumnsLayout, { ImperativeColumnsLayout } from './columns-layout';
 import DebugView from './debug-view';
 import DiscussView from './discuss-view';
 import FileTree, { ImperativeFileTree } from './file-tree';
-import Add from './icons/add';
-import Code from './icons/code';
 import DeveloperTools from './icons/developer-tools';
 import Empty from './icons/empty';
-import File from './icons/file';
-import FolderAdd from './icons/folder-add';
-import Import from './icons/import';
-import LinkIcon from './icons/link';
-import PanelLeft from './icons/panel-left';
-import PanelRight from './icons/panel-right';
-import Picture from './icons/picture';
-import Play from './icons/play';
-import PublishView from './publish-view';
 import { useProjectState } from './state';
 import TestView from './test-view';
-import { TokenUsage } from './token-usage';
-import UndoAndRedo from './undo';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 const PREVIOUS_FILE_PATH = (projectId: string) => `ai-studio.previousFilePath.${projectId}`;
@@ -169,16 +155,24 @@ export default function ProjectPage() {
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
             }}>
-            <Toolbar variant="dense" sx={{ px: { xs: 1 }, overflow: 'hidden' }}>
+            <Toolbar variant="dense" sx={{ px: { xs: 2, gap: 1.5 }, overflow: 'hidden', minHeight: 36 }}>
               <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
 
               <Box flex={1} />
 
               {project?.homePageUrl && (
                 <Button sx={{ minWidth: 0 }} color="secondary" onClick={() => window.open(project.homePageUrl)}>
-                  <Play />
+                  <Box component={Icon} icon="tabler:player-play" fontSize={20} color="#3B82F6" />
                 </Button>
               )}
+
+              <Tooltip title={t('import.title')} disableInteractive>
+                <span>
+                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
+                    <Box component={Icon} icon="tabler:table-import" fontSize={20} color="#3B82F6" />
+                  </Button>
+                </span>
+              </Tooltip>
 
               <Tooltip title={t('newObject', { object: t('folder') })} disableInteractive>
                 <span>
@@ -189,7 +183,7 @@ export default function ProjectPage() {
                       const dir = dirname(filepath);
                       fileTree.current?.newFolder({ parent: dir.length ? dir : [PROMPTS_FOLDER_NAME] });
                     }}>
-                    <FolderAdd />
+                    <Box component={Icon} icon="tabler:folder-plus" fontSize={20} color="#3B82F6" />
                   </Button>
                 </span>
               </Tooltip>
@@ -197,7 +191,7 @@ export default function ProjectPage() {
               <Tooltip title={t('newObject', { object: t('file') })} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} {...bindTrigger(createFileMenuState)}>
-                    <Add />
+                    <Box component={Icon} icon="tabler:plus" fontSize={20} color="#3B82F6" />
                   </Button>
                 </span>
               </Tooltip>
@@ -208,7 +202,13 @@ export default function ProjectPage() {
                 placement="bottom-start">
                 <ClickAwayListener onClickAway={createFileMenuState.close}>
                   <Paper elevation={2} onClick={createFileMenuState.close}>
-                    <List>
+                    <List
+                      sx={{
+                        '.MuiListItemIcon-root': {
+                          minWidth: 0,
+                          mr: 1,
+                        },
+                      }}>
                       <MenuItem
                         onClick={() => {
                           const dir = dirname(filepath);
@@ -219,7 +219,7 @@ export default function ProjectPage() {
                           });
                         }}>
                         <ListItemIcon>
-                          <File />
+                          <Box component={Icon} icon="tabler:file-description" />
                         </ListItemIcon>
                         <ListItemText primary={t('prompt')} />
                       </MenuItem>
@@ -233,7 +233,7 @@ export default function ProjectPage() {
                           });
                         }}>
                         <ListItemIcon>
-                          <Picture />
+                          <Box component={Icon} icon="tabler:photo" />
                         </ListItemIcon>
                         <ListItemText primary={t('image')} />
                       </MenuItem>
@@ -246,7 +246,7 @@ export default function ProjectPage() {
                           })
                         }>
                         <ListItemIcon>
-                          <LinkIcon />
+                          <Box component={Icon} icon="tabler:link" />
                         </ListItemIcon>
                         <ListItemText primary={t('api')} />
                       </MenuItem>
@@ -259,7 +259,7 @@ export default function ProjectPage() {
                           })
                         }>
                         <ListItemIcon>
-                          <Code />
+                          <Box component={Icon} icon="tabler:code" />
                         </ListItemIcon>
                         <ListItemText primary={t('function')} />
                       </MenuItem>
@@ -267,14 +267,6 @@ export default function ProjectPage() {
                   </Paper>
                 </ClickAwayListener>
               </Popper>
-
-              <Tooltip title={t('import.title')} disableInteractive>
-                <span>
-                  <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
-                    <Import />
-                  </Button>
-                </span>
-              </Tooltip>
             </Toolbar>
           </Box>
 
@@ -295,8 +287,29 @@ export default function ProjectPage() {
             sx={{
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
+              borderBottom: '1px solid #E5E7EB',
             }}>
-            <Toolbar variant="dense" sx={{ gap: 1, px: { xs: 1 } }}>
+            <Box
+              className="between"
+              sx={{
+                px: 2.5,
+                '.MuiTab-root': {
+                  py: 1.5,
+                  lineHeight: '24px',
+                  fontWeight: 500,
+                  fontSize: 14,
+
+                  '&.Mui-selected': {
+                    color: '#3B82F6',
+                  },
+                },
+
+                '.MuiTabs-indicator': {
+                  span: {
+                    background: '#3B82F6 !important',
+                  },
+                },
+              }}>
               <Tabs
                 variant="scrollable"
                 scrollButtons={false}
@@ -304,7 +317,7 @@ export default function ProjectPage() {
                 onChange={(_, tab) => setCurrentTab(tab)}
                 TabIndicatorProps={{ children: <Box component="span" /> }}
                 sx={{
-                  ml: 1,
+                  ml: -1,
                   minHeight: 32,
                   [`.${tabClasses.root}`]: {
                     py: 1,
@@ -326,14 +339,13 @@ export default function ProjectPage() {
                 }}>
                 <Tab value="debug" label={t('debug')} />
                 <Tab value="test" label={t('test')} />
-                <Tab value="publish" label={t('publish.publishProject')} />
                 <Tab value="discuss" label={t('discuss')} />
               </Tabs>
 
               <Box flex={1} />
 
               <PanelToggleButton placement="right" collapsed={false} onClick={() => layout.current?.collapseRight()} />
-            </Toolbar>
+            </Box>
           </Box>
 
           <Suspense>
@@ -343,10 +355,6 @@ export default function ProjectPage() {
               <DebugView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
             ) : currentTab === 'test' ? (
               <TestView projectId={projectId} gitRef={gitRef} assistant={file} setCurrentTab={setCurrentTab} />
-            ) : currentTab === 'publish' ? (
-              <UploaderProvider>
-                <PublishView key={file.id} projectId={projectId} projectRef={gitRef} assistant={file} />
-              </UploaderProvider>
             ) : currentTab === 'discuss' ? (
               <DiscussView projectId={projectId} gitRef={gitRef} assistant={file} />
             ) : null}
@@ -362,30 +370,30 @@ export default function ProjectPage() {
               bgcolor: 'background.paper',
               zIndex: (theme) => theme.zIndex.appBar,
             }}>
-            <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
-              {!leftOpen && (
-                <PanelToggleButton
-                  placement="left"
-                  collapsed
-                  onClick={() => (leftOpen ? layout.current?.collapseLeft() : layout.current?.expandLeft())}
-                />
-              )}
+            {(!leftOpen || !rightOpen) && (
+              <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
+                {!leftOpen && (
+                  <PanelToggleButton
+                    placement="left"
+                    collapsed
+                    onClick={() => (leftOpen ? layout.current?.collapseLeft() : layout.current?.expandLeft())}
+                  />
+                )}
 
-              <Box flex={1} />
+                <Box flex={1} />
 
-              {file && <UndoAndRedo projectId={projectId} gitRef={gitRef} id={fileId} />}
-
-              {!rightOpen && (
-                <PanelToggleButton
-                  placement="right"
-                  collapsed
-                  onClick={() => (rightOpen ? layout.current?.collapseRight() : layout.current?.expandRight())}
-                />
-              )}
-            </Toolbar>
+                {!rightOpen && (
+                  <PanelToggleButton
+                    placement="right"
+                    collapsed
+                    onClick={() => (rightOpen ? layout.current?.collapseRight() : layout.current?.expandRight())}
+                  />
+                )}
+              </Toolbar>
+            )}
           </Box>
 
-          <Box mx={{ xs: 2 }} flexGrow={1}>
+          <Box flexGrow={1}>
             {!synced ? (
               <Box sx={{ textAlign: 'center', mt: 10 }}>
                 <CircularProgress size={32} />
@@ -410,24 +418,6 @@ export default function ProjectPage() {
               <EmptyView />
             )}
           </Box>
-
-          {file && (
-            <Box
-              sx={{
-                position: 'sticky',
-                bottom: 0,
-                bgcolor: 'background.paper',
-                zIndex: (theme) => theme.zIndex.appBar,
-                borderTop: (theme) => `1px solid ${theme.palette.grey[50]}`,
-              }}>
-              {isAssistant(file) && (
-                <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>
-                  <TokenUsage assistant={file} />
-                  <Box />
-                </Toolbar>
-              )}
-            </Box>
-          )}
         </Stack>
       )}
     </ColumnsLayout>
@@ -444,7 +434,12 @@ function PanelToggleButton({
   return (
     <Tooltip title={collapsed ? t('showSidebar') : t('hideSidebar')}>
       <Button {...props} sx={{ minWidth: 0, flexShrink: 0, ...props.sx }}>
-        {placement === 'left' ? <PanelLeft /> : <PanelRight />}
+        <Box
+          component={Icon}
+          icon={placement === 'left' ? 'tabler:layout-sidebar' : 'tabler:layout-sidebar-right'}
+          fontSize={20}
+          color="#3B82F6"
+        />
       </Button>
     </Tooltip>
   );

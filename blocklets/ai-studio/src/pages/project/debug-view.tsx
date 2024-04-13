@@ -9,6 +9,7 @@ import { ParameterField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
+import { Icon } from '@iconify-icon/react';
 import { Add, CopyAll } from '@mui/icons-material';
 import {
   Accordion,
@@ -24,8 +25,6 @@ import {
   Select,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Tooltip,
   Typography,
   accordionSummaryClasses,
@@ -45,12 +44,10 @@ import { Controller, useForm } from 'react-hook-form';
 import { Virtuoso } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
-import Broom from './icons/broom';
 import ChevronDown from './icons/chevron-down';
 import Empty from './icons/empty';
 import Record from './icons/record';
-import Trash from './icons/trash';
-import PaperPlane from './paper-plane';
+import SegmentedControl from './segmented-control';
 import { SessionItem, useDebugState, useProjectState } from './state';
 
 export default function DebugView(props: {
@@ -104,12 +101,12 @@ function DebugViewContent({
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
 
   if (!currentSession) return null;
+
   return (
     <>
       <Box
-        mx={4}
-        mb={2}
-        mt={1}
+        px={2.5}
+        py={1.5}
         display="flex"
         justifyContent="space-between"
         bgcolor="background.paper"
@@ -118,24 +115,22 @@ function DebugViewContent({
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
 
-        <Stack direction="row" alignItems="center" gap={1}>
-          <Tooltip title={t('clearSession')}>
-            <IconButton
-              size="small"
-              sx={{ color: (theme) => alpha(theme.palette.error.light, 0.8) }}
-              onClick={clearCurrentSession}>
-              <Broom fontSize="small" />
+        <Stack direction="row" alignItems="center" gap={1} overflow="hidden">
+          <Tooltip title={t('clearSession')} placement="bottom-end">
+            <IconButton size="small" sx={{ color: '#000000' }} onClick={clearCurrentSession}>
+              <Box fontSize={15} component={Icon} icon="tabler:history" />
             </IconButton>
           </Tooltip>
 
-          <Tooltip title={t('deleteSession')}>
+          <Tooltip title={t('deleteSession')} placement="bottom-end">
             <IconButton
-              sx={{ minWidth: 0, p: 0.25 }}
+              size="small"
+              sx={{ color: '#E11D48' }}
               onClick={(e) => {
                 e.stopPropagation();
                 deleteSession(currentSession.index);
               }}>
-              <Trash sx={{ color: 'text.secondary' }} />
+              <Box fontSize={15} component={Icon} icon="tabler:trash" />
             </IconButton>
           </Tooltip>
         </Stack>
@@ -143,7 +138,7 @@ function DebugViewContent({
 
       <ScrollMessages currentSession={currentSession} key={assistant.id} />
 
-      <Stack gap={2} sx={{ bgcolor: 'background.paper', pb: 1.875, pt: 0.25 }}>
+      <Stack gap={1.5} sx={{ bgcolor: 'background.paper', p: '12px 20px', borderTop: '1px solid #E5E7EB' }}>
         {currentSession.chatType === 'chat' ? (
           <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
         ) : (
@@ -151,18 +146,19 @@ function DebugViewContent({
         )}
 
         <Box textAlign="center">
-          <ToggleButtonGroup
-            exclusive
+          <SegmentedControl
             value={currentSession.chatType ?? 'debug'}
-            sx={{ button: { py: 0.25 } }}
-            onChange={(_, v) =>
-              setSession(currentSession.index, (session) => {
-                session.chatType = v;
-              })
-            }>
-            <ToggleButton value="debug">{t('debug')}</ToggleButton>
-            <ToggleButton value="chat">{t('chat')}</ToggleButton>
-          </ToggleButtonGroup>
+            options={[
+              { value: 'debug', label: t('debug') },
+              { value: 'chat', label: t('chat') },
+            ]}
+            onChange={(v: any) => {
+              if (v)
+                setSession(currentSession.index, (session) => {
+                  session.chatType = v;
+                });
+            }}
+          />
         </Box>
       </Stack>
     </>
@@ -220,8 +216,10 @@ function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
         display: 'flex',
         flexDirection: 'column',
         flexGrow: 1,
+        background: '#F9FAFB',
       }}>
       <Box
+        py={1.5}
         position="relative"
         display="flex"
         flexGrow={1}
@@ -286,13 +284,16 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
 
   return (
     <Select
-      variant="outlined"
+      variant="standard"
       value={state.currentSessionIndex}
       placeholder={t('newObject', { object: t('session') })}
       fullWidth
       sx={{
         [`.${selectClasses.select}`]: {
           py: 0.5,
+          '&:focus': {
+            background: 'transparent',
+          },
         },
         [`.${outlinedInputClasses.notchedOutline}`]: {
           borderRadius: 100,
@@ -336,7 +337,7 @@ const MessageView = memo(
               {dayjs(message.createdAt).format('YYYY-MM-DD HH:mm:ss')}
             </Typography>
           )}
-          <Stack px={4} py={1} gap={1} flexDirection="row" position="relative">
+          <Stack px={2.5} py={1} gap={1} flexDirection="row" position="relative">
             <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
             <Box sx={{ overflowX: 'hidden', flexGrow: 1 }}>
               <BasicTree inputs={message.inputMessages} />
@@ -494,7 +495,7 @@ function ChatModeForm({
   };
 
   return (
-    <Stack component="form" onSubmit={(e) => e.preventDefault()} direction="row" alignItems="flex-end" px={2} gap={1}>
+    <Stack component="form" onSubmit={(e) => e.preventDefault()} direction="row" alignItems="center" gap={1}>
       <TextField
         hiddenLabel
         fullWidth
@@ -512,33 +513,33 @@ function ChatModeForm({
             submit();
           }
         }}
+        sx={{ border: '1px solid #E5E7EB', borderRadius: 1 }}
       />
 
       <Tooltip title={lastMessage?.loading ? t('stop') : t('send')} placement="top">
         <Button
           type="submit"
+          variant="contained"
           sx={{
-            minWidth: 0,
-            width: 32,
-            height: 32,
-            p: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
+            background: '#030712',
+            color: '#fff',
+            '&:hover': {
+              background: '#030712',
+            },
           }}
-          onClick={submit}>
-          {lastMessage?.loading ? (
-            <>
-              <CircularProgress
-                size={24}
-                sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, margin: 'auto' }}
-              />
-              <Record />
-            </>
-          ) : (
-            <PaperPlane />
-          )}
+          endIcon={
+            lastMessage?.loading ? (
+              <Stack position="relative" alignItems="center" justifyContent="center" width={20} height={20}>
+                <CircularProgress
+                  size={20}
+                  color="inherit"
+                  sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, margin: 'auto' }}
+                />
+                <Record />
+              </Stack>
+            ) : null
+          }>
+          {t('send')}
         </Button>
       </Tooltip>
     </Stack>
@@ -647,7 +648,7 @@ function DebugModeForm({
   };
 
   return (
-    <Stack component="form" onSubmit={form.handleSubmit(submit)} px={2} gap={1}>
+    <Stack component="form" onSubmit={form.handleSubmit(submit)} gap={1}>
       {!!parameters.length && (
         <CustomAccordion
           disableGutters
@@ -678,13 +679,9 @@ function DebugModeForm({
                 justifyContent: 'space-between',
                 width: 1,
               }}>
-              <Box
-                sx={{
-                  fontSize: (theme) => theme.typography.caption.fontSize,
-                  color: (theme) => theme.palette.text.disabled,
-                }}>
+              <Typography variant="subtitle2" mb={0}>
                 {t('parameter')}
-              </Box>
+              </Typography>
 
               {parameters.length > 1 && (
                 <ChevronDown
@@ -699,7 +696,7 @@ function DebugModeForm({
             </Box>
           </AccordionSummary>
 
-          <AccordionDetails sx={{ py: 1, px: 0, maxHeight: '50vh', overflow: !isExpanded ? 'hidden' : 'auto' }}>
+          <AccordionDetails sx={{ p: 0, maxHeight: '50vh', overflow: !isExpanded ? 'hidden' : 'auto' }}>
             <Stack gap={1}>
               {parameters.map(({ data: parameter }) => {
                 const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
@@ -752,7 +749,7 @@ function DebugModeForm({
       )}
 
       <Stack gap={1} direction="row">
-        <Button variant="outlined" onClick={addToTest}>
+        <Button variant="outlined" onClick={addToTest} sx={{ borderColor: '#E5E7EB', color: '#030712' }}>
           {t('addToTest')}
         </Button>
 
@@ -761,6 +758,13 @@ function DebugModeForm({
         <Button
           type="submit"
           variant="contained"
+          sx={{
+            background: '#030712',
+            color: '#fff',
+            '&:hover': {
+              background: '#030712',
+            },
+          }}
           endIcon={
             lastMessage?.loading ? (
               <Stack position="relative" alignItems="center" justifyContent="center" width={20} height={20}>
@@ -771,9 +775,7 @@ function DebugModeForm({
                 />
                 <Record />
               </Stack>
-            ) : (
-              <PaperPlane />
-            )
+            ) : null
           }>
           {lastMessage?.loading ? t('stop') : t('execute')}
         </Button>

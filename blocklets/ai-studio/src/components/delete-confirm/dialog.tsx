@@ -1,6 +1,5 @@
-import Button from '@arcblock/ux/lib/Button';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Tooltip } from '@mui/material';
+import { Button, IconButton, Stack, Tooltip } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Spinner from '@mui/material/CircularProgress';
@@ -14,6 +13,8 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useState } from 'react';
+
+import Close from '../../pages/project/icons/close';
 
 function useMobileWidth() {
   const theme = useTheme();
@@ -64,10 +65,17 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
       style={{ minWidth }}
       onClose={onClose}
       {...rest}>
-      <DialogTitle>{`${t(isReset ? 'reset' : 'alert.delete')} "${name}"`}</DialogTitle>
+      <DialogTitle className="between" sx={{ border: 0 }}>
+        <Box>{`${t(isReset ? 'reset' : 'alert.delete')} "${name}"`}</Box>
+
+        <IconButton size="small" onClick={() => setOpen(false)}>
+          <Close />
+        </IconButton>
+      </DialogTitle>
+
       <DialogContent style={{ minWidth }}>
-        <DialogContentText component="div">
-          <Box sx={{ my: 3 }}>
+        <DialogContentText component={Stack} gap={1.5}>
+          <Box fontWeight={400} fontSize={16} lineHeight="28px">
             {t(isReset ? 'resetProjectAlertPrefix' : 'deleteProjectAlertPrefix')}
             <Tooltip
               title={copied ? t('copied') : t('copy')}
@@ -76,8 +84,7 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
               disableInteractive>
               <Typography
                 component="span"
-                color="error"
-                sx={{ cursor: 'pointer' }}
+                sx={{ color: '#4B5563', cursor: 'pointer', fontWeight: 500, fontSize: '16px' }}
                 onClick={() => {
                   navigator.clipboard.writeText(name);
                   setCopied(true);
@@ -88,6 +95,11 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
             </Tooltip>
             {t(isReset ? 'resetProjectAlertSuffix' : 'deleteProjectAlertSuffix')}
           </Box>
+
+          <Box fontWeight={400} fontSize={16} lineHeight="28px">
+            {t('confirmTip')}
+          </Box>
+
           <Typography component="div">
             <TextField
               label={t(isReset ? 'confirmReset' : 'confirmDelete', { name })}
@@ -108,8 +120,11 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
           </Alert>
         )}
       </DialogContent>
-      <DialogActions className="delete-actions" style={{ padding: '8px 24px 24px' }}>
-        <Button onClick={onClose}>{t('alert.close')}</Button>
+
+      <DialogActions sx={{ border: 0 }}>
+        <Button onClick={onClose} variant="outlined">
+          {t('alert.close')}
+        </Button>
 
         <Button
           type="submit"
@@ -117,7 +132,16 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
           disabled={params.__disableConfirm || loading}
           variant="contained"
           autoFocus
-          color="warning">
+          color="warning"
+          sx={{
+            border: 0,
+            background: '#E11D48',
+            color: '#fff',
+
+            '&:hover': {
+              background: '#E11D48',
+            },
+          }}>
           {loading && <Spinner size={16} sx={{ mr: 1 }} />}
           {t(isReset ? 'reset' : 'alert.delete')}
         </Button>

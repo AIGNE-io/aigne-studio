@@ -1,6 +1,6 @@
-## 0.1.328 (2024-4-13)
+## 0.1.328 (2024-4-12)
 
-- fix: did spaces popup exception
+- chore: ai studio new ui/ux
 
 ## 0.1.327 (2024-4-11)
 

@@ -104,7 +104,7 @@ export default function ExecuteBlockForm({
 
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
-  if (value.type === 'dataset') {
+  if (value.type) {
     return (
       <ExecuteDatasetBlockForm
         assistant={assistant}
@@ -117,20 +117,14 @@ export default function ExecuteBlockForm({
         isRemoteCompare={isRemoteCompare}
         openApis={openApis}
         {...props}
-        sx={{ borderColor: 'warning.light' }}
+        sx={{ borderColor: '#7C3AED' }}
       />
     );
   }
 
   return (
-    <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
-      <Box display="flex" alignItems="center">
-        <Tooltip
-          title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
-          placement="top"
-          disableInteractive>
-          <MuiInfoOutlined fontSize="small" sx={{ mr: 0.5, color: 'grey.500' }} />
-        </Tooltip>
+    <Stack {...props} sx={{ border: 2, borderRadius: 1, ...props.sx, borderColor: '#7C3AED' }}>
+      <Box display="flex" alignItems="center" px={1.5} py={1} gap={1}>
         <IndicatorTextField
           projectId={projectId}
           gitRef={gitRef}
@@ -145,38 +139,69 @@ export default function ExecuteBlockForm({
               placeholder: t('executeBlockName'),
               readOnly,
               sx: {
+                ml: -1,
                 backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
               },
             },
             value: value.variable ?? '',
             onChange: (e) => (value.variable = e.target.value),
           }}
+          boxProps={{
+            sx: {
+              '.MuiInputBase-root': {
+                background: 'transparent',
+                '&:hover': {
+                  background: 'transparent',
+                },
+                '&:focus': {
+                  background: 'transparent',
+                },
+              },
+              '&:focus-within': {
+                background: 'transparent',
+              },
+              '.Mui-focused': {
+                background: 'transparent',
+              },
+            },
+          }}
         />
+        <Tooltip
+          title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
+          placement="top"
+          disableInteractive>
+          <MuiInfoOutlined fontSize="small" sx={{ mr: 0.5, color: 'grey.500' }} />
+        </Tooltip>
       </Box>
 
       <Divider />
-      <Accordion
-        sx={{
-          '&::before': {
-            display: 'none',
-          },
-        }}
-        square
-        disableGutters
-        elevation={0}>
-        <AccordionSummary
-          sx={{
-            px: 1,
-            minHeight: 28,
-            '& .MuiAccordionSummary-content': {
-              my: 0,
-            },
-          }}
-          expandIcon={<GridExpandMoreIcon />}>
-          <Typography variant="subtitle2">{t('executeSettings')}</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 0, px: 1, mt: 0.5, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
-          <Box display="flex" alignItems="baseline" justifyContent="space-between">
+
+      {value.selectType === 'selectByPrompt' && (
+        <>
+          <Accordion
+            sx={{
+              px: 1.5,
+              py: 1,
+              '&::before': {
+                display: 'none',
+              },
+            }}
+            square
+            disableGutters
+            elevation={0}>
+            <AccordionSummary
+              sx={{
+                px: 0,
+                minHeight: 28,
+                '& .MuiAccordionSummary-content': {
+                  my: 0,
+                },
+              }}
+              expandIcon={<GridExpandMoreIcon />}>
+              <Typography variant="subtitle2">{t('executeSettings')}</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 0, mt: 1.5, gap: 1.5, display: 'flex', flexDirection: 'column' }}>
+              {/* <Box display="flex" alignItems="baseline" justifyContent="space-between">
             <Box display="flex">
               <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('executeMethods')}</Typography>
               <Tooltip title={t('executeMethodsTip')} placement="top" disableInteractive>
@@ -207,42 +232,48 @@ export default function ExecuteBlockForm({
                 ],
               }}
             />
-          </Box>
-          {value.selectType === 'selectByPrompt' && (
-            <Box display="flex" justifyContent="space-between">
-              <Box display="flex" alignItems="center">
-                <Typography sx={{ whiteSpace: 'nowrap' }}>{t('prompt')}</Typography>
-                <ModelPopper>
-                  <ModelSetting
-                    files={store.files}
-                    value={value}
+          </Box> */}
+              <Box display="flex" justifyContent="space-between">
+                <Box display="flex" alignItems="center" flex={1}>
+                  <Typography sx={{ whiteSpace: 'nowrap' }} lineHeight={1}>
+                    {t('prompt')}
+                  </Typography>
+
+                  <ModelPopper>
+                    <ModelSetting
+                      files={store.files}
+                      value={value}
+                      readOnly={readOnly}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                    />
+                  </ModelPopper>
+                </Box>
+                <Box flex={1}>
+                  <PromptEditorField
                     readOnly={readOnly}
                     projectId={projectId}
                     gitRef={gitRef}
+                    ContentProps={{ sx: { px: 1, py: 0.5 } }}
+                    placeholder="Your select prompt"
+                    path={path.concat('selectByPrompt')}
+                    assistant={assistant}
+                    value={value.selectByPrompt}
+                    onChange={(prompt) => (value.selectByPrompt = prompt)}
                   />
-                </ModelPopper>
+                </Box>
               </Box>
-              <Box width="60%">
-                <PromptEditorField
-                  readOnly={readOnly}
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  ContentProps={{ sx: { px: 1, py: 0.5 } }}
-                  placeholder="Your select prompt"
-                  path={path.concat('selectByPrompt')}
-                  assistant={assistant}
-                  value={value.selectByPrompt}
-                  onChange={(prompt) => (value.selectByPrompt = prompt)}
-                />
-              </Box>
-            </Box>
-          )}
-        </AccordionDetails>
-      </Accordion>
-      <Divider />
+            </AccordionDetails>
+          </Accordion>
+
+          <Divider sx={{ mx: 1.5 }} />
+        </>
+      )}
 
       <Accordion
         sx={{
+          px: 1.5,
+          py: 1,
           '&::before': {
             display: 'none',
           },
@@ -252,7 +283,7 @@ export default function ExecuteBlockForm({
         elevation={0}>
         <AccordionSummary
           sx={{
-            px: 1,
+            p: 0,
             minHeight: 28,
             '& .MuiAccordionSummary-content': {
               my: 0,
@@ -261,19 +292,61 @@ export default function ExecuteBlockForm({
           expandIcon={<GridExpandMoreIcon />}>
           <Typography variant="subtitle2">{t('outputSettings')}</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ p: 0, mt: 0.5, px: 1, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
+        <AccordionDetails sx={{ p: 0, mt: 1.5, gap: 1.5, display: 'flex', flexDirection: 'column' }}>
           {assistant.type === 'prompt' && (
             <Box display="flex" alignItems="baseline" justifyContent="space-between">
-              <Box display="flex">
+              <Box display="flex" flex={1}>
                 <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputRole')}</Typography>
                 <Tooltip title={t('outputRoleTip')} placement="top" disableInteractive>
                   <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
                 </Tooltip>
               </Box>
+
+              <Box>
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, value.role ?? 'system']}
+                  TextFiledProps={{
+                    size: 'small',
+                    select: true,
+                    hiddenLabel: true,
+                    SelectProps: {
+                      autoWidth: true,
+                    },
+                    value: value.role || 'system',
+                    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      (value.role = e.target.value as Role),
+                    children: [
+                      <MenuItem key="system" value="system">
+                        {t('systemPrompt')}
+                      </MenuItem>,
+                      <MenuItem key="user" value="user">
+                        {t('userPrompt')}
+                      </MenuItem>,
+                      <MenuItem key="assistant" value="assistant">
+                        {t('assistantPrompt')}
+                      </MenuItem>,
+                      <MenuItem key="none" value="none">
+                        {t('ignoreOutput')}
+                      </MenuItem>,
+                    ],
+                  }}
+                />
+              </Box>
+            </Box>
+          )}
+
+          <Box className="between">
+            <Typography sx={{ whiteSpace: 'nowrap' }} flex={1}>
+              {t('formatResult')}
+            </Typography>
+
+            <Box>
               <IndicatorTextField
                 projectId={projectId}
                 gitRef={gitRef}
-                path={[value.id, value.role ?? 'system']}
+                path={[value.id, value.formatResultType ?? 'none']}
                 TextFiledProps={{
                   size: 'small',
                   select: true,
@@ -281,38 +354,32 @@ export default function ExecuteBlockForm({
                   SelectProps: {
                     autoWidth: true,
                   },
-                  value: value.role || 'system',
-                  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                    (value.role = e.target.value as Role),
+                  value: value.formatResultType || 'none',
+                  onChange: (e) => (value.formatResultType = e.target.value as any),
                   children: [
-                    <MenuItem key="system" value="system">
-                      {t('systemPrompt')}
-                    </MenuItem>,
-                    <MenuItem key="user" value="user">
-                      {t('userPrompt')}
-                    </MenuItem>,
-                    <MenuItem key="assistant" value="assistant">
-                      {t('assistantPrompt')}
-                    </MenuItem>,
                     <MenuItem key="none" value="none">
-                      {t('ignoreOutput')}
+                      {t('stayAsIs')}
+                    </MenuItem>,
+                    <MenuItem key="asHistory" value="asHistory">
+                      {t('asHistory')}
                     </MenuItem>,
                   ],
                 }}
               />
             </Box>
-          )}
+          </Box>
+
           {value.role !== 'none' && value.formatResultType !== 'asHistory' && (
             <>
               {assistant.type === 'prompt' && (
                 <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                  <Box display="flex">
+                  <Box display="flex" flex={1}>
                     <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
                     <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
                       <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
                     </Tooltip>
                   </Box>
-                  <Box width="60%">
+                  <Box flex={1}>
                     <PromptEditorField
                       readOnly={readOnly}
                       projectId={projectId}
@@ -334,13 +401,13 @@ export default function ExecuteBlockForm({
               )}
               {assistant.type === 'prompt' && (
                 <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                  <Box display="flex">
+                  <Box display="flex" flex={1}>
                     <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
                     <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
                       <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
                     </Tooltip>
                   </Box>
-                  <Box width="60%">
+                  <Box flex={1}>
                     <PromptEditorField
                       readOnly={readOnly}
                       projectId={projectId}
@@ -362,68 +429,51 @@ export default function ExecuteBlockForm({
               )}
             </>
           )}
-          <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Typography sx={{ whiteSpace: 'nowrap' }}>{t('formatResult')}</Typography>
-            <IndicatorTextField
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[value.id, value.formatResultType ?? 'none']}
-              TextFiledProps={{
-                size: 'small',
-                select: true,
-                hiddenLabel: true,
-                SelectProps: {
-                  autoWidth: true,
-                },
-                value: value.formatResultType || 'none',
-                onChange: (e) => (value.formatResultType = e.target.value as any),
-                children: [
-                  <MenuItem key="none" value="none">
-                    {t('stayAsIs')}
-                  </MenuItem>,
-                  <MenuItem key="asHistory" value="asHistory">
-                    {t('asHistory')}
-                  </MenuItem>,
-                ],
-              }}
-            />
-          </Box>
 
           <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Typography sx={{ whiteSpace: 'nowrap' }}>{t('respondAs')}</Typography>
-            <IndicatorTextField
-              projectId={projectId}
-              gitRef={gitRef}
-              path={[value.id, value.respondAs ?? 'none']}
-              TextFiledProps={{
-                size: 'small',
-                select: true,
-                hiddenLabel: true,
-                SelectProps: {
-                  autoWidth: true,
-                },
-                value: value.respondAs || 'none',
-                onChange: (e) => (value.respondAs = e.target.value as any),
-                children: [
-                  <MenuItem key="none" value="none" sx={{ color: 'text.secondary' }}>
-                    {t('none')}
-                  </MenuItem>,
-                  <MenuItem key="message" value="message">
-                    {t('respondAsMessage')}
-                  </MenuItem>,
-                  <MenuItem key="systemMessage" value="systemMessage">
-                    {t('respondAsSystemMessage')}
-                  </MenuItem>,
-                ],
-              }}
-            />
+            <Box flex={1}>
+              <Typography sx={{ whiteSpace: 'nowrap' }}>{t('respondAs')}</Typography>
+            </Box>
+
+            <Box>
+              <IndicatorTextField
+                projectId={projectId}
+                gitRef={gitRef}
+                path={[value.id, value.respondAs ?? 'none']}
+                TextFiledProps={{
+                  size: 'small',
+                  select: true,
+                  hiddenLabel: true,
+                  SelectProps: {
+                    autoWidth: true,
+                  },
+                  value: value.respondAs || 'none',
+                  onChange: (e) => (value.respondAs = e.target.value as any),
+                  children: [
+                    <MenuItem key="none" value="none" sx={{ color: 'text.secondary' }}>
+                      {t('none')}
+                    </MenuItem>,
+                    <MenuItem key="message" value="message">
+                      {t('respondAsMessage')}
+                    </MenuItem>,
+                    <MenuItem key="systemMessage" value="systemMessage">
+                      {t('respondAsSystemMessage')}
+                    </MenuItem>,
+                  ],
+                }}
+              />
+            </Box>
           </Box>
         </AccordionDetails>
       </Accordion>
-      <Divider />
+
+      <Divider sx={{ mx: 1.5 }} />
 
       <Accordion
         sx={{
+          px: 1.5,
+          py: 1,
+          borderRadius: 1,
           '&::before': {
             display: 'none',
           },
@@ -434,7 +484,7 @@ export default function ExecuteBlockForm({
         elevation={0}>
         <AccordionSummary
           sx={{
-            px: 1,
+            px: 0,
             minHeight: 28,
             '& .MuiAccordionSummary-content': {
               my: 0,
@@ -443,12 +493,15 @@ export default function ExecuteBlockForm({
           expandIcon={<GridExpandMoreIcon />}>
           <Typography variant="subtitle2">{t('tool')}</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ p: 0, px: 1, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
+        <AccordionDetails sx={{ p: 0, mt: 1.5, gap: 1.5, display: 'flex', flexDirection: 'column' }}>
           {(!tools || tools?.length === 0) && (
-            <Typography alignSelf="center" mt={1} px={1} variant="caption" color="text.secondary">
-              {t('emptyToolPlaceholder')}
-            </Typography>
+            <Stack alignItems="center">
+              <Typography variant="subtitle1">🔨</Typography>
+              {/* <Typography variant="subtitle4">{t('emptyProjectTitle')}</Typography> */}
+              <Typography variant="subtitle5">{t('emptyToolPlaceholder')}</Typography>
+            </Stack>
           )}
+
           {tools?.map(({ data: tool }) => (
             <ToolItemView
               key={tool.id}
@@ -476,7 +529,7 @@ export default function ExecuteBlockForm({
                   toolForm.current?.form.reset({ id: undefined, parameters: undefined });
                   dialogState.open();
                 }}>
-                {t('addObject', { object: t('tool') })}
+                {t('tool')}
               </Button>
             </Box>
           )}
@@ -556,7 +609,10 @@ function ToolItemView({
       direction="row"
       {...props}
       sx={{
-        minHeight: 32,
+        background: '#F9FAFB',
+        py: 1,
+        px: 1.5,
+        minHeight: 40,
         gap: 1,
         alignItems: 'center',
         cursor: 'pointer',
@@ -573,16 +629,17 @@ function ToolItemView({
         <Typography
           noWrap
           maxWidth="50%"
+          variant="subtitle3"
           color={
             executeBlock.selectType === 'selectByPrompt' && executeBlock.defaultToolId === tool.id
               ? 'primary.main'
-              : undefined
+              : '#030712'
           }>
           {name || t('unnamed')}
         </Typography>
       </Tooltip>
 
-      <Typography variant="body1" color="text.secondary" flex={1} noWrap>
+      <Typography variant="subtitle3" flex={1} noWrap>
         {description}
       </Typography>
 
@@ -628,7 +685,7 @@ function ToolItemView({
                 }
               });
             }}>
-            <Trash sx={{ fontSize: 18 }} />
+            <Trash sx={{ fontSize: 18, color: '#E11D48' }} />
           </Button>
         )}
 
