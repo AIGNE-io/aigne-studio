@@ -3,21 +3,26 @@ import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, Tool, isAssistant } from '
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
+import { Icon } from '@iconify-icon/react';
 import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
   CircularProgress,
+  ClickAwayListener,
   Divider,
+  Grow,
+  IconButton,
+  ListItemText,
+  MenuItem,
+  Paper,
+  Popper,
   Stack,
   StackProps,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { GridExpandMoreIcon } from '@mui/x-data-grid';
-import { sortBy } from 'lodash';
+import { isNil, sortBy } from 'lodash';
+import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
@@ -61,52 +66,6 @@ export default function ExecuteDatasetBlockForm({
 
   return (
     <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, ...props.sx }}>
-      <Box display="flex" alignItems="center" px={1.5} py={1} gap={1}>
-        <IndicatorTextField
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, value.variable ?? '']}
-          TextFiledProps={{
-            hiddenLabel: true,
-            size: 'small',
-            inputProps: {
-              maxLength: 15,
-            },
-            InputProps: {
-              placeholder: t('executeBlockName'),
-              readOnly,
-              sx: {
-                ml: -1,
-                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
-              },
-            },
-            value: value.variable ?? '',
-            onChange: (e) => (value.variable = e.target.value),
-          }}
-          boxProps={{
-            sx: {
-              '.MuiInputBase-root': {
-                background: 'transparent',
-                '&:hover': {
-                  background: 'transparent',
-                },
-              },
-              '.Mui-focused': {
-                background: 'transparent',
-              },
-            },
-          }}
-        />
-        <Tooltip
-          title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
-          placement="top"
-          disableInteractive>
-          <MuiInfoOutlined fontSize="small" sx={{ mr: 0.5, color: 'grey.500' }} />
-        </Tooltip>
-      </Box>
-
-      <Divider />
-
       {tools?.map(({ data: tool }) => (
         <ToolItemView
           key={tool.id}
@@ -148,6 +107,7 @@ function ToolItemView({
 } & StackProps) {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, projectRef);
+  const popperState = usePopupState({ variant: 'popper', popupId: 'settings' });
 
   const f = store.files[tool.id];
   const file = f && isAssistant(f) ? f : undefined;
@@ -178,98 +138,165 @@ function ToolItemView({
     );
   }
 
+  const variable = [value.variable, value.prefix, value.suffix];
+  const prefixOrSuffix = value.role !== 'none' && value.formatResultType !== 'asHistory' && assistant.type === 'prompt';
   return (
     <>
-      <Accordion
-        sx={{
-          px: 1.5,
-          py: 1,
-          '&::before': {
-            display: 'none',
-          },
-          pb: 0,
-        }}
-        square
-        disableGutters
-        elevation={0}>
-        <AccordionSummary
-          sx={{
-            p: 0,
-            minHeight: 28,
-            '& .MuiAccordionSummary-content': {
-              my: 0,
-            },
-          }}
-          expandIcon={<GridExpandMoreIcon />}>
-          <Typography noWrap variant="subtitle3" color="#4B5563" fontWeight={500}>
+      <Stack px={1.5} py={1} gap={1.25}>
+        <Box className="between">
+          <Typography noWrap variant="subtitle4">
             {getDatasetTextByI18n(target || {}, 'summary', locale)}
           </Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 0, mt: 1.5, gap: 1.5, display: 'flex', flexDirection: 'column' }}>
-          {value.role !== 'none' && value.formatResultType !== 'asHistory' && (
-            <>
-              {assistant.type === 'prompt' && (
-                <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                  <Box display="flex" flex={1}>
-                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
-                    <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
-                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
-                    </Tooltip>
-                  </Box>
-                  <Box flex={1}>
-                    <PromptEditorField
-                      readOnly={readOnly}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      ContentProps={{
-                        sx: {
-                          px: 1,
-                          py: 0.5,
-                        },
-                      }}
-                      placeholder="Your output prefix"
-                      path={[value.id, 'prefix']}
-                      assistant={assistant}
-                      value={value.prefix}
-                      onChange={(prefix) => (value.prefix = prefix)}
-                    />
-                  </Box>
-                </Box>
-              )}
-              {assistant.type === 'prompt' && (
-                <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                  <Box display="flex" flex={1}>
-                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
-                    <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
-                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
-                    </Tooltip>
-                  </Box>
-                  <Box flex={1}>
-                    <PromptEditorField
-                      readOnly={readOnly}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      ContentProps={{
-                        sx: {
-                          px: 1,
-                          py: 0.5,
-                        },
-                      }}
-                      placeholder="Your output suffix"
-                      path={[value.id, 'suffix']}
-                      assistant={assistant}
-                      value={value.suffix}
-                      onChange={(suffix) => (value.suffix = suffix)}
-                    />
-                  </Box>
-                </Box>
-              )}
 
-              <Divider />
+          {variable.some((x) => isNil(x)) && (
+            <>
+              <IconButton {...bindTrigger(popperState)}>
+                <Box component={Icon} icon="tabler:plus" color="#3B82F6" fontSize={16} />
+              </IconButton>
+              <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
+                {({ TransitionProps }) => (
+                  <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
+                    <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
+                      <ClickAwayListener
+                        onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && popperState.close()}>
+                        <Box>
+                          {isNil(value.variable) && (
+                            <MenuItem onClick={() => (value.variable = '')}>
+                              <ListItemText primary={t('outputName')} />
+                            </MenuItem>
+                          )}
+
+                          {isNil(value.prefix) && prefixOrSuffix && (
+                            <MenuItem onClick={() => (value.prefix = '')}>
+                              <ListItemText primary={t('outputPrefix')} />
+                            </MenuItem>
+                          )}
+
+                          {isNil(value.suffix) && prefixOrSuffix && (
+                            <MenuItem onClick={() => (value.suffix = '')}>
+                              <ListItemText primary={t('outputSuffix')} />
+                            </MenuItem>
+                          )}
+                        </Box>
+                      </ClickAwayListener>
+                    </Paper>
+                  </Grow>
+                )}
+              </Popper>
             </>
           )}
-        </AccordionDetails>
-      </Accordion>
+        </Box>
+
+        {!isNil(value.variable) && (
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center" flex={1}>
+              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputName')}</Typography>
+              <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
+                <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+              </Tooltip>
+            </Box>
+
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <IndicatorTextField
+                projectId={projectId}
+                gitRef={gitRef}
+                path={[value.id, value.variable ?? '']}
+                TextFiledProps={{
+                  hiddenLabel: true,
+                  size: 'small',
+                  inputProps: {
+                    maxLength: 15,
+                  },
+                  InputProps: {
+                    placeholder: t('executeBlockName'),
+                    readOnly,
+                  },
+                  value: value.variable ?? '',
+                  onChange: (e) => (value.variable = e.target.value),
+                }}
+                boxProps={{
+                  sx: {
+                    width: 1,
+
+                    '.MuiTextField-root': {
+                      width: 1,
+
+                      '.MuiInputBase-root': {
+                        px: 1,
+                        py: 0.5,
+
+                        input: {
+                          px: 0,
+                        },
+                      },
+                    },
+                  },
+                }}
+              />
+            </Box>
+          </Box>
+        )}
+
+        {!isNil(value.prefix) && (
+          <Box display="flex" alignItems="baseline" justifyContent="space-between">
+            <Box display="flex" alignItems="center" flex={1}>
+              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
+              <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
+                <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+              </Tooltip>
+            </Box>
+            <Box flex={1}>
+              <PromptEditorField
+                readOnly={readOnly}
+                projectId={projectId}
+                gitRef={gitRef}
+                ContentProps={{
+                  sx: {
+                    px: 1,
+                    py: 0.5,
+                  },
+                }}
+                placeholder="Your output prefix"
+                path={[value.id, 'prefix']}
+                assistant={assistant}
+                value={value.prefix}
+                onChange={(prefix) => (value.prefix = prefix)}
+              />
+            </Box>
+          </Box>
+        )}
+
+        {!isNil(value.suffix) && (
+          <Box display="flex" alignItems="baseline" justifyContent="space-between">
+            <Box display="flex" alignItems="center" flex={1}>
+              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
+              <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
+                <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+              </Tooltip>
+            </Box>
+            <Box flex={1}>
+              <PromptEditorField
+                readOnly={readOnly}
+                projectId={projectId}
+                gitRef={gitRef}
+                ContentProps={{
+                  sx: {
+                    px: 1,
+                    py: 0.5,
+                  },
+                }}
+                placeholder="Your output suffix"
+                path={[value.id, 'suffix']}
+                assistant={assistant}
+                value={value.suffix}
+                onChange={(suffix) => (value.suffix = suffix)}
+              />
+            </Box>
+          </Box>
+        )}
+      </Stack>
+
+      <Divider sx={{ borderColor: '#DDD6FE' }} />
 
       <Stack m={1.5} gap={1.5} mt={1.5}>
         {(parameters || [])?.map((parameter: any) => {

@@ -597,4 +597,5 @@ export default flat({
   edit: '编辑',
   share: '查看',
   refresh: '刷新',
+  outputName: '输出别名',
 });

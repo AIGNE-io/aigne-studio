@@ -603,4 +603,5 @@ export default flat({
   edit: 'Edit',
   share: 'View',
   refresh: 'Refresh',
+  outputName: 'Output Name',
 });
