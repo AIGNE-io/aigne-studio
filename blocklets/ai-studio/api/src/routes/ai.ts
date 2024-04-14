@@ -1,5 +1,5 @@
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
-import { InvalidSubscriptionError } from '@api/libs/error';
+import { InvalidSubscriptionError, ReachMaxRoundLimitError } from '@api/libs/error';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import { getActiveSubscriptionOfAssistant, reportUsage } from '@api/libs/payment';
 import History from '@api/store/models/history';
@@ -233,7 +233,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     if (assistant.release?.maxRoundLimit && input.sessionId) {
       const rounds = await History.count({ where: { userId, sessionId: input.sessionId } });
       if (rounds > assistant.release.maxRoundLimit) {
-        throw new Error('Max round limitation has been reached');
+        throw new ReachMaxRoundLimitError('Max round limitation has been reached');
       }
     }
 
