@@ -385,21 +385,23 @@ export default function ParametersTable({
                         );
                       })}
 
-                      {!readOnly && (
-                        <TableCell sx={{ px: 0 }} align="right">
-                          <Button
-                            sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
-                            onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
-                            <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('setting')}</Box>
-                          </Button>
+                      <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
+                        {!readOnly && (
+                          <>
+                            <Button
+                              sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
+                              onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
+                              <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('setting')}</Box>
+                            </Button>
 
-                          <Button
-                            sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
-                            onClick={() => deleteParameter(parameter)}>
-                            <Box sx={{ color: '#E11D48', fontSize: 13 }}>{t('delete')}</Box>
-                          </Button>
-                        </TableCell>
-                      )}
+                            <Button
+                              sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
+                              onClick={() => deleteParameter(parameter)}>
+                              <Box sx={{ color: '#E11D48', fontSize: 13 }}>{t('delete')}</Box>
+                            </Button>
+                          </>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 }}

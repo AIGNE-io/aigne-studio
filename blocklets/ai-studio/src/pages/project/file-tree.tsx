@@ -14,10 +14,10 @@ import {
   CircularProgress,
   ClickAwayListener,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
+  IconButton,
   Input,
   List,
   ListItemIcon,
@@ -55,6 +55,7 @@ import { getErrorMessage } from '../../libs/api';
 import { exportAssistantsToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Compare from './compare';
+import Close from './icons/close';
 import FolderClose from './icons/folder-close';
 import ImportFrom from './import';
 import { useAssistantChangesState } from './state';
@@ -487,15 +488,16 @@ const FileTree = forwardRef<
       {dialog}
 
       <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
-        <DialogTitle>{t('alert.compare')}</DialogTitle>
+        <DialogTitle className="between">
+          {t('alert.compare')}
+
+          <IconButton size="small" onClick={dialogState.close}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
           <Compare projectId={projectId} gitRef={gitRef} filepath={compareAssistant || ''} />
         </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={dialogState.close}>
-            {t('alert.close')}
-          </Button>
-        </DialogActions>
       </Dialog>
     </>
   );
