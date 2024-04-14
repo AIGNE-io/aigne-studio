@@ -24,12 +24,13 @@ import {
 import { isNil, sortBy } from 'lodash';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo } from 'react';
-import { useAssistantCompare } from 'src/pages/project/state';
 
 import Dataset from '../../../api/src/store/models/dataset/dataset';
 import { useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
 import PromptEditorField from './prompt-editor-field';
+
+// import { useAssistantCompare } from 'src/pages/project/state';
 
 export default function ExecuteDatasetBlockForm({
   projectId,
@@ -53,14 +54,14 @@ export default function ExecuteDatasetBlockForm({
   isRemoteCompare?: boolean;
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 } & StackProps) {
-  const { t } = useLocaleContext();
+  // const { t } = useLocaleContext();
 
-  const { getDiffBackground } = useAssistantCompare({
-    value: assistant,
-    compareValue: compareAssistant,
-    readOnly,
-    isRemoteCompare,
-  });
+  // const { getDiffBackground } = useAssistantCompare({
+  //   value: assistant,
+  //   compareValue: compareAssistant,
+  //   readOnly,
+  //   isRemoteCompare,
+  // });
 
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
@@ -190,7 +191,9 @@ function ToolItemView({
         {!isNil(value.variable) && (
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Box display="flex" alignItems="center" flex={1}>
-              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputName')}</Typography>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputName')}
+              </Typography>
               <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
@@ -240,7 +243,9 @@ function ToolItemView({
         {!isNil(value.prefix) && (
           <Box display="flex" alignItems="baseline" justifyContent="space-between">
             <Box display="flex" alignItems="center" flex={1}>
-              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputPrefix')}
+              </Typography>
               <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
@@ -269,7 +274,9 @@ function ToolItemView({
         {!isNil(value.suffix) && (
           <Box display="flex" alignItems="baseline" justifyContent="space-between">
             <Box display="flex" alignItems="center" flex={1}>
-              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputSuffix')}
+              </Typography>
               <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>

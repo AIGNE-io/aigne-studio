@@ -196,7 +196,10 @@ export default function ExecuteBlockForm({
         {value.selectType === 'selectByPrompt' && (
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Box display="flex" alignItems="center" flex={1}>
-              <Typography sx={{ whiteSpace: 'nowrap' }} lineHeight={1}>
+              <Typography
+                variant="subtitle2"
+                sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}
+                lineHeight={1}>
                 {t('prompt')}
               </Typography>
 
@@ -229,7 +232,9 @@ export default function ExecuteBlockForm({
         {!isNil(value.variable) && (
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Box display="flex" alignItems="center" flex={1}>
-              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputName')}</Typography>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputName')}
+              </Typography>
               <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
@@ -279,7 +284,9 @@ export default function ExecuteBlockForm({
         {!isNil(value.role) && (
           <Box display="flex" alignItems="baseline" justifyContent="space-between">
             <Box display="flex" flex={1}>
-              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputRole')}</Typography>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputRole')}
+              </Typography>
               <Tooltip title={t('outputRoleTip')} placement="top" disableInteractive>
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
@@ -322,7 +329,7 @@ export default function ExecuteBlockForm({
 
         {!isNil(value.formatResultType) && (
           <Box display="flex" alignItems="baseline" justifyContent="space-between">
-            <Typography sx={{ whiteSpace: 'nowrap' }} flex={1}>
+            <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }} flex={1}>
               {t('formatResult')}
             </Typography>
 
@@ -357,7 +364,9 @@ export default function ExecuteBlockForm({
         {!isNil(value.prefix) && (
           <Box display="flex" alignItems="baseline" justifyContent="space-between">
             <Box display="flex" flex={1}>
-              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputPrefix')}
+              </Typography>
               <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
@@ -386,7 +395,9 @@ export default function ExecuteBlockForm({
         {!isNil(value.suffix) && (
           <Box display="flex" alignItems="baseline" justifyContent="space-between">
             <Box display="flex" flex={1}>
-              <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputSuffix')}
+              </Typography>
               <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
@@ -415,7 +426,9 @@ export default function ExecuteBlockForm({
         {!isNil(value.respondAs) && (
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Box flex={1}>
-              <Typography sx={{ whiteSpace: 'nowrap' }}>{t('respondAs')}</Typography>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('respondAs')}
+              </Typography>
             </Box>
 
             <Box>
