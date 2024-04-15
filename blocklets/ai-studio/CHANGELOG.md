@@ -1,3 +1,7 @@
+## 0.1.330 (2024-4-15)
+
+- fix: did spaces popup exception
+
 ## 0.1.329 (2024-4-12)
 
 - chore: replace icon
