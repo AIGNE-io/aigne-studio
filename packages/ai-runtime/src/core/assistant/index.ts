@@ -549,7 +549,6 @@ async function runPromptAssistant({
           }
 
           if (prompt.type === 'executeBlock') {
-            if (prompt?.data?.role === 'none') return null;
             const result = blockResults.find((i) => i[0].id === prompt.data.id)?.[1];
 
             if (prompt.data.formatResultType === 'asHistory') {
@@ -560,6 +559,8 @@ async function runPromptAssistant({
                 )
                 .map((message) => pick(message, 'role', 'content'));
             }
+
+            if (prompt?.data?.role === 'none') return null;
 
             return {
               role: prompt.data.role ?? 'system',
