@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, Role, Tool, isAssistant } from '@blocklet/ai-runtime/types';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
