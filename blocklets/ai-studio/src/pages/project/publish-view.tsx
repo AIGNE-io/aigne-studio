@@ -358,18 +358,22 @@ function PublishViewContent({
 
         {assistant.release?.payment?.enable && (
           <Stack direction="row" gap={1} alignItems="center" className="between">
-            <FormLabel sx={{ width: 60 }}>{t('publish.price')}</FormLabel>
-            <TextField
-              hiddenLabel
-              InputProps={{ endAdornment: <InputAdornment position="end">ABT / {t('publish.time')}</InputAdornment> }}
-              value={assistant.release.payment.price ?? ''}
-              onChange={(e) =>
-                setRelease((release) => {
-                  release.payment ??= {};
-                  release.payment.price = e.target.value;
-                })
-              }
-            />
+            <Box flex={1}>
+              <FormLabel sx={{ width: 60 }}>{t('publish.price')}</FormLabel>
+            </Box>
+            <Box flex={1}>
+              <TextField
+                hiddenLabel
+                InputProps={{ endAdornment: <InputAdornment position="end">ABT / {t('publish.time')}</InputAdornment> }}
+                value={assistant.release.payment.price ?? ''}
+                onChange={(e) =>
+                  setRelease((release) => {
+                    release.payment ??= {};
+                    release.payment.price = e.target.value;
+                  })
+                }
+              />
+            </Box>
           </Stack>
         )}
       </Stack>

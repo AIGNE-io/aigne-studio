@@ -245,7 +245,7 @@ export function DragSortItemContainer({
                 cursor: 'pointer',
               }}>
               <Tooltip title={t('dragSort')} disableInteractive placement="top">
-                <Box ref={drag}>
+                <Box ref={drag} className="center">
                   <Box component={Icon} icon="tabler:grip-vertical" sx={{ color: 'grey.500' }} />
                 </Box>
               </Tooltip>
@@ -254,7 +254,7 @@ export function DragSortItemContainer({
 
               {onDelete && (
                 <Tooltip title={t('delete')} disableInteractive placement="top">
-                  <Box onClick={onDelete}>
+                  <Box onClick={onDelete} className="center">
                     <Box component={Icon} icon="tabler:trash" sx={{ color: 'grey.500' }} />
                   </Box>
                 </Tooltip>

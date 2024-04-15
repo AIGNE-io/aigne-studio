@@ -205,7 +205,7 @@ export default function ProjectPage() {
                     <List
                       sx={{
                         '.MuiListItemIcon-root': {
-                          minWidth: 0,
+                          minWidth: '0 !important',
                           mr: 1,
                         },
                       }}>

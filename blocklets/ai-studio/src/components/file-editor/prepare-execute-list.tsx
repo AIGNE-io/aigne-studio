@@ -59,6 +59,7 @@ export default function PrepareExecuteList({
               readOnly={readOnly}
               compareAssistant={compareAssistant}
               isRemoteCompare={isRemoteCompare}
+              from="prepare-execute-list"
             />
           </DragSortItemContainer>
         );
