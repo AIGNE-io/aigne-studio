@@ -1,3 +1,7 @@
+## 0.1.332 (2024-4-15)
+
+- fix: execute blocklet action
+
 ## 0.1.331 (2024-4-15)
 
 - fix: update session name to user question
