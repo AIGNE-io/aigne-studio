@@ -42,7 +42,6 @@ const embeddingsJob = async (job: EmbeddingQueue) => {
     const handler = embeddingHandler[document.type];
     if (!handler) {
       sse.send({ documentId, embeddingStatus: UploadStatus.Error, message: 'no handler to embedding' }, 'error');
-
       return;
     }
 
@@ -286,6 +285,7 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
     return isEmbed;
   } catch (error) {
     logger.error(`embedding discussion ${discussionId} error`, { error });
+    sse.send({ documentId, embeddingStatus: UploadStatus.Error, message: error?.message }, 'error');
     return false;
   }
 }
@@ -347,21 +347,26 @@ const embeddingHandler: {
     }
   },
   fullSite: async (document: DatasetDocument) => {
-    const ids = await getDiscussionIds((document.data as any).types || []);
-    const currentTotal = ids.length;
-    let currentIndex = 0;
-    logger.info('fullsite ids', ids);
+    try {
+      const ids = await getDiscussionIds((document.data as any).types || []);
+      const currentTotal = ids.length;
+      let currentIndex = 0;
+      logger.info('fullsite ids', ids);
 
-    for (const discussionId of ids) {
-      currentIndex++;
+      for (const discussionId of ids) {
+        currentIndex++;
 
-      queue.push({
-        type: 'fullSite',
-        documentId: document.id,
-        currentIndex,
-        currentTotal,
-        discussionId,
-      });
+        queue.push({
+          type: 'fullSite',
+          documentId: document.id,
+          currentIndex,
+          currentTotal,
+          discussionId,
+        });
+      }
+    } catch (error) {
+      sse.send({ documentId: document.id, embeddingStatus: UploadStatus.Error, message: error?.message }, 'error');
+      await document.update({ error: error.message, embeddingStatus: UploadStatus.Error, embeddingEndAt: new Date() });
     }
   },
 };
@@ -370,12 +375,8 @@ export const getDiscussionIds = async (types: ('discussion' | 'blog' | 'doc')[] 
   const ids = [];
 
   for (const type of types) {
-    try {
-      for await (const { id: discussionId } of discussionsIterator(type)) {
-        ids.push(discussionId);
-      }
-    } catch (error) {
-      logger.error(error?.message);
+    for await (const { id: discussionId } of discussionsIterator(type)) {
+      ids.push(discussionId);
     }
   }
 

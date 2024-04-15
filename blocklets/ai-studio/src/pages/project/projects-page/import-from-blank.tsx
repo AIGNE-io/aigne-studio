@@ -101,7 +101,7 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} className="cancel">
+        <Button onClick={onClose} className="cancel" variant="outlined">
           {t('cancel')}
         </Button>
 

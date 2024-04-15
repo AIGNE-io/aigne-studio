@@ -1,14 +1,12 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
-import { Box, Button, Stack, StackProps, Tooltip, alpha, buttonClasses } from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import { Box, Stack, StackProps, Tooltip } from '@mui/material';
 import { useUpdate } from 'ahooks';
 import sortBy from 'lodash/sortBy';
 import { ReactNode, useCallback, useEffect, useId, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget, useDrag, useDrop } from 'react-dnd';
-
-import DragVertical from '../../pages/project/icons/drag-vertical';
-import Trash from '../../pages/project/icons/trash';
 
 export function DragSortListYjs<T>({
   disabled,
@@ -227,35 +225,40 @@ export function DragSortItemContainer({
         {!disabled && (
           <Box
             className="hover-visible"
-            sx={{ maxHeight: 0, overflow: 'hidden', position: 'absolute', right: 2, top: 2 }}>
+            sx={{
+              maxHeight: 0,
+              overflow: 'hidden',
+              position: 'absolute',
+              left: -36,
+              top: 1,
+              width: 36,
+              display: 'flex',
+              justifyContent: 'center',
+            }}>
             <Stack
-              direction="row"
               sx={{
-                bgcolor: (theme) => alpha(theme.palette.grey[300], 0.9),
+                border: '1px solid #E5E7EB',
+                bgcolor: '#fff',
                 borderRadius: 1,
-                p: 0.5,
-                [`.${buttonClasses.root}`]: {
-                  minWidth: 24,
-                  width: 24,
-                  height: 24,
-                  p: 0,
-                },
+                p: 1,
+                gap: 1.5,
+                cursor: 'pointer',
               }}>
+              <Tooltip title={t('dragSort')} disableInteractive placement="top">
+                <Box ref={drag}>
+                  <Box component={Icon} icon="tabler:grip-vertical" sx={{ color: 'grey.500' }} />
+                </Box>
+              </Tooltip>
+
               {actions}
 
               {onDelete && (
                 <Tooltip title={t('delete')} disableInteractive placement="top">
-                  <Button onClick={onDelete}>
-                    <Trash sx={{ fontSize: '1.25rem', color: 'grey.500' }} />
-                  </Button>
+                  <Box onClick={onDelete}>
+                    <Box component={Icon} icon="tabler:trash" sx={{ color: 'grey.500' }} />
+                  </Box>
                 </Tooltip>
               )}
-
-              <Tooltip title={t('dragSort')} disableInteractive placement="top">
-                <Button ref={drag}>
-                  <DragVertical sx={{ color: 'grey.500' }} />
-                </Button>
-              </Tooltip>
             </Stack>
           </Box>
         )}

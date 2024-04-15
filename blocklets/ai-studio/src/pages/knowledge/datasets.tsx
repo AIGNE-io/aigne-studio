@@ -44,7 +44,7 @@ export default function KnowledgeDatasets() {
   const { projectId } = useParams();
 
   const dialogState = usePopupState({ variant: 'dialog' });
-  const { datasets, refetch, createDataset, deleteDataset } = useDatasets();
+  const { datasets, refetch, createDataset, updateDataset, deleteDataset } = useDatasets();
   const form = useForm<DatasetInput>({ defaultValues: { description: '', name: '' } });
 
   useEffect(() => {
@@ -76,6 +76,23 @@ export default function KnowledgeDatasets() {
     [t, projectId]
   );
 
+  const onUpdate = useCallback(
+    async (
+      datasetId: string,
+      data: {
+        name: string;
+        description: string;
+      }
+    ) => {
+      try {
+        await updateDataset(projectId || '', datasetId, data);
+      } catch (error) {
+        Toast.error(getErrorMessage(error));
+      }
+    },
+    [t, projectId]
+  );
+
   return (
     <>
       <Stack m={2.5} overflow="auto">
@@ -98,6 +115,7 @@ export default function KnowledgeDatasets() {
                 onClick={() => navigate(item.id)}
                 onDelete={() => onDelete(item.id)}
                 className="listItem"
+                onUpdate={(data) => onUpdate(item.id, data)}
               />
             );
           })}
@@ -210,8 +228,15 @@ function DatasetItem({
   description,
   documents,
   onDelete,
+  onUpdate,
   ...props
-}: { name?: string; description?: string; documents?: number; onDelete: () => any } & StackProps) {
+}: {
+  name?: string;
+  description?: string;
+  documents?: number;
+  onDelete: () => void;
+  onUpdate: (data: { name: string; description: string }) => void;
+} & StackProps) {
   const { t } = useLocaleContext();
   const [open, setOpen] = useState(false);
   const { dialog, showDialog } = useDialog();
@@ -274,6 +299,52 @@ function DatasetItem({
                                 mr: 1,
                               },
                             }}>
+                            <MenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpen(false);
+
+                                let newName = '';
+                                let newDescription = '';
+
+                                showDialog({
+                                  maxWidth: 'sm',
+                                  fullWidth: true,
+                                  title: <Box sx={{ wordWrap: 'break-word' }}>{t('knowledge.updateTitle')}</Box>,
+                                  content: (
+                                    <Stack gap={2}>
+                                      <Box>
+                                        <Typography variant="subtitle2">{t('knowledge.name')}</Typography>
+                                        <TextField
+                                          label={t('knowledge.name')}
+                                          sx={{ width: 1 }}
+                                          fullWidth
+                                          defaultValue={name}
+                                          onChange={(e) => (newName = e.target.value)}
+                                        />
+                                      </Box>
+
+                                      <Box>
+                                        <Typography variant="subtitle2">{t('knowledge.description')}</Typography>
+                                        <TextField
+                                          label={t('knowledge.description')}
+                                          sx={{ width: 1 }}
+                                          fullWidth
+                                          defaultValue={description}
+                                          onChange={(e) => (newDescription = e.target.value)}
+                                        />
+                                      </Box>
+                                    </Stack>
+                                  ),
+                                  okText: t('save'),
+                                  cancelText: t('alert.cancel'),
+                                  onOk: () => onUpdate({ name: newName, description: newDescription }),
+                                });
+                              }}>
+                              <Box component={Icon} icon="tabler:pencil" mr={1} width={15} />
+                              {t('edit')}
+                            </MenuItem>
+
                             <MenuItem
                               onClick={(e) => {
                                 e.stopPropagation();

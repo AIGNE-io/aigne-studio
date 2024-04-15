@@ -14,10 +14,10 @@ import {
   CircularProgress,
   ClickAwayListener,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
+  IconButton,
   Input,
   List,
   ListItemIcon,
@@ -55,10 +55,8 @@ import { getErrorMessage } from '../../libs/api';
 import { exportAssistantsToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Compare from './compare';
-import ChevronDown from './icons/chevron-down';
-import CompareIcon from './icons/compare';
+import Close from './icons/close';
 import FolderClose from './icons/folder-close';
-import Undo from './icons/undo';
 import ImportFrom from './import';
 import { useAssistantChangesState } from './state';
 import type { AssistantYjsWithParents } from './state';
@@ -490,15 +488,16 @@ const FileTree = forwardRef<
       {dialog}
 
       <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
-        <DialogTitle>{t('alert.compare')}</DialogTitle>
+        <DialogTitle className="between">
+          {t('alert.compare')}
+
+          <IconButton size="small" onClick={dialogState.close}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
           <Compare projectId={projectId} gitRef={gitRef} filepath={compareAssistant || ''} />
         </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={dialogState.close}>
-            {t('alert.close')}
-          </Button>
-        </DialogActions>
       </Dialog>
     </>
   );
@@ -983,7 +982,9 @@ function DeletedTemplates({
             alignItems: 'center',
             minWidth: (theme) => theme.spacing(3),
           }}>
-          <ChevronDown
+          <Box
+            component={Icon}
+            icon="tabler:chevron-down"
             sx={{
               fontSize: 20,
               transform: `rotateZ(${expanded ? '0' : '-90deg'})`,
@@ -1018,7 +1019,7 @@ function DeletedTemplates({
                         onClick={() => {
                           onCompare(item);
                         }}>
-                        <CompareIcon sx={{ fontSize: 20 }} />
+                        <Box component={Icon} icon="tabler:layers-difference" sx={{ fontSize: 20 }} />
                       </Button>
                     </Tooltip>
 
@@ -1029,7 +1030,7 @@ function DeletedTemplates({
                           const { parent, ...meta } = item;
                           onCreateFile({ parent, meta });
                         }}>
-                        <Undo sx={{ fontSize: 20 }} />
+                        <Box component={Icon} icon="tabler:arrow-back-up" sx={{ fontSize: 20 }} />
                       </Button>
                     </Tooltip>
                   </>

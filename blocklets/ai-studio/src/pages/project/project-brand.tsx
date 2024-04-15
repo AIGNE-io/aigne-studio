@@ -2,8 +2,7 @@ import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, Stack, Typography } from '@mui/material';
 import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { joinURL } from 'ufo';
+import { useParams } from 'react-router-dom';
 
 import { getProjectIconUrl } from '../../libs/project';
 import BranchButton from './branch-button';
@@ -14,7 +13,6 @@ export default function ProjectBrand() {
 
   const { projectId, ref: gitRef, '*': filepath } = useParams();
   if (!projectId) throw new Error('Missing required params `projectId');
-  const navigate = useNavigate();
 
   const {
     state: { project },
@@ -31,12 +29,7 @@ export default function ProjectBrand() {
 
   return (
     <Box display="flex" alignItems="center" gap={1}>
-      <Stack
-        flexDirection="row"
-        alignItems="center"
-        gap={1}
-        sx={{ cursor: 'pointer' }}
-        onClick={() => navigate(joinURL('..'))}>
+      <Stack flexDirection="row" alignItems="center" gap={1}>
         <Box
           component="img"
           src={project.icon || getProjectIconUrl(projectId) || blocklet?.appLogo}
