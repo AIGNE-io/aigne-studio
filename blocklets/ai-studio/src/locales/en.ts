@@ -604,4 +604,5 @@ export default flat({
   share: 'View',
   refresh: 'Refresh',
   outputName: 'Output Name',
+  entryFunctionDisabledTip: 'Entry function is disabled in "Collections Manage" mode',
 });

@@ -598,4 +598,5 @@ export default flat({
   share: '查看',
   refresh: '刷新',
   outputName: '输出别名',
+  entryFunctionDisabledTip: '入口功能在“知识库管理”模式下不可用',
 });

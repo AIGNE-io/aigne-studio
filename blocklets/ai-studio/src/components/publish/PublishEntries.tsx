@@ -54,6 +54,14 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
         </Button>
       </Box>
 
+      {withCollectionManage && (
+        <Box my={2} textAlign="center">
+          <Typography variant="caption" color="#9CA3AF" fontSize={12} lineHeight="20px" fontWeight={500}>
+            {t('entryFunctionDisabledTip')}
+          </Typography>
+        </Box>
+      )}
+
       {!withCollectionManage && assistant.entries && (
         <DragSortListYjs
           list={assistant.entries}
