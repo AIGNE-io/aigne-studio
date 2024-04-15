@@ -296,17 +296,19 @@ function PublishViewContent({
             <FormLabel>{t('publish.maxRoundLimit')}</FormLabel>
           </Box>
           <Box>
-            <NumberField
-              component={BaseInput}
-              NumberProps={{
-                min: 0,
-                value: assistant.release?.maxRoundLimit ?? null,
-                onChange: (_, value) =>
-                  setRelease((release) => {
-                    release.maxRoundLimit = value;
-                  }),
-              }}
-            />
+            <Box>
+              <NumberField
+                component={BaseInput}
+                NumberProps={{
+                  min: 0,
+                  value: assistant.release?.maxRoundLimit ?? null,
+                  onChange: (_, value) =>
+                    setRelease((release) => {
+                      release.maxRoundLimit = value;
+                    }),
+                }}
+              />
+            </Box>
           </Box>
         </Box>
 
@@ -315,16 +317,18 @@ function PublishViewContent({
             <FormLabel>{t('publish.reachMaxRoundLimitTip')}</FormLabel>
           </Box>
           <Box>
-            <BaseInput
-              fullWidth
-              multiline
-              value={assistant.release?.reachMaxRoundLimitTip ?? ''}
-              onChange={(e) =>
-                setRelease((release) => {
-                  release.reachMaxRoundLimitTip = e.target.value;
-                })
-              }
-            />
+            <Box>
+              <BaseInput
+                fullWidth
+                multiline
+                value={assistant.release?.reachMaxRoundLimitTip ?? ''}
+                onChange={(e) =>
+                  setRelease((release) => {
+                    release.reachMaxRoundLimitTip = e.target.value;
+                  })
+                }
+              />
+            </Box>
           </Box>
         </Box>
       </Stack>
