@@ -141,6 +141,10 @@ function PublishViewContent({
         await refetch({ force: true });
         Toast.success(t('publish.updateSuccess'));
       }
+
+      setTimeout(() => {
+        document.getElementById('create-release-button')?.scrollIntoView({ behavior: 'smooth' });
+      });
     } catch (error) {
       console.error('failed to publish', { error });
       Toast.error(getErrorMessage(error));
@@ -296,17 +300,19 @@ function PublishViewContent({
             <FormLabel>{t('publish.maxRoundLimit')}</FormLabel>
           </Box>
           <Box>
-            <NumberField
-              component={BaseInput}
-              NumberProps={{
-                min: 0,
-                value: assistant.release?.maxRoundLimit ?? null,
-                onChange: (_, value) =>
-                  setRelease((release) => {
-                    release.maxRoundLimit = value;
-                  }),
-              }}
-            />
+            <Box>
+              <NumberField
+                component={BaseInput}
+                NumberProps={{
+                  min: 0,
+                  value: assistant.release?.maxRoundLimit ?? null,
+                  onChange: (_, value) =>
+                    setRelease((release) => {
+                      release.maxRoundLimit = value;
+                    }),
+                }}
+              />
+            </Box>
           </Box>
         </Box>
 
@@ -315,16 +321,18 @@ function PublishViewContent({
             <FormLabel>{t('publish.reachMaxRoundLimitTip')}</FormLabel>
           </Box>
           <Box>
-            <BaseInput
-              fullWidth
-              multiline
-              value={assistant.release?.reachMaxRoundLimitTip ?? ''}
-              onChange={(e) =>
-                setRelease((release) => {
-                  release.reachMaxRoundLimitTip = e.target.value;
-                })
-              }
-            />
+            <Box>
+              <BaseInput
+                fullWidth
+                multiline
+                value={assistant.release?.reachMaxRoundLimitTip ?? ''}
+                onChange={(e) =>
+                  setRelease((release) => {
+                    release.reachMaxRoundLimitTip = e.target.value;
+                  })
+                }
+              />
+            </Box>
           </Box>
         </Box>
       </Stack>
@@ -394,6 +402,7 @@ function PublishViewContent({
 
       <Stack direction="row" gap={2} alignItems="center">
         <LoadingButton
+          id="create-release-button"
           type="submit"
           loading={form.formState.isSubmitting}
           variant="contained"

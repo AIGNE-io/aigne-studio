@@ -37,7 +37,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
     }
   }
 
-  const variables = [...variableSet];
+  const variables = [...variableSet, '$user'];
 
   const options = useMemo(() => {
     return (variables ?? [])

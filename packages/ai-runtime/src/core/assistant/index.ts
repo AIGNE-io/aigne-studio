@@ -119,6 +119,9 @@ export async function runAssistant({
   user?: User;
   sessionId?: string;
 }): Promise<any> {
+  // setup global variables for prompt rendering
+  parameters.$user = user;
+
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,

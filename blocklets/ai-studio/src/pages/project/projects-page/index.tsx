@@ -73,6 +73,12 @@ export default function ProjectsPage() {
       <Stack m={2.5} flexGrow={1} gap={2.5}>
         <ProjectMenu />
 
+        {examples && examples.length > 0 && (
+          <Section title={t('examples')}>
+            <ProjectList section="examples" list={examples} />
+          </Section>
+        )}
+
         <Section title={t('myProjects')} section="projects" list={templates}>
           {projects.length ? (
             <ProjectList section="projects" list={projects} />
@@ -97,12 +103,6 @@ export default function ProjectsPage() {
             </Stack>
           )}
         </Section>
-
-        {examples && examples.length > 0 && (
-          <Section title={t('examples')}>
-            <ProjectList section="examples" list={examples} />
-          </Section>
-        )}
       </Stack>
     </Stack>
   );
