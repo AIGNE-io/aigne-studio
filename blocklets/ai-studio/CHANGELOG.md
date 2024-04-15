@@ -1,3 +1,10 @@
+## 0.1.331 (2024-4-15)
+
+- fix: update session name to user question
+- fix: auto scroll release link into view after published
+- fix: place example project section above of my projects
+- feat: support using variable `$user.fullName` in prompts
+
 ## 0.1.330 (2024-4-15)
 
 - fix: did spaces popup exception
