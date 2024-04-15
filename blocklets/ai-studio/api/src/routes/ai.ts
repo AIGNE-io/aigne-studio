@@ -4,6 +4,7 @@ import { uploadImageToImageBin } from '@api/libs/image-bin';
 import { getActiveSubscriptionOfAssistant, reportUsage } from '@api/libs/payment';
 import History from '@api/store/models/history';
 import Release from '@api/store/models/release';
+import Session from '@api/store/models/session';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
 import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import {
@@ -260,6 +261,14 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     }
 
     res.end();
+
+    if (input.sessionId) {
+      const question = input.parameters?.question;
+      if (question && typeof question === 'string') {
+        const session = await Session.findByPk(input.sessionId);
+        await session?.update({ name: input.parameters?.question });
+      }
+    }
   } catch (e) {
     let fetchErrorMsg = e?.response?.data?.error;
     if (typeof fetchErrorMsg !== 'string') fetchErrorMsg = fetchErrorMsg?.message;
