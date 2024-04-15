@@ -273,19 +273,35 @@ function PublishViewContent({
         </Box>
       </Box>
 
-      <Stack>
+      <Stack
+        sx={{
+          display: 'table',
+          '.row': {
+            display: 'table-row',
+            '> div': {
+              display: 'table-cell',
+              whiteSpace: 'nowrap',
+              '&:first-of-type': {
+                pr: 2,
+              },
+
+              '&:last-of-type': {
+                width: '100%',
+              },
+            },
+          },
+        }}>
         <Typography mb={1} variant="subtitle2">
           {t('publish.settings')}
         </Typography>
 
-        <Box className="between">
-          <Box flex={1}>
+        <Box className="row">
+          <Box>
             <FormLabel>{t('publish.maxRoundLimit')}</FormLabel>
           </Box>
-          <Box flex={1}>
+          <Box>
             <Box>
               <NumberField
-                sx={{ width: 1 }}
                 component={BaseInput}
                 NumberProps={{
                   min: 0,
@@ -300,11 +316,11 @@ function PublishViewContent({
           </Box>
         </Box>
 
-        <Box className="between">
-          <Box flex={1}>
+        <Box className="row">
+          <Box>
             <FormLabel>{t('publish.reachMaxRoundLimitTip')}</FormLabel>
           </Box>
-          <Box flex={1}>
+          <Box>
             <Box>
               <BaseInput
                 fullWidth
