@@ -95,7 +95,7 @@ export default function PromptSetting({
           {model && (
             <>
               {!isNil(model.temperatureMin) && (
-                <Box position="relative" className="between">
+                <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('temperature') }}>
                   <Box flex={1}>
                     <Tooltip title={t('temperatureTip')} placement="top" disableInteractive>
                       <FormLabel>
@@ -116,7 +116,7 @@ export default function PromptSetting({
                         min={model.temperatureMin}
                         max={model.temperatureMax}
                         step={0.1}
-                        sx={{ flex: 1, backgroundColor: getDiffBackground('temperature') }}
+                        sx={{ flex: 1 }}
                         value={value.temperature ?? project?.temperature ?? model.temperatureDefault}
                         onChange={(_, v) => (value.temperature = v)}
                       />
@@ -126,7 +126,7 @@ export default function PromptSetting({
               )}
 
               {!isNil(model.topPMin) && (
-                <Box position="relative" className="between">
+                <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('topP') }}>
                   <Box flex={1}>
                     <Tooltip title={t('topPTip')} placement="top" disableInteractive>
                       <FormLabel>
@@ -149,7 +149,7 @@ export default function PromptSetting({
                         step={0.1}
                         value={value.topP ?? project?.topP ?? model.topPDefault}
                         onChange={(_, v) => (value.topP = v)}
-                        sx={{ flex: 1, backgroundColor: getDiffBackground('topP') }}
+                        sx={{ flex: 1 }}
                       />
                     </WithAwareness>
                   </Box>
@@ -157,7 +157,10 @@ export default function PromptSetting({
               )}
 
               {!isNil(model.presencePenaltyMin) && (
-                <Box position="relative" className="between">
+                <Box
+                  position="relative"
+                  className="between"
+                  sx={{ backgroundColor: getDiffBackground('presencePenalty') }}>
                   <Box flex={1}>
                     <Tooltip title={t('presencePenaltyTip')} placement="top" disableInteractive>
                       <FormLabel>
@@ -178,7 +181,7 @@ export default function PromptSetting({
                         min={model.presencePenaltyMin}
                         max={model.presencePenaltyMax}
                         step={0.1}
-                        sx={{ flex: 1, backgroundColor: getDiffBackground('presencePenalty') }}
+                        sx={{ flex: 1 }}
                         value={value.presencePenalty ?? project?.presencePenalty ?? model.presencePenaltyDefault}
                         onChange={(_, v) => (value.presencePenalty = v)}
                       />
@@ -188,7 +191,10 @@ export default function PromptSetting({
               )}
 
               {!isNil(model.frequencyPenaltyMin) && (
-                <Box position="relative" className="between">
+                <Box
+                  position="relative"
+                  className="between"
+                  sx={{ backgroundColor: getDiffBackground('frequencyPenalty') }}>
                   <Box flex={1}>
                     <Tooltip title={t('frequencyPenaltyTip')} placement="top" disableInteractive>
                       <FormLabel>
@@ -209,7 +215,7 @@ export default function PromptSetting({
                         min={model.frequencyPenaltyMin}
                         max={model.frequencyPenaltyMax}
                         step={0.1}
-                        sx={{ flex: 1, backgroundColor: getDiffBackground('frequencyPenalty') }}
+                        sx={{ flex: 1 }}
                         value={value.frequencyPenalty ?? project?.frequencyPenalty ?? model.frequencyPenaltyDefault}
                         onChange={(_, v) => (value.frequencyPenalty = v)}
                       />
@@ -219,7 +225,7 @@ export default function PromptSetting({
               )}
 
               {!isNil(model.maxTokensMin) && (
-                <Box position="relative" className="between">
+                <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('maxTokens') }}>
                   <Box flex={1}>
                     <Tooltip title={t('maxTokensTip')} placement="top" disableInteractive>
                       <FormLabel>
@@ -240,7 +246,7 @@ export default function PromptSetting({
                         min={model.maxTokensMin}
                         max={model.maxTokensMax}
                         step={1}
-                        sx={{ flex: 1, backgroundColor: getDiffBackground('maxTokens') }}
+                        sx={{ flex: 1 }}
                         value={Math.min(
                           value?.maxTokens ?? project?.maxTokens ?? model.maxTokensDefault ?? 0,
                           model.maxTokensMax ?? 0

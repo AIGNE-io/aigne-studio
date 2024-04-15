@@ -500,6 +500,7 @@ export default flat({
     menu: '知识库',
     parameter: '用户知识库',
     createTitle: '创建知识库',
+    updateTitle: '更新知识库',
     createDescription: '导入您自己的文本数据以增强LLM 的上下文。',
     name: '知识库名称',
     description: '知识库描述',
@@ -596,4 +597,5 @@ export default flat({
   edit: '编辑',
   share: '查看',
   refresh: '刷新',
+  outputName: '输出别名',
 });

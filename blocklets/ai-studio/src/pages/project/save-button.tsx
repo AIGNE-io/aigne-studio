@@ -1,6 +1,7 @@
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { Icon } from '@iconify-icon/react';
 import { DownloadRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -28,7 +29,6 @@ import { useReadOnly } from '../../contexts/session';
 import { getErrorMessage } from '../../libs/api';
 import { commitFromWorking } from '../../libs/working';
 import useDialog from '../../utils/use-dialog';
-import Save from './icons/save';
 import { saveButtonState, useAssistantChangesState, useProjectState } from './state';
 
 interface CommitForm {
@@ -163,7 +163,11 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
           border: '1px solid #E5E7EB',
           color: '#030712',
         }}>
-        <Save sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }} />
+        <Box
+          component={Icon}
+          icon="tabler:device-floppy"
+          sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }}
+        />
         {submitting && (
           <Box
             sx={{
@@ -242,7 +246,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
                 disabled={readOnly}
                 type="submit"
                 variant="contained"
-                startIcon={<Save sx={{ fontSize: 20, color: '#fff' }} />}
+                startIcon={<Box component={Icon} icon="tabler:device-floppy" sx={{ fontSize: 20, color: '#fff' }} />}
                 loadingPosition="start"
                 loading={form.formState.isSubmitting}>
                 {t('save')}

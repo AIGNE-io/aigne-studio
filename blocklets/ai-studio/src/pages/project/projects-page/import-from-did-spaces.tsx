@@ -218,7 +218,7 @@ export default function FromDidSpacesImport() {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={cancelImport} className="cancel">
+          <Button onClick={cancelImport} className="cancel" variant="outlined">
             {t('cancel')}
           </Button>
 

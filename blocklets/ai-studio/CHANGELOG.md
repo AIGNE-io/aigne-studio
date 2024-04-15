@@ -1,6 +1,7 @@
-## 0.1.329 (2024-4-13)
+## 0.1.329 (2024-4-12)
 
-- fix: did spaces popup exception 
+- chore: replace icon
+- chore: add edit dataset
 
 ## 0.1.328 (2024-4-12)
 

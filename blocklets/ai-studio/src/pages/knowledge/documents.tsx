@@ -11,6 +11,7 @@ import { joinURL } from 'ufo';
 import { useDocuments } from '../../contexts/datasets/documents';
 import { reloadEmbedding, watchDatasetEmbeddings } from '../../libs/dataset';
 import useDialog from '../../utils/use-dialog';
+import Pending from './pending';
 
 export default function KnowledgeDocuments() {
   const { t } = useLocaleContext();
@@ -103,6 +104,11 @@ export default function KnowledgeDocuments() {
             error: '#E11D48',
           };
 
+          function isSymmetricAroundSlash(str: string = '') {
+            const [before, after] = str.split('/');
+            return before === after;
+          }
+
           if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
             return (
               <Box
@@ -115,7 +121,10 @@ export default function KnowledgeDocuments() {
                 alignItems="center"
                 gap={1}>
                 <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
-                {t(`embeddingStatus_${params.row.embeddingStatus}`)}
+                <Box display="flex" alignItems="center">
+                  {t(`embeddingStatus_${params.row.embeddingStatus}`)}
+                  {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
+                </Box>
               </Box>
             );
           }
@@ -130,6 +139,12 @@ export default function KnowledgeDocuments() {
               display="flex"
               alignItems="center"
               gap={1}>
+              <Box
+                width={6}
+                height={6}
+                borderRadius={6}
+                bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
+              />
               {params.row.embeddingStatus}
             </Box>
           );
@@ -153,8 +168,11 @@ export default function KnowledgeDocuments() {
             }}
             onEmbedding={async (e) => {
               e.stopPropagation();
-              await reloadEmbedding(params.row.datasetId, params.row.id);
-              Toast.success('success');
+              try {
+                await reloadEmbedding(params.row.datasetId, params.row.id);
+              } catch (error) {
+                Toast.error(error?.message);
+              }
             }}
             onLink={() => {
               const id = params.row.data?.id;
@@ -209,12 +227,7 @@ export default function KnowledgeDocuments() {
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          size="small"
-          onClick={() => {
-            navigate('add');
-          }}>
+        <Button variant="contained" size="small" onClick={() => navigate('add')}>
           {t('knowledge.documents.add')}
         </Button>
       </Stack>
@@ -254,12 +267,7 @@ export default function KnowledgeDocuments() {
                   <Typography variant="subtitle4">{t('No Document Here')}</Typography>
                   <Typography variant="subtitle5">{t('Your document list is currently empty. ')}</Typography>
 
-                  <Button
-                    variant="text"
-                    size="small"
-                    onClick={() => {
-                      navigate('add');
-                    }}>
+                  <Button variant="text" size="small" onClick={() => navigate('add')}>
                     {t('knowledge.documents.add')}
                   </Button>
                 </Stack>
