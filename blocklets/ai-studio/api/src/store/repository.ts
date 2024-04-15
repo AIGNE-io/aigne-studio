@@ -170,7 +170,7 @@ export async function syncToDidSpace({ project, userId }: { project: Project; us
   // 如果有错误则抛出
   const errorOutput = outputs.filter(Boolean).find((output) => output?.statusCode !== 200);
   if (errorOutput) {
-    throw new Error(errorOutput.message);
+    throw new Error(errorOutput.statusMessage);
   }
 
   await project.update({ didSpaceLastSyncedAt: new Date() });

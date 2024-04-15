@@ -34,7 +34,9 @@ export async function importProject(req: Request, res: Response) {
     endpoint,
   });
   const remoteProjectRootPath: string = `repositories/${projectId}/`;
-  const { metadata: projectMetadata } = await spaceClient.send(
+  const {
+    data: { metadata: projectMetadata },
+  } = await spaceClient.send(
     new ListObjectCommand({
       key: remoteProjectRootPath,
     })
@@ -67,7 +69,7 @@ export async function importProject(req: Request, res: Response) {
   // 如果有错误则抛出
   const errorOutput = outputs.filter(Boolean).find((output) => output?.statusCode !== 200);
   if (errorOutput) {
-    throw new Error(errorOutput.message);
+    throw new Error(errorOutput.statusMessage);
   }
 
   const settingsPath = join(localeProjectRootPath, SETTINGS_FILE);

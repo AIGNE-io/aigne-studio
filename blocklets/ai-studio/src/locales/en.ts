@@ -506,6 +506,7 @@ export default flat({
     menu: 'Knowledge',
     parameter: 'User Dataset',
     createTitle: 'Create Knowledge',
+    updateTitle: 'Update Knowledge',
     createDescription: "Import your own text data to enhance the LLM's context.",
     name: 'Knowledge Name',
     description: 'Knowledge Description',
@@ -602,4 +603,5 @@ export default flat({
   edit: 'Edit',
   share: 'View',
   refresh: 'Refresh',
+  outputName: 'Output Name',
 });
