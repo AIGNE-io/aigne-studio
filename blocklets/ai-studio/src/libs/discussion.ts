@@ -36,3 +36,14 @@ export async function searchDiscussions({
     })
     .then((res) => res.data);
 }
+
+export async function discussionBoards(): Promise<{
+  data: { id: string; title: string; type: 'discussion' | 'blog' | 'doc' }[];
+  total: number;
+}> {
+  return api
+    .get('/api/call/boards', {
+      baseURL: discuss().mountPoint,
+    })
+    .then((res) => res.data);
+}

@@ -79,6 +79,18 @@ export default function KnowledgeDocuments() {
         flex: 1,
         sortable: false,
         renderCell: (params: any) => {
+          if (params.row.type === 'discussKit') {
+            if (params.row.data?.data.from === 'discussionType') {
+              return <Box>{`${t(params.row.data?.data.id)}${t('data')}`} </Box>;
+            }
+
+            if (params.row.data?.data.from === 'board') {
+              return <Box>{`${params.row.data?.data.title}${t('board')}`}</Box>;
+            }
+
+            return <Box> {`${params.row.data?.data.title}${t('data')}`}</Box>;
+          }
+
           return <Box>{params.row.name}</Box>;
         },
       },
@@ -105,27 +117,33 @@ export default function KnowledgeDocuments() {
           };
 
           function isSymmetricAroundSlash(str: string = '') {
-            const [before, after] = str.split('/');
-            return before === after;
+            try {
+              const [before, after] = (str || '').split('/');
+              return before === after;
+            } catch (error) {
+              return false;
+            }
           }
 
           if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
             return (
-              <Box
-                borderRadius={20}
-                border="1px solid #E5E7EB"
-                p="4px 12px"
-                color="#030712"
-                fontSize={13}
-                display="flex"
-                alignItems="center"
-                gap={1}>
-                <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
-                <Box display="flex" alignItems="center">
-                  {t(`embeddingStatus_${params.row.embeddingStatus}`)}
-                  {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
+              <Tooltip title={params.row.error ?? undefined}>
+                <Box
+                  borderRadius={20}
+                  border="1px solid #E5E7EB"
+                  p="4px 12px"
+                  color="#030712"
+                  fontSize={13}
+                  display="flex"
+                  alignItems="center"
+                  gap={1}>
+                  <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
+                  <Box display="flex" alignItems="center">
+                    {t(`embeddingStatus_${params.row.embeddingStatus}`)}
+                    {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
+                  </Box>
                 </Box>
-              </Box>
+              </Tooltip>
             );
           }
 

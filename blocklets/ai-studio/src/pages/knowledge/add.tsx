@@ -1,3 +1,4 @@
+import { discussionBoards } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
@@ -5,8 +6,9 @@ import { LoadingButton } from '@mui/lab';
 import TabContext from '@mui/lab/TabContext';
 import TabPanel from '@mui/lab/TabPanel';
 import { Box, Checkbox, CircularProgress, FormControlLabel, Stack, TextField, Typography, styled } from '@mui/material';
-import { useRequest } from 'ahooks';
-import { useState } from 'react';
+import { useReactive, useRequest } from 'ahooks';
+import { groupBy, uniqWith } from 'lodash';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -148,7 +150,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 sx={{ cursor: 'pointer' }}>
                 <Box className="center" gap={1}>
                   <Box component={Icon} icon="tabler:arrow-bar-to-up" />
-                  <Typography>Import Files</Typography>
+                  <Typography>{t('importFiles')}</Typography>
                 </Box>
 
                 <Box
@@ -217,54 +219,155 @@ const types = ['discussion', 'blog', 'doc'] as ['discussion', 'blog', 'doc'];
 
 function Discussion({ datasetId }: { datasetId: string }) {
   const { t } = useLocaleContext();
-  const [checkedValues, setCheckedValues] = useState<('discussion' | 'blog' | 'doc')[]>(types);
   const [loading, setLoading] = useState(false);
+  const state = useReactive<{
+    data: {
+      id: string;
+      title: string;
+      type?: 'discussion' | 'blog' | 'doc';
+      from: 'discussion' | 'board' | 'discussionType';
+    }[];
+  }>({
+    data: ['discussion', 'blog', 'doc'].map((x) => ({ from: 'discussionType', id: x, title: x })),
+  });
+  const result = useRequest(() => discussionBoards());
+  const [boards, setBoards] = useState<{ id: string; title: string; type: 'discussion' | 'blog' | 'doc' }[]>([]);
 
-  const handleChange = (event: any) => {
-    const { name, checked } = event.target;
-    const newCheckedValues: ('discussion' | 'blog' | 'doc')[] = checked
-      ? [...checkedValues, name]
-      : checkedValues.filter((value) => value !== name);
-
-    setCheckedValues(newCheckedValues);
+  const onChange = (
+    checked: boolean,
+    data: {
+      id: string;
+      title: string;
+      type?: 'discussion' | 'blog' | 'doc';
+      from: 'discussion' | 'board' | 'discussionType';
+    }
+  ) => {
+    const newCheckedValues = checked
+      ? [...state.data, data]
+      : state.data.filter((value) => !(value.id === data.id && value.from === data.from));
+    state.data = uniqWith(newCheckedValues, (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`);
   };
 
   const { refetch } = useDocuments(datasetId);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!result.loading) {
+      const list: { id: string; title: string; type: 'discussion' | 'blog' | 'doc' }[] = (
+        result?.data?.data || []
+      ).filter((x) => ['discussion', 'blog', 'doc'].includes(x.type));
+
+      const formatList: { id: string; title: string; from: 'board' }[] = list.map((x) => ({
+        from: 'board',
+        type: x.type,
+        id: x.id,
+        title: x.title,
+      }));
+
+      state.data = [...(state.data || []), ...formatList];
+      setBoards(list);
+    }
+  }, [result.loading]);
+
+  if (result.loading) {
+    return (
+      <Box className="center" width={1} height={1}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const isChecked = (id: string) => {
+    return Boolean(state.data.find((x) => x.id === id));
+  };
+
+  const group = groupBy(boards, (x) => x.type);
+
   return (
     <Box maxWidth="900px" component="form">
       <Stack gap={1}>
         <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
-          {t('Import from Discussion')}
+          {t('importFromDiscussion')}
         </Typography>
 
-        <Stack gap={1.5} flexDirection="row">
-          {types.map((name) => (
-            <Box borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1} key={name}>
-              <FormControlLabel
-                control={<Checkbox checked={checkedValues.includes(name)} onChange={handleChange} name={name} />}
-                label={t(name)}
-              />
-            </Box>
-          ))}
-        </Stack>
+        <Box>
+          <Typography variant="subtitle2">{t('discussionType')}</Typography>
+          <Stack gap={1.5} flexDirection="row">
+            {types.map((name) => (
+              <Box borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1} key={name}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={isChecked(name)}
+                      onChange={(e) => {
+                        const { name, checked } = e.target;
+                        onChange(checked, {
+                          id: name,
+                          title: name,
+                          from: 'discussionType',
+                        });
+                      }}
+                      name={name}
+                    />
+                  }
+                  label={`${t(name)}${t('data')}`}
+                />
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+
+        <Box>
+          <Typography variant="subtitle2">{t('discussionBoards')}</Typography>
+          <Stack gap={1}>
+            {Object.entries(group).map(([key, value]) => {
+              return (
+                <Box key={key}>
+                  <Typography variant="subtitle3">{t(key)}</Typography>
+
+                  <Stack gap={1.5} flexDirection="row" borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1}>
+                    {value.map(({ id, title, type }) => (
+                      <FormControlLabel
+                        key={id}
+                        control={
+                          <Checkbox
+                            checked={isChecked(id)}
+                            onChange={(e) => {
+                              const { name, checked } = e.target;
+                              onChange(checked, {
+                                id: name,
+                                title,
+                                type,
+                                from: 'board',
+                              });
+                            }}
+                            name={id}
+                          />
+                        }
+                        label={title}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              );
+            })}
+          </Stack>
+        </Box>
 
         <Box>
           <LoadingButton
             variant="contained"
-            disabled={!checkedValues.length}
+            disabled={!state.data.length}
             startIcon={loading ? <CircularProgress sx={{ color: '#fff' }} size={16} /> : null}
             onClick={async () => {
               try {
                 setLoading(true);
 
-                await createDatasetDocuments(datasetId, [
-                  {
-                    name: 'Discussion Full Site',
-                    data: { type: 'discussion', fullSite: true, id: '', types: checkedValues },
-                  },
-                ]);
+                const data = uniqWith(state.data, (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`).map((x) => {
+                  return { name: x.title, data: x };
+                });
+
+                await createDatasetDocuments(datasetId, data);
                 await refetch();
                 Toast.success(t('alert.saved'));
                 navigate(`../${datasetId}`, { replace: true });
@@ -483,13 +586,13 @@ export default function KnowledgeDocumentsAdd() {
             ))}
           </Box>
 
-          <TabPanel value="file" sx={{ p: 0 }}>
+          <TabPanel value="file" sx={{ p: 0, height: 1 }}>
             <File datasetId={datasetId || ''} id={id || ''} />
           </TabPanel>
-          <TabPanel value="discussion" sx={{ p: 0 }}>
+          <TabPanel value="discussion" sx={{ p: 0, height: 1 }}>
             <Discussion datasetId={datasetId || ''} />
           </TabPanel>
-          <TabPanel value="custom" sx={{ p: 0 }}>
+          <TabPanel value="custom" sx={{ p: 0, height: 1 }}>
             <Custom datasetId={datasetId || ''} id={id || ''} value={document?.document} />
           </TabPanel>
         </Stack>

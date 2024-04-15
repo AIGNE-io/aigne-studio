@@ -561,6 +561,7 @@ export default flat({
   },
   discussion: 'Discussion',
   fullSite: 'FullSite',
+  discussKit: 'DiscussKit',
   embeddingStartTime: 'Embedding Start',
   embeddingEndTime: 'Embedding End',
   embeddingStatus: 'Status',
@@ -605,4 +606,10 @@ export default flat({
   refresh: 'Refresh',
   outputName: 'Output Name',
   entryFunctionDisabledTip: 'Entry function is disabled in "Collections Manage" mode',
+  board: 'Board Data',
+  data: 'data',
+  importFiles: 'Import Files',
+  importFromDiscussion: 'Import from Discussion',
+  discussionType: 'Discussion Type',
+  discussionBoards: 'Discussion Boards',
 });

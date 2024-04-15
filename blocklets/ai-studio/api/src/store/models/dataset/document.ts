@@ -22,7 +22,7 @@ export default class DatasetDocument extends Model<
 
   declare datasetId: string;
 
-  declare type: 'discussion' | 'text' | 'file' | 'fullSite';
+  declare type: 'discussion' | 'text' | 'file' | 'fullSite' | 'discussKit'; // 'discussion'和'fullSite'已经废弃，统一使用 'discussKit'
 
   declare data?:
     | {
@@ -41,6 +41,15 @@ export default class DatasetDocument extends Model<
     | {
         type: string;
         path: string;
+      }
+    | {
+        type: 'discussKit';
+        data: {
+          id: string;
+          title: string;
+          type?: 'discussion' | 'blog' | 'doc';
+          from: 'discussion' | 'board' | 'discussionType';
+        };
       };
 
   declare name?: string;
