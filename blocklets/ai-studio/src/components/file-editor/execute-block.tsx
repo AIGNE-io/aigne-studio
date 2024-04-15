@@ -193,6 +193,42 @@ export default function ExecuteBlockForm({
           </>
         </Box>
 
+        <Box display="flex" alignItems="baseline" justifyContent="space-between">
+          <Box display="flex" flex={1}>
+            <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('executeMethods')}</Typography>
+            <Tooltip title={t('executeMethodsTip')} placement="top" disableInteractive>
+              <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+            </Tooltip>
+          </Box>
+
+          <Box>
+            <IndicatorTextField
+              projectId={projectId}
+              gitRef={gitRef}
+              path={[value.id, value.selectType ?? 'all']}
+              TextFiledProps={{
+                size: 'small',
+                select: true,
+                hiddenLabel: true,
+                SelectProps: {
+                  autoWidth: true,
+                },
+                value: value.selectType || 'all',
+                onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                  (value.selectType = e.target.value as any),
+                children: [
+                  <MenuItem key="all" value="all">
+                    {t('allTools')}
+                  </MenuItem>,
+                  <MenuItem key="selectByPrompt" value="selectByPrompt">
+                    {t('selectPrompt')}
+                  </MenuItem>,
+                ],
+              }}
+            />
+          </Box>
+        </Box>
+
         {value.selectType === 'selectByPrompt' && (
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Box display="flex" alignItems="center" flex={1}>

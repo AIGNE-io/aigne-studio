@@ -273,35 +273,19 @@ function PublishViewContent({
         </Box>
       </Box>
 
-      <Stack
-        sx={{
-          display: 'table',
-          '.row': {
-            display: 'table-row',
-            '> div': {
-              display: 'table-cell',
-              whiteSpace: 'nowrap',
-              '&:first-of-type': {
-                pr: 2,
-              },
-
-              '&:last-of-type': {
-                width: '100%',
-              },
-            },
-          },
-        }}>
+      <Stack>
         <Typography mb={1} variant="subtitle2">
           {t('publish.settings')}
         </Typography>
 
-        <Box className="row">
-          <Box>
+        <Box className="between">
+          <Box flex={1}>
             <FormLabel>{t('publish.maxRoundLimit')}</FormLabel>
           </Box>
-          <Box>
+          <Box flex={1}>
             <Box>
               <NumberField
+                sx={{ width: 1 }}
                 component={BaseInput}
                 NumberProps={{
                   min: 0,
@@ -316,11 +300,11 @@ function PublishViewContent({
           </Box>
         </Box>
 
-        <Box className="row">
-          <Box>
+        <Box className="between">
+          <Box flex={1}>
             <FormLabel>{t('publish.reachMaxRoundLimitTip')}</FormLabel>
           </Box>
-          <Box>
+          <Box flex={1}>
             <Box>
               <BaseInput
                 fullWidth
@@ -358,18 +342,22 @@ function PublishViewContent({
 
         {assistant.release?.payment?.enable && (
           <Stack direction="row" gap={1} alignItems="center" className="between">
-            <FormLabel sx={{ width: 60 }}>{t('publish.price')}</FormLabel>
-            <TextField
-              hiddenLabel
-              InputProps={{ endAdornment: <InputAdornment position="end">ABT / {t('publish.time')}</InputAdornment> }}
-              value={assistant.release.payment.price ?? ''}
-              onChange={(e) =>
-                setRelease((release) => {
-                  release.payment ??= {};
-                  release.payment.price = e.target.value;
-                })
-              }
-            />
+            <Box flex={1}>
+              <FormLabel sx={{ width: 60 }}>{t('publish.price')}</FormLabel>
+            </Box>
+            <Box flex={1}>
+              <TextField
+                hiddenLabel
+                InputProps={{ endAdornment: <InputAdornment position="end">ABT / {t('publish.time')}</InputAdornment> }}
+                value={assistant.release.payment.price ?? ''}
+                onChange={(e) =>
+                  setRelease((release) => {
+                    release.payment ??= {};
+                    release.payment.price = e.target.value;
+                  })
+                }
+              />
+            </Box>
           </Stack>
         )}
       </Stack>
