@@ -141,6 +141,10 @@ function PublishViewContent({
         await refetch({ force: true });
         Toast.success(t('publish.updateSuccess'));
       }
+
+      setTimeout(() => {
+        document.getElementById('create-release-button')?.scrollIntoView({ behavior: 'smooth' });
+      });
     } catch (error) {
       console.error('failed to publish', { error });
       Toast.error(getErrorMessage(error));
@@ -398,6 +402,7 @@ function PublishViewContent({
 
       <Stack direction="row" gap={2} alignItems="center">
         <LoadingButton
+          id="create-release-button"
           type="submit"
           loading={form.formState.isSubmitting}
           variant="contained"
