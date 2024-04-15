@@ -116,7 +116,7 @@ export default function PromptPrompts({
                       title={hidden ? t('activeMessageTip') : t('hideMessageTip')}
                       disableInteractive
                       placement="top">
-                      <Box onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')} ClassName="center">
+                      <Box onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')} className="center">
                         {prompt.visibility === 'hidden' ? (
                           <Box component={Icon} icon="tabler:eye-off" sx={{ color: 'grey.500' }} />
                         ) : (
