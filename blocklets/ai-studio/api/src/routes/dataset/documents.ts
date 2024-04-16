@@ -23,7 +23,12 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 export interface CreateDiscussionItem {
   name: string;
-  data: { type: 'discussion'; fullSite?: boolean; types?: ('discussion' | 'blog' | 'doc')[]; id: string };
+  data: {
+    id: string;
+    title: string;
+    type?: 'discussion' | 'blog' | 'doc';
+    from: 'discussion' | 'board' | 'discussionType';
+  };
 }
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
@@ -281,24 +286,13 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   const createItemsSchema = Joi.object({
     name: Joi.string().empty(['', null]),
     data: Joi.object({
-      type: Joi.string().valid('discussion').required(),
-      fullSite: Joi.boolean(),
-      types: Joi.array().items(Joi.string()).sparse(false),
-      id: Joi.string().empty(['', null]),
-    })
-      .required()
-      .when('.fullSite', {
-        is: true,
-        then: Joi.object({
-          types: Joi.array().items(Joi.string()).min(1).required(),
-          id: Joi.any().optional(),
-        }),
-        otherwise: Joi.object({
-          types: Joi.array().items(Joi.string()).sparse(true).default([]),
-          id: Joi.string().required(),
-        }),
-      }),
+      from: Joi.string().valid('discussion', 'board', 'discussionType').required(),
+      type: Joi.string().valid('discussion', 'blog', 'doc').optional(),
+      title: Joi.string().allow('', null).required(),
+      id: Joi.string().required(),
+    }).required(),
   });
+
   const createItemInputSchema = Joi.alternatives<CreateDiscussionItemInput>().try(
     Joi.array().items(createItemsSchema),
     createItemsSchema
@@ -313,45 +307,29 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
 
   const arr = Array.isArray(input) ? input : [input];
 
-  const createOrUpdate = async (name: string, id: string) => {
-    const found = await DatasetDocument.findOne({ where: { datasetId, 'data.id': id } });
+  const createOrUpdate = async (name: string, data: CreateDiscussionItem['data']) => {
+    const found = await DatasetDocument.findOne({ where: { datasetId, 'data.id': data.id, 'data.from': data.from } });
     if (found) {
-      return found.update({ name, updatedBy: did }, { where: { datasetId, 'data.id': id } });
+      return found.update(
+        { name, updatedBy: did },
+        { where: { datasetId, 'data.id': data.id, 'data.from': data.from } }
+      );
     }
 
     return DatasetDocument.create({
-      type: 'discussion',
-      data: { type: 'discussion', id },
+      type: 'discussKit',
+      data: { type: 'discussKit', data },
       name,
       datasetId,
       createdBy: did,
       updatedBy: did,
+      embeddingStatus: 'idle',
     });
   };
 
-  let docs: DatasetDocument[] = [];
-  const fullSite = arr.find((x) => x.data?.fullSite);
-  if (fullSite) {
-    const document = await DatasetDocument.create({
-      type: 'fullSite',
-      data: {
-        type: 'fullSite',
-        ids: [],
-        types: fullSite.data.types || [],
-      },
-      name: fullSite.name,
-      datasetId,
-      createdBy: did,
-      updatedBy: did,
-    });
-    queue.checkAndPush({ type: 'document', documentId: document.id });
-
-    return res.json(document);
-  }
-
-  docs = await Promise.all(
+  const docs = await Promise.all(
     arr.map(async (item) => {
-      const document = await createOrUpdate(item.name, item.data.id);
+      const document = await createOrUpdate(item.name, item.data);
       queue.checkAndPush({ type: 'document', documentId: document.id });
       return document;
     })

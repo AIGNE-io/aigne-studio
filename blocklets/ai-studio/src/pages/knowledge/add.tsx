@@ -1,12 +1,17 @@
+import { CreateDiscussionItem } from '@api/routes/dataset/documents';
+import { discussionBoards } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import { LoadingButton } from '@mui/lab';
 import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { Box, Checkbox, CircularProgress, FormControlLabel, Stack, TextField, Typography, styled } from '@mui/material';
-import { useRequest } from 'ahooks';
-import { useState } from 'react';
+import Tab from '@mui/material/Tab';
+import { useReactive, useRequest } from 'ahooks';
+import { groupBy, uniqWith } from 'lodash';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -22,6 +27,7 @@ import {
   updateTextDocument,
 } from '../../libs/dataset';
 import Discuss from '../project/icons/discuss';
+import DiscussList from './discuss';
 
 function formatBytes(bytes: number, decimals = 2) {
   if (bytes === 0) return '0 Bytes';
@@ -148,7 +154,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 sx={{ cursor: 'pointer' }}>
                 <Box className="center" gap={1}>
                   <Box component={Icon} icon="tabler:arrow-bar-to-up" />
-                  <Typography>Import Files</Typography>
+                  <Typography>{t('importFiles')}</Typography>
                 </Box>
 
                 <Box
@@ -176,6 +182,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
 
         <Box>
           <LoadingButton
+            sx={{ mb: 2 }}
             type="submit"
             variant="contained"
             disabled={!file}
@@ -217,54 +224,200 @@ const types = ['discussion', 'blog', 'doc'] as ['discussion', 'blog', 'doc'];
 
 function Discussion({ datasetId }: { datasetId: string }) {
   const { t } = useLocaleContext();
-  const [checkedValues, setCheckedValues] = useState<('discussion' | 'blog' | 'doc')[]>(types);
   const [loading, setLoading] = useState(false);
-
-  const handleChange = (event: any) => {
-    const { name, checked } = event.target;
-    const newCheckedValues: ('discussion' | 'blog' | 'doc')[] = checked
-      ? [...checkedValues, name]
-      : checkedValues.filter((value) => value !== name);
-
-    setCheckedValues(newCheckedValues);
-  };
-
+  const state = useReactive<{
+    data: CreateDiscussionItem['data'][];
+  }>({
+    data: ['discussion', 'blog', 'doc'].map((x) => ({ from: 'discussionType', id: x, title: x })),
+  });
+  const result = useRequest(() => discussionBoards());
+  const [boards, setBoards] = useState<{ id: string; title: string; type: 'discussion' | 'blog' | 'doc' }[]>([]);
+  const [value, setValue] = useState('discussion');
   const { refetch } = useDocuments(datasetId);
   const navigate = useNavigate();
+
+  const onChange = (checked: boolean, data: CreateDiscussionItem['data']) => {
+    const newCheckedValues = checked
+      ? [...state.data, data]
+      : state.data.filter((value) => !(value.id === data.id && value.from === data.from));
+    state.data = uniqWith(newCheckedValues, (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`);
+  };
+
+  const onChangeTable = (type: string, data: CreateDiscussionItem['data'][]) => {
+    const list = uniqWith(
+      state.data.filter((x) => {
+        return !(x.from === 'discussion' && x.type === type);
+      }),
+      (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`
+    );
+
+    state.data = uniqWith([...list, ...data], (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`);
+  };
+
+  useEffect(() => {
+    if (!result.loading) {
+      const list: { id: string; title: string; type: 'discussion' | 'blog' | 'doc' }[] = (
+        result?.data?.data || []
+      ).filter((x) => ['discussion', 'blog', 'doc'].includes(x.type));
+
+      const formatList: { id: string; title: string; from: 'board' }[] = list.map((x) => ({
+        from: 'board',
+        type: x.type,
+        id: x.id,
+        title: x.title,
+      }));
+
+      state.data = uniqWith(
+        [...(state.data || []), ...formatList],
+        (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`
+      );
+      setBoards(list);
+    }
+  }, [result.loading]);
+
+  if (result.loading) {
+    return (
+      <Box className="center" width={1} height={1}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const isChecked = (id: string) => {
+    return Boolean(state.data.find((x) => x.id === id));
+  };
+
+  const group = groupBy(boards, (x) => x.type);
+
+  const getDiscussionValue = (type: string) => {
+    const data = uniqWith(
+      state.data.filter((x) => {
+        return x.from === 'discussion' && x.type === type;
+      }),
+      (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`
+    );
+
+    return data;
+  };
 
   return (
     <Box maxWidth="900px" component="form">
       <Stack gap={1}>
         <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
-          {t('Import from Discussion')}
+          {t('importFromDiscussion')}
         </Typography>
 
-        <Stack gap={1.5} flexDirection="row">
-          {types.map((name) => (
-            <Box borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1} key={name}>
-              <FormControlLabel
-                control={<Checkbox checked={checkedValues.includes(name)} onChange={handleChange} name={name} />}
-                label={t(name)}
-              />
-            </Box>
-          ))}
-        </Stack>
+        <Box>
+          <Typography variant="subtitle2">{t('discussionType')}</Typography>
+          <Stack gap={1.5} flexDirection="row">
+            {types.map((name) => (
+              <Box borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1} key={name}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={isChecked(name)}
+                      onChange={(e) => {
+                        const { name, checked } = e.target;
+                        onChange(checked, {
+                          id: name,
+                          title: name,
+                          from: 'discussionType',
+                        });
+                      }}
+                      name={name}
+                    />
+                  }
+                  label={`${t('all')}${t(name)}${t('data')}`}
+                />
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+
+        <Box>
+          <Typography variant="subtitle2">{t('discussionBoards')}</Typography>
+          <Stack gap={1}>
+            {Object.entries(group).map(([key, value]) => {
+              return (
+                <Box key={key}>
+                  <Typography variant="subtitle3">{t(key)}</Typography>
+
+                  <Stack gap={1.5} flexDirection="row" borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1}>
+                    {value.map(({ id, title, type }) => (
+                      <FormControlLabel
+                        key={id}
+                        control={
+                          <Checkbox
+                            checked={isChecked(id)}
+                            onChange={(e) => {
+                              const { name, checked } = e.target;
+                              onChange(checked, {
+                                id: name,
+                                title,
+                                type,
+                                from: 'board',
+                              });
+                            }}
+                            name={id}
+                          />
+                        }
+                        label={title}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              );
+            })}
+          </Stack>
+        </Box>
+
+        <Box>
+          <Typography variant="subtitle2">{t('discussionData')}</Typography>
+          <Box sx={{ width: '100%', typography: 'body1' }}>
+            <TabContext value={value}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <TabList
+                  onChange={(_event: React.SyntheticEvent, newValue: string) => {
+                    setValue(newValue);
+                  }}>
+                  {types.map((x) => {
+                    return <Tab label={t(x)} value={x} key={x} />;
+                  })}
+                </TabList>
+              </Box>
+
+              {types.map((x) => {
+                return (
+                  <TabPanel value={x} sx={{ p: 0, height: 1 }} key={x}>
+                    <DiscussList
+                      type={x}
+                      value={getDiscussionValue(x)}
+                      onChange={(d) => {
+                        onChangeTable(x, d);
+                      }}
+                    />
+                  </TabPanel>
+                );
+              })}
+            </TabContext>
+          </Box>
+        </Box>
 
         <Box>
           <LoadingButton
+            sx={{ mb: 2 }}
             variant="contained"
-            disabled={!checkedValues.length}
+            disabled={!state.data.length}
             startIcon={loading ? <CircularProgress sx={{ color: '#fff' }} size={16} /> : null}
             onClick={async () => {
               try {
                 setLoading(true);
 
-                await createDatasetDocuments(datasetId, [
-                  {
-                    name: 'Discussion Full Site',
-                    data: { type: 'discussion', fullSite: true, id: '', types: checkedValues },
-                  },
-                ]);
+                const data = uniqWith(state.data, (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`).map((x) => {
+                  return { name: x.title, data: x };
+                });
+
+                await createDatasetDocuments(datasetId, data);
                 await refetch();
                 Toast.success(t('alert.saved'));
                 navigate(`../${datasetId}`, { replace: true });
@@ -369,6 +522,7 @@ function Custom({ datasetId, id, value }: { datasetId: string; id?: string; valu
 
         <Box>
           <LoadingButton
+            sx={{ mb: 2 }}
             type="submit"
             variant="contained"
             startIcon={form.formState.isSubmitting ? <CircularProgress sx={{ color: '#fff' }} size={16} /> : null}>
@@ -442,7 +596,7 @@ export default function KnowledgeDocumentsAdd() {
   ];
 
   return (
-    <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5}>
+    <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5} overflow="auto">
       <Stack flexDirection="row" className="between">
         <Box>
           <Box
@@ -483,13 +637,13 @@ export default function KnowledgeDocumentsAdd() {
             ))}
           </Box>
 
-          <TabPanel value="file" sx={{ p: 0 }}>
+          <TabPanel value="file" sx={{ p: 0, height: 1 }}>
             <File datasetId={datasetId || ''} id={id || ''} />
           </TabPanel>
-          <TabPanel value="discussion" sx={{ p: 0 }}>
+          <TabPanel value="discussion" sx={{ p: 0, height: 1 }}>
             <Discussion datasetId={datasetId || ''} />
           </TabPanel>
-          <TabPanel value="custom" sx={{ p: 0 }}>
+          <TabPanel value="custom" sx={{ p: 0, height: 1 }}>
             <Custom datasetId={datasetId || ''} id={id || ''} value={document?.document} />
           </TabPanel>
         </Stack>

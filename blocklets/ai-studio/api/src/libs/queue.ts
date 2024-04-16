@@ -5,12 +5,12 @@ import { Worker } from 'snowflake-uuid';
 const taskIdGenerator = new Worker();
 const nextTaskId = () => taskIdGenerator.nextId().toString();
 
-export type EmbeddingQueue = {
+export type DocumentQueue = {
   type: 'document';
   documentId: string;
 };
 
-export type FullSiteQueue = {
+export type DiscussQueue = {
   type: 'fullSite';
   documentId: string;
   currentIndex: number;
@@ -27,14 +27,14 @@ export type CommentQueue = {
 
 export type Task = {
   id: string;
-  job: EmbeddingQueue | FullSiteQueue | CommentQueue;
+  job: DocumentQueue | DiscussQueue | CommentQueue;
 };
 
-export const isEmbeddingQueue = (job: any): job is EmbeddingQueue => {
+export const isDocumentQueue = (job: any): job is DocumentQueue => {
   return job && job.type === 'document';
 };
 
-export function isFullSiteQueue(job: any): job is FullSiteQueue {
+export function isDiscussQueue(job: any): job is DiscussQueue {
   return job && job.type === 'fullSite';
 }
 

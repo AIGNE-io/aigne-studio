@@ -1,3 +1,7 @@
+## 0.1.334 (2024-4-16)
+
+- chore: embedding discuss data by type board and id
+
 ## 0.1.333 (2024-4-16)
 
 - fix: display tool messages and debug messages

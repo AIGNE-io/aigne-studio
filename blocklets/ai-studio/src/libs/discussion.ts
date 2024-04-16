@@ -24,15 +24,28 @@ export async function searchDiscussions({
   search,
   page,
   size,
+  type,
 }: {
   search?: string;
   page?: number;
   size?: number;
+  type?: string;
 }): Promise<{ data: DiscussionItem[]; total: number }> {
   return api
-    .get('/api/discussions', {
+    .get('/api/call/posts', {
       baseURL: discuss().mountPoint,
-      params: { page, size, search },
+      params: { page, size, search, type },
+    })
+    .then((res) => res.data);
+}
+
+export async function discussionBoards(): Promise<{
+  data: { id: string; title: string; type: 'discussion' | 'blog' | 'doc' }[];
+  total: number;
+}> {
+  return api
+    .get('/api/call/boards', {
+      baseURL: discuss().mountPoint,
     })
     .then((res) => res.data);
 }
