@@ -45,7 +45,7 @@ export default function DebugView({
   };
 
   return (
-    <Stack gap={1.5}>
+    <Stack gap={1.5} overflow="auto">
       <Box />
 
       <Stack

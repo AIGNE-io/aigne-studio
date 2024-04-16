@@ -613,4 +613,6 @@ export default flat({
   discussionType: 'Discussion Type',
   discussionBoards: 'Discussion Boards',
   discussionData: 'Discussion Data',
+  noDocument: 'No Document Here',
+  noDocumentDesc: 'Your document list is currently empty',
 });

@@ -1,3 +1,9 @@
+## 0.1.335 (2024-4-16)
+
+- fix: discuss embedding default select
+- fix: can delete execute action button
+- fix: document i18n
+
 ## 0.1.334 (2024-4-16)
 
 - chore: embedding discuss data by type board and id
