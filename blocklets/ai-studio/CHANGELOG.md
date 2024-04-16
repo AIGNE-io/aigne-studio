@@ -1,3 +1,7 @@
+## 0.1.336 (2024-4-16)
+
+- fix: some ui defects
+
 ## 0.1.335 (2024-4-16)
 
 - fix: discuss embedding default select

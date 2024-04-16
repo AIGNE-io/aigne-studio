@@ -703,7 +703,8 @@ function ToolItemView({
         <Typography
           noWrap
           maxWidth="50%"
-          variant="subtitle3"
+          variant="subtitle2"
+          sx={{ mb: 0 }}
           color={
             executeBlock.selectType === 'selectByPrompt' && executeBlock.defaultToolId === tool.id
               ? 'primary.main'
@@ -713,7 +714,18 @@ function ToolItemView({
         </Typography>
       </Tooltip>
 
-      <Typography variant="subtitle3" flex={1} noWrap>
+      <Typography
+        variant="subtitle3"
+        flex={1}
+        noWrap
+        color={
+          executeBlock.selectType === 'selectByPrompt' && executeBlock.defaultToolId === tool.id
+            ? 'primary.main'
+            : '#030712'
+        }
+        sx={{
+          opacity: (theme) => theme.palette.action.disabledOpacity,
+        }}>
         {description}
       </Typography>
 
@@ -1233,7 +1245,9 @@ export const ToolDialog = forwardRef<
 
       <DialogActions>
         {DialogProps?.onClose && (
-          <Button onClick={(e) => DialogProps?.onClose?.(e, 'escapeKeyDown')}>{t('cancel')}</Button>
+          <Button onClick={(e) => DialogProps?.onClose?.(e, 'escapeKeyDown')} variant="outlined">
+            {t('cancel')}
+          </Button>
         )}
 
         <Button variant="contained" type="submit">

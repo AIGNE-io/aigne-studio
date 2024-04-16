@@ -62,7 +62,6 @@ export default function DebugView({
         <LoadingButton
           sx={{ py: 0 }}
           loading={running}
-          loadingPosition="end"
           onClick={runAll}
           startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}>
           {t('runAll')}

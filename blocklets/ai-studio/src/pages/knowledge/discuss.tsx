@@ -102,7 +102,17 @@ function DiscussionTable({
 const useColumns = (): GridColDef<DiscussionItem>[] => {
   const { t } = useLocaleContext();
 
-  return useMemo(() => [{ field: 'title', headerName: t('form.title'), flex: 2 }], [t]);
+  return useMemo(
+    () => [
+      {
+        field: 'title',
+        headerName: t('form.title'),
+        flex: 1,
+        valueGetter: (params) => params.row.title || t('unnamed'),
+      },
+    ],
+    [t]
+  );
 };
 
 export default DiscussionTable;

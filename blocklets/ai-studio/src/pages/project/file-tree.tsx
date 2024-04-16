@@ -862,7 +862,6 @@ function TreeItem({
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            lineHeight: 1,
           }}>
           {children}
         </Box>
