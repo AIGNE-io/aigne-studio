@@ -227,9 +227,8 @@ function Discussion({ datasetId }: { datasetId: string }) {
   const [loading, setLoading] = useState(false);
   const state = useReactive<{
     data: CreateDiscussionItem['data'][];
-  }>({
-    data: ['discussion', 'blog', 'doc'].map((x) => ({ from: 'discussionType', id: x, title: x })),
-  });
+  }>({ data: [] });
+
   const result = useRequest(() => discussionBoards());
   const [boards, setBoards] = useState<{ id: string; title: string; type: 'discussion' | 'blog' | 'doc' }[]>([]);
   const [value, setValue] = useState('discussion');
@@ -260,17 +259,6 @@ function Discussion({ datasetId }: { datasetId: string }) {
         result?.data?.data || []
       ).filter((x) => ['discussion', 'blog', 'doc'].includes(x.type));
 
-      const formatList: { id: string; title: string; from: 'board' }[] = list.map((x) => ({
-        from: 'board',
-        type: x.type,
-        id: x.id,
-        title: x.title,
-      }));
-
-      state.data = uniqWith(
-        [...(state.data || []), ...formatList],
-        (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`
-      );
       setBoards(list);
     }
   }, [result.loading]);
@@ -310,7 +298,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
         <Box>
           <Typography variant="subtitle2">{t('discussionType')}</Typography>
           <Stack gap={1.5} flexDirection="row">
-            {types.map((name) => (
+            {types.map((name: 'discussion' | 'blog' | 'doc') => (
               <Box borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1} key={name}>
                 <FormControlLabel
                   control={

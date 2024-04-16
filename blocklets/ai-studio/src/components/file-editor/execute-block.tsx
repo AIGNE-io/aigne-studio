@@ -253,18 +253,20 @@ export default function ExecuteBlockForm({
                 />
               </ModelPopper>
             </Box>
-            <Box flex={1}>
-              <PromptEditorField
-                readOnly={readOnly}
-                projectId={projectId}
-                gitRef={gitRef}
-                ContentProps={{ sx: { px: 1, py: 0.5 } }}
-                placeholder="Your select prompt"
-                path={path.concat('selectByPrompt')}
-                assistant={assistant}
-                value={value.selectByPrompt}
-                onChange={(prompt) => (value.selectByPrompt = prompt)}
-              />
+            <Box flex={1} display="flex" alignItems="center" gap={1}>
+              <Box flex={1}>
+                <PromptEditorField
+                  readOnly={readOnly}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  ContentProps={{ sx: { px: 1, py: 0.5 } }}
+                  placeholder="Your select prompt"
+                  path={path.concat('selectByPrompt')}
+                  assistant={assistant}
+                  value={value.selectByPrompt}
+                  onChange={(prompt) => (value.selectByPrompt = prompt)}
+                />
+              </Box>
             </Box>
           </Box>
         )}
@@ -281,42 +283,48 @@ export default function ExecuteBlockForm({
             </Box>
 
             <Box display="flex" alignItems="center" flex={1} gap={1}>
-              <IndicatorTextField
-                projectId={projectId}
-                gitRef={gitRef}
-                path={[value.id, value.variable ?? '']}
-                TextFiledProps={{
-                  hiddenLabel: true,
-                  size: 'small',
-                  inputProps: {
-                    maxLength: 15,
-                  },
-                  InputProps: {
-                    placeholder: t('executeBlockName'),
-                    readOnly,
-                  },
-                  value: value.variable ?? '',
-                  onChange: (e) => (value.variable = e.target.value),
-                }}
-                boxProps={{
-                  sx: {
-                    width: 1,
-
-                    '.MuiTextField-root': {
+              <Box flex={1}>
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, value.variable ?? '']}
+                  TextFiledProps={{
+                    hiddenLabel: true,
+                    size: 'small',
+                    inputProps: {
+                      maxLength: 15,
+                    },
+                    InputProps: {
+                      placeholder: t('executeBlockName'),
+                      readOnly,
+                    },
+                    value: value.variable ?? '',
+                    onChange: (e) => (value.variable = e.target.value),
+                  }}
+                  boxProps={{
+                    sx: {
                       width: 1,
 
-                      '.MuiInputBase-root': {
-                        px: 1,
-                        py: 0.5,
+                      '.MuiTextField-root': {
+                        width: 1,
 
-                        input: {
-                          px: 0,
+                        '.MuiInputBase-root': {
+                          px: 1,
+                          py: 0.5,
+
+                          input: {
+                            px: 0,
+                          },
                         },
                       },
                     },
-                  },
-                }}
-              />
+                  }}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.variable = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
             </Box>
           </Box>
         )}
@@ -332,37 +340,43 @@ export default function ExecuteBlockForm({
               </Tooltip>
             </Box>
 
-            <Box>
-              <IndicatorTextField
-                projectId={projectId}
-                gitRef={gitRef}
-                path={[value.id, value.role ?? 'system']}
-                TextFiledProps={{
-                  size: 'small',
-                  select: true,
-                  hiddenLabel: true,
-                  SelectProps: {
-                    autoWidth: true,
-                  },
-                  value: value.role || 'system',
-                  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                    (value.role = e.target.value as Role),
-                  children: [
-                    <MenuItem key="system" value="system">
-                      {t('systemPrompt')}
-                    </MenuItem>,
-                    <MenuItem key="user" value="user">
-                      {t('userPrompt')}
-                    </MenuItem>,
-                    <MenuItem key="assistant" value="assistant">
-                      {t('assistantPrompt')}
-                    </MenuItem>,
-                    <MenuItem key="none" value="none">
-                      {t('ignoreOutput')}
-                    </MenuItem>,
-                  ],
-                }}
-              />
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1} display="flex" justifyContent="flex-end">
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, value.role ?? 'system']}
+                  TextFiledProps={{
+                    size: 'small',
+                    select: true,
+                    hiddenLabel: true,
+                    SelectProps: {
+                      autoWidth: true,
+                    },
+                    value: value.role || 'system',
+                    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      (value.role = e.target.value as Role),
+                    children: [
+                      <MenuItem key="system" value="system">
+                        {t('systemPrompt')}
+                      </MenuItem>,
+                      <MenuItem key="user" value="user">
+                        {t('userPrompt')}
+                      </MenuItem>,
+                      <MenuItem key="assistant" value="assistant">
+                        {t('assistantPrompt')}
+                      </MenuItem>,
+                      <MenuItem key="none" value="none">
+                        {t('ignoreOutput')}
+                      </MenuItem>,
+                    ],
+                  }}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.role = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
             </Box>
           </Box>
         )}
@@ -373,30 +387,36 @@ export default function ExecuteBlockForm({
               {t('formatResult')}
             </Typography>
 
-            <Box>
-              <IndicatorTextField
-                projectId={projectId}
-                gitRef={gitRef}
-                path={[value.id, value.formatResultType ?? 'none']}
-                TextFiledProps={{
-                  size: 'small',
-                  select: true,
-                  hiddenLabel: true,
-                  SelectProps: {
-                    autoWidth: true,
-                  },
-                  value: value.formatResultType || 'none',
-                  onChange: (e) => (value.formatResultType = e.target.value as any),
-                  children: [
-                    <MenuItem key="none" value="none">
-                      {t('stayAsIs')}
-                    </MenuItem>,
-                    <MenuItem key="asHistory" value="asHistory">
-                      {t('asHistory')}
-                    </MenuItem>,
-                  ],
-                }}
-              />
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1} display="flex" justifyContent="flex-end">
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, value.formatResultType ?? 'none']}
+                  TextFiledProps={{
+                    size: 'small',
+                    select: true,
+                    hiddenLabel: true,
+                    SelectProps: {
+                      autoWidth: true,
+                    },
+                    value: value.formatResultType || 'none',
+                    onChange: (e) => (value.formatResultType = e.target.value as any),
+                    children: [
+                      <MenuItem key="none" value="none">
+                        {t('stayAsIs')}
+                      </MenuItem>,
+                      <MenuItem key="asHistory" value="asHistory">
+                        {t('asHistory')}
+                      </MenuItem>,
+                    ],
+                  }}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.formatResultType = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
             </Box>
           </Box>
         )}
@@ -411,23 +431,29 @@ export default function ExecuteBlockForm({
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
             </Box>
-            <Box flex={1}>
-              <PromptEditorField
-                readOnly={readOnly}
-                projectId={projectId}
-                gitRef={gitRef}
-                ContentProps={{
-                  sx: {
-                    px: 1,
-                    py: 0.5,
-                  },
-                }}
-                placeholder="Your output prefix"
-                path={[value.id, 'prefix']}
-                assistant={assistant}
-                value={value.prefix}
-                onChange={(prefix) => (value.prefix = prefix)}
-              />
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1}>
+                <PromptEditorField
+                  readOnly={readOnly}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  ContentProps={{
+                    sx: {
+                      px: 1,
+                      py: 0.5,
+                    },
+                  }}
+                  placeholder="Your output prefix"
+                  path={[value.id, 'prefix']}
+                  assistant={assistant}
+                  value={value.prefix}
+                  onChange={(prefix) => (value.prefix = prefix)}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.prefix = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
             </Box>
           </Box>
         )}
@@ -442,23 +468,29 @@ export default function ExecuteBlockForm({
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
             </Box>
-            <Box flex={1}>
-              <PromptEditorField
-                readOnly={readOnly}
-                projectId={projectId}
-                gitRef={gitRef}
-                ContentProps={{
-                  sx: {
-                    px: 1,
-                    py: 0.5,
-                  },
-                }}
-                placeholder="Your output suffix"
-                path={[value.id, 'suffix']}
-                assistant={assistant}
-                value={value.suffix}
-                onChange={(suffix) => (value.suffix = suffix)}
-              />
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1}>
+                <PromptEditorField
+                  readOnly={readOnly}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  ContentProps={{
+                    sx: {
+                      px: 1,
+                      py: 0.5,
+                    },
+                  }}
+                  placeholder="Your output suffix"
+                  path={[value.id, 'suffix']}
+                  assistant={assistant}
+                  value={value.suffix}
+                  onChange={(suffix) => (value.suffix = suffix)}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.suffix = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
             </Box>
           </Box>
         )}
@@ -471,33 +503,39 @@ export default function ExecuteBlockForm({
               </Typography>
             </Box>
 
-            <Box>
-              <IndicatorTextField
-                projectId={projectId}
-                gitRef={gitRef}
-                path={[value.id, value.respondAs ?? 'none']}
-                TextFiledProps={{
-                  size: 'small',
-                  select: true,
-                  hiddenLabel: true,
-                  SelectProps: {
-                    autoWidth: true,
-                  },
-                  value: value.respondAs || 'none',
-                  onChange: (e) => (value.respondAs = e.target.value as any),
-                  children: [
-                    <MenuItem key="none" value="none" sx={{ color: 'text.secondary' }}>
-                      {t('none')}
-                    </MenuItem>,
-                    <MenuItem key="message" value="message">
-                      {t('respondAsMessage')}
-                    </MenuItem>,
-                    <MenuItem key="systemMessage" value="systemMessage">
-                      {t('respondAsSystemMessage')}
-                    </MenuItem>,
-                  ],
-                }}
-              />
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1} display="flex" justifyContent="flex-end">
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, value.respondAs ?? 'none']}
+                  TextFiledProps={{
+                    size: 'small',
+                    select: true,
+                    hiddenLabel: true,
+                    SelectProps: {
+                      autoWidth: true,
+                    },
+                    value: value.respondAs || 'none',
+                    onChange: (e) => (value.respondAs = e.target.value as any),
+                    children: [
+                      <MenuItem key="none" value="none" sx={{ color: 'text.secondary' }}>
+                        {t('none')}
+                      </MenuItem>,
+                      <MenuItem key="message" value="message">
+                        {t('respondAsMessage')}
+                      </MenuItem>,
+                      <MenuItem key="systemMessage" value="systemMessage">
+                        {t('respondAsSystemMessage')}
+                      </MenuItem>,
+                    ],
+                  }}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.respondAs = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
             </Box>
           </Box>
         )}

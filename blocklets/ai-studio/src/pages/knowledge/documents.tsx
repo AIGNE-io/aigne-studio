@@ -282,8 +282,8 @@ export default function KnowledgeDocuments() {
               <Box className="center" height={1}>
                 <Stack alignItems="center">
                   <Typography variant="subtitle1">💻</Typography>
-                  <Typography variant="subtitle4">{t('No Document Here')}</Typography>
-                  <Typography variant="subtitle5">{t('Your document list is currently empty. ')}</Typography>
+                  <Typography variant="subtitle4">{t('noDocument')}</Typography>
+                  <Typography variant="subtitle5">{t('noDocumentDesc')}</Typography>
 
                   <Button variant="text" size="small" onClick={() => navigate('add')}>
                     {t('knowledge.documents.add')}

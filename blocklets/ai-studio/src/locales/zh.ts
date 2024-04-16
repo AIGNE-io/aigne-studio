@@ -607,4 +607,6 @@ export default flat({
   discussionType: '论坛类型',
   discussionBoards: '论坛标签',
   discussionData: '论坛数据',
+  noDocument: '目前暂无数据',
+  noDocumentDesc: '目前数据是空',
 });
