@@ -1,3 +1,7 @@
+## 0.1.333 (2024-4-16)
+
+- fix: display tool messages and debug messages
+
 ## 0.1.332 (2024-4-15)
 
 - fix: execute blocklet action
