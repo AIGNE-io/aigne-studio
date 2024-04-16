@@ -606,4 +606,5 @@ export default flat({
   importFromDiscussion: '从本地论坛导入',
   discussionType: '论坛类型',
   discussionBoards: '论坛标签',
+  discussionData: '论坛数据',
 });

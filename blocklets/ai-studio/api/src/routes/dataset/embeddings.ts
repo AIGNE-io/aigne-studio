@@ -76,7 +76,7 @@ const discussItemJob = async (job: DiscussQueue) => {
   const embeddingStatus = `${currentIndex}/${currentTotal}`;
   const result = await document.update({ embeddingStatus, embeddingEndAt: new Date() });
   sse.send({ documentId, ...result.dataValues }, 'change');
-  logger.info('embedding discussion', { currentTotal, currentIndex, embeddingStatus });
+  logger.info('embedding discussion data', { currentTotal, currentIndex, embeddingStatus });
 
   try {
     await updateDiscussionEmbeddings(discussionId, document.datasetId, document.id);
@@ -163,7 +163,7 @@ const updateEmbeddingHistory = async ({
 }) => {
   const ids = { targetId, datasetId, documentId };
   try {
-    const previousEmbedding = await EmbeddingHistories.findOne({ where: { ...ids } });
+    const previousEmbedding = await EmbeddingHistories.findOne({ where: ids });
     if (previousEmbedding?.targetVersion && updatedAt) {
       if (
         new Date(previousEmbedding?.targetVersion).toISOString() === new Date(updatedAt || new Date()).toISOString()
@@ -172,26 +172,21 @@ const updateEmbeddingHistory = async ({
       }
     }
 
-    if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
-      await EmbeddingHistories.update({ startAt: new Date(), status: UploadStatus.Uploading }, { where: { ...ids } });
+    if (await EmbeddingHistories.findOne({ where: ids })) {
+      await EmbeddingHistories.update({ startAt: new Date(), status: UploadStatus.Uploading }, { where: ids });
     } else {
       await EmbeddingHistories.create({ startAt: new Date(), status: UploadStatus.Uploading, ...ids });
     }
 
-    if (String(content).trim()) {
-      await saveContentToVectorStore({
-        metadata,
-        content: String(content || '').trim(),
-        datasetId,
-        targetId,
-        documentId,
-      });
+    const trimContent = String(content || '').trim();
+    if (trimContent) {
+      await saveContentToVectorStore({ metadata, content: trimContent, datasetId, documentId, targetId });
     }
 
-    if (await EmbeddingHistories.findOne({ where: { ...ids } })) {
+    if (await EmbeddingHistories.findOne({ where: ids })) {
       await EmbeddingHistories.update(
         { targetVersion: new Date(updatedAt || new Date()), endAt: new Date(), status: UploadStatus.Success },
-        { where: { ...ids } }
+        { where: ids }
       );
     } else {
       await EmbeddingHistories.create({
@@ -234,14 +229,7 @@ async function updateDiscussionEmbeddings(discussionId: string, datasetId: strin
 
       queue.push({ type: 'comment', documentId, discussionId, metadata });
 
-      return updateEmbeddingHistory({
-        datasetId,
-        documentId,
-        targetId,
-        updatedAt,
-        content,
-        metadata,
-      });
+      return updateEmbeddingHistory({ datasetId, documentId, targetId, updatedAt, content, metadata });
     };
 
     const discussion = await getDiscussion(discussionId);
@@ -335,7 +323,7 @@ const discussKitMap: {
     logger.info('board ids', ids);
 
     if (!ids.length) {
-      await handlerError(document, 'no data to embedding');
+      await handlerError(document, 'No data to embedding');
     }
 
     const currentTotal = ids.length;
@@ -368,7 +356,7 @@ const discussKitMap: {
     logger.info('type ids', { ids, type });
 
     if (!ids.length) {
-      await handlerError(document, 'no data to embedding');
+      await handlerError(document, 'No data to embedding');
     }
 
     const currentTotal = ids.length;

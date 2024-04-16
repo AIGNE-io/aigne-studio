@@ -612,4 +612,5 @@ export default flat({
   importFromDiscussion: 'Import from Discussion',
   discussionType: 'Discussion Type',
   discussionBoards: 'Discussion Boards',
+  discussionData: 'Discussion Data',
 });

@@ -1,11 +1,14 @@
+import { CreateDiscussionItem } from '@api/routes/dataset/documents';
 import { discussionBoards } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import { LoadingButton } from '@mui/lab';
 import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { Box, Checkbox, CircularProgress, FormControlLabel, Stack, TextField, Typography, styled } from '@mui/material';
+import Tab from '@mui/material/Tab';
 import { useReactive, useRequest } from 'ahooks';
 import { groupBy, uniqWith } from 'lodash';
 import { useEffect, useState } from 'react';
@@ -24,6 +27,7 @@ import {
   updateTextDocument,
 } from '../../libs/dataset';
 import Discuss from '../project/icons/discuss';
+import DiscussList from './discuss';
 
 function formatBytes(bytes: number, decimals = 2) {
   if (bytes === 0) return '0 Bytes';
@@ -221,35 +225,33 @@ function Discussion({ datasetId }: { datasetId: string }) {
   const { t } = useLocaleContext();
   const [loading, setLoading] = useState(false);
   const state = useReactive<{
-    data: {
-      id: string;
-      title: string;
-      type?: 'discussion' | 'blog' | 'doc';
-      from: 'discussion' | 'board' | 'discussionType';
-    }[];
+    data: CreateDiscussionItem['data'][];
   }>({
     data: ['discussion', 'blog', 'doc'].map((x) => ({ from: 'discussionType', id: x, title: x })),
   });
   const result = useRequest(() => discussionBoards());
   const [boards, setBoards] = useState<{ id: string; title: string; type: 'discussion' | 'blog' | 'doc' }[]>([]);
+  const [value, setValue] = useState('discussion');
+  const { refetch } = useDocuments(datasetId);
+  const navigate = useNavigate();
 
-  const onChange = (
-    checked: boolean,
-    data: {
-      id: string;
-      title: string;
-      type?: 'discussion' | 'blog' | 'doc';
-      from: 'discussion' | 'board' | 'discussionType';
-    }
-  ) => {
+  const onChange = (checked: boolean, data: CreateDiscussionItem['data']) => {
     const newCheckedValues = checked
       ? [...state.data, data]
       : state.data.filter((value) => !(value.id === data.id && value.from === data.from));
     state.data = uniqWith(newCheckedValues, (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`);
   };
 
-  const { refetch } = useDocuments(datasetId);
-  const navigate = useNavigate();
+  const onChangeTable = (type: string, data: CreateDiscussionItem['data'][]) => {
+    const list = uniqWith(
+      state.data.filter((x) => {
+        return !(x.from === 'discussion' && x.type === type);
+      }),
+      (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`
+    );
+
+    state.data = uniqWith([...list, ...data], (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`);
+  };
 
   useEffect(() => {
     if (!result.loading) {
@@ -264,7 +266,10 @@ function Discussion({ datasetId }: { datasetId: string }) {
         title: x.title,
       }));
 
-      state.data = [...(state.data || []), ...formatList];
+      state.data = uniqWith(
+        [...(state.data || []), ...formatList],
+        (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`
+      );
       setBoards(list);
     }
   }, [result.loading]);
@@ -282,6 +287,17 @@ function Discussion({ datasetId }: { datasetId: string }) {
   };
 
   const group = groupBy(boards, (x) => x.type);
+
+  const getDiscussionValue = (type: string) => {
+    const data = uniqWith(
+      state.data.filter((x) => {
+        return x.from === 'discussion' && x.type === type;
+      }),
+      (x, y) => `${x.from}_${x.id}` === `${y.from}_${y.id}`
+    );
+
+    return data;
+  };
 
   return (
     <Box maxWidth="900px" component="form">
@@ -310,7 +326,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
                       name={name}
                     />
                   }
-                  label={`${t(name)}${t('data')}`}
+                  label={`${t('all')}${t(name)}${t('data')}`}
                 />
               </Box>
             ))}
@@ -352,6 +368,38 @@ function Discussion({ datasetId }: { datasetId: string }) {
               );
             })}
           </Stack>
+        </Box>
+
+        <Box>
+          <Typography variant="subtitle2">{t('discussionData')}</Typography>
+          <Box sx={{ width: '100%', typography: 'body1' }}>
+            <TabContext value={value}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <TabList
+                  onChange={(_event: React.SyntheticEvent, newValue: string) => {
+                    setValue(newValue);
+                  }}>
+                  {types.map((x) => {
+                    return <Tab label={t(x)} value={x} key={x} />;
+                  })}
+                </TabList>
+              </Box>
+
+              {types.map((x) => {
+                return (
+                  <TabPanel value={x} sx={{ p: 0, height: 1 }} key={x}>
+                    <DiscussList
+                      type={x}
+                      value={getDiscussionValue(x)}
+                      onChange={(d) => {
+                        onChangeTable(x, d);
+                      }}
+                    />
+                  </TabPanel>
+                );
+              })}
+            </TabContext>
+          </Box>
         </Box>
 
         <Box>
@@ -545,7 +593,7 @@ export default function KnowledgeDocumentsAdd() {
   ];
 
   return (
-    <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5}>
+    <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5} overflow="auto">
       <Stack flexDirection="row" className="between">
         <Box>
           <Box
