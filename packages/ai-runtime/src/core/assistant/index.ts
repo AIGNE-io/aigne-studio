@@ -930,7 +930,7 @@ async function runExecuteBlock({
               (toolAssistant.parameters ?? [])
                 .filter((i): i is typeof i & { key: string } => !!i.key)
                 .map(async (i) => {
-                  const template = tool.parameters?.[i.key]?.trim?.();
+                  const template = String(tool.parameters?.[i.key] || '').trim();
                   const value = template ? await renderMessage(template, parameters) : parameters?.[i.key];
 
                   return [i.key, value];
@@ -1256,7 +1256,7 @@ async function runDatasetTool({
   const requestData = Object.fromEntries(
     await Promise.all(
       getAllParameters(dataset).map(async (item) => {
-        const template = tool.parameters?.[item.name!]?.trim();
+        const template = String(tool.parameters?.[item.name!] || '').trim();
         return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
       }) ?? []
     )
@@ -1326,7 +1326,7 @@ async function runKnowledgeTool({
   const params = Object.fromEntries(
     await Promise.all(
       [{ name: 'message', description: 'Search the content of the knowledge' }].map(async (item) => {
-        const template = tool.parameters?.[item.name!]?.trim();
+        const template = String(tool.parameters?.[item.name!] || '').trim();
         return [item.name, template ? await renderMessage(template, parameters) : parameters?.[item.name]];
       }) ?? []
     )
