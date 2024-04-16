@@ -6,6 +6,7 @@ import { runAssistant } from '@blocklet/ai-runtime/api';
 import {
   AssistantResponseType,
   AssistantYjs,
+  ExecuteBlock,
   ExecutionPhase,
   Role,
   RunAssistantInput,
@@ -206,6 +207,12 @@ export interface SessionItem {
     id: string;
     createdAt: string;
     role: Role;
+    messages?: {
+      responseAs?: ExecuteBlock['respondAs'];
+      taskId: string;
+      content?: string;
+      images?: { url: string }[];
+    }[];
     content: string;
     gitRef?: string;
     parameters?: { [key: string]: any };
@@ -461,6 +468,8 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
         const decoder = new TextDecoder();
 
         let response = '';
+        const messages: SessionItem['messages'][number]['messages'] = [];
+        const messageMap: { [key: string]: (typeof messages)[number] } = {};
         let mainTaskId: string | undefined;
 
         for (;;) {
@@ -498,6 +507,23 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                   });
                 }
               } else {
+                if (value.respondAs && value.respondAs !== 'none') {
+                  let msg = messageMap[value.taskId];
+                  if (!msg) {
+                    msg = { taskId: value.taskId, responseAs: value.respondAs };
+                    messageMap[value.taskId] = msg;
+                    messages.push(msg);
+                  }
+
+                  msg.content = (msg.content || '') + (value.delta.content || '');
+                  if (value.delta.images?.length) msg.images = (msg.images || []).concat(value.delta.images);
+
+                  setMessage(sessionIndex, responseId, (message) => {
+                    if (message.cancelled) return;
+                    message.messages = JSON.parse(JSON.stringify(messages));
+                  });
+                }
+
                 setMessage(sessionIndex, messageId, (message) => {
                   if (message.cancelled) return;
 
