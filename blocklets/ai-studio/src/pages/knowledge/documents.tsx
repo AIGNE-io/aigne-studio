@@ -67,6 +67,10 @@ export default function KnowledgeDocuments() {
     };
   }, [datasetId]);
 
+  useEffect(() => {
+    refetch();
+  }, []);
+
   const rows = (state.items ?? []).map((i) => {
     return { ...i, ...(embeddings[i.id] || {}) };
   });

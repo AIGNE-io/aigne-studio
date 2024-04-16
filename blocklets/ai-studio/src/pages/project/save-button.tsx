@@ -239,7 +239,9 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={dialogState.close}>{t('cancel')}</Button>
+          <Button onClick={dialogState.close} variant="outlined">
+            {t('cancel')}
+          </Button>
           <Tooltip title={readOnly ? t('noPermissionSaveToBranch', { branch }) : ''} placement="top">
             <span>
               <LoadingButton
