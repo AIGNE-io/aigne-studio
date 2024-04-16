@@ -151,7 +151,7 @@ export default function FromDidSpacesImport() {
         <DialogTitle className="between">
           <Box>{t('import.didSpacesTitle')}</Box>
 
-          <IconButton size="small" onClick={() => dialogState.close()}>
+          <IconButton size="small" onClick={cancelImport}>
             <Close />
           </IconButton>
         </DialogTitle>

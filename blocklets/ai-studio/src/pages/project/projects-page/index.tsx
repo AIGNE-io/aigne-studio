@@ -37,7 +37,8 @@ import {
 } from '@mui/material';
 import { MouseEvent, ReactNode, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { joinURL } from 'ufo';
+import { useSearchParam } from 'react-use';
+import { joinURL, withQuery } from 'ufo';
 
 import Project from '../../../../api/src/store/models/project';
 import DeleteDialog from '../../../components/delete-confirm/dialog';
@@ -58,6 +59,7 @@ const MAX_WIDTH = 300;
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
+  const endpoint = useSearchParam('endpoint');
 
   const {
     state: { loading, templates, projects, examples },
@@ -72,13 +74,12 @@ export default function ProjectsPage() {
     <Stack minHeight="100%" overflow="auto" bgcolor="#F9FAFB">
       <Stack m={2.5} flexGrow={1} gap={2.5}>
         <ProjectMenu />
-
+        {endpoint && <ImportFromDidSpaces />}
         {examples && examples.length > 0 && (
           <Section title={t('examples')}>
             <ProjectList section="examples" list={examples} />
           </Section>
         )}
-
         <Section title={t('myProjects')} section="projects" list={templates}>
           {projects.length ? (
             <ProjectList section="projects" list={projects} />
@@ -113,6 +114,18 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
   const resource = (list || []).filter((x) => x.isFromResource);
   const { t } = useLocaleContext();
   const [dialog, setDialog] = useState<any>(null);
+  const { session } = useSessionContext();
+
+  const goToDidSpacesImport = () => {
+    session.connectToDidSpaceForImport({
+      onSuccess: (response: { importUrl: string }, decrypt: (value: string) => string) => {
+        const importUrl = decrypt(response.importUrl);
+        window.location.href = withQuery(importUrl, {
+          redirectUrl: window.location.href,
+        });
+      },
+    });
+  };
 
   return (
     <>
@@ -128,7 +141,10 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                 <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('gitRepo')}</ListItemText>
               </MenuItem>
 
-              <ImportFromDidSpaces />
+              <MenuItem onClick={goToDidSpacesImport}>
+                <DidSpacesLogo sx={{ mr: 1, fontSize: 14 }} />
+                <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('didSpaces.title')}</ListItemText>
+              </MenuItem>
             </MenuList>
           }>
           <Button variant="outlined">{t('alert.import')}</Button>
