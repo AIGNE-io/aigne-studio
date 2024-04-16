@@ -307,15 +307,7 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
 
   const arr = Array.isArray(input) ? input : [input];
 
-  const createOrUpdate = async (
-    name: string,
-    data: {
-      id: string;
-      title: string;
-      type?: 'discussion' | 'blog' | 'doc';
-      from: 'discussion' | 'board' | 'discussionType';
-    }
-  ) => {
+  const createOrUpdate = async (name: string, data: CreateDiscussionItem['data']) => {
     const found = await DatasetDocument.findOne({ where: { datasetId, 'data.id': data.id, 'data.from': data.from } });
     if (found) {
       return found.update(
