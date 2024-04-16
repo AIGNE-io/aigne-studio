@@ -345,6 +345,18 @@ const MessageView = memo(
                 sx={{
                   [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
                 }}>
+                {message.messages?.map((message) => (
+                  <Stack
+                    key={message.taskId}
+                    sx={message.responseAs === 'systemMessage' ? { color: 'text.secondary' } : {}}>
+                    {message.content && <MdViewer content={message.content} />}
+
+                    {!!message.images?.length && (
+                      <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
+                    )}
+                  </Stack>
+                ))}
+
                 {(message.content || message.images?.length || message.loading) &&
                 (chatType !== 'debug' || !message?.inputMessages?.length) ? (
                   <MessageViewContent

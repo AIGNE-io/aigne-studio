@@ -182,6 +182,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
 
         <Box>
           <LoadingButton
+            sx={{ mb: 2 }}
             type="submit"
             variant="contained"
             disabled={!file}
@@ -404,6 +405,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
 
         <Box>
           <LoadingButton
+            sx={{ mb: 2 }}
             variant="contained"
             disabled={!state.data.length}
             startIcon={loading ? <CircularProgress sx={{ color: '#fff' }} size={16} /> : null}
@@ -520,6 +522,7 @@ function Custom({ datasetId, id, value }: { datasetId: string; id?: string; valu
 
         <Box>
           <LoadingButton
+            sx={{ mb: 2 }}
             type="submit"
             variant="contained"
             startIcon={form.formState.isSubmitting ? <CircularProgress sx={{ color: '#fff' }} size={16} /> : null}>
