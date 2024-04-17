@@ -633,7 +633,13 @@ function DebugModeForm({
 
     sendMessage({
       sessionIndex: state.currentSessionIndex!,
-      message: { type: 'debug', projectId, assistantId: assistant.id, gitRef, parameters },
+      message: {
+        type: 'debug',
+        projectId,
+        assistantId: assistant.id,
+        gitRef,
+        parameters: { ...parameters, $clientTime: new Date().toISOString() },
+      },
     });
     setSession(state.currentSessionIndex!, (session) => {
       session.debugForm = { ...parameters };
