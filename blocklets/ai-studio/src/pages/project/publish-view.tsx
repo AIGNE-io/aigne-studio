@@ -206,7 +206,7 @@ function PublishViewContent({
         </Typography>
         <BaseInput
           placeholder={t('publish.titlePlaceholder')}
-          value={assistant.release?.title || project?.name}
+          value={assistant.release?.title || project?.name || ''}
           onChange={(e) => setRelease((release) => (release.title = e.target.value))}
         />
       </FormControl>
@@ -220,7 +220,7 @@ function PublishViewContent({
           sx={{ padding: 0 }}
           placeholder={t('publish.descriptionPlaceholder')}
           minRows={3}
-          value={assistant.release?.description || project?.description}
+          value={assistant.release?.description || project?.description || ''}
           onChange={(e) => setRelease((release) => (release.description = e.target.value))}
         />
       </FormControl>
