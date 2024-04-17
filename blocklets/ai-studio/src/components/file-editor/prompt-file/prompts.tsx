@@ -65,7 +65,7 @@ export default function PromptPrompts({
         py: 1.5,
       }}>
       <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
-        <Box component={Icon} icon="tabler:bule" sx={{ color: '#3B82F6', fontSize: 15 }} />
+        <Box component={Icon} icon="tabler:bulb" sx={{ color: '#3B82F6', fontSize: 15 }} />
         <Typography variant="subtitle2" sx={{ m: 0 }}>
           {t('formatPrompt')}
         </Typography>

@@ -578,7 +578,7 @@ export default flat({
   multipleCall: '运行多个执行工具',
   toolCalling: '自动选择运行工具',
   historyMessage: '获取历史消息',
-  getStore: '获取全局设置数据',
+  getStore: '获取全局数据',
   setStore: '设置全局数据',
   retrieveData: '从数据集获取数据',
   entries: '入口',
@@ -611,4 +611,5 @@ export default flat({
   noDocument: '目前暂无数据',
   noDocumentDesc: '目前数据是空',
   copyTool: '复制执行块',
+  visitLink: '访问链接',
 });

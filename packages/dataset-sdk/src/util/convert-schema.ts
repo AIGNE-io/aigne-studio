@@ -17,7 +17,7 @@ const convertObjectSchema = (schema: any): { [key: string]: any } => {
   const result: { [key: string]: any } = {};
   if (schema.properties && typeof schema.properties === 'object') {
     Object.keys(schema.properties).forEach((property) => {
-      result[property] = convertSchemaToObject(schema.properties[property]);
+      result[property] = schema.properties[property];
     });
   }
 

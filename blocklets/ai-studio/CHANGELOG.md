@@ -8,6 +8,7 @@
 - fix: set project name as project title(#786)
 - fix: output name i18n(#792)
 - fix: add default title for publish view #811
+- fix: add new one tool when update too #809
 
 ## 0.1.337 (2024-4-16)
 

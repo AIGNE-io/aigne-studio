@@ -617,4 +617,5 @@ export default flat({
   noDocument: 'No Document Here',
   noDocumentDesc: 'Your document list is currently empty',
   copyTool: 'Copy Tool',
+  visitLink: 'Visit Link',
 });
