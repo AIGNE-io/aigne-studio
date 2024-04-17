@@ -532,6 +532,7 @@ function ChatModeForm({
           type="submit"
           variant="contained"
           sx={{
+            whiteSpace: 'nowrap',
             background: '#030712',
             color: '#fff',
             '&:hover': {
