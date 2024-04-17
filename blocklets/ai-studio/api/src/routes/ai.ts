@@ -52,7 +52,9 @@ const callInputSchema = Joi.object<{
   ref: Joi.string().required(),
   working: Joi.boolean().default(false),
   assistantId: Joi.string().required(),
-  parameters: Joi.object().pattern(Joi.string(), Joi.any()),
+  parameters: Joi.object({
+    $clientTime: Joi.string().isoDate().empty([null, '']),
+  }).pattern(Joi.string(), Joi.any()),
 });
 
 router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (req, res) => {
