@@ -532,6 +532,7 @@ function ChatModeForm({
           type="submit"
           variant="contained"
           sx={{
+            whiteSpace: 'nowrap',
             background: '#030712',
             color: '#fff',
             '&:hover': {
@@ -632,7 +633,13 @@ function DebugModeForm({
 
     sendMessage({
       sessionIndex: state.currentSessionIndex!,
-      message: { type: 'debug', projectId, assistantId: assistant.id, gitRef, parameters },
+      message: {
+        type: 'debug',
+        projectId,
+        assistantId: assistant.id,
+        gitRef,
+        parameters: { ...parameters, $clientTime: new Date().toISOString() },
+      },
     });
     setSession(state.currentSessionIndex!, (session) => {
       session.debugForm = { ...parameters };
