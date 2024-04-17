@@ -1,3 +1,14 @@
+## 0.1.338 (2024-4-17)
+
+- fix: copy tool(#801)
+- fix: visit link in dataset discussion(#795)
+- fix: rename tool i18n(#774)
+- fix: debug container overflow auto(#785)
+- fix: discussion container overflow auto(#776)
+- fix: set project name as project title(#786)
+- fix: output name i18n(#792)
+- fix: add default title for publish view #811
+
 ## 0.1.337 (2024-4-16)
 
 - fix: from did spaces import bug
