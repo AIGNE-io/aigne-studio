@@ -31,7 +31,7 @@ export default function DiscussView({
   }
 
   return (
-    <Views>
+    <Views sx={{ overflow: 'auto' }}>
       <Suspense
         fallback={
           <Box textAlign="center" py={4}>
