@@ -330,7 +330,14 @@ function Discussion({ datasetId }: { datasetId: string }) {
                 <Box key={key}>
                   <Typography variant="subtitle3">{t(key)}</Typography>
 
-                  <Stack gap={1.5} flexDirection="row" borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1}>
+                  <Stack
+                    gap={1.5}
+                    flexDirection="row"
+                    borderRadius={1}
+                    p={2}
+                    border="1px solid #E5E7EB"
+                    flex={1}
+                    flexWrap="wrap">
                     {value.map(({ id, title, type }) => (
                       <FormControlLabel
                         key={id}
@@ -339,12 +346,7 @@ function Discussion({ datasetId }: { datasetId: string }) {
                             checked={isChecked(id)}
                             onChange={(e) => {
                               const { name, checked } = e.target;
-                              onChange(checked, {
-                                id: name,
-                                title,
-                                type,
-                                from: 'board',
-                              });
+                              onChange(checked, { id: name, title, type, from: 'board' });
                             }}
                             name={id}
                           />

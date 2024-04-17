@@ -47,6 +47,7 @@ function DiscussionTable({
               title: (res?.data || []).find((x) => x.id === i)?.title || '',
               type,
               from: 'discussion' as const,
+              boardId: (res?.data || []).find((x) => x.id === i)?.boardId || '',
             }
         ),
       ]);

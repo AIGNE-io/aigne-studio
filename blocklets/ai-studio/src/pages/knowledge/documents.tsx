@@ -197,14 +197,51 @@ export default function KnowledgeDocuments() {
               }
             }}
             onLink={() => {
-              const id = params.row.data?.id;
               const prefix = (window?.blocklet?.componentMountPoints || []).find(
                 (x) => x.name === 'did-comments'
               )?.mountPoint;
               let url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', 'discussions');
 
-              if (id) {
-                url = joinURL(url, id);
+              if (params.row.data?.data?.from === 'discussionType') {
+                const map: any = {
+                  discussion: 'discussions',
+                  doc: 'docs',
+                  blog: 'blog',
+                };
+
+                url = joinURL(
+                  window?.blocklet?.appUrl || '',
+                  prefix || '/',
+                  map[params.row.data?.data?.id] || map.discussion
+                );
+              } else if (params.row.data?.data?.from === 'board') {
+                const map: any = {
+                  discussion: 'discussions/boards',
+                  doc: 'docs',
+                  blog: 'blog/boards',
+                };
+
+                url = joinURL(
+                  window?.blocklet?.appUrl || '',
+                  prefix || '/',
+                  map[params.row.data?.data?.type] || map.discussion,
+                  params.row.data?.data?.id
+                );
+              } else if (params.row.data?.data?.from === 'discussion') {
+                const map: any = {
+                  discussion: 'discussions',
+                  doc: joinURL('docs', params.row.data?.data?.boardId || ''),
+                  blog: 'blog/en',
+                };
+
+                url = joinURL(
+                  window?.blocklet?.appUrl || '',
+                  prefix || '/',
+                  map[params.row.data?.data?.type] || map.discussion,
+                  params.row.data?.data?.id
+                );
+              } else {
+                url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', 'discussions');
               }
 
               window.open(url, '_blank');
