@@ -599,6 +599,7 @@ export default flat({
   share: '查看',
   refresh: '刷新',
   outputName: '输出别名',
+  outputNameTip: '设置别名方便其他执行块使用',
   entryFunctionDisabledTip: '入口功能在“知识库管理”模式下不可用',
   board: '标签数据',
   data: '数据',

@@ -277,7 +277,7 @@ export default function ExecuteBlockForm({
               <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
                 {t('outputName')}
               </Typography>
-              <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
+              <Tooltip title={t('outputNameTip')} placement="top" disableInteractive>
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
             </Box>

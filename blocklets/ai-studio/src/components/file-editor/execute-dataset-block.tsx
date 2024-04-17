@@ -7,6 +7,7 @@ import { Icon } from '@iconify-icon/react';
 import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
 import {
   Box,
+  Checkbox,
   CircularProgress,
   ClickAwayListener,
   Divider,
@@ -209,7 +210,7 @@ function ToolItemView({
               <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
                 {t('outputName')}
               </Typography>
-              <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
+              <Tooltip title={t('outputNameTip')} placement="top" disableInteractive>
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
             </Box>
@@ -483,13 +484,21 @@ function ToolItemView({
           tool.parameters ??= {};
           const value = tool.parameters[parameter.name];
 
-          return (
-            <Stack key={parameter.name}>
-              <Typography variant="subtitle2" mb={0.5}>
-                {getDatasetTextByI18n(parameter, 'description', locale) ||
-                  getDatasetTextByI18n(parameter, 'name', locale)}
-              </Typography>
+          const render = () => {
+            if (parameter['x-parameter-type'] === 'boolean') {
+              return (
+                <Box>
+                  <Checkbox
+                    checked={Boolean(value || '')}
+                    onChange={(e: any) => {
+                      if (tool.parameters) tool.parameters[parameter.name] = e.target.checked;
+                    }}
+                  />
+                </Box>
+              );
+            }
 
+            return (
               <PromptEditorField
                 placeholder={assistantParameters.has(parameter.key) ? `{{ ${parameter.name} }}` : undefined}
                 value={value || ''}
@@ -501,6 +510,17 @@ function ToolItemView({
                   if (tool.parameters) tool.parameters[parameter.name] = value;
                 }}
               />
+            );
+          };
+
+          return (
+            <Stack key={parameter.name}>
+              <Typography variant="subtitle2" mb={0.5}>
+                {getDatasetTextByI18n(parameter, 'description', locale) ||
+                  getDatasetTextByI18n(parameter, 'name', locale)}
+              </Typography>
+
+              {render()}
             </Stack>
           );
         })}
