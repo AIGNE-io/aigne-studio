@@ -616,4 +616,5 @@ export default flat({
   discussionData: 'Discussion Data',
   noDocument: 'No Document Here',
   noDocumentDesc: 'Your document list is currently empty',
+  copyTool: 'Copy Tool',
 });

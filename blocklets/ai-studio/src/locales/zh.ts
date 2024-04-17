@@ -610,4 +610,5 @@ export default flat({
   discussionData: '论坛数据',
   noDocument: '目前暂无数据',
   noDocumentDesc: '目前数据是空',
+  copyTool: '复制执行块',
 });

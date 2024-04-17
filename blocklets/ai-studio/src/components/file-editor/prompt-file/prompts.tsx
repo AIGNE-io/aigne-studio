@@ -51,7 +51,7 @@ export default function PromptPrompts({
 }) {
   const { t } = useLocaleContext();
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
-  const { addPrompt, deletePrompt } = usePromptsState({ projectId, gitRef, templateId: value.id });
+  const { addPrompt, copePrompt, deletePrompt } = usePromptsState({ projectId, gitRef, templateId: value.id });
   const { removeParameter } = useVariablesEditorOptions(value);
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
@@ -112,18 +112,26 @@ export default function PromptPrompts({
                   disabled={readOnly}
                   isDragging={params.isDragging}
                   actions={
-                    <Tooltip
-                      title={hidden ? t('activeMessageTip') : t('hideMessageTip')}
-                      disableInteractive
-                      placement="top">
-                      <Box onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')} className="center">
-                        {prompt.visibility === 'hidden' ? (
-                          <Box component={Icon} icon="tabler:eye-off" sx={{ color: 'grey.500' }} />
-                        ) : (
-                          <Box component={Icon} icon="tabler:eye" sx={{ color: 'grey.500' }} />
-                        )}
-                      </Box>
-                    </Tooltip>
+                    <Stack sx={{ gap: 1.5 }}>
+                      <Tooltip
+                        title={hidden ? t('activeMessageTip') : t('hideMessageTip')}
+                        disableInteractive
+                        placement="top">
+                        <Box onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')} className="center">
+                          {prompt.visibility === 'hidden' ? (
+                            <Box component={Icon} icon="tabler:eye-off" sx={{ color: 'grey.500' }} />
+                          ) : (
+                            <Box component={Icon} icon="tabler:eye" sx={{ color: 'grey.500' }} />
+                          )}
+                        </Box>
+                      </Tooltip>
+
+                      <Tooltip title={t('copyTool')} disableInteractive placement="top">
+                        <Box onClick={() => copePrompt(prompt, _)} className="center">
+                          <Box component={Icon} icon="tabler:copy" sx={{ color: 'grey.500' }} />
+                        </Box>
+                      </Tooltip>
+                    </Stack>
                   }
                   onDelete={() => {
                     if ((prompt.data as any)?.type === 'dataset') {

@@ -229,9 +229,9 @@ export function DragSortItemContainer({
               maxHeight: 0,
               overflow: 'hidden',
               position: 'absolute',
-              left: -36,
+              left: -42,
               top: 1,
-              width: 36,
+              width: 48,
               display: 'flex',
               justifyContent: 'center',
             }}>

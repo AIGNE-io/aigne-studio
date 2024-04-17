@@ -7,6 +7,7 @@ import {
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { cloneDeep } from 'lodash';
 import sortBy from 'lodash/sortBy';
 import { useCallback, useEffect } from 'react';
 
@@ -40,6 +41,33 @@ export function usePromptsState({
         };
 
         sortBy(Object.values(template.prompts), (i) => i.index).forEach((i, index) => (i.index = index));
+      });
+    },
+    [template]
+  );
+
+  const copePrompt = useCallback(
+    (prompt: PromptYjs, index: number) => {
+      if (!template) return;
+
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+      doc.transact(() => {
+        template.prompts ??= {};
+
+        if (!template.prompts[prompt.data.id]) return;
+        try {
+          const copyPrompt = cloneDeep(prompt);
+          copyPrompt.data.id = nextAssistantId();
+
+          template.prompts[copyPrompt.data.id] = {
+            index: typeof index === 'number' ? index + 0.1 : Object.keys(template.prompts).length,
+            data: copyPrompt,
+          };
+
+          sortBy(Object.values(template.prompts), (i) => i.index).forEach((i, index) => (i.index = index));
+        } catch (error) {
+          console.error(error?.message);
+        }
       });
     },
     [template]
@@ -282,5 +310,13 @@ export function usePromptsState({
     }
   }, [assistantParameters]);
 
-  return { addPrompt, deletePrompt, addDatasetPrompt, deleteDatasetPrompt, addCustomPrompt, renameVariable };
+  return {
+    addPrompt,
+    copePrompt,
+    deletePrompt,
+    addDatasetPrompt,
+    deleteDatasetPrompt,
+    addCustomPrompt,
+    renameVariable,
+  };
 }
