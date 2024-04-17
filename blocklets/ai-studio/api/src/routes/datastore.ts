@@ -29,8 +29,8 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const {
     userId = '',
     sessionId = '',
-    type = '',
     assistantId,
+    type = '',
     ...query
   } = await Joi.object<{
     userId?: string;

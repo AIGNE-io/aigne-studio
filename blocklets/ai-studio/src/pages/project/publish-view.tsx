@@ -30,7 +30,7 @@ import {
   Typography,
 } from '@mui/material';
 import { styled as muiStyled } from '@mui/material/styles';
-import { Suspense, useMemo } from 'react';
+import { Suspense, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import QRCode from 'react-qr-code';
 import { joinURL, withQuery } from 'ufo';
@@ -99,7 +99,7 @@ function PublishViewContent({
   const uploaderRef = useUploader();
 
   const {
-    state: { releases },
+    state: { releases, project },
     refetch,
   } = useProjectState(projectId, projectRef);
 
@@ -112,6 +112,14 @@ function PublishViewContent({
       aiReleaseId: release.id,
     });
   }, [release]);
+
+  useEffect(() => {
+    if (project) {
+      if (!assistant.release?.title && project.name) setRelease((release) => (release.title = project.name));
+      if (!assistant.release?.description && project.description)
+        setRelease((release) => (release.description = project.description));
+    }
+  }, [project]);
 
   const form = useForm();
 
@@ -198,7 +206,7 @@ function PublishViewContent({
         </Typography>
         <BaseInput
           placeholder={t('publish.titlePlaceholder')}
-          value={assistant.release?.title || ''}
+          value={assistant.release?.title || project?.name}
           onChange={(e) => setRelease((release) => (release.title = e.target.value))}
         />
       </FormControl>
@@ -212,7 +220,7 @@ function PublishViewContent({
           sx={{ padding: 0 }}
           placeholder={t('publish.descriptionPlaceholder')}
           minRows={3}
-          value={assistant.release?.description || ''}
+          value={assistant.release?.description || project?.description}
           onChange={(e) => setRelease((release) => (release.description = e.target.value))}
         />
       </FormControl>
