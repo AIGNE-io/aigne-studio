@@ -27,7 +27,7 @@ overrides:
   '@ocap/types': ^1.18.115
   '@ocap/util': ^1.18.115
   '@ocap/wallet': ^1.18.115
-  '@types/react': ^18.2.78
+  '@types/react': ^18.2.79
   '@types/react-dom': ^18.2.25
   axios: ^1.6.8
   gpt-tokens: 1.2.0
@@ -117,13 +117,13 @@ importers:
         specifier: ^0.1.338
         version: link:../../packages/dataset-sdk
       '@blocklet/discuss-kit':
-        specifier: ^1.6.213
+        specifier: ^1.6.217
         version: 1.6.217(@aws-sdk/credential-provider-node@3.556.0)(@babel/core@7.24.4)(@emotion/css@11.11.2)(@types/node@18.19.31)(@types/react@18.2.79)(react-dom@18.2.0)(react-router-dom@6.22.3)(react@18.2.0)(yjs@13.6.14)
       '@blocklet/logger':
         specifier: ^1.16.25
         version: 1.16.25
       '@blocklet/payment-js':
-        specifier: ^1.13.215
+        specifier: ^1.13.220
         version: 1.13.220
       '@blocklet/prompt-editor':
         specifier: ^0.1.338
@@ -162,7 +162,7 @@ importers:
         specifier: ^0.0.42
         version: 0.0.42(@aws-sdk/credential-provider-node@3.556.0)(@huggingface/inference@2.6.7)(faiss-node@0.5.1)(hnswlib-node@3.0.0)(lodash@4.17.21)
       '@langchain/core':
-        specifier: ^0.1.57
+        specifier: ^0.1.58
         version: 0.1.58
       '@langchain/openai':
         specifier: ^0.0.23
@@ -481,7 +481,7 @@ importers:
         specifier: ^18.19.31
         version: 18.19.31
       '@types/react':
-        specifier: ^18.2.78
+        specifier: ^18.2.79
         version: 18.2.79
       '@types/react-dom':
         specifier: ^18.2.25
@@ -511,7 +511,7 @@ importers:
         specifier: ^1.8.8
         version: 1.8.8
       vite:
-        specifier: ^5.2.8
+        specifier: ^5.2.9
         version: 5.2.9(@types/node@18.19.31)
       vite-plugin-blocklet:
         specifier: ^0.7.9
@@ -639,7 +639,7 @@ importers:
         specifier: ^2.6.11
         version: 2.6.11
       '@types/react':
-        specifier: ^18.2.78
+        specifier: ^18.2.79
         version: 18.2.79
       npm-run-all:
         specifier: ^4.1.5
@@ -855,7 +855,7 @@ importers:
         specifier: ^5.0.5
         version: 5.0.5
       vite:
-        specifier: ^5.2.8
+        specifier: ^5.2.9
         version: 5.2.9(@types/node@18.19.31)
       vite-plugin-replace:
         specifier: ^0.1.1
@@ -891,7 +891,7 @@ importers:
         specifier: ^5.15.15
         version: 5.15.15(@emotion/react@11.11.4)(@emotion/styled@11.11.5)(@types/react@18.2.79)(react-dom@18.2.0)(react@18.2.0)
       '@types/react':
-        specifier: ^18.2.78
+        specifier: ^18.2.79
         version: 18.2.79
       npm-run-all:
         specifier: ^4.1.5
@@ -4384,7 +4384,7 @@ packages:
     resolution: {integrity: sha512-I/lGHztkCzvwlXpjD2+SNmvNQvB4227xBXhISPjEaJUXGImOQ9f3D2Yj/T3KasSI/h0MLWy74X0J6clhPmsRbQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       react: ^17.0.0 || ^18.0.0
       react-dom: ^17.0.0 || ^18.0.0
     peerDependenciesMeta:
@@ -4410,7 +4410,7 @@ packages:
     engines: {node: '>=12.0.0'}
     peerDependencies:
       '@mui/material': ^5.15.15
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       react: ^17.0.0 || ^18.0.0
     peerDependenciesMeta:
       '@types/react':
@@ -4428,7 +4428,7 @@ packages:
       '@emotion/react': ^11.5.0
       '@emotion/styled': ^11.3.0
       '@mui/material': ^5.15.15
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       react: ^17.0.0 || ^18.0.0
       react-dom: ^17.0.0 || ^18.0.0
     peerDependenciesMeta:
@@ -4459,7 +4459,7 @@ packages:
     peerDependencies:
       '@emotion/react': ^11.5.0
       '@emotion/styled': ^11.3.0
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       react: ^17.0.0 || ^18.0.0
       react-dom: ^17.0.0 || ^18.0.0
     peerDependenciesMeta:
@@ -4492,7 +4492,7 @@ packages:
     resolution: {integrity: sha512-UH0EiZckOWcxiXLX3Jbb0K7rC8mxTr9L9l6QhOZxYc4r8FHUkefltV9VDGLrzCaWh30SQiJvAEd7djX3XXY6Xw==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       react: ^17.0.0 || ^18.0.0
     peerDependenciesMeta:
       '@types/react':
@@ -4531,7 +4531,7 @@ packages:
     peerDependencies:
       '@emotion/react': ^11.5.0
       '@emotion/styled': ^11.3.0
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       react: ^17.0.0 || ^18.0.0
     peerDependenciesMeta:
       '@emotion/react':
@@ -4557,7 +4557,7 @@ packages:
   /@mui/types@7.2.14(@types/react@18.2.79):
     resolution: {integrity: sha512-MZsBZ4q4HfzBsywtXgM1Ksj6HDThtiwmOKUXH1pKYISI9gAVXCNHNpo7TlGoGrBaYWZTdNoirIN7JsQcQUjmQQ==}
     peerDependencies:
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
     peerDependenciesMeta:
       '@types/react':
         optional: true
@@ -4568,7 +4568,7 @@ packages:
     resolution: {integrity: sha512-0lF/7Hh/ezDv5X7Pry6enMsbYyGKjADzvHyo3Qrc/SSlTsQ1VkbDMbH0m2t3OR5iIVLwMoxwM7yGd+6FCMtTFA==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       react: ^17.0.0 || ^18.0.0
     peerDependenciesMeta:
       '@types/react':
@@ -13765,7 +13765,7 @@ packages:
   /merge-refs@1.2.2(@types/react@18.2.79):
     resolution: {integrity: sha512-RwcT7GsQR3KbuLw1rRuodq4Nt547BKEBkliZ0qqsrpyNne9bGTFtsFIsIpx82huWhcl3kOlOlH4H0xkPk/DqVw==}
     peerDependencies:
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
     peerDependenciesMeta:
       '@types/react':
         optional: true
@@ -16239,7 +16239,7 @@ packages:
     peerDependencies:
       '@types/hoist-non-react-statics': '>= 3.3.1'
       '@types/node': '>= 12'
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       react: '>= 16.14'
     peerDependenciesMeta:
       '@types/hoist-non-react-statics':
@@ -16372,7 +16372,7 @@ packages:
   /react-markdown@8.0.7(@types/react@18.2.79)(react@18.2.0):
     resolution: {integrity: sha512-bvWbzG4MtOU62XqBx3Xx+zB2raaFFsq4mYiAzfjXJMEz2sixgeAfraA3tvzULF02ZdOMUOKTBFFaZJDDrq+BJQ==}
     peerDependencies:
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       react: '>=16'
     dependencies:
       '@types/hast': 2.3.10
@@ -16399,7 +16399,7 @@ packages:
   /react-pdf@7.7.1(@types/react@18.2.79)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-cbbf/PuRtGcPPw+HLhMI1f6NSka8OJgg+j/yPWTe95Owf0fK6gmVY7OXpTxMeh92O3T3K3EzfE0ML0eXPGwR5g==}
     peerDependencies:
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
     peerDependenciesMeta:
@@ -19772,7 +19772,7 @@ packages:
     resolution: {integrity: sha512-2cN1tPkDVkwCy5ickKrI7vijSjPksFRfqS6237NzT0vqSsztTNnQdHw9mmN7uBdk3gceVXU0a+21jFzFzAc9+g==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
-      '@types/react': ^18.2.78
+      '@types/react': ^18.2.79
       immer: '>=9.0.6'
       react: '>=16.8'
     peerDependenciesMeta:

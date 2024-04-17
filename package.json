@@ -78,7 +78,7 @@
     "@ocap/types": "^1.18.115",
     "@ocap/util": "^1.18.115",
     "@ocap/wallet": "^1.18.115",
-    "@types/react": "^18.2.78",
+    "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
     "axios": "^1.6.8",
     "gpt-tokens": "1.2.0",
