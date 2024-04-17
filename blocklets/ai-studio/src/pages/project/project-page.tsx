@@ -30,7 +30,7 @@ import {
   tabClasses,
   tabsClasses,
 } from '@mui/material';
-import { useLocalStorageState } from 'ahooks';
+import { useLocalStorageState, useTitle } from 'ahooks';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -85,6 +85,7 @@ export default function ProjectPage() {
 
   const location = useLocation();
   const navigate = useNavigate();
+  useTitle(project?.name || '');
 
   const [currentTab, setCurrentTab] = useLocalStorageState(CURRENT_TAB(projectId), { defaultValue: 'debug' });
 
