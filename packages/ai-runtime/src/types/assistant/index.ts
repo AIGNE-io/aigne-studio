@@ -93,7 +93,6 @@ export interface AssistantBase {
     createdBy: string;
   }[];
   formatResultType?: 'none';
-
   release?: {
     template?: string;
     title?: string;
@@ -107,7 +106,6 @@ export interface AssistantBase {
       price?: string;
     };
   };
-
   entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
 }
 
@@ -148,6 +146,22 @@ export interface FunctionAssistant extends AssistantBase {
   code?: string;
 }
 
+export interface DatastoreBase {
+  path?: string; // Datastore 中的 key, 将tool执行后的结果为value
+  scope?: 'global' | 'session' | 'local';
+  defaultValue?: any;
+}
+
+export interface DatastoreParameter extends DatastoreBase, Omit<ParameterBase, 'variableFrom'> {
+  variableFrom?: 'Datastore'; // Storage 感觉更好，但是又出现了多个命名，维持 Datastore
+}
+
+export interface ToolParameter extends DatastoreBase, Omit<ParameterBase, 'variableFrom'> {
+  variableFrom?: 'tool';
+  tool: Tool;
+  persist?: boolean;
+}
+
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter;
 
 export interface ParameterBase {
@@ -158,6 +172,7 @@ export interface ParameterBase {
   helper?: string;
   required?: boolean;
   from?: 'editor';
+  variableFrom?: 'input';
 }
 
 export interface StringParameter extends ParameterBase {
