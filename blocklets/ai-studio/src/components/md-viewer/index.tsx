@@ -2,7 +2,7 @@ import 'highlight.js/styles/base16/github.css';
 
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Box, styled } from '@mui/material';
+import { Box, BoxProps, styled } from '@mui/material';
 import hljs from 'highlight.js';
 import { marked } from 'marked';
 import { mangle } from 'marked-mangle';
@@ -116,7 +116,7 @@ marked.use({
 
 marked.use(mangle());
 
-function MdViewer(props: MdViewerProps) {
+function MdViewer(props: BoxProps & MdViewerProps) {
   const { t } = useLocaleContext();
   const mdViewerRef = useRef<HTMLDivElement>(null);
   const renderer = useMemo(() => {
@@ -198,6 +198,7 @@ function MdViewer(props: MdViewerProps) {
       dangerouslySetInnerHTML={{
         __html: convertMarkdownToHTML(props.content),
       }}
+      {...props}
     />
   );
 }

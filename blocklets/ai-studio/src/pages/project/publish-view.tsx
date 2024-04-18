@@ -30,7 +30,7 @@ import {
   Typography,
 } from '@mui/material';
 import { styled as muiStyled } from '@mui/material/styles';
-import { Suspense, useMemo } from 'react';
+import { Suspense, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import QRCode from 'react-qr-code';
 import { joinURL, withQuery } from 'ufo';
@@ -99,7 +99,7 @@ function PublishViewContent({
   const uploaderRef = useUploader();
 
   const {
-    state: { releases },
+    state: { releases, project },
     refetch,
   } = useProjectState(projectId, projectRef);
 
@@ -112,6 +112,17 @@ function PublishViewContent({
       aiReleaseId: release.id,
     });
   }, [release]);
+
+  useEffect(() => {
+    const name = assistant?.name ?? project?.name;
+    const description = assistant?.description ?? project?.description;
+    if (name || description) {
+      setRelease((release) => {
+        release.title ??= name;
+        release.description ??= description;
+      });
+    }
+  }, [project]);
 
   const form = useForm();
 

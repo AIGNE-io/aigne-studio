@@ -97,6 +97,7 @@ export default function ExecuteBlockForm({
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
   const toolForm = useRef<ToolDialogImperative>(null);
+  const selectedTool = useRef<string>();
 
   const { store } = useProjectStore(projectId, gitRef);
   const popperState = usePopupState({ variant: 'popper', popupId: 'settings' });
@@ -277,7 +278,7 @@ export default function ExecuteBlockForm({
               <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
                 {t('outputName')}
               </Typography>
-              <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
+              <Tooltip title={t('outputNameTip')} placement="top" disableInteractive>
                 <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
               </Tooltip>
             </Box>
@@ -590,6 +591,7 @@ export default function ExecuteBlockForm({
               onClick={() => {
                 if (readOnly) return;
                 toolForm.current?.form.reset(cloneDeep(tool));
+                selectedTool.current = tool.id;
                 dialogState.open();
               }}
             />
@@ -621,10 +623,16 @@ export default function ExecuteBlockForm({
         datasets={datasets.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
         onSubmit={(tool) => {
           const doc = (getYjsValue(value) as Map<any>).doc!;
+
           doc.transact(() => {
             value.tools ??= {};
 
             const old = value.tools[tool.id];
+
+            if (selectedTool.current) {
+              delete value.tools[selectedTool.current];
+              selectedTool.current = '';
+            }
 
             value.tools[tool.id] = {
               index: old?.index ?? Math.max(-1, ...Object.values(value.tools).map((i) => i.index)) + 1,

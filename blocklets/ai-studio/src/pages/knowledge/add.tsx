@@ -7,7 +7,17 @@ import { LoadingButton } from '@mui/lab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import { Box, Checkbox, CircularProgress, FormControlLabel, Stack, TextField, Typography, styled } from '@mui/material';
+import {
+  Box,
+  Checkbox,
+  CircularProgress,
+  FormControlLabel,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+  styled,
+} from '@mui/material';
 import Tab from '@mui/material/Tab';
 import { useReactive, useRequest } from 'ahooks';
 import { groupBy, uniqWith } from 'lodash';
@@ -326,32 +336,62 @@ function Discussion({ datasetId }: { datasetId: string }) {
           <Typography variant="subtitle2">{t('discussionBoards')}</Typography>
           <Stack gap={1}>
             {Object.entries(group).map(([key, value]) => {
+              const prefix = (window?.blocklet?.componentMountPoints || []).find(
+                (x) => x.name === 'did-comments'
+              )?.mountPoint;
+              let url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', 'discussions');
+
+              const map: any = {
+                discussion: 'discussions/boards',
+                doc: 'docs',
+                blog: 'blog/boards',
+              };
+
               return (
                 <Box key={key}>
                   <Typography variant="subtitle3">{t(key)}</Typography>
 
-                  <Stack gap={1.5} flexDirection="row" borderRadius={1} p={2} border="1px solid #E5E7EB" flex={1}>
-                    {value.map(({ id, title, type }) => (
-                      <FormControlLabel
-                        key={id}
-                        control={
-                          <Checkbox
-                            checked={isChecked(id)}
-                            onChange={(e) => {
-                              const { name, checked } = e.target;
-                              onChange(checked, {
-                                id: name,
-                                title,
-                                type,
-                                from: 'board',
-                              });
-                            }}
-                            name={id}
+                  <Stack
+                    gap={1.5}
+                    flexDirection="row"
+                    borderRadius={1}
+                    p={2}
+                    border="1px solid #E5E7EB"
+                    flex={1}
+                    flexWrap="wrap">
+                    {value.map(({ id, title, type }) => {
+                      url = joinURL(window?.blocklet?.appUrl || '', prefix || '/', map[type], id);
+
+                      return (
+                        <Tooltip
+                          key={id}
+                          title={
+                            <Stack
+                              flexDirection="row"
+                              gap={1}
+                              alignItems="center"
+                              sx={{ cursor: 'pointer' }}
+                              onClick={() => window.open(url, '_blank')}>
+                              {t('visitLink')}
+                              <Box component={Icon} icon="tabler:link" />
+                            </Stack>
+                          }>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={isChecked(id)}
+                                onChange={(e) => {
+                                  const { name, checked } = e.target;
+                                  onChange(checked, { id: name, title, type, from: 'board' });
+                                }}
+                                name={id}
+                              />
+                            }
+                            label={title}
                           />
-                        }
-                        label={title}
-                      />
-                    ))}
+                        </Tooltip>
+                      );
+                    })}
                   </Stack>
                 </Box>
               );

@@ -28,6 +28,7 @@ export interface CreateDiscussionItem {
     title: string;
     type?: 'discussion' | 'blog' | 'doc';
     from: 'discussion' | 'board' | 'discussionType';
+    boardId?: string;
   };
 }
 
@@ -290,6 +291,7 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
       type: Joi.string().valid('discussion', 'blog', 'doc').optional(),
       title: Joi.string().allow('', null).required(),
       id: Joi.string().required(),
+      boardId: Joi.string().required(),
     }).required(),
   });
 

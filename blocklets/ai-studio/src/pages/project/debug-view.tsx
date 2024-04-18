@@ -251,24 +251,23 @@ function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
           onClick={() => {
             const container = viewportRef.current;
             if (container) {
-              container.scroll({
-                top: container.scrollHeight,
-                behavior: 'smooth',
-              });
+              container.scroll({ top: container.scrollHeight, behavior: 'smooth' });
             }
           }}
+          className="center"
           sx={{
             bgcolor: 'rgba(0, 0, 0, 0.2)',
-            borderRadius: '10px',
+            borderRadius: '24px',
             borderWidth: 0,
             bottom: 5,
             cursor: 'pointer',
-            height: 20,
+            height: 24,
+            width: 24,
             position: 'absolute',
             right: 20,
-            width: 20,
-          }}
-        />
+          }}>
+          <Box component={Icon} icon="tabler:chevron-down" sx={{ fontSize: 15, color: '#9CA3AF' }} />
+        </Box>
       )}
     </Box>
   );
@@ -330,7 +329,7 @@ const MessageView = memo(
   }) => {
     return (
       <ErrorBoundary>
-        <Stack mt={message.role === 'user' && index !== 0 ? 4 : 0}>
+        <Stack mt={message.role === 'user' && index !== 0 ? 4 : 0} sx={{ mb: 2.5 }}>
           {message.role === 'user' && (
             <Typography alignSelf="center" ml={0.5} component="span" color="text.secondary" whiteSpace="nowrap">
               {dayjs(message.createdAt).format('YYYY-MM-DD HH:mm:ss')}

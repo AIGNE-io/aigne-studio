@@ -12,14 +12,14 @@ const router = Router();
  * @openapi
  * /api/datastore:
  *   get:
- *     summary: get datastores
+ *     summary: Get datastores
  *     description: Retrieve a list of datastores with optional query parameters to filter the results.
  *     x-summary-zh: 获取数据存储
  *     x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
  *     parameters:
  *       - in: query
  *         name: type
- *         description: stored alias name
+ *         description: key
  *         x-description-zh: 存储的名称
  *     responses:
  *       200:
@@ -29,8 +29,8 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const {
     userId = '',
     sessionId = '',
-    type = '',
     assistantId,
+    type = '',
     ...query
   } = await Joi.object<{
     userId?: string;
@@ -73,8 +73,8 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  * @openapi
  * /api/datastore:
  *   post:
- *     summary: set a new datastore
- *     description: set a new datastore
+ *     summary: Set a new datastore
+ *     description: Set a new datastore
  *     x-summary-zh: 设置数据存储
  *     x-description-zh: 设置数据存储
  *     parameters:
@@ -86,7 +86,6 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         x-parameter-type: boolean
  *         description: Whether to overwrite old data
  *         x-description-zh: 是否覆盖旧数据
- *         x-hide: true
  *     requestBody:
  *       required: true
  *       content:
@@ -99,10 +98,12 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *             properties:
  *               type:
  *                 type: string
- *                 description: 别名
+ *                 description: key
+ *                 x-description-zh: 别名
  *               data:
  *                 type: object
- *                 description: 存储对象数据
+ *                 description: value
+ *                 x-description-zh: 存储对象数据
  *     responses:
  *       200:
  *         description: The created datastore object
@@ -154,8 +155,8 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  * @openapi
  * /api/datastore:
  *   put:
- *     summary: update data
- *     description: update data
+ *     summary: Update data
+ *     description: Update data
  *     x-summary-zh: 更新数据存储
  *     x-description-zh: 更新数据存储的信息。
  *     parameters:
@@ -164,13 +165,15 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         schema:
  *           type: string
  *         required: false
- *         description: 数据存储项的唯一标识符。
+ *         description: ID
+ *         x-description-zh: ID
  *       - in: query
  *         name: type
  *         schema:
  *           type: string
  *         required: false
- *         description: 数据存储项的类型。
+ *         description: key
+ *         x-description-zh: 数据存储项别名
  *     requestBody:
  *       required: true
  *       content:
@@ -182,7 +185,8 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *             properties:
  *               data:
  *                 type: object
- *                 description: 存储对象数据
+ *                 description: value
+ *                 x-description-zh: 存储对象数据
  *     responses:
  *       200:
  *         description: The updated datastore object
@@ -275,8 +279,8 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  * @openapi
  * /api/datastore:
  *   delete:
- *     summary: delete datastore data
- *     description: delete datastore data
+ *     summary: Delete datastore data
+ *     description: Delete datastore data
  *     x-summary-zh: 删除存储数据
  *     x-description-zh: 删除数据存储。
  *     parameters:
@@ -285,13 +289,15 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         schema:
  *           type: string
  *         required: false
- *         description: 数据存储项的唯一标识符。
+ *         description: ID
+ *         x-description-zh: ID
  *       - in: query
  *         name: type
  *         schema:
  *           type: string
  *         required: false
- *         description: 数据存储项的类型。
+ *         description: key
+ *         x-description-zh: 数据存储项别名
  *     responses:
  *       200:
  *         description: The deleted datastore object

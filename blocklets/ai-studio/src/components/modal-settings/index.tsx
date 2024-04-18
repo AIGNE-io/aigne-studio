@@ -58,7 +58,7 @@ export function ModelSetting({
 
   if (!value.executeModel) {
     value.executeModel = {
-      model: 'gpt-3.5-turbo',
+      model: project?.model || 'gpt-3.5-turbo',
       temperature: 1,
       topP: 1,
       presencePenalty: 0,
