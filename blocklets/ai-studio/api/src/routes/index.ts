@@ -27,7 +27,6 @@ globalRoutes(router);
 workingRoutes(router);
 treeRoutes(router);
 resourceRoutes(router);
-resourceRoutes(router);
 sessionRoutes(router);
 messageRoutes(router);
 

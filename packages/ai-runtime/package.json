@@ -35,6 +35,10 @@
     "./core": {
       "import": "./lib/esm/core/index.js",
       "require": "./lib/cjs/core/index.js"
+    },
+    "./common": {
+      "import": "./lib/esm/common.js",
+      "require": "./lib/cjs/common.js"
     }
   },
   "typesVersions": {

@@ -8,7 +8,7 @@ export const ADMIN_ROLES = ['owner', 'admin'];
 
 export const ensureAdmin = auth({ roles: ADMIN_ROLES });
 
-export const ensurePromptsEditor = auth({ roles: ['owner', 'admin', 'promptsEditor'] });
+export const ensurePromptsEditor = auth({ roles: [...ADMIN_ROLES, 'promptsEditor'] });
 
 export const isRefReadOnly = ({ ref, role, defaultBranch }: { ref: string; role: string; defaultBranch: string }) =>
   ref === defaultBranch && !['admin', 'owner'].includes(role);
