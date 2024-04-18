@@ -114,10 +114,11 @@ function PublishViewContent({
   }, [release]);
 
   useEffect(() => {
-    if (project) {
-      if (!assistant.release?.title && project.name) setRelease((release) => (release.title = project.name));
-      if (!assistant.release?.description && project.description)
-        setRelease((release) => (release.description = project.description));
+    const name = assistant?.name ?? project?.name;
+    const description = assistant?.description ?? project?.description;
+    if (name || description) {
+      if (!assistant.release?.title && name) setRelease((release) => (release.title = name));
+      if (!assistant.release?.description && description) setRelease((release) => (release.description = description));
     }
   }, [project]);
 
@@ -206,7 +207,7 @@ function PublishViewContent({
         </Typography>
         <BaseInput
           placeholder={t('publish.titlePlaceholder')}
-          value={assistant.release?.title || project?.name || ''}
+          value={assistant.release?.title || ''}
           onChange={(e) => setRelease((release) => (release.title = e.target.value))}
         />
       </FormControl>
@@ -220,7 +221,7 @@ function PublishViewContent({
           sx={{ padding: 0 }}
           placeholder={t('publish.descriptionPlaceholder')}
           minRows={3}
-          value={assistant.release?.description || project?.description || ''}
+          value={assistant.release?.description || ''}
           onChange={(e) => setRelease((release) => (release.description = e.target.value))}
         />
       </FormControl>

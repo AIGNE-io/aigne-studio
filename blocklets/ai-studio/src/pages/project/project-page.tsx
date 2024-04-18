@@ -85,7 +85,7 @@ export default function ProjectPage() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  useTitle(project?.name || '');
+  useTitle(project?.name || 'AI Studio');
 
   const [currentTab, setCurrentTab] = useLocalStorageState(CURRENT_TAB(projectId), { defaultValue: 'debug' });
 
