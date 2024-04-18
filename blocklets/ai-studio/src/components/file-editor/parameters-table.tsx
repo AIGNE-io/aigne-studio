@@ -95,10 +95,6 @@ export default function ParametersTable({
         width: '16%' as any,
         headerName: t('variable'),
         renderCell: ({ row: { data: parameter } }) => {
-          if (parameter?.key === 'datasetId') {
-            return <Box>{t('knowledge.parameter')}</Box>;
-          }
-
           return (
             <WithAwareness
               projectId={projectId}
@@ -136,7 +132,7 @@ export default function ParametersTable({
             <Input
               fullWidth
               readOnly={readOnly}
-              placeholder={parameter?.key === 'datasetId' ? t('knowledge.parameter') : parameter.key || t('label')}
+              placeholder={parameter.key || t('label')}
               value={parameter.label || ''}
               onChange={(e) => (parameter.label = e.target.value)}
             />

@@ -33,6 +33,7 @@ import {
   DialogProps,
   DialogTitle,
   Divider,
+  FormControlLabel,
   Grow,
   IconButton,
   ListItemText,
@@ -950,9 +951,45 @@ export const ToolDialog = forwardRef<
           {(parameters || [])?.map((parameter: any) => {
             if (!parameter) return null;
 
+            if (parameter['x-parameter-type'] === 'boolean') {
+              return (
+                <Stack key={parameter.name}>
+                  <Box>
+                    <Controller
+                      control={form.control}
+                      name={`parameters.${parameter.name}`}
+                      render={({ field }) => {
+                        return (
+                          <FormControlLabel
+                            sx={{
+                              alignItems: 'flex-start',
+                              '.MuiCheckbox-root': {
+                                ml: -0.5,
+                              },
+                            }}
+                            checked={Boolean(field.value)}
+                            control={
+                              <Checkbox onChange={(e) => field.onChange({ target: { value: e.target.checked } })} />
+                            }
+                            label={
+                              <Typography variant="caption">
+                                {getDatasetTextByI18n(parameter, 'description', locale) ||
+                                  getDatasetTextByI18n(parameter, 'name', locale)}
+                              </Typography>
+                            }
+                            labelPlacement="top"
+                          />
+                        );
+                      }}
+                    />
+                  </Box>
+                </Stack>
+              );
+            }
+
             return (
               <Stack key={parameter.name}>
-                <Typography variant="caption" mx={1}>
+                <Typography variant="caption">
                   {getDatasetTextByI18n(parameter, 'description', locale) ||
                     getDatasetTextByI18n(parameter, 'name', locale)}
                 </Typography>
@@ -973,17 +1010,6 @@ export const ToolDialog = forwardRef<
                           onChange={field.onChange}
                           queryParams={{ appId: projectId }}
                         />
-                      );
-                    }
-
-                    if (parameter['x-parameter-type'] === 'boolean') {
-                      return (
-                        <Box>
-                          <Checkbox
-                            checked={Boolean(field.value)}
-                            onChange={(e) => field.onChange({ target: { value: e.target.checked } })}
-                          />
-                        </Box>
                       );
                     }
 
