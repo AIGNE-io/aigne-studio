@@ -117,8 +117,10 @@ function PublishViewContent({
     const name = assistant?.name ?? project?.name;
     const description = assistant?.description ?? project?.description;
     if (name || description) {
-      if (!assistant.release?.title && name) setRelease((release) => (release.title = name));
-      if (!assistant.release?.description && description) setRelease((release) => (release.description = description));
+      setRelease((release) => {
+        release.title ??= name;
+        release.description ??= description;
+      });
     }
   }, [project]);
 
