@@ -1,3 +1,8 @@
+## 0.1.340 (2024-4-20)
+
+- feact: support for configuring Service Mode in Preferences
+- chore: migrate common.ts to@blocklet/ai-runtime
+
 ## 0.1.339 (2024-4-17)
 
 - fix: copy tool(#801)

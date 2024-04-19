@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { attachReqResToOptionsMiddleware } from '../store/sequelize';
 import ai from './ai';
 import { branchRoutes } from './branch';
 import datasets from './dataset/datasets';
@@ -20,13 +21,14 @@ import ws from './ws';
 
 const router = Router();
 
+router.use(attachReqResToOptionsMiddleware());
+
 projectRoutes(router);
 logRoutes(router);
 branchRoutes(router);
 globalRoutes(router);
 workingRoutes(router);
 treeRoutes(router);
-resourceRoutes(router);
 resourceRoutes(router);
 sessionRoutes(router);
 messageRoutes(router);

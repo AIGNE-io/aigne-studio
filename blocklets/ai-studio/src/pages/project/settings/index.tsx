@@ -1,6 +1,7 @@
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { getSupportedModels } from '@blocklet/ai-runtime/common';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -26,7 +27,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBeforeUnload, useBlocker, useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
-import { getSupportedModels } from '../../../../api/src/libs/common';
 import { UpdateProjectInput } from '../../../../api/src/routes/project';
 import Loading from '../../../components/loading';
 import Avatar from '../../../components/project-settings/avatar';

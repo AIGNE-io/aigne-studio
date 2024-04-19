@@ -1,6 +1,8 @@
+import { Config } from '@api/libs/env';
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model } from 'sequelize';
 import { Worker } from 'snowflake-uuid';
 
+import { ensureComponentCallOrRolesMatch } from '../../libs/security';
 import { sequelize } from '../sequelize';
 
 const idGenerator = new Worker();
@@ -149,3 +151,43 @@ Project.init(
   },
   { sequelize }
 );
+
+const throwPermissionError = (res: any) => {
+  const errorText = 'Project no permission';
+  res.status(403).json({ error: errorText });
+  return new Error(errorText);
+};
+
+Project.beforeUpdate(async (project, options) => {
+  // check permission
+  if (options?.req && options?.res) {
+    const userDid = options.req.user?.did;
+
+    // is author or has permission
+    if (
+      userDid === project.createdBy ||
+      ensureComponentCallOrRolesMatch(options.req, Config.serviceModePermissionMap.ensurePromptsAdminRoles)
+    ) {
+      return;
+    }
+
+    throw throwPermissionError(options.res);
+  }
+});
+
+Project.beforeDestroy(async (project, options) => {
+  // check permission
+  if (options?.req && options?.res) {
+    const userDid = options.req.user?.did;
+
+    // is author or has permission
+    if (
+      userDid === project.createdBy ||
+      ensureComponentCallOrRolesMatch(options.req, Config.serviceModePermissionMap.ensurePromptsAdminRoles)
+    ) {
+      return;
+    }
+
+    throw throwPermissionError(options.res);
+  }
+});

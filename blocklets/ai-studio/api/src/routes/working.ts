@@ -22,7 +22,7 @@ export function workingRoutes(router: Router) {
     user(),
     ensureComponentCallOrPromptsEditor(),
     async (req, res) => {
-      const { fullName, did: userId, role } = req.user!;
+      const { fullName, did: userId } = req.user!;
 
       const { projectId, ref } = req.params;
       if (!projectId || !ref) throw new Error('Missing required params `projectId` or `ref`');
@@ -31,7 +31,14 @@ export function workingRoutes(router: Router) {
 
       const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
 
-      if (isRefReadOnly({ ref: input.branch, role, defaultBranch: project?.gitDefaultBranch ?? defaultBranch })) {
+      const readOnly = isRefReadOnly({
+        ref,
+        defaultBranch: project?.gitDefaultBranch ?? defaultBranch,
+        project,
+        user: req.user,
+      });
+
+      if (readOnly) {
         throw new Error(`commit to read only branch ${input.branch} is forbidden`);
       }
 

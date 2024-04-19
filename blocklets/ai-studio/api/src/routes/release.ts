@@ -8,7 +8,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { omitBy } from 'lodash';
 
-import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Release from '../store/models/release';
 
 const router = Router();
@@ -153,7 +153,7 @@ router.patch('/:releaseId', user(), ensureComponentCallOrPromptsEditor(), async 
   });
 });
 
-router.delete('/:releaseId', ensureComponentCallOrAdmin(), async (req, res) => {
+router.delete('/:releaseId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { releaseId } = req.params;
 
   const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
