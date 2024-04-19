@@ -12,17 +12,14 @@ import logger from './logger';
 
 const isPaymentInstalled = () => !!getComponentWebEndpoint('z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk');
 
-export async function getActiveSubscriptionOfAssistant({ release, userId }: { release: Release; userId: string }) {
+export async function getActiveSubscriptionOfAssistant({ releaseId, userId }: { releaseId: string; userId: string }) {
   const subscription = (
     await payment.subscriptions.list({
       // @ts-ignore TODO: remove ts-ignore after upgrade @did-pay/client
-      'metadata.releaseId': release.id,
+      'metadata.releaseId': releaseId,
       'metadata.userId': userId,
     })
-  ).list.find(
-    (i) =>
-      ['active', 'trialing'].includes(i.status) && i.items.some((j) => j.price.product.id === release.paymentProductId)
-  );
+  ).list.find((i) => ['active', 'trialing'].includes(i.status));
 
   return subscription;
 }
@@ -104,19 +101,29 @@ export async function createOrUpdatePaymentForRelease(
   }
 }
 
-const tasks: { [key: string]: DebouncedFunc<(options: { release: Release; userId: string }) => Promise<void>> } = {};
+const tasks: { [key: string]: DebouncedFunc<(options: { userId: string }) => Promise<void>> } = {};
 
-export async function reportUsage({ release, userId }: { release: Release; userId: string }) {
-  const key = `${userId}-${release.id}`;
+export async function reportUsage({
+  projectId,
+  projectRef,
+  assistantId,
+  userId,
+}: {
+  projectId: string;
+  projectRef: string;
+  assistantId: string;
+  userId: string;
+}) {
+  const key = `${userId}-${projectId}-${projectRef}-${assistantId}`;
   tasks[key] ??= throttle(
-    async ({ release, userId }: { release: Release; userId: string }) => {
+    async ({ userId }: { userId: string }) => {
       try {
         const start = await History.findOne({
           where: {
             userId,
-            projectId: release.projectId,
-            ref: release.projectRef,
-            assistantId: release.assistantId,
+            projectId,
+            ref: projectRef,
+            assistantId,
             usageReportStatus: { [Op.not]: null },
           },
           order: [['id', 'desc']],
@@ -125,9 +132,9 @@ export async function reportUsage({ release, userId }: { release: Release; userI
         const end = await History.findOne({
           where: {
             userId,
-            projectId: release.projectId,
-            ref: release.projectRef,
-            assistantId: release.assistantId,
+            projectId,
+            ref: projectRef,
+            assistantId,
             id: { [Op.gt]: start?.id || '' },
           },
           order: [['id', 'desc']],
@@ -139,19 +146,23 @@ export async function reportUsage({ release, userId }: { release: Release; userI
         const count = await History.count({
           where: {
             userId,
-            projectId: release.projectId,
-            ref: release.projectRef,
-            assistantId: release.assistantId,
+            projectId,
+            ref: projectRef,
+            assistantId,
             id: { [Op.gt]: start?.id || '', [Op.lte]: end.id },
             error: { [Op.is]: null },
           },
         });
 
-        const subscription = await getActiveSubscriptionOfAssistant({ release, userId });
+        const subscription = await getActiveSubscriptionOfAssistant({
+          releaseId: Buffer.from([projectId, projectRef, assistantId].join('/')).toString('base64url'),
+          userId,
+        });
         if (!subscription) throw new Error('Subscription not active');
 
-        const subscriptionItem = subscription.items.find((i) => i.price.product_id === release.paymentProductId);
-        if (!subscriptionItem) throw new Error(`Subscription item of product ${release.paymentProductId} not found`);
+        const subscriptionItem = subscription.items[0];
+        console.log(subscriptionItem);
+        if (!subscriptionItem) throw new Error(`Subscription item not found`);
 
         await end.update({ usageReportStatus: 'counted' });
 
@@ -169,5 +180,5 @@ export async function reportUsage({ release, userId }: { release: Release; userI
     { leading: false, trailing: true }
   );
 
-  tasks[key]!({ release, userId });
+  tasks[key]!({ userId });
 }
