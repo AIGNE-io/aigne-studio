@@ -630,6 +630,7 @@ const getVariables = async ({
             sessionId,
           });
 
+          // TODO: @li-yechao 根据配置的输出类型决定是否需要 parse
           try {
             variables[toolParameter.key] = JSON.parse(result);
           } catch (error) {
