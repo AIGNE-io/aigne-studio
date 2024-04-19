@@ -541,7 +541,7 @@ function processAssistantParameters(assistant: Assistant) {
   return { toolParameters, datastoreParameters };
 }
 
-const requestStorage = async ({
+const runRequestStorage = async ({
   assistant,
   parentTaskId,
   user,
@@ -617,7 +617,7 @@ const requestStorage = async ({
   return null;
 };
 
-const requestToolAssistant = async ({
+const runRequestToolAssistant = async ({
   callAI,
   callAIImage,
   getAssistant,
@@ -770,7 +770,7 @@ const getVariables = async ({
         const toolAssistant = await getAssistant(tool.id);
         if (!toolAssistant) continue;
 
-        const result = await requestToolAssistant({
+        const result = await runRequestToolAssistant({
           callAI,
           callAIImage,
           getAssistant,
@@ -782,6 +782,7 @@ const getVariables = async ({
           toolParameter,
         });
 
+        // TODO: @li-yechao 根据配置的输出类型决定是否需要 parse
         try {
           variables[toolParameter.key] = JSON.parse(result);
         } catch (error) {
@@ -796,7 +797,14 @@ const getVariables = async ({
   if (datastoreParameters.length) {
     for (const datastoreParameter of datastoreParameters) {
       if (datastoreParameter.key && datastoreParameter.source?.variableFrom === 'datastore') {
-        const result = await requestStorage({ assistant, parentTaskId, user, callback, datastoreParameter, scopeMap });
+        const result = await runRequestStorage({
+          assistant,
+          parentTaskId,
+          user,
+          callback,
+          datastoreParameter,
+          scopeMap,
+        });
         variables[datastoreParameter.key] = result;
       }
     }
