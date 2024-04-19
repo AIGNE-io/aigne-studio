@@ -156,6 +156,11 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
         if (mainTaskId === data.taskId) {
           if (data.delta.content) result.content = (result.content || '') + data.delta.content;
           if (data.delta.images?.length) result.images = (result.images || []).concat(data.delta.images);
+
+          if (data.delta.object) {
+            result.objects ??= [];
+            result.objects.push({ taskId: data.taskId, data: data.delta.object });
+          }
         } else if (data.respondAs && data.respondAs !== 'none') {
           let childMsg = childMessagesMap[data.taskId];
           if (!childMsg) {
@@ -241,7 +246,12 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     }
 
     if (userId && release?.paymentEnabled && release.paymentProductId) {
-      if (!(await getActiveSubscriptionOfAssistant({ release, userId }))) {
+      if (
+        !(await getActiveSubscriptionOfAssistant({
+          releaseId: Buffer.from([input.projectId, input.ref, input.assistantId].join('/')).toString('base64url'),
+          userId,
+        }))
+      ) {
         throw new InvalidSubscriptionError('Your subscription is not available');
       }
     }
@@ -288,7 +298,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   await history?.update({ error, result, generateStatus: 'done', executingLogs: Object.values(executingLogs) });
 
   if (userId && release?.paymentEnabled && release.paymentProductId) {
-    await reportUsage({ release, userId });
+    await reportUsage({ projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId, userId });
   }
 });
 

@@ -62,8 +62,9 @@ router.get('/:releaseId/subscription', user(), auth(), async (req, res) => {
   const { did } = req.user!;
   const { releaseId } = req.params;
 
-  const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
-  const subscription = await getActiveSubscriptionOfAssistant({ release, userId: did });
+  if (!releaseId) throw new Error('Missing required param releaseId');
+
+  const subscription = await getActiveSubscriptionOfAssistant({ releaseId, userId: did });
 
   res.json({ subscription });
 });

@@ -107,7 +107,49 @@ export interface AssistantBase {
     };
   };
   entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
+
+  outputVariables?: OutputVariable[];
+
+  // responseFormat?: {
+  //   metadata?: {
+  //     page?: {
+  //       backgroundImage?: string;
+  //       backgroundColor?: string;
+  //     };
+  //     inputAction?: {
+  //       type: 'assistant';
+  //       identity?: string;
+  //     };
+  //   };
+  // };
 }
+
+export interface OutputVariableBase {
+  id: string;
+  name?: string;
+  description?: string;
+  required?: boolean;
+}
+
+export type OutputVariable = OutputVariableBase &
+  (
+    | {
+        type: 'string';
+        defaultValue?: string;
+      }
+    | {
+        type: 'number';
+        defaultValue?: number;
+      }
+    | {
+        type: 'object';
+        properties?: OutputVariable[];
+      }
+    | {
+        type: 'array';
+        element?: OutputVariable;
+      }
+  );
 
 export interface PromptAssistant extends AssistantBase {
   type: 'prompt';

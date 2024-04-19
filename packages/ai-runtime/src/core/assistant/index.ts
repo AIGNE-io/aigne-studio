@@ -33,6 +33,7 @@ import {
   ImageAssistant,
   Mustache,
   OnTaskCompletion,
+  OutputVariable,
   Parameter,
   Role,
   Tool,
@@ -920,6 +921,34 @@ async function runPromptAssistant({
 
   if (!messages.length) return undefined;
 
+  // TODO: 更好地判断是否需要输出 JSON
+  const outputJson = !!assistant.outputVariables?.length;
+
+  // TODO: 更好地处理 json schema 约束 prompt
+  if (outputJson) {
+    const variableToSchema = (variable: OutputVariable): any => ({
+      type: variable.type,
+      description: variable.description,
+      properties:
+        variable.type === 'object' && variable.properties
+          ? Object.fromEntries(
+              variable.properties.map((property) => [property.name, variableToSchema(property)]).filter((i) => !!i[0])
+            )
+          : undefined,
+      items: variable.type === 'array' && variable.element ? variableToSchema(variable.element) : undefined,
+      required:
+        variable.type === 'object' && variable.properties?.length
+          ? variable.properties.filter((i) => i.name && i.required).map((i) => i.name)
+          : undefined,
+    });
+
+    const schema = variableToSchema({ id: '', type: 'object', properties: assistant.outputVariables ?? [] });
+
+    const outputSchema = JSON.stringify(schema, null, 2);
+
+    messages[0]!.content = `${messages[0]!.content}\n\n## Format\nOutput a JSON object match the following JSON schema:\n ${outputSchema}`;
+  }
+
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
@@ -954,14 +983,28 @@ async function runPromptAssistant({
   });
 
   let result = '';
+  let jsonResult;
 
   for await (const chunk of res.chatCompletionChunk) {
     result += chunk.delta.content || '';
+
+    if (!outputJson) {
+      callback?.({
+        type: AssistantResponseType.CHUNK,
+        taskId,
+        assistantId: assistant.id,
+        delta: { content: chunk.delta.content },
+      });
+    }
+  }
+
+  if (outputJson) {
+    jsonResult = JSON.parse(result);
     callback?.({
       type: AssistantResponseType.CHUNK,
       taskId,
       assistantId: assistant.id,
-      delta: { content: chunk.delta.content },
+      delta: { object: jsonResult },
     });
   }
 
@@ -989,7 +1032,7 @@ async function runPromptAssistant({
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
-  return result;
+  return jsonResult ?? result;
 }
 
 async function runImageAssistant({

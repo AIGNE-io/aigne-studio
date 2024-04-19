@@ -217,6 +217,7 @@ export interface SessionItem {
     gitRef?: string;
     parameters?: { [key: string]: any };
     images?: ImageType;
+    objects?: any[];
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
@@ -498,6 +499,14 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
 
               if (value.taskId === mainTaskId) {
                 response += value.delta.content || '';
+
+                if (value.delta.object) {
+                  setMessage(sessionIndex, responseId, (message) => {
+                    if (message.cancelled) return;
+                    message.objects ??= [];
+                    message.objects.push(value.delta.object);
+                  });
+                }
 
                 if (images?.length) {
                   setMessage(sessionIndex, responseId, (message) => {

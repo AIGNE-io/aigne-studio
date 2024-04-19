@@ -356,6 +356,10 @@ const MessageView = memo(
                   </Stack>
                 ))}
 
+                {message.objects?.map((object, index) => (
+                  <MdViewer key={index} content={`${'```json'}\n${JSON.stringify(object, null, 2)}\n${'```'}`} />
+                ))}
+
                 {(message.content || message.images?.length || message.loading) &&
                 (chatType !== 'debug' || !message?.inputMessages?.length) ? (
                   <MessageViewContent

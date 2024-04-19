@@ -109,7 +109,7 @@ function PublishViewContent({
     if (!release) return undefined;
     const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
     return withQuery(joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/chat'), {
-      aiReleaseId: release.id,
+      assistantId: btoa([projectId, projectRef, assistant.id].join('/')),
     });
   }, [release]);
 

@@ -94,6 +94,7 @@ export type RunAssistantChunk = {
   delta: {
     content?: string | null;
     images?: { url: string }[];
+    object?: any;
   };
 };
 

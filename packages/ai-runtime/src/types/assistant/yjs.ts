@@ -6,6 +6,7 @@ import type {
   ExecuteBlockSelectByPrompt,
   FunctionAssistant,
   ImageAssistant,
+  OutputVariableBase,
   Parameter,
   PromptAssistant,
   PromptMessage,
@@ -28,6 +29,26 @@ export type ExecuteBlockSelectByPromptYjs = Omit<ExecuteBlockSelectByPrompt, 'to
 
 export type ExecuteBlockYjs = ExecuteBlockSelectAllYjs | ExecuteBlockSelectByPromptYjs;
 
+export type OutputVariableYjs = OutputVariableBase &
+  (
+    | {
+        type: 'string';
+        defaultValue?: string;
+      }
+    | {
+        type: 'number';
+        defaultValue?: number;
+      }
+    | {
+        type: 'object';
+        properties?: ArrayToYjs<OutputVariableYjs[]>;
+      }
+    | {
+        type: 'array';
+        element?: OutputVariableYjs;
+      }
+  );
+
 export type PromptYjs =
   | {
       type: 'message';
@@ -40,10 +61,14 @@ export type PromptYjs =
       visibility?: 'hidden';
     };
 
-export type AssistantBaseYjs<T extends AssistantBase> = Omit<T, 'parameters' | 'tests' | 'entries'> & {
+export type AssistantBaseYjs<T extends AssistantBase> = Omit<
+  T,
+  'parameters' | 'tests' | 'entries' | 'outputVariables'
+> & {
   parameters?: { [key: string]: { index: number; data: ParameterYjs } };
   tests?: ArrayToYjs<NonNullable<PromptAssistant['tests']>>;
   entries?: ArrayToYjs<NonNullable<AssistantBase['entries']>>;
+  outputVariables?: ArrayToYjs<OutputVariableYjs[]>;
 };
 
 export interface PromptAssistantYjs extends Omit<AssistantBaseYjs<PromptAssistant>, 'prompts'> {
