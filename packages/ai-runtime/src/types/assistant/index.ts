@@ -147,19 +147,20 @@ export interface FunctionAssistant extends AssistantBase {
 }
 
 export interface DatastoreBase {
+  persist?: boolean;
   path?: string; // Datastore 中的 key, 将tool执行后的结果为value
   scope?: 'global' | 'session' | 'local';
   defaultValue?: any;
+  coverData?: boolean;
 }
 
-export interface DatastoreParameter extends DatastoreBase, Omit<ParameterBase, 'variableFrom'> {
-  variableFrom?: 'Datastore'; // Storage 感觉更好，但是又出现了多个命名，维持 Datastore
+export interface DatastoreParameter extends DatastoreBase {
+  variableFrom?: 'datastore'; // Storage 感觉更好，但是又出现了多个命名，维持 Datastore
 }
 
-export interface ToolParameter extends DatastoreBase, Omit<ParameterBase, 'variableFrom'> {
+export interface ToolParameter extends DatastoreBase {
   variableFrom?: 'tool';
-  tool: Tool;
-  persist?: boolean;
+  tool?: Tool;
 }
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter;
@@ -172,7 +173,7 @@ export interface ParameterBase {
   helper?: string;
   required?: boolean;
   from?: 'editor';
-  variableFrom?: 'input';
+  source?: DatastoreParameter | ToolParameter;
 }
 
 export interface StringParameter extends ParameterBase {

@@ -822,14 +822,14 @@ function isKnowledgeObject(
 
 type ToolDialogForm = NonNullable<ExecuteBlock['tools']>[number];
 
-interface ToolDialogImperative {
+export interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
 
 export const ToolDialog = forwardRef<
   ToolDialogImperative,
   {
-    executeBlock: ExecuteBlockYjs;
+    executeBlock?: ExecuteBlockYjs;
     projectId: string;
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
@@ -1016,7 +1016,7 @@ export const ToolDialog = forwardRef<
                     return (
                       <PromptEditorField
                         placeholder={
-                          executeBlock.selectType === 'selectByPrompt'
+                          executeBlock?.selectType === 'selectByPrompt'
                             ? t('selectByPromptParameterPlaceholder')
                             : assistantParameters.has(parameter.key)
                               ? `{{ ${parameter.name} }}`
@@ -1090,7 +1090,7 @@ export const ToolDialog = forwardRef<
                 render={({ field }) => (
                   <PromptEditorField
                     placeholder={
-                      executeBlock.selectType === 'selectByPrompt'
+                      executeBlock?.selectType === 'selectByPrompt'
                         ? t('selectByPromptParameterPlaceholder')
                         : assistantParameters.has(parameter.key)
                           ? `{{ ${parameter.key} }}`

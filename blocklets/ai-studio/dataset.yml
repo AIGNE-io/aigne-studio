@@ -238,6 +238,10 @@
                 type: string
                 description: key
                 x-description-zh: 别名
+              path:
+                type: string
+                description: sub key
+                x-description-zh: 子别名(可以为空)
               data:
                 type: object
                 description: value

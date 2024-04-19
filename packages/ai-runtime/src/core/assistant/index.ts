@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { join } from 'path';
 import { ReadableStream } from 'stream/web';
 
@@ -7,9 +8,9 @@ import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call as callFunc } from '@blocklet/sdk/lib/component';
-import { env } from '@blocklet/sdk/lib/config';
+import { env, logger } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
-import { flattenDeep, isNil, pick } from 'lodash';
+import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
 import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
@@ -107,6 +108,7 @@ export async function runAssistant({
   callback,
   user,
   sessionId,
+  projectId,
 }: {
   taskId: string;
   callAI: CallAI;
@@ -118,6 +120,7 @@ export async function runAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
 }): Promise<any> {
   // setup global variables for prompt rendering
   parameters.$user = user;
@@ -130,6 +133,20 @@ export async function runAssistant({
     assistantName: assistant.name,
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
   });
+
+  const assistantVariables = await getVariables({
+    assistant,
+    callAI,
+    callAIImage,
+    getAssistant,
+    parameters,
+    parentTaskId: taskId,
+    callback,
+    user,
+    sessionId,
+    projectId,
+  });
+
   try {
     if (isPromptAssistant(assistant)) {
       return await runPromptAssistant({
@@ -143,6 +160,8 @@ export async function runAssistant({
         callback,
         user,
         sessionId,
+        projectId,
+        assistantVariables,
       });
     }
 
@@ -158,6 +177,8 @@ export async function runAssistant({
         callback,
         user,
         sessionId,
+        projectId,
+        assistantVariables,
       });
     }
 
@@ -173,6 +194,8 @@ export async function runAssistant({
         callback,
         user,
         sessionId,
+        projectId,
+        assistantVariables,
       });
     }
 
@@ -188,6 +211,8 @@ export async function runAssistant({
         callback,
         user,
         sessionId,
+        projectId,
+        assistantVariables,
       });
     }
   } catch (e) {
@@ -218,10 +243,12 @@ async function runFunctionAssistant({
   assistant,
   context,
   parameters,
+  assistantVariables,
   parentTaskId,
   callback,
   user,
   sessionId,
+  projectId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -230,10 +257,12 @@ async function runFunctionAssistant({
   assistant: FunctionAssistant;
   context?: { [key: string]: any };
   parameters?: { [key: string]: any };
+  assistantVariables?: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
 }) {
   const results = assistant.prepareExecutes?.length
     ? await runExecuteBlocks({
@@ -247,6 +276,7 @@ async function runFunctionAssistant({
         callback,
         user,
         sessionId,
+        projectId,
       })
     : [];
 
@@ -302,13 +332,17 @@ async function runFunctionAssistant({
   if (typeof module.default !== 'function')
     throw new Error('Invalid function file: function file must export default function');
 
-  const args = Object.fromEntries(
-    await Promise.all(
-      (assistant.parameters ?? [])
-        .filter((i): i is typeof i & { key: string } => !!i.key)
-        .map(async (i) => [i.key, parameters?.[i.key] || (await vm.sandbox.context.get(i.key)) || i.defaultValue])
-    )
-  );
+  const args = {
+    ...assistantVariables,
+    ...Object.fromEntries(
+      await Promise.all(
+        (assistant.parameters ?? [])
+          .filter((i): i is typeof i => !i.source)
+          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .map(async (i) => [i.key, parameters?.[i.key] || (await vm.sandbox.context.get(i.key)) || i.defaultValue])
+      )
+    ),
+  };
 
   const ctx = Object.freeze({
     user,
@@ -362,10 +396,12 @@ async function runApiAssistant({
   taskId,
   assistant,
   parameters,
+  assistantVariables,
   parentTaskId,
   callback,
   user,
   sessionId,
+  projectId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -373,10 +409,12 @@ async function runApiAssistant({
   taskId: string;
   assistant: ApiAssistant;
   parameters?: { [key: string]: any };
+  assistantVariables?: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
 
@@ -392,23 +430,30 @@ async function runApiAssistant({
         callback,
         user,
         sessionId,
+        projectId,
       })
     : [];
 
   const isSameVariable = (left?: string, right?: string) => left && left === right;
 
-  const args = Object.fromEntries(
-    await Promise.all(
-      (assistant.parameters ?? [])
-        .filter((i): i is typeof i & { key: string } => !!i.key)
-        .map(async (i) => [
-          i.key,
-          parameters?.[i.key] ||
-            results.find((r) => isSameVariable(i.key, r[0].variable) || isSameVariable(i.label, r[0].variable))?.[1] ||
-            i.defaultValue,
-        ])
-    )
-  );
+  const args = {
+    ...assistantVariables,
+    ...Object.fromEntries(
+      await Promise.all(
+        (assistant.parameters ?? [])
+          .filter((i): i is typeof i => !i.source)
+          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .map(async (i) => [
+            i.key,
+            parameters?.[i.key] ||
+              results.find(
+                (r) => isSameVariable(i.key, r[0].variable) || isSameVariable(i.label, r[0].variable)
+              )?.[1] ||
+              i.defaultValue,
+          ])
+      )
+    ),
+  };
 
   callback?.({
     type: AssistantResponseType.EXECUTE,
@@ -478,17 +523,236 @@ async function renderMessage(message: string, parameters?: { [key: string]: any 
   });
 }
 
+const getVariables = async ({
+  callAI,
+  callAIImage,
+  getAssistant,
+  assistant,
+  parameters,
+  parentTaskId,
+  user,
+  sessionId,
+  callback,
+  projectId,
+}: {
+  callAI: CallAI;
+  callAIImage: CallAIImage;
+  getAssistant: GetAssistant;
+  assistant: PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  parameters: { [key: string]: any };
+  parentTaskId?: string;
+  callback?: RunAssistantCallback;
+  user?: User;
+  sessionId?: string;
+  projectId?: string;
+}) => {
+  const assistantParameters = assistant.parameters;
+  if (!assistantParameters) return {};
+  if (!assistantParameters.length) return {};
+
+  const variables: { [key: string]: any } = { ...parameters };
+
+  const filterAssistantParameters = assistantParameters.filter((x) => x.key);
+
+  const inputParameters = filterAssistantParameters.filter((x) => !x.source);
+  const toolParameters = filterAssistantParameters.filter(
+    (x) => x.source && x.source.variableFrom === 'tool' && x.source.tool
+  );
+  const datastoreParameters = assistantParameters.filter((x) => x.source && x.source.variableFrom === 'datastore');
+
+  const userId = user?.did;
+  const scopeMap = {
+    global: {
+      userId,
+      projectId,
+    },
+    session: {
+      userId,
+      projectId,
+      sessionId,
+    },
+    local: {
+      userId,
+      projectId,
+      sessionId,
+      assistantId: assistant.id,
+    },
+  };
+
+  if (inputParameters.length) {
+    // 这一步是多余的，其实不需要
+    inputParameters.forEach((x) => {
+      if (x.key && !isNil(parameters[x.key])) variables[x.key] = parameters[x.key];
+    });
+  }
+
+  if (toolParameters.length) {
+    const cb: ((taskId: string) => RunAssistantCallback) | undefined =
+      callback &&
+      ((taskId) => (args) => {
+        if (args.type === AssistantResponseType.CHUNK && args.taskId === taskId) {
+          callback({ ...args });
+          return;
+        }
+        callback(args);
+      });
+
+    for (const toolParameter of toolParameters) {
+      if (toolParameter.key && toolParameter.source?.variableFrom === 'tool' && toolParameter.source.tool) {
+        try {
+          const { tool } = toolParameter.source;
+          const toolAssistant = await getAssistant(tool.id);
+          if (!toolAssistant) continue;
+          const args = Object.fromEntries(
+            await Promise.all(
+              (toolAssistant.parameters ?? [])
+                .filter((i): i is typeof i & { key: string } => !!i.key)
+                .map(async (i) => {
+                  const template = String(tool.parameters?.[i.key] || '').trim();
+                  const value = template ? await renderMessage(template, parameters) : parameters?.[i.key];
+                  return [i.key, value];
+                })
+            )
+          );
+
+          const currentTaskId = taskIdGenerator.nextId().toString();
+
+          const result = await runAssistant({
+            taskId: currentTaskId,
+            callAI,
+            callAIImage,
+            getAssistant,
+            assistant: toolAssistant,
+            parameters: args,
+            parentTaskId,
+            callback: cb?.(currentTaskId),
+            user,
+            sessionId,
+          });
+
+          try {
+            variables[toolParameter.key] = JSON.parse(result);
+          } catch (error) {
+            variables[toolParameter.key] = result ?? toolParameter.defaultValue;
+          }
+
+          try {
+            if (toolParameter.source.persist) {
+              const scopeParams = scopeMap[toolParameter.source.scope || 'local'] || scopeMap.local;
+              const params = {
+                params: {
+                  ...scopeParams,
+                  reset: toolParameter.source.coverData,
+                },
+                data: {
+                  data: variables[toolParameter.key],
+                  type: toLower(toolParameter.key),
+                  path: toolParameter.source.path,
+                },
+              };
+
+              await callFunc({
+                name: 'ai-studio',
+                path: '/api/datastore',
+                method: 'POST',
+                headers: getUserHeader(user),
+                ...params,
+              });
+
+              logger.info('save parameter tool to datastore success', params);
+            }
+          } catch (error) {
+            logger.error('save parameter tool to datastore fail', error?.message);
+          }
+        } catch (error) {
+          logger.error(error?.message);
+        }
+      }
+    }
+  }
+
+  if (datastoreParameters.length) {
+    for (const datastoreParameter of datastoreParameters) {
+      if (datastoreParameter.key && datastoreParameter.source?.variableFrom === 'datastore') {
+        try {
+          const currentTaskId = taskIdGenerator.nextId().toString();
+          const scopeParams = scopeMap[datastoreParameter.source.scope || 'local'] || scopeMap.local;
+          const params = {
+            ...scopeParams,
+            type: toLower(datastoreParameter.key),
+            path: datastoreParameter.source.path,
+            reset: datastoreParameter.source.coverData,
+          };
+
+          const callbackParams = {
+            taskId: currentTaskId,
+            parentTaskId,
+            assistantId: assistant.id,
+            assistantName: startCase(
+              toLower(
+                `The storage info of ${datastoreParameter.key} key for ${datastoreParameter.source.scope || 'local'} Scope`
+              )
+            ),
+          };
+
+          callback?.({
+            type: AssistantResponseType.EXECUTE,
+            ...callbackParams,
+            execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+          });
+
+          callback?.({
+            type: AssistantResponseType.INPUT,
+            ...callbackParams,
+            inputParameters: params as any,
+          });
+
+          const { data } = await callFunc({
+            name: 'ai-studio',
+            path: '/api/datastore',
+            method: 'GET',
+            headers: getUserHeader(user),
+            params,
+          });
+          const list = data.map((x: any) => x.data).filter((x: any) => x);
+          const result = list?.length > 1 ? list : list[0] ?? (datastoreParameter.defaultValue || []);
+
+          callback?.({
+            type: AssistantResponseType.CHUNK,
+            ...callbackParams,
+            delta: { content: JSON.stringify(result) },
+          });
+
+          callback?.({
+            type: AssistantResponseType.EXECUTE,
+            ...callbackParams,
+            execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+          });
+
+          variables[datastoreParameter.key] = result;
+        } catch (error) {
+          logger.error(error?.message);
+        }
+      }
+    }
+  }
+
+  return variables;
+};
+
 async function runPromptAssistant({
   callAI,
   callAIImage,
   taskId,
   getAssistant,
   assistant,
+  assistantVariables,
   parameters,
   parentTaskId,
   callback,
   user,
   sessionId,
+  projectId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -496,16 +760,20 @@ async function runPromptAssistant({
   getAssistant: GetAssistant;
   assistant: PromptAssistant;
   parameters: { [key: string]: any };
+  assistantVariables: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
 }) {
   if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
 
   const executeBlocks = assistant.prompts
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i) && i.visibility !== 'hidden')
     .map((i) => i.data);
+
+  const variables = { ...assistantVariables };
 
   const blockResults = await runExecuteBlocks({
     assistant,
@@ -518,9 +786,8 @@ async function runPromptAssistant({
     callback,
     user,
     sessionId,
+    projectId,
   });
-
-  const variables = { ...parameters };
 
   for (const [block, result] of blockResults) {
     const { variable } = block;
@@ -596,7 +863,7 @@ async function runPromptAssistant({
     parentTaskId,
     taskId,
     assistantName: assistant.name,
-    inputParameters: parameters,
+    inputParameters: variables,
     promptMessages: messages,
   });
 
@@ -637,7 +904,7 @@ async function runPromptAssistant({
       : { parentTaskId }),
     taskId,
     assistantName: assistant.name,
-    inputParameters: parameters,
+    inputParameters: variables,
     promptMessages: messages,
   });
 
@@ -660,10 +927,12 @@ async function runImageAssistant({
   getAssistant,
   assistant,
   parameters,
+  assistantVariables,
   parentTaskId,
   callback,
   user,
   sessionId,
+  projectId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -671,10 +940,12 @@ async function runImageAssistant({
   getAssistant: GetAssistant;
   assistant: ImageAssistant;
   parameters: { [key: string]: any };
+  assistantVariables: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
@@ -690,10 +961,11 @@ async function runImageAssistant({
         callback,
         user,
         sessionId,
+        projectId,
       })
     : [];
 
-  const variables = { ...parameters };
+  const variables = { ...assistantVariables };
 
   for (const [block, result] of blockResults) {
     const { variable } = block;
@@ -725,7 +997,7 @@ async function runImageAssistant({
     taskId,
     parentTaskId,
     assistantName: assistant.name,
-    inputParameters: parameters,
+    inputParameters: variables,
   });
 
   const {
@@ -782,6 +1054,7 @@ async function runExecuteBlocks({
   callback,
   user,
   sessionId,
+  projectId,
 }: {
   assistant: Assistant;
   callAI: CallAI;
@@ -793,10 +1066,9 @@ async function runExecuteBlocks({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
 }) {
-  const variables = {
-    ...parameters,
-  };
+  const variables = { ...parameters };
 
   const tasks: [ExecuteBlock, () => () => Promise<any>][] = [];
   const cache: { [key: string]: Promise<any> } = {};
@@ -817,6 +1089,7 @@ async function runExecuteBlocks({
         callback,
         user,
         sessionId,
+        projectId,
       });
 
       return cache[executeBlock.id]!;
@@ -845,6 +1118,7 @@ async function runExecuteBlock({
   callback,
   user,
   sessionId,
+  projectId,
 }: {
   taskId: string;
   assistant: Assistant;
@@ -858,6 +1132,7 @@ async function runExecuteBlock({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
 }) {
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
@@ -895,7 +1170,7 @@ async function runExecuteBlock({
             const dataset = (datasets || []).find((x) => x.id === tool.id);
             return (
               dataset &&
-              runDatasetTool({
+              runAPITool({
                 tool,
                 taskId: currentTaskId,
                 assistant,
@@ -906,6 +1181,7 @@ async function runExecuteBlock({
                 callback: cb?.(currentTaskId),
                 user,
                 sessionId,
+                projectId,
               })
             );
           }
@@ -1159,7 +1435,7 @@ async function runExecuteBlock({
           const currentTaskId = taskIdGenerator.nextId().toString();
 
           if (tool.tool.from === 'dataset') {
-            return runDatasetTool({
+            return runAPITool({
               tool: tool.tool,
               taskId: currentTaskId,
               assistant,
@@ -1230,7 +1506,7 @@ async function runExecuteBlock({
   return undefined;
 }
 
-async function runDatasetTool({
+async function runAPITool({
   tool,
   dataset,
   taskId,
@@ -1241,6 +1517,7 @@ async function runDatasetTool({
   callback,
   user,
   sessionId,
+  projectId,
 }: {
   tool: Tool;
   dataset: DatasetObject;
@@ -1252,6 +1529,7 @@ async function runDatasetTool({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
 }) {
   const requestData = Object.fromEntries(
     await Promise.all(
@@ -1266,6 +1544,7 @@ async function runDatasetTool({
     userId: user?.did || '',
     sessionId: sessionId || '',
     assistantId: assistant.id || '',
+    projectId: projectId || '',
   };
 
   const callbackParams = {
