@@ -42,7 +42,7 @@ export default function PromptEditorField({
         variables.forEach((variable) => {
           const name = (variable?.name || '').split('.')[0];
           if (name && !currentVariables.some((v) => v?.data?.key === name)) {
-            addParameter(name, from);
+            addParameter(name, { from });
           }
         });
 
@@ -145,7 +145,7 @@ export default function PromptEditorField({
                   <Button
                     sx={{ p: 0 }}
                     onClick={() => {
-                      addParameter(variable, from);
+                      addParameter(variable, { from });
                       handleClose();
                     }}
                     size="small">

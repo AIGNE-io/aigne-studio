@@ -9,22 +9,7 @@ import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
 import { useState } from 'react';
 
-import IndicatorTextField from '../awareness/indicator-text-field';
-import WithAwareness from '../awareness/with-awareness';
-
-export default function OutputSettings({
-  value,
-  readOnly,
-  projectId,
-  gitRef,
-  isOpen = true,
-}: {
-  value: AssistantYjs;
-  readOnly?: boolean;
-  projectId: string;
-  gitRef: string;
-  isOpen?: boolean;
-}) {
+export default function OutputSettings({ value, isOpen = true }: { value: AssistantYjs; isOpen?: boolean }) {
   const { t } = useLocaleContext();
 
   const [open, setOpen] = useState(isOpen);

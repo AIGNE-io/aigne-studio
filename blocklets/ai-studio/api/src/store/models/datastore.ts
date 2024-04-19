@@ -14,6 +14,12 @@ export default class Datastore extends Model<InferAttributes<Datastore>, InferCr
 
   declare userId: string;
 
+  declare projectId?: string;
+
+  declare assistantId?: string;
+
+  declare itemId?: string;
+
   declare type?: string;
 
   declare createdAt: CreationOptional<Date>;
@@ -49,6 +55,15 @@ Datastore.init(
     },
     data: {
       type: DataTypes.JSON,
+    },
+    projectId: {
+      type: DataTypes.STRING,
+    },
+    assistantId: {
+      type: DataTypes.STRING,
+    },
+    itemId: {
+      type: DataTypes.STRING,
     },
   },
   { sequelize }

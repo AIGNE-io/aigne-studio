@@ -207,6 +207,10 @@
         name: type
         description: key
         x-description-zh: 存储的名称
+      - in: query
+        name: itemId
+        description: SubItem Id
+        x-description-zh: 子项别名
     responses:
       "200":
         description: A JSON array of datastores
@@ -238,6 +242,10 @@
                 type: string
                 description: key
                 x-description-zh: 别名
+              itemId:
+                type: string
+                description: SubItem Id
+                x-description-zh: 子项别名
               data:
                 type: object
                 description: value
@@ -258,6 +266,10 @@
         required: false
         description: ID
         x-description-zh: ID
+      - in: query
+        name: itemId
+        description: SubItem Id
+        x-description-zh: 子项别名
       - in: query
         name: type
         schema:
@@ -322,6 +334,10 @@
         required: false
         description: key
         x-description-zh: 数据存储项别名
+      - in: query
+        name: itemId
+        description: SubItem Id
+        x-description-zh: 子项别名
     responses:
       "200":
         description: The deleted datastore object

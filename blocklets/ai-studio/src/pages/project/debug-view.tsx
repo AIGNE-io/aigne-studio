@@ -6,7 +6,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ParameterYjs, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
@@ -597,7 +597,7 @@ function DebugModeForm({
   const lastMessage = currentSession?.messages.at(-1);
 
   const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter(
-    (i): i is typeof i & { data: { key: string } } => !!i.data.key
+    (i): i is typeof i & { data: { key: string; source: ParameterYjs['source'] } } => !!i.data.key && !i.data.source
   );
   const params = parameters.map((i) => i.data.key);
 

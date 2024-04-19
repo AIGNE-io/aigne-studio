@@ -1,6 +1,7 @@
 import DragVertical from '@app/pages/project/icons/drag-vertical';
+import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ParameterYjs, StringParameter } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import { InfoOutlined } from '@mui/icons-material';
@@ -14,10 +15,12 @@ import {
   List,
   ListItem,
   ListSubheader,
+  MenuItem,
   Paper,
   Popper,
   Radio,
   RadioGroup,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -27,17 +30,21 @@ import {
   Tooltip,
   Typography,
   alpha,
+  selectClasses,
 } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
-import { get, sortBy } from 'lodash';
-import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useMemo, useState } from 'react';
+import { cloneDeep, get, sortBy } from 'lodash';
+import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { useId, useMemo, useRef } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import WithAwareness from '../awareness/with-awareness';
+import BaseInput from '../custom/input';
+import BaseSelect from '../custom/select';
+import BaseSwitch from '../custom/switch';
 import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
-import ParameterConfigType from '../template-form/parameter-config/type';
+import { ToolDialog, ToolDialogImperative } from './execute-block';
 import useVariablesEditorOptions from './use-variables-editor-options';
 
 function CustomNoRowsOverlay() {
@@ -77,6 +84,9 @@ export default function ParametersTable({
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
   const { highlightedId, addParameter, deleteParameter } = useVariablesEditorOptions(value);
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
+  const toolForm = useRef<ToolDialogImperative>(null);
+  const id = useRef<string>();
+  const { store } = useProjectStore(projectId, gitRef);
 
   const isValidVariableName = (name: string) => {
     if (!name) return true;
@@ -85,8 +95,12 @@ export default function ParametersTable({
     return validNameRegex.test(name);
   };
 
-  const [paramConfig, setParamConfig] = useState<{ anchorEl: HTMLElement; parameter: ParameterYjs }>();
   const parameters = sortBy(Object.values(value.parameters ?? {}), (i) => i.index);
+  const dialogState = usePopupState({ variant: 'dialog' });
+  const settingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
+  const inputSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
+  const toolSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
+  const storagePopperState = usePopupState({ variant: 'popper', popupId: useId() });
 
   const columns = useMemo<GridColDef<(typeof parameters)[number]>[]>(() => {
     return [
@@ -95,10 +109,6 @@ export default function ParametersTable({
         width: '16%' as any,
         headerName: t('variable'),
         renderCell: ({ row: { data: parameter } }) => {
-          if (parameter?.key === 'datasetId') {
-            return <Box>{t('knowledge.parameter')}</Box>;
-          }
-
           return (
             <WithAwareness
               projectId={projectId}
@@ -124,88 +134,70 @@ export default function ParametersTable({
         },
       },
       {
-        field: 'label',
-        width: '16%',
-        headerName: t('label'),
-        renderCell: ({ row: { data: parameter } }) => (
-          <WithAwareness
-            projectId={projectId}
-            gitRef={gitRef}
-            sx={{ top: 4, right: -8 }}
-            path={[value.id, 'parameters', parameter?.id ?? '', 'label']}>
-            <Input
-              fullWidth
-              readOnly={readOnly}
-              placeholder={parameter?.key === 'datasetId' ? t('knowledge.parameter') : parameter.key || t('label')}
-              value={parameter.label || ''}
-              onChange={(e) => (parameter.label = e.target.value)}
-            />
-          </WithAwareness>
-        ),
-      },
-      {
-        field: 'placeholder',
-        renderHeader() {
+        field: 'from',
+        headerName: t('variableParameter.from'),
+        width: '10%' as any,
+        renderCell: ({ row: { data: parameter } }) => {
           return (
-            <>
-              {t('form.parameter.placeholder')}
-              <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
-                <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
-              </Tooltip>
-            </>
+            <Select
+              variant="standard"
+              value={parameter.source?.variableFrom ?? 'custom'}
+              placeholder={t('variableParameter.from')}
+              fullWidth
+              sx={{
+                [`.${selectClasses.select}`]: {
+                  py: 0.5,
+                  '&:focus': {
+                    background: 'transparent',
+                  },
+                },
+              }}
+              onChange={(e) => {
+                if ((e.target.value || 'custom') !== (parameter.source?.variableFrom || 'custom')) {
+                  parameter.source = undefined;
+
+                  if (e.target.value !== 'custom') {
+                    parameter.source ??= { scope: 'local' };
+                    parameter.source.variableFrom = e.target.value as any;
+                  }
+                }
+              }}>
+              <MenuItem value="custom">{t('variableParameter.custom')}</MenuItem>
+              <MenuItem value="tool">{t('variableParameter.tool')}</MenuItem>
+              <MenuItem value="datastore">{t('variableParameter.datastore')}</MenuItem>
+            </Select>
           );
         },
-        renderCell: ({ row: { data: parameter } }) => (
-          <WithAwareness
-            projectId={projectId}
-            gitRef={gitRef}
-            sx={{ top: 4, right: -8 }}
-            path={[value.id, 'parameters', parameter?.id ?? '', 'placeholder']}>
-            <Input
-              fullWidth
-              readOnly={readOnly}
-              placeholder={t('form.parameter.placeholder')}
-              value={parameter.placeholder || ''}
-              onChange={(e) => (parameter.placeholder = e.target.value)}
-            />
-          </WithAwareness>
-        ),
       },
       {
-        field: 'type',
-        headerName: t('type'),
-        width: 100,
+        field: 'label',
+        headerName: t('variableParameter.fromDetail'),
         renderCell: ({ row: { data: parameter } }) => {
-          const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
-          return (
-            <WithAwareness
-              projectId={projectId}
-              gitRef={gitRef}
-              sx={{ top: 4, right: -8 }}
-              path={[value.id, 'parameters', parameter?.id ?? '', 'type']}>
-              <ParameterConfigType
-                variant="standard"
-                hiddenLabel
-                SelectProps={{ autoWidth: true }}
-                value={multiline ? 'multiline' : parameter?.type ?? 'string'}
-                InputProps={{ readOnly }}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  doc.transact(() => {
-                    if (newValue === 'multiline') {
-                      parameter.type = 'string';
-                      (parameter as StringParameter)!.multiline = true;
-                    } else {
-                      parameter.type = newValue as any;
-                      if (typeof (parameter as StringParameter).multiline !== 'undefined') {
-                        delete (parameter as StringParameter)!.multiline;
-                      }
-                    }
-                  });
-                }}
-              />
-            </WithAwareness>
-          );
+          if (parameter.source) {
+            if (parameter.source.variableFrom === 'tool') {
+              const toolId = (parameter?.source as any)?.tool?.id;
+              const f = store.files[toolId];
+              const file = f && isAssistant(f) ? f : undefined;
+
+              return (
+                <Box>
+                  <Button
+                    onClick={() => {
+                      id.current = parameter.id;
+                      if (toolId) toolForm.current?.form.reset(cloneDeep((parameter.source as any)?.tool));
+
+                      dialogState.open();
+                    }}>
+                    {file?.name || t('variableParameter.unselect')}
+                  </Button>
+                </Box>
+              );
+            }
+
+            return null;
+          }
+
+          return null;
         },
       },
       {
@@ -218,8 +210,6 @@ export default function ParametersTable({
     ];
   }, [t, readOnly, doc, deleteParameter]);
 
-  const settingPopperState = usePopupState({ variant: 'popper' });
-
   const removeParameter = (key: string) => {
     doc.transact(() => {
       if (!value.parameters) return;
@@ -227,6 +217,211 @@ export default function ParametersTable({
         if (value.parameters[id]?.data.key === key) delete value.parameters[id];
       }
     });
+  };
+
+  const renderSettings = (parameter: any) => {
+    if (parameter.source) {
+      if (parameter.source.variableFrom === 'tool') {
+        return (
+          <>
+            <Button sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }} {...bindTrigger(toolSettingPopperState)}>
+              <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('variableParameter.toolSetting')}</Box>
+            </Button>
+
+            <Popper
+              {...bindPopper(toolSettingPopperState)}
+              placement="bottom-end"
+              sx={{ zIndex: (theme) => theme.zIndex.modal }}>
+              <ClickAwayListener
+                onClickAway={(e) => {
+                  if (e.target === document.body) return;
+                  toolSettingPopperState.close();
+                }}>
+                <Paper sx={{ p: 1.5, maxWidth: 360, maxHeight: '80vh', overflow: 'auto' }}>
+                  <Stack gap={1.5}>
+                    <Box className="between">
+                      <Typography flex={1}>{t('variableParameter.persist')}</Typography>
+
+                      <Box flex={1}>
+                        <BaseSwitch
+                          checked={Boolean(parameter.source?.persist || false)}
+                          onChange={(_, checked) => {
+                            parameter.source ??= {};
+                            parameter.source.persist = checked;
+                          }}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box className="between">
+                      <Typography flex={1}>{t('variableParameter.reset')}</Typography>
+
+                      <Box flex={1}>
+                        <BaseSwitch
+                          checked={Boolean(parameter.source?.reset || false)}
+                          onChange={(_, checked) => {
+                            parameter.source ??= {};
+                            parameter.source.reset = checked;
+                          }}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box className="between">
+                      <Typography flex={1}>{t('variableParameter.itemId')}</Typography>
+
+                      <Box flex={1}>
+                        <BaseInput
+                          value={parameter.source?.itemId || ''}
+                          onChange={(e) => {
+                            parameter.source ??= {};
+                            parameter.source.itemId = e.target.value;
+                          }}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box className="between">
+                      <Typography flex={1}>{t('variableParameter.scope')}</Typography>
+
+                      <Box flex={1}>
+                        <BaseSelect
+                          variant="outlined"
+                          placeholder={t('variableParameter.scope')}
+                          fullWidth
+                          value={parameter.source?.scope || ''}
+                          onChange={(e) => {
+                            parameter.source ??= {};
+                            parameter.source.scope = e.target.value;
+                          }}>
+                          {['local', 'session', 'global'].map((option) => (
+                            <MenuItem key={option} value={option}>
+                              {t(`variableParameter.${option}`)}
+                            </MenuItem>
+                          ))}
+                        </BaseSelect>
+                      </Box>
+                    </Box>
+
+                    <Box className="between">
+                      <Typography flex={1}>{t('variableParameter.defaultValue')}</Typography>
+
+                      <Box flex={1}>
+                        <BaseInput
+                          value={parameter.source?.defaultValue || ''}
+                          onChange={(e) => {
+                            parameter.source ??= {};
+                            parameter.source.defaultValue = e.target.value;
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  </Stack>
+                </Paper>
+              </ClickAwayListener>
+            </Popper>
+          </>
+        );
+      }
+
+      if (parameter.source.variableFrom === 'datastore') {
+        return (
+          <>
+            <Button sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }} {...bindTrigger(storagePopperState)}>
+              <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('variableParameter.storageSetting')}</Box>
+            </Button>
+
+            <Popper
+              {...bindPopper(storagePopperState)}
+              placement="bottom-end"
+              sx={{ zIndex: (theme) => theme.zIndex.modal }}>
+              <ClickAwayListener
+                onClickAway={(e) => {
+                  if (e.target === document.body) return;
+                  storagePopperState.close();
+                }}>
+                <Paper sx={{ p: 1.5, maxWidth: 360, maxHeight: '80vh', overflow: 'auto' }}>
+                  <Stack gap={1.5}>
+                    <Box className="between">
+                      <Typography flex={1}>{t('variableParameter.itemId')}</Typography>
+
+                      <Box flex={1}>
+                        <BaseInput
+                          value={parameter.source?.itemId || ''}
+                          onChange={(e) => {
+                            parameter.source ??= {};
+                            parameter.source.itemId = e.target.value;
+                          }}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box className="between">
+                      <Typography flex={1}>{t('variableParameter.scope')}</Typography>
+
+                      <Box flex={1}>
+                        <BaseSelect
+                          variant="outlined"
+                          placeholder={t('variableParameter.scope')}
+                          fullWidth
+                          value={parameter.source?.scope || ''}
+                          onChange={(e) => {
+                            parameter.source ??= {};
+                            parameter.source.scope = e.target.value;
+                          }}>
+                          {['local', 'session', 'global'].map((option) => (
+                            <MenuItem key={option} value={option}>
+                              {t(`variableParameter.${option}`)}
+                            </MenuItem>
+                          ))}
+                        </BaseSelect>
+                      </Box>
+                    </Box>
+
+                    <Box className="between">
+                      <Typography flex={1}>{t('variableParameter.defaultValue')}</Typography>
+
+                      <Box flex={1}>
+                        <BaseInput
+                          value={parameter.source?.defaultValue || ''}
+                          onChange={(e) => {
+                            parameter.source ??= {};
+                            parameter.source.defaultValue = e.target.value;
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  </Stack>
+                </Paper>
+              </ClickAwayListener>
+            </Popper>
+          </>
+        );
+      }
+    }
+
+    return (
+      <>
+        <Button sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }} {...bindTrigger(inputSettingPopperState)}>
+          <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('variableParameter.setting')}</Box>
+        </Button>
+
+        <Popper
+          {...bindPopper(inputSettingPopperState)}
+          placement="bottom-end"
+          sx={{ zIndex: (theme) => theme.zIndex.modal }}>
+          <ClickAwayListener
+            onClickAway={(e) => {
+              if (e.target === document.body) return;
+              inputSettingPopperState.close();
+            }}>
+            <Paper sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
+              {parameter && <ParameterConfig readOnly={readOnly} value={parameter} />}
+            </Paper>
+          </ClickAwayListener>
+        </Popper>
+      </>
+    );
   };
 
   return (
@@ -388,11 +583,7 @@ export default function ParametersTable({
                       <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
                         {!readOnly && (
                           <>
-                            <Button
-                              sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
-                              onClick={(e) => setParamConfig({ anchorEl: e.currentTarget.parentElement!, parameter })}>
-                              <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('setting')}</Box>
-                            </Button>
+                            {renderSettings(parameter)}
 
                             <Button
                               sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
@@ -413,21 +604,31 @@ export default function ParametersTable({
         )}
       </Box>
 
-      <Popper
-        open={Boolean(paramConfig)}
-        anchorEl={paramConfig?.anchorEl}
-        placement="bottom-end"
-        sx={{ zIndex: (theme) => theme.zIndex.modal }}>
-        <ClickAwayListener
-          onClickAway={(e) => {
-            if (e.target === document.body) return;
-            setParamConfig(undefined);
-          }}>
-          <Paper sx={{ p: 3, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
-            {paramConfig && <ParameterConfig readOnly={readOnly} value={paramConfig.parameter} />}
-          </Paper>
-        </ClickAwayListener>
-      </Popper>
+      <ToolDialog
+        executeBlock={undefined}
+        ref={toolForm}
+        projectId={projectId}
+        assistant={value}
+        gitRef={gitRef}
+        DialogProps={{ ...bindDialog(dialogState) }}
+        openApis={[]}
+        datasets={[]}
+        onSubmit={(tool) => {
+          doc.transact(() => {
+            const key = id.current;
+            if (!value.parameters) return;
+            if (!key) return;
+            const p = value.parameters[key];
+
+            if (p && p?.data?.source?.variableFrom === 'tool') {
+              p.data.source.tool = tool;
+            }
+
+            id.current = undefined;
+            dialogState.close();
+          });
+        }}
+      />
     </>
   );
 }
