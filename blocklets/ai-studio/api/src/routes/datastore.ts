@@ -1,12 +1,65 @@
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
-import { Op } from 'sequelize';
 
 import { ensureComponentCallOrAuth } from '../libs/security';
 import Datastore from '../store/models/datastore';
 
 const router = Router();
+
+const getDatastoreSchema = Joi.object<{
+  userId?: string;
+  sessionId?: string;
+  assistantId?: string;
+  projectId?: string;
+  itemId?: string;
+  type: string;
+}>({
+  userId: Joi.string().allow('').empty([null, '']).default(''),
+  sessionId: Joi.string().allow('').empty([null, '']).default(''),
+  assistantId: Joi.string().allow('').empty([null, '']).default(''),
+  projectId: Joi.string().allow('').empty([null, '']).default(''),
+  itemId: Joi.string().allow('').empty([null, '']).default(''),
+  type: Joi.string().required(),
+});
+
+const postDatastoreSchema = Joi.object<{ type: string; itemId: string; data: any }>({
+  type: Joi.string().required(),
+  itemId: Joi.string().allow('').empty([null, '']).optional(),
+  data: Joi.any(),
+});
+
+const postParamsSchema = Joi.object<{
+  userId?: string;
+  sessionId?: string;
+  assistantId?: string;
+  projectId?: string;
+  reset: boolean;
+}>({
+  userId: Joi.string().allow('').empty([null, '']).default(''),
+  sessionId: Joi.string().allow('').empty([null, '']).default(''),
+  assistantId: Joi.string().allow('').empty([null, '']).default(''),
+  projectId: Joi.string().allow('').empty([null, '']).default(''),
+  reset: Joi.boolean().default(false),
+});
+
+const putParamsSchema = Joi.object<{
+  userId?: string;
+  sessionId?: string;
+  assistantId?: string;
+  projectId?: string;
+  itemId?: string;
+  type?: string;
+  id?: string;
+}>({
+  id: Joi.string().allow('').empty([null, '']).optional(),
+  type: Joi.string().allow('').empty([null, '']).optional(),
+  itemId: Joi.string().allow('').empty([null, '']).default(''),
+  userId: Joi.string().allow('').empty([null, '']).default(''),
+  sessionId: Joi.string().allow('').empty([null, '']).default(''),
+  assistantId: Joi.string().allow('').empty([null, '']).default(''),
+  projectId: Joi.string().allow('').empty([null, '']).default(''),
+});
 
 /**
  * @openapi
@@ -21,6 +74,10 @@ const router = Router();
  *         name: type
  *         description: key
  *         x-description-zh: 存储的名称
+ *       - in: query
+ *         name: itemId
+ *         description: SubItem Id
+ *         x-description-zh: 子项别名
  *     responses:
  *       200:
  *         description: A JSON array of datastores
@@ -32,40 +89,22 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     assistantId = '',
     projectId = '',
     type = '',
-    path = '',
-  } = await Joi.object<{
-    userId?: string;
-    sessionId?: string;
-    assistantId?: string;
-    projectId?: string;
-    path?: string;
-    type: string;
-    [key: string]: any;
-  }>({
-    userId: Joi.string()
-      .allow('')
-      .empty([null, ''])
-      .default(req.user?.did || ''),
-    assistantId: Joi.string().allow('').empty([null, '']),
-    sessionId: Joi.string().allow('').empty([null, '']),
-    type: Joi.string().allow('').empty([null, '']),
-  })
-    .unknown()
-    .validateAsync(req.query);
+    itemId = '',
+  } = await getDatastoreSchema.validateAsync(req.query, { stripUnknown: true });
 
   const currentUserId = req.user?.did || userId || '';
+  if (!currentUserId) {
+    throw new Error('can not get user info');
+  }
 
   const params: any = {
     ...(currentUserId && { userId: currentUserId }),
     ...(sessionId && { sessionId }),
     ...(projectId && { projectId }),
     ...(assistantId && { assistantId }),
-    ...(path && { path }),
+    ...(itemId && { itemId }),
     ...(type && { type }),
   };
-
-  // const conditions = Object.entries(query).map(([key, value]) => ({ [key]: { [Op.like]: `%${value}%` } }));
-  // if (conditions?.length) params[Op.and] = conditions;
 
   const datastores = await Datastore.findAll({ order: [['createdAt', 'ASC']], where: params });
   res.json(datastores);
@@ -102,10 +141,10 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *                 type: string
  *                 description: key
  *                 x-description-zh: 别名
- *               path:
+ *               itemId:
  *                 type: string
- *                 description: sub key
- *                 x-description-zh: 子别名(可以为空)
+ *                 description: SubItem Id
+ *                 x-description-zh: 子项别名
  *               data:
  *                 type: object
  *                 description: value
@@ -115,40 +154,25 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         description: The created datastore object
  */
 router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
-  const { type, path, data } = await Joi.object<{ type: string; path: string; data: any }>({
-    type: Joi.string().required(),
-    path: Joi.string().allow('').empty([null, '']).optional(),
-    data: Joi.any(),
-  }).validateAsync(req.body, {
+  const { type, itemId, data } = await postDatastoreSchema.validateAsync(req.body, { stripUnknown: true });
+  const { userId, sessionId, assistantId, projectId, reset } = await postParamsSchema.validateAsync(req.query, {
     stripUnknown: true,
   });
 
-  const { userId, sessionId, assistantId, projectId, reset } = await Joi.object<{
-    userId?: string;
-    sessionId?: string;
-    assistantId?: string;
-    projectId?: string;
-    reset: boolean;
-  }>({
-    userId: Joi.string()
-      .allow('')
-      .empty([null, ''])
-      .default(req.user?.did || ''),
-    sessionId: Joi.string().allow('').empty([null, '']),
-    assistantId: Joi.string().allow('').empty([null, '']),
-    projectId: Joi.string().allow('').empty([null, '']),
-    reset: Joi.boolean().default(false),
-  })
-    .unknown()
-    .validateAsync(req.query);
   const currentUserId = req.user?.did || userId || '';
+  if (!currentUserId) {
+    throw new Error('can not get user info');
+  }
 
-  const params: any = { ...(path && { path }), ...(type && { type }) };
-  if (reset) await Datastore.destroy({ where: params });
+  if (itemId || type) {
+    throw new Error('can not get `type` or `itemId` info');
+  }
+
+  if (reset) await Datastore.destroy({ where: { ...(itemId && { itemId }), ...(type && { type }) } });
 
   const datastore = await Datastore.create({
     type,
-    path,
+    itemId,
     data,
     userId: currentUserId,
     sessionId,
@@ -174,6 +198,10 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         required: false
  *         description: ID
  *         x-description-zh: ID
+ *       - in: query
+ *         name: itemId
+ *         description: SubItem Id
+ *         x-description-zh: 子项别名
  *       - in: query
  *         name: type
  *         schema:
@@ -225,54 +253,37 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     sessionId = '',
     assistantId = '',
     projectId = '',
+    itemId = '',
     type = '',
-    path = '',
     id = '',
-  } = await Joi.object<{
-    userId?: string;
-    sessionId?: string;
-    assistantId?: string;
-    projectId?: string;
-    path?: string;
-    type?: string;
-    id?: string;
-    [key: string]: any;
-  }>({
-    id: Joi.string().allow('').empty([null, '']).optional(),
-    type: Joi.string().allow('').empty([null, '']).optional(),
-    userId: Joi.string()
-      .allow('')
-      .empty([null, ''])
-      .default(req.user?.did || ''),
-    assistantId: Joi.string().allow('').empty([null, '']),
-    sessionId: Joi.string().allow('').empty([null, '']),
-  })
-    .unknown()
-    .validateAsync(req.query);
+  } = await putParamsSchema.validateAsync(req.query, { stripUnknown: true });
 
   const currentUserId = req.user?.did || userId || '';
+
+  if (!currentUserId) {
+    throw new Error('can not get user info');
+  }
+
   const params: any = {
     ...(currentUserId && { userId: currentUserId }),
     ...(sessionId && { sessionId }),
     ...(assistantId && { assistantId }),
     ...(projectId && { projectId }),
     ...(type && { type }),
-    ...(path && { path }),
+    ...(itemId && { itemId }),
     ...(id && { id }),
   };
 
-  // const conditions = Object.entries(query).map(([key, value]) => ({ [key]: { [Op.like]: `%${value}%` } }));
-  // if (conditions?.length) params[Op.and] = conditions;
   const { data } = await Joi.object<{ data: any }>({ data: Joi.any() }).validateAsync(req.body, { stripUnknown: true });
 
-  const datastore = await Datastore.findOne({ where: params });
-  if (!datastore) {
+  const dataItem = await Datastore.findOne({ where: params });
+  if (!dataItem) {
     res.status(404).json({ error: 'No such datastore' });
     return;
   }
 
-  await Datastore.update({ data }, { where: params });
-  res.json(await Datastore.findOne({ where: params }));
+  const result = await dataItem.update({ data });
+  res.json(result);
 });
 
 /**
@@ -298,6 +309,10 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         required: false
  *         description: key
  *         x-description-zh: 数据存储项别名
+ *       - in: query
+ *         name: itemId
+ *         description: SubItem Id
+ *         x-description-zh: 子项别名
  *     responses:
  *       200:
  *         description: The deleted datastore object
@@ -308,52 +323,31 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const {
     userId = '',
     sessionId = '',
-    projectId = '',
     assistantId = '',
-    id = '',
+    projectId = '',
+    itemId = '',
     type = '',
-    path = '',
-  } = await Joi.object<{
-    userId?: string;
-    sessionId?: string;
-    assistantId?: string;
-    projectId?: string;
-    id?: string;
-    type?: string;
-    [key: string]: any;
-  }>({
-    id: Joi.string().allow('').empty([null, '']).optional(),
-    type: Joi.string().allow('').empty([null, '']).optional(),
-    userId: Joi.string()
-      .allow('')
-      .empty([null, ''])
-      .default(req.user?.did || ''),
-    assistantId: Joi.string().allow('').empty([null, '']),
-    sessionId: Joi.string().allow('').empty([null, '']),
-  })
-    .unknown()
-    .validateAsync(req.query);
+    id = '',
+  } = await putParamsSchema.validateAsync(req.query, { stripUnknown: true });
 
   const currentUserId = req.user?.did || userId || '';
+  if (!currentUserId) {
+    throw new Error('can not get user info');
+  }
+
   const params: any = {
     ...(currentUserId && { userId: currentUserId }),
     ...(sessionId && { sessionId }),
     ...(projectId && { projectId }),
     ...(assistantId && { assistantId }),
     ...(type && { type }),
-    ...(path && { path }),
+    ...(itemId && { itemId }),
     ...(id && { id }),
   };
 
-  // const conditions = Object.entries(query).map(([key, value]) => ({ [key]: { [Op.like]: `%${value}%` } }));
-  // if (conditions?.length) params[Op.and] = conditions;
-
-  const datastores = await Datastore.findAll({ where: params });
-  const ids = datastores.map((x) => x.id);
-  if (!ids.length) return;
-
   try {
-    await Datastore.destroy({ where: { id: { [Op.in]: ids } } });
+    await Datastore.destroy({ where: params });
+
     res.json({ data: 'success' });
   } catch (error) {
     console.error(error?.message);

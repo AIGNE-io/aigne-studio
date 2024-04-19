@@ -148,10 +148,10 @@ export interface FunctionAssistant extends AssistantBase {
 
 export interface DatastoreBase {
   persist?: boolean;
-  path?: string; // Datastore 中的 key, 将tool执行后的结果为value
-  scope?: 'global' | 'session' | 'local';
+  itemId?: string; // Datastore 中的 key, 将tool执行后的结果为value
+  scope?: 'local' | 'global' | 'session';
   defaultValue?: any;
-  coverData?: boolean;
+  reset?: boolean;
 }
 
 export interface DatastoreParameter extends DatastoreBase {

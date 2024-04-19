@@ -254,28 +254,28 @@ export default function ParametersTable({
                     </Box>
 
                     <Box className="between">
-                      <Typography flex={1}>{t('variableParameter.coverData')}</Typography>
+                      <Typography flex={1}>{t('variableParameter.reset')}</Typography>
 
                       <Box flex={1}>
                         <BaseSwitch
-                          checked={Boolean(parameter.source?.coverData || false)}
+                          checked={Boolean(parameter.source?.reset || false)}
                           onChange={(_, checked) => {
                             parameter.source ??= {};
-                            parameter.source.coverData = checked;
+                            parameter.source.reset = checked;
                           }}
                         />
                       </Box>
                     </Box>
 
                     <Box className="between">
-                      <Typography flex={1}>{t('variableParameter.path')}</Typography>
+                      <Typography flex={1}>{t('variableParameter.itemId')}</Typography>
 
                       <Box flex={1}>
                         <BaseInput
-                          value={parameter.source?.path || ''}
+                          value={parameter.source?.itemId || ''}
                           onChange={(e) => {
                             parameter.source ??= {};
-                            parameter.source.path = e.target.value;
+                            parameter.source.itemId = e.target.value;
                           }}
                         />
                       </Box>
@@ -343,14 +343,14 @@ export default function ParametersTable({
                 <Paper sx={{ p: 1.5, maxWidth: 360, maxHeight: '80vh', overflow: 'auto' }}>
                   <Stack gap={1.5}>
                     <Box className="between">
-                      <Typography flex={1}>{t('variableParameter.path')}</Typography>
+                      <Typography flex={1}>{t('variableParameter.itemId')}</Typography>
 
                       <Box flex={1}>
                         <BaseInput
-                          value={parameter.source?.path || ''}
+                          value={parameter.source?.itemId || ''}
                           onChange={(e) => {
                             parameter.source ??= {};
-                            parameter.source.path = e.target.value;
+                            parameter.source.itemId = e.target.value;
                           }}
                         />
                       </Box>

@@ -18,7 +18,7 @@ export default class Datastore extends Model<InferAttributes<Datastore>, InferCr
 
   declare assistantId?: string;
 
-  declare path?: string;
+  declare itemId?: string;
 
   declare type?: string;
 
@@ -62,7 +62,7 @@ Datastore.init(
     assistantId: {
       type: DataTypes.STRING,
     },
-    path: {
+    itemId: {
       type: DataTypes.STRING,
     },
   },
