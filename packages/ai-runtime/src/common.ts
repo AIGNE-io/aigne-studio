@@ -217,3 +217,29 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
     },
   ];
 }
+
+export type ServiceMode = 'single-tenant' | 'multi-tenant';
+export type ServiceModePermissionMap = {
+  ensureViewAllProjectsRoles: string[] | undefined;
+  ensurePromptsEditorRoles: string[] | undefined;
+  ensurePromptsAdminRoles: string[] | undefined;
+};
+
+export function getServiceModePermissionMap(serviceMode: ServiceMode): ServiceModePermissionMap {
+  const permissionMap = {
+    'single-tenant': {
+      ensureViewAllProjectsRoles: ['owner', 'admin', 'promptsEditor'],
+      ensurePromptsEditorRoles: ['owner', 'admin', 'promptsEditor'],
+      ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
+    },
+    'multi-tenant': {
+      ensureViewAllProjectsRoles: ['owner', 'admin', 'promptsEditor'],
+      // no need to check, everyone can do it, will check author permission in the backend
+      ensurePromptsEditorRoles: undefined,
+      ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
+    },
+  };
+
+  // try to fallback to 'single-tenant'
+  return permissionMap[serviceMode] || permissionMap['single-tenant'];
+}

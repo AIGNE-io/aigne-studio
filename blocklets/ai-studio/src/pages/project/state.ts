@@ -74,11 +74,14 @@ export const useProjectState = (projectId: string, gitRef: string) => {
       });
       if (loading && !force) return;
       try {
-        const [project, { branches }, { releases: projectPublishSettings }] = await Promise.all([
-          projectApi.getProject(projectId),
+        const [project] = await Promise.all([projectApi.getProject(projectId)]);
+
+        // wait for project can be fetched
+        const [{ branches }, { releases: projectPublishSettings }] = await Promise.all([
           branchApi.getBranches({ projectId }),
           releaseApi.getReleases({ projectId }),
         ]);
+
         const simpleMode = project.gitType === 'simple';
         const { commits } = await getLogs({
           projectId,

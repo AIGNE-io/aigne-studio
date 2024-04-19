@@ -40,13 +40,13 @@
                 "enum": [
                   {
                     "children": [],
-                    "label": "Team",
-                    "value": "team"
+                    "label": "Single Tenant",
+                    "value": "single-tenant"
                   },
                   {
                     "children": [],
-                    "label": "SaaS",
-                    "value": "saas"
+                    "label": "Multi Tenant",
+                    "value": "multi-tenant"
                   }
                 ],
                 "x-validator": [],
@@ -67,8 +67,8 @@
                 },
                 "name": "serviceMode",
                 "required": true,
-                "description": "- Team: Member(including owner, admin, promptsEditor passport) can view all projects\n- SaaS: Everyone can only see their own projects (except for owner, admin, promptsEditor passport, they can view all projects)",
-                "default": "team",
+                "description": "- Single Tenant: Member(including owner, admin, promptsEditor passport) can view all projects\n- Multi Tenant: Everyone can only see their own projects (except for owner, admin, promptsEditor passport, they can view all projects)",
+                "default": "single-tenant",
                 "x-designable-id": "dfjkqjey8h9",
                 "x-index": 0
               }
@@ -77,6 +77,6 @@
         }
       }
     },
-    "x-designable-id": "wbmm7re1q79"
+    "x-designable-id": "hsh3pn7wvht"
   }
 }
