@@ -1,7 +1,7 @@
-## 0.1.340-beta.0 (2024-4-19)
+## 0.1.340 (2024-4-20)
 
-- chore: add more variable settings (#822)
-- support custom output schema
+- feat: support for configuring Service Mode in Preferences
+- chore: migrate common.ts to@blocklet/ai-runtime
 
 ## 0.1.339 (2024-4-17)
 

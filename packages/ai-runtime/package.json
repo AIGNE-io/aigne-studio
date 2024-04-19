@@ -35,6 +35,10 @@
     "./core": {
       "import": "./lib/esm/core/index.js",
       "require": "./lib/cjs/core/index.js"
+    },
+    "./common": {
+      "import": "./lib/esm/common.js",
+      "require": "./lib/cjs/common.js"
     }
   },
   "typesVersions": {
@@ -84,9 +88,9 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-builtin": "^0.1.340-beta.0",
+    "@blocklet/ai-builtin": "^0.1.340",
     "@blocklet/ai-kit": "^0.1.26",
-    "@blocklet/dataset-sdk": "^0.1.340-beta.0",
+    "@blocklet/dataset-sdk": "^0.1.340",
     "@blocklet/sdk": "^1.16.25",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.11",
@@ -114,7 +118,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.67",
+    "@arcblock/ux": "^2.9.69",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@mui/icons-material": "^5.15.15",

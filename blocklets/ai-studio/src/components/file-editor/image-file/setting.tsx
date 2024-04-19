@@ -1,4 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
@@ -7,7 +8,6 @@ import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 import { useAssistantCompare } from 'src/pages/project/state';
 
-import { defaultImageModel, getSupportedImagesModels } from '../../../../api/src/libs/common';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField, { brandIcon } from '../../selector/model-select-field';
 import SliderNumberField from '../../slider-number-field';

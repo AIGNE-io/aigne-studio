@@ -507,7 +507,7 @@ function ProjectList({
               didSpaceAutoSync={Boolean(item.didSpaceAutoSync)}
               loading={Boolean(itemLoading && item?._id === itemLoading?._id)}
               isFromResource={Boolean(item.isFromResource)}
-              onClick={async () => {
+              onClick={async (e) => {
                 if (section === 'templates') {
                   let name = '';
                   let description = '';
@@ -552,6 +552,17 @@ function ProjectList({
                   });
                   navigate(joinURL('/projects', item._id!));
                 } else if (section === 'examples') {
+                  // if is multi-tenant
+                  if (window.blocklet.preferences.serviceMode === 'multi-tenant') {
+                    setMenuAnchor({
+                      section,
+                      // @ts-ignore
+                      anchor: e.currentTarget.getElementsByClassName('action')?.[0] || e.currentTarget,
+                      id: item._id!,
+                    });
+                    return;
+                  }
+
                   if (!item.duplicateFrom) {
                     try {
                       setLoading(item);

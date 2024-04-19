@@ -1,13 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, ListItemIcon, ListItemText, MenuItem, TextField, TextFieldProps, menuItemClasses } from '@mui/material';
-import { useAsync } from 'react-use';
-
 import {
   ImageModelInfo,
   TextModelInfo,
   getSupportedImagesModels,
   getSupportedModels,
-} from '../../../api/src/libs/common';
+} from '@blocklet/ai-runtime/common';
+import { Box, ListItemIcon, ListItemText, MenuItem, TextField, TextFieldProps, menuItemClasses } from '@mui/material';
+import { useAsync } from 'react-use';
+
 import AzureIcon from './ai-icons/azure';
 import GoogleIcon from './ai-icons/google';
 import HuggingFaceIcon from './ai-icons/hugging-face';

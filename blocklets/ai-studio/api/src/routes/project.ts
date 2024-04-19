@@ -9,7 +9,7 @@ import logger from '@api/libs/logger';
 import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
 import { user } from '@blocklet/sdk/lib/middlewares';
-import { Router } from 'express';
+import { Request, Router } from 'express';
 import { exists, pathExists } from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
@@ -22,7 +22,7 @@ import { parse } from 'yaml';
 
 import downloadLogo from '../libs/download-logo';
 import { getResourceProjects } from '../libs/resource';
-import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor, ensureComponentCallOrRolesMatch } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
   LOGO_FILENAME,
@@ -166,9 +166,38 @@ const getTemplateQuerySchema = Joi.object<GetTemplateQuery>({
 
 export type SyncTarget = 'github' | 'didSpace';
 
+export const getProjectWhereConditions = (req: Request) => {
+  // default to only show projects created by the user
+  let projectWhereConditions = {
+    createdBy: req.user!.did,
+  } as any;
+
+  // if the user has the permission to view all projects, show all projects
+  if (ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensureViewAllProjectsRoles)) {
+    projectWhereConditions = {};
+  }
+
+  return projectWhereConditions;
+};
+
+export const checkProjectPermission = ({ req, project }: { req: Request; project: Project | null | undefined }) => {
+  if (
+    project?.createdBy === req.user?.did ||
+    ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensureViewAllProjectsRoles) ||
+    ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles)
+  ) {
+    return true;
+  }
+  const errorText = 'Project no permission';
+  throw new Error(errorText);
+};
+
 export function projectRoutes(router: Router) {
-  router.get('/projects', ensureComponentCallOrPromptsEditor(), async (_, res) => {
+  router.get('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
+      where: {
+        ...getProjectWhereConditions(req),
+      },
       order: [
         ['pinnedAt', 'DESC'],
         ['updatedAt', 'DESC'],
@@ -262,25 +291,24 @@ export function projectRoutes(router: Router) {
     res.status(404).send('Image not found');
   });
 
-  router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  router.get('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
 
-    const project = await Project.findOne({ where: { _id: projectId } });
-    if (!project) {
-      const found = (await getResourceProjects('example')).find((x) => x.project._id === projectId);
-      if (found) {
-        res.json(found);
-        return;
-      }
+    const project =
+      (await Project.findOne({ where: { _id: projectId } })) ||
+      ((await getResourceProjects('example')).find((x) => x.project._id === projectId) as any);
 
+    if (!project) {
       res.status(404).json({ error: 'No such project' });
       return;
     }
 
+    checkProjectPermission({ req, project });
+
     res.json(project);
   });
 
-  router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did } = req.user!;
 
     const { templateId, name, description, withDuplicateFrom } = await createProjectSchema.validateAsync(req.body, {
@@ -343,7 +371,7 @@ export function projectRoutes(router: Router) {
     res.json(project);
   });
 
-  router.post('/projects/import', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/import', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { name, username, password, description, url } = await importProjectSchema.validateAsync(req.body, {
       stripUnknown: true,
     });
@@ -430,7 +458,7 @@ export function projectRoutes(router: Router) {
     }
   });
 
-  router.patch('/projects/:projectId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
 
     const project = await Project.findOne({ where: { _id: projectId } });
@@ -438,6 +466,8 @@ export function projectRoutes(router: Router) {
       res.status(404).json({ error: 'No such project' });
       return;
     }
+
+    checkProjectPermission({ req, project });
 
     const {
       name,
@@ -491,7 +521,7 @@ export function projectRoutes(router: Router) {
     res.json(project.dataValues);
   });
 
-  router.delete('/projects/:projectId', ensureComponentCallOrAdmin(), async (req, res) => {
+  router.delete('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -514,7 +544,7 @@ export function projectRoutes(router: Router) {
     res.json(project);
   });
 
-  router.post('/projects/:projectId/remote', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/:projectId/remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -540,7 +570,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.delete('/projects/:projectId/remote', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.delete('/projects/:projectId/remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -555,7 +585,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/push', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/:projectId/remote/push', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -575,7 +605,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/pull', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/:projectId/remote/pull', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
@@ -607,7 +637,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/sync', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/:projectId/remote/sync', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
