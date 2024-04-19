@@ -1,3 +1,8 @@
+## 0.1.340-beta.0 (2024-4-19)
+
+- chore: add more variable settings (#822)
+- support custom output schema
+
 ## 0.1.339 (2024-4-17)
 
 - fix: copy tool(#801)
