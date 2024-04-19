@@ -654,6 +654,7 @@ const runRequestToolAssistant = async ({
     const { tool } = toolParameter.source;
     const toolAssistant = await getAssistant(tool.id);
     if (!toolAssistant) return null;
+
     const args = Object.fromEntries(
       await Promise.all(
         (toolAssistant.parameters ?? [])

@@ -628,7 +628,7 @@ export default flat({
     setting: 'Settings',
     toolSetting: 'Storage Settings',
     storageSetting: 'Data Settings',
-    path: 'SubItem Id',
+    itemId: 'SubItem Id',
     scope: 'Scope',
     defaultValue: 'Default Value',
     persist: 'Persist',

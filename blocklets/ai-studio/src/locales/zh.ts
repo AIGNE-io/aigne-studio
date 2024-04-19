@@ -622,7 +622,7 @@ export default flat({
     setting: '设置',
     toolSetting: '存储设置',
     storageSetting: '数据设置',
-    path: '子项别名',
+    itemId: '子项别名',
     scope: '作用域',
     defaultValue: '默认数据',
     persist: '持久化',

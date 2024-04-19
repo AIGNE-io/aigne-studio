@@ -294,7 +294,7 @@ export default function ParametersTable({
                             parameter.source ??= {};
                             parameter.source.scope = e.target.value;
                           }}>
-                          {['global', 'session', 'local'].map((option) => (
+                          {['local', 'session', 'global'].map((option) => (
                             <MenuItem key={option} value={option}>
                               {t(`variableParameter.${option}`)}
                             </MenuItem>
@@ -369,7 +369,7 @@ export default function ParametersTable({
                             parameter.source ??= {};
                             parameter.source.scope = e.target.value;
                           }}>
-                          {['global', 'session', 'local'].map((option) => (
+                          {['local', 'session', 'global'].map((option) => (
                             <MenuItem key={option} value={option}>
                               {t(`variableParameter.${option}`)}
                             </MenuItem>

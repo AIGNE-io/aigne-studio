@@ -94,10 +94,10 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
 
   const currentUserId = req.user?.did || userId || '';
   if (!currentUserId) {
-    throw new Error('can not get user info');
+    throw new Error('Can not get user info');
   }
 
-  const params: any = {
+  const params: { [key: string]: string } = {
     ...(currentUserId && { userId: currentUserId }),
     ...(sessionId && { sessionId }),
     ...(projectId && { projectId }),
@@ -161,11 +161,11 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
 
   const currentUserId = req.user?.did || userId || '';
   if (!currentUserId) {
-    throw new Error('can not get user info');
+    throw new Error('Can not get user info');
   }
 
-  if (itemId || type) {
-    throw new Error('can not get `type` or `itemId` info');
+  if (!itemId && !type) {
+    throw new Error('Can not `type` or `itemId` params');
   }
 
   if (reset) await Datastore.destroy({ where: { ...(itemId && { itemId }), ...(type && { type }) } });
@@ -261,10 +261,10 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const currentUserId = req.user?.did || userId || '';
 
   if (!currentUserId) {
-    throw new Error('can not get user info');
+    throw new Error('Can not get user info');
   }
 
-  const params: any = {
+  const params: { [key: string]: string } = {
     ...(currentUserId && { userId: currentUserId }),
     ...(sessionId && { sessionId }),
     ...(assistantId && { assistantId }),
@@ -332,10 +332,10 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
 
   const currentUserId = req.user?.did || userId || '';
   if (!currentUserId) {
-    throw new Error('can not get user info');
+    throw new Error('Can not get user info');
   }
 
-  const params: any = {
+  const params: { [key: string]: string } = {
     ...(currentUserId && { userId: currentUserId }),
     ...(sessionId && { sessionId }),
     ...(projectId && { projectId }),
