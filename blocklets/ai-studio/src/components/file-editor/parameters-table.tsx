@@ -39,12 +39,12 @@ import { useId, useMemo, useRef } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import WithAwareness from '../awareness/with-awareness';
-import BaseInput from '../custom/input';
 import BaseSelect from '../custom/select';
 import BaseSwitch from '../custom/switch';
 import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
 import { ToolDialog, ToolDialogImperative } from './execute-block';
+import PromptEditorField from './prompt-editor-field';
 import useVariablesEditorOptions from './use-variables-editor-options';
 
 function CustomNoRowsOverlay() {
@@ -237,7 +237,7 @@ export default function ParametersTable({
                   if (e.target === document.body) return;
                   toolSettingPopperState.close();
                 }}>
-                <Paper sx={{ p: 1.5, maxWidth: 360, maxHeight: '80vh', overflow: 'auto' }}>
+                <Paper sx={{ p: 1.5, width: 400, maxHeight: '80vh', overflow: 'auto' }}>
                   <Stack gap={1.5}>
                     <Box className="between">
                       <Typography flex={1}>{t('variableParameter.persist')}</Typography>
@@ -271,11 +271,16 @@ export default function ParametersTable({
                       <Typography flex={1}>{t('variableParameter.itemId')}</Typography>
 
                       <Box flex={1}>
-                        <BaseInput
+                        <PromptEditorField
+                          placeholder={t('variableParameter.itemId')}
                           value={parameter.source?.itemId || ''}
-                          onChange={(e) => {
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          assistant={value}
+                          path={[value.id, parameter.id]}
+                          onChange={(value: string) => {
                             parameter.source ??= {};
-                            parameter.source.itemId = e.target.value;
+                            parameter.source.itemId = value;
                           }}
                         />
                       </Box>
@@ -307,11 +312,16 @@ export default function ParametersTable({
                       <Typography flex={1}>{t('variableParameter.defaultValue')}</Typography>
 
                       <Box flex={1}>
-                        <BaseInput
+                        <PromptEditorField
+                          placeholder={t('variableParameter.defaultValue')}
                           value={parameter.source?.defaultValue || ''}
-                          onChange={(e) => {
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          assistant={value}
+                          path={[value.id, parameter.id]}
+                          onChange={(value: string) => {
                             parameter.source ??= {};
-                            parameter.source.defaultValue = e.target.value;
+                            parameter.source.defaultValue = value;
                           }}
                         />
                       </Box>
@@ -340,17 +350,22 @@ export default function ParametersTable({
                   if (e.target === document.body) return;
                   storagePopperState.close();
                 }}>
-                <Paper sx={{ p: 1.5, maxWidth: 360, maxHeight: '80vh', overflow: 'auto' }}>
+                <Paper sx={{ p: 1.5, width: 400, maxHeight: '80vh', overflow: 'auto' }}>
                   <Stack gap={1.5}>
                     <Box className="between">
                       <Typography flex={1}>{t('variableParameter.itemId')}</Typography>
 
                       <Box flex={1}>
-                        <BaseInput
+                        <PromptEditorField
+                          placeholder={t('variableParameter.itemId')}
                           value={parameter.source?.itemId || ''}
-                          onChange={(e) => {
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          assistant={value}
+                          path={[value.id, parameter.id]}
+                          onChange={(value: string) => {
                             parameter.source ??= {};
-                            parameter.source.itemId = e.target.value;
+                            parameter.source.itemId = value;
                           }}
                         />
                       </Box>
@@ -382,11 +397,16 @@ export default function ParametersTable({
                       <Typography flex={1}>{t('variableParameter.defaultValue')}</Typography>
 
                       <Box flex={1}>
-                        <BaseInput
+                        <PromptEditorField
+                          placeholder={t('variableParameter.defaultValue')}
                           value={parameter.source?.defaultValue || ''}
-                          onChange={(e) => {
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          assistant={value}
+                          path={[value.id, parameter.id]}
+                          onChange={(value: string) => {
                             parameter.source ??= {};
-                            parameter.source.defaultValue = e.target.value;
+                            parameter.source.defaultValue = value;
                           }}
                         />
                       </Box>

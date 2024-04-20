@@ -549,6 +549,7 @@ const runRequestStorage = async ({
   callback,
   datastoreParameter,
   scopeMap,
+  parameters,
 }: {
   assistant: PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
   parentTaskId?: string;
@@ -556,6 +557,7 @@ const runRequestStorage = async ({
   callback?: RunAssistantCallback;
   datastoreParameter: Parameter;
   scopeMap: { [key: string]: any };
+  parameters: { [key: string]: any };
 }) => {
   if (datastoreParameter.key && datastoreParameter.source?.variableFrom === 'datastore') {
     const currentTaskId = taskIdGenerator.nextId().toString();
@@ -563,7 +565,9 @@ const runRequestStorage = async ({
     const params = {
       ...scopeParams,
       type: toLower(datastoreParameter.key),
-      itemId: datastoreParameter.source.itemId,
+      itemId: datastoreParameter.source.itemId
+        ? await renderMessage(datastoreParameter.source.itemId, parameters)
+        : datastoreParameter.source.itemId,
       reset: datastoreParameter.source.reset,
     };
 
@@ -598,12 +602,12 @@ const runRequestStorage = async ({
       params,
     });
     const list = data.map((x: any) => x.data).filter((x: any) => x);
-    const result = list?.length > 1 ? list : list[0] ?? (datastoreParameter.defaultValue || []);
+    const result = list?.length > 0 ? list : list[0] ?? datastoreParameter.source.defaultValue;
 
     callback?.({
       type: AssistantResponseType.CHUNK,
       ...callbackParams,
-      delta: { content: JSON.stringify(result) },
+      delta: { content: result ? JSON.stringify(result) : 'undefined' },
     });
 
     callback?.({
@@ -749,7 +753,9 @@ const getVariables = async ({
         data: {
           data: variables[toolParameter.key],
           type: toLower(toolParameter.key),
-          itemId: toolParameter.source.itemId,
+          itemId: toolParameter.source.itemId
+            ? await renderMessage(toolParameter.source.itemId, parameters)
+            : toolParameter.source.itemId,
         },
       };
 
@@ -806,6 +812,7 @@ const getVariables = async ({
           callback,
           datastoreParameter,
           scopeMap,
+          parameters,
         });
         variables[datastoreParameter.key] = result;
       }
