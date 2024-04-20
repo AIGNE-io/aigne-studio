@@ -61,6 +61,9 @@
       ],
       "core": [
         "./lib/types/core/index.d.ts"
+      ],
+      "common": [
+        "./lib/types/common.d.ts"
       ]
     }
   },
