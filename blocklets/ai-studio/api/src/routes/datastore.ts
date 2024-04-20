@@ -1,6 +1,7 @@
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
+import { Op, Sequelize } from 'sequelize';
 
 import { ensureComponentCallOrAuth } from '../libs/security';
 import Datastore from '../store/models/datastore';
@@ -59,6 +60,40 @@ const putParamsSchema = Joi.object<{
   sessionId: Joi.string().allow('').empty([null, '']).default(''),
   assistantId: Joi.string().allow('').empty([null, '']).default(''),
   projectId: Joi.string().allow('').empty([null, '']).default(''),
+});
+
+const getPageQuerySchema = Joi.object<{
+  offset: number;
+  limit?: number;
+  projectId: string;
+  scope: string;
+}>({
+  offset: Joi.number().integer().min(0).default(0),
+  limit: Joi.number().integer().min(1).empty(null).default(5),
+  projectId: Joi.string().required(),
+  scope: Joi.string().valid('global', 'session', 'local').default('global').required(),
+});
+
+const getVariableSchema = Joi.object<{
+  offset?: number;
+  limit?: number;
+  type: string;
+  scope: string;
+  projectId?: string;
+  userId?: string;
+  sessionId?: string;
+  assistantId?: string;
+  itemId?: string;
+}>({
+  offset: Joi.number().integer().min(0).empty([null, '']).default(0).optional(),
+  limit: Joi.number().integer().min(1).empty([null, '']).default(5).optional(),
+  type: Joi.string().allow('').empty([null, '']).default(''),
+  scope: Joi.string().valid('global', 'session', 'local').default('global').required(),
+  userId: Joi.string().allow('').empty([null, '']).default(''),
+  sessionId: Joi.string().allow('').empty([null, '']).default(''),
+  assistantId: Joi.string().allow('').empty([null, '']).default(''),
+  projectId: Joi.string().allow('').empty([null, '']).default(''),
+  itemId: Joi.string().allow('').empty([null, '']).default(''),
 });
 
 /**
@@ -353,6 +388,101 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     console.error(error?.message);
     res.status(500).json({ error: error?.message });
   }
+});
+
+router.get('/all-variables', async (req, res) => {
+  const { scope, offset, limit, projectId } = await getPageQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  const params: {
+    [key: string]: any;
+  } = {
+    projectId,
+    type: { [Op.not]: null },
+  };
+
+  if (scope === 'session') {
+    params.sessionId = {
+      [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }],
+    };
+  }
+
+  if (scope === 'local') {
+    params.assistantId = {
+      [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }],
+    };
+  }
+
+  const list = await Datastore.findAll({
+    attributes: ['type', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
+    group: ['type'],
+    order: [['type', 'ASC']],
+    offset,
+    limit,
+    where: params,
+  });
+
+  const count = await Datastore.count({ group: ['type'], where: params });
+  res.json({ list, count: count.length });
+});
+
+router.get('/all-variable', async (req, res) => {
+  const { type, projectId, scope, offset, limit } = await getVariableSchema.validateAsync(req.query, {
+    stripUnknown: true,
+  });
+
+  const params: {
+    [key: string]: any;
+  } = { projectId, type };
+
+  if (scope === 'session') {
+    params.sessionId = {
+      [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }],
+    };
+  }
+
+  if (scope === 'local') {
+    params.assistantId = {
+      [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }],
+    };
+  }
+
+  const list = await Datastore.findAll({ order: [['itemId', 'ASC']], offset, limit, where: params });
+  res.json({ list });
+});
+
+router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req, res) => {
+  const query = await getVariableSchema.validateAsync(req.query, { stripUnknown: true });
+  const { type, projectId, scope, assistantId, sessionId, itemId, userId } = query;
+
+  const currentUserId = req.user?.did || userId || '';
+  if (!currentUserId) {
+    throw new Error('Can not get user info');
+  }
+
+  const params: { [key: string]: any } = {
+    ...(currentUserId && { userId: currentUserId }),
+    ...(projectId && { projectId }),
+    ...(itemId && { itemId }),
+    ...(type && { type }),
+  };
+
+  if (scope === 'session') {
+    params.sessionId = {
+      [Op.or]: [{ [Op.is]: sessionId }, { [Op.is]: null }, { [Op.is]: '' }],
+    };
+  }
+
+  if (scope === 'local') {
+    params.sessionId = {
+      [Op.or]: [{ [Op.is]: sessionId }, { [Op.is]: null }, { [Op.is]: '' }],
+    };
+    params.assistantId = {
+      [Op.or]: [{ [Op.is]: assistantId }, { [Op.is]: null }, { [Op.is]: '' }],
+    };
+  }
+
+  const datastores = await Datastore.findAll({ order: [['itemId', 'ASC']], where: params });
+  res.json(datastores);
 });
 
 export default router;

@@ -194,6 +194,7 @@ export interface DatastoreBase {
   scope?: 'local' | 'global' | 'session';
   defaultValue?: any;
   reset?: boolean;
+  cache?: boolean;
 }
 
 export interface DatastoreParameter extends DatastoreBase {

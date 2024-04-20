@@ -637,5 +637,17 @@ export default flat({
     global: 'Global',
     session: 'Session',
     local: 'Local',
+    assistant: 'Local',
+    cache: 'Cache Request Data',
   },
+  variables: {
+    name: 'Variables Name',
+    count: 'Variables Count',
+    value: 'Variables Value',
+    itemId: 'Variables SubItem',
+    dialogTitle: 'Variables Data',
+  },
+  userId: 'USER ID',
+  sessionId: 'SESSION ID',
+  assistantId: 'Assistant',
 });

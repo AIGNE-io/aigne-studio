@@ -58,6 +58,12 @@ export default function App() {
               justifyContent: 'center',
               alignItems: 'center',
             },
+
+            '.ellipsis': {
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+            },
           }}
         />
 
