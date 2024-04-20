@@ -953,7 +953,13 @@ async function runPromptAssistant({
 
     const outputSchema = JSON.stringify(schema, null, 2);
 
-    messages[0]!.content = `${messages[0]!.content}\n\n## Format\nOutput a JSON object match the following JSON schema:\n ${outputSchema}`;
+    let systemMessage = messages.find((i) => i.role === 'system');
+    if (!systemMessage) {
+      systemMessage = { role: 'system', content: '' };
+      messages.unshift(systemMessage);
+    }
+
+    systemMessage.content = `${messages[0]!.content}\n\n## Format\nOutput a JSON object match the following JSON schema:\n ${outputSchema}`;
   }
 
   callback?.({
