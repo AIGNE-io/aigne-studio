@@ -9,6 +9,7 @@ export enum ExecutionPhase {
   EXECUTE_ASSISTANT_RUNNING = 'EXECUTE_BLOCK_RUNNING',
   EXECUTE_ASSISTANT_END = 'EXECUTE_ASSISTANT_END',
 }
+
 export enum AssistantResponseType {
   ERROR = 'ERROR',
   LOG = 'LOG',
