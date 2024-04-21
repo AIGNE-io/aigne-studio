@@ -13,7 +13,7 @@ import SegmentedControl from '../project/segmented-control';
 import { useProjectStore } from '../project/yjs-state';
 
 interface DialogImperative {
-  form: UseFormReturn<{ type: string }>;
+  form: UseFormReturn<{ key: string }>;
 }
 
 function VariableList() {
@@ -22,7 +22,7 @@ function VariableList() {
   const dialogState = usePopupState({ variant: 'dialog' });
   const { t } = useLocaleContext();
   const [scope, setScope] = useState('global');
-  const [type, setType] = useState('');
+  const [key, setKey] = useState('');
 
   const {
     loading,
@@ -41,15 +41,13 @@ function VariableList() {
 
   if (error) throw error;
 
-  // const selection = useMemo(() => value.map((i) => i!.id).filter((i): i is NonNullable<typeof i> => !!i), [value]);
-
   const columns = useMemo(
     () => [
       {
         field: 'title',
         headerName: t('variables.name'),
         flex: 1,
-        renderCell: (params: any) => params.row?.type || t('unnamed'),
+        renderCell: (params: any) => params.row?.key || t('unnamed'),
       },
       {
         field: 'count',
@@ -84,14 +82,14 @@ function VariableList() {
         autoHeight
         disableColumnMenu
         rowSelectionModel={undefined}
-        getRowId={(row) => row?.type || 'type'}
+        getRowId={(row) => row?.key || 'type'}
         keepNonExistentRowsSelected
         rowCount={list?.count || 0}
         pageSizeOptions={[10]}
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
         onRowClick={(p) => {
-          setType(p.row.type);
+          setKey(p.row.key);
           dialogState.open();
         }}
       />
@@ -99,14 +97,10 @@ function VariableList() {
       {dialogState.isOpen && (
         <VariableDialog
           scope={scope}
-          type={type}
+          variableKey={key}
           DialogProps={{ ...bindDialog(dialogState) }}
-          onClose={() => {
-            dialogState.close();
-          }}
-          onSubmit={() => {
-            dialogState.close();
-          }}
+          onClose={dialogState.close}
+          onSubmit={dialogState.close}
         />
       )}
     </Box>
@@ -115,10 +109,10 @@ function VariableList() {
 
 const VariableDialog = forwardRef<
   DialogImperative,
-  { scope: string; type: string; onSubmit: () => any; onClose: () => void; DialogProps?: DialogProps }
->(({ scope, type, onSubmit, onClose, DialogProps }, ref) => {
+  { scope: string; variableKey: string; onSubmit: () => any; onClose: () => void; DialogProps?: DialogProps }
+>(({ scope, variableKey, onSubmit, onClose, DialogProps }, ref) => {
   const { t } = useLocaleContext();
-  const form = useForm<{ type: string }>({ defaultValues: {} });
+  const form = useForm<{ key: string }>({ defaultValues: {} });
   useImperativeHandle(ref, () => ({ form }), [form]);
 
   const { projectId } = useParams();
@@ -133,12 +127,12 @@ const VariableDialog = forwardRef<
     () =>
       getVariable({
         projectId: projectId || '',
-        type,
+        key: variableKey,
         scope,
         offset: paginationModel.page * paginationModel.pageSize,
         limit: paginationModel.pageSize,
       }),
-    [DialogProps?.open, type, projectId, scope, paginationModel.page, paginationModel.pageSize]
+    [variableKey, projectId, scope, paginationModel.page, paginationModel.pageSize]
   );
 
   if (error) throw error;
@@ -205,7 +199,7 @@ const VariableDialog = forwardRef<
       component="form"
       onSubmit={form.handleSubmit(onSubmit)}>
       <DialogTitle className="between">
-        {`${type} ${t('variables.dialogTitle')}`}
+        {`${variableKey} ${t('variables.dialogTitle')}`}
 
         <IconButton size="small" onClick={onClose}>
           <Close />

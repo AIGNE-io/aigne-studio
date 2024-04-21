@@ -567,7 +567,7 @@ const runRequestStorage = async ({
     const scopeParams = scopeMap.local;
     const params = {
       ...scopeParams,
-      type: toLower(datastoreParameter.key),
+      key: toLower(datastoreParameter.key),
       itemId: datastoreParameter.source.itemId
         ? await renderMessage(datastoreParameter.source.itemId, parameters)
         : datastoreParameter.source.itemId,
@@ -755,7 +755,7 @@ const getVariables = async ({
         },
         data: {
           data: variables[toolParameter.key],
-          type: toLower(toolParameter.key),
+          key: toLower(toolParameter.key),
           itemId: toolParameter.source.itemId
             ? await renderMessage(toolParameter.source.itemId, parameters)
             : toolParameter.source.itemId,

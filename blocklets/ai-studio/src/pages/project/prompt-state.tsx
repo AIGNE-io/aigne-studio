@@ -250,7 +250,7 @@ export function usePromptsState({
                     id: 'AI-Studio:/api/datastore:get',
                     from: 'dataset',
                     parameters: {
-                      type: '',
+                      key: '',
                     },
                   },
                 },
@@ -273,7 +273,7 @@ export function usePromptsState({
                     from: 'dataset',
                     parameters: {
                       reset: 'true',
-                      type: '',
+                      key: '',
                       data: '',
                     },
                   },

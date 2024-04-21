@@ -20,7 +20,7 @@ export default class Datastore extends Model<InferAttributes<Datastore>, InferCr
 
   declare itemId?: string;
 
-  declare type?: string;
+  declare key?: string;
 
   declare createdAt: CreationOptional<Date>;
 
@@ -44,7 +44,7 @@ Datastore.init(
     sessionId: {
       type: DataTypes.STRING,
     },
-    type: {
+    key: {
       type: DataTypes.STRING,
     },
     createdAt: {

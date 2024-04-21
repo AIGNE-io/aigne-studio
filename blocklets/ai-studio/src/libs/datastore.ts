@@ -19,19 +19,19 @@ export async function getVariables({
 }
 
 export async function getVariable({
-  type,
+  key,
   scope,
   projectId,
   offset,
   limit,
 }: {
-  type: string;
+  key: string;
   scope: string;
   projectId: string;
   offset: number;
   limit: number;
 }): Promise<{ list: Datastore[] }> {
   return axios
-    .get('/api/datastore/all-variable', { params: { type, projectId, scope, offset, limit } })
+    .get('/api/datastore/all-variable', { params: { key, projectId, scope, offset, limit } })
     .then((res) => res.data);
 }

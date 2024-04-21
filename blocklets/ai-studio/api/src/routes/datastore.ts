@@ -14,18 +14,18 @@ const getDatastoreSchema = Joi.object<{
   assistantId?: string;
   projectId?: string;
   itemId?: string;
-  type: string;
+  key: string;
 }>({
-  userId: Joi.string().allow('').empty([null, '']).default(''),
-  sessionId: Joi.string().allow('').empty([null, '']).default(''),
-  assistantId: Joi.string().allow('').empty([null, '']).default(''),
-  projectId: Joi.string().allow('').empty([null, '']).default(''),
-  itemId: Joi.string().allow('').empty([null, '']).default(''),
-  type: Joi.string().required(),
+  userId: Joi.string().allow('').empty([null, '']),
+  sessionId: Joi.string().allow('').empty([null, '']),
+  assistantId: Joi.string().allow('').empty([null, '']),
+  projectId: Joi.string().allow('').empty([null, '']),
+  itemId: Joi.string().allow('').empty([null, '']),
+  key: Joi.string().required(),
 });
 
-const postDatastoreSchema = Joi.object<{ type: string; itemId: string; data: any }>({
-  type: Joi.string().required(),
+const postDatastoreSchema = Joi.object<{ key: string; itemId: string; data: any }>({
+  key: Joi.string().required(),
   itemId: Joi.string().allow('').empty([null, '']).optional(),
   data: Joi.any(),
 });
@@ -37,10 +37,10 @@ const postParamsSchema = Joi.object<{
   projectId?: string;
   reset: boolean;
 }>({
-  userId: Joi.string().allow('').empty([null, '']).default(''),
-  sessionId: Joi.string().allow('').empty([null, '']).default(''),
-  assistantId: Joi.string().allow('').empty([null, '']).default(''),
-  projectId: Joi.string().allow('').empty([null, '']).default(''),
+  userId: Joi.string().allow('').empty([null, '']),
+  sessionId: Joi.string().allow('').empty([null, '']),
+  assistantId: Joi.string().allow('').empty([null, '']),
+  projectId: Joi.string().allow('').empty([null, '']),
   reset: Joi.boolean().default(false),
 });
 
@@ -50,16 +50,16 @@ const putParamsSchema = Joi.object<{
   assistantId?: string;
   projectId?: string;
   itemId?: string;
-  type?: string;
+  key?: string;
   id?: string;
 }>({
   id: Joi.string().allow('').empty([null, '']).optional(),
-  type: Joi.string().allow('').empty([null, '']).optional(),
-  itemId: Joi.string().allow('').empty([null, '']).default(''),
-  userId: Joi.string().allow('').empty([null, '']).default(''),
-  sessionId: Joi.string().allow('').empty([null, '']).default(''),
-  assistantId: Joi.string().allow('').empty([null, '']).default(''),
-  projectId: Joi.string().allow('').empty([null, '']).default(''),
+  key: Joi.string().allow('').empty([null, '']).optional(),
+  itemId: Joi.string().allow('').empty([null, '']),
+  userId: Joi.string().allow('').empty([null, '']),
+  sessionId: Joi.string().allow('').empty([null, '']),
+  assistantId: Joi.string().allow('').empty([null, '']),
+  projectId: Joi.string().allow('').empty([null, '']),
 });
 
 const getPageQuerySchema = Joi.object<{
@@ -77,7 +77,7 @@ const getPageQuerySchema = Joi.object<{
 const getVariableSchema = Joi.object<{
   offset?: number;
   limit?: number;
-  type: string;
+  key: string;
   scope: string;
   projectId?: string;
   userId?: string;
@@ -87,12 +87,12 @@ const getVariableSchema = Joi.object<{
 }>({
   offset: Joi.number().integer().min(0).empty([null, '']).default(0).optional(),
   limit: Joi.number().integer().min(1).empty([null, '']).default(5).optional(),
-  type: Joi.string().allow('').empty([null, '']).default(''),
+  key: Joi.string().allow('').empty([null, '']).default(''),
   scope: Joi.string().valid('global', 'session', 'local').default('global').required(),
-  userId: Joi.string().allow('').empty([null, '']).default(''),
-  sessionId: Joi.string().allow('').empty([null, '']).default(''),
-  assistantId: Joi.string().allow('').empty([null, '']).default(''),
-  projectId: Joi.string().allow('').empty([null, '']).default(''),
+  userId: Joi.string().allow('').empty([null, '']),
+  sessionId: Joi.string().allow('').empty([null, '']),
+  assistantId: Joi.string().allow('').empty([null, '']),
+  projectId: Joi.string().allow('').empty([null, '']),
   itemId: Joi.string().allow('').empty([null, '']).default(''),
 });
 
@@ -106,7 +106,7 @@ const getVariableSchema = Joi.object<{
  *     x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
  *     parameters:
  *       - in: query
- *         name: type
+ *         name: key
  *         description: key
  *         x-description-zh: 存储的名称
  *       - in: query
@@ -123,7 +123,7 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     sessionId = '',
     assistantId = '',
     projectId = '',
-    type = '',
+    key = '',
     itemId = '',
   } = await getDatastoreSchema.validateAsync(req.query, { stripUnknown: true });
 
@@ -138,7 +138,7 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     ...(projectId && { projectId }),
     ...(assistantId && { assistantId }),
     ...(itemId && { itemId }),
-    ...(type && { type }),
+    ...(key && { key }),
   };
 
   const datastores = await Datastore.findAll({ order: [['createdAt', 'ASC']], where: params });
@@ -169,10 +169,10 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - type
+ *               - key
  *               - data
  *             properties:
- *               type:
+ *               key:
  *                 type: string
  *                 description: key
  *                 x-description-zh: 别名
@@ -189,7 +189,7 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         description: The created datastore object
  */
 router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
-  const { type, itemId, data } = await postDatastoreSchema.validateAsync(req.body, { stripUnknown: true });
+  const { key, itemId, data } = await postDatastoreSchema.validateAsync(req.body, { stripUnknown: true });
   const { userId, sessionId, assistantId, projectId, reset } = await postParamsSchema.validateAsync(req.query, {
     stripUnknown: true,
   });
@@ -199,14 +199,14 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     throw new Error('Can not get user info');
   }
 
-  if (!itemId && !type) {
-    throw new Error('Can not `type` or `itemId` params');
+  if (!itemId && !key) {
+    throw new Error('Can not find `key` or `itemId` params');
   }
 
-  if (reset) await Datastore.destroy({ where: { ...(itemId && { itemId }), ...(type && { type }) } });
+  if (reset) await Datastore.destroy({ where: { ...(itemId && { itemId }), ...(key && { key }) } });
 
   const datastore = await Datastore.create({
-    type,
+    key,
     itemId,
     data,
     userId: currentUserId,
@@ -238,7 +238,7 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         description: SubItem Id
  *         x-description-zh: 子项别名
  *       - in: query
- *         name: type
+ *         name: key
  *         schema:
  *           type: string
  *         required: false
@@ -289,7 +289,7 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     assistantId = '',
     projectId = '',
     itemId = '',
-    type = '',
+    key = '',
     id = '',
   } = await putParamsSchema.validateAsync(req.query, { stripUnknown: true });
 
@@ -304,7 +304,7 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     ...(sessionId && { sessionId }),
     ...(assistantId && { assistantId }),
     ...(projectId && { projectId }),
-    ...(type && { type }),
+    ...(key && { key }),
     ...(itemId && { itemId }),
     ...(id && { id }),
   };
@@ -338,7 +338,7 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         description: ID
  *         x-description-zh: ID
  *       - in: query
- *         name: type
+ *         name: key
  *         schema:
  *           type: string
  *         required: false
@@ -361,7 +361,7 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     assistantId = '',
     projectId = '',
     itemId = '',
-    type = '',
+    key = '',
     id = '',
   } = await putParamsSchema.validateAsync(req.query, { stripUnknown: true });
 
@@ -375,7 +375,7 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     ...(sessionId && { sessionId }),
     ...(projectId && { projectId }),
     ...(assistantId && { assistantId }),
-    ...(type && { type }),
+    ...(key && { key }),
     ...(itemId && { itemId }),
     ...(id && { id }),
   };
@@ -395,10 +395,7 @@ router.get('/all-variables', async (req, res) => {
 
   const params: {
     [key: string]: any;
-  } = {
-    projectId,
-    type: { [Op.not]: null },
-  };
+  } = { projectId, key: { [Op.not]: null } };
 
   if (scope === 'session') {
     params.sessionId = {
@@ -413,26 +410,26 @@ router.get('/all-variables', async (req, res) => {
   }
 
   const list = await Datastore.findAll({
-    attributes: ['type', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
-    group: ['type'],
-    order: [['type', 'ASC']],
+    attributes: ['key', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
+    group: ['key'],
+    order: [['key', 'ASC']],
     offset,
     limit,
     where: params,
   });
 
-  const count = await Datastore.count({ group: ['type'], where: params });
+  const count = await Datastore.count({ group: ['key'], where: params });
   res.json({ list, count: count.length });
 });
 
 router.get('/all-variable', async (req, res) => {
-  const { type, projectId, scope, offset, limit } = await getVariableSchema.validateAsync(req.query, {
+  const { key, projectId, scope, offset, limit } = await getVariableSchema.validateAsync(req.query, {
     stripUnknown: true,
   });
 
   const params: {
     [key: string]: any;
-  } = { projectId, type };
+  } = { projectId, key };
 
   if (scope === 'session') {
     params.sessionId = {
@@ -452,7 +449,7 @@ router.get('/all-variable', async (req, res) => {
 
 router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const query = await getVariableSchema.validateAsync(req.query, { stripUnknown: true });
-  const { type, projectId, scope, assistantId, sessionId, itemId, userId } = query;
+  const { key, projectId, scope, assistantId, sessionId, itemId, userId } = query;
 
   const currentUserId = req.user?.did || userId || '';
   if (!currentUserId) {
@@ -463,7 +460,7 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req
     ...(currentUserId && { userId: currentUserId }),
     ...(projectId && { projectId }),
     ...(itemId && { itemId }),
-    ...(type && { type }),
+    ...(key && { key }),
   };
 
   if (scope === 'session') {

@@ -367,20 +367,20 @@ export default function ParametersTable({
                 <Paper sx={{ p: 1.5, width: 400, maxHeight: '80vh', overflow: 'auto' }}>
                   <Stack gap={1.5}>
                     <Box className="between">
-                      <Box className="between">
-                        <Typography flex={1}>{t('variableParameter.cache')}</Typography>
+                      <Typography flex={1}>{t('variableParameter.cache')}</Typography>
 
-                        <Box flex={1}>
-                          <BaseSwitch
-                            checked={Boolean(parameter.source?.cache || false)}
-                            onChange={(_, checked) => {
-                              parameter.source ??= {};
-                              parameter.source.cache = checked;
-                            }}
-                          />
-                        </Box>
+                      <Box flex={1}>
+                        <BaseSwitch
+                          checked={Boolean(parameter.source?.cache || false)}
+                          onChange={(_, checked) => {
+                            parameter.source ??= {};
+                            parameter.source.cache = checked;
+                          }}
+                        />
                       </Box>
+                    </Box>
 
+                    <Box className="between">
                       <Typography flex={1}>{t('variableParameter.itemId')}</Typography>
 
                       <Box flex={1}>

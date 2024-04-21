@@ -204,7 +204,7 @@
     x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
     parameters:
       - in: query
-        name: type
+        name: key
         description: key
         x-description-zh: 存储的名称
       - in: query
@@ -235,10 +235,10 @@
           schema:
             type: object
             required:
-              - type
+              - key
               - data
             properties:
-              type:
+              key:
                 type: string
                 description: key
                 x-description-zh: 别名
@@ -271,7 +271,7 @@
         description: SubItem Id
         x-description-zh: 子项别名
       - in: query
-        name: type
+        name: key
         schema:
           type: string
         required: false
@@ -328,7 +328,7 @@
         description: ID
         x-description-zh: ID
       - in: query
-        name: type
+        name: key
         schema:
           type: string
         required: false
