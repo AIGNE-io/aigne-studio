@@ -103,3 +103,37 @@ export type RunAssistantError = {
   type: AssistantResponseType.ERROR;
   error: { message: string } | SubscriptionError;
 };
+
+export type RuntimeOutputVariable = '$page.background.image' | '$page.background.color' | '$input';
+
+export const RuntimeOutputVariableNames: RuntimeOutputVariable[] = [
+  '$input',
+  '$page.background.color',
+  '$page.background.image',
+];
+
+export interface RuntimeOutputVariables {
+  '$page.background.image'?: string;
+  '$page.background.color'?: string;
+  $input?: Input;
+}
+
+export type Action =
+  | {
+      type: 'navigateTo';
+      to: {
+        type: 'assistant';
+        assistantId: string;
+      };
+    }
+  | {
+      type: 'navigateBack';
+    };
+
+export type Input = {
+  type: 'select';
+  options: {
+    title: string;
+    action: Action;
+  }[];
+};
