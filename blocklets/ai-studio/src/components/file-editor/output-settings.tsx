@@ -28,15 +28,44 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
 
   return (
     <Box sx={{ border: '1px solid #E5E7EB', px: 1, py: 2, borderRadius: 1 }}>
-      <Stack direction="row" alignItems="center" gap={0.5} onClick={() => setOpen(!open)}>
-        <Typography variant="subtitle2">{t('outputVariables')}</Typography>
+      <Stack
+        direction="row"
+        alignItems="center"
+        sx={{ cursor: 'pointer', px: 1 }}
+        gap={1}
+        onClick={() => setOpen(!open)}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontWeight: 500,
+          }}>
+          {t('outputVariables')}
+        </Typography>
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end" />
+
+        <Stack direction="row" alignItems="center" gap={1} onClick={(e) => e.stopPropagation()}>
+          <Typography variant="subtitle4">Output Format</Typography>
+
+          <TextField
+            size="small"
+            hiddenLabel
+            select
+            SelectProps={{ autoWidth: true }}
+            value={value.outputFormat || 'text'}
+            onChange={(e) => {
+              value.outputFormat = e.target.value as any;
+            }}>
+            <MenuItem value="text">Text</MenuItem>
+            <MenuItem value="json">JSON</MenuItem>
+          </TextField>
+        </Stack>
 
         <ExpandMoreRounded
           sx={{
             transform: !open ? 'rotateZ(270deg)' : 'rotateZ(360deg)',
             transition: (theme) => theme.transitions.create('all'),
+            fontSize: 18,
             color: '#030712',
           }}
         />

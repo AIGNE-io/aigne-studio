@@ -638,4 +638,5 @@ export default flat({
     session: 'Session',
     local: 'Local',
   },
+  outputVariables: 'Output Variables',
 });

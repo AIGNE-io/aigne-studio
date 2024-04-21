@@ -6,7 +6,8 @@ import History from '@api/store/models/history';
 import Release from '@api/store/models/release';
 import Session from '@api/store/models/session';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
-import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
+import { nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
+import { CallAI, CallAIImage, GetAssistant } from '@blocklet/ai-runtime/core/assistant/type';
 import {
   AssistantResponseType,
   RunAssistantResponse,

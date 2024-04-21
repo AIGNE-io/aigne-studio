@@ -108,20 +108,9 @@ export interface AssistantBase {
   };
   entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
 
-  outputVariables?: OutputVariable[];
+  outputFormat?: 'text' | 'json';
 
-  // responseFormat?: {
-  //   metadata?: {
-  //     page?: {
-  //       backgroundImage?: string;
-  //       backgroundColor?: string;
-  //     };
-  //     inputAction?: {
-  //       type: 'assistant';
-  //       identity?: string;
-  //     };
-  //   };
-  // };
+  outputVariables?: OutputVariable[];
 }
 
 export interface OutputVariableBase {

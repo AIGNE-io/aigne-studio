@@ -1,8 +1,6 @@
-/* eslint-disable no-await-in-loop */
 import { join } from 'path';
-import { ReadableStream } from 'stream/web';
 
-import { ChatCompletionChunk, ChatCompletionInput, ImageGenerationInput } from '@blocklet/ai-kit/api/types';
+import { ChatCompletionChunk } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
@@ -33,15 +31,17 @@ import {
   ImageAssistant,
   Mustache,
   OnTaskCompletion,
-  OutputVariable,
   Parameter,
   Role,
   Tool,
   User,
   isImageAssistant,
 } from '../../types/assistant';
-import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
+import { AssistantResponseType, ExecutionPhase } from '../../types/runtime';
+import retry from '../utils/retry';
+import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../utils/schema';
 import { BuiltinModules } from './builtin';
+import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback, ToolCompletionDirective } from './type';
 
 const getUserHeader = (user: any) => {
   return {
@@ -55,55 +55,7 @@ const getUserHeader = (user: any) => {
 
 const defaultScope = 'local';
 
-export type RunAssistantCallback = (e: RunAssistantResponse) => void;
-
-export class ToolCompletionDirective extends Error {
-  type: OnTaskCompletion;
-
-  constructor(message: string, type: OnTaskCompletion) {
-    super(message);
-    this.type = type;
-  }
-}
-
-export interface GetAssistant {
-  (assistantId: string, options: { rejectOnEmpty: true | Error }): Promise<Assistant>;
-  (assistantId: string, options?: { rejectOnEmpty?: false }): Promise<Assistant | null>;
-}
-
-export type Options = {
-  assistant: Assistant;
-  input: ChatCompletionInput;
-};
-
-export type ImageOptions = {
-  assistant: Assistant;
-  input: ImageGenerationInput;
-};
-
-export type ModelInfo = {
-  model: string;
-  temperature?: number;
-  topP?: number;
-  presencePenalty?: number;
-  frequencyPenalty?: number;
-};
-
-export interface CallAI {
-  (options: Options & { outputModel: true }): Promise<{
-    modelInfo: ModelInfo;
-    chatCompletionChunk: ReadableStream<ChatCompletionChunk>;
-  }>;
-  (options: Options & { outputModel?: false }): Promise<ReadableStream<ChatCompletionChunk>>;
-  (options: Options & { outputModel: boolean }): any;
-}
-
-export interface CallAIImage {
-  (
-    options: ImageOptions & { outputModel: true }
-  ): Promise<{ modelInfo: ModelInfo; imageRes: { data: { url: string }[] } }>;
-  (options: ImageOptions & { outputModel?: false }): Promise<{ data: { url: string }[] }>;
-}
+const MAX_RETRIES = 3;
 
 const taskIdGenerator = new Worker();
 
@@ -928,28 +880,10 @@ async function runPromptAssistant({
 
   if (!messages.length) return undefined;
 
-  // TODO: 更好地判断是否需要输出 JSON
-  const outputJson = !!assistant.outputVariables?.length;
+  const outputJson = assistant.outputFormat === 'json';
 
-  // TODO: 更好地处理 json schema 约束 prompt
   if (outputJson) {
-    const variableToSchema = (variable: OutputVariable): any => ({
-      type: variable.type,
-      description: variable.description,
-      properties:
-        variable.type === 'object' && variable.properties
-          ? Object.fromEntries(
-              variable.properties.map((property) => [property.name, variableToSchema(property)]).filter((i) => !!i[0])
-            )
-          : undefined,
-      items: variable.type === 'array' && variable.element ? variableToSchema(variable.element) : undefined,
-      required:
-        variable.type === 'object' && variable.properties?.length
-          ? variable.properties.filter((i) => i.name && i.required).map((i) => i.name)
-          : undefined,
-    });
-
-    const schema = variableToSchema({ id: '', type: 'object', properties: assistant.outputVariables ?? [] });
+    const schema = outputVariablesToJsonSchema(assistant.outputVariables ?? []);
 
     const outputSchema = JSON.stringify(schema, null, 2);
 
@@ -981,45 +915,55 @@ async function runPromptAssistant({
     promptMessages: messages,
   });
 
-  const res = await callAI({
-    assistant,
-    outputModel: true,
-    input: {
-      stream: true,
-      messages,
-      model: assistant.model,
-      temperature: assistant.temperature,
-      topP: assistant.topP,
-      presencePenalty: assistant.presencePenalty,
-      frequencyPenalty: assistant.frequencyPenalty,
-    },
-  });
+  const run = async () => {
+    let jsonResult;
+    let result = '';
 
-  let result = '';
-  let jsonResult;
+    const aiResult = await callAI({
+      assistant,
+      outputModel: true,
+      input: {
+        stream: true,
+        messages,
+        model: assistant.model,
+        temperature: assistant.temperature,
+        topP: assistant.topP,
+        presencePenalty: assistant.presencePenalty,
+        frequencyPenalty: assistant.frequencyPenalty,
+      },
+    });
 
-  for await (const chunk of res.chatCompletionChunk) {
-    result += chunk.delta.content || '';
+    for await (const chunk of aiResult.chatCompletionChunk) {
+      result += chunk.delta.content || '';
 
-    if (!outputJson) {
+      if (!outputJson) {
+        callback?.({
+          type: AssistantResponseType.CHUNK,
+          taskId,
+          assistantId: assistant.id,
+          delta: { content: chunk.delta.content },
+        });
+      }
+    }
+
+    if (outputJson) {
+      const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? []);
+
+      const json = JSON.parse(result);
+      jsonResult = await schema.validateAsync(json, { stripUnknown: true });
+
       callback?.({
         type: AssistantResponseType.CHUNK,
         taskId,
         assistantId: assistant.id,
-        delta: { content: chunk.delta.content },
+        delta: { object: jsonResult },
       });
     }
-  }
 
-  if (outputJson) {
-    jsonResult = JSON.parse(result);
-    callback?.({
-      type: AssistantResponseType.CHUNK,
-      taskId,
-      assistantId: assistant.id,
-      delta: { object: jsonResult },
-    });
-  }
+    return { jsonResult, result, aiResult };
+  };
+
+  const { jsonResult, result, aiResult } = await retry(run, MAX_RETRIES);
 
   callback?.({
     type: AssistantResponseType.INPUT,
@@ -1027,7 +971,7 @@ async function runPromptAssistant({
     ...(parentTaskId
       ? {
           parentTaskId,
-          modelParameters: res.modelInfo,
+          modelParameters: aiResult.modelInfo,
         }
       : { parentTaskId }),
     taskId,

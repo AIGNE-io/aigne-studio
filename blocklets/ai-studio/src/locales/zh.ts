@@ -632,4 +632,5 @@ export default flat({
     session: '当前 Session',
     local: '当前范围',
   },
+  outputVariables: '输出变量',
 });
