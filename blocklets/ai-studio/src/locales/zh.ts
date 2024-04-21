@@ -630,7 +630,7 @@ export default flat({
     global: '全局存储',
     session: 'Session 存储',
     local: '当前存储',
-    assistant: 'Assistant 存储',
+    assistant: 'Local 存储',
     cache: '缓存请求数据',
   },
   variables: {

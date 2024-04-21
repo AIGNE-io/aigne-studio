@@ -3,6 +3,7 @@ import { isApiAssistant, isFunctionAssistant, isImageAssistant, isPromptAssistan
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
+import { countBy } from 'lodash';
 import { Op, Sequelize } from 'sequelize';
 
 import { ensureComponentCallOrAuth } from '../libs/security';
@@ -393,13 +394,7 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
   }
 });
 
-router.get('/all-variables', async (req, res) => {
-  const { scope, offset, limit, projectId } = await getPageQuerySchema.validateAsync(req.query, { stripUnknown: true });
-
-  const params: {
-    [key: string]: any;
-  } = { projectId };
-
+const getAssistantParameters = async (projectId: string, scope: string) => {
   const project = await Project.findOne({ where: { _id: projectId } });
 
   const repo = await getRepository({ projectId });
@@ -418,6 +413,52 @@ router.get('/all-variables', async (req, res) => {
       assistants.push(Object.values(file?.parameters || {}).map((x) => x.data));
     }
   }
+
+  const scopeAssistants = assistants.flatMap((x) => {
+    return x.filter((x) => x.source && x.source.variableFrom === 'datastore' && x.source.scope === scope);
+  });
+
+  return scopeAssistants;
+};
+
+const getAssistantByKey = async (projectId: string, scope: string, inputKey: string) => {
+  const project = await Project.findOne({ where: { _id: projectId } });
+
+  const repo = await getRepository({ projectId });
+  const working = await repo.working({ ref: project?.gitDefaultBranch! ?? 'main' });
+  const keys = Object.keys(working.syncedStore.tree);
+
+  const assistants = [];
+
+  for (const key of keys) {
+    const file = working.syncedStore.files[key];
+    if (
+      file &&
+      (isPromptAssistant(file) || isApiAssistant(file) || isFunctionAssistant(file) || isImageAssistant(file)) &&
+      file.parameters
+    ) {
+      const found = Object.values(file?.parameters || {})
+        .map((x) => x.data)
+        .filter((x) => x.source && x.source.variableFrom === 'datastore' && x.source.scope === scope)
+        .find((x) => x.key === inputKey);
+
+      if (found) {
+        assistants.push({ id: file.id, key: inputKey, assistantId: file.id });
+      }
+    }
+  }
+
+  return assistants;
+};
+
+router.get('/all-variables', async (req, res) => {
+  const { scope, offset, limit, projectId } = await getPageQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+  const params: {
+    [key: string]: any;
+  } = { projectId };
+
+  const scopeAssistants = await getAssistantParameters(projectId, scope);
 
   if (scope === 'global') {
     params.sessionId = {
@@ -446,17 +487,12 @@ router.get('/all-variables', async (req, res) => {
     };
   }
 
-  const scopeParameters = assistants.flatMap((x) => {
-    return x
-      .filter((x) => x.source && x.source.variableFrom === 'datastore' && x.source.scope === scope)
-      .map((x) => x.key!);
-  });
-
-  if (!scopeParameters.length) {
+  if (!scopeAssistants.length) {
     return res.json({ list: [], count: 0 });
   }
 
-  params.key = { [Op.in]: scopeParameters };
+  const parameters = scopeAssistants.map((x) => x.key!);
+  params.key = { [Op.in]: parameters };
 
   const list = await Datastore.findAll({
     attributes: ['key', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
@@ -467,13 +503,15 @@ router.get('/all-variables', async (req, res) => {
     where: params,
   });
 
+  const parametersByCount = countBy(parameters);
+
   const count = await Datastore.count({ group: ['key'], where: params });
   return res.json({
-    list: scopeParameters.map((key) => {
+    list: Object.entries(parametersByCount).map(([key, value]) => {
       return (
         list.find((x) => x.key === key)?.dataValues ?? {
           key,
-          count: 0,
+          count: value ?? 0,
         }
       );
     }),
@@ -518,7 +556,8 @@ router.get('/all-variable', async (req, res) => {
   }
 
   const list = await Datastore.findAll({ order: [['itemId', 'ASC']], offset, limit, where: params });
-  res.json({ list });
+  const assistant = await getAssistantByKey(projectId || '', scope, key);
+  res.json({ list: [...list.map((x) => x.dataValues), ...assistant] });
 });
 
 router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req, res) => {

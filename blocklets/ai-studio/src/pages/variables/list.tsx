@@ -183,7 +183,7 @@ const VariableDialog = forwardRef<
         flex: 1,
         renderCell: (params) => {
           const file = getFileById(params.row?.assistantId);
-          return <Box>{file?.name}</Box>;
+          return <Box>{file?.name || params.row?.assistantId}</Box>;
         },
       },
     ],
