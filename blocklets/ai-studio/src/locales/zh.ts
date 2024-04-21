@@ -644,4 +644,9 @@ export default flat({
   sessionId: 'Session ID',
   assistantId: '工具',
   outputVariables: '输出变量',
+  history: {
+    title: '历史消息',
+    limit: '检索消息数',
+    keyword: '检索关键字',
+  },
 });

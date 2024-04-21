@@ -575,6 +575,70 @@ const runRequestStorage = async ({
   return null;
 };
 
+const runRequestHistory = async ({
+  assistant,
+  parentTaskId,
+  user,
+  callback,
+  params,
+}: {
+  assistant: PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  parentTaskId?: string;
+  user?: User;
+  callback?: RunAssistantCallback;
+  params: {
+    sessionId?: string;
+    userId?: string;
+    limit: number;
+    keyword: string;
+  };
+}) => {
+  const currentTaskId = nextTaskId();
+
+  const callbackParams = {
+    taskId: currentTaskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: startCase(toLower('The History DATA')),
+  };
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    ...callbackParams,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    ...callbackParams,
+    inputParameters: params as any,
+  });
+
+  const { data } = await callFunc({
+    name: 'ai-studio',
+    path: '/api/messages',
+    method: 'GET',
+    headers: getUserHeader(user),
+    params,
+  });
+  console.log(data);
+  const result = (data || []).map((x: any) => x?.result).filter((x: any) => x);
+
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    ...callbackParams,
+    delta: { content: result ? JSON.stringify(result) : 'undefined' },
+  });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    ...callbackParams,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
+  return result;
+};
+
 const runRequestToolAssistant = async ({
   callAI,
   callAIImage,
@@ -878,6 +942,32 @@ async function runPromptAssistant({
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
   const outputJson = assistant.outputFormat === 'json';
+
+  if (assistant.history?.enable) {
+    const histories = await runRequestHistory({
+      assistant,
+      parentTaskId: taskId,
+      user,
+      callback,
+      params: {
+        sessionId,
+        userId: user?.did,
+        limit: assistant.history.limit || 50,
+        keyword: await renderMessage(assistant.history.keyword || '', variables),
+      },
+    });
+
+    if (histories.length) {
+      messages.unshift({
+        role: 'system',
+        content: `## Memory
+        Here is the chat histories between user and assistant, inside <histories></histories> XML tags.
+        <histories>
+        ${JSON.stringify(histories)}
+        </histories>`,
+      });
+    }
+  }
 
   if (outputJson) {
     const schema = outputVariablesToJsonSchema(assistant.outputVariables ?? []);

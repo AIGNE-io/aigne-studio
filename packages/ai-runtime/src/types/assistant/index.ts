@@ -18,7 +18,7 @@ export type ExecuteBlockRole = Role | 'none';
 
 export type Tool = {
   id: string;
-  from?: 'assistant' | 'dataset' | 'knowledge';
+  from?: 'assistant' | 'dataset' | 'knowledge'; // 这里的 dataset 其实代表 api
   parameters?: { [key: string]: string };
   functionName?: string;
   onEnd?: OnTaskCompletion;
@@ -111,6 +111,12 @@ export interface AssistantBase {
   outputFormat?: 'text' | 'json';
 
   outputVariables?: OutputVariable[];
+
+  history?: {
+    enable?: boolean;
+    limit?: number;
+    keyword?: string;
+  };
 }
 
 export interface OutputVariableBase {

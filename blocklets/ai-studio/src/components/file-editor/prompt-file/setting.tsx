@@ -56,7 +56,9 @@ export default function PromptSetting({
           cursor: 'pointer',
         }}
         onClick={() => setOpen(!open)}>
-        <Typography variant="subtitle2">{t('callPrompt')}</Typography>
+        <Typography variant="subtitle2" mb={0}>
+          {t('callPrompt')}
+        </Typography>
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end">
           {!open && (

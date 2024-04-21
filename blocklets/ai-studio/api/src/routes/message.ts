@@ -113,29 +113,33 @@ export function messageRoutes(router: Router) {
         : [];
 
     // 交替组合最后n条消息和关键词匹配到的n条消息，去重后取n条，并按时间排序
-    const messages = orderBy(uniqBy(zip(lastMessages, searchMessages).flat(), 'id'), 'createdAt', 'asc')
-      .map((i) => {
-        const question = i?.parameters?.question;
-        const result =
-          i?.result?.content ||
-          i?.result?.messages
-            ?.filter((i) => i.respondAs === 'message')
-            .map((i) => (typeof i.result?.content === 'string' ? i.result.content : ''))
-            .join('\n');
+    if (searchMessages.length) {
+      const messages = orderBy(uniqBy(zip(lastMessages, searchMessages).flat(), 'id'), 'createdAt', 'asc')
+        .map((i) => {
+          const question = i?.parameters?.question;
+          const result =
+            i?.result?.content ||
+            i?.result?.messages
+              ?.filter((i) => i.respondAs === 'message')
+              .map((i) => (typeof i.result?.content === 'string' ? i.result.content : ''))
+              .join('\n');
 
-        if (typeof question === 'string' && question && typeof result === 'string' && result) {
-          return [
-            { role: 'user', content: question },
-            { role: 'assistant', content: result },
-          ];
-        }
+          if (typeof question === 'string' && question && typeof result === 'string' && result) {
+            return [
+              { role: 'user', content: question },
+              { role: 'assistant', content: result },
+            ];
+          }
 
-        return [];
-      })
-      .slice(0, query.limit)
-      .flat();
+          return [];
+        })
+        .slice(0, query.limit)
+        .flat();
 
-    res.json(messages);
+      res.json(messages);
+    } else {
+      res.json(lastMessages);
+    }
   });
 
   router.get('/sessions/:sessionId/messages', user(), auth(), async (req, res) => {

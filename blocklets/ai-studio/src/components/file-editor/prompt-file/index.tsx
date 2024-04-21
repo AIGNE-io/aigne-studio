@@ -3,6 +3,7 @@ import { Box, Stack } from '@mui/material';
 
 import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
+import BasicHistory from '../history';
 import OutputSettings from '../output/output-settings';
 import ParametersTable from '../parameters-table';
 import PromptAssistantEditorPrompts from './prompts';
@@ -36,11 +37,15 @@ export default function PromptAssistantEditor({
       </Box>
 
       <Box sx={{ borderRadius: 1 }}>
+        <BasicHistory projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
+      </Box>
+
+      <Box sx={{ borderRadius: 1 }}>
         <PromptAssistantSetting projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>
 
       <Box sx={{ borderRadius: 1 }}>
-        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
+        <OutputSettings value={value} />
       </Box>
     </Stack>
   );

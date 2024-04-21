@@ -650,4 +650,9 @@ export default flat({
   sessionId: 'SESSION ID',
   assistantId: 'Assistant',
   outputVariables: 'Output Variables',
+  history: {
+    title: 'History Memory',
+    limit: 'Number of messages retrieved',
+    keyword: 'Keyword of messages retrieved',
+  },
 });
