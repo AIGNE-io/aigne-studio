@@ -53,7 +53,7 @@ function VariableList() {
         field: 'count',
         headerName: t('variables.count'),
         flex: 1,
-        renderCell: (params) => params.row?.count || t('unnamed'),
+        renderCell: (params) => params.row?.count ?? 0,
       },
     ],
     [t]

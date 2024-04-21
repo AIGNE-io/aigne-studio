@@ -1,3 +1,4 @@
+import Project from '@api/store/models/project';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -5,6 +6,7 @@ import { Op, Sequelize } from 'sequelize';
 
 import { ensureComponentCallOrAuth } from '../libs/security';
 import Datastore from '../store/models/datastore';
+import { getAssistantsOfRepository } from '../store/repository';
 
 const router = Router();
 
@@ -395,19 +397,49 @@ router.get('/all-variables', async (req, res) => {
 
   const params: {
     [key: string]: any;
-  } = { projectId, key: { [Op.not]: null } };
+  } = { projectId };
+
+  const project = await Project.findOne({ where: { _id: projectId } });
+  const assistants = await getAssistantsOfRepository({ projectId, ref: project?.gitDefaultBranch! ?? 'main' });
+
+  if (scope === 'global') {
+    params.sessionId = {
+      [Op.or]: [{ [Op.is]: null }, { [Op.eq]: '' }],
+    };
+    params.assistantId = {
+      [Op.or]: [{ [Op.is]: null }, { [Op.eq]: '' }],
+    };
+  }
 
   if (scope === 'session') {
     params.sessionId = {
       [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }],
     };
+    params.assistantId = {
+      [Op.or]: [{ [Op.is]: null }, { [Op.eq]: '' }],
+    };
   }
 
   if (scope === 'local') {
+    params.sessionId = {
+      [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }],
+    };
     params.assistantId = {
       [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }],
     };
   }
+
+  const scopeParameters = assistants.flatMap((x) => {
+    return (x.parameters || [])
+      .filter((x) => x.source && x.source.variableFrom === 'datastore' && x.source.scope === scope)
+      .map((x) => x.key!);
+  });
+
+  if (!scopeParameters.length) {
+    return res.json({ list: [], count: 0 });
+  }
+
+  params.key = { [Op.in]: scopeParameters };
 
   const list = await Datastore.findAll({
     attributes: ['key', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
@@ -419,7 +451,17 @@ router.get('/all-variables', async (req, res) => {
   });
 
   const count = await Datastore.count({ group: ['key'], where: params });
-  res.json({ list, count: count.length });
+  return res.json({
+    list: scopeParameters.map((key) => {
+      return (
+        list.find((x) => x.key === key)?.dataValues ?? {
+          key,
+          count: 0,
+        }
+      );
+    }),
+    count: count.length,
+  });
 });
 
 router.get('/all-variable', async (req, res) => {
@@ -431,13 +473,28 @@ router.get('/all-variable', async (req, res) => {
     [key: string]: any;
   } = { projectId, key };
 
+  if (scope === 'global') {
+    params.sessionId = {
+      [Op.or]: [{ [Op.is]: null }, { [Op.eq]: '' }],
+    };
+    params.assistantId = {
+      [Op.or]: [{ [Op.is]: null }, { [Op.eq]: '' }],
+    };
+  }
+
   if (scope === 'session') {
     params.sessionId = {
       [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }],
     };
+    params.assistantId = {
+      [Op.or]: [{ [Op.is]: null }, { [Op.eq]: '' }],
+    };
   }
 
   if (scope === 'local') {
+    params.sessionId = {
+      [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }],
+    };
     params.assistantId = {
       [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }],
     };
@@ -462,6 +519,7 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req
     ...(itemId && { itemId }),
     ...(key && { key }),
   };
+
   const datastores = await Datastore.findAll({ order: [['itemId', 'ASC']], where: params });
 
   // 如果是 'local' 先查找local 如果没有值，查找 session 如果还没有 查找  global, 最后给出默认值

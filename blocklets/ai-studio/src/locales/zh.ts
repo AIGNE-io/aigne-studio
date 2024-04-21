@@ -636,7 +636,7 @@ export default flat({
   },
   variables: {
     name: '变量名称',
-    count: '变量数量',
+    count: '变量结果数量',
     value: '变量值',
     itemId: '子项别名',
     dialogTitle: '变量的数据',
