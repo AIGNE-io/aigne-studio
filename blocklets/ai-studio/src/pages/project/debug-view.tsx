@@ -627,13 +627,6 @@ function DebugModeForm({
       return;
     }
 
-    if (isPromptAssistant(assistant)) {
-      if (assistant?.prompts && !Object.values(assistant?.prompts)?.length) {
-        Toast.error(t('emptyPrompts'));
-        return;
-      }
-    }
-
     sendMessage({
       sessionIndex: state.currentSessionIndex!,
       message: {

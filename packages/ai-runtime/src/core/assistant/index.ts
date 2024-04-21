@@ -799,9 +799,7 @@ async function runPromptAssistant({
   sessionId?: string;
   projectId?: string;
 }) {
-  if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
-
-  const executeBlocks = assistant.prompts
+  const executeBlocks = (assistant.prompts ?? [])
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i) && i.visibility !== 'hidden')
     .map((i) => i.data);
 
@@ -830,7 +828,7 @@ async function runPromptAssistant({
 
   const messages = (
     await Promise.all(
-      assistant.prompts
+      (assistant.prompts ?? [])
         .filter((i) => i.visibility !== 'hidden')
         .map(async (prompt) => {
           if (prompt.type === 'message') {
@@ -878,8 +876,6 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  if (!messages.length) return undefined;
-
   const outputJson = assistant.outputFormat === 'json';
 
   if (outputJson) {
@@ -887,14 +883,14 @@ async function runPromptAssistant({
 
     const outputSchema = JSON.stringify(schema, null, 2);
 
-    let systemMessage = messages.find((i) => i.role === 'system');
-    if (!systemMessage) {
-      systemMessage = { role: 'system', content: '' };
-      messages.unshift(systemMessage);
-    }
-
-    systemMessage.content = `${messages[0]!.content}\n\n## Format\nOutput a JSON object match the following JSON schema:\n ${outputSchema}`;
+    const lastSystemIndex = messages.findLastIndex((i) => i.role === 'system');
+    messages.splice(lastSystemIndex + 1, 0, {
+      role: 'system',
+      content: `## Format\nOutput a JSON object match the following JSON schema:\n ${outputSchema}`,
+    });
   }
+
+  if (!messages.length) return undefined;
 
   callback?.({
     type: AssistantResponseType.EXECUTE,

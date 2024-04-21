@@ -23,7 +23,7 @@ export default function AddOutputVariableButton({ onSelect }: { onSelect?: (valu
       </Divider>
 
       {runtimeOutputVariables.map((variable) => (
-        <MenuItem onClick={() => onSelect?.({ name: variable.name })}>
+        <MenuItem key={variable.name} onClick={() => onSelect?.({ name: variable.name })}>
           <ListItemIcon>{variable.icon}</ListItemIcon>
 
           {variable.title}
