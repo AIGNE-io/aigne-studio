@@ -9,6 +9,9 @@ import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
 import { useState } from 'react';
 
+import AddOutputVariableButton from './AddOutputVariableButton';
+import { getRuntimeOutputVariable } from './type';
+
 export default function OutputSettings({ value, isOpen = true }: { value: AssistantYjs; isOpen?: boolean }) {
   const { t } = useLocaleContext();
 
@@ -28,15 +31,44 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
 
   return (
     <Box sx={{ border: '1px solid #E5E7EB', px: 1, py: 2, borderRadius: 1 }}>
-      <Stack direction="row" alignItems="center" gap={0.5} onClick={() => setOpen(!open)}>
-        <Typography variant="subtitle2">{t('outputVariables')}</Typography>
+      <Stack
+        direction="row"
+        alignItems="center"
+        sx={{ cursor: 'pointer', px: 1 }}
+        gap={1}
+        onClick={() => setOpen(!open)}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontWeight: 500,
+          }}>
+          {t('outputVariables')}
+        </Typography>
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end" />
+
+        <Stack direction="row" alignItems="center" gap={1} onClick={(e) => e.stopPropagation()}>
+          <Typography variant="subtitle4">Output Format</Typography>
+
+          <TextField
+            size="small"
+            hiddenLabel
+            select
+            SelectProps={{ autoWidth: true }}
+            value={value.outputFormat || 'text'}
+            onChange={(e) => {
+              value.outputFormat = e.target.value as any;
+            }}>
+            <MenuItem value="text">Text</MenuItem>
+            <MenuItem value="json">JSON</MenuItem>
+          </TextField>
+        </Stack>
 
         <ExpandMoreRounded
           sx={{
             transform: !open ? 'rotateZ(270deg)' : 'rotateZ(360deg)',
             transition: (theme) => theme.transitions.create('all'),
+            fontSize: 18,
             color: '#030712',
           }}
         />
@@ -46,7 +78,9 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
         <Box component="table">
           <thead>
             <tr>
-              <Box component="th">Variable</Box>
+              <Box component="th" align="left">
+                Variable
+              </Box>
               <Box component="th">Description</Box>
               <Box component="th" align="center">
                 Type
@@ -75,17 +109,16 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
           </tbody>
         </Box>
 
-        <Button
-          sx={{ minWidth: 32, minHeight: 32, p: 0 }}
-          onClick={(e) => {
-            e.stopPropagation();
+        <AddOutputVariableButton
+          onSelect={({ name }) => {
+            if (name && outputVariables?.some((i) => i.data.name === name)) return;
+
             setField((vars) => {
               const id = nanoid();
-              vars[id] = { index: Object.values(vars).length, data: { id, type: 'string' } };
+              vars[id] = { index: Object.values(vars).length, data: { id, type: 'string', name } };
             });
-          }}>
-          <Icon icon="tabler:plus" />
-        </Button>
+          }}
+        />
       </Collapse>
     </Box>
   );
@@ -102,18 +135,40 @@ function VariableRow({
 }) {
   const doc = (getYjsValue(variable) as Map<any>).doc!;
 
+  const runtimeVariable = getRuntimeOutputVariable(variable);
+
   return (
     <>
       <tr key={variable.id}>
         <Box component="td">
           <Box sx={{ ml: depth }}>
-            <TextField
-              fullWidth
-              hiddenLabel
-              placeholder="Name"
-              value={variable.name || ''}
-              onChange={(e) => (variable.name = e.target.value)}
-            />
+            {runtimeVariable ? (
+              <Stack
+                direction="row"
+                alignItems="center"
+                sx={{
+                  px: 1,
+                  py: 0.5,
+                  gap: 1,
+                  border: 1,
+                  borderRadius: 1,
+                  borderColor: 'divider',
+                  bgcolor: 'grey.100',
+                  whiteSpace: 'nowrap',
+                }}>
+                {runtimeVariable.icon}
+
+                <Typography>{runtimeVariable.title}</Typography>
+              </Stack>
+            ) : (
+              <TextField
+                fullWidth
+                hiddenLabel
+                placeholder="Name"
+                value={variable.name || ''}
+                onChange={(e) => (variable.name = e.target.value)}
+              />
+            )}
           </Box>
         </Box>
         <Box component="td">
@@ -126,15 +181,17 @@ function VariableRow({
           />
         </Box>
         <Box component="td" align="center">
-          <VariableTypeField
-            value={variable.type || 'string'}
-            onChange={(e) => {
-              variable.type = e.target.value as any;
-              if (variable.type === 'array') {
-                variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
-              }
-            }}
-          />
+          {!runtimeVariable && (
+            <VariableTypeField
+              value={variable.type || 'string'}
+              onChange={(e) => {
+                variable.type = e.target.value as any;
+                if (variable.type === 'array') {
+                  variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
+                }
+              }}
+            />
+          )}
         </Box>
         <Box component="td" align="center">
           <Checkbox
@@ -145,7 +202,7 @@ function VariableRow({
           />
         </Box>
         <Box component="td" align="center">
-          {variable.type === 'string' ? (
+          {runtimeVariable ? null : variable.type === 'string' ? (
             <TextField
               hiddenLabel
               fullWidth

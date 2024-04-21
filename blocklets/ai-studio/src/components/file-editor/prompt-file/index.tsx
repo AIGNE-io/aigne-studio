@@ -3,7 +3,7 @@ import { Box, Stack } from '@mui/material';
 
 import { useReadOnly } from '../../../contexts/session';
 import BasicInfoForm from '../basic-info-form';
-import OutputSettings from '../output-settings';
+import OutputSettings from '../output/output-settings';
 import ParametersTable from '../parameters-table';
 import PromptAssistantEditorPrompts from './prompts';
 import PromptAssistantSetting from './setting';

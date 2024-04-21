@@ -464,7 +464,6 @@ export default flat({
   haveNotAddedTip: "You haven't added any {object} blocks yet",
   selectTool: 'Select Tool',
   emptyInput: 'The input cannot be empty',
-  emptyPrompts: 'Add at least one prompt',
   userInput: 'Test Parameters',
   all: 'All',
   allTools: 'Execute All tools',
@@ -650,4 +649,5 @@ export default flat({
   userId: 'USER ID',
   sessionId: 'SESSION ID',
   assistantId: 'Assistant',
+  outputVariables: 'Output Variables',
 });

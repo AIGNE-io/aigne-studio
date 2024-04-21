@@ -9,6 +9,7 @@ export enum ExecutionPhase {
   EXECUTE_ASSISTANT_RUNNING = 'EXECUTE_BLOCK_RUNNING',
   EXECUTE_ASSISTANT_END = 'EXECUTE_ASSISTANT_END',
 }
+
 export enum AssistantResponseType {
   ERROR = 'ERROR',
   LOG = 'LOG',
@@ -101,4 +102,38 @@ export type RunAssistantChunk = {
 export type RunAssistantError = {
   type: AssistantResponseType.ERROR;
   error: { message: string } | SubscriptionError;
+};
+
+export type RuntimeOutputVariable = '$page.background.image' | '$page.background.color' | '$input';
+
+export const RuntimeOutputVariableNames: RuntimeOutputVariable[] = [
+  '$input',
+  '$page.background.color',
+  '$page.background.image',
+];
+
+export interface RuntimeOutputVariables {
+  '$page.background.image'?: string;
+  '$page.background.color'?: string;
+  $input?: Input;
+}
+
+export type Action =
+  | {
+      type: 'navigateTo';
+      to: {
+        type: 'assistant';
+        assistantId: string;
+      };
+    }
+  | {
+      type: 'navigateBack';
+    };
+
+export type Input = {
+  type: 'select';
+  options: {
+    title: string;
+    action: Action;
+  }[];
 };
