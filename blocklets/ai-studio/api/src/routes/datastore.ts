@@ -462,24 +462,35 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req
     ...(itemId && { itemId }),
     ...(key && { key }),
   };
+  const datastores = await Datastore.findAll({ order: [['itemId', 'ASC']], where: params });
+
+  // 如果是 'local' 先查找local 如果没有值，查找 session 如果还没有 查找  global, 最后给出默认值
+  if (scope === 'local') {
+    const filterAssistantDatastores = datastores.filter(
+      (x) => x.sessionId === sessionId && x.assistantId === assistantId
+    );
+    if (filterAssistantDatastores.length) {
+      return res.json(filterAssistantDatastores);
+    }
+
+    const filerSessionDatastores = datastores.filter((x) => x.sessionId === sessionId);
+    if (filerSessionDatastores.length) {
+      return res.json(filerSessionDatastores);
+    }
+
+    return res.json(datastores);
+  }
 
   if (scope === 'session') {
-    params.sessionId = {
-      [Op.or]: [{ [Op.is]: sessionId }, { [Op.is]: null }, { [Op.is]: '' }],
-    };
+    const filerSessionDatastores = datastores.filter((x) => x.sessionId === sessionId);
+    if (filerSessionDatastores.length) {
+      return res.json(filerSessionDatastores);
+    }
+
+    return res.json(datastores);
   }
 
-  if (scope === 'local') {
-    params.sessionId = {
-      [Op.or]: [{ [Op.is]: sessionId }, { [Op.is]: null }, { [Op.is]: '' }],
-    };
-    params.assistantId = {
-      [Op.or]: [{ [Op.is]: assistantId }, { [Op.is]: null }, { [Op.is]: '' }],
-    };
-  }
-
-  const datastores = await Datastore.findAll({ order: [['itemId', 'ASC']], where: params });
-  res.json(datastores);
+  return res.json(datastores);
 });
 
 export default router;
