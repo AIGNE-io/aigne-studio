@@ -57,8 +57,6 @@ const defaultScope = 'local';
 
 export type RunAssistantCallback = (e: RunAssistantResponse) => void;
 
-const CACHE_MAP: { [key: string]: any } = {};
-
 export class ToolCompletionDirective extends Error {
   type: OnTaskCompletion;
 
@@ -777,13 +775,6 @@ const getVariables = async ({
   if (toolParameters.length) {
     for (const toolParameter of toolParameters) {
       if (toolParameter.key && toolParameter.source?.variableFrom === 'tool' && toolParameter.source.tool) {
-        if (toolParameter.source.cache) {
-          if (CACHE_MAP[toLower(toolParameter.key)]) {
-            variables[toolParameter.key] = CACHE_MAP[toLower(toolParameter.key)];
-            continue;
-          }
-        }
-
         const { tool } = toolParameter.source;
         const toolAssistant = await getAssistant(tool.id);
         if (!toolAssistant) continue;
@@ -807,10 +798,6 @@ const getVariables = async ({
           variables[toolParameter.key] = result ?? toolParameter.defaultValue;
         }
 
-        if (toolParameter.source.cache) {
-          CACHE_MAP[toLower(toolParameter.key)] = variables[toolParameter.key];
-        }
-
         await persistData(toolParameter);
       }
     }
@@ -819,13 +806,6 @@ const getVariables = async ({
   if (datastoreParameters.length) {
     for (const datastoreParameter of datastoreParameters) {
       if (datastoreParameter.key && datastoreParameter.source?.variableFrom === 'datastore') {
-        if (datastoreParameter.source.cache) {
-          if (CACHE_MAP[toLower(datastoreParameter.key)]) {
-            variables[datastoreParameter.key] = CACHE_MAP[toLower(datastoreParameter.key)];
-            continue;
-          }
-        }
-
         const result = await runRequestStorage({
           assistant,
           parentTaskId,
@@ -836,10 +816,6 @@ const getVariables = async ({
           parameters,
         });
         variables[datastoreParameter.key] = result;
-
-        if (datastoreParameter.source.cache) {
-          CACHE_MAP[toLower(datastoreParameter.key)] = variables[datastoreParameter.key];
-        }
       }
     }
   }
