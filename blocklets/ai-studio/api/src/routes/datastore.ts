@@ -1,4 +1,5 @@
 import Project from '@api/store/models/project';
+import { isApiAssistant, isFunctionAssistant, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -6,7 +7,7 @@ import { Op, Sequelize } from 'sequelize';
 
 import { ensureComponentCallOrAuth } from '../libs/security';
 import Datastore from '../store/models/datastore';
-import { getAssistantsOfRepository } from '../store/repository';
+import { getRepository } from '../store/repository';
 
 const router = Router();
 
@@ -400,7 +401,23 @@ router.get('/all-variables', async (req, res) => {
   } = { projectId };
 
   const project = await Project.findOne({ where: { _id: projectId } });
-  const assistants = await getAssistantsOfRepository({ projectId, ref: project?.gitDefaultBranch! ?? 'main' });
+
+  const repo = await getRepository({ projectId });
+  const working = await repo.working({ ref: project?.gitDefaultBranch! ?? 'main' });
+  const keys = Object.keys(working.syncedStore.tree);
+
+  const assistants = [];
+
+  for (const key of keys) {
+    const file = working.syncedStore.files[key];
+    if (
+      file &&
+      (isPromptAssistant(file) || isApiAssistant(file) || isFunctionAssistant(file) || isImageAssistant(file)) &&
+      file.parameters
+    ) {
+      assistants.push(Object.values(file?.parameters || {}).map((x) => x.data));
+    }
+  }
 
   if (scope === 'global') {
     params.sessionId = {
@@ -430,7 +447,7 @@ router.get('/all-variables', async (req, res) => {
   }
 
   const scopeParameters = assistants.flatMap((x) => {
-    return (x.parameters || [])
+    return x
       .filter((x) => x.source && x.source.variableFrom === 'datastore' && x.source.scope === scope)
       .map((x) => x.key!);
   });
