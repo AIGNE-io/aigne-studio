@@ -89,11 +89,12 @@ const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<OutputVari
 export function outputVariablesToJsonSchema(variables: OutputVariable[]) {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): any => {
     const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
-    if (runtimeVariable)
+    if (runtimeVariable) {
       return variableToSchema({
         ...runtimeVariable,
         description: [runtimeVariable.description, variable.description].filter((i) => !!i).join('\n'),
       });
+    }
 
     return {
       type: variable.type,
@@ -117,12 +118,13 @@ export function outputVariablesToJsonSchema(variables: OutputVariable[]) {
 
 export function outputVariablesToJoiSchema(variables: OutputVariable[]): Joi.AnySchema {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): Joi.AnySchema | undefined => {
-    const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
-    if (runtimeVariable) return variableToSchema(runtimeVariable);
-
     let schema: Joi.AnySchema | undefined;
 
-    if (variable.type === 'string') {
+    const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
+
+    if (runtimeVariable) {
+      schema = variableToSchema({ ...runtimeVariable, required: variable.required });
+    } else if (variable.type === 'string') {
       schema = Joi.string().empty([null, '']);
     } else if (variable.type === 'number') {
       schema = Joi.number().empty([null, '']);
@@ -143,7 +145,9 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[]): Joi.Any
 
     if (!schema) return undefined;
 
-    if (variable.required) schema.required();
+    if (variable.required) {
+      schema = schema.required();
+    }
 
     return schema;
   };
