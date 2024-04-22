@@ -1,7 +1,7 @@
 import DragVertical from '@app/pages/project/icons/drag-vertical';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ParameterYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import { InfoOutlined } from '@mui/icons-material';
@@ -88,7 +88,6 @@ export default function ParametersTable({
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
   const toolForm = useRef<ToolDialogImperative>(null);
   const id = useRef<string>();
-  const { getFileById } = useProjectStore(projectId, gitRef);
 
   const isValidVariableName = (name: string) => {
     if (!name) return true;
@@ -100,7 +99,6 @@ export default function ParametersTable({
   const parameters = sortBy(Object.values(value.parameters ?? {}), (i) => i.index);
   const dialogState = usePopupState({ variant: 'dialog' });
   const settingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
-  const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
 
   const FROM_MAP = useMemo(() => {
     const map = {
@@ -198,205 +196,6 @@ export default function ParametersTable({
         if (value.parameters[id]?.data.key === key) delete value.parameters[id];
       }
     });
-  };
-
-  const renderParameterSettings = (parameter: any) => {
-    if (parameter.source) {
-      if (parameter.source.variableFrom === 'tool') {
-        const toolId = (parameter?.source as any)?.tool?.id;
-        const file = getFileById(toolId);
-
-        return (
-          <Box className="between">
-            <Typography flex={1}>{t('variableParameter.selectAgent')}</Typography>
-
-            <Box flex={1}>
-              <Button
-                sx={{ width: 1 }}
-                onClick={() => {
-                  id.current = parameter.id;
-                  if (toolId) toolForm.current?.form.reset(cloneDeep((parameter.source as any)?.tool));
-                  dialogState.open();
-                }}>
-                {file?.name || t('variableParameter.unselect')}
-              </Button>
-            </Box>
-          </Box>
-        );
-      }
-
-      if (parameter.source.variableFrom === 'datastore') {
-        const toolId = (parameter?.source as any)?.tool?.id;
-        const file = getFileById(toolId);
-
-        const variables = file?.variables || [
-          {
-            scope: 'user',
-            dataType: 'string',
-            key: 'name',
-          },
-          {
-            scope: 'global',
-            dataType: 'string',
-            key: 'name',
-          },
-          {
-            scope: 'session',
-            dataType: 'string',
-            key: 'name',
-          },
-        ];
-        const variable = variables.find((x) => {
-          const j = parameter.source?.scope ?? {};
-          return `${x.dataType}_${x.scope}_${x.dataType}` === `${j.dataType}_${j.scope}_${j.dataType}`;
-        });
-
-        return (
-          <Stack gap={1.5}>
-            {/* <Box className="between">
-            <Typography flex={1}>{t('variableParameter.cache')}</Typography>
-
-            <Box flex={1}>
-              <BaseSwitch
-                checked={Boolean(parameter.source?.cache || false)}
-                onChange={(_, checked) => {
-                  parameter.source ??= {};
-                  parameter.source.cache = checked;
-                }}
-              />
-            </Box>
-          </Box> */}
-
-            {/* <Box className="between">
-              <Typography flex={1}>{t('variableParameter.itemId')}</Typography>
-
-              <Box flex={1}>
-                <PromptEditorField
-                  placeholder={t('variableParameter.itemId')}
-                  value={parameter.source?.itemId || ''}
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  assistant={value}
-                  path={[value.id, parameter.id]}
-                  onChange={(value: string) => {
-                    parameter.source ??= {};
-                    parameter.source.itemId = value;
-                  }}
-                />
-              </Box>
-            </Box> */}
-
-            <Box className="between">
-              <Typography flex={1}>{t('variableParameter.scope')}</Typography>
-
-              <Box flex={2}>
-                <Autocomplete
-                  options={variables}
-                  groupBy={(option) => option.scope}
-                  getOptionLabel={(option) => `${t(`variableParameter.${option.scope}`)} ${option.key}`}
-                  sx={{ width: 1 }}
-                  renderInput={(params) => <TextField {...params} />}
-                  key={Boolean(variable).toString()}
-                  disableClearable
-                  clearOnBlur
-                  selectOnFocus
-                  handleHomeEndKeys
-                  autoSelect
-                  autoHighlight
-                  getOptionKey={(i) => `${i.dataType}_${i.scope}_${i.dataType}`}
-                  value={variable}
-                  isOptionEqualToValue={(i, j) =>
-                    `${i.dataType}_${i.scope}_${i.dataType}` === `${j.dataType}_${j.scope}_${j.dataType}`
-                  }
-                  onChange={(_, _value) => {
-                    parameter.source.scope = _value;
-                  }}
-                />
-              </Box>
-            </Box>
-
-            <Box className="between">
-              <Typography flex={1}>{t('variableParameter.defaultValue')}</Typography>
-
-              <Box flex={2}>
-                <PromptEditorField
-                  placeholder={t('variableParameter.defaultValue')}
-                  value={parameter.source?.defaultValue || ''}
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  assistant={value}
-                  path={[value.id, parameter.id]}
-                  onChange={(value: string) => {
-                    parameter.source ??= {};
-                    parameter.source.defaultValue = value;
-                  }}
-                />
-              </Box>
-            </Box>
-          </Stack>
-        );
-      }
-    }
-
-    if (parameter) {
-      return <ParameterConfig readOnly={readOnly} value={parameter} />;
-    }
-    return null;
-  };
-
-  const renderSettings = (parameter: any) => {
-    return (
-      <>
-        <Button sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }} {...bindTrigger(parameterSettingPopperState)}>
-          <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('variableParameter.setting')}</Box>
-        </Button>
-
-        <Popper
-          {...bindPopper(parameterSettingPopperState)}
-          placement="bottom-end"
-          sx={{ zIndex: (theme) => theme.zIndex.modal }}>
-          <ClickAwayListener
-            onClickAway={(e) => {
-              if (e.target === document.body) return;
-              parameterSettingPopperState.close();
-            }}>
-            <Paper sx={{ p: 3, width: 320, maxHeight: '80vh', overflow: 'auto' }}>
-              <Stack gap={2}>
-                <Select
-                  variant="outlined"
-                  value={parameter.source?.variableFrom ?? 'custom'}
-                  placeholder={t('variableParameter.from')}
-                  fullWidth
-                  sx={{
-                    [`.${selectClasses.select}`]: {
-                      py: 0.5,
-                      '&:focus': {
-                        background: 'transparent',
-                      },
-                    },
-                  }}
-                  onChange={(e) => {
-                    if ((e.target.value || 'custom') !== (parameter.source?.variableFrom || 'custom')) {
-                      parameter.source = undefined;
-
-                      if (e.target.value !== 'custom') {
-                        parameter.source ??= { scope: 'local' };
-                        parameter.source.variableFrom = e.target.value as any;
-                      }
-                    }
-                  }}>
-                  {Object.entries(FROM_MAP).map(([key, value]) => {
-                    return <MenuItem value={key}>{value}</MenuItem>;
-                  })}
-                </Select>
-
-                {renderParameterSettings(parameter)}
-              </Stack>
-            </Paper>
-          </ClickAwayListener>
-        </Popper>
-      </>
-    );
   };
 
   return (
@@ -558,7 +357,18 @@ export default function ParametersTable({
                       <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
                         {!readOnly && (
                           <>
-                            {renderSettings(parameter)}
+                            <PopperButton
+                              parameter={parameter}
+                              readOnly={readOnly}
+                              value={value}
+                              projectId={projectId}
+                              gitRef={gitRef}
+                              onSelectTool={(toolId) => {
+                                id.current = parameter.id;
+                                if (toolId) toolForm.current?.form.reset(cloneDeep((parameter.source as any)?.tool));
+                                dialogState.open();
+                              }}
+                            />
 
                             <Button
                               sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
@@ -591,8 +401,14 @@ export default function ParametersTable({
         onSubmit={(tool) => {
           doc.transact(() => {
             const key = id.current;
-            if (!value.parameters) return;
-            if (!key) return;
+            if (!value.parameters) {
+              dialogState.close();
+              return;
+            }
+            if (!key) {
+              dialogState.close();
+              return;
+            }
             const p = value.parameters[key];
 
             if (p && p?.data?.source?.variableFrom === 'tool') {
@@ -604,6 +420,228 @@ export default function ParametersTable({
           });
         }}
       />
+    </>
+  );
+}
+
+function PopperButton({
+  parameter,
+  readOnly,
+  value,
+  projectId,
+  gitRef,
+  onSelectTool,
+}: {
+  parameter: ParameterYjs;
+  readOnly?: boolean;
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+  onSelectTool: (toolId: string) => void;
+}) {
+  const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
+  const { t } = useLocaleContext();
+
+  const { getFileById } = useProjectStore(projectId, gitRef);
+
+  const FROM_MAP = useMemo(() => {
+    const map = {
+      custom: t('variableParameter.custom'),
+      tool: t('variableParameter.tool'),
+      datastore: t('variableParameter.datastore'),
+    };
+    return map;
+  }, [t]);
+
+  const renderParameterSettings = (parameter: any) => {
+    if (parameter.source) {
+      if (parameter.source.variableFrom === 'tool') {
+        const toolId = (parameter?.source as any)?.tool?.id;
+        const file = getFileById(toolId);
+
+        return (
+          <Box className="between">
+            <Typography flex={1}>{t('variableParameter.selectAgent')}</Typography>
+
+            <Box flex={1}>
+              <Button sx={{ width: 1 }} onClick={() => onSelectTool(toolId)}>
+                {file?.name || t('variableParameter.unselect')}
+              </Button>
+            </Box>
+          </Box>
+        );
+      }
+
+      if (parameter.source.variableFrom === 'datastore') {
+        const toolId = (parameter?.source as any)?.tool?.id;
+        const file = getFileById(toolId);
+
+        const variables = file?.variables || [
+          {
+            scope: 'user',
+            dataType: 'string',
+            key: 'name',
+          },
+          {
+            scope: 'global',
+            dataType: 'string',
+            key: 'name',
+          },
+          {
+            scope: 'session',
+            dataType: 'string',
+            key: 'name',
+          },
+        ];
+        const variable = variables.find((x) => {
+          const j = parameter.source?.scope ?? {};
+          return `${x.dataType}_${x.scope}_${x.dataType}` === `${j.dataType}_${j.scope}_${j.dataType}`;
+        });
+
+        return (
+          <Stack gap={1.5}>
+            {/* <Box className="between">
+            <Typography flex={1}>{t('variableParameter.cache')}</Typography>
+
+            <Box flex={1}>
+              <BaseSwitch
+                checked={Boolean(parameter.source?.cache || false)}
+                onChange={(_, checked) => {
+                  parameter.source ??= {};
+                  parameter.source.cache = checked;
+                }}
+              />
+            </Box>
+          </Box> */}
+
+            {/* <Box className="between">
+              <Typography flex={1}>{t('variableParameter.itemId')}</Typography>
+
+              <Box flex={1}>
+                <PromptEditorField
+                  placeholder={t('variableParameter.itemId')}
+                  value={parameter.source?.itemId || ''}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  assistant={value}
+                  path={[value.id, parameter.id]}
+                  onChange={(value: string) => {
+                    parameter.source ??= {};
+                    parameter.source.itemId = value;
+                  }}
+                />
+              </Box>
+            </Box> */}
+
+            <Box className="between">
+              <Typography flex={1}>{t('variableParameter.scope')}</Typography>
+
+              <Box flex={2}>
+                <Autocomplete
+                  options={variables}
+                  groupBy={(option) => option.scope}
+                  getOptionLabel={(option) => `${t(`variableParameter.${option.scope}`)} ${option.key}`}
+                  sx={{ width: 1 }}
+                  renderInput={(params) => <TextField {...params} />}
+                  key={Boolean(variable).toString()}
+                  disableClearable
+                  clearOnBlur
+                  selectOnFocus
+                  handleHomeEndKeys
+                  autoSelect
+                  autoHighlight
+                  getOptionKey={(i) => `${i.dataType}_${i.scope}_${i.dataType}`}
+                  value={variable}
+                  isOptionEqualToValue={(i, j) =>
+                    `${i.dataType}_${i.scope}_${i.dataType}` === `${j.dataType}_${j.scope}_${j.dataType}`
+                  }
+                  onChange={(_, _value) => {
+                    parameter.source.scope = _value;
+                  }}
+                />
+              </Box>
+            </Box>
+
+            <Box className="between">
+              <Typography flex={1}>{t('variableParameter.defaultValue')}</Typography>
+
+              <Box flex={2}>
+                <PromptEditorField
+                  placeholder={t('variableParameter.defaultValue')}
+                  value={parameter.source?.defaultValue || ''}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  assistant={value}
+                  path={[value.id, parameter.id]}
+                  onChange={(value: string) => {
+                    parameter.source ??= {};
+                    parameter.source.defaultValue = value;
+                  }}
+                />
+              </Box>
+            </Box>
+          </Stack>
+        );
+      }
+    }
+
+    if (parameter) {
+      return <ParameterConfig readOnly={readOnly} value={parameter} />;
+    }
+
+    return null;
+  };
+
+  return (
+    <>
+      <Button sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }} {...bindTrigger(parameterSettingPopperState)}>
+        <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('variableParameter.setting')}</Box>
+      </Button>
+
+      <Popper
+        {...bindPopper(parameterSettingPopperState)}
+        placement="bottom-end"
+        sx={{ zIndex: (theme) => theme.zIndex.modal }}>
+        <ClickAwayListener
+          onClickAway={(e) => {
+            if (e.target === document.body) return;
+            parameterSettingPopperState.close();
+          }}>
+          <Paper sx={{ p: 3, width: 320, maxHeight: '80vh', overflow: 'auto' }}>
+            <Stack gap={2}>
+              <Select
+                variant="outlined"
+                value={parameter.source?.variableFrom ?? 'custom'}
+                placeholder={t('variableParameter.from')}
+                fullWidth
+                sx={{
+                  [`.${selectClasses.select}`]: {
+                    py: 0.5,
+                    '&:focus': {
+                      background: 'transparent',
+                    },
+                  },
+                }}
+                onChange={(e) => {
+                  if ((e.target.value || 'custom') !== (parameter.source?.variableFrom || 'custom')) {
+                    parameter.source = undefined;
+
+                    if (e.target.value !== 'custom') {
+                      parameter.source ??= {};
+                      parameter.source.variableFrom = e.target.value as any;
+                    }
+                  }
+                }}>
+                {Object.entries(FROM_MAP).map(([key, value]) => {
+                  return <MenuItem value={key}>{value}</MenuItem>;
+                })}
+              </Select>
+
+              {renderParameterSettings(parameter)}
+            </Stack>
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
     </>
   );
 }
