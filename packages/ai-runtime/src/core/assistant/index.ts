@@ -41,6 +41,7 @@ import { AssistantResponseType, ExecutionPhase } from '../../types/runtime';
 import retry from '../utils/retry';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../utils/schema';
 import { BuiltinModules } from './builtin';
+import { generateOutput } from './generate-output';
 import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback, ToolCompletionDirective } from './type';
 
 const getUserHeader = (user: any) => {
@@ -1037,7 +1038,7 @@ async function runPromptAssistant({
       const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? []);
 
       const json = JSON.parse(result);
-      jsonResult = await schema.validateAsync(json, { stripUnknown: true });
+      jsonResult = await schema.validateAsync(json);
 
       callback?.({
         type: AssistantResponseType.CHUNK,
@@ -1051,6 +1052,21 @@ async function runPromptAssistant({
   };
 
   const { jsonResult, result, aiResult } = await retry(run, MAX_RETRIES);
+
+  if (!outputJson && assistant.outputVariables?.length) {
+    const json = await generateOutput({
+      assistant,
+      messages: messages.concat({ role: 'assistant', content: result }),
+      callAI,
+      maxRetries: MAX_RETRIES,
+    });
+    callback?.({
+      type: AssistantResponseType.CHUNK,
+      taskId,
+      assistantId: assistant.id,
+      delta: { object: json },
+    });
+  }
 
   callback?.({
     type: AssistantResponseType.INPUT,

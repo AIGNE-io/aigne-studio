@@ -1,10 +1,9 @@
-export default async function retry(fn: () => any, retries: number) {
+export default async function retry<T>(fn: () => Promise<T> | T, retries: number): Promise<T> {
   let i = 0;
 
   for (;;) {
     try {
-      const result = await fn();
-      return result;
+      return await fn();
     } catch (error) {
       if (i < retries) {
         i++;

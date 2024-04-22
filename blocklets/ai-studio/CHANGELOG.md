@@ -1,3 +1,11 @@
+## 0.2.0-beta.0 (2024-4-22)
+
+- WIP: runtime
+
+## 0.1.341 (2024-4-22)
+
+- chore: replace vector store
+
 ## 0.1.340 (2024-4-20)
 
 - feat: support for configuring Service Mode in Preferences
