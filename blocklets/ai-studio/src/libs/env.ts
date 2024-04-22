@@ -1,4 +1,5 @@
-import { ServiceMode, getServiceModePermissionMap } from '@blocklet/ai-runtime/common';
+import { getServiceModePermissionMap } from '@blocklet/ai-runtime/common';
+import { ServiceMode } from '@blocklet/ai-runtime/types';
 
 export const Config = {
   get serviceModePermissionMap() {

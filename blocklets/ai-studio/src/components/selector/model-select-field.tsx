@@ -1,10 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  ImageModelInfo,
-  TextModelInfo,
-  getSupportedImagesModels,
-  getSupportedModels,
-} from '@blocklet/ai-runtime/common';
+import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
+import { ImageModelInfo, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { Box, ListItemIcon, ListItemText, MenuItem, TextField, TextFieldProps, menuItemClasses } from '@mui/material';
 import { useAsync } from 'react-use';
 

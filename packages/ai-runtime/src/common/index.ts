@@ -1,27 +1,4 @@
-export interface ModelInfoBase {
-  brand: string;
-  model: string;
-  name?: string;
-  disabled?: boolean;
-}
-
-export interface TextModelInfo extends ModelInfoBase {
-  temperatureMin?: number;
-  temperatureMax?: number;
-  temperatureDefault?: number;
-  topPMin?: number;
-  topPMax?: number;
-  topPDefault?: number;
-  presencePenaltyMin?: number;
-  presencePenaltyMax?: number;
-  presencePenaltyDefault?: number;
-  frequencyPenaltyMin?: number;
-  frequencyPenaltyMax?: number;
-  frequencyPenaltyDefault?: number;
-  maxTokensMin?: number;
-  maxTokensMax?: number;
-  maxTokensDefault?: number;
-}
+import { ImageModelInfo, ServiceMode, ServiceModePermissionMap, TextModelInfo } from '../types/common';
 
 export const defaultTextModel = 'gpt-3.5-turbo';
 
@@ -172,23 +149,6 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
   ];
 }
 
-export interface ImageModelInfo extends ModelInfoBase {
-  brand: string;
-  model: string;
-  nMin?: number;
-  nMax?: number;
-  nDefault?: number;
-  disabled?: boolean;
-  quality?: string[];
-  qualityDefault?: 'standard' | 'hd';
-  responseFormat?: string[];
-  responseFormatDefault?: 'url' | 'b64_json';
-  size?: string[];
-  sizeDefault?: '256x256' | '512x512' | '1024x1024' | '1024x1792' | '1792x1024';
-  style?: string[];
-  styleDefault?: 'vivid' | 'natural';
-}
-
 export const defaultImageModel = 'dall-e-2';
 
 export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
@@ -217,13 +177,6 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
     },
   ];
 }
-
-export type ServiceMode = 'single-tenant' | 'multi-tenant';
-export type ServiceModePermissionMap = {
-  ensureViewAllProjectsRoles: string[] | undefined;
-  ensurePromptsEditorRoles: string[] | undefined;
-  ensurePromptsAdminRoles: string[] | undefined;
-};
 
 export function getServiceModePermissionMap(serviceMode: ServiceMode): ServiceModePermissionMap {
   const permissionMap = {
