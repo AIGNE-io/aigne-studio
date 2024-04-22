@@ -358,6 +358,7 @@ export default function ParametersTable({
                         {!readOnly && (
                           <>
                             <PopperButton
+                              key={parameter.id}
                               parameter={parameter}
                               readOnly={readOnly}
                               value={value}
