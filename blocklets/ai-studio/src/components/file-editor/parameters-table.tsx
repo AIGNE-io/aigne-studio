@@ -37,7 +37,7 @@ import {
 import { GridColDef } from '@mui/x-data-grid';
 import { cloneDeep, get, sortBy } from 'lodash';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useId, useMemo, useRef } from 'react';
+import React, { useId, useMemo, useRef } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import WithAwareness from '../awareness/with-awareness';
@@ -357,19 +357,20 @@ export default function ParametersTable({
                       <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
                         {!readOnly && (
                           <>
-                            <PopperButton
-                              key={parameter.id}
-                              parameter={parameter}
-                              readOnly={readOnly}
-                              value={value}
-                              projectId={projectId}
-                              gitRef={gitRef}
-                              onSelectTool={(toolId) => {
-                                id.current = parameter.id;
-                                if (toolId) toolForm.current?.form.reset(cloneDeep((parameter.source as any)?.tool));
-                                dialogState.open();
-                              }}
-                            />
+                            <React.Fragment key={parameter.id}>
+                              <PopperButton
+                                parameter={parameter}
+                                readOnly={readOnly}
+                                value={value}
+                                projectId={projectId}
+                                gitRef={gitRef}
+                                onSelectTool={(toolId) => {
+                                  id.current = parameter.id;
+                                  if (toolId) toolForm.current?.form.reset(cloneDeep((parameter.source as any)?.tool));
+                                  dialogState.open();
+                                }}
+                              />
+                            </React.Fragment>
 
                             <Button
                               sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
