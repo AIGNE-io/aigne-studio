@@ -619,4 +619,5 @@ export default flat({
   noDocumentDesc: 'Your document list is currently empty',
   copyTool: 'Copy Tool',
   visitLink: 'Visit Link',
+  projectLimitExceeded: 'Project limit exceeded (current: {current}, limit: {limit})',
 });

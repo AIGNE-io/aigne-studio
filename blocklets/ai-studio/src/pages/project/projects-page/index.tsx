@@ -60,6 +60,7 @@ const MAX_WIDTH = 300;
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
   const endpoint = useSearchParam('endpoint');
+  const { session } = useSessionContext();
 
   const {
     state: { loading, templates, projects, examples },
@@ -68,7 +69,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     refetch();
-  }, []);
+  }, [session?.user?.did]);
 
   return (
     <Stack minHeight="100%" overflow="auto" bgcolor="#F9FAFB">
@@ -115,6 +116,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
   const { t } = useLocaleContext();
   const [dialog, setDialog] = useState<any>(null);
   const { session } = useSessionContext();
+  const { checkProjectLimit } = useProjectsState();
 
   const goToDidSpacesImport = () => {
     session.connectToDidSpaceForImport({
@@ -131,6 +133,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
     <>
       <Stack gap={1} flexDirection="row">
         <ButtonPopper
+          onClick={checkProjectLimit}
           list={
             <MenuList autoFocusItem>
               <MenuItem
@@ -151,6 +154,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
         </ButtonPopper>
 
         <ButtonPopper
+          onClick={checkProjectLimit}
           list={
             <MenuList autoFocusItem>
               <MenuItem
@@ -200,6 +204,7 @@ function ProjectMenu() {
     deleteProject,
     updateProject,
     setMenuAnchor,
+    checkProjectLimit,
   } = useProjectsState();
 
   const item =
@@ -288,6 +293,8 @@ function ProjectMenu() {
           title: t('duplicate'),
           icon: <Box component={Icon} icon="tabler:copy" />,
           onClick: async () => {
+            checkProjectLimit();
+
             await createProject({
               templateId: menuAnchor!.id,
               name: `${item?.name || 'Unnamed'} Copy`,
@@ -480,6 +487,7 @@ function ProjectList({
   const {
     state: { menuAnchor },
     setMenuAnchor,
+    checkProjectLimit,
   } = useProjectsState();
 
   return (
@@ -511,6 +519,8 @@ function ProjectList({
                 if (section === 'templates') {
                   let name = '';
                   let description = '';
+
+                  checkProjectLimit();
 
                   showDialog({
                     disableEnforceFocus: true,
@@ -899,11 +909,14 @@ const ProjectListContainer = styled(Box)`
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
 `;
 
-function ButtonPopper({ children, list }: { children: any; list?: any }) {
+function ButtonPopper({ children, list, onClick }: { children: any; list?: any; onClick?: any }) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = () => {
+    if (onClick) {
+      onClick?.();
+    }
     setOpen((prevOpen) => !prevOpen);
   };
 
