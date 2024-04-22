@@ -49,6 +49,18 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
     window.location.href = importUrl;
   }, [session?.user?.didSpace?.endpoint]);
 
+  const fromOtherDidSpaceImport = useCallback(() => {
+    session.connectToDidSpaceForImport({
+      onSuccess: (response: { importUrl: string }, decrypt: (value: string) => string) => {
+        const importUrl = decrypt(response.importUrl);
+        window.location.href = withQuery(importUrl, {
+          redirectUrl: window.location.href,
+        });
+      },
+    });
+    onClose();
+  }, [session]);
+
   return (
     <Dialog open disableEnforceFocus maxWidth="sm" fullWidth component="form" onClose={onClose}>
       <DialogTitle className="between">
@@ -70,7 +82,9 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
           </Box>
 
           <Box>
-            <Typography variant="subtitle2">{t('import.fromOtherDidSpaceImport')}</Typography>
+            <Typography variant="subtitle2" onClick={fromOtherDidSpaceImport}>
+              {t('import.fromOtherDidSpaceImport')}
+            </Typography>
           </Box>
         </Stack>
       </DialogContent>
