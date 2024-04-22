@@ -1,3 +1,7 @@
+## 0.1.343 (2024-4-22)
+
+- chore: polish multi tenant logic
+
 ## 0.1.342 (2024-4-22)
 
 - fix: CI deploy error
