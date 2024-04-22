@@ -5,6 +5,8 @@ import { didSpaceReady, getImportUrl } from '@app/libs/did-spaces';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import KeyboardArrowRightOutlinedIcon from '@mui/icons-material/KeyboardArrowRightOutlined';
+import LinkOutlinedIcon from '@mui/icons-material/LinkOutlined';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
@@ -73,30 +75,51 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
 
       <DialogContent>
         <Stack overflow="auto" gap={1.5}>
-          <Box>
-            {hasDidSpace && (
-              <Typography variant="subtitle2" onClick={fromCurrentDidSpaceImport}>
-                {t('import.fromCurrentDidSpaceImport')}
-              </Typography>
-            )}
-          </Box>
+          {hasDidSpace && (
+            <Box
+              sx={{
+                display: 'flex',
+                backgroundColor: '#F9FAFB',
+                '&:hover': {
+                  backgroundColor: '#F3F4F6',
+                },
+                '&:active': {
+                  backgroundColor: '#E5E7E8',
+                },
+                padding: '16px 12px',
+                cursor: 'pointer',
+                borderRadius: '8px',
+              }}>
+              <>
+                <Typography onClick={fromCurrentDidSpaceImport}>{t('import.fromCurrentDidSpaceImport')}</Typography>
+                <KeyboardArrowRightOutlinedIcon sx={{ ml: 0.5 }} />
+              </>
+            </Box>
+          )}
 
-          <Box>
-            <Typography variant="subtitle2" onClick={fromOtherDidSpaceImport}>
-              {t('import.fromOtherDidSpaceImport')}
-            </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              backgroundColor: '#F9FAFB',
+              '&:hover': {
+                backgroundColor: '#F3F4F6',
+              },
+              '&:active': {
+                backgroundColor: '#E5E7E8',
+              },
+              padding: '16px 12px',
+              cursor: 'pointer',
+              borderRadius: '8px',
+            }}>
+            <Typography onClick={fromOtherDidSpaceImport}>{t('import.fromOtherDidSpaceImport')}</Typography>
+            <LinkOutlinedIcon sx={{ ml: 0.5 }} />
           </Box>
         </Stack>
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose} className="cancel" variant="outlined">
           {t('cancel')}
         </Button>
-
-        <LoadingButton className="save" variant="contained" type="submit" loadingPosition="start" startIcon={<Add />}>
-          {t('create')}
-        </LoadingButton>
       </DialogActions>
     </Dialog>
   );
