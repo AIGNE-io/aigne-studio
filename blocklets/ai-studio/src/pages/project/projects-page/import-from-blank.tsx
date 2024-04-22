@@ -68,7 +68,7 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
       onSubmit={form.handleSubmit(save)}
       onClose={onClose}>
       <DialogTitle className="between">
-        <Box>{t('newObject', { object: t('form.project') })}</Box>
+        <Box>{t('newObject', { object: t('project') })}</Box>
 
         <IconButton size="small" onClick={() => onClose()}>
           <Close />

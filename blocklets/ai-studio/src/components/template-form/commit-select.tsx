@@ -33,8 +33,8 @@ export default function CommitSelect({
     <Box height="50vh" overflow="auto">
       <Box sx={{ mb: 2, position: 'sticky', top: 0, pt: 1, zIndex: 1, bgcolor: 'background.paper' }}>
         <FormControl fullWidth>
-          <InputLabel>{t('form.branch')}</InputLabel>
-          <Select label={t('form.branch')} value={branch} onChange={(e) => setBranch(e.target.value)}>
+          <InputLabel>{t('branch')}</InputLabel>
+          <Select label={t('branch')} value={branch} onChange={(e) => setBranch(e.target.value)}>
             {state.branches.map((branch) => (
               <MenuItem key={branch} value={branch}>
                 {branch}

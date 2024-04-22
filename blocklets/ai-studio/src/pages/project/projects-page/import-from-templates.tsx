@@ -63,7 +63,7 @@ export default function ImportFromTemplates({
                       disableEnforceFocus: true,
                       fullWidth: true,
                       maxWidth: 'sm',
-                      title: t('newObject', { object: t('form.project') }),
+                      title: t('newObject', { object: t('project') }),
                       content: (
                         <Stack overflow="auto" gap={1.5}>
                           <Box>

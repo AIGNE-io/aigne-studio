@@ -134,7 +134,7 @@ export default function BranchButton({
               showDialog({
                 maxWidth: 'sm',
                 fullWidth: true,
-                title: <Box sx={{ wordWrap: 'break-word' }}>{t('form.rename')}</Box>,
+                title: <Box sx={{ wordWrap: 'break-word' }}>{t('rename')}</Box>,
                 content: (
                   <Stack>
                     <Box>
@@ -284,11 +284,11 @@ function CreateBranch({
     <Stack gap={1.5}>
       <Box>
         <Typography variant="subtitle2" mb={0.5}>
-          {t('form.name')}
+          {t('name')}
         </Typography>
         <TextField
           autoFocus
-          label={t('form.name')}
+          label={t('name')}
           fullWidth
           value={states.new}
           onChange={(e) => setStates((r) => ({ ...r, new: e.target.value }))}

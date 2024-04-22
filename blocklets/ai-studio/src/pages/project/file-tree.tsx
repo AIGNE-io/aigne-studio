@@ -162,7 +162,7 @@ const FileTree = forwardRef<
     showDialog({
       fullWidth: true,
       maxWidth: 'sm',
-      title: `${t('import.title')}`,
+      title: t('importObject', { object: t('agents') }),
       content: (
         <Box maxHeight={500}>
           <ImportFrom
@@ -678,7 +678,7 @@ function TreeItemMenus({
             <Box component={Icon} icon="tabler:pencil" />
           </ListItemIcon>
 
-          <ListItemText primary={t('form.rename')} />
+          <ListItemText primary={t('rename')} />
         </MenuItem>
       ),
       onRenameFolder && (
@@ -687,7 +687,7 @@ function TreeItemMenus({
             <Box component={Icon} icon="tabler:pencil" />
           </ListItemIcon>
 
-          <ListItemText primary={t('form.rename')} />
+          <ListItemText primary={t('rename')} />
         </MenuItem>
       ),
       onDeleteFile && (

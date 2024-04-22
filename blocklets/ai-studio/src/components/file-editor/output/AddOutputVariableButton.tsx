@@ -1,10 +1,13 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import { Divider, ListItemIcon, MenuItem } from '@mui/material';
 
 import { runtimeOutputVariables } from './type';
 
 export default function AddOutputVariableButton({ onSelect }: { onSelect?: (value: { name: string }) => void }) {
+  const { t } = useLocaleContext();
+
   return (
     <PopperMenu
       ButtonProps={{
@@ -15,18 +18,18 @@ export default function AddOutputVariableButton({ onSelect }: { onSelect?: (valu
         <ListItemIcon>
           <Icon icon="tabler:plus" />
         </ListItemIcon>
-        Custom Variable
+        {t('customObject', { object: t('variable') })}
       </MenuItem>
 
       <Divider textAlign="left" sx={{ fontSize: 13 }}>
-        Runtime metadata
+        {t('runtimeMetadata')}
       </Divider>
 
       {runtimeOutputVariables.map((variable) => (
         <MenuItem key={variable.name} onClick={() => onSelect?.({ name: variable.name })}>
           <ListItemIcon>{variable.icon}</ListItemIcon>
 
-          {variable.title}
+          {t(variable.i18nKey)}
         </MenuItem>
       ))}
     </PopperMenu>

@@ -4,7 +4,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AssistantYjs, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
-import { InfoOutlined } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -27,7 +26,6 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Tooltip,
   Typography,
   alpha,
   selectClasses,
@@ -471,8 +469,8 @@ export default function ParametersTable({
                               removeParameter('question');
                             }
                           }}>
-                          <FormControlLabel value="form" control={<Radio />} label={t('form.form')} />
-                          <FormControlLabel value="chat" control={<Radio />} label={t('form.chat')} />
+                          <FormControlLabel value="form" control={<Radio />} label={t('form')} />
+                          <FormControlLabel value="chat" control={<Radio />} label={t('chat')} />
                         </RadioGroup>
                       </ListItem>
                       <ListSubheader>{t('dataset')}</ListSubheader>
@@ -531,16 +529,7 @@ export default function ParametersTable({
                       align={column.headerAlign}
                       width={column.width}
                       sx={{ px: 0, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
-                      {column.field === 'placeholder' ? (
-                        <Box display="flex" alignItems="center">
-                          {t('form.parameter.placeholder')}
-                          <Tooltip title={t('form.parameter.placeholderTip')} disableInteractive>
-                            <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14, marginLeft: 0.5 }} />
-                          </Tooltip>
-                        </Box>
-                      ) : (
-                        column.headerName
-                      )}
+                      {column.headerName}
                     </TableCell>
                   ))}
                 </TableRow>

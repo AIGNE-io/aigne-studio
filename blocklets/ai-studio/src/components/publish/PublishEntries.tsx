@@ -178,7 +178,7 @@ function PublishEntriesForm({
   return (
     <Stack gap={1}>
       <TextField
-        label={t('form.title')}
+        label={t('title')}
         multiline
         value={entry.title || ''}
         onChange={(e) => (entry.title = e.target.value)}

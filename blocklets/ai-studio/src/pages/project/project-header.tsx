@@ -44,7 +44,7 @@ export default function ProjectHeader() {
             options={[
               {
                 value: 'prompts',
-                label: t('prompts'),
+                label: t('agent'),
                 icon: <Box fontSize={15} component={Icon} icon="tabler:bulb" mr={1} />,
               },
               {
