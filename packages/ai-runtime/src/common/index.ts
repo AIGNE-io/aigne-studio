@@ -1,4 +1,4 @@
-import { ModelInfoBase, ServiceMode, ServiceModePermissionMap, TextModelInfo } from '../types/common';
+import { ImageModelInfo, ServiceMode, ServiceModePermissionMap, TextModelInfo } from '../types/common';
 
 export const defaultTextModel = 'gpt-3.5-turbo';
 
@@ -147,23 +147,6 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
       disabled: true,
     },
   ];
-}
-
-export interface ImageModelInfo extends ModelInfoBase {
-  brand: string;
-  model: string;
-  nMin?: number;
-  nMax?: number;
-  nDefault?: number;
-  disabled?: boolean;
-  quality?: string[];
-  qualityDefault?: 'standard' | 'hd';
-  responseFormat?: string[];
-  responseFormatDefault?: 'url' | 'b64_json';
-  size?: string[];
-  sizeDefault?: '256x256' | '512x512' | '1024x1024' | '1024x1792' | '1792x1024';
-  style?: string[];
-  styleDefault?: 'vivid' | 'natural';
 }
 
 export const defaultImageModel = 'dall-e-2';
