@@ -1,27 +1,4 @@
-export interface ModelInfoBase {
-  brand: string;
-  model: string;
-  name?: string;
-  disabled?: boolean;
-}
-
-export interface TextModelInfo extends ModelInfoBase {
-  temperatureMin?: number;
-  temperatureMax?: number;
-  temperatureDefault?: number;
-  topPMin?: number;
-  topPMax?: number;
-  topPDefault?: number;
-  presencePenaltyMin?: number;
-  presencePenaltyMax?: number;
-  presencePenaltyDefault?: number;
-  frequencyPenaltyMin?: number;
-  frequencyPenaltyMax?: number;
-  frequencyPenaltyDefault?: number;
-  maxTokensMin?: number;
-  maxTokensMax?: number;
-  maxTokensDefault?: number;
-}
+import { ModelInfoBase, ServiceMode, ServiceModePermissionMap, TextModelInfo } from '../types/common';
 
 export const defaultTextModel = 'gpt-3.5-turbo';
 
@@ -217,13 +194,6 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
     },
   ];
 }
-
-export type ServiceMode = 'single-tenant' | 'multi-tenant';
-export type ServiceModePermissionMap = {
-  ensureViewAllProjectsRoles: string[] | undefined;
-  ensurePromptsEditorRoles: string[] | undefined;
-  ensurePromptsAdminRoles: string[] | undefined;
-};
 
 export function getServiceModePermissionMap(serviceMode: ServiceMode): ServiceModePermissionMap {
   const permissionMap = {
