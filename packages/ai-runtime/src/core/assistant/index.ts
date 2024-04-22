@@ -6,7 +6,7 @@ import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call as callFunc } from '@blocklet/sdk/lib/component';
-import { env, logger } from '@blocklet/sdk/lib/config';
+import { env } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
 import fetch from 'node-fetch';
@@ -502,7 +502,6 @@ const runRequestStorage = async ({
   callback,
   datastoreParameter,
   scopeMap,
-  parameters,
 }: {
   assistant: PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
   parentTaskId?: string;
@@ -510,7 +509,6 @@ const runRequestStorage = async ({
   callback?: RunAssistantCallback;
   datastoreParameter: Parameter;
   scopeMap: { [key: string]: any };
-  parameters: { [key: string]: any };
 }) => {
   if (datastoreParameter.key && datastoreParameter.source?.variableFrom === 'datastore') {
     const currentTaskId = nextTaskId();
@@ -518,11 +516,13 @@ const runRequestStorage = async ({
     const scopeParams = scopeMap.local;
     const params = {
       ...scopeParams,
-      key: toLower(datastoreParameter.key),
-      itemId: datastoreParameter.source.itemId
-        ? await renderMessage(datastoreParameter.source.itemId, parameters)
-        : datastoreParameter.source.itemId,
-      scope: datastoreParameter.source.scope || defaultScope,
+      // key: toLower(datastoreParameter.key),
+      // itemId: datastoreParameter.source.itemId
+      //   ? await renderMessage(datastoreParameter.source.itemId, parameters)
+      //   : datastoreParameter.source.itemId,
+      scope: datastoreParameter.source.scope?.scope || defaultScope,
+      dataType: datastoreParameter.source.scope?.dataType,
+      key: toLower(datastoreParameter.source.scope?.key) || toLower(datastoreParameter.key),
     };
 
     const callbackParams = {
@@ -755,39 +755,39 @@ const getVariables = async ({
     },
   };
 
-  const persistData = async (toolParameter: Parameter) => {
-    if (
-      toolParameter.key &&
-      toolParameter.source?.variableFrom === 'tool' &&
-      toolParameter.source.tool &&
-      toolParameter.source.persist
-    ) {
-      const scopeParams = scopeMap[toolParameter.source.scope || defaultScope] || scopeMap.local;
-      const params = {
-        params: {
-          ...scopeParams,
-          reset: toolParameter.source.reset,
-        },
-        data: {
-          data: variables[toolParameter.key],
-          key: toLower(toolParameter.key),
-          itemId: toolParameter.source.itemId
-            ? await renderMessage(toolParameter.source.itemId, parameters)
-            : toolParameter.source.itemId,
-        },
-      };
+  // const persistData = async (toolParameter: Parameter) => {
+  //   if (
+  //     toolParameter.key &&
+  //     toolParameter.source?.variableFrom === 'tool' &&
+  //     toolParameter.source.tool &&
+  //     toolParameter.source.persist
+  //   ) {
+  //     const scopeParams = scopeMap[toolParameter.source.scope || defaultScope] || scopeMap.local;
+  //     const params = {
+  //       params: {
+  //         ...scopeParams,
+  //         reset: toolParameter.source.reset,
+  //       },
+  //       data: {
+  //         data: variables[toolParameter.key],
+  //         key: toLower(toolParameter.key),
+  //         itemId: toolParameter.source.itemId
+  //           ? await renderMessage(toolParameter.source.itemId, parameters)
+  //           : toolParameter.source.itemId,
+  //       },
+  //     };
 
-      await callFunc({
-        name: 'ai-studio',
-        path: '/api/datastore',
-        method: 'POST',
-        headers: getUserHeader(user),
-        ...params,
-      });
+  //     await callFunc({
+  //       name: 'ai-studio',
+  //       path: '/api/datastore',
+  //       method: 'POST',
+  //       headers: getUserHeader(user),
+  //       ...params,
+  //     });
 
-      logger.info('save parameter tool to datastore success', params);
-    }
-  };
+  //     logger.info('save parameter tool to datastore success', params);
+  //   }
+  // };
 
   if (toolParameters.length) {
     for (const toolParameter of toolParameters) {
@@ -815,7 +815,7 @@ const getVariables = async ({
           variables[toolParameter.key] = result ?? toolParameter.defaultValue;
         }
 
-        await persistData(toolParameter);
+        // await persistData(toolParameter);
       }
     }
   }
@@ -830,8 +830,8 @@ const getVariables = async ({
           callback,
           datastoreParameter,
           scopeMap,
-          parameters,
         });
+
         variables[datastoreParameter.key] = result;
       }
     }

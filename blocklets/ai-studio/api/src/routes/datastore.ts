@@ -415,7 +415,7 @@ const getAssistantParameters = async (projectId: string, scope: string) => {
   }
 
   const scopeAssistants = assistants.flatMap((x) => {
-    return x.filter((x) => x.source && x.source.variableFrom === 'datastore' && x.source.scope === scope);
+    return x.filter((x) => x.source && x.source.variableFrom === 'datastore' && x.source.scope?.scope === scope);
   });
 
   return scopeAssistants;
@@ -439,7 +439,7 @@ const getAssistantByKey = async (projectId: string, scope: string, inputKey: str
     ) {
       const found = Object.values(file?.parameters || {})
         .map((x) => x.data)
-        .filter((x) => x.source && x.source.variableFrom === 'datastore' && x.source.scope === scope)
+        .filter((x) => x.source && x.source.variableFrom === 'datastore' && x.source.scope?.scope === scope)
         .find((x) => x.key === inputKey);
 
       if (found) {

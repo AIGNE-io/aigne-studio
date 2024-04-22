@@ -75,6 +75,12 @@ export type Prompt =
       visibility?: 'hidden';
     };
 
+type Scope = {
+  scope: 'user' | 'global' | 'session';
+  key: string;
+  dataType: any;
+};
+
 export interface AssistantBase {
   id: string;
   name?: string;
@@ -117,6 +123,8 @@ export interface AssistantBase {
     limit?: number;
     keyword?: string;
   };
+
+  variables?: Scope[];
 }
 
 export interface OutputVariableBase {
@@ -184,12 +192,10 @@ export interface FunctionAssistant extends AssistantBase {
 }
 
 export interface DatastoreBase {
-  persist?: boolean;
-  itemId?: string; // Datastore 中的 key, 将tool执行后的结果为value
-  scope?: 'local' | 'global' | 'session';
+  cache?: boolean; // 先不支持
+  itemId?: string; // 先不支持
+  scope?: Scope;
   defaultValue?: any;
-  reset?: boolean;
-  cache?: boolean;
 }
 
 export interface DatastoreParameter extends DatastoreBase {

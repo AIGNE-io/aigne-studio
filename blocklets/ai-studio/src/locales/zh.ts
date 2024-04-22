@@ -632,6 +632,9 @@ export default flat({
     local: '当前存储',
     assistant: 'Local 存储',
     cache: '缓存请求数据',
+    scopeKey: '选择作用域内容变量',
+    selectAgent: '选择 Agent',
+    user: '用户',
   },
   variables: {
     name: '变量名称',

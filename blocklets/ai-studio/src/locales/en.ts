@@ -638,6 +638,9 @@ export default flat({
     local: 'Local',
     assistant: 'Local',
     cache: 'Cache Request Data',
+    scopeKey: 'Scope key',
+    selectAgent: 'Select Agent',
+    user: 'User',
   },
   variables: {
     name: 'Variables Name',
