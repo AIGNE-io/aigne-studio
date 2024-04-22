@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { TransformStream } from 'stream/web';
 
 import { ChatCompletionChunk } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
@@ -38,6 +39,7 @@ import {
   isImageAssistant,
 } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase } from '../../types/runtime';
+import { ExtractMetadataTransform } from '../utils/extract-metadata-transform';
 import retry from '../utils/retry';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../utils/schema';
 import { BuiltinModules } from './builtin';
@@ -878,20 +880,49 @@ async function runPromptAssistant({
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
   const outputJson = assistant.outputFormat === 'json';
+  const { outputVariables = [] } = assistant;
+  const streamJson = outputVariables.length > 0;
+
+  const schema = outputVariablesToJsonSchema(outputVariables);
+  const outputSchema = JSON.stringify(schema);
+
+  const messagesWithSystemPrompt = [...messages];
+  const lastSystemIndex = messagesWithSystemPrompt.findLastIndex((i) => i.role === 'system');
+
+  const metadataPrefix = '```metadata';
+  const metadataSuffix = '```';
 
   if (outputJson) {
-    const schema = outputVariablesToJsonSchema(assistant.outputVariables ?? []);
-
-    const outputSchema = JSON.stringify(schema, null, 2);
-
-    const lastSystemIndex = messages.findLastIndex((i) => i.role === 'system');
-    messages.splice(lastSystemIndex + 1, 0, {
+    messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
       role: 'system',
-      content: `## Format\nOutput a JSON object match the following JSON schema:\n ${outputSchema}`,
+      content: `\
+## Output Format
+
+Generate a JSON object match the following JSON schema:
+${outputSchema}`,
+    });
+  } else if (streamJson) {
+    messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
+      role: 'system',
+      content: `\
+## JSON Schema
+Here is the json schema for output metadata, inside <schema></schema> XML tags:
+<schema>
+${outputSchema}
+</schema>
+
+## Output Format
+
+[Place Your Text Content here]
+
+${metadataPrefix}
+[Using the JSON schema above to generate a JSON object here]
+${metadataSuffix}
+  `,
     });
   }
 
-  if (!messages.length) return undefined;
+  if (!messagesWithSystemPrompt.length) return undefined;
 
   callback?.({
     type: AssistantResponseType.EXECUTE,
@@ -909,19 +940,20 @@ async function runPromptAssistant({
     taskId,
     assistantName: assistant.name,
     inputParameters: variables,
-    promptMessages: messages,
+    promptMessages: messagesWithSystemPrompt,
   });
 
   const run = async () => {
     let jsonResult;
     let result = '';
+    const metadataStrings: string[] = [];
 
     const aiResult = await callAI({
       assistant,
       outputModel: true,
       input: {
         stream: true,
-        messages,
+        messages: messagesWithSystemPrompt,
         model: assistant.model,
         temperature: assistant.temperature,
         topP: assistant.topP,
@@ -930,24 +962,49 @@ async function runPromptAssistant({
       },
     });
 
-    for await (const chunk of aiResult.chatCompletionChunk) {
-      result += chunk.delta.content || '';
+    const stream = aiResult.chatCompletionChunk
+      .pipeThrough(
+        new TransformStream({
+          transform: (chunk, controller) => {
+            if (chunk.delta.content) controller.enqueue(chunk.delta.content);
+          },
+        })
+      )
+      .pipeThrough(
+        new ExtractMetadataTransform({
+          // Pass empty string to disable extractor
+          start: streamJson ? metadataPrefix : '',
+          end: metadataSuffix,
+        })
+      );
 
-      if (!outputJson) {
-        callback?.({
-          type: AssistantResponseType.CHUNK,
-          taskId,
-          assistantId: assistant.id,
-          delta: { content: chunk.delta.content },
-        });
+    for await (const chunk of stream) {
+      if (chunk.type === 'text') {
+        const { text } = chunk;
+
+        result += text;
+
+        if (!outputJson) {
+          callback?.({
+            type: AssistantResponseType.CHUNK,
+            taskId,
+            assistantId: assistant.id,
+            delta: { content: text },
+          });
+        }
+      } else if (chunk.type === 'match') {
+        metadataStrings.push(chunk.text);
       }
     }
 
+    const joiSchema = outputVariablesToJoiSchema(outputVariables);
     if (outputJson) {
-      const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? []);
-
       const json = JSON.parse(result);
-      jsonResult = await schema.validateAsync(json);
+      try {
+        jsonResult = await joiSchema.validateAsync(json);
+      } catch (error) {
+        throw new Error('Unexpected response format from AI');
+      }
 
       callback?.({
         type: AssistantResponseType.CHUNK,
@@ -955,25 +1012,45 @@ async function runPromptAssistant({
         assistantId: assistant.id,
         delta: { object: jsonResult },
       });
+    } else if (streamJson) {
+      const json = {};
+
+      for (const i of metadataStrings) {
+        try {
+          const obj = JSON.parse(i);
+          Object.assign(json, obj);
+        } catch (error) {
+          // ignore
+        }
+      }
+
+      try {
+        jsonResult = await joiSchema.validateAsync(json);
+      } catch (error) {
+        try {
+          jsonResult = await generateOutput({
+            assistant,
+            messages: messages.concat({ role: 'assistant', content: result }),
+            callAI,
+            maxRetries: MAX_RETRIES,
+          });
+        } catch (error) {
+          throw new Error('Unexpected response format from AI');
+        }
+      }
     }
 
     return { jsonResult, result, aiResult };
   };
 
-  const { jsonResult, result, aiResult } = await retry(run, MAX_RETRIES);
+  const { jsonResult, result, aiResult } = await retry(run, streamJson ? 0 : MAX_RETRIES);
 
-  if (!outputJson && assistant.outputVariables?.length) {
-    const json = await generateOutput({
-      assistant,
-      messages: messages.concat({ role: 'assistant', content: result }),
-      callAI,
-      maxRetries: MAX_RETRIES,
-    });
+  if (jsonResult) {
     callback?.({
       type: AssistantResponseType.CHUNK,
       taskId,
       assistantId: assistant.id,
-      delta: { object: json },
+      delta: { object: jsonResult },
     });
   }
 
