@@ -357,20 +357,18 @@ export default function ParametersTable({
                       <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
                         {!readOnly && (
                           <>
-                            <React.Fragment key={parameter.id}>
-                              <PopperButton
-                                parameter={parameter}
-                                readOnly={readOnly}
-                                value={value}
-                                projectId={projectId}
-                                gitRef={gitRef}
-                                onSelectTool={(toolId) => {
-                                  id.current = parameter.id;
-                                  if (toolId) toolForm.current?.form.reset(cloneDeep((parameter.source as any)?.tool));
-                                  dialogState.open();
-                                }}
-                              />
-                            </React.Fragment>
+                            <PopperButton
+                              parameter={parameter}
+                              readOnly={readOnly}
+                              value={value}
+                              projectId={projectId}
+                              gitRef={gitRef}
+                              onSelectTool={(toolId) => {
+                                id.current = parameter.id;
+                                if (toolId) toolForm.current?.form.reset(cloneDeep((parameter.source as any)?.tool));
+                                dialogState.open();
+                              }}
+                            />
 
                             <Button
                               sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
@@ -635,7 +633,11 @@ function PopperButton({
                   }
                 }}>
                 {Object.entries(FROM_MAP).map(([key, value]) => {
-                  return <MenuItem value={key}>{value}</MenuItem>;
+                  return (
+                    <MenuItem value={key} key={key}>
+                      {value}
+                    </MenuItem>
+                  );
                 })}
               </Select>
 
