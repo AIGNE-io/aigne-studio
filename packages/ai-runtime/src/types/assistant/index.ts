@@ -75,8 +75,8 @@ export type Prompt =
       visibility?: 'hidden';
     };
 
-type Scope = {
-  scope: 'user' | 'global' | 'session';
+export type Scope = {
+  scope?: 'user' | 'global' | 'session';
   key: string;
   dataType: any;
 };
@@ -132,6 +132,7 @@ export interface OutputVariableBase {
   name?: string;
   description?: string;
   required?: boolean;
+  datastore?: Scope & { reset?: boolean };
 }
 
 export type OutputVariable = OutputVariableBase &
