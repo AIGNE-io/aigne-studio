@@ -403,7 +403,7 @@ export default function ParametersTable({
     <>
       <Box>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-          <Typography variant="subtitle2">{t('parameters')}</Typography>
+          <Typography variant="subtitle2">{t('inputParameters')}</Typography>
 
           {!readOnly && (
             <Stack direction="row">
