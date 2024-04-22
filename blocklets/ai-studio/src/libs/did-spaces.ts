@@ -1,3 +1,4 @@
+import { SpaceClient, SpaceEndpointContext } from '@did-space/client';
 import isEmpty from 'lodash/isEmpty';
 import { joinURL, withQuery } from 'ufo';
 
@@ -29,4 +30,29 @@ export function getProjectDataUrlInSpace(endpoint: string, projectId: string): s
   return withQuery(joinURL(baseUrl, `space/${spaceDid}/apps/${appDid}/explorer`), {
     key: joinURL(`/apps/${appDid}/.components/${componentDid}/repositories/${projectId}/`),
   });
+}
+
+/**
+ * @description 获取 DID Spaces 的导入链接
+ * @export
+ * @param {string} endpoint
+ * @param {{ redirectUrl: string }} options
+ * @return {*}  {Promise<string>}
+ */
+export async function getImportUrl(endpoint: string, options: { redirectUrl: string }): Promise<string> {
+  if (isEmpty(endpoint)) {
+    return '';
+  }
+
+  const [, componentDid]: string[] = window.blocklet.componentId.split('/');
+  const { spaceDid, appDid, baseUrl }: SpaceEndpointContext = await SpaceClient.getSpaceEndpointContext(endpoint);
+
+  const importUrl = withQuery(joinURL(baseUrl, 'import'), {
+    spaceDid,
+    appDid,
+    componentDid,
+    ...options,
+  });
+
+  return importUrl;
 }

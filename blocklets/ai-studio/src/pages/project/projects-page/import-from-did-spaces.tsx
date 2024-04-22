@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 import Project from '@api/store/models/project';
 import { useSessionContext } from '@app/contexts/session';
-import { didSpaceReady } from '@app/libs/did-spaces';
+import { didSpaceReady, getImportUrl } from '@app/libs/did-spaces';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -38,6 +38,55 @@ type ProjectSettingForm = {
   name: string;
   description: string;
 };
+
+export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClose: () => void }) {
+  const { t } = useLocaleContext();
+  const { session } = useSessionContext();
+  const hasDidSpace = didSpaceReady(session.user);
+
+  const fromCurrentDidSpaceImport = useCallback(async () => {
+    const importUrl = await getImportUrl(session?.user?.didSpace?.endpoint, { redirectUrl: window.location.href });
+    window.location.href = importUrl;
+  }, [session?.user?.didSpace?.endpoint]);
+
+  return (
+    <Dialog open disableEnforceFocus maxWidth="sm" fullWidth component="form" onClose={onClose}>
+      <DialogTitle className="between">
+        <Box>{t('import.didSpacesTitle')}</Box>
+
+        <IconButton size="small" onClick={onClose}>
+          <Close />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent>
+        <Stack overflow="auto" gap={1.5}>
+          <Box>
+            {hasDidSpace && (
+              <Typography variant="subtitle2" onClick={fromCurrentDidSpaceImport}>
+                {t('import.fromCurrentDidSpaceImport')}
+              </Typography>
+            )}
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2">{t('import.fromOtherDidSpaceImport')}</Typography>
+          </Box>
+        </Stack>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose} className="cancel" variant="outlined">
+          {t('cancel')}
+        </Button>
+
+        <LoadingButton className="save" variant="contained" type="submit" loadingPosition="start" startIcon={<Add />}>
+          {t('create')}
+        </LoadingButton>
+      </DialogActions>
+    </Dialog>
+  );
+}
 
 export default function FromDidSpacesImport() {
   const { t } = useLocaleContext();

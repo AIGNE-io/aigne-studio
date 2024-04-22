@@ -50,7 +50,7 @@ import useDialog from '../../../utils/use-dialog';
 import DidSpacesLogo from '../icons/did-spaces';
 import Pin from '../icons/pin';
 import ImportFromBlank from './import-from-blank';
-import ImportFromDidSpaces from './import-from-did-spaces';
+import ImportFromDidSpaces, { SelectDidSpacesImportWay } from './import-from-did-spaces';
 import ImportFromGit from './import-from-git';
 import ImportFromTemplates from './import-from-templates';
 
@@ -141,7 +141,10 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                 <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('gitRepo')}</ListItemText>
               </MenuItem>
 
-              <MenuItem onClick={goToDidSpacesImport}>
+              <MenuItem
+                onClick={() => {
+                  setDialog(<SelectDidSpacesImportWay onClose={() => setDialog(null)} />);
+                }}>
                 <DidSpacesLogo sx={{ mr: 1, fontSize: 14 }} />
                 <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('didSpaces.title')}</ListItemText>
               </MenuItem>
