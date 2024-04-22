@@ -89,9 +89,10 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
                 padding: '16px 12px',
                 cursor: 'pointer',
                 borderRadius: '8px',
-              }}>
+              }}
+              onClick={fromCurrentDidSpaceImport}>
               <>
-                <Typography onClick={fromCurrentDidSpaceImport}>{t('import.fromCurrentDidSpaceImport')}</Typography>
+                <Typography>{t('import.fromCurrentDidSpaceImport')}</Typography>
                 <KeyboardArrowRightOutlinedIcon sx={{ ml: 0.5 }} />
               </>
             </Box>
@@ -110,17 +111,13 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
               padding: '16px 12px',
               cursor: 'pointer',
               borderRadius: '8px',
-            }}>
-            <Typography onClick={fromOtherDidSpaceImport}>{t('import.fromOtherDidSpaceImport')}</Typography>
+            }}
+            onClick={fromOtherDidSpaceImport}>
+            <Typography>{t('import.fromOtherDidSpaceImport')}</Typography>
             <LinkOutlinedIcon sx={{ ml: 0.5 }} />
           </Box>
         </Stack>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} className="cancel" variant="outlined">
-          {t('cancel')}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }
