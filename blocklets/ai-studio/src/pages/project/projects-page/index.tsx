@@ -38,7 +38,7 @@ import {
 import { MouseEvent, ReactNode, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSearchParam } from 'react-use';
-import { joinURL, withQuery } from 'ufo';
+import { joinURL } from 'ufo';
 
 import Project from '../../../../api/src/store/models/project';
 import DeleteDialog from '../../../components/delete-confirm/dialog';
@@ -114,18 +114,6 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
   const resource = (list || []).filter((x) => x.isFromResource);
   const { t } = useLocaleContext();
   const [dialog, setDialog] = useState<any>(null);
-  const { session } = useSessionContext();
-
-  const goToDidSpacesImport = () => {
-    session.connectToDidSpaceForImport({
-      onSuccess: (response: { importUrl: string }, decrypt: (value: string) => string) => {
-        const importUrl = decrypt(response.importUrl);
-        window.location.href = withQuery(importUrl, {
-          redirectUrl: window.location.href,
-        });
-      },
-    });
-  };
 
   return (
     <>
