@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.340",
+  "version": "0.1.342",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -37,8 +37,8 @@
       "require": "./lib/cjs/core/index.js"
     },
     "./common": {
-      "import": "./lib/esm/common.js",
-      "require": "./lib/cjs/common.js"
+      "import": "./lib/esm/common/index.js",
+      "require": "./lib/cjs/common/index.js"
     }
   },
   "typesVersions": {
@@ -61,6 +61,9 @@
       ],
       "core": [
         "./lib/types/core/index.d.ts"
+      ],
+      "common": [
+        "./lib/types/common/index.d.ts"
       ]
     }
   },
@@ -88,9 +91,9 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-builtin": "^0.1.340",
+    "@blocklet/ai-builtin": "^0.1.342",
     "@blocklet/ai-kit": "^0.1.26",
-    "@blocklet/dataset-sdk": "^0.1.340",
+    "@blocklet/dataset-sdk": "^0.1.342",
     "@blocklet/sdk": "^1.16.25",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.11",

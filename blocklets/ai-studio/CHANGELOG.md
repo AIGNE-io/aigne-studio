@@ -1,6 +1,14 @@
+## 0.1.342 (2024-4-22)
+
+- fix: CI deploy error
+
+## 0.1.341 (2024-4-22)
+
+- chore: replace vector store
+
 ## 0.1.340 (2024-4-20)
 
-- feact: support for configuring Service Mode in Preferences
+- feat: support for configuring Service Mode in Preferences
 - chore: migrate common.ts to@blocklet/ai-runtime
 
 ## 0.1.339 (2024-4-17)
