@@ -136,7 +136,7 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[]): Joi.Any
           )
       )
         .empty([null, ''])
-        .options({ allowUnknown: true });
+        .options({ stripUnknown: true });
     } else if (variable.type === 'array') {
       schema = Joi.array()
         .empty([null, ''])
