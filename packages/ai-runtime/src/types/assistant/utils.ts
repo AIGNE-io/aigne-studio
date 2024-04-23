@@ -25,7 +25,6 @@ import type {
   Parameter,
   Prompt,
   PromptAssistant,
-  Variable,
 } from '.';
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
@@ -85,10 +84,6 @@ export function isRawFile(file: FileType): file is { $base64: string };
 export function isRawFile(file: FileTypeYjs): file is { $base64: string };
 export function isRawFile(file: FileType | FileTypeYjs): file is { $base64: string } {
   return typeof (file as any).$base64 === 'string';
-}
-
-export function isVariableFile(file: FileType | FileTypeYjs): file is Variable {
-  return (file as any).type === 'variables';
 }
 
 export function parameterToYjs(parameter: Parameter): ParameterYjs {

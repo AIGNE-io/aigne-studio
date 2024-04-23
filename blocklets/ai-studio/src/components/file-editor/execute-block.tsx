@@ -9,7 +9,7 @@ import {
   FileTypeYjs,
   Role,
   Tool,
-  VariableYjs,
+  VariablesYjs,
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -802,7 +802,7 @@ function ToolItemView({
 
 type Option = {
   id: NonNullable<ExecuteBlock['tools']>[number]['id'];
-  type: Exclude<FileTypeYjs, { $base64: string } | VariableYjs>['type'] | string;
+  type: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>['type'] | string;
   name?: any;
   from?: NonNullable<ExecuteBlock['tools']>[number]['from'];
   fromText?: string;

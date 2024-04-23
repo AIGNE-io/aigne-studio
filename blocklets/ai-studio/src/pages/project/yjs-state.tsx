@@ -3,13 +3,11 @@ import {
   Assistant,
   AssistantYjs,
   FileTypeYjs,
-  Scope,
   isApiAssistant,
   isAssistant,
   isFunctionAssistant,
   isImageAssistant,
   isPromptAssistant,
-  isVariableFile,
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
 import {
@@ -188,14 +186,15 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       [syncedStore.files]
     ),
     getVariables: useCallback(() => {
-      const filepath = 'variable.config';
-      const file = syncedStore.files[filepath];
+      const filepath = 'config/variable.yaml';
+      const key = 'variable';
+      const file = syncedStore.files[key];
 
-      if (file && isVariableFile(file)) return file;
+      if (file && 'variables' in file) return file;
 
-      syncedStore.tree[filepath] = filepath;
-      syncedStore.files[filepath] = { type: 'variables', variables: [] };
-      return syncedStore.files[filepath];
+      syncedStore.tree[key] = filepath;
+      syncedStore.files[key] = { variables: [] };
+      return syncedStore.files[key];
     }, [syncedStore.files]),
   };
 };

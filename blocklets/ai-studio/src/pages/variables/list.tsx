@@ -30,15 +30,15 @@ function VariableList() {
       Object.values(assistant.parameters || {}).forEach((parameter) => {
         if (parameter.data.source?.variableFrom === 'datastore') {
           const s = parameter.data.source;
-          const key: string = `${s.scope?.scope || ''}_${s.scope?.key || ''}_${s.scope?.dataType || ''}`;
+          const key: string = `${s.variable?.scope || ''}_${s.variable?.key || ''}_${s.variable?.dataType || ''}`;
           map[key] ??= [];
           map[key].push(assistant.id);
         }
       });
 
       Object.values(assistant.outputVariables || {}).forEach((output) => {
-        if (output?.data?.datastore && output?.data?.datastore?.key) {
-          const s = output.data.datastore;
+        if (output?.data?.variable && output?.data?.variable?.key) {
+          const s = output.data.variable;
           const key: string = `${s?.scope || ''}_${s?.key || ''}_${s?.dataType || ''}`;
           map[key] ??= [];
           map[key].push(assistant.id);

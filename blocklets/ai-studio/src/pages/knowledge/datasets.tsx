@@ -34,8 +34,6 @@ import useDialog from '../../utils/use-dialog';
 import Add from '../project/icons/add';
 import Close from '../project/icons/close';
 
-// import Delete from '../project/icons/delete';
-
 type DatasetInput = { name: string; description?: string };
 
 export default function KnowledgeDatasets() {

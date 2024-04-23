@@ -4,7 +4,7 @@ import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, OutputVariableYjs, Scope } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, Variable } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import { Close, ExpandMoreRounded } from '@mui/icons-material';
@@ -157,8 +157,8 @@ export default function OutputSettings({
   );
 }
 
-const filter = createFilterOptions<Scope>();
-type Input = { scope: Scope['scope']; key?: string };
+const filter = createFilterOptions<Variable>();
+type Input = { scope: Variable['scope']; key?: string; reset: boolean };
 
 function VariableRow({
   value,
@@ -179,7 +179,8 @@ function VariableRow({
   const doc = (getYjsValue(variable) as Map<any>).doc!;
   const outputPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const runtimeVariable = getRuntimeOutputVariable(variable);
-  const form = useForm<Input>({ defaultValues: { scope: 'session', key: '' } });
+  const form = useForm<Input>({ defaultValues: { reset: false, scope: 'session', key: '' } });
+
   const dialogState = usePopupState({ variant: 'dialog' });
   const { dialog, showDialog } = useDialog();
   const { getVariables } = useProjectStore(projectId, gitRef);
@@ -187,7 +188,7 @@ function VariableRow({
 
   const variables = (variableYjs?.variables || []).filter((x) => x.dataType === variable.type);
   const datastoreVariable = variables.find((x) => {
-    const j = variable?.datastore ?? { dataType: undefined, scope: '', key: '' };
+    const j = variable?.variable ?? { dataType: undefined, scope: '', key: '' };
     return `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`;
   });
 
@@ -241,10 +242,10 @@ function VariableRow({
               onChange={(e) => {
                 const type = e.target.value as any;
 
-                if (variable.datastore) {
+                if (variable.variable) {
                   const found = (variableYjs.variables || []).find(
                     (x) =>
-                      x.dataType === type && x.key === variable.datastore?.key && x.scope === variable.datastore.scope
+                      x.dataType === type && x.key === variable.variable?.key && x.scope === variable.variable.scope
                   );
                   if (!found) {
                     showDialog({
@@ -267,7 +268,7 @@ function VariableRow({
                           <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
                             {t('outputVariableParameter.changeTypeDesc', {
                               type,
-                              key: variable.datastore?.key || '',
+                              key: variable.variable?.key || '',
                             })}
                           </Typography>
                         </Box>
@@ -279,13 +280,14 @@ function VariableRow({
                         variableYjs.variables ??= [];
 
                         const v = {
-                          scope: variable.datastore?.scope,
-                          key: variable.datastore?.key || '',
+                          scope: variable.variable?.scope,
+                          key: variable.variable?.key || '',
                           dataType: type,
+                          reset: Boolean(variable.variable?.reset),
                         };
 
                         variableYjs.variables.push(v);
-                        variable.datastore = cloneDeep(v);
+                        variable.variable = cloneDeep(v);
 
                         variable.type = type;
                         if (variable.type === 'array') {
@@ -294,7 +296,7 @@ function VariableRow({
                       },
                     });
                   } else {
-                    variable.datastore = cloneDeep(found);
+                    variable.variable = cloneDeep({ ...found });
                     variable.type = type;
                     if (variable.type === 'array') {
                       variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
@@ -396,7 +398,7 @@ function VariableRow({
                               }}
                               onChange={(_, _value) => {
                                 if (_value.key) {
-                                  variable.datastore = cloneDeep(_value);
+                                  variable.variable = cloneDeep({ ..._value });
                                   outputPopperState.close();
                                 } else {
                                   dialogState.open();
@@ -404,20 +406,14 @@ function VariableRow({
                               }}
                             />
                           </Box>
-                        </Box>
-
-                        <Box className="between">
-                          <Typography flex={2}>{t('variableParameter.reset')}</Typography>
-
-                          <Box flex={3}>
-                            <BaseSwitch
-                              checked={Boolean(variable.datastore?.reset || false)}
-                              onChange={(_, checked) => {
-                                variable.datastore ??= { dataType: variable.type, key: '', reset: checked };
-                                variable.datastore.reset = checked;
-                              }}
-                            />
-                          </Box>
+                          <IconButton
+                            onClick={() => {
+                              if (variable.variable) {
+                                delete variable.variable;
+                              }
+                            }}>
+                            <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={16}></Box>
+                          </IconButton>
                         </Box>
                       </Stack>
                     </Paper>
@@ -495,10 +491,11 @@ function VariableRow({
             key: data.key || '',
             scope: data.scope,
             dataType: variable.type as any,
+            reset: Boolean(data.reset),
           };
 
           variableYjs.variables.push(v);
-          variable.datastore = cloneDeep(v);
+          variable.variable = cloneDeep(v);
 
           dialogState.close();
         })}>
@@ -521,9 +518,7 @@ function VariableRow({
               render={({ field, fieldState }) => {
                 return (
                   <Box>
-                    <Typography variant="subtitle2" mb={0}>
-                      {t('outputVariableParameter.key')}
-                    </Typography>
+                    <Typography variant="subtitle2">{t('outputVariableParameter.key')}</Typography>
                     <BaseInput
                       sx={{ width: 1 }}
                       placeholder={t('outputVariableParameter.key')}
@@ -544,7 +539,7 @@ function VariableRow({
               render={({ field, fieldState }) => {
                 return (
                   <Box>
-                    <Typography flex={1}>{t('outputVariableParameter.scope')}</Typography>
+                    <Typography variant="subtitle2">{t('outputVariableParameter.scope')}</Typography>
                     <BaseSelect
                       variant="outlined"
                       placeholder={t('outputVariableParameter.scope')}
@@ -557,6 +552,19 @@ function VariableRow({
                         </MenuItem>
                       ))}
                     </BaseSelect>
+                  </Box>
+                );
+              }}
+            />
+
+            <Controller
+              control={form.control}
+              name="reset"
+              render={({ field }) => {
+                return (
+                  <Box>
+                    <Typography variant="subtitle2">{t('variableParameter.reset')}</Typography>
+                    <BaseSwitch {...field} />
                   </Box>
                 );
               }}

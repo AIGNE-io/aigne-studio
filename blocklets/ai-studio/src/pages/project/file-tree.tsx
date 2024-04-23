@@ -3,7 +3,7 @@ import Toast from '@arcblock/ux/lib/Toast';
 import {
   AssistantYjs,
   FileTypeYjs,
-  VariableYjs,
+  VariablesYjs,
   fileToYjs,
   isAssistant,
   nextAssistantId,
@@ -84,7 +84,7 @@ export type EntryWithMeta =
       filename: string;
       parent: string[];
       path: string[];
-      meta: Exclude<FileTypeYjs, { $base64: string } | VariableYjs>;
+      meta: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>;
     }
   | {
       type: 'folder';

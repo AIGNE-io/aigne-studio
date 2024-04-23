@@ -28,17 +28,17 @@ export default function AssistantHistory({
 
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
-  const setHistory = (update: (release: NonNullable<AssistantYjs['history']>) => void) => {
+  const setHistory = (update: (release: NonNullable<AssistantYjs['memory']>) => void) => {
     const doc = (getYjsValue(value) as Map<any>)?.doc!;
 
     doc.transact(() => {
-      value.history ??= {};
-      update(value.history);
+      value.memory ??= {};
+      update(value.memory);
     });
   };
 
   useEffect(() => {
-    value.history ??= {
+    value.memory ??= {
       enable: false,
       limit: 50,
       keyword: '',
@@ -61,13 +61,13 @@ export default function AssistantHistory({
 
         <Box>
           <Switch
-            defaultChecked={value.history?.enable ?? false}
+            defaultChecked={value.memory?.enable ?? false}
             onChange={(_, checked) => setHistory((data) => (data.enable = checked ?? false))}
           />
         </Box>
       </Stack>
 
-      {!!value.history?.enable && (
+      {!!value.memory?.enable && (
         <>
           <Box className="between">
             <Typography variant="subtitle3" mb={0} flex={1}>
@@ -80,7 +80,7 @@ export default function AssistantHistory({
                 max={100}
                 step={1}
                 sx={{ flex: 1 }}
-                value={value.history?.limit ?? 50}
+                value={value.memory?.limit ?? 50}
                 onChange={(_, v) => setHistory((data) => (data.limit = v))}
               />
             </Box>
@@ -99,7 +99,7 @@ export default function AssistantHistory({
                 ContentProps={{ sx: { px: 1, py: 0.5 } }}
                 path={[value.id, 'history']}
                 assistant={value}
-                value={value.history?.keyword ?? ''}
+                value={value.memory?.keyword ?? ''}
                 onChange={(prompt) => setHistory((data) => (data.keyword = prompt))}
               />
             </Box>

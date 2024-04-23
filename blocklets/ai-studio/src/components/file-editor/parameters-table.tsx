@@ -39,8 +39,6 @@ import { useId, useMemo, useRef } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import WithAwareness from '../awareness/with-awareness';
-// import BaseSelect from '../custom/select';
-// import BaseSwitch from '../custom/switch';
 import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
 import { ToolDialog, ToolDialogImperative } from './execute-block';

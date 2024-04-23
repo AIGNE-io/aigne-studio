@@ -31,8 +31,6 @@ import { useProjectStore } from '../../pages/project/yjs-state';
 import IndicatorTextField from '../awareness/indicator-text-field';
 import PromptEditorField from './prompt-editor-field';
 
-// import { useAssistantCompare } from 'src/pages/project/state';
-
 export default function ExecuteDatasetBlockForm({
   projectId,
   gitRef,

@@ -1,15 +1,7 @@
 import { readdir, rm, writeFile } from 'fs/promises';
 import path, { relative } from 'path';
 
-import {
-  Assistant,
-  FileTypeYjs,
-  fileFromYjs,
-  fileToYjs,
-  isAssistant,
-  isRawFile,
-  isVariableFile,
-} from '@blocklet/ai-runtime/types';
+import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { pathExists } from 'fs-extra';
@@ -17,6 +9,7 @@ import { glob } from 'glob';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
+import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
 import { authClient, wallet } from '../libs/auth';
@@ -24,6 +17,10 @@ import downloadLogo from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
+
+export const CONFIG_FONDER = 'config';
+export const VARIABLE_KEY = 'variable';
+export const VARIABLE_FILENAME = `${VARIABLE_KEY}.yaml`;
 
 export const defaultBranch = 'main';
 
@@ -88,14 +85,13 @@ export async function getRepository({
           }
         }
 
-        if (ext === '.config') {
+        if (
+          root === CONFIG_FONDER &&
+          filepath.startsWith(joinURL(CONFIG_FONDER, VARIABLE_FILENAME)) &&
+          ext === '.yaml'
+        ) {
           const variable = parse(Buffer.from(content).toString());
-
-          return {
-            filepath,
-            key: 'variable.config',
-            data: variable,
-          };
+          return { filepath, key: VARIABLE_KEY, data: variable };
         }
 
         return {
@@ -144,9 +140,10 @@ export async function getRepository({
           return [{ filepath, data }];
         }
 
-        if (isVariableFile(content)) {
-          const { type, variables } = content;
-          return [{ filepath, data: stringify({ type, variables }) }];
+        const [root, filename] = filepath.split('/');
+        if (root === CONFIG_FONDER && filename === VARIABLE_FILENAME) {
+          const { variables } = content;
+          return [{ filepath, data: stringify({ variables }) }];
         }
 
         return [{ filepath, data: '' }];

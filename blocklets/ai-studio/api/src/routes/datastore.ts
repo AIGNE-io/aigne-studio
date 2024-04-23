@@ -5,8 +5,6 @@ import Joi from 'joi';
 import { ensureComponentCallOrAuth } from '../libs/security';
 import Datastore from '../store/models/datastore';
 
-// import { getRepository } from '../store/repository';
-
 const router = Router();
 
 const getDatastoreSchema = Joi.object<{
@@ -18,12 +16,12 @@ const getDatastoreSchema = Joi.object<{
   scope?: string;
   key: string;
 }>({
-  userId: Joi.string().allow('').empty([null, '']),
-  sessionId: Joi.string().allow('').empty([null, '']),
-  assistantId: Joi.string().allow('').empty([null, '']),
-  projectId: Joi.string().allow('').empty([null, '']),
-  dataType: Joi.string().allow('').empty([null, '']),
-  scope: Joi.string().allow('').empty([null, '']),
+  userId: Joi.string().empty([null, '']),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  projectId: Joi.string().empty([null, '']),
+  dataType: Joi.string().empty([null, '']),
+  scope: Joi.string().empty([null, '']),
   key: Joi.string().required(),
 });
 
@@ -35,8 +33,8 @@ const postDatastoreSchema = Joi.object<{
 }>({
   key: Joi.string().required(),
   data: Joi.any(),
-  scope: Joi.string().allow('').empty([null, '']),
-  dataType: Joi.string().allow('').empty([null, '']),
+  scope: Joi.string().empty([null, '']),
+  dataType: Joi.string().empty([null, '']),
 });
 
 const postParamsSchema = Joi.object<{
@@ -46,10 +44,10 @@ const postParamsSchema = Joi.object<{
   projectId?: string;
   reset: boolean;
 }>({
-  userId: Joi.string().allow('').empty([null, '']),
-  sessionId: Joi.string().allow('').empty([null, '']),
-  assistantId: Joi.string().allow('').empty([null, '']),
-  projectId: Joi.string().allow('').empty([null, '']),
+  userId: Joi.string().empty([null, '']),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  projectId: Joi.string().empty([null, '']),
   reset: Joi.boolean().default(false),
 });
 
@@ -65,24 +63,12 @@ const putParamsSchema = Joi.object<{
 }>({
   id: Joi.string().allow('').empty([null, '']).optional(),
   key: Joi.string().allow('').empty([null, '']).optional(),
-  userId: Joi.string().allow('').empty([null, '']),
-  sessionId: Joi.string().allow('').empty([null, '']),
-  assistantId: Joi.string().allow('').empty([null, '']),
-  projectId: Joi.string().allow('').empty([null, '']),
-  dataType: Joi.string().allow('').empty([null, '']),
-  scope: Joi.string().allow('').empty([null, '']),
-});
-
-export const getPageQuerySchema = Joi.object<{
-  offset: number;
-  limit?: number;
-  projectId: string;
-  scope: string;
-}>({
-  offset: Joi.number().integer().min(0).default(0),
-  limit: Joi.number().integer().min(1).empty(null).default(5),
-  projectId: Joi.string().required(),
-  scope: Joi.string().valid('global', 'session', 'user').default('global').required(),
+  userId: Joi.string().empty([null, '']),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  projectId: Joi.string().empty([null, '']),
+  dataType: Joi.string().empty([null, '']),
+  scope: Joi.string().empty([null, '']),
 });
 
 const getVariableSchema = Joi.object<{
@@ -100,10 +86,10 @@ const getVariableSchema = Joi.object<{
   limit: Joi.number().integer().min(1).empty([null, '']).default(5).optional(),
   key: Joi.string().allow('').empty([null, '']).default(''),
   scope: Joi.string().valid('global', 'session', 'user').default('global').required(),
-  userId: Joi.string().allow('').empty([null, '']),
-  sessionId: Joi.string().allow('').empty([null, '']),
-  assistantId: Joi.string().allow('').empty([null, '']),
-  projectId: Joi.string().allow('').empty([null, '']),
+  userId: Joi.string().empty([null, '']),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  projectId: Joi.string().empty([null, '']),
   dataType: Joi.string().allow('').empty([null, '']).required(),
 });
 
@@ -422,17 +408,6 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
   }
 });
 
-router.get('/all-variables', async (_req, res) => {
-  return res.json({
-    list: [],
-    count: 0,
-  });
-});
-
-router.get('/all-variable', async (_req, res) => {
-  res.json({ list: [] });
-});
-
 router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const query = await getVariableSchema.validateAsync(req.query, { stripUnknown: true });
   const { key, projectId, scope, sessionId, dataType, userId } = query;
@@ -449,30 +424,34 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req
     ...(key && { key }),
   };
 
-  const datastores = await Datastore.findAll({ order: [['itemId', 'ASC']], where: params });
-
-  // 如果是 'local' 先查找local 如果没有值，查找 session 如果还没有 查找  global, 最后给出默认值
   if (scope === 'session') {
-    const filterAssistantDatastores = datastores.filter((x) => x.scope === 'session' && x.sessionId === sessionId);
-    if (filterAssistantDatastores.length) {
-      return res.json(filterAssistantDatastores);
+    const datastores = await Datastore.findAll({
+      order: [['itemId', 'ASC']],
+      where: { ...params, scope, sessionId },
+    });
+    if (datastores.length) {
+      return res.json(datastores);
     }
   }
 
   if (scope === 'session' || scope === 'user') {
-    const filerUserDatastores = datastores.filter((x) => x.scope === 'user');
-    if (filerUserDatastores.length) {
-      return res.json(filerUserDatastores);
+    const datastores = await Datastore.findAll({
+      order: [['itemId', 'ASC']],
+      where: { ...params, scope: 'user' },
+    });
+    if (datastores.length) {
+      return res.json(datastores);
     }
   }
 
   if (scope === 'session' || scope === 'user' || scope === 'global') {
-    const filerGlobalDatastores = datastores.filter((x) => x.scope === 'global');
-    if (filerGlobalDatastores.length) {
-      return res.json(filerGlobalDatastores);
+    const datastores = await Datastore.findAll({
+      order: [['itemId', 'ASC']],
+      where: { ...params, scope: 'global' },
+    });
+    if (datastores.length) {
+      return res.json(datastores);
     }
-
-    return res.json([]);
   }
 
   return res.json([]);

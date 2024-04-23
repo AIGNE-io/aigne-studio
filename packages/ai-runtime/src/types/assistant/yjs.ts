@@ -10,18 +10,17 @@ import type {
   Parameter,
   PromptAssistant,
   PromptMessage,
-  Scope,
   SelectParameter,
+  Variable,
 } from '.';
 
 export type ArrayToYjs<T extends Array<{ id: string }>> = { [key: string]: { index: number; data: T[number] } };
 
-export type VariableYjs = {
-  type: 'variables';
-  variables?: Scope[];
+export type VariablesYjs = {
+  variables?: Variable[];
 };
 
-export type FileTypeYjs = AssistantYjs | { $base64: string } | VariableYjs;
+export type FileTypeYjs = AssistantYjs | { $base64: string } | VariablesYjs;
 
 export type AssistantYjs = PromptAssistantYjs | ApiAssistantYjs | FunctionAssistantYjs | ImageAssistantYjs;
 

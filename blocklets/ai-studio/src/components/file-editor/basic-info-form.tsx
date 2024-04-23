@@ -7,8 +7,6 @@ import { useAssistantCompare } from '../../pages/project/state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 
-// import TagsAutoComplete from '../template-form/tags-autocomplete';
-
 export default function BasicInfoForm({
   projectId,
   gitRef,

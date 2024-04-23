@@ -518,20 +518,16 @@ const runRequestStorage = async ({
   if (
     datastoreParameter.key &&
     datastoreParameter.source?.variableFrom === 'datastore' &&
-    datastoreParameter.source.scope
+    datastoreParameter.source.variable
   ) {
     const currentTaskId = nextTaskId();
 
     const scopeParams = scopeMap.local;
     const params = {
       ...scopeParams,
-      // key: toLower(datastoreParameter.key),
-      // itemId: datastoreParameter.source.itemId
-      //   ? await renderMessage(datastoreParameter.source.itemId, parameters)
-      //   : datastoreParameter.source.itemId,
-      scope: datastoreParameter.source.scope?.scope || defaultScope,
-      dataType: datastoreParameter.source.scope?.dataType,
-      key: toLower(datastoreParameter.source.scope?.key) || toLower(datastoreParameter.key),
+      scope: datastoreParameter.source.variable?.scope || defaultScope,
+      dataType: datastoreParameter.source.variable?.dataType,
+      key: toLower(datastoreParameter.source.variable?.key) || toLower(datastoreParameter.key),
     };
 
     const callbackParams = {
@@ -540,7 +536,7 @@ const runRequestStorage = async ({
       assistantId: assistant.id,
       assistantName: startCase(
         toLower(
-          `The storage info of ${datastoreParameter.key} key for ${datastoreParameter.source.scope.scope || defaultScope} Scope`
+          `The storage info of ${datastoreParameter.key} key for ${datastoreParameter.source.variable.scope || defaultScope} Scope`
         )
       ),
     };
@@ -565,7 +561,10 @@ const runRequestStorage = async ({
       params,
     });
     const list = (data || []).map((x: any) => x?.data).filter((x: any) => x);
-    const result = list?.length > 0 ? list : list[0] ?? datastoreParameter.source.defaultValue;
+    let result = list?.length > 0 ? list : [datastoreParameter.source.defaultValue];
+    if (datastoreParameter.source.variable.reset) {
+      result = result?.length > 0 ? result : result[0];
+    }
 
     callback?.({
       type: AssistantResponseType.CHUNK,
@@ -915,9 +914,9 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  if (assistant.history?.enable) {
+  if (assistant.memory?.enable) {
     const lastSystemIndex = messages.findLastIndex((i) => i.role === 'system');
-    const histories = await runRequestHistory({
+    const memories = await runRequestHistory({
       assistant,
       parentTaskId: taskId,
       user,
@@ -925,19 +924,19 @@ async function runPromptAssistant({
       params: {
         sessionId,
         userId: user?.did,
-        limit: assistant.history.limit || 50,
-        keyword: await renderMessage(assistant.history.keyword || '', variables),
+        limit: assistant.memory.limit || 50,
+        keyword: await renderMessage(assistant.memory.keyword || '', variables),
       },
     });
 
-    if (histories.length) {
+    if (memories.length) {
       messages.splice(lastSystemIndex, 0, {
         role: 'system',
         content: `## Memory
-        Here is the chat histories between user and assistant, inside <histories></histories> XML tags.
-        <histories>
-        ${JSON.stringify(histories)}
-        </histories>`,
+        Here is the chat memories between user and assistant, inside <memories></memories> XML tags.
+        <memories>
+        ${JSON.stringify(memories)}
+        </memories>`,
       });
     }
   }
@@ -1079,20 +1078,20 @@ async function runPromptAssistant({
   }
 
   for (const output of assistant?.outputVariables || []) {
-    if (output?.datastore?.key && output?.name && jsonResult && jsonResult[output?.name as any] && outputJson) {
+    if (output?.variable?.key && output?.name && jsonResult && jsonResult[output?.name as any] && outputJson) {
       const params = {
         params: {
           userId: user?.did || '',
           projectId,
           sessionId,
           assistantId: assistant.id,
-          reset: output.datastore.reset,
+          reset: output.variable.reset,
         },
         data: {
           data: jsonResult[output?.name as any],
-          key: toLower(output.datastore?.key),
-          dataType: output.datastore.dataType,
-          scope: output.datastore.scope,
+          key: toLower(output.variable?.key),
+          dataType: output.variable.dataType,
+          scope: output.variable.scope,
         },
       };
       await callFunc({
