@@ -151,20 +151,24 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   }, [dialogState.open, onSave, gitRef]);
 
   const sub = useSubscription(projectId);
-  if (sub) {
-    sub.on(EVENTS.PROJECT.SYNC_TO_DID_SPACE, (data: { response: { done: boolean; error: Error } }) => {
-      const done = data.response?.done;
-      setLoading(!done);
+  useEffect(() => {
+    if (sub) {
+      sub.on(EVENTS.PROJECT.SYNC_TO_DID_SPACE, (data: { response: { done: boolean; error: Error } }) => {
+        const done = data.response?.done;
+        setLoading(!done);
 
-      if (!done) {
-        return;
-      }
+        if (!done) {
+          return;
+        }
 
-      if (data.response.error) {
-        Toast.error(data.response.error.message);
-      }
-    });
-  }
+        if (data.response.error) {
+          Toast.error(data.response.error.message);
+        } else {
+          Toast.success(t('synced'));
+        }
+      });
+    }
+  }, [sub]);
 
   return (
     <>
