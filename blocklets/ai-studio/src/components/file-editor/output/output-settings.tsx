@@ -69,13 +69,13 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
           sx={{
             fontWeight: 500,
           }}>
-          {t('outputVariables')}
+          {t('output')}
         </Typography>
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end" />
 
         <Stack direction="row" alignItems="center" gap={1} onClick={(e) => e.stopPropagation()}>
-          <Typography variant="subtitle4">Output Format</Typography>
+          <Typography variant="subtitle4">{t('outputFormat')}</Typography>
 
           <TextField
             size="small"
@@ -86,8 +86,8 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
             onChange={(e) => {
               value.outputFormat = e.target.value as any;
             }}>
-            <MenuItem value="text">Text</MenuItem>
-            <MenuItem value="json">JSON</MenuItem>
+            <MenuItem value="text">{t('text')}</MenuItem>
+            <MenuItem value="json">{t('json')}</MenuItem>
           </TextField>
         </Stack>
 
@@ -102,23 +102,15 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
       </Stack>
 
       <Collapse in={open}>
-        <Box component="table">
+        <Box component="table" sx={{ minWidth: '100%', th: { whiteSpace: 'nowrap' } }}>
           <thead>
             <tr>
-              <Box component="th" align="left">
-                Variable
-              </Box>
-              <Box component="th">Description</Box>
-              <Box component="th" align="center">
-                Type
-              </Box>
-              <Box component="th" align="center">
-                Required
-              </Box>
-              <Box component="th" align="center">
-                Default Value
-              </Box>
-              <Box component="th">Setting</Box>
+              <Box component="th">{t('name')}</Box>
+              <Box component="th">{t('description')}</Box>
+              <Box component="th">{t('type')}</Box>
+              <Box component="th">{t('required')}</Box>
+              <Box component="th">{t('defaultValue')}</Box>
+              <Box component="th">{t('actions')}</Box>
             </tr>
           </thead>
           <tbody>
@@ -201,13 +193,13 @@ function VariableRow({
                 }}>
                 {runtimeVariable.icon}
 
-                <Typography>{runtimeVariable.title}</Typography>
+                <Typography>{t(runtimeVariable.i18nKey)}</Typography>
               </Stack>
             ) : (
               <TextField
                 fullWidth
                 hiddenLabel
-                placeholder="Name"
+                placeholder={t('name')}
                 value={variable.name || ''}
                 onChange={(e) => (variable.name = e.target.value)}
               />
@@ -218,7 +210,7 @@ function VariableRow({
           <TextField
             fullWidth
             hiddenLabel
-            placeholder="Description"
+            placeholder={t('placeholder')}
             value={variable.description || ''}
             onChange={(e) => (variable.description = e.target.value)}
           />
@@ -562,12 +554,14 @@ function VariableRow({
 }
 
 function VariableTypeField({ ...props }: TextFieldProps) {
+  const { t } = useLocaleContext();
+
   return (
-    <TextField hiddenLabel placeholder="Type" select SelectProps={{ autoWidth: true }} {...props}>
-      <MenuItem value="string">String</MenuItem>
-      <MenuItem value="number">Number</MenuItem>
-      <MenuItem value="object">Object</MenuItem>
-      <MenuItem value="array">Array</MenuItem>
+    <TextField hiddenLabel placeholder={t('type')} select SelectProps={{ autoWidth: true }} {...props}>
+      <MenuItem value="string">{t('text')}</MenuItem>
+      <MenuItem value="number">{t('number')}</MenuItem>
+      <MenuItem value="object">{t('object')}</MenuItem>
+      <MenuItem value="array">{t('array')}</MenuItem>
     </TextField>
   );
 }

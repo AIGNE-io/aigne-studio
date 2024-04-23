@@ -57,9 +57,9 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
         });
       })
       .concat([
-        new VariablePickerOption(`${t('form.add')}${t('variable')}`, {
+        new VariablePickerOption(`${t('add')}${t('variable')}`, {
           disabled: true,
-          replaceTitle: `${t('form.add')}$$$${t('variable')}`,
+          replaceTitle: `${t('add')}$$$${t('variable')}`,
           icon: (
             <DataObjectRounded
               sx={{

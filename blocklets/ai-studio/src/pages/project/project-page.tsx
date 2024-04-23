@@ -167,7 +167,7 @@ export default function ProjectPage() {
                 </Button>
               )}
 
-              <Tooltip title={t('import.title')} disableInteractive>
+              <Tooltip title={t('importObject', { object: t('agents') })} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
                     <Box component={Icon} icon="tabler:table-import" fontSize={20} color="#3B82F6" />
@@ -189,7 +189,7 @@ export default function ProjectPage() {
                 </span>
               </Tooltip>
 
-              <Tooltip title={t('newObject', { object: t('file') })} disableInteractive>
+              <Tooltip title={t('newObject', { object: t('agent') })} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} {...bindTrigger(createFileMenuState)}>
                     <Box component={Icon} icon="tabler:plus" fontSize={20} color="#3B82F6" />

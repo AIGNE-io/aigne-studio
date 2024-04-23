@@ -20,14 +20,13 @@ export async function generateOutput({
   const outputSchema = JSON.stringify(jsonSchema, null, 2);
 
   messages.push({
-    role: 'system',
+    role: 'user',
     content: `\
 Generate a json object according above messages.
 
-## Format
+## Output Format
 
-Output a JSON object match the following JSON schema:
-
+[Output a JSON object by the following JSON schema]
 ${outputSchema}
 `,
   });
