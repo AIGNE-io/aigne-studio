@@ -1,3 +1,17 @@
+## 0.1.343 (2024-4-23)
+
+- feat: support async sync to did spaces
+- chore: update deps
+- feat: support go to did spaces import page v4
+- feat: support go to did spaces import page v3
+- feat: support go to did spaces import page v2
+- feat: support go to did spaces import page
+- Merge remote-tracking branch 'origin/main' into feat-0420
+- feat: support go to did spaces import page
+- fix: polish CI deploy error (#833)
+- chore: replace vector store (#829)
+- chore: update deps
+
 ## 0.1.342 (2024-4-22)
 
 - fix: CI deploy error
