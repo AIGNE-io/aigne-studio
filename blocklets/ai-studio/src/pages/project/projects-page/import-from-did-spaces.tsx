@@ -1,10 +1,12 @@
 /* eslint-disable consistent-return */
 import Project from '@api/store/models/project';
 import { useSessionContext } from '@app/contexts/session';
-import { didSpaceReady } from '@app/libs/did-spaces';
+import { didSpaceReady, getImportUrl } from '@app/libs/did-spaces';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import KeyboardArrowRightOutlinedIcon from '@mui/icons-material/KeyboardArrowRightOutlined';
+import LinkOutlinedIcon from '@mui/icons-material/LinkOutlined';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
@@ -38,6 +40,87 @@ type ProjectSettingForm = {
   name: string;
   description: string;
 };
+
+export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClose: () => void }) {
+  const { t } = useLocaleContext();
+  const { session } = useSessionContext();
+  const hasDidSpace = didSpaceReady(session.user);
+
+  const fromCurrentDidSpaceImport = useCallback(async () => {
+    const importUrl = await getImportUrl(session?.user?.didSpace?.endpoint, { redirectUrl: window.location.href });
+    window.location.href = importUrl;
+  }, [session?.user?.didSpace?.endpoint]);
+
+  const fromOtherDidSpaceImport = useCallback(() => {
+    session.connectToDidSpaceForImport({
+      onSuccess: (response: { importUrl: string }, decrypt: (value: string) => string) => {
+        const importUrl = decrypt(response.importUrl);
+        window.location.href = withQuery(importUrl, {
+          redirectUrl: window.location.href,
+        });
+      },
+    });
+    onClose();
+  }, [session]);
+
+  return (
+    <Dialog open disableEnforceFocus maxWidth="sm" fullWidth component="form" onClose={onClose}>
+      <DialogTitle className="between">
+        <Box>{t('import.didSpacesTitle')}</Box>
+
+        <IconButton size="small" onClick={onClose}>
+          <Close />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent>
+        <Stack overflow="auto" gap={1.5}>
+          {hasDidSpace && (
+            <Box
+              sx={{
+                display: 'flex',
+                backgroundColor: '#F9FAFB',
+                '&:hover': {
+                  backgroundColor: '#F3F4F6',
+                },
+                '&:active': {
+                  backgroundColor: '#E5E7E8',
+                },
+                padding: '16px 12px',
+                cursor: 'pointer',
+                borderRadius: '8px',
+              }}
+              onClick={fromCurrentDidSpaceImport}>
+              <>
+                <Typography>{t('import.fromCurrentDidSpaceImport')}</Typography>
+                <KeyboardArrowRightOutlinedIcon sx={{ ml: 0.5 }} />
+              </>
+            </Box>
+          )}
+
+          <Box
+            sx={{
+              display: 'flex',
+              backgroundColor: '#F9FAFB',
+              '&:hover': {
+                backgroundColor: '#F3F4F6',
+              },
+              '&:active': {
+                backgroundColor: '#E5E7E8',
+              },
+              padding: '16px 12px',
+              cursor: 'pointer',
+              borderRadius: '8px',
+            }}
+            onClick={fromOtherDidSpaceImport}>
+            <Typography>{t('import.fromOtherDidSpaceImport')}</Typography>
+            <LinkOutlinedIcon sx={{ ml: 0.5 }} />
+          </Box>
+        </Stack>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function FromDidSpacesImport() {
   const { t } = useLocaleContext();

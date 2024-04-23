@@ -105,6 +105,8 @@ export default flat({
     didSpaces: '从 DID Spaces 导入',
     didSpacesTitle: '从 DID Spaces 导入项目',
     didSpacesDescription: '从已绑定的 DID Spaces 中导入项目',
+    fromCurrentDidSpaceImport: '从当前绑定的 DID Space 导入项目',
+    fromOtherDidSpaceImport: '从其他 DID Space 导入项目',
     selectProject: '选择项目',
     selectBranch: '选择分支',
     templates: '模板数据',

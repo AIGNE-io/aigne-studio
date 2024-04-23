@@ -51,7 +51,7 @@ export function workingRoutes(router: Router) {
         author,
       });
 
-      await autoSyncIfNeeded({ project, author, userId });
+      await autoSyncIfNeeded({ project, author, userId, wait: false });
 
       project.changed('updatedAt', true);
       await project.update({ updatedAt: new Date() });
