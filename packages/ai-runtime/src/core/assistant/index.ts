@@ -1024,7 +1024,7 @@ async function runPromptAssistant({
 
   // 非JSON这里如何处理?
   for (const output of assistant?.outputVariables || []) {
-    if (output.datastore && output.datastore?.key && output?.name && jsonResult[output?.name as any]) {
+    if (output?.datastore?.key && output?.name && jsonResult && jsonResult[output?.name as any] && outputJson) {
       const params = {
         params: {
           userId: user?.did || '',
@@ -1040,7 +1040,6 @@ async function runPromptAssistant({
           scope: output.datastore.scope,
         },
       };
-
       await callFunc({
         name: 'ai-studio',
         path: '/api/datastore',
@@ -1048,7 +1047,6 @@ async function runPromptAssistant({
         headers: getUserHeader(user),
         ...params,
       });
-
       logger.info('save parameter tool to datastore success', params);
     }
   }
