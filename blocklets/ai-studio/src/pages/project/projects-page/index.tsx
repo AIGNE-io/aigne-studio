@@ -114,6 +114,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
   const resource = (list || []).filter((x) => x.isFromResource);
   const { t } = useLocaleContext();
   const [dialog, setDialog] = useState<any>(null);
+  const { checkProjectLimit } = useProjectsState();
 
   return (
     <>
