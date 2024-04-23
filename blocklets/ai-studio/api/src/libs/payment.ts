@@ -161,8 +161,7 @@ export async function reportUsage({
         if (!subscription) throw new Error('Subscription not active');
 
         const subscriptionItem = subscription.items[0];
-        console.log(subscriptionItem);
-        if (!subscriptionItem) throw new Error(`Subscription item not found`);
+        if (!subscriptionItem) throw new Error('Subscription item not found');
 
         await end.update({ usageReportStatus: 'counted' });
 

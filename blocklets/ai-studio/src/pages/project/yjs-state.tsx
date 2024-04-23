@@ -3,6 +3,7 @@ import {
   Assistant,
   AssistantYjs,
   FileTypeYjs,
+  Scope,
   isApiAssistant,
   isAssistant,
   isFunctionAssistant,

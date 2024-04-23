@@ -596,7 +596,7 @@ export default flat({
     scope: '作用域',
     defaultValue: '默认数据',
     persist: '持久化',
-    reset: '是否覆盖历史数据',
+    reset: '覆盖历史数据',
     global: '全局存储',
     session: 'Session 存储',
     local: '当前存储',

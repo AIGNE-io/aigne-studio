@@ -431,7 +431,7 @@ function PopperButton({
   const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const { t } = useLocaleContext();
 
-  const { getFileById } = useProjectStore(projectId, gitRef);
+  const { getFileById, getVariables } = useProjectStore(projectId, gitRef);
 
   const FROM_MAP = useMemo(() => {
     const map = {
@@ -462,7 +462,9 @@ function PopperButton({
       }
 
       if (parameter.source.variableFrom === 'datastore') {
-        const variables = value?.variables || [];
+        const v = getVariables();
+
+        const variables = v?.variables || [];
         const variable = variables.find((x) => {
           const j = parameter.source?.scope ?? {};
           return `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`;
@@ -510,9 +512,9 @@ function PopperButton({
                 <Autocomplete
                   options={variables}
                   groupBy={(option) => option.scope || ''}
-                  getOptionLabel={(option) => option.key}
+                  getOptionLabel={(option) => `${option.scope} -  ${option.key}`}
                   sx={{ width: 1 }}
-                  renderInput={(params) => <TextField {...params} />}
+                  renderInput={(params) => <TextField hiddenLabel {...params} />}
                   key={Boolean(variable).toString()}
                   disableClearable
                   clearOnBlur
@@ -525,6 +527,9 @@ function PopperButton({
                   isOptionEqualToValue={(x, j) =>
                     `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`
                   }
+                  renderOption={(props, option) => {
+                    return <MenuItem {...props}>{option.key}</MenuItem>;
+                  }}
                   onChange={(_, _value) => {
                     parameter.source.scope = {
                       key: _value.key,
