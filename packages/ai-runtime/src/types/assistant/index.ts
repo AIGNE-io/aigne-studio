@@ -8,7 +8,12 @@ export enum OnTaskCompletion {
   EXIT = 'EXIT',
 }
 
-export type FileType = Assistant | { $base64: string };
+export type Variable = {
+  type: 'variables';
+  variables?: Scope[];
+};
+
+export type FileType = Assistant | { $base64: string } | Variable;
 
 export type Assistant = PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
 
@@ -123,8 +128,6 @@ export interface AssistantBase {
     limit?: number;
     keyword?: string;
   };
-
-  variables?: Scope[];
 }
 
 export interface OutputVariableBase {

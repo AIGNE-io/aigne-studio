@@ -8,6 +8,7 @@ import {
   isFunctionAssistant,
   isImageAssistant,
   isPromptAssistant,
+  isVariableFile,
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
 import {
@@ -185,6 +186,16 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       },
       [syncedStore.files]
     ),
+    getVariables: useCallback(() => {
+      const filepath = 'variable.config';
+      const file = syncedStore.files[filepath];
+
+      if (file && isVariableFile(file)) return file;
+
+      syncedStore.tree[filepath] = filepath;
+      syncedStore.files[filepath] = { type: 'variables', variables: [] };
+      return syncedStore.files[filepath];
+    }, [syncedStore.files]),
   };
 };
 

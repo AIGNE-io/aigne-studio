@@ -1,7 +1,15 @@
 import { readdir, rm, writeFile } from 'fs/promises';
 import path, { relative } from 'path';
 
-import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
+import {
+  Assistant,
+  FileTypeYjs,
+  fileFromYjs,
+  fileToYjs,
+  isAssistant,
+  isRawFile,
+  isVariableFile,
+} from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { pathExists } from 'fs-extra';
@@ -51,6 +59,7 @@ export async function getRepository({
       parse: async (filepath, content, { ref }) => {
         const { dir, ext } = path.parse(filepath);
         const [root] = filepath.split('/');
+        logger.info(filepath, ext, 'logger parse');
 
         if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
           const testFilepath = filepath.replace(new RegExp(`^${PROMPTS_FOLDER_NAME}`), TESTS_FOLDER_NAME);
@@ -80,6 +89,16 @@ export async function getRepository({
           }
         }
 
+        if (ext === '.config') {
+          const variable = parse(Buffer.from(content).toString());
+
+          return {
+            filepath,
+            key: nanoid(32),
+            data: variable,
+          };
+        }
+
         return {
           filepath,
           key: nanoid(32),
@@ -90,6 +109,7 @@ export async function getRepository({
       },
       stringify: async (filepath, content) => {
         if (filepath.startsWith(TESTS_FOLDER_NAME)) return null;
+        logger.info(filepath, content, 'logger');
 
         if (isAssistant(content)) {
           const fileContent = fileFromYjs(content);
@@ -122,10 +142,13 @@ export async function getRepository({
 
         if (isRawFile(content)) {
           const base64 = content.$base64;
-
           const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
-
           return [{ filepath, data }];
+        }
+
+        if (isVariableFile(content)) {
+          const { type, variables } = content;
+          return [{ filepath, data: stringify({ type, variables }) }];
         }
 
         return [{ filepath, data: '' }];
