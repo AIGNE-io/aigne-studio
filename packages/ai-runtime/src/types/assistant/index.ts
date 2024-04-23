@@ -76,7 +76,7 @@ export type Prompt =
     };
 
 export type Scope = {
-  scope?: 'user' | 'global' | 'session';
+  scope?: 'session' | 'user' | 'global';
   key: string;
   dataType: any;
 };

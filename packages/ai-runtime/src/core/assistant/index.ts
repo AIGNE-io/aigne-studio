@@ -54,7 +54,7 @@ const getUserHeader = (user: any) => {
   };
 };
 
-const defaultScope = 'user';
+const defaultScope = 'session';
 
 const MAX_RETRIES = 3;
 
