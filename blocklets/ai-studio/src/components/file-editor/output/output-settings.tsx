@@ -351,9 +351,7 @@ function VariableRow({
                             <Autocomplete
                               options={variables}
                               groupBy={(option) => option.scope || ''}
-                              getOptionLabel={(option) =>
-                                option.scope ? `${t(`variableParameter.${option.scope}`)} ${option.key}` : option.key
-                              }
+                              getOptionLabel={(option) => option.key}
                               sx={{ width: 1 }}
                               renderInput={(params) => <TextField {...params} />}
                               key={Boolean(datastoreVariable).toString()}
