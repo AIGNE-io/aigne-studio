@@ -1,7 +1,6 @@
-## 0.1.343 (2024-4-23)
+## 0.1.343 (2024-4-22)
 
-- feat: support for asynchronous synchronization to did space
-- feat: optimized the experience of importing projects from did spaces
+- chore: polish multi tenant logic
 
 ## 0.1.342 (2024-4-22)
 

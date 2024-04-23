@@ -1,8 +1,11 @@
 import { useCurrentGitStore } from '@app/store/current-git-store';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { useCallback } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 import * as api from '../libs/project';
+import { useIsPromptAdmin } from './session';
 
 export type ProjectsSection = 'templates' | 'projects' | 'examples';
 
@@ -29,6 +32,8 @@ const projectsState = atom<ProjectsState>({
 export const useProjectsState = () => {
   const [state, setState] = useRecoilState(projectsState);
   const setProjectGitSettings = useCurrentGitStore((i) => i.setProjectGitSettings);
+  const isPromptAdmin = useIsPromptAdmin();
+  const { t } = useLocaleContext();
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
@@ -112,6 +117,23 @@ export const useProjectsState = () => {
     [setState]
   );
 
+  const checkProjectLimit = () => {
+    if (window?.blocklet?.preferences?.serviceMode === 'multi-tenant') {
+      // check project count limit
+      const count = state.projects.length;
+      const currentLimit = window?.blocklet?.preferences?.multiTenantProjectLimits;
+      if (count >= currentLimit && !isPromptAdmin) {
+        Toast.error(
+          t('projectLimitExceeded', {
+            limit: currentLimit,
+            current: count,
+          })
+        );
+        throw new Error(`Project limit exceeded (current: ${count}, limit: ${currentLimit}) `);
+      }
+    }
+  };
+
   return {
     state,
     refetch,
@@ -123,5 +145,6 @@ export const useProjectsState = () => {
     listProjectsByDidSpaces,
     setSelected,
     setMenuAnchor,
+    checkProjectLimit,
   };
 };

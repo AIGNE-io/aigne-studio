@@ -615,4 +615,5 @@ export default flat({
   noDocumentDesc: '目前数据是空',
   copyTool: '复制执行块',
   visitLink: '访问链接',
+  projectLimitExceeded: '项目数量已达上限（当前 {current} 个，最多可创建 {limit} 个）',
 });
