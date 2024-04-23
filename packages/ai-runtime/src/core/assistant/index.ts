@@ -624,14 +624,13 @@ const runRequestHistory = async ({
     inputParameters: params as any,
   });
 
-  const { data } = await callFunc({
+  const { data: result } = await callFunc({
     name: 'ai-studio',
     path: '/api/messages',
     method: 'GET',
     headers: getUserHeader(user),
     params,
   });
-  const result = (data || []).map((x: any) => x?.result).filter((x: any) => x);
 
   callback?.({
     type: AssistantResponseType.CHUNK,
