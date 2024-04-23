@@ -972,7 +972,7 @@ async function runPromptAssistant({
         try {
           const obj = JSON.parse(i);
           Object.assign(json, obj);
-        } catch (error) {
+        } catch {
           // ignore
         }
       }
@@ -1007,7 +1007,7 @@ async function runPromptAssistant({
     return { jsonResult, result, aiResult };
   };
 
-  const { jsonResult, result, aiResult } = await retry(run, streamJson ? 0 : MAX_RETRIES);
+  const { jsonResult, result, aiResult } = await retry(run, outputJson ? MAX_RETRIES : 0);
 
   if (jsonResult) {
     callback?.({
