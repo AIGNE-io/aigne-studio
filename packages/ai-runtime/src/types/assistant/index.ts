@@ -84,6 +84,7 @@ export type Variable = {
   key: string;
   dataType: any;
   reset?: boolean;
+  defaultValue?: any;
 };
 
 export interface AssistantBase {
@@ -199,7 +200,6 @@ export interface DatastoreBase {
   // cache?: boolean; // 先不支持
   // itemId?: string; // 先不支持
   variable?: Variable;
-  defaultValue?: any;
 }
 
 export interface DatastoreParameter extends DatastoreBase {

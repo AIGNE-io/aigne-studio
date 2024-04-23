@@ -37,6 +37,7 @@ import { useId, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import BaseSwitch from '../../custom/switch';
+import PromptEditorField from '../prompt-editor-field';
 import AddOutputVariableButton from './AddOutputVariableButton';
 import { getRuntimeOutputVariable } from './type';
 
@@ -158,7 +159,7 @@ export default function OutputSettings({
 }
 
 const filter = createFilterOptions<Variable>();
-type Input = { scope: Variable['scope']; key?: string; reset: boolean };
+type Input = { scope: Variable['scope']; key?: string; reset: boolean; defaultValue?: string };
 
 function VariableRow({
   value,
@@ -179,7 +180,14 @@ function VariableRow({
   const doc = (getYjsValue(variable) as Map<any>).doc!;
   const outputPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const runtimeVariable = getRuntimeOutputVariable(variable);
-  const form = useForm<Input>({ defaultValues: { reset: false, scope: 'session', key: '' } });
+  const form = useForm<Input>({
+    defaultValues: {
+      reset: false,
+      scope: 'session',
+      key: variable.name ?? '',
+      defaultValue: (variable as any)?.defaultValue ?? '',
+    },
+  });
 
   const dialogState = usePopupState({ variant: 'dialog' });
   const { dialog, showDialog } = useDialog();
@@ -284,6 +292,7 @@ function VariableRow({
                           key: variable.variable?.key || '',
                           dataType: type,
                           reset: Boolean(variable.variable?.reset),
+                          defaultValue: '',
                         };
 
                         variableYjs.variables.push(v);
@@ -364,8 +373,7 @@ function VariableRow({
                             <Autocomplete
                               options={variables}
                               groupBy={(option) => option.scope || ''}
-                              getOptionLabel={(option) => `${option.scope} - ${option.key}`}
-                              sx={{ width: 1 }}
+                              getOptionLabel={(option) => `${option.key} - (${option.scope} - ${option.dataType})`}
                               renderInput={(params) => <TextField hiddenLabel {...params} />}
                               key={Boolean(datastoreVariable).toString()}
                               disableClearable
@@ -380,11 +388,18 @@ function VariableRow({
                                 `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`
                               }
                               renderOption={(props, option) => {
-                                return (
-                                  <MenuItem {...props}>
-                                    {option.key ? option.key || t('unnamed') : t('outputVariableParameter.addData')}
-                                  </MenuItem>
-                                );
+                                if (option.key) {
+                                  return (
+                                    <MenuItem {...props} key={`${option.key} - (${option.scope} - ${option.dataType})`}>
+                                      <Typography variant="subtitle2" mb={0}>
+                                        {option.key}
+                                      </Typography>
+                                      <Typography variant="subtitle4">{`- (${option.dataType})`}</Typography>
+                                    </MenuItem>
+                                  );
+                                }
+
+                                return <MenuItem {...props}>{t('outputVariableParameter.addData')}</MenuItem>;
                               }}
                               filterOptions={(_, params) => {
                                 const filtered = filter(variables, params);
@@ -401,6 +416,8 @@ function VariableRow({
                                   variable.variable = cloneDeep({ ..._value });
                                   outputPopperState.close();
                                 } else {
+                                  form.setValue('key', variable.name ?? '');
+                                  form.setValue('defaultValue', (variable as any)?.defaultValue ?? '');
                                   dialogState.open();
                                 }
                               }}
@@ -492,6 +509,7 @@ function VariableRow({
             scope: data.scope,
             dataType: variable.type as any,
             reset: Boolean(data.reset),
+            defaultValue: data.defaultValue,
           };
 
           variableYjs.variables.push(v);
@@ -514,17 +532,30 @@ function VariableRow({
               name="key"
               rules={{
                 required: t('outputVariableParameter.keyRequired'),
+                validate: (value) => {
+                  const found = (variableYjs.variables || [])?.find((x) => {
+                    return (
+                      `${x.dataType}_${x.scope}_${x.key}` === `${variable.type}_${form.getValues('scope')}_${value}`
+                    );
+                  });
+
+                  if (found) {
+                    return t('variableParameter.duplicate');
+                  }
+
+                  return true;
+                },
               }}
               render={({ field, fieldState }) => {
                 return (
                   <Box>
                     <Typography variant="subtitle2">{t('outputVariableParameter.key')}</Typography>
-                    <BaseInput
-                      sx={{ width: 1 }}
-                      placeholder={t('outputVariableParameter.key')}
-                      {...field}
-                      error={Boolean(fieldState.error)}
-                    />
+                    <BaseInput sx={{ width: 1 }} placeholder={t('outputVariableParameter.key')} {...field} />
+                    {Boolean(fieldState.error) && (
+                      <Typography variant="subtitle5" color="warning.main">
+                        {fieldState.error?.message}
+                      </Typography>
+                    )}
                   </Box>
                 );
               }}
@@ -535,6 +566,17 @@ function VariableRow({
               name="scope"
               rules={{
                 required: t('outputVariableParameter.scopeRequired'),
+                validate: (value) => {
+                  const found = (variableYjs.variables || [])?.find((x) => {
+                    return `${x.dataType}_${x.scope}_${x.key}` === `${variable.type}_${value}_${form.getValues('key')}`;
+                  });
+
+                  if (found) {
+                    return t('variableParameter.duplicate');
+                  }
+
+                  return true;
+                },
               }}
               render={({ field, fieldState }) => {
                 return (
@@ -552,6 +594,11 @@ function VariableRow({
                         </MenuItem>
                       ))}
                     </BaseSelect>
+                    {Boolean(fieldState.error) && (
+                      <Typography variant="subtitle5" color="warning.main">
+                        {fieldState.error?.message}
+                      </Typography>
+                    )}
                   </Box>
                 );
               }}
@@ -560,11 +607,42 @@ function VariableRow({
             <Controller
               control={form.control}
               name="reset"
-              render={({ field }) => {
+              render={({ field, fieldState }) => {
                 return (
                   <Box>
                     <Typography variant="subtitle2">{t('variableParameter.reset')}</Typography>
                     <BaseSwitch {...field} />
+                    {Boolean(fieldState.error) && (
+                      <Typography variant="subtitle5" color="warning.main">
+                        {fieldState.error?.message}
+                      </Typography>
+                    )}
+                  </Box>
+                );
+              }}
+            />
+
+            <Controller
+              control={form.control}
+              name="defaultValue"
+              render={({ field, fieldState }) => {
+                return (
+                  <Box>
+                    <Typography variant="subtitle2">{t('variableParameter.defaultValue')}</Typography>
+
+                    <PromptEditorField
+                      placeholder={t('variableParameter.defaultValue')}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      assistant={value}
+                      path={[value.id, variable.id]}
+                      {...field}
+                    />
+                    {Boolean(fieldState.error) && (
+                      <Typography variant="subtitle5" color="warning.main">
+                        {fieldState.error?.message}
+                      </Typography>
+                    )}
                   </Box>
                 );
               }}
