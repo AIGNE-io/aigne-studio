@@ -1,3 +1,21 @@
+## 0.1.344 (2024-4-23)
+
+- fix: conflicts
+- fix: some bugs
+- fix: some bugs
+- chore: bump version
+- feat: add deps
+- chore: bump version
+- feat: support async sync to did spaces
+- chore: update deps
+- feat: support go to did spaces import page v4
+- feat: support go to did spaces import page v3
+- feat: support go to did spaces import page v2
+- feat: support go to did spaces import page
+- Merge remote-tracking branch 'origin/main' into feat-0420
+- feat: support go to did spaces import page
+- chore: update deps
+
 ## 0.1.343 (2024-4-22)
 
 - chore: polish multi tenant logic
