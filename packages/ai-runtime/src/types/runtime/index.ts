@@ -105,6 +105,7 @@ export type RunAssistantError = {
 };
 
 export type RuntimeOutputVariable =
+  | 'images'
   | '$suggested.questions'
   | '$page.background.image'
   | '$page.background.color'

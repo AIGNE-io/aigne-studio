@@ -10,7 +10,7 @@ export enum OnTaskCompletion {
 
 export type FileType = Assistant | { $base64: string };
 
-export type Assistant = PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
+export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -139,6 +139,10 @@ export type OutputVariable = OutputVariableBase &
         element?: OutputVariable;
       }
   );
+
+export interface Agent extends AssistantBase {
+  type: 'agent';
+}
 
 export interface PromptAssistant extends AssistantBase {
   type: 'prompt';

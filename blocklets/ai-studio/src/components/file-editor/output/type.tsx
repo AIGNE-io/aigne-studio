@@ -27,6 +27,12 @@ export const runtimeOutputVariables: {
     name: '$page.background.color',
   },
   { icon: <Icon icon="tabler:forms" />, title: 'Input Controller', i18nKey: 'inputController', name: '$input' },
+  {
+    icon: <Icon icon="tabler:photo" />,
+    title: 'Generated Images',
+    i18nKey: 'generatedImages',
+    name: 'images',
+  },
 ];
 
 const runtimeOutputVariableNames = new Map<string, (typeof runtimeOutputVariables)[number]>(

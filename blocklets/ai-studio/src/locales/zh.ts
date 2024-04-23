@@ -609,4 +609,6 @@ export default flat({
   backgroundColor: '背景色',
   inputController: '输入控件',
   suggestedQuestions: '推荐问题',
+  processing: '运行',
+  generatedImages: '生成的图片',
 });

@@ -7,22 +7,7 @@ import {
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
-import {
-  Box,
-  Button,
-  ClickAwayListener,
-  Grow,
-  MenuItem,
-  MenuList,
-  Paper,
-  Popper,
-  Stack,
-  Tooltip,
-  Typography,
-  alpha,
-  styled,
-} from '@mui/material';
-import { useRef, useState } from 'react';
+import { Box, Button, Stack, Tooltip, alpha, styled } from '@mui/material';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
@@ -61,16 +46,7 @@ export default function PromptPrompts({
       sx={{
         borderRadius: 1,
         bgcolor: '#EFF6FF',
-        px: 2,
-        py: 1.5,
       }}>
-      <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
-        <Box component={Icon} icon="tabler:bulb" sx={{ color: '#3B82F6', fontSize: 15 }} />
-        <Typography variant="subtitle2" sx={{ m: 0 }}>
-          {t('formatPrompt')}
-        </Typography>
-      </Stack>
-
       <>
         {value.prompts && (
           <DragSortListYjs
@@ -154,8 +130,6 @@ export default function PromptPrompts({
               onClick={() => addPrompt({ type: 'message', data: { id: nextAssistantId(), role: 'user' } })}>
               {t('promptMessage')}
             </Button>
-
-            <SplitExecuteBlockButton projectId={projectId} gitRef={gitRef} templateId={value.id} />
           </Stack>
         )}
       </>
@@ -185,7 +159,7 @@ function PromptItemMessage({
   return (
     <Stack
       sx={{
-        border: 2,
+        border: 1,
         borderColor: '#3B82F6',
         borderRadius: 1,
         '*': {
@@ -310,113 +284,3 @@ const StyledPromptEditor = styled(PromptEditorField)(({ theme }) =>
     },
   })
 );
-
-function SplitExecuteBlockButton({
-  projectId,
-  gitRef,
-  templateId,
-}: {
-  projectId: string;
-  gitRef: string;
-  templateId: string;
-}) {
-  const { t } = useLocaleContext();
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef<HTMLDivElement>(null);
-
-  const { addPrompt, addCustomPrompt } = usePromptsState({ projectId, gitRef, templateId });
-
-  const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
-  };
-
-  const handleClose = (event: Event) => {
-    if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
-      return;
-    }
-
-    setOpen(false);
-  };
-
-  return (
-    <>
-      <Box ref={anchorRef}>
-        <Button startIcon={<Add />} onClick={handleToggle}>
-          {t('executeBlock')}
-        </Button>
-      </Box>
-
-      <Popper sx={{ zIndex: 1 }} open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal>
-        {({ TransitionProps, placement }) => (
-          <Grow
-            {...TransitionProps}
-            style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom' }}>
-            <Paper>
-              <ClickAwayListener onClickAway={handleClose}>
-                <MenuList autoFocusItem>
-                  <MenuItem
-                    onClick={() => {
-                      addPrompt({ type: 'executeBlock', data: { id: nextAssistantId(), selectType: 'all' } });
-                      setOpen(false);
-                    }}>
-                    <Typography variant="subtitle3" color="#030712">
-                      {t('multipleCall')}
-                    </Typography>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      addPrompt({
-                        type: 'executeBlock',
-                        data: { id: nextAssistantId(), selectType: 'selectByPrompt' },
-                      });
-                      setOpen(false);
-                    }}>
-                    <Typography variant="subtitle3" color="#030712">
-                      {t('toolCalling')}
-                    </Typography>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      addCustomPrompt('history');
-                      setOpen(false);
-                    }}>
-                    <Typography variant="subtitle3" color="#030712">
-                      {t('historyMessage')}
-                    </Typography>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      addCustomPrompt('getStore');
-                      setOpen(false);
-                    }}>
-                    <Typography variant="subtitle3" color="#030712">
-                      {t('getStore')}
-                    </Typography>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      addCustomPrompt('setStore');
-                      setOpen(false);
-                    }}>
-                    <Typography variant="subtitle3" color="#030712">
-                      {t('setStore')}
-                    </Typography>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      addCustomPrompt('knowledge');
-                      setOpen(false);
-                    }}>
-                    <Typography variant="subtitle3" color="#030712">
-                      {t('retrieveData')}
-                    </Typography>
-                  </MenuItem>
-                </MenuList>
-              </ClickAwayListener>
-            </Paper>
-          </Grow>
-        )}
-      </Popper>
-    </>
-  );
-}

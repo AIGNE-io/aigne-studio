@@ -3,19 +3,15 @@ import { NumberField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, OutputVariableYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
-import { ExpandMoreRounded } from '@mui/icons-material';
-import { Box, Button, Checkbox, Collapse, MenuItem, Stack, TextField, TextFieldProps, Typography } from '@mui/material';
+import { Box, Button, Checkbox, MenuItem, Stack, TextField, TextFieldProps, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import { useState } from 'react';
 
 import AddOutputVariableButton from './AddOutputVariableButton';
 import { getRuntimeOutputVariable } from './type';
 
-export default function OutputSettings({ value, isOpen = true }: { value: AssistantYjs; isOpen?: boolean }) {
+export default function OutputSettings({ value }: { value: AssistantYjs; readOnly?: boolean }) {
   const { t } = useLocaleContext();
-
-  const [open, setOpen] = useState(isOpen);
 
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
 
@@ -31,12 +27,7 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
 
   return (
     <Box sx={{ border: '1px solid #E5E7EB', px: 1, py: 2, borderRadius: 1 }}>
-      <Stack
-        direction="row"
-        alignItems="center"
-        sx={{ cursor: 'pointer', px: 1 }}
-        gap={1}
-        onClick={() => setOpen(!open)}>
+      <Stack direction="row" alignItems="center" sx={{ cursor: 'pointer', px: 1 }} gap={1}>
         <Typography
           variant="subtitle2"
           sx={{
@@ -47,71 +38,62 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end" />
 
-        <Stack direction="row" alignItems="center" gap={1} onClick={(e) => e.stopPropagation()}>
-          <Typography variant="subtitle4">{t('outputFormat')}</Typography>
+        {value.type === 'prompt' && (
+          <Stack direction="row" alignItems="center" gap={1} onClick={(e) => e.stopPropagation()}>
+            <Typography variant="subtitle4">{t('outputFormat')}</Typography>
 
-          <TextField
-            size="small"
-            hiddenLabel
-            select
-            SelectProps={{ autoWidth: true }}
-            value={value.outputFormat || 'text'}
-            onChange={(e) => {
-              value.outputFormat = e.target.value as any;
-            }}>
-            <MenuItem value="text">{t('text')}</MenuItem>
-            <MenuItem value="json">{t('json')}</MenuItem>
-          </TextField>
-        </Stack>
-
-        <ExpandMoreRounded
-          sx={{
-            transform: !open ? 'rotateZ(270deg)' : 'rotateZ(360deg)',
-            transition: (theme) => theme.transitions.create('all'),
-            fontSize: 18,
-            color: '#030712',
-          }}
-        />
+            <TextField
+              size="small"
+              hiddenLabel
+              select
+              SelectProps={{ autoWidth: true }}
+              value={value.outputFormat || 'text'}
+              onChange={(e) => {
+                value.outputFormat = e.target.value as any;
+              }}>
+              <MenuItem value="text">{t('text')}</MenuItem>
+              <MenuItem value="json">{t('json')}</MenuItem>
+            </TextField>
+          </Stack>
+        )}
       </Stack>
 
-      <Collapse in={open}>
-        <Box component="table" sx={{ minWidth: '100%', th: { whiteSpace: 'nowrap' } }}>
-          <thead>
-            <tr>
-              <Box component="th">{t('name')}</Box>
-              <Box component="th">{t('description')}</Box>
-              <Box component="th">{t('type')}</Box>
-              <Box component="th">{t('required')}</Box>
-              <Box component="th">{t('defaultValue')}</Box>
-              <Box component="th">{t('actions')}</Box>
-            </tr>
-          </thead>
-          <tbody>
-            {outputVariables?.map((variable) => (
-              <VariableRow
-                key={variable.data.id}
-                variable={variable.data}
-                onRemove={() =>
-                  setField(() => {
-                    delete value.outputVariables?.[variable.data.id];
-                  })
-                }
-              />
-            ))}
-          </tbody>
-        </Box>
+      <Box component="table" sx={{ minWidth: '100%', th: { whiteSpace: 'nowrap' } }}>
+        <thead>
+          <tr>
+            <Box component="th">{t('name')}</Box>
+            <Box component="th">{t('description')}</Box>
+            <Box component="th">{t('type')}</Box>
+            <Box component="th">{t('required')}</Box>
+            <Box component="th">{t('defaultValue')}</Box>
+            <Box component="th">{t('actions')}</Box>
+          </tr>
+        </thead>
+        <tbody>
+          {outputVariables?.map((variable) => (
+            <VariableRow
+              key={variable.data.id}
+              variable={variable.data}
+              onRemove={() =>
+                setField(() => {
+                  delete value.outputVariables?.[variable.data.id];
+                })
+              }
+            />
+          ))}
+        </tbody>
+      </Box>
 
-        <AddOutputVariableButton
-          onSelect={({ name }) => {
-            if (name && outputVariables?.some((i) => i.data.name === name)) return;
+      <AddOutputVariableButton
+        onSelect={({ name }) => {
+          if (name && outputVariables?.some((i) => i.data.name === name)) return;
 
-            setField((vars) => {
-              const id = nanoid();
-              vars[id] = { index: Object.values(vars).length, data: { id, type: 'string', name } };
-            });
-          }}
-        />
-      </Collapse>
+          setField((vars) => {
+            const id = nanoid();
+            vars[id] = { index: Object.values(vars).length, data: { id, type: 'string', name } };
+          });
+        }}
+      />
     </Box>
   );
 }
