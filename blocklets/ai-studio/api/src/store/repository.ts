@@ -59,7 +59,6 @@ export async function getRepository({
       parse: async (filepath, content, { ref }) => {
         const { dir, ext } = path.parse(filepath);
         const [root] = filepath.split('/');
-        logger.info(filepath, ext, 'logger parse');
 
         if (root === PROMPTS_FOLDER_NAME && ext === '.yaml') {
           const testFilepath = filepath.replace(new RegExp(`^${PROMPTS_FOLDER_NAME}`), TESTS_FOLDER_NAME);
@@ -109,7 +108,6 @@ export async function getRepository({
       },
       stringify: async (filepath, content) => {
         if (filepath.startsWith(TESTS_FOLDER_NAME)) return null;
-        logger.info(filepath, content, 'logger');
 
         if (isAssistant(content)) {
           const fileContent = fileFromYjs(content);
