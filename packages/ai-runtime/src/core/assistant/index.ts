@@ -1,5 +1,4 @@
 import { join } from 'path';
-import { TransformStream } from 'stream/web';
 
 import { ChatCompletionChunk } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
@@ -39,11 +38,15 @@ import {
   isImageAssistant,
 } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase } from '../../types/runtime';
-import { ExtractMetadataTransform } from '../utils/extract-metadata-transform';
 import retry from '../utils/retry';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../utils/schema';
 import { BuiltinModules } from './builtin';
-import { generateOutput } from './generate-output';
+import {
+  extractMetadataFromStream,
+  generateOutput,
+  metadataOutputFormatPrompt,
+  metadataStreamOutputFormatPrompt,
+} from './generate-output';
 import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback, ToolCompletionDirective } from './type';
 
 const getUserHeader = (user: any) => {
@@ -889,36 +892,15 @@ async function runPromptAssistant({
   const messagesWithSystemPrompt = [...messages];
   const lastSystemIndex = messagesWithSystemPrompt.findLastIndex((i) => i.role === 'system');
 
-  const metadataPrefix = '```metadata';
-  const metadataSuffix = '```';
-
   if (outputJson) {
     messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
       role: 'system',
-      content: `\
-## Output Format
-
-Generate a JSON object match the following JSON schema:
-${outputSchema}`,
+      content: metadataOutputFormatPrompt(outputSchema),
     });
   } else if (streamJson) {
     messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
       role: 'system',
-      content: `\
-## JSON Schema
-Here is the json schema for output metadata, inside <schema></schema> XML tags:
-<schema>
-${outputSchema}
-</schema>
-
-## Output Format
-
-[Place Your Text Content here]
-
-${metadataPrefix}
-[Using the JSON schema above to generate a JSON object here]
-${metadataSuffix}
-  `,
+      content: metadataStreamOutputFormatPrompt(outputSchema),
     });
   }
 
@@ -962,21 +944,7 @@ ${metadataSuffix}
       },
     });
 
-    const stream = aiResult.chatCompletionChunk
-      .pipeThrough(
-        new TransformStream({
-          transform: (chunk, controller) => {
-            if (chunk.delta.content) controller.enqueue(chunk.delta.content);
-          },
-        })
-      )
-      .pipeThrough(
-        new ExtractMetadataTransform({
-          // Pass empty string to disable extractor
-          start: streamJson ? metadataPrefix : '',
-          end: metadataSuffix,
-        })
-      );
+    const stream = extractMetadataFromStream(aiResult.chatCompletionChunk, outputJson || streamJson);
 
     for await (const chunk of stream) {
       if (chunk.type === 'text') {
@@ -997,24 +965,9 @@ ${metadataSuffix}
       }
     }
 
-    const joiSchema = outputVariablesToJoiSchema(outputVariables);
-    if (outputJson) {
-      const json = JSON.parse(result);
-      try {
-        jsonResult = await joiSchema.validateAsync(json);
-      } catch (error) {
-        throw new Error('Unexpected response format from AI');
-      }
-
-      callback?.({
-        type: AssistantResponseType.CHUNK,
-        taskId,
-        assistantId: assistant.id,
-        delta: { object: jsonResult },
-      });
-    } else if (streamJson) {
+    if (outputJson || streamJson) {
+      const joiSchema = outputVariablesToJoiSchema(outputVariables);
       const json = {};
-
       for (const i of metadataStrings) {
         try {
           const obj = JSON.parse(i);
@@ -1024,18 +977,29 @@ ${metadataSuffix}
         }
       }
 
+      // try to parse all text content as a json
+      try {
+        Object.assign(json, JSON.parse(result));
+      } catch {
+        // ignore
+      }
+
       try {
         jsonResult = await joiSchema.validateAsync(json);
       } catch (error) {
-        try {
-          jsonResult = await generateOutput({
-            assistant,
-            messages: messages.concat({ role: 'assistant', content: result }),
-            callAI,
-            maxRetries: MAX_RETRIES,
-          });
-        } catch (error) {
+        if (outputJson) {
           throw new Error('Unexpected response format from AI');
+        } else {
+          try {
+            jsonResult = await generateOutput({
+              assistant,
+              messages: messages.concat({ role: 'assistant', content: result }),
+              callAI,
+              maxRetries: MAX_RETRIES,
+            });
+          } catch (error) {
+            throw new Error('Unexpected response format from AI');
+          }
         }
       }
     }
