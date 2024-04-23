@@ -206,10 +206,6 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     throw new Error('Can not get user info');
   }
 
-  if (!key) {
-    throw new Error('Can not find `key` or `itemId` params');
-  }
-
   if (reset)
     await Datastore.destroy({ where: { ...(dataType && { dataType }), ...(scope && { scope }), ...(key && { key }) } });
 
@@ -426,7 +422,7 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req
 
   if (scope === 'session') {
     const datastores = await Datastore.findAll({
-      order: [['itemId', 'ASC']],
+      order: [['createdAt', 'ASC']],
       where: { ...params, scope, sessionId },
     });
     if (datastores.length) {
@@ -436,7 +432,7 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req
 
   if (scope === 'session' || scope === 'user') {
     const datastores = await Datastore.findAll({
-      order: [['itemId', 'ASC']],
+      order: [['createdAt', 'ASC']],
       where: { ...params, scope: 'user' },
     });
     if (datastores.length) {
@@ -446,7 +442,7 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req
 
   if (scope === 'session' || scope === 'user' || scope === 'global') {
     const datastores = await Datastore.findAll({
-      order: [['itemId', 'ASC']],
+      order: [['createdAt', 'ASC']],
       where: { ...params, scope: 'global' },
     });
     if (datastores.length) {

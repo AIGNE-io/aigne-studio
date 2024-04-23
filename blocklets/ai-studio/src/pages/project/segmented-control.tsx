@@ -9,7 +9,7 @@ interface Option {
 interface Props {
   value: string;
   options: Option[];
-  onChange?: (value: string) => void;
+  onChange?: (value: any) => void;
   sx?: SxProps;
 }
 

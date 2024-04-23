@@ -13,7 +13,7 @@ function VariableList() {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
   const { projectId, ref: gitRef } = useParams();
   const { t } = useLocaleContext();
-  const [scope, setScope] = useState('global');
+  const [scope, setScope] = useState<'global' | 'user' | 'session'>('global');
 
   const { synced, store, getVariables, getFileById } = useProjectStore(projectId || '', gitRef || '', true);
   const variableYjs = getVariables();
@@ -104,7 +104,7 @@ function VariableList() {
             { value: 'user', label: t('variableParameter.user') },
             { value: 'session', label: t('variableParameter.session') },
           ]}
-          onChange={(value) => {
+          onChange={(value: 'global' | 'user' | 'session') => {
             if (value) setScope(value);
           }}
         />

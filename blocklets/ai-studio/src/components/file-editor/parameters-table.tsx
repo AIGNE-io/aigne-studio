@@ -527,11 +527,7 @@ function PopperButton({
                     );
                   }}
                   onChange={(_, _value) => {
-                    parameter.source.variable = {
-                      key: _value.key,
-                      scope: _value.scope,
-                      dataType: _value.dataType,
-                    };
+                    parameter.source.variable = cloneDeep(_value);
                   }}
                 />
               </Box>
