@@ -561,7 +561,12 @@ const runRequestStorage = async ({
       params,
     });
     const list = (data || []).map((x: any) => x?.data).filter((x: any) => x);
-    let result = list?.length > 0 ? list : [datastoreParameter.source.variable.defaultValue];
+    let result =
+      list?.length > 0
+        ? list
+        : datastoreParameter.source.variable.defaultValue
+          ? [datastoreParameter.source.variable.defaultValue]
+          : [];
     if (datastoreParameter.source.variable.reset) {
       result = result?.length > 0 ? result : result[0];
     }
@@ -1078,7 +1083,8 @@ async function runPromptAssistant({
   }
 
   for (const output of assistant?.outputVariables || []) {
-    if (output?.variable?.key && output?.name && jsonResult && jsonResult[output?.name as any] && outputJson) {
+    logger.info('output parameter:', { output, jsonResult });
+    if (output?.variable?.key && output?.name && jsonResult && jsonResult[output?.name as any]) {
       const params = {
         params: {
           userId: user?.did || '',

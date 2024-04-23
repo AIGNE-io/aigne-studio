@@ -37,7 +37,6 @@ import { useId, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import BaseSwitch from '../../custom/switch';
-import PromptEditorField from '../prompt-editor-field';
 import AddOutputVariableButton from './AddOutputVariableButton';
 import { getRuntimeOutputVariable } from './type';
 
@@ -373,7 +372,9 @@ function VariableRow({
                             <Autocomplete
                               options={variables}
                               groupBy={(option) => option.scope || ''}
-                              getOptionLabel={(option) => `${option.key} - (${option.scope} - ${option.dataType})`}
+                              getOptionLabel={(option) =>
+                                option ? `${option.key} - (${option.scope} - ${option.dataType})` : ''
+                              }
                               renderInput={(params) => <TextField hiddenLabel {...params} />}
                               key={Boolean(datastoreVariable).toString()}
                               disableClearable
@@ -418,6 +419,7 @@ function VariableRow({
                                 } else {
                                   form.setValue('key', variable.name ?? '');
                                   form.setValue('defaultValue', (variable as any)?.defaultValue ?? '');
+                                  outputPopperState.close();
                                   dialogState.open();
                                 }
                               }}
@@ -630,14 +632,8 @@ function VariableRow({
                   <Box>
                     <Typography variant="subtitle2">{t('variableParameter.defaultValue')}</Typography>
 
-                    <PromptEditorField
-                      placeholder={t('variableParameter.defaultValue')}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      assistant={value}
-                      path={[value.id, variable.id]}
-                      {...field}
-                    />
+                    <BaseInput sx={{ width: 1 }} placeholder={t('variableParameter.defaultValue')} {...field} />
+
                     {Boolean(fieldState.error) && (
                       <Typography variant="subtitle5" color="warning.main">
                         {fieldState.error?.message}
