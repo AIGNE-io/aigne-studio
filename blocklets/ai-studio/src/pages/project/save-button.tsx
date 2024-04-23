@@ -1,3 +1,5 @@
+import { EVENTS } from '@api/event';
+import useSubscription from '@app/hooks/use-subscription';
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -20,7 +22,7 @@ import {
 } from '@mui/material';
 import { useKeyPress } from 'ahooks';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -43,6 +45,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
   const setProjectCurrentBranch = useCurrentGitStore((i) => i.setProjectCurrentBranch);
   const dialogState = usePopupState({ variant: 'dialog' });
+  const [loading, setLoading] = useState(false);
 
   const {
     state: { branches, project },
@@ -122,7 +125,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     ]
   );
 
-  const submitting = form.formState.isSubmitting;
+  const submitting = form.formState.isSubmitting || loading;
 
   useKeyPress(
     (e) => (e.ctrlKey || e.metaKey) && e.key === 's',
@@ -146,6 +149,22 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     });
     return () => saveButtonState.getState().setSaveHandler(undefined);
   }, [dialogState.open, onSave, gitRef]);
+
+  const sub = useSubscription(projectId);
+  if (sub) {
+    sub.on(EVENTS.PROJECT.SYNC_TO_DID_SPACE, (data: { response: { done: boolean; error: Error } }) => {
+      const done = data.response?.done;
+      setLoading(!done);
+
+      if (!done) {
+        return;
+      }
+
+      if (data.response.error) {
+        Toast.error(data.response.error.message);
+      }
+    });
+  }
 
   return (
     <>

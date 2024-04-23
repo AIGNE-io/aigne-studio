@@ -35,6 +35,7 @@
     "@arcblock/did-auth-storage-nedb": "^1.7.1",
     "@arcblock/did-connect": "^2.9.70",
     "@arcblock/ux": "^2.9.70",
+    "@arcblock/ws": "^1.18.115",
     "@beskar-labs/gpt-encoder": "^1.0.7",
     "@blocklet/ai-kit": "^0.1.27",
     "@blocklet/ai-runtime": "^0.1.342",
