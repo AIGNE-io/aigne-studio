@@ -1,5 +1,6 @@
 import BaseInput from '@app/components/custom/input';
 import BaseSelect from '@app/components/custom/select';
+import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
@@ -39,7 +40,17 @@ import BaseSwitch from '../../custom/switch';
 import AddOutputVariableButton from './AddOutputVariableButton';
 import { getRuntimeOutputVariable } from './type';
 
-export default function OutputSettings({ value, isOpen = true }: { value: AssistantYjs; isOpen?: boolean }) {
+export default function OutputSettings({
+  value,
+  isOpen = true,
+  projectId,
+  gitRef,
+}: {
+  value: AssistantYjs;
+  isOpen?: boolean;
+  projectId: string;
+  gitRef: string;
+}) {
   const { t } = useLocaleContext();
 
   const [open, setOpen] = useState(isOpen);
@@ -119,6 +130,8 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
                 key={variable.data.id}
                 variable={variable.data}
                 value={value}
+                projectId={projectId}
+                gitRef={gitRef}
                 onRemove={() =>
                   setField(() => {
                     delete value.outputVariables?.[variable.data.id];
@@ -152,11 +165,15 @@ function VariableRow({
   variable,
   depth = 0,
   onRemove,
+  projectId,
+  gitRef,
 }: {
   value: AssistantYjs;
   variable: OutputVariableYjs;
   depth?: number;
   onRemove?: () => void;
+  projectId: string;
+  gitRef: string;
 }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(variable) as Map<any>).doc!;
@@ -165,8 +182,10 @@ function VariableRow({
   const form = useForm<Input>({ defaultValues: { scope: 'user', key: '' } });
   const dialogState = usePopupState({ variant: 'dialog' });
   const { dialog, showDialog } = useDialog();
+  const { getVariables } = useProjectStore(projectId, gitRef);
+  const variableYjs = getVariables();
 
-  const variables = (value?.variables || []).filter((x) => x.dataType === variable.type);
+  const variables = (variableYjs?.variables || []).filter((x) => x.dataType === variable.type);
   const datastoreVariable = variables.find((x) => {
     const j = variable?.datastore ?? { dataType: undefined, scope: '', key: '' };
     return `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`;
@@ -223,7 +242,7 @@ function VariableRow({
                 const type = e.target.value as any;
 
                 if (variable.datastore) {
-                  const found = (value.variables || []).find(
+                  const found = (variableYjs.variables || []).find(
                     (x) =>
                       x.dataType === type && x.key === variable.datastore?.key && x.scope === variable.datastore.scope
                   );
@@ -257,7 +276,7 @@ function VariableRow({
                       okColor: 'error',
                       cancelText: t('alert.cancel'),
                       onOk: () => {
-                        value.variables ??= [];
+                        variableYjs.variables ??= [];
 
                         const v = {
                           scope: variable.datastore?.scope,
@@ -265,7 +284,7 @@ function VariableRow({
                           dataType: type,
                         };
 
-                        value.variables.push(v);
+                        variableYjs.variables.push(v);
                         variable.datastore = cloneDeep(v);
 
                         variable.type = type;
@@ -337,15 +356,15 @@ function VariableRow({
                     <Paper sx={{ p: 3, width: 320, maxHeight: '80vh', overflow: 'auto' }}>
                       <Stack gap={2}>
                         <Box className="between">
-                          <Typography flex={1}>{t('outputVariableParameter.saveAs')}</Typography>
+                          <Typography flex={2}>{t('outputVariableParameter.saveAs')}</Typography>
 
-                          <Box flex={2}>
+                          <Box flex={3}>
                             <Autocomplete
                               options={variables}
                               groupBy={(option) => option.scope || ''}
-                              getOptionLabel={(option) => option.key}
+                              getOptionLabel={(option) => `${option.scope} - ${option.key}`}
                               sx={{ width: 1 }}
-                              renderInput={(params) => <TextField {...params} />}
+                              renderInput={(params) => <TextField hiddenLabel {...params} />}
                               key={Boolean(datastoreVariable).toString()}
                               disableClearable
                               clearOnBlur
@@ -388,9 +407,9 @@ function VariableRow({
                         </Box>
 
                         <Box className="between">
-                          <Typography flex={1}>{t('variableParameter.reset')}</Typography>
+                          <Typography flex={2}>{t('variableParameter.reset')}</Typography>
 
-                          <Box flex={1}>
+                          <Box flex={3}>
                             <BaseSwitch
                               checked={Boolean(variable.datastore?.reset || false)}
                               onChange={(_, checked) => {
@@ -442,6 +461,8 @@ function VariableRow({
             value={value}
             variable={property.data}
             depth={depth + 1}
+            projectId={projectId}
+            gitRef={gitRef}
             onRemove={() => {
               doc.transact(() => {
                 if (!variable.properties) return;
@@ -453,7 +474,13 @@ function VariableRow({
         ))}
 
       {variable.type === 'array' && variable.element && (
-        <VariableRow value={value} variable={variable.element} depth={depth + 1} />
+        <VariableRow
+          projectId={projectId}
+          gitRef={gitRef}
+          value={value}
+          variable={variable.element}
+          depth={depth + 1}
+        />
       )}
 
       <Dialog
@@ -462,7 +489,7 @@ function VariableRow({
         maxWidth="sm"
         component="form"
         onSubmit={form.handleSubmit((data) => {
-          value.variables ??= [];
+          variableYjs.variables ??= [];
 
           const v = {
             key: data.key || '',
@@ -470,7 +497,7 @@ function VariableRow({
             dataType: variable.type as any,
           };
 
-          value.variables.push(v);
+          variableYjs.variables.push(v);
           variable.datastore = cloneDeep(v);
 
           dialogState.close();
