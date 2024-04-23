@@ -652,4 +652,14 @@ export default flat({
     limit: '检索消息数',
     keyword: '检索关键字',
   },
+  outputVariableParameter: {
+    saveAs: '保存为',
+    addData: '新增变量',
+    keyRequired: '变量名称不能为空',
+    key: '变量名称',
+    scope: '变量作用域',
+    scopeRequired: '变量作用域不能为空',
+    changeTypeTitle: '确认更新类型',
+    changeTypeDesc: '新增变量名为 {key}, 变量类型为 {type} 变量',
+  },
 });

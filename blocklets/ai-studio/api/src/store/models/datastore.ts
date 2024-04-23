@@ -28,7 +28,7 @@ export default class Datastore extends Model<InferAttributes<Datastore>, InferCr
 
   declare data?: {};
 
-  declare scope?: 'user' | 'global' | 'session';
+  declare scope?: 'session' | 'user' | 'global';
 
   declare dataType?: any;
 }

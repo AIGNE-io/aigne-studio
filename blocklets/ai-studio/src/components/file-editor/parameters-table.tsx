@@ -37,7 +37,7 @@ import {
 import { GridColDef } from '@mui/x-data-grid';
 import { cloneDeep, get, sortBy } from 'lodash';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import React, { useId, useMemo, useRef } from 'react';
+import { useId, useMemo, useRef } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import WithAwareness from '../awareness/with-awareness';
@@ -473,29 +473,10 @@ function PopperButton({
       }
 
       if (parameter.source.variableFrom === 'datastore') {
-        const toolId = (parameter?.source as any)?.tool?.id;
-        const file = getFileById(toolId);
-
-        const variables = file?.variables || [
-          {
-            scope: 'user',
-            dataType: 'string',
-            key: 'name',
-          },
-          {
-            scope: 'global',
-            dataType: 'string',
-            key: 'name',
-          },
-          {
-            scope: 'session',
-            dataType: 'string',
-            key: 'name',
-          },
-        ];
+        const variables = value?.variables || [];
         const variable = variables.find((x) => {
           const j = parameter.source?.scope ?? {};
-          return `${x.dataType}_${x.scope}_${x.dataType}` === `${j.dataType}_${j.scope}_${j.dataType}`;
+          return `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`;
         });
 
         return (
@@ -539,8 +520,8 @@ function PopperButton({
               <Box flex={2}>
                 <Autocomplete
                   options={variables}
-                  groupBy={(option) => option.scope}
-                  getOptionLabel={(option) => `${t(`variableParameter.${option.scope}`)} ${option.key}`}
+                  groupBy={(option) => option.scope || ''}
+                  getOptionLabel={(option) => option.key}
                   sx={{ width: 1 }}
                   renderInput={(params) => <TextField {...params} />}
                   key={Boolean(variable).toString()}
@@ -552,11 +533,15 @@ function PopperButton({
                   autoHighlight
                   getOptionKey={(i) => `${i.dataType}_${i.scope}_${i.dataType}`}
                   value={variable}
-                  isOptionEqualToValue={(i, j) =>
-                    `${i.dataType}_${i.scope}_${i.dataType}` === `${j.dataType}_${j.scope}_${j.dataType}`
+                  isOptionEqualToValue={(x, j) =>
+                    `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`
                   }
                   onChange={(_, _value) => {
-                    parameter.source.scope = _value;
+                    parameter.source.scope = {
+                      key: _value.key,
+                      scope: _value.scope,
+                      dataType: _value.dataType,
+                    };
                   }}
                 />
               </Box>

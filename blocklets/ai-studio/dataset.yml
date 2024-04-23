@@ -208,9 +208,13 @@
         description: key
         x-description-zh: 存储的名称
       - in: query
-        name: itemId
-        description: SubItem Id
-        x-description-zh: 子项别名
+        name: dataType
+        description: DataType
+        x-description-zh: 数据类型
+      - in: query
+        name: scope
+        description: scope
+        x-description-zh: 数据作用域
     responses:
       "200":
         description: A JSON array of datastores
@@ -242,10 +246,14 @@
                 type: string
                 description: key
                 x-description-zh: 别名
-              itemId:
+              scope:
                 type: string
-                description: SubItem Id
-                x-description-zh: 子项别名
+                description: Scope
+                x-description-zh: 数据作用域
+              dataType:
+                type: string
+                description: DataType
+                x-description-zh: 数据类型
               data:
                 type: object
                 description: value
@@ -267,16 +275,17 @@
         description: ID
         x-description-zh: ID
       - in: query
-        name: itemId
-        description: SubItem Id
-        x-description-zh: 子项别名
-      - in: query
         name: key
-        schema:
-          type: string
-        required: false
         description: key
-        x-description-zh: 数据存储项别名
+        x-description-zh: 存储的名称
+      - in: query
+        name: dataType
+        description: DataType
+        x-description-zh: 数据类型
+      - in: query
+        name: scope
+        description: scope
+        x-description-zh: 数据作用域
     requestBody:
       required: true
       content:
@@ -335,9 +344,13 @@
         description: key
         x-description-zh: 数据存储项别名
       - in: query
-        name: itemId
-        description: SubItem Id
-        x-description-zh: 子项别名
+        name: dataType
+        description: DataType
+        x-description-zh: 数据类型
+      - in: query
+        name: scope
+        description: scope
+        x-description-zh: 数据作用域
     responses:
       "200":
         description: The deleted datastore object

@@ -658,4 +658,14 @@ export default flat({
     limit: 'Number of messages retrieved',
     keyword: 'Keyword of messages retrieved',
   },
+  outputVariableParameter: {
+    saveAs: 'Save As',
+    addData: 'Add Data',
+    keyRequired: 'Key is Required',
+    key: 'Key',
+    scope: 'Scope',
+    scopeRequired: 'Scope is Required',
+    changeTypeTitle: 'Confirm update type?',
+    changeTypeDesc: 'The name of the new variable is {key} and the type of the variable is {type}',
+  },
 });

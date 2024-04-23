@@ -6,7 +6,7 @@ import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { call as callFunc } from '@blocklet/sdk/lib/component';
-import { env } from '@blocklet/sdk/lib/config';
+import { env, logger } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
 import fetch from 'node-fetch';
@@ -54,7 +54,7 @@ const getUserHeader = (user: any) => {
   };
 };
 
-const defaultScope = 'local';
+const defaultScope = 'session';
 
 const MAX_RETRIES = 3;
 
@@ -510,7 +510,11 @@ const runRequestStorage = async ({
   datastoreParameter: Parameter;
   scopeMap: { [key: string]: any };
 }) => {
-  if (datastoreParameter.key && datastoreParameter.source?.variableFrom === 'datastore') {
+  if (
+    datastoreParameter.key &&
+    datastoreParameter.source?.variableFrom === 'datastore' &&
+    datastoreParameter.source.scope
+  ) {
     const currentTaskId = nextTaskId();
 
     const scopeParams = scopeMap.local;
@@ -531,7 +535,7 @@ const runRequestStorage = async ({
       assistantId: assistant.id,
       assistantName: startCase(
         toLower(
-          `The storage info of ${datastoreParameter.key} key for ${datastoreParameter.source.scope || defaultScope} Scope`
+          `The storage info of ${datastoreParameter.key} key for ${datastoreParameter.source.scope.scope || defaultScope} Scope`
         )
       ),
     };
@@ -622,7 +626,6 @@ const runRequestHistory = async ({
     headers: getUserHeader(user),
     params,
   });
-  console.log(data);
   const result = (data || []).map((x: any) => x?.result).filter((x: any) => x);
 
   callback?.({
@@ -754,40 +757,6 @@ const getVariables = async ({
       assistantId: assistant.id,
     },
   };
-
-  // const persistData = async (toolParameter: Parameter) => {
-  //   if (
-  //     toolParameter.key &&
-  //     toolParameter.source?.variableFrom === 'tool' &&
-  //     toolParameter.source.tool &&
-  //     toolParameter.source.persist
-  //   ) {
-  //     const scopeParams = scopeMap[toolParameter.source.scope || defaultScope] || scopeMap.local;
-  //     const params = {
-  //       params: {
-  //         ...scopeParams,
-  //         reset: toolParameter.source.reset,
-  //       },
-  //       data: {
-  //         data: variables[toolParameter.key],
-  //         key: toLower(toolParameter.key),
-  //         itemId: toolParameter.source.itemId
-  //           ? await renderMessage(toolParameter.source.itemId, parameters)
-  //           : toolParameter.source.itemId,
-  //       },
-  //     };
-
-  //     await callFunc({
-  //       name: 'ai-studio',
-  //       path: '/api/datastore',
-  //       method: 'POST',
-  //       headers: getUserHeader(user),
-  //       ...params,
-  //     });
-
-  //     logger.info('save parameter tool to datastore success', params);
-  //   }
-  // };
 
   if (toolParameters.length) {
     for (const toolParameter of toolParameters) {
@@ -1052,6 +1021,35 @@ async function runPromptAssistant({
   };
 
   const { jsonResult, result, aiResult } = await retry(run, MAX_RETRIES);
+
+  // 非JSON这里如何处理?
+  for (const output of assistant?.outputVariables || []) {
+    if (output?.datastore?.key && output?.name && jsonResult && jsonResult[output?.name as any] && outputJson) {
+      const params = {
+        params: {
+          userId: user?.did || '',
+          projectId,
+          sessionId,
+          assistantId: assistant.id,
+          reset: output.datastore.reset,
+        },
+        data: {
+          data: jsonResult[output?.name as any],
+          key: toLower(output.datastore?.key),
+          dataType: output.datastore.dataType,
+          scope: output.datastore.scope,
+        },
+      };
+      await callFunc({
+        name: 'ai-studio',
+        path: '/api/datastore',
+        method: 'POST',
+        headers: getUserHeader(user),
+        ...params,
+      });
+      logger.info('save parameter tool to datastore success', params);
+    }
+  }
 
   if (!outputJson && assistant.outputVariables?.length) {
     const json = await generateOutput({

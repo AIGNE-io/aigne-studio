@@ -1,14 +1,41 @@
+import BaseInput from '@app/components/custom/input';
+import BaseSelect from '@app/components/custom/select';
+import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, OutputVariableYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, Scope } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
-import { ExpandMoreRounded } from '@mui/icons-material';
-import { Box, Button, Checkbox, Collapse, MenuItem, Stack, TextField, TextFieldProps, Typography } from '@mui/material';
-import { sortBy } from 'lodash';
+import { Close, ExpandMoreRounded } from '@mui/icons-material';
+import { LoadingButton } from '@mui/lab';
+import {
+  Autocomplete,
+  Box,
+  Button,
+  Checkbox,
+  ClickAwayListener,
+  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  MenuItem,
+  Paper,
+  Popper,
+  Stack,
+  TextField,
+  TextFieldProps,
+  Typography,
+  createFilterOptions,
+} from '@mui/material';
+import { cloneDeep, sortBy } from 'lodash';
+import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
+import BaseSwitch from '../../custom/switch';
 import AddOutputVariableButton from './AddOutputVariableButton';
 import { getRuntimeOutputVariable } from './type';
 
@@ -99,6 +126,7 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
               <VariableRow
                 key={variable.data.id}
                 variable={variable.data}
+                value={value}
                 onRemove={() =>
                   setField(() => {
                     delete value.outputVariables?.[variable.data.id];
@@ -124,18 +152,33 @@ export default function OutputSettings({ value, isOpen = true }: { value: Assist
   );
 }
 
+const filter = createFilterOptions<Scope>();
+type Input = { scope: Scope['scope']; key?: string };
+
 function VariableRow({
+  value,
   variable,
   depth = 0,
   onRemove,
 }: {
+  value: AssistantYjs;
   variable: OutputVariableYjs;
   depth?: number;
   onRemove?: () => void;
 }) {
+  const { t } = useLocaleContext();
   const doc = (getYjsValue(variable) as Map<any>).doc!;
-
+  const outputPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const runtimeVariable = getRuntimeOutputVariable(variable);
+  const form = useForm<Input>({ defaultValues: { scope: 'user', key: '' } });
+  const dialogState = usePopupState({ variant: 'dialog' });
+  const { dialog, showDialog } = useDialog();
+
+  const variables = (value?.variables || []).filter((x) => x.dataType === variable.type);
+  const datastoreVariable = variables.find((x) => {
+    const j = variable?.datastore ?? { dataType: undefined, scope: '', key: '' };
+    return `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`;
+  });
 
   return (
     <>
@@ -185,9 +228,72 @@ function VariableRow({
             <VariableTypeField
               value={variable.type || 'string'}
               onChange={(e) => {
-                variable.type = e.target.value as any;
-                if (variable.type === 'array') {
-                  variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
+                const type = e.target.value as any;
+
+                if (variable.datastore) {
+                  const found = (value.variables || []).find(
+                    (x) =>
+                      x.dataType === type && x.key === variable.datastore?.key && x.scope === variable.datastore.scope
+                  );
+                  if (!found) {
+                    showDialog({
+                      formSx: {
+                        '.MuiDialogTitle-root': {
+                          border: 0,
+                        },
+                        '.MuiDialogActions-root': {
+                          border: 0,
+                        },
+                        '.save': {
+                          background: '#d32f2f',
+                        },
+                      },
+                      maxWidth: 'sm',
+                      fullWidth: true,
+                      title: <Box sx={{ wordWrap: 'break-word' }}>{t('outputVariableParameter.changeTypeTitle')}</Box>,
+                      content: (
+                        <Box>
+                          <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                            {t('outputVariableParameter.changeTypeDesc', {
+                              type,
+                              key: variable.datastore?.key || '',
+                            })}
+                          </Typography>
+                        </Box>
+                      ),
+                      okText: t('confirm'),
+                      okColor: 'error',
+                      cancelText: t('alert.cancel'),
+                      onOk: () => {
+                        value.variables ??= [];
+
+                        const v = {
+                          scope: variable.datastore?.scope,
+                          key: variable.datastore?.key || '',
+                          dataType: type,
+                        };
+
+                        value.variables.push(v);
+                        variable.datastore = cloneDeep(v);
+
+                        variable.type = type;
+                        if (variable.type === 'array') {
+                          variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
+                        }
+                      },
+                    });
+                  } else {
+                    variable.datastore = cloneDeep(found);
+                    variable.type = type;
+                    if (variable.type === 'array') {
+                      variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
+                    }
+                  }
+                } else {
+                  variable.type = type;
+                  if (variable.type === 'array') {
+                    variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
+                  }
                 }
               }}
             />
@@ -221,6 +327,94 @@ function VariableRow({
         </Box>
         <td align="right">
           <Stack direction="row" gap={1} justifyContent="flex-end">
+            {depth === 0 && (
+              <>
+                <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} {...bindTrigger(outputPopperState)}>
+                  <Icon icon="tabler:settings" />
+                </Button>
+
+                <Popper
+                  {...bindPopper(outputPopperState)}
+                  placement="bottom-end"
+                  sx={{ zIndex: (theme) => theme.zIndex.modal }}>
+                  <ClickAwayListener
+                    onClickAway={(e) => {
+                      if (e.target === document.body) return;
+                      outputPopperState.close();
+                    }}>
+                    <Paper sx={{ p: 3, width: 320, maxHeight: '80vh', overflow: 'auto' }}>
+                      <Stack gap={2}>
+                        <Box className="between">
+                          <Typography flex={1}>{t('outputVariableParameter.saveAs')}</Typography>
+
+                          <Box flex={2}>
+                            <Autocomplete
+                              options={variables}
+                              groupBy={(option) => option.scope || ''}
+                              getOptionLabel={(option) => option.key}
+                              sx={{ width: 1 }}
+                              renderInput={(params) => <TextField {...params} />}
+                              key={Boolean(datastoreVariable).toString()}
+                              disableClearable
+                              clearOnBlur
+                              selectOnFocus
+                              handleHomeEndKeys
+                              autoSelect
+                              autoHighlight
+                              getOptionKey={(i) => `${i.dataType}_${i.scope}_${i.dataType}`}
+                              value={datastoreVariable}
+                              isOptionEqualToValue={(x, j) =>
+                                `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`
+                              }
+                              renderOption={(props, option) => {
+                                return (
+                                  <MenuItem {...props}>
+                                    {option.key ? option.key || t('unnamed') : t('outputVariableParameter.addData')}
+                                  </MenuItem>
+                                );
+                              }}
+                              filterOptions={(_, params) => {
+                                const filtered = filter(variables, params);
+
+                                const found = filtered.find((x) => !x.key);
+                                if (!found) {
+                                  filtered.push({ dataType: variable.type, key: '' });
+                                }
+
+                                return filtered;
+                              }}
+                              onChange={(_, _value) => {
+                                if (_value.key) {
+                                  variable.datastore = cloneDeep(_value);
+                                  outputPopperState.close();
+                                } else {
+                                  dialogState.open();
+                                }
+                              }}
+                            />
+                          </Box>
+                        </Box>
+
+                        <Box className="between">
+                          <Typography flex={1}>{t('variableParameter.reset')}</Typography>
+
+                          <Box flex={1}>
+                            <BaseSwitch
+                              checked={Boolean(variable.datastore?.reset || false)}
+                              onChange={(_, checked) => {
+                                variable.datastore ??= { dataType: variable.type, key: '', reset: checked };
+                                variable.datastore.reset = checked;
+                              }}
+                            />
+                          </Box>
+                        </Box>
+                      </Stack>
+                    </Paper>
+                  </ClickAwayListener>
+                </Popper>
+              </>
+            )}
+
             {variable.type === 'object' && (
               <Button
                 sx={{ minWidth: 24, minHeight: 24, p: 0 }}
@@ -253,6 +447,7 @@ function VariableRow({
         sortBy(Object.values(variable.properties), 'index').map((property) => (
           <VariableRow
             key={property.data.id}
+            value={value}
             variable={property.data}
             depth={depth + 1}
             onRemove={() => {
@@ -265,7 +460,103 @@ function VariableRow({
           />
         ))}
 
-      {variable.type === 'array' && variable.element && <VariableRow variable={variable.element} depth={depth + 1} />}
+      {variable.type === 'array' && variable.element && (
+        <VariableRow value={value} variable={variable.element} depth={depth + 1} />
+      )}
+
+      <Dialog
+        {...bindDialog(dialogState)}
+        fullWidth
+        maxWidth="sm"
+        component="form"
+        onSubmit={form.handleSubmit((data) => {
+          value.variables ??= [];
+
+          const v = {
+            key: data.key || '',
+            scope: data.scope,
+            dataType: variable.type as any,
+          };
+
+          value.variables.push(v);
+          variable.datastore = cloneDeep(v);
+
+          dialogState.close();
+        })}>
+        <DialogTitle className="between" sx={{ border: 0 }}>
+          <Box>{t('outputVariableParameter.addData')}</Box>
+
+          <IconButton size="small" onClick={() => dialogState.close()}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack gap={2}>
+            <Controller
+              control={form.control}
+              name="key"
+              rules={{
+                required: t('outputVariableParameter.keyRequired'),
+              }}
+              render={({ field, fieldState }) => {
+                return (
+                  <Box>
+                    <Typography variant="subtitle2" mb={0}>
+                      {t('outputVariableParameter.key')}
+                    </Typography>
+                    <BaseInput
+                      sx={{ width: 1 }}
+                      placeholder={t('outputVariableParameter.key')}
+                      {...field}
+                      error={Boolean(fieldState.error)}
+                    />
+                  </Box>
+                );
+              }}
+            />
+
+            <Controller
+              control={form.control}
+              name="scope"
+              rules={{
+                required: t('outputVariableParameter.scopeRequired'),
+              }}
+              render={({ field, fieldState }) => {
+                return (
+                  <Box>
+                    <Typography flex={1}>{t('outputVariableParameter.scope')}</Typography>
+                    <BaseSelect
+                      variant="outlined"
+                      placeholder={t('outputVariableParameter.scope')}
+                      fullWidth
+                      {...field}
+                      error={Boolean(fieldState.error)}>
+                      {['user', 'session', 'global'].map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {t(`variableParameter.${option}`)}
+                        </MenuItem>
+                      ))}
+                    </BaseSelect>
+                  </Box>
+                );
+              }}
+            />
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={dialogState.close} variant="outlined">
+            {t('cancel')}
+          </Button>
+
+          <LoadingButton type="submit" variant="contained" loading={form.formState.isSubmitting}>
+            {t('save')}
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+
+      {dialog}
     </>
   );
 }
