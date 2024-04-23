@@ -492,6 +492,9 @@ importers:
       '@types/tz-lookup':
         specifier: ^6.1.2
         version: 6.1.2
+      '@types/yaml':
+        specifier: ^1.9.7
+        version: 1.9.7
       '@vitejs/plugin-react':
         specifier: ^4.2.1
         version: 4.2.1(vite@5.2.10)
@@ -6698,6 +6701,13 @@ packages:
     resolution: {integrity: sha512-vmQSUcfalpIq0R9q7uTo2lXs6eGIpt9wtnLdMv9LVpIjCA/+ufZRozlVoVelIYixx1ugCBKDhn89vnsEGOCx9A==}
     dependencies:
       '@types/node': 18.19.31
+    dev: true
+
+  /@types/yaml@1.9.7:
+    resolution: {integrity: sha512-8WMXRDD1D+wCohjfslHDgICd2JtMATZU8CkhH8LVJqcJs6dyYj5TGptzP8wApbmEullGBSsCEzzap73DQ1HJaA==}
+    deprecated: This is a stub types definition. yaml provides its own type definitions, so you do not need this installed.
+    dependencies:
+      yaml: 2.4.1
     dev: true
 
   /@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.57.0)(typescript@5.4.5):
