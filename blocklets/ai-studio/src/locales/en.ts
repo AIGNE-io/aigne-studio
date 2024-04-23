@@ -616,6 +616,8 @@ export default flat({
     value: 'Variables Value',
     itemId: 'Variables SubItem',
     dialogTitle: 'Variables Data',
+    dataType: 'Data Type',
+    useAssistant: 'Used by Assistant',
   },
   userId: 'USER ID',
   sessionId: 'SESSION ID',

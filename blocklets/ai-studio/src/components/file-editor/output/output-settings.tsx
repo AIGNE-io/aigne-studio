@@ -179,7 +179,7 @@ function VariableRow({
   const doc = (getYjsValue(variable) as Map<any>).doc!;
   const outputPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const runtimeVariable = getRuntimeOutputVariable(variable);
-  const form = useForm<Input>({ defaultValues: { scope: 'user', key: '' } });
+  const form = useForm<Input>({ defaultValues: { scope: 'session', key: '' } });
   const dialogState = usePopupState({ variant: 'dialog' });
   const { dialog, showDialog } = useDialog();
   const { getVariables } = useProjectStore(projectId, gitRef);

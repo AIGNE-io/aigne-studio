@@ -13,7 +13,7 @@ import ErrorBoundary from '../../components/error/error-boundary';
 import Loading from '../../components/loading';
 import { DatasetsProvider } from '../../contexts/datasets/datasets';
 import KnowledgeRoutes from '../knowledge';
-import VariablesRoutes from '../variables';
+import VariablesList from '../variables/list';
 import AddSource from './add-source';
 import ProjectHeader from './project-header';
 
@@ -78,7 +78,10 @@ export default function ProjectRoutes() {
                     </Route>
                     <Route path="settings" element={<ProjectSettings />} />
                     <Route path="knowledge/*" element={<KnowledgeRoutes />} />
-                    <Route path="variables/*" element={<VariablesRoutes />} />
+                    <Route path="variables">
+                      <Route index element={<Navigate to={currentGitStore.getState().getCurrentBranch()} replace />} />
+                      <Route path=":ref/*" element={<VariablesList />} />
+                    </Route>
                   </Route>
                 </Routes>
               </Suspense>

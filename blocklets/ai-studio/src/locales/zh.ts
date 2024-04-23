@@ -612,6 +612,8 @@ export default flat({
     value: '变量值',
     itemId: '子项别名',
     dialogTitle: '变量的数据',
+    dataType: '数据类型',
+    useAssistant: '使用位置',
   },
   userId: '用户ID',
   sessionId: 'Session ID',
