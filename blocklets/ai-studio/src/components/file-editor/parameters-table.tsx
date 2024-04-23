@@ -488,7 +488,7 @@ function PopperButton({
 
         const variables = v?.variables || [];
         const variable = variables.find((x) => {
-          const j = parameter.source?.scope ?? {};
+          const j = parameter.source?.variable ?? {};
           return `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`;
         });
 
@@ -511,7 +511,7 @@ function PopperButton({
                   handleHomeEndKeys
                   autoSelect
                   autoHighlight
-                  getOptionKey={(i) => `${i.dataType}_${i.scope}_${i.dataType}`}
+                  getOptionKey={(i) => `${i.dataType}_${i.scope}_${i.key}`}
                   value={variable}
                   isOptionEqualToValue={(x, j) =>
                     `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`

@@ -383,7 +383,7 @@ function VariableRow({
                               handleHomeEndKeys
                               autoSelect
                               autoHighlight
-                              getOptionKey={(i) => `${i.dataType}_${i.scope}_${i.dataType}`}
+                              getOptionKey={(i) => `${i.dataType}_${i.scope}_${i.key}`}
                               value={datastoreVariable}
                               isOptionEqualToValue={(x, j) =>
                                 `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`
@@ -568,17 +568,6 @@ function VariableRow({
               name="scope"
               rules={{
                 required: t('outputVariableParameter.scopeRequired'),
-                validate: (value) => {
-                  const found = (variableYjs.variables || [])?.find((x) => {
-                    return `${x.dataType}_${x.scope}_${x.key}` === `${variable.type}_${value}_${form.getValues('key')}`;
-                  });
-
-                  if (found) {
-                    return t('variableParameter.duplicate');
-                  }
-
-                  return true;
-                },
               }}
               render={({ field, fieldState }) => {
                 return (
