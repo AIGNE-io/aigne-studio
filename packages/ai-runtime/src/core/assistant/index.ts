@@ -1030,7 +1030,7 @@ async function runPromptAssistant({
     taskId,
     assistantName: assistant.name,
     inputParameters: parameters,
-    promptMessages: messages,
+    promptMessages: messagesWithSystemPrompt,
   });
 
   callback?.({

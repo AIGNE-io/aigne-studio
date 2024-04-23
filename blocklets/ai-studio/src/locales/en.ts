@@ -612,4 +612,5 @@ export default flat({
   backgroundImage: 'Background Image',
   backgroundColor: 'Background Color',
   inputController: 'Input Controller',
+  suggestedQuestions: 'Suggested Questions',
 });

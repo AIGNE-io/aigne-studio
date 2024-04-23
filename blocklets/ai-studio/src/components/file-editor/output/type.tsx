@@ -9,6 +9,12 @@ export const runtimeOutputVariables: {
   name: RuntimeOutputVariable;
 }[] = [
   {
+    icon: <Icon icon="tabler:bulb" />,
+    title: 'Suggested Questions',
+    i18nKey: 'suggestedQuestions',
+    name: '$suggested.questions',
+  },
+  {
     icon: <Icon icon="tabler:photo" />,
     title: 'Background Image',
     i18nKey: 'backgroundImage',

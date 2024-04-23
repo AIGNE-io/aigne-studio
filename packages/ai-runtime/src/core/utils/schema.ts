@@ -6,6 +6,22 @@ import { RuntimeOutputVariable } from '../../types/runtime';
 type OmitUnion<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
 const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<OutputVariable, 'id'>> = {
+  '$suggested.questions': {
+    type: 'array',
+    description: 'Generate 3 questions for users to ask you based on answers and context',
+    element: {
+      id: '',
+      type: 'object',
+      properties: [
+        {
+          id: '',
+          type: 'string',
+          name: 'question',
+          description: 'Suggested question',
+        },
+      ],
+    },
+  },
   '$page.background.image': {
     type: 'string',
     description: 'background image of page',
