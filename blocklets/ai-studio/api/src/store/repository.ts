@@ -93,7 +93,7 @@ export async function getRepository({
 
           return {
             filepath,
-            key: nanoid(32),
+            key: 'variable.config',
             data: variable,
           };
         }
