@@ -23,7 +23,7 @@ export class ExtractMetadataTransform extends TransformStream<
         for (;;) {
           if (this.state === 'none') {
             const found = findMatchIndex(this.buffer, this.cursor, start);
-            if (found.start > 0) {
+            if (found.start > this.cursor) {
               const text = this.buffer.slice(this.cursor, found.start);
               this.cursor = found.start;
               controller.enqueue({ type: 'text', text });

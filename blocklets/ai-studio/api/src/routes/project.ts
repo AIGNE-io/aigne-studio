@@ -823,6 +823,11 @@ async function createProjectFromTemplate(
     working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
   }
 
+  if (!working.syncedStore.files['variable.config']) {
+    working.syncedStore.tree['variable.config'] = 'variable.config';
+    working.syncedStore.files['variable.config'] = { type: 'variables', variables: [] };
+  }
+
   await commitWorking({
     project,
     ref: defaultBranch,

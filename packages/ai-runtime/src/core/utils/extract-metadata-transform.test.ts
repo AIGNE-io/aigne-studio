@@ -34,16 +34,33 @@ describe('ExtractMetadataTransform', () => {
     return { text, matched };
   }
 
-  const str =
-    'hello<metadata>{"name":"foo","age":120}</metadata>world how<metadata>{"name":"bar","age":130}</metadata> to';
-  const start = '<metadata>';
-  const end = '</metadata>';
-
-  const expected = { text: 'helloworld how to', matched: ['{"name":"foo","age":120}', '{"name":"bar","age":130}'] };
+  const cases = [
+    {
+      input:
+        'hello<metadata>{"name":"foo","age":120}</metadata>world how<metadata>{"name":"bar","age":130}</metadata> to',
+      start: '<metadata>',
+      end: '</metadata>',
+      expected: { text: 'helloworld how to', matched: ['{"name":"foo","age":120}', '{"name":"bar","age":130}'] },
+    },
+    {
+      input: '```metadata{"name":"foo","age":120}```',
+      start: '```metadata',
+      end: '```',
+      expected: { text: '', matched: ['{"name":"foo","age":120}'] },
+    },
+    {
+      input: '```metadata{"name":"foo","age":120}``````metadata{"name":"bar","age":130}```',
+      start: '```metadata',
+      end: '```',
+      expected: { text: '', matched: ['{"name":"foo","age":120}', '{"name":"bar","age":130}'] },
+    },
+  ];
 
   test('extract metadata transform', async () => {
-    for (let i = 1; i < str.length; i++) {
-      expect(await run(str, start, end, i)).toEqual(expected);
+    for (const c of cases) {
+      for (let i = 1; i < c.input.length; i++) {
+        expect([await run(c.input, c.start, c.end, i), i]).toEqual([c.expected, i]);
+      }
     }
   });
 });

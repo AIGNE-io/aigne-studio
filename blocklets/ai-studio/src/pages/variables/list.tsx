@@ -1,45 +1,63 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Box, Dialog, DialogContent, DialogProps, DialogTitle, IconButton, Tooltip } from '@mui/material';
+import { AssistantYjs, isAssistant } from '@blocklet/ai-runtime/types';
+import { Box } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
-import { UseFormReturn, useForm } from 'react-hook-form';
+import { uniq } from 'lodash';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAsync } from 'react-use';
 
-import { getVariable, getVariables } from '../../libs/datastore';
-import Close from '../project/icons/close';
 import SegmentedControl from '../project/segmented-control';
-import { useProjectStore } from '../project/yjs-state';
-
-interface DialogImperative {
-  form: UseFormReturn<{ key: string }>;
-}
+import { PROMPTS_FOLDER_NAME, useProjectStore } from '../project/yjs-state';
 
 function VariableList() {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
-  const { projectId } = useParams();
-  const dialogState = usePopupState({ variant: 'dialog' });
+  const { projectId, ref: gitRef } = useParams();
   const { t } = useLocaleContext();
   const [scope, setScope] = useState('global');
-  const [key, setKey] = useState('');
 
-  const {
-    loading,
-    value: list,
-    error,
-  } = useAsync(
-    () =>
-      getVariables({
-        projectId: projectId || '',
-        offset: paginationModel.page * paginationModel.pageSize,
-        limit: paginationModel.pageSize,
-        scope,
-      }),
-    [paginationModel.page, paginationModel.pageSize, projectId, scope]
-  );
+  const { synced, store, getVariables, getFileById } = useProjectStore(projectId || '', gitRef || '', true);
+  const variableYjs = getVariables();
 
-  if (error) throw error;
+  const list = useMemo(() => {
+    const filterVariables = (variableYjs?.variables || []).filter((x) => x.scope === scope);
+    const map: { [key: string]: any } = {};
+    const assistants = Object.entries(store.tree)
+      .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
+      .map(([id]) => store.files[id])
+      .filter((i): i is AssistantYjs => !!i && isAssistant(i));
+
+    assistants.forEach((assistant) => {
+      Object.values(assistant.parameters || {}).forEach((parameter) => {
+        if (parameter.data.source?.variableFrom === 'datastore') {
+          const s = parameter.data.source;
+          const key: string = `${s.scope?.scope || ''}_${s.scope?.key || ''}_${s.scope?.dataType || ''}`;
+          map[key] ??= [];
+          map[key].push(assistant.id);
+        }
+      });
+
+      Object.values(assistant.outputVariables || {}).forEach((output) => {
+        if (output?.data?.datastore && output?.data?.datastore?.key) {
+          const s = output.data.datastore;
+          const key: string = `${s?.scope || ''}_${s?.key || ''}_${s?.dataType || ''}`;
+          map[key] ??= [];
+          map[key].push(assistant.id);
+        }
+      });
+    });
+
+    const list = filterVariables
+      .splice(paginationModel.page * paginationModel.pageSize, paginationModel.pageSize)
+      .map((x) => {
+        const key: string = `${x?.scope || ''}_${x?.key || ''}_${x?.dataType || ''}`;
+        return { ...x, assistants: uniq(map[key] || []) };
+      });
+
+    return {
+      list,
+      count: list.length,
+    };
+  }, [scope, synced, paginationModel.page, paginationModel.pageSize]);
 
   const columns = useMemo(
     () => [
@@ -51,9 +69,26 @@ function VariableList() {
       },
       {
         field: 'count',
-        headerName: t('variables.count'),
+        headerName: t('variables.dataType'),
         flex: 1,
-        renderCell: (params) => params.row?.count ?? 0,
+        renderCell: (params) => {
+          return <Box>{params.row?.dataType}</Box>;
+        },
+      },
+      {
+        field: 'useAssistant',
+        headerName: t('variables.useAssistant'),
+        flex: 1,
+        renderCell: (params) => {
+          return (
+            <Box>
+              {(params.row.assistants || [])
+                .map((id: string) => getFileById(id)?.name)
+                .filter((x: any) => x)
+                .join(',')}
+            </Box>
+          );
+        },
       },
     ],
     [t]
@@ -66,8 +101,8 @@ function VariableList() {
           value={scope}
           options={[
             { value: 'global', label: t('variableParameter.global') },
+            { value: 'user', label: t('variableParameter.user') },
             { value: 'session', label: t('variableParameter.session') },
-            { value: 'local', label: t('variableParameter.assistant') },
           ]}
           onChange={(value) => {
             if (value) setScope(value);
@@ -76,152 +111,21 @@ function VariableList() {
       </Box>
 
       <DataGrid
-        loading={loading}
+        loading={!synced}
         rows={list?.list ?? []}
         columns={columns}
         autoHeight
         disableColumnMenu
         rowSelectionModel={undefined}
-        getRowId={(row) => row?.key || 'type'}
+        getRowId={(row) => `${row.key}-${row.scope}-${row.dataType}` || 'default'}
         keepNonExistentRowsSelected
         rowCount={list?.count || 0}
         pageSizeOptions={[10]}
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
-        onRowClick={(p) => {
-          setKey(p.row.key);
-          dialogState.open();
-        }}
       />
-
-      {dialogState.isOpen && (
-        <VariableDialog
-          scope={scope}
-          variableKey={key}
-          DialogProps={{ ...bindDialog(dialogState) }}
-          onClose={dialogState.close}
-          onSubmit={dialogState.close}
-        />
-      )}
     </Box>
   );
 }
-
-const VariableDialog = forwardRef<
-  DialogImperative,
-  { scope: string; variableKey: string; onSubmit: () => any; onClose: () => void; DialogProps?: DialogProps }
->(({ scope, variableKey, onSubmit, onClose, DialogProps }, ref) => {
-  const { t } = useLocaleContext();
-  const form = useForm<{ key: string }>({ defaultValues: {} });
-  useImperativeHandle(ref, () => ({ form }), [form]);
-
-  const { projectId } = useParams();
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
-  const { getFileById } = useProjectStore(projectId || '', 'main');
-
-  const {
-    loading,
-    value: result,
-    error,
-  } = useAsync(
-    () =>
-      getVariable({
-        projectId: projectId || '',
-        key: variableKey,
-        scope,
-        offset: paginationModel.page * paginationModel.pageSize,
-        limit: paginationModel.pageSize,
-      }),
-    [variableKey, projectId, scope, paginationModel.page, paginationModel.pageSize]
-  );
-
-  if (error) throw error;
-
-  const columns = useMemo(
-    () => [
-      {
-        field: 'value',
-        headerName: t('variables.value'),
-        flex: 1,
-        renderCell: (params: any) => {
-          return (
-            <Tooltip title={JSON.stringify(params.row?.data)}>
-              <Box className="ellipsis">{JSON.stringify(params.row?.data)}</Box>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        field: 'itemId',
-        headerName: t('variables.itemId'),
-        flex: 1,
-        renderCell: (params) => params.row?.itemId,
-      },
-      {
-        field: 'userId',
-        headerName: t('userId'),
-        flex: 1,
-        renderCell: (params) => (
-          <Tooltip title={JSON.stringify(params.row?.userId)}>
-            <Box className="ellipsis">{params.row?.userId}</Box>
-          </Tooltip>
-        ),
-      },
-      {
-        field: 'sessionId',
-        headerName: t('sessionId'),
-        flex: 1,
-        renderCell: (params) => (
-          <Tooltip title={JSON.stringify(params.row?.sessionId)}>
-            <Box className="ellipsis">{params.row?.sessionId}</Box>
-          </Tooltip>
-        ),
-      },
-      {
-        field: 'assistantId',
-        headerName: t('assistantId'),
-        flex: 1,
-        renderCell: (params) => {
-          const file = getFileById(params.row?.assistantId);
-          return <Box>{file?.name || params.row?.assistantId}</Box>;
-        },
-      },
-    ],
-    [t]
-  );
-
-  return (
-    <Dialog
-      open={false}
-      fullWidth
-      maxWidth="lg"
-      {...DialogProps}
-      component="form"
-      onSubmit={form.handleSubmit(onSubmit)}>
-      <DialogTitle className="between">
-        {`${variableKey} ${t('variables.dialogTitle')}`}
-
-        <IconButton size="small" onClick={onClose}>
-          <Close />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent>
-        <DataGrid
-          loading={loading}
-          rows={result?.list ?? []}
-          columns={columns}
-          autoHeight
-          disableColumnMenu
-          rowSelectionModel={undefined}
-          keepNonExistentRowsSelected
-          pageSizeOptions={[10]}
-          paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
-        />
-      </DialogContent>
-    </Dialog>
-  );
-});
 
 export default VariableList;

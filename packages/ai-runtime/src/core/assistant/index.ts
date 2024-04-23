@@ -1,5 +1,4 @@
 import { join } from 'path';
-import { TransformStream } from 'stream/web';
 
 import { ChatCompletionChunk } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
@@ -39,11 +38,15 @@ import {
   isImageAssistant,
 } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase } from '../../types/runtime';
-import { ExtractMetadataTransform } from '../utils/extract-metadata-transform';
 import retry from '../utils/retry';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../utils/schema';
 import { BuiltinModules } from './builtin';
-import { generateOutput } from './generate-output';
+import {
+  extractMetadataFromStream,
+  generateOutput,
+  metadataOutputFormatPrompt,
+  metadataStreamOutputFormatPrompt,
+} from './generate-output';
 import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback, ToolCompletionDirective } from './type';
 
 const getUserHeader = (user: any) => {
@@ -56,7 +59,7 @@ const getUserHeader = (user: any) => {
   };
 };
 
-const defaultScope = 'local';
+const defaultScope = 'session';
 
 const MAX_RETRIES = 3;
 
@@ -504,7 +507,6 @@ const runRequestStorage = async ({
   callback,
   datastoreParameter,
   scopeMap,
-  parameters,
 }: {
   assistant: PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
   parentTaskId?: string;
@@ -512,19 +514,24 @@ const runRequestStorage = async ({
   callback?: RunAssistantCallback;
   datastoreParameter: Parameter;
   scopeMap: { [key: string]: any };
-  parameters: { [key: string]: any };
 }) => {
-  if (datastoreParameter.key && datastoreParameter.source?.variableFrom === 'datastore') {
+  if (
+    datastoreParameter.key &&
+    datastoreParameter.source?.variableFrom === 'datastore' &&
+    datastoreParameter.source.scope
+  ) {
     const currentTaskId = nextTaskId();
 
     const scopeParams = scopeMap.local;
     const params = {
       ...scopeParams,
-      key: toLower(datastoreParameter.key),
-      itemId: datastoreParameter.source.itemId
-        ? await renderMessage(datastoreParameter.source.itemId, parameters)
-        : datastoreParameter.source.itemId,
-      scope: datastoreParameter.source.scope || defaultScope,
+      // key: toLower(datastoreParameter.key),
+      // itemId: datastoreParameter.source.itemId
+      //   ? await renderMessage(datastoreParameter.source.itemId, parameters)
+      //   : datastoreParameter.source.itemId,
+      scope: datastoreParameter.source.scope?.scope || defaultScope,
+      dataType: datastoreParameter.source.scope?.dataType,
+      key: toLower(datastoreParameter.source.scope?.key) || toLower(datastoreParameter.key),
     };
 
     const callbackParams = {
@@ -533,7 +540,7 @@ const runRequestStorage = async ({
       assistantId: assistant.id,
       assistantName: startCase(
         toLower(
-          `The storage info of ${datastoreParameter.key} key for ${datastoreParameter.source.scope || defaultScope} Scope`
+          `The storage info of ${datastoreParameter.key} key for ${datastoreParameter.source.scope.scope || defaultScope} Scope`
         )
       ),
     };
@@ -624,7 +631,6 @@ const runRequestHistory = async ({
     headers: getUserHeader(user),
     params,
   });
-  console.log(data);
   const result = (data || []).map((x: any) => x?.result).filter((x: any) => x);
 
   callback?.({
@@ -757,40 +763,6 @@ const getVariables = async ({
     },
   };
 
-  const persistData = async (toolParameter: Parameter) => {
-    if (
-      toolParameter.key &&
-      toolParameter.source?.variableFrom === 'tool' &&
-      toolParameter.source.tool &&
-      toolParameter.source.persist
-    ) {
-      const scopeParams = scopeMap[toolParameter.source.scope || defaultScope] || scopeMap.local;
-      const params = {
-        params: {
-          ...scopeParams,
-          reset: toolParameter.source.reset,
-        },
-        data: {
-          data: variables[toolParameter.key],
-          key: toLower(toolParameter.key),
-          itemId: toolParameter.source.itemId
-            ? await renderMessage(toolParameter.source.itemId, parameters)
-            : toolParameter.source.itemId,
-        },
-      };
-
-      await callFunc({
-        name: 'ai-studio',
-        path: '/api/datastore',
-        method: 'POST',
-        headers: getUserHeader(user),
-        ...params,
-      });
-
-      logger.info('save parameter tool to datastore success', params);
-    }
-  };
-
   if (toolParameters.length) {
     for (const toolParameter of toolParameters) {
       if (toolParameter.key && toolParameter.source?.variableFrom === 'tool' && toolParameter.source.tool) {
@@ -817,7 +789,7 @@ const getVariables = async ({
           variables[toolParameter.key] = result ?? toolParameter.defaultValue;
         }
 
-        await persistData(toolParameter);
+        // await persistData(toolParameter);
       }
     }
   }
@@ -832,8 +804,8 @@ const getVariables = async ({
           callback,
           datastoreParameter,
           scopeMap,
-          parameters,
         });
+
         variables[datastoreParameter.key] = result;
       }
     }
@@ -944,20 +916,8 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  const outputJson = assistant.outputFormat === 'json';
-  const { outputVariables = [] } = assistant;
-  const streamJson = outputVariables.length > 0;
-
-  const schema = outputVariablesToJsonSchema(outputVariables);
-  const outputSchema = JSON.stringify(schema);
-
-  const messagesWithSystemPrompt = [...messages];
-  const lastSystemIndex = messagesWithSystemPrompt.findLastIndex((i) => i.role === 'system');
-
-  const metadataPrefix = '```metadata';
-  const metadataSuffix = '```';
-
   if (assistant.history?.enable) {
+    const lastSystemIndex = messages.findLastIndex((i) => i.role === 'system');
     const histories = await runRequestHistory({
       assistant,
       parentTaskId: taskId,
@@ -972,7 +932,7 @@ async function runPromptAssistant({
     });
 
     if (histories.length) {
-      messages.unshift({
+      messages.splice(lastSystemIndex, 0, {
         role: 'system',
         content: `## Memory
         Here is the chat histories between user and assistant, inside <histories></histories> XML tags.
@@ -983,33 +943,25 @@ async function runPromptAssistant({
     }
   }
 
+  const outputJson = assistant.outputFormat === 'json';
+  const { outputVariables = [] } = assistant;
+  const streamJson = outputVariables.length > 0;
+
+  const schema = outputVariablesToJsonSchema(outputVariables);
+  const outputSchema = JSON.stringify(schema);
+
+  const messagesWithSystemPrompt = [...messages];
+  const lastSystemIndex = messagesWithSystemPrompt.findLastIndex((i) => i.role === 'system');
+
   if (outputJson) {
     messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
       role: 'system',
-      content: `\
-## Output Format
-
-Generate a JSON object match the following JSON schema:
-${outputSchema}`,
+      content: metadataOutputFormatPrompt(outputSchema),
     });
   } else if (streamJson) {
     messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
       role: 'system',
-      content: `\
-## JSON Schema
-Here is the json schema for output metadata, inside <schema></schema> XML tags:
-<schema>
-${outputSchema}
-</schema>
-
-## Output Format
-
-[Place Your Text Content here]
-
-${metadataPrefix}
-[Using the JSON schema above to generate a JSON object here]
-${metadataSuffix}
-  `,
+      content: metadataStreamOutputFormatPrompt(outputSchema),
     });
   }
 
@@ -1053,21 +1005,7 @@ ${metadataSuffix}
       },
     });
 
-    const stream = aiResult.chatCompletionChunk
-      .pipeThrough(
-        new TransformStream({
-          transform: (chunk, controller) => {
-            if (chunk.delta.content) controller.enqueue(chunk.delta.content);
-          },
-        })
-      )
-      .pipeThrough(
-        new ExtractMetadataTransform({
-          // Pass empty string to disable extractor
-          start: streamJson ? metadataPrefix : '',
-          end: metadataSuffix,
-        })
-      );
+    const stream = extractMetadataFromStream(aiResult.chatCompletionChunk, outputJson || streamJson);
 
     for await (const chunk of stream) {
       if (chunk.type === 'text') {
@@ -1088,45 +1026,41 @@ ${metadataSuffix}
       }
     }
 
-    const joiSchema = outputVariablesToJoiSchema(outputVariables);
-    if (outputJson) {
-      const json = JSON.parse(result);
-      try {
-        jsonResult = await joiSchema.validateAsync(json);
-      } catch (error) {
-        throw new Error('Unexpected response format from AI');
-      }
-
-      callback?.({
-        type: AssistantResponseType.CHUNK,
-        taskId,
-        assistantId: assistant.id,
-        delta: { object: jsonResult },
-      });
-    } else if (streamJson) {
+    if (outputJson || streamJson) {
+      const joiSchema = outputVariablesToJoiSchema(outputVariables);
       const json = {};
-
       for (const i of metadataStrings) {
         try {
           const obj = JSON.parse(i);
           Object.assign(json, obj);
-        } catch (error) {
+        } catch {
           // ignore
         }
+      }
+
+      // try to parse all text content as a json
+      try {
+        Object.assign(json, JSON.parse(result));
+      } catch {
+        // ignore
       }
 
       try {
         jsonResult = await joiSchema.validateAsync(json);
       } catch (error) {
-        try {
-          jsonResult = await generateOutput({
-            assistant,
-            messages: messages.concat({ role: 'assistant', content: result }),
-            callAI,
-            maxRetries: MAX_RETRIES,
-          });
-        } catch (error) {
+        if (outputJson) {
           throw new Error('Unexpected response format from AI');
+        } else {
+          try {
+            jsonResult = await generateOutput({
+              assistant,
+              messages: messages.concat({ role: 'assistant', content: result }),
+              callAI,
+              maxRetries: MAX_RETRIES,
+            });
+          } catch (error) {
+            throw new Error('Unexpected response format from AI');
+          }
         }
       }
     }
@@ -1134,7 +1068,7 @@ ${metadataSuffix}
     return { jsonResult, result, aiResult };
   };
 
-  const { jsonResult, result, aiResult } = await retry(run, streamJson ? 0 : MAX_RETRIES);
+  const { jsonResult, result, aiResult } = await retry(run, outputJson ? MAX_RETRIES : 0);
 
   if (jsonResult) {
     callback?.({
@@ -1143,6 +1077,34 @@ ${metadataSuffix}
       assistantId: assistant.id,
       delta: { object: jsonResult },
     });
+  }
+
+  for (const output of assistant?.outputVariables || []) {
+    if (output?.datastore?.key && output?.name && jsonResult && jsonResult[output?.name as any] && outputJson) {
+      const params = {
+        params: {
+          userId: user?.did || '',
+          projectId,
+          sessionId,
+          assistantId: assistant.id,
+          reset: output.datastore.reset,
+        },
+        data: {
+          data: jsonResult[output?.name as any],
+          key: toLower(output.datastore?.key),
+          dataType: output.datastore.dataType,
+          scope: output.datastore.scope,
+        },
+      };
+      await callFunc({
+        name: 'ai-studio',
+        path: '/api/datastore',
+        method: 'POST',
+        headers: getUserHeader(user),
+        ...params,
+      });
+      logger.info('save parameter tool to datastore success', params);
+    }
   }
 
   callback?.({

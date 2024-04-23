@@ -1,7 +1,15 @@
 import { readdir, rm, writeFile } from 'fs/promises';
 import path, { relative } from 'path';
 
-import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
+import {
+  Assistant,
+  FileTypeYjs,
+  fileFromYjs,
+  fileToYjs,
+  isAssistant,
+  isRawFile,
+  isVariableFile,
+} from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { pathExists } from 'fs-extra';
@@ -80,6 +88,16 @@ export async function getRepository({
           }
         }
 
+        if (ext === '.config') {
+          const variable = parse(Buffer.from(content).toString());
+
+          return {
+            filepath,
+            key: 'variable.config',
+            data: variable,
+          };
+        }
+
         return {
           filepath,
           key: nanoid(32),
@@ -122,10 +140,13 @@ export async function getRepository({
 
         if (isRawFile(content)) {
           const base64 = content.$base64;
-
           const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
-
           return [{ filepath, data }];
+        }
+
+        if (isVariableFile(content)) {
+          const { type, variables } = content;
+          return [{ filepath, data: stringify({ type, variables }) }];
         }
 
         return [{ filepath, data: '' }];

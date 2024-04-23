@@ -45,7 +45,7 @@ export default function PromptAssistantEditor({
       </Box>
 
       <Box sx={{ borderRadius: 1 }}>
-        <OutputSettings value={value} />
+        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} />
       </Box>
     </Stack>
   );

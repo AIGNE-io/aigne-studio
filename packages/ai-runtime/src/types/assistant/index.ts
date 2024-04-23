@@ -8,7 +8,12 @@ export enum OnTaskCompletion {
   EXIT = 'EXIT',
 }
 
-export type FileType = Assistant | { $base64: string };
+export type Variable = {
+  type: 'variables';
+  variables?: Scope[];
+};
+
+export type FileType = Assistant | { $base64: string } | Variable;
 
 export type Assistant = PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
 
@@ -75,6 +80,12 @@ export type Prompt =
       visibility?: 'hidden';
     };
 
+export type Scope = {
+  scope?: 'session' | 'user' | 'global';
+  key: string;
+  dataType: any;
+};
+
 export interface AssistantBase {
   id: string;
   name?: string;
@@ -124,6 +135,7 @@ export interface OutputVariableBase {
   name?: string;
   description?: string;
   required?: boolean;
+  datastore?: Scope & { reset?: boolean };
 }
 
 export type OutputVariable = OutputVariableBase &
@@ -184,12 +196,10 @@ export interface FunctionAssistant extends AssistantBase {
 }
 
 export interface DatastoreBase {
-  persist?: boolean;
-  itemId?: string; // Datastore 中的 key, 将tool执行后的结果为value
-  scope?: 'local' | 'global' | 'session';
+  cache?: boolean; // 先不支持
+  itemId?: string; // 先不支持
+  scope?: Scope;
   defaultValue?: any;
-  reset?: boolean;
-  cache?: boolean;
 }
 
 export interface DatastoreParameter extends DatastoreBase {

@@ -130,10 +130,11 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[]): Joi.Any
       schema = Joi.number().empty([null, '']);
     } else if (variable.type === 'object') {
       schema = Joi.object(
-        variable.properties &&
-          Object.fromEntries(
-            variable.properties.map((property) => (property.name ? [property.name, variableToSchema(property)] : []))
-          )
+        Object.fromEntries(
+          (variable.properties ?? [])
+            .filter((i) => i.name)
+            .map((property) => [property.name, variableToSchema(property)])
+        )
       )
         .empty([null, ''])
         .options({ stripUnknown: true });

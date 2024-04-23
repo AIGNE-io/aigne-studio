@@ -27,6 +27,10 @@ export default class Datastore extends Model<InferAttributes<Datastore>, InferCr
   declare updatedAt: CreationOptional<Date>;
 
   declare data?: {};
+
+  declare scope?: 'session' | 'user' | 'global';
+
+  declare dataType?: any;
 }
 
 Datastore.init(
@@ -64,6 +68,12 @@ Datastore.init(
     },
     itemId: {
       type: DataTypes.STRING,
+    },
+    scope: {
+      type: DataTypes.STRING,
+    },
+    dataType: {
+      type: DataTypes.JSON,
     },
   },
   { sequelize }
