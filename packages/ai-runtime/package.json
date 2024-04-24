@@ -37,8 +37,8 @@
       "require": "./lib/cjs/core/index.js"
     },
     "./common": {
-      "import": "./lib/esm/common.js",
-      "require": "./lib/cjs/common.js"
+      "import": "./lib/esm/common/index.js",
+      "require": "./lib/cjs/common/index.js"
     }
   },
   "typesVersions": {
@@ -63,7 +63,8 @@
         "./lib/types/core/index.d.ts"
       ],
       "common": [
-        "./lib/types/common.d.ts"
+        "./lib/types/common.d.ts",
+        "./lib/types/common/index.d.ts"
       ]
     }
   },
@@ -93,7 +94,7 @@
   },
   "dependencies": {
     "@blocklet/ai-builtin": "^0.2.0-beta.0",
-    "@blocklet/ai-kit": "^0.1.26",
+    "@blocklet/ai-kit": "^0.1.27",
     "@blocklet/dataset-sdk": "^0.2.0-beta.0",
     "@blocklet/sdk": "^1.16.25",
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -101,7 +102,7 @@
     "axios": "^1.6.8",
     "dayjs": "^1.11.10",
     "eventsource-parser": "^1.1.2",
-    "joi": "^17.12.3",
+    "joi": "^17.13.0",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
     "node-fetch": "2",
@@ -123,7 +124,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.69",
+    "@arcblock/ux": "^2.9.70",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",
@@ -136,7 +137,7 @@
     "@types/react": "^18.2.79",
     "npm-run-all": "^4.1.5",
     "react": "^18.2.0",
-    "react-router-dom": "^6.22.3",
+    "react-router-dom": "^6.23.0",
     "rimraf": "^5.0.5",
     "ts-jest": "^29.1.2",
     "typescript": "^5.4.5"

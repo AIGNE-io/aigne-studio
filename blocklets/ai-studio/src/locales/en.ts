@@ -78,6 +78,8 @@ export default flat({
     didSpaces: 'Import from DID Spaces',
     didSpacesTitle: 'Import project from DID Spaces',
     didSpacesDescription: 'Import projects from already bound DID Spaces',
+    fromCurrentDidSpaceImport: 'Import projects from the current bound DID Space',
+    fromOtherDidSpaceImport: 'Import projects from other DID Space',
     selectProject: 'Select Project',
     selectBranch: 'Select Branch',
     selectAgentTip: 'Please select the agent first',
@@ -644,4 +646,5 @@ export default flat({
   suggestedQuestions: 'Suggested Questions',
   processing: 'Processing',
   generatedImages: 'Generated Images',
+  projectLimitExceeded: 'Project limit exceeded (current: {current}, limit: {limit})',
 });

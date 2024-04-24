@@ -1,6 +1,8 @@
 import { readdir, rm, writeFile } from 'fs/promises';
 import path, { relative } from 'path';
 
+import { EVENTS } from '@api/event';
+import { broadcast } from '@api/libs/ws';
 import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
@@ -155,45 +157,6 @@ export async function getRepository({
   return repositories[projectId]!;
 }
 
-export async function syncToDidSpace({ project, userId }: { project: Project; userId: string }) {
-  const { user } = await authClient.getUser(userId);
-  const endpoint = user?.didSpace?.endpoint;
-
-  if (isEmpty(endpoint)) {
-    return;
-  }
-
-  const spaceClient = new SpaceClient({
-    endpoint,
-    wallet,
-  });
-
-  const repositoryPath = repositoryRoot(project._id);
-  const repositoryCooperativePath = repositoryCooperativeRoot(project._id);
-  const outputs: (SyncFolderPushCommandOutput | null)[] = await Promise.all(
-    [repositoryPath, repositoryCooperativePath].map(async (path) => {
-      if (await pathExists(path)) {
-        return spaceClient.send(
-          new SyncFolderPushCommand({
-            source: path,
-            target: relative(Config.dataDir, path),
-            metadata: { ...project.toJSON() },
-          })
-        );
-      }
-      return null;
-    })
-  );
-
-  // 如果有错误则抛出
-  const errorOutput = outputs.filter(Boolean).find((output) => output?.statusCode !== 200);
-  if (errorOutput) {
-    throw new Error(errorOutput.statusMessage);
-  }
-
-  await project.update({ didSpaceLastSyncedAt: new Date() });
-}
-
 export async function syncRepository<T>({
   repository,
   ref,
@@ -272,10 +235,12 @@ export const autoSyncIfNeeded = async ({
   project,
   author,
   userId,
+  wait = true,
 }: {
   project: Project;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
   userId: string;
+  wait?: true | false;
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
     const repository = await getRepository({ projectId: project._id! });
@@ -284,9 +249,70 @@ export const autoSyncIfNeeded = async ({
   }
 
   if (project.didSpaceAutoSync) {
-    await syncToDidSpace({ project, userId });
+    if (wait) {
+      await syncToDidSpace({ project, userId });
+    } else {
+      broadcast(project._id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
+        done: false,
+      });
+      // 开始同步
+      syncToDidSpace({ project, userId })
+        .then(() => {
+          // 同步成功
+          broadcast(project._id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
+            done: true,
+          });
+        })
+        .catch((error) => {
+          // 同步失败了
+          logger.error(error);
+          broadcast(project._id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
+            error,
+            done: true,
+          });
+        });
+    }
   }
 };
+
+export async function syncToDidSpace({ project, userId }: { project: Project; userId: string }) {
+  const { user } = await authClient.getUser(userId);
+  const endpoint = user?.didSpace?.endpoint;
+
+  if (isEmpty(endpoint)) {
+    return;
+  }
+
+  const spaceClient = new SpaceClient({
+    endpoint,
+    wallet,
+  });
+
+  const repositoryPath = repositoryRoot(project._id);
+  const repositoryCooperativePath = repositoryCooperativeRoot(project._id);
+  const outputs: (SyncFolderPushCommandOutput | null)[] = await Promise.all(
+    [repositoryPath, repositoryCooperativePath].map(async (path) => {
+      if (await pathExists(path)) {
+        return spaceClient.send(
+          new SyncFolderPushCommand({
+            source: path,
+            target: relative(Config.dataDir, path),
+            metadata: { ...project.toJSON() },
+          })
+        );
+      }
+      return null;
+    })
+  );
+
+  // 如果有错误则抛出
+  const errorOutput = outputs.filter(Boolean).find((output) => output?.statusCode !== 200);
+  if (errorOutput) {
+    throw new Error(errorOutput.statusMessage);
+  }
+
+  await project.update({ didSpaceLastSyncedAt: new Date() });
+}
 
 export async function commitWorking({
   project,

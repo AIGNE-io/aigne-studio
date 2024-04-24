@@ -71,12 +71,55 @@
                 "default": "single-tenant",
                 "x-designable-id": "dfjkqjey8h9",
                 "x-index": 0
+              },
+              "multiTenantProjectLimits": {
+                "type": "number",
+                "title": "Multi Tenant Project Limits",
+                "x-decorator": "FormItem",
+                "x-component": "NumberPicker",
+                "x-validator": [
+                  {
+                    "exclusiveMinimum": 0,
+                    "min": null
+                  }
+                ],
+                "x-component-props": {
+                  "style": {
+                    "width": "auto"
+                  }
+                },
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "size": "default",
+                  "fullness": false,
+                  "colon": false
+                },
+                "name": "multiTenantProjectLimits",
+                "default": 3,
+                "x-reactions": {
+                  "dependencies": [
+                    {
+                      "property": "value",
+                      "type": "string | number",
+                      "source": "8ijnww1wdf9.drcj4aejnt5.serviceMode",
+                      "name": "serviceMode"
+                    }
+                  ],
+                  "fulfill": {
+                    "state": {
+                      "visible": "{{$deps.serviceMode === 'multi-tenant'}}"
+                    }
+                  }
+                },
+                "x-designable-id": "pjjw2k56bus",
+                "x-index": 1,
+                "description": "Limit the maximum number of projects each person can create in Multi Tenant (except for owner, admin, promptsEditor passport)"
               }
             }
           }
         }
       }
     },
-    "x-designable-id": "hsh3pn7wvht"
+    "x-designable-id": "rumt7n1nwzw"
   }
 }
