@@ -1,7 +1,7 @@
 import Joi from 'joi';
 
-import { OutputVariable } from '../../types';
-import { RuntimeOutputVariable } from '../../types/runtime';
+import type { RuntimeOutputVariable } from '.';
+import type { OutputVariable } from '..';
 
 /**
  * ignore these output variables in the json schema and the joi validation schema
@@ -10,7 +10,7 @@ export const ignoredRuntimeOutputVariables: RuntimeOutputVariable[] = ['$textStr
 
 type OmitUnion<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
-const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<OutputVariable, 'id'>> = {
+export const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<OutputVariable, 'id'>> = {
   $textStream: {
     type: 'textStream',
     description: 'Text Stream',

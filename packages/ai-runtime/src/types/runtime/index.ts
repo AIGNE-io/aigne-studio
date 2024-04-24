@@ -2,6 +2,8 @@ import { SubscriptionError } from '@blocklet/ai-kit/api';
 
 import { ExecuteBlock, Role } from '../assistant';
 
+export * from './schema';
+
 export enum ExecutionPhase {
   EXECUTE_BLOCK_START = 'EXECUTE_BLOCK_START',
   EXECUTE_SELECT_STOP = 'EXECUTE_SELECT_STOP',

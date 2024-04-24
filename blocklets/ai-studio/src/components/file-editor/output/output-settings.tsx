@@ -65,16 +65,18 @@ export default function OutputSettings({ value }: { value: AssistantYjs; readOnl
         </tbody>
       </Box>
 
-      <AddOutputVariableButton
-        onSelect={({ name }) => {
-          if (name && outputVariables?.some((i) => i.data.name === name)) return;
+      {value.type !== 'image' && (
+        <AddOutputVariableButton
+          onSelect={({ name }) => {
+            if (name && outputVariables?.some((i) => i.data.name === name)) return;
 
-          setField((vars) => {
-            const id = nanoid();
-            vars[id] = { index: Object.values(vars).length, data: { id, type: 'string', name } };
-          });
-        }}
-      />
+            setField((vars) => {
+              const id = nanoid();
+              vars[id] = { index: Object.values(vars).length, data: { id, type: 'string', name } };
+            });
+          }}
+        />
+      )}
     </Box>
   );
 }
@@ -204,7 +206,8 @@ function VariableRow({
         </td>
       </tr>
 
-      {variable.type === 'object' &&
+      {!runtimeVariable &&
+        variable.type === 'object' &&
         variable.properties &&
         sortBy(Object.values(variable.properties), 'index').map((property) => (
           <VariableRow
@@ -221,7 +224,9 @@ function VariableRow({
           />
         ))}
 
-      {variable.type === 'array' && variable.element && <VariableRow variable={variable.element} depth={depth + 1} />}
+      {!runtimeVariable && variable.type === 'array' && variable.element && (
+        <VariableRow variable={variable.element} depth={depth + 1} />
+      )}
     </>
   );
 }

@@ -40,8 +40,8 @@ import {
   isImageAssistant,
 } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase, RuntimeOutputVariable } from '../../types/runtime';
+import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../../types/runtime/schema';
 import retry from '../utils/retry';
-import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../utils/schema';
 import { BuiltinModules } from './builtin';
 import {
   extractMetadataFromStream,
