@@ -37,6 +37,11 @@ export type ExecuteBlockYjs = ExecuteBlockSelectAllYjs | ExecuteBlockSelectByPro
 
 export type OutputVariableYjs = OutputVariableBase &
   (
+    | { type?: undefined }
+    | {
+        type: 'textStream';
+        defaultValue?: string;
+      }
     | {
         type: 'string';
         defaultValue?: string;

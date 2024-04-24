@@ -1,9 +1,11 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, RuntimeOutputVariable, arrayToYjs, outputVariableToYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import { ButtonProps, ListItemIcon, MenuItem } from '@mui/material';
+import { sortBy } from 'lodash';
+import { nanoid } from 'nanoid';
 
 const agentTypes = [
   { type: 'agent', icon: <Icon icon="tabler:x" />, i18nKey: 'none' },
@@ -40,7 +42,39 @@ export default function AgentTypeSelect({
           onClick={() => {
             doc.transact(() => {
               assistant.type = node.type;
-              // TODO: reset other fields
+              assistant.outputVariables ??= {};
+
+              const removeVariable = (name: RuntimeOutputVariable) => {
+                const image = Object.values(assistant.outputVariables!).find(
+                  (i) => (i.data.name as RuntimeOutputVariable) === name
+                );
+                if (image) delete assistant.outputVariables?.[image.data.id];
+              };
+
+              if (assistant.type === 'image') {
+                const schema = { id: nanoid(), name: RuntimeOutputVariable.images };
+                assistant.outputVariables = arrayToYjs([schema]);
+              } else {
+                removeVariable(RuntimeOutputVariable.images);
+              }
+
+              if (assistant.type === 'prompt') {
+                if (
+                  !Object.values(assistant.outputVariables).some(
+                    (i) => i.data.name === RuntimeOutputVariable.textStream
+                  )
+                ) {
+                  const id = nanoid();
+                  assistant.outputVariables[id] = {
+                    index: -1,
+                    data: outputVariableToYjs({ id, name: RuntimeOutputVariable.textStream }),
+                  };
+                }
+              } else {
+                removeVariable(RuntimeOutputVariable.textStream);
+              }
+
+              sortBy(Object.values(assistant.outputVariables), 'index').forEach((item, index) => (item.index = index));
             });
           }}>
           <ListItemIcon>{node.icon}</ListItemIcon>

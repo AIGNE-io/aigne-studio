@@ -3,9 +3,9 @@ import { ReadableStream, TransformStream } from 'stream/web';
 import { ChatCompletionChunk } from '@blocklet/ai-kit/api/types/chat';
 
 import { Assistant, Role } from '../../types';
+import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../../types/runtime/schema';
 import { ExtractMetadataTransform } from '../utils/extract-metadata-transform';
 import retry from '../utils/retry';
-import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../utils/schema';
 import { CallAI } from './type';
 
 export const metadataPrefix = '```metadata';

@@ -62,25 +62,6 @@ export default function OutputSettings({
         </Typography>
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end" />
-
-        {value.type === 'prompt' && (
-          <Stack direction="row" alignItems="center" gap={1} onClick={(e) => e.stopPropagation()}>
-            <Typography variant="subtitle4">{t('outputFormat')}</Typography>
-
-            <TextField
-              size="small"
-              hiddenLabel
-              select
-              SelectProps={{ autoWidth: true }}
-              value={value.outputFormat || 'text'}
-              onChange={(e) => {
-                value.outputFormat = e.target.value as any;
-              }}>
-              <MenuItem value="text">{t('text')}</MenuItem>
-              <MenuItem value="json">{t('json')}</MenuItem>
-            </TextField>
-          </Stack>
-        )}
       </Stack>
 
       <Box component="table" sx={{ minWidth: '100%', th: { whiteSpace: 'nowrap' } }}>
@@ -112,16 +93,24 @@ export default function OutputSettings({
         </tbody>
       </Box>
 
-      <AddOutputVariableButton
-        onSelect={({ name }) => {
-          if (name && outputVariables?.some((i) => i.data.name === name)) return;
+      {value.type !== 'image' && (
+        <AddOutputVariableButton
+          assistant={value}
+          onSelect={({ name }) => {
+            setField((vars) => {
+              const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
+              if (exist) {
+                delete vars[exist.data.id];
+              } else {
+                const id = nanoid();
+                vars[id] = { index: Object.values(vars).length, data: { id, name } };
+              }
 
-          setField((vars) => {
-            const id = nanoid();
-            vars[id] = { index: Object.values(vars).length, data: { id, type: 'string', name } };
-          });
-        }}
-      />
+              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+            });
+          }}
+        />
+      )}
     </Box>
   );
 }
@@ -298,7 +287,7 @@ function VariableRow({
             <NumberField
               hiddenLabel
               fullWidth
-              value={variable.defaultValue || null}
+              value={variable.defaultValue || ''}
               onChange={(value) => (variable.defaultValue = value)}
             />
           ) : null}
@@ -337,7 +326,7 @@ function VariableRow({
                                 value={{
                                   name: variable.name || '',
                                   defaultValue: (variable as any).defaultValue || '',
-                                  dataType: variable.type,
+                                  dataType: variable.type || '',
                                 }}
                                 onDelete={() => {
                                   if (variable.variable) {
@@ -387,7 +376,8 @@ function VariableRow({
         </td>
       </tr>
 
-      {variable.type === 'object' &&
+      {!runtimeVariable &&
+        variable.type === 'object' &&
         variable.properties &&
         sortBy(Object.values(variable.properties), 'index').map((property) => (
           <VariableRow
@@ -407,7 +397,7 @@ function VariableRow({
           />
         ))}
 
-      {variable.type === 'array' && variable.element && (
+      {!runtimeVariable && variable.type === 'array' && variable.element && (
         <VariableRow
           projectId={projectId}
           gitRef={gitRef}

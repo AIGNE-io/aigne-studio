@@ -640,8 +640,7 @@ export default flat({
   },
   outputFormat: 'Output Format',
   json: 'JSON',
-  customObject: 'Custom {object}',
-  runtimeMetadata: 'Runtime metadata',
+  custom: 'Custom',
   backgroundImage: 'Background Image',
   backgroundColor: 'Background Color',
   inputController: 'Input Controller',
@@ -649,4 +648,6 @@ export default flat({
   processing: 'Processing',
   generatedImages: 'Generated Images',
   projectLimitExceeded: 'Project limit exceeded (current: {current}, limit: {limit})',
+  streamTextResponse: 'Generated Text Stream',
+  referencedLinks: 'Referenced Links',
 });
