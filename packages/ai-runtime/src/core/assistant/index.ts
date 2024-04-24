@@ -39,7 +39,7 @@ import {
   isAgent,
   isImageAssistant,
 } from '../../types/assistant';
-import { AssistantResponseType, ExecutionPhase } from '../../types/runtime';
+import { AssistantResponseType, ExecutionPhase, RuntimeOutputVariable } from '../../types/runtime';
 import retry from '../utils/retry';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../utils/schema';
 import { BuiltinModules } from './builtin';
@@ -925,9 +925,11 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  const outputJson = assistant.outputFormat === 'json';
   const { outputVariables = [] } = assistant;
-  const streamJson = outputVariables.length > 0;
+  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === '$textStream');
+  const outputStreamAndJson = outputVariables.some(
+    (i) => i.name && (i.name as RuntimeOutputVariable) !== '$textStream'
+  );
 
   const schema = outputVariablesToJsonSchema(outputVariables);
   const outputSchema = JSON.stringify(schema);
@@ -935,12 +937,12 @@ async function runPromptAssistant({
   const messagesWithSystemPrompt = [...messages];
   const lastSystemIndex = messagesWithSystemPrompt.length;
 
-  if (outputJson) {
+  if (onlyOutputJson) {
     messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
       role: 'system',
       content: metadataOutputFormatPrompt(outputSchema),
     });
-  } else if (streamJson) {
+  } else if (outputStreamAndJson) {
     messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
       role: 'system',
       content: metadataStreamOutputFormatPrompt(outputSchema),
@@ -987,7 +989,7 @@ async function runPromptAssistant({
       },
     });
 
-    const stream = extractMetadataFromStream(aiResult.chatCompletionChunk, outputJson || streamJson);
+    const stream = extractMetadataFromStream(aiResult.chatCompletionChunk, onlyOutputJson || outputStreamAndJson);
 
     for await (const chunk of stream) {
       if (chunk.type === 'text') {
@@ -995,7 +997,7 @@ async function runPromptAssistant({
 
         result += text;
 
-        if (!outputJson) {
+        if (!onlyOutputJson) {
           callback?.({
             type: AssistantResponseType.CHUNK,
             taskId,
@@ -1008,7 +1010,7 @@ async function runPromptAssistant({
       }
     }
 
-    if (outputJson || streamJson) {
+    if (onlyOutputJson || outputStreamAndJson) {
       const joiSchema = outputVariablesToJoiSchema(outputVariables);
       const json = {};
       for (const i of metadataStrings) {
@@ -1030,7 +1032,7 @@ async function runPromptAssistant({
       try {
         jsonResult = await joiSchema.validateAsync(json);
       } catch (error) {
-        if (outputJson) {
+        if (onlyOutputJson) {
           throw new Error('Unexpected response format from AI');
         } else {
           try {
@@ -1050,7 +1052,7 @@ async function runPromptAssistant({
     return { jsonResult, result, aiResult };
   };
 
-  const { jsonResult, result, aiResult } = await retry(run, outputJson ? MAX_RETRIES : 0);
+  const { jsonResult, result, aiResult } = await retry(run, onlyOutputJson ? MAX_RETRIES : 0);
 
   if (jsonResult) {
     callback?.({

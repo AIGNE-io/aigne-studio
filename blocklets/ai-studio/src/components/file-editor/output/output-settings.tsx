@@ -37,25 +37,6 @@ export default function OutputSettings({ value }: { value: AssistantYjs; readOnl
         </Typography>
 
         <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end" />
-
-        {value.type === 'prompt' && (
-          <Stack direction="row" alignItems="center" gap={1} onClick={(e) => e.stopPropagation()}>
-            <Typography variant="subtitle4">{t('outputFormat')}</Typography>
-
-            <TextField
-              size="small"
-              hiddenLabel
-              select
-              SelectProps={{ autoWidth: true }}
-              value={value.outputFormat || 'text'}
-              onChange={(e) => {
-                value.outputFormat = e.target.value as any;
-              }}>
-              <MenuItem value="text">{t('text')}</MenuItem>
-              <MenuItem value="json">{t('json')}</MenuItem>
-            </TextField>
-          </Stack>
-        )}
       </Stack>
 
       <Box component="table" sx={{ minWidth: '100%', th: { whiteSpace: 'nowrap' } }}>
@@ -189,7 +170,7 @@ function VariableRow({
             <NumberField
               hiddenLabel
               fullWidth
-              value={variable.defaultValue || null}
+              value={variable.defaultValue || ''}
               onChange={(value) => (variable.defaultValue = value)}
             />
           ) : null}

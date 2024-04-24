@@ -9,6 +9,18 @@ export const runtimeOutputVariables: {
   name: RuntimeOutputVariable;
 }[] = [
   {
+    icon: <Icon icon="tabler:cursor-text" />,
+    title: 'Stream Text Response',
+    i18nKey: 'streamTextResponse',
+    name: '$textStream',
+  },
+  {
+    icon: <Icon icon="tabler:photo" />,
+    title: 'Generated Images',
+    i18nKey: 'generatedImages',
+    name: '$images',
+  },
+  {
     icon: <Icon icon="tabler:bulb" />,
     title: 'Suggested Questions',
     i18nKey: 'suggestedQuestions',
@@ -27,12 +39,6 @@ export const runtimeOutputVariables: {
     name: '$page.background.color',
   },
   { icon: <Icon icon="tabler:forms" />, title: 'Input Controller', i18nKey: 'inputController', name: '$input' },
-  {
-    icon: <Icon icon="tabler:photo" />,
-    title: 'Generated Images',
-    i18nKey: 'generatedImages',
-    name: 'images',
-  },
 ];
 
 const runtimeOutputVariableNames = new Map<string, (typeof runtimeOutputVariables)[number]>(

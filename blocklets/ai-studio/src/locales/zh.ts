@@ -612,4 +612,5 @@ export default flat({
   processing: '运行',
   generatedImages: '生成的图片',
   projectLimitExceeded: '项目数量已达上限（当前 {current} 个，最多可创建 {limit} 个）',
+  streamTextResponse: '文本流响应',
 });

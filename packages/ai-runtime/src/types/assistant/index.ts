@@ -108,8 +108,6 @@ export interface AssistantBase {
   };
   entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
 
-  outputFormat?: 'text' | 'json';
-
   outputVariables?: OutputVariable[];
 }
 
@@ -122,6 +120,10 @@ export interface OutputVariableBase {
 
 export type OutputVariable = OutputVariableBase &
   (
+    | {
+        type: 'textStream';
+        defaultValue?: string;
+      }
     | {
         type: 'string';
         defaultValue?: string;

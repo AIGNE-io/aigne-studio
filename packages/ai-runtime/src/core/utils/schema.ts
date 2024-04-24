@@ -3,10 +3,19 @@ import Joi from 'joi';
 import { OutputVariable } from '../../types';
 import { RuntimeOutputVariable } from '../../types/runtime';
 
+/**
+ * ignore these output variables in the json schema and the joi validation schema
+ */
+export const ignoredRuntimeOutputVariables: RuntimeOutputVariable[] = ['$textStream', '$images'];
+
 type OmitUnion<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
 const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<OutputVariable, 'id'>> = {
-  images: {
+  $textStream: {
+    type: 'textStream',
+    description: 'Text Stream',
+  },
+  $images: {
     type: 'array',
     description: 'Generated Images',
     element: {
@@ -119,7 +128,11 @@ const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<OutputVari
 };
 
 export function outputVariablesToJsonSchema(variables: OutputVariable[]) {
-  const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): any => {
+  const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): object | undefined => {
+    if (ignoredRuntimeOutputVariables.includes(variable.name as RuntimeOutputVariable)) {
+      return undefined;
+    }
+
     const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
     if (runtimeVariable) {
       return variableToSchema({
@@ -134,7 +147,9 @@ export function outputVariablesToJsonSchema(variables: OutputVariable[]) {
       properties:
         variable.type === 'object' && variable.properties
           ? Object.fromEntries(
-              variable.properties.map((property) => [property.name, variableToSchema(property)]).filter((i) => !!i[0])
+              variable.properties
+                .map((property) => [property.name, variableToSchema(property)] as const)
+                .filter((i) => i[0] && i[1])
             )
           : undefined,
       items: variable.type === 'array' && variable.element ? variableToSchema(variable.element) : undefined,
@@ -150,6 +165,10 @@ export function outputVariablesToJsonSchema(variables: OutputVariable[]) {
 
 export function outputVariablesToJoiSchema(variables: OutputVariable[]): Joi.AnySchema {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): Joi.AnySchema | undefined => {
+    if (ignoredRuntimeOutputVariables.includes(variable.name as RuntimeOutputVariable)) {
+      return undefined;
+    }
+
     let schema: Joi.AnySchema | undefined;
 
     const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
@@ -164,8 +183,8 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[]): Joi.Any
       schema = Joi.object(
         Object.fromEntries(
           (variable.properties ?? [])
-            .filter((i) => i.name)
-            .map((property) => [property.name, variableToSchema(property)])
+            .map((property) => [property.name, variableToSchema(property)] as const)
+            .filter((i) => i[0] && i[1])
         )
       )
         .empty([null, ''])

@@ -616,4 +616,5 @@ export default flat({
   processing: 'Processing',
   generatedImages: 'Generated Images',
   projectLimitExceeded: 'Project limit exceeded (current: {current}, limit: {limit})',
+  streamTextResponse: 'Stream text response',
 });
