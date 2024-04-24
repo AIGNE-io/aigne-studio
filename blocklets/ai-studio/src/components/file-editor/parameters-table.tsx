@@ -189,7 +189,7 @@ export default function ParametersTable({
             }
 
             if (parameter.source.variableFrom === 'knowledge') {
-              return <Box>{TYPE_MAP('string')}</Box>;
+              return <Box>{TYPE_MAP.string}</Box>;
             }
           }
 
