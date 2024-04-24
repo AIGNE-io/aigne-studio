@@ -5,8 +5,8 @@ import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
-import { call as callFunc } from '@blocklet/sdk/lib/component';
-import { env, logger } from '@blocklet/sdk/lib/config';
+import { call, call as callFunc } from '@blocklet/sdk/lib/component';
+import { logger } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
 import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
 import fetch from 'node-fetch';
@@ -28,6 +28,7 @@ import {
   isPromptAssistant,
 } from '../../types';
 import {
+  Agent,
   ImageAssistant,
   Mustache,
   OnTaskCompletion,
@@ -35,6 +36,7 @@ import {
   Role,
   Tool,
   User,
+  isAgent,
   isImageAssistant,
 } from '../../types/assistant';
 import { AssistantResponseType, ExecutionPhase } from '../../types/runtime';
@@ -118,6 +120,22 @@ export async function runAssistant({
   });
 
   try {
+    if (isAgent(assistant)) {
+      return await runAgent({
+        taskId,
+        parentTaskId,
+        callAI,
+        callAIImage,
+        getAssistant,
+        assistant,
+        parameters: assistantVariables,
+        callback,
+        user,
+        sessionId,
+        projectId,
+      });
+    }
+
     if (isPromptAssistant(assistant)) {
       return await runPromptAssistant({
         taskId,
@@ -202,9 +220,6 @@ export async function runAssistant({
 }
 
 async function runFunctionAssistant({
-  getAssistant,
-  callAI,
-  callAIImage,
   taskId,
   assistant,
   context,
@@ -213,7 +228,6 @@ async function runFunctionAssistant({
   callback,
   user,
   sessionId,
-  projectId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -228,24 +242,31 @@ async function runFunctionAssistant({
   sessionId?: string;
   projectId?: string;
 }) {
-  const results = assistant.prepareExecutes?.length
-    ? await runExecuteBlocks({
-        assistant,
-        callAI,
-        callAIImage,
-        getAssistant,
-        parameters,
-        executeBlocks: assistant.prepareExecutes,
-        parentTaskId: taskId,
-        callback,
-        user,
-        sessionId,
-        projectId,
-      })
-    : [];
-
   if (!assistant.code) throw new Error(`Assistant ${assistant.id}'s code is empty`);
-  const code = await TranspileTs(assistant.code);
+  const code = await TranspileTs(
+    /export\sdefault/.test(assistant.code)
+      ? assistant.code
+      : `\
+export default async function(args) {
+  ${assistant.code}
+}
+`
+  );
+
+  const args = Object.fromEntries(
+    await Promise.all(
+      (assistant.parameters ?? [])
+        .filter((i): i is typeof i & { key: string } => !!i.key)
+        .map(async (i) => [i.key, parameters?.[i.key] || i.defaultValue])
+    )
+  );
+
+  const ctx: { [key: string]: any } = Object.freeze({
+    ...context,
+    user,
+    session: { id: sessionId },
+  });
+
   const vm = new NodeVM({
     console: 'redirect',
     require: {
@@ -256,7 +277,7 @@ async function runFunctionAssistant({
       context: {
         get: (name: any) => {
           if (isNil(name) || name === '') return undefined;
-          let result = context?.[name] || results.find((i) => i[0].variable === name)?.[1];
+          let result = ctx?.[name];
           while (typeof result === 'function') {
             result = result();
           }
@@ -264,12 +285,9 @@ async function runFunctionAssistant({
         },
       },
       URL,
+      call,
       fetch,
-      env: {
-        languages: env.languages,
-        appId: env.appId,
-        appUrl: env.appUrl,
-      },
+      ...args,
     },
   });
 
@@ -296,19 +314,6 @@ async function runFunctionAssistant({
   if (typeof module.default !== 'function')
     throw new Error('Invalid function file: function file must export default function');
 
-  const args = Object.fromEntries(
-    await Promise.all(
-      (assistant.parameters ?? [])
-        .filter((i): i is typeof i & { key: string } => !!i.key)
-        .map(async (i) => [i.key, parameters?.[i.key] || (await vm.sandbox.context.get(i.key)) || i.defaultValue])
-    )
-  );
-
-  const ctx = Object.freeze({
-    user,
-    session: { id: sessionId },
-  });
-
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
@@ -328,13 +333,16 @@ async function runFunctionAssistant({
     fnArgs: args,
   });
 
-  const result = await module.default(args, ctx);
+  const result = await module.default();
+
+  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? []);
+  const object = await schema.validateAsync(result);
 
   callback?.({
     type: AssistantResponseType.CHUNK,
     taskId,
     assistantId: assistant.id,
-    delta: { content: typeof result === 'string' ? result : JSON.stringify(result) },
+    delta: { object },
   });
 
   callback?.({
@@ -350,17 +358,11 @@ async function runFunctionAssistant({
 }
 
 async function runApiAssistant({
-  callAI,
-  callAIImage,
-  getAssistant,
   taskId,
   assistant,
   parameters,
   parentTaskId,
   callback,
-  user,
-  sessionId,
-  projectId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -376,34 +378,11 @@ async function runApiAssistant({
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
 
-  const results = assistant.prepareExecutes?.length
-    ? await runExecuteBlocks({
-        assistant,
-        callAI,
-        callAIImage,
-        getAssistant,
-        parameters,
-        executeBlocks: assistant.prepareExecutes,
-        parentTaskId: taskId,
-        callback,
-        user,
-        sessionId,
-        projectId,
-      })
-    : [];
-
-  const isSameVariable = (left?: string, right?: string) => left && left === right;
-
   const args = Object.fromEntries(
     await Promise.all(
       (assistant.parameters ?? [])
         .filter((i): i is typeof i & { key: string } => !!i.key)
-        .map(async (i) => [
-          i.key,
-          parameters?.[i.key] ||
-            results.find((r) => isSameVariable(i.key, r[0].variable) || isSameVariable(i.label, r[0].variable))?.[1] ||
-            i.defaultValue,
-        ])
+        .map(async (i) => [i.key, parameters?.[i.key] || i.defaultValue])
     )
   );
 
@@ -443,18 +422,20 @@ async function runApiAssistant({
     result = response.data;
   } catch (e) {
     error = {
-      error: {
-        message: e.message,
-        ...(isAxiosError(e) ? pick(e.response, 'status', 'statusText', 'data') : undefined),
-      },
+      message: e.message,
+      ...(isAxiosError(e) ? pick(e.response, 'status', 'statusText', 'data') : undefined),
     };
+    throw error;
   }
+
+  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? []);
+  const object = await schema.validateAsync(result);
 
   callback?.({
     type: AssistantResponseType.CHUNK,
     taskId,
     assistantId: assistant.id,
-    delta: { content: typeof result === 'string' ? result : JSON.stringify(result || error) },
+    delta: { object },
   });
 
   callback?.({
@@ -508,7 +489,7 @@ const runRequestStorage = async ({
   datastoreParameter,
   scopeMap,
 }: {
-  assistant: PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
   parentTaskId?: string;
   user?: User;
   callback?: RunAssistantCallback;
@@ -731,7 +712,7 @@ const getVariables = async ({
   callAI: CallAI;
   callAIImage: CallAIImage;
   getAssistant: GetAssistant;
-  assistant: PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
   parameters: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
@@ -812,6 +793,68 @@ const getVariables = async ({
 
   return variables;
 };
+
+async function runAgent({
+  taskId,
+  assistant,
+  parameters,
+  parentTaskId,
+  callback,
+}: {
+  callAI: CallAI;
+  callAIImage: CallAIImage;
+  taskId: string;
+  getAssistant: GetAssistant;
+  assistant: Agent;
+  parameters: { [key: string]: any };
+  parentTaskId?: string;
+  callback?: RunAssistantCallback;
+  user?: User;
+  sessionId?: string;
+  projectId?: string;
+}) {
+  const { outputVariables = [] } = assistant;
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    parentTaskId,
+    taskId,
+    assistantName: assistant.name,
+    inputParameters: parameters,
+  });
+
+  const schema = outputVariablesToJoiSchema(outputVariables);
+
+  const result = await schema.validateAsync({});
+
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    taskId,
+    assistantId: assistant.id,
+    delta: { object: result },
+  });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
+  return result;
+}
 
 async function runPromptAssistant({
   callAI,
@@ -950,7 +993,7 @@ async function runPromptAssistant({
   const outputSchema = JSON.stringify(schema);
 
   const messagesWithSystemPrompt = [...messages];
-  const lastSystemIndex = messagesWithSystemPrompt.findLastIndex((i) => i.role === 'system');
+  const lastSystemIndex = messagesWithSystemPrompt.length;
 
   if (outputJson) {
     messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
@@ -1119,7 +1162,7 @@ async function runPromptAssistant({
     taskId,
     assistantName: assistant.name,
     inputParameters: parameters,
-    promptMessages: messages,
+    promptMessages: messagesWithSystemPrompt,
   });
 
   callback?.({
@@ -1241,7 +1284,17 @@ async function runImageAssistant({
     assistantName: assistant.name,
   });
 
-  callback?.({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: { images: data } });
+  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? []);
+  const object = await schema.validateAsync({
+    images: data,
+  });
+
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    taskId,
+    assistantId: assistant.id,
+    delta: { images: data, object },
+  });
 
   callback?.({
     type: AssistantResponseType.EXECUTE,

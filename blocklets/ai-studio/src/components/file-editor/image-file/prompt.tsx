@@ -1,7 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
-import { Icon } from '@iconify-icon/react';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
@@ -28,21 +27,7 @@ export default function ImageFilePrompt({
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   return (
-    <Stack
-      gap={1}
-      sx={{
-        borderRadius: 1,
-        bgcolor: '#EFF6FF',
-        px: 2,
-        py: 1.5,
-      }}>
-      <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
-        <Box component={Icon} icon="tabler:bulb" sx={{ color: '#3B82F6', fontSize: 15 }} />
-        <Typography variant="subtitle2" sx={{ m: 0 }}>
-          {t('formatPrompt')}
-        </Typography>
-      </Stack>
-
+    <Stack gap={1}>
       <Box
         border="1px solid #3B82F6"
         borderRadius={1}

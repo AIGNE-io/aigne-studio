@@ -191,7 +191,7 @@ const FileTree = forwardRef<
               createFile({ store, parent: template.parent, meta: fileToYjs(template) as AssistantYjs });
             }
           } else {
-            Toast.error(t('import.selectTemplates'));
+            Toast.error(t('import.selectAgentTip'));
           }
         } catch (error) {
           Toast.error(getErrorMessage(error));

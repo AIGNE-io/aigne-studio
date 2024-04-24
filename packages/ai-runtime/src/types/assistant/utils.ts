@@ -3,6 +3,7 @@ import sortBy from 'lodash/sortBy';
 import { customAlphabet } from 'nanoid';
 
 import type {
+  AgentYjs,
   ApiAssistantYjs,
   AssistantYjs,
   ExecuteBlockYjs,
@@ -15,6 +16,7 @@ import type {
   PromptYjs,
 } from './yjs';
 import type {
+  Agent,
   ApiAssistant,
   Assistant,
   ExecuteBlock,
@@ -52,8 +54,14 @@ export function isAssistant(assistant: FileTypeYjs): assistant is AssistantYjs;
 export function isAssistant(assistant: FileType | FileTypeYjs): assistant is FileType | AssistantYjs {
   return (
     typeof (assistant as any).id === 'string' &&
-    ['prompt', 'image', 'api', 'function'].includes((assistant as any).type)
+    ['agent', 'prompt', 'image', 'api', 'function'].includes((assistant as any).type)
   );
+}
+
+export function isAgent(file: FileType): file is Agent;
+export function isAgent(file: FileTypeYjs): file is AgentYjs;
+export function isAgent(file: FileType | FileTypeYjs): file is Agent | AgentYjs {
+  return (file as any).type === 'agent';
 }
 
 export function isPromptAssistant(file: FileType): file is PromptAssistant;
@@ -194,6 +202,15 @@ export function arrayFromYjs<T, I>(
 }
 
 export function fileToYjs(file: FileType): FileTypeYjs {
+  if (isAgent(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
+      tests: file.tests && arrayToYjs(file.tests),
+      entries: file.entries && arrayToYjs(file.entries),
+      outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
+    };
+  }
   if (isPromptAssistant(file)) {
     return {
       ...file,
@@ -245,6 +262,15 @@ export function fileToYjs(file: FileType): FileTypeYjs {
 }
 
 export function fileFromYjs(file: FileTypeYjs): FileType {
+  if (isAgent(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
+      tests: file.tests && arrayFromYjs(file.tests),
+      entries: file.entries && arrayFromYjs(file.entries),
+      outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
+    };
+  }
   if (isPromptAssistant(file)) {
     return {
       ...file,

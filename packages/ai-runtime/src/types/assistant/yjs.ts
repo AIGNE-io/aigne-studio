@@ -1,4 +1,5 @@
 import type {
+  Agent,
   ApiAssistant,
   AssistantBase,
   ExecuteBlock,
@@ -22,7 +23,7 @@ export type VariablesYjs = {
 
 export type FileTypeYjs = AssistantYjs | { $base64: string } | VariablesYjs;
 
-export type AssistantYjs = PromptAssistantYjs | ApiAssistantYjs | FunctionAssistantYjs | ImageAssistantYjs;
+export type AssistantYjs = AgentYjs | PromptAssistantYjs | ApiAssistantYjs | FunctionAssistantYjs | ImageAssistantYjs;
 
 export type ExecuteBlockSelectAllYjs = Omit<ExecuteBlockSelectAll, 'tools'> & {
   tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
@@ -75,6 +76,8 @@ export type AssistantBaseYjs<T extends AssistantBase> = Omit<
   entries?: ArrayToYjs<NonNullable<AssistantBase['entries']>>;
   outputVariables?: ArrayToYjs<OutputVariableYjs[]>;
 };
+
+export interface AgentYjs extends AssistantBaseYjs<Agent> {}
 
 export interface PromptAssistantYjs extends Omit<AssistantBaseYjs<PromptAssistant>, 'prompts'> {
   prompts?: { [key: string]: { index: number; data: PromptYjs } };

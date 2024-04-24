@@ -6,6 +6,38 @@ import { RuntimeOutputVariable } from '../../types/runtime';
 type OmitUnion<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
 const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<OutputVariable, 'id'>> = {
+  images: {
+    type: 'array',
+    description: 'Generated Images',
+    element: {
+      id: '',
+      type: 'object',
+      properties: [
+        {
+          id: '',
+          type: 'string',
+          name: 'url',
+          description: 'Image Url',
+        },
+      ],
+    },
+  },
+  '$suggested.questions': {
+    type: 'array',
+    description: 'Generate 3 questions for users to ask you based on answers and context',
+    element: {
+      id: '',
+      type: 'object',
+      properties: [
+        {
+          id: '',
+          type: 'string',
+          name: 'question',
+          description: 'Suggested question',
+        },
+      ],
+    },
+  },
   '$page.background.image': {
     type: 'string',
     description: 'background image of page',
@@ -145,6 +177,10 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[]): Joi.Any
     }
 
     if (!schema) return undefined;
+
+    if ('defaultValue' in variable) {
+      schema = schema.default(variable.defaultValue);
+    }
 
     if (variable.required) {
       schema = schema.required();

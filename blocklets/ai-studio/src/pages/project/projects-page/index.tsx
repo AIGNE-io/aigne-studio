@@ -167,7 +167,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                     setDialog(<ImportFromTemplates templates={resource} onClose={() => setDialog(null)} />);
                   }}>
                   <Box component={Icon} icon="tabler:file-plus" sx={{ mr: 1 }} />
-                  <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('import.templates')}</ListItemText>
+                  <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('agents')}</ListItemText>
                 </MenuItem>
               )}
             </MenuList>

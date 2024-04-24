@@ -104,15 +104,22 @@ export type RunAssistantError = {
   error: { message: string } | SubscriptionError;
 };
 
-export type RuntimeOutputVariable = '$page.background.image' | '$page.background.color' | '$input';
+export type RuntimeOutputVariable =
+  | 'images'
+  | '$suggested.questions'
+  | '$page.background.image'
+  | '$page.background.color'
+  | '$input';
 
 export const RuntimeOutputVariableNames: RuntimeOutputVariable[] = [
+  '$suggested.questions',
   '$input',
   '$page.background.color',
   '$page.background.image',
 ];
 
 export interface RuntimeOutputVariables {
+  '$suggested.questions'?: { question: string }[];
   '$page.background.image'?: string;
   '$page.background.color'?: string;
   $input?: Input;
