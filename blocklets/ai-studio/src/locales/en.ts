@@ -610,6 +610,8 @@ export default flat({
     duplicate: 'Data already exist.',
     tip: 'Scope: {scope}, DataType: {dataType}',
     knowledge: 'From Knowledge',
+    fromAgentParameter: 'From Agent Input Parameter',
+    fromKnowledgeParameter: 'From Knowledge Input Parameter',
   },
   variables: {
     name: 'Data Name',

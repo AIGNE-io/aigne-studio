@@ -606,6 +606,8 @@ export default flat({
     duplicate: '数据已经存在。',
     tip: '作用域：{scope}， 数据类型：{dataType}',
     knowledge: '来自知识库',
+    fromAgentParameter: '来自Agent输入参数',
+    fromKnowledgeParameter: '来自知识输入参数',
   },
   variables: {
     name: '数据名称',

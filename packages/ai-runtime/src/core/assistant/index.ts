@@ -456,34 +456,6 @@ async function renderMessage(message: string, parameters?: { [key: string]: any 
   });
 }
 
-function processAssistantParameters(assistant: Assistant) {
-  const assistantParameters = assistant.parameters;
-
-  if (!assistantParameters?.length) {
-    return { toolParameters: [], datastoreParameters: [] };
-  }
-
-  const toolParameters: Parameter[] = [];
-  const datastoreParameters: Parameter[] = [];
-  const knowledgeParameters: Parameter[] = [];
-
-  assistantParameters.forEach((param) => {
-    if (param.key) {
-      if (param.source) {
-        if (param.source.variableFrom === 'tool' && param.source.tool) {
-          toolParameters.push(param);
-        } else if (param.source.variableFrom === 'datastore') {
-          datastoreParameters.push(param);
-        } else if (param.source.variableFrom === 'knowledge') {
-          knowledgeParameters.push(param);
-        }
-      }
-    }
-  });
-
-  return { toolParameters, datastoreParameters, knowledgeParameters };
-}
-
 const runRequestStorage = async ({
   assistant,
   parentTaskId,
@@ -518,9 +490,7 @@ const runRequestStorage = async ({
       parentTaskId,
       assistantId: assistant.id,
       assistantName: startCase(
-        toLower(
-          `The storage info of ${datastoreParameter.key} key for ${datastoreParameter.source.variable.scope || defaultScope} Scope`
-        )
+        toLower(`From ${datastoreParameter.source.variable.scope || defaultScope} ${datastoreParameter.key} Storage `)
       ),
     };
 
@@ -717,8 +687,6 @@ const getVariables = async ({
 }) => {
   const variables: { [key: string]: any } = { ...parameters };
 
-  const { toolParameters, datastoreParameters, knowledgeParameters } = processAssistantParameters(assistant);
-
   const userId = user?.did;
 
   const cb: ((taskId: string) => RunAssistantCallback) | undefined =
@@ -731,10 +699,10 @@ const getVariables = async ({
       callback(args);
     });
 
-  if (toolParameters.length) {
-    for (const toolParameter of toolParameters) {
-      if (toolParameter.key && toolParameter.source?.variableFrom === 'tool' && toolParameter.source.tool) {
-        const { tool } = toolParameter.source;
+  for (const parameter of assistant.parameters || []) {
+    if (parameter.key && parameter.source) {
+      if (parameter.source?.variableFrom === 'tool' && parameter.source.tool) {
+        const { tool } = parameter.source;
         const toolAssistant = await getAssistant(tool.id);
         if (!toolAssistant) continue;
 
@@ -748,30 +716,24 @@ const getVariables = async ({
           user,
           sessionId,
           cb,
-          toolParameter,
+          toolParameter: parameter,
           projectId,
         });
 
         // TODO: @li-yechao 根据配置的输出类型决定是否需要 parse
         try {
-          variables[toolParameter.key] = JSON.parse(result);
+          variables[parameter.key] = JSON.parse(result);
         } catch (error) {
-          variables[toolParameter.key] = result ?? toolParameter.defaultValue;
+          variables[parameter.key] = result ?? parameter.defaultValue;
         }
-      }
-    }
-  }
-
-  if (datastoreParameters.length) {
-    for (const datastoreParameter of datastoreParameters) {
-      if (datastoreParameter.key && datastoreParameter.source?.variableFrom === 'datastore') {
+      } else if (parameter.source?.variableFrom === 'datastore') {
         // eslint-disable-next-line no-await-in-loop
         const result = await runRequestStorage({
           assistant,
           parentTaskId,
           user,
           callback,
-          datastoreParameter,
+          datastoreParameter: parameter,
           ids: {
             userId,
             projectId,
@@ -780,22 +742,12 @@ const getVariables = async ({
           },
         });
 
-        variables[datastoreParameter.key] = result;
-      }
-    }
-  }
-
-  if (knowledgeParameters?.length) {
-    for (const knowledgeParameter of knowledgeParameters) {
-      if (
-        knowledgeParameter.key &&
-        knowledgeParameter.source?.variableFrom === 'knowledge' &&
-        knowledgeParameter.source.tool
-      ) {
+        variables[parameter.key] = result;
+      } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.tool) {
         const currentTaskId = taskIdGenerator.nextId().toString();
         // eslint-disable-next-line no-await-in-loop
         const result = await runKnowledgeTool({
-          tool: knowledgeParameter.source.tool,
+          tool: parameter.source.tool,
           taskId: currentTaskId,
           assistant,
           parameters,
@@ -804,7 +756,7 @@ const getVariables = async ({
           user,
         });
 
-        variables[knowledgeParameter.key] = result ?? knowledgeParameter.defaultValue;
+        variables[parameter.key] = result ?? parameter.defaultValue;
       }
     }
   }

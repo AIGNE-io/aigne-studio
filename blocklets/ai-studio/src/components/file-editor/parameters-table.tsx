@@ -97,7 +97,6 @@ export default function ParametersTable({
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
   const { highlightedId, addParameter, deleteParameter } = useVariablesEditorOptions(value);
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
-  const { getFileById } = useProjectStore(projectId, gitRef);
 
   const isValidVariableName = (name: string) => {
     if (!name) return true;
@@ -116,6 +115,15 @@ export default function ParametersTable({
       tool: t('variableParameter.tool'),
       datastore: t('variableParameter.datastore'),
       knowledge: t('variableParameter.knowledge'),
+    };
+  }, [t]);
+
+  const TYPE_MAP: any = useMemo(() => {
+    return {
+      string: t('text'),
+      number: t('number'),
+      object: t('object'),
+      array: t('array'),
     };
   }, [t]);
 
@@ -155,6 +163,14 @@ export default function ParametersTable({
         headerName: t('variableParameter.from'),
         flex: 1,
         renderCell: ({ row: { data: parameter } }) => {
+          if (parameter.from === FROM_PARAMETER) {
+            return <Box>{t('variableParameter.fromAgentParameter')}</Box>;
+          }
+
+          if (parameter.from === FROM_KNOWLEDGE_PARAMETER) {
+            return <Box>{t('variableParameter.fromKnowledgeParameter')}</Box>;
+          }
+
           return <Box>{FROM_MAP[parameter.source?.variableFrom || 'custom']}</Box>;
         },
       },
@@ -165,23 +181,15 @@ export default function ParametersTable({
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.source) {
             if (parameter.source.variableFrom === 'tool') {
-              const toolId = (parameter?.source as any)?.tool?.id;
-              const file = getFileById(toolId);
-              return <Box>{file?.outputFormat ? t(file?.outputFormat) : ''}</Box>;
+              return <Box>{t('array')}</Box>;
             }
 
             if (parameter.source.variableFrom === 'datastore') {
-              const map: any = {
-                string: t('text'),
-                number: t('number'),
-                object: t('object'),
-                array: t('array'),
-              };
-              return <Box>{map[parameter.source?.variable?.dataType]}</Box>;
+              return <Box>{TYPE_MAP[parameter.source?.variable?.dataType]}</Box>;
             }
 
             if (parameter.source.variableFrom === 'knowledge') {
-              return <Box>{t('string')}</Box>;
+              return <Box>{TYPE_MAP('string')}</Box>;
             }
           }
 
@@ -685,7 +693,7 @@ function KnowledgeParameter({
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 }) {
   const { t } = useLocaleContext();
-  const { addParameter, deleteParameter } = useVariablesEditorOptions(value);
+  const { addParameter } = useVariablesEditorOptions(value);
 
   if (parameter?.source?.variableFrom === 'knowledge') {
     const toolId = (parameter?.source as any)?.tool?.id;
@@ -711,22 +719,16 @@ function KnowledgeParameter({
           value={v}
           onChange={(_value) => {
             if (_value) {
-              // 删除历史自动添加的变量
-              Object.values(value.parameters || {}).forEach((x) => {
-                if (x.data.from === FROM_KNOWLEDGE_PARAMETER) {
-                  deleteParameter(x.data);
-                }
-              });
-
               // 整理选择 knowledge 的参数
               const parameters = {
                 message: '{{message}}',
               };
 
-              // 新增选择的变量
-              Object.keys(parameters).forEach((parameter) => {
-                addParameter(parameter, { from: FROM_KNOWLEDGE_PARAMETER });
-              });
+              if (!Object.values(value.parameters || {}).find((x) => x.data.from === FROM_KNOWLEDGE_PARAMETER)) {
+                Object.keys(parameters).forEach((parameter) => {
+                  addParameter(parameter, { from: FROM_KNOWLEDGE_PARAMETER });
+                });
+              }
 
               parameter.source ??= {};
               (parameter.source as any).tool = {
