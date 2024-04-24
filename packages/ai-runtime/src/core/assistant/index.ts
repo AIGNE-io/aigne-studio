@@ -465,6 +465,7 @@ function processAssistantParameters(assistant: Assistant) {
 
   const toolParameters: Parameter[] = [];
   const datastoreParameters: Parameter[] = [];
+  const knowledgeParameters: Parameter[] = [];
 
   assistantParameters.forEach((param) => {
     if (param.key) {
@@ -473,12 +474,14 @@ function processAssistantParameters(assistant: Assistant) {
           toolParameters.push(param);
         } else if (param.source.variableFrom === 'datastore') {
           datastoreParameters.push(param);
+        } else if (param.source.variableFrom === 'knowledge') {
+          knowledgeParameters.push(param);
         }
       }
     }
   });
 
-  return { toolParameters, datastoreParameters };
+  return { toolParameters, datastoreParameters, knowledgeParameters };
 }
 
 const runRequestStorage = async ({
@@ -487,14 +490,14 @@ const runRequestStorage = async ({
   user,
   callback,
   datastoreParameter,
-  scopeMap,
+  ids,
 }: {
   assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
   parentTaskId?: string;
   user?: User;
   callback?: RunAssistantCallback;
   datastoreParameter: Parameter;
-  scopeMap: { [key: string]: any };
+  ids: { [key: string]: string | undefined };
 }) => {
   if (
     datastoreParameter.key &&
@@ -503,9 +506,8 @@ const runRequestStorage = async ({
   ) {
     const currentTaskId = nextTaskId();
 
-    const scopeParams = scopeMap.local;
     const params = {
-      ...scopeParams,
+      ...ids,
       scope: datastoreParameter.source.variable?.scope || defaultScope,
       dataType: datastoreParameter.source.variable?.dataType,
       key: toLower(datastoreParameter.source.variable?.key) || toLower(datastoreParameter.key),
@@ -636,29 +638,21 @@ const runRequestToolAssistant = async ({
   parentTaskId,
   user,
   sessionId,
-  callback,
+  cb,
   toolParameter,
+  projectId,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
   getAssistant: GetAssistant;
   parameters: { [key: string]: any };
   parentTaskId?: string;
-  callback?: RunAssistantCallback;
+  cb?: any;
   user?: User;
   sessionId?: string;
   toolParameter: Parameter;
+  projectId?: string;
 }) => {
-  const cb: ((taskId: string) => RunAssistantCallback) | undefined =
-    callback &&
-    ((taskId) => (args) => {
-      if (args.type === AssistantResponseType.CHUNK && args.taskId === taskId) {
-        callback({ ...args });
-        return;
-      }
-      callback(args);
-    });
-
   if (toolParameter.key && toolParameter.source?.variableFrom === 'tool' && toolParameter.source.tool) {
     const currentTaskId = taskIdGenerator.nextId().toString();
 
@@ -689,6 +683,7 @@ const runRequestToolAssistant = async ({
       callback: cb?.(currentTaskId),
       user,
       sessionId,
+      projectId,
     });
 
     return result;
@@ -722,26 +717,19 @@ const getVariables = async ({
 }) => {
   const variables: { [key: string]: any } = { ...parameters };
 
-  const { toolParameters, datastoreParameters } = processAssistantParameters(assistant);
+  const { toolParameters, datastoreParameters, knowledgeParameters } = processAssistantParameters(assistant);
 
   const userId = user?.did;
-  const scopeMap = {
-    global: {
-      userId,
-      projectId,
-    },
-    session: {
-      userId,
-      projectId,
-      sessionId,
-    },
-    local: {
-      userId,
-      projectId,
-      sessionId,
-      assistantId: assistant.id,
-    },
-  };
+
+  const cb: ((taskId: string) => RunAssistantCallback) | undefined =
+    callback &&
+    ((taskId) => (args) => {
+      if (args.type === AssistantResponseType.CHUNK && args.taskId === taskId) {
+        callback({ ...args });
+        return;
+      }
+      callback(args);
+    });
 
   if (toolParameters.length) {
     for (const toolParameter of toolParameters) {
@@ -750,6 +738,7 @@ const getVariables = async ({
         const toolAssistant = await getAssistant(tool.id);
         if (!toolAssistant) continue;
 
+        // eslint-disable-next-line no-await-in-loop
         const result = await runRequestToolAssistant({
           callAI,
           callAIImage,
@@ -758,8 +747,9 @@ const getVariables = async ({
           parentTaskId,
           user,
           sessionId,
-          callback,
+          cb,
           toolParameter,
+          projectId,
         });
 
         // TODO: @li-yechao 根据配置的输出类型决定是否需要 parse
@@ -768,8 +758,6 @@ const getVariables = async ({
         } catch (error) {
           variables[toolParameter.key] = result ?? toolParameter.defaultValue;
         }
-
-        // await persistData(toolParameter);
       }
     }
   }
@@ -777,16 +765,46 @@ const getVariables = async ({
   if (datastoreParameters.length) {
     for (const datastoreParameter of datastoreParameters) {
       if (datastoreParameter.key && datastoreParameter.source?.variableFrom === 'datastore') {
+        // eslint-disable-next-line no-await-in-loop
         const result = await runRequestStorage({
           assistant,
           parentTaskId,
           user,
           callback,
           datastoreParameter,
-          scopeMap,
+          ids: {
+            userId,
+            projectId,
+            sessionId,
+            assistantId: assistant.id,
+          },
         });
 
         variables[datastoreParameter.key] = result;
+      }
+    }
+  }
+
+  if (knowledgeParameters?.length) {
+    for (const knowledgeParameter of knowledgeParameters) {
+      if (
+        knowledgeParameter.key &&
+        knowledgeParameter.source?.variableFrom === 'knowledge' &&
+        knowledgeParameter.source.tool
+      ) {
+        const currentTaskId = taskIdGenerator.nextId().toString();
+        // eslint-disable-next-line no-await-in-loop
+        const result = await runKnowledgeTool({
+          tool: knowledgeParameter.source.tool,
+          taskId: currentTaskId,
+          assistant,
+          parameters,
+          parentTaskId,
+          callback: cb?.(currentTaskId),
+          user,
+        });
+
+        variables[knowledgeParameter.key] = result ?? knowledgeParameter.defaultValue;
       }
     }
   }
@@ -1146,6 +1164,7 @@ async function runPromptAssistant({
         headers: getUserHeader(user),
         ...params,
       });
+
       logger.info('save parameter tool to datastore success', params);
     }
   }
@@ -1490,6 +1509,7 @@ async function runExecuteBlock({
             callback: cb?.(currentTaskId),
             user,
             sessionId,
+            projectId,
           });
         })
       )
@@ -1748,6 +1768,7 @@ async function runExecuteBlock({
             callback: cb?.(currentTaskId),
             user,
             sessionId,
+            projectId,
           });
 
           if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
@@ -1861,7 +1882,7 @@ async function runKnowledgeTool({
   tool: Tool;
   taskId: string;
   assistant: Assistant;
-  executeBlock: ExecuteBlock;
+  executeBlock?: ExecuteBlock;
   parameters?: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
@@ -1891,7 +1912,7 @@ async function runKnowledgeTool({
     taskId,
     parentTaskId,
     assistantId: assistant.id,
-    assistantName: `${executeBlock.variable ?? knowledge.name}`,
+    assistantName: startCase(toLower(`From ${executeBlock?.variable ?? knowledge.name} Knowledge`)),
   };
 
   callback?.({

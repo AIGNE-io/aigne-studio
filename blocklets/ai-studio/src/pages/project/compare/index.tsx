@@ -149,7 +149,7 @@ export default function Compare({
     }
 
     if (isFunctionAssistant(file)) {
-      return <FunctionAssistantEditor projectId={projectId} gitRef={gitRef} value={file} disabled />;
+      return <FunctionAssistantEditor gitRef={gitRef} value={file} disabled />;
     }
 
     return null;

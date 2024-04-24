@@ -608,6 +608,8 @@ export default flat({
     scopeKey: 'Scope key',
     selectAgent: 'Select Agent',
     duplicate: 'Data already exist.',
+    tip: 'Scope: {scope}, DataType: {dataType}',
+    knowledge: 'From Knowledge',
   },
   variables: {
     name: 'Data Name',

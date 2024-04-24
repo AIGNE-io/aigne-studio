@@ -215,6 +215,11 @@ export interface ToolParameter extends DatastoreBase {
   tool?: Tool;
 }
 
+export interface KnowledgeParameter extends DatastoreBase {
+  variableFrom?: 'knowledge';
+  tool?: Tool;
+}
+
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter;
 
 export interface ParameterBase {
@@ -224,8 +229,8 @@ export interface ParameterBase {
   placeholder?: string;
   helper?: string;
   required?: boolean;
-  from?: 'editor';
-  source?: DatastoreParameter | ToolParameter;
+  from?: 'editor' | 'agentParameter' | 'knowledgeParameter';
+  source?: DatastoreParameter | ToolParameter | KnowledgeParameter;
 }
 
 export interface StringParameter extends ParameterBase {

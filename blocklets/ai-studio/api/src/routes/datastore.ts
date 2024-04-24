@@ -44,10 +44,10 @@ const postParamsSchema = Joi.object<{
   projectId?: string;
   reset: boolean;
 }>({
-  userId: Joi.string().empty([null, '']),
   sessionId: Joi.string().empty([null, '']),
   assistantId: Joi.string().empty([null, '']),
-  projectId: Joi.string().empty([null, '']),
+  userId: Joi.string().empty([null, '']).required(),
+  projectId: Joi.string().empty([null, '']).required(),
   reset: Joi.boolean().default(false),
 });
 

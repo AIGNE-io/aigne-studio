@@ -1,25 +1,15 @@
-import BaseInput from '@app/components/custom/input';
-import BaseSelect from '@app/components/custom/select';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, OutputVariableYjs, Variable } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
-import { Close } from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
 import {
-  Autocomplete,
   Box,
   Button,
   Checkbox,
   ClickAwayListener,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
   MenuItem,
   Paper,
   Popper,
@@ -27,15 +17,13 @@ import {
   TextField,
   TextFieldProps,
   Typography,
-  createFilterOptions,
 } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
-import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import { useId } from 'react';
-import { Controller, useForm } from 'react-hook-form';
 
-import BaseSwitch from '../../custom/switch';
+import SelectVariable from '../select-variable';
 import AddOutputVariableButton from './AddOutputVariableButton';
 import { getRuntimeOutputVariable } from './type';
 
@@ -138,9 +126,6 @@ export default function OutputSettings({
   );
 }
 
-const filter = createFilterOptions<Variable>();
-type Input = { scope: Variable['scope']; key?: string; reset: boolean; defaultValue?: string };
-
 function VariableRow({
   value,
   variable,
@@ -160,16 +145,7 @@ function VariableRow({
   const doc = (getYjsValue(variable) as Map<any>).doc!;
   const outputPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const runtimeVariable = getRuntimeOutputVariable(variable);
-  const form = useForm<Input>({
-    defaultValues: {
-      reset: false,
-      scope: 'session',
-      key: variable.name ?? '',
-      defaultValue: (variable as any)?.defaultValue ?? '',
-    },
-  });
 
-  const dialogState = usePopupState({ variant: 'dialog' });
   const { dialog, showDialog } = useDialog();
   const { getVariables } = useProjectStore(projectId, gitRef);
   const variableYjs = getVariables();
@@ -346,74 +322,36 @@ function VariableRow({
                     }}>
                     <Paper sx={{ p: 3, width: 320, maxHeight: '80vh', overflow: 'auto' }}>
                       <Stack gap={2}>
-                        <Box className="between">
-                          <Typography flex={2}>{t('outputVariableParameter.saveAs')}</Typography>
+                        <Box>
+                          <Box>
+                            <Typography variant="subtitle2" mb={0}>
+                              {t('outputVariableParameter.saveAs')}
+                            </Typography>
 
-                          <Box flex={3}>
-                            <Autocomplete
-                              options={variables}
-                              groupBy={(option) => option.scope || ''}
-                              getOptionLabel={(option) =>
-                                option ? `${option.key} - (${option.scope} - ${option.dataType})` : ''
-                              }
-                              renderInput={(params) => <TextField hiddenLabel {...params} />}
-                              key={Boolean(datastoreVariable).toString()}
-                              disableClearable
-                              clearOnBlur
-                              selectOnFocus
-                              handleHomeEndKeys
-                              autoSelect
-                              autoHighlight
-                              getOptionKey={(i) => `${i.dataType}_${i.scope}_${i.key}`}
-                              value={datastoreVariable}
-                              isOptionEqualToValue={(x, j) =>
-                                `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`
-                              }
-                              renderOption={(props, option) => {
-                                if (option.key) {
-                                  return (
-                                    <MenuItem {...props} key={`${option.key} - (${option.scope} - ${option.dataType})`}>
-                                      <Typography variant="subtitle2" mb={0}>
-                                        {option.key}
-                                      </Typography>
-                                      <Typography variant="subtitle4">{`- (${option.dataType})`}</Typography>
-                                    </MenuItem>
-                                  );
-                                }
-
-                                return <MenuItem {...props}>{t('outputVariableParameter.addData')}</MenuItem>;
-                              }}
-                              filterOptions={(_, params) => {
-                                const filtered = filter(variables, params);
-
-                                const found = filtered.find((x) => !x.key);
-                                if (!found) {
-                                  filtered.push({ dataType: variable.type, key: '' });
-                                }
-
-                                return filtered;
-                              }}
-                              onChange={(_, _value) => {
-                                if (_value.key) {
-                                  variable.variable = cloneDeep({ ..._value });
-                                  outputPopperState.close();
-                                } else {
-                                  form.setValue('key', variable.name ?? '');
-                                  form.setValue('defaultValue', (variable as any)?.defaultValue ?? '');
-                                  outputPopperState.close();
-                                  dialogState.open();
-                                }
-                              }}
-                            />
+                            <Box>
+                              <SelectVariable
+                                projectId={projectId}
+                                gitRef={gitRef}
+                                variables={variables}
+                                variable={datastoreVariable}
+                                value={{
+                                  name: variable.name || '',
+                                  defaultValue: (variable as any).defaultValue || '',
+                                  dataType: variable.type,
+                                }}
+                                onDelete={() => {
+                                  if (variable.variable) {
+                                    delete variable.variable;
+                                  }
+                                }}
+                                onChange={(_value) => {
+                                  if (_value) {
+                                    variable.variable = cloneDeep(_value);
+                                  }
+                                }}
+                              />
+                            </Box>
                           </Box>
-                          <IconButton
-                            onClick={() => {
-                              if (variable.variable) {
-                                delete variable.variable;
-                              }
-                            }}>
-                            <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={16}></Box>
-                          </IconButton>
                         </Box>
                       </Stack>
                     </Paper>
@@ -478,154 +416,6 @@ function VariableRow({
           depth={depth + 1}
         />
       )}
-
-      <Dialog
-        {...bindDialog(dialogState)}
-        fullWidth
-        maxWidth="sm"
-        component="form"
-        onSubmit={form.handleSubmit((data) => {
-          variableYjs.variables ??= [];
-
-          const v = {
-            key: data.key || '',
-            scope: data.scope,
-            dataType: variable.type as any,
-            reset: Boolean(data.reset),
-            defaultValue: data.defaultValue,
-          };
-
-          variableYjs.variables.push(v);
-          variable.variable = cloneDeep(v);
-
-          dialogState.close();
-        })}>
-        <DialogTitle className="between" sx={{ border: 0 }}>
-          <Box>{t('outputVariableParameter.addData')}</Box>
-
-          <IconButton size="small" onClick={() => dialogState.close()}>
-            <Close />
-          </IconButton>
-        </DialogTitle>
-
-        <DialogContent>
-          <Stack gap={2}>
-            <Controller
-              control={form.control}
-              name="key"
-              rules={{
-                required: t('outputVariableParameter.keyRequired'),
-                validate: (value) => {
-                  const found = (variableYjs.variables || [])?.find((x) => {
-                    return (
-                      `${x.dataType}_${x.scope}_${x.key}` === `${variable.type}_${form.getValues('scope')}_${value}`
-                    );
-                  });
-
-                  if (found) {
-                    return t('variableParameter.duplicate');
-                  }
-
-                  return true;
-                },
-              }}
-              render={({ field, fieldState }) => {
-                return (
-                  <Box>
-                    <Typography variant="subtitle2">{t('outputVariableParameter.key')}</Typography>
-                    <BaseInput sx={{ width: 1 }} placeholder={t('outputVariableParameter.key')} {...field} />
-                    {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" color="warning.main">
-                        {fieldState.error?.message}
-                      </Typography>
-                    )}
-                  </Box>
-                );
-              }}
-            />
-
-            <Controller
-              control={form.control}
-              name="scope"
-              rules={{
-                required: t('outputVariableParameter.scopeRequired'),
-              }}
-              render={({ field, fieldState }) => {
-                return (
-                  <Box>
-                    <Typography variant="subtitle2">{t('outputVariableParameter.scope')}</Typography>
-                    <BaseSelect
-                      variant="outlined"
-                      placeholder={t('outputVariableParameter.scope')}
-                      fullWidth
-                      {...field}
-                      error={Boolean(fieldState.error)}>
-                      {['user', 'session', 'global'].map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {t(`variableParameter.${option}`)}
-                        </MenuItem>
-                      ))}
-                    </BaseSelect>
-                    {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" color="warning.main">
-                        {fieldState.error?.message}
-                      </Typography>
-                    )}
-                  </Box>
-                );
-              }}
-            />
-
-            <Controller
-              control={form.control}
-              name="reset"
-              render={({ field, fieldState }) => {
-                return (
-                  <Box>
-                    <Typography variant="subtitle2">{t('variableParameter.reset')}</Typography>
-                    <BaseSwitch {...field} />
-                    {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" color="warning.main">
-                        {fieldState.error?.message}
-                      </Typography>
-                    )}
-                  </Box>
-                );
-              }}
-            />
-
-            <Controller
-              control={form.control}
-              name="defaultValue"
-              render={({ field, fieldState }) => {
-                return (
-                  <Box>
-                    <Typography variant="subtitle2">{t('variableParameter.defaultValue')}</Typography>
-
-                    <BaseInput sx={{ width: 1 }} placeholder={t('variableParameter.defaultValue')} {...field} />
-
-                    {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" color="warning.main">
-                        {fieldState.error?.message}
-                      </Typography>
-                    )}
-                  </Box>
-                );
-              }}
-            />
-          </Stack>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={dialogState.close} variant="outlined">
-            {t('cancel')}
-          </Button>
-
-          <LoadingButton type="submit" variant="contained" loading={form.formState.isSubmitting}>
-            {t('save')}
-          </LoadingButton>
-        </DialogActions>
-      </Dialog>
 
       {dialog}
     </>

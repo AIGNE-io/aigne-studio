@@ -22,6 +22,16 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         />
       </Grid>
       <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('placeholder')}
+          size="small"
+          value={value.placeholder || ''}
+          onChange={(e) => (value.placeholder = e.target.value)}
+          InputProps={{ readOnly }}
+        />
+      </Grid>
+      <Grid item xs={12}>
         <ParameterField
           readOnly={readOnly}
           parameter={parameterFromYjs(value)}

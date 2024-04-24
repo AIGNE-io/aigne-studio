@@ -604,6 +604,8 @@ export default flat({
     scopeKey: '选择作用域内容数据',
     selectAgent: '选择 Agent',
     duplicate: '数据已经存在。',
+    tip: '作用域：{scope}， 数据类型：{dataType}',
+    knowledge: '来自知识库',
   },
   variables: {
     name: '数据名称',
