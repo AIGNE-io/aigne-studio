@@ -8,6 +8,7 @@ import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
 import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
+import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
 import { Request, Router } from 'express';
 import { exists, pathExists } from 'fs-extra';
@@ -192,6 +193,20 @@ export const checkProjectPermission = ({ req, project }: { req: Request; project
   throw new Error(errorText);
 };
 
+export const checkProjectLimit = async ({ req }: { req: Request }) => {
+  if (config.env.preferences.serviceMode === 'multi-tenant') {
+    // check project count limit
+    const count = await Project.count({ where: { createdBy: req.user?.did } });
+    const currentLimit = config.env.preferences.multiTenantProjectLimits;
+    if (
+      count >= currentLimit &&
+      !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles)
+    ) {
+      throw new Error(`Project limit exceeded (current: ${count}, limit: ${currentLimit}) `);
+    }
+  }
+};
+
 export function projectRoutes(router: Router) {
   router.get('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
@@ -225,8 +240,18 @@ export function projectRoutes(router: Router) {
       isFromResource: true,
     }));
 
-    const resourceExampleIds = new Set(resourceExamples.map((i) => i._id));
+    // multi-tenant mode
+    if (config.env.preferences.serviceMode === 'multi-tenant') {
+      res.json({
+        templates: uniqBy([...projectTemplates.map((i) => i.project), ...resourceTemplates], '_id'),
+        projects,
+        examples: uniqBy(resourceExamples, '_id'),
+      });
+      return;
+    }
 
+    // single-tenant mode
+    const resourceExampleIds = new Set(resourceExamples.map((i) => i._id));
     const exampleProjects = projects.filter((i) => resourceExampleIds.has(i.duplicateFrom!));
     const exampleProjectFromIds = new Set(exampleProjects.map((i) => i.duplicateFrom));
     const notCreatedExamples = resourceExamples.filter((i) => !exampleProjectFromIds.has(i._id));
@@ -317,6 +342,8 @@ export function projectRoutes(router: Router) {
 
     let project: Project | undefined;
 
+    await checkProjectLimit({ req });
+
     if (templateId) {
       // duplicate a project
       const original = await Project.findOne({ where: { _id: templateId } });
@@ -372,6 +399,8 @@ export function projectRoutes(router: Router) {
   });
 
   router.post('/projects/import', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    await checkProjectLimit({ req });
+
     const { name, username, password, description, url } = await importProjectSchema.validateAsync(req.body, {
       stripUnknown: true,
     });
@@ -531,6 +560,8 @@ export function projectRoutes(router: Router) {
       return;
     }
 
+    checkProjectPermission({ req, project });
+
     await project.destroy();
 
     await clearRepository(projectId);
@@ -549,6 +580,8 @@ export function projectRoutes(router: Router) {
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
 
     const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -576,6 +609,8 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
 
+    checkProjectPermission({ req, project });
+
     const repository = await getRepository({ projectId });
 
     await repository.deleteRemote({ remote: defaultRemote });
@@ -592,6 +627,8 @@ export function projectRoutes(router: Router) {
     const input = await pushInputSchema.validateAsync(req.body, { stripUnknown: true });
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
 
     const repository = await getRepository({ projectId });
     const branches = await repository.listBranches();
@@ -614,6 +651,8 @@ export function projectRoutes(router: Router) {
     const input = await pullInputSchema.validateAsync(req.body, { stripUnknown: true });
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
 
     const repository = await getRepository({ projectId });
     const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
@@ -644,6 +683,9 @@ export function projectRoutes(router: Router) {
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
+
     const repository = await getRepository({ projectId });
 
     const target: SyncTarget = req.query.target as SyncTarget;

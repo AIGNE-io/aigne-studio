@@ -30,3 +30,50 @@ export function getProjectDataUrlInSpace(endpoint: string, projectId: string): s
     key: joinURL(`/apps/${appDid}/.components/${componentDid}/repositories/${projectId}/`),
   });
 }
+
+export interface SpaceEndpointContext {
+  baseUrl: string;
+
+  spaceDid: string;
+
+  appDid: string;
+}
+
+function getSpaceEndpointContext(endpoint: string): SpaceEndpointContext {
+  const baseUrl = endpoint.replace(/\/api\/space.*/, '');
+
+  const strArray = endpoint.replace(/\/$/, '').split('/');
+  const spaceDid = strArray.at(-4) as string;
+  const appDid = strArray.at(-2) as string;
+
+  return {
+    baseUrl,
+    spaceDid,
+    appDid,
+  };
+}
+
+/**
+ * @description 获取 DID Spaces 的导入链接
+ * @export
+ * @param {string} endpoint
+ * @param {{ redirectUrl: string }} options
+ * @return {*}  {Promise<string>}
+ */
+export async function getImportUrl(endpoint: string, options: { redirectUrl: string }): Promise<string> {
+  if (isEmpty(endpoint)) {
+    return '';
+  }
+
+  const [, componentDid]: string[] = window.blocklet.componentId.split('/');
+  const { spaceDid, appDid, baseUrl }: SpaceEndpointContext = getSpaceEndpointContext(endpoint);
+
+  const importUrl = withQuery(joinURL(baseUrl, 'import'), {
+    spaceDid,
+    appDid,
+    componentDid,
+    ...options,
+  });
+
+  return importUrl;
+}

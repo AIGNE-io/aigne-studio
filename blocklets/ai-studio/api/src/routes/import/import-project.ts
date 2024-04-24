@@ -10,6 +10,7 @@ import Joi from 'joi';
 import yaml from 'yaml';
 
 import { wallet } from '../../libs/auth';
+import { checkProjectLimit } from '../project';
 
 const importProjectBodySchema = Joi.object<{
   endpoint: string;
@@ -22,11 +23,13 @@ const importProjectBodySchema = Joi.object<{
   projectId: Joi.string().required(),
   props: Joi.object({
     name: Joi.string().required(),
-    description: Joi.string().required(),
+    description: Joi.string().optional().allow('', null).default(''),
   }).required(),
 });
 
 export async function importProject(req: Request, res: Response) {
+  await checkProjectLimit({ req });
+
   const { endpoint, projectId, props } = await importProjectBodySchema.validateAsync(req.body);
 
   const spaceClient = new SpaceClient({
@@ -75,10 +78,15 @@ export async function importProject(req: Request, res: Response) {
   const settingsPath = join(localeProjectRootPath, SETTINGS_FILE);
   const settings: Project = yaml.parse(readFileSync(settingsPath, 'utf-8'));
 
+  const { did } = req.user!;
+
   const project = await Project.create({
     ...settings,
     ...projectMetadata,
     ...props,
+    // rewrite some auth
+    createdBy: did,
+    updatedBy: did,
   });
 
   return res.send(project);

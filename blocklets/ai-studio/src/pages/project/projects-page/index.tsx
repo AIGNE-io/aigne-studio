@@ -38,7 +38,7 @@ import {
 import { MouseEvent, ReactNode, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSearchParam } from 'react-use';
-import { joinURL, withQuery } from 'ufo';
+import { joinURL } from 'ufo';
 
 import Project from '../../../../api/src/store/models/project';
 import DeleteDialog from '../../../components/delete-confirm/dialog';
@@ -50,7 +50,7 @@ import useDialog from '../../../utils/use-dialog';
 import DidSpacesLogo from '../icons/did-spaces';
 import Pin from '../icons/pin';
 import ImportFromBlank from './import-from-blank';
-import ImportFromDidSpaces from './import-from-did-spaces';
+import ImportFromDidSpaces, { SelectDidSpacesImportWay } from './import-from-did-spaces';
 import ImportFromGit from './import-from-git';
 import ImportFromTemplates from './import-from-templates';
 
@@ -114,23 +114,13 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
   const resource = (list || []).filter((x) => x.isFromResource);
   const { t } = useLocaleContext();
   const [dialog, setDialog] = useState<any>(null);
-  const { session } = useSessionContext();
-
-  const goToDidSpacesImport = () => {
-    session.connectToDidSpaceForImport({
-      onSuccess: (response: { importUrl: string }, decrypt: (value: string) => string) => {
-        const importUrl = decrypt(response.importUrl);
-        window.location.href = withQuery(importUrl, {
-          redirectUrl: window.location.href,
-        });
-      },
-    });
-  };
+  const { checkProjectLimit } = useProjectsState();
 
   return (
     <>
       <Stack gap={1} flexDirection="row">
         <ButtonPopper
+          onClick={checkProjectLimit}
           list={
             <MenuList autoFocusItem>
               <MenuItem
@@ -141,7 +131,10 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                 <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('gitRepo')}</ListItemText>
               </MenuItem>
 
-              <MenuItem onClick={goToDidSpacesImport}>
+              <MenuItem
+                onClick={() => {
+                  setDialog(<SelectDidSpacesImportWay onClose={() => setDialog(null)} />);
+                }}>
                 <DidSpacesLogo sx={{ mr: 1, fontSize: 14 }} />
                 <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('didSpaces.title')}</ListItemText>
               </MenuItem>
@@ -151,6 +144,7 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
         </ButtonPopper>
 
         <ButtonPopper
+          onClick={checkProjectLimit}
           list={
             <MenuList autoFocusItem>
               <MenuItem
@@ -200,6 +194,7 @@ function ProjectMenu() {
     deleteProject,
     updateProject,
     setMenuAnchor,
+    checkProjectLimit,
   } = useProjectsState();
 
   const item =
@@ -288,6 +283,8 @@ function ProjectMenu() {
           title: t('duplicate'),
           icon: <Box component={Icon} icon="tabler:copy" />,
           onClick: async () => {
+            checkProjectLimit();
+
             await createProject({
               templateId: menuAnchor!.id,
               name: `${item?.name || 'Unnamed'} Copy`,
@@ -480,6 +477,7 @@ function ProjectList({
   const {
     state: { menuAnchor },
     setMenuAnchor,
+    checkProjectLimit,
   } = useProjectsState();
 
   return (
@@ -511,6 +509,8 @@ function ProjectList({
                 if (section === 'templates') {
                   let name = '';
                   let description = '';
+
+                  checkProjectLimit();
 
                   showDialog({
                     disableEnforceFocus: true,
@@ -899,11 +899,14 @@ const ProjectListContainer = styled(Box)`
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
 `;
 
-function ButtonPopper({ children, list }: { children: any; list?: any }) {
+function ButtonPopper({ children, list, onClick }: { children: any; list?: any; onClick?: any }) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = () => {
+    if (onClick) {
+      onClick?.();
+    }
     setOpen((prevOpen) => !prevOpen);
   };
 

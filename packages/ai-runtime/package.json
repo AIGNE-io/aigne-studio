@@ -37,8 +37,8 @@
       "require": "./lib/cjs/core/index.js"
     },
     "./common": {
-      "import": "./lib/esm/common.js",
-      "require": "./lib/cjs/common.js"
+      "import": "./lib/esm/common/index.js",
+      "require": "./lib/cjs/common/index.js"
     }
   },
   "typesVersions": {
@@ -63,7 +63,8 @@
         "./lib/types/core/index.d.ts"
       ],
       "common": [
-        "./lib/types/common.d.ts"
+        "./lib/types/common.d.ts",
+        "./lib/types/common/index.d.ts"
       ]
     }
   },
@@ -123,7 +124,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.69",
+    "@arcblock/ux": "^2.9.70",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",

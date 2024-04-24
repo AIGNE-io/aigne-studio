@@ -78,6 +78,8 @@ export default flat({
     didSpaces: '从 DID Spaces 导入',
     didSpacesTitle: '从 DID Spaces 导入项目',
     didSpacesDescription: '从已绑定的 DID Spaces 中导入项目',
+    fromCurrentDidSpaceImport: '从当前绑定的 DID Space 导入项目',
+    fromOtherDidSpaceImport: '从其他 DID Space 导入项目',
     selectProject: '选择项目',
     selectBranch: '选择分支',
     selectAgentTip: '请先选择 Agent',
@@ -609,4 +611,5 @@ export default flat({
   suggestedQuestions: '推荐问题',
   processing: '运行',
   generatedImages: '生成的图片',
+  projectLimitExceeded: '项目数量已达上限（当前 {current} 个，最多可创建 {limit} 个）',
 });

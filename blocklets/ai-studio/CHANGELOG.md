@@ -1,6 +1,15 @@
-## 0.2.0-beta.0 (2024-4-22)
+## 0.1.344 (2024-4-23)
 
-- WIP: runtime
+- feat: support for asynchronous synchronization to did space
+- feat: optimized the experience of importing projects from did spaces
+
+## 0.1.343 (2024-4-22)
+
+- chore: polish multi tenant logic
+
+## 0.1.342 (2024-4-22)
+
+- fix: CI deploy error
 
 ## 0.1.341 (2024-4-22)
 
