@@ -1,12 +1,17 @@
 import Joi from 'joi';
 
-import type { RuntimeOutputVariable } from '.';
-import type { OutputVariable } from '..';
+import type { Assistant, OutputVariable } from '..';
 
-/**
- * ignore these output variables in the json schema and the joi validation schema
- */
-export const ignoredRuntimeOutputVariables: RuntimeOutputVariable[] = ['$textStream', '$images'];
+export const variableBlockListForAgent: {
+  [key in Assistant['type']]?: { block?: Set<RuntimeOutputVariable>; allow?: Set<RuntimeOutputVariable> };
+} = {
+  prompt: {
+    // block: new Set(['$images']),
+  },
+  image: {
+    // allow: new Set(['$images']),
+  },
+};
 
 type OmitUnion<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
@@ -47,84 +52,107 @@ export const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<Out
       ],
     },
   },
-  '$page.background.image': {
-    type: 'string',
-    description: 'background image of page',
-  },
-  '$page.background.color': {
-    type: 'string',
-    description: 'background color of page',
-  },
-  $input: {
-    type: 'object',
-    description: 'Next input method',
-    properties: [
-      {
-        id: '',
-        name: 'type',
-        type: 'string',
-        description: 'Input method, enum: ["select"]',
-        required: true,
-      },
-      {
-        id: '',
-        name: 'options',
-        type: 'array',
-        element: {
+  '$reference.links': {
+    type: 'array',
+    description: 'List all referenced links in the generated text',
+    element: {
+      id: '',
+      type: 'object',
+      properties: [
+        {
           id: '',
-          type: 'object',
-          properties: [
-            {
-              id: '',
-              name: 'title',
-              type: 'string',
-              description: 'Option title',
-              required: true,
-            },
-            {
-              id: '',
-              type: 'object',
-              name: 'action',
-              description: 'Option action',
-              required: true,
-              properties: [
-                {
-                  id: '',
-                  name: 'type',
-                  type: 'string',
-                  description: 'Action type, enum: ["navigateTo"]',
-                  required: true,
-                },
-                {
-                  id: '',
-                  name: 'to',
-                  type: 'object',
-                  description: 'Navigate to, required if type is "navigateTo"',
-                  properties: [
-                    {
-                      id: '',
-                      name: 'type',
-                      type: 'string',
-                      description: 'Navigation target type, enum: ["assistant"]',
-                      required: true,
-                    },
-                    {
-                      id: '',
-                      name: 'assistantId',
-                      type: 'string',
-                      description: 'Navigate to which assistant, required if type is "assistant"',
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
+          type: 'string',
+          name: 'title',
+          description: 'Link title',
+        },
+        {
+          id: '',
+          type: 'string',
+          name: 'url',
+          description: 'Link URL',
           required: true,
         },
-        required: true,
-      },
-    ],
+      ],
+    },
   },
+  // '$page.background.image': {
+  //   type: 'string',
+  //   description: 'background image of page',
+  // },
+  // '$page.background.color': {
+  //   type: 'string',
+  //   description: 'background color of page',
+  // },
+  // $input: {
+  //   type: 'object',
+  //   description: 'Next input method',
+  //   properties: [
+  //     {
+  //       id: '',
+  //       name: 'type',
+  //       type: 'string',
+  //       description: 'Input method, enum: ["select"]',
+  //       required: true,
+  //     },
+  //     {
+  //       id: '',
+  //       name: 'options',
+  //       type: 'array',
+  //       element: {
+  //         id: '',
+  //         type: 'object',
+  //         properties: [
+  //           {
+  //             id: '',
+  //             name: 'title',
+  //             type: 'string',
+  //             description: 'Option title',
+  //             required: true,
+  //           },
+  //           {
+  //             id: '',
+  //             type: 'object',
+  //             name: 'action',
+  //             description: 'Option action',
+  //             required: true,
+  //             properties: [
+  //               {
+  //                 id: '',
+  //                 name: 'type',
+  //                 type: 'string',
+  //                 description: 'Action type, enum: ["navigateTo"]',
+  //                 required: true,
+  //               },
+  //               {
+  //                 id: '',
+  //                 name: 'to',
+  //                 type: 'object',
+  //                 description: 'Navigate to, required if type is "navigateTo"',
+  //                 properties: [
+  //                   {
+  //                     id: '',
+  //                     name: 'type',
+  //                     type: 'string',
+  //                     description: 'Navigation target type, enum: ["assistant"]',
+  //                     required: true,
+  //                   },
+  //                   {
+  //                     id: '',
+  //                     name: 'assistantId',
+  //                     type: 'string',
+  //                     description: 'Navigate to which assistant, required if type is "assistant"',
+  //                   },
+  //                 ],
+  //               },
+  //             ],
+  //           },
+  //         ],
+  //         required: true,
+  //       },
+  //       required: true,
+  //     },
+  //   ],
+  // },
 };
 
 export function outputVariablesToJsonSchema(variables: OutputVariable[]) {
@@ -210,3 +238,59 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[]): Joi.Any
 
   return variableToSchema({ type: 'object', properties: variables ?? [] })!;
 }
+
+export enum RuntimeOutputVariable {
+  textStream = '$textStream',
+  images = '$images',
+  suggestedQuestions = '$suggested.questions',
+  referenceLinks = '$reference.links',
+  // | '$page.background.image'
+  // | '$page.background.color'
+  // | '$input';
+}
+
+export const RuntimeOutputVariableNames: RuntimeOutputVariable[] = [
+  RuntimeOutputVariable.images,
+  RuntimeOutputVariable.suggestedQuestions,
+  RuntimeOutputVariable.referenceLinks,
+  // '$input',
+  // '$page.background.color',
+  // '$page.background.image',
+];
+
+export interface RuntimeOutputVariablesSchema {
+  [RuntimeOutputVariable.images]?: { url: string }[];
+  [RuntimeOutputVariable.suggestedQuestions]?: { question: string }[];
+  [RuntimeOutputVariable.referenceLinks]?: { title?: string; url: string }[];
+  // '$page.background.image'?: string;
+  // '$page.background.color'?: string;
+  // $input?: Input;
+}
+
+// export type Action =
+//   | {
+//       type: 'navigateTo';
+//       to: {
+//         type: 'assistant';
+//         assistantId: string;
+//       };
+//     }
+//   | {
+//       type: 'navigateBack';
+//     };
+
+// export type Input = {
+//   type: 'select';
+//   options: {
+//     title: string;
+//     action: Action;
+//   }[];
+// };
+
+/**
+ * ignore these output variables in the json schema and the joi validation schema
+ */
+const ignoredRuntimeOutputVariables: RuntimeOutputVariable[] = [
+  RuntimeOutputVariable.textStream,
+  RuntimeOutputVariable.images,
+];

@@ -1,6 +1,7 @@
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 
 import { ExecuteBlock, Role } from '../assistant';
+import { RuntimeOutputVariablesSchema } from './schema';
 
 export * from './schema';
 
@@ -97,53 +98,11 @@ export type RunAssistantChunk = {
   delta: {
     content?: string | null;
     images?: { url: string }[];
-    object?: any;
+    object?: RuntimeOutputVariablesSchema | object;
   };
 };
 
 export type RunAssistantError = {
   type: AssistantResponseType.ERROR;
   error: { message: string } | SubscriptionError;
-};
-
-export type RuntimeOutputVariable =
-  | '$textStream'
-  | '$images'
-  | '$suggested.questions'
-  | '$page.background.image'
-  | '$page.background.color'
-  | '$input';
-
-export const RuntimeOutputVariableNames: RuntimeOutputVariable[] = [
-  '$suggested.questions',
-  '$input',
-  '$page.background.color',
-  '$page.background.image',
-];
-
-export interface RuntimeOutputVariables {
-  '$suggested.questions'?: { question: string }[];
-  '$page.background.image'?: string;
-  '$page.background.color'?: string;
-  $input?: Input;
-}
-
-export type Action =
-  | {
-      type: 'navigateTo';
-      to: {
-        type: 'assistant';
-        assistantId: string;
-      };
-    }
-  | {
-      type: 'navigateBack';
-    };
-
-export type Input = {
-  type: 'select';
-  options: {
-    title: string;
-    action: Action;
-  }[];
 };

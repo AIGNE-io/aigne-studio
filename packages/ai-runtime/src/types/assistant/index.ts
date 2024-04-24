@@ -120,6 +120,7 @@ export interface OutputVariableBase {
 
 export type OutputVariable = OutputVariableBase &
   (
+    | { type?: undefined }
     | {
         type: 'textStream';
         defaultValue?: string;

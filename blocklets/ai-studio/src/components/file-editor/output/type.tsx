@@ -12,33 +12,39 @@ export const runtimeOutputVariables: {
     icon: <Icon icon="tabler:cursor-text" />,
     title: 'Stream Text Response',
     i18nKey: 'streamTextResponse',
-    name: '$textStream',
+    name: RuntimeOutputVariable.textStream,
   },
   {
     icon: <Icon icon="tabler:photo" />,
     title: 'Generated Images',
     i18nKey: 'generatedImages',
-    name: '$images',
+    name: RuntimeOutputVariable.images,
   },
   {
     icon: <Icon icon="tabler:bulb" />,
     title: 'Suggested Questions',
     i18nKey: 'suggestedQuestions',
-    name: '$suggested.questions',
+    name: RuntimeOutputVariable.suggestedQuestions,
   },
   {
-    icon: <Icon icon="tabler:photo" />,
-    title: 'Background Image',
-    i18nKey: 'backgroundImage',
-    name: '$page.background.image',
+    icon: <Icon icon="tabler:quote" />,
+    title: 'Referenced Links',
+    i18nKey: 'referencedLinks',
+    name: RuntimeOutputVariable.referenceLinks,
   },
-  {
-    icon: <Icon icon="tabler:paint" />,
-    title: 'Background Color',
-    i18nKey: 'backgroundColor',
-    name: '$page.background.color',
-  },
-  { icon: <Icon icon="tabler:forms" />, title: 'Input Controller', i18nKey: 'inputController', name: '$input' },
+  // {
+  //   icon: <Icon icon="tabler:photo" />,
+  //   title: 'Background Image',
+  //   i18nKey: 'backgroundImage',
+  //   name: '$page.background.image',
+  // },
+  // {
+  //   icon: <Icon icon="tabler:paint" />,
+  //   title: 'Background Color',
+  //   i18nKey: 'backgroundColor',
+  //   name: '$page.background.color',
+  // },
+  // { icon: <Icon icon="tabler:forms" />, title: 'Input Controller', i18nKey: 'inputController', name: '$input' },
 ];
 
 const runtimeOutputVariableNames = new Map<string, (typeof runtimeOutputVariables)[number]>(

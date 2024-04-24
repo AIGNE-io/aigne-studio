@@ -1,12 +1,6 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  AssistantYjs,
-  RuntimeOutputVariable,
-  arrayToYjs,
-  outputVariableToYjs,
-  runtimeVariablesSchema,
-} from '@blocklet/ai-runtime/types';
+import { AssistantYjs, RuntimeOutputVariable, arrayToYjs, outputVariableToYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import { ButtonProps, ListItemIcon, MenuItem } from '@mui/material';
@@ -58,24 +52,26 @@ export default function AgentTypeSelect({
               };
 
               if (assistant.type === 'image') {
-                const schema = outputVariableToYjs({
-                  ...runtimeVariablesSchema.$images,
-                  name: '$images',
-                  id: nanoid(),
-                });
+                const schema = { id: nanoid(), name: RuntimeOutputVariable.images };
                 assistant.outputVariables = arrayToYjs([schema]);
               } else {
-                removeVariable('$images');
+                removeVariable(RuntimeOutputVariable.images);
               }
 
               if (assistant.type === 'prompt') {
-                const id = nanoid();
-                assistant.outputVariables[id] = {
-                  index: -1,
-                  data: outputVariableToYjs({ ...runtimeVariablesSchema.$textStream, name: '$textStream', id }),
-                };
+                if (
+                  !Object.values(assistant.outputVariables).some(
+                    (i) => i.data.name === RuntimeOutputVariable.textStream
+                  )
+                ) {
+                  const id = nanoid();
+                  assistant.outputVariables[id] = {
+                    index: -1,
+                    data: outputVariableToYjs({ id, name: RuntimeOutputVariable.textStream }),
+                  };
+                }
               } else {
-                removeVariable('$textStream');
+                removeVariable(RuntimeOutputVariable.textStream);
               }
 
               sortBy(Object.values(assistant.outputVariables), 'index').forEach((item, index) => (item.index = index));

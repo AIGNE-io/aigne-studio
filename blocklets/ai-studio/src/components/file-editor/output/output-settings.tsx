@@ -67,12 +67,18 @@ export default function OutputSettings({ value }: { value: AssistantYjs; readOnl
 
       {value.type !== 'image' && (
         <AddOutputVariableButton
+          assistant={value}
           onSelect={({ name }) => {
-            if (name && outputVariables?.some((i) => i.data.name === name)) return;
-
             setField((vars) => {
-              const id = nanoid();
-              vars[id] = { index: Object.values(vars).length, data: { id, type: 'string', name } };
+              const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
+              if (exist) {
+                delete vars[exist.data.id];
+              } else {
+                const id = nanoid();
+                vars[id] = { index: Object.values(vars).length, data: { id, name } };
+              }
+
+              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
             });
           }}
         />
