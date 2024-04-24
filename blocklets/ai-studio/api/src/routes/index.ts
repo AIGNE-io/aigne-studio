@@ -14,6 +14,7 @@ import { projectRoutes } from './project';
 import release from './release';
 import { resourceRoutes } from './resource';
 import { sessionRoutes } from './session';
+import subscription from './subscription';
 import { treeRoutes } from './tree';
 import { workingRoutes } from './working';
 import ws from './ws';
@@ -32,6 +33,7 @@ messageRoutes(router);
 
 router.use('/ai', ai);
 router.use('/releases', release);
+router.use('/subscriptions', subscription);
 router.use('/datasets', datasets);
 router.use('/datasets', datasetDocuments);
 router.use('/datasets', datasetSegments);

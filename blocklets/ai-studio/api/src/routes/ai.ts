@@ -1,3 +1,4 @@
+import { stringifyIdentity } from '@api/libs/aid';
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
 import { InvalidSubscriptionError, ReachMaxRoundLimitError } from '@api/libs/error';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
@@ -248,7 +249,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     if (userId && release?.paymentEnabled && release.paymentProductId) {
       if (
         !(await getActiveSubscriptionOfAssistant({
-          releaseId: Buffer.from([input.projectId, input.ref, input.assistantId].join('/')).toString('base64url'),
+          aid: stringifyIdentity({ projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId }),
           userId,
         }))
       ) {
