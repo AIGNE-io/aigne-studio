@@ -574,7 +574,7 @@ export default flat({
   outputNameTip: 'Set aliases to facilitate the use of other execution blocks',
   entryFunctionDisabledTip: 'Entry function is disabled in "Collections Manage" mode',
   board: 'Board Data',
-  data: 'data',
+  data: 'Data',
   importFiles: 'Import Files',
   importFromDiscussion: 'Import from Discussion',
   discussionType: 'Discussion Type',

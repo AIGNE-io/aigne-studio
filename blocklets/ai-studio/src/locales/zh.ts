@@ -583,7 +583,7 @@ export default flat({
   variableParameter: {
     from: '数据来源',
     custom: '来自用户输入',
-    tool: '来下 Agent 输出',
+    tool: '来自 Agent 输出',
     datastore: '来自数据存储',
     unselect: '未选择 Agent',
     fromDetail: '数据详情',
