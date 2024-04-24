@@ -652,4 +652,5 @@ export default flat({
   projectLimitExceeded: 'Project limit exceeded (current: {current}, limit: {limit})',
   streamTextResponse: 'Generated Text Stream',
   referencedLinks: 'Referenced Links',
+  submit: 'Submit',
 });

@@ -288,24 +288,53 @@ function PublishViewContent({
         </Box>
       </Box>
 
-      <Stack
-        sx={{
-          display: 'table',
-          '.row': {
-            display: 'table-row',
-            '> div': {
-              display: 'table-cell',
-              whiteSpace: 'nowrap',
-              '&:first-of-type': {
-                pr: 2,
-              },
+      <TableLayout>
+        <Typography mb={0.5} variant="subtitle2">
+          {t('submit')}
+        </Typography>
 
-              '&:last-of-type': {
-                width: '100%',
-              },
-            },
-          },
-        }}>
+        <Box className="row">
+          <Box>
+            <FormLabel>{t('title')}</FormLabel>
+          </Box>
+
+          <Box>
+            <BaseInput
+              sx={{ padding: 0 }}
+              placeholder={t('title')}
+              value={assistant.release?.submitButton?.title || ''}
+              onChange={(e) =>
+                setRelease((release) => {
+                  release.submitButton ??= {};
+                  release.submitButton.title = e.target.value;
+                })
+              }
+            />
+          </Box>
+        </Box>
+
+        {/* <Box className="row">
+          <Box>
+            <FormLabel>{t('backgroundColor')}</FormLabel>
+          </Box>
+
+          <Box>
+            <BaseInput
+              sx={{ padding: 0 }}
+              placeholder={t('backgroundColor')}
+              value={assistant.release?.submitButton?.background || ''}
+              onChange={(e) =>
+                setRelease((release) => {
+                  release.submitButton ??= {};
+                  release.submitButton.background = e.target.value;
+                })
+              }
+            />
+          </Box>
+        </Box> */}
+      </TableLayout>
+
+      <TableLayout>
         <Typography mb={1} variant="subtitle2">
           {t('publish.settings')}
         </Typography>
@@ -350,7 +379,7 @@ function PublishViewContent({
             </Box>
           </Box>
         </Box>
-      </Stack>
+      </TableLayout>
 
       <Stack>
         <Stack direction="row" gap={1} alignItems="center" className="between">
@@ -432,3 +461,26 @@ function PublishViewContent({
     </Stack>
   );
 }
+
+const TableLayout = styled(Box)`
+  display: table;
+
+  .row {
+    display: table-row;
+
+    > div {
+      display: table-cell;
+      white-space: nowrap;
+      padding-top: 2px;
+      padding-bottom: 2px;
+
+      &:first-of-type {
+        padding-right: 16px;
+      }
+
+      &:last-of-type {
+        width: 100%;
+      }
+    }
+  }
+`;

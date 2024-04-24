@@ -113,6 +113,10 @@ export interface AssistantBase {
     logo?: string;
     maxRoundLimit?: number;
     reachMaxRoundLimitTip?: string;
+    submitButton?: {
+      title?: string;
+      background?: string;
+    };
     payment?: {
       enable?: boolean;
       price?: string;

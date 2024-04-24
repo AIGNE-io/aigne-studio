@@ -648,4 +648,5 @@ export default flat({
   projectLimitExceeded: '项目数量已达上限（当前 {current} 个，最多可创建 {limit} 个）',
   streamTextResponse: '生成的文本流',
   referencedLinks: '引用的文档链接',
+  submit: '提交',
 });
