@@ -12,11 +12,11 @@ import logger from './logger';
 
 const isPaymentInstalled = () => !!getComponentWebEndpoint('z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk');
 
-export async function getActiveSubscriptionOfAssistant({ releaseId, userId }: { releaseId: string; userId: string }) {
+export async function getActiveSubscriptionOfAssistant({ aid, userId }: { aid: string; userId: string }) {
   const subscription = (
     await payment.subscriptions.list({
       // @ts-ignore TODO: remove ts-ignore after upgrade @did-pay/client
-      'metadata.releaseId': releaseId,
+      'metadata.aid': aid,
       'metadata.userId': userId,
     })
   ).list.find((i) => ['active', 'trialing'].includes(i.status));
@@ -155,14 +155,13 @@ export async function reportUsage({
         });
 
         const subscription = await getActiveSubscriptionOfAssistant({
-          releaseId: Buffer.from([projectId, projectRef, assistantId].join('/')).toString('base64url'),
+          aid: Buffer.from([projectId, projectRef, assistantId].join('/')).toString('base64url'),
           userId,
         });
         if (!subscription) throw new Error('Subscription not active');
 
         const subscriptionItem = subscription.items[0];
-        console.log(subscriptionItem);
-        if (!subscriptionItem) throw new Error(`Subscription item not found`);
+        if (!subscriptionItem) throw new Error('Subscription item not found');
 
         await end.update({ usageReportStatus: 'counted' });
 

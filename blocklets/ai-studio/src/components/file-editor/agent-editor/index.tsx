@@ -7,7 +7,6 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { Box, Stack } from '@mui/material';
 
-import { useReadOnly } from '../../../contexts/session';
 import AgentProcessingView from '../agent-processing-view';
 import ApiAssistantEditor from '../api-assistant';
 import BasicInfoForm from '../basic-info-form';
@@ -28,7 +27,7 @@ export default function AgentEditor({
   value: AssistantYjs;
   disabled?: boolean;
 }) {
-  const readOnly = useReadOnly({ ref: gitRef }) || disabled;
+  // const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
     <Stack gap={2.5} p={2.5}>
@@ -55,7 +54,7 @@ export default function AgentEditor({
       </Box>
 
       <Box sx={{ borderRadius: 1 }}>
-        <OutputSettings value={value} readOnly={readOnly} />
+        <OutputSettings projectId={projectId} gitRef={gitRef} value={value} />
       </Box>
     </Stack>
   );

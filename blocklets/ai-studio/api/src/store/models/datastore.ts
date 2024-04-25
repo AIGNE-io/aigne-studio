@@ -20,13 +20,15 @@ export default class Datastore extends Model<InferAttributes<Datastore>, InferCr
 
   declare itemId?: string;
 
-  declare type?: string;
+  declare key?: string;
 
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
 
   declare data?: {};
+
+  declare scope?: 'session' | 'user' | 'global';
 }
 
 Datastore.init(
@@ -44,7 +46,7 @@ Datastore.init(
     sessionId: {
       type: DataTypes.STRING,
     },
-    type: {
+    key: {
       type: DataTypes.STRING,
     },
     createdAt: {
@@ -63,6 +65,9 @@ Datastore.init(
       type: DataTypes.STRING,
     },
     itemId: {
+      type: DataTypes.STRING,
+    },
+    scope: {
       type: DataTypes.STRING,
     },
   },

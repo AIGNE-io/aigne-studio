@@ -299,6 +299,9 @@ importers:
       joi:
         specifier: ^17.13.0
         version: 17.13.0
+      js-base64:
+        specifier: ^3.7.7
+        version: 3.7.7
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5

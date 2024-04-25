@@ -102,6 +102,7 @@
     "immer": "^10.0.4",
     "isomorphic-git": "^1.25.7",
     "joi": "^17.13.0",
+    "js-base64": "^3.7.7",
     "js-cookie": "^3.0.5",
     "js-sha3": "^0.9.3",
     "json-stable-stringify": "^1.1.1",

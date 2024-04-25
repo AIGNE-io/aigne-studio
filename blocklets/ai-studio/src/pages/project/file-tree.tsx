@@ -1,6 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { AssistantYjs, FileTypeYjs, fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  FileTypeYjs,
+  VariablesYjs,
+  fileToYjs,
+  isAssistant,
+  nextAssistantId,
+} from '@blocklet/ai-runtime/types';
 import { css } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
@@ -77,7 +84,7 @@ export type EntryWithMeta =
       filename: string;
       parent: string[];
       path: string[];
-      meta: Exclude<FileTypeYjs, { $base64: string }>;
+      meta: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>;
     }
   | {
       type: 'folder';

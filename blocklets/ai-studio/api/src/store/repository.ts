@@ -3,7 +3,16 @@ import path, { relative } from 'path';
 
 import { EVENTS } from '@api/event';
 import { broadcast } from '@api/libs/ws';
-import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
+import {
+  Assistant,
+  FileTypeYjs,
+  Variables,
+  fileFromYjs,
+  fileToYjs,
+  isAssistant,
+  isRawFile,
+  isVariables,
+} from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { pathExists } from 'fs-extra';
@@ -11,6 +20,7 @@ import { glob } from 'glob';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
+import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
 import { authClient, wallet } from '../libs/auth';
@@ -18,6 +28,10 @@ import downloadLogo from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
+
+export const CONFIG_FONDER = 'config';
+export const VARIABLE_KEY = 'variable';
+export const VARIABLE_FILENAME = `${VARIABLE_KEY}.yaml`;
 
 export const defaultBranch = 'main';
 
@@ -82,6 +96,15 @@ export async function getRepository({
           }
         }
 
+        if (
+          root === CONFIG_FONDER &&
+          filepath.startsWith(joinURL(CONFIG_FONDER, VARIABLE_FILENAME)) &&
+          ext === '.yaml'
+        ) {
+          const variable = parse(Buffer.from(content).toString());
+          return { filepath, key: VARIABLE_KEY, data: variable };
+        }
+
         return {
           filepath,
           key: nanoid(32),
@@ -124,10 +147,14 @@ export async function getRepository({
 
         if (isRawFile(content)) {
           const base64 = content.$base64;
-
           const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
-
           return [{ filepath, data }];
+        }
+
+        const [root, filename] = filepath.split('/');
+        if (root === CONFIG_FONDER && filename === VARIABLE_FILENAME) {
+          const { variables } = content;
+          return [{ filepath, data: stringify({ variables }) }];
         }
 
         return [{ filepath, data: '' }];
@@ -454,6 +481,69 @@ export async function getAssistantFromRepository({
       throw typeof rejectOnEmpty !== 'boolean'
         ? rejectOnEmpty
         : new Error(`no such assistant ${JSON.stringify({ ref, assistantId, working })}`);
+    }
+  }
+
+  return file;
+}
+
+export async function getVariablesFromRepository({
+  repository,
+  ref,
+  working,
+  fileName,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  fileName: string;
+  rejectOnEmpty: true | Error;
+}): Promise<Variables>;
+export async function getVariablesFromRepository({
+  repository,
+  ref,
+  working,
+  fileName,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  fileName: string;
+  rejectOnEmpty?: false;
+}): Promise<Variables | undefined>;
+export async function getVariablesFromRepository({
+  repository,
+  ref,
+  working,
+  fileName,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  fileName: string;
+  rejectOnEmpty?: boolean | Error;
+}): Promise<Variables | undefined> {
+  let file: Variables;
+
+  if (working) {
+    const working = await repository.working({ ref });
+    const f = working.syncedStore.files[fileName];
+    file = f && fileFromYjs(f);
+  } else {
+    const p = (await repository.listFiles({ ref })).find((i) => {
+      return i.endsWith(`config/${fileName}.yaml`);
+    });
+    file = p && parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
+  }
+
+  if (!file || !isVariables(file)) {
+    if (rejectOnEmpty) {
+      throw typeof rejectOnEmpty !== 'boolean'
+        ? rejectOnEmpty
+        : new Error(`no such assistant ${JSON.stringify({ ref, fileName, working })}`);
     }
   }
 

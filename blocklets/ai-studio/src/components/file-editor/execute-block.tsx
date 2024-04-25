@@ -9,6 +9,7 @@ import {
   FileTypeYjs,
   Role,
   Tool,
+  VariablesYjs,
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -70,8 +71,8 @@ import { ModelPopper, ModelSetting } from '../modal-settings';
 import ExecuteDatasetBlockForm from './execute-dataset-block';
 import PromptEditorField from './prompt-editor-field';
 
-const FROM_DATASET = 'dataset';
-const FROM_KNOWLEDGE = 'knowledge';
+export const FROM_DATASET = 'dataset';
+export const FROM_KNOWLEDGE = 'knowledge';
 
 export default function ExecuteBlockForm({
   projectId,
@@ -801,7 +802,7 @@ function ToolItemView({
 
 type Option = {
   id: NonNullable<ExecuteBlock['tools']>[number]['id'];
-  type: Exclude<FileTypeYjs, { $base64: string }>['type'] | string;
+  type: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>['type'] | string;
   name?: any;
   from?: NonNullable<ExecuteBlock['tools']>[number]['from'];
   fromText?: string;

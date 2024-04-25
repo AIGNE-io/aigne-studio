@@ -15,7 +15,7 @@ import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import VectorStore from '../../store/vector-store-hnswlib';
+import VectorStore from '../../store/vector-store-faiss';
 import { queue, updateHistoriesAndStore } from './embeddings';
 
 const router = Router();
@@ -86,8 +86,10 @@ const searchQuerySchema = Joi.object<{ message?: string; n: number }>({
 router.get('/:datasetId/search', async (req, res) => {
   const { datasetId } = req.params;
   const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  logger.info('knowledge search input', input);
 
   if (!input.message) {
+    logger.error('Not found search message');
     res.json({ docs: [] });
     return;
   }
@@ -103,20 +105,14 @@ router.get('/:datasetId/search', async (req, res) => {
   const store = await VectorStore.load(datasetId, embeddings);
 
   try {
-    // const records = await UpdateHistories.findAll({ where: { datasetId }, attributes: ['segmentId'] });
-    // const uniqueSegmentIds = [...new Set(records.map((record) => record.segmentId).flat())];
+    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+      res.json({ docs: [] });
+      return;
+    }
 
-    // if (store.getMapping() && !Object.keys(store.getMapping()).length) {
-    //   res.json({ docs: [] });
-    //   return;
-    // }
-
-    const docs = await store.similaritySearch(input.message, input.n);
+    const docs = await store.similaritySearch(input.message, Math.min(input.n, Object.keys(store.getMapping()).length));
     const result = docs.map((x) => {
-      return {
-        content: x?.pageContent,
-        ...(x?.metadata?.metadata || {}),
-      };
+      return { content: x?.pageContent, ...(x?.metadata?.metadata || {}) };
     });
 
     res.json({ docs: result });

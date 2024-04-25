@@ -1,6 +1,7 @@
 import Joi from 'joi';
+import { toLower } from 'lodash';
 
-import type { Assistant, OutputVariable } from '..';
+import type { Assistant, OutputVariable, Variable } from '..';
 
 export const variableBlockListForAgent: {
   [key in Assistant['type']]?: { block?: Set<RuntimeOutputVariable>; allow?: Set<RuntimeOutputVariable> };
@@ -155,7 +156,7 @@ export const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<Out
   // },
 };
 
-export function outputVariablesToJsonSchema(variables: OutputVariable[]) {
+export function outputVariablesToJsonSchema(variables: OutputVariable[], datastoreVariables: Variable[]) {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): object | undefined => {
     if (ignoredRuntimeOutputVariables.includes(variable.name as RuntimeOutputVariable)) {
       return undefined;
@@ -167,6 +168,14 @@ export function outputVariablesToJsonSchema(variables: OutputVariable[]) {
         ...runtimeVariable,
         description: [runtimeVariable.description, variable.description].filter((i) => !!i).join('\n'),
       });
+    }
+
+    if (variable.variable) {
+      const { key, scope } = variable.variable;
+      const v = datastoreVariables.find((i) => toLower(i.key) === toLower(key) && i.scope === scope);
+      if (!v?.type) return undefined;
+
+      return variableToSchema(v.type);
     }
 
     return {
@@ -191,7 +200,7 @@ export function outputVariablesToJsonSchema(variables: OutputVariable[]) {
   return variableToSchema({ type: 'object', properties: variables });
 }
 
-export function outputVariablesToJoiSchema(variables: OutputVariable[]): Joi.AnySchema {
+export function outputVariablesToJoiSchema(variables: OutputVariable[], datastoreVariables: Variable[]): Joi.AnySchema {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): Joi.AnySchema | undefined => {
     if (ignoredRuntimeOutputVariables.includes(variable.name as RuntimeOutputVariable)) {
       return undefined;
@@ -203,6 +212,13 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[]): Joi.Any
 
     if (runtimeVariable) {
       schema = variableToSchema({ ...runtimeVariable, required: variable.required });
+    } else if (variable.variable) {
+      const { key, scope } = variable.variable;
+
+      const v = datastoreVariables.find((i) => toLower(i.key) === toLower(key) && i.scope === scope);
+      if (!v?.type) return undefined;
+
+      schema = variableToSchema(v.type);
     } else if (variable.type === 'string') {
       schema = Joi.string().empty([null, '']);
     } else if (variable.type === 'number') {
@@ -292,5 +308,5 @@ export interface RuntimeOutputVariablesSchema {
  */
 const ignoredRuntimeOutputVariables: RuntimeOutputVariable[] = [
   RuntimeOutputVariable.textStream,
-  RuntimeOutputVariable.images,
+  // RuntimeOutputVariable.images,
 ];

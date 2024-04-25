@@ -12,21 +12,25 @@ const getDatastoreSchema = Joi.object<{
   sessionId?: string;
   assistantId?: string;
   projectId?: string;
-  itemId?: string;
-  type: string;
+  scope?: string;
+  key: string;
 }>({
-  userId: Joi.string().allow('').empty([null, '']).default(''),
-  sessionId: Joi.string().allow('').empty([null, '']).default(''),
-  assistantId: Joi.string().allow('').empty([null, '']).default(''),
-  projectId: Joi.string().allow('').empty([null, '']).default(''),
-  itemId: Joi.string().allow('').empty([null, '']).default(''),
-  type: Joi.string().required(),
+  userId: Joi.string().empty([null, '']),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  projectId: Joi.string().empty([null, '']),
+  scope: Joi.string().empty([null, '']),
+  key: Joi.string().required(),
 });
 
-const postDatastoreSchema = Joi.object<{ type: string; itemId: string; data: any }>({
-  type: Joi.string().required(),
-  itemId: Joi.string().allow('').empty([null, '']).optional(),
+const postDatastoreSchema = Joi.object<{
+  key: string;
+  scope: 'user' | 'session' | 'global';
+  data: any;
+}>({
+  key: Joi.string().required(),
   data: Joi.any(),
+  scope: Joi.string().empty([null, '']),
 });
 
 const postParamsSchema = Joi.object<{
@@ -36,10 +40,10 @@ const postParamsSchema = Joi.object<{
   projectId?: string;
   reset: boolean;
 }>({
-  userId: Joi.string().allow('').empty([null, '']).default(''),
-  sessionId: Joi.string().allow('').empty([null, '']).default(''),
-  assistantId: Joi.string().allow('').empty([null, '']).default(''),
-  projectId: Joi.string().allow('').empty([null, '']).default(''),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  userId: Joi.string().empty([null, '']).required(),
+  projectId: Joi.string().empty([null, '']).required(),
   reset: Joi.boolean().default(false),
 });
 
@@ -48,17 +52,37 @@ const putParamsSchema = Joi.object<{
   sessionId?: string;
   assistantId?: string;
   projectId?: string;
-  itemId?: string;
-  type?: string;
+  key?: string;
   id?: string;
+  scope?: string;
 }>({
   id: Joi.string().allow('').empty([null, '']).optional(),
-  type: Joi.string().allow('').empty([null, '']).optional(),
-  itemId: Joi.string().allow('').empty([null, '']).default(''),
-  userId: Joi.string().allow('').empty([null, '']).default(''),
-  sessionId: Joi.string().allow('').empty([null, '']).default(''),
-  assistantId: Joi.string().allow('').empty([null, '']).default(''),
-  projectId: Joi.string().allow('').empty([null, '']).default(''),
+  key: Joi.string().allow('').empty([null, '']).optional(),
+  userId: Joi.string().empty([null, '']),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  projectId: Joi.string().empty([null, '']),
+  scope: Joi.string().empty([null, '']),
+});
+
+const getVariableSchema = Joi.object<{
+  offset?: number;
+  limit?: number;
+  key: string;
+  scope: string;
+  projectId?: string;
+  userId?: string;
+  sessionId?: string;
+  assistantId?: string;
+}>({
+  offset: Joi.number().integer().min(0).empty([null, '']).default(0).optional(),
+  limit: Joi.number().integer().min(1).empty([null, '']).default(5).optional(),
+  key: Joi.string().allow('').empty([null, '']).default(''),
+  scope: Joi.string().valid('global', 'session', 'user').default('global').required(),
+  userId: Joi.string().empty([null, '']),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  projectId: Joi.string().empty([null, '']),
 });
 
 /**
@@ -71,13 +95,13 @@ const putParamsSchema = Joi.object<{
  *     x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
  *     parameters:
  *       - in: query
- *         name: type
+ *         name: key
  *         description: key
  *         x-description-zh: 存储的名称
  *       - in: query
- *         name: itemId
- *         description: SubItem Id
- *         x-description-zh: 子项别名
+ *         name: scope
+ *         description: scope
+ *         x-description-zh: 数据作用域
  *     responses:
  *       200:
  *         description: A JSON array of datastores
@@ -88,8 +112,8 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     sessionId = '',
     assistantId = '',
     projectId = '',
-    type = '',
-    itemId = '',
+    key = '',
+    scope = '',
   } = await getDatastoreSchema.validateAsync(req.query, { stripUnknown: true });
 
   const currentUserId = req.user?.did || userId || '';
@@ -102,8 +126,8 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     ...(sessionId && { sessionId }),
     ...(projectId && { projectId }),
     ...(assistantId && { assistantId }),
-    ...(itemId && { itemId }),
-    ...(type && { type }),
+    ...(scope && { scope }),
+    ...(key && { key }),
   };
 
   const datastores = await Datastore.findAll({ order: [['createdAt', 'ASC']], where: params });
@@ -134,17 +158,17 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - type
+ *               - key
  *               - data
  *             properties:
- *               type:
+ *               key:
  *                 type: string
  *                 description: key
  *                 x-description-zh: 别名
- *               itemId:
+ *               scope:
  *                 type: string
- *                 description: SubItem Id
- *                 x-description-zh: 子项别名
+ *                 description: Scope
+ *                 x-description-zh: 数据作用域
  *               data:
  *                 type: object
  *                 description: value
@@ -154,7 +178,7 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         description: The created datastore object
  */
 router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
-  const { type, itemId, data } = await postDatastoreSchema.validateAsync(req.body, { stripUnknown: true });
+  const { key, data, scope } = await postDatastoreSchema.validateAsync(req.body, { stripUnknown: true });
   const { userId, sessionId, assistantId, projectId, reset } = await postParamsSchema.validateAsync(req.query, {
     stripUnknown: true,
   });
@@ -164,15 +188,11 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     throw new Error('Can not get user info');
   }
 
-  if (!itemId && !type) {
-    throw new Error('Can not `type` or `itemId` params');
-  }
-
-  if (reset) await Datastore.destroy({ where: { ...(itemId && { itemId }), ...(type && { type }) } });
+  if (reset) await Datastore.destroy({ where: { ...(scope && { scope }), ...(key && { key }) } });
 
   const datastore = await Datastore.create({
-    type,
-    itemId,
+    key,
+    scope,
     data,
     userId: currentUserId,
     sessionId,
@@ -199,16 +219,13 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         description: ID
  *         x-description-zh: ID
  *       - in: query
- *         name: itemId
- *         description: SubItem Id
- *         x-description-zh: 子项别名
- *       - in: query
- *         name: type
- *         schema:
- *           type: string
- *         required: false
+ *         name: key
  *         description: key
- *         x-description-zh: 数据存储项别名
+ *         x-description-zh: 存储的名称
+ *       - in: query
+ *         name: scope
+ *         description: scope
+ *         x-description-zh: 数据作用域
  *     requestBody:
  *       required: true
  *       content:
@@ -253,9 +270,9 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     sessionId = '',
     assistantId = '',
     projectId = '',
-    itemId = '',
-    type = '',
+    key = '',
     id = '',
+    scope = '',
   } = await putParamsSchema.validateAsync(req.query, { stripUnknown: true });
 
   const currentUserId = req.user?.did || userId || '';
@@ -269,8 +286,8 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     ...(sessionId && { sessionId }),
     ...(assistantId && { assistantId }),
     ...(projectId && { projectId }),
-    ...(type && { type }),
-    ...(itemId && { itemId }),
+    ...(key && { key }),
+    ...(scope && { scope }),
     ...(id && { id }),
   };
 
@@ -303,16 +320,16 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         description: ID
  *         x-description-zh: ID
  *       - in: query
- *         name: type
+ *         name: key
  *         schema:
  *           type: string
  *         required: false
  *         description: key
  *         x-description-zh: 数据存储项别名
  *       - in: query
- *         name: itemId
- *         description: SubItem Id
- *         x-description-zh: 子项别名
+ *         name: scope
+ *         description: scope
+ *         x-description-zh: 数据作用域
  *     responses:
  *       200:
  *         description: The deleted datastore object
@@ -325,8 +342,8 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     sessionId = '',
     assistantId = '',
     projectId = '',
-    itemId = '',
-    type = '',
+    scope = '',
+    key = '',
     id = '',
   } = await putParamsSchema.validateAsync(req.query, { stripUnknown: true });
 
@@ -340,8 +357,8 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     ...(sessionId && { sessionId }),
     ...(projectId && { projectId }),
     ...(assistantId && { assistantId }),
-    ...(type && { type }),
-    ...(itemId && { itemId }),
+    ...(key && { key }),
+    ...(scope && { scope }),
     ...(id && { id }),
   };
 
@@ -353,6 +370,54 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     console.error(error?.message);
     res.status(500).json({ error: error?.message });
   }
+});
+
+router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req, res) => {
+  const query = await getVariableSchema.validateAsync(req.query, { stripUnknown: true });
+  const { key, projectId, scope, sessionId, userId } = query;
+
+  const currentUserId = req.user?.did || userId || '';
+  if (!currentUserId) {
+    throw new Error('Can not get user info');
+  }
+
+  const params: { [key: string]: any } = {
+    ...(currentUserId && { userId: currentUserId }),
+    ...(projectId && { projectId }),
+    ...(key && { key }),
+  };
+
+  if (scope === 'session') {
+    const datastores = await Datastore.findAll({
+      order: [['createdAt', 'ASC']],
+      where: { ...params, scope, sessionId },
+    });
+    if (datastores.length) {
+      return res.json(datastores);
+    }
+  }
+
+  if (scope === 'session' || scope === 'user') {
+    const datastores = await Datastore.findAll({
+      order: [['createdAt', 'ASC']],
+      where: { ...params, scope: 'user' },
+    });
+    if (datastores.length) {
+      return res.json(datastores);
+    }
+  }
+
+  if (scope === 'session' || scope === 'user' || scope === 'global') {
+    const datastores = await Datastore.findAll({
+      order: [['createdAt', 'ASC']],
+      where: { ...params, scope: 'global' },
+    });
+    if (datastores.length) {
+      return res.json(datastores);
+    }
+  }
+
+  return res.json([]);
 });
 
 export default router;

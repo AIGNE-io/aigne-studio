@@ -1,3 +1,4 @@
+import { stringifyIdentity } from '@api/libs/aid';
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
 import { InvalidSubscriptionError, ReachMaxRoundLimitError } from '@api/libs/error';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
@@ -21,7 +22,7 @@ import { pick } from 'lodash';
 
 import { ensureComponentCallOrAuth, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
-import { getAssistantFromRepository, getRepository } from '../store/repository';
+import { getAssistantFromRepository, getRepository, getVariablesFromRepository } from '../store/repository';
 
 const router = Router();
 
@@ -248,13 +249,22 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     if (userId && release?.paymentEnabled && release.paymentProductId) {
       if (
         !(await getActiveSubscriptionOfAssistant({
-          releaseId: Buffer.from([input.projectId, input.ref, input.assistantId].join('/')).toString('base64url'),
+          aid: stringifyIdentity({ projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId }),
           userId,
         }))
       ) {
         throw new InvalidSubscriptionError('Your subscription is not available');
       }
     }
+
+    // 传入全局的存储变量
+    const data = await getVariablesFromRepository({
+      repository,
+      ref: input.ref,
+      working: input.working,
+      fileName: 'variable',
+      rejectOnEmpty: true,
+    });
 
     const result = await runAssistant({
       callAI,
@@ -267,6 +277,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       user: userId ? { id: userId, did: userId, ...req.user } : undefined,
       sessionId: input.sessionId,
       projectId: input.projectId,
+      datastoreVariables: data?.variables || [],
     });
 
     if (!stream) {
