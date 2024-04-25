@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import { toLower } from 'lodash';
 
 import type { Assistant, OutputVariable, Variable } from '..';
 
@@ -171,7 +172,7 @@ export function outputVariablesToJsonSchema(variables: OutputVariable[], datasto
 
     if (variable.variable) {
       const { key, scope } = variable.variable;
-      const v = datastoreVariables.find((i) => i.key === key && i.scope === scope);
+      const v = datastoreVariables.find((i) => toLower(i.key) === toLower(key) && i.scope === scope);
       if (!v?.type) return undefined;
 
       return variableToSchema(v.type);
@@ -214,7 +215,7 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[], datastor
     } else if (variable.variable) {
       const { key, scope } = variable.variable;
 
-      const v = datastoreVariables.find((i) => i.key === key && i.scope === scope);
+      const v = datastoreVariables.find((i) => toLower(i.key) === toLower(key) && i.scope === scope);
       if (!v?.type) return undefined;
 
       schema = variableToSchema(v.type);
