@@ -1,7 +1,7 @@
 import LoadingButton from '@app/components/loading/loading-button';
+import LogoField from '@app/components/publish/LogoField';
 import PublishEntries from '@app/components/publish/PublishEntries';
 import NumberField from '@app/components/template-form/number-field';
-import { useUploader } from '@app/contexts/uploader';
 import { getErrorMessage } from '@app/libs/api';
 import { AI_RUNTIME_COMPONENT_DID } from '@app/libs/constants';
 import { createRelease, updateRelease } from '@app/libs/release';
@@ -20,7 +20,6 @@ import {
   FormControl,
   FormControlLabel,
   FormLabel,
-  IconButton,
   InputAdornment,
   Link,
   Radio,
@@ -37,7 +36,6 @@ import { joinURL, withQuery } from 'ufo';
 
 import BaseInput from '../../components/custom/input';
 import Switch from '../../components/custom/switch';
-import UploadIcon from './icons/publish-upload';
 import { saveButtonState, useProjectState } from './state';
 
 const TemplateImage = styled('img')({
@@ -96,7 +94,6 @@ function PublishViewContent({
   };
 
   const { t, locale } = useLocaleContext();
-  const uploaderRef = useUploader();
 
   const {
     state: { releases, project },
@@ -176,36 +173,26 @@ function PublishViewContent({
         <RadioGroup
           row
           sx={{ rowGap: 1 }}
-          value={assistant.release?.template || ''}
+          value={assistant.release?.template || 'chat'}
           onChange={(_, value) => setRelease((release) => (release.template = value))}>
           <StyledFormControlLabel
             labelPlacement="top"
             control={<Radio />}
-            value="default"
+            value="chat"
             label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-1.png')} alt="" />}
           />
           <StyledFormControlLabel
             labelPlacement="top"
             control={<Radio />}
-            value="blue"
+            value="form"
             label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-2.png')} alt="" />}
-          />
-          <StyledFormControlLabel
-            labelPlacement="top"
-            control={<Radio />}
-            value="red"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-3.png')} alt="" />}
-          />
-          <StyledFormControlLabel
-            labelPlacement="top"
-            control={<Radio />}
-            value="green"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-4.png')} alt="" />}
           />
         </RadioGroup>
       </FormControl>
 
       <PublishEntries assistant={assistant} />
+
+      <LogoField assistant={assistant} setRelease={setRelease} />
 
       <FormControl>
         <Typography mb={0.5} variant="subtitle2">
@@ -246,48 +233,6 @@ function PublishViewContent({
         />
       </FormControl>
 
-      <Box>
-        <Typography mb={0.5} variant="subtitle2">
-          {t('publish.logo')}
-        </Typography>
-
-        <Box mb={0.5}>
-          <Box
-            onClick={() => {
-              // @ts-ignore
-              const uploader = uploaderRef?.current?.getUploader();
-
-              uploader?.open();
-
-              uploader.onceUploadSuccess((data: any) => {
-                const { response } = data;
-                const url = response?.data?.url || response?.data?.fileUrl;
-                setRelease((release) => (release.logo = url));
-              });
-            }}>
-            {assistant.release?.logo ? (
-              <Box
-                component="img"
-                src={assistant.release.logo}
-                alt=""
-                sx={{ width: 100, height: 100, borderRadius: 1, cursor: 'pointer' }}
-              />
-            ) : (
-              <Box width={1} display="flex" gap={1.5}>
-                <IconButton
-                  key="uploader-trigger"
-                  size="small"
-                  sx={{ borderRadius: 1, bgcolor: 'rgba(0, 0, 0, 0.06)', width: 100, height: 100 }}>
-                  <UploadIcon sx={{ fontSize: 100 }} />
-                </IconButton>
-
-                <Typography variant="subtitle3">Supported file formats include PNG, JPG, and SVG.</Typography>
-              </Box>
-            )}
-          </Box>
-        </Box>
-      </Box>
-
       <TableLayout>
         <Typography mb={0.5} variant="subtitle2">
           {t('submit')}
@@ -312,26 +257,6 @@ function PublishViewContent({
             />
           </Box>
         </Box>
-
-        {/* <Box className="row">
-          <Box>
-            <FormLabel>{t('backgroundColor')}</FormLabel>
-          </Box>
-
-          <Box>
-            <BaseInput
-              sx={{ padding: 0 }}
-              placeholder={t('backgroundColor')}
-              value={assistant.release?.submitButton?.background || ''}
-              onChange={(e) =>
-                setRelease((release) => {
-                  release.submitButton ??= {};
-                  release.submitButton.background = e.target.value;
-                })
-              }
-            />
-          </Box>
-        </Box> */}
       </TableLayout>
 
       <TableLayout>

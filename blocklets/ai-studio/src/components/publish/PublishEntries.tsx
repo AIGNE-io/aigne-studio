@@ -29,7 +29,6 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
 
   const [currentId, setCurrentId] = useState<string>();
   const current = assistant.entries?.[currentId!]?.data;
-  const withCollectionManage = !!Object.values(assistant.parameters ?? {}).find((i) => i.data.key === 'datasetId');
 
   return (
     <Stack>
@@ -39,7 +38,6 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
         </Typography>
 
         <Button
-          disabled={withCollectionManage}
           sx={{ cursor: 'pointer', color: '#3B82F6', minWidth: 32, minHeight: 32, p: 0 }}
           onClick={() => {
             const id = nanoid();
@@ -54,15 +52,7 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
         </Button>
       </Box>
 
-      {withCollectionManage && (
-        <Box my={2} textAlign="center">
-          <Typography variant="caption" color="#9CA3AF" fontSize={12} lineHeight="20px" fontWeight={500}>
-            {t('entryFunctionDisabledTip')}
-          </Typography>
-        </Box>
-      )}
-
-      {!withCollectionManage && assistant.entries && (
+      {assistant.entries && (
         <DragSortListYjs
           list={assistant.entries}
           renderItem={(item, _, params) => (
@@ -187,8 +177,6 @@ function PublishEntriesForm({
       <Typography variant="subtitle2">{t('parameters')}</Typography>
 
       {parameters.map(({ data: parameter }) => {
-        if (parameter.key === 'question') return null;
-
         return (
           <Box key={parameter.id}>
             <ParameterField
