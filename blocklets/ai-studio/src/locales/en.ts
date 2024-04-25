@@ -590,7 +590,7 @@ export default flat({
     from: 'Data Source',
     custom: 'From User Input',
     tool: 'From Agent Output',
-    datastore: 'From Data',
+    datastore: 'From Data Memory',
     unselect: 'Unselected Agent',
     fromDetail: 'Data Details',
     setting: 'Settings',
@@ -619,7 +619,7 @@ export default flat({
     value: 'Data Value',
     itemId: 'Data SubItem',
     dataType: 'Data Type',
-    useAssistant: 'Used by Assistant',
+    useAssistant: 'Used by Agent',
   },
   userId: 'USER ID',
   sessionId: 'SESSION ID',
@@ -653,4 +653,9 @@ export default flat({
   streamTextResponse: 'Generated Text Stream',
   referencedLinks: 'Referenced Links',
   submit: 'Submit',
+  memory: {
+    title: 'Memory',
+    extractMemory: 'Extract memory',
+    saveMemory: 'Save the memory',
+  },
 });

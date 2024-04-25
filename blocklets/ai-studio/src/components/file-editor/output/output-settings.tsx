@@ -314,7 +314,7 @@ function VariableRow({
                         <Box>
                           <Box>
                             <Typography variant="subtitle2" mb={0}>
-                              {t('outputVariableParameter.saveAs')}
+                              {t('memory.saveMemory')}
                             </Typography>
 
                             <Box>

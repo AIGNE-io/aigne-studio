@@ -58,7 +58,7 @@ export default function ProjectHeader() {
               },
               {
                 value: 'variables',
-                label: t('data'),
+                label: t('memory.title'),
                 icon: <Box fontSize={15} component={Icon} icon="tabler:database" mr={1} />,
               },
             ]}

@@ -652,7 +652,7 @@ function DatastoreParameter({
       <Stack gap={2}>
         <Box>
           <Typography variant="subtitle2" mb={0}>
-            {t('variableParameter.scope')}
+            {t('memory.extractMemory')}
           </Typography>
 
           <Box>

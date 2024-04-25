@@ -128,7 +128,13 @@ function SelectVariable({
                 );
               }
 
-              return <MenuItem {...props}>{t('outputVariableParameter.addData')}</MenuItem>;
+              return (
+                <MenuItem {...props}>
+                  <Button size="small" sx={{ width: 1 }}>
+                    {t('outputVariableParameter.addData')}
+                  </Button>
+                </MenuItem>
+              );
             }}
             filterOptions={(_, params) => {
               const filtered = filter(sortVariables(variables), params);

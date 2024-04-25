@@ -85,6 +85,7 @@ export type Variable = {
   dataType: any;
   reset?: boolean;
   defaultValue?: any;
+  type?: DataType;
 };
 
 export interface AssistantBase {
@@ -141,30 +142,30 @@ export interface OutputVariableBase {
   variable?: Variable;
 }
 
-export type OutputVariable = OutputVariableBase &
-  (
-    | { type?: undefined }
-    | {
-        type: 'textStream';
-        defaultValue?: string;
-      }
-    | {
-        type: 'string';
-        defaultValue?: string;
-      }
-    | {
-        type: 'number';
-        defaultValue?: number;
-      }
-    | {
-        type: 'object';
-        properties?: OutputVariable[];
-      }
-    | {
-        type: 'array';
-        element?: OutputVariable;
-      }
-  );
+type DataType =
+  | { type?: undefined }
+  | {
+      type: 'textStream';
+      defaultValue?: string;
+    }
+  | {
+      type: 'string';
+      defaultValue?: string;
+    }
+  | {
+      type: 'number';
+      defaultValue?: number;
+    }
+  | {
+      type: 'object';
+      properties?: OutputVariable[];
+    }
+  | {
+      type: 'array';
+      element?: OutputVariable;
+    };
+
+export type OutputVariable = OutputVariableBase & DataType;
 
 export interface Agent extends AssistantBase {
   type: 'agent';
