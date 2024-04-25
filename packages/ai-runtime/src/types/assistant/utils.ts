@@ -54,7 +54,7 @@ export function isExecuteBlock(
 export function isVariables(assistant: FileType): assistant is Variables;
 export function isVariables(assistant: FileTypeYjs): assistant is VariablesYjs;
 export function isVariables(assistant: FileType | FileTypeYjs): assistant is FileType | VariablesYjs {
-  return (assistant as any).type === 'variables';
+  return 'variables' in (assistant as any);
 }
 
 export function isAssistant(assistant: FileType): assistant is Assistant;
@@ -327,6 +327,7 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
     };
   }
+
   if (isVariables(file)) {
     return {
       ...file,

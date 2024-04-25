@@ -3,7 +3,16 @@ import path, { relative } from 'path';
 
 import { EVENTS } from '@api/event';
 import { broadcast } from '@api/libs/ws';
-import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
+import {
+  Assistant,
+  FileTypeYjs,
+  Variables,
+  fileFromYjs,
+  fileToYjs,
+  isAssistant,
+  isRawFile,
+  isVariables,
+} from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
 import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
 import { pathExists } from 'fs-extra';
@@ -472,6 +481,69 @@ export async function getAssistantFromRepository({
       throw typeof rejectOnEmpty !== 'boolean'
         ? rejectOnEmpty
         : new Error(`no such assistant ${JSON.stringify({ ref, assistantId, working })}`);
+    }
+  }
+
+  return file;
+}
+
+export async function getVariablesFromRepository({
+  repository,
+  ref,
+  working,
+  fileName,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  fileName: string;
+  rejectOnEmpty: true | Error;
+}): Promise<Variables>;
+export async function getVariablesFromRepository({
+  repository,
+  ref,
+  working,
+  fileName,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  fileName: string;
+  rejectOnEmpty?: false;
+}): Promise<Variables | undefined>;
+export async function getVariablesFromRepository({
+  repository,
+  ref,
+  working,
+  fileName,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  fileName: string;
+  rejectOnEmpty?: boolean | Error;
+}): Promise<Variables | undefined> {
+  let file: Variables;
+
+  if (working) {
+    const working = await repository.working({ ref });
+    const f = working.syncedStore.files[fileName];
+    file = f && fileFromYjs(f);
+  } else {
+    const p = (await repository.listFiles({ ref })).find((i) => {
+      return i.endsWith(`config/${fileName}.yaml`);
+    });
+    file = p && parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
+  }
+
+  if (!file || !isVariables(file)) {
+    if (rejectOnEmpty) {
+      throw typeof rejectOnEmpty !== 'boolean'
+        ? rejectOnEmpty
+        : new Error(`no such assistant ${JSON.stringify({ ref, fileName, working })}`);
     }
   }
 

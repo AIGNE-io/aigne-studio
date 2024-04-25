@@ -638,6 +638,7 @@ export default flat({
     typeBeDefined: '变量类型已经被定义过，类型只能为 "{type}"',
     dataType: '数据类型',
     change: '目前有关联到记忆存储，修改后将取消关联。',
+    compareObject: '数据类型已经被定义,属性不能被修改,请定义成新的变量',
   },
   outputFormat: '输出格式',
   json: 'JSON',

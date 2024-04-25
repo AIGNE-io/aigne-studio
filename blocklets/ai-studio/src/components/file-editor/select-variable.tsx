@@ -22,6 +22,7 @@ import {
   Typography,
   createFilterOptions,
 } from '@mui/material';
+import equal from 'fast-deep-equal';
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog } from 'material-ui-popup-state';
 import { usePopupState } from 'material-ui-popup-state/hooks';
@@ -294,10 +295,24 @@ function SelectVariable({
                   });
 
                   // 如果定义过的变量, 并且变量 type 不一致
-                  if (foundKey && foundKey?.type?.type !== value?.type) {
-                    return t('outputVariableParameter.typeBeDefined', {
-                      type: `${foundKey?.type?.type ? map[foundKey?.type?.type] : ''}`,
-                    });
+                  if (foundKey) {
+                    if (foundKey?.type?.type !== value?.type) {
+                      return t('outputVariableParameter.typeBeDefined', {
+                        type: `${foundKey?.type?.type ? map[foundKey?.type?.type] : ''}`,
+                      });
+                    }
+
+                    if (value?.type === 'object' && foundKey?.type?.type === 'object') {
+                      if (!equal(cloneDeep(foundKey.type?.properties), cloneDeep(value.properties))) {
+                        return t('outputVariableParameter.compareObject');
+                      }
+                    }
+
+                    if (value?.type === 'array' && foundKey?.type?.type === 'array') {
+                      if (!equal(cloneDeep(foundKey.type?.element), cloneDeep(value.element))) {
+                        return t('outputVariableParameter.compareObject');
+                      }
+                    }
                   }
 
                   return true;

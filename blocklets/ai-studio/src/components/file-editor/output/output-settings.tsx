@@ -22,6 +22,7 @@ import { cloneDeep, sortBy } from 'lodash';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import { useId } from 'react';
+import React from 'react';
 
 import SelectVariable from '../select-variable';
 import AddOutputVariableButton from './AddOutputVariableButton';
@@ -202,7 +203,7 @@ function VariableRow({
               onChange={(e) => {
                 const type = e.target.value as any;
 
-                if (variable.variable) {
+                if (variable.variable?.key) {
                   showDialog({
                     formSx: {
                       '.MuiDialogTitle-root': {
@@ -252,7 +253,7 @@ function VariableRow({
             disabled={Boolean(disabled)}
             checked={v.required || false}
             onChange={(_, checked) => {
-              variable.required = checked;
+              v.required = checked;
             }}
           />
         </Box>
@@ -278,7 +279,7 @@ function VariableRow({
         </Box>
         <td align="right">
           <Stack direction="row" gap={1} justifyContent="flex-end">
-            {depth === 0 && (
+            {depth === 0 && !runtimeVariable && (
               <>
                 <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} {...bindTrigger(outputPopperState)}>
                   <Icon icon="tabler:settings" />
@@ -386,27 +387,28 @@ function VariableRow({
         v.type === 'object' &&
         v.properties &&
         sortBy(Object.values(v.properties), 'index').map((property) => (
-          <VariableRow
-            disabled={Boolean(variable.variable?.key)}
-            key={property.data.id}
-            value={value}
-            variable={property.data}
-            depth={depth + 1}
-            projectId={projectId}
-            gitRef={gitRef}
-            onRemove={() => {
-              doc.transact(() => {
-                if (!v.properties) return;
-                delete v.properties[property.data.id];
-                sortBy(Object.values(v.properties), 'index').forEach((item, index) => (item.index = index));
-              });
-            }}
-          />
+          <React.Fragment key={property.data.id}>
+            <VariableRow
+              disabled={Boolean(variable.variable?.key || disabled)}
+              value={value}
+              variable={property.data}
+              depth={depth + 1}
+              projectId={projectId}
+              gitRef={gitRef}
+              onRemove={() => {
+                doc.transact(() => {
+                  if (!v.properties) return;
+                  delete v.properties[property.data.id];
+                  sortBy(Object.values(v.properties), 'index').forEach((item, index) => (item.index = index));
+                });
+              }}
+            />
+          </React.Fragment>
         ))}
 
       {!runtimeVariable && v.type === 'array' && v.element && (
         <VariableRow
-          disabled={Boolean(variable.variable?.key)}
+          disabled={Boolean(variable.variable?.key || disabled)}
           projectId={projectId}
           gitRef={gitRef}
           value={value}

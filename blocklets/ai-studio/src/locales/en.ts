@@ -642,6 +642,7 @@ export default flat({
     typeBeDefined: 'The variable type has already been defined and the type can only be "{type}"',
     dataType: 'DataType',
     change: 'At present, it is associated with memory storage, which will be unassociated after modification.',
+    compareObject: 'The data type has been defined and cannot be modified. Please define it as a new variable',
   },
   outputFormat: 'Output Format',
   json: 'JSON',
