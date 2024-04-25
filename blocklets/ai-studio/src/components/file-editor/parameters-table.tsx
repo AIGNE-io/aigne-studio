@@ -54,6 +54,7 @@ import { DragSortListYjs } from '../drag-sort-list';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
 import { FROM_KNOWLEDGE } from './execute-block';
+import PromptEditorField from './prompt-editor-field';
 import SelectVariable from './select-variable';
 import useVariablesEditorOptions from './use-variables-editor-options';
 
@@ -444,19 +445,12 @@ function PopperButton({
 }) {
   const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const { t } = useLocaleContext();
+  const { addParameter } = useVariablesEditorOptions(value);
 
   const renderParameterSettings = (parameter: any) => {
     if (parameter.source) {
       if (parameter.source.variableFrom === 'tool') {
-        return (
-          <AgentParameter
-            value={value}
-            projectId={projectId}
-            gitRef={gitRef}
-            parameter={parameter}
-            onChange={parameterSettingPopperState.close}
-          />
-        );
+        return <AgentParameter value={value} projectId={projectId} gitRef={gitRef} parameter={parameter} />;
       }
 
       if (parameter.source.variableFrom === 'datastore') {
@@ -466,10 +460,11 @@ function PopperButton({
       if (parameter.source.variableFrom === 'knowledge') {
         return (
           <KnowledgeParameter
-            knowledge={knowledge}
+            projectId={projectId}
+            gitRef={gitRef}
             value={value}
             parameter={parameter}
-            onChange={parameterSettingPopperState.close}
+            knowledge={knowledge}
           />
         );
       }
@@ -498,6 +493,22 @@ function PopperButton({
         <ClickAwayListener
           onClickAway={(e) => {
             if (e.target === document.body) return;
+
+            // 新增选择 tool 和 knowledge 未定义的参数
+            const source = parameter?.source as any;
+            if ((source?.variableFrom === 'tool' || source?.variableFrom === 'knowledge') && source && source?.tool) {
+              Object.entries(source?.tool?.parameters || {}).forEach(([key, value]: any) => {
+                if (!value) {
+                  if (source && source?.tool && source?.tool?.parameters) {
+                    source.tool.parameters[key] = `{{${key}}}`;
+                  }
+
+                  const from = parameter?.source?.variableFrom === 'tool' ? FROM_PARAMETER : FROM_KNOWLEDGE_PARAMETER;
+                  addParameter(key, { from });
+                }
+              });
+            }
+
             parameterSettingPopperState.close();
           }}>
           <Paper sx={{ p: 3, width: 320, maxHeight: '80vh', overflow: 'auto' }}>
@@ -550,17 +561,15 @@ function AgentParameter({
   projectId,
   gitRef,
   parameter,
-  onChange,
 }: {
   value: AssistantYjs;
   projectId: string;
   gitRef: string;
   parameter: NonNullable<AssistantYjs['parameters']>[string]['data'];
-  onChange: () => void;
 }) {
-  const { store } = useProjectStore(projectId, gitRef);
+  const { store, getFileById } = useProjectStore(projectId, gitRef);
   const { t } = useLocaleContext();
-  const { addParameter, deleteParameter } = useVariablesEditorOptions(value);
+  const { deleteParameter } = useVariablesEditorOptions(value);
 
   if (parameter?.source?.variableFrom === 'tool') {
     const toolId = (parameter?.source as any)?.tool?.id;
@@ -573,54 +582,88 @@ function AgentParameter({
       .map((i) => ({ id: i.id, type: i.type, name: i.name, from: FROM_PARAMETER, parameters: i.parameters }));
 
     const v = options.find((x) => x.id === toolId);
+    const file = getFileById((parameter.source as any).tool?.id);
+    const parameters =
+      file?.parameters &&
+      sortBy(Object.values(file.parameters), (i) => i.index).filter(
+        (i): i is typeof i & { data: { key: string } } => !!i.data.key
+      );
 
     return (
-      <Box>
-        <Typography variant="subtitle2" mb={0}>
-          {t('tool')}
-        </Typography>
+      <Stack gap={2}>
+        <Box>
+          <Typography variant="subtitle2" mb={0}>
+            {t('tool')}
+          </Typography>
 
-        <SelectTool
-          options={options || []}
-          value={v}
-          onChange={(_value) => {
-            if (_value) {
-              // 删除历史自动添加的变量
-              Object.values(value.parameters || {}).forEach((x) => {
-                if (x.data.from === FROM_PARAMETER) {
-                  deleteParameter(x.data);
-                }
-              });
-
-              // 整理选择 agent 的参数
-              const parameters: { [key: string]: string } = Object.values(_value.parameters || {}).reduce(
-                (tol: any, cur) => {
-                  if (cur.data.key) {
-                    tol[cur.data.key] = `{{${cur.data.key}}}`;
+          <SelectTool
+            options={options || []}
+            value={v}
+            onChange={(_value) => {
+              if (_value) {
+                // 删除历史自动添加的变量
+                Object.values(value.parameters || {}).forEach((x) => {
+                  if (x.data.from === FROM_PARAMETER) {
+                    deleteParameter(x.data);
                   }
+                });
 
-                  return tol;
-                },
-                {}
-              );
+                // 整理选择 agent 的参数
+                const parameters: { [key: string]: string } = Object.values(_value.parameters || {}).reduce(
+                  (tol: any, cur) => {
+                    if (cur.data.key) tol[cur.data.key] = '';
+                    return tol;
+                  },
+                  {}
+                );
 
-              // 新增选择的变量
-              Object.keys(parameters).forEach((parameter) => {
-                addParameter(parameter, { from: FROM_PARAMETER });
-              });
+                parameter.source ??= {};
+                (parameter.source as any).tool = {
+                  id: _value.id,
+                  from: 'assistant',
+                  parameters,
+                };
+              }
+            }}
+          />
+        </Box>
 
-              parameter.source ??= {};
-              (parameter.source as any).tool = {
-                id: _value.id,
-                from: 'assistant',
-                parameters,
-              };
+        {file && (
+          <Box>
+            <Typography variant="subtitle2" mb={0}>
+              {t('parameters')}
+            </Typography>
 
-              onChange();
-            }
-          }}
-        />
-      </Box>
+            <Box>
+              {(parameters || [])?.map(({ data }: any) => {
+                if (!data?.key) return null;
+
+                return (
+                  <Stack key={data.id}>
+                    <Typography variant="caption" mx={1}>
+                      {data.label || data.key}
+                    </Typography>
+
+                    <PromptEditorField
+                      placeholder={`{{ ${data.key} }}`}
+                      value={(parameter.source as any)?.tool?.parameters?.[data.key] || ''}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      assistant={file}
+                      path={[]}
+                      onChange={(value) => {
+                        if ((parameter.source as any)?.tool?.parameters) {
+                          (parameter.source as any).tool.parameters[data.key] = value;
+                        }
+                      }}
+                    />
+                  </Stack>
+                );
+              })}
+            </Box>
+          </Box>
+        )}
+      </Stack>
     );
   }
 
@@ -682,18 +725,20 @@ function DatastoreParameter({
 }
 
 function KnowledgeParameter({
+  projectId,
+  gitRef,
   value,
   parameter,
   knowledge,
-  onChange,
 }: {
+  projectId: string;
+  gitRef: string;
   value: AssistantYjs;
   parameter: NonNullable<AssistantYjs['parameters']>[string]['data'];
-  onChange: () => void;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 }) {
   const { t } = useLocaleContext();
-  const { addParameter } = useVariablesEditorOptions(value);
+  const { deleteParameter } = useVariablesEditorOptions(value);
 
   if (parameter?.source?.variableFrom === 'knowledge') {
     const toolId = (parameter?.source as any)?.tool?.id;
@@ -706,42 +751,79 @@ function KnowledgeParameter({
       })),
     ];
 
+    const parameters = [{ name: 'message', description: 'Search Content' }];
     const v = options.find((x) => x.id === toolId);
 
     return (
-      <Box>
-        <Typography variant="subtitle2" mb={0}>
-          {t('knowledge.menu')}
-        </Typography>
+      <Stack gap={2}>
+        <Box>
+          <Typography variant="subtitle2" mb={0}>
+            {t('knowledge.menu')}
+          </Typography>
 
-        <SelectTool
-          options={options}
-          value={v}
-          onChange={(_value) => {
-            if (_value) {
-              // 整理选择 knowledge 的参数
-              const parameters = {
-                message: '{{message}}',
-              };
-
-              if (!Object.values(value.parameters || {}).find((x) => x.data.from === FROM_KNOWLEDGE_PARAMETER)) {
-                Object.keys(parameters).forEach((parameter) => {
-                  addParameter(parameter, { from: FROM_KNOWLEDGE_PARAMETER });
+          <SelectTool
+            options={options}
+            value={v}
+            onChange={(_value) => {
+              if (_value) {
+                // 删除历史自动添加的变量
+                Object.values(value.parameters || {}).forEach((x) => {
+                  if (x.data.from === FROM_KNOWLEDGE_PARAMETER) {
+                    deleteParameter(x.data);
+                  }
                 });
+
+                const parameters = {
+                  message: '',
+                };
+
+                parameter.source ??= {};
+                (parameter.source as any).tool = {
+                  id: _value.id,
+                  from: 'knowledge',
+                  parameters,
+                };
               }
+            }}
+          />
+        </Box>
 
-              parameter.source ??= {};
-              (parameter.source as any).tool = {
-                id: _value.id,
-                from: 'knowledge',
-                parameters,
-              };
+        {parameter?.source?.tool && (
+          <Box>
+            <Typography variant="subtitle2" mb={0}>
+              {t('parameters')}
+            </Typography>
 
-              onChange();
-            }
-          }}
-        />
-      </Box>
+            <Box>
+              {(parameters || [])?.map((data: any) => {
+                if (!data) return null;
+
+                return (
+                  <Stack key={data.name}>
+                    <Typography variant="caption" mx={1}>
+                      {data.description || data.name}
+                    </Typography>
+
+                    <PromptEditorField
+                      placeholder={`{{ ${data.name} }}`}
+                      value={(parameter.source as any)?.tool?.parameters?.[data.name] || ''}
+                      projectId={projectId}
+                      gitRef={gitRef}
+                      assistant={value}
+                      path={[]}
+                      onChange={(value) => {
+                        if ((parameter.source as any)?.tool?.parameters) {
+                          (parameter.source as any).tool.parameters[data.name] = value;
+                        }
+                      }}
+                    />
+                  </Stack>
+                );
+              })}
+            </Box>
+          </Box>
+        )}
+      </Stack>
     );
   }
 
