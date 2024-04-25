@@ -14,6 +14,7 @@ import type {
   ParameterYjs,
   PromptAssistantYjs,
   PromptYjs,
+  VariablesYjs,
 } from './yjs';
 import type {
   Agent,
@@ -27,6 +28,7 @@ import type {
   Parameter,
   Prompt,
   PromptAssistant,
+  Variables,
 } from '.';
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
@@ -47,6 +49,12 @@ export function isExecuteBlock(
   prompt: Prompt | PromptYjs
 ): prompt is Extract<Prompt | PromptYjs, { type: 'executeBlock' }> {
   return prompt.type === 'executeBlock';
+}
+
+export function isVariables(assistant: FileType): assistant is Variables;
+export function isVariables(assistant: FileTypeYjs): assistant is VariablesYjs;
+export function isVariables(assistant: FileType | FileTypeYjs): assistant is FileType | VariablesYjs {
+  return (assistant as any).type === 'variables';
 }
 
 export function isAssistant(assistant: FileType): assistant is Assistant;
@@ -258,7 +266,13 @@ export function fileToYjs(file: FileType): FileTypeYjs {
     };
   }
 
-  // @ts-ignore
+  if (isVariables(file)) {
+    return {
+      ...file,
+      variables: file.variables?.map((i) => ({ ...i, type: i.type && outputVariableToYjs(i.type) })),
+    };
+  }
+
   return file;
 }
 
@@ -313,7 +327,12 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
     };
   }
+  if (isVariables(file)) {
+    return {
+      ...file,
+      variables: file.variables?.map((i) => ({ ...i, type: i.type && outputVariableFromYjs(i.type) })),
+    };
+  }
 
-  // @ts-ignore
   return file;
 }

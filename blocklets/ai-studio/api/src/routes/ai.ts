@@ -259,6 +259,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
     // 传入全局的存储变量
     const working = await repository.working({ ref: input.ref });
+    // FIXME: 参考 getAssistant 判断 working 参数，获取对应的数据
     const datastoreVariables = (working.syncedStore.files.variable as any)?.variables || [];
 
     const result = await runAssistant({

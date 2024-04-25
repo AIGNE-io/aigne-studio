@@ -2,7 +2,7 @@ import { ReadableStream, TransformStream } from 'stream/web';
 
 import { ChatCompletionChunk } from '@blocklet/ai-kit/api/types/chat';
 
-import { Assistant, Role } from '../../types';
+import { Assistant, Role, Variable } from '../../types';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../../types/runtime/schema';
 import { ExtractMetadataTransform } from '../utils/extract-metadata-transform';
 import retry from '../utils/retry';
@@ -48,14 +48,16 @@ export async function generateOutput({
   messages,
   callAI,
   maxRetries = 0,
+  datastoreVariables,
 }: {
   assistant: Assistant;
   messages: { role: Role; content: string }[];
   callAI: CallAI;
   maxRetries?: number;
+  datastoreVariables: Variable[];
 }) {
-  const jsonSchema = outputVariablesToJsonSchema(assistant.outputVariables ?? []);
-  const joiSchema = outputVariablesToJoiSchema(assistant.outputVariables ?? []);
+  const jsonSchema = outputVariablesToJsonSchema(assistant.outputVariables ?? [], datastoreVariables);
+  const joiSchema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
 
   const outputSchema = JSON.stringify(jsonSchema, null, 2);
 

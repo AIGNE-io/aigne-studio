@@ -36,7 +36,7 @@ import {
   Role,
   Tool,
   User,
-  VariableYjs,
+  Variable,
   isAgent,
   isImageAssistant,
 } from '../../types/assistant';
@@ -95,7 +95,7 @@ export async function runAssistant({
   user?: User;
   sessionId?: string;
   projectId?: string;
-  datastoreVariables: VariableYjs[];
+  datastoreVariables: Variable[];
 }): Promise<any> {
   // setup global variables for prompt rendering
   parameters.$user = user;
@@ -137,6 +137,7 @@ export async function runAssistant({
         user,
         sessionId,
         projectId,
+        datastoreVariables,
       });
     }
 
@@ -187,6 +188,7 @@ export async function runAssistant({
         user,
         sessionId,
         projectId,
+        datastoreVariables,
       });
     }
 
@@ -203,6 +205,7 @@ export async function runAssistant({
         user,
         sessionId,
         projectId,
+        datastoreVariables,
       });
     }
   } catch (e) {
@@ -234,6 +237,7 @@ async function runFunctionAssistant({
   callback,
   user,
   sessionId,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -247,6 +251,7 @@ async function runFunctionAssistant({
   user?: User;
   sessionId?: string;
   projectId?: string;
+  datastoreVariables: Variable[];
 }) {
   if (!assistant.code) throw new Error(`Assistant ${assistant.id}'s code is empty`);
   const code = await TranspileTs(
@@ -341,7 +346,7 @@ export default async function(args) {
 
   const result = await module.default();
 
-  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? []);
+  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
   const object = await schema.validateAsync(result);
 
   callback?.({
@@ -369,6 +374,7 @@ async function runApiAssistant({
   parameters,
   parentTaskId,
   callback,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -381,6 +387,7 @@ async function runApiAssistant({
   user?: User;
   sessionId?: string;
   projectId?: string;
+  datastoreVariables: Variable[];
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
 
@@ -434,7 +441,7 @@ async function runApiAssistant({
     throw error;
   }
 
-  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? []);
+  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
   const object = await schema.validateAsync(result);
 
   callback?.({
@@ -477,7 +484,7 @@ const runRequestStorage = async ({
   callback?: RunAssistantCallback;
   datastoreParameter: Parameter;
   ids: { [key: string]: string | undefined };
-  datastoreVariables: VariableYjs[];
+  datastoreVariables: Variable[];
 }) => {
   if (
     datastoreParameter.type === 'source' &&
@@ -633,7 +640,7 @@ const runRequestToolAssistant = async ({
   sessionId?: string;
   toolParameter: Parameter;
   projectId?: string;
-  datastoreVariables: VariableYjs[];
+  datastoreVariables: Variable[];
 }) => {
   if (
     toolParameter.type === 'source' &&
@@ -703,7 +710,7 @@ const getVariables = async ({
   user?: User;
   sessionId?: string;
   projectId?: string;
-  datastoreVariables: VariableYjs[];
+  datastoreVariables: Variable[];
 }) => {
   const variables: { [key: string]: any } = { ...parameters };
 
@@ -792,6 +799,7 @@ async function runAgent({
   parameters,
   parentTaskId,
   callback,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -804,6 +812,7 @@ async function runAgent({
   user?: User;
   sessionId?: string;
   projectId?: string;
+  datastoreVariables: Variable[];
 }) {
   const { outputVariables = [] } = assistant;
 
@@ -825,7 +834,7 @@ async function runAgent({
     inputParameters: parameters,
   });
 
-  const schema = outputVariablesToJoiSchema(outputVariables);
+  const schema = outputVariablesToJoiSchema(outputVariables, datastoreVariables);
 
   const result = await schema.validateAsync({});
 
@@ -873,7 +882,7 @@ async function runPromptAssistant({
   user?: User;
   sessionId?: string;
   projectId?: string;
-  datastoreVariables: VariableYjs[];
+  datastoreVariables: Variable[];
 }) {
   const executeBlocks = (assistant.prompts ?? [])
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i) && i.visibility !== 'hidden')
@@ -986,7 +995,7 @@ async function runPromptAssistant({
     (i) => i.name && (i.name as RuntimeOutputVariable) !== '$textStream'
   );
 
-  const schema = outputVariablesToJsonSchema(outputVariables);
+  const schema = outputVariablesToJsonSchema(outputVariables, datastoreVariables);
   const outputSchema = JSON.stringify(schema);
 
   const messagesWithSystemPrompt = [...messages];
@@ -1066,7 +1075,7 @@ async function runPromptAssistant({
     }
 
     if (onlyOutputJson || outputStreamAndJson) {
-      const joiSchema = outputVariablesToJoiSchema(outputVariables);
+      const joiSchema = outputVariablesToJoiSchema(outputVariables, datastoreVariables);
       const json = {};
       for (const i of metadataStrings) {
         try {
@@ -1096,6 +1105,7 @@ async function runPromptAssistant({
               messages: messages.concat({ role: 'assistant', content: result }),
               callAI,
               maxRetries: MAX_RETRIES,
+              datastoreVariables,
             });
           } catch (error) {
             throw new Error('Unexpected response format from AI');
@@ -1204,7 +1214,7 @@ async function runImageAssistant({
   user?: User;
   sessionId?: string;
   projectId?: string;
-  datastoreVariables: VariableYjs[];
+  datastoreVariables: Variable[];
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
@@ -1289,7 +1299,7 @@ async function runImageAssistant({
     assistantName: assistant.name,
   });
 
-  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? []);
+  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
   const object = await schema.validateAsync({
     images: data,
   });
@@ -1338,7 +1348,7 @@ async function runExecuteBlocks({
   user?: User;
   sessionId?: string;
   projectId?: string;
-  datastoreVariables: VariableYjs[];
+  datastoreVariables: Variable[];
 }) {
   const variables = { ...parameters };
 
@@ -1407,7 +1417,7 @@ async function runExecuteBlock({
   user?: User;
   sessionId?: string;
   projectId?: string;
-  datastoreVariables: VariableYjs[];
+  datastoreVariables: Variable[];
 }) {
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;

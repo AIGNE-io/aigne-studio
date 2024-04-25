@@ -147,6 +147,8 @@ function VariableRow({
     return `${x.scope}_${x.key}` === `${j.scope}_${j.key}`;
   });
 
+  const v = datastoreVariable?.type ?? variable;
+
   return (
     <>
       <tr key={variable.id}>
@@ -176,8 +178,8 @@ function VariableRow({
                 fullWidth
                 hiddenLabel
                 placeholder={t('name')}
-                value={variable.name || ''}
-                onChange={(e) => (variable.name = e.target.value)}
+                value={v.name || ''}
+                onChange={(e) => (v.name = e.target.value)}
               />
             )}
           </Box>
@@ -188,15 +190,15 @@ function VariableRow({
             fullWidth
             hiddenLabel
             placeholder={t('placeholder')}
-            value={variable.description || ''}
-            onChange={(e) => (variable.description = e.target.value)}
+            value={v.description || ''}
+            onChange={(e) => (v.description = e.target.value)}
           />
         </Box>
         <Box component="td" align="center">
           {!runtimeVariable && (
             <VariableTypeField
               disabled={Boolean(disabled)}
-              value={variable.type || 'string'}
+              value={v.type || 'string'}
               onChange={(e) => {
                 const type = e.target.value as any;
 
@@ -248,29 +250,29 @@ function VariableRow({
         <Box component="td" align="center">
           <Checkbox
             disabled={Boolean(disabled)}
-            checked={variable.required || false}
+            checked={v.required || false}
             onChange={(_, checked) => {
               variable.required = checked;
             }}
           />
         </Box>
         <Box component="td" align="center">
-          {runtimeVariable ? null : variable.type === 'string' ? (
+          {runtimeVariable ? null : v.type === 'string' ? (
             <TextField
               disabled={Boolean(disabled)}
               hiddenLabel
               fullWidth
               multiline
-              value={variable.defaultValue || ''}
-              onChange={(e) => (variable.defaultValue = e.target.value)}
+              value={v.defaultValue || ''}
+              onChange={(e) => (v.defaultValue = e.target.value)}
             />
-          ) : variable.type === 'number' ? (
+          ) : v.type === 'number' ? (
             <NumberField
               disabled={Boolean(disabled)}
               hiddenLabel
               fullWidth
-              value={variable.defaultValue || ''}
-              onChange={(value) => (variable.defaultValue = value)}
+              value={v.defaultValue || ''}
+              onChange={(value) => (v.defaultValue = value)}
             />
           ) : null}
         </Box>
@@ -352,19 +354,19 @@ function VariableRow({
               </>
             )}
 
-            {variable.type === 'object' && (
+            {v.type === 'object' && (
               <Button
                 sx={{ minWidth: 24, minHeight: 24, p: 0 }}
                 disabled={Boolean(variable.variable?.key)}
                 onClick={() => {
                   doc.transact(() => {
-                    variable.properties ??= {};
+                    v.properties ??= {};
                     const id = nanoid();
-                    variable.properties[id] = {
-                      index: Object.values(variable.properties).length,
+                    v.properties[id] = {
+                      index: Object.values(v.properties).length,
                       data: { id, type: 'string' },
                     };
-                    sortBy(Object.values(variable.properties), 'index').forEach((item, index) => (item.index = index));
+                    sortBy(Object.values(v.properties), 'index').forEach((item, index) => (item.index = index));
                   });
                 }}>
                 <Icon icon="tabler:plus" />
@@ -381,9 +383,9 @@ function VariableRow({
       </tr>
 
       {!runtimeVariable &&
-        variable.type === 'object' &&
-        variable.properties &&
-        sortBy(Object.values(variable.properties), 'index').map((property) => (
+        v.type === 'object' &&
+        v.properties &&
+        sortBy(Object.values(v.properties), 'index').map((property) => (
           <VariableRow
             disabled={Boolean(variable.variable?.key)}
             key={property.data.id}
@@ -394,21 +396,21 @@ function VariableRow({
             gitRef={gitRef}
             onRemove={() => {
               doc.transact(() => {
-                if (!variable.properties) return;
-                delete variable.properties[property.data.id];
-                sortBy(Object.values(variable.properties), 'index').forEach((item, index) => (item.index = index));
+                if (!v.properties) return;
+                delete v.properties[property.data.id];
+                sortBy(Object.values(v.properties), 'index').forEach((item, index) => (item.index = index));
               });
             }}
           />
         ))}
 
-      {!runtimeVariable && variable.type === 'array' && variable.element && (
+      {!runtimeVariable && v.type === 'array' && v.element && (
         <VariableRow
           disabled={Boolean(variable.variable?.key)}
           projectId={projectId}
           gitRef={gitRef}
           value={value}
-          variable={variable.element}
+          variable={v.element}
           depth={depth + 1}
         />
       )}
