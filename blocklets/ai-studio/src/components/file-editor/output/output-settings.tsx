@@ -122,6 +122,7 @@ function VariableRow({
   onRemove,
   projectId,
   gitRef,
+  disabled,
 }: {
   value: AssistantYjs;
   variable: OutputVariableYjs;
@@ -129,6 +130,7 @@ function VariableRow({
   onRemove?: () => void;
   projectId: string;
   gitRef: string;
+  disabled?: boolean;
 }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(variable) as Map<any>).doc!;
@@ -139,10 +141,10 @@ function VariableRow({
   const { getVariables } = useProjectStore(projectId, gitRef);
   const variableYjs = getVariables();
 
-  const variables = (variableYjs?.variables || []).filter((x) => x.dataType === variable.type);
+  const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === variable.type);
   const datastoreVariable = variables.find((x) => {
-    const j = variable?.variable ?? { dataType: undefined, scope: '', key: '' };
-    return `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`;
+    const j = variable?.variable ?? { scope: '', key: '' };
+    return `${x.scope}_${x.key}` === `${j.scope}_${j.key}`;
   });
 
   return (
@@ -170,6 +172,7 @@ function VariableRow({
               </Stack>
             ) : (
               <TextField
+                disabled={Boolean(disabled)}
                 fullWidth
                 hiddenLabel
                 placeholder={t('name')}
@@ -181,6 +184,7 @@ function VariableRow({
         </Box>
         <Box component="td">
           <TextField
+            disabled={Boolean(disabled)}
             fullWidth
             hiddenLabel
             placeholder={t('placeholder')}
@@ -191,71 +195,46 @@ function VariableRow({
         <Box component="td" align="center">
           {!runtimeVariable && (
             <VariableTypeField
+              disabled={Boolean(disabled)}
               value={variable.type || 'string'}
               onChange={(e) => {
                 const type = e.target.value as any;
 
                 if (variable.variable) {
-                  const found = (variableYjs.variables || []).find(
-                    (x) =>
-                      x.dataType === type && x.key === variable.variable?.key && x.scope === variable.variable.scope
-                  );
-                  if (!found) {
-                    showDialog({
-                      formSx: {
-                        '.MuiDialogTitle-root': {
-                          border: 0,
-                        },
-                        '.MuiDialogActions-root': {
-                          border: 0,
-                        },
-                        '.save': {
-                          background: '#d32f2f',
-                        },
+                  showDialog({
+                    formSx: {
+                      '.MuiDialogTitle-root': {
+                        border: 0,
                       },
-                      maxWidth: 'sm',
-                      fullWidth: true,
-                      title: <Box sx={{ wordWrap: 'break-word' }}>{t('outputVariableParameter.changeTypeTitle')}</Box>,
-                      content: (
-                        <Box>
-                          <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
-                            {t('outputVariableParameter.changeTypeDesc', {
-                              type,
-                              key: variable.variable?.key || '',
-                            })}
-                          </Typography>
-                        </Box>
-                      ),
-                      okText: t('confirm'),
-                      okColor: 'error',
-                      cancelText: t('alert.cancel'),
-                      onOk: () => {
-                        variableYjs.variables ??= [];
-
-                        const v = {
-                          scope: variable.variable?.scope,
-                          key: variable.variable?.key || '',
-                          dataType: type,
-                          reset: Boolean(variable.variable?.reset),
-                          defaultValue: '',
-                        };
-
-                        variableYjs.variables.push(v);
-                        variable.variable = cloneDeep(v);
-
-                        variable.type = type;
-                        if (variable.type === 'array') {
-                          variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
-                        }
+                      '.MuiDialogActions-root': {
+                        border: 0,
                       },
-                    });
-                  } else {
-                    variable.variable = cloneDeep({ ...found });
-                    variable.type = type;
-                    if (variable.type === 'array') {
-                      variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
-                    }
-                  }
+                      '.save': {
+                        background: '#d32f2f',
+                      },
+                    },
+                    maxWidth: 'sm',
+                    fullWidth: true,
+                    title: <Box sx={{ wordWrap: 'break-word' }}>{t('outputVariableParameter.changeTypeTitle')}</Box>,
+                    content: (
+                      <Box>
+                        <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                          {t('outputVariableParameter.change')}
+                        </Typography>
+                      </Box>
+                    ),
+                    okText: t('confirm'),
+                    okColor: 'error',
+                    cancelText: t('alert.cancel'),
+                    onOk: () => {
+                      delete variable.variable;
+
+                      variable.type = type;
+                      if (variable.type === 'array') {
+                        variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
+                      }
+                    },
+                  });
                 } else {
                   variable.type = type;
                   if (variable.type === 'array') {
@@ -268,6 +247,7 @@ function VariableRow({
         </Box>
         <Box component="td" align="center">
           <Checkbox
+            disabled={Boolean(disabled)}
             checked={variable.required || false}
             onChange={(_, checked) => {
               variable.required = checked;
@@ -277,6 +257,7 @@ function VariableRow({
         <Box component="td" align="center">
           {runtimeVariable ? null : variable.type === 'string' ? (
             <TextField
+              disabled={Boolean(disabled)}
               hiddenLabel
               fullWidth
               multiline
@@ -285,6 +266,7 @@ function VariableRow({
             />
           ) : variable.type === 'number' ? (
             <NumberField
+              disabled={Boolean(disabled)}
               hiddenLabel
               fullWidth
               value={variable.defaultValue || ''}
@@ -323,10 +305,22 @@ function VariableRow({
                                 gitRef={gitRef}
                                 variables={variables}
                                 variable={datastoreVariable}
-                                value={{
+                                typeDefaultSetting={{
                                   name: variable.name || '',
                                   defaultValue: (variable as any).defaultValue || '',
-                                  dataType: variable.type || '',
+                                  type: {
+                                    id: nanoid(32),
+                                    type: variable.type || 'string',
+                                    properties:
+                                      variable.type === 'object'
+                                        ? variable.properties && cloneDeep(variable.properties)
+                                        : undefined,
+                                    element:
+                                      variable.type === 'array'
+                                        ? variable.element && cloneDeep(variable.element)
+                                        : undefined,
+                                  },
+                                  disabled: true,
                                 }}
                                 onDelete={() => {
                                   if (variable.variable) {
@@ -334,8 +328,17 @@ function VariableRow({
                                   }
                                 }}
                                 onChange={(_value) => {
-                                  if (_value) {
-                                    variable.variable = cloneDeep(_value);
+                                  if (_value && variable) {
+                                    variable.variable = { key: _value.key, scope: _value.scope || '' };
+
+                                    if (_value.type?.type === 'object') {
+                                      (variable as any).properties =
+                                        _value.type.properties && cloneDeep(_value.type.properties);
+                                    }
+
+                                    if (_value.type?.type === 'array') {
+                                      (variable as any).element = _value.type.element && cloneDeep(_value.type.element);
+                                    }
                                   }
                                 }}
                               />
@@ -352,6 +355,7 @@ function VariableRow({
             {variable.type === 'object' && (
               <Button
                 sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                disabled={Boolean(variable.variable?.key)}
                 onClick={() => {
                   doc.transact(() => {
                     variable.properties ??= {};
@@ -368,7 +372,7 @@ function VariableRow({
             )}
 
             {onRemove && (
-              <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onRemove}>
+              <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} disabled={disabled} onClick={onRemove}>
                 <Icon icon="tabler:minus" />
               </Button>
             )}
@@ -381,6 +385,7 @@ function VariableRow({
         variable.properties &&
         sortBy(Object.values(variable.properties), 'index').map((property) => (
           <VariableRow
+            disabled={Boolean(variable.variable?.key)}
             key={property.data.id}
             value={value}
             variable={property.data}
@@ -399,6 +404,7 @@ function VariableRow({
 
       {!runtimeVariable && variable.type === 'array' && variable.element && (
         <VariableRow
+          disabled={Boolean(variable.variable?.key)}
           projectId={projectId}
           gitRef={gitRef}
           value={value}

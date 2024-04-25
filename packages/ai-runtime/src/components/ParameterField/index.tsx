@@ -14,12 +14,15 @@ export default function ParameterField({
   parameter: Parameter;
   onChange: (value: string | number | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
+  if (parameter.type === 'source') {
+    return null;
+  }
+
   const Field = {
     number: NumberField,
     string: StringField,
     select: SelectField,
     language: LanguageField,
   }[parameter.type || 'string'];
-
   return <Field {...({ parameter } as any)} size="small" {...props} />;
 }

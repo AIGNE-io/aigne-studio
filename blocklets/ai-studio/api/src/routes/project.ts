@@ -871,7 +871,7 @@ async function createProjectFromTemplate(
 
   if (!working.syncedStore.files[VARIABLE_KEY]) {
     working.syncedStore.tree[VARIABLE_KEY] = joinURL(CONFIG_FONDER, VARIABLE_FILENAME);
-    working.syncedStore.files[VARIABLE_KEY] = { variables: [] };
+    working.syncedStore.files[VARIABLE_KEY] = { type: 'variables', variables: [] };
   }
 
   await commitWorking({

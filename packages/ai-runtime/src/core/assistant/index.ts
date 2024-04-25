@@ -36,6 +36,7 @@ import {
   Role,
   Tool,
   User,
+  VariableYjs,
   isAgent,
   isImageAssistant,
 } from '../../types/assistant';
@@ -81,6 +82,7 @@ export async function runAssistant({
   user,
   sessionId,
   projectId,
+  datastoreVariables,
 }: {
   taskId: string;
   callAI: CallAI;
@@ -93,6 +95,7 @@ export async function runAssistant({
   user?: User;
   sessionId?: string;
   projectId?: string;
+  datastoreVariables: VariableYjs[];
 }): Promise<any> {
   // setup global variables for prompt rendering
   parameters.$user = user;
@@ -117,6 +120,7 @@ export async function runAssistant({
     user,
     sessionId,
     projectId,
+    datastoreVariables,
   });
 
   try {
@@ -149,6 +153,7 @@ export async function runAssistant({
         user,
         sessionId,
         projectId,
+        datastoreVariables,
       });
     }
 
@@ -165,6 +170,7 @@ export async function runAssistant({
         user,
         sessionId,
         projectId,
+        datastoreVariables,
       });
     }
 
@@ -463,6 +469,7 @@ const runRequestStorage = async ({
   callback,
   datastoreParameter,
   ids,
+  datastoreVariables,
 }: {
   assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
   parentTaskId?: string;
@@ -470,8 +477,10 @@ const runRequestStorage = async ({
   callback?: RunAssistantCallback;
   datastoreParameter: Parameter;
   ids: { [key: string]: string | undefined };
+  datastoreVariables: VariableYjs[];
 }) => {
   if (
+    datastoreParameter.type === 'source' &&
     datastoreParameter.key &&
     datastoreParameter.source?.variableFrom === 'datastore' &&
     datastoreParameter.source.variable
@@ -481,7 +490,6 @@ const runRequestStorage = async ({
     const params = {
       ...ids,
       scope: datastoreParameter.source.variable?.scope || defaultScope,
-      dataType: datastoreParameter.source.variable?.dataType,
       key: toLower(datastoreParameter.source.variable?.key) || toLower(datastoreParameter.key),
     };
 
@@ -514,10 +522,12 @@ const runRequestStorage = async ({
       params,
     });
     const list = (data || []).map((x: any) => x?.data).filter((x: any) => x);
-    let result = list?.length > 0 ? list : [datastoreParameter.source.variable.defaultValue].filter((x) => x);
-
-    if (datastoreParameter.source.variable.reset) {
-      result = result?.length > 0 ? result : result[0];
+    const storageVariable = datastoreVariables.find(
+      (x) => toLower(x.key || '') === toLower(params.key || '') && x.scope === params.scope
+    );
+    let result = (list?.length > 0 ? list : [storageVariable?.defaultValue]).filter((x: any) => x);
+    if (storageVariable?.reset) {
+      result = (result?.length > 1 ? result : result[0]) ?? '';
     }
 
     callback?.({
@@ -611,6 +621,7 @@ const runRequestToolAssistant = async ({
   cb,
   toolParameter,
   projectId,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -622,8 +633,14 @@ const runRequestToolAssistant = async ({
   sessionId?: string;
   toolParameter: Parameter;
   projectId?: string;
+  datastoreVariables: VariableYjs[];
 }) => {
-  if (toolParameter.key && toolParameter.source?.variableFrom === 'tool' && toolParameter.source.tool) {
+  if (
+    toolParameter.type === 'source' &&
+    toolParameter.key &&
+    toolParameter.source?.variableFrom === 'tool' &&
+    toolParameter.source.tool
+  ) {
     const currentTaskId = taskIdGenerator.nextId().toString();
 
     const { tool } = toolParameter.source;
@@ -654,6 +671,7 @@ const runRequestToolAssistant = async ({
       user,
       sessionId,
       projectId,
+      datastoreVariables,
     });
 
     return result;
@@ -673,6 +691,7 @@ const getVariables = async ({
   sessionId,
   callback,
   projectId,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -684,6 +703,7 @@ const getVariables = async ({
   user?: User;
   sessionId?: string;
   projectId?: string;
+  datastoreVariables: VariableYjs[];
 }) => {
   const variables: { [key: string]: any } = { ...parameters };
 
@@ -700,7 +720,7 @@ const getVariables = async ({
     });
 
   for (const parameter of assistant.parameters || []) {
-    if (parameter.key && parameter.source) {
+    if (parameter.key && parameter.type === 'source') {
       if (parameter.source?.variableFrom === 'tool' && parameter.source.tool) {
         const { tool } = parameter.source;
         const toolAssistant = await getAssistant(tool.id);
@@ -718,6 +738,7 @@ const getVariables = async ({
           cb,
           toolParameter: parameter,
           projectId,
+          datastoreVariables,
         });
 
         // TODO: @li-yechao 根据配置的输出类型决定是否需要 parse
@@ -740,6 +761,7 @@ const getVariables = async ({
             sessionId,
             assistantId: assistant.id,
           },
+          datastoreVariables,
         });
 
         variables[parameter.key] = result;
@@ -838,6 +860,7 @@ async function runPromptAssistant({
   user,
   sessionId,
   projectId,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -850,6 +873,7 @@ async function runPromptAssistant({
   user?: User;
   sessionId?: string;
   projectId?: string;
+  datastoreVariables: VariableYjs[];
 }) {
   const executeBlocks = (assistant.prompts ?? [])
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i) && i.visibility !== 'hidden')
@@ -867,6 +891,7 @@ async function runPromptAssistant({
     user,
     sessionId,
     projectId,
+    datastoreVariables,
   });
 
   const variables = { ...parameters };
@@ -1096,21 +1121,25 @@ async function runPromptAssistant({
   for (const output of assistant?.outputVariables || []) {
     logger.info('output parameter:', { output, jsonResult });
     if (output?.variable?.key && output?.name && jsonResult && jsonResult[output?.name as any]) {
+      const datastoreVariable = datastoreVariables.find(
+        (x) => toLower(x.key || '') === toLower(output.variable?.key || '') && x.scope === output.variable?.scope
+      );
+
       const params = {
         params: {
           userId: user?.did || '',
           projectId,
           sessionId,
           assistantId: assistant.id,
-          reset: output.variable.reset,
+          reset: datastoreVariable?.reset,
         },
         data: {
           data: jsonResult[output?.name as any],
           key: toLower(output.variable?.key),
-          dataType: output.variable.dataType,
           scope: output.variable.scope,
         },
       };
+
       await callFunc({
         name: 'ai-studio',
         path: '/api/datastore',
@@ -1162,6 +1191,7 @@ async function runImageAssistant({
   user,
   sessionId,
   projectId,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -1174,6 +1204,7 @@ async function runImageAssistant({
   user?: User;
   sessionId?: string;
   projectId?: string;
+  datastoreVariables: VariableYjs[];
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
@@ -1190,6 +1221,7 @@ async function runImageAssistant({
         user,
         sessionId,
         projectId,
+        datastoreVariables,
       })
     : [];
 
@@ -1293,6 +1325,7 @@ async function runExecuteBlocks({
   user,
   sessionId,
   projectId,
+  datastoreVariables,
 }: {
   assistant: Assistant;
   callAI: CallAI;
@@ -1305,6 +1338,7 @@ async function runExecuteBlocks({
   user?: User;
   sessionId?: string;
   projectId?: string;
+  datastoreVariables: VariableYjs[];
 }) {
   const variables = { ...parameters };
 
@@ -1328,6 +1362,7 @@ async function runExecuteBlocks({
         user,
         sessionId,
         projectId,
+        datastoreVariables,
       });
 
       return cache[executeBlock.id]!;
@@ -1357,6 +1392,7 @@ async function runExecuteBlock({
   user,
   sessionId,
   projectId,
+  datastoreVariables,
 }: {
   taskId: string;
   assistant: Assistant;
@@ -1371,6 +1407,7 @@ async function runExecuteBlock({
   user?: User;
   sessionId?: string;
   projectId?: string;
+  datastoreVariables: VariableYjs[];
 }) {
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
@@ -1464,6 +1501,7 @@ async function runExecuteBlock({
             user,
             sessionId,
             projectId,
+            datastoreVariables,
           });
         })
       )
@@ -1723,6 +1761,7 @@ async function runExecuteBlock({
             user,
             sessionId,
             projectId,
+            datastoreVariables,
           });
 
           if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {

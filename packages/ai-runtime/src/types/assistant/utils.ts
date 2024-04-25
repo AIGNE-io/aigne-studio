@@ -258,6 +258,7 @@ export function fileToYjs(file: FileType): FileTypeYjs {
     };
   }
 
+  // @ts-ignore
   return file;
 }
 
@@ -313,5 +314,6 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
     };
   }
 
+  // @ts-ignore
   return file;
 }

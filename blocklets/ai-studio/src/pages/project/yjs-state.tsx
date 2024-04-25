@@ -193,7 +193,7 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       if (file && 'variables' in file) return file;
 
       syncedStore.tree[key] = filepath;
-      syncedStore.files[key] = { variables: [] };
+      syncedStore.files[key] = { type: 'variables', variables: [] };
       return syncedStore.files[key];
     }, [syncedStore.files]),
   };

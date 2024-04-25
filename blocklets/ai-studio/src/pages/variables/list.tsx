@@ -28,9 +28,9 @@ function VariableList() {
 
     assistants.forEach((assistant) => {
       Object.values(assistant.parameters || {}).forEach((parameter) => {
-        if (parameter.data.source?.variableFrom === 'datastore') {
+        if (parameter.data.type === 'source' && parameter.data.source?.variableFrom === 'datastore') {
           const s = parameter.data.source;
-          const key: string = `${s.variable?.scope || ''}_${s.variable?.key || ''}_${s.variable?.dataType || ''}`;
+          const key: string = `${s.variable?.scope || ''}_${s.variable?.key || ''}`;
           map[key] ??= [];
           map[key].push(assistant.id);
         }
@@ -39,7 +39,7 @@ function VariableList() {
       Object.values(assistant.outputVariables || {}).forEach((output) => {
         if (output?.data?.variable && output?.data?.variable?.key) {
           const s = output.data.variable;
-          const key: string = `${s?.scope || ''}_${s?.key || ''}_${s?.dataType || ''}`;
+          const key: string = `${s?.scope || ''}_${s?.key || ''}`;
           map[key] ??= [];
           map[key].push(assistant.id);
         }
@@ -49,7 +49,7 @@ function VariableList() {
     const list = filterVariables
       .splice(paginationModel.page * paginationModel.pageSize, paginationModel.pageSize)
       .map((x) => {
-        const key: string = `${x?.scope || ''}_${x?.key || ''}_${x?.dataType || ''}`;
+        const key: string = `${x?.scope || ''}_${x?.key || ''}`;
         return { ...x, assistants: uniq(map[key] || []) };
       });
 
@@ -69,10 +69,10 @@ function VariableList() {
       },
       {
         field: 'count',
-        headerName: t('variables.dataType'),
+        headerName: t('variables.type'),
         flex: 1,
         renderCell: (params) => {
-          return <Box>{params.row?.dataType}</Box>;
+          return <Box>{params.row?.type?.type}</Box>;
         },
       },
       {
@@ -117,7 +117,7 @@ function VariableList() {
         autoHeight
         disableColumnMenu
         rowSelectionModel={undefined}
-        getRowId={(row) => `${row.key}-${row.scope}-${row.dataType}` || 'default'}
+        getRowId={(row) => `${row.key}-${row.scope}` || 'default'}
         keepNonExistentRowsSelected
         rowCount={list?.count || 0}
         pageSizeOptions={[10]}

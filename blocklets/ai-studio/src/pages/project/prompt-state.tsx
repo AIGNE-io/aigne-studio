@@ -251,7 +251,6 @@ export function usePromptsState({
                     from: 'dataset',
                     parameters: {
                       key: '',
-                      dataType: '',
                       scope: '',
                     },
                   },
@@ -276,7 +275,6 @@ export function usePromptsState({
                     parameters: {
                       reset: 'true',
                       key: '',
-                      dataType: '',
                       scope: 'session',
                       data: '',
                     },

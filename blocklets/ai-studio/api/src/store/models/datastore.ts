@@ -29,8 +29,6 @@ export default class Datastore extends Model<InferAttributes<Datastore>, InferCr
   declare data?: {};
 
   declare scope?: 'session' | 'user' | 'global';
-
-  declare dataType?: any;
 }
 
 Datastore.init(
@@ -71,9 +69,6 @@ Datastore.init(
     },
     scope: {
       type: DataTypes.STRING,
-    },
-    dataType: {
-      type: DataTypes.JSON,
     },
   },
   { sequelize }

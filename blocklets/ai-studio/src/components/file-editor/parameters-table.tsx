@@ -3,14 +3,7 @@ import { getDatasets } from '@app/libs/dataset';
 import DragVertical from '@app/pages/project/icons/drag-vertical';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  AssistantYjs,
-  ExecuteBlock,
-  ParameterYjs,
-  StringParameter,
-  Variable,
-  isAssistant,
-} from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ExecuteBlock, ParameterYjs, StringParameter, isAssistant } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -46,6 +39,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import { cloneDeep, get, sortBy } from 'lodash';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { nanoid } from 'nanoid';
 import { useId, useMemo } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
@@ -98,6 +92,7 @@ export default function ParametersTable({
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
   const { highlightedId, addParameter, deleteParameter } = useVariablesEditorOptions(value);
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
+  const { getVariables } = useProjectStore(projectId, gitRef);
 
   const isValidVariableName = (name: string) => {
     if (!name) return true;
@@ -172,7 +167,11 @@ export default function ParametersTable({
             return <Box>{t('variableParameter.fromKnowledgeParameter')}</Box>;
           }
 
-          return <Box>{FROM_MAP[parameter.source?.variableFrom || 'custom']}</Box>;
+          if (parameter.type === 'source' && parameter.source) {
+            return <Box>{FROM_MAP[parameter.source?.variableFrom || 'custom']}</Box>;
+          }
+
+          return <Box>{FROM_MAP.custom}</Box>;
         },
       },
       {
@@ -180,13 +179,18 @@ export default function ParametersTable({
         headerName: t('type'),
         width: 100,
         renderCell: ({ row: { data: parameter } }) => {
-          if (parameter.source) {
-            if (parameter.source.variableFrom === 'tool') {
-              return <Box>{t('array')}</Box>;
+          if (parameter.type === 'source' && parameter.source) {
+            const { source } = parameter;
+            if (source.variableFrom === 'tool') {
+              return <Box>{t('object')}</Box>;
             }
 
-            if (parameter.source.variableFrom === 'datastore') {
-              return <Box>{TYPE_MAP[parameter.source?.variable?.dataType]}</Box>;
+            if (source.variableFrom === 'datastore') {
+              const variables = getVariables();
+              const variable = (variables?.variables || []).find(
+                (x) => x.key === source.variable?.key && x.scope && source.variable.scope
+              );
+              return <Box>{variable?.type?.type ? TYPE_MAP[variable?.type?.type] : ''}</Box>;
             }
 
             if (parameter.source.variableFrom === 'knowledge') {
@@ -447,8 +451,8 @@ function PopperButton({
   const { t } = useLocaleContext();
   const { addParameter } = useVariablesEditorOptions(value);
 
-  const renderParameterSettings = (parameter: any) => {
-    if (parameter.source) {
+  const renderParameterSettings = (parameter: ParameterYjs) => {
+    if (parameter.type === 'source' && parameter.source) {
       if (parameter.source.variableFrom === 'tool') {
         return <AgentParameter value={value} projectId={projectId} gitRef={gitRef} parameter={parameter} />;
       }
@@ -495,15 +499,19 @@ function PopperButton({
             if (e.target === document.body) return;
 
             // 新增选择 tool 和 knowledge 未定义的参数
-            const source = parameter?.source as any;
-            if ((source?.variableFrom === 'tool' || source?.variableFrom === 'knowledge') && source && source?.tool) {
+            if (
+              parameter.type === 'source' &&
+              (parameter?.source?.variableFrom === 'tool' || parameter?.source?.variableFrom === 'knowledge') &&
+              parameter?.source
+            ) {
+              const { source } = parameter;
               Object.entries(source?.tool?.parameters || {}).forEach(([key, value]: any) => {
                 if (!value) {
                   if (source && source?.tool && source?.tool?.parameters) {
                     source.tool.parameters[key] = `{{${key}}}`;
                   }
 
-                  const from = parameter?.source?.variableFrom === 'tool' ? FROM_PARAMETER : FROM_KNOWLEDGE_PARAMETER;
+                  const from = source.variableFrom === 'tool' ? FROM_PARAMETER : FROM_KNOWLEDGE_PARAMETER;
                   addParameter(key, { from });
                 }
               });
@@ -515,7 +523,7 @@ function PopperButton({
             <Stack gap={2}>
               <Select
                 variant="outlined"
-                value={parameter.source?.variableFrom ?? 'custom'}
+                value={parameter.type === 'source' ? parameter.source?.variableFrom : 'custom'}
                 placeholder={t('variableParameter.from')}
                 fullWidth
                 sx={{
@@ -527,12 +535,14 @@ function PopperButton({
                   },
                 }}
                 onChange={(e) => {
-                  if ((e.target.value || 'custom') !== (parameter.source?.variableFrom || 'custom')) {
-                    parameter.source = undefined;
+                  if ((e.target.value || 'custom') !== ((parameter as any)?.source?.variableFrom || 'custom')) {
+                    if ((parameter as any).source) delete (parameter as any).source;
+                    parameter.type = 'string';
 
                     if (e.target.value !== 'custom') {
-                      parameter.source ??= {};
-                      parameter.source.variableFrom = e.target.value as any;
+                      parameter.type = 'source';
+                      (parameter as any).source ??= {};
+                      (parameter as any).source.variableFrom = e.target.value as any;
                     }
                   }
                 }}>
@@ -565,14 +575,14 @@ function AgentParameter({
   value: AssistantYjs;
   projectId: string;
   gitRef: string;
-  parameter: NonNullable<AssistantYjs['parameters']>[string]['data'];
+  parameter: ParameterYjs;
 }) {
   const { store, getFileById } = useProjectStore(projectId, gitRef);
   const { t } = useLocaleContext();
   const { deleteParameter } = useVariablesEditorOptions(value);
 
-  if (parameter?.source?.variableFrom === 'tool') {
-    const toolId = (parameter?.source as any)?.tool?.id;
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool') {
+    const toolId = parameter?.source?.tool?.id;
 
     const options = Object.entries(store.tree)
       .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
@@ -677,19 +687,19 @@ function DatastoreParameter({
 }: {
   projectId: string;
   gitRef: string;
-  parameter: NonNullable<AssistantYjs['parameters']>[string]['data'];
+  parameter: ParameterYjs;
 }) {
   const { t } = useLocaleContext();
   const { getVariables } = useProjectStore(projectId, gitRef);
 
-  if (parameter.source && parameter?.source?.variableFrom === 'datastore') {
+  if (parameter.type === 'source' && parameter.source && parameter?.source?.variableFrom === 'datastore') {
+    const { source } = parameter;
     const v = getVariables();
 
     const variables = v?.variables || [];
-    const variable = variables.find((x) => {
-      const j = (parameter.source?.variable ?? {}) as Variable;
-      return `${x.dataType}_${x.scope}_${x.key}` === `${j.dataType}_${j.scope}_${j.key}`;
-    });
+    const variable = variables.find(
+      (x) => `${x.scope}_${x.key}` === `${source?.variable?.scope}_${source?.variable?.key}`
+    );
 
     return (
       <Stack gap={2}>
@@ -702,17 +712,15 @@ function DatastoreParameter({
             <SelectVariable
               projectId={projectId}
               gitRef={gitRef}
-              value={{
+              typeDefaultSetting={{
                 name: parameter.key || '',
                 defaultValue: (parameter as any).defaultValue || '',
-                dataType: '',
+                type: { type: 'string', id: nanoid(32) },
               }}
               variables={variables}
               variable={variable}
               onChange={(_value) => {
-                if (parameter.source) {
-                  parameter.source.variable = cloneDeep(_value);
-                }
+                if (_value) source.variable = { key: _value.key, scope: _value.scope || '' };
               }}
             />
           </Box>
@@ -734,14 +742,14 @@ function KnowledgeParameter({
   projectId: string;
   gitRef: string;
   value: AssistantYjs;
-  parameter: NonNullable<AssistantYjs['parameters']>[string]['data'];
+  parameter: ParameterYjs;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 }) {
   const { t } = useLocaleContext();
   const { deleteParameter } = useVariablesEditorOptions(value);
 
-  if (parameter?.source?.variableFrom === 'knowledge') {
-    const toolId = (parameter?.source as any)?.tool?.id;
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
+    const toolId = parameter?.source?.tool?.id;
 
     const options = [
       ...knowledge.map((item) => ({

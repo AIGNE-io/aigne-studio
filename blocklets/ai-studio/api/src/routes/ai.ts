@@ -257,6 +257,10 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       }
     }
 
+    // 传入全局的存储变量
+    const working = await repository.working({ ref: input.ref });
+    const datastoreVariables = (working.syncedStore.files.variable as any)?.variables || [];
+
     const result = await runAssistant({
       callAI,
       callAIImage,
@@ -268,6 +272,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       user: userId ? { id: userId, did: userId, ...req.user } : undefined,
       sessionId: input.sessionId,
       projectId: input.projectId,
+      datastoreVariables,
     });
 
     if (!stream) {

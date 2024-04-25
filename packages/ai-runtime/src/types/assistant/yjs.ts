@@ -7,18 +7,21 @@ import type {
   ExecuteBlockSelectByPrompt,
   FunctionAssistant,
   ImageAssistant,
-  OutputVariableBase,
   Parameter,
   PromptAssistant,
   PromptMessage,
   SelectParameter,
   Variable,
+  VariableTypeBase,
 } from '.';
 
 export type ArrayToYjs<T extends Array<{ id: string }>> = { [key: string]: { index: number; data: T[number] } };
 
+export type VariableYjs = Omit<Variable, 'type'> & { type?: VariableTypeYjs };
+
 export type VariablesYjs = {
-  variables?: Variable[];
+  type: 'variables';
+  variables?: VariableYjs[];
 };
 
 export type FileTypeYjs = AssistantYjs | { $base64: string } | VariablesYjs;
@@ -35,7 +38,7 @@ export type ExecuteBlockSelectByPromptYjs = Omit<ExecuteBlockSelectByPrompt, 'to
 
 export type ExecuteBlockYjs = ExecuteBlockSelectAllYjs | ExecuteBlockSelectByPromptYjs;
 
-export type OutputVariableYjs = OutputVariableBase &
+export type VariableTypeYjs = VariableTypeBase &
   (
     | { type?: undefined }
     | {
@@ -52,13 +55,15 @@ export type OutputVariableYjs = OutputVariableBase &
       }
     | {
         type: 'object';
-        properties?: ArrayToYjs<OutputVariableYjs[]>;
+        properties?: ArrayToYjs<VariableTypeYjs[]>;
       }
     | {
         type: 'array';
-        element?: OutputVariableYjs;
+        element?: VariableTypeYjs;
       }
   );
+
+export type OutputVariableYjs = VariableTypeYjs & { variable?: { key: string; scope: string } };
 
 export type PromptYjs =
   | {

@@ -12,7 +12,6 @@ const getDatastoreSchema = Joi.object<{
   sessionId?: string;
   assistantId?: string;
   projectId?: string;
-  dataType?: string;
   scope?: string;
   key: string;
 }>({
@@ -20,7 +19,6 @@ const getDatastoreSchema = Joi.object<{
   sessionId: Joi.string().empty([null, '']),
   assistantId: Joi.string().empty([null, '']),
   projectId: Joi.string().empty([null, '']),
-  dataType: Joi.string().empty([null, '']),
   scope: Joi.string().empty([null, '']),
   key: Joi.string().required(),
 });
@@ -28,13 +26,11 @@ const getDatastoreSchema = Joi.object<{
 const postDatastoreSchema = Joi.object<{
   key: string;
   scope: 'user' | 'session' | 'global';
-  dataType: string;
   data: any;
 }>({
   key: Joi.string().required(),
   data: Joi.any(),
   scope: Joi.string().empty([null, '']),
-  dataType: Joi.string().empty([null, '']),
 });
 
 const postParamsSchema = Joi.object<{
@@ -58,7 +54,6 @@ const putParamsSchema = Joi.object<{
   projectId?: string;
   key?: string;
   id?: string;
-  dataType?: string;
   scope?: string;
 }>({
   id: Joi.string().allow('').empty([null, '']).optional(),
@@ -67,7 +62,6 @@ const putParamsSchema = Joi.object<{
   sessionId: Joi.string().empty([null, '']),
   assistantId: Joi.string().empty([null, '']),
   projectId: Joi.string().empty([null, '']),
-  dataType: Joi.string().empty([null, '']),
   scope: Joi.string().empty([null, '']),
 });
 
@@ -80,7 +74,6 @@ const getVariableSchema = Joi.object<{
   userId?: string;
   sessionId?: string;
   assistantId?: string;
-  dataType: string;
 }>({
   offset: Joi.number().integer().min(0).empty([null, '']).default(0).optional(),
   limit: Joi.number().integer().min(1).empty([null, '']).default(5).optional(),
@@ -90,7 +83,6 @@ const getVariableSchema = Joi.object<{
   sessionId: Joi.string().empty([null, '']),
   assistantId: Joi.string().empty([null, '']),
   projectId: Joi.string().empty([null, '']),
-  dataType: Joi.string().allow('').empty([null, '']).required(),
 });
 
 /**
@@ -107,10 +99,6 @@ const getVariableSchema = Joi.object<{
  *         description: key
  *         x-description-zh: 存储的名称
  *       - in: query
- *         name: dataType
- *         description: DataType
- *         x-description-zh: 数据类型
- *       - in: query
  *         name: scope
  *         description: scope
  *         x-description-zh: 数据作用域
@@ -126,7 +114,6 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     projectId = '',
     key = '',
     scope = '',
-    dataType = '',
   } = await getDatastoreSchema.validateAsync(req.query, { stripUnknown: true });
 
   const currentUserId = req.user?.did || userId || '';
@@ -140,7 +127,6 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     ...(projectId && { projectId }),
     ...(assistantId && { assistantId }),
     ...(scope && { scope }),
-    ...(dataType && { dataType }),
     ...(key && { key }),
   };
 
@@ -183,10 +169,6 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *                 type: string
  *                 description: Scope
  *                 x-description-zh: 数据作用域
- *               dataType:
- *                 type: string
- *                 description: DataType
- *                 x-description-zh: 数据类型
  *               data:
  *                 type: object
  *                 description: value
@@ -196,7 +178,7 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         description: The created datastore object
  */
 router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
-  const { key, data, scope, dataType } = await postDatastoreSchema.validateAsync(req.body, { stripUnknown: true });
+  const { key, data, scope } = await postDatastoreSchema.validateAsync(req.body, { stripUnknown: true });
   const { userId, sessionId, assistantId, projectId, reset } = await postParamsSchema.validateAsync(req.query, {
     stripUnknown: true,
   });
@@ -206,13 +188,11 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     throw new Error('Can not get user info');
   }
 
-  if (reset)
-    await Datastore.destroy({ where: { ...(dataType && { dataType }), ...(scope && { scope }), ...(key && { key }) } });
+  if (reset) await Datastore.destroy({ where: { ...(scope && { scope }), ...(key && { key }) } });
 
   const datastore = await Datastore.create({
     key,
     scope,
-    dataType,
     data,
     userId: currentUserId,
     sessionId,
@@ -242,10 +222,6 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         name: key
  *         description: key
  *         x-description-zh: 存储的名称
- *       - in: query
- *         name: dataType
- *         description: DataType
- *         x-description-zh: 数据类型
  *       - in: query
  *         name: scope
  *         description: scope
@@ -294,7 +270,6 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     sessionId = '',
     assistantId = '',
     projectId = '',
-    dataType = '',
     key = '',
     id = '',
     scope = '',
@@ -312,7 +287,6 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     ...(assistantId && { assistantId }),
     ...(projectId && { projectId }),
     ...(key && { key }),
-    ...(dataType && { dataType }),
     ...(scope && { scope }),
     ...(id && { id }),
   };
@@ -353,10 +327,6 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         description: key
  *         x-description-zh: 数据存储项别名
  *       - in: query
- *         name: dataType
- *         description: DataType
- *         x-description-zh: 数据类型
- *       - in: query
  *         name: scope
  *         description: scope
  *         x-description-zh: 数据作用域
@@ -372,7 +342,6 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     sessionId = '',
     assistantId = '',
     projectId = '',
-    dataType = '',
     scope = '',
     key = '',
     id = '',
@@ -389,7 +358,6 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
     ...(projectId && { projectId }),
     ...(assistantId && { assistantId }),
     ...(key && { key }),
-    ...(dataType && { dataType }),
     ...(scope && { scope }),
     ...(id && { id }),
   };
@@ -406,7 +374,7 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
 
 router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const query = await getVariableSchema.validateAsync(req.query, { stripUnknown: true });
-  const { key, projectId, scope, sessionId, dataType, userId } = query;
+  const { key, projectId, scope, sessionId, userId } = query;
 
   const currentUserId = req.user?.did || userId || '';
   if (!currentUserId) {
@@ -416,7 +384,6 @@ router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req
   const params: { [key: string]: any } = {
     ...(currentUserId && { userId: currentUserId }),
     ...(projectId && { projectId }),
-    ...(dataType && { dataType }),
     ...(key && { key }),
   };
 

@@ -9,6 +9,7 @@ export enum OnTaskCompletion {
 }
 
 export type Variables = {
+  type: 'variables';
   variables?: Variable[];
 };
 
@@ -82,10 +83,9 @@ export type Prompt =
 export type Variable = {
   scope?: 'session' | 'user' | 'global';
   key: string;
-  dataType: any;
   reset?: boolean;
   defaultValue?: any;
-  type?: DataType;
+  type?: VariableType;
 };
 
 export interface AssistantBase {
@@ -134,38 +134,39 @@ export interface AssistantBase {
   };
 }
 
-export interface OutputVariableBase {
+export interface VariableTypeBase {
   id: string;
   name?: string;
   description?: string;
   required?: boolean;
-  variable?: Variable;
 }
 
-type DataType =
-  | { type?: undefined }
-  | {
-      type: 'textStream';
-      defaultValue?: string;
-    }
-  | {
-      type: 'string';
-      defaultValue?: string;
-    }
-  | {
-      type: 'number';
-      defaultValue?: number;
-    }
-  | {
-      type: 'object';
-      properties?: OutputVariable[];
-    }
-  | {
-      type: 'array';
-      element?: OutputVariable;
-    };
+export type VariableType = VariableTypeBase &
+  (
+    | { type?: undefined }
+    | {
+        type: 'textStream';
+        defaultValue?: string;
+      }
+    | {
+        type: 'string';
+        defaultValue?: string;
+      }
+    | {
+        type: 'number';
+        defaultValue?: number;
+      }
+    | {
+        type: 'object';
+        properties?: VariableType[];
+      }
+    | {
+        type: 'array';
+        element?: VariableType;
+      }
+  );
 
-export type OutputVariable = OutputVariableBase & DataType;
+export type OutputVariable = VariableType & { variable?: { key: string; scope: string } };
 
 export interface Agent extends AssistantBase {
   type: 'agent';
@@ -208,27 +209,25 @@ export interface FunctionAssistant extends AssistantBase {
   code?: string;
 }
 
-export interface DatastoreBase {
-  // cache?: boolean; // 先不支持
-  // itemId?: string; // 先不支持
-  variable?: Variable;
-}
-
-export interface DatastoreParameter extends DatastoreBase {
+export interface DatastoreParameter {
   variableFrom?: 'datastore'; // Storage 感觉更好，但是又出现了多个命名，维持 Datastore
+  variable?: {
+    key: string;
+    scope: string;
+  };
 }
 
-export interface ToolParameter extends DatastoreBase {
+export interface ToolParameter {
   variableFrom?: 'tool';
   tool?: Tool;
 }
 
-export interface KnowledgeParameter extends DatastoreBase {
+export interface KnowledgeParameter {
   variableFrom?: 'knowledge';
   tool?: Tool;
 }
 
-export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter;
+export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | SourceParameter;
 
 export interface ParameterBase {
   id: string;
@@ -238,6 +237,11 @@ export interface ParameterBase {
   helper?: string;
   required?: boolean;
   from?: 'editor' | 'agentParameter' | 'knowledgeParameter';
+}
+
+export interface SourceParameter extends ParameterBase {
+  type: 'source';
+  defaultValue?: string;
   source?: DatastoreParameter | ToolParameter | KnowledgeParameter;
 }
 

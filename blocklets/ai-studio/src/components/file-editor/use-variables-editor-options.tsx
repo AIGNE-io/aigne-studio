@@ -79,10 +79,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   const addParameter = useCallback(
     (
       parameter: string,
-      {
-        from,
-        source,
-      }: { from?: 'editor' | 'agentParameter' | 'knowledgeParameter'; source?: ParameterYjs['source'] } = {}
+      { from, source }: { from?: 'editor' | 'agentParameter' | 'knowledgeParameter'; source?: any } = {}
     ) => {
       if (!assistant) return undefined;
 
