@@ -52,6 +52,7 @@ import useVariablesEditorOptions from './use-variables-editor-options';
 export const FROM_PARAMETER = 'agentParameter';
 export const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
 
+
 export default function ParametersTable({
   readOnly,
   value,

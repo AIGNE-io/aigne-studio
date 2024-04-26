@@ -25,6 +25,10 @@ export default function PromptAssistantEditor({
       </Box>
 
       <Box sx={{ borderRadius: 1 }}>
+        <BasicHistory projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
+      </Box>
+
+      <Box sx={{ borderRadius: 1 }}>
         <PromptAssistantSetting projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box> */}
     </Stack>

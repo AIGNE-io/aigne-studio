@@ -1,3 +1,8 @@
+## 0.1.346 (2024-4-26)
+
+- feat: several new input parameter types have been added: agent/knowledge/memory
+- feat: support custom output data structure
+
 ## 0.1.345 (2024-4-24)
 
 - fix: imported the issue of incorrect copy in the did spaces
