@@ -6,7 +6,7 @@
     description: Get the current user's datasets
     x-description-zh: 获取当前用户数据集
     responses:
-      "200":
+      '200':
         description: Successfully get the current user's datasets
         x-description-zh: 获取当前用户数据集
   post:
@@ -29,7 +29,7 @@
               appId:
                 type: string
     responses:
-      "200":
+      '200':
         description: Successfully created a new dataset
         x-description-zh: 创建新的数据集
 /api/datasets/{datasetId}:
@@ -51,9 +51,9 @@
         x-option-name: name
         schema:
           type: string
-          default: ""
+          default: ''
     responses:
-      "200":
+      '200':
         description: Successfully retrieved the dataset details
         x-description-zh: 获取当前用户数据集详情
   put:
@@ -74,7 +74,7 @@
         x-option-name: name
         schema:
           type: string
-          default: ""
+          default: ''
     requestBody:
       required: true
       content:
@@ -89,7 +89,7 @@
               appId:
                 type: string
     responses:
-      "200":
+      '200':
         description: Successfully updated the dataset
         x-description-zh: 更新数据集
   delete:
@@ -110,9 +110,9 @@
         x-option-name: name
         schema:
           type: string
-          default: ""
+          default: ''
     responses:
-      "200":
+      '200':
         description: Successfully deleted the dataset
         x-description-zh: 删除数据集
 /api/datasets/{datasetId}/search:
@@ -136,7 +136,7 @@
         x-hide: true
         schema:
           type: string
-          default: ""
+          default: ''
       - name: message
         in: query
         description: The content to be retrieved
@@ -144,7 +144,7 @@
         required: true
         schema:
           type: string
-          default: ""
+          default: ''
       - name: n
         in: query
         description: How many records to return
@@ -154,7 +154,7 @@
           type: number
           default: 4
     responses:
-      "200":
+      '200':
         description: Successfully retrieved the paginated list of search results
         x-description-zh: 成功获取分页列表
 /api/datasets/{datasetId}/documents:
@@ -176,7 +176,7 @@
         x-option-name: name
         schema:
           type: string
-          default: ""
+          default: ''
       - name: page
         in: query
         description: The page number of the data
@@ -192,7 +192,7 @@
           type: integer
           default: 20
     responses:
-      "200":
+      '200':
         description: Successfully retrieved data items in the dataset
         x-description-zh: 获取当前 datasetId 数据集中数据信息
 /api/datastore:
@@ -204,11 +204,15 @@
     x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
     parameters:
       - in: query
-        name: type
+        name: key
         description: key
         x-description-zh: 存储的名称
+      - in: query
+        name: scope
+        description: scope
+        x-description-zh: 数据作用域
     responses:
-      "200":
+      '200':
         description: A JSON array of datastores
   post:
     summary: Set a new datastore
@@ -231,19 +235,23 @@
           schema:
             type: object
             required:
-              - type
+              - key
               - data
             properties:
-              type:
+              key:
                 type: string
                 description: key
                 x-description-zh: 别名
+              scope:
+                type: string
+                description: Scope
+                x-description-zh: 数据作用域
               data:
                 type: object
                 description: value
                 x-description-zh: 存储对象数据
     responses:
-      "200":
+      '200':
         description: The created datastore object
   put:
     summary: Update data
@@ -259,12 +267,13 @@
         description: ID
         x-description-zh: ID
       - in: query
-        name: type
-        schema:
-          type: string
-        required: false
+        name: key
         description: key
-        x-description-zh: 数据存储项别名
+        x-description-zh: 存储的名称
+      - in: query
+        name: scope
+        description: scope
+        x-description-zh: 数据作用域
     requestBody:
       required: true
       content:
@@ -279,7 +288,7 @@
                 description: value
                 x-description-zh: 存储对象数据
     responses:
-      "200":
+      '200':
         description: The updated datastore object
         content:
           application/json:
@@ -300,7 +309,7 @@
                   type: string
                   format: date-time
                   description: The last update date of the datastore.
-      "404":
+      '404':
         description: No such datastore found
   delete:
     summary: Delete datastore data
@@ -316,16 +325,20 @@
         description: ID
         x-description-zh: ID
       - in: query
-        name: type
+        name: key
         schema:
           type: string
         required: false
         description: key
         x-description-zh: 数据存储项别名
+      - in: query
+        name: scope
+        description: scope
+        x-description-zh: 数据作用域
     responses:
-      "200":
+      '200':
         description: The deleted datastore object
-      "404":
+      '404':
         description: No such datastore found
 /api/messages:
   get:
@@ -349,7 +362,7 @@
         description: Keyword to search in messages
         x-description-zh: 在消息中搜索的关键字
     responses:
-      "200":
+      '200':
         description: A list of history messages
         x-description-zh: 检索历史消息列表
         content:

@@ -107,7 +107,7 @@ const useColumns = (): GridColDef<DiscussionItem>[] => {
     () => [
       {
         field: 'title',
-        headerName: t('form.title'),
+        headerName: t('title'),
         flex: 1,
         valueGetter: (params) => params.row.title || t('unnamed'),
       },

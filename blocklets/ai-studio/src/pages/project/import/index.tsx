@@ -132,7 +132,7 @@ export default function ImportFrom({
         </Box>
       ) : (
         <Box flex={1} height={0} overflow="auto" mb={7}>
-          <Box component="h4">{t('import.templates')}</Box>
+          <Box component="h4">{t('agents')}</Box>
 
           {!tree.length && (
             <Box fontSize={12} color={(theme) => theme.palette.text.disabled}>

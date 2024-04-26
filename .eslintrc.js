@@ -34,5 +34,6 @@ module.exports = {
     'max-classes-per-file': 'off',
     'no-param-reassign': 'off',
     'unicorn/filename-case': 'off',
+    '@typescript-eslint/return-await': 'off',
   },
 };

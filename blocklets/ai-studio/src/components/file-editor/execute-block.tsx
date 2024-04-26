@@ -9,6 +9,7 @@ import {
   FileTypeYjs,
   Role,
   Tool,
+  VariablesYjs,
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
@@ -33,6 +34,7 @@ import {
   DialogProps,
   DialogTitle,
   Divider,
+  FormControlLabel,
   Grow,
   IconButton,
   ListItemText,
@@ -69,8 +71,8 @@ import { ModelPopper, ModelSetting } from '../modal-settings';
 import ExecuteDatasetBlockForm from './execute-dataset-block';
 import PromptEditorField from './prompt-editor-field';
 
-const FROM_DATASET = 'dataset';
-const FROM_KNOWLEDGE = 'knowledge';
+export const FROM_DATASET = 'dataset';
+export const FROM_KNOWLEDGE = 'knowledge';
 
 export default function ExecuteBlockForm({
   projectId,
@@ -800,7 +802,7 @@ function ToolItemView({
 
 type Option = {
   id: NonNullable<ExecuteBlock['tools']>[number]['id'];
-  type: Exclude<FileTypeYjs, { $base64: string }>['type'] | string;
+  type: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>['type'] | string;
   name?: any;
   from?: NonNullable<ExecuteBlock['tools']>[number]['from'];
   fromText?: string;
@@ -821,14 +823,14 @@ function isKnowledgeObject(
 
 type ToolDialogForm = NonNullable<ExecuteBlock['tools']>[number];
 
-interface ToolDialogImperative {
+export interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
 
 export const ToolDialog = forwardRef<
   ToolDialogImperative,
   {
-    executeBlock: ExecuteBlockYjs;
+    executeBlock?: ExecuteBlockYjs;
     projectId: string;
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
@@ -950,9 +952,45 @@ export const ToolDialog = forwardRef<
           {(parameters || [])?.map((parameter: any) => {
             if (!parameter) return null;
 
+            if (parameter['x-parameter-type'] === 'boolean') {
+              return (
+                <Stack key={parameter.name}>
+                  <Box>
+                    <Controller
+                      control={form.control}
+                      name={`parameters.${parameter.name}`}
+                      render={({ field }) => {
+                        return (
+                          <FormControlLabel
+                            sx={{
+                              alignItems: 'flex-start',
+                              '.MuiCheckbox-root': {
+                                ml: -0.5,
+                              },
+                            }}
+                            checked={Boolean(field.value)}
+                            control={
+                              <Checkbox onChange={(e) => field.onChange({ target: { value: e.target.checked } })} />
+                            }
+                            label={
+                              <Typography variant="caption">
+                                {getDatasetTextByI18n(parameter, 'description', locale) ||
+                                  getDatasetTextByI18n(parameter, 'name', locale)}
+                              </Typography>
+                            }
+                            labelPlacement="top"
+                          />
+                        );
+                      }}
+                    />
+                  </Box>
+                </Stack>
+              );
+            }
+
             return (
               <Stack key={parameter.name}>
-                <Typography variant="caption" mx={1}>
+                <Typography variant="caption">
                   {getDatasetTextByI18n(parameter, 'description', locale) ||
                     getDatasetTextByI18n(parameter, 'name', locale)}
                 </Typography>
@@ -976,21 +1014,10 @@ export const ToolDialog = forwardRef<
                       );
                     }
 
-                    if (parameter['x-parameter-type'] === 'boolean') {
-                      return (
-                        <Box>
-                          <Checkbox
-                            checked={Boolean(field.value)}
-                            onChange={(e) => field.onChange({ target: { value: e.target.checked } })}
-                          />
-                        </Box>
-                      );
-                    }
-
                     return (
                       <PromptEditorField
                         placeholder={
-                          executeBlock.selectType === 'selectByPrompt'
+                          executeBlock?.selectType === 'selectByPrompt'
                             ? t('selectByPromptParameterPlaceholder')
                             : assistantParameters.has(parameter.key)
                               ? `{{ ${parameter.name} }}`
@@ -1064,7 +1091,7 @@ export const ToolDialog = forwardRef<
                 render={({ field }) => (
                   <PromptEditorField
                     placeholder={
-                      executeBlock.selectType === 'selectByPrompt'
+                      executeBlock?.selectType === 'selectByPrompt'
                         ? t('selectByPromptParameterPlaceholder')
                         : assistantParameters.has(parameter.key)
                           ? `{{ ${parameter.key} }}`

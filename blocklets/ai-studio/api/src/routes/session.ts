@@ -33,6 +33,19 @@ export function sessionRoutes(router: Router) {
     });
   });
 
+  router.get('/sessions/:sessionId', user(), auth(), async (req, res) => {
+    const { did: userId } = req.user!;
+    const { sessionId } = req.params;
+    if (!sessionId) throw new Error('Missing required param sessionId');
+
+    const session = await Session.findOne({
+      where: { id: sessionId, userId },
+      rejectOnEmpty: new Error(`Session ${sessionId} not found`),
+    });
+
+    res.json({ session });
+  });
+
   const createSessionInput = Joi.object<{
     projectId: string;
     projectRef: string;

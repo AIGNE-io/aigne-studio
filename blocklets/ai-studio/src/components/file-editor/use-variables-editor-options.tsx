@@ -57,9 +57,9 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
         });
       })
       .concat([
-        new VariablePickerOption(`${t('form.add')}${t('variable')}`, {
+        new VariablePickerOption(`${t('add')}${t('variable')}`, {
           disabled: true,
-          replaceTitle: `${t('form.add')}$$$${t('variable')}`,
+          replaceTitle: `${t('add')}$$$${t('variable')}`,
           icon: (
             <DataObjectRounded
               sx={{
@@ -69,7 +69,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
             />
           ),
           onSelect: (editor, matchingString) => {
-            if (matchingString) addParameter(matchingString, from);
+            if (matchingString) addParameter(matchingString, { from });
             editor.dispatchCommand(INSERT_VARIABLE_COMMAND, { name: matchingString || '' });
           },
         }),
@@ -77,7 +77,10 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   }, [variables?.join('/'), t]);
 
   const addParameter = useCallback(
-    (parameter: string, from?: 'editor') => {
+    (
+      parameter: string,
+      { from, source }: { from?: 'editor' | 'agentParameter' | 'knowledgeParameter'; source?: any } = {}
+    ) => {
       if (!assistant) return undefined;
 
       const doc = (getYjsValue(assistant) as Map<any>).doc!;
@@ -90,7 +93,7 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
         if (!parameter || !variables.includes(key)) {
           assistant.parameters[id] = {
             index: Math.max(-1, ...Object.values(assistant.parameters).map((i) => i.index)) + 1,
-            data: { id, key, from },
+            data: { id, key, from, source },
           };
 
           setHighlightedId(id);

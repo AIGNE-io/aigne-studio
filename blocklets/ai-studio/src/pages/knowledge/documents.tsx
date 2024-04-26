@@ -174,7 +174,7 @@ export default function KnowledgeDocuments() {
       },
       {
         field: 'actions',
-        headerName: t('form.actions'),
+        headerName: t('actions'),
         flex: 1,
         sortable: false,
         renderCell: (params: any) => (

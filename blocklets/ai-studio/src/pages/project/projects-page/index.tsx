@@ -161,13 +161,13 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                     setDialog(<ImportFromTemplates templates={resource} onClose={() => setDialog(null)} />);
                   }}>
                   <Box component={Icon} icon="tabler:file-plus" sx={{ mr: 1 }} />
-                  <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('import.templates')}</ListItemText>
+                  <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('agents')}</ListItemText>
                 </MenuItem>
               )}
             </MenuList>
           }>
           <Button startIcon={<Box component={Icon} icon="tabler:plus" />} variant="contained">
-            {t('newObject', { object: t('form.project') })}
+            {t('newObject', { object: t('project') })}
           </Button>
         </ButtonPopper>
       </Stack>
@@ -235,7 +235,7 @@ function ProjectMenu() {
               disableEnforceFocus: true,
               fullWidth: true,
               maxWidth: 'sm',
-              title: `${t('alert.edit')} ${t('form.project')}`,
+              title: `${t('alert.edit')} ${t('project')}`,
               content: (
                 <Stack overflow="auto" gap={2}>
                   <Box>
@@ -516,7 +516,7 @@ function ProjectList({
                     disableEnforceFocus: true,
                     fullWidth: true,
                     maxWidth: 'sm',
-                    title: t('newObject', { object: t('form.project') }),
+                    title: t('newObject', { object: t('project') }),
                     content: (
                       <Stack overflow="auto" gap={2}>
                         <TextField

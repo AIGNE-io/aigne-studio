@@ -19,6 +19,7 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
+import { joinURL } from 'ufo';
 import { parse } from 'yaml';
 
 import downloadLogo from '../libs/download-logo';
@@ -26,7 +27,10 @@ import { getResourceProjects } from '../libs/resource';
 import { ensureComponentCallOrPromptsEditor, ensureComponentCallOrRolesMatch } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
+  CONFIG_FONDER,
   LOGO_FILENAME,
+  VARIABLE_FILENAME,
+  VARIABLE_KEY,
   autoSyncIfNeeded,
   clearRepository,
   commitProjectSettingWorking,
@@ -863,6 +867,11 @@ async function createProjectFromTemplate(
 
     working.syncedStore.files[id] = assistant;
     working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
+  }
+
+  if (!working.syncedStore.files[VARIABLE_KEY]) {
+    working.syncedStore.tree[VARIABLE_KEY] = joinURL(CONFIG_FONDER, VARIABLE_FILENAME);
+    working.syncedStore.files[VARIABLE_KEY] = { type: 'variables', variables: [] };
   }
 
   await commitWorking({

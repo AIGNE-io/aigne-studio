@@ -1,6 +1,9 @@
 import { SubscriptionError } from '@blocklet/ai-kit/api';
 
 import { ExecuteBlock, Role } from '../assistant';
+import { RuntimeOutputVariablesSchema } from './schema';
+
+export * from './schema';
 
 export enum ExecutionPhase {
   EXECUTE_BLOCK_START = 'EXECUTE_BLOCK_START',
@@ -9,6 +12,7 @@ export enum ExecutionPhase {
   EXECUTE_ASSISTANT_RUNNING = 'EXECUTE_BLOCK_RUNNING',
   EXECUTE_ASSISTANT_END = 'EXECUTE_ASSISTANT_END',
 }
+
 export enum AssistantResponseType {
   ERROR = 'ERROR',
   LOG = 'LOG',
@@ -94,6 +98,7 @@ export type RunAssistantChunk = {
   delta: {
     content?: string | null;
     images?: { url: string }[];
+    object?: RuntimeOutputVariablesSchema | object;
   };
 };
 

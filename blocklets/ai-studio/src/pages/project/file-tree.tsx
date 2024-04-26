@@ -1,6 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { AssistantYjs, FileTypeYjs, fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  FileTypeYjs,
+  VariablesYjs,
+  fileToYjs,
+  isAssistant,
+  nextAssistantId,
+} from '@blocklet/ai-runtime/types';
 import { css } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
@@ -77,7 +84,7 @@ export type EntryWithMeta =
       filename: string;
       parent: string[];
       path: string[];
-      meta: Exclude<FileTypeYjs, { $base64: string }>;
+      meta: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>;
     }
   | {
       type: 'folder';
@@ -162,7 +169,7 @@ const FileTree = forwardRef<
     showDialog({
       fullWidth: true,
       maxWidth: 'sm',
-      title: `${t('import.title')}`,
+      title: t('importObject', { object: t('agents') }),
       content: (
         <Box maxHeight={500}>
           <ImportFrom
@@ -184,7 +191,7 @@ const FileTree = forwardRef<
               createFile({ store, parent: template.parent, meta: fileToYjs(template) as AssistantYjs });
             }
           } else {
-            Toast.error(t('import.selectTemplates'));
+            Toast.error(t('import.selectAgentTip'));
           }
         } catch (error) {
           Toast.error(getErrorMessage(error));
@@ -678,7 +685,7 @@ function TreeItemMenus({
             <Box component={Icon} icon="tabler:pencil" />
           </ListItemIcon>
 
-          <ListItemText primary={t('form.rename')} />
+          <ListItemText primary={t('rename')} />
         </MenuItem>
       ),
       onRenameFolder && (
@@ -687,7 +694,7 @@ function TreeItemMenus({
             <Box component={Icon} icon="tabler:pencil" />
           </ListItemIcon>
 
-          <ListItemText primary={t('form.rename')} />
+          <ListItemText primary={t('rename')} />
         </MenuItem>
       ),
       onDeleteFile && (
