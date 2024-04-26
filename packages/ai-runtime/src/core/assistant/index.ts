@@ -1,15 +1,14 @@
 import { join } from 'path';
-import { ReadableStream } from 'stream/web';
 
-import { ChatCompletionChunk, ChatCompletionInput, ImageGenerationInput } from '@blocklet/ai-kit/api/types';
+import { ChatCompletionChunk } from '@blocklet/ai-kit/api/types';
 import { getBuildInDatasets } from '@blocklet/dataset-sdk';
 import { getRequest } from '@blocklet/dataset-sdk/request';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
-import { call as callFunc } from '@blocklet/sdk/lib/component';
-import { env } from '@blocklet/sdk/lib/config';
+import { call, call as callFunc } from '@blocklet/sdk/lib/component';
+import { logger } from '@blocklet/sdk/lib/config';
 import axios, { isAxiosError } from 'axios';
-import { flattenDeep, isNil, pick } from 'lodash';
+import { flattenDeep, isNil, pick, startCase, toLower } from 'lodash';
 import fetch from 'node-fetch';
 import { Worker } from 'snowflake-uuid';
 import { NodeVM } from 'vm2';
@@ -28,9 +27,30 @@ import {
   isFunctionAssistant,
   isPromptAssistant,
 } from '../../types';
-import { ImageAssistant, Mustache, OnTaskCompletion, Role, Tool, User, isImageAssistant } from '../../types/assistant';
-import { AssistantResponseType, ExecutionPhase, RunAssistantResponse } from '../../types/runtime';
+import {
+  Agent,
+  ImageAssistant,
+  Mustache,
+  OnTaskCompletion,
+  Parameter,
+  Role,
+  Tool,
+  User,
+  Variable,
+  isAgent,
+  isImageAssistant,
+} from '../../types/assistant';
+import { AssistantResponseType, ExecutionPhase, RuntimeOutputVariable } from '../../types/runtime';
+import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../../types/runtime/schema';
+import retry from '../utils/retry';
 import { BuiltinModules } from './builtin';
+import {
+  extractMetadataFromStream,
+  generateOutput,
+  metadataOutputFormatPrompt,
+  metadataStreamOutputFormatPrompt,
+} from './generate-output';
+import { CallAI, CallAIImage, GetAssistant, RunAssistantCallback, ToolCompletionDirective } from './type';
 
 const getUserHeader = (user: any) => {
   return {
@@ -42,55 +62,9 @@ const getUserHeader = (user: any) => {
   };
 };
 
-export type RunAssistantCallback = (e: RunAssistantResponse) => void;
+const defaultScope = 'session';
 
-export class ToolCompletionDirective extends Error {
-  type: OnTaskCompletion;
-
-  constructor(message: string, type: OnTaskCompletion) {
-    super(message);
-    this.type = type;
-  }
-}
-
-export interface GetAssistant {
-  (assistantId: string, options: { rejectOnEmpty: true | Error }): Promise<Assistant>;
-  (assistantId: string, options?: { rejectOnEmpty?: false }): Promise<Assistant | null>;
-}
-
-export type Options = {
-  assistant: Assistant;
-  input: ChatCompletionInput;
-};
-
-export type ImageOptions = {
-  assistant: Assistant;
-  input: ImageGenerationInput;
-};
-
-export type ModelInfo = {
-  model: string;
-  temperature?: number;
-  topP?: number;
-  presencePenalty?: number;
-  frequencyPenalty?: number;
-};
-
-export interface CallAI {
-  (options: Options & { outputModel: true }): Promise<{
-    modelInfo: ModelInfo;
-    chatCompletionChunk: ReadableStream<ChatCompletionChunk>;
-  }>;
-  (options: Options & { outputModel?: false }): Promise<ReadableStream<ChatCompletionChunk>>;
-  (options: Options & { outputModel: boolean }): any;
-}
-
-export interface CallAIImage {
-  (
-    options: ImageOptions & { outputModel: true }
-  ): Promise<{ modelInfo: ModelInfo; imageRes: { data: { url: string }[] } }>;
-  (options: ImageOptions & { outputModel?: false }): Promise<{ data: { url: string }[] }>;
-}
+const MAX_RETRIES = 3;
 
 const taskIdGenerator = new Worker();
 
@@ -107,6 +81,8 @@ export async function runAssistant({
   callback,
   user,
   sessionId,
+  projectId,
+  datastoreVariables,
 }: {
   taskId: string;
   callAI: CallAI;
@@ -118,6 +94,8 @@ export async function runAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
 }): Promise<any> {
   // setup global variables for prompt rendering
   parameters.$user = user;
@@ -130,7 +108,39 @@ export async function runAssistant({
     assistantName: assistant.name,
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
   });
+
+  const assistantVariables = await getVariables({
+    assistant,
+    callAI,
+    callAIImage,
+    getAssistant,
+    parameters,
+    parentTaskId: taskId,
+    callback,
+    user,
+    sessionId,
+    projectId,
+    datastoreVariables,
+  });
+
   try {
+    if (isAgent(assistant)) {
+      return await runAgent({
+        taskId,
+        parentTaskId,
+        callAI,
+        callAIImage,
+        getAssistant,
+        assistant,
+        parameters: assistantVariables,
+        callback,
+        user,
+        sessionId,
+        projectId,
+        datastoreVariables,
+      });
+    }
+
     if (isPromptAssistant(assistant)) {
       return await runPromptAssistant({
         taskId,
@@ -139,10 +149,12 @@ export async function runAssistant({
         callAIImage,
         getAssistant,
         assistant,
-        parameters,
+        parameters: assistantVariables,
         callback,
         user,
         sessionId,
+        projectId,
+        datastoreVariables,
       });
     }
 
@@ -154,10 +166,12 @@ export async function runAssistant({
         callAIImage,
         getAssistant,
         assistant,
-        parameters,
+        parameters: assistantVariables,
         callback,
         user,
         sessionId,
+        projectId,
+        datastoreVariables,
       });
     }
 
@@ -169,10 +183,12 @@ export async function runAssistant({
         taskId,
         parentTaskId,
         assistant,
-        parameters,
+        parameters: assistantVariables,
         callback,
         user,
         sessionId,
+        projectId,
+        datastoreVariables,
       });
     }
 
@@ -184,10 +200,12 @@ export async function runAssistant({
         taskId,
         parentTaskId,
         assistant,
-        parameters,
+        parameters: assistantVariables,
         callback,
         user,
         sessionId,
+        projectId,
+        datastoreVariables,
       });
     }
   } catch (e) {
@@ -211,9 +229,6 @@ export async function runAssistant({
 }
 
 async function runFunctionAssistant({
-  getAssistant,
-  callAI,
-  callAIImage,
   taskId,
   assistant,
   context,
@@ -222,6 +237,7 @@ async function runFunctionAssistant({
   callback,
   user,
   sessionId,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -234,24 +250,34 @@ async function runFunctionAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
 }) {
-  const results = assistant.prepareExecutes?.length
-    ? await runExecuteBlocks({
-        assistant,
-        callAI,
-        callAIImage,
-        getAssistant,
-        parameters,
-        executeBlocks: assistant.prepareExecutes,
-        parentTaskId: taskId,
-        callback,
-        user,
-        sessionId,
-      })
-    : [];
-
   if (!assistant.code) throw new Error(`Assistant ${assistant.id}'s code is empty`);
-  const code = await TranspileTs(assistant.code);
+  const code = await TranspileTs(
+    /export\sdefault/.test(assistant.code)
+      ? assistant.code
+      : `\
+export default async function(args) {
+  ${assistant.code}
+}
+`
+  );
+
+  const args = Object.fromEntries(
+    await Promise.all(
+      (assistant.parameters ?? [])
+        .filter((i): i is typeof i & { key: string } => !!i.key)
+        .map(async (i) => [i.key, parameters?.[i.key] || i.defaultValue])
+    )
+  );
+
+  const ctx: { [key: string]: any } = Object.freeze({
+    ...context,
+    user,
+    session: { id: sessionId },
+  });
+
   const vm = new NodeVM({
     console: 'redirect',
     require: {
@@ -262,7 +288,7 @@ async function runFunctionAssistant({
       context: {
         get: (name: any) => {
           if (isNil(name) || name === '') return undefined;
-          let result = context?.[name] || results.find((i) => i[0].variable === name)?.[1];
+          let result = ctx?.[name];
           while (typeof result === 'function') {
             result = result();
           }
@@ -270,12 +296,9 @@ async function runFunctionAssistant({
         },
       },
       URL,
+      call,
       fetch,
-      env: {
-        languages: env.languages,
-        appId: env.appId,
-        appUrl: env.appUrl,
-      },
+      ...args,
     },
   });
 
@@ -302,19 +325,6 @@ async function runFunctionAssistant({
   if (typeof module.default !== 'function')
     throw new Error('Invalid function file: function file must export default function');
 
-  const args = Object.fromEntries(
-    await Promise.all(
-      (assistant.parameters ?? [])
-        .filter((i): i is typeof i & { key: string } => !!i.key)
-        .map(async (i) => [i.key, parameters?.[i.key] || (await vm.sandbox.context.get(i.key)) || i.defaultValue])
-    )
-  );
-
-  const ctx = Object.freeze({
-    user,
-    session: { id: sessionId },
-  });
-
   callback?.({
     type: AssistantResponseType.EXECUTE,
     taskId,
@@ -334,13 +344,16 @@ async function runFunctionAssistant({
     fnArgs: args,
   });
 
-  const result = await module.default(args, ctx);
+  const result = await module.default();
+
+  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
+  const object = await schema.validateAsync(result);
 
   callback?.({
     type: AssistantResponseType.CHUNK,
     taskId,
     assistantId: assistant.id,
-    delta: { content: typeof result === 'string' ? result : JSON.stringify(result) },
+    delta: { object },
   });
 
   callback?.({
@@ -356,16 +369,12 @@ async function runFunctionAssistant({
 }
 
 async function runApiAssistant({
-  callAI,
-  callAIImage,
-  getAssistant,
   taskId,
   assistant,
   parameters,
   parentTaskId,
   callback,
-  user,
-  sessionId,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -377,36 +386,16 @@ async function runApiAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
 }) {
   if (!assistant.requestUrl) throw new Error(`Assistant ${assistant.id}'s url is empty`);
-
-  const results = assistant.prepareExecutes?.length
-    ? await runExecuteBlocks({
-        assistant,
-        callAI,
-        callAIImage,
-        getAssistant,
-        parameters,
-        executeBlocks: assistant.prepareExecutes,
-        parentTaskId: taskId,
-        callback,
-        user,
-        sessionId,
-      })
-    : [];
-
-  const isSameVariable = (left?: string, right?: string) => left && left === right;
 
   const args = Object.fromEntries(
     await Promise.all(
       (assistant.parameters ?? [])
         .filter((i): i is typeof i & { key: string } => !!i.key)
-        .map(async (i) => [
-          i.key,
-          parameters?.[i.key] ||
-            results.find((r) => isSameVariable(i.key, r[0].variable) || isSameVariable(i.label, r[0].variable))?.[1] ||
-            i.defaultValue,
-        ])
+        .map(async (i) => [i.key, parameters?.[i.key] || i.defaultValue])
     )
   );
 
@@ -446,18 +435,20 @@ async function runApiAssistant({
     result = response.data;
   } catch (e) {
     error = {
-      error: {
-        message: e.message,
-        ...(isAxiosError(e) ? pick(e.response, 'status', 'statusText', 'data') : undefined),
-      },
+      message: e.message,
+      ...(isAxiosError(e) ? pick(e.response, 'status', 'statusText', 'data') : undefined),
     };
+    throw error;
   }
+
+  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
+  const object = await schema.validateAsync(result);
 
   callback?.({
     type: AssistantResponseType.CHUNK,
     taskId,
     assistantId: assistant.id,
-    delta: { content: typeof result === 'string' ? result : JSON.stringify(result || error) },
+    delta: { object },
   });
 
   callback?.({
@@ -478,6 +469,394 @@ async function renderMessage(message: string, parameters?: { [key: string]: any 
   });
 }
 
+const runRequestStorage = async ({
+  assistant,
+  parentTaskId,
+  user,
+  callback,
+  datastoreParameter,
+  ids,
+  datastoreVariables,
+}: {
+  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  parentTaskId?: string;
+  user?: User;
+  callback?: RunAssistantCallback;
+  datastoreParameter: Parameter;
+  ids: { [key: string]: string | undefined };
+  datastoreVariables: Variable[];
+}) => {
+  if (
+    datastoreParameter.type === 'source' &&
+    datastoreParameter.key &&
+    datastoreParameter.source?.variableFrom === 'datastore' &&
+    datastoreParameter.source.variable
+  ) {
+    const currentTaskId = nextTaskId();
+
+    const params = {
+      ...ids,
+      scope: datastoreParameter.source.variable?.scope || defaultScope,
+      key: toLower(datastoreParameter.source.variable?.key) || toLower(datastoreParameter.key),
+    };
+
+    const callbackParams = {
+      taskId: currentTaskId,
+      parentTaskId,
+      assistantId: assistant.id,
+      assistantName: startCase(
+        toLower(`From ${datastoreParameter.source.variable.scope || defaultScope} ${datastoreParameter.key} Storage `)
+      ),
+    };
+
+    callback?.({
+      type: AssistantResponseType.EXECUTE,
+      ...callbackParams,
+      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+    });
+
+    callback?.({
+      type: AssistantResponseType.INPUT,
+      ...callbackParams,
+      inputParameters: params as any,
+    });
+
+    const { data } = await callFunc({
+      name: 'ai-studio',
+      path: '/api/datastore/variable-by-query',
+      method: 'GET',
+      headers: getUserHeader(user),
+      params,
+    });
+    const list = (data || []).map((x: any) => x?.data).filter((x: any) => x);
+    const storageVariable = datastoreVariables.find(
+      (x) => toLower(x.key || '') === toLower(params.key || '') && x.scope === params.scope
+    );
+    let result = (list?.length > 0 ? list : [storageVariable?.defaultValue]).filter((x: any) => x);
+    if (storageVariable?.reset) {
+      result = (result?.length > 1 ? result : result[0]) ?? '';
+    }
+
+    callback?.({
+      type: AssistantResponseType.CHUNK,
+      ...callbackParams,
+      delta: { content: result ? JSON.stringify(result) : 'undefined' },
+    });
+
+    callback?.({
+      type: AssistantResponseType.EXECUTE,
+      ...callbackParams,
+      execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+    });
+
+    return result;
+  }
+
+  return null;
+};
+
+const runRequestHistory = async ({
+  assistant,
+  parentTaskId,
+  user,
+  callback,
+  params,
+}: {
+  assistant: PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  parentTaskId?: string;
+  user?: User;
+  callback?: RunAssistantCallback;
+  params: {
+    sessionId?: string;
+    userId?: string;
+    limit: number;
+    keyword: string;
+  };
+}) => {
+  const currentTaskId = nextTaskId();
+
+  const callbackParams = {
+    taskId: currentTaskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: startCase(toLower('The History DATA')),
+  };
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    ...callbackParams,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_START },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    ...callbackParams,
+    inputParameters: params as any,
+  });
+
+  const { data: result } = await callFunc({
+    name: 'ai-studio',
+    path: '/api/messages',
+    method: 'GET',
+    headers: getUserHeader(user),
+    params,
+  });
+
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    ...callbackParams,
+    delta: { content: result ? JSON.stringify(result) : 'undefined' },
+  });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    ...callbackParams,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
+  return result;
+};
+
+const runRequestToolAssistant = async ({
+  callAI,
+  callAIImage,
+  getAssistant,
+  parameters,
+  parentTaskId,
+  user,
+  sessionId,
+  cb,
+  toolParameter,
+  projectId,
+  datastoreVariables,
+}: {
+  callAI: CallAI;
+  callAIImage: CallAIImage;
+  getAssistant: GetAssistant;
+  parameters: { [key: string]: any };
+  parentTaskId?: string;
+  cb?: any;
+  user?: User;
+  sessionId?: string;
+  toolParameter: Parameter;
+  projectId?: string;
+  datastoreVariables: Variable[];
+}) => {
+  if (
+    toolParameter.type === 'source' &&
+    toolParameter.key &&
+    toolParameter.source?.variableFrom === 'tool' &&
+    toolParameter.source.tool
+  ) {
+    const currentTaskId = taskIdGenerator.nextId().toString();
+
+    const { tool } = toolParameter.source;
+    const toolAssistant = await getAssistant(tool.id);
+    if (!toolAssistant) return null;
+
+    const args = Object.fromEntries(
+      await Promise.all(
+        (toolAssistant.parameters ?? [])
+          .filter((i): i is typeof i & { key: string } => !!i.key)
+          .map(async (i) => {
+            const template = String(tool.parameters?.[i.key] || '').trim();
+            const value = template ? await renderMessage(template, parameters) : parameters?.[i.key];
+            return [i.key, value];
+          })
+      )
+    );
+
+    const result = await runAssistant({
+      taskId: currentTaskId,
+      callAI,
+      callAIImage,
+      getAssistant,
+      assistant: toolAssistant,
+      parameters: args,
+      parentTaskId,
+      callback: cb?.(currentTaskId),
+      user,
+      sessionId,
+      projectId,
+      datastoreVariables,
+    });
+
+    return result;
+  }
+
+  return null;
+};
+
+const getVariables = async ({
+  callAI,
+  callAIImage,
+  getAssistant,
+  assistant,
+  parameters,
+  parentTaskId,
+  user,
+  sessionId,
+  callback,
+  projectId,
+  datastoreVariables,
+}: {
+  callAI: CallAI;
+  callAIImage: CallAIImage;
+  getAssistant: GetAssistant;
+  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  parameters: { [key: string]: any };
+  parentTaskId?: string;
+  callback?: RunAssistantCallback;
+  user?: User;
+  sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
+}) => {
+  const variables: { [key: string]: any } = { ...parameters };
+
+  const userId = user?.did;
+
+  const cb: ((taskId: string) => RunAssistantCallback) | undefined =
+    callback &&
+    ((taskId) => (args) => {
+      if (args.type === AssistantResponseType.CHUNK && args.taskId === taskId) {
+        callback({ ...args });
+        return;
+      }
+      callback(args);
+    });
+
+  for (const parameter of assistant.parameters || []) {
+    if (parameter.key && parameter.type === 'source') {
+      if (parameter.source?.variableFrom === 'tool' && parameter.source.tool) {
+        const { tool } = parameter.source;
+        const toolAssistant = await getAssistant(tool.id);
+        if (!toolAssistant) continue;
+
+        // eslint-disable-next-line no-await-in-loop
+        const result = await runRequestToolAssistant({
+          callAI,
+          callAIImage,
+          getAssistant,
+          parameters,
+          parentTaskId,
+          user,
+          sessionId,
+          cb,
+          toolParameter: parameter,
+          projectId,
+          datastoreVariables,
+        });
+
+        // TODO: @li-yechao 根据配置的输出类型决定是否需要 parse
+        try {
+          variables[parameter.key] = JSON.parse(result);
+        } catch (error) {
+          variables[parameter.key] = result ?? parameter.defaultValue;
+        }
+      } else if (parameter.source?.variableFrom === 'datastore') {
+        // eslint-disable-next-line no-await-in-loop
+        const result = await runRequestStorage({
+          assistant,
+          parentTaskId,
+          user,
+          callback,
+          datastoreParameter: parameter,
+          ids: {
+            userId,
+            projectId,
+            sessionId,
+            assistantId: assistant.id,
+          },
+          datastoreVariables,
+        });
+
+        variables[parameter.key] = result;
+      } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.tool) {
+        const currentTaskId = taskIdGenerator.nextId().toString();
+        // eslint-disable-next-line no-await-in-loop
+        const result = await runKnowledgeTool({
+          tool: parameter.source.tool,
+          taskId: currentTaskId,
+          assistant,
+          parameters,
+          parentTaskId,
+          callback: cb?.(currentTaskId),
+          user,
+        });
+
+        variables[parameter.key] = result ?? parameter.defaultValue;
+      }
+    }
+  }
+
+  return variables;
+};
+
+async function runAgent({
+  taskId,
+  assistant,
+  parameters,
+  parentTaskId,
+  callback,
+  datastoreVariables,
+}: {
+  callAI: CallAI;
+  callAIImage: CallAIImage;
+  taskId: string;
+  getAssistant: GetAssistant;
+  assistant: Agent;
+  parameters: { [key: string]: any };
+  parentTaskId?: string;
+  callback?: RunAssistantCallback;
+  user?: User;
+  sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
+}) {
+  const { outputVariables = [] } = assistant;
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_RUNNING },
+  });
+
+  callback?.({
+    type: AssistantResponseType.INPUT,
+    assistantId: assistant.id,
+    parentTaskId,
+    taskId,
+    assistantName: assistant.name,
+    inputParameters: parameters,
+  });
+
+  const schema = outputVariablesToJoiSchema(outputVariables, datastoreVariables);
+
+  const result = await schema.validateAsync({});
+
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    taskId,
+    assistantId: assistant.id,
+    delta: { object: result },
+  });
+
+  callback?.({
+    type: AssistantResponseType.EXECUTE,
+    taskId,
+    parentTaskId,
+    assistantId: assistant.id,
+    assistantName: assistant.name,
+    execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
+  });
+
+  return result;
+}
+
 async function runPromptAssistant({
   callAI,
   callAIImage,
@@ -489,6 +868,8 @@ async function runPromptAssistant({
   callback,
   user,
   sessionId,
+  projectId,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -500,10 +881,10 @@ async function runPromptAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
 }) {
-  if (!assistant.prompts?.length) throw new Error('Require at least one prompt');
-
-  const executeBlocks = assistant.prompts
+  const executeBlocks = (assistant.prompts ?? [])
     .filter((i): i is Extract<Prompt, { type: 'executeBlock' }> => isExecuteBlock(i) && i.visibility !== 'hidden')
     .map((i) => i.data);
 
@@ -518,6 +899,8 @@ async function runPromptAssistant({
     callback,
     user,
     sessionId,
+    projectId,
+    datastoreVariables,
   });
 
   const variables = { ...parameters };
@@ -531,7 +914,7 @@ async function runPromptAssistant({
 
   const messages = (
     await Promise.all(
-      assistant.prompts
+      (assistant.prompts ?? [])
         .filter((i) => i.visibility !== 'hidden')
         .map(async (prompt) => {
           if (prompt.type === 'message') {
@@ -579,7 +962,58 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  if (!messages.length) return undefined;
+  if (assistant.memory?.enable) {
+    const lastSystemIndex = messages.findLastIndex((i) => i.role === 'system');
+    const memories = await runRequestHistory({
+      assistant,
+      parentTaskId: taskId,
+      user,
+      callback,
+      params: {
+        sessionId,
+        userId: user?.did,
+        limit: assistant.memory.limit || 50,
+        keyword: await renderMessage(assistant.memory.keyword || '', variables),
+      },
+    });
+
+    if (memories.length) {
+      messages.splice(lastSystemIndex, 0, {
+        role: 'system',
+        content: `## Memory
+        Here is the chat memories between user and assistant, inside <memories></memories> XML tags.
+        <memories>
+        ${JSON.stringify(memories)}
+        </memories>`,
+      });
+    }
+  }
+
+  const { outputVariables = [] } = assistant;
+  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === '$textStream');
+  const outputStreamAndJson = outputVariables.some(
+    (i) => i.name && (i.name as RuntimeOutputVariable) !== '$textStream'
+  );
+
+  const schema = outputVariablesToJsonSchema(outputVariables, datastoreVariables);
+  const outputSchema = JSON.stringify(schema);
+
+  const messagesWithSystemPrompt = [...messages];
+  const lastSystemIndex = messagesWithSystemPrompt.length;
+
+  if (onlyOutputJson) {
+    messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
+      role: 'system',
+      content: metadataOutputFormatPrompt(outputSchema),
+    });
+  } else if (outputStreamAndJson) {
+    messagesWithSystemPrompt.splice(lastSystemIndex + 1, 0, {
+      role: 'system',
+      content: metadataStreamOutputFormatPrompt(outputSchema),
+    });
+  }
+
+  if (!messagesWithSystemPrompt.length) return undefined;
 
   callback?.({
     type: AssistantResponseType.EXECUTE,
@@ -596,34 +1030,136 @@ async function runPromptAssistant({
     parentTaskId,
     taskId,
     assistantName: assistant.name,
-    inputParameters: parameters,
-    promptMessages: messages,
+    inputParameters: variables,
+    promptMessages: messagesWithSystemPrompt,
   });
 
-  const res = await callAI({
-    assistant,
-    outputModel: true,
-    input: {
-      stream: true,
-      messages,
-      model: assistant.model,
-      temperature: assistant.temperature,
-      topP: assistant.topP,
-      presencePenalty: assistant.presencePenalty,
-      frequencyPenalty: assistant.frequencyPenalty,
-    },
-  });
+  const run = async () => {
+    let jsonResult;
+    let result = '';
+    const metadataStrings: string[] = [];
 
-  let result = '';
+    const aiResult = await callAI({
+      assistant,
+      outputModel: true,
+      input: {
+        stream: true,
+        messages: messagesWithSystemPrompt,
+        model: assistant.model,
+        temperature: assistant.temperature,
+        topP: assistant.topP,
+        presencePenalty: assistant.presencePenalty,
+        frequencyPenalty: assistant.frequencyPenalty,
+      },
+    });
 
-  for await (const chunk of res.chatCompletionChunk) {
-    result += chunk.delta.content || '';
+    const stream = extractMetadataFromStream(aiResult.chatCompletionChunk, onlyOutputJson || outputStreamAndJson);
+
+    for await (const chunk of stream) {
+      if (chunk.type === 'text') {
+        const { text } = chunk;
+
+        result += text;
+
+        if (!onlyOutputJson) {
+          callback?.({
+            type: AssistantResponseType.CHUNK,
+            taskId,
+            assistantId: assistant.id,
+            delta: { content: text },
+          });
+        }
+      } else if (chunk.type === 'match') {
+        metadataStrings.push(chunk.text);
+      }
+    }
+
+    if (onlyOutputJson || outputStreamAndJson) {
+      const joiSchema = outputVariablesToJoiSchema(outputVariables, datastoreVariables);
+      const json = {};
+      for (const i of metadataStrings) {
+        try {
+          const obj = JSON.parse(i);
+          Object.assign(json, obj);
+        } catch {
+          // ignore
+        }
+      }
+
+      // try to parse all text content as a json
+      try {
+        Object.assign(json, JSON.parse(result));
+      } catch {
+        // ignore
+      }
+
+      try {
+        jsonResult = await joiSchema.validateAsync(json);
+      } catch (error) {
+        if (onlyOutputJson) {
+          throw new Error('Unexpected response format from AI');
+        } else {
+          try {
+            jsonResult = await generateOutput({
+              assistant,
+              messages: messages.concat({ role: 'assistant', content: result }),
+              callAI,
+              maxRetries: MAX_RETRIES,
+              datastoreVariables,
+            });
+          } catch (error) {
+            throw new Error('Unexpected response format from AI');
+          }
+        }
+      }
+    }
+
+    return { jsonResult, result, aiResult };
+  };
+
+  const { jsonResult, result, aiResult } = await retry(run, onlyOutputJson ? MAX_RETRIES : 0);
+
+  if (jsonResult) {
     callback?.({
       type: AssistantResponseType.CHUNK,
       taskId,
       assistantId: assistant.id,
-      delta: { content: chunk.delta.content },
+      delta: { object: jsonResult },
     });
+  }
+
+  for (const output of assistant?.outputVariables || []) {
+    logger.info('output parameter:', { output, jsonResult });
+    if (output?.variable?.key && output?.name && jsonResult && jsonResult[output?.name as any]) {
+      const datastoreVariable = datastoreVariables.find(
+        (x) => toLower(x.key || '') === toLower(output.variable?.key || '') && x.scope === output.variable?.scope
+      );
+
+      const params = {
+        params: {
+          userId: user?.did || '',
+          projectId,
+          sessionId,
+          assistantId: assistant.id,
+          reset: datastoreVariable?.reset,
+        },
+        data: {
+          data: jsonResult[output?.name as any],
+          key: toLower(output.variable?.key),
+          scope: output.variable.scope,
+        },
+      };
+
+      await callFunc({
+        name: 'ai-studio',
+        path: '/api/datastore',
+        method: 'POST',
+        headers: getUserHeader(user),
+        ...params,
+      });
+
+      logger.info('save parameter tool to datastore success', params);
+    }
   }
 
   callback?.({
@@ -632,13 +1168,13 @@ async function runPromptAssistant({
     ...(parentTaskId
       ? {
           parentTaskId,
-          modelParameters: res.modelInfo,
+          modelParameters: aiResult.modelInfo,
         }
       : { parentTaskId }),
     taskId,
     assistantName: assistant.name,
     inputParameters: parameters,
-    promptMessages: messages,
+    promptMessages: messagesWithSystemPrompt,
   });
 
   callback?.({
@@ -650,7 +1186,7 @@ async function runPromptAssistant({
     execution: { currentPhase: ExecutionPhase.EXECUTE_ASSISTANT_END },
   });
 
-  return result;
+  return jsonResult ?? result;
 }
 
 async function runImageAssistant({
@@ -664,6 +1200,8 @@ async function runImageAssistant({
   callback,
   user,
   sessionId,
+  projectId,
+  datastoreVariables,
 }: {
   callAI: CallAI;
   callAIImage: CallAIImage;
@@ -675,6 +1213,8 @@ async function runImageAssistant({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
 }) {
   if (!assistant.prompt?.length) throw new Error('Prompt cannot be empty');
 
@@ -690,6 +1230,8 @@ async function runImageAssistant({
         callback,
         user,
         sessionId,
+        projectId,
+        datastoreVariables,
       })
     : [];
 
@@ -725,7 +1267,7 @@ async function runImageAssistant({
     taskId,
     parentTaskId,
     assistantName: assistant.name,
-    inputParameters: parameters,
+    inputParameters: variables,
   });
 
   const {
@@ -757,7 +1299,17 @@ async function runImageAssistant({
     assistantName: assistant.name,
   });
 
-  callback?.({ type: AssistantResponseType.CHUNK, taskId, assistantId: assistant.id, delta: { images: data } });
+  const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
+  const object = await schema.validateAsync({
+    images: data,
+  });
+
+  callback?.({
+    type: AssistantResponseType.CHUNK,
+    taskId,
+    assistantId: assistant.id,
+    delta: { images: data, object },
+  });
 
   callback?.({
     type: AssistantResponseType.EXECUTE,
@@ -782,6 +1334,8 @@ async function runExecuteBlocks({
   callback,
   user,
   sessionId,
+  projectId,
+  datastoreVariables,
 }: {
   assistant: Assistant;
   callAI: CallAI;
@@ -793,10 +1347,10 @@ async function runExecuteBlocks({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
 }) {
-  const variables = {
-    ...parameters,
-  };
+  const variables = { ...parameters };
 
   const tasks: [ExecuteBlock, () => () => Promise<any>][] = [];
   const cache: { [key: string]: Promise<any> } = {};
@@ -817,6 +1371,8 @@ async function runExecuteBlocks({
         callback,
         user,
         sessionId,
+        projectId,
+        datastoreVariables,
       });
 
       return cache[executeBlock.id]!;
@@ -845,6 +1401,8 @@ async function runExecuteBlock({
   callback,
   user,
   sessionId,
+  projectId,
+  datastoreVariables,
 }: {
   taskId: string;
   assistant: Assistant;
@@ -858,6 +1416,8 @@ async function runExecuteBlock({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
+  datastoreVariables: Variable[];
 }) {
   const { tools } = executeBlock;
   if (!tools?.length) return undefined;
@@ -895,7 +1455,7 @@ async function runExecuteBlock({
             const dataset = (datasets || []).find((x) => x.id === tool.id);
             return (
               dataset &&
-              runDatasetTool({
+              runAPITool({
                 tool,
                 taskId: currentTaskId,
                 assistant,
@@ -906,6 +1466,7 @@ async function runExecuteBlock({
                 callback: cb?.(currentTaskId),
                 user,
                 sessionId,
+                projectId,
               })
             );
           }
@@ -949,6 +1510,8 @@ async function runExecuteBlock({
             callback: cb?.(currentTaskId),
             user,
             sessionId,
+            projectId,
+            datastoreVariables,
           });
         })
       )
@@ -1159,7 +1722,7 @@ async function runExecuteBlock({
           const currentTaskId = taskIdGenerator.nextId().toString();
 
           if (tool.tool.from === 'dataset') {
-            return runDatasetTool({
+            return runAPITool({
               tool: tool.tool,
               taskId: currentTaskId,
               assistant,
@@ -1207,6 +1770,8 @@ async function runExecuteBlock({
             callback: cb?.(currentTaskId),
             user,
             sessionId,
+            projectId,
+            datastoreVariables,
           });
 
           if (tool.tool?.onEnd === OnTaskCompletion.EXIT) {
@@ -1230,7 +1795,7 @@ async function runExecuteBlock({
   return undefined;
 }
 
-async function runDatasetTool({
+async function runAPITool({
   tool,
   dataset,
   taskId,
@@ -1241,6 +1806,7 @@ async function runDatasetTool({
   callback,
   user,
   sessionId,
+  projectId,
 }: {
   tool: Tool;
   dataset: DatasetObject;
@@ -1252,6 +1818,7 @@ async function runDatasetTool({
   callback?: RunAssistantCallback;
   user?: User;
   sessionId?: string;
+  projectId?: string;
 }) {
   const requestData = Object.fromEntries(
     await Promise.all(
@@ -1266,6 +1833,7 @@ async function runDatasetTool({
     userId: user?.did || '',
     sessionId: sessionId || '',
     assistantId: assistant.id || '',
+    projectId: projectId || '',
   };
 
   const callbackParams = {
@@ -1317,7 +1885,7 @@ async function runKnowledgeTool({
   tool: Tool;
   taskId: string;
   assistant: Assistant;
-  executeBlock: ExecuteBlock;
+  executeBlock?: ExecuteBlock;
   parameters?: { [key: string]: any };
   parentTaskId?: string;
   callback?: RunAssistantCallback;
@@ -1347,7 +1915,7 @@ async function runKnowledgeTool({
     taskId,
     parentTaskId,
     assistantId: assistant.id,
-    assistantName: `${executeBlock.variable ?? knowledge.name}`,
+    assistantName: startCase(toLower(`From ${executeBlock?.variable ?? knowledge.name} Knowledge`)),
   };
 
   callback?.({

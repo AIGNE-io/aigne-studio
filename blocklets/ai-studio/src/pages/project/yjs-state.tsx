@@ -185,6 +185,17 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       },
       [syncedStore.files]
     ),
+    getVariables: useCallback(() => {
+      const filepath = 'config/variable.yaml';
+      const key = 'variable';
+      const file = syncedStore.files[key];
+
+      if (file && 'variables' in file) return file;
+
+      syncedStore.tree[key] = filepath;
+      syncedStore.files[key] = { type: 'variables', variables: [] };
+      return syncedStore.files[key];
+    }, [syncedStore.files]),
   };
 };
 

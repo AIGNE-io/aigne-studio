@@ -28,6 +28,10 @@ export default function ProjectHeader() {
       return 'knowledge';
     }
 
+    if (pathname.includes(`${projectId}/variables`)) {
+      return 'variables';
+    }
+
     return 'prompts';
   }, [pathname, projectId]);
 
@@ -44,13 +48,18 @@ export default function ProjectHeader() {
             options={[
               {
                 value: 'prompts',
-                label: t('prompts'),
+                label: t('agent'),
                 icon: <Box fontSize={15} component={Icon} icon="tabler:bulb" mr={1} />,
               },
               {
                 value: 'knowledge',
                 label: t('knowledge.menu'),
                 icon: <Box fontSize={15} component={Icon} icon="tabler:book-2" mr={1} />,
+              },
+              {
+                value: 'variables',
+                label: t('memory.title'),
+                icon: <Box fontSize={15} component={Icon} icon="tabler:database" mr={1} />,
               },
             ]}
             onChange={(value) => {

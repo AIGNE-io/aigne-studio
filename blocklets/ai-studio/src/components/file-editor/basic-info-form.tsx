@@ -7,8 +7,6 @@ import { useAssistantCompare } from '../../pages/project/state';
 import AwarenessIndicator from '../awareness/awareness-indicator';
 import WithAwareness from '../awareness/with-awareness';
 
-// import TagsAutoComplete from '../template-form/tags-autocomplete';
-
 export default function BasicInfoForm({
   projectId,
   gitRef,
@@ -106,7 +104,7 @@ export default function BasicInfoForm({
               <HoverBackgroundTextField
                 {...params}
                 hiddenLabel
-                placeholder={t('form.tag')}
+                placeholder={t('tag')}
                 InputProps={{
                   ...params.InputProps,
                   sx: { color: 'text.secondary', [`.${chipClasses.root}`]: { ml: 0, mr: 0.5, my: 0.5 } },

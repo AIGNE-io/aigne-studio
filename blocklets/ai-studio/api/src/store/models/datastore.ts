@@ -14,13 +14,21 @@ export default class Datastore extends Model<InferAttributes<Datastore>, InferCr
 
   declare userId: string;
 
-  declare type?: string;
+  declare projectId?: string;
+
+  declare assistantId?: string;
+
+  declare itemId?: string;
+
+  declare key?: string;
 
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
 
   declare data?: {};
+
+  declare scope?: 'session' | 'user' | 'global';
 }
 
 Datastore.init(
@@ -38,7 +46,7 @@ Datastore.init(
     sessionId: {
       type: DataTypes.STRING,
     },
-    type: {
+    key: {
       type: DataTypes.STRING,
     },
     createdAt: {
@@ -49,6 +57,18 @@ Datastore.init(
     },
     data: {
       type: DataTypes.JSON,
+    },
+    projectId: {
+      type: DataTypes.STRING,
+    },
+    assistantId: {
+      type: DataTypes.STRING,
+    },
+    itemId: {
+      type: DataTypes.STRING,
+    },
+    scope: {
+      type: DataTypes.STRING,
     },
   },
   { sequelize }

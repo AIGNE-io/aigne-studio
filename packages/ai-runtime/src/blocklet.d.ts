@@ -8,5 +8,6 @@ declare var blocklet:
       appDescription: string;
       version: string;
       componentMountPoints: { title: string; name: string; did: string; mountPoint: string }[];
+      languages?: { code: string; name: string }[];
     }
   | undefined;

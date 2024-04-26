@@ -1,3 +1,4 @@
+import { parseIdentity } from '@api/libs/aid';
 import {
   createOrUpdatePaymentForRelease,
   getActiveSubscriptionOfAssistant,
@@ -45,6 +46,27 @@ router.get('/', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   });
 });
 
+const getReleaseByAidQuerySchema = Joi.object<{ aid: string }>({
+  aid: Joi.string().required(),
+});
+
+router.get('/by-aid', async (req, res) => {
+  const { aid } = await getReleaseByAidQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  const { projectId, projectRef, assistantId } = parseIdentity(aid, { rejectWhenError: true });
+
+  const release = await Release.findOne({
+    where: { projectId, projectRef, assistantId },
+    rejectOnEmpty: new Error('Release not found'),
+  });
+
+  res.json({
+    ...release.dataValues,
+    paymentUnitAmount: release.paymentLinkId
+      ? await getPriceFromPaymentLink({ paymentLinkId: release.paymentLinkId })
+      : undefined,
+  });
+});
+
 router.get('/:releaseId', async (req, res) => {
   const { releaseId } = req.params;
 
@@ -62,8 +84,9 @@ router.get('/:releaseId/subscription', user(), auth(), async (req, res) => {
   const { did } = req.user!;
   const { releaseId } = req.params;
 
-  const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
-  const subscription = await getActiveSubscriptionOfAssistant({ release, userId: did });
+  if (!releaseId) throw new Error('Missing required param releaseId');
+
+  const subscription = await getActiveSubscriptionOfAssistant({ aid: releaseId, userId: did });
 
   res.json({ subscription });
 });

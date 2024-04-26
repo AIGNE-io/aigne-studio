@@ -1,7 +1,7 @@
 import LoadingButton from '@app/components/loading/loading-button';
+import LogoField from '@app/components/publish/LogoField';
 import PublishEntries from '@app/components/publish/PublishEntries';
 import NumberField from '@app/components/template-form/number-field';
-import { useUploader } from '@app/contexts/uploader';
 import { getErrorMessage } from '@app/libs/api';
 import { AI_RUNTIME_COMPONENT_DID } from '@app/libs/constants';
 import { createRelease, updateRelease } from '@app/libs/release';
@@ -20,7 +20,6 @@ import {
   FormControl,
   FormControlLabel,
   FormLabel,
-  IconButton,
   InputAdornment,
   Link,
   Radio,
@@ -37,7 +36,6 @@ import { joinURL, withQuery } from 'ufo';
 
 import BaseInput from '../../components/custom/input';
 import Switch from '../../components/custom/switch';
-import UploadIcon from './icons/publish-upload';
 import { saveButtonState, useProjectState } from './state';
 
 const TemplateImage = styled('img')({
@@ -96,7 +94,6 @@ function PublishViewContent({
   };
 
   const { t, locale } = useLocaleContext();
-  const uploaderRef = useUploader();
 
   const {
     state: { releases, project },
@@ -108,9 +105,13 @@ function PublishViewContent({
   const releaseUrl = useMemo(() => {
     if (!release) return undefined;
     const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
-    return withQuery(joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/chat'), {
-      aiReleaseId: release.id,
-    });
+    // FIXME: change path to `/ai/chat`
+    return withQuery(
+      joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/chat/debug'),
+      {
+        assistantId: btoa([projectId, projectRef, assistant.id].join('/')),
+      }
+    );
   }, [release]);
 
   useEffect(() => {
@@ -172,36 +173,26 @@ function PublishViewContent({
         <RadioGroup
           row
           sx={{ rowGap: 1 }}
-          value={assistant.release?.template || ''}
+          value={assistant.release?.template || 'chat'}
           onChange={(_, value) => setRelease((release) => (release.template = value))}>
           <StyledFormControlLabel
             labelPlacement="top"
             control={<Radio />}
-            value="default"
+            value="chat"
             label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-1.png')} alt="" />}
           />
           <StyledFormControlLabel
             labelPlacement="top"
             control={<Radio />}
-            value="blue"
+            value="form"
             label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-2.png')} alt="" />}
-          />
-          <StyledFormControlLabel
-            labelPlacement="top"
-            control={<Radio />}
-            value="red"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-3.png')} alt="" />}
-          />
-          <StyledFormControlLabel
-            labelPlacement="top"
-            control={<Radio />}
-            value="green"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-4.png')} alt="" />}
           />
         </RadioGroup>
       </FormControl>
 
       <PublishEntries assistant={assistant} />
+
+      <LogoField assistant={assistant} setRelease={setRelease} />
 
       <FormControl>
         <Typography mb={0.5} variant="subtitle2">
@@ -242,66 +233,33 @@ function PublishViewContent({
         />
       </FormControl>
 
-      <Box>
+      <TableLayout>
         <Typography mb={0.5} variant="subtitle2">
-          {t('publish.logo')}
+          {t('submit')}
         </Typography>
 
-        <Box mb={0.5}>
-          <Box
-            onClick={() => {
-              // @ts-ignore
-              const uploader = uploaderRef?.current?.getUploader();
+        <Box className="row">
+          <Box>
+            <FormLabel>{t('title')}</FormLabel>
+          </Box>
 
-              uploader?.open();
-
-              uploader.onceUploadSuccess((data: any) => {
-                const { response } = data;
-                const url = response?.data?.url || response?.data?.fileUrl;
-                setRelease((release) => (release.logo = url));
-              });
-            }}>
-            {assistant.release?.logo ? (
-              <Box
-                component="img"
-                src={assistant.release.logo}
-                alt=""
-                sx={{ width: 100, height: 100, borderRadius: 1, cursor: 'pointer' }}
-              />
-            ) : (
-              <Box width={1} display="flex" gap={1.5}>
-                <IconButton
-                  key="uploader-trigger"
-                  size="small"
-                  sx={{ borderRadius: 1, bgcolor: 'rgba(0, 0, 0, 0.06)', width: 100, height: 100 }}>
-                  <UploadIcon sx={{ fontSize: 100 }} />
-                </IconButton>
-
-                <Typography variant="subtitle3">Supported file formats include PNG, JPG, and SVG.</Typography>
-              </Box>
-            )}
+          <Box>
+            <BaseInput
+              sx={{ padding: 0 }}
+              placeholder={t('title')}
+              value={assistant.release?.submitButton?.title || ''}
+              onChange={(e) =>
+                setRelease((release) => {
+                  release.submitButton ??= {};
+                  release.submitButton.title = e.target.value;
+                })
+              }
+            />
           </Box>
         </Box>
-      </Box>
+      </TableLayout>
 
-      <Stack
-        sx={{
-          display: 'table',
-          '.row': {
-            display: 'table-row',
-            '> div': {
-              display: 'table-cell',
-              whiteSpace: 'nowrap',
-              '&:first-of-type': {
-                pr: 2,
-              },
-
-              '&:last-of-type': {
-                width: '100%',
-              },
-            },
-          },
-        }}>
+      <TableLayout>
         <Typography mb={1} variant="subtitle2">
           {t('publish.settings')}
         </Typography>
@@ -346,7 +304,7 @@ function PublishViewContent({
             </Box>
           </Box>
         </Box>
-      </Stack>
+      </TableLayout>
 
       <Stack>
         <Stack direction="row" gap={1} alignItems="center" className="between">
@@ -428,3 +386,26 @@ function PublishViewContent({
     </Stack>
   );
 }
+
+const TableLayout = styled(Box)`
+  display: table;
+
+  .row {
+    display: table-row;
+
+    > div {
+      display: table-cell;
+      white-space: nowrap;
+      padding-top: 2px;
+      padding-bottom: 2px;
+
+      &:first-of-type {
+        padding-right: 16px;
+      }
+
+      &:last-of-type {
+        width: 100%;
+      }
+    }
+  }
+`;

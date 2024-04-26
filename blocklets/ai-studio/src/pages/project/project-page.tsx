@@ -1,12 +1,7 @@
+import AgentEditor from '@app/components/file-editor/agent-editor';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  AssistantYjs,
-  isApiAssistant,
-  isFunctionAssistant,
-  isImageAssistant,
-  isPromptAssistant,
-} from '@blocklet/ai-runtime/types';
+import { AssistantYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import {
   Alert,
@@ -14,13 +9,6 @@ import {
   Button,
   ButtonProps,
   CircularProgress,
-  ClickAwayListener,
-  List,
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-  Paper,
-  Popper,
   Stack,
   Tab,
   Tabs,
@@ -31,16 +19,12 @@ import {
   tabsClasses,
 } from '@mui/material';
 import { useLocalStorageState, useTitle } from 'ahooks';
-import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { nanoid } from 'nanoid';
 import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
 import WithAwareness from '../../components/awareness/with-awareness';
-import ApiAssistantEditor from '../../components/file-editor/api-assistant';
-import FunctionAssistantEditor from '../../components/file-editor/function-file';
-import ImageAssistantEditor from '../../components/file-editor/image-file';
-import PromptAssistantEditor from '../../components/file-editor/prompt-file';
 import { useComponent } from '../../contexts/component';
 import { useReadOnly } from '../../contexts/session';
 import dirname, { getFileIdFromPath } from '../../utils/path';
@@ -142,8 +126,6 @@ export default function ProjectPage() {
   const layout = useRef<ImperativeColumnsLayout>(null);
   const fileTree = useRef<ImperativeFileTree>(null);
 
-  const createFileMenuState = usePopupState({ variant: 'popper' });
-
   return (
     <ColumnsLayout
       ref={layout}
@@ -167,7 +149,7 @@ export default function ProjectPage() {
                 </Button>
               )}
 
-              <Tooltip title={t('import.title')} disableInteractive>
+              <Tooltip title={t('importObject', { object: t('agents') })} disableInteractive>
                 <span>
                   <Button disabled={readOnly} sx={{ minWidth: 0 }} onClick={() => fileTree.current?.importFrom()}>
                     <Box component={Icon} icon="tabler:table-import" fontSize={20} color="#3B82F6" />
@@ -189,85 +171,32 @@ export default function ProjectPage() {
                 </span>
               </Tooltip>
 
-              <Tooltip title={t('newObject', { object: t('file') })} disableInteractive>
+              <Tooltip title={t('newObject', { object: t('agent') })} disableInteractive>
                 <span>
-                  <Button disabled={readOnly} sx={{ minWidth: 0 }} {...bindTrigger(createFileMenuState)}>
+                  <Button
+                    disabled={readOnly}
+                    sx={{ minWidth: 0 }}
+                    onClick={() => {
+                      const dir = dirname(filepath);
+                      const varId = nanoid();
+                      fileTree.current?.newFile({
+                        parent: dir[0] === PROMPTS_FOLDER_NAME ? dir : [],
+                        rootFolder: PROMPTS_FOLDER_NAME,
+                        meta: {
+                          type: 'prompt',
+                          outputVariables: {
+                            [varId]: {
+                              index: 0,
+                              data: { id: varId, name: RuntimeOutputVariable.textStream },
+                            },
+                          },
+                        },
+                      });
+                    }}>
                     <Box component={Icon} icon="tabler:plus" fontSize={20} color="#3B82F6" />
                   </Button>
                 </span>
               </Tooltip>
-
-              <Popper
-                {...bindPopper(createFileMenuState)}
-                sx={{ zIndex: (theme) => theme.zIndex.modal }}
-                placement="bottom-start">
-                <ClickAwayListener onClickAway={createFileMenuState.close}>
-                  <Paper elevation={2} onClick={createFileMenuState.close}>
-                    <List
-                      sx={{
-                        '.MuiListItemIcon-root': {
-                          minWidth: '0 !important',
-                          mr: 1,
-                        },
-                      }}>
-                      <MenuItem
-                        onClick={() => {
-                          const dir = dirname(filepath);
-                          fileTree.current?.newFile({
-                            parent: dir[0] === PROMPTS_FOLDER_NAME ? dir : [],
-                            rootFolder: PROMPTS_FOLDER_NAME,
-                            meta: { type: 'prompt' },
-                          });
-                        }}>
-                        <ListItemIcon>
-                          <Box component={Icon} icon="tabler:file-description" />
-                        </ListItemIcon>
-                        <ListItemText primary={t('prompt')} />
-                      </MenuItem>
-                      <MenuItem
-                        onClick={() => {
-                          const dir = dirname(filepath);
-                          fileTree.current?.newFile({
-                            parent: dir[0] === PROMPTS_FOLDER_NAME ? dir : [],
-                            rootFolder: PROMPTS_FOLDER_NAME,
-                            meta: { type: 'image' },
-                          });
-                        }}>
-                        <ListItemIcon>
-                          <Box component={Icon} icon="tabler:photo" />
-                        </ListItemIcon>
-                        <ListItemText primary={t('image')} />
-                      </MenuItem>
-                      <MenuItem
-                        onClick={() =>
-                          fileTree.current?.newFile({
-                            parent: dirname(filepath),
-                            meta: { type: 'api' },
-                            rootFolder: PROMPTS_FOLDER_NAME,
-                          })
-                        }>
-                        <ListItemIcon>
-                          <Box component={Icon} icon="tabler:link" />
-                        </ListItemIcon>
-                        <ListItemText primary={t('api')} />
-                      </MenuItem>
-                      <MenuItem
-                        onClick={() =>
-                          fileTree.current?.newFile({
-                            parent: dirname(filepath),
-                            meta: { type: 'function' },
-                            rootFolder: PROMPTS_FOLDER_NAME,
-                          })
-                        }>
-                        <ListItemIcon>
-                          <Box component={Icon} icon="tabler:code" />
-                        </ListItemIcon>
-                        <ListItemText primary={t('function')} />
-                      </MenuItem>
-                    </List>
-                  </Paper>
-                </ClickAwayListener>
-              </Popper>
             </Toolbar>
           </Box>
 
@@ -401,17 +330,7 @@ export default function ProjectPage() {
               </Box>
             ) : file ? (
               <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[file.id]} onMount>
-                {isPromptAssistant(file) ? (
-                  <PromptAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
-                ) : isImageAssistant(file) ? (
-                  <ImageAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
-                ) : isApiAssistant(file) ? (
-                  <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
-                ) : isFunctionAssistant(file) ? (
-                  <FunctionAssistantEditor projectId={projectId} gitRef={gitRef} value={file} />
-                ) : (
-                  <Box />
-                )}
+                <AgentEditor projectId={projectId} gitRef={gitRef} value={file} />
               </WithAwareness>
             ) : filepath ? (
               <Alert color="error">Not Found</Alert>

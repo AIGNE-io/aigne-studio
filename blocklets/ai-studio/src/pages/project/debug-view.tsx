@@ -356,6 +356,10 @@ const MessageView = memo(
                   </Stack>
                 ))}
 
+                {message.objects?.map((object, index) => (
+                  <MdViewer key={index} content={`${'```json'}\n${JSON.stringify(object, null, 2)}\n${'```'}`} />
+                ))}
+
                 {(message.content || message.images?.length || message.loading) &&
                 (chatType !== 'debug' || !message?.inputMessages?.length) ? (
                   <MessageViewContent
@@ -592,9 +596,9 @@ function DebugModeForm({
   const currentSession = state.sessions.find((i) => i.index === state.currentSessionIndex);
   const lastMessage = currentSession?.messages.at(-1);
 
-  const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index).filter(
-    (i): i is typeof i & { data: { key: string } } => !!i.data.key
-  );
+  const parameters = sortBy(Object.values(assistant.parameters ?? {}), (i) => i.index)
+    .filter((i) => i.data.type !== 'source')
+    .filter((i): i is typeof i & { data: { key: string } } => !!i.data.key);
   const params = parameters.map((i) => i.data.key);
 
   const initForm = useMemo(
@@ -621,13 +625,6 @@ function DebugModeForm({
     if (lastMessage?.loading && currentSession) {
       cancelMessage(currentSession.index, lastMessage.id);
       return;
-    }
-
-    if (isPromptAssistant(assistant)) {
-      if (assistant?.prompts && !Object.values(assistant?.prompts)?.length) {
-        Toast.error(t('emptyPrompts'));
-        return;
-      }
     }
 
     sendMessage({

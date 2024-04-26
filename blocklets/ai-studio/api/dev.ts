@@ -3,4 +3,6 @@ import { setupClient } from 'vite-plugin-blocklet';
 
 import { app } from './src';
 
-setupClient(app);
+const hmrPort = process.env.__HMR_PORT__;
+
+setupClient(app, hmrPort ? { port: parseInt(hmrPort, 10), protocol: 'wss' } : undefined);

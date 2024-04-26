@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.345",
+  "version": "0.1.346",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -63,6 +63,7 @@
         "./lib/types/core/index.d.ts"
       ],
       "common": [
+        "./lib/types/common.d.ts",
         "./lib/types/common/index.d.ts"
       ]
     }
@@ -88,18 +89,20 @@
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-builtin": "^0.1.345",
+    "@blocklet/ai-builtin": "^0.1.346",
     "@blocklet/ai-kit": "^0.1.27",
-    "@blocklet/dataset-sdk": "^0.1.345",
+    "@blocklet/dataset-sdk": "^0.1.346",
     "@blocklet/sdk": "^1.16.25",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.11",
     "axios": "^1.6.8",
     "dayjs": "^1.11.10",
     "eventsource-parser": "^1.1.2",
+    "joi": "^17.13.0",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
     "node-fetch": "2",
@@ -121,20 +124,22 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.70",
+    "@arcblock/ux": "^2.9.71",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
+    "@jest/globals": "^29.7.0",
     "@mui/icons-material": "^5.15.15",
     "@mui/lab": "^5.0.0-alpha.170",
     "@mui/material": "^5.15.15",
     "@types/lodash": "^4.17.0",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",
-    "@types/react": "^18.2.79",
+    "@types/react": "^18.3.0",
     "npm-run-all": "^4.1.5",
-    "react": "^18.2.0",
-    "react-router-dom": "^6.22.3",
+    "react": "^18.3.0",
+    "react-router-dom": "^6.23.0",
     "rimraf": "^5.0.5",
+    "ts-jest": "^29.1.2",
     "typescript": "^5.4.5"
   }
 }

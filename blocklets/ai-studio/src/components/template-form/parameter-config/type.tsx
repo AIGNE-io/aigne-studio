@@ -8,23 +8,23 @@ export default function ParameterConfigType(props: TextFieldProps) {
   const list = useMemo(() => {
     return [
       {
-        label: t('form.parameter.typeText'),
+        label: t('text'),
         value: 'string',
       },
       {
-        label: t('form.parameter.typeTextMultiline'),
+        label: t('multiline'),
         value: 'multiline',
       },
       {
-        label: t('form.parameter.typeNumber'),
+        label: t('number'),
         value: 'number',
       },
       {
-        label: t('form.parameter.typeSelect'),
+        label: t('select'),
         value: 'select',
       },
       {
-        label: t('form.parameter.typeLanguage'),
+        label: t('language'),
         value: 'language',
       },
     ];

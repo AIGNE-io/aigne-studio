@@ -14,10 +14,20 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label={t('form.parameter.helper')}
+          label={t('label')}
           size="small"
-          value={value.helper || ''}
-          onChange={(e) => (value.helper = e.target.value)}
+          value={value.label || ''}
+          onChange={(e) => (value.label = e.target.value)}
+          InputProps={{ readOnly }}
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label={t('placeholder')}
+          size="small"
+          value={value.placeholder || ''}
+          onChange={(e) => (value.placeholder = e.target.value)}
           InputProps={{ readOnly }}
         />
       </Grid>
@@ -26,7 +36,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           readOnly={readOnly}
           parameter={parameterFromYjs(value)}
           fullWidth
-          label={t('form.parameter.defaultValue')}
+          label={t('defaultValue')}
           size="small"
           value={value.defaultValue ?? ''}
           onChange={(defaultValue: any) => (value.defaultValue = defaultValue)}
@@ -40,7 +50,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       <Grid item xs={12}>
         <FormControl>
           <FormControlLabel
-            label={t('form.parameter.required')}
+            label={t('required')}
             control={
               <Switch
                 checked={value.required || false}
@@ -54,7 +64,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         <>
           <Grid item xs={6}>
             <NumberField
-              label={t('form.parameter.minLength')}
+              label={t('minLength')}
               size="small"
               NumberProps={{
                 readOnly,
@@ -67,7 +77,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label={t('form.parameter.maxLength')}
+              label={t('maxLength')}
               size="small"
               NumberProps={{
                 readOnly,
@@ -84,7 +94,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label={t('form.parameter.min')}
+              label={t('min')}
               size="small"
               NumberProps={{
                 readOnly,
@@ -96,7 +106,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           <Grid item xs={6}>
             <NumberField
               fullWidth
-              label={t('form.parameter.max')}
+              label={t('max')}
               size="small"
               NumberProps={{
                 readOnly,

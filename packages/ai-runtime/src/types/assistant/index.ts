@@ -8,9 +8,14 @@ export enum OnTaskCompletion {
   EXIT = 'EXIT',
 }
 
-export type FileType = Assistant | { $base64: string };
+export type Variables = {
+  type: 'variables';
+  variables?: Variable[];
+};
 
-export type Assistant = PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
+export type FileType = Assistant | { $base64: string } | Variables;
+
+export type Assistant = Agent | PromptAssistant | ImageAssistant | ApiAssistant | FunctionAssistant;
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -18,7 +23,7 @@ export type ExecuteBlockRole = Role | 'none';
 
 export type Tool = {
   id: string;
-  from?: 'assistant' | 'dataset' | 'knowledge';
+  from?: 'assistant' | 'dataset' | 'knowledge'; // 这里的 dataset 其实代表 api
   parameters?: { [key: string]: string };
   functionName?: string;
   onEnd?: OnTaskCompletion;
@@ -75,6 +80,14 @@ export type Prompt =
       visibility?: 'hidden';
     };
 
+export type Variable = {
+  scope?: 'session' | 'user' | 'global';
+  key: string;
+  reset?: boolean;
+  defaultValue?: any;
+  type?: VariableType;
+};
+
 export interface AssistantBase {
   id: string;
   name?: string;
@@ -93,7 +106,6 @@ export interface AssistantBase {
     createdBy: string;
   }[];
   formatResultType?: 'none';
-
   release?: {
     template?: string;
     title?: string;
@@ -102,13 +114,62 @@ export interface AssistantBase {
     logo?: string;
     maxRoundLimit?: number;
     reachMaxRoundLimitTip?: string;
+    submitButton?: {
+      title?: string;
+      background?: string;
+    };
     payment?: {
       enable?: boolean;
       price?: string;
     };
   };
-
   entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
+
+  outputVariables?: OutputVariable[];
+
+  memory?: {
+    enable?: boolean;
+    limit?: number;
+    keyword?: string;
+  };
+}
+
+export interface VariableTypeBase {
+  id: string;
+  name?: string;
+  description?: string;
+  required?: boolean;
+}
+
+export type VariableType = VariableTypeBase &
+  (
+    | { type?: undefined }
+    | {
+        type: 'textStream';
+        defaultValue?: string;
+      }
+    | {
+        type: 'string';
+        defaultValue?: string;
+      }
+    | {
+        type: 'number';
+        defaultValue?: number;
+      }
+    | {
+        type: 'object';
+        properties?: VariableType[];
+      }
+    | {
+        type: 'array';
+        element?: VariableType;
+      }
+  );
+
+export type OutputVariable = VariableType & { variable?: { key: string; scope: string } };
+
+export interface Agent extends AssistantBase {
+  type: 'agent';
 }
 
 export interface PromptAssistant extends AssistantBase {
@@ -148,7 +209,25 @@ export interface FunctionAssistant extends AssistantBase {
   code?: string;
 }
 
-export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter;
+export interface DatastoreParameter {
+  variableFrom?: 'datastore'; // Storage 感觉更好，但是又出现了多个命名，维持 Datastore
+  variable?: {
+    key: string;
+    scope: string;
+  };
+}
+
+export interface ToolParameter {
+  variableFrom?: 'tool';
+  tool?: Tool;
+}
+
+export interface KnowledgeParameter {
+  variableFrom?: 'knowledge';
+  tool?: Tool;
+}
+
+export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | SourceParameter;
 
 export interface ParameterBase {
   id: string;
@@ -157,7 +236,13 @@ export interface ParameterBase {
   placeholder?: string;
   helper?: string;
   required?: boolean;
-  from?: 'editor';
+  from?: 'editor' | 'agentParameter' | 'knowledgeParameter';
+}
+
+export interface SourceParameter extends ParameterBase {
+  type: 'source';
+  defaultValue?: string;
+  source?: DatastoreParameter | ToolParameter | KnowledgeParameter;
 }
 
 export interface StringParameter extends ParameterBase {
