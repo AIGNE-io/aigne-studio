@@ -103,9 +103,11 @@ navigation:
       - dashboard
       - sessionManager
     role:
-      - admin
       - owner
+      - admin
       - promptsEditor
+      - member
+      - guest
 resource:
   exportApi: /api/resources/export
   types:
