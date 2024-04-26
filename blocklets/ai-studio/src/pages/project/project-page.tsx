@@ -1,7 +1,7 @@
 import AgentEditor from '@app/components/file-editor/agent-editor';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import {
   Alert,
@@ -19,6 +19,7 @@ import {
   tabsClasses,
 } from '@mui/material';
 import { useLocalStorageState, useTitle } from 'ahooks';
+import { nanoid } from 'nanoid';
 import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
@@ -177,10 +178,19 @@ export default function ProjectPage() {
                     sx={{ minWidth: 0 }}
                     onClick={() => {
                       const dir = dirname(filepath);
+                      const varId = nanoid();
                       fileTree.current?.newFile({
                         parent: dir[0] === PROMPTS_FOLDER_NAME ? dir : [],
                         rootFolder: PROMPTS_FOLDER_NAME,
-                        meta: { type: 'prompt' },
+                        meta: {
+                          type: 'prompt',
+                          outputVariables: {
+                            [varId]: {
+                              index: 0,
+                              data: { id: varId, name: RuntimeOutputVariable.textStream },
+                            },
+                          },
+                        },
                       });
                     }}>
                     <Box component={Icon} icon="tabler:plus" fontSize={20} color="#3B82F6" />
