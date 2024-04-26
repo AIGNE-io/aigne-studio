@@ -105,7 +105,7 @@ export default flat({
     remoteDescription: 'Import a project from an existing git repository, such as GitHub.',
     didSpaces: 'Import from DID Spaces',
     didSpacesTitle: 'Import project from DID Spaces',
-    fromCurrentDidSpaceImport: 'Import a project from the currently connected DID Space',
+    fromCurrentDidSpaceImport: 'Import a project from the currently connected DID Space({name})',
     fromOtherDidSpaceImport: 'Import a project from other DID Space',
     selectProject: 'Select Project',
     selectBranch: 'Select Branch',

@@ -5,11 +5,12 @@ import { didSpaceReady, getImportUrl } from '@app/libs/did-spaces';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import KeyboardArrowRightOutlinedIcon from '@mui/icons-material/KeyboardArrowRightOutlined';
-import LinkOutlinedIcon from '@mui/icons-material/LinkOutlined';
+import ArrowRightAltRoundedIcon from '@iconify-icons/material-symbols/arrow-right-alt-rounded';
+import { Icon } from '@iconify/react';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
+  BoxProps,
   Button,
   Dialog,
   DialogActions,
@@ -40,6 +41,55 @@ type ProjectSettingForm = {
   name: string;
   description: string;
 };
+
+function ImportWayItem({
+  icon,
+  text,
+  ...rest
+}: {
+  icon: any;
+  text: string;
+} & BoxProps) {
+  return (
+    <Box
+      {...rest}
+      sx={{
+        borderRadius: 2,
+        backgroundColor: 'rgba(249, 250, 251, 1)',
+        p: 2,
+        transition: 'background-color 0.5s',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        cursor: 'pointer',
+        '&:hover': {
+          backgroundColor: 'rgba(19, 125, 250, 0.06)',
+          '& .other-item-icon': {
+            display: 'inline-block',
+            transform: 'translateX(0)',
+            opacity: '1',
+          },
+        },
+        '& .other-item-icon': {
+          opacity: '0',
+          transform: 'translateX(-100%)',
+          transition: 'transform 0.2s ease',
+        },
+        ...rest?.sx,
+      }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {icon}
+        <Typography sx={{ fontSize: '16px', fontWeight: 'bold' }}>{text}</Typography>
+      </Box>
+      <Icon
+        className="other-item-icon"
+        icon={ArrowRightAltRoundedIcon}
+        fontSize="1.3rem"
+        color="rgba(19, 125, 250, 1)"
+      />
+    </Box>
+  );
+}
 
 export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClose: () => void }) {
   const { t } = useLocaleContext();
@@ -76,46 +126,17 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
       <DialogContent>
         <Stack overflow="auto" gap={1.5}>
           {hasDidSpace && (
-            <Box
-              sx={{
-                display: 'flex',
-                backgroundColor: '#F9FAFB',
-                '&:hover': {
-                  backgroundColor: '#F3F4F6',
-                },
-                '&:active': {
-                  backgroundColor: '#E5E7E8',
-                },
-                padding: '16px 12px',
-                cursor: 'pointer',
-                borderRadius: '8px',
-              }}
-              onClick={fromCurrentDidSpaceImport}>
-              <>
-                <Typography>{t('import.fromCurrentDidSpaceImport')}</Typography>
-                <KeyboardArrowRightOutlinedIcon sx={{ ml: 0.5 }} />
-              </>
-            </Box>
+            <ImportWayItem
+              icon={<DidSpacesLogo style={{ transform: 'scale(0.95)', fontSize: '1.5rem' }} />}
+              text={t('import.fromCurrentDidSpaceImport', { name: session?.user?.didSpace?.name })}
+              onClick={fromCurrentDidSpaceImport}
+            />
           )}
-
-          <Box
-            sx={{
-              display: 'flex',
-              backgroundColor: '#F9FAFB',
-              '&:hover': {
-                backgroundColor: '#F3F4F6',
-              },
-              '&:active': {
-                backgroundColor: '#E5E7E8',
-              },
-              padding: '16px 12px',
-              cursor: 'pointer',
-              borderRadius: '8px',
-            }}
-            onClick={fromOtherDidSpaceImport}>
-            <Typography>{t('import.fromOtherDidSpaceImport')}</Typography>
-            <LinkOutlinedIcon sx={{ ml: 0.5 }} />
-          </Box>
+          <ImportWayItem
+            icon={<DidSpacesLogo style={{ transform: 'scale(0.95)', fontSize: '1.5rem' }} />}
+            text={t('import.fromOtherDidSpaceImport')}
+            onClick={fromOtherDidSpaceImport}
+          />
         </Stack>
       </DialogContent>
     </Dialog>

@@ -56,6 +56,8 @@
     "@emotion/styled": "^11.11.5",
     "@huggingface/inference": "^2.6.7",
     "@iconify-icon/react": "^1.0.8",
+    "@iconify-icons/material-symbols": "^1.2.58",
+    "@iconify/react": "^4.1.1",
     "@langchain/community": "^0.0.42",
     "@langchain/core": "^0.1.58",
     "@langchain/openai": "^0.0.23",
