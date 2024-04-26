@@ -1,3 +1,7 @@
+## 0.1.345 (2024-4-24)
+
+- fix: imported the issue of incorrect copy in the did spaces
+
 ## 0.1.344 (2024-4-23)
 
 - feat: support for asynchronous synchronization to did space

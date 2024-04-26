@@ -139,6 +139,7 @@ export default function FromDidSpacesImport() {
       setLoading(true);
 
       if (!endpoint) {
+        dialogState.close();
         return;
       }
 

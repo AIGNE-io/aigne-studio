@@ -36,8 +36,7 @@ import {
   styled,
 } from '@mui/material';
 import { MouseEvent, ReactNode, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useSearchParam } from 'react-use';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
 
 import Project from '../../../../api/src/store/models/project';
@@ -59,7 +58,8 @@ const MAX_WIDTH = 300;
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
-  const endpoint = useSearchParam('endpoint');
+  const [search] = useSearchParams();
+  const endpoint = search.get('endpoint');
 
   const {
     state: { loading, templates, projects, examples },
