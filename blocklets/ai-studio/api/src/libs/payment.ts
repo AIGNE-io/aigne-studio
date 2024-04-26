@@ -7,6 +7,7 @@ import { fromTokenToUnit, fromUnitToToken } from '@ocap/util';
 import { DebouncedFunc, throttle } from 'lodash';
 import { Op } from 'sequelize';
 
+import { stringifyIdentity } from './aid';
 import { Config } from './env';
 import logger from './logger';
 
@@ -155,7 +156,7 @@ export async function reportUsage({
         });
 
         const subscription = await getActiveSubscriptionOfAssistant({
-          aid: Buffer.from([projectId, projectRef, assistantId].join('/')).toString('base64url'),
+          aid: stringifyIdentity({ projectId, projectRef, assistantId }),
           userId,
         });
         if (!subscription) throw new Error('Subscription not active');
