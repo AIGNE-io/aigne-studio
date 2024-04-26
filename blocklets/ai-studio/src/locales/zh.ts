@@ -658,4 +658,5 @@ export default flat({
     saveMemory: '保存记忆',
   },
   source: '其他数据源',
+  clickToUploadAgentLogo: '点击上传 Agent 图标',
 });

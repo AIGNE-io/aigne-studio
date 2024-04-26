@@ -662,4 +662,5 @@ export default flat({
     saveMemory: 'Save the memory',
   },
   source: 'Source',
+  clickToUploadAgentLogo: 'Click to upload your agent logo',
 });
