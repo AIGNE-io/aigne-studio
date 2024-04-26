@@ -663,4 +663,5 @@ export default flat({
   },
   source: 'Source',
   clickToUploadAgentLogo: 'Click to upload your agent logo',
+  copyToMyProjects: 'Copy to My Projects',
 });

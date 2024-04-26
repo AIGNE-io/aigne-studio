@@ -659,4 +659,5 @@ export default flat({
   },
   source: '其他数据源',
   clickToUploadAgentLogo: '点击上传 Agent 图标',
+  copyToMyProjects: '复制到我的项目',
 });
