@@ -364,7 +364,7 @@ function ProjectMenu() {
                     disabled={readOnly}
                     onClick={menu.onClick}
                     sx={{ color: menu.color, svg: { color: menu.color } }}>
-                    <ListItemIcon sx={{ minWidth: '0 !important', mr: 1 }}>{menu.icon}</ListItemIcon>
+                    <ListItemIcon>{menu.icon}</ListItemIcon>
                     {menu.title}
                   </LoadingMenuItem>
                 ));

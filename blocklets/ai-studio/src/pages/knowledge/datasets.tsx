@@ -289,14 +289,7 @@ function DatasetItem({
                     title={
                       <ClickAwayListener onClickAway={() => setOpen(false)}>
                         <Paper elevation={0}>
-                          <List
-                            onClick={() => setOpen(false)}
-                            sx={{
-                              '.MuiListItemIcon-root': {
-                                minWidth: '0 !important',
-                                mr: 1,
-                              },
-                            }}>
+                          <List onClick={() => setOpen(false)}>
                             <MenuItem
                               onClick={(e) => {
                                 e.stopPropagation();

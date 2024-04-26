@@ -10,18 +10,14 @@ import {
   Autocomplete,
   Box,
   Button,
-  Checkbox,
   ClickAwayListener,
-  FormControlLabel,
+  Divider,
   Input,
-  List,
-  ListItem,
-  ListSubheader,
+  ListItemIcon,
+  ListItemText,
   MenuItem,
   Paper,
   Popper,
-  Radio,
-  RadioGroup,
   Select,
   Stack,
   Table,
@@ -37,7 +33,7 @@ import {
 } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
-import { cloneDeep, get, sortBy } from 'lodash';
+import { get, sortBy } from 'lodash';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import { useId, useMemo } from 'react';
@@ -45,30 +41,13 @@ import { useAssistantCompare } from 'src/pages/project/state';
 
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
+import PopperMenu from '../menu/PopperMenu';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
 import { FROM_KNOWLEDGE } from './execute-block';
 import PromptEditorField from './prompt-editor-field';
 import SelectVariable from './select-variable';
 import useVariablesEditorOptions from './use-variables-editor-options';
-
-function CustomNoRowsOverlay() {
-  const { t } = useLocaleContext();
-
-  return (
-    <Stack width={1} textAlign="center">
-      <Box lineHeight="28px">🔢</Box>
-
-      <Typography variant="caption" color="#030712" fontSize={13} lineHeight="22px" fontWeight={500}>
-        {t('emptyVariablesTitle')}
-      </Typography>
-
-      <Typography variant="caption" color="#9CA3AF" fontSize={12} lineHeight="20px" fontWeight={500}>
-        {t('emptyVariablesSubtitle')}
-      </Typography>
-    </Stack>
-  );
-}
 
 export const FROM_PARAMETER = 'agentParameter';
 export const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
@@ -102,7 +81,6 @@ export default function ParametersTable({
   };
 
   const parameters = sortBy(Object.values(value.parameters ?? {}), (i) => i.index);
-  const settingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const { data: knowledge = [] } = useRequest(() => getDatasets(projectId));
 
   const FROM_MAP = useMemo(() => {
@@ -130,6 +108,22 @@ export default function ParametersTable({
         width: '16%' as any,
         headerName: t('variable'),
         renderCell: ({ row: { data: parameter } }) => {
+          if (parameter.key === 'question' || parameter.key === 'datasetId') {
+            const iconMap = {
+              question: 'question-mark',
+              datasetId: 'database',
+            };
+
+            return (
+              <Box height={33} display="flex" alignItems="center">
+                <Box className="center" width={16} height={16} mr={0.5}>
+                  <Box component={Icon} icon={`tabler:${iconMap[parameter.key]}`} />
+                </Box>
+                <Box>{parameter.key}</Box>
+              </Box>
+            );
+          }
+
           return (
             <WithAwareness
               projectId={projectId}
@@ -241,86 +235,31 @@ export default function ParametersTable({
     ];
   }, [t, readOnly, doc, deleteParameter]);
 
-  const removeParameter = (key: string) => {
-    doc.transact(() => {
-      if (!value.parameters) return;
-      for (const id of Object.keys(value.parameters)) {
-        if (value.parameters[id]?.data.key === key) delete value.parameters[id];
-      }
-    });
-  };
-
   return (
-    <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-        <Typography variant="subtitle2">{t('inputParameters')}</Typography>
-
-        {!readOnly && (
-          <Stack direction="row">
-            <Button sx={{ minWidth: 32, p: 0, minHeight: 32 }} {...bindTrigger(settingPopperState)}>
-              <Box fontSize={16} component={Icon} icon="tabler:settings-2" />
-            </Button>
-
-            <Popper {...bindPopper(settingPopperState)} placement="bottom-end">
-              <ClickAwayListener onClickAway={settingPopperState.close}>
-                <Paper>
-                  <List dense>
-                    <ListSubheader>{t('mode')}</ListSubheader>
-                    <ListItem>
-                      <RadioGroup
-                        value={parameters.some((i) => i.data.key === 'question') ? 'chat' : 'form'}
-                        onChange={(_, v) => {
-                          if (v === 'chat') {
-                            addParameter('question');
-                          } else {
-                            removeParameter('question');
-                          }
-                        }}>
-                        <FormControlLabel value="form" control={<Radio />} label={t('form')} />
-                        <FormControlLabel value="chat" control={<Radio />} label={t('chat')} />
-                      </RadioGroup>
-                    </ListItem>
-                    <ListSubheader>{t('dataset')}</ListSubheader>
-                    <ListItem>
-                      <FormControlLabel
-                        control={<Checkbox />}
-                        label={t('withCollectionManage')}
-                        checked={parameters.some((i) => i.data.key === 'datasetId')}
-                        onChange={(_, checked) => {
-                          if (checked) {
-                            addParameter('datasetId');
-                          } else {
-                            removeParameter('datasetId');
-                          }
-                        }}
-                      />
-                    </ListItem>
-                  </List>
-                </Paper>
-              </ClickAwayListener>
-            </Popper>
-
-            <Button
-              sx={{ minWidth: 32, p: 0, minHeight: 32 }}
-              onClick={() => {
-                const id = addParameter('');
-                setTimeout(() => {
-                  document.getElementById(`${id}-key`)?.focus();
-                });
-              }}>
-              <Box fontSize={16} component={Icon} icon="tabler:plus" />
-            </Button>
-          </Stack>
-        )}
+    <Box
+      sx={{
+        background: '#F9FAFB',
+        py: 1.5,
+        px: 2,
+        borderRadius: 1,
+      }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+        <Box display="flex" alignItems="center" gap={0.5}>
+          <Box component={Icon} icon="tabler:arrow-autofit-up" />
+          <Typography variant="subtitle2" mb={0}>
+            {t('inputParameters')}
+          </Typography>
+        </Box>
       </Stack>
 
-      {parameters.length ? (
+      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
         <Box
           sx={{
-            borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+            borderBottom: () => (parameters?.length ? '1px solid rgba(224, 224, 224, 1)' : 0),
             whiteSpace: 'nowrap',
             maxWidth: '100%',
             table: {
+              th: { pt: 0 },
               td: { py: 0 },
               'tbody tr:last-of-type td': {
                 border: 'none',
@@ -382,9 +321,8 @@ export default function ParametersTable({
                             }}>
                             {index === 0 && (
                               <Stack
-                                className="hover-visible"
+                                className="hover-visible center"
                                 ref={params.drag}
-                                alignItems="center"
                                 sx={{ p: 0.5, cursor: 'move', position: 'absolute', left: -24, top: 0, bottom: 0 }}>
                                 <DragVertical sx={{ color: '#9CA3AF', fontSize: 22 }} />
                               </Stack>
@@ -423,9 +361,47 @@ export default function ParametersTable({
             />
           </Table>
         </Box>
-      ) : (
-        <CustomNoRowsOverlay />
-      )}
+
+        {!readOnly && (
+          <Stack direction="row">
+            <PopperMenu
+              ButtonProps={{
+                sx: { my: 1 },
+                startIcon: <Box fontSize={16} component={Icon} icon="tabler:plus" />,
+                children: <Box>Input</Box>,
+              }}>
+              <MenuItem onClick={() => addParameter('question')}>
+                <ListItemIcon>
+                  <Box component={Icon} icon="tabler:question-mark" />
+                </ListItemIcon>
+                <ListItemText primary={t('question')} />
+              </MenuItem>
+
+              <MenuItem onClick={() => addParameter('datasetId')}>
+                <ListItemIcon>
+                  <Box component={Icon} icon="tabler:database" />
+                </ListItemIcon>
+                <ListItemText primary={t('datasetId')} />
+              </MenuItem>
+
+              <Divider sx={{ my: '4px !important', p: 0 }} />
+
+              <MenuItem
+                onClick={() => {
+                  const id = addParameter('');
+                  setTimeout(() => {
+                    document.getElementById(`${id}-key`)?.focus();
+                  });
+                }}>
+                <ListItemIcon>
+                  <Box component={Icon} icon="tabler:plus" />
+                </ListItemIcon>
+                <ListItemText primary={t('Customize')} />
+              </MenuItem>
+            </PopperMenu>
+          </Stack>
+        )}
+      </Box>
     </Box>
   );
 }

@@ -1,10 +1,7 @@
 import { PromptAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Stack } from '@mui/material';
 
-import { useReadOnly } from '../../../contexts/session';
-import BasicHistory from '../history';
 import PromptAssistantEditorPrompts from './prompts';
-import PromptAssistantSetting from './setting';
 
 export default function PromptAssistantEditor({
   projectId,
@@ -17,21 +14,19 @@ export default function PromptAssistantEditor({
   value: PromptAssistantYjs;
   disabled?: boolean;
 }) {
-  const readOnly = useReadOnly({ ref: gitRef }) || disabled;
-
   return (
     <Stack gap={2.5}>
       <Box sx={{ borderRadius: 1 }}>
         <PromptAssistantEditorPrompts projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Box>
 
-      <Box sx={{ borderRadius: 1 }}>
+      {/* <Box sx={{ borderRadius: 1 }}>
         <BasicHistory projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>
 
       <Box sx={{ borderRadius: 1 }}>
         <PromptAssistantSetting projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
-      </Box>
+      </Box> */}
     </Stack>
   );
 }

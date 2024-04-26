@@ -1,15 +1,20 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import { Box, Stack, Typography } from '@mui/material';
 import { ReactNode } from 'react';
 
 import AgentTypeSelect from './agent-type-select';
+import Setting from './setting';
 
 export default function AgentProcessingView({
+  projectId,
+  gitRef,
   assistant,
   children,
 }: {
+  projectId: string;
+  gitRef: string;
   assistant: AssistantYjs;
   children?: ReactNode;
 }) {
@@ -17,16 +22,22 @@ export default function AgentProcessingView({
 
   return (
     <Stack gap={1}>
-      <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
-        <Box component={Icon} icon="tabler:cpu" sx={{ color: '#3B82F6', fontSize: 15 }} />
-        <Typography variant="subtitle2" sx={{ m: 0 }}>
-          {t('processing')}
-        </Typography>
+      <Box className="between">
+        <Box display="flex" alignItems="center" gap={0.5}>
+          <Box component={Icon} icon="tabler:brain" sx={{ fontSize: 15 }} />
+          <Typography variant="subtitle2" sx={{ m: 0 }}>
+            {t('Processing')}
+          </Typography>
+          <Box>-</Box>
+          <AgentTypeSelect assistant={assistant} />
+        </Box>
 
-        <Box flex={1} />
-
-        <AgentTypeSelect assistant={assistant} />
-      </Stack>
+        <Box>
+          {(isPromptAssistant(assistant) || isImageAssistant(assistant)) && (
+            <Setting projectId={projectId} gitRef={gitRef} value={assistant} />
+          )}
+        </Box>
+      </Box>
 
       {children}
     </Stack>

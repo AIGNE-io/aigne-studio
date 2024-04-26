@@ -904,16 +904,7 @@ function TreeItem({
               title={
                 <ClickAwayListener onClickAway={() => setOpen(false)}>
                   <Paper elevation={0}>
-                    <List
-                      onClick={() => setOpen(false)}
-                      sx={{
-                        '.MuiListItemIcon-root': {
-                          minWidth: '0 !important',
-                          mr: 1,
-                        },
-                      }}>
-                      {actions}
-                    </List>
+                    <List onClick={() => setOpen(false)}>{actions}</List>
                   </Paper>
                 </ClickAwayListener>
               }>

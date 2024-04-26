@@ -665,6 +665,11 @@ export const theme = createTheme({
           theme.unstable_sx({
             padding: '6px 12px',
             fontSize: '0.875rem',
+
+            '.MuiListItemIcon-root': {
+              minWidth: 0,
+              mr: 1,
+            },
           }),
       },
     },

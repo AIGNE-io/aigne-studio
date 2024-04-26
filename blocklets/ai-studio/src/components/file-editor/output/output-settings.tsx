@@ -1,19 +1,22 @@
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { NumberField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, OutputVariableYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import {
   Box,
   Button,
-  Checkbox,
   ClickAwayListener,
   MenuItem,
   Paper,
   Popper,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   TextField,
   TextFieldProps,
   Typography,
@@ -52,66 +55,83 @@ export default function OutputSettings({
   };
 
   return (
-    <Box sx={{ border: '1px solid #E5E7EB', px: 1, py: 2, borderRadius: 1 }}>
-      <Stack direction="row" alignItems="center" sx={{ cursor: 'pointer', px: 1 }} gap={1}>
-        <Typography
-          variant="subtitle2"
-          sx={{
-            fontWeight: 500,
-          }}>
-          {t('output')}
-        </Typography>
-
-        <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end" />
+    <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, borderRadius: 1 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+        <Box display="flex" alignItems="center" gap={0.5}>
+          <Box component={Icon} icon="tabler:arrow-autofit-down" />
+          <Typography variant="subtitle2" mb={0}>
+            {t('output')}
+          </Typography>
+        </Box>
       </Stack>
 
-      <Box component="table" sx={{ minWidth: '100%', th: { whiteSpace: 'nowrap' } }}>
-        <thead>
-          <tr>
-            <Box component="th">{t('name')}</Box>
-            <Box component="th">{t('description')}</Box>
-            <Box component="th">{t('type')}</Box>
-            <Box component="th">{t('required')}</Box>
-            <Box component="th">{t('defaultValue')}</Box>
-            <Box component="th">{t('actions')}</Box>
-          </tr>
-        </thead>
-        <tbody>
-          {outputVariables?.map((variable) => (
-            <VariableRow
-              key={variable.data.id}
-              variable={variable.data}
-              value={value}
-              projectId={projectId}
-              gitRef={gitRef}
-              onRemove={() =>
-                setField(() => {
-                  delete value.outputVariables?.[variable.data.id];
-                })
-              }
-            />
-          ))}
-        </tbody>
+      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
+        <Box
+          sx={{
+            borderBottom: () => (outputVariables?.length ? '1px solid rgba(224, 224, 224, 1)' : 0),
+            whiteSpace: 'nowrap',
+            maxWidth: '100%',
+            table: {
+              th: { pt: 0, px: 0 },
+              td: { py: 0, px: 0 },
+              'tbody tr:last-of-type td': {
+                border: 'none',
+              },
+            },
+          }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <Box component={TableCell}>{t('name')}</Box>
+                <Box component={TableCell}>{t('description')}</Box>
+                <Box component={TableCell}>{t('type')}</Box>
+                <Box component={TableCell} align="right">
+                  {t('actions')}
+                </Box>
+              </TableRow>
+            </TableHead>
+
+            <TableBody
+              sx={{
+                'tr>td': {},
+              }}>
+              {outputVariables?.map((variable) => (
+                <VariableRow
+                  key={variable.data.id}
+                  variable={variable.data}
+                  value={value}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  onRemove={() =>
+                    setField(() => {
+                      delete value.outputVariables?.[variable.data.id];
+                    })
+                  }
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
+
+        {value.type !== 'image' && (
+          <AddOutputVariableButton
+            assistant={value}
+            onSelect={({ name }) => {
+              setField((vars) => {
+                const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
+                if (exist) {
+                  delete vars[exist.data.id];
+                } else {
+                  const id = nanoid();
+                  vars[id] = { index: Object.values(vars).length, data: { id, name } };
+                }
+
+                sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+              });
+            }}
+          />
+        )}
       </Box>
-
-      {value.type !== 'image' && (
-        <AddOutputVariableButton
-          assistant={value}
-          onSelect={({ name }) => {
-            setField((vars) => {
-              const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
-              if (exist) {
-                delete vars[exist.data.id];
-              } else {
-                const id = nanoid();
-                vars[id] = { index: Object.values(vars).length, data: { id, name } };
-              }
-
-              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
-            });
-          }}
-        />
-      )}
     </Box>
   );
 }
@@ -152,21 +172,17 @@ function VariableRow({
 
   return (
     <>
-      <tr key={variable.id}>
-        <Box component="td">
+      <Box component={TableRow} key={variable.id}>
+        <Box component={TableCell}>
           <Box sx={{ ml: depth }}>
             {runtimeVariable ? (
               <Stack
                 direction="row"
                 alignItems="center"
                 sx={{
-                  px: 1,
-                  py: 0.5,
                   gap: 1,
-                  border: 1,
+                  border: 0,
                   borderRadius: 1,
-                  borderColor: 'divider',
-                  bgcolor: 'grey.100',
                   whiteSpace: 'nowrap',
                 }}>
                 {runtimeVariable.icon}
@@ -175,6 +191,7 @@ function VariableRow({
               </Stack>
             ) : (
               <TextField
+                variant="standard"
                 disabled={Boolean(disabled)}
                 fullWidth
                 hiddenLabel
@@ -185,8 +202,9 @@ function VariableRow({
             )}
           </Box>
         </Box>
-        <Box component="td">
+        <Box component={TableCell}>
           <TextField
+            variant="standard"
             disabled={Boolean(disabled)}
             fullWidth
             hiddenLabel
@@ -195,9 +213,10 @@ function VariableRow({
             onChange={(e) => (v.description = e.target.value)}
           />
         </Box>
-        <Box component="td" align="center">
+        <Box component={TableCell}>
           {!runtimeVariable && (
             <VariableTypeField
+              variant="standard"
               disabled={Boolean(disabled)}
               value={v.type || 'string'}
               onChange={(e) => {
@@ -248,36 +267,7 @@ function VariableRow({
             />
           )}
         </Box>
-        <Box component="td" align="center">
-          <Checkbox
-            disabled={Boolean(disabled)}
-            checked={v.required || false}
-            onChange={(_, checked) => {
-              v.required = checked;
-            }}
-          />
-        </Box>
-        <Box component="td" align="center">
-          {runtimeVariable ? null : v.type === 'string' ? (
-            <TextField
-              disabled={Boolean(disabled)}
-              hiddenLabel
-              fullWidth
-              multiline
-              value={v.defaultValue || ''}
-              onChange={(e) => (v.defaultValue = e.target.value)}
-            />
-          ) : v.type === 'number' ? (
-            <NumberField
-              disabled={Boolean(disabled)}
-              hiddenLabel
-              fullWidth
-              value={v.defaultValue || ''}
-              onChange={(value) => (v.defaultValue = value)}
-            />
-          ) : null}
-        </Box>
-        <td align="right">
+        <Box component={TableCell} align="right">
           <Stack direction="row" gap={1} justifyContent="flex-end">
             {depth === 0 && !runtimeVariable && (
               <>
@@ -380,8 +370,8 @@ function VariableRow({
               </Button>
             )}
           </Stack>
-        </td>
-      </tr>
+        </Box>
+      </Box>
 
       {!runtimeVariable &&
         v.type === 'object' &&
