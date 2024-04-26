@@ -1,13 +1,24 @@
+import BaseSwitch from '@app/components/custom/switch';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, OutputVariableYjs } from '@blocklet/ai-runtime/types';
+import { NumberField } from '@blocklet/ai-runtime/components';
+import { AssistantYjs, OutputVariableYjs, VariableYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
+import { Close } from '@mui/icons-material';
 import {
   Box,
   Button,
   ClickAwayListener,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  FormControlLabel,
+  IconButton,
+  List,
   MenuItem,
   Paper,
   Popper,
@@ -21,10 +32,10 @@ import {
   TextFieldProps,
   Typography,
 } from '@mui/material';
-import { cloneDeep, sortBy } from 'lodash';
-import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { sortBy } from 'lodash';
+import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import React from 'react';
 
 import SelectVariable from '../select-variable';
@@ -123,7 +134,7 @@ export default function OutputSettings({
                   delete vars[exist.data.id];
                 } else {
                   const id = nanoid();
-                  vars[id] = { index: Object.values(vars).length, data: { id, name } };
+                  vars[id] = { index: Object.values(vars).length, data: { id, name, type: 'string' } };
                 }
 
                 sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
@@ -155,7 +166,6 @@ function VariableRow({
 }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(variable) as Map<any>).doc!;
-  const outputPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const runtimeVariable = getRuntimeOutputVariable(variable);
 
   const { dialog, showDialog } = useDialog();
@@ -269,82 +279,6 @@ function VariableRow({
         </Box>
         <Box component={TableCell} align="right">
           <Stack direction="row" gap={1} justifyContent="flex-end">
-            {depth === 0 && !runtimeVariable && (
-              <>
-                <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} {...bindTrigger(outputPopperState)}>
-                  <Icon icon="tabler:settings" />
-                </Button>
-
-                <Popper
-                  {...bindPopper(outputPopperState)}
-                  placement="bottom-end"
-                  sx={{ zIndex: (theme) => theme.zIndex.modal }}>
-                  <ClickAwayListener
-                    onClickAway={(e) => {
-                      if (e.target === document.body) return;
-                      outputPopperState.close();
-                    }}>
-                    <Paper sx={{ p: 3, width: 320, maxHeight: '80vh', overflow: 'auto' }}>
-                      <Stack gap={2}>
-                        <Box>
-                          <Box>
-                            <Typography variant="subtitle2" mb={0}>
-                              {t('memory.saveMemory')}
-                            </Typography>
-
-                            <Box>
-                              <SelectVariable
-                                projectId={projectId}
-                                gitRef={gitRef}
-                                variables={variables}
-                                variable={datastoreVariable}
-                                typeDefaultSetting={{
-                                  name: variable.name || '',
-                                  defaultValue: (variable as any).defaultValue || '',
-                                  type: {
-                                    id: nanoid(32),
-                                    type: variable.type || 'string',
-                                    properties:
-                                      variable.type === 'object'
-                                        ? variable.properties && cloneDeep(variable.properties)
-                                        : undefined,
-                                    element:
-                                      variable.type === 'array'
-                                        ? variable.element && cloneDeep(variable.element)
-                                        : undefined,
-                                  },
-                                  disabled: true,
-                                }}
-                                onDelete={() => {
-                                  if (variable.variable) {
-                                    delete variable.variable;
-                                  }
-                                }}
-                                onChange={(_value) => {
-                                  if (_value && variable) {
-                                    variable.variable = { key: _value.key, scope: _value.scope || '' };
-
-                                    if (_value.type?.type === 'object') {
-                                      (variable as any).properties =
-                                        _value.type.properties && cloneDeep(_value.type.properties);
-                                    }
-
-                                    if (_value.type?.type === 'array') {
-                                      (variable as any).element = _value.type.element && cloneDeep(_value.type.element);
-                                    }
-                                  }
-                                }}
-                              />
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Stack>
-                    </Paper>
-                  </ClickAwayListener>
-                </Popper>
-              </>
-            )}
-
             {v.type === 'object' && (
               <Button
                 sx={{ minWidth: 24, minHeight: 24, p: 0 }}
@@ -364,11 +298,15 @@ function VariableRow({
               </Button>
             )}
 
-            {onRemove && (
-              <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} disabled={disabled} onClick={onRemove}>
-                <Icon icon="tabler:minus" />
-              </Button>
-            )}
+            <PopperButton
+              isSaveAs={Boolean(depth === 0 && !runtimeVariable)}
+              runtimeVariable={Boolean(runtimeVariable)}
+              variables={variables}
+              variable={datastoreVariable}
+              parameter={variable}
+              onDelete={onRemove}
+              disabled={Boolean(disabled)}
+            />
           </Stack>
         </Box>
       </Box>
@@ -408,6 +346,191 @@ function VariableRow({
       )}
 
       {dialog}
+    </>
+  );
+}
+
+function PopperButton({
+  variables,
+  variable,
+  isSaveAs,
+  runtimeVariable,
+  parameter,
+  disabled,
+  onDelete,
+}: {
+  variables: VariableYjs[];
+  variable?: VariableYjs;
+  isSaveAs: boolean;
+  runtimeVariable: boolean;
+  parameter: OutputVariableYjs;
+  disabled: boolean;
+  onDelete?: () => void;
+}) {
+  const { t } = useLocaleContext();
+  const dialogState = usePopupState({ variant: 'dialog' });
+  const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
+
+  const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
+
+  const renderParameterSettings = (parameter: OutputVariableYjs) => {
+    if (currentSetting === 'setting') {
+      return (
+        <>
+          {runtimeVariable ? null : parameter.type === 'string' ? (
+            <Box>
+              <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+              <TextField
+                disabled={Boolean(disabled)}
+                hiddenLabel
+                fullWidth
+                multiline
+                value={parameter.defaultValue || ''}
+                onChange={(e) => (parameter.defaultValue = e.target.value)}
+              />
+            </Box>
+          ) : parameter.type === 'number' ? (
+            <Box>
+              <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+              <NumberField
+                disabled={Boolean(disabled)}
+                hiddenLabel
+                fullWidth
+                value={parameter.defaultValue || ''}
+                onChange={(value) => (parameter.defaultValue = value)}
+              />
+            </Box>
+          ) : null}
+
+          <Box>
+            <FormControl>
+              <FormControlLabel
+                sx={{ display: 'flex', alignItems: 'center' }}
+                label={t('required')}
+                control={
+                  <BaseSwitch
+                    sx={{ mr: 1, mt: '1px' }}
+                    checked={parameter.required || false}
+                    onChange={(_, required) => (parameter.required = required)}
+                  />
+                }
+              />
+            </FormControl>
+          </Box>
+        </>
+      );
+    }
+
+    if (currentSetting === 'save') {
+      return (
+        <Box>
+          <Typography variant="subtitle2" mb={0}>
+            {t('memory.saveMemory')}
+          </Typography>
+
+          <Box>
+            <SelectVariable
+              variables={variables}
+              variable={variable}
+              onDelete={() => {
+                if (parameter.variable) delete parameter.variable;
+              }}
+              onChange={(_value) => {
+                if (_value && parameter) {
+                  parameter.variable = { key: _value.key, scope: _value.scope || '' };
+                }
+              }}
+            />
+          </Box>
+        </Box>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <>
+      <Button
+        sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
+        {...bindTrigger(parameterSettingPopperState)}
+        disabled={disabled}>
+        <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />
+      </Button>
+
+      <Popper
+        {...bindPopper(parameterSettingPopperState)}
+        placement="bottom-end"
+        sx={{ zIndex: (theme) => theme.zIndex.modal }}>
+        <ClickAwayListener
+          onClickAway={(e) => {
+            if (e.target === document.body) return;
+            parameterSettingPopperState.close();
+          }}>
+          <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
+            <Stack gap={2}>
+              <List>
+                <MenuItem
+                  onClick={() => {
+                    setSetting('setting');
+                    dialogState.open();
+                  }}>
+                  Settings
+                </MenuItem>
+                {isSaveAs && (
+                  <MenuItem
+                    onClick={() => {
+                      setSetting('save');
+                      dialogState.open();
+                    }}>
+                    {t('Save As')}
+                  </MenuItem>
+                )}
+                {onDelete && (
+                  <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+                    {t('delete')}
+                  </MenuItem>
+                )}
+              </List>
+            </Stack>
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
+
+      <Dialog
+        {...bindDialog(dialogState)}
+        fullWidth
+        maxWidth="sm"
+        component="form"
+        onSubmit={(e) => e.preventDefault()}>
+        <DialogTitle className="between">
+          <Box>{t('setting')}</Box>
+
+          <IconButton size="small" onClick={dialogState.close}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack gap={1.5}>{renderParameterSettings(parameter)}</Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={dialogState.close} variant="outlined">
+            {t('cancel')}
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={() => {
+              dialogState.close();
+            }}>
+            {t('save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

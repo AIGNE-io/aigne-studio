@@ -1,5 +1,6 @@
 import Dataset from '@api/store/models/dataset/dataset';
 import { getDatasets } from '@app/libs/dataset';
+import Close from '@app/pages/project/icons/close';
 import DragVertical from '@app/pages/project/icons/drag-vertical';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -11,14 +12,19 @@ import {
   Box,
   Button,
   ClickAwayListener,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
+  IconButton,
   Input,
+  List,
   ListItemIcon,
   ListItemText,
   MenuItem,
   Paper,
   Popper,
-  Select,
   Stack,
   Table,
   TableBody,
@@ -34,8 +40,7 @@ import {
 import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import { get, sortBy } from 'lodash';
-import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { nanoid } from 'nanoid';
+import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useId, useMemo } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
@@ -51,7 +56,6 @@ import useVariablesEditorOptions from './use-variables-editor-options';
 
 export const FROM_PARAMETER = 'agentParameter';
 export const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
-
 
 export default function ParametersTable({
   readOnly,
@@ -230,7 +234,7 @@ export default function ParametersTable({
         field: 'actions',
         headerName: t('actions'),
         width: 100,
-        headerAlign: 'center',
+        headerAlign: 'right',
         align: 'right',
       },
     ];
@@ -337,23 +341,16 @@ export default function ParametersTable({
 
                     <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
                       {!readOnly && (
-                        <>
-                          <PopperButton
-                            FROM_MAP={FROM_MAP}
-                            knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
-                            parameter={parameter}
-                            readOnly={readOnly}
-                            value={value}
-                            projectId={projectId}
-                            gitRef={gitRef}
-                          />
-
-                          <Button
-                            sx={{ minWidth: 0, p: 0.5, cursor: 'pointer' }}
-                            onClick={() => deleteParameter(parameter)}>
-                            <Box sx={{ color: '#E11D48', fontSize: 13 }}>{t('delete')}</Box>
-                          </Button>
-                        </>
+                        <PopperButton
+                          FROM_MAP={FROM_MAP}
+                          knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
+                          parameter={parameter}
+                          readOnly={readOnly}
+                          value={value}
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          onDelete={() => deleteParameter(parameter)}
+                        />
                       )}
                     </TableCell>
                   </TableRow>
@@ -415,6 +412,7 @@ function PopperButton({
   projectId,
   gitRef,
   knowledge,
+  onDelete,
 }: {
   parameter: ParameterYjs;
   readOnly?: boolean;
@@ -422,10 +420,12 @@ function PopperButton({
   projectId: string;
   gitRef: string;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  FROM_MAP: { [key: string]: any };
+  FROM_MAP: { [key: string]: string };
+  onDelete: () => void;
 }) {
-  const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const { t } = useLocaleContext();
+  const dialogState = usePopupState({ variant: 'dialog' });
+  const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const { addParameter } = useVariablesEditorOptions(value);
 
   const renderParameterSettings = (parameter: ParameterYjs) => {
@@ -464,7 +464,7 @@ function PopperButton({
         sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
         {...bindTrigger(parameterSettingPopperState)}
         disabled={parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER}>
-        <Box sx={{ color: '#3B82F6', fontSize: 13 }}>{t('variableParameter.setting')}</Box>
+        <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />
       </Button>
 
       <Popper
@@ -474,32 +474,44 @@ function PopperButton({
         <ClickAwayListener
           onClickAway={(e) => {
             if (e.target === document.body) return;
-
-            // 新增选择 tool 和 knowledge 未定义的参数
-            if (
-              parameter.type === 'source' &&
-              (parameter?.source?.variableFrom === 'tool' || parameter?.source?.variableFrom === 'knowledge') &&
-              parameter?.source
-            ) {
-              const { source } = parameter;
-              Object.entries(source?.tool?.parameters || {}).forEach(([key, value]: any) => {
-                if (!value) {
-                  if (source && source?.tool && source?.tool?.parameters) {
-                    source.tool.parameters[key] = `{{${key}}}`;
-                  }
-
-                  const from = source.variableFrom === 'tool' ? FROM_PARAMETER : FROM_KNOWLEDGE_PARAMETER;
-                  addParameter(key, { from });
-                }
-              });
-            }
-
             parameterSettingPopperState.close();
           }}>
-          <Paper sx={{ p: 3, width: 320, maxHeight: '80vh', overflow: 'auto' }}>
+          <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             <Stack gap={2}>
-              <Select
-                variant="outlined"
+              <List>
+                <MenuItem onClick={dialogState.open}>Settings</MenuItem>
+                <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+                  {t('delete')}
+                </MenuItem>
+              </List>
+            </Stack>
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
+
+      <Dialog
+        {...bindDialog(dialogState)}
+        fullWidth
+        maxWidth="sm"
+        component="form"
+        onSubmit={(e) => e.preventDefault()}>
+        <DialogTitle className="between">
+          <Box>{t('setting')}</Box>
+
+          <IconButton size="small" onClick={dialogState.close}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack gap={1.5}>
+            <Box>
+              <Typography variant="subtitle2">{t('Datastore')}</Typography>
+
+              <TextField
+                variant="filled"
+                select
+                hiddenLabel
                 value={parameter.type === 'source' ? parameter.source?.variableFrom : 'custom'}
                 placeholder={t('variableParameter.from')}
                 fullWidth
@@ -523,20 +535,53 @@ function PopperButton({
                     }
                   }
                 }}>
-                {Object.entries(FROM_MAP).map(([key, value]) => {
+                {Object.entries(FROM_MAP).map(([key, _value]) => {
                   return (
                     <MenuItem value={key} key={key}>
-                      {value}
+                      {_value}
                     </MenuItem>
                   );
                 })}
-              </Select>
+              </TextField>
+            </Box>
 
-              {renderParameterSettings(parameter)}
-            </Stack>
-          </Paper>
-        </ClickAwayListener>
-      </Popper>
+            {renderParameterSettings(parameter)}
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={dialogState.close} variant="outlined">
+            {t('cancel')}
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={() => {
+              // 新增选择 tool 和 knowledge 未定义的参数
+              if (
+                parameter.type === 'source' &&
+                (parameter?.source?.variableFrom === 'tool' || parameter?.source?.variableFrom === 'knowledge') &&
+                parameter?.source
+              ) {
+                const { source } = parameter;
+                Object.entries(source?.tool?.parameters || {}).forEach(([key, value]: any) => {
+                  if (!value) {
+                    if (source && source?.tool && source?.tool?.parameters) {
+                      source.tool.parameters[key] = `{{${key}}}`;
+                    }
+
+                    const from = source.variableFrom === 'tool' ? FROM_PARAMETER : FROM_KNOWLEDGE_PARAMETER;
+                    addParameter(key, { from });
+                  }
+                });
+              }
+
+              dialogState.close();
+            }}>
+            {t('save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
@@ -579,9 +624,7 @@ function AgentParameter({
     return (
       <Stack gap={2}>
         <Box>
-          <Typography variant="subtitle2" mb={0}>
-            {t('tool')}
-          </Typography>
+          <Typography variant="subtitle2">{t('tool')}</Typography>
 
           <SelectTool
             options={options || []}
@@ -615,11 +658,9 @@ function AgentParameter({
           />
         </Box>
 
-        {file && (
+        {file && !!(parameters || []).length && (
           <Box>
-            <Typography variant="subtitle2" mb={0}>
-              {t('parameters')}
-            </Typography>
+            <Typography variant="subtitle2">{t('parameters')}</Typography>
 
             <Box>
               {(parameters || [])?.map(({ data }: any) => {
@@ -627,9 +668,7 @@ function AgentParameter({
 
                 return (
                   <Stack key={data.id}>
-                    <Typography variant="caption" mx={1}>
-                      {data.label || data.key}
-                    </Typography>
+                    <Typography variant="caption">{data.label || data.key}</Typography>
 
                     <PromptEditorField
                       placeholder={`{{ ${data.key} }}`}
@@ -681,19 +720,10 @@ function DatastoreParameter({
     return (
       <Stack gap={2}>
         <Box>
-          <Typography variant="subtitle2" mb={0}>
-            {t('memory.extractMemory')}
-          </Typography>
+          <Typography variant="subtitle2">{t('memory.extractMemory')}</Typography>
 
           <Box>
             <SelectVariable
-              projectId={projectId}
-              gitRef={gitRef}
-              typeDefaultSetting={{
-                name: parameter.key || '',
-                defaultValue: (parameter as any).defaultValue || '',
-                type: { type: 'string', id: nanoid(32) },
-              }}
               variables={variables}
               variable={variable}
               onChange={(_value) => {
@@ -742,9 +772,7 @@ function KnowledgeParameter({
     return (
       <Stack gap={2}>
         <Box>
-          <Typography variant="subtitle2" mb={0}>
-            {t('knowledge.menu')}
-          </Typography>
+          <Typography variant="subtitle2">{t('knowledge.menu')}</Typography>
 
           <SelectTool
             options={options}
@@ -775,9 +803,7 @@ function KnowledgeParameter({
 
         {parameter?.source?.tool && (
           <Box>
-            <Typography variant="subtitle2" mb={0}>
-              {t('parameters')}
-            </Typography>
+            <Typography variant="subtitle2">{t('parameters')}</Typography>
 
             <Box>
               {(parameters || [])?.map((data: any) => {
@@ -785,9 +811,7 @@ function KnowledgeParameter({
 
                 return (
                   <Stack key={data.name}>
-                    <Typography variant="caption" mx={1}>
-                      {data.description || data.name}
-                    </Typography>
+                    <Typography variant="caption">{data.description || data.name}</Typography>
 
                     <PromptEditorField
                       placeholder={`{{ ${data.name} }}`}
@@ -853,7 +877,7 @@ function SelectTool({
       filterOptions={(_, params) => {
         return filter(options, params);
       }}
-      renderInput={(params) => <TextField hiddenLabel {...params} />}
+      renderInput={(params) => <TextField hiddenLabel {...params} size="medium" />}
       onChange={(_, _value) => onChange(_value)}
     />
   );
