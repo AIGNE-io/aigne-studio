@@ -1,13 +1,31 @@
-import { Button, ButtonProps, ClickAwayListener, MenuList, Paper, Popper, menuItemClasses } from '@mui/material';
+import {
+  Box,
+  BoxProps,
+  Button,
+  ButtonProps,
+  ClickAwayListener,
+  MenuList,
+  Paper,
+  Popper,
+  menuItemClasses,
+} from '@mui/material';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { ReactNode } from 'react';
 
-export default function PopperMenu({ children, ButtonProps }: { children?: ReactNode; ButtonProps?: ButtonProps }) {
+export default function PopperMenu({
+  children,
+  ButtonProps,
+  BoxProps,
+}: {
+  children?: ReactNode;
+  ButtonProps?: ButtonProps;
+  BoxProps?: BoxProps;
+}) {
   const state = usePopupState({ variant: 'popper' });
 
   return (
     <>
-      <Button {...ButtonProps} {...bindTrigger(state)} />
+      {BoxProps ? <Box {...BoxProps} {...bindTrigger(state)} /> : <Button {...ButtonProps} {...bindTrigger(state)} />}
 
       <Popper
         {...bindPopper(state)}

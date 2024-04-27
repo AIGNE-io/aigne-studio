@@ -20,7 +20,7 @@ export default function SelectOptionsConfig({
   const { t } = useLocaleContext();
 
   return (
-    <Box>
+    <Box width={1}>
       {select.options && (
         <DragSortListYjs
           disabled={readOnly}

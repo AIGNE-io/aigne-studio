@@ -1,10 +1,11 @@
 import { CreateDiscussionItem } from '@api/routes/dataset/documents';
 import { useComponent } from '@app/contexts/component';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { Box, TextField } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useThrottle } from 'ahooks';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import { DiscussionItem, searchDiscussions } from '../../libs/discussion';
@@ -33,7 +34,11 @@ function DiscussionTable({
     [s, paginationModel.page, paginationModel.pageSize, type]
   );
 
-  if (error) throw error;
+  useEffect(() => {
+    if (error) {
+      Toast.error((error as any)?.response?.data?.error ?? error?.message);
+    }
+  }, [error]);
 
   const selection = useMemo(() => value.map((i) => i!.id).filter((i): i is NonNullable<typeof i> => !!i), [value]);
 

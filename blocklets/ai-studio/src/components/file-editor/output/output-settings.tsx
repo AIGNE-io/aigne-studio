@@ -1,27 +1,41 @@
+import BaseSwitch from '@app/components/custom/switch';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, OutputVariableYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, VariableYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
+import { Close } from '@mui/icons-material';
 import {
   Box,
   Button,
-  Checkbox,
   ClickAwayListener,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  FormControlLabel,
+  IconButton,
+  List,
   MenuItem,
   Paper,
   Popper,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   TextField,
   TextFieldProps,
   Typography,
 } from '@mui/material';
-import { cloneDeep, sortBy } from 'lodash';
-import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { sortBy } from 'lodash';
+import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import React from 'react';
 
 import SelectVariable from '../select-variable';
@@ -52,66 +66,83 @@ export default function OutputSettings({
   };
 
   return (
-    <Box sx={{ border: '1px solid #E5E7EB', px: 1, py: 2, borderRadius: 1 }}>
-      <Stack direction="row" alignItems="center" sx={{ cursor: 'pointer', px: 1 }} gap={1}>
-        <Typography
-          variant="subtitle2"
-          sx={{
-            fontWeight: 500,
-          }}>
-          {t('output')}
-        </Typography>
-
-        <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end" />
+    <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, borderRadius: 1 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+        <Box display="flex" alignItems="center" gap={0.5}>
+          <Box component={Icon} icon="tabler:arrow-autofit-down" />
+          <Typography variant="subtitle2" mb={0}>
+            {t('output')}
+          </Typography>
+        </Box>
       </Stack>
 
-      <Box component="table" sx={{ minWidth: '100%', th: { whiteSpace: 'nowrap' } }}>
-        <thead>
-          <tr>
-            <Box component="th">{t('name')}</Box>
-            <Box component="th">{t('description')}</Box>
-            <Box component="th">{t('type')}</Box>
-            <Box component="th">{t('required')}</Box>
-            <Box component="th">{t('defaultValue')}</Box>
-            <Box component="th">{t('actions')}</Box>
-          </tr>
-        </thead>
-        <tbody>
-          {outputVariables?.map((variable) => (
-            <VariableRow
-              key={variable.data.id}
-              variable={variable.data}
-              value={value}
-              projectId={projectId}
-              gitRef={gitRef}
-              onRemove={() =>
-                setField(() => {
-                  delete value.outputVariables?.[variable.data.id];
-                })
-              }
-            />
-          ))}
-        </tbody>
+      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
+        <Box
+          sx={{
+            borderBottom: () => (outputVariables?.length ? '1px solid rgba(224, 224, 224, 1)' : 0),
+            whiteSpace: 'nowrap',
+            maxWidth: '100%',
+            table: {
+              th: { pt: 0, px: 0 },
+              td: { py: 0, px: 0 },
+              'tbody tr:last-of-type td': {
+                border: 'none',
+              },
+            },
+          }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <Box component={TableCell}>{t('name')}</Box>
+                <Box component={TableCell}>{t('description')}</Box>
+                <Box component={TableCell}>{t('type')}</Box>
+                <Box component={TableCell} align="right">
+                  {t('actions')}
+                </Box>
+              </TableRow>
+            </TableHead>
+
+            <TableBody
+              sx={{
+                'tr>td': {},
+              }}>
+              {outputVariables?.map((variable) => (
+                <VariableRow
+                  key={variable.data.id}
+                  variable={variable.data}
+                  value={value}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  onRemove={() =>
+                    setField(() => {
+                      delete value.outputVariables?.[variable.data.id];
+                    })
+                  }
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
+
+        {value.type !== 'image' && (
+          <AddOutputVariableButton
+            assistant={value}
+            onSelect={({ name }) => {
+              setField((vars) => {
+                const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
+                if (exist) {
+                  delete vars[exist.data.id];
+                } else {
+                  const id = nanoid();
+                  vars[id] = { index: Object.values(vars).length, data: { id, name, type: 'string' } };
+                }
+
+                sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+              });
+            }}
+          />
+        )}
       </Box>
-
-      {value.type !== 'image' && (
-        <AddOutputVariableButton
-          assistant={value}
-          onSelect={({ name }) => {
-            setField((vars) => {
-              const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
-              if (exist) {
-                delete vars[exist.data.id];
-              } else {
-                const id = nanoid();
-                vars[id] = { index: Object.values(vars).length, data: { id, name } };
-              }
-
-              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
-            });
-          }}
-        />
-      )}
     </Box>
   );
 }
@@ -135,7 +166,6 @@ function VariableRow({
 }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(variable) as Map<any>).doc!;
-  const outputPopperState = usePopupState({ variant: 'popper', popupId: useId() });
   const runtimeVariable = getRuntimeOutputVariable(variable);
 
   const { dialog, showDialog } = useDialog();
@@ -152,21 +182,17 @@ function VariableRow({
 
   return (
     <>
-      <tr key={variable.id}>
-        <Box component="td">
+      <Box component={TableRow} key={variable.id}>
+        <Box component={TableCell}>
           <Box sx={{ ml: depth }}>
             {runtimeVariable ? (
               <Stack
                 direction="row"
                 alignItems="center"
                 sx={{
-                  px: 1,
-                  py: 0.5,
                   gap: 1,
-                  border: 1,
+                  border: 0,
                   borderRadius: 1,
-                  borderColor: 'divider',
-                  bgcolor: 'grey.100',
                   whiteSpace: 'nowrap',
                 }}>
                 {runtimeVariable.icon}
@@ -175,6 +201,7 @@ function VariableRow({
               </Stack>
             ) : (
               <TextField
+                variant="standard"
                 disabled={Boolean(disabled)}
                 fullWidth
                 hiddenLabel
@@ -185,8 +212,9 @@ function VariableRow({
             )}
           </Box>
         </Box>
-        <Box component="td">
+        <Box component={TableCell}>
           <TextField
+            variant="standard"
             disabled={Boolean(disabled)}
             fullWidth
             hiddenLabel
@@ -195,9 +223,10 @@ function VariableRow({
             onChange={(e) => (v.description = e.target.value)}
           />
         </Box>
-        <Box component="td" align="center">
+        <Box component={TableCell}>
           {!runtimeVariable && (
             <VariableTypeField
+              variant="standard"
               disabled={Boolean(disabled)}
               value={v.type || 'string'}
               onChange={(e) => {
@@ -248,113 +277,8 @@ function VariableRow({
             />
           )}
         </Box>
-        <Box component="td" align="center">
-          <Checkbox
-            disabled={Boolean(disabled)}
-            checked={v.required || false}
-            onChange={(_, checked) => {
-              v.required = checked;
-            }}
-          />
-        </Box>
-        <Box component="td" align="center">
-          {runtimeVariable ? null : v.type === 'string' ? (
-            <TextField
-              disabled={Boolean(disabled)}
-              hiddenLabel
-              fullWidth
-              multiline
-              value={v.defaultValue || ''}
-              onChange={(e) => (v.defaultValue = e.target.value)}
-            />
-          ) : v.type === 'number' ? (
-            <NumberField
-              disabled={Boolean(disabled)}
-              hiddenLabel
-              fullWidth
-              value={v.defaultValue || ''}
-              onChange={(value) => (v.defaultValue = value)}
-            />
-          ) : null}
-        </Box>
-        <td align="right">
+        <Box component={TableCell} align="right">
           <Stack direction="row" gap={1} justifyContent="flex-end">
-            {depth === 0 && !runtimeVariable && (
-              <>
-                <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} {...bindTrigger(outputPopperState)}>
-                  <Icon icon="tabler:settings" />
-                </Button>
-
-                <Popper
-                  {...bindPopper(outputPopperState)}
-                  placement="bottom-end"
-                  sx={{ zIndex: (theme) => theme.zIndex.modal }}>
-                  <ClickAwayListener
-                    onClickAway={(e) => {
-                      if (e.target === document.body) return;
-                      outputPopperState.close();
-                    }}>
-                    <Paper sx={{ p: 3, width: 320, maxHeight: '80vh', overflow: 'auto' }}>
-                      <Stack gap={2}>
-                        <Box>
-                          <Box>
-                            <Typography variant="subtitle2" mb={0}>
-                              {t('memory.saveMemory')}
-                            </Typography>
-
-                            <Box>
-                              <SelectVariable
-                                projectId={projectId}
-                                gitRef={gitRef}
-                                variables={variables}
-                                variable={datastoreVariable}
-                                typeDefaultSetting={{
-                                  name: variable.name || '',
-                                  defaultValue: (variable as any).defaultValue || '',
-                                  type: {
-                                    id: nanoid(32),
-                                    type: variable.type || 'string',
-                                    properties:
-                                      variable.type === 'object'
-                                        ? variable.properties && cloneDeep(variable.properties)
-                                        : undefined,
-                                    element:
-                                      variable.type === 'array'
-                                        ? variable.element && cloneDeep(variable.element)
-                                        : undefined,
-                                  },
-                                  disabled: true,
-                                }}
-                                onDelete={() => {
-                                  if (variable.variable) {
-                                    delete variable.variable;
-                                  }
-                                }}
-                                onChange={(_value) => {
-                                  if (_value && variable) {
-                                    variable.variable = { key: _value.key, scope: _value.scope || '' };
-
-                                    if (_value.type?.type === 'object') {
-                                      (variable as any).properties =
-                                        _value.type.properties && cloneDeep(_value.type.properties);
-                                    }
-
-                                    if (_value.type?.type === 'array') {
-                                      (variable as any).element = _value.type.element && cloneDeep(_value.type.element);
-                                    }
-                                  }
-                                }}
-                              />
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Stack>
-                    </Paper>
-                  </ClickAwayListener>
-                </Popper>
-              </>
-            )}
-
             {v.type === 'object' && (
               <Button
                 sx={{ minWidth: 24, minHeight: 24, p: 0 }}
@@ -374,14 +298,18 @@ function VariableRow({
               </Button>
             )}
 
-            {onRemove && (
-              <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} disabled={disabled} onClick={onRemove}>
-                <Icon icon="tabler:minus" />
-              </Button>
-            )}
+            <PopperButton
+              isSaveAs={Boolean(depth === 0 && !runtimeVariable)}
+              runtimeVariable={Boolean(runtimeVariable)}
+              variables={variables}
+              variable={datastoreVariable}
+              parameter={variable}
+              onDelete={onRemove}
+              disabled={Boolean(disabled)}
+            />
           </Stack>
-        </td>
-      </tr>
+        </Box>
+      </Box>
 
       {!runtimeVariable &&
         v.type === 'object' &&
@@ -418,6 +346,193 @@ function VariableRow({
       )}
 
       {dialog}
+    </>
+  );
+}
+
+function PopperButton({
+  variables,
+  variable,
+  isSaveAs,
+  runtimeVariable,
+  parameter,
+  disabled,
+  onDelete,
+}: {
+  variables: VariableYjs[];
+  variable?: VariableYjs;
+  isSaveAs: boolean;
+  runtimeVariable: boolean;
+  parameter: OutputVariableYjs;
+  disabled: boolean;
+  onDelete?: () => void;
+}) {
+  const { t } = useLocaleContext();
+  const dialogState = usePopupState({ variant: 'dialog' });
+  const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
+
+  const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
+
+  const renderParameterSettings = (parameter: OutputVariableYjs) => {
+    if (currentSetting === 'setting') {
+      return (
+        <>
+          {runtimeVariable ? null : parameter.type === 'string' ? (
+            <Box>
+              <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+              <TextField
+                disabled={Boolean(disabled)}
+                hiddenLabel
+                fullWidth
+                multiline
+                value={parameter.defaultValue || ''}
+                onChange={(e) => (parameter.defaultValue = e.target.value)}
+              />
+            </Box>
+          ) : parameter.type === 'number' ? (
+            <Box>
+              <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+              <NumberField
+                disabled={Boolean(disabled)}
+                hiddenLabel
+                fullWidth
+                value={parameter.defaultValue || ''}
+                onChange={(value) => (parameter.defaultValue = value)}
+              />
+            </Box>
+          ) : null}
+
+          <Box>
+            <FormControl>
+              <FormControlLabel
+                sx={{ display: 'flex', alignItems: 'center' }}
+                label={t('required')}
+                control={
+                  <BaseSwitch
+                    sx={{ mr: 1, mt: '1px' }}
+                    checked={parameter.required || false}
+                    onChange={(_, required) => (parameter.required = required)}
+                  />
+                }
+              />
+            </FormControl>
+          </Box>
+        </>
+      );
+    }
+
+    if (currentSetting === 'save') {
+      return (
+        <Box>
+          <Typography variant="subtitle2" mb={0}>
+            {t('memory.saveMemory')}
+          </Typography>
+
+          <Box>
+            <SelectVariable
+              variables={variables}
+              variable={variable}
+              onDelete={() => {
+                if (parameter.variable) delete parameter.variable;
+              }}
+              onChange={(_value) => {
+                if (_value && parameter) {
+                  parameter.variable = { key: _value.key, scope: _value.scope || '' };
+                }
+              }}
+            />
+          </Box>
+        </Box>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <>
+      <Button
+        sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
+        {...bindTrigger(parameterSettingPopperState)}
+        disabled={disabled}>
+        <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />
+      </Button>
+
+      <Popper
+        {...bindPopper(parameterSettingPopperState)}
+        placement="bottom-end"
+        sx={{ zIndex: (theme) => theme.zIndex.modal }}>
+        <ClickAwayListener
+          onClickAway={(e) => {
+            if (e.target === document.body) return;
+            parameterSettingPopperState.close();
+          }}>
+          <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
+            <Stack gap={2}>
+              <List>
+                {!runtimeVariable && (
+                  <MenuItem
+                    onClick={() => {
+                      setSetting('setting');
+                      dialogState.open();
+                    }}>
+                    {t('setting')}
+                  </MenuItem>
+                )}
+                {isSaveAs && (
+                  <MenuItem
+                    onClick={() => {
+                      setSetting('save');
+                      dialogState.open();
+                    }}>
+                    {t('saveAs')}
+                  </MenuItem>
+                )}
+                {onDelete && (
+                  <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+                    {t('delete')}
+                  </MenuItem>
+                )}
+              </List>
+            </Stack>
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
+
+      <Dialog
+        {...bindDialog(dialogState)}
+        fullWidth
+        maxWidth="sm"
+        component="form"
+        onSubmit={(e) => e.preventDefault()}>
+        <DialogTitle className="between">
+          <Box>{t('setting')}</Box>
+
+          <IconButton size="small" onClick={dialogState.close}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack gap={1.5}>{renderParameterSettings(parameter)}</Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={dialogState.close} variant="outlined">
+            {t('cancel')}
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={() => {
+              dialogState.close();
+            }}>
+            {t('save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

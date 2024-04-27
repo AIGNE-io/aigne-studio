@@ -9,7 +9,7 @@ export const runtimeOutputVariables: {
   name: RuntimeOutputVariable;
 }[] = [
   {
-    icon: <Icon icon="tabler:cursor-text" />,
+    icon: <Icon icon="tabler:forms" />,
     title: 'Stream Text Response',
     i18nKey: 'streamTextResponse',
     name: RuntimeOutputVariable.textStream,
@@ -21,13 +21,13 @@ export const runtimeOutputVariables: {
     name: RuntimeOutputVariable.images,
   },
   {
-    icon: <Icon icon="tabler:bulb" />,
+    icon: <Icon icon="tabler:message-question" />,
     title: 'Suggested Questions',
     i18nKey: 'suggestedQuestions',
     name: RuntimeOutputVariable.suggestedQuestions,
   },
   {
-    icon: <Icon icon="tabler:quote" />,
+    icon: <Icon icon="tabler:link" />,
     title: 'Referenced Links',
     i18nKey: 'referencedLinks',
     name: RuntimeOutputVariable.referenceLinks,

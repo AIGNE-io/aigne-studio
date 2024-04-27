@@ -20,18 +20,10 @@ export default function AddOutputVariableButton({
   return (
     <PopperMenu
       ButtonProps={{
-        sx: { minWidth: 32, minHeight: 32, p: 0 },
-        children: <Icon icon="tabler:plus" />,
+        sx: { my: 1 },
+        startIcon: <Box fontSize={16} component={Icon} icon="tabler:plus" />,
+        children: <Box>{t('output')}</Box>,
       }}>
-      <MenuItem onClick={() => onSelect?.({ name: '' })}>
-        <ListItemIcon>
-          <Icon icon="tabler:plus" />
-        </ListItemIcon>
-        {t('custom')}
-      </MenuItem>
-
-      <Divider />
-
       {runtimeOutputVariables.map((variable) => {
         const blockList = variableBlockListForAgent[assistant.type];
         if (blockList?.allow && !blockList.allow.has(variable.name)) return null;
@@ -46,15 +38,22 @@ export default function AddOutputVariableButton({
               onSelect?.({ name: variable.name });
             }}>
             <ListItemIcon>{variable.icon}</ListItemIcon>
-
             <Box flex={1}>{t(variable.i18nKey)}</Box>
-
             <Box sx={{ width: 40, textAlign: 'right' }}>
               {exists.has(variable.name) && <Box component={Icon} icon="tabler:check" />}
             </Box>
           </MenuItem>
         );
       })}
+
+      <Divider sx={{ my: '4px !important', p: 0 }} />
+
+      <MenuItem onClick={() => onSelect?.({ name: '' })}>
+        <ListItemIcon>
+          <Icon icon="tabler:plus" />
+        </ListItemIcon>
+        {t('custom')}
+      </MenuItem>
     </PopperMenu>
   );
 }

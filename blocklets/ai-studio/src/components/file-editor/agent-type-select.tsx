@@ -1,9 +1,10 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { defaultImageModel, defaultTextModel } from '@blocklet/ai-runtime/common';
 import { AssistantYjs, RuntimeOutputVariable, arrayToYjs, outputVariableToYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
-import { ButtonProps, ListItemIcon, MenuItem } from '@mui/material';
+import { Box, ListItemIcon, MenuItem, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
 
@@ -15,25 +16,22 @@ const agentTypes = [
   { type: 'api', icon: <Icon icon="tabler:link" />, i18nKey: 'api' },
 ] as const;
 
-export default function AgentTypeSelect({
-  assistant,
-  ...props
-}: {
-  assistant: AssistantYjs;
-} & Omit<ButtonProps, 'onSelect'>) {
+export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(assistant) as Map<any>).doc!;
-
   const current = agentTypes.find((i) => i.type === assistant.type);
 
   return (
     <PopperMenu
-      ButtonProps={{
-        startIcon: current?.icon,
-        endIcon: <Icon icon="tabler:chevron-down" />,
-        children: current ? t(current.i18nKey) : t('processing'),
-        ...props,
-        sx: { minWidth: 32, minHeight: 32, px: 2, py: 0, ...props.sx },
+      BoxProps={{
+        children: (
+          <Box className="center" gap={0.5} sx={{ cursor: 'pointer' }}>
+            <Typography variant="subtitle2" sx={{ m: 0 }}>
+              {current ? t(current.i18nKey) : t('processing')}
+            </Typography>
+            <Box component={Icon} icon="tabler:switch-horizontal" sx={{ fontSize: 15, color: '#3B82F6' }} />
+          </Box>
+        ),
       }}>
       {agentTypes.map((node) => (
         <MenuItem
@@ -52,6 +50,7 @@ export default function AgentTypeSelect({
               };
 
               if (assistant.type === 'image') {
+                assistant.model = defaultImageModel;
                 const schema = { id: nanoid(), name: RuntimeOutputVariable.images };
                 assistant.outputVariables = arrayToYjs([schema]);
               } else {
@@ -59,6 +58,7 @@ export default function AgentTypeSelect({
               }
 
               if (assistant.type === 'prompt') {
+                assistant.model = defaultTextModel;
                 if (
                   !Object.values(assistant.outputVariables).some(
                     (i) => i.data.name === RuntimeOutputVariable.textStream
@@ -78,7 +78,6 @@ export default function AgentTypeSelect({
             });
           }}>
           <ListItemIcon>{node.icon}</ListItemIcon>
-
           {t(node.i18nKey)}
         </MenuItem>
       ))}
