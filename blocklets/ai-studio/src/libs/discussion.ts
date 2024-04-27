@@ -5,7 +5,16 @@ const discuss = () => {
   if (!component) {
     throw new Error('did-comments component not found');
   }
+
   return component;
+};
+
+export const getDiscussionStatus = () => {
+  try {
+    return discuss()?.status === 'running';
+  } catch (error) {
+    return false;
+  }
 };
 
 export interface DiscussionItem {

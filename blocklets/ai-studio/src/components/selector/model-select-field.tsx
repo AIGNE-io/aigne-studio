@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { ImageModelInfo, TextModelInfo } from '@blocklet/ai-runtime/types';
-import { Box, ListItemIcon, ListItemText, MenuItem, TextField, TextFieldProps, menuItemClasses } from '@mui/material';
+import { Box, ListItemText, MenuItem, TextField, TextFieldProps, menuItemClasses } from '@mui/material';
 import { useAsync } from 'react-use';
 
 import AzureIcon from './ai-icons/azure';
@@ -34,8 +34,10 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
           if (!model) return null;
 
           return (
-            <Box mt={-0.5}>
-              <ListItemIcon sx={{ verticalAlign: 'middle', minWidth: 32 }}>{brandIcon(model.brand)}</ListItemIcon>
+            <Box mt={-0.5} display="flex" alignItems="center" gap={0.5}>
+              <Box width={16} height={16}>
+                {brandIcon(model.brand)}
+              </Box>
               <ListItemText
                 sx={{ display: 'inline-flex', alignItems: 'baseline' }}
                 primary={model.name || model.model}
@@ -55,7 +57,9 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
             disabled={model.disabled}
             sx={{ [`&.${menuItemClasses.disabled}`]: { opacity: 1 } }}>
             <Box display="flex" gap={1} alignItems="center">
-              <Box className="center">{icon}</Box>
+              <Box className="center" width={16} height={16}>
+                {icon}
+              </Box>
               <ListItemText
                 sx={{ display: 'inline-flex', alignItems: 'baseline' }}
                 primary={model.name || model.model}
@@ -83,11 +87,11 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
 
 export const brandIcon = (brand: string) =>
   ({
-    OpenAI: <OpenAIIcon fontSize="small" />,
-    'Azure OpenAI': <AzureIcon fontSize="small" />,
-    'Hugging Face': <HuggingFaceIcon fontSize="small" />,
-    Replicate: <ReplicateIcon fontSize="small" />,
-    'Vertex AI': <VertexAIIcon fontSize="small" />,
-    Google: <GoogleIcon fontSize="small" />,
-    'Mistral AI': <Box component="img" src={MistralIcon} width={20} height={20} />,
+    OpenAI: <OpenAIIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    'Azure OpenAI': <AzureIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    'Hugging Face': <HuggingFaceIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    Replicate: <ReplicateIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    'Vertex AI': <VertexAIIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    Google: <GoogleIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    'Mistral AI': <Box component="img" src={MistralIcon} width={15} height={15} />,
   })[brand];
