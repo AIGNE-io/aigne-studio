@@ -65,7 +65,7 @@ export default function PromptSetting({
     }
 
     return '';
-  }, [value.model, project]);
+  }, [(value as any).model, project]);
 
   const modelDetail = useMemo(() => {
     return supportedModels?.find((i) => i.model === defaultModel);
