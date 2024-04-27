@@ -375,12 +375,12 @@ export default function ParametersTable({
                 <ListItemText primary={t('question')} />
               </MenuItem>
 
-              <MenuItem onClick={() => addParameter('datasetId')}>
+              {/* <MenuItem onClick={() => addParameter('datasetId')}>
                 <ListItemIcon>
                   <Box component={Icon} icon="tabler:database" />
                 </ListItemIcon>
                 <ListItemText primary={t('datasetId')} />
-              </MenuItem>
+              </MenuItem> */}
 
               <Divider sx={{ my: '4px !important', p: 0 }} />
 
