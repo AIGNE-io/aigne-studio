@@ -26,7 +26,7 @@ export default function AgentProcessingView({
         <Box display="flex" alignItems="center" gap={0.5}>
           <Box component={Icon} icon="tabler:brain" sx={{ fontSize: 15 }} />
           <Typography variant="subtitle2" sx={{ m: 0 }}>
-            {t('Processing')}
+            {t('processing')}
           </Typography>
           <Box>-</Box>
           <AgentTypeSelect assistant={assistant} />

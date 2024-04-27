@@ -143,7 +143,7 @@ function VariableList() {
       },
       {
         field: 'action',
-        headerName: t('action'),
+        headerName: <Box mr={2.5}>{t('actions')}</Box>,
         align: 'right',
         renderCell: (params: any) => {
           return (
@@ -172,7 +172,7 @@ function VariableList() {
   return (
     <Container>
       <Box className="between" mt={2.5} mb={1.5}>
-        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>Memory</Box>
+        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('memory.title')}</Box>
         <SegmentedControl
           value={scope}
           options={[
@@ -236,7 +236,7 @@ function VariableList() {
         {!!list.length && (
           <Button
             startIcon={<Box component={Icon} icon="tabler:plus" />}
-            sx={{ my: 1 }}
+            sx={{ my: 1, ml: -0.5 }}
             onClick={() => {
               form.setValue('key', '');
               form.setValue('defaultValue', '');
@@ -245,7 +245,7 @@ function VariableList() {
 
               dialogState.open();
             }}>
-            Memory
+            {t('memory.title')}
           </Button>
         )}
       </Box>
@@ -270,7 +270,7 @@ function VariableList() {
 
           dialogState.close();
         })}>
-        <DialogTitle className="between" sx={{ border: 0 }}>
+        <DialogTitle className="between">
           <Box>{t('outputVariableParameter.addData')}</Box>
 
           <IconButton size="small" onClick={() => dialogState.close()}>
@@ -302,12 +302,15 @@ function VariableList() {
                 return (
                   <Box>
                     <Typography variant="subtitle2">{t('outputVariableParameter.key')}</Typography>
-                    <BaseInput sx={{ width: 1 }} placeholder={t('outputVariableParameter.key')} {...field} />
-                    {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" color="warning.main">
-                        {fieldState.error?.message}
-                      </Typography>
-                    )}
+                    <TextField
+                      autoFocus
+                      sx={{ width: 1 }}
+                      {...field}
+                      hiddenLabel
+                      placeholder={t('outputVariableParameter.key')}
+                      error={Boolean(fieldState.error)}
+                      helperText={fieldState.error?.message}
+                    />
                   </Box>
                 );
               }}
@@ -323,23 +326,21 @@ function VariableList() {
                 return (
                   <Box>
                     <Typography variant="subtitle2">{t('outputVariableParameter.scope')}</Typography>
-                    <BaseSelect
-                      variant="outlined"
-                      placeholder={t('outputVariableParameter.scope')}
-                      fullWidth
+                    <TextField
+                      autoFocus
+                      select
+                      sx={{ width: 1 }}
                       {...field}
-                      error={Boolean(fieldState.error)}>
+                      hiddenLabel
+                      placeholder={t('outputVariableParameter.scope')}
+                      error={Boolean(fieldState.error)}
+                      helperText={fieldState.error?.message}>
                       {['user', 'session', 'global'].map((option) => (
                         <MenuItem key={option} value={option}>
                           {t(`variableParameter.${option}`)}
                         </MenuItem>
                       ))}
-                    </BaseSelect>
-                    {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" color="warning.main">
-                        {fieldState.error?.message}
-                      </Typography>
-                    )}
+                    </TextField>
                   </Box>
                 );
               }}
@@ -465,13 +466,15 @@ function VariableList() {
                   <Box>
                     <Typography variant="subtitle2">{t('variableParameter.defaultValue')}</Typography>
 
-                    <BaseInput sx={{ width: 1 }} placeholder={t('variableParameter.defaultValue')} {...field} />
-
-                    {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" color="warning.main">
-                        {fieldState.error?.message}
-                      </Typography>
-                    )}
+                    <TextField
+                      autoFocus
+                      sx={{ width: 1 }}
+                      {...field}
+                      hiddenLabel
+                      placeholder={t('variableParameter.defaultValue')}
+                      error={Boolean(fieldState.error)}
+                      helperText={fieldState.error?.message}
+                    />
                   </Box>
                 );
               }}
@@ -518,20 +521,34 @@ function VariableTable({ value, onChange }: { value: OutputVariableYjs; onChange
   const { t } = useLocaleContext();
 
   return (
-    <Box component="table" sx={{ minWidth: '100%', th: { whiteSpace: 'nowrap' } }} mt={2}>
-      <Box component="thead">
-        <Box component="tr" sx={{ '>th': { fontSize: 12 } }}>
-          <Box component="th">{t('name')}</Box>
-          <Box component="th">{t('description')}</Box>
-          <Box component="th">{t('type')}</Box>
-          <Box component="th">{t('required')}</Box>
-          <Box component="th">{t('defaultValue')}</Box>
-          <Box component="th">{t('actions')}</Box>
+    <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5, mt: 1 }}>
+      <Box
+        component="table"
+        sx={{
+          whiteSpace: 'nowrap',
+          minWidth: '100%',
+          table: {
+            th: { pt: 0, px: 0, whiteSpace: 'nowrap' },
+            td: { py: 0, px: 0, whiteSpace: 'nowrap' },
+            'tbody tr:last-of-type td': {
+              border: 'none',
+            },
+          },
+        }}>
+        <Box component="thead">
+          <Box component="tr" sx={{ '>th': { fontSize: 12 } }}>
+            <Box component="th">{t('name')}</Box>
+            <Box component="th">{t('description')}</Box>
+            <Box component="th">{t('type')}</Box>
+            <Box component="th">{t('required')}</Box>
+            <Box component="th">{t('defaultValue')}</Box>
+            <Box component="th">{t('actions')}</Box>
+          </Box>
         </Box>
-      </Box>
 
-      <Box component="tbody">
-        <VariableRow variable={value} depth={0} onChange={onChange} />
+        <Box component="tbody">
+          <VariableRow variable={value} depth={0} onChange={onChange} />
+        </Box>
       </Box>
     </Box>
   );

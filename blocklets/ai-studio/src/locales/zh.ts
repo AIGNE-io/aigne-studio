@@ -656,6 +656,13 @@ export default flat({
     title: '记忆',
     extractMemory: '提取记忆',
     saveMemory: '保存记忆',
+    add: '添加新的记忆',
   },
   source: '其他数据源',
+  question: '聊天模式',
+  datasetId: '使用知识库',
+  customize: '自定义',
+  saveAs: '数据另存为',
+  input: '输入',
+  dataSource: '输入的数据来源',
 });

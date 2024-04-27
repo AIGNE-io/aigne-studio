@@ -22,7 +22,7 @@ export default function AddOutputVariableButton({
       ButtonProps={{
         sx: { my: 1 },
         startIcon: <Box fontSize={16} component={Icon} icon="tabler:plus" />,
-        children: <Box>Output</Box>,
+        children: <Box>{t('output')}</Box>,
       }}>
       {runtimeOutputVariables.map((variable) => {
         const blockList = variableBlockListForAgent[assistant.type];

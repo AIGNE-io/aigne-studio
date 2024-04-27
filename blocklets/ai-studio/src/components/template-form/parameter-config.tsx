@@ -62,22 +62,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         </Box>
       )}
 
-      <Box>
-        <FormControl>
-          <FormControlLabel
-            sx={{ display: 'flex', alignItems: 'center' }}
-            label={t('required')}
-            control={
-              <BaseSwitch
-                sx={{ mr: 1, mt: '1px' }}
-                checked={value.required || false}
-                onChange={(_, required) => !readOnly && (value.required = required)}
-              />
-            }
-          />
-        </FormControl>
-      </Box>
-
       <Box display="flex" alignItems="center" gap={2}>
         {(!value.type || value.type === 'string') && (
           <>
@@ -85,6 +69,8 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               <Typography variant="subtitle2">{t('minLength')}</Typography>
 
               <NumberField
+                sx={{ width: 1 }}
+                fullWidth
                 hiddenLabel
                 placeholder={t('minLength')}
                 size="medium"
@@ -101,6 +87,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               <Typography variant="subtitle2">{t('maxLength')}</Typography>
 
               <NumberField
+                sx={{ width: 1 }}
                 fullWidth
                 hiddenLabel
                 placeholder={t('maxLength')}
@@ -121,6 +108,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               <Typography variant="subtitle2">{t('min')}</Typography>
 
               <NumberField
+                sx={{ width: 1 }}
                 fullWidth
                 label={t('min')}
                 size="small"
@@ -135,6 +123,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               <Typography variant="subtitle2">{t('max')}</Typography>
 
               <NumberField
+                sx={{ width: 1 }}
                 fullWidth
                 label={t('max')}
                 size="small"
@@ -147,6 +136,22 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
             </Box>
           </>
         )}
+      </Box>
+
+      <Box>
+        <FormControl>
+          <FormControlLabel
+            sx={{ display: 'flex', alignItems: 'center' }}
+            label={t('required')}
+            control={
+              <BaseSwitch
+                sx={{ mr: 1, mt: '1px' }}
+                checked={value.required || false}
+                onChange={(_, required) => !readOnly && (value.required = required)}
+              />
+            }
+          />
+        </FormControl>
       </Box>
     </Stack>
   );

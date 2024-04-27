@@ -366,7 +366,7 @@ export default function ParametersTable({
               ButtonProps={{
                 sx: { my: 1 },
                 startIcon: <Box fontSize={16} component={Icon} icon="tabler:plus" />,
-                children: <Box>Input</Box>,
+                children: <Box>{t('input')}</Box>,
               }}>
               <MenuItem onClick={() => addParameter('question')}>
                 <ListItemIcon>
@@ -394,7 +394,7 @@ export default function ParametersTable({
                 <ListItemIcon>
                   <Box component={Icon} icon="tabler:plus" />
                 </ListItemIcon>
-                <ListItemText primary={t('Customize')} />
+                <ListItemText primary={t('customize')} />
               </MenuItem>
             </PopperMenu>
           </Stack>
@@ -460,10 +460,7 @@ function PopperButton({
 
   return (
     <>
-      <Button
-        sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
-        {...bindTrigger(parameterSettingPopperState)}
-        disabled={parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER}>
+      <Button sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }} {...bindTrigger(parameterSettingPopperState)}>
         <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />
       </Button>
 
@@ -479,7 +476,9 @@ function PopperButton({
           <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             <Stack gap={2}>
               <List>
-                <MenuItem onClick={dialogState.open}>Settings</MenuItem>
+                {!(parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER) && (
+                  <MenuItem onClick={dialogState.open}>{t('setting')}</MenuItem>
+                )}
                 <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
                   {t('delete')}
                 </MenuItem>
@@ -506,7 +505,7 @@ function PopperButton({
         <DialogContent>
           <Stack gap={1.5}>
             <Box>
-              <Typography variant="subtitle2">{t('Datastore')}</Typography>
+              <Typography variant="subtitle2">{t('dataSource')}</Typography>
 
               <TextField
                 variant="filled"
@@ -721,7 +720,6 @@ function DatastoreParameter({
       <Stack gap={2}>
         <Box>
           <Typography variant="subtitle2">{t('memory.extractMemory')}</Typography>
-
           <Box>
             <SelectVariable
               variables={variables}
@@ -858,6 +856,7 @@ function SelectTool({
 
   return (
     <Autocomplete
+      size="medium"
       key={Boolean(value).toString()}
       disableClearable
       clearOnBlur
@@ -872,7 +871,11 @@ function SelectTool({
       isOptionEqualToValue={(i, j) => i.id === j.id}
       getOptionLabel={(i) => i.name || t('unnamed')}
       renderOption={(props, option) => {
-        return <MenuItem {...props}>{option.name || t('unnamed')}</MenuItem>;
+        return (
+          <MenuItem {...props} key={option.name}>
+            {option.name || t('unnamed')}
+          </MenuItem>
+        );
       }}
       filterOptions={(_, params) => {
         return filter(options, params);

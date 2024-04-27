@@ -1,9 +1,19 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { VariableYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
-import { Autocomplete, Box, IconButton, MenuItem, TextField, Typography, createFilterOptions } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  Button,
+  IconButton,
+  MenuItem,
+  TextField,
+  Typography,
+  createFilterOptions,
+} from '@mui/material';
 import { cloneDeep } from 'lodash';
 import { useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const scopePriority: any = {
   session: 1,
@@ -32,7 +42,8 @@ function SelectVariable({
   onChange: (_value: VariableYjs) => void;
 }) {
   const { t } = useLocaleContext();
-
+  const navigate = useNavigate();
+  const { projectId, ref: gitRef } = useParams();
   const map: any = useMemo(() => {
     return {
       string: t('text'),
@@ -64,7 +75,7 @@ function SelectVariable({
           renderOption={(props, option) => {
             if (option.key) {
               return (
-                <MenuItem {...props}>
+                <MenuItem {...props} key={`${option.scope}_${option.key}`}>
                   <Box className="center">
                     <Typography variant="subtitle2" mb={0} mr={0.5} mt={-0.25} fontWeight={400}>
                       {option.key}
@@ -110,6 +121,15 @@ function SelectVariable({
           </Box>
         </Box>
       )}
+
+      <Button
+        sx={{ ml: -0.5 }}
+        endIcon={<Box component={Icon} icon="tabler:arrow-right" />}
+        onClick={() => {
+          navigate(`/projects/${projectId}/variables/${gitRef}`);
+        }}>
+        {t('memory.add')}
+      </Button>
     </Box>
   );
 }

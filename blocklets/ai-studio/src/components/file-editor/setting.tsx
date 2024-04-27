@@ -4,7 +4,18 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { defaultImageModel, getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { AssistantYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
-import { Box, Dialog, DialogContent, DialogTitle, Divider, IconButton, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
@@ -54,7 +65,7 @@ export default function PromptSetting({
     }
 
     return '';
-  }, [value.type, project]);
+  }, [value.model, project]);
 
   const modelDetail = useMemo(() => {
     return supportedModels?.find((i) => i.model === defaultModel);
@@ -113,6 +124,16 @@ export default function PromptSetting({
             <History projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
           </Stack>
         </DialogContent>
+
+        <DialogActions>
+          <Button onClick={dialogState.close} variant="outlined">
+            {t('cancel')}
+          </Button>
+
+          <Button variant="contained" onClick={dialogState.close}>
+            {t('save')}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

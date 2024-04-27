@@ -658,8 +658,15 @@ export default flat({
   submit: 'Submit',
   memory: {
     title: 'Memory',
-    extractMemory: 'Extract memory',
-    saveMemory: 'Save the memory',
+    extractMemory: 'Extract From Memory',
+    saveMemory: 'Save To Memory',
+    add: 'Add new Memory',
   },
   source: 'Source',
+  question: 'Chat',
+  datasetId: 'Use Knowledge',
+  customize: 'Customize',
+  saveAs: 'Save As',
+  input: 'Input',
+  dataSource: 'Data Source',
 });

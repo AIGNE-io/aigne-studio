@@ -472,20 +472,22 @@ function PopperButton({
           <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
             <Stack gap={2}>
               <List>
-                <MenuItem
-                  onClick={() => {
-                    setSetting('setting');
-                    dialogState.open();
-                  }}>
-                  Settings
-                </MenuItem>
+                {!runtimeVariable && (
+                  <MenuItem
+                    onClick={() => {
+                      setSetting('setting');
+                      dialogState.open();
+                    }}>
+                    {t('setting')}
+                  </MenuItem>
+                )}
                 {isSaveAs && (
                   <MenuItem
                     onClick={() => {
                       setSetting('save');
                       dialogState.open();
                     }}>
-                    {t('Save As')}
+                    {t('saveAs')}
                   </MenuItem>
                 )}
                 {onDelete && (
