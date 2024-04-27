@@ -288,7 +288,7 @@ export default function ParametersTable({
 
             <DragSortListYjs
               disabled={readOnly}
-              list={value.parameters!}
+              list={value.parameters! ?? []}
               component={TableBody}
               renderItem={(parameter, _, params) => {
                 return (
