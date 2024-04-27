@@ -17,7 +17,7 @@ export default function LogoField({
   return (
     <Box>
       <Typography mb={0.5} variant="subtitle2">
-        {t('publish.logo')}
+        {t('agentLogo')}
       </Typography>
 
       <Stack

@@ -79,7 +79,7 @@ export default function HeaderActions() {
           startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}
           size="small"
           {...bindTrigger(publishPopperState)}>
-          {t('publish.publishProject')}
+          {t('publish')}
         </Button>
 
         <Popper {...bindPopper(publishPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
