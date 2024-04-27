@@ -1,5 +1,3 @@
-import BaseInput from '@app/components/custom/input';
-import BaseSelect from '@app/components/custom/select';
 import BaseSwitch from '@app/components/custom/switch';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
@@ -39,7 +37,7 @@ import { useParams } from 'react-router-dom';
 import SegmentedControl from '../project/segmented-control';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from '../project/yjs-state';
 
-function CustomNoRowsOverlay() {
+function CustomNoRowsOverlay({ onAdd }: { onAdd: () => void }) {
   const { t } = useLocaleContext();
 
   return (
@@ -47,12 +45,10 @@ function CustomNoRowsOverlay() {
       <Box lineHeight="28px">🔢</Box>
 
       <Typography variant="caption" color="#030712" fontSize={13} lineHeight="22px" fontWeight={500}>
-        {t('emptyVariablesTitle')}
+        {t('memory.empty')}
       </Typography>
 
-      <Typography variant="caption" color="#9CA3AF" fontSize={12} lineHeight="20px" fontWeight={500}>
-        {t('emptyVariablesSubtitle')}
-      </Typography>
+      <Button onClick={onAdd}>{t('memory.add')}</Button>
     </Stack>
   );
 }
@@ -169,6 +165,14 @@ function VariableList() {
     [t]
   );
 
+  const onAdd = () => {
+    form.setValue('key', '');
+    form.setValue('defaultValue', '');
+    form.setValue('type', { type: 'string', id: nanoid(32) });
+    form.setValue('scope', scope);
+    dialogState.open();
+  };
+
   return (
     <Container>
       <Box className="between" mt={2.5} mb={1.5}>
@@ -230,21 +234,11 @@ function VariableList() {
               </TableBody>
             )}
           </Table>
-          {!list.length && <CustomNoRowsOverlay />}
+          {!list.length && <CustomNoRowsOverlay onAdd={onAdd} />}
         </Box>
 
         {!!list.length && (
-          <Button
-            startIcon={<Box component={Icon} icon="tabler:plus" />}
-            sx={{ my: 1, ml: -0.5 }}
-            onClick={() => {
-              form.setValue('key', '');
-              form.setValue('defaultValue', '');
-              form.setValue('type', { type: 'string', id: nanoid(32) });
-              form.setValue('scope', scope);
-
-              dialogState.open();
-            }}>
+          <Button startIcon={<Box component={Icon} icon="tabler:plus" />} sx={{ my: 1, ml: -0.5 }} onClick={onAdd}>
             {t('memory.title')}
           </Button>
         )}

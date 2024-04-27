@@ -657,6 +657,7 @@ export default flat({
     extractMemory: '提取记忆',
     saveMemory: '保存记忆',
     add: '添加新的记忆',
+    empty: '没有数据',
   },
   source: '其他数据源',
   question: '聊天模式',

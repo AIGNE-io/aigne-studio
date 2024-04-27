@@ -661,6 +661,7 @@ export default flat({
     extractMemory: 'Extract From Memory',
     saveMemory: 'Save To Memory',
     add: 'Add new Memory',
+    empty: 'No Memory Yet',
   },
   source: 'Source',
   question: 'Chat',
