@@ -1,3 +1,7 @@
+## 0.1.348 (2024-4-28)
+
+- feat: new ui design implementation
+
 ## 0.1.347 (2024-4-26)
 
 - feat: better import ui for did spaces
