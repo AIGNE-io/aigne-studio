@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-builtin",
-  "version": "0.1.346",
+  "version": "0.1.347",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
