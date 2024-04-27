@@ -25,7 +25,7 @@ import {
 } from '@mui/material';
 import { useAsyncEffect } from 'ahooks';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useId, useState } from 'react';
+import { ReactNode, useCallback, useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
@@ -47,7 +47,7 @@ function ImportWayItem({
   text,
   ...rest
 }: {
-  icon: any;
+  icon: ReactNode;
   text: string;
 } & BoxProps) {
   return (
