@@ -19,6 +19,7 @@ import {
   CircularProgress,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   FormLabel,
   Link,
   Radio,
@@ -123,9 +124,24 @@ function PublishViewContent({
     }
   }, [project]);
 
-  const form = useForm();
+  const defaultValues = useMemo(() => {
+    return JSON.parse(JSON.stringify(assistant.release)) ?? {};
+  }, [assistant.release]);
 
-  const onSubmit = async () => {
+  const form = useForm<Pick<NonNullable<typeof assistant.release>, 'payment'>>({
+    defaultValues,
+  });
+
+  const price = form.watch('payment.price');
+
+  useEffect(() => {
+    setRelease((release) => {
+      release.payment ??= {};
+      release.payment.price = price;
+    });
+  }, [price]);
+
+  const onSubmit: Parameters<(typeof form)['handleSubmit']>[0] = async () => {
     try {
       const assistantId = assistant.id;
       const paymentEnabled = assistant.release?.payment?.enable;
@@ -354,16 +370,21 @@ function PublishViewContent({
               <Stack direction="row" alignItems="center" gap={1}>
                 <BaseInput
                   fullWidth
-                  value={assistant.release.payment.price ?? ''}
-                  onChange={(e) =>
-                    setRelease((release) => {
-                      release.payment ??= {};
-                      release.payment.price = e.target.value;
-                    })
-                  }
+                  {...form.register('payment.price', {
+                    required: assistant.release.payment.enable ? t('pricingRequiredMessage') : undefined,
+                    pattern: {
+                      value: /^\d+(\.\d{1,5})?$/,
+                      message: t('pricingPatternMessage', { decimal: 5 }),
+                    },
+                    min: { value: 0.00001, message: t('pricingPatternMessage', { decimal: 5 }) },
+                    max: { value: 1000000, message: t('pricingInvalidMessage') },
+                  })}
                 />
                 <Typography component="span">{t('pricingUnit')}</Typography>
               </Stack>
+              {form.formState.errors.payment?.price?.message && (
+                <FormHelperText error>{form.formState.errors.payment?.price?.message}</FormHelperText>
+              )}
             </td>
           </tr>
         )}
