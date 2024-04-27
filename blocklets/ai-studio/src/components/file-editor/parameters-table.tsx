@@ -674,7 +674,7 @@ function AgentParameter({
                       value={(parameter.source as any)?.tool?.parameters?.[data.key] || ''}
                       projectId={projectId}
                       gitRef={gitRef}
-                      assistant={file}
+                      assistant={value}
                       path={[]}
                       onChange={(value) => {
                         if ((parameter.source as any)?.tool?.parameters) {

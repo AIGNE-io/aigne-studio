@@ -1,5 +1,5 @@
 import { CreateDiscussionItem } from '@api/routes/dataset/documents';
-import { discussionBoards } from '@app/libs/discussion';
+import { discussionBoards, getDiscussionStatus } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
@@ -601,16 +601,18 @@ export default function KnowledgeDocumentsAdd() {
       title: t('knowledge.documents.file.title'),
       subtitle: t('knowledge.documents.file.description'),
     },
-    {
-      id: 'discussion',
-      icon: (
-        <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
-          <Discuss sx={{ width: '100%', height: '100%' }} />
-        </Box>
-      ),
-      title: t('knowledge.documents.discussion.title'),
-      subtitle: t('knowledge.documents.discussion.description'),
-    },
+    getDiscussionStatus()
+      ? {
+          id: 'discussion',
+          icon: (
+            <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
+              <Discuss sx={{ width: '100%', height: '100%' }} />
+            </Box>
+          ),
+          title: t('knowledge.documents.discussion.title'),
+          subtitle: t('knowledge.documents.discussion.description'),
+        }
+      : null,
     {
       id: 'custom',
       icon: (
@@ -621,7 +623,7 @@ export default function KnowledgeDocumentsAdd() {
       title: t('knowledge.documents.custom.title'),
       subtitle: t('knowledge.documents.custom.description'),
     },
-  ];
+  ].filter((i): i is any => !!i);
 
   return (
     <Stack bgcolor="background.paper" p={2.5} height={1} gap={2.5} overflow="auto">
