@@ -125,7 +125,7 @@ function PublishViewContent({
   }, [project]);
 
   const defaultValues = useMemo(() => {
-    return JSON.parse(JSON.stringify(assistant.release)) ?? {};
+    return getYjsValue(assistant.release)?.toJSON() ?? {};
   }, [assistant.release]);
 
   const form = useForm<Pick<NonNullable<typeof assistant.release>, 'payment'>>({
