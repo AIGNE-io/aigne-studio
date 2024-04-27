@@ -329,7 +329,7 @@ function VariableList() {
                       placeholder={t('outputVariableParameter.scope')}
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message}>
-                      {['user', 'session', 'global'].map((option) => (
+                      {['session', 'user', 'global'].map((option) => (
                         <MenuItem key={option} value={option}>
                           {t(`variableParameter.${option}`)}
                         </MenuItem>
