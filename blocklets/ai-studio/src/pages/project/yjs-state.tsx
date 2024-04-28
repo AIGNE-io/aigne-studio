@@ -23,7 +23,6 @@ import {
 } from '@blocklet/co-git/yjs';
 import Cookies from 'js-cookie';
 import cloneDeep from 'lodash/cloneDeep';
-import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { customAlphabet, nanoid } from 'nanoid';
@@ -37,7 +36,6 @@ import { WebsocketProvider, messageSync } from 'y-websocket';
 import { PREFIX } from '../../libs/api';
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
-const STATUS_LISTENER_DEBOUNCE_TIME = 500;
 
 export const isBuiltinFolder = (folder: string) => [PROMPTS_FOLDER_NAME].includes(folder);
 
@@ -66,7 +64,6 @@ export interface StoreContext {
     };
   };
   provider: WebsocketProvider;
-  networkStatus?: 'offline';
 }
 
 const stores: Record<string, RecoilState<StoreContext>> = {};
@@ -161,37 +158,15 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       });
     };
 
-    const onOnline = () => {
-      setStore((state) => ({ ...state, networkStatus: undefined }));
-    };
-    const onOffline = () => {
-      setStore((state) => ({ ...state, networkStatus: 'offline' }));
-    };
-
-    const statusListener = debounce(({ status }: { status: 'connected' | 'disconnected' }) => {
-      if (status === 'connected') {
-        onOnline();
-      } else if (status === 'disconnected') {
-        onOffline();
-      }
-    }, STATUS_LISTENER_DEBOUNCE_TIME);
-
     provider.on('synced', onSynced);
     provider.awareness.on('change', onAwarenessChange);
     provider.connect();
-    provider.on('status', statusListener);
-    window.addEventListener('online', onOnline);
-    window.addEventListener('offline', onOffline);
 
     return () => {
       clearInterval(interval);
       provider.disconnect();
       provider.off('synced', onSynced);
       provider.awareness.off('change', onAwarenessChange);
-
-      provider.off('status', statusListener);
-      window.removeEventListener('online', onOnline);
-      window.removeEventListener('offline', onOffline);
     };
   }, [projectId, gitRef]);
 
