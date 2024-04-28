@@ -100,7 +100,7 @@
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.7.11",
     "axios": "^1.6.8",
-    "dayjs": "^1.11.10",
+    "dayjs": "^1.11.11",
     "eventsource-parser": "^1.1.2",
     "joi": "^17.13.0",
     "lodash": "^4.17.21",
@@ -124,7 +124,7 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.74",
+    "@arcblock/ux": "^2.9.75",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
     "@jest/globals": "^29.7.0",
