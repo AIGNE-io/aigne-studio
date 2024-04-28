@@ -962,7 +962,7 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  if (assistant.memory?.enable) {
+  if (assistant.memory?.enable && sessionId) {
     const lastSystemIndex = messages.findLastIndex((i) => i.role === 'system');
     const memories = await runRequestHistory({
       assistant,

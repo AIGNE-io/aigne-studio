@@ -85,9 +85,7 @@ export default function OutputSettings({
             table: {
               th: { pt: 0, px: 0 },
               td: { py: 0, px: 0 },
-              'tbody tr:last-of-type td': {
-                border: 'none',
-              },
+              'tbody tr:last-of-type td': { border: 'none' },
             },
           }}>
           <Table size="small">
@@ -520,15 +518,11 @@ function PopperButton({
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={dialogState.close} variant="outlined">
+          <Button variant="outlined" onClick={dialogState.close}>
             {t('cancel')}
           </Button>
 
-          <Button
-            variant="contained"
-            onClick={() => {
-              dialogState.close();
-            }}>
+          <Button variant="contained" onClick={dialogState.close}>
             {t('save')}
           </Button>
         </DialogActions>

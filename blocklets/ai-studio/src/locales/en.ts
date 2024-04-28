@@ -676,4 +676,5 @@ export default flat({
   customize: 'Customize',
   saveAs: 'Save As',
   dataSource: 'Data Source',
+  outputAs: 'Output as Variable/Memory',
 });

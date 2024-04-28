@@ -24,13 +24,13 @@ const Container = styled(Box)`
     animation: fade 1.2s infinite;
   }
 
-  .dot:nth-child-type(1) {
+  .dot:nth-of-type(1) {
     animation-delay: 0s;
   }
-  .dot:nth-child-type(2) {
+  .dot:nth-of-type(2) {
     animation-delay: 0.4s;
   }
-  .dot:nth-child-type(3) {
+  .dot:nth-of-type(3) {
     animation-delay: 0.8s;
   }
 

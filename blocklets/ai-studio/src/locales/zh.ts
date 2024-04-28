@@ -672,4 +672,5 @@ export default flat({
   customize: '自定义',
   saveAs: '数据另存为',
   dataSource: '输入的数据来源',
+  outputAs: '自定义输出结构/保存结果',
 });

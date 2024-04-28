@@ -60,6 +60,7 @@ export default function ProjectsPage() {
   const { t } = useLocaleContext();
   const [search] = useSearchParams();
   const endpoint = search.get('endpoint');
+  const { session } = useSessionContext();
 
   const {
     state: { loading, templates, projects, examples },
@@ -68,7 +69,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     refetch();
-  }, []);
+  }, [session?.user?.did]);
 
   return (
     <Stack minHeight="100%" overflow="auto" bgcolor="#F9FAFB">
