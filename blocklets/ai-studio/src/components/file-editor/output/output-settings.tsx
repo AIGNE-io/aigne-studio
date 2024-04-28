@@ -1,4 +1,5 @@
 import BaseSwitch from '@app/components/custom/switch';
+import PopperMenu from '@app/components/menu/PopperMenu';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -10,7 +11,6 @@ import { Close } from '@mui/icons-material';
 import {
   Box,
   Button,
-  ClickAwayListener,
   Dialog,
   DialogActions,
   DialogContent,
@@ -18,10 +18,7 @@ import {
   FormControl,
   FormControlLabel,
   IconButton,
-  List,
   MenuItem,
-  Paper,
-  Popper,
   Stack,
   Table,
   TableBody,
@@ -33,7 +30,7 @@ import {
   Typography,
 } from '@mui/material';
 import { sortBy } from 'lodash';
-import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import { useId, useState } from 'react';
 import React from 'react';
@@ -453,53 +450,37 @@ function PopperButton({
 
   return (
     <>
-      <Button
-        sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
-        {...bindTrigger(parameterSettingPopperState)}
-        disabled={disabled}>
-        <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />
-      </Button>
-
-      <Popper
-        {...bindPopper(parameterSettingPopperState)}
-        placement="bottom-end"
-        sx={{ zIndex: (theme) => theme.zIndex.modal }}>
-        <ClickAwayListener
-          onClickAway={(e) => {
-            if (e.target === document.body) return;
-            parameterSettingPopperState.close();
-          }}>
-          <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
-            <Stack gap={2}>
-              <List>
-                {!runtimeVariable && (
-                  <MenuItem
-                    onClick={() => {
-                      setSetting('setting');
-                      dialogState.open();
-                    }}>
-                    {t('setting')}
-                  </MenuItem>
-                )}
-                {isSaveAs && (
-                  <MenuItem
-                    onClick={() => {
-                      setSetting('save');
-                      dialogState.open();
-                    }}>
-                    {t('saveAs')}
-                  </MenuItem>
-                )}
-                {onDelete && (
-                  <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
-                    {t('delete')}
-                  </MenuItem>
-                )}
-              </List>
-            </Stack>
-          </Paper>
-        </ClickAwayListener>
-      </Popper>
+      <PopperMenu
+        ButtonProps={{
+          sx: { minWidth: 0, p: 0.5, ml: -0.5 },
+          ...bindTrigger(parameterSettingPopperState),
+          disabled,
+          children: <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />,
+        }}>
+        {!runtimeVariable && (
+          <MenuItem
+            onClick={() => {
+              setSetting('setting');
+              dialogState.open();
+            }}>
+            {t('setting')}
+          </MenuItem>
+        )}
+        {isSaveAs && (
+          <MenuItem
+            onClick={() => {
+              setSetting('save');
+              dialogState.open();
+            }}>
+            {t('saveAs')}
+          </MenuItem>
+        )}
+        {onDelete && (
+          <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+            {t('delete')}
+          </MenuItem>
+        )}
+      </PopperMenu>
 
       <Dialog
         {...bindDialog(dialogState)}
