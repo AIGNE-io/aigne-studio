@@ -1,3 +1,9 @@
+## 0.1.350 (2024-4-28)
+
+- fix: rename textStream to text & add default output text output for the default project template
+- fix: update ui copy
+- fix: polish output variables menus
+
 ## 0.1.349 (2024-4-28)
 
 - fix: validate price number

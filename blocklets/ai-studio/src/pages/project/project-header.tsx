@@ -49,7 +49,7 @@ export default function ProjectHeader() {
               {
                 value: 'prompts',
                 label: t('agent'),
-                icon: <Box fontSize={15} component={Icon} icon="tabler:bulb" mr={1} />,
+                icon: <Box fontSize={15} component={Icon} icon="tabler:hexagons" mr={1} />,
               },
               {
                 value: 'knowledge',

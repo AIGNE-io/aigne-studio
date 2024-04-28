@@ -145,10 +145,6 @@ export type VariableType = VariableTypeBase &
   (
     | { type?: undefined }
     | {
-        type: 'textStream';
-        defaultValue?: string;
-      }
-    | {
         type: 'string';
         defaultValue?: string;
       }

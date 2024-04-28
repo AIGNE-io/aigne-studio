@@ -35,7 +35,11 @@ export default function PopperMenu({
             borderRadius: 1,
           },
         }}>
-        <ClickAwayListener onClickAway={state.close}>
+        <ClickAwayListener
+          onClickAway={(e) => {
+            if (e.target === document.body) return;
+            state.close();
+          }}>
           <Paper>
             <MenuList onClick={state.close}>{children}</MenuList>
           </Paper>
