@@ -18,6 +18,7 @@ import {
   FormControl,
   FormControlLabel,
   IconButton,
+  ListItemIcon,
   MenuItem,
   Stack,
   Table,
@@ -523,10 +524,33 @@ function VariableTypeField({ ...props }: TextFieldProps) {
 
   return (
     <TextField hiddenLabel placeholder={t('type')} select SelectProps={{ autoWidth: true }} {...props}>
-      <MenuItem value="string">{t('text')}</MenuItem>
-      <MenuItem value="number">{t('number')}</MenuItem>
-      <MenuItem value="object">{t('object')}</MenuItem>
-      <MenuItem value="array">{t('array')}</MenuItem>
+      <MenuItem value="string">
+        <ListItemIcon>
+          <Icon icon="tabler:cursor-text" />
+        </ListItemIcon>
+        {t('text')}
+      </MenuItem>
+
+      <MenuItem value="number">
+        <ListItemIcon>
+          <Icon icon="tabler:square-number-1" />
+        </ListItemIcon>
+        {t('number')}
+      </MenuItem>
+
+      <MenuItem value="object">
+        <ListItemIcon>
+          <Icon icon="tabler:code-plus" />
+        </ListItemIcon>
+        {t('object')}
+      </MenuItem>
+
+      <MenuItem value="array">
+        <ListItemIcon>
+          <Icon icon="tabler:brackets-contain" />
+        </ListItemIcon>
+        {t('array')}
+      </MenuItem>
     </TextField>
   );
 }
