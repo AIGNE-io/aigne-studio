@@ -143,19 +143,19 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
           <Button variant="outlined">{t('alert.import')}</Button>
         </ButtonPopper>
 
-        <ButtonPopper
-          onClick={checkProjectLimit}
-          list={
-            <MenuList autoFocusItem>
-              <MenuItem
-                onClick={() => {
-                  setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
-                }}>
-                <Box component={Icon} icon="tabler:plus" sx={{ mr: 1 }} />
-                <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('blank')}</ListItemText>
-              </MenuItem>
+        {resource.length ? (
+          <ButtonPopper
+            onClick={checkProjectLimit}
+            list={
+              <MenuList autoFocusItem>
+                <MenuItem
+                  onClick={() => {
+                    setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
+                  }}>
+                  <Box component={Icon} icon="tabler:plus" sx={{ mr: 1 }} />
+                  <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('blank')}</ListItemText>
+                </MenuItem>
 
-              {!!resource.length && (
                 <MenuItem
                   onClick={() => {
                     setDialog(<ImportFromTemplates templates={resource} onClose={() => setDialog(null)} />);
@@ -163,13 +163,22 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                   <Box component={Icon} icon="tabler:file-plus" sx={{ mr: 1 }} />
                   <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('agents')}</ListItemText>
                 </MenuItem>
-              )}
-            </MenuList>
-          }>
-          <Button startIcon={<Box component={Icon} icon="tabler:plus" />} variant="contained">
+              </MenuList>
+            }>
+            <Button startIcon={<Box component={Icon} icon="tabler:plus" />} variant="contained">
+              {t('newObject', { object: t('project') })}
+            </Button>
+          </ButtonPopper>
+        ) : (
+          <Button
+            startIcon={<Box component={Icon} icon="tabler:plus" />}
+            variant="contained"
+            onClick={() => {
+              setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
+            }}>
             {t('newObject', { object: t('project') })}
           </Button>
-        </ButtonPopper>
+        )}
       </Stack>
 
       {dialog}
