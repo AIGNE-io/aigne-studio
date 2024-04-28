@@ -37,7 +37,7 @@
     "@arcblock/ux": "^2.9.73",
     "@arcblock/ws": "^1.18.115",
     "@beskar-labs/gpt-encoder": "^1.0.7",
-    "@blocklet/ai-kit": "^0.1.27",
+    "@blocklet/ai-kit": "^0.1.28",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/constant": "^1.16.26",

@@ -105,8 +105,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7
       '@blocklet/ai-kit':
-        specifier: ^0.1.27
-        version: 0.1.27(@babel/core@7.24.4)(@types/node@18.19.31)(@types/react@18.3.1)(prop-types@15.8.1)(react-dom@18.3.1)(react-router-dom@6.23.0)(react@18.3.1)(sqlite3@5.1.7)
+        specifier: ^0.1.28
+        version: 0.1.28(@babel/core@7.24.4)(@types/node@18.19.31)(@types/react@18.3.1)(prop-types@15.8.1)(react-dom@18.3.1)(react-router-dom@6.23.0)(react@18.3.1)(sqlite3@5.1.7)
       '@blocklet/ai-runtime':
         specifier: workspace:^
         version: link:../../packages/ai-runtime
@@ -575,8 +575,8 @@ importers:
         specifier: workspace:^
         version: link:../ai-builtin
       '@blocklet/ai-kit':
-        specifier: ^0.1.27
-        version: 0.1.27(@babel/core@7.24.4)(@types/node@18.19.31)(@types/react@18.3.1)(prop-types@15.8.1)(react-dom@18.3.1)(react-router-dom@6.23.0)(react@18.3.1)(sqlite3@5.1.7)
+        specifier: ^0.1.28
+        version: 0.1.28(@babel/core@7.24.4)(@types/node@18.19.31)(@types/react@18.3.1)(prop-types@15.8.1)(react-dom@18.3.1)(react-router-dom@6.23.0)(react@18.3.1)(sqlite3@5.1.7)
       '@blocklet/dataset-sdk':
         specifier: workspace:^
         version: link:../dataset-sdk
@@ -2478,8 +2478,8 @@ packages:
     deprecated: This package has been deprecated in favor of https://www.npmjs.com/package/gpt-tokenizer
     dev: false
 
-  /@blocklet/ai-kit@0.1.27(@babel/core@7.24.4)(@types/node@18.19.31)(@types/react@18.3.1)(prop-types@15.8.1)(react-dom@18.3.1)(react-router-dom@6.23.0)(react@18.3.1)(sqlite3@5.1.7):
-    resolution: {integrity: sha512-1QGdMtV6/o5T5Ni7rKTpQEidmjtfP2H8zb7JPE6lF1VMmrw1olI9AjKB6Ybom/fYahPZ4Hi/C8sRyBKyWZq0lg==}
+  /@blocklet/ai-kit@0.1.28(@babel/core@7.24.4)(@types/node@18.19.31)(@types/react@18.3.1)(prop-types@15.8.1)(react-dom@18.3.1)(react-router-dom@6.23.0)(react@18.3.1)(sqlite3@5.1.7):
+    resolution: {integrity: sha512-2Dos7ZWN84/nheNMRL24X14zmheZZm7ZFG2QU1VRytLZMM+raqe9YB7ie+O4Jlvna9dRjkvzY6t+F9BUCsEZuA==}
     peerDependencies:
       react: ^18.2.0
     dependencies:
