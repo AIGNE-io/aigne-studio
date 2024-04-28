@@ -60,7 +60,6 @@ export default function Exporter() {
             width: '100vw',
             height: '100vh',
             zIndex: 9999,
-            backgroundColor: '#fff',
             border: 0,
           }}
         />
