@@ -121,8 +121,6 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
     setFile(files[0]);
   };
 
-  console.log(file);
-
   return (
     <Box maxWidth="720px">
       <Stack gap={1}>
