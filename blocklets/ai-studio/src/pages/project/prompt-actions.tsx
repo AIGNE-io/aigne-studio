@@ -27,13 +27,19 @@ export default function HeaderActions() {
   const {
     state: { loading, commits },
   } = useProjectState(projectId, gitRef);
-  const { getFileById } = useProjectStore(projectId, gitRef, true);
+  const { getFileById, networkStatus } = useProjectStore(projectId, gitRef, true);
 
   const fileId = filepath && getFileIdFromPath(filepath);
   const file = fileId && getFileById(fileId);
 
   return (
     <Box gap={1} className="center">
+      {networkStatus === 'offline' ? (
+        <Box component={Icon} icon="tabler:wifi-off" sx={{ color: '#E11D48', fontSize: 20 }} />
+      ) : (
+        <Box component={Icon} icon="tabler:wifi" sx={{ color: '#499C8C', fontSize: 20 }} />
+      )}
+
       {file && isAssistant(file) && <TokenUsage assistant={file} />}
 
       <CommitsTip
