@@ -52,7 +52,7 @@ export default function AddOutputVariableButton({
         <ListItemIcon>
           <Icon icon="tabler:plus" />
         </ListItemIcon>
-        {t('custom')}
+        {t('customOutputField')}
       </MenuItem>
     </PopperMenu>
   );

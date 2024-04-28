@@ -1,4 +1,5 @@
 import { CreateDiscussionItem } from '@api/routes/dataset/documents';
+import { useIsAdmin } from '@app/contexts/session';
 import { discussionBoards, getDiscussionStatus } from '@app/libs/discussion';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -567,6 +568,7 @@ export default function KnowledgeDocumentsAdd() {
   const { datasetId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const isAdmin = useIsAdmin();
 
   const type = searchParams.get('type');
   const editType = (type ? (type === 'text' ? 'custom' : type) : null) as 'file' | 'discussion' | 'custom' | null;
@@ -601,7 +603,7 @@ export default function KnowledgeDocumentsAdd() {
       title: t('knowledge.documents.file.title'),
       subtitle: t('knowledge.documents.file.description'),
     },
-    getDiscussionStatus()
+    getDiscussionStatus() && isAdmin
       ? {
           id: 'discussion',
           icon: (

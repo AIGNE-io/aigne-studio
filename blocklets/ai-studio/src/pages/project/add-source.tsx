@@ -1,3 +1,4 @@
+import { useIsAdmin } from '@app/contexts/session';
 import { Icon } from '@iconify-icon/react';
 import { Box, IconButton, svgIconClasses } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
@@ -6,6 +7,7 @@ import { PUBLISH_RESOURCE_PATH } from '../../libs/constants';
 
 export default function Exporter() {
   const [showCreateResource, setShowCreateResource] = useState(false);
+  const isAdmin = useIsAdmin();
 
   const iframeRef = useRef(null);
 
@@ -24,6 +26,10 @@ export default function Exporter() {
       window.removeEventListener('message', listener);
     };
   }, [showCreateResource]);
+
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
     <>

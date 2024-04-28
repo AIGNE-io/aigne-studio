@@ -1,3 +1,9 @@
+## 0.1.351 (2024-4-28)
+
+- fix: reload projects when switch user(#890)
+- fix: check user permissions for some action(#871,#861)
+- fix: some i18n text(#862,#865)
+
 ## 0.1.350 (2024-4-28)
 
 - fix: rename textStream to text & add default output text output for the default project template
