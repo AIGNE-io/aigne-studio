@@ -990,10 +990,8 @@ async function runPromptAssistant({
   }
 
   const { outputVariables = [] } = assistant;
-  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === '$textStream');
-  const outputStreamAndJson = outputVariables.some(
-    (i) => i.name && (i.name as RuntimeOutputVariable) !== '$textStream'
-  );
+  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === '$text');
+  const outputStreamAndJson = outputVariables.some((i) => i.name && (i.name as RuntimeOutputVariable) !== '$text');
 
   const schema = outputVariablesToJsonSchema(outputVariables, datastoreVariables);
   const outputSchema = JSON.stringify(schema);

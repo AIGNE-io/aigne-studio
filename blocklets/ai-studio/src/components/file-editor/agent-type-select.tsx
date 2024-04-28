@@ -59,19 +59,15 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
 
               if (assistant.type === 'prompt') {
                 assistant.model = defaultTextModel;
-                if (
-                  !Object.values(assistant.outputVariables).some(
-                    (i) => i.data.name === RuntimeOutputVariable.textStream
-                  )
-                ) {
+                if (!Object.values(assistant.outputVariables).some((i) => i.data.name === RuntimeOutputVariable.text)) {
                   const id = nanoid();
                   assistant.outputVariables[id] = {
                     index: -1,
-                    data: outputVariableToYjs({ id, name: RuntimeOutputVariable.textStream }),
+                    data: outputVariableToYjs({ id, name: RuntimeOutputVariable.text }),
                   };
                 }
               } else {
-                removeVariable(RuntimeOutputVariable.textStream);
+                removeVariable(RuntimeOutputVariable.text);
               }
 
               sortBy(Object.values(assistant.outputVariables), 'index').forEach((item, index) => (item.index = index));
