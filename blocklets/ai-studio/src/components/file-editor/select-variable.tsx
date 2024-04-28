@@ -128,7 +128,7 @@ function SelectVariable({
         onClick={() => {
           navigate(`/projects/${projectId}/variables/${gitRef}`);
         }}>
-        {t('memory.add')}
+        {t('newObject', { object: t('memory.title') })}
       </Button>
     </Box>
   );

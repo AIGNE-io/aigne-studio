@@ -10,10 +10,10 @@ import { nanoid } from 'nanoid';
 
 const agentTypes = [
   { type: 'agent', icon: <Icon icon="tabler:x" />, i18nKey: 'none' },
-  { type: 'prompt', icon: <Icon icon="tabler:file-description" />, i18nKey: 'prompt' },
-  { type: 'image', icon: <Icon icon="tabler:photo" />, i18nKey: 'image' },
-  { type: 'function', icon: <Icon icon="tabler:code" />, i18nKey: 'function' },
-  { type: 'api', icon: <Icon icon="tabler:link" />, i18nKey: 'api' },
+  { type: 'prompt', icon: <Icon icon="tabler:brain" />, i18nKey: 'llm' },
+  { type: 'image', icon: <Icon icon="tabler:photo" />, i18nKey: 'imageGeneration' },
+  { type: 'function', icon: <Icon icon="tabler:code" />, i18nKey: 'code' },
+  { type: 'api', icon: <Icon icon="tabler:api" />, i18nKey: 'api' },
 ] as const;
 
 export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs }) {
@@ -59,19 +59,15 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
 
               if (assistant.type === 'prompt') {
                 assistant.model = defaultTextModel;
-                if (
-                  !Object.values(assistant.outputVariables).some(
-                    (i) => i.data.name === RuntimeOutputVariable.textStream
-                  )
-                ) {
+                if (!Object.values(assistant.outputVariables).some((i) => i.data.name === RuntimeOutputVariable.text)) {
                   const id = nanoid();
                   assistant.outputVariables[id] = {
                     index: -1,
-                    data: outputVariableToYjs({ id, name: RuntimeOutputVariable.textStream }),
+                    data: outputVariableToYjs({ id, name: RuntimeOutputVariable.text }),
                   };
                 }
               } else {
-                removeVariable(RuntimeOutputVariable.textStream);
+                removeVariable(RuntimeOutputVariable.text);
               }
 
               sortBy(Object.values(assistant.outputVariables), 'index').forEach((item, index) => (item.index = index));

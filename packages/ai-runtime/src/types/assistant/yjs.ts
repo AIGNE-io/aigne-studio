@@ -42,10 +42,6 @@ export type VariableTypeYjs = VariableTypeBase &
   (
     | { type?: undefined }
     | {
-        type: 'textStream';
-        defaultValue?: string;
-      }
-    | {
         type: 'string';
         defaultValue?: string;
       }

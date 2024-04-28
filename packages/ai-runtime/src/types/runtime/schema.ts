@@ -17,8 +17,8 @@ export const variableBlockListForAgent: {
 type OmitUnion<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
 export const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<OutputVariable, 'id'>> = {
-  $textStream: {
-    type: 'textStream',
+  $text: {
+    type: 'string',
     description: 'Text Stream',
   },
   $images: {
@@ -256,7 +256,7 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[], datastor
 }
 
 export enum RuntimeOutputVariable {
-  textStream = '$textStream',
+  text = '$text',
   images = '$images',
   suggestedQuestions = '$suggested.questions',
   referenceLinks = '$reference.links',
@@ -307,6 +307,6 @@ export interface RuntimeOutputVariablesSchema {
  * ignore these output variables in the json schema and the joi validation schema
  */
 const ignoredRuntimeOutputVariables: RuntimeOutputVariable[] = [
-  RuntimeOutputVariable.textStream,
+  RuntimeOutputVariable.text,
   // RuntimeOutputVariable.images,
 ];

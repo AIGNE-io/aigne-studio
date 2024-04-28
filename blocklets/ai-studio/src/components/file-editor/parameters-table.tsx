@@ -115,7 +115,7 @@ export default function ParametersTable({
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.key === 'question' || parameter.key === 'datasetId') {
             const iconMap = {
-              question: 'question-mark',
+              question: 'message',
               datasetId: 'database',
             };
 
@@ -370,7 +370,7 @@ export default function ParametersTable({
               }}>
               <MenuItem onClick={() => addParameter('question')}>
                 <ListItemIcon>
-                  <Box component={Icon} icon="tabler:question-mark" />
+                  <Box component={Icon} icon="tabler:message" />
                 </ListItemIcon>
                 <ListItemText primary={t('question')} />
               </MenuItem>
@@ -623,7 +623,7 @@ function AgentParameter({
     return (
       <Stack gap={2}>
         <Box>
-          <Typography variant="subtitle2">{t('tool')}</Typography>
+          <Typography variant="subtitle2">{t('agent')}</Typography>
 
           <SelectTool
             options={options || []}
@@ -659,7 +659,7 @@ function AgentParameter({
 
         {file && !!(parameters || []).length && (
           <Box>
-            <Typography variant="subtitle2">{t('parameters')}</Typography>
+            <Typography variant="subtitle2">{t('input')}</Typography>
 
             <Box>
               {(parameters || [])?.map(({ data }: any) => {
@@ -719,7 +719,7 @@ function DatastoreParameter({
     return (
       <Stack gap={2}>
         <Box>
-          <Typography variant="subtitle2">{t('memory.extractMemory')}</Typography>
+          <Typography variant="subtitle2">{t('memory.title')}</Typography>
           <Box>
             <SelectVariable
               variables={variables}

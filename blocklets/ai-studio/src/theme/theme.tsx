@@ -6,6 +6,7 @@ import {
   inputBaseClasses,
   inputClasses,
   inputLabelClasses,
+  listItemIconClasses,
   outlinedInputClasses,
   selectClasses,
   sliderClasses,
@@ -567,6 +568,16 @@ export const theme = createTheme({
       },
     },
     MuiSelect: {
+      styleOverrides: {
+        select: {
+          display: 'flex',
+          alignItems: 'center',
+
+          [`.${listItemIconClasses.root}`]: {
+            minWidth: 20,
+          },
+        },
+      },
       defaultProps: { variant: 'filled', IconComponent: ArrowDropDownRounded },
       variants: [
         {
@@ -666,6 +677,7 @@ export const theme = createTheme({
           theme.unstable_sx({
             padding: '6px 12px',
             fontSize: '0.875rem',
+            borderRadius: 1,
 
             '.MuiListItemIcon-root': {
               minWidth: 0,

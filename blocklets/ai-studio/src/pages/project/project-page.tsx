@@ -187,7 +187,7 @@ export default function ProjectPage() {
                           outputVariables: {
                             [varId]: {
                               index: 0,
-                              data: { id: varId, name: RuntimeOutputVariable.textStream },
+                              data: { id: varId, name: RuntimeOutputVariable.text },
                             },
                           },
                         },

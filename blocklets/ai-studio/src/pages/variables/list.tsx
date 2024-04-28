@@ -292,16 +292,16 @@ function VariableList() {
                   return true;
                 },
               }}
-              render={({ field, fieldState }) => {
+              render={({ field: { ref, ...field }, fieldState }) => {
                 return (
                   <Box>
                     <Typography variant="subtitle2">{t('outputVariableParameter.key')}</Typography>
                     <TextField
+                      inputRef={ref}
                       autoFocus
                       sx={{ width: 1 }}
                       {...field}
                       hiddenLabel
-                      placeholder={t('outputVariableParameter.key')}
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message}
                     />
@@ -458,14 +458,13 @@ function VariableList() {
               render={({ field, fieldState }) => {
                 return (
                   <Box>
-                    <Typography variant="subtitle2">{t('variableParameter.defaultValue')}</Typography>
+                    <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
                     <TextField
                       autoFocus
                       sx={{ width: 1 }}
                       {...field}
                       hiddenLabel
-                      placeholder={t('variableParameter.defaultValue')}
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message}
                     />
