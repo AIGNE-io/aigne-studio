@@ -1,3 +1,8 @@
+## 0.1.352 (2024-4-28)
+
+- fix: add indexeddb to persist data in the browser
+- fix: polish ui texts
+
 ## 0.1.351 (2024-4-28)
 
 - fix: reload projects when switch user(#890)

@@ -106,12 +106,21 @@ export default function ParametersTable({
     };
   }, [t]);
 
+  const TYPE_ICON_MAP: any = useMemo(() => {
+    return {
+      string: <Icon icon="tabler:cursor-text" />,
+      number: <Icon icon="tabler:square-number-1" />,
+      object: <Icon icon="tabler:braces" />,
+      array: <Icon icon="tabler:brackets-contain" />,
+    };
+  }, [t]);
+
   const columns = useMemo<GridColDef<(typeof parameters)[number]>[]>(() => {
     return [
       {
         field: 'key',
-        width: '16%' as any,
-        headerName: t('variable'),
+        width: '30%' as any,
+        headerName: t('name'),
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.key === 'question' || parameter.key === 'datasetId') {
             const iconMap = {
@@ -139,7 +148,7 @@ export default function ParametersTable({
                 id={`${parameter.id}-key`}
                 fullWidth
                 readOnly={readOnly}
-                placeholder={t('variable')}
+                placeholder={t('inputParameterKeyPlaceholder')}
                 value={parameter.key || ''}
                 onChange={(e) => {
                   const value = e.target.value.trim();
@@ -179,7 +188,15 @@ export default function ParametersTable({
           if (parameter.type === 'source' && parameter.source) {
             const { source } = parameter;
             if (source.variableFrom === 'tool') {
-              return <Box>{t('object')}</Box>;
+              return (
+                <Stack direction="row" alignItems="center">
+                  <ListItemIcon sx={{ minWidth: 20 }}>
+                    <Icon icon="tabler:braces" />
+                  </ListItemIcon>
+
+                  {t('object')}
+                </Stack>
+              );
             }
 
             if (source.variableFrom === 'datastore') {
@@ -187,11 +204,30 @@ export default function ParametersTable({
               const variable = (variables?.variables || []).find(
                 (x) => x.key === source.variable?.key && x.scope && source.variable.scope
               );
-              return <Box>{variable?.type?.type ? TYPE_MAP[variable?.type?.type] : ''}</Box>;
+              return (
+                <Stack direction="row" alignItems="center">
+                  {variable?.type?.type ? (
+                    <>
+                      <ListItemIcon sx={{ minWidth: 20 }}>{TYPE_ICON_MAP[variable.type.type]}</ListItemIcon>
+                      {TYPE_MAP[variable?.type?.type]}
+                    </>
+                  ) : (
+                    ''
+                  )}
+                </Stack>
+              );
             }
 
             if (parameter.source.variableFrom === 'knowledge') {
-              return <Box>{TYPE_MAP.string}</Box>;
+              return (
+                <Stack direction="row" alignItems="center">
+                  <ListItemIcon sx={{ minWidth: 20 }}>
+                    <Icon icon="tabler:cursor-text" />
+                  </ListItemIcon>
+
+                  {TYPE_MAP.string}
+                </Stack>
+              );
             }
           }
 
@@ -392,7 +428,7 @@ export default function ParametersTable({
                 <ListItemIcon>
                   <Box component={Icon} icon="tabler:plus" />
                 </ListItemIcon>
-                <ListItemText primary={t('customize')} />
+                <ListItemText primary={t('customInputParameter')} />
               </MenuItem>
             </PopperMenu>
           </Stack>
@@ -510,6 +546,7 @@ function AgentParameter({
           <Typography variant="subtitle2">{t('agent')}</Typography>
 
           <SelectTool
+            placeholder={t('selectAgentToCallPlaceholder')}
             options={options || []}
             value={v}
             onChange={(_value) => {
@@ -543,7 +580,7 @@ function AgentParameter({
 
         {file && !!(parameters || []).length && (
           <Box>
-            <Typography variant="subtitle2">{t('input')}</Typography>
+            <Typography variant="subtitle2">{t('inputParameters')}</Typography>
 
             <Box>
               {(parameters || [])?.map(({ data }: any) => {
@@ -606,6 +643,7 @@ function DatastoreParameter({
           <Typography variant="subtitle2">{t('memory.title')}</Typography>
           <Box>
             <SelectVariable
+              placeholder={t('selectMemoryPlaceholder')}
               variables={variables}
               variable={variable}
               onChange={(_value) => {
@@ -659,6 +697,7 @@ function KnowledgeParameter({
           <SelectTool
             options={options}
             value={v}
+            placeholder={t('selectKnowledgePlaceholder')}
             onChange={(_value) => {
               if (_value) {
                 // 删除历史自动添加的变量
@@ -685,7 +724,7 @@ function KnowledgeParameter({
 
         {parameter?.source?.tool && (
           <Box>
-            <Typography variant="subtitle2">{t('parameters')}</Typography>
+            <Typography variant="subtitle2">{t('inputParameters')}</Typography>
 
             <Box>
               {(parameters || [])?.map((data: any) => {
@@ -727,11 +766,14 @@ type Option = {
   from?: string;
   parameters?: { [key: string]: any };
 };
+
 function SelectTool({
+  placeholder,
   options,
   value,
   onChange,
 }: {
+  placeholder?: string;
   options: Option[];
   value?: Option;
   onChange: (v: Option) => void;
@@ -764,7 +806,7 @@ function SelectTool({
       filterOptions={(_, params) => {
         return filter(options, params);
       }}
-      renderInput={(params) => <TextField hiddenLabel {...params} size="medium" />}
+      renderInput={(params) => <TextField hiddenLabel {...params} placeholder={placeholder} size="medium" />}
       onChange={(_, _value) => onChange(_value)}
     />
   );

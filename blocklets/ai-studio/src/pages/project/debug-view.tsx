@@ -677,6 +677,7 @@ function DebugModeForm({
           <AccordionSummary
             sx={{
               px: 2,
+              mb: 1,
               minHeight: (theme) => theme.spacing(3.5),
               [`.${accordionSummaryClasses.content}`]: {
                 m: 0,
@@ -694,7 +695,7 @@ function DebugModeForm({
                 width: 1,
               }}>
               <Typography variant="subtitle2" mb={0}>
-                {t('parameter')}
+                {t('inputParameters')}
               </Typography>
 
               {parameters.length > 1 && (

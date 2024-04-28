@@ -91,11 +91,12 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
       <DialogContent>
         <Stack gap={1.5}>
           <Box>
-            <Typography variant="subtitle2">{`${t('url')}*`}</Typography>
+            <Typography variant="subtitle2">{`${t('gitUrl')}*`}</Typography>
             <TextField
+              hiddenLabel
               autoFocus
               fullWidth
-              label={`${t('url')}*`}
+              placeholder="https://github.com/aigne/example.git"
               onPaste={(e) => {
                 try {
                   const url = gitUrlParse(e.clipboardData.getData('text/plain'));
@@ -139,7 +140,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
             />
           </Box>
 
-          <Box>
+          <Box sx={{ display: 'none' }}>
             <Typography variant="subtitle2">{t('username')}</Typography>
             <TextField
               fullWidth
@@ -153,41 +154,13 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
           </Box>
 
           <Box>
-            <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
-            <TextField
-              label={t('projectSetting.name')}
-              {...form.register('name')}
-              InputProps={{
-                readOnly: true,
-                onFocus: (e) => (e.currentTarget.readOnly = false),
-              }}
-              InputLabelProps={{ shrink: form.watch('name') ? true : undefined }}
-              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-            />
-          </Box>
-
-          <Box>
-            <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
-            <TextField
-              label={t('projectSetting.description')}
-              multiline
-              rows={4}
-              {...form.register('description')}
-              InputProps={{
-                readOnly: true,
-                onFocus: (e) => (e.currentTarget.readOnly = false),
-              }}
-              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
-            />
-          </Box>
-
-          <Box>
             <Typography variant="subtitle2">{t('accessToken')}</Typography>
             <TextField
+              hiddenLabel
               fullWidth
-              label={t('accessToken')}
               {...form.register('password')}
               autoComplete="false"
+              placeholder={t('importFromGitAccessTokenPlaceholder')}
               error={Boolean(form.formState.errors.password)}
               helperText={
                 form.formState.errors.password?.message || (
@@ -218,6 +191,37 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
                 ),
               }}
               sx={{ '.MuiInputBase-root': { width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' } }}
+            />
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2">{t('name')}</Typography>
+            <TextField
+              hiddenLabel
+              placeholder={t('newProjectNamePlaceholder')}
+              {...form.register('name')}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
+              InputLabelProps={{ shrink: form.watch('name') ? true : undefined }}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+            />
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2">{t('description')}</Typography>
+            <TextField
+              hiddenLabel
+              multiline
+              rows={4}
+              placeholder={t('newProjectDescriptionPlaceholder')}
+              {...form.register('description')}
+              InputProps={{
+                readOnly: true,
+                onFocus: (e) => (e.currentTarget.readOnly = false),
+              }}
+              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
             />
           </Box>
         </Stack>

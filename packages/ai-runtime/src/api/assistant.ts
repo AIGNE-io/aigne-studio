@@ -29,6 +29,7 @@ export async function runAssistant<
     assistantId: string;
     parameters?: { [key: string]: string | number };
     sessionId?: string;
+    debug?: boolean;
   },
 >({
   url,

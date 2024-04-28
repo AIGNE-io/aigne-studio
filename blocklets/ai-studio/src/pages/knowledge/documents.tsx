@@ -4,6 +4,7 @@ import { Icon } from '@iconify-icon/react';
 import { Box, Button, CircularProgress, Stack, Tooltip, Typography, styled } from '@mui/material';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { useReactive } from 'ahooks';
+import dayjs from 'dayjs';
 import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -173,6 +174,15 @@ export default function KnowledgeDocuments() {
         },
       },
       {
+        field: 'time',
+        headerName: t('knowledge.documents.time'),
+        flex: 1,
+        sortable: false,
+        renderCell: (params: any) => {
+          return <Box>{dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss')}</Box>;
+        },
+      },
+      {
         field: 'actions',
         headerName: t('actions'),
         flex: 1,
@@ -286,7 +296,11 @@ export default function KnowledgeDocuments() {
           </Box>
         </Box>
 
-        <Button variant="contained" size="small" onClick={() => navigate('add')}>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<Icon icon="tabler:plus" />}
+          onClick={() => navigate('add')}>
           {t('knowledge.documents.add')}
         </Button>
       </Stack>
