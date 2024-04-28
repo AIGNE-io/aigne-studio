@@ -141,7 +141,9 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
               </MenuItem>
             </MenuList>
           }>
-          <Button variant="outlined">{t('alert.import')}</Button>
+          <Button variant="outlined" startIcon={<Icon icon="tabler:transfer-in" />}>
+            {t('alert.import')}
+          </Button>
         </ButtonPopper>
 
         {resource.length ? (
