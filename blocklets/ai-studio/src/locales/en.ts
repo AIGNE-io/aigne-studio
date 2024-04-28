@@ -681,4 +681,9 @@ export default flat({
   imageGeneration: 'Image Generation',
   code: 'Code',
   addDocumentToDataset: 'Add Document To {dataset}',
+  newProjectNamePlaceholder: 'Let your project shine with a unique name',
+  newProjectDescriptionPlaceholder: 'Briefly describe your app to the world',
+  gitUrl: 'Git URL',
+  importFromGitAccessTokenPlaceholder: 'Token for accessing Git repository (leave blank if the repository is public)',
+  selectProjectToImportPlaceholder: 'Select a project to import',
 });

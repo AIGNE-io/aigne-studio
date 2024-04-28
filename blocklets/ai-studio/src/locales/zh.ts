@@ -676,4 +676,9 @@ export default flat({
   imageGeneration: '图片生成',
   code: '代码',
   addDocumentToDataset: '向{dataset}添加文档',
+  newProjectNamePlaceholder: '为你的项目起一个独特的名称吧',
+  newProjectDescriptionPlaceholder: '简要描述一下你的应用吧',
+  gitUrl: 'Git 地址',
+  importFromGitAccessTokenPlaceholder: '访问 Git 仓库的令牌（如果仓库是公开的则可不填写）',
+  selectProjectToImportPlaceholder: '选择要导入的项目',
 });
