@@ -106,6 +106,15 @@ export default function ParametersTable({
     };
   }, [t]);
 
+  const TYPE_ICON_MAP: any = useMemo(() => {
+    return {
+      string: <Icon icon="tabler:cursor-text" />,
+      number: <Icon icon="tabler:square-number-1" />,
+      object: <Icon icon="tabler:braces" />,
+      array: <Icon icon="tabler:brackets-contain" />,
+    };
+  }, [t]);
+
   const columns = useMemo<GridColDef<(typeof parameters)[number]>[]>(() => {
     return [
       {
@@ -179,7 +188,15 @@ export default function ParametersTable({
           if (parameter.type === 'source' && parameter.source) {
             const { source } = parameter;
             if (source.variableFrom === 'tool') {
-              return <Box>{t('object')}</Box>;
+              return (
+                <Stack direction="row" alignItems="center">
+                  <ListItemIcon sx={{ minWidth: 20 }}>
+                    <Icon icon="tabler:braces" />
+                  </ListItemIcon>
+
+                  {t('object')}
+                </Stack>
+              );
             }
 
             if (source.variableFrom === 'datastore') {
@@ -187,11 +204,30 @@ export default function ParametersTable({
               const variable = (variables?.variables || []).find(
                 (x) => x.key === source.variable?.key && x.scope && source.variable.scope
               );
-              return <Box>{variable?.type?.type ? TYPE_MAP[variable?.type?.type] : ''}</Box>;
+              return (
+                <Stack direction="row" alignItems="center">
+                  {variable?.type?.type ? (
+                    <>
+                      <ListItemIcon sx={{ minWidth: 20 }}>{TYPE_ICON_MAP[variable.type.type]}</ListItemIcon>
+                      {TYPE_MAP[variable?.type?.type]}
+                    </>
+                  ) : (
+                    ''
+                  )}
+                </Stack>
+              );
             }
 
             if (parameter.source.variableFrom === 'knowledge') {
-              return <Box>{TYPE_MAP.string}</Box>;
+              return (
+                <Stack direction="row" alignItems="center">
+                  <ListItemIcon sx={{ minWidth: 20 }}>
+                    <Icon icon="tabler:cursor-text" />
+                  </ListItemIcon>
+
+                  {TYPE_MAP.string}
+                </Stack>
+              );
             }
           }
 
