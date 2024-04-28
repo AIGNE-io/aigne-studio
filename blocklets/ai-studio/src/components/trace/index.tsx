@@ -147,10 +147,10 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
     input,
     'startTime',
     'endTime',
-    'logs',
-    'output',
     'inputParameters',
     'promptMessages',
+    'output',
+    'logs',
     'images',
     'apiArgs',
     'fnArgs',
@@ -185,6 +185,7 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
 
 function BasicTree({ inputs }: { inputs?: SessionItem['messages'][number]['inputMessages'] }) {
   if (!Array.isArray(inputs)) return null;
+  console.log(inputs);
   return (
     <Stack>
       {inputs.map((item) => {
