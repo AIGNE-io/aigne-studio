@@ -676,4 +676,7 @@ export default flat({
   customize: 'Customize',
   saveAs: 'Save As',
   dataSource: 'Data Source',
+  llm: 'LLM',
+  imageGeneration: 'Image Generation',
+  code: 'Code',
 });

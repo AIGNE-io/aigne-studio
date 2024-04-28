@@ -110,7 +110,7 @@ export default flat({
   home: '首页',
   prompts: '提示词',
   functions: '工具',
-  function: '自定义函数',
+  function: '函数',
   api: '接口',
   logs: '日志',
   noParameters: '没有参数',
@@ -672,4 +672,7 @@ export default flat({
   customize: '自定义',
   saveAs: '数据另存为',
   dataSource: '输入的数据来源',
+  llm: '大语言模型',
+  imageGeneration: '图片生成',
+  code: '代码',
 });
