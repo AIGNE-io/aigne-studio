@@ -249,8 +249,8 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     }
 
     let debug = false;
-    if (input.debug && userId) {
-      if ([project.createdBy].includes(userId) && ['owner', 'admin'].includes(req.user?.role || '')) {
+    if (input.debug && req.user) {
+      if ([project.createdBy].includes(req.user.did) || ['owner', 'admin'].includes(req.user.role)) {
         debug = true;
       }
     }
