@@ -1,18 +1,20 @@
+/* eslint-disable no-await-in-loop */
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 
+import downloadImage from '@api/libs/download-logo';
+import logger from '@api/libs/logger';
 import component from '@blocklet/sdk/lib/component';
 import { Router } from 'express';
 import Joi from 'joi';
 import cloneDeep from 'lodash/cloneDeep';
 import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
-import uniqBy from 'lodash/uniqBy';
 import { stringify } from 'yaml';
 
 import { ensurePromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
-import { getAssistantsOfRepository } from '../store/repository';
+import { LOGO_FILENAME, defaultBranch, getAssistantsOfRepository, getRepository } from '../store/repository';
 
 const AI_STUDIO_DID = 'z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB';
 const TARGET_DIR = path.join(AI_STUDIO_DID, 'ai');
@@ -108,17 +110,50 @@ export function resourceRoutes(router: Router) {
       const { key, value } = item;
 
       const folderPath = path.join(resourceDir, key);
-      await mkdir(folderPath, { recursive: true });
 
       for (const projectId of value) {
+        await mkdir(path.join(folderPath, projectId), { recursive: true });
+
         const project = await Project.findOne({ where: { _id: projectId } });
-        const assistants = await getAssistantsOfRepository({
-          projectId,
-          ref: project?.gitDefaultBranch!,
-        });
-        const result = stringify({ assistants: uniqBy(assistants, 'id'), project: project && project.dataValues });
-        const assistantsFilename = path.join(folderPath, `${projectId}.yaml`);
-        await writeFile(assistantsFilename, result);
+        const assistants = await Promise.all(
+          (await getAssistantsOfRepository({ projectId, ref: project?.gitDefaultBranch! })).map(async (i) => {
+            const logo = i.release?.logo;
+            if (!logo) return i;
+
+            const logoFilename = `${i.id}-release-logo.png`;
+            const logoPath = path.join(folderPath, projectId, logoFilename);
+
+            try {
+              await downloadImage(logo, logoPath);
+            } catch (error) {
+              logger.error('failed to download assistant logo', { error, logo });
+            }
+
+            return { ...i, release: { ...i.release, logo: logoFilename } };
+          })
+        );
+
+        const result = stringify({ assistants, project: project && project.dataValues });
+
+        // TODO 兼容老的 ai assistant, 晚些去掉
+        await writeFile(path.join(folderPath, `${projectId}.yaml`), result);
+
+        // 新的保存方式，可以存储更多内容
+        await writeFile(path.join(folderPath, projectId, `${projectId}.yaml`), result);
+
+        // 写入logo.png
+        const repository = await getRepository({ projectId });
+        const resourceLogoPath = path.join(folderPath, projectId, LOGO_FILENAME);
+
+        try {
+          const icon = await repository.readBlob({
+            ref: project?.gitDefaultBranch || defaultBranch,
+            filepath: LOGO_FILENAME,
+          });
+          await writeFile(resourceLogoPath, icon.blob);
+        } catch (error) {
+          logger.error('failed to save icon file to resource dir', { error });
+        }
 
         arr.push(result);
       }

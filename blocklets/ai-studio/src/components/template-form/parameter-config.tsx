@@ -1,7 +1,8 @@
+import BaseSwitch from '@app/components/custom/switch';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ParameterField } from '@blocklet/ai-runtime/components';
 import { ParameterYjs, parameterFromYjs } from '@blocklet/ai-runtime/types';
-import { FormControl, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
+import { Box, FormControl, FormControlLabel, Stack, TextField, Typography } from '@mui/material';
 
 import NumberField from './number-field';
 import SelectOptionsConfig from './select-options-config';
@@ -10,103 +11,143 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
   const { t } = useLocaleContext();
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
+    <Stack gap={2}>
+      <Box>
+        <Typography variant="subtitle2">{t('label')}</Typography>
+
         <TextField
           fullWidth
-          label={t('form.parameter.helper')}
-          size="small"
-          value={value.helper || ''}
-          onChange={(e) => (value.helper = e.target.value)}
+          hiddenLabel
+          size="medium"
+          value={value.label || ''}
+          onChange={(e) => (value.label = e.target.value)}
           InputProps={{ readOnly }}
         />
-      </Grid>
-      <Grid item xs={12}>
+      </Box>
+
+      <Box>
+        <Typography variant="subtitle2">{t('placeholder')}</Typography>
+
+        <TextField
+          fullWidth
+          hiddenLabel
+          size="medium"
+          value={value.placeholder || ''}
+          onChange={(e) => (value.placeholder = e.target.value)}
+          InputProps={{ readOnly }}
+        />
+      </Box>
+
+      <Box>
+        <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
         <ParameterField
           readOnly={readOnly}
           parameter={parameterFromYjs(value)}
+          hiddenLabel
           fullWidth
-          label={t('form.parameter.defaultValue')}
-          size="small"
+          size="medium"
           value={value.defaultValue ?? ''}
           onChange={(defaultValue: any) => (value.defaultValue = defaultValue)}
         />
-      </Grid>
+      </Box>
+
       {value.type === 'select' && (
-        <Grid item xs={12}>
+        <Box>
+          <Typography variant="subtitle2">{t('Select Options')}</Typography>
           <SelectOptionsConfig readOnly={readOnly} select={value} />
-        </Grid>
+        </Box>
       )}
-      <Grid item xs={12}>
+
+      <Box display="flex" alignItems="center" gap={2}>
+        {(!value.type || value.type === 'string') && (
+          <>
+            <Box flex={1}>
+              <Typography variant="subtitle2">{t('minLength')}</Typography>
+
+              <NumberField
+                sx={{ width: 1 }}
+                fullWidth
+                hiddenLabel
+                size="medium"
+                NumberProps={{
+                  readOnly,
+                  min: 1,
+                  value: value.minLength,
+                  onChange: (_, minLength) => (value.minLength = minLength),
+                }}
+              />
+            </Box>
+
+            <Box flex={1}>
+              <Typography variant="subtitle2">{t('maxLength')}</Typography>
+
+              <NumberField
+                sx={{ width: 1 }}
+                fullWidth
+                hiddenLabel
+                size="medium"
+                NumberProps={{
+                  readOnly,
+                  min: 1,
+                  value: value.maxLength,
+                  onChange: (_, maxLength) => (value.maxLength = maxLength),
+                }}
+              />
+            </Box>
+          </>
+        )}
+        {value.type === 'number' && (
+          <>
+            <Box flex={1}>
+              <Typography variant="subtitle2">{t('min')}</Typography>
+
+              <NumberField
+                hiddenLabel
+                sx={{ width: 1 }}
+                fullWidth
+                size="medium"
+                NumberProps={{
+                  readOnly,
+                  value: value.min,
+                  onChange: (_, min) => (value.min = min),
+                }}
+              />
+            </Box>
+            <Box flex={1}>
+              <Typography variant="subtitle2">{t('max')}</Typography>
+
+              <NumberField
+                hiddenLabel
+                sx={{ width: 1 }}
+                fullWidth
+                size="medium"
+                NumberProps={{
+                  readOnly,
+                  value: value.max,
+                  onChange: (_, max) => (value.max = max),
+                }}
+              />
+            </Box>
+          </>
+        )}
+      </Box>
+
+      <Box>
         <FormControl>
           <FormControlLabel
-            label={t('form.parameter.required')}
+            sx={{ display: 'flex', alignItems: 'center' }}
+            label={t('required')}
             control={
-              <Switch
+              <BaseSwitch
+                sx={{ mr: 1, mt: '1px' }}
                 checked={value.required || false}
                 onChange={(_, required) => !readOnly && (value.required = required)}
               />
             }
           />
         </FormControl>
-      </Grid>
-      {(!value.type || value.type === 'string') && (
-        <>
-          <Grid item xs={6}>
-            <NumberField
-              label={t('form.parameter.minLength')}
-              size="small"
-              NumberProps={{
-                readOnly,
-                min: 1,
-                value: value.minLength,
-                onChange: (_, minLength) => (value.minLength = minLength),
-              }}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <NumberField
-              fullWidth
-              label={t('form.parameter.maxLength')}
-              size="small"
-              NumberProps={{
-                readOnly,
-                min: 1,
-                value: value.maxLength,
-                onChange: (_, maxLength) => (value.maxLength = maxLength),
-              }}
-            />
-          </Grid>
-        </>
-      )}
-      {value.type === 'number' && (
-        <>
-          <Grid item xs={6}>
-            <NumberField
-              fullWidth
-              label={t('form.parameter.min')}
-              size="small"
-              NumberProps={{
-                readOnly,
-                value: value.min,
-                onChange: (_, min) => (value.min = min),
-              }}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <NumberField
-              fullWidth
-              label={t('form.parameter.max')}
-              size="small"
-              NumberProps={{
-                readOnly,
-                value: value.max,
-                onChange: (_, max) => (value.max = max),
-              }}
-            />
-          </Grid>
-        </>
-      )}
-    </Grid>
+      </Box>
+    </Stack>
   );
 }

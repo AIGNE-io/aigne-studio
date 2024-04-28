@@ -1,39 +1,41 @@
-import { CreateReleaseInput } from '@api/routes/release';
 import LoadingButton from '@app/components/loading/loading-button';
-import { useUploader } from '@app/contexts/uploader';
+import LogoField from '@app/components/publish/LogoField';
+import PublishEntries from '@app/components/publish/PublishEntries';
+import NumberField from '@app/components/template-form/number-field';
 import { getErrorMessage } from '@app/libs/api';
+import { AI_RUNTIME_COMPONENT_DID } from '@app/libs/constants';
 import { createRelease, updateRelease } from '@app/libs/release';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import ComponentInstaller from '@blocklet/ui-react/lib/ComponentInstaller';
 import styled from '@emotion/styled';
+import { Icon } from '@iconify-icon/react';
 import { LaunchRounded } from '@mui/icons-material';
-import UploadIcon from '@mui/icons-material/Upload';
 import {
   Box,
+  CircularProgress,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   FormLabel,
-  IconButton,
-  InputAdornment,
-  InputBase,
   Link,
   Radio,
   RadioGroup,
   Stack,
-  Switch,
-  TextField,
   Typography,
 } from '@mui/material';
-import { alpha, styled as muiStyled } from '@mui/material/styles';
-import { useEffect, useMemo } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { styled as muiStyled } from '@mui/material/styles';
+import { Suspense, useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
 import QRCode from 'react-qr-code';
 import { joinURL, withQuery } from 'ufo';
 
-import { saveButtonState, useAssistantChangesState, useProjectState } from './state';
+import BaseInput from '../../components/custom/input';
+import Switch from '../../components/custom/switch';
+import { saveButtonState, useProjectState } from './state';
 
 const TemplateImage = styled('img')({
   width: '100%',
@@ -49,37 +51,6 @@ const StyledFormControlLabel = muiStyled(FormControlLabel)({
   },
 });
 
-const BaseInput = muiStyled(InputBase)(({ theme }) => ({
-  '& .MuiInputBase-input': {
-    borderRadius: 6,
-    padding: '4px 12px',
-    backgroundColor: theme.palette.mode === 'light' ? '#F3F6F9' : '#1A2027',
-    border: '1px solid',
-    borderColor: theme.palette.mode === 'light' ? '#E0E3E7' : '#2D3843',
-    transition: theme.transitions.create(['border-color', 'background-color', 'box-shadow']),
-    '&:focus': {
-      boxShadow: `${alpha(theme.palette.primary.main, 0.25)} 0 0 0 0.2rem`,
-      borderColor: theme.palette.primary.main,
-    },
-  },
-}));
-
-const ImageContainer = muiStyled(Box)(() => ({
-  width: '100%',
-  paddingBottom: '100%',
-  position: 'relative',
-  borderRadius: 8,
-  '.upload-button': {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    cursor: 'pointer',
-  },
-}));
-
 export default function PublishView({
   projectId,
   projectRef,
@@ -90,14 +61,16 @@ export default function PublishView({
   assistant: AssistantYjs;
 }) {
   return (
-    <ComponentInstaller
-      did={[
-        'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
-        'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
-        'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
-      ]}>
-      <PublishViewContent projectId={projectId} projectRef={projectRef} assistant={assistant} />
-    </ComponentInstaller>
+    <Suspense fallback={<CircularProgress />}>
+      <ComponentInstaller
+        did={[
+          'z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D',
+          'z2qaCNvKMv5GjouKdcDWexv6WqtHbpNPQDnAk',
+          'z8iZiDFg3vkkrPwsiba1TLXy3H9XHzFERsP8o',
+        ]}>
+        <PublishViewContent projectId={projectId} projectRef={projectRef} assistant={assistant} />
+      </ComponentInstaller>
+    </Suspense>
   );
 }
 
@@ -110,240 +83,312 @@ function PublishViewContent({
   projectRef: string;
   assistant: AssistantYjs;
 }) {
+  const doc = (getYjsValue(assistant) as Map<any>).doc!;
+
+  const setRelease = (update: (release: NonNullable<AssistantYjs['release']>) => void) => {
+    doc.transact(() => {
+      assistant.release ??= {};
+      update(assistant.release);
+    });
+  };
+
   const { t, locale } = useLocaleContext();
-  const uploaderRef = useUploader();
 
   const {
-    state: { releases },
+    state: { releases, project },
     refetch,
   } = useProjectState(projectId, projectRef);
 
   const release = releases?.find((i) => i.projectRef === projectRef && i.assistantId === assistant.id);
 
-  const form = useForm<CreateReleaseInput>({});
-
-  useEffect(() => {
-    form.reset({
-      template: release?.template || 'default',
-      icon: release?.icon || '',
-      title: release?.title || '',
-      description: release?.description || '',
-      paymentEnabled: release?.paymentEnabled,
-      paymentUnitAmount: release?.paymentUnitAmount,
-      openerMessage: release?.openerMessage || '',
-    });
-  }, [form, release]);
-
   const releaseUrl = useMemo(() => {
     if (!release) return undefined;
     const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
-    return withQuery(
-      joinURL(globalThis.location.origin, pagesPrefix, '@z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D', '/ai/chat'),
-      { aiReleaseId: release.id }
-    );
+    return withQuery(joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/runtime'), {
+      assistantId: btoa([projectId, projectRef, assistant.id].join('/')),
+    });
   }, [release]);
 
-  const { disabled: hasUnsavedChanges } = useAssistantChangesState(projectId, projectRef);
+  useEffect(() => {
+    const name = assistant?.name ?? project?.name;
+    const description = assistant?.description ?? project?.description;
+    if (name || description) {
+      setRelease((release) => {
+        release.title ??= name;
+        release.description ??= description;
+      });
+    }
+  }, [project]);
 
-  const onSubmit = async (input: CreateReleaseInput) => {
+  const defaultValues = useMemo(() => {
+    return getYjsValue(assistant.release)?.toJSON() ?? {};
+  }, [assistant.release]);
+
+  const form = useForm<Pick<NonNullable<typeof assistant.release>, 'payment'>>({
+    defaultValues,
+  });
+
+  const price = form.watch('payment.price');
+
+  useEffect(() => {
+    setRelease((release) => {
+      release.payment ??= {};
+      release.payment.price = price;
+    });
+  }, [price]);
+
+  const onSubmit: Parameters<(typeof form)['handleSubmit']>[0] = async () => {
     try {
-      if (!hasUnsavedChanges) {
-        saveButtonState.getState().save?.();
-        Toast.info('Please save your prompt first');
-        return;
-      }
+      const assistantId = assistant.id;
+      const paymentEnabled = assistant.release?.payment?.enable;
+      const paymentUnitAmount = assistant.release?.payment?.price;
+
+      if (!(await saveButtonState.getState().save?.({ skipConfirm: true }))?.saved) return;
 
       if (!release) {
         await createRelease({
-          ...input,
           projectRef,
           projectId,
-          assistantId: assistant.id,
+          assistantId,
+          paymentEnabled,
+          paymentUnitAmount,
         });
-        refetch();
-        Toast.success(t('publish.publishSuccess'));
+        await refetch({ force: true });
+        Toast.success(t('publishSuccess'));
       } else {
-        await updateRelease(release.id, input);
-        refetch();
-        Toast.success(t('publish.updateSuccess'));
+        await updateRelease(release.id, {
+          paymentEnabled,
+          paymentUnitAmount,
+        });
+        await refetch({ force: true });
+        Toast.success(t('publishUpdateSuccess'));
       }
+
+      setTimeout(() => {
+        document.getElementById('create-release-button')?.scrollIntoView({ behavior: 'smooth' });
+      });
     } catch (error) {
+      console.error('failed to publish', { error });
       Toast.error(getErrorMessage(error));
-      throw error;
     }
   };
 
   return (
-    <Stack px={2} mt={1} py={1} gap={2} ml={1} overflow="auto" component="form" onSubmit={form.handleSubmit(onSubmit)}>
+    <Stack
+      px={2}
+      mt={1}
+      py={1}
+      pb={2}
+      gap={2}
+      ml={1}
+      overflow="auto"
+      component="form"
+      onSubmit={form.handleSubmit(onSubmit)}>
       <FormControl>
-        <Typography variant="subtitle2" mb={1}>
-          {t('templates')}
-        </Typography>
-        <Controller
-          name="template"
-          control={form.control}
-          render={({ field }) => (
-            <RadioGroup
-              row
-              sx={{ rowGap: 1 }}
-              value={field.value || ''}
-              onChange={(_, value) => field.onChange({ target: { value } })}>
-              <StyledFormControlLabel
-                labelPlacement="top"
-                control={<Radio />}
-                value="default"
-                label={
-                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-1.png')} alt="" />
-                }
-              />
-              <StyledFormControlLabel
-                labelPlacement="top"
-                control={<Radio />}
-                value="blue"
-                label={
-                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-2.png')} alt="" />
-                }
-              />
-              <StyledFormControlLabel
-                labelPlacement="top"
-                control={<Radio />}
-                value="red"
-                label={
-                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-3.png')} alt="" />
-                }
-              />
-              <StyledFormControlLabel
-                labelPlacement="top"
-                control={<Radio />}
-                value="green"
-                label={
-                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-4.png')} alt="" />
-                }
-              />
-            </RadioGroup>
-          )}
-        />
-      </FormControl>
-
-      <FormControl>
-        <Typography mb={1} variant="subtitle2">
-          {t('publish.title')}
-        </Typography>
-        <BaseInput
-          id="project-name"
-          placeholder={t('publish.titlePlaceholder')}
-          {...form.register('title', { setValueAs: (v) => v.trim() })}
-        />
-      </FormControl>
-
-      <FormControl>
-        <Typography mb={1} variant="subtitle2">
-          {t('publish.description')}
-        </Typography>
-        <BaseInput
-          multiline
-          sx={{
-            padding: 0,
-          }}
-          placeholder={t('publish.descriptionPlaceholder')}
-          minRows={3}
-          id="description"
-          {...form.register('description', { setValueAs: (v) => v.trim() })}
-        />
-      </FormControl>
-
-      <FormControl>
-        <Typography mb={1} variant="subtitle2">
-          {t('publish.conversionOpener')}
-        </Typography>
-        <BaseInput
-          multiline
-          sx={{
-            padding: 0,
-          }}
-          placeholder={t('publish.conversionOpenerDescription')}
-          minRows={3}
-          id="description"
-          {...form.register('openerMessage', { setValueAs: (v) => v.trim() })}
-        />
-      </FormControl>
-
-      <Box>
-        <Typography mb={1} variant="subtitle2">
-          {t('publish.logo')}
+        <Typography variant="subtitle2" mb={0.5}>
+          {t('designTemplate')}
         </Typography>
 
-        <Box mb={0.5} width="40%" maxWidth={120}>
-          <Controller
-            name="icon"
-            control={form.control}
-            render={({ field }) => (
-              <ImageContainer
-                onClick={() => {
-                  // @ts-ignore
-                  const uploader = uploaderRef?.current?.getUploader();
-
-                  uploader?.open();
-
-                  uploader.onceUploadSuccess((data: any) => {
-                    const { response } = data;
-                    const url = response?.data?.url || response?.data?.fileUrl;
-                    field.onChange({ target: { value: url } });
-                  });
-                }}>
-                {field.value ? (
-                  <img className="upload-button" src={field.value} alt="" />
-                ) : (
-                  <IconButton
-                    className="upload-button"
-                    key="uploader-trigger"
-                    size="small"
-                    sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)' }}>
-                    <UploadIcon />
-                  </IconButton>
-                )}
-              </ImageContainer>
-            )}
+        <RadioGroup
+          row
+          sx={{ rowGap: 1 }}
+          value={assistant.release?.template || 'chat'}
+          onChange={(_, value) => setRelease((release) => (release.template = value))}>
+          <StyledFormControlLabel
+            labelPlacement="top"
+            control={<Radio />}
+            value="chat"
+            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-chat.svg')} alt="" />}
           />
-        </Box>
-      </Box>
+          <StyledFormControlLabel
+            labelPlacement="top"
+            control={<Radio />}
+            value="form"
+            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-form.svg')} alt="" />}
+          />
+        </RadioGroup>
+      </FormControl>
 
-      <Box>
-        <Typography mb={1} variant="subtitle2">
-          {t('publish.payment')}
+      <LogoField assistant={assistant} setRelease={setRelease} />
+
+      <FormControl>
+        <Typography mb={0.5} variant="subtitle2">
+          {t('agentName')}
         </Typography>
+        <BaseInput
+          placeholder={t('agentNamePlaceholder')}
+          value={assistant.release?.title || ''}
+          onChange={(e) => setRelease((release) => (release.title = e.target.value))}
+        />
+      </FormControl>
 
-        <Stack gap={1}>
-          <Stack direction="row" gap={1} alignItems="center">
-            <FormLabel sx={{ width: 60 }}>{t('publish.enabled')}</FormLabel>
-            <Controller
-              name="paymentEnabled"
-              control={form.control}
-              rules={{ required: form.watch('paymentEnabled'), min: 0 }}
-              render={({ field }) => (
-                <FormControl>
-                  <Switch checked={field.value || false} onChange={field.onChange} />
-                </FormControl>
-              )}
+      <FormControl>
+        <Typography mb={0.5} variant="subtitle2">
+          {t('agentDescription')}
+        </Typography>
+        <BaseInput
+          multiline
+          sx={{ padding: 0 }}
+          placeholder={t('agentDescriptionPlaceholder')}
+          minRows={3}
+          value={assistant.release?.description || ''}
+          onChange={(e) => setRelease((release) => (release.description = e.target.value))}
+        />
+      </FormControl>
+
+      <PublishEntries assistant={assistant} />
+
+      <FormControl>
+        <Typography mb={0.5} variant="subtitle2">
+          {t('openingText')}
+        </Typography>
+        <BaseInput
+          multiline
+          sx={{ padding: 0 }}
+          placeholder={t('openingTextPlaceholder')}
+          minRows={3}
+          value={assistant.release?.openerMessage || ''}
+          onChange={(e) => setRelease((release) => (release.openerMessage = e.target.value))}
+        />
+      </FormControl>
+
+      <TableLayout component="table">
+        <tr>
+          <td colSpan={2}>
+            <Typography variant="subtitle2" noWrap sx={{ mb: 0, mt: 1 }}>
+              {t('chatButton')}
+            </Typography>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <FormLabel>{t('buttonTitle')}</FormLabel>
+          </td>
+
+          <td>
+            <BaseInput
+              fullWidth
+              value={assistant.release?.submitButton?.title || ''}
+              onChange={(e) =>
+                setRelease((release) => {
+                  release.submitButton ??= {};
+                  release.submitButton.title = e.target.value;
+                })
+              }
             />
-          </Stack>
+          </td>
+        </tr>
 
-          {form.watch('paymentEnabled') && (
-            <Stack direction="row" gap={1} alignItems="center">
-              <FormLabel sx={{ width: 60 }}>{t('publish.price')}</FormLabel>
-              <TextField
-                {...form.register('paymentUnitAmount', { required: form.watch('paymentEnabled') })}
-                hiddenLabel
-                InputProps={{ endAdornment: <InputAdornment position="end">ABT / {t('publish.time')}</InputAdornment> }}
-              />
-            </Stack>
-          )}
-        </Stack>
-      </Box>
+        <tr>
+          <td colSpan={2}>
+            <Typography variant="subtitle2" sx={{ mb: 0, mt: 1 }}>
+              {t('chatLimit')}
+            </Typography>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <FormLabel>{t('maxChatRoundLimit')}</FormLabel>
+          </td>
+
+          <td>
+            <NumberField
+              id="maxChatRoundLimit"
+              fullWidth
+              component={BaseInput}
+              NumberProps={{
+                min: 0,
+                value: assistant.release?.maxRoundLimit ?? null,
+                onChange: (_, value) =>
+                  setRelease((release) => {
+                    release.maxRoundLimit = value;
+                  }),
+              }}
+            />
+          </td>
+        </tr>
+
+        <tr>
+          <Box component="td" sx={{ verticalAlign: 'top' }}>
+            <FormLabel sx={{ mt: 1.25, display: 'block' }}>{t('reachMaxRoundLimitTip')}</FormLabel>
+          </Box>
+
+          <td>
+            <BaseInput
+              id="reachMaxRoundLimitTip"
+              fullWidth
+              multiline
+              value={assistant.release?.reachMaxRoundLimitTip ?? ''}
+              onChange={(e) =>
+                setRelease((release) => {
+                  release.reachMaxRoundLimitTip = e.target.value;
+                })
+              }
+            />
+          </td>
+        </tr>
+
+        <tr>
+          <td colSpan={2}>
+            <Typography mb={0.5} variant="subtitle2" mt={1}>
+              {t('payment')}
+            </Typography>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <FormLabel>{t('enabled')}</FormLabel>
+          </td>
+
+          <td>
+            <Switch
+              checked={assistant.release?.payment?.enable || false}
+              onChange={(_, checked) =>
+                setRelease((release) => {
+                  release.payment ??= {};
+                  release.payment.enable = checked;
+                })
+              }
+            />
+          </td>
+        </tr>
+
+        {assistant.release?.payment?.enable && (
+          <tr>
+            <td>
+              <FormLabel>{t('pricing')}</FormLabel>
+            </td>
+
+            <td>
+              <Stack direction="row" alignItems="center" gap={1}>
+                <BaseInput
+                  fullWidth
+                  {...form.register('payment.price', {
+                    required: assistant.release.payment.enable ? t('pricingRequiredMessage') : undefined,
+                    pattern: {
+                      value: /^\d+(\.\d{1,5})?$/,
+                      message: t('pricingPatternMessage', { decimal: 5 }),
+                    },
+                    min: { value: 0.00001, message: t('pricingPatternMessage', { decimal: 5 }) },
+                    max: { value: 1000000, message: t('pricingInvalidMessage') },
+                  })}
+                />
+                <Typography component="span">{t('pricingUnit')}</Typography>
+              </Stack>
+              {form.formState.errors.payment?.price?.message && (
+                <FormHelperText error>{form.formState.errors.payment?.price?.message}</FormHelperText>
+              )}
+            </td>
+          </tr>
+        )}
+      </TableLayout>
 
       {release && releaseUrl && (
-        <Stack gap={1}>
-          <Typography variant="subtitle2">{t('publish.link')}</Typography>
+        <Stack>
+          <Typography variant="subtitle2">{t('publishedLink')}</Typography>
 
           <Link href={releaseUrl} target="_blank" sx={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
             <Typography component="span" sx={{ textOverflow: 'ellipsis', overflow: 'hidden', flexShrink: 1 }}>
@@ -353,7 +398,7 @@ function PublishViewContent({
             <LaunchRounded sx={{ color: 'text.secondary', fontSize: 16 }} />
           </Link>
 
-          <Box component={QRCode} value={releaseUrl} sx={{ width: 120, height: 120 }} />
+          <Box component={QRCode} value={releaseUrl} sx={{ width: 120, height: 120, mt: 1 }} />
 
           <Box color="text.secondary">
             <Typography component="span" mr={1}>
@@ -365,11 +410,31 @@ function PublishViewContent({
         </Stack>
       )}
 
-      <Stack direction="row" gap={2} alignItems="center" sx={{ mt: 3 }}>
-        <LoadingButton type="submit" loading={form.formState.isSubmitting} variant="contained">
-          {release ? t('publish.update') : t('publish.publishProject')}
+      <Stack direction="row" gap={2} alignItems="center">
+        <LoadingButton
+          id="create-release-button"
+          type="submit"
+          loading={form.formState.isSubmitting}
+          variant="contained"
+          loadingPosition="start"
+          startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}>
+          {release ? t('publishUpdate') : t('publish')}
         </LoadingButton>
       </Stack>
     </Stack>
   );
 }
+
+const TableLayout = styled(Box)`
+  td {
+    white-space: nowrap;
+
+    &:first-of-type {
+      padding-right: 16px;
+    }
+
+    &:last-of-type {
+      width: 100%;
+    }
+  }
+`;

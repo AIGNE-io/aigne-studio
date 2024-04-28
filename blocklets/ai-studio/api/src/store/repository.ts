@@ -1,17 +1,37 @@
 import { readdir, rm, writeFile } from 'fs/promises';
-import path from 'path';
+import path, { relative } from 'path';
 
-import { Assistant, FileTypeYjs, fileFromYjs, fileToYjs, isAssistant, isRawFile } from '@blocklet/ai-runtime/types';
+import { EVENTS } from '@api/event';
+import { broadcast } from '@api/libs/ws';
+import {
+  Assistant,
+  FileTypeYjs,
+  Variables,
+  fileFromYjs,
+  fileToYjs,
+  isAssistant,
+  isRawFile,
+  isVariables,
+} from '@blocklet/ai-runtime/types';
 import { Repository, Transaction } from '@blocklet/co-git/repository';
+import { SpaceClient, SyncFolderPushCommand, SyncFolderPushCommandOutput } from '@did-space/client';
+import { pathExists } from 'fs-extra';
 import { glob } from 'glob';
+import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
+import { joinURL } from 'ufo';
 import { parse, stringify } from 'yaml';
 
-import { wallet } from '../libs/auth';
+import { authClient, wallet } from '../libs/auth';
+import downloadLogo from '../libs/download-logo';
 import { Config } from '../libs/env';
 import logger from '../libs/logger';
 import Project from './models/project';
+
+export const CONFIG_FONDER = 'config';
+export const VARIABLE_KEY = 'variable';
+export const VARIABLE_FILENAME = `${VARIABLE_KEY}.yaml`;
 
 export const defaultBranch = 'main';
 
@@ -20,9 +40,12 @@ export const defaultRemote = 'origin';
 const repositories: { [key: string]: Promise<Repository<FileTypeYjs>> } = {};
 
 export const repositoryRoot = (projectId: string) => path.join(Config.dataDir, 'repositories', projectId);
+export const repositoryCooperativeRoot = (projectId: string) =>
+  path.join(Config.dataDir, 'repositories', `${projectId}.cooperative`);
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 export const TESTS_FOLDER_NAME = 'tests';
+export const LOGO_FILENAME = 'logo.png';
 
 export async function clearRepository(projectId: string) {
   const repo = await getRepository({ projectId });
@@ -73,6 +96,15 @@ export async function getRepository({
           }
         }
 
+        if (
+          root === CONFIG_FONDER &&
+          filepath.startsWith(joinURL(CONFIG_FONDER, VARIABLE_FILENAME)) &&
+          ext === '.yaml'
+        ) {
+          const variable = parse(Buffer.from(content).toString());
+          return { filepath, key: VARIABLE_KEY, data: variable };
+        }
+
         return {
           filepath,
           key: nanoid(32),
@@ -115,10 +147,14 @@ export async function getRepository({
 
         if (isRawFile(content)) {
           const base64 = content.$base64;
-
           const data = typeof base64 === 'string' ? Buffer.from(base64, 'base64') : '';
-
           return [{ filepath, data }];
+        }
+
+        const [root, filename] = filepath.split('/');
+        if (root === CONFIG_FONDER && filename === VARIABLE_FILENAME) {
+          const { variables } = content;
+          return [{ filepath, data: stringify({ variables }) }];
         }
 
         return [{ filepath, data: '' }];
@@ -154,9 +190,17 @@ export async function syncRepository<T>({
   });
 }
 
-const SETTINGS_FILE = '.settings.yaml';
+export const SETTINGS_FILE = '.settings.yaml';
 
-const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>; project: Project }) => {
+const addSettingsToGit = async ({
+  tx,
+  project,
+  icon,
+}: {
+  tx: Transaction<FileTypeYjs>;
+  project: Project;
+  icon?: string;
+}) => {
   const repository = await getRepository({ projectId: project._id! });
   const fields = pick(project.dataValues, [
     '_id',
@@ -168,7 +212,6 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
     'createdBy',
     'updatedBy',
     'pinnedAt',
-    'icon',
     'gitType',
     'temperature',
     'topP',
@@ -182,21 +225,103 @@ const addSettingsToGit = async ({ tx, project }: { tx: Transaction<FileTypeYjs>;
 
   await writeFile(path.join(repository.options.root, SETTINGS_FILE), fieldsStr);
   await tx.add({ filepath: SETTINGS_FILE });
+
+  // 新上传的图片
+  try {
+    if (icon && icon.startsWith('http') && !icon.includes('/api/projects')) {
+      await downloadLogo(icon, path.join(repository.options.root, LOGO_FILENAME));
+    } else {
+      const file = (await repository.readBlob({ ref: defaultBranch!, filepath: LOGO_FILENAME })).blob;
+      await writeFile(path.join(repository.options.root, LOGO_FILENAME), file);
+    }
+    await tx.add({ filepath: LOGO_FILENAME });
+  } catch (error) {
+    logger.error('failed to save project icon', { error });
+  }
 };
 
-export const autoSyncRemoteRepoIfNeeded = async ({
+export const autoSyncIfNeeded = async ({
   project,
   author,
+  userId,
+  wait = true,
 }: {
   project: Project;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+  userId: string;
+  wait?: true | false;
 }) => {
   if (project.gitUrl && project.gitAutoSync) {
     const repository = await getRepository({ projectId: project._id! });
     await syncRepository({ repository, ref: project.gitDefaultBranch, author });
     await project.update({ gitLastSyncedAt: new Date() });
   }
+
+  if (project.didSpaceAutoSync) {
+    if (wait) {
+      await syncToDidSpace({ project, userId });
+    } else {
+      broadcast(project._id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
+        done: false,
+      });
+      // 开始同步
+      syncToDidSpace({ project, userId })
+        .then(() => {
+          // 同步成功
+          broadcast(project._id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
+            done: true,
+          });
+        })
+        .catch((error) => {
+          // 同步失败了
+          logger.error(error);
+          broadcast(project._id, EVENTS.PROJECT.SYNC_TO_DID_SPACE, {
+            error,
+            done: true,
+          });
+        });
+    }
+  }
 };
+
+export async function syncToDidSpace({ project, userId }: { project: Project; userId: string }) {
+  const { user } = await authClient.getUser(userId);
+  const endpoint = user?.didSpace?.endpoint;
+
+  if (isEmpty(endpoint)) {
+    return;
+  }
+
+  const spaceClient = new SpaceClient({
+    endpoint,
+    wallet,
+  });
+
+  const repositoryPath = repositoryRoot(project._id);
+  const repositoryCooperativePath = repositoryCooperativeRoot(project._id);
+  const outputs: (SyncFolderPushCommandOutput | null)[] = await Promise.all(
+    [repositoryPath, repositoryCooperativePath].map(async (path) => {
+      if (await pathExists(path)) {
+        return spaceClient.send(
+          new SyncFolderPushCommand({
+            source: path,
+            target: relative(Config.dataDir, path),
+            metadata: { ...project.toJSON() },
+          })
+        );
+      }
+      return null;
+    })
+  );
+
+  // 如果有错误则抛出
+  const errorOutput = outputs.filter(Boolean).find((output) => output?.statusCode !== 200);
+  if (errorOutput) {
+    throw new Error(errorOutput.statusMessage);
+  }
+
+  await project.update({ didSpaceLastSyncedAt: new Date() });
+}
 
 export async function commitWorking({
   project,
@@ -204,15 +329,18 @@ export async function commitWorking({
   branch,
   message,
   author,
+  beforeCommit,
 }: {
   project: Project;
   ref: string;
   branch: string;
   message: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+  beforeCommit?: (tx: Transaction<FileTypeYjs>) => Promise<void>;
 }) {
   const repository = await getRepository({ projectId: project._id! });
   const working = await repository.working({ ref });
+
   await working.commit({
     ref,
     branch,
@@ -221,6 +349,10 @@ export async function commitWorking({
     beforeCommit: async ({ tx }) => {
       await writeFile(path.join(repository.options.root, 'README.md'), getReadmeOfProject(project));
       await tx.add({ filepath: 'README.md' });
+
+      if (beforeCommit && typeof beforeCommit === 'function') {
+        await beforeCommit(tx);
+      }
 
       await addSettingsToGit({ tx, project });
 
@@ -239,15 +371,17 @@ export async function commitProjectSettingWorking({
   project,
   message = 'update settings',
   author,
+  icon,
 }: {
   project: Project;
   message?: string;
   author: NonNullable<NonNullable<Parameters<Repository<any>['pull']>[0]>['author']>;
+  icon?: string;
 }) {
   const repository = await getRepository({ projectId: project._id! });
   await repository.transact(async (tx) => {
     await tx.checkout({ ref: project.gitDefaultBranch, force: true });
-    await addSettingsToGit({ tx, project });
+    await addSettingsToGit({ tx, project, icon });
     await tx.commit({ message, author });
   });
 }
@@ -347,6 +481,69 @@ export async function getAssistantFromRepository({
       throw typeof rejectOnEmpty !== 'boolean'
         ? rejectOnEmpty
         : new Error(`no such assistant ${JSON.stringify({ ref, assistantId, working })}`);
+    }
+  }
+
+  return file;
+}
+
+export async function getVariablesFromRepository({
+  repository,
+  ref,
+  working,
+  fileName,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  fileName: string;
+  rejectOnEmpty: true | Error;
+}): Promise<Variables>;
+export async function getVariablesFromRepository({
+  repository,
+  ref,
+  working,
+  fileName,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  fileName: string;
+  rejectOnEmpty?: false;
+}): Promise<Variables | undefined>;
+export async function getVariablesFromRepository({
+  repository,
+  ref,
+  working,
+  fileName,
+  rejectOnEmpty,
+}: {
+  repository: Repository<any>;
+  ref: string;
+  working?: boolean;
+  fileName: string;
+  rejectOnEmpty?: boolean | Error;
+}): Promise<Variables | undefined> {
+  let file: Variables;
+
+  if (working) {
+    const working = await repository.working({ ref });
+    const f = working.syncedStore.files[fileName];
+    file = f && fileFromYjs(f);
+  } else {
+    const p = (await repository.listFiles({ ref })).find((i) => {
+      return i.endsWith(`config/${fileName}.yaml`);
+    });
+    file = p && parse(Buffer.from((await repository.readBlob({ ref, filepath: p })).blob).toString());
+  }
+
+  if (!file || !isVariables(file)) {
+    if (rejectOnEmpty) {
+      throw typeof rejectOnEmpty !== 'boolean'
+        ? rejectOnEmpty
+        : new Error(`no such assistant ${JSON.stringify({ ref, fileName, working })}`);
     }
   }
 

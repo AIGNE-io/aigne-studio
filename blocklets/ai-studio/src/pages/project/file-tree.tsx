@@ -1,7 +1,15 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { AssistantYjs, FileTypeYjs, fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
+import {
+  AssistantYjs,
+  FileTypeYjs,
+  VariablesYjs,
+  fileToYjs,
+  isAssistant,
+  nextAssistantId,
+} from '@blocklet/ai-runtime/types';
 import { css } from '@emotion/css';
+import { Icon } from '@iconify-icon/react';
 import { DragLayerMonitorProps, MultiBackend, NodeModel, Tree, getBackendOptions } from '@minoru/react-dnd-treeview';
 import {
   Accordion,
@@ -13,23 +21,21 @@ import {
   CircularProgress,
   ClickAwayListener,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
+  IconButton,
   Input,
   List,
-  ListItemButton,
   ListItemIcon,
   ListItemText,
+  MenuItem,
+  Paper,
   Stack,
   StackProps,
   Tooltip,
   Typography,
   accordionSummaryClasses,
-  iconClasses,
-  listItemButtonClasses,
-  listItemIconClasses,
   svgIconClasses,
   tooltipClasses,
   useTheme,
@@ -56,21 +62,8 @@ import { getErrorMessage } from '../../libs/api';
 import { exportAssistantsToProject } from '../../libs/project';
 import useDialog from '../../utils/use-dialog';
 import Compare from './compare';
-import ChevronDown from './icons/chevron-down';
-import Clipboard from './icons/clipboard';
-import Code from './icons/code';
-import CompareIcon from './icons/compare';
-import Duplicate from './icons/duplicate';
-import External from './icons/external';
-import File from './icons/file';
-import FolderAdd from './icons/folder-add';
+import Close from './icons/close';
 import FolderClose from './icons/folder-close';
-import LinkIcon from './icons/link';
-import MenuVertical from './icons/menu-vertical';
-import Pen from './icons/pen';
-import Picture from './icons/picture';
-import Trash from './icons/trash';
-import Undo from './icons/undo';
 import ImportFrom from './import';
 import { useAssistantChangesState } from './state';
 import type { AssistantYjsWithParents } from './state';
@@ -91,7 +84,7 @@ export type EntryWithMeta =
       filename: string;
       parent: string[];
       path: string[];
-      meta: Exclude<FileTypeYjs, { $base64: string }>;
+      meta: Exclude<FileTypeYjs, { $base64: string } | VariablesYjs>;
     }
   | {
       type: 'folder';
@@ -176,7 +169,7 @@ const FileTree = forwardRef<
     showDialog({
       fullWidth: true,
       maxWidth: 'sm',
-      title: `${t('import.title')}`,
+      title: t('importObject', { object: t('agents') }),
       content: (
         <Box maxHeight={500}>
           <ImportFrom
@@ -198,7 +191,7 @@ const FileTree = forwardRef<
               createFile({ store, parent: template.parent, meta: fileToYjs(template) as AssistantYjs });
             }
           } else {
-            Toast.error(t('import.selectTemplates'));
+            Toast.error(t('import.selectAgentTip'));
           }
         } catch (error) {
           Toast.error(getErrorMessage(error));
@@ -357,7 +350,13 @@ const FileTree = forwardRef<
                 return (
                   <TreeItem
                     key={node.id}
-                    icon={<ChevronDown sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }} />}
+                    icon={
+                      <Box
+                        component={Icon}
+                        icon="tabler:chevron-down"
+                        sx={{ transform: `rotateZ(${isOpen ? '0' : '-90deg'})` }}
+                      />
+                    }
                     depth={depth}
                     onClick={onToggle}
                     edited={filepath === editingFolderPath}
@@ -496,15 +495,16 @@ const FileTree = forwardRef<
       {dialog}
 
       <Dialog {...bindDialog(dialogState)} maxWidth="xl" fullWidth>
-        <DialogTitle>{t('alert.compare')}</DialogTitle>
+        <DialogTitle className="between">
+          {t('alert.compare')}
+
+          <IconButton size="small" onClick={dialogState.close}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
           <Compare projectId={projectId} gitRef={gitRef} filepath={compareAssistant || ''} />
         </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={dialogState.close}>
-            {t('alert.close')}
-          </Button>
-        </DialogActions>
       </Dialog>
     </>
   );
@@ -533,7 +533,7 @@ function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 
           width: (theme) => theme.spacing(3),
           [`.${svgIconClasses.root}`]: { fontSize: '1.25rem', color: 'text.secondary' },
         }}>
-        {item.data?.type === 'folder' ? <FolderClose /> : <File />}
+        {item.data?.type === 'folder' ? <FolderClose /> : <Box component={Icon} icon="tabler:file-description" />}
       </Box>
 
       <Box
@@ -583,53 +583,52 @@ function TreeItemMenus({
   const menus = [
     [
       onLaunch && assistant && (
-        <ListItemButton key="launch" onClick={() => onLaunch(assistant)}>
+        <MenuItem key="launch" onClick={() => onLaunch(assistant)}>
           <ListItemIcon>
-            <External />
+            <Box component={Icon} icon="tabler:external-link" />
           </ListItemIcon>
           <ListItemText primary={t('alert.openInAssistant')} />
-        </ListItemButton>
+        </MenuItem>
       ),
     ],
     [
       item.type === 'folder' && onCreateFolder && (
-        <ListItemButton key="createFolder" onClick={() => onCreateFolder({ parent: item.path })}>
+        <MenuItem key="createFolder" onClick={() => onCreateFolder({ parent: item.path })}>
           <ListItemIcon>
-            <FolderAdd />
+            <Box component={Icon} icon="tabler:folder-plus" />
           </ListItemIcon>
           <ListItemText primary={t('newObject', { object: t('folder') })} />
-        </ListItemButton>
+        </MenuItem>
       ),
 
       ...(item.type === 'folder' && onCreateFile
         ? [
-            <ListItemButton key="createPrompt" onClick={() => onCreateFile({ parent: item.path })}>
+            <MenuItem key="createPrompt" onClick={() => onCreateFile({ parent: item.path })}>
               <ListItemIcon>
-                <File />
+                <Box component={Icon} icon="tabler:file-description" />
               </ListItemIcon>
               <ListItemText primary={t('newObject', { object: t('prompt') })} />
-            </ListItemButton>,
+            </MenuItem>,
 
-            <ListItemButton key="createApi" onClick={() => onCreateFile({ parent: item.path, meta: { type: 'api' } })}>
+            <MenuItem key="createApi" onClick={() => onCreateFile({ parent: item.path, meta: { type: 'api' } })}>
               <ListItemIcon>
-                <LinkIcon />
+                <Box component={Icon} icon="tabler:link" />
               </ListItemIcon>
               <ListItemText primary={t('newObject', { object: t('api') })} />
-            </ListItemButton>,
+            </MenuItem>,
 
-            <ListItemButton
+            <MenuItem
               key="createFunction"
               onClick={() => onCreateFile({ parent: item.path, meta: { type: 'function' } })}>
               <ListItemIcon>
-                <Code />
+                <Box component={Icon} icon="tabler:code" />
               </ListItemIcon>
               <ListItemText primary={t('newObject', { object: t('function') })} />
-            </ListItemButton>,
+            </MenuItem>,
           ]
         : []),
-
       item.type === 'file' && onCreateFile && (
-        <ListItemButton
+        <MenuItem
           key="duplicateFile"
           onClick={() =>
             onCreateFile({
@@ -642,70 +641,69 @@ function TreeItemMenus({
             })
           }>
           <ListItemIcon>
-            <Duplicate />
+            <Box component={Icon} icon="tabler:copy" />
           </ListItemIcon>
           <ListItemText primary={t('alert.duplicate')} />
-        </ListItemButton>
+        </MenuItem>
       ),
-
       item.type === 'file' && (
-        <ListItemButton
+        <MenuItem
           key="copyId"
           onClick={() => {
             navigator.clipboard.writeText(joinURL(projectId, gitRef, item.meta.id));
           }}>
           <ListItemIcon>
-            <Clipboard />
+            <Box component={Icon} icon="tabler:layers-difference" />
           </ListItemIcon>
           <ListItemText primary={t('alert.copyId')} />
-        </ListItemButton>
+        </MenuItem>
       ),
     ],
     [
       isChanged && (
-        <ListItemButton key="compareChanges" onClick={onCompare}>
+        <MenuItem key="compareChanges" onClick={onCompare}>
           <ListItemIcon>
-            <CompareIcon />
+            <Box component={Icon} icon="tabler:layers-difference" />
           </ListItemIcon>
           <ListItemText primary={t('alert.compare')} />
-        </ListItemButton>
+        </MenuItem>
       ),
 
       isChanged && (
-        <ListItemButton key="revertChanges" onClick={onUndo}>
+        <MenuItem key="revertChanges" onClick={onUndo}>
           <ListItemIcon>
-            <Undo />
+            <Box component={Icon} icon="tabler:arrow-back-up" />
           </ListItemIcon>
           <ListItemText primary={t('restore')} />
-        </ListItemButton>
+        </MenuItem>
       ),
     ],
     [
       onRenameFile && (
-        <ListItemButton key="renameFile" onClick={() => onRenameFile(item)}>
+        <MenuItem key="renameFile" onClick={() => onRenameFile(item)}>
           <ListItemIcon>
-            <Pen />
+            <Box component={Icon} icon="tabler:pencil" />
           </ListItemIcon>
 
-          <ListItemText primary={t('form.rename')} />
-        </ListItemButton>
+          <ListItemText primary={t('rename')} />
+        </MenuItem>
       ),
       onRenameFolder && (
-        <ListItemButton key="renameFolder" onClick={() => onRenameFolder(item)}>
+        <MenuItem key="renameFolder" onClick={() => onRenameFolder(item)}>
           <ListItemIcon>
-            <Pen />
+            <Box component={Icon} icon="tabler:pencil" />
           </ListItemIcon>
 
-          <ListItemText primary={t('form.rename')} />
-        </ListItemButton>
+          <ListItemText primary={t('rename')} />
+        </MenuItem>
       ),
       onDeleteFile && (
-        <ListItemButton key="deleteFile" onClick={() => onDeleteFile(item)}>
+        <MenuItem key="deleteFile" onClick={() => onDeleteFile(item)}>
           <ListItemIcon>
-            <Trash color="warning" />
+            <Box component={Icon} icon="tabler:trash" color="warning.main" />
           </ListItemIcon>
           <ListItemText primary={t('alert.delete')} primaryTypographyProps={{ color: 'warning.main' }} />
-        </ListItemButton>
+        </MenuItem>
       ),
     ],
   ]
@@ -825,9 +823,11 @@ function TreeItem({
       direction="row"
       sx={{
         mx: 1,
-        minHeight: 28,
         borderRadius: 1,
-        bgcolor: edited ? 'action.hover' : selected ? 'action.selected' : open ? 'action.hover' : undefined,
+        bgcolor: edited ? 'action.hover' : selected ? '#EFF6FF' : open ? 'action.hover' : undefined,
+        color: selected ? '#3B82F6' : undefined,
+        fontWeight: 500,
+        fontSize: 13,
         ':hover': {
           bgcolor: selected ? 'action.selected' : 'action.hover',
           '.hover-visible': { maxWidth: '100%' },
@@ -838,10 +838,12 @@ function TreeItem({
         {...props}
         direction="row"
         alignItems="center"
+        gap={0.5}
         sx={{
           position: 'relative',
-          pl: depth * 2 + 1,
-          pr: 1,
+          pl: depth * 2 + 1.5,
+          pr: 1.5,
+          py: 0.5,
           flex: 1,
           cursor: 'pointer',
           overflow: 'hidden',
@@ -851,8 +853,12 @@ function TreeItem({
           sx={{
             display: 'flex',
             alignItems: 'center',
-            width: (theme) => theme.spacing(3),
-            [`.${svgIconClasses.root}`]: { fontSize: '1.25rem', color: 'text.secondary' },
+            lineHeight: 1,
+            [`.${svgIconClasses.root}`]: {
+              fontSize: '1rem',
+              fontWeight: 500,
+              color: selected ? '#3B82F6' : 'text.secondary',
+            },
           }}>
           {icon}
         </Box>
@@ -893,36 +899,19 @@ function TreeItem({
                     },
                   },
                 },
-                tooltip: { sx: { bgcolor: 'grey.100', boxShadow: 1, m: 0, p: 0.5 } },
+                tooltip: { sx: { bgcolor: 'background.paper', boxShadow: 1, m: 0, p: 0.5 } },
               }}
               title={
                 <ClickAwayListener onClickAway={() => setOpen(false)}>
-                  <List
-                    disablePadding
-                    dense
-                    sx={{
-                      color: 'text.primary',
-                      [`.${listItemButtonClasses.root}`]: {
-                        borderRadius: 1,
-                        px: 1,
-                        py: '2px',
-                      },
-                      [`.${listItemIconClasses.root}`]: {
-                        minWidth: 32,
-                        [`.${svgIconClasses.root}, .${iconClasses.root}`]: {
-                          fontSize: '1.125rem',
-                        },
-                      },
-                    }}
-                    onClick={() => setOpen(false)}>
-                    {actions}
-                  </List>
+                  <Paper elevation={0}>
+                    <List onClick={() => setOpen(false)}>{actions}</List>
+                  </Paper>
                 </ClickAwayListener>
               }>
               <Button
                 onClick={() => setOpen(true)}
                 sx={{ padding: 0.5, minWidth: 0, bgcolor: open ? 'action.hover' : undefined }}>
-                <MenuVertical sx={{ fontSize: 20 }} />
+                <Box component={Icon} icon="tabler:dots-vertical" fontSize={16} />
               </Button>
             </Tooltip>
           </Stack>
@@ -990,7 +979,9 @@ function DeletedTemplates({
             alignItems: 'center',
             minWidth: (theme) => theme.spacing(3),
           }}>
-          <ChevronDown
+          <Box
+            component={Icon}
+            icon="tabler:chevron-down"
             sx={{
               fontSize: 20,
               transform: `rotateZ(${expanded ? '0' : '-90deg'})`,
@@ -1025,7 +1016,7 @@ function DeletedTemplates({
                         onClick={() => {
                           onCompare(item);
                         }}>
-                        <CompareIcon sx={{ fontSize: 20 }} />
+                        <Box component={Icon} icon="tabler:layers-difference" sx={{ fontSize: 20 }} />
                       </Button>
                     </Tooltip>
 
@@ -1036,7 +1027,7 @@ function DeletedTemplates({
                           const { parent, ...meta } = item;
                           onCreateFile({ parent, meta });
                         }}>
-                        <Undo sx={{ fontSize: 20 }} />
+                        <Box component={Icon} icon="tabler:arrow-back-up" sx={{ fontSize: 20 }} />
                       </Button>
                     </Tooltip>
                   </>
@@ -1080,8 +1071,8 @@ function DeletedTemplates({
 }
 
 function FileIcon({ type }: { type?: AssistantYjs['type'] }) {
-  if (type === 'api') return <LinkIcon />;
-  if (type === 'function') return <Code />;
-  if (type === 'image') return <Picture />;
-  return <File />;
+  if (type === 'api') return <Box component={Icon} icon="tabler:link" />;
+  if (type === 'function') return <Box component={Icon} icon="tabler:code" />;
+  if (type === 'image') return <Box component={Icon} icon="tabler:photo" />;
+  return <Box component={Icon} icon="tabler:file-description" />;
 }

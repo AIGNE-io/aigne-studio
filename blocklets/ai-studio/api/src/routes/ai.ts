@@ -1,9 +1,11 @@
+import { stringifyIdentity } from '@api/libs/aid';
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
-import { InvalidSubscriptionError } from '@api/libs/error';
+import { InvalidSubscriptionError, ReachMaxRoundLimitError } from '@api/libs/error';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import { getActiveSubscriptionOfAssistant, reportUsage } from '@api/libs/payment';
 import History from '@api/store/models/history';
 import Release from '@api/store/models/release';
+import Session from '@api/store/models/session';
 import { chatCompletions, imageGenerations, proxyToAIKit } from '@blocklet/ai-kit/api/call';
 import { CallAI, CallAIImage, GetAssistant, nextTaskId, runAssistant } from '@blocklet/ai-runtime/core';
 import {
@@ -20,7 +22,7 @@ import { pick } from 'lodash';
 
 import { ensureComponentCallOrAuth, ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Project from '../store/models/project';
-import { getAssistantFromRepository, getRepository } from '../store/repository';
+import { getAssistantFromRepository, getRepository, getVariablesFromRepository } from '../store/repository';
 
 const router = Router();
 
@@ -51,7 +53,9 @@ const callInputSchema = Joi.object<{
   ref: Joi.string().required(),
   working: Joi.boolean().default(false),
   assistantId: Joi.string().required(),
-  parameters: Joi.object().pattern(Joi.string(), Joi.any()),
+  parameters: Joi.object({
+    $clientTime: Joi.string().isoDate().empty([null, '']),
+  }).pattern(Joi.string(), Joi.any()),
 });
 
 router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (req, res) => {
@@ -139,7 +143,11 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
 
   let mainTaskId: string | undefined;
   let error: { type?: string; message: string } | undefined;
-  const result: { content?: string; images?: { url: string }[] } = {};
+
+  const result: History['result'] = {};
+
+  const childMessagesMap: { [id: string]: NonNullable<(typeof result)['messages']>[number] } = {};
+
   const executingLogs: { [key: string]: NonNullable<History['executingLogs']>[number] } = {};
 
   const emit = (data: RunAssistantResponse) => {
@@ -149,6 +157,25 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
         if (mainTaskId === data.taskId) {
           if (data.delta.content) result.content = (result.content || '') + data.delta.content;
           if (data.delta.images?.length) result.images = (result.images || []).concat(data.delta.images);
+
+          if (data.delta.object) {
+            result.objects ??= [];
+            result.objects.push({ taskId: data.taskId, data: data.delta.object });
+          }
+        } else if (data.respondAs && data.respondAs !== 'none') {
+          let childMsg = childMessagesMap[data.taskId];
+          if (!childMsg) {
+            childMsg = { taskId: data.taskId, respondAs: data.respondAs };
+            childMessagesMap[data.taskId] = childMsg;
+            result.messages ??= [];
+            result.messages.push(childMsg);
+          }
+
+          childMsg.result ??= {};
+          childMsg.result.content = (childMsg.result.content || '') + (data.delta.content || '');
+          if (data.delta?.images?.length) {
+            childMsg.result.images = (childMsg.result.images ?? []).concat(data.delta.images);
+          }
         }
       }
 
@@ -212,11 +239,32 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   });
 
   try {
+    if (assistant.release?.maxRoundLimit && input.sessionId) {
+      const rounds = await History.count({ where: { userId, sessionId: input.sessionId } });
+      if (rounds > assistant.release.maxRoundLimit) {
+        throw new ReachMaxRoundLimitError('Max round limitation has been reached');
+      }
+    }
+
     if (userId && release?.paymentEnabled && release.paymentProductId) {
-      if (!(await getActiveSubscriptionOfAssistant({ release, userId }))) {
+      if (
+        !(await getActiveSubscriptionOfAssistant({
+          aid: stringifyIdentity({ projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId }),
+          userId,
+        }))
+      ) {
         throw new InvalidSubscriptionError('Your subscription is not available');
       }
     }
+
+    // 传入全局的存储变量
+    const data = await getVariablesFromRepository({
+      repository,
+      ref: input.ref,
+      working: input.working,
+      fileName: 'variable',
+      rejectOnEmpty: true,
+    });
 
     const result = await runAssistant({
       callAI,
@@ -228,6 +276,8 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       callback: stream ? emit : undefined,
       user: userId ? { id: userId, did: userId, ...req.user } : undefined,
       sessionId: input.sessionId,
+      projectId: input.projectId,
+      datastoreVariables: data?.variables || [],
     });
 
     if (!stream) {
@@ -235,6 +285,14 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
     }
 
     res.end();
+
+    if (input.sessionId) {
+      const question = input.parameters?.question;
+      if (question && typeof question === 'string') {
+        const session = await Session.findByPk(input.sessionId);
+        await session?.update({ name: input.parameters?.question });
+      }
+    }
   } catch (e) {
     let fetchErrorMsg = e?.response?.data?.error;
     if (typeof fetchErrorMsg !== 'string') fetchErrorMsg = fetchErrorMsg?.message;
@@ -251,7 +309,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
   await history?.update({ error, result, generateStatus: 'done', executingLogs: Object.values(executingLogs) });
 
   if (userId && release?.paymentEnabled && release.paymentProductId) {
-    await reportUsage({ release, userId });
+    await reportUsage({ projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId, userId });
   }
 });
 

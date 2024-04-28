@@ -9,7 +9,7 @@ import { ReactNode } from 'react';
 export default function Home() {
   const { t } = useLocaleContext();
   const { session } = useSessionContext();
-  const isAdmin = useIsRole('owner', 'admin');
+  const isAdmin = useIsRole(['owner', 'admin']);
 
   return (
     <Dashboard
@@ -31,7 +31,7 @@ export default function Home() {
             <Stack direction="row" gap={3}>
               {!isAdmin && (
                 <Button onClick={session.user ? session.switchPassport : session.login} variant="contained">
-                  {t('loginAsAdminButton')}
+                  {window.blocklet.preferences.serviceMode === 'multi-tenant' ? t('login') : t('loginAsAdminButton')}
                 </Button>
               )}
             </Stack>

@@ -1,32 +1,38 @@
-import Button from '@arcblock/ux/lib/Button';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { Icon } from '@iconify-icon/react';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
+  Button,
+  ClickAwayListener,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
-  Popover,
+  List,
+  MenuItem,
+  Paper,
   Stack,
   StackProps,
   TextField,
+  Tooltip,
+  Typography,
   styled,
+  tooltipClasses,
 } from '@mui/material';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import PromiseLoadingButton from '../../components/promise-loading-button';
 import { useDatasets } from '../../contexts/datasets/datasets';
 import { getErrorMessage } from '../../libs/api';
+import useDialog from '../../utils/use-dialog';
 import Add from '../project/icons/add';
-import Database from '../project/icons/database';
-import Delete from '../project/icons/delete';
+import Close from '../project/icons/close';
 
 type DatasetInput = { name: string; description?: string };
 
@@ -36,7 +42,7 @@ export default function KnowledgeDatasets() {
   const { projectId } = useParams();
 
   const dialogState = usePopupState({ variant: 'dialog' });
-  const { datasets, refetch, createDataset, deleteDataset } = useDatasets();
+  const { datasets, refetch, createDataset, updateDataset, deleteDataset } = useDatasets();
   const form = useForm<DatasetInput>({ defaultValues: { description: '', name: '' } });
 
   useEffect(() => {
@@ -68,10 +74,27 @@ export default function KnowledgeDatasets() {
     [t, projectId]
   );
 
+  const onUpdate = useCallback(
+    async (
+      datasetId: string,
+      data: {
+        name: string;
+        description: string;
+      }
+    ) => {
+      try {
+        await updateDataset(projectId || '', datasetId, data);
+      } catch (error) {
+        Toast.error(getErrorMessage(error));
+      }
+    },
+    [t, projectId]
+  );
+
   return (
     <>
-      <Stack m={{ xs: 2, sm: 3 }} overflow="auto">
-        <ListContainer gap={{ xs: 2, sm: 3 }}>
+      <Stack m={2.5} overflow="auto">
+        <ListContainer gap={2.5}>
           <DatasetItemAdd
             name={t('knowledge.createTitle')}
             description={t('knowledge.createDescription')}
@@ -82,6 +105,7 @@ export default function KnowledgeDatasets() {
           {datasets.map((item) => {
             return (
               <DatasetItem
+                p={2}
                 key={item.id}
                 name={item.name}
                 description={item.description}
@@ -89,6 +113,7 @@ export default function KnowledgeDatasets() {
                 onClick={() => navigate(item.id)}
                 onDelete={() => onDelete(item.id)}
                 className="listItem"
+                onUpdate={(data) => onUpdate(item.id, data)}
               />
             );
           })}
@@ -101,7 +126,13 @@ export default function KnowledgeDatasets() {
         maxWidth="sm"
         component="form"
         onSubmit={form.handleSubmit(onSave)}>
-        <DialogTitle>{t('knowledge.createTitle')}</DialogTitle>
+        <DialogTitle className="between" sx={{ border: 0 }}>
+          <Box>{t('knowledge.createTitle')}</Box>
+
+          <IconButton size="small" onClick={() => dialogState.close()}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
 
         <DialogContent>
           <Stack gap={2}>
@@ -113,13 +144,16 @@ export default function KnowledgeDatasets() {
               }}
               render={({ field, fieldState }) => {
                 return (
-                  <TextField
-                    label={t('knowledge.name')}
-                    sx={{ width: 1 }}
-                    {...field}
-                    error={Boolean(fieldState.error)}
-                    helperText={fieldState.error?.message}
-                  />
+                  <Box>
+                    <Typography variant="subtitle2">{t('knowledge.name')}</Typography>
+                    <TextField
+                      label={t('knowledge.name')}
+                      sx={{ width: 1 }}
+                      {...field}
+                      error={Boolean(fieldState.error)}
+                      helperText={fieldState.error?.message}
+                    />
+                  </Box>
                 );
               }}
             />
@@ -129,13 +163,16 @@ export default function KnowledgeDatasets() {
               name="description"
               render={({ field, fieldState }) => {
                 return (
-                  <TextField
-                    label={t('knowledge.description')}
-                    sx={{ width: 1 }}
-                    {...field}
-                    error={Boolean(fieldState.error)}
-                    helperText={fieldState.error?.message}
-                  />
+                  <Box>
+                    <Typography variant="subtitle2">{t('knowledge.description')}</Typography>
+                    <TextField
+                      label={t('knowledge.description')}
+                      sx={{ width: 1 }}
+                      {...field}
+                      error={Boolean(fieldState.error)}
+                      helperText={fieldState.error?.message}
+                    />
+                  </Box>
                 );
               }}
             />
@@ -143,7 +180,9 @@ export default function KnowledgeDatasets() {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={dialogState.close}>{t('cancel')}</Button>
+          <Button onClick={dialogState.close} variant="outlined">
+            {t('cancel')}
+          </Button>
 
           <LoadingButton
             type="submit"
@@ -168,16 +207,16 @@ function DatasetItemAdd({
   description?: string;
 } & StackProps) {
   return (
-    <DatasetItemRoot {...props}>
-      <Box className="itemTitle">
-        <Add sx={{ width: '2rem', height: '2rem' }} />
+    <DatasetItemRoot {...props} className="center">
+      <Stack className="center">
+        <Add sx={{ width: '2rem', height: '2rem', color: '#9CA3AF' }} />
 
         <Box className="itemHeading">
-          <Box className="headingContent">{name || ''}</Box>
+          <Typography variant="subtitle4" color="#9CA3AF" className="headingContent">
+            {name || ''}
+          </Typography>
         </Box>
-      </Box>
-
-      <Box className="itemDescription">{description || ''}</Box>
+      </Stack>
     </DatasetItemRoot>
   );
 }
@@ -187,77 +226,188 @@ function DatasetItem({
   description,
   documents,
   onDelete,
+  onUpdate,
   ...props
-}: { name?: string; description?: string; documents?: number; onDelete: () => any } & StackProps) {
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const open = Boolean(anchorEl);
+}: {
+  name?: string;
+  description?: string;
+  documents?: number;
+  onDelete: () => void;
+  onUpdate: (data: { name: string; description: string }) => void;
+} & StackProps) {
   const { t } = useLocaleContext();
+  const [open, setOpen] = useState(false);
+  const { dialog, showDialog } = useDialog();
 
   return (
     <>
-      <DatasetItemRoot {...props}>
-        <Box className="itemTitle">
-          <Database sx={{ width: '2rem', height: '2rem' }} />
-
-          <Box className="itemHeading">
-            <Box className="headingContent">{name || t('unnamed')}</Box>
+      <DatasetItemRoot
+        {...props}
+        justifyContent="space-between"
+        sx={{
+          ':hover': {
+            '.hover-visible': { maxWidth: '100%' },
+          },
+        }}>
+        <Stack flexDirection="row" gap={1.5}>
+          <Box width={72} height={72} className="center" bgcolor="#E5E7EB" borderRadius={1}>
+            <Box component={Icon} icon="tabler:book-2" fontSize={24} />
           </Box>
 
-          <Box className="deleteIcon">
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation();
-                setAnchorEl(e.currentTarget);
-              }}>
-              <Delete sx={{ fontSize: '16px' }} />
-            </IconButton>
+          <Box width={0} flex={1}>
+            <Box className="between">
+              <Typography variant="subtitle1">{name || t('unnamed')}</Typography>
+
+              <Box display="flex" alignItems="center">
+                <Stack
+                  component="span"
+                  className="hover-visible"
+                  justifyContent="center"
+                  alignItems="flex-end"
+                  overflow="hidden"
+                  sx={{ maxWidth: open ? '100%' : 0 }}>
+                  <Tooltip
+                    open={open}
+                    placement="right-start"
+                    onClose={() => setOpen(false)}
+                    disableFocusListener
+                    disableHoverListener
+                    disableTouchListener
+                    componentsProps={{
+                      popper: {
+                        sx: {
+                          [`&.${tooltipClasses.popper}[data-popper-placement*="left"] .${tooltipClasses.tooltip}`]: {
+                            mr: 1,
+                          },
+                          [`&.${tooltipClasses.popper}[data-popper-placement*="right"] .${tooltipClasses.tooltip}`]: {
+                            ml: 1,
+                          },
+                        },
+                      },
+                      tooltip: { sx: { bgcolor: 'background.paper', boxShadow: 1, m: 0, p: 0.5 } },
+                    }}
+                    title={
+                      <ClickAwayListener onClickAway={() => setOpen(false)}>
+                        <Paper elevation={0}>
+                          <List onClick={() => setOpen(false)}>
+                            <MenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpen(false);
+
+                                let newName = '';
+                                let newDescription = '';
+
+                                showDialog({
+                                  maxWidth: 'sm',
+                                  fullWidth: true,
+                                  title: <Box sx={{ wordWrap: 'break-word' }}>{t('knowledge.updateTitle')}</Box>,
+                                  content: (
+                                    <Stack gap={2}>
+                                      <Box>
+                                        <Typography variant="subtitle2">{t('knowledge.name')}</Typography>
+                                        <TextField
+                                          label={t('knowledge.name')}
+                                          sx={{ width: 1 }}
+                                          fullWidth
+                                          defaultValue={name}
+                                          onChange={(e) => (newName = e.target.value)}
+                                        />
+                                      </Box>
+
+                                      <Box>
+                                        <Typography variant="subtitle2">{t('knowledge.description')}</Typography>
+                                        <TextField
+                                          label={t('knowledge.description')}
+                                          sx={{ width: 1 }}
+                                          fullWidth
+                                          defaultValue={description}
+                                          onChange={(e) => (newDescription = e.target.value)}
+                                        />
+                                      </Box>
+                                    </Stack>
+                                  ),
+                                  okText: t('save'),
+                                  cancelText: t('alert.cancel'),
+                                  onOk: () => onUpdate({ name: newName, description: newDescription }),
+                                });
+                              }}>
+                              <Box component={Icon} icon="tabler:pencil" mr={1} width={15} />
+                              {t('edit')}
+                            </MenuItem>
+
+                            <MenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpen(false);
+
+                                showDialog({
+                                  formSx: {
+                                    '.MuiDialogTitle-root': {
+                                      border: 0,
+                                    },
+                                    '.MuiDialogActions-root': {
+                                      border: 0,
+                                    },
+                                    '.save': {
+                                      background: '#d32f2f',
+                                    },
+                                  },
+                                  maxWidth: 'sm',
+                                  fullWidth: true,
+                                  title: <Box sx={{ wordWrap: 'break-word' }}>{t('knowledge.deleteTitle')}</Box>,
+                                  content: (
+                                    <Box>
+                                      <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                                        {t('knowledge.deleteDescription')}
+                                      </Typography>
+                                    </Box>
+                                  ),
+                                  okText: t('alert.delete'),
+                                  okColor: 'error',
+                                  cancelText: t('alert.cancel'),
+                                  onOk: onDelete,
+                                });
+                              }}
+                              sx={{ color: '#E11D48' }}>
+                              <Box component={Icon} icon="tabler:trash" mr={1} width={15} color="#E11D48" />
+                              {t('delete')}
+                            </MenuItem>
+                          </List>
+                        </Paper>
+                      </ClickAwayListener>
+                    }>
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpen(true);
+                      }}
+                      sx={{ padding: 0.5, minWidth: 0, bgcolor: open ? 'action.hover' : undefined }}>
+                      <Box component={Icon} icon="tabler:dots-vertical" fontSize={16} />
+                    </Button>
+                  </Tooltip>
+                </Stack>
+              </Box>
+            </Box>
+            <Typography variant="subtitle3">{description || ''}</Typography>
           </Box>
-        </Box>
+        </Stack>
 
-        <Box className="itemDescription">{description || ''}</Box>
-
-        <Box className="itemFooter">
-          <Box className="itemStats">{`${documents || 0} ${t('knowledge.document')}`}</Box>
-        </Box>
+        <Typography variant="subtitle5">{`${documents || 0} ${t('knowledge.document')}`}</Typography>
       </DatasetItemRoot>
 
-      <Popover
-        open={open}
-        anchorEl={anchorEl}
-        onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-        <DialogTitle>{t('knowledge.deleteTitle')}</DialogTitle>
-
-        <DialogContent sx={{ fontSize: '14px', lineHeight: '22px' }}>{t('knowledge.deleteDescription')}</DialogContent>
-
-        <DialogActions>
-          <Button size="small" onClick={() => setAnchorEl(null)}>
-            {t('cancel')}
-          </Button>
-
-          <PromiseLoadingButton
-            size="small"
-            variant="contained"
-            color="error"
-            onClick={() => {
-              setAnchorEl(null);
-              onDelete();
-            }}>
-            {t('delete')}
-          </PromiseLoadingButton>
-        </DialogActions>
-      </Popover>
+      {dialog}
     </>
   );
 }
 
 const DatasetItemRoot = styled(Stack)`
   display: flex;
-  min-height: 160px;
+  min-height: 140px;
   cursor: pointer;
   flex-direction: column;
   border-radius: 0.5rem;
-  border: 1px solid transparent;
+  border: 1px solid #e5e7eb;
   background: rgb(255, 255, 255);
   box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -265,8 +415,6 @@ const DatasetItemRoot = styled(Stack)`
   &.newItemCard {
     outline: 1px solid #e5e7eb;
     outline-offset: -1px;
-    background: rgba(229, 231, 235, 0.5);
-    border-width: 0;
 
     &:hover {
       background: rgb(255, 255, 255);
@@ -368,5 +516,5 @@ const DatasetItemRoot = styled(Stack)`
 
 const ListContainer = styled(Box)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
 `;

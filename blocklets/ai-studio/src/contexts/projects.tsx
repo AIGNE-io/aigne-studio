@@ -1,8 +1,11 @@
 import { useCurrentGitStore } from '@app/store/current-git-store';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import Toast from '@arcblock/ux/lib/Toast';
 import { useCallback } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 import * as api from '../libs/project';
+import { useIsPromptAdmin } from './session';
 
 export type ProjectsSection = 'templates' | 'projects' | 'examples';
 
@@ -29,6 +32,8 @@ const projectsState = atom<ProjectsState>({
 export const useProjectsState = () => {
   const [state, setState] = useRecoilState(projectsState);
   const setProjectGitSettings = useCurrentGitStore((i) => i.setProjectGitSettings);
+  const isPromptAdmin = useIsPromptAdmin();
+  const { t } = useLocaleContext();
   const refetch = useCallback(async () => {
     setState((v) => ({ ...v, loading: true }));
     try {
@@ -62,6 +67,15 @@ export const useProjectsState = () => {
     [refetch]
   );
 
+  const fromDidSpacesImport: typeof api.fromDidSpacesImport = useCallback(
+    async (...args) => {
+      const res = await api.fromDidSpacesImport(...args);
+      await refetch();
+      return res;
+    },
+    [refetch]
+  );
+
   const updateProject: typeof api.updateProject = useCallback(
     async (...args) => {
       const res = await api.updateProject(...args);
@@ -74,6 +88,15 @@ export const useProjectsState = () => {
   const deleteProject: typeof api.deleteProject = useCallback(
     async (...args) => {
       const res = await api.deleteProject(...args);
+      await refetch();
+      return res;
+    },
+    [refetch]
+  );
+
+  const listProjectsByDidSpaces: typeof api.listProjectsByDidSpaces = useCallback(
+    async (...args) => {
+      const res = await api.listProjectsByDidSpaces(...args);
       await refetch();
       return res;
     },
@@ -94,5 +117,34 @@ export const useProjectsState = () => {
     [setState]
   );
 
-  return { state, refetch, createProject, importProject, updateProject, deleteProject, setSelected, setMenuAnchor };
+  const checkProjectLimit = () => {
+    if (window?.blocklet?.preferences?.serviceMode === 'multi-tenant') {
+      // check project count limit
+      const count = state.projects.length;
+      const currentLimit = window?.blocklet?.preferences?.multiTenantProjectLimits;
+      if (count >= currentLimit && !isPromptAdmin) {
+        Toast.error(
+          t('projectLimitExceeded', {
+            limit: currentLimit,
+            current: count,
+          })
+        );
+        throw new Error(`Project limit exceeded (current: ${count}, limit: ${currentLimit}) `);
+      }
+    }
+  };
+
+  return {
+    state,
+    refetch,
+    createProject,
+    importProject,
+    fromDidSpacesImport,
+    updateProject,
+    deleteProject,
+    listProjectsByDidSpaces,
+    setSelected,
+    setMenuAnchor,
+    checkProjectLimit,
+  };
 };

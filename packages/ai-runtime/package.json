@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.1.314",
+  "version": "0.1.351",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -35,6 +35,10 @@
     "./core": {
       "import": "./lib/esm/core/index.js",
       "require": "./lib/cjs/core/index.js"
+    },
+    "./common": {
+      "import": "./lib/esm/common/index.js",
+      "require": "./lib/cjs/common/index.js"
     }
   },
   "typesVersions": {
@@ -57,6 +61,10 @@
       ],
       "core": [
         "./lib/types/core/index.d.ts"
+      ],
+      "common": [
+        "./lib/types/common.d.ts",
+        "./lib/types/common/index.d.ts"
       ]
     }
   },
@@ -81,30 +89,32 @@
     "dev": "run-p 'build:* -- -w'",
     "clean": "rimraf lib",
     "prepublishOnly": "npm run build",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "jest src/"
   },
   "dependencies": {
-    "@blocklet/ai-builtin": "^0.1.314",
-    "@blocklet/ai-kit": "^0.1.26",
-    "@blocklet/dataset-sdk": "^0.1.314",
-    "@blocklet/sdk": "^1.16.24",
+    "@blocklet/ai-builtin": "workspace:^",
+    "@blocklet/ai-kit": "^0.1.27",
+    "@blocklet/dataset-sdk": "workspace:^",
+    "@blocklet/sdk": "^1.16.26",
     "@microsoft/fetch-event-source": "^2.0.1",
-    "ahooks": "^3.7.10",
+    "ahooks": "^3.7.11",
     "axios": "^1.6.8",
     "dayjs": "^1.11.10",
     "eventsource-parser": "^1.1.2",
+    "joi": "^17.13.0",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.7",
     "node-fetch": "2",
-    "react-hook-form": "^7.51.1",
+    "react-hook-form": "^7.51.3",
     "recoil": "^0.7.7",
     "snowflake-uuid": "^1.0.0",
-    "typescript": "^5.4.3",
+    "typescript": "^5.4.5",
     "ufo": "^1.5.3",
     "vm2": "^3.9.19"
   },
   "peerDependencies": {
-    "@arcblock/ux": "^2.8.17",
+    "@arcblock/ux": "^2.9.51",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.1",
     "@mui/icons-material": "^5.14.11",
@@ -114,20 +124,22 @@
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@arcblock/ux": "^2.9.63",
+    "@arcblock/ux": "^2.9.73",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
-    "@mui/icons-material": "^5.15.14",
-    "@mui/lab": "^5.0.0-alpha.169",
-    "@mui/material": "^5.15.14",
+    "@jest/globals": "^29.7.0",
+    "@mui/icons-material": "^5.15.15",
+    "@mui/lab": "^5.0.0-alpha.170",
+    "@mui/material": "^5.15.15",
     "@types/lodash": "^4.17.0",
     "@types/mustache": "^4.2.5",
     "@types/node-fetch": "^2.6.11",
-    "@types/react": "^18.2.72",
+    "@types/react": "^18.3.1",
     "npm-run-all": "^4.1.5",
-    "react": "^18.2.0",
-    "react-router-dom": "^6.22.3",
+    "react": "^18.3.1",
+    "react-router-dom": "^6.23.0",
     "rimraf": "^5.0.5",
-    "typescript": "^5.4.3"
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.4.5"
   }
 }

@@ -1,24 +1,9 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import {
-  Box,
-  ListItemIcon,
-  ListItemText,
-  ListSubheader,
-  MenuItem,
-  TextField,
-  TextFieldProps,
-  menuItemClasses,
-} from '@mui/material';
-import groupBy from 'lodash/groupBy';
-import { useMemo } from 'react';
+import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
+import { ImageModelInfo, TextModelInfo } from '@blocklet/ai-runtime/types';
+import { Box, ListItemText, MenuItem, TextField, TextFieldProps, menuItemClasses } from '@mui/material';
 import { useAsync } from 'react-use';
 
-import {
-  ImageModelInfo,
-  TextModelInfo,
-  getSupportedImagesModels,
-  getSupportedModels,
-} from '../../../api/src/libs/common';
 import AzureIcon from './ai-icons/azure';
 import GoogleIcon from './ai-icons/google';
 import HuggingFaceIcon from './ai-icons/hugging-face';
@@ -36,10 +21,6 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
 
   if (error) throw error;
 
-  const groups = useMemo(() => {
-    return Object.values(groupBy(value, 'brand'));
-  }, [value]);
-
   if (loading) return null;
 
   return (
@@ -47,14 +28,16 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
       {...props}
       select
       SelectProps={{
+        ...props.SelectProps,
         renderValue: (m) => {
           const model = value?.find((i) => i.model === m);
           if (!model) return null;
 
           return (
-            <Box mt={-0.5}>
-              <ListItemIcon sx={{ verticalAlign: 'middle', minWidth: 32 }}>{brandIcon(model.brand)}</ListItemIcon>
-
+            <Box mt={-0.5} display="flex" alignItems="center" gap={0.5}>
+              <Box width={16} height={16}>
+                {brandIcon(model.brand)}
+              </Box>
               <ListItemText
                 sx={{ display: 'inline-flex', alignItems: 'baseline' }}
                 primary={model.name || model.model}
@@ -62,39 +45,30 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
             </Box>
           );
         },
-      }}>
-      {groups?.flatMap((models) => {
-        const icon = brandIcon(models[0]!.brand);
+      }}
+      sx={{ border: '1px solid #E5E7EB', borderRadius: 1 }}>
+      {value?.map((model) => {
+        const icon = brandIcon(model!.brand);
 
-        const options = models.map((model) => {
-          return (
-            <MenuItem
-              key={model.model}
-              value={model.model}
-              disabled={model.disabled}
-              sx={{ [`&.${menuItemClasses.disabled}`]: { opacity: 1 } }}>
-              <ListItemIcon sx={{ verticalAlign: 'middle', minWidth: 32 }}>{models.length === 1 && icon}</ListItemIcon>
-
+        return (
+          <MenuItem
+            key={model.model}
+            value={model.model}
+            disabled={model.disabled}
+            sx={{ [`&.${menuItemClasses.disabled}`]: { opacity: 1 } }}>
+            <Box display="flex" gap={1} alignItems="center">
+              <Box className="center" width={16} height={16}>
+                {icon}
+              </Box>
               <ListItemText
                 sx={{ display: 'inline-flex', alignItems: 'baseline' }}
                 primary={model.name || model.model}
                 secondary={model.disabled ? '(coming soon)' : undefined}
                 secondaryTypographyProps={{ fontStyle: 'italic', ml: 1 }}
               />
-            </MenuItem>
-          );
-        });
-
-        if (models.length > 1) {
-          options.unshift(
-            <ListSubheader key={`brand-${models[0]?.brand}`} sx={{ display: 'flex', alignItems: 'center' }}>
-              <ListItemIcon sx={{ verticalAlign: 'middle', minWidth: 32 }}>{icon}</ListItemIcon>
-              <ListItemText primary={models[0]!.brand} />
-            </ListSubheader>
-          );
-        }
-
-        return options;
+            </Box>
+          </MenuItem>
+        );
       })}
       {loading ? (
         <MenuItem disabled value="loading">
@@ -111,13 +85,13 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
   );
 }
 
-const brandIcon = (brand: string) =>
+export const brandIcon = (brand: string) =>
   ({
-    OpenAI: <OpenAIIcon fontSize="small" />,
-    'Azure OpenAI': <AzureIcon fontSize="small" />,
-    'Hugging Face': <HuggingFaceIcon fontSize="small" />,
-    Replicate: <ReplicateIcon fontSize="small" />,
-    'Vertex AI': <VertexAIIcon fontSize="small" />,
-    Google: <GoogleIcon fontSize="small" />,
-    'Mistral AI': <Box component="img" src={MistralIcon} width={20} height={20} />,
+    OpenAI: <OpenAIIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    'Azure OpenAI': <AzureIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    'Hugging Face': <HuggingFaceIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    Replicate: <ReplicateIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    'Vertex AI': <VertexAIIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    Google: <GoogleIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
+    'Mistral AI': <Box component="img" src={MistralIcon} width={15} height={15} />,
   })[brand];

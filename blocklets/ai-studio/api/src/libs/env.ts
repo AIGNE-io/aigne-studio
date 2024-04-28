@@ -1,5 +1,7 @@
 import path from 'path';
 
+import { getServiceModePermissionMap } from '@blocklet/ai-runtime/common';
+import { ServiceMode } from '@blocklet/ai-runtime/types';
 import config from '@blocklet/sdk/lib/config';
 import Joi from 'joi';
 
@@ -28,6 +30,14 @@ export const Config = {
 
   get usageReportThrottleTime() {
     return 30e3;
+  },
+
+  get serviceModePermissionMap() {
+    const { serviceMode } = config.env.preferences as {
+      serviceMode: ServiceMode;
+    };
+
+    return getServiceModePermissionMap(serviceMode);
   },
 };
 

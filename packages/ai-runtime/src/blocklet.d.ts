@@ -7,6 +7,7 @@ declare var blocklet:
       appLogo: string;
       appDescription: string;
       version: string;
-      componentMountPoints: { title: string; name: string; did: string; mountPoint: string }[];
+      componentMountPoints: { title: string; name: string; did: string; mountPoint: string; status: string }[];
+      languages?: { code: string; name: string }[];
     }
   | undefined;

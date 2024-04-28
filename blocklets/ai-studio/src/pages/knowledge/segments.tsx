@@ -1,5 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
+import { Icon } from '@iconify-icon/react';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -32,7 +33,6 @@ import { Link, useParams } from 'react-router-dom';
 import { useFetchSegments, useSegments } from '../../contexts/datasets/segments';
 import { getErrorMessage } from '../../libs/api';
 import { uploadDocumentName } from '../../libs/dataset';
-import Edit from '../project/icons/edit';
 import Empty from '../project/icons/empty';
 
 export default function KnowledgeSegments() {
@@ -59,7 +59,7 @@ export default function KnowledgeSegments() {
 
   if (state.loading || dataState.loading) {
     return (
-      <Box flex={1} display="flex" justifyContent="center" alignItems="center">
+      <Box flex={1} className="center">
         <CircularProgress size={20} />
       </Box>
     );
@@ -99,7 +99,7 @@ export default function KnowledgeSegments() {
                     e.stopPropagation();
                     documentDialogState.open();
                   }}>
-                  <Edit sx={{ fontSize: '16px' }} />
+                  <Box component={Icon} icon="tabler:pencil" sx={{ fontSize: '16px' }} />
                 </IconButton>
               </Box>
 

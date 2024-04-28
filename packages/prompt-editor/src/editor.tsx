@@ -33,6 +33,7 @@ export default function Editor({
   variablePickerProps,
   ContentProps,
   variables,
+  placeholderClassName,
 }: {
   useVariableNode?: boolean;
   isDebug?: boolean;
@@ -55,8 +56,9 @@ export default function Editor({
     editor: LexicalEditor;
     handleClose: () => any;
   }) => any;
+  placeholderClassName?: string;
 }): JSX.Element {
-  const placeholderNode = <Placeholder>{placeholder}</Placeholder>;
+  const placeholderNode = <Placeholder className={placeholderClassName}>{placeholder}</Placeholder>;
 
   return (
     <>

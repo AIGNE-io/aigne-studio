@@ -1,24 +1,30 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, Tool, isAssistant } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, ExecuteBlock, ExecuteBlockYjs, Role, Tool, isAssistant } from '@blocklet/ai-runtime/types';
 import { getAllParameters } from '@blocklet/dataset-sdk/request/util';
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import getDatasetTextByI18n from '@blocklet/dataset-sdk/util/get-dataset-i18n-text';
+import { Icon } from '@iconify-icon/react';
 import { InfoOutlined as MuiInfoOutlined } from '@mui/icons-material';
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
+  Checkbox,
+  CircularProgress,
+  ClickAwayListener,
   Divider,
+  Grow,
+  IconButton,
+  ListItemText,
+  MenuItem,
+  Paper,
+  Popper,
   Stack,
   StackProps,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { GridExpandMoreIcon } from '@mui/x-data-grid';
-import { sortBy } from 'lodash';
+import { isNil, sortBy } from 'lodash';
+import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useMemo } from 'react';
-import { useAssistantCompare } from 'src/pages/project/state';
 
 import Dataset from '../../../api/src/store/models/dataset/dataset';
 import { useProjectStore } from '../../pages/project/yjs-state';
@@ -47,150 +53,31 @@ export default function ExecuteDatasetBlockForm({
   isRemoteCompare?: boolean;
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
 } & StackProps) {
-  const { t } = useLocaleContext();
+  // const { t } = useLocaleContext();
 
-  const { getDiffBackground } = useAssistantCompare({
-    value: assistant,
-    compareValue: compareAssistant,
-    readOnly,
-    isRemoteCompare,
-  });
+  // const { getDiffBackground } = useAssistantCompare({
+  //   value: assistant,
+  //   compareValue: compareAssistant,
+  //   readOnly,
+  //   isRemoteCompare,
+  // });
 
   const tools = value.tools && sortBy(Object.values(value.tools), (i) => i.index);
 
   return (
-    <Stack {...props} sx={{ border: 2, borderRadius: 1, p: 1, gap: 1, ...props.sx }}>
-      <Box display="flex" alignItems="center">
-        <Tooltip
-          title={t('executeBlockNameTip', { exampleVariable: '{exampleVariable}' })}
-          placement="top"
-          disableInteractive>
-          <MuiInfoOutlined fontSize="small" sx={{ mr: 0.5, color: 'grey.500' }} />
-        </Tooltip>
-        <IndicatorTextField
-          projectId={projectId}
-          gitRef={gitRef}
-          path={[value.id, value.variable ?? '']}
-          TextFiledProps={{
-            hiddenLabel: true,
-            size: 'small',
-            inputProps: {
-              maxLength: 15,
-            },
-            InputProps: {
-              placeholder: t('executeBlockName'),
-              readOnly,
-              sx: {
-                backgroundColor: { ...getDiffBackground('prepareExecutes', `${value.id}.data.variable`) },
-              },
-            },
-            value: value.variable ?? '',
-            onChange: (e) => (value.variable = e.target.value),
-          }}
-        />
-      </Box>
-
-      <Divider />
-
-      <Accordion
-        sx={{
-          '&::before': {
-            display: 'none',
-          },
-        }}
-        square
-        disableGutters
-        elevation={0}>
-        <AccordionSummary
-          sx={{
-            px: 1,
-            minHeight: 28,
-            '& .MuiAccordionSummary-content': {
-              my: 0,
-            },
-          }}
-          expandIcon={<GridExpandMoreIcon />}>
-          <Typography variant="subtitle2">{t('outputSettings')}</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 0, mt: 0.5, px: 1, gap: 0.5, display: 'flex', flexDirection: 'column' }}>
-          {value.role !== 'none' && value.formatResultType !== 'asHistory' && (
-            <>
-              {assistant.type === 'prompt' && (
-                <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                  <Box display="flex">
-                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputPrefix')}</Typography>
-                    <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
-                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
-                    </Tooltip>
-                  </Box>
-                  <Box width="60%">
-                    <PromptEditorField
-                      readOnly={readOnly}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      ContentProps={{
-                        sx: {
-                          px: 1,
-                          py: 0.5,
-                        },
-                      }}
-                      placeholder="Your output prefix"
-                      path={[value.id, 'prefix']}
-                      assistant={assistant}
-                      value={value.prefix}
-                      onChange={(prefix) => (value.prefix = prefix)}
-                    />
-                  </Box>
-                </Box>
-              )}
-              {assistant.type === 'prompt' && (
-                <Box display="flex" alignItems="baseline" justifyContent="space-between">
-                  <Box display="flex">
-                    <Typography sx={{ whiteSpace: 'nowrap', mr: 0.5 }}>{t('outputSuffix')}</Typography>
-                    <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
-                      <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
-                    </Tooltip>
-                  </Box>
-                  <Box width="60%">
-                    <PromptEditorField
-                      readOnly={readOnly}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      ContentProps={{
-                        sx: {
-                          px: 1,
-                          py: 0.5,
-                        },
-                      }}
-                      placeholder="Your output suffix"
-                      path={[value.id, 'suffix']}
-                      assistant={assistant}
-                      value={value.suffix}
-                      onChange={(suffix) => (value.suffix = suffix)}
-                    />
-                  </Box>
-                </Box>
-              )}
-            </>
-          )}
-        </AccordionDetails>
-      </Accordion>
-
-      <Divider />
-
+    <Stack {...props} sx={{ border: 2, borderColor: 'warning.main', borderRadius: 1, ...props.sx }}>
       {tools?.map(({ data: tool }) => (
         <ToolItemView
           key={tool.id}
           assistant={assistant}
-          getDiffBackground={getDiffBackground}
           projectId={projectId}
           projectRef={gitRef}
           tool={tool}
-          executeBlock={value}
           readOnly={readOnly}
           openApis={openApis}
           datasets={[]}
           gitRef={gitRef}
+          value={value}
         />
       ))}
     </Stack>
@@ -198,21 +85,17 @@ export default function ExecuteDatasetBlockForm({
 }
 
 function ToolItemView({
-  getDiffBackground,
   projectId,
   projectRef,
   tool,
   gitRef,
-  executeBlock,
   readOnly,
   openApis,
   datasets,
   assistant,
-  ...props
+  value,
 }: {
   assistant: AssistantYjs;
-  executeBlock: ExecuteBlockYjs;
-  getDiffBackground: (path: any, id?: string | undefined, defaultValue?: string | undefined) => { [x: string]: string };
   projectId: string;
   projectRef: string;
   gitRef: string;
@@ -220,9 +103,11 @@ function ToolItemView({
   readOnly?: boolean;
   openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   datasets: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  value: ExecuteBlockYjs;
 } & StackProps) {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, projectRef);
+  const popperState = usePopupState({ variant: 'popper', popupId: 'settings' });
 
   const f = store.files[tool.id];
   const file = f && isAssistant(f) ? f : undefined;
@@ -233,18 +118,6 @@ function ToolItemView({
   const target = file ?? dataset ?? api;
 
   const parameters = useMemo(() => {
-    if (!target) {
-      return [
-        {
-          name: 'message',
-          in: 'query',
-          description: 'The content to be retrieved',
-          'x-description-zh': '需要检索的内容',
-          required: true,
-        },
-      ];
-    }
-
     return getAllParameters(target as DatasetObject);
   }, [target]);
 
@@ -257,39 +130,373 @@ function ToolItemView({
       : []),
   ]);
 
+  if (!target) {
+    return (
+      <Box display="flex" justifyContent="center" minHeight={100} alignItems="center" width={1}>
+        <CircularProgress size="20px" />
+      </Box>
+    );
+  }
+
+  const prefixOrSuffix = value.role !== 'none' && value.formatResultType !== 'asHistory' && assistant.type === 'prompt';
   return (
     <>
-      <Stack
-        direction="row"
-        {...props}
-        sx={{
-          minHeight: 32,
-          gap: 1,
-          alignItems: 'center',
-          cursor: 'pointer',
-          borderRadius: 1,
-          backgroundColor: { ...getDiffBackground('prepareExecutes', `${executeBlock.id}.data.tools.${tool.id}`) },
-        }}>
-        <Typography noWrap px={1} variant="subtitle2">
-          {t('datasetDesc')}
-        </Typography>
+      <Stack px={1.5} py={1} gap={1.25}>
+        <Box className="between">
+          <Typography noWrap variant="subtitle4">
+            {getDatasetTextByI18n(target || {}, 'summary', locale)}
+          </Typography>
+
+          <>
+            <IconButton {...bindTrigger(popperState)}>
+              <Box component={Icon} icon="tabler:plus" color="#3B82F6" fontSize={16} />
+            </IconButton>
+            <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
+              {({ TransitionProps }) => (
+                <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
+                  <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
+                    <ClickAwayListener
+                      onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && popperState.close()}>
+                      <Box>
+                        {isNil(value.variable) && (
+                          <MenuItem onClick={() => (value.variable = '')}>
+                            <ListItemText primary={t('outputName')} />
+                          </MenuItem>
+                        )}
+
+                        {isNil(value.role) && assistant.type === 'prompt' && (
+                          <MenuItem onClick={() => (value.role = 'system')}>
+                            <ListItemText primary={t('outputRole')} />
+                          </MenuItem>
+                        )}
+
+                        {isNil(value.formatResultType) && (
+                          <MenuItem onClick={() => (value.formatResultType = 'none')}>
+                            <ListItemText primary={t('formatResult')} />
+                          </MenuItem>
+                        )}
+
+                        {isNil(value.prefix) && prefixOrSuffix && (
+                          <MenuItem onClick={() => (value.prefix = '')}>
+                            <ListItemText primary={t('outputPrefix')} />
+                          </MenuItem>
+                        )}
+
+                        {isNil(value.suffix) && prefixOrSuffix && (
+                          <MenuItem onClick={() => (value.suffix = '')}>
+                            <ListItemText primary={t('outputSuffix')} />
+                          </MenuItem>
+                        )}
+
+                        {isNil(value.respondAs) && (
+                          <MenuItem onClick={() => (value.respondAs = 'none')}>
+                            <ListItemText primary={t('respondAs')} />
+                          </MenuItem>
+                        )}
+                      </Box>
+                    </ClickAwayListener>
+                  </Paper>
+                </Grow>
+              )}
+            </Popper>
+          </>
+        </Box>
+
+        {!isNil(value.variable) && (
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center" flex={1}>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputName')}
+              </Typography>
+              <Tooltip title={t('outputNameTip')} placement="top" disableInteractive>
+                <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+              </Tooltip>
+            </Box>
+
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1}>
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, value.variable ?? '']}
+                  TextFiledProps={{
+                    hiddenLabel: true,
+                    size: 'small',
+                    inputProps: {
+                      maxLength: 15,
+                    },
+                    InputProps: {
+                      placeholder: t('executeBlockName'),
+                      readOnly,
+                    },
+                    value: value.variable ?? '',
+                    onChange: (e) => (value.variable = e.target.value),
+                  }}
+                  boxProps={{
+                    sx: {
+                      width: 1,
+
+                      '.MuiTextField-root': {
+                        width: 1,
+
+                        '.MuiInputBase-root': {
+                          px: 1,
+                          py: 0.5,
+
+                          input: {
+                            px: 0,
+                          },
+                        },
+                      },
+                    },
+                  }}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.variable = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
+            </Box>
+          </Box>
+        )}
+
+        {!isNil(value.prefix) && (
+          <Box display="flex" alignItems="baseline" justifyContent="space-between">
+            <Box display="flex" alignItems="center" flex={1}>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputPrefix')}
+              </Typography>
+              <Tooltip title={t('outputPrefixTip')} placement="top" disableInteractive>
+                <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+              </Tooltip>
+            </Box>
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1}>
+                <PromptEditorField
+                  readOnly={readOnly}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  ContentProps={{
+                    sx: {
+                      px: 1,
+                      py: 0.5,
+                    },
+                  }}
+                  placeholder="Your output prefix"
+                  path={[value.id, 'prefix']}
+                  assistant={assistant}
+                  value={value.prefix}
+                  onChange={(prefix) => (value.prefix = prefix)}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.prefix = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
+            </Box>
+          </Box>
+        )}
+
+        {!isNil(value.suffix) && (
+          <Box display="flex" alignItems="baseline" justifyContent="space-between">
+            <Box display="flex" alignItems="center" flex={1}>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputSuffix')}
+              </Typography>
+              <Tooltip title={t('outputSuffixTip')} placement="top" disableInteractive>
+                <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+              </Tooltip>
+            </Box>
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1}>
+                <PromptEditorField
+                  readOnly={readOnly}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  ContentProps={{
+                    sx: {
+                      px: 1,
+                      py: 0.5,
+                    },
+                  }}
+                  placeholder="Your output suffix"
+                  path={[value.id, 'suffix']}
+                  assistant={assistant}
+                  value={value.suffix}
+                  onChange={(suffix) => (value.suffix = suffix)}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.suffix = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
+            </Box>
+          </Box>
+        )}
+
+        {!isNil(value.role) && (
+          <Box display="flex" alignItems="baseline" justifyContent="space-between">
+            <Box display="flex" flex={1}>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('outputRole')}
+              </Typography>
+              <Tooltip title={t('outputRoleTip')} placement="top" disableInteractive>
+                <MuiInfoOutlined fontSize="small" sx={{ color: 'grey.500' }} />
+              </Tooltip>
+            </Box>
+
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1} display="flex" justifyContent="flex-end">
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, value.role ?? 'system']}
+                  TextFiledProps={{
+                    size: 'small',
+                    select: true,
+                    hiddenLabel: true,
+                    SelectProps: {
+                      autoWidth: true,
+                    },
+                    value: value.role || 'system',
+                    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      (value.role = e.target.value as Role),
+                    children: [
+                      <MenuItem key="system" value="system">
+                        {t('systemPrompt')}
+                      </MenuItem>,
+                      <MenuItem key="user" value="user">
+                        {t('userPrompt')}
+                      </MenuItem>,
+                      <MenuItem key="assistant" value="assistant">
+                        {t('assistantPrompt')}
+                      </MenuItem>,
+                      <MenuItem key="none" value="none">
+                        {t('ignoreOutput')}
+                      </MenuItem>,
+                    ],
+                  }}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.role = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
+            </Box>
+          </Box>
+        )}
+
+        {!isNil(value.formatResultType) && (
+          <Box display="flex" alignItems="baseline" justifyContent="space-between">
+            <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }} flex={1}>
+              {t('formatResult')}
+            </Typography>
+
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1} display="flex" justifyContent="flex-end">
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, value.formatResultType ?? 'none']}
+                  TextFiledProps={{
+                    size: 'small',
+                    select: true,
+                    hiddenLabel: true,
+                    SelectProps: {
+                      autoWidth: true,
+                    },
+                    value: value.formatResultType || 'none',
+                    onChange: (e) => (value.formatResultType = e.target.value as any),
+                    children: [
+                      <MenuItem key="none" value="none">
+                        {t('stayAsIs')}
+                      </MenuItem>,
+                      <MenuItem key="asHistory" value="asHistory">
+                        {t('asHistory')}
+                      </MenuItem>,
+                    ],
+                  }}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.formatResultType = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
+            </Box>
+          </Box>
+        )}
+
+        {!isNil(value.respondAs) && (
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box flex={1}>
+              <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
+                {t('respondAs')}
+              </Typography>
+            </Box>
+
+            <Box display="flex" alignItems="center" flex={1} gap={1}>
+              <Box flex={1} display="flex" justifyContent="flex-end">
+                <IndicatorTextField
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, value.respondAs ?? 'none']}
+                  TextFiledProps={{
+                    size: 'small',
+                    select: true,
+                    hiddenLabel: true,
+                    SelectProps: {
+                      autoWidth: true,
+                    },
+                    value: value.respondAs || 'none',
+                    onChange: (e) => (value.respondAs = e.target.value as any),
+                    children: [
+                      <MenuItem key="none" value="none" sx={{ color: 'text.secondary' }}>
+                        {t('none')}
+                      </MenuItem>,
+                      <MenuItem key="message" value="message">
+                        {t('respondAsMessage')}
+                      </MenuItem>,
+                      <MenuItem key="systemMessage" value="systemMessage">
+                        {t('respondAsSystemMessage')}
+                      </MenuItem>,
+                    ],
+                  }}
+                />
+              </Box>
+
+              <IconButton onClick={() => (value.respondAs = undefined)}>
+                <Box component={Icon} icon="tabler:trash" color="warning.main" fontSize={18} />
+              </IconButton>
+            </Box>
+          </Box>
+        )}
       </Stack>
 
-      <Stack>
+      <Divider sx={{ borderColor: '#DDD6FE' }} />
+
+      <Stack m={1.5} gap={1.5} mt={1.5}>
         {(parameters || [])?.map((parameter: any) => {
           if (!parameter) return null;
-          if (parameter.name === 'datasetId') return null;
+          if (parameter['x-hide']) return null;
 
           tool.parameters ??= {};
           const value = tool.parameters[parameter.name];
 
-          return (
-            <Stack key={parameter.name}>
-              <Typography variant="caption" mx={1}>
-                {getDatasetTextByI18n(parameter, 'description', locale) ||
-                  getDatasetTextByI18n(parameter, 'name', locale)}
-              </Typography>
+          const render = () => {
+            if (parameter['x-parameter-type'] === 'boolean') {
+              return (
+                <Box>
+                  <Checkbox
+                    checked={Boolean(value || '')}
+                    onChange={(e: any) => {
+                      if (tool.parameters) tool.parameters[parameter.name] = e.target.checked;
+                    }}
+                  />
+                </Box>
+              );
+            }
 
+            return (
               <PromptEditorField
                 placeholder={assistantParameters.has(parameter.key) ? `{{ ${parameter.name} }}` : undefined}
                 value={value || ''}
@@ -301,6 +508,17 @@ function ToolItemView({
                   if (tool.parameters) tool.parameters[parameter.name] = value;
                 }}
               />
+            );
+          };
+
+          return (
+            <Stack key={parameter.name}>
+              <Typography variant="subtitle2" mb={0.5}>
+                {getDatasetTextByI18n(parameter, 'description', locale) ||
+                  getDatasetTextByI18n(parameter, 'name', locale)}
+              </Typography>
+
+              {render()}
             </Stack>
           );
         })}

@@ -1,5 +1,7 @@
 import type {
+  Agent,
   ApiAssistant,
+  AssistantBase,
   ExecuteBlock,
   ExecuteBlockSelectAll,
   ExecuteBlockSelectByPrompt,
@@ -9,13 +11,22 @@ import type {
   PromptAssistant,
   PromptMessage,
   SelectParameter,
+  Variable,
+  VariableTypeBase,
 } from '.';
 
 export type ArrayToYjs<T extends Array<{ id: string }>> = { [key: string]: { index: number; data: T[number] } };
 
-export type FileTypeYjs = AssistantYjs | { $base64: string };
+export type VariableYjs = Omit<Variable, 'type'> & { type?: VariableTypeYjs };
 
-export type AssistantYjs = PromptAssistantYjs | ApiAssistantYjs | FunctionAssistantYjs | ImageAssistantYjs;
+export type VariablesYjs = {
+  type: 'variables';
+  variables?: VariableYjs[];
+};
+
+export type FileTypeYjs = AssistantYjs | { $base64: string } | VariablesYjs;
+
+export type AssistantYjs = AgentYjs | PromptAssistantYjs | ApiAssistantYjs | FunctionAssistantYjs | ImageAssistantYjs;
 
 export type ExecuteBlockSelectAllYjs = Omit<ExecuteBlockSelectAll, 'tools'> & {
   tools?: { [key: string]: { index: number; data: NonNullable<ExecuteBlock['tools']>[number] } };
@@ -26,6 +37,29 @@ export type ExecuteBlockSelectByPromptYjs = Omit<ExecuteBlockSelectByPrompt, 'to
 };
 
 export type ExecuteBlockYjs = ExecuteBlockSelectAllYjs | ExecuteBlockSelectByPromptYjs;
+
+export type VariableTypeYjs = VariableTypeBase &
+  (
+    | { type?: undefined }
+    | {
+        type: 'string';
+        defaultValue?: string;
+      }
+    | {
+        type: 'number';
+        defaultValue?: number;
+      }
+    | {
+        type: 'object';
+        properties?: ArrayToYjs<VariableTypeYjs[]>;
+      }
+    | {
+        type: 'array';
+        element?: VariableTypeYjs;
+      }
+  );
+
+export type OutputVariableYjs = VariableTypeYjs & { variable?: { key: string; scope: string } };
 
 export type PromptYjs =
   | {
@@ -39,30 +73,33 @@ export type PromptYjs =
       visibility?: 'hidden';
     };
 
-export interface PromptAssistantYjs extends Omit<PromptAssistant, 'parameters' | 'prompts' | 'tests'> {
+export type AssistantBaseYjs<T extends AssistantBase> = Omit<
+  T,
+  'parameters' | 'tests' | 'entries' | 'outputVariables'
+> & {
   parameters?: { [key: string]: { index: number; data: ParameterYjs } };
-  prompts?: { [key: string]: { index: number; data: PromptYjs } };
   tests?: ArrayToYjs<NonNullable<PromptAssistant['tests']>>;
+  entries?: ArrayToYjs<NonNullable<AssistantBase['entries']>>;
+  outputVariables?: ArrayToYjs<OutputVariableYjs[]>;
+};
+
+export interface AgentYjs extends AssistantBaseYjs<Agent> {}
+
+export interface PromptAssistantYjs extends Omit<AssistantBaseYjs<PromptAssistant>, 'prompts'> {
+  prompts?: { [key: string]: { index: number; data: PromptYjs } };
 }
 
-export interface ImageAssistantYjs extends Omit<ImageAssistant, 'parameters' | 'prepareExecutes' | 'tests'> {
-  parameters?: { [key: string]: { index: number; data: ParameterYjs } };
+export interface ImageAssistantYjs extends Omit<AssistantBaseYjs<ImageAssistant>, 'prepareExecutes'> {
   prepareExecutes?: { [key: string]: { index: number; data: ExecuteBlockYjs } };
-  tests?: ArrayToYjs<NonNullable<FunctionAssistant['tests']>>;
 }
 
-export interface ApiAssistantYjs
-  extends Omit<ApiAssistant, 'parameters' | 'prepareExecutes' | 'tests' | 'requestParameters'> {
-  parameters?: { [key: string]: { index: number; data: ParameterYjs } };
+export interface ApiAssistantYjs extends Omit<AssistantBaseYjs<ApiAssistant>, 'prepareExecutes' | 'requestParameters'> {
   prepareExecutes?: { [key: string]: { index: number; data: ExecuteBlockYjs } };
-  tests?: ArrayToYjs<NonNullable<ApiAssistant['tests']>>;
   requestParameters?: ArrayToYjs<NonNullable<ApiAssistant['requestParameters']>>;
 }
 
-export interface FunctionAssistantYjs extends Omit<FunctionAssistant, 'parameters' | 'prepareExecutes' | 'tests'> {
-  parameters?: { [key: string]: { index: number; data: ParameterYjs } };
+export interface FunctionAssistantYjs extends Omit<AssistantBaseYjs<FunctionAssistant>, 'prepareExecutes'> {
   prepareExecutes?: { [key: string]: { index: number; data: ExecuteBlockYjs } };
-  tests?: ArrayToYjs<NonNullable<FunctionAssistant['tests']>>;
 }
 
 export type ParameterYjs =

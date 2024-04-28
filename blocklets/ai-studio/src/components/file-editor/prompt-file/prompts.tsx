@@ -6,14 +6,12 @@ import {
   PromptMessage,
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
-import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import { Box, Button, Stack, Tooltip, Typography, alpha, styled } from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import { Box, Button, Stack, Tooltip, alpha, styled } from '@mui/material';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
 import Add from '../../../pages/project/icons/add';
-import Eye from '../../../pages/project/icons/eye';
-import EyeNo from '../../../pages/project/icons/eye-no';
 import { usePromptsState } from '../../../pages/project/prompt-state';
 import { DragSortItemContainer, DragSortListYjs } from '../../drag-sort-list';
 import ExecuteBlockForm from '../execute-block';
@@ -38,23 +36,18 @@ export default function PromptPrompts({
 }) {
   const { t } = useLocaleContext();
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
-  const { addPrompt, deletePrompt } = usePromptsState({ projectId, gitRef, templateId: value.id });
+  const { addPrompt, copePrompt, deletePrompt } = usePromptsState({ projectId, gitRef, templateId: value.id });
   const { removeParameter } = useVariablesEditorOptions(value);
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   return (
-    <Box
+    <Stack
+      gap={1}
       sx={{
         borderRadius: 1,
-        bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
+        bgcolor: '#EFF6FF',
       }}>
-      <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
-        <TipsAndUpdatesRounded fontSize="small" color="primary" />
-
-        <Typography variant="subtitle1">{t('formatPrompt')}</Typography>
-      </Stack>
-
-      <Stack gap={2} p={2}>
+      <>
         {value.prompts && (
           <DragSortListYjs
             sx={{ gap: 2 }}
@@ -95,23 +88,26 @@ export default function PromptPrompts({
                   disabled={readOnly}
                   isDragging={params.isDragging}
                   actions={
-                    <Tooltip
-                      title={hidden ? t('activeMessageTip') : t('hideMessageTip')}
-                      disableInteractive
-                      placement="top">
-                      <Button
-                        sx={{
-                          color: 'grey.500',
-                          bgcolor: hidden ? 'action.selected' : undefined,
-                        }}
-                        onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')}>
-                        {prompt.visibility === 'hidden' ? (
-                          <EyeNo sx={{ fontSize: '1.25rem' }} />
-                        ) : (
-                          <Eye sx={{ fontSize: '1.25rem' }} />
-                        )}
-                      </Button>
-                    </Tooltip>
+                    <Stack sx={{ gap: 1.5 }}>
+                      <Tooltip
+                        title={hidden ? t('activeMessageTip') : t('hideMessageTip')}
+                        disableInteractive
+                        placement="top">
+                        <Box onClick={() => (prompt.visibility = hidden ? undefined : 'hidden')} className="center">
+                          {prompt.visibility === 'hidden' ? (
+                            <Box component={Icon} icon="tabler:eye-off" sx={{ color: 'grey.500' }} />
+                          ) : (
+                            <Box component={Icon} icon="tabler:eye" sx={{ color: 'grey.500' }} />
+                          )}
+                        </Box>
+                      </Tooltip>
+
+                      <Tooltip title={t('copyTool')} disableInteractive placement="top">
+                        <Box onClick={() => copePrompt(prompt, _)} className="center">
+                          <Box component={Icon} icon="tabler:copy" sx={{ color: 'grey.500' }} />
+                        </Box>
+                      </Tooltip>
+                    </Stack>
                   }
                   onDelete={() => {
                     if ((prompt.data as any)?.type === 'dataset') {
@@ -128,21 +124,16 @@ export default function PromptPrompts({
         )}
 
         {!disabled && (
-          <Stack direction="row" gap={2}>
+          <Stack direction="row" gap={1.5}>
             <Button
               startIcon={<Add />}
               onClick={() => addPrompt({ type: 'message', data: { id: nextAssistantId(), role: 'user' } })}>
-              {t('addObject', { object: t('promptMessage') })}
-            </Button>
-            <Button
-              startIcon={<Add />}
-              onClick={() => addPrompt({ type: 'executeBlock', data: { id: nextAssistantId(), selectType: 'all' } })}>
-              {t('addObject', { object: t('executeBlock') })}
+              {t('promptMessage')}
             </Button>
           </Stack>
         )}
-      </Stack>
-    </Box>
+      </>
+    </Stack>
   );
 }
 
@@ -168,18 +159,15 @@ function PromptItemMessage({
   return (
     <Stack
       sx={{
-        border: 2,
-        borderColor: (theme) =>
-          alpha(theme.palette.primary.main, promptHidden ? theme.palette.action.disabledOpacity : 1),
+        border: 1,
+        borderColor: '#3B82F6',
         borderRadius: 1,
         '*': {
           color: promptHidden ? 'text.disabled' : undefined,
         },
         backgroundColor,
       }}>
-      <Stack direction="row" alignItems="center" gap={1} p={1}>
-        <Typography variant="subtitle2">{t('prompt')}</Typography>
-
+      <Stack direction="row" alignItems="center" gap={1} p={1} px={1.5} borderBottom="1px solid #BFDBFE">
         <RoleSelectField
           projectId={projectId}
           gitRef={gitRef}
@@ -187,6 +175,26 @@ function PromptItemMessage({
           size="small"
           value={value.role}
           onChange={(e) => (value.role = e.target.value as any)}
+          boxProps={{
+            sx: {
+              '.MuiInputBase-root': {
+                ml: -1,
+                background: 'transparent',
+                '&:hover': {
+                  background: 'transparent',
+                },
+                '&:focus': {
+                  background: 'transparent',
+                },
+              },
+              '&:focus-within': {
+                background: 'transparent',
+              },
+              '.Mui-focused': {
+                background: 'transparent',
+              },
+            },
+          }}
         />
       </Stack>
 
@@ -199,6 +207,13 @@ function PromptItemMessage({
         assistant={assistant}
         value={value.content}
         onChange={(content) => (value.content = content)}
+        ContentProps={{
+          sx: {
+            '&:hover': {
+              bgcolor: 'transparent !important',
+            },
+          },
+        }}
       />
     </Stack>
   );
@@ -246,7 +261,8 @@ const StyledPromptEditor = styled(PromptEditorField)(({ theme }) =>
     p: 0,
     '.ContentEditable__root': {
       p: 1,
-      minHeight: 48,
+      px: 1.5,
+      minHeight: 64,
       ...theme.typography.body1,
       bgcolor: 'transparent',
 
@@ -257,6 +273,14 @@ const StyledPromptEditor = styled(PromptEditorField)(({ theme }) =>
       ':focus': {
         bgcolor: 'action.hover',
       },
+    },
+
+    '.Placeholder__root': {
+      top: '8px',
+      left: '12px',
+      bottom: 'inherit',
+      fontSize: '14px',
+      lineHeight: '24px',
     },
   })
 );

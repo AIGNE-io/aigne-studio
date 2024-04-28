@@ -3,26 +3,32 @@ import sortBy from 'lodash/sortBy';
 import { customAlphabet } from 'nanoid';
 
 import type {
+  AgentYjs,
   ApiAssistantYjs,
   AssistantYjs,
   ExecuteBlockYjs,
   FileTypeYjs,
   FunctionAssistantYjs,
   ImageAssistantYjs,
+  OutputVariableYjs,
   ParameterYjs,
   PromptAssistantYjs,
   PromptYjs,
+  VariablesYjs,
 } from './yjs';
 import type {
+  Agent,
   ApiAssistant,
   Assistant,
   ExecuteBlock,
   FileType,
   FunctionAssistant,
   ImageAssistant,
+  OutputVariable,
   Parameter,
   Prompt,
   PromptAssistant,
+  Variables,
 } from '.';
 
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
@@ -45,13 +51,25 @@ export function isExecuteBlock(
   return prompt.type === 'executeBlock';
 }
 
+export function isVariables(assistant: FileType): assistant is Variables;
+export function isVariables(assistant: FileTypeYjs): assistant is VariablesYjs;
+export function isVariables(assistant: FileType | FileTypeYjs): assistant is FileType | VariablesYjs {
+  return 'variables' in (assistant as any);
+}
+
 export function isAssistant(assistant: FileType): assistant is Assistant;
 export function isAssistant(assistant: FileTypeYjs): assistant is AssistantYjs;
 export function isAssistant(assistant: FileType | FileTypeYjs): assistant is FileType | AssistantYjs {
   return (
     typeof (assistant as any).id === 'string' &&
-    ['prompt', 'image', 'api', 'function'].includes((assistant as any).type)
+    ['agent', 'prompt', 'image', 'api', 'function'].includes((assistant as any).type)
   );
+}
+
+export function isAgent(file: FileType): file is Agent;
+export function isAgent(file: FileTypeYjs): file is AgentYjs;
+export function isAgent(file: FileType | FileTypeYjs): file is Agent | AgentYjs {
+  return (file as any).type === 'agent';
 }
 
 export function isPromptAssistant(file: FileType): file is PromptAssistant;
@@ -126,6 +144,36 @@ export function executeBlockFromYjs(block: ExecuteBlockYjs): ExecuteBlock {
   };
 }
 
+export function outputVariableToYjs(variable: OutputVariable): OutputVariableYjs {
+  if (variable.type === 'object') {
+    return {
+      ...variable,
+      properties: variable.properties && arrayToYjs(variable.properties.map(outputVariableToYjs)),
+    };
+  }
+
+  if (variable.type === 'array') {
+    return { ...variable, element: variable.element && outputVariableToYjs(variable.element) };
+  }
+
+  return variable;
+}
+
+export function outputVariableFromYjs(variable: OutputVariableYjs): OutputVariable {
+  if (variable.type === 'object') {
+    return {
+      ...variable,
+      properties: variable.properties && arrayFromYjs(variable.properties).map(outputVariableFromYjs),
+    };
+  }
+
+  if (variable.type === 'array') {
+    return { ...variable, element: variable.element && outputVariableFromYjs(variable.element) };
+  }
+
+  return variable;
+}
+
 export function promptToYjs(prompt: Prompt): PromptYjs {
   if (isExecuteBlock(prompt)) {
     return { ...prompt, data: executeBlockToYjs(prompt.data) };
@@ -162,6 +210,15 @@ export function arrayFromYjs<T, I>(
 }
 
 export function fileToYjs(file: FileType): FileTypeYjs {
+  if (isAgent(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
+      tests: file.tests && arrayToYjs(file.tests),
+      entries: file.entries && arrayToYjs(file.entries),
+      outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
+    };
+  }
   if (isPromptAssistant(file)) {
     return {
       ...file,
@@ -173,6 +230,8 @@ export function fileToYjs(file: FileType): FileTypeYjs {
           (i) => promptToYjs(i.data)
         ),
       tests: file.tests && arrayToYjs(file.tests),
+      entries: file.entries && arrayToYjs(file.entries),
+      outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
     };
   }
   if (isImageAssistant(file)) {
@@ -181,6 +240,8 @@ export function fileToYjs(file: FileType): FileTypeYjs {
       parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
       prepareExecutes: file.prepareExecutes && arrayToYjs(file.prepareExecutes, executeBlockToYjs),
       tests: file.tests && arrayToYjs(file.tests),
+      entries: file.entries && arrayToYjs(file.entries),
+      outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
     };
   }
   if (isFunctionAssistant(file)) {
@@ -189,6 +250,8 @@ export function fileToYjs(file: FileType): FileTypeYjs {
       parameters: file.parameters && arrayToYjs(file.parameters, parameterToYjs),
       prepareExecutes: file.prepareExecutes && arrayToYjs(file.prepareExecutes, executeBlockToYjs),
       tests: file.tests && arrayToYjs(file.tests),
+      entries: file.entries && arrayToYjs(file.entries),
+      outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
     };
   }
   if (isApiAssistant(file)) {
@@ -198,6 +261,15 @@ export function fileToYjs(file: FileType): FileTypeYjs {
       prepareExecutes: file.prepareExecutes && arrayToYjs(file.prepareExecutes, executeBlockToYjs),
       tests: file.tests && arrayToYjs(file.tests),
       requestParameters: file.requestParameters && arrayToYjs(file.requestParameters),
+      entries: file.entries && arrayToYjs(file.entries),
+      outputVariables: file.outputVariables && arrayToYjs(file.outputVariables.map(outputVariableToYjs)),
+    };
+  }
+
+  if (isVariables(file)) {
+    return {
+      ...file,
+      variables: file.variables?.map((i) => ({ ...i, type: i.type && outputVariableToYjs(i.type) })),
     };
   }
 
@@ -205,12 +277,23 @@ export function fileToYjs(file: FileType): FileTypeYjs {
 }
 
 export function fileFromYjs(file: FileTypeYjs): FileType {
+  if (isAgent(file)) {
+    return {
+      ...file,
+      parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
+      tests: file.tests && arrayFromYjs(file.tests),
+      entries: file.entries && arrayFromYjs(file.entries),
+      outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
+    };
+  }
   if (isPromptAssistant(file)) {
     return {
       ...file,
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
       prompts: file.prompts && arrayFromYjs(file.prompts, promptFromYjs),
       tests: file.tests && arrayFromYjs(file.tests),
+      entries: file.entries && arrayFromYjs(file.entries),
+      outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
     };
   }
   if (isImageAssistant(file)) {
@@ -219,6 +302,8 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
       prepareExecutes: file.prepareExecutes && arrayFromYjs(file.prepareExecutes, executeBlockFromYjs),
       tests: file.tests && arrayFromYjs(file.tests),
+      entries: file.entries && arrayFromYjs(file.entries),
+      outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
     };
   }
   if (isFunctionAssistant(file)) {
@@ -227,6 +312,8 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       parameters: file.parameters && arrayFromYjs(file.parameters, parameterFromYjs),
       prepareExecutes: file.prepareExecutes && arrayFromYjs(file.prepareExecutes, executeBlockFromYjs),
       tests: file.tests && arrayFromYjs(file.tests),
+      entries: file.entries && arrayFromYjs(file.entries),
+      outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
     };
   }
   if (isApiAssistant(file)) {
@@ -236,6 +323,15 @@ export function fileFromYjs(file: FileTypeYjs): FileType {
       prepareExecutes: file.prepareExecutes && arrayFromYjs(file.prepareExecutes, executeBlockFromYjs),
       tests: file.tests && arrayFromYjs(file.tests),
       requestParameters: file.requestParameters && arrayFromYjs(file.requestParameters),
+      entries: file.entries && arrayFromYjs(file.entries),
+      outputVariables: file.outputVariables && arrayFromYjs(file.outputVariables).map(outputVariableFromYjs),
+    };
+  }
+
+  if (isVariables(file)) {
+    return {
+      ...file,
+      variables: file.variables?.map((i) => ({ ...i, type: i.type && outputVariableFromYjs(i.type) })),
     };
   }
 

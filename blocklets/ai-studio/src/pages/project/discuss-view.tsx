@@ -31,7 +31,7 @@ export default function DiscussView({
   }
 
   return (
-    <Views>
+    <Views sx={{ overflow: 'auto' }}>
       <Suspense
         fallback={
           <Box textAlign="center" py={4}>
@@ -56,7 +56,7 @@ export default function DiscussView({
 }
 
 const Views = styled(Box)`
-  padding: 16px;
+  padding: 20px;
 
   .comment-editor {
     margin-top: 0;

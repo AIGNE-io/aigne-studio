@@ -15,18 +15,29 @@ import DatasetContent from '../../store/models/dataset/content';
 import Dataset from '../../store/models/dataset/dataset';
 import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
-import VectorStore from '../../store/vector-store-hnswlib';
-import { getDiscussionIds, queue, updateHistoriesAndStore } from './embeddings';
+import VectorStore from '../../store/vector-store-faiss';
+import { queue, updateHistoriesAndStore } from './embeddings';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 export interface CreateDiscussionItem {
   name: string;
-  data: { type: 'discussion'; fullSite?: boolean; types?: ('discussion' | 'blog' | 'doc')[]; id: string };
+  data: {
+    id: string;
+    title: string;
+    type?: 'discussion' | 'blog' | 'doc';
+    from: 'discussion' | 'board' | 'discussionType';
+    boardId?: string;
+  };
 }
 
 export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionItem[];
+
+const searchQuerySchema = Joi.object<{ message?: string; n: number }>({
+  message: Joi.string().empty(['', null]),
+  n: Joi.number().empty(['', null]).min(1).default(4),
+});
 
 /**
  * @openapi
@@ -47,6 +58,7 @@ export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionI
  *          x-options-api: /ai-studio/api/datasets
  *          x-option-key: id
  *          x-option-name: name
+ *          x-hide: true
  *          schema:
  *            type: string
  *            default: ''
@@ -58,6 +70,14 @@ export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionI
  *          schema:
  *            type: string
  *            default: ''
+ *        - name: n
+ *          in: query
+ *          description: How many records to return
+ *          x-description-zh: 返回多少条数据
+ *          required: false
+ *          schema:
+ *            type: number
+ *            default: 4
  *      responses:
  *        200:
  *          description: Successfully retrieved the paginated list of search results
@@ -65,19 +85,18 @@ export type CreateDiscussionItemInput = CreateDiscussionItem | CreateDiscussionI
  */
 router.get('/:datasetId/search', async (req, res) => {
   const { datasetId } = req.params;
-  const datasetSchema = Joi.object<{ message: string }>({ message: Joi.string().required() });
-  const input = await datasetSchema.validateAsync(req.query, { stripUnknown: true });
+  const input = await searchQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  logger.info('knowledge search input', input);
 
-  const dataset = await Dataset.findOne({ where: { id: datasetId } });
-  if (!dataset || !datasetId) {
-    logger.error('search vector info', 'datasetId or dataset is not Found');
+  if (!input.message) {
+    logger.error('Not found search message');
     res.json({ docs: [] });
     return;
   }
 
-  const documents = await DatasetDocument.findAll({ where: { datasetId } });
-  if (!documents?.length) {
-    logger.error('search vector info', 'documents is not Found');
+  const dataset = await Dataset.findOne({ where: { id: datasetId } });
+  if (!dataset) {
+    logger.error(`dataset ${datasetId} not found`);
     res.json({ docs: [] });
     return;
   }
@@ -86,16 +105,15 @@ router.get('/:datasetId/search', async (req, res) => {
   const store = await VectorStore.load(datasetId, embeddings);
 
   try {
-    // const records = await UpdateHistories.findAll({ where: { datasetId }, attributes: ['segmentId'] });
-    // const uniqueSegmentIds = [...new Set(records.map((record) => record.segmentId).flat())];
+    if (store.getMapping() && !Object.keys(store.getMapping()).length) {
+      res.json({ docs: [] });
+      return;
+    }
 
-    // if (store.getMapping() && !Object.keys(store.getMapping()).length) {
-    //   res.json({ docs: [] });
-    //   return;
-    // }
-
-    const docs = await store.similaritySearch(input.message, 4);
-    const result = docs.map((x) => x?.pageContent);
+    const docs = await store.similaritySearch(input.message, Math.min(input.n, Object.keys(store.getMapping()).length));
+    const result = docs.map((x) => {
+      return { content: x?.pageContent, ...(x?.metadata?.metadata || {}) };
+    });
 
     res.json({ docs: result });
   } catch (error) {
@@ -233,8 +251,8 @@ router.post('/:datasetId/documents/text', user(), userAuth(), async (req, res) =
   const { datasetId } = req.params;
 
   const input = await Joi.object<{ name: string; content?: string }>({
-    name: Joi.string().required(),
-    content: Joi.string().required(),
+    name: Joi.string().allow('').default(''),
+    content: Joi.string().allow('').default(''),
   }).validateAsync(req.body, { stripUnknown: true });
 
   if (!datasetId) {
@@ -265,24 +283,14 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
   const createItemsSchema = Joi.object({
     name: Joi.string().empty(['', null]),
     data: Joi.object({
-      type: Joi.string().valid('discussion').required(),
-      fullSite: Joi.boolean(),
-      types: Joi.array().items(Joi.string()).sparse(false),
-      id: Joi.string().empty(['', null]),
-    })
-      .required()
-      .when('.fullSite', {
-        is: true,
-        then: Joi.object({
-          types: Joi.array().items(Joi.string()).min(1).required(),
-          id: Joi.any().optional(),
-        }),
-        otherwise: Joi.object({
-          types: Joi.array().items(Joi.string()).sparse(true).default([]),
-          id: Joi.string().required(),
-        }),
-      }),
+      from: Joi.string().valid('discussion', 'board', 'discussionType').required(),
+      type: Joi.string().valid('discussion', 'blog', 'doc').optional(),
+      title: Joi.string().allow('', null).required(),
+      id: Joi.string().required(),
+      boardId: Joi.string().allow('', null).default(''),
+    }).required(),
   });
+
   const createItemInputSchema = Joi.alternatives<CreateDiscussionItemInput>().try(
     Joi.array().items(createItemsSchema),
     createItemsSchema
@@ -297,47 +305,29 @@ router.post('/:datasetId/documents/discussion', user(), async (req, res) => {
 
   const arr = Array.isArray(input) ? input : [input];
 
-  const createOrUpdate = async (name: string, id: string) => {
-    const found = await DatasetDocument.findOne({ where: { datasetId, 'data.id': id } });
+  const createOrUpdate = async (name: string, data: CreateDiscussionItem['data']) => {
+    const found = await DatasetDocument.findOne({ where: { datasetId, 'data.id': data.id, 'data.from': data.from } });
     if (found) {
-      return found.update({ name, updatedBy: did }, { where: { datasetId, 'data.id': id } });
+      return found.update(
+        { name, updatedBy: did },
+        { where: { datasetId, 'data.id': data.id, 'data.from': data.from } }
+      );
     }
 
     return DatasetDocument.create({
-      type: 'discussion',
-      data: { type: 'discussion', id },
+      type: 'discussKit',
+      data: { type: 'discussKit', data },
       name,
       datasetId,
       createdBy: did,
       updatedBy: did,
+      embeddingStatus: 'idle',
     });
   };
 
-  let docs: DatasetDocument[] = [];
-  const fullSite = arr.find((x) => x.data?.fullSite);
-  if (fullSite) {
-    const ids = await getDiscussionIds(fullSite.data.types || []);
-
-    const document = await DatasetDocument.create({
-      type: 'fullSite',
-      data: {
-        type: 'fullSite',
-        ids,
-        types: fullSite.data.types || [],
-      },
-      name: fullSite.name,
-      datasetId,
-      createdBy: did,
-      updatedBy: did,
-    });
-    queue.checkAndPush({ type: 'document', documentId: document.id });
-
-    return res.json(document);
-  }
-
-  docs = await Promise.all(
+  const docs = await Promise.all(
     arr.map(async (item) => {
-      const document = await createOrUpdate(item.name, item.data.id);
+      const document = await createOrUpdate(item.name, item.data);
       queue.checkAndPush({ type: 'document', documentId: document.id });
       return document;
     })

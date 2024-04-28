@@ -3,6 +3,9 @@ import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
 
+import Datastore from '../store/models/datastore';
+import Histories from '../store/models/history';
+
 export function sessionRoutes(router: Router) {
   const sessionsQuerySchema = Joi.object<{
     projectId: string;
@@ -30,18 +33,33 @@ export function sessionRoutes(router: Router) {
     });
   });
 
+  router.get('/sessions/:sessionId', user(), auth(), async (req, res) => {
+    const { did: userId } = req.user!;
+    const { sessionId } = req.params;
+    if (!sessionId) throw new Error('Missing required param sessionId');
+
+    const session = await Session.findOne({
+      where: { id: sessionId, userId },
+      rejectOnEmpty: new Error(`Session ${sessionId} not found`),
+    });
+
+    res.json({ session });
+  });
+
   const createSessionInput = Joi.object<{
     projectId: string;
     projectRef: string;
     assistantId: string;
     name?: string;
     parameters?: object;
+    entry?: { id: string; title?: string };
   }>({
     projectId: Joi.string().required(),
     projectRef: Joi.string().required(),
     assistantId: Joi.string().required(),
     name: Joi.string().empty(['', null]),
     parameters: Joi.object().pattern(Joi.string(), Joi.any()),
+    entry: Joi.object({ id: Joi.string().required(), title: Joi.string().empty([null, '']) }),
   });
 
   router.post('/sessions', user(), auth(), async (req, res) => {
@@ -55,6 +73,7 @@ export function sessionRoutes(router: Router) {
       assistantId: input.assistantId,
       name: input.name,
       parameters: input.parameters,
+      entry: input.entry,
     });
 
     const sessions = await Session.getUserSessions({
@@ -127,6 +146,14 @@ export function sessionRoutes(router: Router) {
       deleted: session,
       sessions,
     });
+  });
+
+  router.post('/sessions/:sessionId/reset', user(), auth(), async (req, res) => {
+    const { sessionId } = req.params;
+
+    await Promise.all([Datastore.destroy({ where: { sessionId } }), Histories.destroy({ where: { sessionId } })]);
+
+    res.json({});
   });
 
   router.delete('/sessions', user(), auth(), async (req, res) => {

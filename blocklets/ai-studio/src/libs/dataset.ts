@@ -1,5 +1,6 @@
 import type { DatasetObject } from '@blocklet/dataset-sdk/types';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
+import { joinURL } from 'ufo';
 
 import { CreateDiscussionItem, CreateDiscussionItemInput } from '../../api/src/routes/dataset/documents';
 import Dataset from '../../api/src/store/models/dataset/dataset';
@@ -122,14 +123,16 @@ export async function watchDatasetEmbeddings({
   signal?: AbortSignal | null;
 }) {
   const prefix = blocklet?.prefix || '';
+  const url = joinURL(window.location.origin, prefix, `/api/datasets/${datasetId}/embeddings`);
 
   return new ReadableStream<
     | { type: 'change'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
     | { type: 'complete'; documentId: string; embeddingStatus: string; embeddingEndAt?: Date; embeddingStartAt?: Date }
     | { type: 'event'; documentId: string }
+    | { type: 'error'; documentId: string; embeddingStatus: string; message: string }
   >({
     async start(controller) {
-      await fetchEventSource(`${prefix}/api/datasets/${datasetId}/embeddings`, {
+      await fetchEventSource(url, {
         signal,
         method: 'GET',
         onmessage(e) {

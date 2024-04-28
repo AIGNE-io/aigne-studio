@@ -6,6 +6,7 @@ import { runAssistant } from '@blocklet/ai-runtime/api';
 import {
   AssistantResponseType,
   AssistantYjs,
+  ExecuteBlock,
   ExecutionPhase,
   Role,
   RunAssistantInput,
@@ -64,34 +65,40 @@ const projectState = (projectId: string, gitRef: string) => {
 export const useProjectState = (projectId: string, gitRef: string) => {
   const [state, setState] = useRecoilState(projectState(projectId, gitRef));
 
-  const refetch = useCallback(async () => {
-    let loading: boolean | undefined = false;
-    setState((v) => {
-      loading = v.loading;
-      return { ...v, loading: true };
-    });
-    if (loading) return;
-    try {
-      const [project, { branches }, { releases: projectPublishSettings }] = await Promise.all([
-        projectApi.getProject(projectId),
-        branchApi.getBranches({ projectId }),
-        releaseApi.getReleases({ projectId }),
-      ]);
-      const simpleMode = project.gitType === 'simple';
-      const { commits } = await getLogs({
-        projectId,
-        ref: simpleMode ? getDefaultBranch() : gitRef,
+  const refetch = useCallback(
+    async ({ force }: { force?: boolean } = {}) => {
+      let loading: boolean | undefined = false;
+      setState((v) => {
+        loading = v.loading;
+        return { ...v, loading: true };
       });
-      // NOTE: 简单模式下最新的记录始终指向 getDefaultBranch()
-      if (simpleMode && commits.length) commits[0]!.oid = getDefaultBranch();
-      setState((v) => ({ ...v, project, branches, releases: projectPublishSettings, commits, error: undefined }));
-    } catch (error) {
-      setState((v) => ({ ...v, error }));
-      throw error;
-    } finally {
-      setState((v) => ({ ...v, loading: false }));
-    }
-  }, [projectId, gitRef, setState]);
+      if (loading && !force) return;
+      try {
+        const [project] = await Promise.all([projectApi.getProject(projectId)]);
+
+        // wait for project can be fetched
+        const [{ branches }, { releases: projectPublishSettings }] = await Promise.all([
+          branchApi.getBranches({ projectId }),
+          releaseApi.getReleases({ projectId }),
+        ]);
+
+        const simpleMode = project.gitType === 'simple';
+        const { commits } = await getLogs({
+          projectId,
+          ref: simpleMode ? getDefaultBranch() : gitRef,
+        });
+        // NOTE: 简单模式下最新的记录始终指向 getDefaultBranch()
+        if (simpleMode && commits.length) commits[0]!.oid = getDefaultBranch();
+        setState((v) => ({ ...v, project, branches, releases: projectPublishSettings, commits, error: undefined }));
+      } catch (error) {
+        setState((v) => ({ ...v, error }));
+        throw error;
+      } finally {
+        setState((v) => ({ ...v, loading: false }));
+      }
+    },
+    [projectId, gitRef, setState]
+  );
 
   const createBranch = useCallback(
     async (...args: Parameters<typeof branchApi.createBranch>) => {
@@ -203,10 +210,17 @@ export interface SessionItem {
     id: string;
     createdAt: string;
     role: Role;
+    messages?: {
+      responseAs?: ExecuteBlock['respondAs'];
+      taskId: string;
+      content?: string;
+      images?: { url: string }[];
+    }[];
     content: string;
     gitRef?: string;
     parameters?: { [key: string]: any };
     images?: ImageType;
+    objects?: any[];
     done?: boolean;
     loading?: boolean;
     cancelled?: boolean;
@@ -458,6 +472,8 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
         const decoder = new TextDecoder();
 
         let response = '';
+        const messages: SessionItem['messages'][number]['messages'] = [];
+        const messageMap: { [key: string]: (typeof messages)[number] } = {};
         let mainTaskId: string | undefined;
 
         for (;;) {
@@ -487,6 +503,14 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               if (value.taskId === mainTaskId) {
                 response += value.delta.content || '';
 
+                if (value.delta.object) {
+                  setMessage(sessionIndex, responseId, (message) => {
+                    if (message.cancelled) return;
+                    message.objects ??= [];
+                    message.objects.push(value.delta.object);
+                  });
+                }
+
                 if (images?.length) {
                   setMessage(sessionIndex, responseId, (message) => {
                     if (message.cancelled) return;
@@ -495,6 +519,23 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                   });
                 }
               } else {
+                if (value.respondAs && value.respondAs !== 'none') {
+                  let msg = messageMap[value.taskId];
+                  if (!msg) {
+                    msg = { taskId: value.taskId, responseAs: value.respondAs };
+                    messageMap[value.taskId] = msg;
+                    messages.push(msg);
+                  }
+
+                  msg.content = (msg.content || '') + (value.delta.content || '');
+                  if (value.delta.images?.length) msg.images = (msg.images || []).concat(value.delta.images);
+
+                  setMessage(sessionIndex, responseId, (message) => {
+                    if (message.cancelled) return;
+                    message.messages = JSON.parse(JSON.stringify(messages));
+                  });
+                }
+
                 setMessage(sessionIndex, messageId, (message) => {
                   if (message.cancelled) return;
 
@@ -902,11 +943,11 @@ export function useAssistantCompare({
 }
 
 export const saveButtonState = create<{
-  save?: () => any;
-  setSaveHandler: (save?: () => any) => void;
+  save?: (options?: { skipConfirm?: boolean }) => Promise<{ saved?: boolean } | undefined>;
+  setSaveHandler: (save?: (options?: { skipConfirm?: boolean }) => Promise<{ saved?: boolean } | undefined>) => void;
 }>()(
   immer((set) => ({
-    setSaveHandler(save?: () => any) {
+    setSaveHandler(save?: (options?: { skipConfirm?: boolean }) => Promise<{ saved?: boolean } | undefined>) {
       set((state) => {
         state.save = save;
       });

@@ -1,24 +1,11 @@
-import { getDefaultBranch } from '@app/store/current-git-store';
-import { Box } from '@mui/material';
-import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import styled from '@emotion/styled';
+import { joinURL } from 'ufo';
 
-import { useProjectState } from './state';
+const TemplateImage = styled('img')({
+  width: '100%',
+  height: '100%',
+});
 
 export default function ProjectLogo() {
-  const { projectId } = useParams();
-  if (!projectId) throw new Error('Missing required params `projectId');
-
-  const {
-    state: { project },
-    refetch,
-  } = useProjectState(projectId, getDefaultBranch());
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
-  if (!project) return null;
-
-  return <Box component="img" src={project.icon || blocklet?.appLogo} sx={{ borderRadius: 1 }} />;
+  return <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/logo.png')} alt="" />;
 }

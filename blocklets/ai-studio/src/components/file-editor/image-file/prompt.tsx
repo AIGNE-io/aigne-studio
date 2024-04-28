@@ -1,7 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
-import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import { Box, Stack, Typography, alpha } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import { useReadOnly } from '../../../contexts/session';
@@ -28,31 +27,48 @@ export default function ImageFilePrompt({
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   return (
-    <Box
-      sx={{
-        border: 2,
-        borderColor: 'primary.main',
-        borderRadius: 2,
-        bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-        overflow: 'hidden',
-        backgroundColor: getDiffBackground('prompt'),
-      }}>
-      <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
-        <TipsAndUpdatesRounded fontSize="small" color="primary" />
+    <Stack gap={1}>
+      <Box
+        border="1px solid #3B82F6"
+        borderRadius={1}
+        minHeight={64}
+        sx={{
+          '.ContentEditable__root': {
+            p: 1,
+            px: 1.5,
+            minHeight: 64,
+            bgcolor: 'background.paper',
+            borderRadius: 1,
 
-        <Typography variant="subtitle1">{t('formatPrompt')}</Typography>
-      </Stack>
-      <PromptEditorField
-        value={value.prompt}
-        projectId={projectId}
-        gitRef={gitRef}
-        placeholder={t('promptPlaceholder')}
-        path={[value.id, 'prompt']}
-        onChange={(prompt) => (value.prompt = prompt)}
-        readOnly={readOnly}
-        ContentProps={{ sx: { borderRadius: 2, backgroundColor: getDiffBackground('prompt') } }}
-        assistant={value}
-      />
-    </Box>
+            ':hover': {
+              bgcolor: 'background.paper',
+            },
+
+            ':focus': {
+              bgcolor: 'background.paper',
+            },
+          },
+
+          '.Placeholder__root': {
+            top: '8px',
+            left: '12px',
+            bottom: 'inherit',
+            fontSize: '14px',
+            lineHeight: '24px',
+          },
+        }}>
+        <PromptEditorField
+          value={value.prompt}
+          projectId={projectId}
+          gitRef={gitRef}
+          placeholder={t('promptPlaceholder')}
+          path={[value.id, 'prompt']}
+          onChange={(prompt) => (value.prompt = prompt)}
+          readOnly={readOnly}
+          ContentProps={{ sx: { borderRadius: 2, backgroundColor: getDiffBackground('prompt') } }}
+          assistant={value}
+        />
+      </Box>
+    </Stack>
   );
 }

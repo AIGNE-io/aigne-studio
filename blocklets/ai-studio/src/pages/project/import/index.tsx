@@ -12,7 +12,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { joinURL } from 'ufo';
 
-import Icon from '../icons/warning-circle';
+import WarningCircle from '../icons/warning-circle';
 import useRequest from './state';
 import getDepTemplates, { TreeNode } from './utils';
 
@@ -132,7 +132,7 @@ export default function ImportFrom({
         </Box>
       ) : (
         <Box flex={1} height={0} overflow="auto" mb={7}>
-          <Box component="h4">{t('import.templates')}</Box>
+          <Box component="h4">{t('agents')}</Box>
 
           {!tree.length && (
             <Box fontSize={12} color={(theme) => theme.palette.text.disabled}>
@@ -176,7 +176,7 @@ export default function ImportFrom({
                             (deps.current[item.text] || []).map((item) => <Box pl={1}>{getName(item)}</Box>),
                           ]}>
                           <Box display="flex" color="primary.main" ml={1}>
-                            <Icon sx={{ fontSize: 18 }} />
+                            <WarningCircle sx={{ fontSize: 18 }} />
                           </Box>
                         </Tooltip>
                       )}

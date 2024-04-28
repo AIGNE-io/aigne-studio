@@ -1,21 +1,107 @@
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
-import { Op } from 'sequelize';
 
 import { ensureComponentCallOrAuth } from '../libs/security';
 import Datastore from '../store/models/datastore';
 
 const router = Router();
 
+const getDatastoreSchema = Joi.object<{
+  userId?: string;
+  sessionId?: string;
+  assistantId?: string;
+  projectId?: string;
+  scope?: string;
+  key: string;
+}>({
+  userId: Joi.string().empty([null, '']),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  projectId: Joi.string().empty([null, '']),
+  scope: Joi.string().empty([null, '']),
+  key: Joi.string().required(),
+});
+
+const postDatastoreSchema = Joi.object<{
+  key: string;
+  scope: 'user' | 'session' | 'global';
+  data: any;
+}>({
+  key: Joi.string().required(),
+  data: Joi.any(),
+  scope: Joi.string().empty([null, '']),
+});
+
+const postParamsSchema = Joi.object<{
+  userId?: string;
+  sessionId?: string;
+  assistantId?: string;
+  projectId?: string;
+  reset: boolean;
+}>({
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  userId: Joi.string().empty([null, '']).required(),
+  projectId: Joi.string().empty([null, '']).required(),
+  reset: Joi.boolean().default(false),
+});
+
+const putParamsSchema = Joi.object<{
+  userId?: string;
+  sessionId?: string;
+  assistantId?: string;
+  projectId?: string;
+  key?: string;
+  id?: string;
+  scope?: string;
+}>({
+  id: Joi.string().allow('').empty([null, '']).optional(),
+  key: Joi.string().allow('').empty([null, '']).optional(),
+  userId: Joi.string().empty([null, '']),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  projectId: Joi.string().empty([null, '']),
+  scope: Joi.string().empty([null, '']),
+});
+
+const getVariableSchema = Joi.object<{
+  offset?: number;
+  limit?: number;
+  key: string;
+  scope: string;
+  projectId?: string;
+  userId?: string;
+  sessionId?: string;
+  assistantId?: string;
+}>({
+  offset: Joi.number().integer().min(0).empty([null, '']).default(0).optional(),
+  limit: Joi.number().integer().min(1).empty([null, '']).default(5).optional(),
+  key: Joi.string().allow('').empty([null, '']).default(''),
+  scope: Joi.string().valid('global', 'session', 'user').default('global').required(),
+  userId: Joi.string().empty([null, '']),
+  sessionId: Joi.string().empty([null, '']),
+  assistantId: Joi.string().empty([null, '']),
+  projectId: Joi.string().empty([null, '']),
+});
+
 /**
  * @openapi
  * /api/datastore:
  *   get:
- *     summary: Lists all datastores
+ *     summary: Get datastores
  *     description: Retrieve a list of datastores with optional query parameters to filter the results.
- *     x-summary-zh: 列出数据存储
+ *     x-summary-zh: 获取数据存储
  *     x-description-zh: 使用可选的查询参数检索数据存储列表以过滤结果。
+ *     parameters:
+ *       - in: query
+ *         name: key
+ *         description: key
+ *         x-description-zh: 存储的名称
+ *       - in: query
+ *         name: scope
+ *         description: scope
+ *         x-description-zh: 数据作用域
  *     responses:
  *       200:
  *         description: A JSON array of datastores
@@ -24,43 +110,27 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const {
     userId = '',
     sessionId = '',
-    type = '',
-    assistantId,
-    ...query
-  } = await Joi.object<{
-    userId?: string;
-    sessionId?: string;
-    assistantId?: string;
-    type: string;
-    [key: string]: any;
-  }>({
-    userId: Joi.string()
-      .allow('')
-      .empty([null, ''])
-      .default(req.user?.did || ''),
-    assistantId: Joi.string().allow('').empty([null, '']),
-    sessionId: Joi.string().allow('').empty([null, '']),
-    type: Joi.string().allow('').empty([null, '']),
-  })
-    .unknown()
-    .validateAsync(req.query);
+    assistantId = '',
+    projectId = '',
+    key = '',
+    scope = '',
+  } = await getDatastoreSchema.validateAsync(req.query, { stripUnknown: true });
 
   const currentUserId = req.user?.did || userId || '';
+  if (!currentUserId) {
+    throw new Error('Can not get user info');
+  }
 
-  const params: any = {
+  const params: { [key: string]: string } = {
     ...(currentUserId && { userId: currentUserId }),
     ...(sessionId && { sessionId }),
-    ...(type && { type }),
+    ...(projectId && { projectId }),
+    ...(assistantId && { assistantId }),
+    ...(scope && { scope }),
+    ...(key && { key }),
   };
 
-  const conditions = Object.entries(query).map(([key, value]) => ({ [key]: { [Op.like]: `%${value}%` } }));
-  if (conditions?.length) params[Op.and] = conditions;
-
-  const datastores = await Datastore.findAll({
-    order: [['createdAt', 'ASC']],
-    where: params,
-  });
-
+  const datastores = await Datastore.findAll({ order: [['createdAt', 'ASC']], where: params });
   res.json(datastores);
 });
 
@@ -68,16 +138,17 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  * @openapi
  * /api/datastore:
  *   post:
- *     summary: Create / Set a new datastore
- *     description: Create / Set a new datastore
- *     x-summary-zh: 新增或设置数据存储
- *     x-description-zh: 新增或设置数据存储
+ *     summary: Set a new datastore
+ *     description: Set a new datastore
+ *     x-summary-zh: 设置数据存储
+ *     x-description-zh: 设置数据存储
  *     parameters:
  *       - in: query
- *         name: truncateOld
+ *         name: reset
  *         schema:
  *           type: boolean
  *         required: false
+ *         x-parameter-type: boolean
  *         description: Whether to overwrite old data
  *         x-description-zh: 是否覆盖旧数据
  *     requestBody:
@@ -87,59 +158,47 @@ router.get('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - type
+ *               - key
  *               - data
  *             properties:
- *               type:
+ *               key:
  *                 type: string
- *                 description: 全局对象别名
+ *                 description: key
+ *                 x-description-zh: 别名
+ *               scope:
+ *                 type: string
+ *                 description: Scope
+ *                 x-description-zh: 数据作用域
  *               data:
  *                 type: object
- *                 description: 存储对象数据
+ *                 description: value
+ *                 x-description-zh: 存储对象数据
  *     responses:
  *       200:
  *         description: The created datastore object
  */
 router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
-  const { type, data } = await Joi.object<{ type: string; data: any }>({
-    type: Joi.string().required(),
-    data: Joi.any(),
-  }).validateAsync(req.body, {
+  const { key, data, scope } = await postDatastoreSchema.validateAsync(req.body, { stripUnknown: true });
+  const { userId, sessionId, assistantId, projectId, reset } = await postParamsSchema.validateAsync(req.query, {
     stripUnknown: true,
   });
 
-  let content = {};
-  if (typeof data === 'object') {
-    content = data;
-  } else if (typeof data === 'string') {
-    try {
-      content = JSON.parse(data);
-    } catch (error) {
-      content = {};
-    }
-  } else {
-    content = {};
+  const currentUserId = req.user?.did || userId || '';
+  if (!currentUserId) {
+    throw new Error('Can not get user info');
   }
 
-  const { userId, sessionId, truncateOld } = await Joi.object<{
-    userId?: string;
-    sessionId?: string;
-    truncateOld: boolean;
-  }>({
-    userId: Joi.string()
-      .allow('')
-      .empty([null, ''])
-      .default(req.user?.did || ''),
-    sessionId: Joi.string().allow('').empty([null, '']),
-    truncateOld: Joi.boolean().default(false),
-  })
-    .unknown()
-    .validateAsync(req.query, { stripUnknown: true });
-  const currentUserId = req.user?.did || userId || '';
+  if (reset) await Datastore.destroy({ where: { ...(scope && { scope }), ...(key && { key }) } });
 
-  if (truncateOld) await Datastore.destroy({ where: { type } });
-
-  const datastore = await Datastore.create({ type, data: content, userId: currentUserId, sessionId });
+  const datastore = await Datastore.create({
+    key,
+    scope,
+    data,
+    userId: currentUserId,
+    sessionId,
+    assistantId,
+    projectId,
+  });
   res.json(datastore);
 });
 
@@ -147,8 +206,8 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  * @openapi
  * /api/datastore:
  *   put:
- *     summary: update data
- *     description: update data
+ *     summary: Update data
+ *     description: Update data
  *     x-summary-zh: 更新数据存储
  *     x-description-zh: 更新数据存储的信息。
  *     parameters:
@@ -157,13 +216,16 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         schema:
  *           type: string
  *         required: false
- *         description: 数据存储项的唯一标识符。
+ *         description: ID
+ *         x-description-zh: ID
  *       - in: query
- *         name: type
- *         schema:
- *           type: string
- *         required: false
- *         description: 数据存储项的类型。
+ *         name: key
+ *         description: key
+ *         x-description-zh: 存储的名称
+ *       - in: query
+ *         name: scope
+ *         description: scope
+ *         x-description-zh: 数据作用域
  *     requestBody:
  *       required: true
  *       content:
@@ -175,7 +237,8 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *             properties:
  *               data:
  *                 type: object
- *                 description: 存储对象数据
+ *                 description: value
+ *                 x-description-zh: 存储对象数据
  *     responses:
  *       200:
  *         description: The updated datastore object
@@ -204,72 +267,48 @@ router.post('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
 router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const {
     userId = '',
+    sessionId = '',
+    assistantId = '',
+    projectId = '',
+    key = '',
     id = '',
-    type = '',
-    assistantId,
-    sessionId,
-    ...query
-  } = await Joi.object<{
-    userId?: string;
-    sessionId?: string;
-    assistantId?: string;
-    id?: string;
-    type?: string;
-    [key: string]: any;
-  }>({
-    id: Joi.string().allow('').empty([null, '']).optional(),
-    type: Joi.string().allow('').empty([null, '']).optional(),
-    userId: Joi.string()
-      .allow('')
-      .empty([null, ''])
-      .default(req.user?.did || ''),
-    assistantId: Joi.string().allow('').empty([null, '']),
-    sessionId: Joi.string().allow('').empty([null, '']),
-  })
-    .unknown()
-    .validateAsync(req.query);
+    scope = '',
+  } = await putParamsSchema.validateAsync(req.query, { stripUnknown: true });
 
   const currentUserId = req.user?.did || userId || '';
-  const params: any = {
+
+  if (!currentUserId) {
+    throw new Error('Can not get user info');
+  }
+
+  const params: { [key: string]: string } = {
     ...(currentUserId && { userId: currentUserId }),
     ...(sessionId && { sessionId }),
-    ...(type && { type }),
+    ...(assistantId && { assistantId }),
+    ...(projectId && { projectId }),
+    ...(key && { key }),
+    ...(scope && { scope }),
     ...(id && { id }),
   };
 
-  const conditions = Object.entries(query).map(([key, value]) => ({ [key]: { [Op.like]: `%${value}%` } }));
-  if (conditions?.length) params[Op.and] = conditions;
-
   const { data } = await Joi.object<{ data: any }>({ data: Joi.any() }).validateAsync(req.body, { stripUnknown: true });
-  let content = {};
-  if (typeof data === 'object') {
-    content = data;
-  } else if (typeof data === 'string') {
-    try {
-      content = JSON.parse(data);
-    } catch (error) {
-      content = {};
-    }
-  } else {
-    content = {};
-  }
 
-  const datastore = await Datastore.findOne({ where: params });
-  if (!datastore) {
+  const dataItem = await Datastore.findOne({ where: params });
+  if (!dataItem) {
     res.status(404).json({ error: 'No such datastore' });
     return;
   }
 
-  await Datastore.update({ data: { ...datastore.dataValues.data, ...content } }, { where: params });
-  res.json(await Datastore.findOne({ where: params }));
+  const result = await dataItem.update({ data });
+  res.json(result);
 });
 
 /**
  * @openapi
  * /api/datastore:
  *   delete:
- *     summary: delete datastore data
- *     description: delete datastore data
+ *     summary: Delete datastore data
+ *     description: Delete datastore data
  *     x-summary-zh: 删除存储数据
  *     x-description-zh: 删除数据存储。
  *     parameters:
@@ -278,13 +317,19 @@ router.put('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
  *         schema:
  *           type: string
  *         required: false
- *         description: 数据存储项的唯一标识符。
+ *         description: ID
+ *         x-description-zh: ID
  *       - in: query
- *         name: type
+ *         name: key
  *         schema:
  *           type: string
  *         required: false
- *         description: 数据存储项的类型。
+ *         description: key
+ *         x-description-zh: 数据存储项别名
+ *       - in: query
+ *         name: scope
+ *         description: scope
+ *         x-description-zh: 数据作用域
  *     responses:
  *       200:
  *         description: The deleted datastore object
@@ -295,53 +340,84 @@ router.delete('/', user(), ensureComponentCallOrAuth(), async (req, res) => {
   const {
     userId = '',
     sessionId = '',
+    assistantId = '',
+    projectId = '',
+    scope = '',
+    key = '',
     id = '',
-    type = '',
-    assistantId,
-    ...query
-  } = await Joi.object<{
-    userId?: string;
-    sessionId?: string;
-    assistantId?: string;
-    id?: string;
-    type?: string;
-    [key: string]: any;
-  }>({
-    id: Joi.string().allow('').empty([null, '']).optional(),
-    type: Joi.string().allow('').empty([null, '']).optional(),
-    userId: Joi.string()
-      .allow('')
-      .empty([null, ''])
-      .default(req.user?.did || ''),
-    assistantId: Joi.string().allow('').empty([null, '']),
-    sessionId: Joi.string().allow('').empty([null, '']),
-  })
-    .unknown()
-    .validateAsync(req.query);
+  } = await putParamsSchema.validateAsync(req.query, { stripUnknown: true });
 
   const currentUserId = req.user?.did || userId || '';
-  const params: any = {
+  if (!currentUserId) {
+    throw new Error('Can not get user info');
+  }
+
+  const params: { [key: string]: string } = {
     ...(currentUserId && { userId: currentUserId }),
     ...(sessionId && { sessionId }),
-    ...(type && { type }),
+    ...(projectId && { projectId }),
+    ...(assistantId && { assistantId }),
+    ...(key && { key }),
+    ...(scope && { scope }),
     ...(id && { id }),
   };
 
-  const conditions = Object.entries(query).map(([key, value]) => ({ [key]: { [Op.like]: `%${value}%` } }));
-  if (conditions?.length) params[Op.and] = conditions;
-
-  const datastores = await Datastore.findAll({ where: params });
-  const ids = datastores.map((x) => x.id);
-  if (!ids.length) return;
-
   try {
-    await Datastore.destroy({ where: { id: { [Op.in]: ids } } });
+    await Datastore.destroy({ where: params });
 
     res.json({ data: 'success' });
   } catch (error) {
     console.error(error?.message);
     res.status(500).json({ error: error?.message });
   }
+});
+
+router.get('/variable-by-query', user(), ensureComponentCallOrAuth(), async (req, res) => {
+  const query = await getVariableSchema.validateAsync(req.query, { stripUnknown: true });
+  const { key, projectId, scope, sessionId, userId } = query;
+
+  const currentUserId = req.user?.did || userId || '';
+  if (!currentUserId) {
+    throw new Error('Can not get user info');
+  }
+
+  const params: { [key: string]: any } = {
+    ...(currentUserId && { userId: currentUserId }),
+    ...(projectId && { projectId }),
+    ...(key && { key }),
+  };
+
+  if (scope === 'session') {
+    const datastores = await Datastore.findAll({
+      order: [['createdAt', 'ASC']],
+      where: { ...params, scope, sessionId },
+    });
+    if (datastores.length) {
+      return res.json(datastores);
+    }
+  }
+
+  if (scope === 'session' || scope === 'user') {
+    const datastores = await Datastore.findAll({
+      order: [['createdAt', 'ASC']],
+      where: { ...params, scope: 'user' },
+    });
+    if (datastores.length) {
+      return res.json(datastores);
+    }
+  }
+
+  if (scope === 'session' || scope === 'user' || scope === 'global') {
+    const datastores = await Datastore.findAll({
+      order: [['createdAt', 'ASC']],
+      where: { ...params, scope: 'global' },
+    });
+    if (datastores.length) {
+      return res.json(datastores);
+    }
+  }
+
+  return res.json([]);
 });
 
 export default router;

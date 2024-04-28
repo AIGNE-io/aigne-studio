@@ -1,3 +1,183 @@
+## 0.1.351 (2024-4-28)
+
+- fix: reload projects when switch user(#890)
+- fix: check user permissions for some action(#871,#861)
+- fix: some i18n text(#862,#865)
+
+## 0.1.350 (2024-4-28)
+
+- fix: rename textStream to text & add default output text output for the default project template
+- fix: update ui copy
+- fix: polish output variables menus
+
+## 0.1.349 (2024-4-28)
+
+- fix: validate price number
+- fix: update labels for publish
+- fix: correct response of image generations
+- fix: display agent logo by did avatar component
+
+## 0.1.348 (2024-4-28)
+
+- feat: new ui design implementation
+
+## 0.1.347 (2024-4-26)
+
+- feat: better import ui for did spaces
+
+## 0.1.346 (2024-4-26)
+
+- feat: several new input parameter types have been added: agent/knowledge/memory
+- feat: support custom output data structure
+
+## 0.1.345 (2024-4-24)
+
+- fix: imported the issue of incorrect copy in the did spaces
+
+## 0.1.344 (2024-4-23)
+
+- feat: support for asynchronous synchronization to did space
+- feat: optimized the experience of importing projects from did spaces
+
+## 0.1.343 (2024-4-22)
+
+- chore: polish multi tenant logic
+
+## 0.1.342 (2024-4-22)
+
+- fix: CI deploy error
+
+## 0.1.341 (2024-4-22)
+
+- chore: replace vector store
+
+## 0.1.340 (2024-4-20)
+
+- feat: support for configuring Service Mode in Preferences
+- chore: migrate common.ts to@blocklet/ai-runtime
+
+## 0.1.339 (2024-4-17)
+
+- fix: copy tool(#801)
+- fix: visit link in dataset discussion(#795)
+- fix: rename tool i18n(#774)
+- fix: debug container overflow auto(#785)
+- fix: discussion container overflow auto(#776)
+- fix: set project name as project title(#786)
+- fix: output name i18n(#792)
+- fix: add default title for publish view #811
+- fix: add new one tool when update too #809
+
+## 0.1.338 (2024-4-17)
+
+- feat: add `$clientTime` parameter
+- fix: avoid button title wrap
+
+## 0.1.337 (2024-4-16)
+
+- fix: from did spaces import bug
+
+## 0.1.336 (2024-4-16)
+
+- fix: some ui defects
+
+## 0.1.335 (2024-4-16)
+
+- fix: discuss embedding default select
+- fix: can delete execute action button
+- fix: document i18n
+
+## 0.1.334 (2024-4-16)
+
+- chore: embedding discuss data by type board and id
+
+## 0.1.333 (2024-4-16)
+
+- fix: display tool messages and debug messages
+
+## 0.1.332 (2024-4-15)
+
+- fix: execute blocklet action
+
+## 0.1.331 (2024-4-15)
+
+- fix: update session name to user question
+- fix: auto scroll release link into view after published
+- fix: place example project section above of my projects
+- feat: support using variable `$user.fullName` in prompts
+
+## 0.1.330 (2024-4-15)
+
+- fix: did spaces popup exception
+
+## 0.1.329 (2024-4-12)
+
+- chore: replace icon
+- chore: add edit dataset
+
+## 0.1.328 (2024-4-12)
+
+- chore: ai studio new ui/ux
+
+## 0.1.327 (2024-4-11)
+
+- fix: add parameter `n` for dataset search api
+- fix: skip hidden executing blocks
+- fix: combine the searched history and the last n history records
+
+## 0.1.326 (2024-4-11)
+
+- feat: support setting max rounds limit
+- feat: support respond the tool result as a message to the client
+
+## 0.1.325 (2024-4-10)
+
+- fix: adjust configuration item location
+- fix: force reload release status after published
+
+## 0.1.324 (2024-4-9)
+
+- fix: document name/content is optional
+
+## 0.1.323 (2024-4-8)
+
+- feat: add entries configuration for release
+- fix: persist release metadata in assistant
+
+## 0.1.322 (2024-4-7)
+
+- fix: disable did spaces
+
+## 0.1.321 (2024-4-3)
+
+- feat: support lightweight serverless
+
+## 0.1.320 (2024-3-29)
+
+- feat: add reset session api
+
+## 0.1.319 (2024-3-29)
+
+- fix: remove the function to set a project as a template/example
+- fix: skip running check for example projects from the resource blocklets
+
+## 0.1.318 (2024-3-29)
+
+- feat: better embedding semantics
+
+## 0.1.317 (2024-3-29)
+
+- chore: add some metadata information to the vector database
+
+## 0.1.316 (2024-3-28)
+
+- chore: save project logo to git
+
+## 0.1.315 (2024-3-28)
+
+- fix: the request knowledge error when selecting prompt
+- feat: when embedding data, add title information
+
 ## 0.1.314 (2024-3-27)
 
 - fix: bundle with external hnswlib-node dependency

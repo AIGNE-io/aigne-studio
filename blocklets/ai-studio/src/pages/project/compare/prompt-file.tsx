@@ -42,7 +42,7 @@ export default function ComparePromptAssistant({
 
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
-          <PromptAssistantSetting projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly isOpen />
+          <PromptAssistantSetting projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly />
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
@@ -52,7 +52,6 @@ export default function ComparePromptAssistant({
             value={localeAssistant}
             compareValue={remoteAssistant}
             readOnly
-            isOpen
           />
         </Box>
       </Stack>

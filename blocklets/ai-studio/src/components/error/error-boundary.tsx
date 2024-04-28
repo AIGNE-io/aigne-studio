@@ -27,7 +27,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
 
     if (error) {
       return (
-        <Alert color="error" sx={{ m: 2 }}>
+        <Alert severity="error" color="error" sx={{ m: 2 }}>
           {error.message}
         </Alert>
       );

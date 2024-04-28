@@ -1,7 +1,10 @@
+import { EVENTS } from '@api/event';
+import useSubscription from '@app/hooks/use-subscription';
 import { getDefaultBranch, useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { DownloadRounded, SaveRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
+import { Icon } from '@iconify-icon/react';
+import { DownloadRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
@@ -19,7 +22,7 @@ import {
 } from '@mui/material';
 import { useKeyPress } from 'ahooks';
 import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -42,6 +45,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
   const { dialog, showMergeConflictDialog } = useMergeConflictDialog({ projectId });
   const setProjectCurrentBranch = useCurrentGitStore((i) => i.setProjectCurrentBranch);
   const dialogState = usePopupState({ variant: 'dialog' });
+  const [loading, setLoading] = useState(false);
 
   const {
     state: { branches, project },
@@ -58,13 +62,17 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     if (branches.includes(gitRef)) {
       form.setValue('branch', gitRef);
     }
+
+    if (!dialogState.isOpen) {
+      savePromise.current?.resolve({ saved: false });
+    }
   }, [dialogState.isOpen]);
 
   const branch = form.getValues('branch');
   const readOnly = useReadOnly({ ref: branch });
 
   const onSave = useCallback(
-    async (input: CommitForm) => {
+    async (input: CommitForm, { skipToast }: { skipToast?: boolean } = {}) => {
       try {
         let needMergeConflict = false;
 
@@ -88,17 +96,17 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         if (needMergeConflict) {
           Toast.warning(t('alert.savedButSyncConflicted'));
           await showMergeConflictDialog();
-        } else {
-          Toast.success(t('alert.saved'));
-        }
+        } else if (!skipToast) Toast.success(t('alert.saved'));
 
         refetch();
         run();
         setProjectCurrentBranch(projectId, branch);
         if (branch !== gitRef) navigate(joinURL('..', branch), { replace: true });
+        savePromise.current?.resolve?.({ saved: true });
       } catch (error) {
         form.reset(input);
         Toast.error(getErrorMessage(error));
+        savePromise.current?.reject?.(error);
         throw error;
       }
     },
@@ -117,7 +125,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     ]
   );
 
-  const submitting = form.formState.isSubmitting;
+  const submitting = form.formState.isSubmitting || loading;
 
   useKeyPress(
     (e) => (e.ctrlKey || e.metaKey) && e.key === 's',
@@ -127,10 +135,40 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
     }
   );
 
+  const savePromise = useRef<{ resolve: (result: { saved?: boolean }) => void; reject: (error: Error) => void }>();
+
   useEffect(() => {
-    saveButtonState.getState().setSaveHandler(() => dialogState.open());
+    saveButtonState.getState().setSaveHandler(async (options) => {
+      if (options?.skipConfirm) {
+        return onSave({ branch: gitRef, message: '' }, { skipToast: true }).then(() => ({ saved: true }));
+      }
+      return new Promise<{ saved?: boolean } | undefined>((resolve, reject) => {
+        savePromise.current = { resolve, reject };
+        dialogState.open();
+      });
+    });
     return () => saveButtonState.getState().setSaveHandler(undefined);
-  }, [dialogState.open]);
+  }, [dialogState.open, onSave, gitRef]);
+
+  const sub = useSubscription(projectId);
+  useEffect(() => {
+    if (sub) {
+      sub.on(EVENTS.PROJECT.SYNC_TO_DID_SPACE, (data: { response: { done: boolean; error: Error } }) => {
+        const done = data.response?.done;
+        setLoading(!done);
+
+        if (!done) {
+          return;
+        }
+
+        if (data.response.error) {
+          Toast.error(data.response.error.message);
+        } else {
+          Toast.success(t('synced'));
+        }
+      });
+    }
+  }, [sub]);
 
   return (
     <>
@@ -139,8 +177,20 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
       <Button
         {...bindTrigger(dialogState)}
         disabled={submitting || disabled}
-        sx={{ position: 'relative', minWidth: 32, minHeight: 32 }}>
-        <SaveRounded sx={{ opacity: submitting ? 0 : 1 }} />
+        sx={{
+          position: 'relative',
+          minWidth: 0,
+          minHeight: 0,
+          width: 32,
+          height: 32,
+          border: '1px solid #E5E7EB',
+          color: '#030712',
+        }}>
+        <Box
+          component={Icon}
+          icon="tabler:device-floppy"
+          sx={{ opacity: submitting ? 0 : 1, fontSize: 20, color: 'inherit' }}
+        />
         {submitting && (
           <Box
             sx={{
@@ -162,7 +212,7 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
         {...bindDialog(dialogState)}
         keepMounted={false}
         component="form"
-        onSubmit={form.handleSubmit(onSave)}
+        onSubmit={form.handleSubmit((values) => onSave(values))}
         maxWidth="sm"
         fullWidth>
         <DialogTitle>{t('save')}</DialogTitle>
@@ -212,14 +262,16 @@ export default function SaveButton({ projectId, gitRef }: { projectId: string; g
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={dialogState.close}>{t('cancel')}</Button>
+          <Button onClick={dialogState.close} variant="outlined">
+            {t('cancel')}
+          </Button>
           <Tooltip title={readOnly ? t('noPermissionSaveToBranch', { branch }) : ''} placement="top">
             <span>
               <LoadingButton
                 disabled={readOnly}
                 type="submit"
                 variant="contained"
-                startIcon={<SaveRounded />}
+                startIcon={<Box component={Icon} icon="tabler:device-floppy" sx={{ fontSize: 20, color: '#fff' }} />}
                 loadingPosition="start"
                 loading={form.formState.isSubmitting}>
                 {t('save')}
@@ -256,7 +308,7 @@ export function useMergeConflictDialog({ projectId }: { projectId: string }) {
 
         content: (
           <Stack gap={0.25} sx={{ b: { color: 'warning.main', mx: 0.25 } }}>
-            <Typography variant="subtitle1">{t('mergeConflictTip')}</Typography>
+            <Typography variant="subtitle2">{t('mergeConflictTip')}</Typography>
             <Box>
               <Typography component="span" fontWeight="bold">
                 {t('useRemote')}:{' '}

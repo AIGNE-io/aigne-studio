@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/blocklet/ai-assistant.git
 specVersion: 1.2.8
-version: 0.1.314
+version: 0.1.351
 logo: logo.png
 files:
   - dist
@@ -56,6 +56,7 @@ capabilities:
   clusterMode: false
   component: true
   navigation: true
+  didSpace: requiredOnConnect
 screenshots:
   - studio.gif
 components:
@@ -102,9 +103,11 @@ navigation:
       - dashboard
       - sessionManager
     role:
-      - admin
       - owner
+      - admin
       - promptsEditor
+      - member
+      - guest
 resource:
   exportApi: /api/resources/export
   types:

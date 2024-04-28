@@ -13,8 +13,6 @@ router.use(ensurePromptsEditor, user()).ws('/ws/:projectId/:ref', async (conn, r
   const { projectId, ref } = req.params;
   if (!projectId || !ref) throw new Error('Missing required params projectId or ref');
 
-  const { role } = req.user!;
-
   const project = await Project.findOne({ where: { _id: projectId } });
 
   if (!project) {
@@ -22,7 +20,12 @@ router.use(ensurePromptsEditor, user()).ws('/ws/:projectId/:ref', async (conn, r
     return;
   }
 
-  const readOnly = isRefReadOnly({ ref, role, defaultBranch: project?.gitDefaultBranch ?? defaultBranch });
+  const readOnly = isRefReadOnly({
+    ref,
+    defaultBranch: project?.gitDefaultBranch ?? defaultBranch,
+    project,
+    user: req.user,
+  });
 
   const repository = await getRepository({ projectId });
   const working = await repository.working({ ref });

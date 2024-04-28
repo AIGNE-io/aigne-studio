@@ -20,7 +20,7 @@ export default function SelectOptionsConfig({
   const { t } = useLocaleContext();
 
   return (
-    <Box>
+    <Box width={1}>
       {select.options && (
         <DragSortListYjs
           disabled={readOnly}
@@ -39,14 +39,14 @@ export default function SelectOptionsConfig({
                 <TextField
                   hiddenLabel
                   InputProps={{ readOnly, inputProps: { id: `option-label-${option.id}` } }}
-                  placeholder={t('form.parameter.label')}
+                  placeholder={t('label')}
                   value={option.label}
                   onChange={(e) => (option.label = e.target.value)}
                 />
                 <TextField
                   hiddenLabel
                   InputProps={{ readOnly }}
-                  placeholder={t('form.parameter.value')}
+                  placeholder={t('value')}
                   value={option.value}
                   onChange={(e) => (option.value = e.target.value)}
                 />
@@ -94,7 +94,7 @@ export default function SelectOptionsConfig({
             });
             setTimeout(() => document.getElementById(`option-label-${id}`)?.focus());
           }}>
-          {t('form.parameter.addOption')}
+          {t('addObject', { object: t('option') })}
         </Button>
       )}
     </Box>

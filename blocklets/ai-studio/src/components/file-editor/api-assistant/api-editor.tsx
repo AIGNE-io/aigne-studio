@@ -2,8 +2,8 @@ import IndicatorTextField from '@app/components/awareness/indicator-text-field';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ApiAssistantYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { TipsAndUpdatesRounded } from '@mui/icons-material';
-import { Box, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography, alpha } from '@mui/material';
+import { Icon } from '@iconify-icon/react';
+import { Box, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
 import { useAssistantCompare } from 'src/pages/project/state';
 
@@ -31,112 +31,115 @@ export default function ApiEditor({
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly: disabled, isRemoteCompare });
 
   return (
-    <Box
+    <Stack
+      gap={1}
       sx={{
-        border: 2,
-        borderColor: 'primary.main',
-        borderRadius: 2,
-        bgcolor: (theme) => alpha(theme.palette.primary.main, theme.palette.action.focusOpacity),
-        overflow: 'hidden',
+        borderRadius: 1,
+        bgcolor: '#EFF6FF',
+        px: 2,
+        py: 1.5,
       }}>
-      <Stack direction="row" alignItems="center" sx={{ px: 2, my: 1, gap: 1 }}>
-        <TipsAndUpdatesRounded fontSize="small" color="primary" />
-
-        <Typography variant="subtitle1">{t('api')}</Typography>
+      <Stack direction="row" alignItems="center" gap={1}>
+        <Box component={Icon} icon="tabler:bule" sx={{ color: '#3B82F6', fontSize: 15 }} />
+        <Typography variant="subtitle2" sx={{ m: 0 }}>
+          {t('api')}
+        </Typography>
       </Stack>
 
-      <Stack bgcolor="background.paper" borderRadius={2} pt={1}>
-        <Table size="small" sx={{ td: { border: 'none' } }}>
-          <TableHead>
-            <TableRow>
-              <TableCell align="center" width="200">
-                {t('parameter')}
-              </TableCell>
-              <TableCell align="center">{t('value')}</TableCell>
-              <TableCell align="center" width="100">
-                {t('actions')}
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {value.requestParameters &&
-              sortBy(Object.values(value.requestParameters), (i) => i.index).map(({ data: parameter }) => {
-                return (
-                  <TableRow
-                    key={parameter.id}
-                    sx={{ backgroundColor: getDiffBackground('requestParameters', parameter.id) }}>
-                    <TableCell>
-                      <IndicatorTextField
-                        projectId={projectId}
-                        gitRef={gitRef}
-                        path={[value.id, 'requestParameters', parameter.id, 'key']}
-                        TextFiledProps={{
-                          hiddenLabel: true,
-                          value: parameter.key ?? '',
-                          InputProps: {
-                            readOnly: disabled,
-                          },
-                          onChange: (e) => (parameter.key = e.target.value),
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <PromptEditorField
-                        sx={{ '.ContentEditable__root': { fontSize: '12px' } }}
-                        readOnly={disabled}
-                        assistant={value}
-                        projectId={projectId}
-                        gitRef={gitRef}
-                        path={[value.id, 'requestParameters', parameter.id, 'value']}
-                        value={parameter.value}
-                        onChange={(value) => (parameter.value = value)}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Button
-                        disabled={disabled}
-                        sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-                        onClick={() => {
-                          const doc = (getYjsValue(value) as Map<any>).doc!;
-                          doc.transact(() => {
-                            if (!value.requestParameters) return;
-                            delete value.requestParameters[parameter.id];
-                            sortBy(Object.values(value.requestParameters), 'index').forEach(
-                              (i, index) => (i.index = index)
-                            );
-                          });
-                        }}>
-                        <Trash />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
+      <Box border="1px solid #3B82F6" borderRadius={1} bgcolor="background.paper" px={1.5} py={1}>
+        <Stack gap={1}>
+          <Table size="small" sx={{ td: { border: 'none' } }}>
+            <TableHead>
+              <TableRow>
+                <TableCell width="200" sx={{ borderBottom: '1px solid #E5E7EB', pl: 0 }}>
+                  {t('parameter')}
+                </TableCell>
+                <TableCell sx={{ borderBottom: '1px solid #E5E7EB', pl: 0 }}>{t('value')}</TableCell>
+                <TableCell width="100" sx={{ borderBottom: '1px solid, #E5E7EB', pl: 0 }}>
+                  {t('actions')}
+                </TableCell>
+              </TableRow>
+            </TableHead>
 
-        <Box>
-          {!disabled && (
-            <Button
-              sx={{ px: 2 }}
-              startIcon={<Add />}
-              onClick={() => {
-                const doc = (getYjsValue(value) as Map<any>).doc!;
-                doc.transact(() => {
-                  const id = nextAssistantId();
+            <TableBody>
+              {value.requestParameters &&
+                sortBy(Object.values(value.requestParameters), (i) => i.index).map(({ data: parameter }) => {
+                  return (
+                    <TableRow
+                      key={parameter.id}
+                      sx={{ backgroundColor: getDiffBackground('requestParameters', parameter.id) }}>
+                      <TableCell sx={{ borderBottom: '1px solid #E5E7EB !important', pl: 0 }}>
+                        <IndicatorTextField
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          path={[value.id, 'requestParameters', parameter.id, 'key']}
+                          TextFiledProps={{
+                            hiddenLabel: true,
+                            value: parameter.key ?? '',
+                            InputProps: {
+                              readOnly: disabled,
+                            },
+                            onChange: (e) => (parameter.key = e.target.value),
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: '1px solid #E5E7EB !important', pl: 0 }}>
+                        <PromptEditorField
+                          sx={{ '.ContentEditable__root': { fontSize: '12px' } }}
+                          readOnly={disabled}
+                          assistant={value}
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          path={[value.id, 'requestParameters', parameter.id, 'value']}
+                          value={parameter.value}
+                          onChange={(value) => (parameter.value = value)}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: '1px solid #E5E7EB !important', pl: 0 }}>
+                        <Button
+                          disabled={disabled}
+                          sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+                          onClick={() => {
+                            const doc = (getYjsValue(value) as Map<any>).doc!;
+                            doc.transact(() => {
+                              if (!value.requestParameters) return;
+                              delete value.requestParameters[parameter.id];
+                              sortBy(Object.values(value.requestParameters), 'index').forEach(
+                                (i, index) => (i.index = index)
+                              );
+                            });
+                          }}>
+                          <Trash />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
 
-                  value.requestParameters ??= {};
-                  value.requestParameters[id] = {
-                    index: Math.max(-1, ...Object.values(value.requestParameters).map((i) => i.index)) + 1,
-                    data: { id },
-                  };
-                });
-              }}>
-              {t('addObject', { object: t('parameter') })}
-            </Button>
-          )}
-        </Box>
-      </Stack>
-    </Box>
+          <Box>
+            {!disabled && (
+              <Button
+                startIcon={<Add />}
+                onClick={() => {
+                  const doc = (getYjsValue(value) as Map<any>).doc!;
+                  doc.transact(() => {
+                    const id = nextAssistantId();
+
+                    value.requestParameters ??= {};
+                    value.requestParameters[id] = {
+                      index: Math.max(-1, ...Object.values(value.requestParameters).map((i) => i.index)) + 1,
+                      data: { id },
+                    };
+                  });
+                }}>
+                {t('addObject', { object: t('parameter') })}
+              </Button>
+            )}
+          </Box>
+        </Stack>
+      </Box>
+    </Stack>
   );
 }

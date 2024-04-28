@@ -7,6 +7,7 @@ import {
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
+import { cloneDeep } from 'lodash';
 import sortBy from 'lodash/sortBy';
 import { useCallback, useEffect } from 'react';
 
@@ -40,6 +41,33 @@ export function usePromptsState({
         };
 
         sortBy(Object.values(template.prompts), (i) => i.index).forEach((i, index) => (i.index = index));
+      });
+    },
+    [template]
+  );
+
+  const copePrompt = useCallback(
+    (prompt: PromptYjs, index: number) => {
+      if (!template) return;
+
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+      doc.transact(() => {
+        template.prompts ??= {};
+
+        if (!template.prompts[prompt.data.id]) return;
+        try {
+          const copyPrompt = cloneDeep(prompt);
+          copyPrompt.data.id = nextAssistantId();
+
+          template.prompts[copyPrompt.data.id] = {
+            index: typeof index === 'number' ? index + 0.1 : Object.keys(template.prompts).length,
+            data: copyPrompt,
+          };
+
+          sortBy(Object.values(template.prompts), (i) => i.index).forEach((i, index) => (i.index = index));
+        } catch (error) {
+          console.error(error?.message);
+        }
       });
     },
     [template]
@@ -152,6 +180,126 @@ export function usePromptsState({
     // });
   }, [template]);
 
+  const addCustomPrompt = useCallback(
+    (type: 'knowledge' | 'history' | 'getStore' | 'setStore') => {
+      if (!template) return;
+
+      const doc = (getYjsValue(template) as Map<any>).doc!;
+      doc.transact(() => {
+        template.prompts ??= {};
+
+        const promptMAP: { [key: string]: PromptYjs } = {
+          knowledge: {
+            type: 'executeBlock',
+            data: {
+              id: nextAssistantId(),
+              selectType: 'all',
+              role: 'system',
+              type,
+              prefix: 'Please use the following as context:',
+              tools: {
+                'AI-Studio:/api/datasets/{datasetId}/search:get': {
+                  index: 0,
+                  data: {
+                    id: 'AI-Studio:/api/datasets/{datasetId}/search:get',
+                    from: 'dataset',
+                    parameters: {
+                      datasetId: '{{datasetId}}',
+                      message: '',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          history: {
+            type: 'executeBlock',
+            data: {
+              id: nextAssistantId(),
+              selectType: 'all',
+              role: 'system',
+              type,
+              prefix: '',
+              tools: {
+                'AI-Studio:/api/messages:get': {
+                  index: 0,
+                  data: {
+                    id: 'AI-Studio:/api/messages:get',
+                    from: 'dataset',
+                    parameters: {
+                      limit: '',
+                      keyword: '',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          getStore: {
+            type: 'executeBlock',
+            data: {
+              id: nextAssistantId(),
+              selectType: 'all',
+              role: 'system',
+              type,
+              prefix: '',
+              tools: {
+                'AI-Studio:/api/datastore:get': {
+                  index: 0,
+                  data: {
+                    id: 'AI-Studio:/api/datastore:get',
+                    from: 'dataset',
+                    parameters: {
+                      key: '',
+                      scope: '',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          setStore: {
+            type: 'executeBlock',
+            data: {
+              id: nextAssistantId(),
+              selectType: 'all',
+              role: 'system',
+              type,
+              prefix: '',
+              tools: {
+                'AI-Studio:/api/datastore:post': {
+                  index: 0,
+                  data: {
+                    id: 'AI-Studio:/api/datastore:post',
+                    from: 'dataset',
+                    parameters: {
+                      reset: 'true',
+                      key: '',
+                      scope: 'session',
+                      data: '',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        };
+
+        const prompt = promptMAP[type];
+
+        if (prompt) {
+          template.prompts[prompt.data.id] = {
+            index: Object.keys(template.prompts).length,
+            data: prompt,
+          };
+
+          sortBy(Object.values(template.prompts), (i) => i.index).forEach((i, index) => (i.index = index));
+        }
+      });
+    },
+    [template]
+  );
+
   const assistantParameters = [...new Set([...Object.values(template?.parameters ?? {}).map((i) => i.data.key)])];
 
   useEffect(() => {
@@ -164,5 +312,13 @@ export function usePromptsState({
     }
   }, [assistantParameters]);
 
-  return { addPrompt, deletePrompt, addDatasetPrompt, deleteDatasetPrompt, renameVariable };
+  return {
+    addPrompt,
+    copePrompt,
+    deletePrompt,
+    addDatasetPrompt,
+    deleteDatasetPrompt,
+    addCustomPrompt,
+    renameVariable,
+  };
 }

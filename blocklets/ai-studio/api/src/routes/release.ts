@@ -1,3 +1,4 @@
+import { parseIdentity } from '@api/libs/aid';
 import {
   createOrUpdatePaymentForRelease,
   getActiveSubscriptionOfAssistant,
@@ -8,7 +9,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { omitBy } from 'lodash';
 
-import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 import Release from '../store/models/release';
 
 const router = Router();
@@ -45,6 +46,27 @@ router.get('/', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   });
 });
 
+const getReleaseByAidQuerySchema = Joi.object<{ aid: string }>({
+  aid: Joi.string().required(),
+});
+
+router.get('/by-aid', async (req, res) => {
+  const { aid } = await getReleaseByAidQuerySchema.validateAsync(req.query, { stripUnknown: true });
+  const { projectId, projectRef, assistantId } = parseIdentity(aid, { rejectWhenError: true });
+
+  const release = await Release.findOne({
+    where: { projectId, projectRef, assistantId },
+    rejectOnEmpty: new Error('Release not found'),
+  });
+
+  res.json({
+    ...release.dataValues,
+    paymentUnitAmount: release.paymentLinkId
+      ? await getPriceFromPaymentLink({ paymentLinkId: release.paymentLinkId })
+      : undefined,
+  });
+});
+
 router.get('/:releaseId', async (req, res) => {
   const { releaseId } = req.params;
 
@@ -62,8 +84,9 @@ router.get('/:releaseId/subscription', user(), auth(), async (req, res) => {
   const { did } = req.user!;
   const { releaseId } = req.params;
 
-  const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });
-  const subscription = await getActiveSubscriptionOfAssistant({ release, userId: did });
+  if (!releaseId) throw new Error('Missing required param releaseId');
+
+  const subscription = await getActiveSubscriptionOfAssistant({ aid: releaseId, userId: did });
 
   res.json({ subscription });
 });
@@ -72,34 +95,25 @@ export interface CreateReleaseInput {
   projectId: string;
   projectRef: string;
   assistantId: string;
-  template: 'default' | 'blue' | 'red' | 'green';
-  icon?: string;
-  title?: string;
-  description?: string;
   paymentEnabled?: boolean;
   paymentUnitAmount?: string;
-  openerMessage?: string;
 }
 
 const createReleaseInputSchema = Joi.object<CreateReleaseInput>({
   projectId: Joi.string().required(),
   projectRef: Joi.string().required(),
   assistantId: Joi.string().required(),
-  template: Joi.string().valid('default', 'blue', 'red', 'green').required(),
-  icon: Joi.string().allow('', null),
-  title: Joi.string().allow('', null),
-  description: Joi.string().allow('', null),
   paymentEnabled: Joi.boolean().default(false),
   paymentUnitAmount: Joi.when('paymentEnabled', {
     is: true,
     then: Joi.number().min(0).required().cast('string'),
   }),
-  openerMessage: Joi.string().allow('', null),
 });
 
 router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
-  const { title, template, description, assistantId, projectId, projectRef, icon, openerMessage, ...input } =
-    await createReleaseInputSchema.validateAsync(req.body, { stripUnknown: true });
+  const { assistantId, projectId, projectRef, ...input } = await createReleaseInputSchema.validateAsync(req.body, {
+    stripUnknown: true,
+  });
 
   const { did } = req.user!;
 
@@ -107,14 +121,8 @@ router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) 
     assistantId,
     projectRef,
     projectId,
-    template,
-    title,
-    description,
-    icon,
-    openerMessage,
     createdBy: did,
     updatedBy: did,
-    paymentEnabled: input.paymentEnabled,
   });
 
   if (input.paymentEnabled && input.paymentUnitAmount) {
@@ -130,9 +138,6 @@ router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) 
 });
 
 export interface UpdateReleaseInput {
-  template: 'default' | 'blue' | 'red' | 'green';
-  icon?: string;
-  title?: string;
   description?: string;
   paymentEnabled?: boolean;
   paymentUnitAmount?: string;
@@ -140,9 +145,6 @@ export interface UpdateReleaseInput {
 }
 
 const updateReleaseSchema = Joi.object<UpdateReleaseInput>({
-  template: Joi.string().valid('default', 'blue', 'red', 'green').empty([null, '']),
-  icon: Joi.string().allow('', null),
-  title: Joi.string().allow('', null),
   description: Joi.string().allow('', null),
   paymentEnabled: Joi.boolean().default(false),
   paymentUnitAmount: Joi.when('paymentEnabled', {
@@ -174,7 +176,7 @@ router.patch('/:releaseId', user(), ensureComponentCallOrPromptsEditor(), async 
   });
 });
 
-router.delete('/:releaseId', ensureComponentCallOrAdmin(), async (req, res) => {
+router.delete('/:releaseId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
   const { releaseId } = req.params;
 
   const release = await Release.findByPk(releaseId!, { rejectOnEmpty: new Error(`Release ${releaseId} not found`) });

@@ -1,14 +1,17 @@
 import fs from 'fs';
-import { cp, mkdtemp, rm } from 'fs/promises';
-import { dirname, join } from 'path';
+import { access, copyFile, cp, mkdtemp, readFile, rm } from 'fs/promises';
+import path, { basename, dirname, isAbsolute, join } from 'path';
 
 import { Config } from '@api/libs/env';
 import { sampleIcon } from '@api/libs/icon';
-import { fileToYjs, nextAssistantId } from '@blocklet/ai-runtime/types';
+import { uploadImageToImageBin } from '@api/libs/image-bin';
+import logger from '@api/libs/logger';
+import { fileToYjs, isAssistant, nextAssistantId } from '@blocklet/ai-runtime/types';
 import { call } from '@blocklet/sdk/lib/component';
+import config from '@blocklet/sdk/lib/config';
 import { user } from '@blocklet/sdk/lib/middlewares';
-import { Router } from 'express';
-import { pathExists } from 'fs-extra';
+import { Request, Router } from 'express';
+import { exists, pathExists } from 'fs-extra';
 import * as git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
 import Joi from 'joi';
@@ -16,14 +19,19 @@ import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { Op } from 'sequelize';
+import { joinURL } from 'ufo';
 import { parse } from 'yaml';
 
+import downloadLogo from '../libs/download-logo';
 import { getResourceProjects } from '../libs/resource';
-import { ensureComponentCallOrAdmin, ensureComponentCallOrPromptsEditor } from '../libs/security';
+import { ensureComponentCallOrPromptsEditor, ensureComponentCallOrRolesMatch } from '../libs/security';
 import Project, { nextProjectId } from '../store/models/project';
 import {
-  autoSyncRemoteRepoIfNeeded,
+  CONFIG_FONDER,
+  LOGO_FILENAME,
+  VARIABLE_FILENAME,
+  VARIABLE_KEY,
+  autoSyncIfNeeded,
   clearRepository,
   commitProjectSettingWorking,
   commitWorking,
@@ -34,6 +42,7 @@ import {
   getRepository,
   repositoryRoot,
   syncRepository,
+  syncToDidSpace,
 } from '../store/repository';
 import { projectTemplates } from '../templates/projects';
 import { getCommits } from './log';
@@ -96,6 +105,7 @@ export interface UpdateProjectInput {
   maxTokens?: number;
   gitType?: string;
   gitAutoSync?: boolean;
+  didSpaceAutoSync?: true | false;
   projectType?: Project['projectType'];
   homePageUrl?: string | null;
 }
@@ -113,7 +123,7 @@ const updateProjectSchema = Joi.object<UpdateProjectInput>({
   maxTokens: Joi.number().integer().empty(null),
   gitType: Joi.string().valid('simple', 'default').empty([null, '']),
   gitAutoSync: Joi.boolean().empty([null]),
-  projectType: Joi.string().valid('project', 'template', 'example').empty([null, '']),
+  didSpaceAutoSync: Joi.boolean().optional(),
   homePageUrl: Joi.string().allow(null, ''),
 });
 
@@ -159,9 +169,54 @@ const getTemplateQuerySchema = Joi.object<GetTemplateQuery>({
   working: Joi.boolean().empty([null, '']),
 });
 
+export type SyncTarget = 'github' | 'didSpace';
+
+export const getProjectWhereConditions = (req: Request) => {
+  // default to only show projects created by the user
+  let projectWhereConditions = {
+    createdBy: req.user!.did,
+  } as any;
+
+  // if the user has the permission to view all projects, show all projects
+  if (ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensureViewAllProjectsRoles)) {
+    projectWhereConditions = {};
+  }
+
+  return projectWhereConditions;
+};
+
+export const checkProjectPermission = ({ req, project }: { req: Request; project: Project | null | undefined }) => {
+  if (
+    project?.createdBy === req.user?.did ||
+    ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensureViewAllProjectsRoles) ||
+    ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles)
+  ) {
+    return true;
+  }
+  const errorText = 'Project no permission';
+  throw new Error(errorText);
+};
+
+export const checkProjectLimit = async ({ req }: { req: Request }) => {
+  if (config.env.preferences.serviceMode === 'multi-tenant') {
+    // check project count limit
+    const count = await Project.count({ where: { createdBy: req.user?.did } });
+    const currentLimit = config.env.preferences.multiTenantProjectLimits;
+    if (
+      count >= currentLimit &&
+      !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles)
+    ) {
+      throw new Error(`Project limit exceeded (current: ${count}, limit: ${currentLimit}) `);
+    }
+  }
+};
+
 export function projectRoutes(router: Router) {
-  router.get('/projects', ensureComponentCallOrPromptsEditor(), async (_, res) => {
+  router.get('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
+      where: {
+        ...getProjectWhereConditions(req),
+      },
       order: [
         ['pinnedAt', 'DESC'],
         ['updatedAt', 'DESC'],
@@ -189,26 +244,25 @@ export function projectRoutes(router: Router) {
       isFromResource: true,
     }));
 
-    const resourceExampleIds = new Set(resourceExamples.map((i) => i._id));
+    // multi-tenant mode
+    if (config.env.preferences.serviceMode === 'multi-tenant') {
+      res.json({
+        templates: uniqBy([...projectTemplates.map((i) => i.project), ...resourceTemplates], '_id'),
+        projects,
+        examples: uniqBy(resourceExamples, '_id'),
+      });
+      return;
+    }
 
-    const exampleProjects = projects.filter(
-      (i) => i.projectType === 'example' || resourceExampleIds.has(i.duplicateFrom!)
-    );
+    // single-tenant mode
+    const resourceExampleIds = new Set(resourceExamples.map((i) => i._id));
+    const exampleProjects = projects.filter((i) => resourceExampleIds.has(i.duplicateFrom!));
     const exampleProjectFromIds = new Set(exampleProjects.map((i) => i.duplicateFrom));
     const notCreatedExamples = resourceExamples.filter((i) => !exampleProjectFromIds.has(i._id));
 
     res.json({
-      templates: uniqBy(
-        [
-          ...projectTemplates.map((i) => i.project),
-          ...resourceTemplates,
-          ...projects.filter((i) => i.projectType === 'template'),
-        ],
-        '_id'
-      ),
-      projects: projects.filter(
-        (i) => (!i.projectType || i.projectType === 'project') && !resourceExampleIds.has(i.duplicateFrom!)
-      ),
+      templates: uniqBy([...projectTemplates.map((i) => i.project), ...resourceTemplates], '_id'),
+      projects: projects.filter((i) => !resourceExampleIds.has(i.duplicateFrom!)),
       examples: uniqBy([...exampleProjects, ...notCreatedExamples], '_id'),
     });
   });
@@ -235,25 +289,55 @@ export function projectRoutes(router: Router) {
     res.json({ icons: data?.uploads || [] });
   });
 
-  router.get('/projects/:projectId', ensureComponentCallOrPromptsEditor(), async (req, res) => {
-    const { projectId } = req.params;
+  router.get('/projects/:projectId/logo.png', async (req, res) => {
+    const { projectId } = await Joi.object<{ projectId: string }>({
+      projectId: Joi.string().empty([null, '']),
+    }).validateAsync(req.params, { stripUnknown: true });
 
-    const project = await Project.findOne({ where: { _id: projectId } });
-    if (!project) {
-      const found = (await getResourceProjects('example')).find((x) => x.project._id === projectId);
-      if (found) {
-        res.json(found);
+    try {
+      const original = await Project.findOne({ where: { _id: projectId } });
+      if (original) {
+        const repository = await getRepository({ projectId });
+        const logoPath = path.join(repository.options.root, 'logo.png');
+        await access(logoPath);
+        res.sendFile(logoPath);
         return;
       }
 
+      const resource =
+        (await getResourceProjects('template')).find((i) => i.project._id === projectId) ||
+        (await getResourceProjects('example')).find((i) => i.project._id === projectId);
+
+      if (resource?.gitLogoPath) {
+        await access(resource.gitLogoPath);
+        res.sendFile(resource.gitLogoPath);
+        return;
+      }
+    } catch (error) {
+      logger.error('Get icon error', { error });
+    }
+
+    res.status(404).send('Image not found');
+  });
+
+  router.get('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    const { projectId } = req.params;
+
+    const project =
+      (await Project.findOne({ where: { _id: projectId } })) ||
+      ((await getResourceProjects('example')).find((x) => x.project._id === projectId) as any);
+
+    if (!project) {
       res.status(404).json({ error: 'No such project' });
       return;
     }
 
+    checkProjectPermission({ req, project });
+
     res.json(project);
   });
 
-  router.post('/projects', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did } = req.user!;
 
     const { templateId, name, description, withDuplicateFrom } = await createProjectSchema.validateAsync(req.body, {
@@ -261,6 +345,8 @@ export function projectRoutes(router: Router) {
     });
 
     let project: Project | undefined;
+
+    await checkProjectLimit({ req });
 
     if (templateId) {
       // duplicate a project
@@ -271,7 +357,7 @@ export function projectRoutes(router: Router) {
           name,
           description,
           author: req.user!,
-          projectType: 'project',
+          projectType: undefined,
         });
       }
 
@@ -288,6 +374,7 @@ export function projectRoutes(router: Router) {
         const resource =
           (await getResourceProjects('template')).find((i) => i.project._id === templateId) ||
           (await getResourceProjects('example')).find((i) => i.project._id === templateId);
+
         if (resource) {
           project = await createProjectFromTemplate(resource, {
             name,
@@ -315,15 +402,13 @@ export function projectRoutes(router: Router) {
     res.json(project);
   });
 
-  router.post('/projects/import', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/import', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
+    await checkProjectLimit({ req });
+
     const { name, username, password, description, url } = await importProjectSchema.validateAsync(req.body, {
       stripUnknown: true,
     });
     const { did } = req.user!;
-
-    if (name && (await Project.findOne({ where: { name } }))) {
-      throw new Error(`Duplicated project ${name}`);
-    }
 
     const uri = new URL(url);
     if (username) uri.username = username;
@@ -406,7 +491,7 @@ export function projectRoutes(router: Router) {
     }
   });
 
-  router.patch('/projects/:projectId', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.patch('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
 
     const project = await Project.findOne({ where: { _id: projectId } });
@@ -414,6 +499,8 @@ export function projectRoutes(router: Router) {
       res.status(404).json({ error: 'No such project' });
       return;
     }
+
+    checkProjectPermission({ req, project });
 
     const {
       name,
@@ -428,25 +515,21 @@ export function projectRoutes(router: Router) {
       maxTokens,
       gitType,
       gitAutoSync,
-      projectType,
+      didSpaceAutoSync,
       homePageUrl,
     } = await updateProjectSchema.validateAsync(req.body, { stripUnknown: true });
 
-    if (name && (await Project.findOne({ where: { name, _id: { [Op.ne]: project._id } } }))) {
-      throw new Error(`Duplicated project ${name}`);
-    }
-
-    const { did, fullName } = req.user!;
+    const { did: userId, fullName } = req.user!;
 
     await project.update(
       omitBy(
         {
           name,
           pinnedAt: pinned ? new Date().toISOString() : pinned === false ? null : undefined,
-          updatedBy: did,
+          updatedBy: userId,
           description,
-          icon,
           model: model || project.model || '',
+          icon: '',
           temperature,
           topP,
           presencePenalty,
@@ -454,22 +537,24 @@ export function projectRoutes(router: Router) {
           maxTokens,
           gitType,
           gitAutoSync,
-          projectType,
+          didSpaceAutoSync,
           homePageUrl,
         },
         (v) => v === undefined
       )
     );
 
-    const author = { name: fullName, email: did };
+    const author = { name: fullName, email: userId };
     await commitProjectSettingWorking({ project, author });
 
-    await autoSyncRemoteRepoIfNeeded({ project, author });
+    await commitProjectSettingWorking({ project, author, icon });
+
+    await autoSyncIfNeeded({ project, author, userId });
 
     res.json(project.dataValues);
   });
 
-  router.delete('/projects/:projectId', ensureComponentCallOrAdmin(), async (req, res) => {
+  router.delete('/projects/:projectId', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
@@ -478,6 +563,8 @@ export function projectRoutes(router: Router) {
       res.status(404).json({ error: 'No such project' });
       return;
     }
+
+    checkProjectPermission({ req, project });
 
     await project.destroy();
 
@@ -492,11 +579,13 @@ export function projectRoutes(router: Router) {
     res.json(project);
   });
 
-  router.post('/projects/:projectId/remote', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/:projectId/remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
 
     const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -518,11 +607,13 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.delete('/projects/:projectId/remote', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.delete('/projects/:projectId/remote', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
 
     const repository = await getRepository({ projectId });
 
@@ -533,13 +624,15 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/push', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/:projectId/remote/push', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const input = await pushInputSchema.validateAsync(req.body, { stripUnknown: true });
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
 
     const repository = await getRepository({ projectId });
     const branches = await repository.listBranches();
@@ -553,7 +646,7 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/pull', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/:projectId/remote/pull', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
@@ -562,6 +655,8 @@ export function projectRoutes(router: Router) {
     const input = await pullInputSchema.validateAsync(req.body, { stripUnknown: true });
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
+
+    checkProjectPermission({ req, project });
 
     const repository = await getRepository({ projectId });
     const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
@@ -585,23 +680,37 @@ export function projectRoutes(router: Router) {
     res.json({});
   });
 
-  router.post('/projects/:projectId/remote/sync', user(), ensureComponentCallOrAdmin(), async (req, res) => {
+  router.post('/projects/:projectId/remote/sync', user(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const { did: userId, fullName } = req.user!;
 
     const { projectId } = req.params;
     if (!projectId) throw new Error('Missing required params `projectId`');
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new Error('Project not found') });
-    const repository = await getRepository({ projectId });
-    const branches = await repository.listBranches();
 
-    for (const ref of branches) {
-      await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
+    checkProjectPermission({ req, project });
+
+    const repository = await getRepository({ projectId });
+
+    const target: SyncTarget = req.query.target as SyncTarget;
+    if (target === 'didSpace') {
+      await syncToDidSpace({ project, userId });
+
+      return res.json({});
     }
 
-    await project.update({ gitLastSyncedAt: new Date() });
+    if (target === 'github') {
+      const branches = await repository.listBranches();
+      for (const ref of branches) {
+        // eslint-disable-next-line no-await-in-loop
+        await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
+      }
+      await project.update({ gitLastSyncedAt: new Date() });
 
-    res.json({});
+      return res.json({});
+    }
+
+    throw new Error(`Could not back up to target(${target})`);
   });
 
   router.get('/projects/:projectId/refs/:ref/assistants/:assistantId', async (req, res) => {
@@ -614,7 +723,9 @@ export function projectRoutes(router: Router) {
 
     const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
 
-    res.json(pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt'));
+    res.json(
+      pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'release', 'entries')
+    );
   });
 
   router.get(
@@ -727,7 +838,6 @@ async function createProjectFromTemplate(
     _id: nextProjectId(),
     duplicateFrom: withDuplicateFrom ? template.project._id : undefined,
     model: template.project.model || '',
-    icon: await sampleIcon(),
     createdBy: author.did,
     updatedBy: author.did,
     name,
@@ -742,15 +852,52 @@ async function createProjectFromTemplate(
   const working = await repository.working({ ref: defaultBranch });
   for (const { parent, ...file } of template.assistants) {
     const id = file.id || nextAssistantId();
-    working.syncedStore.files[id] = fileToYjs({ ...file, id });
+    const assistant = fileToYjs({ ...file, id });
+
+    if (isAssistant(assistant) && assistant.release?.logo) {
+      const { logo } = assistant.release;
+      if ((await exists(logo)) && isAbsolute(logo)) {
+        const result = await uploadImageToImageBin({
+          filename: basename(logo),
+          data: { b64Json: await readFile(logo, { encoding: 'base64' }) },
+        });
+        assistant.release.logo = result.url;
+      }
+    }
+
+    working.syncedStore.files[id] = assistant;
     working.syncedStore.tree[id] = parent.concat(`${id}.yaml`).join('/');
   }
+
+  if (!working.syncedStore.files[VARIABLE_KEY]) {
+    working.syncedStore.tree[VARIABLE_KEY] = joinURL(CONFIG_FONDER, VARIABLE_FILENAME);
+    working.syncedStore.files[VARIABLE_KEY] = { type: 'variables', variables: [] };
+  }
+
   await commitWorking({
     project,
     ref: defaultBranch,
     branch: defaultBranch,
     message: 'First Commit',
     author: { name: author.fullName, email: author.did },
+    beforeCommit: async (tx) => {
+      const logoPath = path.join(repository.options.root, LOGO_FILENAME);
+
+      try {
+        if (template.gitLogoPath) {
+          await copyFile(template.gitLogoPath, logoPath);
+          await tx.add({ filepath: LOGO_FILENAME });
+        } else {
+          const icon = await sampleIcon();
+          if (icon) {
+            await downloadLogo(icon, logoPath);
+            await tx.add({ filepath: LOGO_FILENAME });
+          }
+        }
+      } catch (error) {
+        logger.error('failed to download icon', { error });
+      }
+    },
   });
 
   return project;

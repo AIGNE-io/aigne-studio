@@ -1,13 +1,13 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { defaultImageModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { ImageAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { ExpandMoreRounded, InfoOutlined } from '@mui/icons-material';
-import { Box, Button, Collapse, FormLabel, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { Icon } from '@iconify-icon/react';
+import { Box, FormLabel, MenuItem, TextField, Tooltip } from '@mui/material';
+import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 import { useAssistantCompare } from 'src/pages/project/state';
 
-import { defaultImageModel, getSupportedImagesModels } from '../../../../api/src/libs/common';
 import WithAwareness from '../../awareness/with-awareness';
 import ModelSelectField from '../../selector/model-select-field';
 import SliderNumberField from '../../slider-number-field';
@@ -19,7 +19,6 @@ export default function ImageFileSetting({
   readOnly,
   compareValue,
   isRemoteCompare,
-  isOpen = false,
 }: {
   projectId: string;
   gitRef: string;
@@ -27,11 +26,8 @@ export default function ImageFileSetting({
   readOnly?: boolean;
   compareValue?: ImageAssistantYjs;
   isRemoteCompare?: boolean;
-  isOpen?: boolean;
 }) {
   const { t } = useLocaleContext();
-
-  const [open, setOpen] = useState(isOpen);
 
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
@@ -40,216 +36,182 @@ export default function ImageFileSetting({
   const modelDetail = useMemo(() => {
     return supportedModels?.find((i) => i.model === model);
   }, [model, supportedModels]);
+  const icon = <Box component={Icon} icon="tabler:help" sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
 
   return (
-    <Box>
-      <Stack direction="row" alignItems="center" gap={2}>
-        <Typography variant="subtitle1">{t('callPrompt')}</Typography>
+    <>
+      <Box position="relative" className="between">
+        <Box flex={1}>
+          <FormLabel>{t('model')}</FormLabel>
+        </Box>
 
-        <Stack direction="row" flex={1} overflow="hidden" alignItems="center" justifyContent="flex-end">
-          {!open && (
-            <Stack direction="row" alignItems="center" gap={1}>
-              <Typography
-                component="span"
-                sx={{
-                  bgcolor: 'rgba(241, 243, 245, 1)',
-                  p: 1,
-                  borderRadius: 1,
-                  lineHeight: 1,
-                  backgroundColor: getDiffBackground('model'),
-                }}>
-                {model}
-              </Typography>
-            </Stack>
-          )}
-        </Stack>
+        <Box flex={1}>
+          <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
+            <ModelSelectField
+              fullWidth
+              hiddenLabel
+              isImageModel
+              value={model}
+              onChange={(e) => {
+                const doc = (getYjsValue(value) as Map<any>).doc!;
+                doc.transact(() => {
+                  value.model = e.target.value;
+                  if (Object.hasOwn(value, 'n')) delete value.n;
+                  if (Object.hasOwn(value, 'quality')) delete value.quality;
+                  if (Object.hasOwn(value, 'size')) delete value.size;
+                  if (Object.hasOwn(value, 'style')) delete value.style;
+                });
+              }}
+              InputProps={{ readOnly, sx: { backgroundColor: getDiffBackground('model') } }}
+            />
+          </WithAwareness>
+        </Box>
+      </Box>
 
-        <Button sx={{ minWidth: 32, minHeight: 32 }} onClick={() => setOpen(!open)}>
-          <ExpandMoreRounded
-            sx={{
-              transform: open ? 'rotateZ(180deg)' : undefined,
-              transition: (theme) => theme.transitions.create('all'),
-            }}
-          />
-        </Button>
-      </Stack>
+      {modelDetail && (
+        <>
+          {typeof modelDetail.nMin === 'number' && typeof modelDetail.nMax === 'number' && (
+            <Box position="relative" className="between">
+              <Box flex={1}>
+                <Tooltip title={t('numberTip')} placement="top" disableInteractive>
+                  <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
+                    {t('number')}
+                    {icon}
+                  </FormLabel>
+                </Tooltip>
+              </Box>
 
-      <Collapse in={open}>
-        <Stack py={1} gap={1}>
-          <Box position="relative">
-            <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
-              <ModelSelectField
-                fullWidth
-                isImageModel
-                label={t('model')}
-                value={model}
-                onChange={(e) => {
-                  const doc = (getYjsValue(value) as Map<any>).doc!;
-                  doc.transact(() => {
-                    value.model = e.target.value;
-                    if (Object.hasOwn(value, 'n')) delete value.n;
-                    if (Object.hasOwn(value, 'quality')) delete value.quality;
-                    if (Object.hasOwn(value, 'size')) delete value.size;
-                    if (Object.hasOwn(value, 'style')) delete value.style;
-                  });
-                }}
-                InputProps={{ readOnly, sx: { backgroundColor: getDiffBackground('model') } }}
-              />
-            </WithAwareness>
-          </Box>
-
-          {modelDetail && (
-            <Box
-              sx={{
-                display: 'table',
-                '> div': {
-                  display: 'table-row',
-
-                  '> label, > div': {
-                    whiteSpace: 'nowrap',
-                    display: 'table-cell',
-                    py: 0.5,
-                    px: 1,
-                    verticalAlign: 'middle',
-                  },
-
-                  '> div': {
-                    width: '100%',
-                  },
-                },
-              }}>
-              {typeof modelDetail.nMin === 'number' && typeof modelDetail.nMax === 'number' && (
-                <Box position="relative">
-                  <Tooltip title={t('numberTip')} placement="top" disableInteractive>
-                    <FormLabel>
-                      {t('number')}
-                      <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
-                    </FormLabel>
-                  </Tooltip>
-
-                  <WithAwareness
-                    sx={{ top: -2, right: -4 }}
-                    projectId={projectId}
-                    gitRef={gitRef}
-                    path={[value.id, 'n']}>
-                    <SliderNumberField
-                      readOnly={readOnly}
-                      min={modelDetail.nMin}
-                      max={modelDetail.nMax}
-                      step={1}
-                      value={value.n ?? modelDetail.nDefault}
-                      onChange={(_, v) => (value.n = v)}
-                      sx={{ flex: 1, sx: { backgroundColor: getDiffBackground('n') } }}
-                    />
-                  </WithAwareness>
-                </Box>
-              )}
-
-              {modelDetail.quality && modelDetail.quality.length > 0 && (
-                <Box position="relative">
-                  <Tooltip title={t('qualityTip')} placement="top" disableInteractive>
-                    <FormLabel>
-                      {t('quality')}
-                      <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
-                    </FormLabel>
-                  </Tooltip>
-
-                  <WithAwareness
-                    sx={{ top: -2, right: -4 }}
-                    projectId={projectId}
-                    gitRef={gitRef}
-                    path={[value.id, 'quality']}>
-                    <TextField
-                      hiddenLabel
-                      select
-                      SelectProps={{
-                        readOnly,
-                        autoWidth: true,
-                        sx: { backgroundColor: getDiffBackground('quality') },
-                      }}
-                      value={value.quality ?? modelDetail.qualityDefault}
-                      onChange={(e) => (value.quality = e.target.value)}>
-                      {modelDetail.quality.map((i) => (
-                        <MenuItem key={i} value={i}>
-                          {i}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </WithAwareness>
-                </Box>
-              )}
-
-              {modelDetail.size && modelDetail.size.length > 0 && (
-                <Box position="relative">
-                  <Tooltip title={t('sizeTip')} placement="top" disableInteractive>
-                    <FormLabel>
-                      {t('size')}
-                      <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
-                    </FormLabel>
-                  </Tooltip>
-
-                  <WithAwareness
-                    sx={{ top: -2, right: -4 }}
-                    projectId={projectId}
-                    gitRef={gitRef}
-                    path={[value.id, 'size']}>
-                    <TextField
-                      hiddenLabel
-                      select
-                      SelectProps={{
-                        readOnly,
-                        autoWidth: true,
-                        sx: { backgroundColor: getDiffBackground('size') },
-                      }}
-                      value={value.size ?? modelDetail.sizeDefault}
-                      onChange={(e) => (value.size = e.target.value)}>
-                      {modelDetail.size.map((i) => (
-                        <MenuItem key={i} value={i}>
-                          {i}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </WithAwareness>
-                </Box>
-              )}
-
-              {modelDetail.style && modelDetail.style.length > 0 && (
-                <Box position="relative">
-                  <Tooltip title={t('styleTip')} placement="top" disableInteractive>
-                    <FormLabel>
-                      {t('style')}
-                      <InfoOutlined fontSize="small" sx={{ verticalAlign: 'middle', ml: 1, color: 'info.main' }} />
-                    </FormLabel>
-                  </Tooltip>
-
-                  <WithAwareness
-                    sx={{ top: -2, right: -4 }}
-                    projectId={projectId}
-                    gitRef={gitRef}
-                    path={[value.id, 'style']}>
-                    <TextField
-                      hiddenLabel
-                      select
-                      SelectProps={{
-                        readOnly,
-                        autoWidth: true,
-                        sx: { backgroundColor: getDiffBackground('style') },
-                      }}
-                      value={value.style ?? modelDetail.styleDefault}
-                      onChange={(e) => (value.style = e.target.value)}>
-                      {modelDetail.style.map((i) => (
-                        <MenuItem key={i} value={i}>
-                          {i}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </WithAwareness>
-                </Box>
-              )}
+              <Box flex={1}>
+                <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'n']}>
+                  <SliderNumberField
+                    readOnly={readOnly}
+                    min={modelDetail.nMin}
+                    max={modelDetail.nMax}
+                    step={1}
+                    value={value.n ?? modelDetail.nDefault}
+                    onChange={(_, v) => (value.n = v)}
+                    sx={{ flex: 1, sx: { backgroundColor: getDiffBackground('n') } }}
+                  />
+                </WithAwareness>
+              </Box>
             </Box>
           )}
-        </Stack>
-      </Collapse>
-    </Box>
+
+          {modelDetail.quality && modelDetail.quality.length > 0 && (
+            <Box position="relative" className="between">
+              <Box flex={1}>
+                <Tooltip title={t('qualityTip')} placement="top" disableInteractive>
+                  <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
+                    {t('quality')}
+                    {icon}
+                  </FormLabel>
+                </Tooltip>
+              </Box>
+
+              <Box flex={1} display="flex" justifyContent="flex-end">
+                <WithAwareness
+                  sx={{ top: -2, right: -4 }}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, 'quality']}>
+                  <TextField
+                    hiddenLabel
+                    select
+                    SelectProps={{
+                      readOnly,
+                      autoWidth: true,
+                      sx: { backgroundColor: getDiffBackground('quality') },
+                    }}
+                    value={value.quality ?? modelDetail.qualityDefault}
+                    onChange={(e) => (value.quality = e.target.value)}>
+                    {(modelDetail.quality || []).map((i) => (
+                      <MenuItem key={i} value={i}>
+                        {i}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </WithAwareness>
+              </Box>
+            </Box>
+          )}
+
+          {modelDetail.size && modelDetail.size.length > 0 && (
+            <Box position="relative" className="between">
+              <Box flex={1}>
+                <Tooltip title={t('sizeTip')} placement="top" disableInteractive>
+                  <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
+                    {t('size')}
+                    {icon}
+                  </FormLabel>
+                </Tooltip>
+              </Box>
+
+              <Box flex={1} display="flex" justifyContent="flex-end">
+                <WithAwareness
+                  sx={{ top: -2, right: -4 }}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, 'size']}>
+                  <TextField
+                    hiddenLabel
+                    select
+                    SelectProps={{
+                      readOnly,
+                      autoWidth: true,
+                      sx: { backgroundColor: getDiffBackground('size') },
+                    }}
+                    value={value.size ?? modelDetail.sizeDefault}
+                    onChange={(e) => (value.size = e.target.value)}>
+                    {modelDetail.size.map((i) => (
+                      <MenuItem key={i} value={i}>
+                        {i}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </WithAwareness>
+              </Box>
+            </Box>
+          )}
+
+          {modelDetail.style && modelDetail.style.length > 0 && (
+            <Box position="relative" className="between">
+              <Box flex={1}>
+                <Tooltip title={t('styleTip')} placement="top" disableInteractive>
+                  <FormLabel className="center" sx={{ gap: 1, justifyContent: 'flex-start' }}>
+                    {t('style')}
+                    {icon}
+                  </FormLabel>
+                </Tooltip>
+              </Box>
+
+              <Box flex={1} display="flex" justifyContent="flex-end">
+                <WithAwareness
+                  sx={{ top: -2, right: -4 }}
+                  projectId={projectId}
+                  gitRef={gitRef}
+                  path={[value.id, 'style']}>
+                  <TextField
+                    hiddenLabel
+                    select
+                    SelectProps={{
+                      readOnly,
+                      autoWidth: true,
+                      sx: { backgroundColor: getDiffBackground('style') },
+                    }}
+                    value={value.style ?? modelDetail.styleDefault}
+                    onChange={(e) => (value.style = e.target.value)}>
+                    {(modelDetail.style || []).map((i) => (
+                      <MenuItem key={i} value={i}>
+                        {i}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </WithAwareness>
+              </Box>
+            </Box>
+          )}
+        </>
+      )}
+    </>
   );
 }

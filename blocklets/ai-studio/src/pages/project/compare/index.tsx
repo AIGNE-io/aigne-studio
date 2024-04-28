@@ -8,6 +8,7 @@ import {
   isImageAssistant,
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
 import { Box, CircularProgress, Divider, MenuItem, Select, Stack, Typography, styled } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { useEffect, useMemo, useState } from 'react';
@@ -18,14 +19,11 @@ import ApiAssistantEditor from '../../../components/file-editor/api-assistant';
 import BasicInfoForm from '../../../components/file-editor/basic-info-form';
 import FunctionAssistantEditor from '../../../components/file-editor/function-file';
 import ImageAssistantEditor from '../../../components/file-editor/image-file';
-import OutputSettings from '../../../components/file-editor/output-settings';
 import ParametersTable from '../../../components/file-editor/parameters-table';
 import PromptAssistantEditor from '../../../components/file-editor/prompt-file';
 import { getLogs } from '../../../libs/log';
 import { getFileIdFromPath } from '../../../utils/path';
-import Branch from '../icons/branch';
 import Empty from '../icons/empty';
-import History from '../icons/history';
 import { useProjectState } from '../state';
 import { useProjectStore } from '../yjs-state';
 import CompareApiAssistant from './api-assistant';
@@ -85,7 +83,17 @@ export default function Compare({
       <Box display="flex" gap={1}>
         {!simpleMode && (
           <Select
-            startAdornment={<Branch sx={{ mr: 1, fontSize: 16 }} />}
+            sx={{
+              fontSize: 16,
+              color: '#3B82F6',
+              background: 'transparent',
+              ':hover': {
+                background: 'transparent',
+              },
+            }}
+            startAdornment={
+              <Box component={Icon} icon="tabler:arrow-ramp-right" sx={{ fontSize: 16, color: '#3B82F6', mr: 1 }} />
+            }
             value={branch}
             onChange={(e) => {
               setBranch(e.target.value);
@@ -101,9 +109,18 @@ export default function Compare({
         )}
 
         <Select
-          sx={{ width: 150 }}
+          sx={{
+            fontSize: 16,
+            color: '#3B82F6',
+            background: 'transparent',
+            ':hover': {
+              background: 'transparent',
+            },
+          }}
           value={commit}
-          startAdornment={<History sx={{ mr: 1, fontSize: 16 }} />}
+          startAdornment={
+            <Box component={Icon} icon="tabler:history-toggle" sx={{ fontSize: 16, color: '#3B82F6', mr: 1 }} />
+          }
           onChange={(e) => {
             setCommit(e.target.value);
             init(e.target.value);
@@ -132,7 +149,7 @@ export default function Compare({
     }
 
     if (isFunctionAssistant(file)) {
-      return <FunctionAssistantEditor projectId={projectId} gitRef={gitRef} value={file} disabled />;
+      return <FunctionAssistantEditor gitRef={gitRef} value={file} disabled />;
     }
 
     return null;
@@ -232,7 +249,7 @@ export default function Compare({
   }
 
   return (
-    <Container height="80vh" display="flex" width={1}>
+    <Container height="80vh" display="flex" width={1} sx={{ pb: 2 }}>
       <Stack
         direction="row"
         sx={{ position: 'sticky', top: 0, zIndex: (theme) => theme.zIndex.appBar, bgcolor: 'background.paper' }}
@@ -293,15 +310,7 @@ export default function Compare({
 
       {renderPromptAssistant(state.template)}
 
-      <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
-          {state.template && <OutputSettings projectId={projectId} gitRef={gitRef} value={state.template} readOnly />}
-        </Box>
-
-        <Box flex={1} display="flex" flexDirection="column">
-          <OutputSettings projectId={projectId} gitRef={gitRef} value={template} readOnly />
-        </Box>
-      </Stack>
+      <Box height={2} />
     </Container>
   );
 }

@@ -150,6 +150,8 @@ export default class Working<T> extends Doc {
     }
     await this.reset();
 
+    await this.save({ flush: true });
+
     return res;
   }
 

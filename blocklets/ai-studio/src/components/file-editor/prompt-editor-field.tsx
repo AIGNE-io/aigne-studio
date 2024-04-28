@@ -42,7 +42,7 @@ export default function PromptEditorField({
         variables.forEach((variable) => {
           const name = (variable?.name || '').split('.')[0];
           if (name && !currentVariables.some((v) => v?.data?.key === name)) {
-            addParameter(name, from);
+            addParameter(name, { from });
           }
         });
 
@@ -75,11 +75,12 @@ export default function PromptEditorField({
 
   const typeMap = useMemo(() => {
     return {
-      string: t('form.parameter.typeText'),
-      multiline: t('form.parameter.typeTextMultiline'),
-      number: t('form.parameter.typeTextMultiline'),
-      select: t('form.parameter.typeSelect'),
-      language: t('form.parameter.typeLanguage'),
+      string: t('text'),
+      multiline: t('multiline'),
+      number: t('multiline'),
+      select: t('select'),
+      language: t('language'),
+      source: t('source'),
     };
   }, [t]);
 
@@ -115,14 +116,10 @@ export default function PromptEditorField({
                     fontSize: (theme) => theme.typography.caption.fontSize,
                     fontWeight: (theme) => theme.palette.text.disabled,
                   }}>
-                  <Box>{`${t('form.parameter.type')}: ${typeMap[type]}`}</Box>
-                  <Box>{`${t('form.parameter.label')}: ${parameter?.label || variable}`}</Box>
-                  {!!parameter?.placeholder && (
-                    <Box>{`${t('form.parameter.placeholder')}: ${parameter?.placeholder || ''}`}</Box>
-                  )}
-                  {!!parameter?.defaultValue && (
-                    <Box>{`${t('form.parameter.defaultValue')}: ${parameter?.defaultValue || ''}`}</Box>
-                  )}
+                  <Box>{`${t('type')}: ${typeMap[type]}`}</Box>
+                  <Box>{`${t('label')}: ${parameter?.label || variable}`}</Box>
+                  {!!parameter?.placeholder && <Box>{`${t('placeholder')}: ${parameter?.placeholder || ''}`}</Box>}
+                  {!!parameter?.defaultValue && <Box>{`${t('defaultValue')}: ${parameter?.defaultValue || ''}`}</Box>}
                 </Stack>
               </Paper>
             );
@@ -145,7 +142,7 @@ export default function PromptEditorField({
                   <Button
                     sx={{ p: 0 }}
                     onClick={() => {
-                      addParameter(variable, from);
+                      addParameter(variable, { from });
                       handleClose();
                     }}
                     size="small">
