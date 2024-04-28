@@ -296,7 +296,11 @@ export default function KnowledgeDocuments() {
           </Box>
         </Box>
 
-        <Button variant="contained" size="small" onClick={() => navigate('add')}>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<Icon icon="tabler:plus" />}
+          onClick={() => navigate('add')}>
           {t('knowledge.documents.add')}
         </Button>
       </Stack>

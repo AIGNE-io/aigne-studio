@@ -106,6 +106,7 @@ export default flat({
   create: 'Create',
   newObject: 'New {object}',
   newObjectWithType: 'New "{object}" {type}',
+  editObject: 'Edit {object}',
   importObject: 'Import {object}',
   createdAt: 'Created at',
   home: 'Home',
@@ -446,6 +447,8 @@ export default flat({
   withCollectionManage: 'Collections Manage',
   update: 'Update',
   knowledge: {
+    namePlaceholder: "Give your knowledge a name (e.g. xxx's Docs / My Notes)",
+    knowledge: 'Knowledge',
     menu: 'Knowledge',
     parameter: 'User Dataset',
     createTitle: 'Add Knowledge',

@@ -105,6 +105,7 @@ export default flat({
   create: '创建',
   newObject: '新建{object}',
   newObjectWithType: '新建 “{object}” {type}',
+  editObject: '编辑{object}',
   importObject: '导入{object}',
   createdAt: '创建于',
   home: '首页',
@@ -442,6 +443,8 @@ export default flat({
   withCollectionManage: '知识管理',
   update: '更新',
   knowledge: {
+    namePlaceholder: '给你的知识起个名字吧 (例如: xxx文档、我的笔记)',
+    knowledge: '知识',
     menu: '知识',
     parameter: '用户知识',
     createTitle: '添加知识',
