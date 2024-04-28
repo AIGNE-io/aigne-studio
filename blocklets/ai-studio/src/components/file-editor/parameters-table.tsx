@@ -115,7 +115,7 @@ export default function ParametersTable({
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.key === 'question' || parameter.key === 'datasetId') {
             const iconMap = {
-              question: 'question-mark',
+              question: 'message',
               datasetId: 'database',
             };
 
@@ -370,7 +370,7 @@ export default function ParametersTable({
               }}>
               <MenuItem onClick={() => addParameter('question')}>
                 <ListItemIcon>
-                  <Box component={Icon} icon="tabler:question-mark" />
+                  <Box component={Icon} icon="tabler:message" />
                 </ListItemIcon>
                 <ListItemText primary={t('question')} />
               </MenuItem>

@@ -375,7 +375,7 @@ export default flat({
     more: '{counts} 条分支',
   },
   formatPrompt: '格式化提示词',
-  promptPlaceholder: '请输入你的提示',
+  promptPlaceholder: "在这里输入提示词，输入 '{' 可以插入一个变量",
   promptMessage: '提示词',
   executeBlock: '执行块',
   executeMethods: '执行方式',
@@ -598,7 +598,7 @@ export default flat({
   assistantId: '工具',
   outputVariables: '输出变量',
   history: {
-    title: '历史消息',
+    title: '交谈历史',
     limit: '检索消息数',
     keyword: '检索关键字',
   },

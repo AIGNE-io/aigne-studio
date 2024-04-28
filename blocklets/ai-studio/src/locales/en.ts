@@ -377,7 +377,7 @@ export default flat({
     more: '{counts} Branches',
   },
   formatPrompt: 'Format Prompt',
-  promptPlaceholder: 'Please enter your prompt',
+  promptPlaceholder: "Write your prompt here, enter '{' to insert a variable",
   promptMessage: 'Prompt Message',
   executeBlock: 'Execute Block',
   executeMethods: 'Execute Methods',
@@ -602,9 +602,9 @@ export default flat({
   assistantId: 'Assistant',
   outputVariables: 'Output Variables',
   history: {
-    title: 'History Memory',
-    limit: 'Number of messages retrieved',
-    keyword: 'Keyword of messages retrieved',
+    title: 'Conversation History',
+    limit: 'Number of retrieved messages',
+    keyword: 'Keyword of retrieved messages',
   },
   outputVariableParameter: {
     addData: 'Add Data',
