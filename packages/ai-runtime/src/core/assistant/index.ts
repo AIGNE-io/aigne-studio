@@ -1300,9 +1300,7 @@ async function runImageAssistant({
   });
 
   const schema = outputVariablesToJoiSchema(assistant.outputVariables ?? [], datastoreVariables);
-  const object = await schema.validateAsync({
-    images: data,
-  });
+  const object = await schema.validateAsync({ $images: data });
 
   callback?.({
     type: AssistantResponseType.CHUNK,

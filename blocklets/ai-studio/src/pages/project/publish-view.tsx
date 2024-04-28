@@ -19,13 +19,12 @@ import {
   CircularProgress,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   FormLabel,
-  InputAdornment,
   Link,
   Radio,
   RadioGroup,
   Stack,
-  TextField,
   Typography,
 } from '@mui/material';
 import { styled as muiStyled } from '@mui/material/styles';
@@ -125,9 +124,24 @@ function PublishViewContent({
     }
   }, [project]);
 
-  const form = useForm();
+  const defaultValues = useMemo(() => {
+    return getYjsValue(assistant.release)?.toJSON() ?? {};
+  }, [assistant.release]);
 
-  const onSubmit = async () => {
+  const form = useForm<Pick<NonNullable<typeof assistant.release>, 'payment'>>({
+    defaultValues,
+  });
+
+  const price = form.watch('payment.price');
+
+  useEffect(() => {
+    setRelease((release) => {
+      release.payment ??= {};
+      release.payment.price = price;
+    });
+  }, [price]);
+
+  const onSubmit: Parameters<(typeof form)['handleSubmit']>[0] = async () => {
     try {
       const assistantId = assistant.id;
       const paymentEnabled = assistant.release?.payment?.enable;
@@ -144,14 +158,14 @@ function PublishViewContent({
           paymentUnitAmount,
         });
         await refetch({ force: true });
-        Toast.success(t('publish.publishSuccess'));
+        Toast.success(t('publishSuccess'));
       } else {
         await updateRelease(release.id, {
           paymentEnabled,
           paymentUnitAmount,
         });
         await refetch({ force: true });
-        Toast.success(t('publish.updateSuccess'));
+        Toast.success(t('publishUpdateSuccess'));
       }
 
       setTimeout(() => {
@@ -164,10 +178,19 @@ function PublishViewContent({
   };
 
   return (
-    <Stack px={2} mt={1} py={1} gap={2} ml={1} overflow="auto" component="form" onSubmit={form.handleSubmit(onSubmit)}>
+    <Stack
+      px={2}
+      mt={1}
+      py={1}
+      pb={2}
+      gap={2}
+      ml={1}
+      overflow="auto"
+      component="form"
+      onSubmit={form.handleSubmit(onSubmit)}>
       <FormControl>
         <Typography variant="subtitle2" mb={0.5}>
-          {t('templates')}
+          {t('designTemplate')}
         </Typography>
 
         <RadioGroup
@@ -179,27 +202,25 @@ function PublishViewContent({
             labelPlacement="top"
             control={<Radio />}
             value="chat"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-1.png')} alt="" />}
+            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-chat.svg')} alt="" />}
           />
           <StyledFormControlLabel
             labelPlacement="top"
             control={<Radio />}
             value="form"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-2.png')} alt="" />}
+            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-form.svg')} alt="" />}
           />
         </RadioGroup>
       </FormControl>
-
-      <PublishEntries assistant={assistant} />
 
       <LogoField assistant={assistant} setRelease={setRelease} />
 
       <FormControl>
         <Typography mb={0.5} variant="subtitle2">
-          {t('publish.title')}
+          {t('agentName')}
         </Typography>
         <BaseInput
-          placeholder={t('publish.titlePlaceholder')}
+          placeholder={t('agentNamePlaceholder')}
           value={assistant.release?.title || ''}
           onChange={(e) => setRelease((release) => (release.title = e.target.value))}
         />
@@ -207,46 +228,51 @@ function PublishViewContent({
 
       <FormControl>
         <Typography mb={0.5} variant="subtitle2">
-          {t('publish.description')}
+          {t('agentDescription')}
         </Typography>
         <BaseInput
           multiline
           sx={{ padding: 0 }}
-          placeholder={t('publish.descriptionPlaceholder')}
+          placeholder={t('agentDescriptionPlaceholder')}
           minRows={3}
           value={assistant.release?.description || ''}
           onChange={(e) => setRelease((release) => (release.description = e.target.value))}
         />
       </FormControl>
 
+      <PublishEntries assistant={assistant} />
+
       <FormControl>
         <Typography mb={0.5} variant="subtitle2">
-          {t('publish.conversionOpener')}
+          {t('openingText')}
         </Typography>
         <BaseInput
           multiline
           sx={{ padding: 0 }}
-          placeholder={t('publish.conversionOpenerDescription')}
+          placeholder={t('openingTextPlaceholder')}
           minRows={3}
           value={assistant.release?.openerMessage || ''}
           onChange={(e) => setRelease((release) => (release.openerMessage = e.target.value))}
         />
       </FormControl>
 
-      <TableLayout>
-        <Typography mb={0.5} variant="subtitle2">
-          {t('submit')}
-        </Typography>
+      <TableLayout component="table">
+        <tr>
+          <td colSpan={2}>
+            <Typography variant="subtitle2" noWrap sx={{ mb: 0, mt: 1 }}>
+              {t('chatButton')}
+            </Typography>
+          </td>
+        </tr>
 
-        <Box className="row">
-          <Box>
-            <FormLabel>{t('title')}</FormLabel>
-          </Box>
+        <tr>
+          <td>
+            <FormLabel>{t('buttonTitle')}</FormLabel>
+          </td>
 
-          <Box>
+          <td>
             <BaseInput
-              sx={{ padding: 0 }}
-              placeholder={t('title')}
+              fullWidth
               value={assistant.release?.submitButton?.title || ''}
               onChange={(e) =>
                 setRelease((release) => {
@@ -255,64 +281,73 @@ function PublishViewContent({
                 })
               }
             />
-          </Box>
-        </Box>
-      </TableLayout>
+          </td>
+        </tr>
 
-      <TableLayout>
-        <Typography mb={1} variant="subtitle2">
-          {t('publish.settings')}
-        </Typography>
+        <tr>
+          <td colSpan={2}>
+            <Typography variant="subtitle2" sx={{ mb: 0, mt: 1 }}>
+              {t('chatLimit')}
+            </Typography>
+          </td>
+        </tr>
 
-        <Box className="row">
-          <Box>
-            <FormLabel>{t('publish.maxRoundLimit')}</FormLabel>
-          </Box>
-          <Box>
-            <Box>
-              <NumberField
-                component={BaseInput}
-                NumberProps={{
-                  min: 0,
-                  value: assistant.release?.maxRoundLimit ?? null,
-                  onChange: (_, value) =>
-                    setRelease((release) => {
-                      release.maxRoundLimit = value;
-                    }),
-                }}
-              />
-            </Box>
-          </Box>
-        </Box>
+        <tr>
+          <td>
+            <FormLabel>{t('maxChatRoundLimit')}</FormLabel>
+          </td>
 
-        <Box className="row">
-          <Box>
-            <FormLabel>{t('publish.reachMaxRoundLimitTip')}</FormLabel>
-          </Box>
-          <Box>
-            <Box>
-              <BaseInput
-                fullWidth
-                multiline
-                value={assistant.release?.reachMaxRoundLimitTip ?? ''}
-                onChange={(e) =>
+          <td>
+            <NumberField
+              id="maxChatRoundLimit"
+              fullWidth
+              component={BaseInput}
+              NumberProps={{
+                min: 0,
+                value: assistant.release?.maxRoundLimit ?? null,
+                onChange: (_, value) =>
                   setRelease((release) => {
-                    release.reachMaxRoundLimitTip = e.target.value;
-                  })
-                }
-              />
-            </Box>
+                    release.maxRoundLimit = value;
+                  }),
+              }}
+            />
+          </td>
+        </tr>
+
+        <tr>
+          <Box component="td" sx={{ verticalAlign: 'top' }}>
+            <FormLabel sx={{ mt: 1.25, display: 'block' }}>{t('reachMaxRoundLimitTip')}</FormLabel>
           </Box>
-        </Box>
-      </TableLayout>
 
-      <Stack>
-        <Stack direction="row" gap={1} alignItems="center" className="between">
-          <Typography mb={0.5} variant="subtitle2">
-            {t('publish.payment')}
-          </Typography>
+          <td>
+            <BaseInput
+              id="reachMaxRoundLimitTip"
+              fullWidth
+              multiline
+              value={assistant.release?.reachMaxRoundLimitTip ?? ''}
+              onChange={(e) =>
+                setRelease((release) => {
+                  release.reachMaxRoundLimitTip = e.target.value;
+                })
+              }
+            />
+          </td>
+        </tr>
 
-          <FormControl>
+        <tr>
+          <td colSpan={2}>
+            <Typography mb={0.5} variant="subtitle2" mt={1}>
+              {t('payment')}
+            </Typography>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <FormLabel>{t('enabled')}</FormLabel>
+          </td>
+
+          <td>
             <Switch
               checked={assistant.release?.payment?.enable || false}
               onChange={(_, checked) =>
@@ -322,36 +357,42 @@ function PublishViewContent({
                 })
               }
             />
-          </FormControl>
-        </Stack>
+          </td>
+        </tr>
 
         {assistant.release?.payment?.enable && (
-          <Stack direction="row" gap={1} alignItems="center" className="between">
-            <Box flex={1}>
-              <FormLabel sx={{ width: 60 }}>{t('publish.price')}</FormLabel>
-            </Box>
-            <Box flex={1}>
-              <TextField
-                hiddenLabel
-                InputProps={{ endAdornment: <InputAdornment position="end">ABT / {t('publish.time')}</InputAdornment> }}
-                value={assistant.release.payment.price ?? ''}
-                onChange={(e) =>
-                  setRelease((release) => {
-                    release.payment ??= {};
-                    release.payment.price = e.target.value;
-                  })
-                }
-              />
-            </Box>
-          </Stack>
+          <tr>
+            <td>
+              <FormLabel>{t('pricing')}</FormLabel>
+            </td>
+
+            <td>
+              <Stack direction="row" alignItems="center" gap={1}>
+                <BaseInput
+                  fullWidth
+                  {...form.register('payment.price', {
+                    required: assistant.release.payment.enable ? t('pricingRequiredMessage') : undefined,
+                    pattern: {
+                      value: /^\d+(\.\d{1,5})?$/,
+                      message: t('pricingPatternMessage', { decimal: 5 }),
+                    },
+                    min: { value: 0.00001, message: t('pricingPatternMessage', { decimal: 5 }) },
+                    max: { value: 1000000, message: t('pricingInvalidMessage') },
+                  })}
+                />
+                <Typography component="span">{t('pricingUnit')}</Typography>
+              </Stack>
+              {form.formState.errors.payment?.price?.message && (
+                <FormHelperText error>{form.formState.errors.payment?.price?.message}</FormHelperText>
+              )}
+            </td>
+          </tr>
         )}
-      </Stack>
+      </TableLayout>
 
       {release && releaseUrl && (
-        <Stack gap={1}>
-          <Typography mb={0.5} variant="subtitle2">
-            {t('publish.link')}
-          </Typography>
+        <Stack>
+          <Typography variant="subtitle2">{t('publishedLink')}</Typography>
 
           <Link href={releaseUrl} target="_blank" sx={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
             <Typography component="span" sx={{ textOverflow: 'ellipsis', overflow: 'hidden', flexShrink: 1 }}>
@@ -361,7 +402,7 @@ function PublishViewContent({
             <LaunchRounded sx={{ color: 'text.secondary', fontSize: 16 }} />
           </Link>
 
-          <Box component={QRCode} value={releaseUrl} sx={{ width: 120, height: 120 }} />
+          <Box component={QRCode} value={releaseUrl} sx={{ width: 120, height: 120, mt: 1 }} />
 
           <Box color="text.secondary">
             <Typography component="span" mr={1}>
@@ -379,8 +420,9 @@ function PublishViewContent({
           type="submit"
           loading={form.formState.isSubmitting}
           variant="contained"
+          loadingPosition="start"
           startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}>
-          {release ? t('publish.republishProject') : t('publish.publishProject')}
+          {release ? t('publishUpdate') : t('publish')}
         </LoadingButton>
       </Stack>
     </Stack>
@@ -388,24 +430,15 @@ function PublishViewContent({
 }
 
 const TableLayout = styled(Box)`
-  display: table;
+  td {
+    white-space: nowrap;
 
-  .row {
-    display: table-row;
+    &:first-of-type {
+      padding-right: 16px;
+    }
 
-    > div {
-      display: table-cell;
-      white-space: nowrap;
-      padding-top: 2px;
-      padding-bottom: 2px;
-
-      &:first-of-type {
-        padding-right: 16px;
-      }
-
-      &:last-of-type {
-        width: 100%;
-      }
+    &:last-of-type {
+      width: 100%;
     }
   }
 `;

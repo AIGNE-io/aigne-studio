@@ -1,4 +1,5 @@
 import { ArrowDropDownRounded } from '@mui/icons-material';
+import { loadingButtonClasses } from '@mui/lab';
 import {
   autocompleteClasses,
   filledInputClasses,
@@ -728,6 +729,10 @@ export const theme = createTheme({
 
           '&:hover': {
             backgroundColor: '#030712',
+          },
+
+          [`&.${loadingButtonClasses.loading}`]: {
+            color: 'grey',
           },
         },
         outlined: {

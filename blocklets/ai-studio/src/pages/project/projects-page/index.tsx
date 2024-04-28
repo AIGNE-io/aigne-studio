@@ -280,7 +280,7 @@ function ProjectMenu() {
         },
         {
           visible: () => menuAnchor?.section === 'projects' || menuAnchor?.section === 'examples',
-          title: t('duplicate'),
+          title: t('copyToMyProjects'),
           icon: <Box component={Icon} icon="tabler:copy" />,
           onClick: async () => {
             checkProjectLimit();

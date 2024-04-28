@@ -35,5 +35,6 @@ module.exports = {
     'no-param-reassign': 'off',
     'unicorn/filename-case': 'off',
     '@typescript-eslint/return-await': 'off',
+    'jsx-a11y/control-has-associated-label': 'off',
   },
 };

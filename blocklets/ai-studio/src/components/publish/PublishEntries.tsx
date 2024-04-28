@@ -34,7 +34,7 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
     <Stack>
       <Box className="between">
         <Typography variant="subtitle2" mb={0.5}>
-          {t('entries')}
+          {t('openingQuestion')}
         </Typography>
 
         <Button
@@ -83,7 +83,7 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
         onClose={() => setCurrentId(undefined)}
         fullWidth
         maxWidth="sm">
-        <DialogTitle>{t('entry')}</DialogTitle>
+        <DialogTitle>{t('openingQuestion')}</DialogTitle>
         <DialogContent>{current && <PublishEntriesForm assistant={assistant} entry={current} />}</DialogContent>
         <DialogActions>
           <Button type="submit" variant="contained" onClick={() => setCurrentId(undefined)}>
@@ -168,13 +168,13 @@ function PublishEntriesForm({
   return (
     <Stack gap={1}>
       <TextField
-        label={t('title')}
+        label={t('openingQuestion')}
         multiline
         value={entry.title || ''}
         onChange={(e) => (entry.title = e.target.value)}
       />
 
-      <Typography variant="subtitle2">{t('parameters')}</Typography>
+      <Typography variant="subtitle2">{t('input')}</Typography>
 
       {parameters.map(({ data: parameter }) => {
         return (

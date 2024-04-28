@@ -1,3 +1,10 @@
+## 0.1.349 (2024-4-28)
+
+- fix: validate price number
+- fix: update labels for publish
+- fix: correct response of image generations
+- fix: display agent logo by did avatar component
+
 ## 0.1.348 (2024-4-28)
 
 - feat: new ui design implementation
