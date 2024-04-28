@@ -202,13 +202,13 @@ function PublishViewContent({
             labelPlacement="top"
             control={<Radio />}
             value="chat"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-1.png')} alt="" />}
+            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-chat.svg')} alt="" />}
           />
           <StyledFormControlLabel
             labelPlacement="top"
             control={<Radio />}
             value="form"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-2.png')} alt="" />}
+            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-form.svg')} alt="" />}
           />
         </RadioGroup>
       </FormControl>
