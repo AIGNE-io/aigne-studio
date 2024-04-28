@@ -186,7 +186,7 @@ function PublishViewContent({
       onSubmit={form.handleSubmit(onSubmit)}>
       <FormControl>
         <Typography variant="subtitle2" mb={0.5}>
-          {t('designTemplate')}
+          {t('appearanceTemplate')}
         </Typography>
 
         <RadioGroup
@@ -263,12 +263,13 @@ function PublishViewContent({
 
         <tr>
           <td>
-            <FormLabel>{t('buttonTitle')}</FormLabel>
+            <FormLabel>{t('buttonText')}</FormLabel>
           </td>
 
           <td>
             <BaseInput
               fullWidth
+              placeholder={t('send')}
               value={assistant.release?.submitButton?.title || ''}
               onChange={(e) =>
                 setRelease((release) => {
