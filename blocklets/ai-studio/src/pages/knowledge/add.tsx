@@ -196,7 +196,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
             sx={{ mb: 2 }}
             type="submit"
             variant="contained"
-            disabled={!file}
+            disabled={!file || loading}
             startIcon={loading ? <CircularProgress sx={{ color: '#fff' }} size={16} /> : null}
             onClick={async () => {
               try {
@@ -223,7 +223,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 setLoading(false);
               }
             }}>
-            {t('save')}
+            {loading ? t('processing') : t('save')}
           </LoadingButton>
         </Box>
       </Stack>
