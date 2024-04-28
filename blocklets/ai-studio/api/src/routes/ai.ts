@@ -46,6 +46,7 @@ const callInputSchema = Joi.object<{
   working?: boolean;
   assistantId: string;
   parameters?: { [key: string]: any };
+  debug?: boolean;
 }>({
   userId: Joi.string().empty(['', null]),
   sessionId: Joi.string().empty(['', null]),
@@ -56,6 +57,7 @@ const callInputSchema = Joi.object<{
   parameters: Joi.object({
     $clientTime: Joi.string().isoDate().empty([null, '']),
   }).pattern(Joi.string(), Joi.any()),
+  debug: Joi.boolean().default(false),
 });
 
 router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (req, res) => {
@@ -246,7 +248,14 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       }
     }
 
-    if (userId && release?.paymentEnabled && release.paymentProductId) {
+    let debug = false;
+    if (input.debug && userId) {
+      if ([project.createdBy].includes(userId) && ['owner', 'admin'].includes(req.user?.role || '')) {
+        debug = true;
+      }
+    }
+
+    if (!debug && userId && release?.paymentEnabled && release.paymentProductId) {
       if (
         !(await getActiveSubscriptionOfAssistant({
           aid: stringifyIdentity({ projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId }),
