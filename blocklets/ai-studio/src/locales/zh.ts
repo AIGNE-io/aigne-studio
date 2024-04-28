@@ -285,7 +285,7 @@ export default flat({
   sync: '同步',
   synced: '已同步',
   syncedAt: '同步于',
-  viewData: '查看数据',
+  viewData: '查看DID空间上的数据',
   mergeConflict: '合并冲突',
   mergeConflictTip: '远程数据已被更改，无法自动合并！',
   useRemote: '使用远程数据',
