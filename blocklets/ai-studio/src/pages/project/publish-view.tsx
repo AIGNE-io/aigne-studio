@@ -104,13 +104,9 @@ function PublishViewContent({
   const releaseUrl = useMemo(() => {
     if (!release) return undefined;
     const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
-    // FIXME: change path to `/ai/chat`
-    return withQuery(
-      joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/chat/debug'),
-      {
-        assistantId: btoa([projectId, projectRef, assistant.id].join('/')),
-      }
-    );
+    return withQuery(joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/runtime'), {
+      assistantId: btoa([projectId, projectRef, assistant.id].join('/')),
+    });
   }, [release]);
 
   useEffect(() => {
