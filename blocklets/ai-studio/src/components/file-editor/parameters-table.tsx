@@ -110,7 +110,7 @@ export default function ParametersTable({
     return [
       {
         field: 'key',
-        width: '16%' as any,
+        width: '30%' as any,
         headerName: t('name'),
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.key === 'question' || parameter.key === 'datasetId') {

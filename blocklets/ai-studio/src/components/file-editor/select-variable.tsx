@@ -1,16 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { VariableYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
-import {
-  Autocomplete,
-  Box,
-  Button,
-  IconButton,
-  MenuItem,
-  TextField,
-  Typography,
-  createFilterOptions,
-} from '@mui/material';
+import { Autocomplete, Box, IconButton, MenuItem, TextField, Typography, createFilterOptions } from '@mui/material';
 import { cloneDeep } from 'lodash';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -135,14 +126,14 @@ function SelectVariable({
         </Box>
       )}
 
-      <Button
+      {/* <Button
         sx={{ ml: -0.5 }}
         endIcon={<Box component={Icon} icon="tabler:arrow-right" />}
         onClick={() => {
           navigate(`/projects/${projectId}/variables/${gitRef}`);
         }}>
         {t('newObject', { object: t('memory.title') })}
-      </Button>
+      </Button> */}
     </Box>
   );
 }

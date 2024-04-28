@@ -693,4 +693,10 @@ export default flat({
   selectKnowledgePlaceholder: 'Select a knowledge to query',
   selectMemoryPlaceholder: 'Select a memory',
   selectAgentToCallPlaceholder: 'Select a agent to calling',
+  outputVariableName: 'Output field name',
+  outputVariablePlaceholder: 'Describe this field (optional)',
+  outputVariablePlaceholderForLLM: 'Prompt to LLM how to fill this field',
+  outputParameterRequiredLabel: 'Is this output field required',
+  outputParameterDefaultValuePlaceholder: 'Give this field a default value if LLM has not filled it',
+  close: 'Close',
 });

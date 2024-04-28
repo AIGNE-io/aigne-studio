@@ -688,4 +688,10 @@ export default flat({
   selectKnowledgePlaceholder: '选择需要查询的知识',
   selectMemoryPlaceholder: '选择一个记忆',
   selectAgentToCallPlaceholder: '选择一个 Agent 去调用',
+  outputVariableName: '输出字段的名称',
+  outputVariablePlaceholder: '描述这个字段 (可选)',
+  outputVariablePlaceholderForLLM: '提示 LLM 怎么生成该字段的内容',
+  outputParameterRequiredLabel: '该输出字段是否必填',
+  outputParameterDefaultValuePlaceholder: '给这个字段一个默认值（如果 LLM 没有填充它的话）',
+  close: '关闭',
 });

@@ -4,7 +4,7 @@ import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, OutputVariableYjs, VariableYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, VariableYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import { Close } from '@mui/icons-material';
@@ -87,7 +87,9 @@ export default function OutputSettings({
           <Table size="small">
             <TableHead>
               <TableRow>
-                <Box component={TableCell}>{t('name')}</Box>
+                <Box component={TableCell} width="30%">
+                  {t('name')}
+                </Box>
                 <Box component={TableCell}>{t('description')}</Box>
                 <Box component={TableCell}>{t('type')}</Box>
                 <Box component={TableCell} align="right">
@@ -199,7 +201,7 @@ function VariableRow({
                 disabled={Boolean(disabled)}
                 fullWidth
                 hiddenLabel
-                placeholder={t('name')}
+                placeholder={t('outputVariableName')}
                 value={v.name || ''}
                 onChange={(e) => (v.name = e.target.value)}
               />
@@ -208,11 +210,18 @@ function VariableRow({
         </Box>
         <Box component={TableCell}>
           <TextField
+            sx={{
+              visibility: [RuntimeOutputVariable.text, RuntimeOutputVariable.images].includes(
+                v.name as RuntimeOutputVariable
+              )
+                ? 'hidden'
+                : undefined,
+            }}
             variant="standard"
             disabled={Boolean(disabled)}
             fullWidth
             hiddenLabel
-            placeholder={t('placeholder')}
+            placeholder={t(value.type === 'prompt' ? 'outputVariablePlaceholderForLLM' : 'outputVariablePlaceholder')}
             value={v.description || ''}
             onChange={(e) => (v.description = e.target.value)}
           />
@@ -380,6 +389,7 @@ function PopperButton({
                 hiddenLabel
                 fullWidth
                 multiline
+                placeholder={t('outputParameterDefaultValuePlaceholder')}
                 value={parameter.defaultValue || ''}
                 onChange={(e) => (parameter.defaultValue = e.target.value)}
               />
@@ -392,6 +402,7 @@ function PopperButton({
                 disabled={Boolean(disabled)}
                 hiddenLabel
                 fullWidth
+                placeholder={t('outputParameterDefaultValuePlaceholder')}
                 value={parameter.defaultValue || ''}
                 onChange={(value) => (parameter.defaultValue = value)}
               />
@@ -401,8 +412,9 @@ function PopperButton({
           <Box>
             <FormControl>
               <FormControlLabel
-                sx={{ display: 'flex', alignItems: 'center' }}
-                label={t('required')}
+                sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+                labelPlacement="start"
+                label={t('outputParameterRequiredLabel')}
                 control={
                   <BaseSwitch
                     sx={{ mr: 1, mt: '1px' }}
@@ -426,6 +438,7 @@ function PopperButton({
 
           <Box>
             <SelectVariable
+              placeholder={t('selectMemoryPlaceholder')}
               variables={variables}
               variable={variable}
               onDelete={() => {
@@ -499,11 +512,7 @@ function PopperButton({
 
         <DialogActions>
           <Button variant="outlined" onClick={dialogState.close}>
-            {t('cancel')}
-          </Button>
-
-          <Button variant="contained" onClick={dialogState.close}>
-            {t('save')}
+            {t('close')}
           </Button>
         </DialogActions>
       </Dialog>
