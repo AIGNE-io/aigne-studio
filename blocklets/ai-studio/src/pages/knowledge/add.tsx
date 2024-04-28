@@ -43,7 +43,7 @@ import DiscussList from './discuss';
 function formatBytes(bytes: number, decimals = 2) {
   if (bytes === 0) return '0 Bytes';
 
-  const k = 1024;
+  const k = 1000;
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
@@ -120,6 +120,8 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
 
     setFile(files[0]);
   };
+
+  console.log(file);
 
   return (
     <Box maxWidth="720px">
