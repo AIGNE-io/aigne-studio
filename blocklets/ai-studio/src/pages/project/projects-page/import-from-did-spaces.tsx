@@ -98,13 +98,37 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
   const hasDidSpace = didSpaceReady(session.user);
   const useDidWallet = !!getWalletDid(session.user);
 
+  const requireBindWallet = () => {
+    connectApi.open({
+      prefix: joinURL(window.location.origin, '/.well-known/service/api/did'),
+      action: 'bind-wallet',
+      messages: {
+        title: t('import.bindWallet.title'),
+        scan: t('import.bindWallet.scan'),
+        confirm: t('import.bindWallet.confirm'),
+        success: t('import.bindWallet.success'),
+      },
+      extraParams: {
+        previousUserDid: session?.user?.did,
+      },
+      onSuccess: async () => {
+        window.location.reload();
+      },
+    });
+  };
+
   const fromCurrentDidSpaceImport = useCallback(async () => {
     const goToImport = async () => {
       const importUrl = await getImportUrl(session?.user?.didSpace?.endpoint, { redirectUrl: window.location.href });
       window.location.href = importUrl;
     };
 
-    await goToImport();
+    onClose();
+    if (useDidWallet) {
+      await goToImport();
+    } else {
+      requireBindWallet();
+    }
   }, [session?.user?.didSpace?.endpoint]);
 
   const fromOtherDidSpaceImport = useCallback(() => {
@@ -120,23 +144,11 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
     };
 
     onClose();
-    if (!useDidWallet) {
-      connectApi.open({
-        prefix: joinURL(window.location.origin, '/.well-known/service/api/did'),
-        action: 'bind-wallet',
-        messages: {
-          title: '请先绑定 DID Wallet 以完成导入',
-          scan: '使用你的 DID Wallet 扫描下面的二维码，绑定 DID Wallet',
-          confirm: '使用 DID Wallet 确认',
-          success: '恭喜你，绑定成功！',
-        },
-        extraParams: {
-          previousUserDid: session?.user?.did,
-        },
-      });
-      return;
+    if (useDidWallet) {
+      goToImport();
+    } else {
+      requireBindWallet();
     }
-    goToImport();
   }, [onClose, session, t, useDidWallet]);
 
   return (
