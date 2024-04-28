@@ -671,6 +671,7 @@ export default flat({
   input: 'Input',
   designTemplate: 'Design template',
   question: 'Chat',
+  questionInputTitle: 'Chat question input',
   datasetId: 'Use Knowledge',
   customize: 'Customize',
   saveAs: 'Save to memory',

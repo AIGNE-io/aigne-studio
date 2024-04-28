@@ -89,7 +89,7 @@ export default function HeaderActions() {
                 sx={{
                   border: '1px solid #ddd',
                   maxWidth: 450,
-                  with: '100%',
+                  width: '100%',
                   maxHeight: '80vh',
                   overflow: 'auto',
                   mt: 1,
