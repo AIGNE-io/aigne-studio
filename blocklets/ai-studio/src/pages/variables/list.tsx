@@ -113,12 +113,12 @@ function VariableList() {
     () => [
       {
         field: 'title',
-        headerName: t('variables.name'),
+        headerName: t('memory.name'),
         renderCell: (params: any) => params?.key || t('unnamed'),
       },
       {
         field: 'count',
-        headerName: t('variables.type'),
+        headerName: t('memory.type'),
         renderCell: (params: any) => {
           return <Box>{params?.type?.type}</Box>;
         },
@@ -295,7 +295,7 @@ function VariableList() {
               render={({ field: { ref, ...field }, fieldState }) => {
                 return (
                   <Box>
-                    <Typography variant="subtitle2">{t('outputVariableParameter.key')}</Typography>
+                    <Typography variant="subtitle2">{t('memory.name')}</Typography>
                     <TextField
                       inputRef={ref}
                       autoFocus
@@ -378,7 +378,7 @@ function VariableList() {
                 const { value } = field;
                 return (
                   <Box>
-                    <Typography variant="subtitle2">{t('outputVariableParameter.dataType')}</Typography>
+                    <Typography variant="subtitle2">{t('memory.type')}</Typography>
 
                     <Box display="flex" gap={2} alignItems="center">
                       <VariableTypeField

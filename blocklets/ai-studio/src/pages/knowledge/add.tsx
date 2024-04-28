@@ -164,7 +164,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 alignItems="center"
                 sx={{ cursor: 'pointer' }}>
                 <Box className="center" gap={1}>
-                  <Box component={Icon} icon="tabler:arrow-bar-to-up" />
+                  <Box component={Icon} icon="tabler:upload" />
                   <Typography>{t('importFiles')}</Typography>
                 </Box>
 
@@ -597,7 +597,7 @@ export default function KnowledgeDocumentsAdd() {
       id: 'file',
       icon: (
         <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
-          <Box component={Icon} icon="tabler:file-description" fontSize={20} color="#3B82F6" />
+          <Box component={Icon} icon="tabler:upload" fontSize={20} color="#3B82F6" />
         </Box>
       ),
       title: t('knowledge.documents.file.title'),
@@ -640,16 +640,16 @@ export default function KnowledgeDocumentsAdd() {
             }}>
             <Box component={Icon} icon="tabler:chevron-left" width={20} />
             <Typography variant="subtitle2" mb={0}>
-              {state.dataset?.name}
+              {t('addDocumentToDataset', { dataset: state.dataset?.name })}
             </Typography>
           </Box>
 
-          <Box display="flex" alignItems="center">
+          {/* <Box display="flex" alignItems="center">
             <Box width={20} />
             <Typography variant="subtitle2" color="#4B5563" fontWeight={400} mb={0}>
-              {state.dataset?.name}
+              {state.dataset?.d}
             </Typography>
-          </Box>
+          </Box> */}
         </Box>
       </Stack>
 

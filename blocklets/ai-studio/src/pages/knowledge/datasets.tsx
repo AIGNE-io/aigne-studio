@@ -251,7 +251,7 @@ function DatasetItem({
         }}>
         <Stack flexDirection="row" gap={1.5}>
           <Box width={72} height={72} className="center" bgcolor="#E5E7EB" borderRadius={1}>
-            <Box component={Icon} icon="tabler:book-2" fontSize={24} />
+            <Box component={Icon} icon="tabler:book-2" fontSize={30} />
           </Box>
 
           <Box width={0} flex={1}>
@@ -393,7 +393,7 @@ function DatasetItem({
           </Box>
         </Stack>
 
-        <Typography variant="subtitle5">{`${documents || 0} ${t('knowledge.document')}`}</Typography>
+        <Typography variant="subtitle5">{`${documents || 0} ${(documents || 0) > 0 ? t('knowledge.documents.documents') : t('knowledge.documents.document')}`}</Typography>
       </DatasetItemRoot>
 
       {dialog}

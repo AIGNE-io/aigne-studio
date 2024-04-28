@@ -444,15 +444,16 @@ export default flat({
   knowledge: {
     menu: '知识',
     parameter: '用户知识',
-    createTitle: '创建知识',
+    createTitle: '添加知识',
     updateTitle: '更新知识',
     createDescription: '导入您自己的文本数据以增强LLM 的上下文。',
     name: '知识名称',
     description: '知识描述',
     deleteTitle: '删除这个知识？',
     deleteDescription: '删除后，相关助手中的引用将失效。',
-    document: '文档',
     documents: {
+      document: '文档',
+      documents: '文档',
       create: '创建文档',
       add: '添加文档',
       edit: '更新文档',
@@ -473,8 +474,8 @@ export default flat({
         description: '从讨论文档中获取内容',
       },
       custom: {
-        title: '自定义文档',
-        description: '自定义内容文档',
+        title: '输入文档内容',
+        description: '输入文档内容',
       },
     },
     segments: {
@@ -631,6 +632,8 @@ export default flat({
     saveMemory: '保存记忆',
     add: '添加新的记忆',
     empty: '没有数据',
+    name: '名称',
+    type: '数据类型',
   },
   source: '其他数据源',
   clickToUploadAgentLogo: '点击上传 Agent 头像',
@@ -672,4 +675,5 @@ export default flat({
   llm: '大语言模型',
   imageGeneration: '图片生成',
   code: '代码',
+  addDocumentToDataset: '向{dataset}添加文档',
 });

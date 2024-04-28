@@ -4,6 +4,7 @@ import { Icon } from '@iconify-icon/react';
 import { Box, Button, CircularProgress, Stack, Tooltip, Typography, styled } from '@mui/material';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { useReactive } from 'ahooks';
+import dayjs from 'dayjs';
 import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -170,6 +171,15 @@ export default function KnowledgeDocuments() {
               {params.row.embeddingStatus}
             </Box>
           );
+        },
+      },
+      {
+        field: 'time',
+        headerName: t('knowledge.documents.time'),
+        flex: 1,
+        sortable: false,
+        renderCell: (params: any) => {
+          return <Box>{dayjs(params.row.createdAt).format('YYYY-MM-DD HH:mm:ss')}</Box>;
         },
       },
       {

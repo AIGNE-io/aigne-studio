@@ -91,10 +91,20 @@ function SelectVariable({
               );
             }
 
-            return null;
+            return (
+              <MenuItem onClick={() => navigate(`/projects/${projectId}/variables/${gitRef}`)}>
+                <Box sx={{ cursor: 'pointer' }}>{t('newObject', { object: t('memory.title') })}</Box>
+              </MenuItem>
+            );
           }}
           filterOptions={(_, params) => {
             const filtered = filter(sortVariables(variables), params);
+
+            const found = filtered.find((x) => !x.key);
+            if (!found) {
+              filtered.push({ key: '' });
+            }
+
             return filtered;
           }}
           onChange={(_, _value) => {
