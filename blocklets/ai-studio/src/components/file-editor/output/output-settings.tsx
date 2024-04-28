@@ -144,6 +144,7 @@ export default function OutputSettings({
 }
 
 function VariableRow({
+  parent,
   value,
   variable,
   depth = 0,
@@ -152,6 +153,7 @@ function VariableRow({
   gitRef,
   disabled,
 }: {
+  parent?: OutputVariableYjs;
   value: AssistantYjs;
   variable: OutputVariableYjs;
   depth?: number;
@@ -198,7 +200,7 @@ function VariableRow({
             ) : (
               <TextField
                 variant="standard"
-                disabled={Boolean(disabled)}
+                disabled={Boolean(disabled) || parent?.type === 'array'}
                 fullWidth
                 hiddenLabel
                 placeholder={t('outputVariableName')}
@@ -320,6 +322,7 @@ function VariableRow({
         sortBy(Object.values(v.properties), 'index').map((property) => (
           <React.Fragment key={property.data.id}>
             <VariableRow
+              parent={v}
               disabled={Boolean(variable.variable?.key || disabled)}
               value={value}
               variable={property.data}
@@ -339,6 +342,7 @@ function VariableRow({
 
       {!runtimeVariable && v.type === 'array' && v.element && (
         <VariableRow
+          parent={v}
           disabled={Boolean(variable.variable?.key || disabled)}
           projectId={projectId}
           gitRef={gitRef}
