@@ -669,6 +669,8 @@ export default flat({
   payment: 'Payment',
   openingQuestion: 'Opening question',
   input: 'Input',
+  appearance: 'Appearance',
+  dialog: 'Dialog',
   appearanceTemplate: 'Appearance (Template)',
   question: 'Chat',
   questionInputTitle: 'Chat question input',

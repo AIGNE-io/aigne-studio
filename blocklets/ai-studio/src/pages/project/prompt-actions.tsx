@@ -87,7 +87,9 @@ export default function HeaderActions() {
           sx={{
             zIndex: 1101,
             maxWidth: 450,
+            maxHeight: '80vh',
             width: '100%',
+            height: '100%',
           }}
           transition
           placement="bottom-end">
@@ -96,7 +98,7 @@ export default function HeaderActions() {
               <Paper
                 sx={{
                   border: '1px solid #ddd',
-                  maxHeight: '80vh',
+                  height: '100%',
                   overflow: 'auto',
                   mt: 1,
                 }}>

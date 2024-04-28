@@ -665,6 +665,8 @@ export default flat({
   payment: '付费',
   openingQuestion: '开场问题',
   input: '输入',
+  appearance: '外观',
+  dialog: '对话',
   appearanceTemplate: '外观（模板）',
   questionInputTitle: '对话问题输入',
   datasetId: '使用知识库',
