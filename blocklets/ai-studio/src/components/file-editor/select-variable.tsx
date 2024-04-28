@@ -30,12 +30,15 @@ function sortVariables(variables: VariableYjs[]) {
 }
 
 const filter = createFilterOptions<any>();
+
 function SelectVariable({
+  placeholder,
   variables,
   variable,
   onChange,
   onDelete,
 }: {
+  placeholder?: string;
   variables: VariableYjs[];
   variable?: VariableYjs;
   onDelete?: () => void;
@@ -61,7 +64,7 @@ function SelectVariable({
           // groupBy={(option) => option.scope || ''}
           getOptionLabel={(option) => `${option.key}`}
           sx={{ width: 1, flex: 1 }}
-          renderInput={(params) => <TextField hiddenLabel {...params} />}
+          renderInput={(params) => <TextField hiddenLabel {...params} placeholder={placeholder} />}
           key={Boolean(variable).toString()}
           disableClearable
           clearOnBlur
