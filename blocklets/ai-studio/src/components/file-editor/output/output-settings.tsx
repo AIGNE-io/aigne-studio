@@ -74,16 +74,14 @@ export default function OutputSettings({
         </Box>
       </Stack>
 
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
+      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5, overflow: 'auto' }}>
         <Box
           sx={{
-            borderBottom: () => (outputVariables?.length ? '1px solid rgba(224, 224, 224, 1)' : 0),
             whiteSpace: 'nowrap',
             maxWidth: '100%',
             table: {
-              th: { pt: 0, px: 0 },
-              td: { py: 0, px: 0 },
-              'tbody tr:last-of-type td': { border: 'none' },
+              'th,td': { py: 0, px: 0, '&:not(:first-of-type)': { pl: 1 } },
+              th: { pb: 0.5 },
             },
           }}>
           <Table size="small">
