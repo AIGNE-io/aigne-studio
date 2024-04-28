@@ -4,6 +4,7 @@ import { useSessionContext } from '@app/contexts/session';
 import { didSpaceReady, getImportUrl } from '@app/libs/did-spaces';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { getWalletDid } from '@arcblock/ux/lib/SessionUser/libs/utils';
 import Toast from '@arcblock/ux/lib/Toast';
 import ArrowRightAltRoundedIcon from '@iconify-icons/material-symbols/arrow-right-alt-rounded';
 import { Icon } from '@iconify/react';
@@ -79,7 +80,7 @@ function ImportWayItem({
       }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         {icon}
-        <Typography sx={{ fontSize: '16px', fontWeight: 'bold' }}>{text}</Typography>
+        <Typography sx={{ fontSize: '16px' }}>{text}</Typography>
       </Box>
       <Icon
         className="other-item-icon"
@@ -93,25 +94,50 @@ function ImportWayItem({
 
 export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClose: () => void }) {
   const { t } = useLocaleContext();
-  const { session } = useSessionContext();
+  const { session, connectApi } = useSessionContext();
   const hasDidSpace = didSpaceReady(session.user);
+  const useDidWallet = !!getWalletDid(session.user);
 
   const fromCurrentDidSpaceImport = useCallback(async () => {
-    const importUrl = await getImportUrl(session?.user?.didSpace?.endpoint, { redirectUrl: window.location.href });
-    window.location.href = importUrl;
+    const goToImport = async () => {
+      const importUrl = await getImportUrl(session?.user?.didSpace?.endpoint, { redirectUrl: window.location.href });
+      window.location.href = importUrl;
+    };
+
+    await goToImport();
   }, [session?.user?.didSpace?.endpoint]);
 
   const fromOtherDidSpaceImport = useCallback(() => {
-    session.connectToDidSpaceForImport({
-      onSuccess: (response: { importUrl: string }, decrypt: (value: string) => string) => {
-        const importUrl = decrypt(response.importUrl);
-        window.location.href = withQuery(importUrl, {
-          redirectUrl: window.location.href,
-        });
-      },
-    });
+    const goToImport = () => {
+      session.connectToDidSpaceForImport({
+        onSuccess: (response: { importUrl: string }, decrypt: (value: string) => string) => {
+          const importUrl = decrypt(response.importUrl);
+          window.location.href = withQuery(importUrl, {
+            redirectUrl: window.location.href,
+          });
+        },
+      });
+    };
+
     onClose();
-  }, [session]);
+    if (!useDidWallet) {
+      connectApi.open({
+        prefix: joinURL(window.location.origin, '/.well-known/service/api/did'),
+        action: 'bind-wallet',
+        messages: {
+          title: '请先绑定 DID Wallet 以完成导入',
+          scan: '使用你的 DID Wallet 扫描下面的二维码，绑定 DID Wallet',
+          confirm: '使用 DID Wallet 确认',
+          success: '恭喜你，绑定成功！',
+        },
+        extraParams: {
+          previousUserDid: session?.user?.did,
+        },
+      });
+      return;
+    }
+    goToImport();
+  }, [onClose, session, t, useDidWallet]);
 
   return (
     <Dialog open disableEnforceFocus maxWidth="sm" fullWidth component="form" onClose={onClose}>
