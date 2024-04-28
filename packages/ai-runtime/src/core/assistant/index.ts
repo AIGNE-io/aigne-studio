@@ -977,14 +977,14 @@ async function runPromptAssistant({
       },
     });
 
-    if (memories.length) {
-      messages.splice(lastSystemIndex, 0, {
+    if (Array.isArray(memories) && memories.length) {
+      messages.splice(lastSystemIndex + 1, 0, {
         role: 'system',
         content: `## Memory
-        Here is the chat memories between user and assistant, inside <memories></memories> XML tags.
-        <memories>
-        ${JSON.stringify(memories)}
-        </memories>`,
+Here is the chat memories between user and assistant, inside <memories></memories> XML tags.
+<memories>
+${memories.map((i) => `${i.role}: ${JSON.stringify(i.content)}`).join('\n')}
+</memories>`,
       });
     }
   }
