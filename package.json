@@ -17,7 +17,7 @@
     "clean:deps": "rimraf ./**/node_modules",
     "build:libs": "pnpm -F @blocklet/* build",
     "prepare": "husky install",
-    "bump-version": "zx scripts/bump-version.mjs && pnpm install",
+    "bump-version": "zx scripts/bump-version.mjs",
     "update:deps": "npx -y taze -r -w && pnpm install"
   },
   "lint-staged": {
