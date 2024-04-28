@@ -93,11 +93,14 @@ const projectStore = (projectId: string, gitRef: string) => {
 
       const store = syncedStore<State>({ files: {}, tree: {} }, doc);
 
+      const indexeddb = new IndexeddbPersistence(`${projectId}-${gitRef}`, doc);
+
       return {
         store,
         awareness: { clients: {}, files: {} },
         provider,
         synced: provider.synced,
+        indexeddb,
       };
     })(),
   });
@@ -193,9 +196,6 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
   }, [projectId, gitRef]);
 
   const syncedStore = useSyncedStore(store.store, [store.store]);
-
-  const doc = useMemo(() => getYjsDoc(syncedStore), [syncedStore]);
-  useMemo(() => new IndexeddbPersistence(`${projectId}-${gitRef}`, doc), [projectId, gitRef, doc]);
 
   return {
     ...store,
