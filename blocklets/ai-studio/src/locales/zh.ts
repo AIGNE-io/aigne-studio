@@ -119,7 +119,7 @@ export default flat({
   inputParameters: '输入',
   fnArgs: '函数参数',
   images: '图片',
-  promptMessages: 'Prompt 发送给 AI 的输入',
+  promptMessages: '提示词',
   temperature: '随机性 temperature',
   temperatureTip:
     '调整 temperature 可以控制生成文本的多样性。低 temperature 会使生成的文本更加一致和可预测，而高 temperature 会增加文本的随机性和创造性。',

@@ -120,7 +120,7 @@ export default flat({
   images: 'Images',
   inputParameters: 'Input',
   fnArgs: 'Function parameters',
-  promptMessages: 'Prompt To AI Input',
+  promptMessages: 'Prompts',
   temperature: 'temperature',
   temperatureTip:
     'Adjusting the temperature can control the diversity of generated text. A low temperature will make the generated text more consistent and predictable, while a high temperature will increase the randomness and creativity of the text.',
