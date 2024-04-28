@@ -663,7 +663,7 @@ export default flat({
   openingQuestion: '开场问题',
   input: '输入',
   designTemplate: '外观模板',
-  question: '聊天模式',
+  questionInputTitle: '对话问题输入',
   datasetId: '使用知识库',
   customize: '自定义',
   saveAs: '数据另存为',

@@ -370,7 +370,7 @@ export default function ParametersTable({
                 <ListItemIcon>
                   <Box component={Icon} icon="tabler:message" />
                 </ListItemIcon>
-                <ListItemText primary={t('question')} />
+                <ListItemText primary={t('questionInputTitle')} />
               </MenuItem>
 
               {/* <MenuItem onClick={() => addParameter('datasetId')}>
