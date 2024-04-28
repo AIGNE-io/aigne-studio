@@ -672,7 +672,7 @@ export default flat({
   customize: 'Customize',
   saveAs: 'Save As',
   dataSource: 'Data Source',
-  outputAs: 'Output as Variable/Memory',
+  customOutputField: 'Custom output field',
   llm: 'LLM',
   imageGeneration: 'Image Generation',
   code: 'Code',

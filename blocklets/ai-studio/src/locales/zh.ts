@@ -667,7 +667,7 @@ export default flat({
   datasetId: '使用知识库',
   customize: '自定义',
   saveAs: '数据另存为',
-  outputAs: '自定义输出结构/保存结果',
+  customOutputField: '自定义输出字段',
   dataSource: '数据来源',
   llm: '大语言模型',
   imageGeneration: '图片生成',
