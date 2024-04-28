@@ -17,7 +17,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
 
         <TextField
           fullWidth
-          placeholder={t('label')}
           hiddenLabel
           size="medium"
           value={value.label || ''}
@@ -32,7 +31,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         <TextField
           fullWidth
           hiddenLabel
-          placeholder={t('placeholder')}
           size="medium"
           value={value.placeholder || ''}
           onChange={(e) => (value.placeholder = e.target.value)}
@@ -48,7 +46,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           parameter={parameterFromYjs(value)}
           hiddenLabel
           fullWidth
-          placeholder={t('defaultValue')}
           size="medium"
           value={value.defaultValue ?? ''}
           onChange={(defaultValue: any) => (value.defaultValue = defaultValue)}
@@ -72,7 +69,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
                 sx={{ width: 1 }}
                 fullWidth
                 hiddenLabel
-                placeholder={t('minLength')}
                 size="medium"
                 NumberProps={{
                   readOnly,
@@ -90,7 +86,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
                 sx={{ width: 1 }}
                 fullWidth
                 hiddenLabel
-                placeholder={t('maxLength')}
                 size="medium"
                 NumberProps={{
                   readOnly,
@@ -108,10 +103,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               <Typography variant="subtitle2">{t('min')}</Typography>
 
               <NumberField
+                hiddenLabel
                 sx={{ width: 1 }}
                 fullWidth
-                label={t('min')}
-                size="small"
+                size="medium"
                 NumberProps={{
                   readOnly,
                   value: value.min,
@@ -123,10 +118,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               <Typography variant="subtitle2">{t('max')}</Typography>
 
               <NumberField
+                hiddenLabel
                 sx={{ width: 1 }}
                 fullWidth
-                label={t('max')}
-                size="small"
+                size="medium"
                 NumberProps={{
                   readOnly,
                   value: value.max,

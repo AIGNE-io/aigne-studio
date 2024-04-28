@@ -623,7 +623,7 @@ function AgentParameter({
     return (
       <Stack gap={2}>
         <Box>
-          <Typography variant="subtitle2">{t('tool')}</Typography>
+          <Typography variant="subtitle2">{t('agent')}</Typography>
 
           <SelectTool
             options={options || []}
@@ -659,7 +659,7 @@ function AgentParameter({
 
         {file && !!(parameters || []).length && (
           <Box>
-            <Typography variant="subtitle2">{t('parameters')}</Typography>
+            <Typography variant="subtitle2">{t('input')}</Typography>
 
             <Box>
               {(parameters || [])?.map(({ data }: any) => {
@@ -719,7 +719,7 @@ function DatastoreParameter({
     return (
       <Stack gap={2}>
         <Box>
-          <Typography variant="subtitle2">{t('memory.extractMemory')}</Typography>
+          <Typography variant="subtitle2">{t('memory.title')}</Typography>
           <Box>
             <SelectVariable
               variables={variables}
