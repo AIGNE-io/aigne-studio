@@ -1,3 +1,7 @@
+## 0.1.354 (2024-4-29)
+
+- feat: guide the user to bind DID Wallet and DID Spaces
+
 ## 0.1.353 (2024-4-29)
 
 - fix: start server crashed
