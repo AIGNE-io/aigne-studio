@@ -124,7 +124,7 @@ export default function ParametersTable({
         width: '30%' as any,
         headerName: t('name'),
         renderCell: ({ row: { data: parameter } }) => {
-          if (parameter.key === 'question' || parameter.key === 'datasetId') {
+          if (parameter.key === 'question' || parameter.key === 'chatHistory') {
             const iconMap = {
               question: 'message',
               datasetId: 'database',
