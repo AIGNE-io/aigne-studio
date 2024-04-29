@@ -632,4 +632,5 @@ export default flat({
   idleAgentDescription: '这个 Agent 不需要做任何处理',
   format: '格式',
   from: '来自',
+  group: '分组',
 });

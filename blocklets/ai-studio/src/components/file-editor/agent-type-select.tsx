@@ -34,7 +34,8 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
             <Box component={Icon} icon="tabler:switch-horizontal" sx={{ fontSize: 15, color: '#3B82F6' }} />
           </Box>
         ),
-      }}>
+      }}
+      PopperProps={{ placement: 'bottom-start' }}>
       {agentTypes.map((node) => (
         <MenuItem
           key={node.type}

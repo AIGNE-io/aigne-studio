@@ -637,4 +637,5 @@ export default flat({
   idleAgentDescription: 'This agent does not need to do any processing',
   format: 'Format',
   from: 'From',
+  group: 'Group',
 });
