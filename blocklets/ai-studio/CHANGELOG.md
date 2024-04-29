@@ -1,3 +1,7 @@
+## 0.1.353 (2024-4-29)
+
+- fix: start server crashed
+
 ## 0.1.352 (2024-4-28)
 
 - fix: add indexeddb to persist data in the browser

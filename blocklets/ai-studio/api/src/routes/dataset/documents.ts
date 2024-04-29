@@ -5,7 +5,6 @@ import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
 import multer from 'multer';
-import pdfParse from 'pdf-parse';
 import { Op, Sequelize } from 'sequelize';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
@@ -18,11 +17,6 @@ import DatasetDocument from '../../store/models/dataset/document';
 import EmbeddingHistories from '../../store/models/dataset/embedding-history';
 import VectorStore from '../../store/vector-store-faiss';
 import { queue, updateHistoriesAndStore } from './embeddings';
-
-async function readPDF(filePath: string) {
-  const dataBuffer = await readFile(filePath);
-  return pdfParse(dataBuffer);
-}
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -394,7 +388,7 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
 
   const getContent = async () => {
     if (fileExtension === 'pdf') {
-      return readPDF(filePath).then((x) => x.text);
+      // return readPDF(filePath).then((x) => x.text);
     }
 
     return readFile(filePath, 'utf8');
