@@ -327,8 +327,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       lru-cache:
-        specifier: ^10.2.1
-        version: 10.2.1
+        specifier: ^10.2.2
+        version: 10.2.2
       marked:
         specifier: ^11.2.0
         version: 11.2.0
@@ -14436,8 +14436,8 @@ packages:
     engines: {node: '>=8'}
     dev: false
 
-  /lru-cache@10.2.1:
-    resolution: {integrity: sha512-tS24spDe/zXhWbNPErCHs/AGOzbKGHT+ybSBqmdLm8WZ1xXLWvH8Qn71QPAlqVhd0qUTWjy+Kl9JmISgDdEjsA==}
+  /lru-cache@10.2.2:
+    resolution: {integrity: sha512-9hp3Vp2/hFQUiIwKo8XCeFVnrg8Pk3TYNPIR7tJADKi5YfcF7vEaK7avFHTlSy3kOKYaJQaalfEo6YuXdceBOQ==}
     engines: {node: 14 || >=16.14}
 
   /lru-cache@5.1.1:
@@ -16658,7 +16658,7 @@ packages:
     resolution: {integrity: sha512-7xTavNy5RQXnsjANvVvMkEjvloOinkAjv/Z6Ildz9v2RinZ4SBKTWFOVRbaF8p0vpHnyjV/UwNDdKuUv6M5qcA==}
     engines: {node: '>=16 || 14 >=14.17'}
     dependencies:
-      lru-cache: 10.2.1
+      lru-cache: 10.2.2
       minipass: 7.0.4
 
   /path-to-regexp@0.1.7:
