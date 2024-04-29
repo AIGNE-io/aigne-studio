@@ -92,13 +92,23 @@ function ImportWayItem({
   );
 }
 
-export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClose: () => void }) {
+export const FROM_DID_SPACES_IMPORT = 'from-did-spaces-import';
+export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClose?: () => void }) {
   const { t } = useLocaleContext();
   const { session, connectApi } = useSessionContext();
   const hasDidSpace = didSpaceReady(session.user);
   const useDidWallet = !!getWalletDid(session.user);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const requireBindWallet = () => {
+  const customOnClose = useCallback(() => {
+    if (searchParams.has('action')) {
+      searchParams.delete('action');
+      setSearchParams(searchParams);
+    }
+    onClose();
+  }, [onClose, searchParams, setSearchParams]);
+
+  const requireBindWallet = useCallback(() => {
     connectApi.open({
       prefix: joinURL(window.location.origin, '/.well-known/service/api/did'),
       action: 'bind-wallet',
@@ -112,10 +122,12 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
         previousUserDid: session?.user?.did,
       },
       onSuccess: async () => {
-        window.location.reload();
+        window.location.href = withQuery(window.location.href, {
+          action: FROM_DID_SPACES_IMPORT,
+        });
       },
     });
-  };
+  }, [connectApi, session?.user?.did, t]);
 
   const fromCurrentDidSpaceImport = useCallback(async () => {
     const goToImport = async () => {
@@ -123,13 +135,13 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
       window.location.href = importUrl;
     };
 
-    onClose();
+    customOnClose();
     if (useDidWallet) {
       await goToImport();
     } else {
       requireBindWallet();
     }
-  }, [session?.user?.didSpace?.endpoint]);
+  }, [customOnClose, requireBindWallet, session?.user?.didSpace?.endpoint, useDidWallet]);
 
   const fromOtherDidSpaceImport = useCallback(() => {
     const goToImport = () => {
@@ -143,13 +155,13 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
       });
     };
 
-    onClose();
+    customOnClose();
     if (useDidWallet) {
       goToImport();
     } else {
       requireBindWallet();
     }
-  }, [onClose, session, t, useDidWallet]);
+  }, [customOnClose, requireBindWallet, session, useDidWallet]);
 
   return (
     <Dialog open disableEnforceFocus maxWidth="sm" fullWidth component="form" onClose={onClose}>

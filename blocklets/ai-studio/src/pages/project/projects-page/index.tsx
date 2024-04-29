@@ -1,5 +1,6 @@
-import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
+import { didSpaceReady, getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
+import { EVENTS } from '@arcblock/did-connect/lib/Session/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -49,7 +50,7 @@ import useDialog from '../../../utils/use-dialog';
 import DidSpacesLogo from '../icons/did-spaces';
 import Pin from '../icons/pin';
 import ImportFromBlank from './import-from-blank';
-import ImportFromDidSpaces, { SelectDidSpacesImportWay } from './import-from-did-spaces';
+import ImportFromDidSpaces, { FROM_DID_SPACES_IMPORT, SelectDidSpacesImportWay } from './import-from-did-spaces';
 import ImportFromGit from './import-from-git';
 import ImportFromTemplates from './import-from-templates';
 
@@ -58,8 +59,21 @@ const MAX_WIDTH = 300;
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
-  const [search] = useSearchParams();
-  const endpoint = search.get('endpoint');
+  const { events } = useSessionContext();
+  const [searchParams] = useSearchParams();
+  const endpoint = searchParams.get('endpoint');
+  const action = searchParams.get('action');
+  const [showSelectDidSpacesImportWay, setShowSelectDidSpacesImportWay] = useState(false);
+
+  useEffect(() => {
+    events.on(EVENTS.CONNECT_TO_DID_SPACE_FOR_FULL_ACCESS, () => {
+      if (action === FROM_DID_SPACES_IMPORT) {
+        setTimeout(() => {
+          setShowSelectDidSpacesImportWay(true);
+        }, 3000);
+      }
+    });
+  }, []);
 
   const {
     state: { loading, templates, projects, examples },
@@ -74,7 +88,17 @@ export default function ProjectsPage() {
     <Stack minHeight="100%" overflow="auto" bgcolor="#F9FAFB">
       <Stack m={2.5} flexGrow={1} gap={2.5}>
         <ProjectMenu />
+
         {endpoint && <ImportFromDidSpaces />}
+
+        {showSelectDidSpacesImportWay && (
+          <SelectDidSpacesImportWay
+            onClose={() => {
+              setShowSelectDidSpacesImportWay(false);
+            }}
+          />
+        )}
+
         {examples && examples.length > 0 && (
           <Section title={t('examples')}>
             <ProjectList section="examples" list={examples} />
