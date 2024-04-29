@@ -20,6 +20,10 @@ export default function RoleSelectField({ projectId, gitRef, path, boxProps, ...
         ...props,
         SelectProps: {
           autoWidth: true,
+          MenuProps: {
+            transformOrigin: { horizontal: 'left', vertical: 'top' },
+            anchorOrigin: { horizontal: 'left', vertical: 'bottom' },
+          },
           ...props.SelectProps,
         },
         children: [

@@ -7,6 +7,7 @@ import {
   MenuList,
   Paper,
   Popper,
+  PopperProps,
   menuItemClasses,
 } from '@mui/material';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
@@ -16,10 +17,12 @@ export default function PopperMenu({
   children,
   ButtonProps,
   BoxProps,
+  PopperProps,
 }: {
   children?: ReactNode;
   ButtonProps?: ButtonProps;
   BoxProps?: BoxProps;
+  PopperProps?: Partial<PopperProps>;
 }) {
   const state = usePopupState({ variant: 'popper' });
 
@@ -29,11 +32,13 @@ export default function PopperMenu({
 
       <Popper
         {...bindPopper(state)}
+        {...PopperProps}
         sx={{
           zIndex: 'modal',
           [`.${menuItemClasses.root}`]: {
             borderRadius: 1,
           },
+          ...PopperProps?.sx,
         }}>
         <ClickAwayListener
           onClickAway={(e) => {

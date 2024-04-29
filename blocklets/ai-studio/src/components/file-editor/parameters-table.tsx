@@ -413,7 +413,8 @@ export default function ParametersTable({
                 sx: { my: 1 },
                 startIcon: <Box fontSize={16} component={Icon} icon="tabler:plus" />,
                 children: <Box>{t('input')}</Box>,
-              }}>
+              }}
+              PopperProps={{ placement: 'bottom-start' }}>
               <MenuItem
                 selected={variables.includes('question')}
                 onClick={(e) => {
@@ -440,9 +441,7 @@ export default function ParametersTable({
 
                   if (historyId) {
                     const p = (value.parameters || {})[historyId];
-                    if (p) {
-                      deleteParameter(p.data);
-                    }
+                    if (p) deleteParameter(p.data);
                   } else {
                     addParameter('', {
                       type: 'source',
