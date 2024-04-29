@@ -23,7 +23,8 @@ export default function AddOutputVariableButton({
         sx: { my: 1 },
         startIcon: <Box fontSize={16} component={Icon} icon="tabler:plus" />,
         children: <Box>{t('output')}</Box>,
-      }}>
+      }}
+      PopperProps={{ placement: 'bottom-start' }}>
       {runtimeOutputVariables.map((variable) => {
         const blockList = variableBlockListForAgent[assistant.type];
         if (blockList?.allow && !blockList.allow.has(variable.name)) return null;
@@ -52,7 +53,7 @@ export default function AddOutputVariableButton({
         <ListItemIcon>
           <Icon icon="tabler:plus" />
         </ListItemIcon>
-        {t('customOutputField')}
+        {t('customOutput')}
       </MenuItem>
     </PopperMenu>
   );

@@ -493,7 +493,7 @@ function VariableTypeField({ ...props }: TextFieldProps) {
   const { t } = useLocaleContext();
 
   return (
-    <TextField hiddenLabel placeholder={t('type')} select SelectProps={{ autoWidth: true }} {...props}>
+    <TextField hiddenLabel placeholder={t('format')} select SelectProps={{ autoWidth: true }} {...props}>
       <MenuItem value="string" disabled={props.disabled}>
         {t('text')}
       </MenuItem>
@@ -532,7 +532,7 @@ function VariableTable({ value, onChange }: { value: OutputVariableYjs; onChange
           <Box component="tr" sx={{ '>th': { fontSize: 12 } }}>
             <Box component="th">{t('name')}</Box>
             <Box component="th">{t('description')}</Box>
-            <Box component="th">{t('type')}</Box>
+            <Box component="th">{t('format')}</Box>
             <Box component="th">{t('required')}</Box>
             <Box component="th">{t('defaultValue')}</Box>
             <Box component="th">{t('actions')}</Box>

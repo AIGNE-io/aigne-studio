@@ -562,7 +562,7 @@ const runRequestHistory = async ({
   callback,
   params,
 }: {
-  assistant: PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
   parentTaskId?: string;
   user?: User;
   callback?: RunAssistantCallback;
@@ -646,11 +646,11 @@ const runRequestToolAssistant = async ({
     toolParameter.type === 'source' &&
     toolParameter.key &&
     toolParameter.source?.variableFrom === 'tool' &&
-    toolParameter.source.tool
+    toolParameter.source.agent
   ) {
     const currentTaskId = taskIdGenerator.nextId().toString();
 
-    const { tool } = toolParameter.source;
+    const { agent: tool } = toolParameter.source;
     const toolAssistant = await getAssistant(tool.id);
     if (!toolAssistant) return null;
 
@@ -728,8 +728,8 @@ const getVariables = async ({
 
   for (const parameter of assistant.parameters || []) {
     if (parameter.key && parameter.type === 'source') {
-      if (parameter.source?.variableFrom === 'tool' && parameter.source.tool) {
-        const { tool } = parameter.source;
+      if (parameter.source?.variableFrom === 'tool' && parameter.source.agent) {
+        const { agent: tool } = parameter.source;
         const toolAssistant = await getAssistant(tool.id);
         if (!toolAssistant) continue;
 
@@ -772,11 +772,11 @@ const getVariables = async ({
         });
 
         variables[parameter.key] = result;
-      } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.tool) {
+      } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
         const currentTaskId = taskIdGenerator.nextId().toString();
         // eslint-disable-next-line no-await-in-loop
         const result = await runKnowledgeTool({
-          tool: parameter.source.tool,
+          tool: parameter.source.knowledge,
           taskId: currentTaskId,
           assistant,
           parameters,
@@ -786,6 +786,23 @@ const getVariables = async ({
         });
 
         variables[parameter.key] = result ?? parameter.defaultValue;
+      } else if (parameter.source?.variableFrom === 'history' && parameter.source.chatHistory) {
+        const currentTaskId = taskIdGenerator.nextId().toString();
+        // eslint-disable-next-line no-await-in-loop
+        const memories = await runRequestHistory({
+          assistant,
+          parentTaskId: currentTaskId,
+          user,
+          callback,
+          params: {
+            sessionId,
+            userId: user?.did,
+            limit: parameter.source.chatHistory.limit || 50,
+            keyword: await renderMessage(parameter.source.chatHistory.keyword || '', variables),
+          },
+        });
+
+        variables[parameter.key] = memories;
       }
     }
   }
@@ -961,33 +978,6 @@ async function runPromptAssistant({
   )
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
-
-  if (assistant.memory?.enable && sessionId) {
-    const lastSystemIndex = messages.findLastIndex((i) => i.role === 'system');
-    const memories = await runRequestHistory({
-      assistant,
-      parentTaskId: taskId,
-      user,
-      callback,
-      params: {
-        sessionId,
-        userId: user?.did,
-        limit: assistant.memory.limit || 50,
-        keyword: await renderMessage(assistant.memory.keyword || '', variables),
-      },
-    });
-
-    if (Array.isArray(memories) && memories.length) {
-      messages.splice(lastSystemIndex + 1, 0, {
-        role: 'system',
-        content: `## Memory
-Here is the chat memories between user and assistant, inside <memories></memories> XML tags.
-<memories>
-${memories.map((i) => `${i.role}: ${JSON.stringify(i.content)}`).join('\n')}
-</memories>`,
-      });
-    }
-  }
 
   const { outputVariables = [] } = assistant;
   const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === '$text');

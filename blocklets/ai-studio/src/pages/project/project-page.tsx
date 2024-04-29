@@ -157,7 +157,7 @@ export default function ProjectPage() {
                 </span>
               </Tooltip>
 
-              <Tooltip title={t('newObject', { object: t('folder') })} disableInteractive>
+              <Tooltip title={t('newObject', { object: t('group') })} disableInteractive>
                 <span>
                   <Button
                     disabled={readOnly}

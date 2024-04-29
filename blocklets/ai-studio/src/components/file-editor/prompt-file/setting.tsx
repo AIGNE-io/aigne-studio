@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { getSupportedModels } from '@blocklet/ai-runtime/common';
+import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { PromptAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import { Box, FormLabel, Tooltip } from '@mui/material';
@@ -36,7 +36,7 @@ export default function PromptSetting({
   const { project } = state;
   const { value: supportedModels } = useAsync(() => getSupportedModels(), []);
   const model = useMemo(() => {
-    return supportedModels?.find((i) => i.model === (value.model || project?.model));
+    return supportedModels?.find((i) => i.model === (value.model || project?.model || defaultTextModel));
   }, [value.model, project?.model, supportedModels]);
 
   return (
@@ -51,7 +51,7 @@ export default function PromptSetting({
             <ModelSelectField
               hiddenLabel
               fullWidth
-              value={value.model || project?.model || ''}
+              value={value.model || project?.model || defaultTextModel}
               onChange={(e) => (value.model = e.target.value)}
               InputProps={{ readOnly, sx: { backgroundColor: getDiffBackground('model') } }}
             />

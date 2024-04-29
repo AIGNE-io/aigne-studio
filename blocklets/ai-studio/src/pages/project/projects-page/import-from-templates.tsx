@@ -88,7 +88,7 @@ export default function ImportFromTemplates({
                           </Box>
                         </Stack>
                       ),
-                      cancelText: t('alert.cancel'),
+                      cancelText: t('cancel'),
                       okText: t('create'),
                       okIcon: <RocketLaunchRoundedIcon />,
                       onOk: async () => {

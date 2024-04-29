@@ -244,6 +244,37 @@ export function createFolder({
   return filepath;
 }
 
+export function createFileName({
+  store,
+  name,
+  defaultName,
+}: {
+  store: StoreContext['store'];
+  name?: string;
+  defaultName: string;
+}) {
+  if (!name) {
+    let index = 0;
+
+    const existNames = new Set(
+      Object.values(store.files)
+        .map((i: any) => i.name)
+        .filter((i) => i)
+    );
+
+    while (true) {
+      const n = index ? `${defaultName} ${index}` : defaultName;
+      index++;
+      if (!existNames.has(n)) {
+        name = n;
+        break;
+      }
+    }
+  }
+
+  return name;
+}
+
 export const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 
 export const resetTemplatesId = (templates: (Assistant & { parent?: string[] })[]) => {

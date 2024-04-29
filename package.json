@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.1.358",
+  "version": "0.1.359",
   "workspaces": [
     "blocklets/*",
     "packages/*"
@@ -49,13 +49,13 @@
     "import-sort-style-module": "^6.0.0",
     "lerna": "^7.4.2",
     "lint-staged": "^12.5.0",
+    "node-gyp-build": "~4.8.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.2.5",
     "prettier-plugin-import-sort": "^0.0.7",
     "rimraf": "^3.0.2",
     "typescript": "^5.4.5",
-    "zx": "^7.2.3",
-    "node-gyp-build": "~4.8.0"
+    "zx": "^7.2.3"
   },
   "resolutions": {
     "@abtnode/client": "^1.16.26",

@@ -695,7 +695,7 @@ function DebugModeForm({
                 width: 1,
               }}>
               <Typography variant="subtitle2" mb={0}>
-                {t('inputParameters')}
+                {t('inputs')}
               </Typography>
 
               {parameters.length > 1 && (
