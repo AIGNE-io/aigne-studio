@@ -1,4 +1,4 @@
-import { didSpaceReady, getProjectDataUrlInSpace } from '@app/libs/did-spaces';
+import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
 import { EVENTS } from '@arcblock/did-connect/lib/Session/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
