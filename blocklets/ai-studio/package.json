@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.354",
+  "version": "0.1.355",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -111,7 +111,7 @@
     "langchain": "^0.0.81",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
-    "lru-cache": "^10.2.1",
+    "lru-cache": "^10.2.2",
     "marked": "^11.2.0",
     "marked-mangle": "^1.1.7",
     "material-ui-popup-state": "^5.1.0",

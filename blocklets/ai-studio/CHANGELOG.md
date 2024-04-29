@@ -1,6 +1,11 @@
-## 0.1.354 (2024-4-29)
+## 0.1.355 (2024-4-29)
 
 - chore: add disablePaymentProject in multi tenant
+
+## 0.1.354 (2024-4-29)
+
+- fix: correct agent file state
+- fix: allow setting required for the builtin outputs
 
 ## 0.1.353 (2024-4-29)
 

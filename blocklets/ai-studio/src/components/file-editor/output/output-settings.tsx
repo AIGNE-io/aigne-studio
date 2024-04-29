@@ -380,6 +380,10 @@ function PopperButton({
 
   const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
 
+  const isDefaultRequired = [RuntimeOutputVariable.images, RuntimeOutputVariable.text].includes(
+    parameter.name as RuntimeOutputVariable
+  );
+
   const renderParameterSettings = (parameter: OutputVariableYjs) => {
     if (currentSetting === 'setting') {
       return (
@@ -419,10 +423,11 @@ function PopperButton({
                 sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
                 labelPlacement="start"
                 label={t('outputParameterRequiredLabel')}
+                disabled={isDefaultRequired}
                 control={
                   <BaseSwitch
                     sx={{ mr: 1, mt: '1px' }}
-                    checked={parameter.required || false}
+                    checked={isDefaultRequired || parameter.required || false}
                     onChange={(_, required) => (parameter.required = required)}
                   />
                 }
@@ -471,15 +476,14 @@ function PopperButton({
           disabled,
           children: <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />,
         }}>
-        {!runtimeVariable && (
-          <MenuItem
-            onClick={() => {
-              setSetting('setting');
-              dialogState.open();
-            }}>
-            {t('setting')}
-          </MenuItem>
-        )}
+        <MenuItem
+          onClick={() => {
+            setSetting('setting');
+            dialogState.open();
+          }}>
+          {t('setting')}
+        </MenuItem>
+
         {isSaveAs && (
           <MenuItem
             onClick={() => {
