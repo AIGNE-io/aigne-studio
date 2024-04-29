@@ -201,29 +201,22 @@ export interface FunctionAssistant extends AssistantBase {
 
 export interface DatastoreParameter {
   variableFrom?: 'datastore'; // Storage 感觉更好，但是又出现了多个命名，维持 Datastore
-  variable?: {
-    key: string;
-    scope: string;
-  };
+  variable?: { key: string; scope: string };
 }
 
-export interface ToolParameter {
+export interface AgentParameter {
   variableFrom?: 'tool';
-  tool?: Tool;
+  agent?: Tool;
 }
 
 export interface KnowledgeParameter {
   variableFrom?: 'knowledge';
-  tool?: Tool;
+  knowledge?: Tool;
 }
 
 export interface HistoryParameter {
   variableFrom?: 'history';
-  memory?: {
-    enable?: boolean;
-    limit?: number;
-    keyword?: string;
-  };
+  memory?: { limit?: number; keyword?: string };
 }
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | SourceParameter;
@@ -241,7 +234,7 @@ export interface ParameterBase {
 export interface SourceParameter extends ParameterBase {
   type: 'source';
   defaultValue?: string;
-  source?: DatastoreParameter | ToolParameter | KnowledgeParameter | HistoryParameter;
+  source?: DatastoreParameter | AgentParameter | KnowledgeParameter | HistoryParameter;
 }
 
 export interface StringParameter extends ParameterBase {

@@ -646,11 +646,11 @@ const runRequestToolAssistant = async ({
     toolParameter.type === 'source' &&
     toolParameter.key &&
     toolParameter.source?.variableFrom === 'tool' &&
-    toolParameter.source.tool
+    toolParameter.source.agent
   ) {
     const currentTaskId = taskIdGenerator.nextId().toString();
 
-    const { tool } = toolParameter.source;
+    const { agent: tool } = toolParameter.source;
     const toolAssistant = await getAssistant(tool.id);
     if (!toolAssistant) return null;
 
@@ -728,8 +728,8 @@ const getVariables = async ({
 
   for (const parameter of assistant.parameters || []) {
     if (parameter.key && parameter.type === 'source') {
-      if (parameter.source?.variableFrom === 'tool' && parameter.source.tool) {
-        const { tool } = parameter.source;
+      if (parameter.source?.variableFrom === 'tool' && parameter.source.agent) {
+        const { agent: tool } = parameter.source;
         const toolAssistant = await getAssistant(tool.id);
         if (!toolAssistant) continue;
 
@@ -772,11 +772,11 @@ const getVariables = async ({
         });
 
         variables[parameter.key] = result;
-      } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.tool) {
+      } else if (parameter.source?.variableFrom === 'knowledge' && parameter.source.knowledge) {
         const currentTaskId = taskIdGenerator.nextId().toString();
         // eslint-disable-next-line no-await-in-loop
         const result = await runKnowledgeTool({
-          tool: parameter.source.tool,
+          tool: parameter.source.knowledge,
           taskId: currentTaskId,
           assistant,
           parameters,

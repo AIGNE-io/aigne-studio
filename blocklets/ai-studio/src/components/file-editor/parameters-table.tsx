@@ -547,7 +547,8 @@ function AgentParameter({
   const { deleteParameter } = useVariablesEditorOptions(value);
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool') {
-    const toolId = parameter?.source?.tool?.id;
+    const toolId = parameter?.source?.agent?.id;
+    const { source } = parameter;
 
     const options = Object.entries(store.tree)
       .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
@@ -557,7 +558,7 @@ function AgentParameter({
       .map((i) => ({ id: i.id, type: i.type, name: i.name, from: FROM_PARAMETER, parameters: i.parameters }));
 
     const v = options.find((x) => x.id === toolId);
-    const file = getFileById((parameter.source as any).tool?.id);
+    const file = getFileById(toolId || '');
     const parameters =
       file?.parameters &&
       sortBy(Object.values(file.parameters), (i) => i.index).filter(
@@ -591,8 +592,7 @@ function AgentParameter({
                   {}
                 );
 
-                parameter.source ??= {};
-                (parameter.source as any).tool = {
+                source.agent = {
                   id: _value.id,
                   from: 'assistant',
                   parameters,
@@ -616,14 +616,14 @@ function AgentParameter({
 
                     <PromptEditorField
                       placeholder={`{{ ${data.key} }}`}
-                      value={(parameter.source as any)?.tool?.parameters?.[data.key] || ''}
+                      value={source?.agent?.parameters?.[data.key] || ''}
                       projectId={projectId}
                       gitRef={gitRef}
                       assistant={value}
                       path={[]}
                       onChange={(value) => {
-                        if ((parameter.source as any)?.tool?.parameters) {
-                          (parameter.source as any).tool.parameters[data.key] = value;
+                        if (source?.agent?.parameters) {
+                          source.agent.parameters[data.key] = value;
                         }
                       }}
                     />
@@ -652,7 +652,7 @@ function DatastoreParameter({
   const { t } = useLocaleContext();
   const { getVariables } = useProjectStore(projectId, gitRef);
 
-  if (parameter.type === 'source' && parameter.source && parameter?.source?.variableFrom === 'datastore') {
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'datastore') {
     const { source } = parameter;
     const v = getVariables();
 
@@ -700,7 +700,8 @@ function KnowledgeParameter({
   const { deleteParameter } = useVariablesEditorOptions(value);
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
-    const toolId = parameter?.source?.tool?.id;
+    const toolId = parameter?.source?.knowledge?.id;
+    const { source } = parameter;
 
     const options = [
       ...knowledge.map((item) => ({
@@ -735,8 +736,7 @@ function KnowledgeParameter({
                   message: '',
                 };
 
-                parameter.source ??= {};
-                (parameter.source as any).tool = {
+                source.knowledge = {
                   id: _value.id,
                   from: 'knowledge',
                   parameters,
@@ -746,7 +746,7 @@ function KnowledgeParameter({
           />
         </Box>
 
-        {parameter?.source?.tool && (
+        {source?.knowledge && (
           <Box>
             <Typography variant="subtitle2">{t('inputs')}</Typography>
 
@@ -760,14 +760,14 @@ function KnowledgeParameter({
 
                     <PromptEditorField
                       placeholder={`{{ ${data.name} }}`}
-                      value={(parameter.source as any)?.tool?.parameters?.[data.name] || ''}
+                      value={source?.knowledge?.parameters?.[data.name] || ''}
                       projectId={projectId}
                       gitRef={gitRef}
                       assistant={value}
                       path={[]}
                       onChange={(value) => {
-                        if ((parameter.source as any)?.tool?.parameters) {
-                          (parameter.source as any).tool.parameters[data.name] = value;
+                        if (source?.knowledge?.parameters) {
+                          source.knowledge.parameters[data.name] = value;
                         }
                       }}
                     />
@@ -935,20 +935,28 @@ function SelectFromSourceDialog({
           variant="contained"
           onClick={() => {
             // 新增选择 tool 和 knowledge 未定义的参数
-            if (
-              parameter.type === 'source' &&
-              (parameter?.source?.variableFrom === 'tool' || parameter?.source?.variableFrom === 'knowledge') &&
-              parameter?.source
-            ) {
+            if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool' && parameter?.source) {
               const { source } = parameter;
-              Object.entries(source?.tool?.parameters || {}).forEach(([key, value]: any) => {
+              Object.entries(source?.agent?.parameters || {}).forEach(([key, value]: any) => {
                 if (!value) {
-                  if (source && source?.tool && source?.tool?.parameters) {
-                    source.tool.parameters[key] = `{{${key}}}`;
+                  if (source && source?.agent && source?.agent?.parameters) {
+                    source.agent.parameters[key] = `{{${key}}}`;
                   }
 
-                  const from = source.variableFrom === 'tool' ? FROM_PARAMETER : FROM_KNOWLEDGE_PARAMETER;
-                  addParameter(key, { from });
+                  addParameter(key, { from: FROM_PARAMETER });
+                }
+              });
+            }
+
+            if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge' && parameter?.source) {
+              const { source } = parameter;
+              Object.entries(source?.knowledge?.parameters || {}).forEach(([key, value]: any) => {
+                if (!value) {
+                  if (source && source?.knowledge && source?.knowledge?.parameters) {
+                    source.knowledge.parameters[key] = `{{${key}}}`;
+                  }
+
+                  addParameter(key, { from: FROM_KNOWLEDGE_PARAMETER });
                 }
               });
             }
@@ -1047,8 +1055,9 @@ function SelectFromSourceComponent({
       }}
       {...props}
       onChange={(e) => {
-        if ((e.target.value || 'custom') !== ((parameter as any)?.source?.variableFrom || 'custom')) {
-          if ((parameter as any).source) delete (parameter as any).source;
+        const currentType = parameter.type === 'source' ? parameter.source?.variableFrom : 'custom';
+
+        if ((e.target.value || 'custom') !== currentType) {
           parameter.type = 'string';
 
           if (e.target.value !== 'custom') {
@@ -1057,16 +1066,14 @@ function SelectFromSourceComponent({
             (parameter as any).source.variableFrom = e.target.value as any;
           }
 
-          if (onChange) {
-            onChange();
-          }
+          if (onChange) onChange();
         }
       }}>
       {Object.entries(FROM_MAP).map(([key, _value]) => {
         return (
           <MenuItem value={key} key={key}>
-            {key === 'tool' && (parameter as any)?.source?.tool?.id
-              ? t('variableParameter.agent', { agent: getFileById((parameter as any)?.source?.tool?.id)?.name })
+            {key === 'tool' && (parameter as any)?.source?.agent?.id
+              ? t('variableParameter.agent', { agent: getFileById((parameter as any)?.source?.agent?.id)?.name })
               : _value}
           </MenuItem>
         );
