@@ -192,7 +192,7 @@ export default flat({
   noProjectTip: "You haven't created any projects yet. You can create one from the template above!",
   aboutTokens: 'About {tokens} tokens',
   test: 'Tests',
-  discuss: 'Collabaration',
+  discuss: 'Collaboration',
   variable: 'Variable',
   loading: 'Loading...',
   noData: 'No data',
@@ -634,7 +634,7 @@ export default flat({
   idle: 'Idle',
   logic: 'Logic',
   javascript: 'Javascript',
-  idleAgentDescription: 'This Agent does not need to do any processing',
+  idleAgentDescription: 'This agent does not need to do any processing',
   format: 'Format',
   from: 'From',
 });
