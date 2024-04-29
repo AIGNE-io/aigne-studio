@@ -185,10 +185,6 @@ function VariableRow({
       }
     : variable;
 
-  const isDefaultRequired = [RuntimeOutputVariable.images, RuntimeOutputVariable.text].includes(
-    v.name as RuntimeOutputVariable
-  );
-
   return (
     <>
       <Box component={TableRow} key={variable.id}>
@@ -294,7 +290,7 @@ function VariableRow({
           )}
         </Box>
         <Box component={TableCell}>
-          {!isDefaultRequired && (
+          {!runtimeVariable && (
             <Switch
               size="small"
               disabled={Boolean(disabled)}

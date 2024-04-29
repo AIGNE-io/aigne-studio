@@ -20,6 +20,7 @@ export const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<Out
   $text: {
     type: 'string',
     description: 'Text Stream',
+    required: true,
   },
   $images: {
     type: 'array',
@@ -33,9 +34,11 @@ export const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<Out
           type: 'string',
           name: 'url',
           description: 'Image Url',
+          required: true,
         },
       ],
     },
+    required: true,
   },
   '$suggested.questions': {
     type: 'array',
@@ -48,10 +51,11 @@ export const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<Out
           id: '',
           type: 'string',
           name: 'question',
-          description: 'Suggested question',
+          required: true,
         },
       ],
     },
+    required: true,
   },
   '$reference.links': {
     type: 'array',
@@ -64,17 +68,16 @@ export const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<Out
           id: '',
           type: 'string',
           name: 'title',
-          description: 'Link title',
         },
         {
           id: '',
           type: 'string',
           name: 'url',
-          description: 'Link URL',
           required: true,
         },
       ],
     },
+    required: true,
   },
   // '$page.background.image': {
   //   type: 'string',
@@ -211,8 +214,14 @@ export function outputVariablesToJoiSchema(variables: OutputVariable[], datastor
     const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
 
     if (runtimeVariable) {
-      schema = variableToSchema({ ...runtimeVariable, required: variable.required });
-    } else if (variable.variable) {
+      schema = variableToSchema({ ...runtimeVariable });
+      if (schema) {
+        schema = Joi.alternatives().try(schema, Joi.any().empty(Joi.any()));
+      }
+      return schema;
+    }
+
+    if (variable.variable) {
       const { key, scope } = variable.variable;
 
       const v = datastoreVariables.find((i) => toLower(i.key) === toLower(key) && i.scope === scope);
