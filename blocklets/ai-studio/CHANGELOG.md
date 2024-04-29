@@ -1,6 +1,6 @@
 ## 0.1.356 (2024-4-29)
 
-- fix: upload file with chinese text
+- chore: support disable payment in multi tenant
 
 ## 0.1.355 (2024-4-29)
 

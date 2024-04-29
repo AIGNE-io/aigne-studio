@@ -672,6 +672,7 @@ export default flat({
   publishSuccess: '发布成功',
   publishUpdateSuccess: '发布更新成功',
   payment: '付费',
+  noReleasePaymentProjectTip: '付费功能暂不可用',
   openingQuestion: '开场问题',
   input: '输入',
   appearance: '外观',
@@ -706,4 +707,5 @@ export default flat({
   outputParameterDefaultValuePlaceholder: '给这个字段一个默认值（如果 LLM 没有填充它的话）',
   close: '关闭',
   maxUploadFileLimit: '上传的文件大小超过设置最大值，上传的文件大小不能超过 {limit} MB',
+  backHome: '返回首页',
 });

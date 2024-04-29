@@ -676,6 +676,7 @@ export default flat({
   publishSuccess: 'Published successfully',
   publishUpdateSuccess: 'Update published successfully',
   payment: 'Payment',
+  noReleasePaymentProjectTip: 'Payment features are temporarily disabled',
   openingQuestion: 'Opening question',
   input: 'Input',
   appearance: 'Appearance',
@@ -712,4 +713,5 @@ export default flat({
   close: 'Close',
   maxUploadFileLimit:
     'The size of the uploaded file exceeds the maximum value. The size of the uploaded file cannot exceed {limit} MB',
+  backHome: 'Back Home',
 });

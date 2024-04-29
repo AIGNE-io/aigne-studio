@@ -140,7 +140,7 @@
                   "colon": false
                 },
                 "name": "uploadFileLimit",
-                "default": 5,
+                "default": 3,
                 "x-reactions": {
                   "dependencies": [
                     {
@@ -156,15 +156,15 @@
                     }
                   }
                 },
-                "x-designable-id": "cqksgngqunu",
+                "x-designable-id": "9mwjpr1n6ba",
                 "x-index": 2,
-                "description": "Limit the file size of the uploaded knowledge file"
+                "description": "Limits the size of files uploaded to the knowledge"
               }
             }
           }
         }
       }
     },
-    "x-designable-id": "7rfnsku2qnb"
+    "x-designable-id": "kalwtrnsnaj"
   }
 }
