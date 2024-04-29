@@ -42,7 +42,6 @@ export default flat({
     cancel: '取消',
     delete: '删除',
     edit: '编辑',
-    ok: '确定',
     saved: '保存成功',
     savedButSyncConflicted: '保存成功，但同步远程仓库时冲突！',
     deleted: '删除成功',
@@ -60,7 +59,6 @@ export default flat({
     onBranchTip: '你现在处于历史记录中，保存更改时需要创建分支！',
     deleteBranch: '删除分支“{branch}”？',
     showAllBranches: '显示所有分支',
-    close: '关闭',
     pickFromBranch: '从其它分支选择',
     saveInNewBranch: '保存到新的分支',
     newBranchRequired: '分支名称不能为空',
@@ -164,6 +162,7 @@ export default flat({
   debug: '调试',
   save: '保存',
   cancel: '取消',
+  ok: '确定',
   commitMessage: '备注',
   confirm: '确认',
   projectSetting: {

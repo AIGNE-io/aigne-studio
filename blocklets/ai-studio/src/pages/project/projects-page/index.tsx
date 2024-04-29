@@ -297,7 +297,7 @@ function ProjectMenu() {
                   </Box>
                 </Stack>
               ),
-              cancelText: t('alert.cancel'),
+              cancelText: t('cancel'),
               okText: t('save'),
               okIcon: <SaveRoundedIcon />,
               onOk: async () => {
@@ -570,7 +570,7 @@ function ProjectList({
                         />
                       </Stack>
                     ),
-                    cancelText: t('alert.cancel'),
+                    cancelText: t('cancel'),
                     okText: t('create'),
                     okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {

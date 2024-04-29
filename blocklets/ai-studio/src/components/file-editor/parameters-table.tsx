@@ -927,10 +927,6 @@ function SelectFromSourceDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={dialogState.close} variant="outlined">
-          {t('cancel')}
-        </Button>
-
         <Button
           variant="contained"
           onClick={() => {
@@ -963,7 +959,7 @@ function SelectFromSourceDialog({
 
             dialogState.close();
           }}>
-          {t('alert.ok')}
+          {t('ok')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -114,7 +114,7 @@ export default function BranchButton({
                 ),
                 okText: t('alert.delete'),
                 okColor: 'error',
-                cancelText: t('alert.cancel'),
+                cancelText: t('cancel'),
                 onOk: async () => {
                   try {
                     await deleteBranch({ projectId, branch: gitRef });
@@ -152,7 +152,7 @@ export default function BranchButton({
                   </Stack>
                 ),
                 okText: t('save'),
-                cancelText: t('alert.cancel'),
+                cancelText: t('cancel'),
                 onOk: async () => {
                   try {
                     await updateBranch({ projectId, branch: gitRef, input: { name: newName } }).then(() => {

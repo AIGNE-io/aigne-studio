@@ -167,7 +167,7 @@ export default function ProjectSettings() {
         content: t('alert.unsave.content'),
         okText: t('save'),
         okColor: 'primary',
-        cancelText: t('alert.cancel'),
+        cancelText: t('cancel'),
         middleText: t('alert.discard'),
         middleColor: 'error',
         onOk: async () => {
