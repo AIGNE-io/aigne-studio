@@ -183,7 +183,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 id="upload"
                 type="file"
                 onChange={onInputChange}
-                accept=".md, .txt, .pdf, .doc"
+                accept=".md, .txt, .doc, .docx"
                 component="input"
                 display="none"
               />
@@ -206,6 +206,12 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                   const form = new FormData();
                   form.append('data', file);
                   form.append('type', 'file');
+
+                  const limit: number = window?.blocklet?.preferences?.uploadFileLimit || 1;
+                  if (file.size > limit * 1000 * 1000) {
+                    Toast.error(t('maxUploadFileLimit', { limit }));
+                    return;
+                  }
 
                   if (id) {
                     await updateFileDocument(datasetId, id, form);

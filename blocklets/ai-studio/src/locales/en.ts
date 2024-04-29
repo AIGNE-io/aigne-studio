@@ -419,7 +419,7 @@ export default flat({
     },
     auto: 'Auto segmentation',
     file: {
-      content: 'Click or drag documents here to upload \n Support Markdown、Txt、Doc、PDF format Documents',
+      content: 'Click or drag documents here to upload \n Support Markdown、Txt、Doc format Documents',
       fail: 'Server processing failed',
       processing: 'Processing...',
       pending: 'Waiting for upload',
@@ -628,6 +628,8 @@ export default flat({
   outputParameterRequiredLabel: 'Is this output required',
   outputParameterDefaultValuePlaceholder: 'Give this output a default value if LLM has not filled it',
   close: 'Close',
+  maxUploadFileLimit:
+    'The size of the uploaded file exceeds the maximum value. The size of the uploaded file cannot exceed {limit} MB',
   backHome: 'Back Home',
   inputs: 'Inputs',
   outputs: 'Outputs',

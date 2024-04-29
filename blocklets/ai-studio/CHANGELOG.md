@@ -1,3 +1,7 @@
+## 0.1.357 (2024-4-29)
+
+- fix: upload file size
+
 ## 0.1.356 (2024-4-29)
 
 - chore: support disable payment in multi tenant

@@ -1,9 +1,13 @@
+import { readFile } from 'fs/promises';
+
 import { call, getComponentMountPoint } from '@blocklet/sdk/lib/component';
 import config from '@blocklet/sdk/lib/config';
 import SSE from 'express-sse';
 import { sha3_256 } from 'js-sha3';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { intersection, isNil, omitBy } from 'lodash';
+import mammoth from 'mammoth';
+// import PDFParser from 'pdf2json';
 import { joinURL } from 'ufo';
 
 import { AIKitEmbeddings } from '../../core/embeddings/ai-kit';
@@ -35,6 +39,42 @@ const handlerError = async (document: DatasetDocument, message: string) => {
   }
 };
 
+// function parsePDFToJSON(filePath: string): Promise<string> {
+//   return new Promise((resolve, reject) => {
+//     const pdfParser = new PDFParser();
+
+//     pdfParser.on('pdfParser_dataError', (errData: any) => reject(errData));
+//     pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
+//       console.log(JSON.stringify(pdfData));
+//       return resolve('');
+//     });
+
+//     pdfParser.loadPDF(filePath);
+//   });
+// }
+
+const getContent = async (fileExtension: string, filePath: string): Promise<string> => {
+  if (!fileExtension) {
+    throw new Error('Not file extension');
+  }
+
+  if (!filePath) {
+    throw new Error('Not file path');
+  }
+
+  if (fileExtension === 'pdf') {
+    // return parsePDFToJSON(filePath);
+  }
+
+  if (fileExtension === 'doc' || fileExtension === 'docx') {
+    return mammoth.extractRawText({ path: filePath }).then((result) => {
+      return result.value;
+    });
+  }
+
+  return readFile(filePath, 'utf8');
+};
+
 const documentItemJob = async (job: DocumentQueue) => {
   try {
     const documentId = job?.documentId;
@@ -42,10 +82,21 @@ const documentItemJob = async (job: DocumentQueue) => {
       throw new Error('documentId not found');
     }
 
-    const [document, content] = await Promise.all([
-      await DatasetDocument.findOne({ where: { id: documentId } }),
-      await DatasetContent.findOne({ where: { documentId } }),
-    ]);
+    const document = await DatasetDocument.findOne({ where: { id: documentId } });
+    const content = await DatasetContent.findOne({ where: { documentId } });
+    if (document?.type === 'file') {
+      const data = document?.data as { type: string; path: string };
+      let currentContent = '';
+      try {
+        currentContent = await getContent(data?.type || '', data?.path || '');
+      } catch (error) {
+        currentContent = '';
+      }
+
+      if (content) {
+        content.content = currentContent;
+      }
+    }
     if (!document) throw new Error(`Dataset item ${documentId} not found`);
     if (!document.data) return;
 
@@ -658,29 +709,30 @@ const saveContentToVectorStore = async ({
   targetId: string;
   documentId: string;
 }) => {
-  const textSplitter = new RecursiveCharacterTextSplitter();
+  const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 1024 });
   const docs = await textSplitter.createDocuments([content], metadata ? [{ metadata }] : undefined);
 
-  // 这个其实可以不存在
-  if (metadata && typeof metadata === 'object' && Object.keys(metadata).length) {
-    const arr = Object.keys(metadata)
-      .map((key) => (metadata[key] ? `${key}: ${metadata[key]}` : ''))
-      .filter((i) => i);
-
-    docs.forEach((doc) => {
+  const formatDocuments = docs.map((doc) => {
+    if (metadata && typeof metadata === 'object' && Object.keys(metadata).length) {
+      const arr = Object.keys(metadata)
+        .map((key) => (metadata[key] ? `${key}: ${metadata[key]}` : ''))
+        .filter((i) => i);
       arr.push(`content: ${doc.pageContent}`);
-      doc.pageContent = arr.join('\n');
-    });
-  }
 
-  const embeddings = new AIKitEmbeddings({});
-  const vectors = await embeddings.embedDocuments(docs.map((d) => d.pageContent));
+      return { ...doc, pageContent: arr.join(',') };
+    }
+
+    return doc;
+  });
+
+  const embeddings = new AIKitEmbeddings({ batchSize: 6 });
+  const vectors = await embeddings.embedDocuments(formatDocuments.map((d) => d.pageContent));
 
   // 清除历史 Vectors Store
   await updateHistoriesAndStore(datasetId, documentId, targetId);
 
   // 获取索引数据，保存id
-  const savePromises = docs.map((doc) =>
+  const savePromises = formatDocuments.map((doc) =>
     doc.pageContent ? Segment.create({ documentId, targetId, content: doc.pageContent }) : Promise.resolve(null)
   );
   const results = await Promise.all(savePromises);
@@ -688,6 +740,6 @@ const saveContentToVectorStore = async ({
 
   // 保存到向量数据库
   const store = await VectorStore.load(datasetId, embeddings);
-  await store.addVectors(vectors, docs, { ids });
+  await store.addVectors(vectors, formatDocuments, { ids });
   await store.save();
 };
