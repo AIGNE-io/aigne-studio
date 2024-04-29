@@ -17,6 +17,7 @@ import { Errors } from 'isomorphic-git';
 
 import app from './app';
 import { Config, isDevelopment } from './libs/env';
+import { NoPermissionError } from './libs/error';
 import logger from './libs/logger';
 import initProjectIcons from './libs/project-icons';
 import routes from './routes';
@@ -66,7 +67,7 @@ app.use(<ErrorRequestHandler>((error, _req, res, _next) => {
   logger.error('handle route error', { error });
 
   try {
-    const status = error instanceof Errors.NotFoundError ? 404 : 500;
+    const status = error instanceof Errors.NotFoundError ? 404 : error instanceof NoPermissionError ? 403 : 500;
     if (!res.headersSent) res.status(status).contentType('json');
     if (res.writable)
       res.write(

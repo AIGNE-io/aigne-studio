@@ -706,4 +706,5 @@ export default flat({
   outputParameterRequiredLabel: '该输出字段是否必填',
   outputParameterDefaultValuePlaceholder: '给这个字段一个默认值（如果 LLM 没有填充它的话）',
   close: '关闭',
+  backHome: '返回首页',
 });

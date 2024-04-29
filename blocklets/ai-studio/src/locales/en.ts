@@ -711,4 +711,5 @@ export default flat({
   outputParameterRequiredLabel: 'Is this output field required',
   outputParameterDefaultValuePlaceholder: 'Give this field a default value if LLM has not filled it',
   close: 'Close',
+  backHome: 'Back Home',
 });
