@@ -1,7 +1,12 @@
 import { useReadOnly } from '@app/contexts/session';
 import Close from '@app/pages/project/icons/close';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { defaultImageModel, getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
+import {
+  defaultImageModel,
+  defaultTextModel,
+  getSupportedImagesModels,
+  getSupportedModels,
+} from '@blocklet/ai-runtime/common';
 import { AssistantYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -55,14 +60,14 @@ export default function PromptSetting({
 
   const defaultModel = useMemo(() => {
     if (isPromptAssistant(value)) {
-      return value?.model || project?.model;
+      return value?.model || project?.model || defaultTextModel;
     }
 
     if (isImageAssistant(value)) {
       return value?.model || defaultImageModel;
     }
 
-    return '';
+    return defaultTextModel;
   }, [(value as any).model, project]);
 
   const modelDetail = useMemo(() => {
