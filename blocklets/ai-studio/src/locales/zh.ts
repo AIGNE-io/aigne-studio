@@ -167,7 +167,6 @@ export default flat({
   commitMessage: '备注',
   confirm: '确认',
   projectSetting: {
-    homePageUrl: '首页地址',
     selectProject: '选择项目',
     name: '项目名称',
     description: '项目描述',

@@ -52,7 +52,6 @@ const init = {
   frequencyPenalty: 0,
   maxTokens: undefined,
   gitType: 'simple',
-  homePageUrl: '',
 };
 
 export default function ProjectSettings() {
@@ -92,7 +91,6 @@ export default function ProjectSettings() {
         'frequencyPenalty',
         'maxTokens',
         'gitType',
-        'homePageUrl',
       ]);
       merge.icon = getProjectIconUrl(projectId);
 
@@ -231,20 +229,6 @@ export default function ProjectSettings() {
                         />
                       </Box>
                     </Stack>
-                  </Box>
-
-                  <Box>
-                    <Typography variant="subtitle2" mb={0.5}>
-                      {t('projectSetting.homePageUrl')}
-                    </Typography>
-
-                    <TextField
-                      label={t('projectSetting.homePageUrl')}
-                      value={value.homePageUrl ?? ''}
-                      onChange={(e) => set('homePageUrl', e.target.value)}
-                      InputProps={{ readOnly }}
-                      sx={{ width: 1 }}
-                    />
                   </Box>
                 </Stack>
               </Box>
