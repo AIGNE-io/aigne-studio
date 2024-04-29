@@ -87,7 +87,7 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
         <DialogContent>{current && <PublishEntriesForm assistant={assistant} entry={current} />}</DialogContent>
         <DialogActions>
           <Button type="submit" variant="contained" onClick={() => setCurrentId(undefined)}>
-            {t('alert.ok')}
+            {t('ok')}
           </Button>
         </DialogActions>
       </Dialog>

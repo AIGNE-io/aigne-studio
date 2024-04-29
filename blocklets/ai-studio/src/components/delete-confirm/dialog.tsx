@@ -123,7 +123,7 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
 
       <DialogActions sx={{ border: 0 }}>
         <Button onClick={onClose} variant="outlined">
-          {t('alert.close')}
+          {t('close')}
         </Button>
 
         <Button

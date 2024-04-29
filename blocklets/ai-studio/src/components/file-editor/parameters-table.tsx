@@ -1,4 +1,5 @@
 import Dataset from '@api/store/models/dataset/dataset';
+import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
 import { getDatasets } from '@app/libs/dataset';
 import Close from '@app/pages/project/icons/close';
 import DragVertical from '@app/pages/project/icons/drag-vertical';
@@ -35,21 +36,20 @@ import {
   Typography,
   alpha,
   createFilterOptions,
-  selectClasses,
 } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import { get, sortBy } from 'lodash';
 import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useId, useMemo } from 'react';
+import { useId, useMemo, useRef } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
-import PopperMenu from '../menu/PopperMenu';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
 import { FROM_KNOWLEDGE } from './execute-block';
+import History from './history';
 import PromptEditorField from './prompt-editor-field';
 import SelectVariable from './select-variable';
 import useVariablesEditorOptions from './use-variables-editor-options';
@@ -74,7 +74,7 @@ export default function ParametersTable({
 }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
-  const { highlightedId, addParameter, deleteParameter } = useVariablesEditorOptions(value);
+  const { highlightedId, variables, addParameter, deleteParameter, removeParameter } = useVariablesEditorOptions(value);
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
   const { getVariables } = useProjectStore(projectId, gitRef);
 
@@ -122,10 +122,11 @@ export default function ParametersTable({
         width: '30%' as any,
         headerName: t('name'),
         renderCell: ({ row: { data: parameter } }) => {
-          if (parameter.key === 'question' || parameter.key === 'datasetId') {
+          if (parameter.key === 'question' || parameter.key === 'chatHistory') {
             const iconMap = {
               question: 'message',
               datasetId: 'database',
+              chatHistory: 'history',
             };
 
             return (
@@ -167,6 +168,10 @@ export default function ParametersTable({
         headerName: t('from'),
         flex: 1,
         renderCell: ({ row: { data: parameter } }) => {
+          if (parameter.type === 'source' && parameter.source?.variableFrom === 'history') {
+            return <Box>{t('history.title')}</Box>;
+          }
+
           return (
             <SelectFromSource
               FROM_MAP={FROM_MAP}
@@ -194,7 +199,7 @@ export default function ParametersTable({
                     <Icon icon="tabler:braces" />
                   </ListItemIcon>
 
-                  {t('object')}
+                  {t('agentOutput')}
                 </Stack>
               );
             }
@@ -229,38 +234,20 @@ export default function ParametersTable({
                 </Stack>
               );
             }
+
+            if (parameter.source.variableFrom === 'history') {
+              return <Box />;
+            }
           }
 
-          const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
           return (
-            <WithAwareness
+            <SelectInputType
+              parameter={parameter}
+              readOnly={readOnly}
+              value={value}
               projectId={projectId}
               gitRef={gitRef}
-              sx={{ top: 4, right: -8 }}
-              path={[value.id, 'parameters', parameter?.id ?? '', 'type']}>
-              <ParameterConfigType
-                disabled={parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER}
-                variant="standard"
-                hiddenLabel
-                SelectProps={{ autoWidth: true }}
-                value={multiline ? 'multiline' : parameter?.type ?? 'string'}
-                InputProps={{ readOnly }}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  doc.transact(() => {
-                    if (newValue === 'multiline') {
-                      parameter.type = 'string';
-                      (parameter as StringParameter)!.multiline = true;
-                    } else {
-                      parameter.type = newValue as any;
-                      if (typeof (parameter as StringParameter).multiline !== 'undefined') {
-                        delete (parameter as StringParameter)!.multiline;
-                      }
-                    }
-                  });
-                }}
-              />
-            </WithAwareness>
+            />
           );
         },
       },
@@ -280,6 +267,7 @@ export default function ParametersTable({
         py: 1.5,
         px: 2,
         borderRadius: 1,
+        pb: 2,
       }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
         <Box display="flex" alignItems="center" gap={0.5}>
@@ -401,11 +389,45 @@ export default function ParametersTable({
                 children: <Box>{t('input')}</Box>,
               }}
               PopperProps={{ placement: 'bottom-start' }}>
-              <MenuItem onClick={() => addParameter('question')}>
+              <MenuItem
+                selected={variables.includes('question')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (variables.includes('question')) {
+                    removeParameter('question');
+                  } else {
+                    addParameter('question');
+                  }
+                }}>
                 <ListItemIcon>
                   <Box component={Icon} icon="tabler:message" />
                 </ListItemIcon>
-                <ListItemText primary={t('questionInputTitle')} />
+                <Box flex={1}>{t('questionInputTitle')}</Box>
+                <Box sx={{ width: 40, textAlign: 'right' }}>
+                  {variables.includes('question') && <Box component={Icon} icon="tabler:check" />}
+                </Box>
+              </MenuItem>
+
+              <MenuItem
+                selected={variables.includes('chatHistory')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (variables.includes('chatHistory')) {
+                    removeParameter('chatHistory');
+                  } else {
+                    addParameter('chatHistory', {
+                      type: 'source',
+                      source: { variableFrom: 'history', chatHistory: { limit: 50, keyword: '' } },
+                    });
+                  }
+                }}>
+                <ListItemIcon>
+                  <Box component={Icon} icon="tabler:history" />
+                </ListItemIcon>
+                <Box flex={1}>{t('history.title')}</Box>
+                <Box sx={{ width: 40, textAlign: 'right' }}>
+                  {variables.includes('chatHistory') && <Box component={Icon} icon="tabler:check" />}
+                </Box>
               </MenuItem>
 
               {/* <MenuItem onClick={() => addParameter('datasetId')}>
@@ -519,7 +541,8 @@ function AgentParameter({
   const { deleteParameter } = useVariablesEditorOptions(value);
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool') {
-    const toolId = parameter?.source?.tool?.id;
+    const toolId = parameter?.source?.agent?.id;
+    const { source } = parameter;
 
     const options = Object.entries(store.tree)
       .filter(([, filepath]) => filepath?.startsWith(`${PROMPTS_FOLDER_NAME}/`))
@@ -529,7 +552,7 @@ function AgentParameter({
       .map((i) => ({ id: i.id, type: i.type, name: i.name, from: FROM_PARAMETER, parameters: i.parameters }));
 
     const v = options.find((x) => x.id === toolId);
-    const file = getFileById((parameter.source as any).tool?.id);
+    const file = getFileById(toolId || '');
     const parameters =
       file?.parameters &&
       sortBy(Object.values(file.parameters), (i) => i.index).filter(
@@ -563,8 +586,7 @@ function AgentParameter({
                   {}
                 );
 
-                parameter.source ??= {};
-                (parameter.source as any).tool = {
+                source.agent = {
                   id: _value.id,
                   from: 'assistant',
                   parameters,
@@ -588,14 +610,14 @@ function AgentParameter({
 
                     <PromptEditorField
                       placeholder={`{{ ${data.key} }}`}
-                      value={(parameter.source as any)?.tool?.parameters?.[data.key] || ''}
+                      value={source?.agent?.parameters?.[data.key] || ''}
                       projectId={projectId}
                       gitRef={gitRef}
                       assistant={value}
                       path={[]}
                       onChange={(value) => {
-                        if ((parameter.source as any)?.tool?.parameters) {
-                          (parameter.source as any).tool.parameters[data.key] = value;
+                        if (source?.agent?.parameters) {
+                          source.agent.parameters[data.key] = value;
                         }
                       }}
                     />
@@ -624,7 +646,7 @@ function DatastoreParameter({
   const { t } = useLocaleContext();
   const { getVariables } = useProjectStore(projectId, gitRef);
 
-  if (parameter.type === 'source' && parameter.source && parameter?.source?.variableFrom === 'datastore') {
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'datastore') {
     const { source } = parameter;
     const v = getVariables();
 
@@ -672,7 +694,8 @@ function KnowledgeParameter({
   const { deleteParameter } = useVariablesEditorOptions(value);
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge') {
-    const toolId = parameter?.source?.tool?.id;
+    const toolId = parameter?.source?.knowledge?.id;
+    const { source } = parameter;
 
     const options = [
       ...knowledge.map((item) => ({
@@ -707,8 +730,7 @@ function KnowledgeParameter({
                   message: '',
                 };
 
-                parameter.source ??= {};
-                (parameter.source as any).tool = {
+                source.knowledge = {
                   id: _value.id,
                   from: 'knowledge',
                   parameters,
@@ -718,7 +740,7 @@ function KnowledgeParameter({
           />
         </Box>
 
-        {parameter?.source?.tool && (
+        {source?.knowledge && (
           <Box>
             <Typography variant="subtitle2">{t('inputs')}</Typography>
 
@@ -732,14 +754,14 @@ function KnowledgeParameter({
 
                     <PromptEditorField
                       placeholder={`{{ ${data.name} }}`}
-                      value={(parameter.source as any)?.tool?.parameters?.[data.name] || ''}
+                      value={source?.knowledge?.parameters?.[data.name] || ''}
                       projectId={projectId}
                       gitRef={gitRef}
                       assistant={value}
                       path={[]}
                       onChange={(value) => {
-                        if ((parameter.source as any)?.tool?.parameters) {
-                          (parameter.source as any).tool.parameters[data.name] = value;
+                        if (source?.knowledge?.parameters) {
+                          source.knowledge.parameters[data.name] = value;
                         }
                       }}
                     />
@@ -749,6 +771,28 @@ function KnowledgeParameter({
             </Box>
           </Box>
         )}
+      </Stack>
+    );
+  }
+
+  return null;
+}
+
+function HistoryParameter({
+  projectId,
+  gitRef,
+  value,
+  parameter,
+}: {
+  projectId: string;
+  gitRef: string;
+  value: AssistantYjs;
+  parameter: ParameterYjs;
+}) {
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'history') {
+    return (
+      <Stack gap={2}>
+        <History projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} />
       </Stack>
     );
   }
@@ -849,6 +893,10 @@ function SelectFromSourceDialog({
           />
         );
       }
+
+      if (parameter.source.variableFrom === 'history') {
+        return <HistoryParameter projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} />;
+      }
     }
 
     if (parameter) {
@@ -873,35 +921,39 @@ function SelectFromSourceDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={dialogState.close} variant="outlined">
-          {t('cancel')}
-        </Button>
-
         <Button
           variant="contained"
           onClick={() => {
             // 新增选择 tool 和 knowledge 未定义的参数
-            if (
-              parameter.type === 'source' &&
-              (parameter?.source?.variableFrom === 'tool' || parameter?.source?.variableFrom === 'knowledge') &&
-              parameter?.source
-            ) {
+            if (parameter.type === 'source' && parameter?.source?.variableFrom === 'tool' && parameter?.source) {
               const { source } = parameter;
-              Object.entries(source?.tool?.parameters || {}).forEach(([key, value]: any) => {
+              Object.entries(source?.agent?.parameters || {}).forEach(([key, value]: any) => {
                 if (!value) {
-                  if (source && source?.tool && source?.tool?.parameters) {
-                    source.tool.parameters[key] = `{{${key}}}`;
+                  if (source && source?.agent && source?.agent?.parameters) {
+                    source.agent.parameters[key] = `{{${key}}}`;
                   }
 
-                  const from = source.variableFrom === 'tool' ? FROM_PARAMETER : FROM_KNOWLEDGE_PARAMETER;
-                  addParameter(key, { from });
+                  addParameter(key, { from: FROM_PARAMETER });
+                }
+              });
+            }
+
+            if (parameter.type === 'source' && parameter?.source?.variableFrom === 'knowledge' && parameter?.source) {
+              const { source } = parameter;
+              Object.entries(source?.knowledge?.parameters || {}).forEach(([key, value]: any) => {
+                if (!value) {
+                  if (source && source?.knowledge && source?.knowledge?.parameters) {
+                    source.knowledge.parameters[key] = `{{${key}}}`;
+                  }
+
+                  addParameter(key, { from: FROM_KNOWLEDGE_PARAMETER });
                 }
               });
             }
 
             dialogState.close();
           }}>
-          {t('save')}
+          {t('ok')}
         </Button>
       </DialogActions>
     </Dialog>
@@ -926,49 +978,134 @@ function SelectFromSource({
   FROM_MAP: { [key: string]: string };
 }) {
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
+  const { t } = useLocaleContext();
+  const { getFileById } = useProjectStore(projectId, gitRef);
+  const ref = useRef<PopperMenuImperative>(null);
+
+  const currentKey = parameter.type === 'source' ? parameter.source?.variableFrom : 'custom';
+  const fromTitle =
+    parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id
+      ? t('variableParameter.agent', { agent: getFileById(parameter?.source?.agent?.id)?.name })
+      : FROM_MAP[currentKey || 'custom'];
 
   return (
     <>
-      <TextField
-        variant="standard"
-        select
-        hiddenLabel
-        value={parameter.type === 'source' ? parameter.source?.variableFrom : 'custom'}
-        sx={{
-          [`.${selectClasses.select}`]: {
-            py: 0.5,
-            '&:focus': {
-              background: 'transparent',
-            },
-          },
+      <PopperMenu
+        ref={ref}
+        BoxProps={{
+          sx: { my: 1, p: 0, cursor: 'pointer' },
+          children: (
+            <Box>
+              <Box className="center" gap={1} justifyContent="flex-start">
+                <Box>{fromTitle}</Box>
+                <Box component={Icon} icon="tabler:chevron-down" width={15} />
+              </Box>
+            </Box>
+          ),
         }}
-        onChange={(e) => {
-          dialogState.open();
-          if ((e.target.value || 'custom') !== ((parameter as any)?.source?.variableFrom || 'custom')) {
-            if ((parameter as any).source) delete (parameter as any).source;
-            parameter.type = 'string';
-
-            if (e.target.value !== 'custom') {
-              parameter.type = 'source';
-              (parameter as any).source ??= {};
-              (parameter as any).source.variableFrom = e.target.value as any;
-            }
-
-            dialogState.open();
-          }
-        }}>
-        {Object.entries(FROM_MAP).map(([key, _value]) => {
+        PopperProps={{ placement: 'bottom-start' }}>
+        {Object.entries(FROM_MAP).map(([key, value]) => {
           return (
-            <MenuItem value={key} key={key}>
-              {_value}
+            <MenuItem
+              key={key}
+              selected={key === currentKey}
+              onClick={(e) => {
+                e.stopPropagation();
+
+                if (key !== currentKey) {
+                  parameter.type = 'string';
+
+                  if (key !== 'custom') {
+                    parameter.type = 'source';
+                    if (parameter.type === 'source') {
+                      parameter.source ??= {};
+                      parameter.source.variableFrom = key as any;
+                    }
+                  }
+
+                  ref.current?.close();
+                  dialogState.open();
+                }
+              }}>
+              {/* <ListItemIcon>{value}</ListItemIcon> */}
+              <Box flex={1}>{value}</Box>
+              <Box sx={{ width: 40, textAlign: 'right' }}>
+                {key === currentKey && <Box component={Icon} icon="tabler:check" />}
+              </Box>
             </MenuItem>
           );
         })}
-      </TextField>
+      </PopperMenu>
 
       <SelectFromSourceDialog
         dialogState={dialogState}
         knowledge={knowledge}
+        parameter={parameter}
+        readOnly={readOnly}
+        value={value}
+        projectId={projectId}
+        gitRef={gitRef}
+      />
+    </>
+  );
+}
+
+function SelectInputType({
+  parameter,
+  readOnly,
+  value,
+  projectId,
+  gitRef,
+}: {
+  parameter: ParameterYjs;
+  readOnly?: boolean;
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+}) {
+  const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
+  const doc = (getYjsValue(value) as Map<any>)?.doc!;
+  const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
+
+  return (
+    <>
+      <WithAwareness
+        projectId={projectId}
+        gitRef={gitRef}
+        sx={{ top: 4, right: -8 }}
+        path={[value.id, 'parameters', parameter?.id ?? '', 'type']}>
+        <ParameterConfigType
+          disabled={parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER}
+          variant="standard"
+          hiddenLabel
+          SelectProps={{ autoWidth: true }}
+          value={multiline ? 'multiline' : parameter?.type ?? 'string'}
+          InputProps={{ readOnly }}
+          onChange={(e) => {
+            const newValue = e.target.value;
+
+            if (newValue === 'select') {
+              dialogState.open();
+            }
+
+            doc.transact(() => {
+              if (newValue === 'multiline') {
+                parameter.type = 'string';
+                (parameter as StringParameter)!.multiline = true;
+              } else {
+                parameter.type = newValue as any;
+                if (typeof (parameter as StringParameter).multiline !== 'undefined') {
+                  delete (parameter as StringParameter)!.multiline;
+                }
+              }
+            });
+          }}
+        />
+      </WithAwareness>
+
+      <SelectFromSourceDialog
+        dialogState={dialogState}
+        knowledge={[]}
         parameter={parameter}
         readOnly={readOnly}
         value={value}

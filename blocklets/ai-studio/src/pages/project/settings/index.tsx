@@ -1,7 +1,7 @@
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { getSupportedModels } from '@blocklet/ai-runtime/common';
+import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -167,7 +167,7 @@ export default function ProjectSettings() {
         content: t('alert.unsave.content'),
         okText: t('save'),
         okColor: 'primary',
-        cancelText: t('alert.cancel'),
+        cancelText: t('cancel'),
         middleText: t('alert.discard'),
         middleColor: 'error',
         onOk: async () => {
@@ -242,7 +242,7 @@ export default function ProjectSettings() {
                   <ModelSelectField
                     hiddenLabel
                     fullWidth
-                    value={value.model ?? ''}
+                    value={value.model || defaultTextModel}
                     onChange={(e) => set('model', e.target.value)}
                     InputProps={{ readOnly }}
                     sx={{ width: 1 }}

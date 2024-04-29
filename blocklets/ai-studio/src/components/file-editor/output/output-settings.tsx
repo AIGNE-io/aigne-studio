@@ -1,4 +1,3 @@
-import BaseSwitch from '@app/components/custom/switch';
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
@@ -15,12 +14,11 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  FormControlLabel,
   IconButton,
   ListItemIcon,
   MenuItem,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -64,7 +62,7 @@ export default function OutputSettings({
   };
 
   return (
-    <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, borderRadius: 1 }}>
+    <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
         <Box display="flex" alignItems="center" gap={0.5}>
           <Box component={Icon} icon="tabler:arrow-autofit-down" />
@@ -92,6 +90,9 @@ export default function OutputSettings({
                 </Box>
                 <Box component={TableCell}>{t('description')}</Box>
                 <Box component={TableCell}>{t('format')}</Box>
+                <Box component={TableCell} width={74}>
+                  {t('required')}
+                </Box>
                 <Box component={TableCell} align="right" />
               </TableRow>
             </TableHead>
@@ -184,6 +185,10 @@ function VariableRow({
       }
     : variable;
 
+  const isDefaultRequired = [RuntimeOutputVariable.images, RuntimeOutputVariable.text].includes(
+    v.name as RuntimeOutputVariable
+  );
+
   return (
     <>
       <Box component={TableRow} key={variable.id}>
@@ -268,7 +273,7 @@ function VariableRow({
                     ),
                     okText: t('confirm'),
                     okColor: 'error',
-                    cancelText: t('alert.cancel'),
+                    cancelText: t('cancel'),
                     onOk: () => {
                       delete variable.variable;
 
@@ -284,6 +289,18 @@ function VariableRow({
                     variable.element ??= { id: nanoid(), name: 'element', type: 'string' };
                   }
                 }
+              }}
+            />
+          )}
+        </Box>
+        <Box component={TableCell}>
+          {!isDefaultRequired && (
+            <Switch
+              size="small"
+              disabled={Boolean(disabled)}
+              checked={v.required || false}
+              onChange={(_, checked) => {
+                v.required = checked;
               }}
             />
           )}
@@ -386,10 +403,6 @@ function PopperButton({
 
   const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
 
-  const isDefaultRequired = [RuntimeOutputVariable.images, RuntimeOutputVariable.text].includes(
-    parameter.name as RuntimeOutputVariable
-  );
-
   const renderParameterSettings = (parameter: OutputVariableYjs) => {
     if (currentSetting === 'setting') {
       return (
@@ -422,24 +435,6 @@ function PopperButton({
               />
             </Box>
           ) : null}
-
-          <Box>
-            <FormControl>
-              <FormControlLabel
-                sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-                labelPlacement="start"
-                label={t('outputParameterRequiredLabel')}
-                disabled={isDefaultRequired}
-                control={
-                  <BaseSwitch
-                    sx={{ mr: 1, mt: '1px' }}
-                    checked={isDefaultRequired || parameter.required || false}
-                    onChange={(_, required) => (parameter.required = required)}
-                  />
-                }
-              />
-            </FormControl>
-          </Box>
         </>
       );
     }
@@ -473,6 +468,8 @@ function PopperButton({
     return null;
   };
 
+  const isRenderSettings = runtimeVariable ? false : ['string', 'number'].includes(parameter.type || '');
+
   return (
     <>
       <PopperMenu
@@ -481,14 +478,17 @@ function PopperButton({
           ...bindTrigger(parameterSettingPopperState),
           disabled,
           children: <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />,
-        }}>
-        <MenuItem
-          onClick={() => {
-            setSetting('setting');
-            dialogState.open();
-          }}>
-          {t('setting')}
-        </MenuItem>
+        }}
+        PopperProps={{ placement: 'bottom-end' }}>
+        {isRenderSettings && (
+          <MenuItem
+            onClick={() => {
+              setSetting('setting');
+              dialogState.open();
+            }}>
+            {t('setting')}
+          </MenuItem>
+        )}
 
         {isSaveAs && (
           <MenuItem
@@ -525,8 +525,8 @@ function PopperButton({
         </DialogContent>
 
         <DialogActions>
-          <Button variant="outlined" onClick={dialogState.close}>
-            {t('close')}
+          <Button variant="contained" onClick={dialogState.close}>
+            {t('ok')}
           </Button>
         </DialogActions>
       </Dialog>

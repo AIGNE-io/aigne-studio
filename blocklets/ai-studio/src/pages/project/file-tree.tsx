@@ -70,6 +70,7 @@ import { useAssistantChangesState } from './state';
 import type { AssistantYjsWithParents } from './state';
 import {
   PROMPTS_FOLDER_NAME,
+  createFileName,
   createFolder,
   deleteFile,
   isBuiltinFolder,
@@ -452,7 +453,7 @@ const FileTree = forwardRef<
                         if (!data || name === data.name) return;
                         meta.name = name;
                       }}>
-                      {meta.name || t('alert.unnamed')}
+                      {createFileName({ store, name: meta.name, defaultName: `${t('alert.unnamed')} Agent` })}
                     </EditTextItem>
                   </TreeItem>
                   <AwarenessIndicator

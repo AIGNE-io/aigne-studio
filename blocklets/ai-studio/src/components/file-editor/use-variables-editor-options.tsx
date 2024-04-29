@@ -79,7 +79,15 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
   const addParameter = useCallback(
     (
       parameter: string,
-      { from, source }: { from?: 'editor' | 'agentParameter' | 'knowledgeParameter'; source?: any } = {}
+      {
+        from,
+        source,
+        type,
+      }: {
+        from?: 'editor' | 'agentParameter' | 'knowledgeParameter';
+        type?: any;
+        source?: any;
+      } = {}
     ) => {
       if (!assistant) return undefined;
 
@@ -91,9 +99,11 @@ export default function useVariablesEditorOptions(assistant?: AssistantYjs) {
 
         const key = (parameter || '').split('.')[0] || '';
         if (!parameter || !variables.includes(key)) {
+          const data = { id, key, ...(from ? { from } : {}), ...(type ? { type } : {}), ...(source ? { source } : {}) };
+
           assistant.parameters[id] = {
             index: Math.max(-1, ...Object.values(assistant.parameters).map((i) => i.index)) + 1,
-            data: { id, key, from, source },
+            data,
           };
 
           setHighlightedId(id);
