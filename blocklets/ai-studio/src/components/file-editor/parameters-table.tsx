@@ -241,36 +241,14 @@ export default function ParametersTable({
             }
           }
 
-          const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
           return (
-            <WithAwareness
+            <SelectInputType
+              parameter={parameter}
+              readOnly={readOnly}
+              value={value}
               projectId={projectId}
               gitRef={gitRef}
-              sx={{ top: 4, right: -8 }}
-              path={[value.id, 'parameters', parameter?.id ?? '', 'type']}>
-              <ParameterConfigType
-                disabled={parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER}
-                variant="standard"
-                hiddenLabel
-                SelectProps={{ autoWidth: true }}
-                value={multiline ? 'multiline' : parameter?.type ?? 'string'}
-                InputProps={{ readOnly }}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  doc.transact(() => {
-                    if (newValue === 'multiline') {
-                      parameter.type = 'string';
-                      (parameter as StringParameter)!.multiline = true;
-                    } else {
-                      parameter.type = newValue as any;
-                      if (typeof (parameter as StringParameter).multiline !== 'undefined') {
-                        delete (parameter as StringParameter)!.multiline;
-                      }
-                    }
-                  });
-                }}
-              />
-            </WithAwareness>
+            />
           );
         },
       },
@@ -1094,5 +1072,71 @@ function SelectFromSourceComponent({
         );
       })}
     </TextField>
+  );
+}
+
+function SelectInputType({
+  parameter,
+  readOnly,
+  value,
+  projectId,
+  gitRef,
+}: {
+  parameter: ParameterYjs;
+  readOnly?: boolean;
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+}) {
+  const multiline = (!parameter.type || parameter.type === 'string') && parameter?.multiline;
+  const doc = (getYjsValue(value) as Map<any>)?.doc!;
+  const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
+
+  return (
+    <>
+      <WithAwareness
+        projectId={projectId}
+        gitRef={gitRef}
+        sx={{ top: 4, right: -8 }}
+        path={[value.id, 'parameters', parameter?.id ?? '', 'type']}>
+        <ParameterConfigType
+          disabled={parameter.from === FROM_PARAMETER || parameter.from === FROM_KNOWLEDGE_PARAMETER}
+          variant="standard"
+          hiddenLabel
+          SelectProps={{ autoWidth: true }}
+          value={multiline ? 'multiline' : parameter?.type ?? 'string'}
+          InputProps={{ readOnly }}
+          onChange={(e) => {
+            const newValue = e.target.value;
+
+            if (newValue === 'select') {
+              dialogState.open();
+            }
+
+            doc.transact(() => {
+              if (newValue === 'multiline') {
+                parameter.type = 'string';
+                (parameter as StringParameter)!.multiline = true;
+              } else {
+                parameter.type = newValue as any;
+                if (typeof (parameter as StringParameter).multiline !== 'undefined') {
+                  delete (parameter as StringParameter)!.multiline;
+                }
+              }
+            });
+          }}
+        />
+      </WithAwareness>
+
+      <SelectFromSourceDialog
+        dialogState={dialogState}
+        knowledge={[]}
+        parameter={parameter}
+        readOnly={readOnly}
+        value={value}
+        projectId={projectId}
+        gitRef={gitRef}
+      />
+    </>
   );
 }
