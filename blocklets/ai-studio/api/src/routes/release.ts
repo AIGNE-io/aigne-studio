@@ -123,6 +123,7 @@ router.post('/', user(), ensureComponentCallOrPromptsEditor(), async (req, res) 
     projectId,
     createdBy: did,
     updatedBy: did,
+    paymentEnabled: input.paymentEnabled,
   });
 
   if (input.paymentEnabled && input.paymentUnitAmount) {

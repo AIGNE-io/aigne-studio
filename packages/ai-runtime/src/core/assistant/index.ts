@@ -962,7 +962,7 @@ async function runPromptAssistant({
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
 
-  if (assistant.memory?.enable) {
+  if (assistant.memory?.enable && sessionId) {
     const lastSystemIndex = messages.findLastIndex((i) => i.role === 'system');
     const memories = await runRequestHistory({
       assistant,
@@ -977,23 +977,21 @@ async function runPromptAssistant({
       },
     });
 
-    if (memories.length) {
-      messages.splice(lastSystemIndex, 0, {
+    if (Array.isArray(memories) && memories.length) {
+      messages.splice(lastSystemIndex + 1, 0, {
         role: 'system',
         content: `## Memory
-        Here is the chat memories between user and assistant, inside <memories></memories> XML tags.
-        <memories>
-        ${JSON.stringify(memories)}
-        </memories>`,
+Here is the chat memories between user and assistant, inside <memories></memories> XML tags.
+<memories>
+${memories.map((i) => `${i.role}: ${JSON.stringify(i.content)}`).join('\n')}
+</memories>`,
       });
     }
   }
 
   const { outputVariables = [] } = assistant;
-  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === '$textStream');
-  const outputStreamAndJson = outputVariables.some(
-    (i) => i.name && (i.name as RuntimeOutputVariable) !== '$textStream'
-  );
+  const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === '$text');
+  const outputStreamAndJson = outputVariables.some((i) => i.name && (i.name as RuntimeOutputVariable) !== '$text');
 
   const schema = outputVariablesToJsonSchema(outputVariables, datastoreVariables);
   const outputSchema = JSON.stringify(schema);

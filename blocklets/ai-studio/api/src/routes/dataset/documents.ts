@@ -385,7 +385,25 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
     createdBy: did,
     updatedBy: did,
   });
-  await DatasetContent.create({ documentId: document.id, content: await readFile(filePath, 'utf8') });
+
+  const getContent = async () => {
+    if (fileExtension === 'pdf') {
+      // return readPDF(filePath).then((x) => x.text);
+    }
+
+    return readFile(filePath, 'utf8');
+  };
+
+  let content = '';
+  try {
+    content = await getContent();
+  } catch (error) {
+    content = '';
+  }
+
+  if (content) {
+    await DatasetContent.create({ documentId: document.id, content });
+  }
 
   queue.checkAndPush({ type: 'document', documentId: document.id });
 

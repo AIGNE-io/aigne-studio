@@ -1,3 +1,24 @@
+## 0.1.353 (2024-4-29)
+
+- fix: start server crashed
+
+## 0.1.352 (2024-4-28)
+
+- fix: add indexeddb to persist data in the browser
+- fix: polish ui texts
+
+## 0.1.351 (2024-4-28)
+
+- fix: reload projects when switch user(#890)
+- fix: check user permissions for some action(#871,#861)
+- fix: some i18n text(#862,#865)
+
+## 0.1.350 (2024-4-28)
+
+- fix: rename textStream to text & add default output text output for the default project template
+- fix: update ui copy
+- fix: polish output variables menus
+
 ## 0.1.349 (2024-4-28)
 
 - fix: validate price number

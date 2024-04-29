@@ -21,9 +21,9 @@ export default function FunctionCodeEditor({
   useEffect(() => {
     if (!value.code) {
       value.code = `\
-  return {
-    // result
-  }
+return {
+  text: 'hello, AIGNE!'
+}
 `;
     }
   }, [value]);

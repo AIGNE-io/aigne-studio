@@ -1,4 +1,5 @@
-import { Assistant } from '@blocklet/ai-runtime/types';
+import { Assistant, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import { nanoid } from 'nanoid';
 
 import { wallet } from '../libs/auth';
 import Project from '../store/models/project';
@@ -43,6 +44,7 @@ export const projectTemplates: {
             defaultValue: 'English',
           },
         ],
+        outputVariables: [{ id: nanoid(), name: RuntimeOutputVariable.text }],
         createdBy: wallet.address,
         updatedBy: wallet.address,
         createdAt: '2023-09-30T12:23:04.603Z',

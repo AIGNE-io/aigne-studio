@@ -59,7 +59,7 @@ const MAX_WIDTH = 300;
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
-  const { events } = useSessionContext();
+  const { session, events } = useSessionContext();
   const [searchParams] = useSearchParams();
   const endpoint = searchParams.get('endpoint');
   const action = searchParams.get('action');
@@ -82,7 +82,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     refetch();
-  }, []);
+  }, [session?.user?.did]);
 
   return (
     <Stack minHeight="100%" overflow="auto" bgcolor="#F9FAFB">
@@ -164,22 +164,24 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
               </MenuItem>
             </MenuList>
           }>
-          <Button variant="outlined">{t('alert.import')}</Button>
+          <Button variant="outlined" startIcon={<Icon icon="tabler:transfer-in" />}>
+            {t('alert.import')}
+          </Button>
         </ButtonPopper>
 
-        <ButtonPopper
-          onClick={checkProjectLimit}
-          list={
-            <MenuList autoFocusItem>
-              <MenuItem
-                onClick={() => {
-                  setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
-                }}>
-                <Box component={Icon} icon="tabler:plus" sx={{ mr: 1 }} />
-                <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('blank')}</ListItemText>
-              </MenuItem>
+        {resource.length ? (
+          <ButtonPopper
+            onClick={checkProjectLimit}
+            list={
+              <MenuList autoFocusItem>
+                <MenuItem
+                  onClick={() => {
+                    setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
+                  }}>
+                  <Box component={Icon} icon="tabler:plus" sx={{ mr: 1 }} />
+                  <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('blank')}</ListItemText>
+                </MenuItem>
 
-              {!!resource.length && (
                 <MenuItem
                   onClick={() => {
                     setDialog(<ImportFromTemplates templates={resource} onClose={() => setDialog(null)} />);
@@ -187,13 +189,22 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
                   <Box component={Icon} icon="tabler:file-plus" sx={{ mr: 1 }} />
                   <ListItemText sx={{ fontSize: 13, lineHeight: '22px' }}>{t('agents')}</ListItemText>
                 </MenuItem>
-              )}
-            </MenuList>
-          }>
-          <Button startIcon={<Box component={Icon} icon="tabler:plus" />} variant="contained">
+              </MenuList>
+            }>
+            <Button startIcon={<Box component={Icon} icon="tabler:plus" />} variant="contained">
+              {t('newObject', { object: t('project') })}
+            </Button>
+          </ButtonPopper>
+        ) : (
+          <Button
+            startIcon={<Box component={Icon} icon="tabler:plus" />}
+            variant="contained"
+            onClick={() => {
+              setDialog(<ImportFromBlank item={blank} onClose={() => setDialog(null)} />);
+            }}>
             {t('newObject', { object: t('project') })}
           </Button>
-        </ButtonPopper>
+        )}
       </Stack>
 
       {dialog}

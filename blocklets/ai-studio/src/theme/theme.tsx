@@ -1,11 +1,15 @@
+import { Icon } from '@iconify-icon/react';
 import { ArrowDropDownRounded } from '@mui/icons-material';
 import { loadingButtonClasses } from '@mui/lab';
 import {
+  Box,
+  BoxProps,
   autocompleteClasses,
   filledInputClasses,
   inputBaseClasses,
   inputClasses,
   inputLabelClasses,
+  listItemIconClasses,
   outlinedInputClasses,
   selectClasses,
   sliderClasses,
@@ -567,7 +571,17 @@ export const theme = createTheme({
       },
     },
     MuiSelect: {
-      defaultProps: { variant: 'filled', IconComponent: ArrowDropDownRounded },
+      styleOverrides: {
+        select: {
+          display: 'flex',
+          alignItems: 'center',
+
+          [`.${listItemIconClasses.root}`]: {
+            minWidth: 20,
+          },
+        },
+      },
+      defaultProps: { variant: 'filled', IconComponent: SelectIcon },
       variants: [
         {
           props: {},
@@ -666,6 +680,7 @@ export const theme = createTheme({
           theme.unstable_sx({
             padding: '6px 12px',
             fontSize: '0.875rem',
+            borderRadius: 1,
 
             '.MuiListItemIcon-root': {
               minWidth: 0,
@@ -751,3 +766,7 @@ export const theme = createTheme({
     },
   },
 });
+
+function SelectIcon(props: BoxProps) {
+  return <Box {...props} component={Icon} icon="tabler:chevron-down" />;
+}

@@ -29,6 +29,7 @@ import { customAlphabet, nanoid } from 'nanoid';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
+import { IndexeddbPersistence } from 'y-indexeddb';
 import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
@@ -89,11 +90,14 @@ const projectStore = (projectId: string, gitRef: string) => {
 
       const store = syncedStore<State>({ files: {}, tree: {} }, doc);
 
+      const indexeddb = new IndexeddbPersistence(`${projectId}-${gitRef}`, doc);
+
       return {
         store,
         awareness: { clients: {}, files: {} },
         provider,
         synced: provider.synced,
+        indexeddb,
       };
     })(),
   });

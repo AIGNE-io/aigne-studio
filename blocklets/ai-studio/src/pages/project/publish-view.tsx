@@ -15,6 +15,10 @@ import styled from '@emotion/styled';
 import { Icon } from '@iconify-icon/react';
 import { LaunchRounded } from '@mui/icons-material';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionProps,
+  AccordionSummary,
   Box,
   CircularProgress,
   FormControl,
@@ -26,9 +30,12 @@ import {
   RadioGroup,
   Stack,
   Typography,
+  accordionClasses,
+  accordionSummaryClasses,
 } from '@mui/material';
 import { styled as muiStyled } from '@mui/material/styles';
-import { Suspense, useEffect, useMemo } from 'react';
+import { useLocalStorageState } from 'ahooks';
+import { ReactNode, Suspense, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import QRCode from 'react-qr-code';
 import { joinURL, withQuery } from 'ufo';
@@ -104,13 +111,9 @@ function PublishViewContent({
   const releaseUrl = useMemo(() => {
     if (!release) return undefined;
     const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
-    // FIXME: change path to `/ai/chat`
-    return withQuery(
-      joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/chat/debug'),
-      {
-        assistantId: btoa([projectId, projectRef, assistant.id].join('/')),
-      }
-    );
+    return withQuery(joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/runtime'), {
+      assistantId: btoa([projectId, projectRef, assistant.id].join('/')),
+    });
   }, [release]);
 
   useEffect(() => {
@@ -179,253 +182,296 @@ function PublishViewContent({
 
   return (
     <Stack
-      px={2}
-      mt={1}
-      py={1}
-      pb={2}
-      gap={2}
-      ml={1}
-      overflow="auto"
       component="form"
-      onSubmit={form.handleSubmit(onSubmit)}>
-      <FormControl>
-        <Typography variant="subtitle2" mb={0.5}>
-          {t('designTemplate')}
-        </Typography>
+      onSubmit={form.handleSubmit(onSubmit)}
+      sx={{
+        [`.${accordionClasses.root}`]: {
+          borderBottom: 1,
+          borderColor: 'divider',
 
-        <RadioGroup
-          row
-          sx={{ rowGap: 1 }}
-          value={assistant.release?.template || 'chat'}
-          onChange={(_, value) => setRelease((release) => (release.template = value))}>
-          <StyledFormControlLabel
-            labelPlacement="top"
-            control={<Radio />}
-            value="chat"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-chat.svg')} alt="" />}
-          />
-          <StyledFormControlLabel
-            labelPlacement="top"
-            control={<Radio />}
-            value="form"
-            label={<TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-form.svg')} alt="" />}
-          />
-        </RadioGroup>
-      </FormControl>
+          [`.${accordionSummaryClasses.root}`]: {
+            bgcolor: 'grey.100',
+            position: 'sticky',
+            top: 0,
+            zIndex: 2,
+          },
+        },
+      }}>
+      <MyAccordion persistenceId="publish-appearance" title={t('appearance')}>
+        <Stack gap={2}>
+          <FormControl>
+            <Typography variant="subtitle2">{t('appearanceTemplate')}</Typography>
 
-      <LogoField assistant={assistant} setRelease={setRelease} />
+            <RadioGroup
+              row
+              sx={{ rowGap: 1 }}
+              value={assistant.release?.template || 'chat'}
+              onChange={(_, value) => setRelease((release) => (release.template = value))}>
+              <StyledFormControlLabel
+                labelPlacement="top"
+                control={<Radio />}
+                value="chat"
+                label={
+                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-chat.svg')} alt="" />
+                }
+              />
+              <StyledFormControlLabel
+                labelPlacement="top"
+                control={<Radio />}
+                value="form"
+                label={
+                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-form.svg')} alt="" />
+                }
+              />
+            </RadioGroup>
+          </FormControl>
 
-      <FormControl>
-        <Typography mb={0.5} variant="subtitle2">
-          {t('agentName')}
-        </Typography>
-        <BaseInput
-          placeholder={t('agentNamePlaceholder')}
-          value={assistant.release?.title || ''}
-          onChange={(e) => setRelease((release) => (release.title = e.target.value))}
-        />
-      </FormControl>
+          <LogoField assistant={assistant} setRelease={setRelease} />
 
-      <FormControl>
-        <Typography mb={0.5} variant="subtitle2">
-          {t('agentDescription')}
-        </Typography>
-        <BaseInput
-          multiline
-          sx={{ padding: 0 }}
-          placeholder={t('agentDescriptionPlaceholder')}
-          minRows={3}
-          value={assistant.release?.description || ''}
-          onChange={(e) => setRelease((release) => (release.description = e.target.value))}
-        />
-      </FormControl>
-
-      <PublishEntries assistant={assistant} />
-
-      <FormControl>
-        <Typography mb={0.5} variant="subtitle2">
-          {t('openingText')}
-        </Typography>
-        <BaseInput
-          multiline
-          sx={{ padding: 0 }}
-          placeholder={t('openingTextPlaceholder')}
-          minRows={3}
-          value={assistant.release?.openerMessage || ''}
-          onChange={(e) => setRelease((release) => (release.openerMessage = e.target.value))}
-        />
-      </FormControl>
-
-      <TableLayout component="table">
-        <tr>
-          <td colSpan={2}>
-            <Typography variant="subtitle2" noWrap sx={{ mb: 0, mt: 1 }}>
-              {t('chatButton')}
-            </Typography>
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <FormLabel>{t('buttonTitle')}</FormLabel>
-          </td>
-
-          <td>
+          <FormControl>
+            <Typography variant="subtitle2">{t('agentName')}</Typography>
             <BaseInput
-              fullWidth
-              value={assistant.release?.submitButton?.title || ''}
-              onChange={(e) =>
-                setRelease((release) => {
-                  release.submitButton ??= {};
-                  release.submitButton.title = e.target.value;
-                })
-              }
+              placeholder={t('agentNamePlaceholder')}
+              value={assistant.release?.title || ''}
+              onChange={(e) => setRelease((release) => (release.title = e.target.value))}
             />
-          </td>
-        </tr>
+          </FormControl>
 
-        <tr>
-          <td colSpan={2}>
-            <Typography variant="subtitle2" sx={{ mb: 0, mt: 1 }}>
-              {t('chatLimit')}
-            </Typography>
-          </td>
-        </tr>
+          <FormControl>
+            <Typography variant="subtitle2">{t('agentDescription')}</Typography>
 
-        <tr>
-          <td>
-            <FormLabel>{t('maxChatRoundLimit')}</FormLabel>
-          </td>
-
-          <td>
-            <NumberField
-              id="maxChatRoundLimit"
-              fullWidth
-              component={BaseInput}
-              NumberProps={{
-                min: 0,
-                value: assistant.release?.maxRoundLimit ?? null,
-                onChange: (_, value) =>
-                  setRelease((release) => {
-                    release.maxRoundLimit = value;
-                  }),
-              }}
-            />
-          </td>
-        </tr>
-
-        <tr>
-          <Box component="td" sx={{ verticalAlign: 'top' }}>
-            <FormLabel sx={{ mt: 1.25, display: 'block' }}>{t('reachMaxRoundLimitTip')}</FormLabel>
-          </Box>
-
-          <td>
             <BaseInput
-              id="reachMaxRoundLimitTip"
-              fullWidth
               multiline
-              value={assistant.release?.reachMaxRoundLimitTip ?? ''}
-              onChange={(e) =>
-                setRelease((release) => {
-                  release.reachMaxRoundLimitTip = e.target.value;
-                })
-              }
+              sx={{ padding: 0 }}
+              placeholder={t('agentDescriptionPlaceholder')}
+              minRows={3}
+              value={assistant.release?.description || ''}
+              onChange={(e) => setRelease((release) => (release.description = e.target.value))}
             />
-          </td>
-        </tr>
+          </FormControl>
 
-        <tr>
-          <td colSpan={2}>
-            <Typography mb={0.5} variant="subtitle2" mt={1}>
-              {t('payment')}
-            </Typography>
-          </td>
-        </tr>
+          <TableLayout component="table">
+            <tr>
+              <td colSpan={2}>
+                <Typography variant="subtitle2" noWrap sx={{ mb: 0 }}>
+                  {t('chatButton')}
+                </Typography>
+              </td>
+            </tr>
 
-        <tr>
-          <td>
-            <FormLabel>{t('enabled')}</FormLabel>
-          </td>
+            <tr>
+              <td>
+                <FormLabel>{t('buttonText')}</FormLabel>
+              </td>
 
-          <td>
-            <Switch
-              checked={assistant.release?.payment?.enable || false}
-              onChange={(_, checked) =>
-                setRelease((release) => {
-                  release.payment ??= {};
-                  release.payment.enable = checked;
-                })
-              }
-            />
-          </td>
-        </tr>
-
-        {assistant.release?.payment?.enable && (
-          <tr>
-            <td>
-              <FormLabel>{t('pricing')}</FormLabel>
-            </td>
-
-            <td>
-              <Stack direction="row" alignItems="center" gap={1}>
+              <td>
                 <BaseInput
                   fullWidth
-                  {...form.register('payment.price', {
-                    required: assistant.release.payment.enable ? t('pricingRequiredMessage') : undefined,
-                    pattern: {
-                      value: /^\d+(\.\d{1,5})?$/,
-                      message: t('pricingPatternMessage', { decimal: 5 }),
-                    },
-                    min: { value: 0.00001, message: t('pricingPatternMessage', { decimal: 5 }) },
-                    max: { value: 1000000, message: t('pricingInvalidMessage') },
-                  })}
+                  placeholder={t('send')}
+                  value={assistant.release?.submitButton?.title || ''}
+                  onChange={(e) =>
+                    setRelease((release) => {
+                      release.submitButton ??= {};
+                      release.submitButton.title = e.target.value;
+                    })
+                  }
                 />
-                <Typography component="span">{t('pricingUnit')}</Typography>
-              </Stack>
-              {form.formState.errors.payment?.price?.message && (
-                <FormHelperText error>{form.formState.errors.payment?.price?.message}</FormHelperText>
-              )}
-            </td>
-          </tr>
-        )}
-      </TableLayout>
-
-      {release && releaseUrl && (
-        <Stack>
-          <Typography variant="subtitle2">{t('publishedLink')}</Typography>
-
-          <Link href={releaseUrl} target="_blank" sx={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
-            <Typography component="span" sx={{ textOverflow: 'ellipsis', overflow: 'hidden', flexShrink: 1 }}>
-              {releaseUrl}
-            </Typography>
-
-            <LaunchRounded sx={{ color: 'text.secondary', fontSize: 16 }} />
-          </Link>
-
-          <Box component={QRCode} value={releaseUrl} sx={{ width: 120, height: 120, mt: 1 }} />
-
-          <Box color="text.secondary">
-            <Typography component="span" mr={1}>
-              {t('alert.updatedAt')}
-            </Typography>
-
-            <RelativeTime locale={locale} value={release.updatedAt} relativeRange={3600e3} />
-          </Box>
+              </td>
+            </tr>
+          </TableLayout>
         </Stack>
-      )}
+      </MyAccordion>
 
-      <Stack direction="row" gap={2} alignItems="center">
-        <LoadingButton
-          id="create-release-button"
-          type="submit"
-          loading={form.formState.isSubmitting}
-          variant="contained"
-          loadingPosition="start"
-          startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}>
-          {release ? t('publishUpdate') : t('publish')}
-        </LoadingButton>
+      <MyAccordion persistenceId="publish-dialog" title={t('dialog')}>
+        <Stack gap={2}>
+          <PublishEntries assistant={assistant} />
+
+          <FormControl>
+            <Typography variant="subtitle2">{t('openingText')}</Typography>
+            <BaseInput
+              multiline
+              sx={{ padding: 0 }}
+              placeholder={t('openingTextPlaceholder')}
+              minRows={3}
+              value={assistant.release?.openerMessage || ''}
+              onChange={(e) => setRelease((release) => (release.openerMessage = e.target.value))}
+            />
+          </FormControl>
+
+          <TableLayout component="table">
+            <tr>
+              <td colSpan={2}>
+                <Typography variant="subtitle2" sx={{ mb: 0 }}>
+                  {t('chatLimit')}
+                </Typography>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <FormLabel>{t('maxChatRoundLimit')}</FormLabel>
+              </td>
+
+              <td>
+                <NumberField
+                  id="maxChatRoundLimit"
+                  fullWidth
+                  component={BaseInput}
+                  NumberProps={{
+                    min: 0,
+                    value: assistant.release?.maxRoundLimit ?? null,
+                    onChange: (_, value) =>
+                      setRelease((release) => {
+                        release.maxRoundLimit = value;
+                      }),
+                  }}
+                />
+              </td>
+            </tr>
+
+            <tr>
+              <Box component="td" sx={{ verticalAlign: 'top' }}>
+                <FormLabel sx={{ mt: 1.25, display: 'block' }}>{t('reachMaxRoundLimitTip')}</FormLabel>
+              </Box>
+
+              <td>
+                <BaseInput
+                  id="reachMaxRoundLimitTip"
+                  fullWidth
+                  multiline
+                  value={assistant.release?.reachMaxRoundLimitTip ?? ''}
+                  onChange={(e) =>
+                    setRelease((release) => {
+                      release.reachMaxRoundLimitTip = e.target.value;
+                    })
+                  }
+                />
+              </td>
+            </tr>
+          </TableLayout>
+        </Stack>
+      </MyAccordion>
+
+      <MyAccordion persistenceId="publish-payment" title={t('payment')}>
+        <Stack gap={2}>
+          <TableLayout component="table">
+            <tr>
+              <td colSpan={2}>
+                <Typography variant="subtitle2">{t('payment')}</Typography>
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <FormLabel>{t('enabled')}</FormLabel>
+              </td>
+
+              <td>
+                <Switch
+                  checked={assistant.release?.payment?.enable || false}
+                  onChange={(_, checked) =>
+                    setRelease((release) => {
+                      release.payment ??= {};
+                      release.payment.enable = checked;
+                    })
+                  }
+                />
+              </td>
+            </tr>
+
+            {assistant.release?.payment?.enable && (
+              <tr>
+                <td>
+                  <FormLabel>{t('pricing')}</FormLabel>
+                </td>
+
+                <td>
+                  <Stack direction="row" alignItems="center" gap={1}>
+                    <BaseInput
+                      fullWidth
+                      {...form.register('payment.price', {
+                        required: assistant.release.payment.enable ? t('pricingRequiredMessage') : undefined,
+                        pattern: {
+                          value: /^\d+(\.\d{1,5})?$/,
+                          message: t('pricingPatternMessage', { decimal: 5 }),
+                        },
+                        min: { value: 0.00001, message: t('pricingPatternMessage', { decimal: 5 }) },
+                        max: { value: 1000000, message: t('pricingInvalidMessage') },
+                      })}
+                    />
+                    <Typography component="span">{t('pricingUnit')}</Typography>
+                  </Stack>
+                  {form.formState.errors.payment?.price?.message && (
+                    <FormHelperText error>{form.formState.errors.payment?.price?.message}</FormHelperText>
+                  )}
+                </td>
+              </tr>
+            )}
+          </TableLayout>
+        </Stack>
+      </MyAccordion>
+
+      <Stack gap={2} px={2} py={2}>
+        {release && releaseUrl && (
+          <Stack>
+            <Typography variant="subtitle2">{t('publishedLink')}</Typography>
+
+            <Link
+              href={releaseUrl}
+              target="_blank"
+              sx={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+              <Typography component="span" sx={{ textOverflow: 'ellipsis', overflow: 'hidden', flexShrink: 1 }}>
+                {releaseUrl}
+              </Typography>
+
+              <LaunchRounded sx={{ color: 'text.secondary', fontSize: 16 }} />
+            </Link>
+
+            <Box component={QRCode} value={releaseUrl} sx={{ width: 120, height: 120 }} />
+
+            <Box color="text.secondary">
+              <Typography component="span" mr={1}>
+                {t('alert.updatedAt')}
+              </Typography>
+
+              <RelativeTime locale={locale} value={release.updatedAt} relativeRange={3600e3} />
+            </Box>
+          </Stack>
+        )}
+
+        <Stack direction="row" gap={2} alignItems="center">
+          <LoadingButton
+            id="create-release-button"
+            type="submit"
+            loading={form.formState.isSubmitting}
+            variant="contained"
+            loadingPosition="start"
+            startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}>
+            {release ? t('publishUpdate') : t('publish')}
+          </LoadingButton>
+        </Stack>
       </Stack>
     </Stack>
+  );
+}
+
+function MyAccordion({
+  persistenceId,
+  title,
+  ...props
+}: { persistenceId: string; title?: ReactNode } & AccordionProps) {
+  const [expanded, setExpanded] = useLocalStorageState(persistenceId, { defaultValue: true });
+
+  return (
+    <Accordion
+      expanded={expanded}
+      onChange={(_, expanded) => setExpanded(expanded)}
+      disableGutters
+      elevation={0}
+      {...props}>
+      <AccordionSummary expandIcon={<Icon icon="tabler:chevron-down" />}>{title}</AccordionSummary>
+      <AccordionDetails>{props.children}</AccordionDetails>
+    </Accordion>
   );
 }
 

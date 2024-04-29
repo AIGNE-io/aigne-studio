@@ -140,6 +140,7 @@ const TestCaseView = forwardRef<
         working: true,
         assistantId: assistant.id,
         parameters: test.parameters,
+        debug: true,
       });
 
       const reader = result.getReader();

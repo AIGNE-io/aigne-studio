@@ -13,12 +13,12 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
   return (
     <Stack gap={2}>
       <Box>
-        <Typography variant="subtitle2">{t('label')}</Typography>
+        <Typography variant="subtitle2">{t('name')}</Typography>
 
         <TextField
           fullWidth
-          placeholder={t('label')}
           hiddenLabel
+          placeholder={t('inputParameterLabelPlaceholder')}
           size="medium"
           value={value.label || ''}
           onChange={(e) => (value.label = e.target.value)}
@@ -32,7 +32,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         <TextField
           fullWidth
           hiddenLabel
-          placeholder={t('placeholder')}
+          placeholder={t('inputParameterPlaceholderPlaceholder')}
           size="medium"
           value={value.placeholder || ''}
           onChange={(e) => (value.placeholder = e.target.value)}
@@ -48,7 +48,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           parameter={parameterFromYjs(value)}
           hiddenLabel
           fullWidth
-          placeholder={t('defaultValue')}
           size="medium"
           value={value.defaultValue ?? ''}
           onChange={(defaultValue: any) => (value.defaultValue = defaultValue)}
@@ -72,7 +71,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
                 sx={{ width: 1 }}
                 fullWidth
                 hiddenLabel
-                placeholder={t('minLength')}
                 size="medium"
                 NumberProps={{
                   readOnly,
@@ -90,7 +88,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
                 sx={{ width: 1 }}
                 fullWidth
                 hiddenLabel
-                placeholder={t('maxLength')}
                 size="medium"
                 NumberProps={{
                   readOnly,
@@ -108,10 +105,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               <Typography variant="subtitle2">{t('min')}</Typography>
 
               <NumberField
+                hiddenLabel
                 sx={{ width: 1 }}
                 fullWidth
-                label={t('min')}
-                size="small"
+                size="medium"
                 NumberProps={{
                   readOnly,
                   value: value.min,
@@ -123,10 +120,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               <Typography variant="subtitle2">{t('max')}</Typography>
 
               <NumberField
+                hiddenLabel
                 sx={{ width: 1 }}
                 fullWidth
-                label={t('max')}
-                size="small"
+                size="medium"
                 NumberProps={{
                   readOnly,
                   value: value.max,
@@ -141,8 +138,9 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       <Box>
         <FormControl>
           <FormControlLabel
-            sx={{ display: 'flex', alignItems: 'center' }}
-            label={t('required')}
+            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+            labelPlacement="start"
+            label={t('inputParameterRequiredLabel')}
             control={
               <BaseSwitch
                 sx={{ mr: 1, mt: '1px' }}

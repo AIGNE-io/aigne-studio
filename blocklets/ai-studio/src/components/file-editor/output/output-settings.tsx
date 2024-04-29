@@ -1,16 +1,16 @@
 import BaseSwitch from '@app/components/custom/switch';
+import PopperMenu from '@app/components/menu/PopperMenu';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, OutputVariableYjs, VariableYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, VariableYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import { Close } from '@mui/icons-material';
 import {
   Box,
   Button,
-  ClickAwayListener,
   Dialog,
   DialogActions,
   DialogContent,
@@ -18,10 +18,8 @@ import {
   FormControl,
   FormControlLabel,
   IconButton,
-  List,
+  ListItemIcon,
   MenuItem,
-  Paper,
-  Popper,
   Stack,
   Table,
   TableBody,
@@ -33,7 +31,7 @@ import {
   Typography,
 } from '@mui/material';
 import { sortBy } from 'lodash';
-import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+import { bindDialog, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
 import { useId, useState } from 'react';
 import React from 'react';
@@ -76,24 +74,22 @@ export default function OutputSettings({
         </Box>
       </Stack>
 
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
+      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5, overflow: 'auto' }}>
         <Box
           sx={{
-            borderBottom: () => (outputVariables?.length ? '1px solid rgba(224, 224, 224, 1)' : 0),
             whiteSpace: 'nowrap',
             maxWidth: '100%',
             table: {
-              th: { pt: 0, px: 0 },
-              td: { py: 0, px: 0 },
-              'tbody tr:last-of-type td': {
-                border: 'none',
-              },
+              'th,td': { py: 0, px: 0, '&:not(:first-of-type)': { pl: 1 } },
+              th: { pb: 0.5 },
             },
           }}>
           <Table size="small">
             <TableHead>
               <TableRow>
-                <Box component={TableCell}>{t('name')}</Box>
+                <Box component={TableCell} width="30%">
+                  {t('name')}
+                </Box>
                 <Box component={TableCell}>{t('description')}</Box>
                 <Box component={TableCell}>{t('type')}</Box>
                 <Box component={TableCell} align="right">
@@ -148,6 +144,7 @@ export default function OutputSettings({
 }
 
 function VariableRow({
+  parent,
   value,
   variable,
   depth = 0,
@@ -156,6 +153,7 @@ function VariableRow({
   gitRef,
   disabled,
 }: {
+  parent?: OutputVariableYjs;
   value: AssistantYjs;
   variable: OutputVariableYjs;
   depth?: number;
@@ -202,10 +200,10 @@ function VariableRow({
             ) : (
               <TextField
                 variant="standard"
-                disabled={Boolean(disabled)}
+                disabled={Boolean(disabled) || parent?.type === 'array'}
                 fullWidth
                 hiddenLabel
-                placeholder={t('name')}
+                placeholder={t('outputVariableName')}
                 value={v.name || ''}
                 onChange={(e) => (v.name = e.target.value)}
               />
@@ -214,11 +212,18 @@ function VariableRow({
         </Box>
         <Box component={TableCell}>
           <TextField
+            sx={{
+              visibility: [RuntimeOutputVariable.text, RuntimeOutputVariable.images].includes(
+                v.name as RuntimeOutputVariable
+              )
+                ? 'hidden'
+                : undefined,
+            }}
             variant="standard"
             disabled={Boolean(disabled)}
             fullWidth
             hiddenLabel
-            placeholder={t('placeholder')}
+            placeholder={t(value.type === 'prompt' ? 'outputVariablePlaceholderForLLM' : 'outputVariablePlaceholder')}
             value={v.description || ''}
             onChange={(e) => (v.description = e.target.value)}
           />
@@ -317,6 +322,7 @@ function VariableRow({
         sortBy(Object.values(v.properties), 'index').map((property) => (
           <React.Fragment key={property.data.id}>
             <VariableRow
+              parent={v}
               disabled={Boolean(variable.variable?.key || disabled)}
               value={value}
               variable={property.data}
@@ -336,6 +342,7 @@ function VariableRow({
 
       {!runtimeVariable && v.type === 'array' && v.element && (
         <VariableRow
+          parent={v}
           disabled={Boolean(variable.variable?.key || disabled)}
           projectId={projectId}
           gitRef={gitRef}
@@ -386,6 +393,7 @@ function PopperButton({
                 hiddenLabel
                 fullWidth
                 multiline
+                placeholder={t('outputParameterDefaultValuePlaceholder')}
                 value={parameter.defaultValue || ''}
                 onChange={(e) => (parameter.defaultValue = e.target.value)}
               />
@@ -398,6 +406,7 @@ function PopperButton({
                 disabled={Boolean(disabled)}
                 hiddenLabel
                 fullWidth
+                placeholder={t('outputParameterDefaultValuePlaceholder')}
                 value={parameter.defaultValue || ''}
                 onChange={(value) => (parameter.defaultValue = value)}
               />
@@ -407,8 +416,9 @@ function PopperButton({
           <Box>
             <FormControl>
               <FormControlLabel
-                sx={{ display: 'flex', alignItems: 'center' }}
-                label={t('required')}
+                sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+                labelPlacement="start"
+                label={t('outputParameterRequiredLabel')}
                 control={
                   <BaseSwitch
                     sx={{ mr: 1, mt: '1px' }}
@@ -432,6 +442,7 @@ function PopperButton({
 
           <Box>
             <SelectVariable
+              placeholder={t('selectMemoryPlaceholder')}
               variables={variables}
               variable={variable}
               onDelete={() => {
@@ -453,53 +464,37 @@ function PopperButton({
 
   return (
     <>
-      <Button
-        sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }}
-        {...bindTrigger(parameterSettingPopperState)}
-        disabled={disabled}>
-        <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />
-      </Button>
-
-      <Popper
-        {...bindPopper(parameterSettingPopperState)}
-        placement="bottom-end"
-        sx={{ zIndex: (theme) => theme.zIndex.modal }}>
-        <ClickAwayListener
-          onClickAway={(e) => {
-            if (e.target === document.body) return;
-            parameterSettingPopperState.close();
-          }}>
-          <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
-            <Stack gap={2}>
-              <List>
-                {!runtimeVariable && (
-                  <MenuItem
-                    onClick={() => {
-                      setSetting('setting');
-                      dialogState.open();
-                    }}>
-                    {t('setting')}
-                  </MenuItem>
-                )}
-                {isSaveAs && (
-                  <MenuItem
-                    onClick={() => {
-                      setSetting('save');
-                      dialogState.open();
-                    }}>
-                    {t('saveAs')}
-                  </MenuItem>
-                )}
-                {onDelete && (
-                  <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
-                    {t('delete')}
-                  </MenuItem>
-                )}
-              </List>
-            </Stack>
-          </Paper>
-        </ClickAwayListener>
-      </Popper>
+      <PopperMenu
+        ButtonProps={{
+          sx: { minWidth: 0, p: 0.5, ml: -0.5 },
+          ...bindTrigger(parameterSettingPopperState),
+          disabled,
+          children: <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />,
+        }}>
+        {!runtimeVariable && (
+          <MenuItem
+            onClick={() => {
+              setSetting('setting');
+              dialogState.open();
+            }}>
+            {t('setting')}
+          </MenuItem>
+        )}
+        {isSaveAs && (
+          <MenuItem
+            onClick={() => {
+              setSetting('save');
+              dialogState.open();
+            }}>
+            {t('saveAs')}
+          </MenuItem>
+        )}
+        {onDelete && (
+          <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+            {t('delete')}
+          </MenuItem>
+        )}
+      </PopperMenu>
 
       <Dialog
         {...bindDialog(dialogState)}
@@ -520,16 +515,8 @@ function PopperButton({
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={dialogState.close} variant="outlined">
-            {t('cancel')}
-          </Button>
-
-          <Button
-            variant="contained"
-            onClick={() => {
-              dialogState.close();
-            }}>
-            {t('save')}
+          <Button variant="outlined" onClick={dialogState.close}>
+            {t('close')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -542,10 +529,33 @@ function VariableTypeField({ ...props }: TextFieldProps) {
 
   return (
     <TextField hiddenLabel placeholder={t('type')} select SelectProps={{ autoWidth: true }} {...props}>
-      <MenuItem value="string">{t('text')}</MenuItem>
-      <MenuItem value="number">{t('number')}</MenuItem>
-      <MenuItem value="object">{t('object')}</MenuItem>
-      <MenuItem value="array">{t('array')}</MenuItem>
+      <MenuItem value="string">
+        <ListItemIcon>
+          <Icon icon="tabler:cursor-text" />
+        </ListItemIcon>
+        {t('text')}
+      </MenuItem>
+
+      <MenuItem value="number">
+        <ListItemIcon>
+          <Icon icon="tabler:square-number-1" />
+        </ListItemIcon>
+        {t('number')}
+      </MenuItem>
+
+      <MenuItem value="object">
+        <ListItemIcon>
+          <Icon icon="tabler:code-plus" />
+        </ListItemIcon>
+        {t('object')}
+      </MenuItem>
+
+      <MenuItem value="array">
+        <ListItemIcon>
+          <Icon icon="tabler:brackets-contain" />
+        </ListItemIcon>
+        {t('array')}
+      </MenuItem>
     </TextField>
   );
 }

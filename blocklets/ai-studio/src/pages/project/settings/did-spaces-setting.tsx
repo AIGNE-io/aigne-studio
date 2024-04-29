@@ -5,13 +5,13 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { CheckCircleOutlineRounded, ErrorOutlineRounded, SyncRounded } from '@mui/icons-material';
-import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
 import { Button, CircularProgress, FormControlLabel, Stack, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
 
 import Switch from '../../../components/custom/switch';
 import PromiseLoadingButton from '../../../components/promise-loading-button';
 import { getErrorMessage } from '../../../libs/api';
+import DidSpaces from '../icons/did-spaces';
 import { isTheErrorShouldShowMergeConflict, useMergeConflictDialog } from '../save-button';
 import { useProjectState } from '../state';
 
@@ -102,7 +102,7 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
         <Button
           size="small"
           variant="outlined"
-          startIcon={<FolderOpenOutlinedIcon />}
+          startIcon={<DidSpaces />}
           onClick={async () => {
             try {
               window.open(getProjectDataUrlInSpace(session.user?.didSpace?.endpoint, projectId));

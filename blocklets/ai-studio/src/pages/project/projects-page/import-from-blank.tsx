@@ -78,19 +78,21 @@ export default function ImportFromBlank({ onClose, item }: { onClose: () => void
       <DialogContent>
         <Stack overflow="auto" gap={1.5}>
           <Box>
-            <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
+            <Typography variant="subtitle2">{t('name')}</Typography>
             <TextField
+              placeholder={t('newProjectNamePlaceholder')}
+              hiddenLabel
               autoFocus
-              label={t('projectSetting.name')}
               sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
               {...form.register('name')}
             />
           </Box>
 
           <Box>
-            <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
+            <Typography variant="subtitle2">{t('description')}</Typography>
             <TextField
-              label={t('projectSetting.description')}
+              placeholder={t('newProjectDescriptionPlaceholder')}
+              hiddenLabel
               multiline
               rows={4}
               sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}

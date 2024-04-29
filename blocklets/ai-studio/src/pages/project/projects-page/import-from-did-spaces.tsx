@@ -298,7 +298,6 @@ export default function FromDidSpacesImport() {
 
       <Dialog
         {...bindDialog(dialogState)}
-        open
         maxWidth="sm"
         fullWidth
         component="form"
@@ -316,10 +315,11 @@ export default function FromDidSpacesImport() {
             <Box>
               <Typography variant="subtitle2">{t('projectSetting.selectProject')}</Typography>
               <TextField
+                placeholder={t('selectProjectToImportPlaceholder')}
                 sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
                 {...form.register('_id', { required: true })}
                 select
-                label={t('projectSetting.selectProject')}
+                hiddenLabel
                 defaultValue=""
                 disabled={loading}
                 onChange={(e) => {
@@ -340,10 +340,11 @@ export default function FromDidSpacesImport() {
             </Box>
 
             <Box>
-              <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
+              <Typography variant="subtitle2">{t('name')}</Typography>
               <TextField
                 {...form.register('name')}
-                label={t('projectSetting.name')}
+                hiddenLabel
+                placeholder={t('newProjectNamePlaceholder')}
                 rows={4}
                 InputProps={{
                   readOnly: true,
@@ -358,7 +359,8 @@ export default function FromDidSpacesImport() {
               <Typography variant="subtitle2">{t('projectSetting.description')}</Typography>
               <TextField
                 {...form.register('description')}
-                label={t('projectSetting.description')}
+                hiddenLabel
+                placeholder={t('newProjectDescriptionPlaceholder')}
                 multiline
                 rows={4}
                 InputProps={{

@@ -113,12 +113,12 @@ function VariableList() {
     () => [
       {
         field: 'title',
-        headerName: t('variables.name'),
+        headerName: t('memory.name'),
         renderCell: (params: any) => params?.key || t('unnamed'),
       },
       {
         field: 'count',
-        headerName: t('variables.type'),
+        headerName: t('memory.type'),
         renderCell: (params: any) => {
           return <Box>{params?.type?.type}</Box>;
         },
@@ -292,16 +292,16 @@ function VariableList() {
                   return true;
                 },
               }}
-              render={({ field, fieldState }) => {
+              render={({ field: { ref, ...field }, fieldState }) => {
                 return (
                   <Box>
-                    <Typography variant="subtitle2">{t('outputVariableParameter.key')}</Typography>
+                    <Typography variant="subtitle2">{t('memory.name')}</Typography>
                     <TextField
+                      inputRef={ref}
                       autoFocus
                       sx={{ width: 1 }}
                       {...field}
                       hiddenLabel
-                      placeholder={t('outputVariableParameter.key')}
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message}
                     />
@@ -378,7 +378,7 @@ function VariableList() {
                 const { value } = field;
                 return (
                   <Box>
-                    <Typography variant="subtitle2">{t('outputVariableParameter.dataType')}</Typography>
+                    <Typography variant="subtitle2">{t('memory.type')}</Typography>
 
                     <Box display="flex" gap={2} alignItems="center">
                       <VariableTypeField
@@ -458,14 +458,13 @@ function VariableList() {
               render={({ field, fieldState }) => {
                 return (
                   <Box>
-                    <Typography variant="subtitle2">{t('variableParameter.defaultValue')}</Typography>
+                    <Typography variant="subtitle2">{t('defaultValue')}</Typography>
 
                     <TextField
                       autoFocus
                       sx={{ width: 1 }}
                       {...field}
                       hiddenLabel
-                      placeholder={t('variableParameter.defaultValue')}
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message}
                     />
