@@ -3,10 +3,13 @@ import { ServiceMode } from '@blocklet/ai-runtime/types';
 
 export const Config = {
   get serviceModePermissionMap() {
-    const { serviceMode } = window?.blocklet?.preferences as {
+    const { serviceMode, disablePaymentProject } = window?.blocklet?.preferences as {
       serviceMode: ServiceMode;
+      disablePaymentProject?: boolean;
     };
 
-    return getServiceModePermissionMap(serviceMode);
+    return getServiceModePermissionMap(serviceMode, {
+      disablePaymentProject,
+    });
   },
 };

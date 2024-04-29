@@ -670,6 +670,7 @@ export default flat({
   publishSuccess: 'Published successfully',
   publishUpdateSuccess: 'Update published successfully',
   payment: 'Payment',
+  noReleasePaymentProjectTip: 'Modification of payment options is not supported at this time',
   openingQuestion: 'Opening question',
   input: 'Input',
   appearance: 'Appearance',

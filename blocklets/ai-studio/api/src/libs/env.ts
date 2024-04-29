@@ -33,11 +33,14 @@ export const Config = {
   },
 
   get serviceModePermissionMap() {
-    const { serviceMode } = config.env.preferences as {
+    const { serviceMode, disablePaymentProject } = config.env.preferences as {
       serviceMode: ServiceMode;
+      disablePaymentProject?: boolean;
     };
 
-    return getServiceModePermissionMap(serviceMode);
+    return getServiceModePermissionMap(serviceMode, {
+      disablePaymentProject,
+    });
   },
 };
 
