@@ -1,3 +1,4 @@
+import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify-icon/react';
 import { Box, CircularProgress, Stack } from '@mui/material';
@@ -49,7 +50,7 @@ export default function ProjectHeader() {
               {
                 value: 'prompts',
                 label: t('agent'),
-                icon: <Box fontSize={15} component={Icon} icon="tabler:hexagons" mr={1} />,
+                icon: <Box fontSize={15} component={AigneLogo} mr={1} />,
               },
               {
                 value: 'knowledge',
