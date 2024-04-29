@@ -115,6 +115,38 @@
                 "x-index": 1,
                 "description": "Limit the maximum number of projects each person can create in Multi Tenant (except for owner, admin, promptsEditor passport)"
               },
+              "disablePaymentProject": {
+                "type": "boolean",
+                "title": "Disable Payment Project",
+                "x-decorator": "FormItem",
+                "x-component": "Switch",
+                "x-validator": [],
+                "x-component-props": {},
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "colon": false
+                },
+                "name": "disablePaymentProject",
+                "x-reactions": {
+                  "dependencies": [
+                    {
+                      "property": "value",
+                      "type": "string | number",
+                      "source": "8ijnww1wdf9.drcj4aejnt5.serviceMode",
+                      "name": "serviceMode"
+                    }
+                  ],
+                  "fulfill": {
+                    "state": {
+                      "visible": "{{$deps.serviceMode === 'multi-tenant'}}"
+                    }
+                  }
+                },
+                "default": false,
+                "description": "Limit whether everyone can release the payment project in Multi Tenant (except for owner, admin, promptsEditor passport)",
+                "x-designable-id": "kllog89clwt",
+                "x-index": 2
+              },
               "uploadFileLimit": {
                 "type": "number",
                 "title": "Upload File Limits",
@@ -130,7 +162,7 @@
                   "style": {
                     "width": "auto"
                   },
-                  "max": 20,
+                  "max": 10,
                   "min": 0
                 },
                 "x-decorator-props": {
@@ -156,8 +188,8 @@
                     }
                   }
                 },
-                "x-designable-id": "9mwjpr1n6ba",
-                "x-index": 2,
+                "x-designable-id": "xd9eqqqhx9c",
+                "x-index": 3,
                 "description": "Limits the size of files uploaded to the knowledge"
               }
             }
@@ -165,6 +197,6 @@
         }
       }
     },
-    "x-designable-id": "kalwtrnsnaj"
+    "x-designable-id": "w0lz8x87ps6"
   }
 }
