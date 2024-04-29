@@ -710,4 +710,6 @@ export default flat({
   outputParameterRequiredLabel: 'Is this output field required',
   outputParameterDefaultValuePlaceholder: 'Give this field a default value if LLM has not filled it',
   close: 'Close',
+  maxUploadFileLimit:
+    'The size of the uploaded file exceeds the maximum value. The size of the uploaded file cannot exceed {limit} MB',
 });

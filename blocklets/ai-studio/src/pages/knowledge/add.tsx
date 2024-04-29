@@ -207,6 +207,12 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                   form.append('data', file);
                   form.append('type', 'file');
 
+                  const limit: number = window?.blocklet?.preferences?.uploadFileLimit || 1;
+                  if (file.size > limit * 1000 * 1000) {
+                    Toast.error(t('maxUploadFileLimit', { limit }));
+                    return;
+                  }
+
                   if (id) {
                     await updateFileDocument(datasetId, id, form);
                   } else {

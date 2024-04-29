@@ -63,7 +63,6 @@ const getContent = async (fileExtension: string, filePath: string): Promise<stri
   }
 
   if (fileExtension === 'pdf') {
-    return 'a'.repeat(20000);
     // return parsePDFToJSON(filePath);
   }
 

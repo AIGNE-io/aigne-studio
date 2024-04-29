@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 
+import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -348,11 +349,17 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
     return;
   }
 
-  const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
+  const { type, filename = req?.file.originalname, data = req?.file.buffer, size } = req.body;
 
   if (!type || !filename || !data) {
     res.status(500).json({ error: 'missing required body `type` or `filename` or `data`' });
     return;
+  }
+
+  if (size > config.env.preferences.uploadFileLimit * 1000 * 1000) {
+    throw new Error(
+      `The number of files uploaded exceeds the maximum value. The number of files uploaded cannot exceed ${config.env.preferences.uploadFileLimit}MB`
+    );
   }
 
   let buffer = null;
