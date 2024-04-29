@@ -1,4 +1,5 @@
 import Dataset from '@api/store/models/dataset/dataset';
+import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
 import { getDatasets } from '@app/libs/dataset';
 import Close from '@app/pages/project/icons/close';
 import DragVertical from '@app/pages/project/icons/drag-vertical';
@@ -32,22 +33,19 @@ import {
   TableHead,
   TableRow,
   TextField,
-  TextFieldProps,
   Typography,
   alpha,
   createFilterOptions,
-  selectClasses,
 } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { useRequest } from 'ahooks';
 import { get, sortBy } from 'lodash';
 import { PopupState, bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { useId, useMemo } from 'react';
+import { useId, useMemo, useRef } from 'react';
 import { useAssistantCompare } from 'src/pages/project/state';
 
 import WithAwareness from '../awareness/with-awareness';
 import { DragSortListYjs } from '../drag-sort-list';
-import PopperMenu from '../menu/PopperMenu';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
 import { FROM_KNOWLEDGE } from './execute-block';
@@ -980,19 +978,62 @@ function SelectFromSource({
   FROM_MAP: { [key: string]: string };
 }) {
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
+  const { t } = useLocaleContext();
+  const { getFileById } = useProjectStore(projectId, gitRef);
+  const ref = useRef<PopperMenuImperative>(null);
+
+  const currentKey = parameter.type === 'source' ? parameter.source?.variableFrom : 'custom';
+  const fromTitle =
+    parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id
+      ? t('variableParameter.agent', { agent: getFileById((parameter as any)?.source?.agent?.id)?.name })
+      : FROM_MAP[currentKey || 'custom'];
 
   return (
     <>
-      <SelectFromSourceComponent
-        FROM_MAP={FROM_MAP}
-        knowledge={knowledge}
-        parameter={parameter}
-        readOnly={readOnly}
-        value={value}
-        projectId={projectId}
-        gitRef={gitRef}
-        onChange={dialogState.open}
-      />
+      <PopperMenu
+        ref={ref}
+        BoxProps={{
+          sx: { my: 1, p: 0, cursor: 'pointer' },
+          children: (
+            <Box>
+              <Box className="center" gap={1} justifyContent="flex-start">
+                <Box>{fromTitle}</Box>
+                <Box component={Icon} icon="tabler:chevron-down" width={15} />
+              </Box>
+            </Box>
+          ),
+        }}
+        PopperProps={{ placement: 'bottom-start' }}>
+        {Object.entries(FROM_MAP).map(([key, value]) => {
+          return (
+            <MenuItem
+              key={key}
+              selected={key === currentKey}
+              onClick={(e) => {
+                e.stopPropagation();
+
+                if (key !== currentKey) {
+                  parameter.type = 'string';
+
+                  if (key !== 'custom') {
+                    parameter.type = 'source';
+                    (parameter as any).source ??= {};
+                    (parameter as any).source.variableFrom = key;
+                  }
+
+                  ref.current?.close();
+                  dialogState.open();
+                }
+              }}>
+              {/* <ListItemIcon>{value}</ListItemIcon> */}
+              <Box flex={1}>{value}</Box>
+              <Box sx={{ width: 40, textAlign: 'right' }}>
+                {key === currentKey && <Box component={Icon} icon="tabler:check" />}
+              </Box>
+            </MenuItem>
+          );
+        })}
+      </PopperMenu>
 
       <SelectFromSourceDialog
         dialogState={dialogState}
@@ -1004,73 +1045,6 @@ function SelectFromSource({
         gitRef={gitRef}
       />
     </>
-  );
-}
-
-function SelectFromSourceComponent({
-  FROM_MAP,
-  parameter,
-  readOnly,
-  value,
-  projectId,
-  gitRef,
-  knowledge,
-  onChange,
-  ...props
-}: {
-  parameter: ParameterYjs;
-  readOnly?: boolean;
-  value: AssistantYjs;
-  projectId: string;
-  gitRef: string;
-  knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  FROM_MAP: { [key: string]: string };
-  onChange?: () => void;
-} & TextFieldProps) {
-  const { t } = useLocaleContext();
-  const { getFileById } = useProjectStore(projectId, gitRef);
-
-  return (
-    <TextField
-      variant="standard"
-      select
-      hiddenLabel
-      value={parameter.type === 'source' ? parameter.source?.variableFrom : 'custom'}
-      placeholder={t('variableParameter.from')}
-      sx={{
-        [`.${selectClasses.select}`]: {
-          py: 0.5,
-          '&:focus': {
-            background: 'transparent',
-          },
-        },
-      }}
-      {...props}
-      onChange={(e) => {
-        const currentType = parameter.type === 'source' ? parameter.source?.variableFrom : 'custom';
-
-        if ((e.target.value || 'custom') !== currentType) {
-          parameter.type = 'string';
-
-          if (e.target.value !== 'custom') {
-            parameter.type = 'source';
-            (parameter as any).source ??= {};
-            (parameter as any).source.variableFrom = e.target.value as any;
-          }
-
-          if (onChange) onChange();
-        }
-      }}>
-      {Object.entries(FROM_MAP).map(([key, _value]) => {
-        return (
-          <MenuItem value={key} key={key}>
-            {key === 'tool' && (parameter as any)?.source?.agent?.id
-              ? t('variableParameter.agent', { agent: getFileById((parameter as any)?.source?.agent?.id)?.name })
-              : _value}
-          </MenuItem>
-        );
-      })}
-    </TextField>
   );
 }
 
