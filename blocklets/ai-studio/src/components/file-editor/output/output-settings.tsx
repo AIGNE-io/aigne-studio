@@ -176,7 +176,15 @@ function VariableRow({
     return `${x.scope}_${x.key}` === `${j.scope}_${j.key}`;
   });
 
-  const v = datastoreVariable?.type ?? variable;
+  const v = datastoreVariable?.type
+    ? {
+        ...datastoreVariable?.type,
+        id: variable.id,
+        name: variable.name,
+        description: variable.description,
+        required: variable.required,
+      }
+    : variable;
 
   return (
     <>
