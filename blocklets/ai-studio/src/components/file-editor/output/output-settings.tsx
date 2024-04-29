@@ -19,6 +19,7 @@ import {
   ListItemIcon,
   MenuItem,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -90,10 +91,10 @@ export default function OutputSettings({
                 </Box>
                 <Box component={TableCell}>{t('description')}</Box>
                 <Box component={TableCell}>{t('format')}</Box>
-                <Box component={TableCell}>{t('required')}</Box>
-                <Box component={TableCell} align="right">
-                  {t('actions')}
+                <Box component={TableCell} width={74}>
+                  {t('required')}
                 </Box>
+                <Box component={TableCell} align="right" />
               </TableRow>
             </TableHead>
 
@@ -294,13 +295,16 @@ function VariableRow({
           )}
         </Box>
         <Box component={TableCell}>
-          <Checkbox
-            disabled={Boolean(disabled)}
-            checked={isDefaultRequired || v.required || false}
-            onChange={(_, checked) => {
-              v.required = checked;
-            }}
-          />
+          {!isDefaultRequired && (
+            <Switch
+              size="small"
+              disabled={Boolean(disabled)}
+              checked={v.required || false}
+              onChange={(_, checked) => {
+                v.required = checked;
+              }}
+            />
+          )}
         </Box>
         <Box component={TableCell} align="right">
           <Stack direction="row" gap={1} justifyContent="flex-end">
@@ -475,7 +479,8 @@ function PopperButton({
           ...bindTrigger(parameterSettingPopperState),
           disabled,
           children: <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />,
-        }}>
+        }}
+        PopperProps={{ placement: 'bottom-end' }}>
         {isRenderSettings && (
           <MenuItem
             onClick={() => {

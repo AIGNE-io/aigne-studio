@@ -927,10 +927,6 @@ function SelectFromSourceDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={dialogState.close} variant="outlined">
-          {t('cancel')}
-        </Button>
-
         <Button
           variant="contained"
           onClick={() => {
