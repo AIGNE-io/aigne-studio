@@ -1,6 +1,6 @@
 ## 0.1.356 (2024-4-29)
 
-- chore: add disablePaymentProject in multi tenant
+- chore: support disable payment in multi tenant
 
 ## 0.1.355 (2024-4-29)
 

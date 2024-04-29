@@ -184,11 +184,7 @@ function PublishViewContent({
   };
 
   const paymentTip = !canReleasePaymentProject && (
-    <FormHelperText
-      sx={{
-        mx: 0,
-        whiteSpace: 'normal',
-      }}>
+    <FormHelperText sx={{ mx: 0, whiteSpace: 'normal', color: 'warning.light' }}>
       {t('noReleasePaymentProjectTip')}
     </FormHelperText>
   );
@@ -390,7 +386,6 @@ function PublishViewContent({
                     })
                   }
                 />
-                {paymentTip}
               </td>
             </tr>
 
@@ -418,8 +413,6 @@ function PublishViewContent({
                     <Typography component="span">{t('pricingUnit')}</Typography>
                   </Stack>
 
-                  {paymentTip}
-
                   {form.formState.errors.payment?.price?.message && (
                     <FormHelperText
                       sx={{
@@ -433,6 +426,9 @@ function PublishViewContent({
                 </td>
               </tr>
             )}
+            <tr>
+              <td colSpan={2}>{paymentTip}</td>
+            </tr>
           </TableLayout>
         </Stack>
       </MyAccordion>

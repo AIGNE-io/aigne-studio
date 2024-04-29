@@ -672,7 +672,7 @@ export default flat({
   publishSuccess: '发布成功',
   publishUpdateSuccess: '发布更新成功',
   payment: '付费',
-  noReleasePaymentProjectTip: '暂不支持调整付费选项',
+  noReleasePaymentProjectTip: '付费功能暂不可用',
   openingQuestion: '开场问题',
   input: '输入',
   appearance: '外观',
