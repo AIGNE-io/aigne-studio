@@ -37,7 +37,6 @@ export default function ProjectRoutes() {
         />
         <StyledDashboard
           HeaderProps={{
-            logo: <ProjectLogo />,
             addons: (exists) => [<SubscribeButton />, <AddonsRoutes />, ...exists],
             homeLink: joinURL(blocklet?.prefix || '', 'projects'),
           }}
@@ -112,8 +111,6 @@ const ProjectsPage = lazy(() => import('./projects-page'));
 
 const ProjectPage = lazy(() => import('./project-page'));
 
-const ProjectLogo = lazy(() => import('./project-logo'));
-
 const ProjectSettings = lazy(() => import('./settings'));
 
 const StyledDashboard = styled(Dashboard)`
@@ -141,13 +138,6 @@ const StyledDashboard = styled(Dashboard)`
       border-radius: ${({ theme }) => theme.shape.borderRadius}px;
       box-shadow: ${({ theme }) => theme.shadows[1]};
       margin-top: ${({ theme }) => theme.spacing(1.5)}px;
-    }
-  }
-
-  .header-brand-wrapper {
-    .header-logo {
-      height: auto;
-      margin: 0;
     }
   }
 `;
