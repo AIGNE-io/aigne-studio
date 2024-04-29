@@ -376,10 +376,14 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
   await writeFile(filePath, buffer, 'utf8');
 
   const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
+  const originalname = Buffer.from(
+    (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
+    'latin1'
+  ).toString('utf8');
 
   const document = await DatasetDocument.create({
     type: 'file',
-    name: (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
+    name: originalname,
     data: { type: fileExtension, path: filePath },
     datasetId,
     createdBy: did,
