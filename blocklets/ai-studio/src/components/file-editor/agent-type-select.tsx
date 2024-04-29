@@ -8,13 +8,15 @@ import { Box, ListItemIcon, MenuItem, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
 
-const agentTypes = [
-  { type: 'agent', icon: <Icon icon="tabler:x" />, i18nKey: 'none' },
-  { type: 'prompt', icon: <Icon icon="tabler:brain" />, i18nKey: 'llm' },
+export const agentTypes = [
+  { type: 'agent', icon: <Icon icon="tabler:zzz" />, i18nKey: 'idle' },
+  { type: 'prompt', icon: <Icon icon="tabler:brain" />, i18nKey: 'largeLanguageModel' },
   { type: 'image', icon: <Icon icon="tabler:photo" />, i18nKey: 'imageGeneration' },
-  { type: 'function', icon: <Icon icon="tabler:code" />, i18nKey: 'code' },
+  { type: 'function', icon: <Icon icon="tabler:code" />, i18nKey: 'logic' },
   { type: 'api', icon: <Icon icon="tabler:api" />, i18nKey: 'api' },
 ] as const;
+
+export const agentTypesMap = Object.fromEntries(agentTypes.map((i) => [i.type, i]));
 
 export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs }) {
   const { t } = useLocaleContext();
@@ -27,7 +29,7 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
         children: (
           <Box className="center" gap={0.5} sx={{ cursor: 'pointer' }}>
             <Typography variant="subtitle2" sx={{ m: 0 }}>
-              {current ? t(current.i18nKey) : t('processing')}
+              {current && t(current.i18nKey)}
             </Typography>
             <Box component={Icon} icon="tabler:switch-horizontal" sx={{ fontSize: 15, color: '#3B82F6' }} />
           </Box>

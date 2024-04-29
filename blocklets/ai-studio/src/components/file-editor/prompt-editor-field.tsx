@@ -116,7 +116,7 @@ export default function PromptEditorField({
                     fontSize: (theme) => theme.typography.caption.fontSize,
                     fontWeight: (theme) => theme.palette.text.disabled,
                   }}>
-                  <Box>{`${t('type')}: ${typeMap[type]}`}</Box>
+                  <Box>{`${t('format')}: ${typeMap[type]}`}</Box>
                   <Box>{`${t('label')}: ${parameter?.label || variable}`}</Box>
                   {!!parameter?.placeholder && <Box>{`${t('placeholder')}: ${parameter?.placeholder || ''}`}</Box>}
                   {!!parameter?.defaultValue && <Box>{`${t('defaultValue')}: ${parameter?.defaultValue || ''}`}</Box>}
