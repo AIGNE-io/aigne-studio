@@ -166,7 +166,7 @@ export default function ParametersTable({
       },
       {
         field: 'from',
-        headerName: t('variableParameter.from'),
+        headerName: t('from'),
         flex: 1,
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.type === 'source' && parameter.source?.variableFrom === 'history') {
@@ -188,7 +188,7 @@ export default function ParametersTable({
       },
       {
         field: 'type',
-        headerName: t('type'),
+        headerName: t('format'),
         width: 100,
         renderCell: ({ row: { data: parameter } }) => {
           if (parameter.type === 'source' && parameter.source) {
@@ -276,7 +276,6 @@ export default function ParametersTable({
       },
       {
         field: 'actions',
-        headerName: t('actions'),
         width: 100,
         headerAlign: 'right',
         align: 'right',
@@ -300,7 +299,7 @@ export default function ParametersTable({
         <Box display="flex" alignItems="center" gap={0.5}>
           <Box component={Icon} icon="tabler:arrow-autofit-up" />
           <Typography variant="subtitle2" mb={0}>
-            {t('inputParameters')}
+            {t('inputs')}
           </Typography>
         </Box>
       </Stack>
@@ -390,7 +389,6 @@ export default function ParametersTable({
                     <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
                       {!readOnly && (
                         <PopperButton
-                          FROM_MAP={FROM_MAP}
                           knowledge={knowledge.map((x) => ({ ...x, from: FROM_KNOWLEDGE }))}
                           parameter={parameter}
                           readOnly={readOnly}
@@ -480,7 +478,7 @@ export default function ParametersTable({
                 <ListItemIcon>
                   <Box component={Icon} icon="tabler:plus" />
                 </ListItemIcon>
-                <ListItemText primary={t('customInputParameter')} />
+                <ListItemText primary={t('customInput')} />
               </MenuItem>
             </PopperMenu>
           </Stack>
@@ -491,7 +489,6 @@ export default function ParametersTable({
 }
 
 function PopperButton({
-  FROM_MAP,
   parameter,
   readOnly,
   value,
@@ -506,7 +503,6 @@ function PopperButton({
   projectId: string;
   gitRef: string;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  FROM_MAP: { [key: string]: string };
   onDelete: () => void;
 }) {
   const { t } = useLocaleContext();
@@ -545,7 +541,6 @@ function PopperButton({
 
       <SelectFromSourceDialog
         dialogState={dialogState}
-        FROM_MAP={FROM_MAP}
         knowledge={knowledge}
         parameter={parameter}
         readOnly={readOnly}
@@ -632,7 +627,7 @@ function AgentParameter({
 
         {file && !!(parameters || []).length && (
           <Box>
-            <Typography variant="subtitle2">{t('inputParameters')}</Typography>
+            <Typography variant="subtitle2">{t('inputs')}</Typography>
 
             <Box>
               {(parameters || [])?.map(({ data }: any) => {
@@ -776,7 +771,7 @@ function KnowledgeParameter({
 
         {parameter?.source?.tool && (
           <Box>
-            <Typography variant="subtitle2">{t('inputParameters')}</Typography>
+            <Typography variant="subtitle2">{t('inputs')}</Typography>
 
             <Box>
               {(parameters || [])?.map((data: any) => {
@@ -887,7 +882,6 @@ function SelectTool({
 }
 
 function SelectFromSourceDialog({
-  FROM_MAP,
   parameter,
   readOnly,
   value,
@@ -902,7 +896,6 @@ function SelectFromSourceDialog({
   projectId: string;
   gitRef: string;
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  FROM_MAP: { [key: string]: string };
   dialogState: PopupState;
 }) {
   const { t } = useLocaleContext();
@@ -953,27 +946,7 @@ function SelectFromSourceDialog({
       </DialogTitle>
 
       <DialogContent>
-        <Stack gap={1.5}>
-          {(parameter as any)?.source?.variableFrom !== 'history' && (
-            <Box>
-              <Typography variant="subtitle2">{t('variableParameter.from')}</Typography>
-
-              <SelectFromSourceComponent
-                variant="filled"
-                fullWidth
-                FROM_MAP={FROM_MAP}
-                knowledge={knowledge}
-                parameter={parameter}
-                readOnly={readOnly}
-                value={value}
-                projectId={projectId}
-                gitRef={gitRef}
-              />
-            </Box>
-          )}
-
-          {renderParameterSettings(parameter)}
-        </Stack>
+        <Stack gap={1.5}>{renderParameterSettings(parameter)}</Stack>
       </DialogContent>
 
       <DialogActions>
@@ -1046,7 +1019,6 @@ function SelectFromSource({
 
       <SelectFromSourceDialog
         dialogState={dialogState}
-        FROM_MAP={FROM_MAP}
         knowledge={knowledge}
         parameter={parameter}
         readOnly={readOnly}

@@ -102,7 +102,7 @@ export default function PromptPrompts({
                         </Box>
                       </Tooltip>
 
-                      <Tooltip title={t('copyTool')} disableInteractive placement="top">
+                      <Tooltip title={t('copy')} disableInteractive placement="top">
                         <Box onClick={() => copePrompt(prompt, _)} className="center">
                           <Box component={Icon} icon="tabler:copy" sx={{ color: 'grey.500' }} />
                         </Box>

@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   isApiAssistant,
@@ -5,6 +6,7 @@ import {
   isImageAssistant,
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
 import { Box, Stack } from '@mui/material';
 
 import ArrowLine from '../../../pages/project/icons/line';
@@ -28,6 +30,7 @@ export default function AgentEditor({
   value: AssistantYjs;
   disabled?: boolean;
 }) {
+  const { t } = useLocaleContext();
   // const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
@@ -58,7 +61,15 @@ export default function AgentEditor({
             <FunctionAssistantEditor gitRef={gitRef} value={value} disabled={disabled} />
           ) : isApiAssistant(value) ? (
             <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
-          ) : null}
+          ) : (
+            <Stack alignItems="center">
+              <Box sx={{ fontSize: 28, color: 'text.disabled' }}>
+                <Icon icon="tabler:zzz" />
+              </Box>
+
+              <Box sx={{ color: 'text.secondary' }}>{t('idleAgentDescription')}</Box>
+            </Stack>
+          )}
         </AgentProcessingView>
       </Box>
 

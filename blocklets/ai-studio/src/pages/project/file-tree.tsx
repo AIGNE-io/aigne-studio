@@ -1,3 +1,4 @@
+import { agentTypesMap } from '@app/components/file-editor/agent-type-select';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import {
@@ -1071,8 +1072,5 @@ function DeletedTemplates({
 }
 
 function FileIcon({ type }: { type?: AssistantYjs['type'] }) {
-  if (type === 'api') return <Box component={Icon} icon="tabler:link" />;
-  if (type === 'function') return <Box component={Icon} icon="tabler:code" />;
-  if (type === 'image') return <Box component={Icon} icon="tabler:photo" />;
-  return <Box component={Icon} icon="tabler:file-description" />;
+  return agentTypesMap[type!]?.icon || null;
 }

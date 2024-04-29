@@ -67,7 +67,7 @@ export default function OutputSettings({
         <Box display="flex" alignItems="center" gap={0.5}>
           <Box component={Icon} icon="tabler:arrow-autofit-down" />
           <Typography variant="subtitle2" mb={0}>
-            {t('output')}
+            {t('outputs')}
           </Typography>
         </Box>
       </Stack>
@@ -89,7 +89,7 @@ export default function OutputSettings({
                   {t('name')}
                 </Box>
                 <Box component={TableCell}>{t('description')}</Box>
-                <Box component={TableCell}>{t('type')}</Box>
+                <Box component={TableCell}>{t('format')}</Box>
                 <Box component={TableCell}>{t('required')}</Box>
                 <Box component={TableCell} align="right">
                   {t('actions')}
@@ -534,7 +534,7 @@ function VariableTypeField({ ...props }: TextFieldProps) {
   const { t } = useLocaleContext();
 
   return (
-    <TextField hiddenLabel placeholder={t('type')} select SelectProps={{ autoWidth: true }} {...props}>
+    <TextField hiddenLabel placeholder={t('format')} select SelectProps={{ autoWidth: true }} {...props}>
       <MenuItem value="string">
         <ListItemIcon>
           <Icon icon="tabler:cursor-text" />
