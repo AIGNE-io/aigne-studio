@@ -620,7 +620,7 @@ export default flat({
   inputParameterRequiredLabel: 'Is this input required',
   selectKnowledgePlaceholder: 'Select a knowledge to query',
   selectMemoryPlaceholder: 'Select a memory',
-  selectAgentToCallPlaceholder: 'Select a agent to calling',
+  selectAgentToCallPlaceholder: 'Select an agent to call',
   outputVariableName: 'Output name',
   outputVariablePlaceholder: 'Describe this output (optional)',
   outputVariablePlaceholderForLLM: 'Prompt to LLM how to fill this output',
