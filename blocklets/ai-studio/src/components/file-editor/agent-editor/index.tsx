@@ -46,8 +46,8 @@ export default function AgentEditor({
       </Box>
 
       <Box height={20} width={1} position="relative">
-        <Box position="absolute" left={4} top={-12}>
-          <ArrowLine sx={{ width: 8, height: 44 }} />
+        <Box position="absolute" left={20} top={-4}>
+          <ArrowLine sx={{ width: 8, height: 36 }} />
         </Box>
       </Box>
 
@@ -74,8 +74,8 @@ export default function AgentEditor({
       </Box>
 
       <Box height={20} width={1} position="relative">
-        <Box position="absolute" left={4} top={-12}>
-          <ArrowLine sx={{ width: 8, height: 44 }} />
+        <Box position="absolute" left={20} top={-4}>
+          <ArrowLine sx={{ width: 8, height: 36 }} />
         </Box>
       </Box>
 

@@ -62,7 +62,7 @@ export default function OutputSettings({
   };
 
   return (
-    <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, borderRadius: 1 }}>
+    <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
         <Box display="flex" alignItems="center" gap={0.5}>
           <Box component={Icon} icon="tabler:arrow-autofit-down" />
