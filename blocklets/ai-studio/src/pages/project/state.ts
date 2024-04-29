@@ -802,6 +802,8 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
       setState((r) => ({ ...r, files: cloneDeep(files) }));
     };
 
+    getFile();
+
     getYjsDoc(store).getMap('files').observeDeep(getFile);
     getYjsDoc(store).getMap('tree').observeDeep(getFile);
 
