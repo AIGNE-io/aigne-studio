@@ -4,6 +4,7 @@ import { useSessionContext } from '@app/contexts/session';
 import { didSpaceReady, getImportUrl } from '@app/libs/did-spaces';
 import currentGitStore from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { getWalletDid } from '@arcblock/ux/lib/SessionUser/libs/utils';
 import Toast from '@arcblock/ux/lib/Toast';
 import ArrowRightAltRoundedIcon from '@iconify-icons/material-symbols/arrow-right-alt-rounded';
 import { Icon } from '@iconify/react';
@@ -79,7 +80,7 @@ function ImportWayItem({
       }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         {icon}
-        <Typography sx={{ fontSize: '16px', fontWeight: 'bold' }}>{text}</Typography>
+        <Typography sx={{ fontSize: '16px' }}>{text}</Typography>
       </Box>
       <Icon
         className="other-item-icon"
@@ -91,27 +92,76 @@ function ImportWayItem({
   );
 }
 
-export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClose: () => void }) {
+export const FROM_DID_SPACES_IMPORT = 'from-did-spaces-import';
+export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClose?: () => void }) {
   const { t } = useLocaleContext();
-  const { session } = useSessionContext();
+  const { session, connectApi } = useSessionContext();
   const hasDidSpace = didSpaceReady(session.user);
+  const useDidWallet = !!getWalletDid(session.user);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const fromCurrentDidSpaceImport = useCallback(async () => {
-    const importUrl = await getImportUrl(session?.user?.didSpace?.endpoint, { redirectUrl: window.location.href });
-    window.location.href = importUrl;
-  }, [session?.user?.didSpace?.endpoint]);
+  const customOnClose = useCallback(() => {
+    if (searchParams.has('action')) {
+      searchParams.delete('action');
+      setSearchParams(searchParams);
+    }
+    onClose();
+  }, [onClose, searchParams, setSearchParams]);
 
-  const fromOtherDidSpaceImport = useCallback(() => {
-    session.connectToDidSpaceForImport({
-      onSuccess: (response: { importUrl: string }, decrypt: (value: string) => string) => {
-        const importUrl = decrypt(response.importUrl);
-        window.location.href = withQuery(importUrl, {
-          redirectUrl: window.location.href,
+  const requireBindWallet = useCallback(() => {
+    connectApi.open({
+      prefix: joinURL(window.location.origin, '/.well-known/service/api/did'),
+      action: 'bind-wallet',
+      messages: {
+        title: t('import.bindWallet.title'),
+        scan: t('import.bindWallet.scan'),
+        confirm: t('import.bindWallet.confirm'),
+        success: t('import.bindWallet.success'),
+      },
+      extraParams: {
+        previousUserDid: session?.user?.did,
+      },
+      onSuccess: async () => {
+        window.location.href = withQuery(window.location.href, {
+          action: FROM_DID_SPACES_IMPORT,
         });
       },
     });
-    onClose();
-  }, [session]);
+  }, [connectApi, session?.user?.did, t]);
+
+  const fromCurrentDidSpaceImport = useCallback(async () => {
+    const goToImport = async () => {
+      const importUrl = await getImportUrl(session?.user?.didSpace?.endpoint, { redirectUrl: window.location.href });
+      window.location.href = importUrl;
+    };
+
+    customOnClose();
+    if (useDidWallet) {
+      await goToImport();
+    } else {
+      requireBindWallet();
+    }
+  }, [customOnClose, requireBindWallet, session?.user?.didSpace?.endpoint, useDidWallet]);
+
+  const fromOtherDidSpaceImport = useCallback(() => {
+    const goToImport = () => {
+      session.connectToDidSpaceForImport({
+        onSuccess: (response: { importUrl: string }, decrypt: (value: string) => string) => {
+          const importUrl = decrypt(response.importUrl);
+          window.location.href = withQuery(importUrl, {
+            redirectUrl: window.location.href,
+          });
+        },
+      });
+    };
+
+    customOnClose();
+    if (useDidWallet) {
+      goToImport();
+    } else {
+      requireBindWallet();
+    }
+  }, [customOnClose, requireBindWallet, session, useDidWallet]);
 
   return (
     <Dialog open disableEnforceFocus maxWidth="sm" fullWidth component="form" onClose={onClose}>
