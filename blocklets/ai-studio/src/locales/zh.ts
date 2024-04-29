@@ -26,6 +26,7 @@ export default flat({
   number: '数字',
   select: '选择',
   language: '语言',
+  languageSelect: '语言选择',
   multiline: '多行文本',
   alert: {
     export: '导出',

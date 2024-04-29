@@ -26,6 +26,7 @@ export default flat({
   number: 'Number',
   select: 'Select',
   language: 'Language',
+  languageSelect: 'Language Select',
   multiline: 'Multiline',
   alert: {
     export: 'Export',
