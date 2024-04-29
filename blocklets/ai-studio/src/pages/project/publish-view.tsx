@@ -42,6 +42,7 @@ import { joinURL, withQuery } from 'ufo';
 
 import BaseInput from '../../components/custom/input';
 import Switch from '../../components/custom/switch';
+import { useCanReleasePaymentProject } from '../../contexts/session';
 import { saveButtonState, useProjectState } from './state';
 
 const TemplateImage = styled('img')({
@@ -100,6 +101,8 @@ function PublishViewContent({
   };
 
   const { t, locale } = useLocaleContext();
+
+  const canReleasePaymentProject = useCanReleasePaymentProject();
 
   const {
     state: { releases, project },
@@ -179,6 +182,12 @@ function PublishViewContent({
       Toast.error(getErrorMessage(error));
     }
   };
+
+  const paymentTip = !canReleasePaymentProject && (
+    <FormHelperText sx={{ mx: 0, whiteSpace: 'normal', color: 'warning.light' }}>
+      {t('noReleasePaymentProjectTip')}
+    </FormHelperText>
+  );
 
   return (
     <Stack
@@ -368,6 +377,7 @@ function PublishViewContent({
 
               <td>
                 <Switch
+                  disabled={!canReleasePaymentProject}
                   checked={assistant.release?.payment?.enable || false}
                   onChange={(_, checked) =>
                     setRelease((release) => {
@@ -388,6 +398,7 @@ function PublishViewContent({
                 <td>
                   <Stack direction="row" alignItems="center" gap={1}>
                     <BaseInput
+                      disabled={!canReleasePaymentProject}
                       fullWidth
                       {...form.register('payment.price', {
                         required: assistant.release.payment.enable ? t('pricingRequiredMessage') : undefined,
@@ -401,12 +412,23 @@ function PublishViewContent({
                     />
                     <Typography component="span">{t('pricingUnit')}</Typography>
                   </Stack>
+
                   {form.formState.errors.payment?.price?.message && (
-                    <FormHelperText error>{form.formState.errors.payment?.price?.message}</FormHelperText>
+                    <FormHelperText
+                      sx={{
+                        mx: 0,
+                        whiteSpace: 'normal',
+                      }}
+                      error>
+                      {form.formState.errors.payment?.price?.message}
+                    </FormHelperText>
                   )}
                 </td>
               </tr>
             )}
+            <tr>
+              <td colSpan={2}>{paymentTip}</td>
+            </tr>
           </TableLayout>
         </Stack>
       </MyAccordion>

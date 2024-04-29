@@ -1,3 +1,7 @@
+## 0.1.356 (2024-4-29)
+
+- chore: support disable payment in multi tenant
+
 ## 0.1.355 (2024-4-29)
 
 - feat: guide the user to bind DID Wallet and DID Spaces

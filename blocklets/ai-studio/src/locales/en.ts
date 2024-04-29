@@ -676,6 +676,7 @@ export default flat({
   publishSuccess: 'Published successfully',
   publishUpdateSuccess: 'Update published successfully',
   payment: 'Payment',
+  noReleasePaymentProjectTip: 'Payment features are temporarily disabled',
   openingQuestion: 'Opening question',
   input: 'Input',
   appearance: 'Appearance',
@@ -710,4 +711,5 @@ export default flat({
   outputParameterRequiredLabel: 'Is this output field required',
   outputParameterDefaultValuePlaceholder: 'Give this field a default value if LLM has not filled it',
   close: 'Close',
+  backHome: 'Back Home',
 });
