@@ -1,6 +1,10 @@
-## 0.1.355 (2024-4-29)
+## 0.1.356 (2024-4-29)
 
 - chore: add disablePaymentProject in multi tenant
+
+## 0.1.355 (2024-4-29)
+
+- feat: guide the user to bind DID Wallet and DID Spaces
 
 ## 0.1.354 (2024-4-29)
 
