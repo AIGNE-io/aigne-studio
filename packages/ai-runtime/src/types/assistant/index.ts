@@ -216,7 +216,7 @@ export interface KnowledgeParameter {
 
 export interface HistoryParameter {
   variableFrom?: 'history';
-  memory?: { limit?: number; keyword?: string };
+  chatHistory?: { limit?: number; keyword?: string };
 }
 
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | SourceParameter;

@@ -128,6 +128,7 @@ export default function ParametersTable({
             const iconMap = {
               question: 'message',
               datasetId: 'database',
+              chatHistory: 'history',
             };
 
             return (
@@ -260,10 +261,6 @@ export default function ParametersTable({
       },
     ];
   }, [t, knowledge, readOnly, doc, deleteParameter]);
-
-  const historyId = Object.values(value.parameters || {}).find((x) => {
-    return x.data.type === 'source' && x.data.source?.variableFrom === 'history';
-  })?.data?.id;
 
   return (
     <Box
@@ -413,15 +410,13 @@ export default function ParametersTable({
               </MenuItem>
 
               <MenuItem
-                selected={Boolean(historyId)}
+                selected={variables.includes('chatHistory')}
                 onClick={(e) => {
                   e.stopPropagation();
-
-                  if (historyId) {
-                    const p = (value.parameters || {})[historyId];
-                    if (p) deleteParameter(p.data);
+                  if (variables.includes('chatHistory')) {
+                    removeParameter('chatHistory');
                   } else {
-                    addParameter('', {
+                    addParameter('chatHistory', {
                       type: 'source',
                       source: { variableFrom: 'history', memory: { limit: 50, keyword: '' } },
                     });
@@ -432,7 +427,7 @@ export default function ParametersTable({
                 </ListItemIcon>
                 <Box flex={1}>{t('history.title')}</Box>
                 <Box sx={{ width: 40, textAlign: 'right' }}>
-                  {historyId && <Box component={Icon} icon="tabler:check" />}
+                  {variables.includes('chatHistory') && <Box component={Icon} icon="tabler:check" />}
                 </Box>
               </MenuItem>
 

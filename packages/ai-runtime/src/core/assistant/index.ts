@@ -786,7 +786,7 @@ const getVariables = async ({
         });
 
         variables[parameter.key] = result ?? parameter.defaultValue;
-      } else if (parameter.source?.variableFrom === 'history' && parameter.source.memory) {
+      } else if (parameter.source?.variableFrom === 'history' && parameter.source.chatHistory) {
         const currentTaskId = taskIdGenerator.nextId().toString();
         // eslint-disable-next-line no-await-in-loop
         const memories = await runRequestHistory({
@@ -797,8 +797,8 @@ const getVariables = async ({
           params: {
             sessionId,
             userId: user?.did,
-            limit: parameter.source.memory.limit || 50,
-            keyword: await renderMessage(parameter.source.memory.keyword || '', variables),
+            limit: parameter.source.chatHistory.limit || 50,
+            keyword: await renderMessage(parameter.source.chatHistory.keyword || '', variables),
           },
         });
 

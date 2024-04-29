@@ -22,7 +22,7 @@ export default function AssistantHistory({
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'history') {
     const { source } = parameter;
-    source.memory ??= { limit: 50, keyword: '' };
+    source.chatHistory ??= { limit: 50, keyword: '' };
 
     return (
       <>
@@ -35,10 +35,10 @@ export default function AssistantHistory({
               max={100}
               step={1}
               sx={{ flex: 1 }}
-              value={source.memory?.limit ?? 50}
+              value={source.chatHistory?.limit ?? 50}
               onChange={(_, v) => {
-                if (source.memory) {
-                  source.memory.limit = v;
+                if (source.chatHistory) {
+                  source.chatHistory.limit = v;
                 }
               }}
             />
@@ -56,10 +56,10 @@ export default function AssistantHistory({
               ContentProps={{ sx: { px: 1, py: 0.5 } }}
               path={[value.id, 'history']}
               assistant={value}
-              value={source.memory?.keyword ?? ''}
+              value={source.chatHistory?.keyword ?? ''}
               onChange={(prompt) => {
-                if (source.memory) {
-                  source.memory.keyword = prompt;
+                if (source.chatHistory) {
+                  source.chatHistory.keyword = prompt;
                 }
               }}
             />
