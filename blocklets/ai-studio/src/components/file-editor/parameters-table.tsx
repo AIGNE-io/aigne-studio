@@ -417,7 +417,7 @@ export default function ParametersTable({
                   } else {
                     addParameter('chatHistory', {
                       type: 'source',
-                      source: { variableFrom: 'history', memory: { limit: 50, keyword: '' } },
+                      source: { variableFrom: 'history', chatHistory: { limit: 50, keyword: '' } },
                     });
                   }
                 }}>
@@ -985,7 +985,7 @@ function SelectFromSource({
   const currentKey = parameter.type === 'source' ? parameter.source?.variableFrom : 'custom';
   const fromTitle =
     parameter.type === 'source' && parameter.source?.variableFrom === 'tool' && parameter?.source?.agent?.id
-      ? t('variableParameter.agent', { agent: getFileById((parameter as any)?.source?.agent?.id)?.name })
+      ? t('variableParameter.agent', { agent: getFileById(parameter?.source?.agent?.id)?.name })
       : FROM_MAP[currentKey || 'custom'];
 
   return (
@@ -1017,8 +1017,10 @@ function SelectFromSource({
 
                   if (key !== 'custom') {
                     parameter.type = 'source';
-                    (parameter as any).source ??= {};
-                    (parameter as any).source.variableFrom = key;
+                    if (parameter.type === 'source') {
+                      parameter.source ??= {};
+                      parameter.source.variableFrom = key as any;
+                    }
                   }
 
                   ref.current?.close();
