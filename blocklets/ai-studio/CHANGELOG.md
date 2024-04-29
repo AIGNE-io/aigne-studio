@@ -1,3 +1,8 @@
+## 0.1.359 (2024-4-29)
+
+- fix: remove project logo from header
+- fix: update ui texts
+
 ## 0.1.358 (2024-4-29)
 
 - chore: update deps
