@@ -183,7 +183,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 id="upload"
                 type="file"
                 onChange={onInputChange}
-                accept=".md, .txt, .pdf, .doc"
+                accept=".md, .txt, .doc, .docx"
                 component="input"
                 display="none"
               />

@@ -496,7 +496,7 @@ export default flat({
     },
     auto: 'Auto segmentation',
     file: {
-      content: 'Click or drag documents here to upload \n Support Markdown、Txt、Doc、PDF format Documents',
+      content: 'Click or drag documents here to upload \n Support Markdown、Txt、Doc format Documents',
       fail: 'Server processing failed',
       processing: 'Processing...',
       pending: 'Waiting for upload',

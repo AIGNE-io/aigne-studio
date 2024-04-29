@@ -386,24 +386,8 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
     updatedBy: did,
   });
 
-  const getContent = async () => {
-    if (fileExtension === 'pdf') {
-      // return readPDF(filePath).then((x) => x.text);
-    }
-
-    return readFile(filePath, 'utf8');
-  };
-
-  let content = '';
-  try {
-    content = await getContent();
-  } catch (error) {
-    content = '';
-  }
-
-  if (content) {
-    await DatasetContent.create({ documentId: document.id, content });
-  }
+  // 不保存数据，在使用时，实时去取，防止数据太大，导致出错
+  await DatasetContent.create({ documentId: document.id, content: '' });
 
   queue.checkAndPush({ type: 'document', documentId: document.id });
 

@@ -470,7 +470,7 @@ export default flat({
       empty: '还没有文档\n 点击按钮添加文档',
       file: {
         title: '上传文件',
-        description: '上传 Markdown、Txt、Doc、PDF 格式的文档',
+        description: '上传 Markdown、Txt、Doc 格式的文档',
       },
       discussion: {
         title: '本地论坛文档',
