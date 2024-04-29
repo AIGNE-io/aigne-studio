@@ -124,21 +124,21 @@ export default flat({
   inputParameters: 'Inputs',
   fnArgs: 'Function parameters',
   promptMessages: 'Prompts',
-  temperature: 'temperature',
+  temperature: 'Temperature',
   temperatureTip:
-    'Adjusting the temperature can control the diversity of generated text. A low temperature will make the generated text more consistent and predictable, while a high temperature will increase the randomness and creativity of the text.',
-  topP: 'top_p',
+    'Adjusting the Temperature can control the diversity of generated text. A low Temperature will make the generated text more consistent and predictable, while a high Temperature will increase the randomness and creativity of the text.',
+  topP: 'TopP',
   topPTip:
-    "Adjusting top_p can control the length and diversity of the generated text. A lower top_p value narrows down the model's selection range, resulting in more coherent text, while a higher top_p value introduces more choices, increasing the diversity of the text.",
-  presencePenalty: 'presence_penalty',
+    "Adjusting TopP can control the length and diversity of the generated text. A lower TopP value narrows down the model's selection range, resulting in more coherent text, while a higher TopP value introduces more choices, increasing the diversity of the text.",
+  presencePenalty: 'Presence Penalty',
   presencePenaltyTip:
-    'Adjusting the presence_penalty can affect the frequency of repeated topics in the generated text. A higher presence_penalty value will reduce the occurrence of repeated topics, resulting in more fresh and diverse content, while a lower presence_penalty value may lead to more repetition of topics.',
-  frequencyPenalty: 'frequency_penalty',
+    'Adjusting the Presence Penalty can affect the frequency of repeated topics in the generated text. A higher Presence Penalty value will reduce the occurrence of repeated topics, resulting in more fresh and diverse content, while a lower Presence Penalty value may lead to more repetition of topics.',
+  frequencyPenalty: 'Frequency Penalty',
   frequencyPenaltyTip:
-    'Adjusting the frequency_penalty allows for control over the occurrence of repeated words and phrases in the generated text. A higher frequency_penalty value will reduce the likelihood of repetitions, while a lower frequency_penalty value may increase the repetition of learned phrases and words from previously generated text.',
-  maxTokens: 'max_tokens',
+    'Adjusting the Frequency Penalty allows for control over the occurrence of repeated words and phrases in the generated text. A higher Frequency Penalty value will reduce the likelihood of repetitions, while a lower Frequency Penalty value may increase the repetition of learned phrases and words from previously generated text.',
+  maxTokens: 'Max Tokens',
   maxTokensTip:
-    "The maximum number of tokens to generate in the completion. The token count of your prompt plus max_tokens cannot exceed the model's context length.",
+    "The maximum number of tokens to generate in the completion. The token count of your prompt plus Max Tokens cannot exceed the model's context length.",
   type: 'Type',
   text: 'Text',
   object: 'Object',
