@@ -54,7 +54,8 @@
     "prettier-plugin-import-sort": "^0.0.7",
     "rimraf": "^3.0.2",
     "typescript": "^5.4.5",
-    "zx": "^7.2.3"
+    "zx": "^7.2.3",
+    "node-gyp-build": "~4.8.0"
   },
   "resolutions": {
     "@abtnode/client": "^1.16.26",
