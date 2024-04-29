@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.1.354",
+  "version": "0.1.355",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
