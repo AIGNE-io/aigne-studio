@@ -1,4 +1,3 @@
-import BaseSwitch from '@app/components/custom/switch';
 import PopperMenu from '@app/components/menu/PopperMenu';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
@@ -11,12 +10,11 @@ import { Close } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  FormControlLabel,
   IconButton,
   ListItemIcon,
   MenuItem,
@@ -92,6 +90,7 @@ export default function OutputSettings({
                 </Box>
                 <Box component={TableCell}>{t('description')}</Box>
                 <Box component={TableCell}>{t('type')}</Box>
+                <Box component={TableCell}>{t('required')}</Box>
                 <Box component={TableCell} align="right">
                   {t('actions')}
                 </Box>
@@ -185,6 +184,10 @@ function VariableRow({
         required: variable.required,
       }
     : variable;
+
+  const isDefaultRequired = [RuntimeOutputVariable.images, RuntimeOutputVariable.text].includes(
+    v.name as RuntimeOutputVariable
+  );
 
   return (
     <>
@@ -290,6 +293,15 @@ function VariableRow({
             />
           )}
         </Box>
+        <Box component={TableCell}>
+          <Checkbox
+            disabled={Boolean(disabled)}
+            checked={isDefaultRequired || v.required || false}
+            onChange={(_, checked) => {
+              v.required = checked;
+            }}
+          />
+        </Box>
         <Box component={TableCell} align="right">
           <Stack direction="row" gap={1} justifyContent="flex-end">
             {v.type === 'object' && (
@@ -388,10 +400,6 @@ function PopperButton({
 
   const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
 
-  const isDefaultRequired = [RuntimeOutputVariable.images, RuntimeOutputVariable.text].includes(
-    parameter.name as RuntimeOutputVariable
-  );
-
   const renderParameterSettings = (parameter: OutputVariableYjs) => {
     if (currentSetting === 'setting') {
       return (
@@ -424,24 +432,6 @@ function PopperButton({
               />
             </Box>
           ) : null}
-
-          <Box>
-            <FormControl>
-              <FormControlLabel
-                sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-                labelPlacement="start"
-                label={t('outputParameterRequiredLabel')}
-                disabled={isDefaultRequired}
-                control={
-                  <BaseSwitch
-                    sx={{ mr: 1, mt: '1px' }}
-                    checked={isDefaultRequired || parameter.required || false}
-                    onChange={(_, required) => (parameter.required = required)}
-                  />
-                }
-              />
-            </FormControl>
-          </Box>
         </>
       );
     }
@@ -475,6 +465,8 @@ function PopperButton({
     return null;
   };
 
+  const isRenderSettings = runtimeVariable ? false : ['string', 'number'].includes(parameter.type || '');
+
   return (
     <>
       <PopperMenu
@@ -484,13 +476,15 @@ function PopperButton({
           disabled,
           children: <Box component={Icon} icon="tabler:dots" sx={{ color: '#3B82F6' }} />,
         }}>
-        <MenuItem
-          onClick={() => {
-            setSetting('setting');
-            dialogState.open();
-          }}>
-          {t('setting')}
-        </MenuItem>
+        {isRenderSettings && (
+          <MenuItem
+            onClick={() => {
+              setSetting('setting');
+              dialogState.open();
+            }}>
+            {t('setting')}
+          </MenuItem>
+        )}
 
         {isSaveAs && (
           <MenuItem

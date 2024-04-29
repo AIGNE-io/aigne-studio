@@ -126,12 +126,6 @@ export interface AssistantBase {
   entries?: { id: string; title?: string; parameters?: { [key: string]: any } }[];
 
   outputVariables?: OutputVariable[];
-
-  memory?: {
-    enable?: boolean;
-    limit?: number;
-    keyword?: string;
-  };
 }
 
 export interface VariableTypeBase {
@@ -223,6 +217,15 @@ export interface KnowledgeParameter {
   tool?: Tool;
 }
 
+export interface HistoryParameter {
+  variableFrom?: 'history';
+  memory?: {
+    enable?: boolean;
+    limit?: number;
+    keyword?: string;
+  };
+}
+
 export type Parameter = StringParameter | NumberParameter | SelectParameter | LanguageParameter | SourceParameter;
 
 export interface ParameterBase {
@@ -238,7 +241,7 @@ export interface ParameterBase {
 export interface SourceParameter extends ParameterBase {
   type: 'source';
   defaultValue?: string;
-  source?: DatastoreParameter | ToolParameter | KnowledgeParameter;
+  source?: DatastoreParameter | ToolParameter | KnowledgeParameter | HistoryParameter;
 }
 
 export interface StringParameter extends ParameterBase {

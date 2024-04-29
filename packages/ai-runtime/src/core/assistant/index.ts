@@ -562,7 +562,7 @@ const runRequestHistory = async ({
   callback,
   params,
 }: {
-  assistant: PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
+  assistant: Agent | PromptAssistant | ApiAssistant | ImageAssistant | FunctionAssistant;
   parentTaskId?: string;
   user?: User;
   callback?: RunAssistantCallback;
@@ -786,6 +786,23 @@ const getVariables = async ({
         });
 
         variables[parameter.key] = result ?? parameter.defaultValue;
+      } else if (parameter.source?.variableFrom === 'history' && parameter.source.memory) {
+        const currentTaskId = taskIdGenerator.nextId().toString();
+        // eslint-disable-next-line no-await-in-loop
+        const memories = await runRequestHistory({
+          assistant,
+          parentTaskId: currentTaskId,
+          user,
+          callback,
+          params: {
+            sessionId,
+            userId: user?.did,
+            limit: parameter.source.memory.limit || 50,
+            keyword: await renderMessage(parameter.source.memory.keyword || '', variables),
+          },
+        });
+
+        variables[parameter.key] = memories;
       }
     }
   }
@@ -961,33 +978,6 @@ async function runPromptAssistant({
   )
     .flat()
     .filter((i): i is Required<NonNullable<typeof i>> => !!i?.content);
-
-  if (assistant.memory?.enable && sessionId) {
-    const lastSystemIndex = messages.findLastIndex((i) => i.role === 'system');
-    const memories = await runRequestHistory({
-      assistant,
-      parentTaskId: taskId,
-      user,
-      callback,
-      params: {
-        sessionId,
-        userId: user?.did,
-        limit: assistant.memory.limit || 50,
-        keyword: await renderMessage(assistant.memory.keyword || '', variables),
-      },
-    });
-
-    if (Array.isArray(memories) && memories.length) {
-      messages.splice(lastSystemIndex + 1, 0, {
-        role: 'system',
-        content: `## Memory
-Here is the chat memories between user and assistant, inside <memories></memories> XML tags.
-<memories>
-${memories.map((i) => `${i.role}: ${JSON.stringify(i.content)}`).join('\n')}
-</memories>`,
-      });
-    }
-  }
 
   const { outputVariables = [] } = assistant;
   const onlyOutputJson = !outputVariables.some((i) => (i.name as RuntimeOutputVariable) === '$text');

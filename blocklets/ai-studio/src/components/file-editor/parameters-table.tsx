@@ -32,6 +32,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  TextFieldProps,
   Typography,
   alpha,
   createFilterOptions,
@@ -50,6 +51,7 @@ import PopperMenu from '../menu/PopperMenu';
 import ParameterConfig from '../template-form/parameter-config';
 import ParameterConfigType from '../template-form/parameter-config/type';
 import { FROM_KNOWLEDGE } from './execute-block';
+import History from './history';
 import PromptEditorField from './prompt-editor-field';
 import SelectVariable from './select-variable';
 import useVariablesEditorOptions from './use-variables-editor-options';
@@ -74,7 +76,7 @@ export default function ParametersTable({
 }) {
   const { t } = useLocaleContext();
   const doc = (getYjsValue(value) as Map<any>)?.doc!;
-  const { highlightedId, addParameter, deleteParameter } = useVariablesEditorOptions(value);
+  const { highlightedId, variables, addParameter, deleteParameter, removeParameter } = useVariablesEditorOptions(value);
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
   const { getVariables } = useProjectStore(projectId, gitRef);
 
@@ -167,6 +169,10 @@ export default function ParametersTable({
         headerName: t('variableParameter.from'),
         flex: 1,
         renderCell: ({ row: { data: parameter } }) => {
+          if (parameter.type === 'source' && parameter.source?.variableFrom === 'history') {
+            return <Box>{t('history.title')}</Box>;
+          }
+
           return (
             <SelectFromSource
               FROM_MAP={FROM_MAP}
@@ -194,7 +200,7 @@ export default function ParametersTable({
                     <Icon icon="tabler:braces" />
                   </ListItemIcon>
 
-                  {t('object')}
+                  {t('agentOutput')}
                 </Stack>
               );
             }
@@ -228,6 +234,10 @@ export default function ParametersTable({
                   {TYPE_MAP.string}
                 </Stack>
               );
+            }
+
+            if (parameter.source.variableFrom === 'history') {
+              return <Box />;
             }
           }
 
@@ -273,6 +283,10 @@ export default function ParametersTable({
       },
     ];
   }, [t, knowledge, readOnly, doc, deleteParameter]);
+
+  const historyId = Object.values(value.parameters || {}).find((x) => {
+    return x.data.type === 'source' && x.data.source?.variableFrom === 'history';
+  })?.data?.id;
 
   return (
     <Box
@@ -402,11 +416,49 @@ export default function ParametersTable({
                 startIcon: <Box fontSize={16} component={Icon} icon="tabler:plus" />,
                 children: <Box>{t('input')}</Box>,
               }}>
-              <MenuItem onClick={() => addParameter('question')}>
+              <MenuItem
+                selected={variables.includes('question')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (variables.includes('question')) {
+                    removeParameter('question');
+                  } else {
+                    addParameter('question');
+                  }
+                }}>
                 <ListItemIcon>
                   <Box component={Icon} icon="tabler:message" />
                 </ListItemIcon>
-                <ListItemText primary={t('questionInputTitle')} />
+                <Box flex={1}>{t('questionInputTitle')}</Box>
+                <Box sx={{ width: 40, textAlign: 'right' }}>
+                  {variables.includes('question') && <Box component={Icon} icon="tabler:check" />}
+                </Box>
+              </MenuItem>
+
+              <MenuItem
+                selected={Boolean(historyId)}
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  if (historyId) {
+                    const p = (value.parameters || {})[historyId];
+                    if (p) {
+                      deleteParameter(p.data);
+                    }
+                  } else {
+                    addParameter('', {
+                      type: 'source',
+                      source: { variableFrom: 'history', memory: { limit: 50, keyword: '' } },
+                    });
+                  }
+                }}>
+                <ListItemIcon>
+                  <Box component={Icon} icon="tabler:history" />
+                </ListItemIcon>
+                <Box flex={1}>{t('history.title')}</Box>
+                <Box sx={{ width: 40, textAlign: 'right' }}>
+                  {historyId && <Box component={Icon} icon="tabler:check" />}
+                </Box>
               </MenuItem>
 
               {/* <MenuItem onClick={() => addParameter('datasetId')}>
@@ -760,6 +812,28 @@ function KnowledgeParameter({
   return null;
 }
 
+function HistoryParameter({
+  projectId,
+  gitRef,
+  value,
+  parameter,
+}: {
+  projectId: string;
+  gitRef: string;
+  value: AssistantYjs;
+  parameter: ParameterYjs;
+}) {
+  if (parameter.type === 'source' && parameter?.source?.variableFrom === 'history') {
+    return (
+      <Stack gap={2}>
+        <History projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} />
+      </Stack>
+    );
+  }
+
+  return null;
+}
+
 type Option = {
   id: string;
   name?: string;
@@ -855,6 +929,10 @@ function SelectFromSourceDialog({
           />
         );
       }
+
+      if (parameter.source.variableFrom === 'history') {
+        return <HistoryParameter projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} />;
+      }
     }
 
     if (parameter) {
@@ -876,45 +954,23 @@ function SelectFromSourceDialog({
 
       <DialogContent>
         <Stack gap={1.5}>
-          <Box>
-            <Typography variant="subtitle2">{t('dataSource')}</Typography>
+          {(parameter as any)?.source?.variableFrom !== 'history' && (
+            <Box>
+              <Typography variant="subtitle2">{t('variableParameter.from')}</Typography>
 
-            <TextField
-              variant="filled"
-              select
-              hiddenLabel
-              value={parameter.type === 'source' ? parameter.source?.variableFrom : 'custom'}
-              placeholder={t('variableParameter.from')}
-              fullWidth
-              sx={{
-                [`.${selectClasses.select}`]: {
-                  py: 0.5,
-                  '&:focus': {
-                    background: 'transparent',
-                  },
-                },
-              }}
-              onChange={(e) => {
-                if ((e.target.value || 'custom') !== ((parameter as any)?.source?.variableFrom || 'custom')) {
-                  if ((parameter as any).source) delete (parameter as any).source;
-                  parameter.type = 'string';
-
-                  if (e.target.value !== 'custom') {
-                    parameter.type = 'source';
-                    (parameter as any).source ??= {};
-                    (parameter as any).source.variableFrom = e.target.value as any;
-                  }
-                }
-              }}>
-              {Object.entries(FROM_MAP).map(([key, _value]) => {
-                return (
-                  <MenuItem value={key} key={key}>
-                    {_value}
-                  </MenuItem>
-                );
-              })}
-            </TextField>
-          </Box>
+              <SelectFromSourceComponent
+                variant="filled"
+                fullWidth
+                FROM_MAP={FROM_MAP}
+                knowledge={knowledge}
+                parameter={parameter}
+                readOnly={readOnly}
+                value={value}
+                projectId={projectId}
+                gitRef={gitRef}
+              />
+            </Box>
+          )}
 
           {renderParameterSettings(parameter)}
         </Stack>
@@ -949,7 +1005,7 @@ function SelectFromSourceDialog({
 
             dialogState.close();
           }}>
-          {t('save')}
+          {t('alert.ok')}
         </Button>
       </DialogActions>
     </Dialog>
@@ -973,48 +1029,20 @@ function SelectFromSource({
   knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
   FROM_MAP: { [key: string]: string };
 }) {
-  const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog', popupId: useId() });
 
   return (
     <>
-      <TextField
-        variant="standard"
-        select
-        hiddenLabel
-        value={parameter.type === 'source' ? parameter.source?.variableFrom : 'custom'}
-        placeholder={t('variableParameter.from')}
-        sx={{
-          [`.${selectClasses.select}`]: {
-            py: 0.5,
-            '&:focus': {
-              background: 'transparent',
-            },
-          },
-        }}
-        onChange={(e) => {
-          dialogState.open();
-          if ((e.target.value || 'custom') !== ((parameter as any)?.source?.variableFrom || 'custom')) {
-            if ((parameter as any).source) delete (parameter as any).source;
-            parameter.type = 'string';
-
-            if (e.target.value !== 'custom') {
-              parameter.type = 'source';
-              (parameter as any).source ??= {};
-              (parameter as any).source.variableFrom = e.target.value as any;
-            }
-
-            dialogState.open();
-          }
-        }}>
-        {Object.entries(FROM_MAP).map(([key, _value]) => {
-          return (
-            <MenuItem value={key} key={key}>
-              {_value}
-            </MenuItem>
-          );
-        })}
-      </TextField>
+      <SelectFromSourceComponent
+        FROM_MAP={FROM_MAP}
+        knowledge={knowledge}
+        parameter={parameter}
+        readOnly={readOnly}
+        value={value}
+        projectId={projectId}
+        gitRef={gitRef}
+        onChange={dialogState.open}
+      />
 
       <SelectFromSourceDialog
         dialogState={dialogState}
@@ -1027,5 +1055,73 @@ function SelectFromSource({
         gitRef={gitRef}
       />
     </>
+  );
+}
+
+function SelectFromSourceComponent({
+  FROM_MAP,
+  parameter,
+  readOnly,
+  value,
+  projectId,
+  gitRef,
+  knowledge,
+  onChange,
+  ...props
+}: {
+  parameter: ParameterYjs;
+  readOnly?: boolean;
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+  knowledge: (Dataset['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  FROM_MAP: { [key: string]: string };
+  onChange?: () => void;
+} & TextFieldProps) {
+  const { t } = useLocaleContext();
+  const { getFileById } = useProjectStore(projectId, gitRef);
+
+  return (
+    <TextField
+      variant="standard"
+      select
+      hiddenLabel
+      value={parameter.type === 'source' ? parameter.source?.variableFrom : 'custom'}
+      placeholder={t('variableParameter.from')}
+      sx={{
+        [`.${selectClasses.select}`]: {
+          py: 0.5,
+          '&:focus': {
+            background: 'transparent',
+          },
+        },
+      }}
+      {...props}
+      onChange={(e) => {
+        if ((e.target.value || 'custom') !== ((parameter as any)?.source?.variableFrom || 'custom')) {
+          if ((parameter as any).source) delete (parameter as any).source;
+          parameter.type = 'string';
+
+          if (e.target.value !== 'custom') {
+            parameter.type = 'source';
+            (parameter as any).source ??= {};
+            (parameter as any).source.variableFrom = e.target.value as any;
+          }
+
+          if (onChange) {
+            onChange();
+          }
+        }
+      }}>
+      {Object.entries(FROM_MAP).map(([key, _value]) => {
+        return (
+          <MenuItem value={key} key={key}>
+            {key === 'tool' && (parameter as any)?.source?.tool?.id
+              ? t('variableParameter.agent', { agent: getFileById((parameter as any)?.source?.tool?.id)?.name })
+              : _value}
+          </MenuItem>
+        );
+      })}
+    </TextField>
   );
 }

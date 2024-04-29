@@ -594,6 +594,7 @@ export default flat({
     knowledge: '知识',
     fromAgentParameter: '来自Agent输入参数',
     fromKnowledgeParameter: '来自知识输入参数',
+    agent: '调用 {agent}',
   },
   variables: {
     name: '数据名称',
@@ -683,7 +684,6 @@ export default flat({
   saveAs: '数据另存为',
   customOutputField: '自定义输出字段',
   customInputParameter: '自定义输入参数',
-  dataSource: '数据来源',
   llm: '大语言模型',
   imageGeneration: '图片生成',
   code: '代码',
@@ -708,4 +708,5 @@ export default flat({
   close: '关闭',
   maxUploadFileLimit: '上传的文件大小超过设置最大值，上传的文件大小不能超过 {limit} MB',
   backHome: '返回首页',
+  agentOutput: 'Agent 输出',
 });

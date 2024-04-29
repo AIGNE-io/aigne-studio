@@ -573,9 +573,9 @@ export default flat({
   copyTool: 'Copy Tool',
   visitLink: 'Visit Link',
   variableParameter: {
-    from: 'Data Source',
+    from: 'From',
     custom: 'User input',
-    tool: 'Call another Agent',
+    tool: 'Call Another Agent',
     datastore: 'Memory',
     unselect: 'Unselected Agent',
     fromDetail: 'Data Details',
@@ -583,7 +583,7 @@ export default flat({
     toolSetting: 'Storage Settings',
     storageSetting: 'Data Settings',
     itemId: 'SubItem Id',
-    scope: 'Data Source',
+    scope: 'Scope',
     defaultValue: 'Default Value',
     persist: 'Persist',
     reset: 'Overwrite on save',
@@ -598,6 +598,7 @@ export default flat({
     knowledge: 'Knowledge',
     fromAgentParameter: 'From Agent Input Parameter',
     fromKnowledgeParameter: 'From Knowledge Input Parameter',
+    agent: 'Call {agent} Agent',
   },
   variables: {
     name: 'Data Name',
@@ -686,7 +687,6 @@ export default flat({
   questionInputTitle: 'Chat question input',
   datasetId: 'Use Knowledge',
   saveAs: 'Save to memory',
-  dataSource: 'Data Source',
   customOutputField: 'Custom output field',
   customInputParameter: 'Custom input parameter',
   llm: 'LLM',
@@ -714,4 +714,5 @@ export default flat({
   maxUploadFileLimit:
     'The size of the uploaded file exceeds the maximum value. The size of the uploaded file cannot exceed {limit} MB',
   backHome: 'Back Home',
+  agentOutput: 'Agent Outputs',
 });

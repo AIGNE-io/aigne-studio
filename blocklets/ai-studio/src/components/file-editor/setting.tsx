@@ -11,7 +11,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   IconButton,
   Stack,
   Typography,
@@ -22,7 +21,6 @@ import { useAsync } from 'react-use';
 
 import { useProjectState } from '../../pages/project/state';
 import { brandIcon } from '../selector/model-select-field';
-import History from './history';
 import ImageSettings from './image-file/setting';
 import PromptSettings from './prompt-file/setting';
 
@@ -118,10 +116,6 @@ export default function PromptSetting({
             {isImageAssistant(value) && (
               <ImageSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
             )}
-
-            <Divider sx={{ m: '0 !important' }} />
-
-            <History projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
           </Stack>
         </DialogContent>
 
@@ -131,7 +125,7 @@ export default function PromptSetting({
           </Button>
 
           <Button variant="contained" onClick={dialogState.close}>
-            {t('save')}
+            {t('alert.ok')}
           </Button>
         </DialogActions>
       </Dialog>
