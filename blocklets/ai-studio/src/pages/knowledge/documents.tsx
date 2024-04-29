@@ -435,7 +435,7 @@ function Actions({
               ),
               okText: t('alert.delete'),
               okColor: 'error',
-              cancelText: t('alert.cancel'),
+              cancelText: t('cancel'),
               onOk: async () => {
                 await onRemove(datasetId, id);
                 await onRefetch();

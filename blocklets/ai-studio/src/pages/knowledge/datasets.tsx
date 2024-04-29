@@ -334,7 +334,7 @@ function DatasetItem({
                                   ),
                                   okIcon: <Icon icon="tabler:device-floppy" />,
                                   okText: t('save'),
-                                  cancelText: t('alert.cancel'),
+                                  cancelText: t('cancel'),
                                   onOk: () => onUpdate({ name: newName, description: newDescription }),
                                 });
                               }}>
@@ -371,7 +371,7 @@ function DatasetItem({
                                   ),
                                   okText: t('alert.delete'),
                                   okColor: 'error',
-                                  cancelText: t('alert.cancel'),
+                                  cancelText: t('cancel'),
                                   onOk: onDelete,
                                 });
                               }}

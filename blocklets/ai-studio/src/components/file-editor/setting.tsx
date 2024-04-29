@@ -126,7 +126,7 @@ export default function PromptSetting({
 
         <DialogActions>
           <Button variant="contained" onClick={dialogState.close}>
-            {t('alert.ok')}
+            {t('ok')}
           </Button>
         </DialogActions>
       </Dialog>

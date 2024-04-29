@@ -10,7 +10,6 @@ import { Close } from '@mui/icons-material';
 import {
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -274,7 +273,7 @@ function VariableRow({
                     ),
                     okText: t('confirm'),
                     okColor: 'error',
-                    cancelText: t('alert.cancel'),
+                    cancelText: t('cancel'),
                     onOk: () => {
                       delete variable.variable;
 
@@ -526,8 +525,8 @@ function PopperButton({
         </DialogContent>
 
         <DialogActions>
-          <Button variant="outlined" onClick={dialogState.close}>
-            {t('close')}
+          <Button variant="contained" onClick={dialogState.close}>
+            {t('ok')}
           </Button>
         </DialogActions>
       </Dialog>

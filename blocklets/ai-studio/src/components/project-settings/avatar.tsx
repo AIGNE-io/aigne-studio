@@ -42,7 +42,7 @@ export default function ProjectSettingsAvatar({ value, onChange }: { value: stri
                 />
               </Box>
             ),
-            cancelText: t('alert.cancel'),
+            cancelText: t('cancel'),
             okText: t('confirm'),
             onOk: () => {
               if (!selected) {

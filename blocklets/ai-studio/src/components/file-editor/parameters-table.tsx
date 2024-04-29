@@ -951,7 +951,7 @@ function SelectFromSourceDialog({
 
             dialogState.close();
           }}>
-          {t('alert.ok')}
+          {t('ok')}
         </Button>
       </DialogActions>
     </Dialog>
