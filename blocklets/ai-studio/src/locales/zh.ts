@@ -188,7 +188,7 @@ export default flat({
   },
   notOpenFile: '请先从左侧文件列表中打开文件！',
   noProjectTip: '您还没有创建任何项目。 您可以从上面的模板创建项目！',
-  aboutTokens: '大约 {tokens} token',
+  aboutTokens: '大约 {tokens}',
   test: '测试',
   discuss: '讨论',
   variable: '变量',
