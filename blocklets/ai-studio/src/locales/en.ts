@@ -597,7 +597,7 @@ export default flat({
   openingQuestion: 'Opening question',
   input: 'Input',
   appearance: 'Appearance',
-  dialog: 'Interaction Settings',
+  dialogSettings: 'Interaction Settings',
   appearanceTemplate: 'Template',
   question: 'Chat',
   questionInputTitle: 'Chat input',
