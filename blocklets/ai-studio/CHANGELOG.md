@@ -1,3 +1,7 @@
+## 0.1.362 (2024-4-30)
+
+- fix: inconsistent icon sizes
+
 ## 0.1.361 (2024-4-30)
 
 - fix: i18n text
