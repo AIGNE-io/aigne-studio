@@ -94,7 +94,7 @@
   },
   "dependencies": {
     "@blocklet/ai-builtin": "workspace:^",
-    "@blocklet/ai-kit": "^0.1.28",
+    "@blocklet/ai-kit": "^0.1.29",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/sdk": "^1.16.26",
     "@microsoft/fetch-event-source": "^2.0.1",
