@@ -15,7 +15,7 @@ import ApiAssistantEditor from '../api-assistant';
 import BasicInfoForm from '../basic-info-form';
 import FunctionAssistantEditor from '../function-file';
 import ImageAssistantEditor from '../image-file';
-import OutputSettings from '../output/output-settings';
+import OutputSettings from '../output/OutputSettings';
 import ParametersTable from '../parameters-table';
 import PromptAssistantEditor from '../prompt-file';
 

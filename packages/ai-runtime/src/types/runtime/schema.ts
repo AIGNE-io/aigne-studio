@@ -16,30 +16,7 @@ export const variableBlockListForAgent: {
 
 type OmitUnion<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
-export const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<OutputVariable, 'id'>> = {
-  $text: {
-    type: 'string',
-    description: 'Text Stream',
-    required: true,
-  },
-  $images: {
-    type: 'array',
-    description: 'Generated Images',
-    element: {
-      id: '',
-      type: 'object',
-      properties: [
-        {
-          id: '',
-          type: 'string',
-          name: 'url',
-          description: 'Image Url',
-          required: true,
-        },
-      ],
-    },
-    required: true,
-  },
+export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnion<OutputVariable, 'id'> } = {
   '$suggested.questions': {
     type: 'array',
     description: 'Generate 3 questions for users to ask you based on answers and context',
@@ -161,12 +138,10 @@ export const runtimeVariablesSchema: Record<RuntimeOutputVariable, OmitUnion<Out
 
 export function outputVariablesToJsonSchema(variables: OutputVariable[], datastoreVariables: Variable[]) {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): object | undefined => {
-    if (ignoredRuntimeOutputVariables.includes(variable.name as RuntimeOutputVariable)) {
-      return undefined;
-    }
+    if (variable.name && isRuntimeOutputVariable(variable.name)) {
+      const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
+      if (!runtimeVariable) return undefined;
 
-    const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
-    if (runtimeVariable) {
       return variableToSchema({
         ...runtimeVariable,
         description: [runtimeVariable.description, variable.description].filter((i) => !!i).join('\n'),
@@ -205,15 +180,12 @@ export function outputVariablesToJsonSchema(variables: OutputVariable[], datasto
 
 export function outputVariablesToJoiSchema(variables: OutputVariable[], datastoreVariables: Variable[]): Joi.AnySchema {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): Joi.AnySchema | undefined => {
-    if (ignoredRuntimeOutputVariables.includes(variable.name as RuntimeOutputVariable)) {
-      return undefined;
-    }
-
     let schema: Joi.AnySchema | undefined;
 
-    const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
+    if (variable.name && isRuntimeOutputVariable(variable.name)) {
+      const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
+      if (!runtimeVariable) return undefined;
 
-    if (runtimeVariable) {
       schema = variableToSchema({ ...runtimeVariable });
       if (schema) {
         schema = Joi.alternatives().try(schema, Joi.any().empty(Joi.any()));
@@ -269,27 +241,28 @@ export enum RuntimeOutputVariable {
   images = '$images',
   suggestedQuestions = '$suggested.questions',
   referenceLinks = '$reference.links',
-  // | '$page.background.image'
-  // | '$page.background.color'
-  // | '$input';
+  display = '$display',
 }
 
-export const RuntimeOutputVariableNames: RuntimeOutputVariable[] = [
-  RuntimeOutputVariable.images,
-  RuntimeOutputVariable.suggestedQuestions,
-  RuntimeOutputVariable.referenceLinks,
-  // '$input',
-  // '$page.background.color',
-  // '$page.background.image',
-];
+export function isRuntimeOutputVariable(variable: string): variable is RuntimeOutputVariable {
+  return Object.values(RuntimeOutputVariable).includes(variable as RuntimeOutputVariable);
+}
+
+export interface OutputDisplayPreference {
+  page?: OutputDisplayPreferenceItem;
+  inputs?: OutputDisplayPreferenceItem;
+  outputs?: OutputDisplayPreferenceItem;
+}
+
+export interface OutputDisplayPreferenceItem {
+  componentId?: string;
+}
 
 export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.images]?: { url: string }[];
   [RuntimeOutputVariable.suggestedQuestions]?: { question: string }[];
   [RuntimeOutputVariable.referenceLinks]?: { title?: string; url: string }[];
-  // '$page.background.image'?: string;
-  // '$page.background.color'?: string;
-  // $input?: Input;
+  [RuntimeOutputVariable.display]?: OutputDisplayPreference;
 }
 
 // export type Action =
@@ -311,11 +284,3 @@ export interface RuntimeOutputVariablesSchema {
 //     action: Action;
 //   }[];
 // };
-
-/**
- * ignore these output variables in the json schema and the joi validation schema
- */
-const ignoredRuntimeOutputVariables: RuntimeOutputVariable[] = [
-  RuntimeOutputVariable.text,
-  // RuntimeOutputVariable.images,
-];

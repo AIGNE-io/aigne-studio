@@ -156,7 +156,10 @@ export type VariableType = VariableTypeBase &
       }
   );
 
-export type OutputVariable = VariableType & { variable?: { key: string; scope: string } };
+export type OutputVariable = VariableType & {
+  variable?: { key: string; scope: string };
+  initialValue?: any;
+};
 
 export interface Agent extends AssistantBase {
   type: 'agent';
