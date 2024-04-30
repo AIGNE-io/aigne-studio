@@ -10,7 +10,7 @@ import { nanoid } from 'nanoid';
 
 export const agentTypes = [
   { type: 'agent', icon: <Icon icon="tabler:zzz" />, i18nKey: 'idle' },
-  { type: 'prompt', icon: <Icon icon="tabler:brain" />, i18nKey: 'largeLanguageModel' },
+  { type: 'prompt', icon: <Icon icon="tabler:sparkles" />, i18nKey: 'largeLanguageModel' },
   { type: 'image', icon: <Icon icon="tabler:photo" />, i18nKey: 'imageGeneration' },
   { type: 'function', icon: <Icon icon="tabler:code" />, i18nKey: 'logic' },
   { type: 'api', icon: <Icon icon="tabler:api" />, i18nKey: 'api' },

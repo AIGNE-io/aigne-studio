@@ -1,3 +1,7 @@
+## 0.1.360 (2024-4-30)
+
+- chore: newly designed aigne icons
+
 ## 0.1.359 (2024-4-29)
 
 - fix: remove project logo from header
