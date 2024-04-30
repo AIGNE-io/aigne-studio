@@ -1,3 +1,7 @@
+## 0.1.364 (2024-4-30)
+
+- fix: debug view new ui
+
 ## 0.1.363 (2024-4-30)
 
 - chore: polish login and logout logic
