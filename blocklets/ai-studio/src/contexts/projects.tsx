@@ -1,11 +1,11 @@
 import { useCurrentGitStore } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { atom, useRecoilState } from 'recoil';
 
 import * as api from '../libs/project';
-import { useIsPromptAdmin } from './session';
+import { useIsPromptAdmin, useSessionContext } from './session';
 
 export type ProjectsSection = 'templates' | 'projects' | 'examples';
 
@@ -31,6 +31,7 @@ const projectsState = atom<ProjectsState>({
 
 export const useProjectsState = () => {
   const [state, setState] = useRecoilState(projectsState);
+  const { session } = useSessionContext();
   const setProjectGitSettings = useCurrentGitStore((i) => i.setProjectGitSettings);
   const isPromptAdmin = useIsPromptAdmin();
   const { t } = useLocaleContext();
@@ -134,6 +135,21 @@ export const useProjectsState = () => {
     }
   };
 
+  const clearState = () => {
+    setState({
+      templates: [],
+      projects: [],
+      examples: [],
+      loading: false,
+    });
+  };
+
+  useEffect(() => {
+    if (!session.user?.did) {
+      clearState();
+    }
+  }, [session.user?.did]);
+
   return {
     state,
     refetch,
@@ -146,5 +162,6 @@ export const useProjectsState = () => {
     setSelected,
     setMenuAnchor,
     checkProjectLimit,
+    clearState,
   };
 };
