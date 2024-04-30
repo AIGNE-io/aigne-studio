@@ -2,11 +2,12 @@ import ErrorCard from '@app/components/error-card';
 import ErrorBoundary from '@app/components/error/error-boundary';
 import MdViewer from '@app/components/md-viewer';
 import BasicTree from '@app/components/trace';
+import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
-import { AssistantYjs, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, Role, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';
@@ -135,7 +136,7 @@ function DebugViewContent({
         </Stack>
       </Box>
 
-      <ScrollMessages currentSession={currentSession} key={assistant.id} />
+      <ScrollMessages currentSession={currentSession} key={assistant.id} projectId={projectId} gitRef={gitRef} />
 
       <Stack gap={1.5} sx={{ bgcolor: 'background.paper', p: '12px 20px', borderTop: '1px solid #E5E7EB' }}>
         {currentSession.chatType === 'chat' ? (
@@ -164,7 +165,15 @@ function DebugViewContent({
   );
 }
 
-function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
+function ScrollMessages({
+  currentSession,
+  projectId,
+  gitRef,
+}: {
+  currentSession: SessionItem;
+  projectId: string;
+  gitRef: string;
+}) {
   const autoScroll = useRef(true);
   const [hitBottom, setHitBottom] = useState(true);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -242,7 +251,7 @@ function ScrollMessages({ currentSession }: { currentSession: SessionItem }) {
           initialTopMostItemIndex={currentSession.messages.length - 1}
           computeItemKey={(_, item) => item.id}
           itemContent={(index, message) => (
-            <MessageView index={index} chatType={currentSession.chatType ?? 'chat'} message={message} />
+            <MessageView index={index} message={message} projectId={projectId} gitRef={gitRef} />
           )}
         />
       </Box>
@@ -317,15 +326,66 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
   );
 }
 
+function CustomAvatar({ role, projectId, gitRef }: { role: Role; projectId: string; gitRef: string }) {
+  const { session } = useSessionContext();
+  const {
+    state: { project },
+  } = useProjectState(projectId, gitRef);
+
+  if (role === 'user') {
+    return (
+      <Box>
+        {session?.user?.avatar ? (
+          <Box>
+            <Box component="img" src={session?.user?.avatar} sx={{ borderRadius: 32, maxWidth: 32, maxHeight: 32 }} />
+          </Box>
+        ) : (
+          <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{role.slice(0, 1).toUpperCase()}</Avatar>
+        )}
+      </Box>
+    );
+  }
+
+  return (
+    <Box>
+      <Box
+        component="img"
+        src={project?.icon || getProjectIconUrl(projectId) || blocklet?.appLogo}
+        sx={{ borderRadius: 32, maxWidth: 32, maxHeight: 32 }}
+      />
+    </Box>
+  );
+}
+
+function CurrentRoleName({ role }: { role: Role }) {
+  const { session } = useSessionContext();
+
+  if (role === 'user') {
+    return (
+      <Typography variant="subtitle2" mb={0}>
+        {session?.user?.fullName}
+      </Typography>
+    );
+  }
+
+  return (
+    <Typography variant="subtitle2" mb={0}>
+      Assistant
+    </Typography>
+  );
+}
+
 const MessageView = memo(
   ({
     message,
-    chatType,
     index,
+    projectId,
+    gitRef,
   }: {
     message: SessionItem['messages'][number];
-    chatType?: 'chat' | 'debug';
     index: number;
+    projectId: string;
+    gitRef: string;
   }) => {
     return (
       <ErrorBoundary>
@@ -336,11 +396,22 @@ const MessageView = memo(
             </Typography>
           )}
           <Stack px={2.5} py={1} gap={1} flexDirection="row" position="relative">
-            <Avatar sx={{ width: 24, height: 24, fontSize: 14 }}>{message.role.slice(0, 1).toUpperCase()}</Avatar>
-            <Box sx={{ overflowX: 'hidden', flexGrow: 1 }}>
-              <BasicTree inputs={message.inputMessages} />
+            <CustomAvatar role={message.role} projectId={projectId} gitRef={gitRef} />
+
+            <Box sx={{ overflowX: 'hidden', flexGrow: 1 }} display="flex" flexDirection="column" gap={1}>
+              <CurrentRoleName role={message.role} />
+
+              {message.loading ? (
+                <WritingIndicator />
+              ) : (
+                !!message.inputMessages?.length && <BasicTree inputs={message.inputMessages} />
+              )}
+
               <Box
                 flex={1}
+                display="flex"
+                flexDirection="column"
+                gap={1}
                 sx={{
                   [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
                 }}>
@@ -356,12 +427,7 @@ const MessageView = memo(
                   </Stack>
                 ))}
 
-                {message.objects?.map((object, index) => (
-                  <MdViewer key={index} content={`${'```json'}\n${JSON.stringify(object, null, 2)}\n${'```'}`} />
-                ))}
-
-                {(message.content || message.images?.length || message.loading) &&
-                (chatType !== 'debug' || !message?.inputMessages?.length) ? (
+                {message.content || message.images?.length || message.loading ? (
                   <MessageViewContent
                     sx={{
                       px: 1,
@@ -378,8 +444,6 @@ const MessageView = memo(
                       <ImagePreviewB64 itemWidth={100} spacing={1} dataSource={message.images} />
                     )}
 
-                    {message.loading && !message.inputMessages && <WritingIndicator />}
-
                     {message.role === 'assistant' && (
                       <Box className="actions">
                         {message.content && <CopyButton key="copy" message={message.content} />}
@@ -387,6 +451,10 @@ const MessageView = memo(
                     )}
                   </MessageViewContent>
                 ) : null}
+
+                {message.objects?.map((object, index) => (
+                  <MdViewer key={index} content={`${'```json'}\n${JSON.stringify(object, null, 2)}\n${'```'}`} />
+                ))}
 
                 {message.error ? (
                   <ErrorCard error={message.error} />

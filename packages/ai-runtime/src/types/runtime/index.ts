@@ -19,6 +19,7 @@ export enum AssistantResponseType {
   INPUT = 'INPUT',
   CHUNK = 'CHUNK',
   EXECUTE = 'EXECUTE',
+  INPUT_PARAMETER = 'INPUT_PARAMETER',
 }
 
 export type PromptMessages = Array<{
@@ -26,12 +27,27 @@ export type PromptMessages = Array<{
   content: string;
 }>;
 
+// RunAssistantInputParameter 用来展示 user 输入
+// 其他用来展示 assistant 输出，输出可能有多个 Agent
+// RunAssistantExecute 代表 Agent 执行状态
+// RunAssistantInput  代表 Agent 的输入
+// RunAssistantChunk 代表 Agent 的输出
 export type RunAssistantResponse =
   | RunAssistantChunk
   | RunAssistantError
   | RunAssistantInput
   | RunAssistantLog
-  | RunAssistantExecute;
+  | RunAssistantExecute
+  | RunAssistantInputParameter;
+
+export type RunAssistantInputParameter = {
+  type: AssistantResponseType.INPUT_PARAMETER;
+  taskId: string;
+  assistantId: string;
+  delta: {
+    content?: string | null;
+  };
+};
 
 export type RunAssistantInput = {
   type: AssistantResponseType.INPUT;
