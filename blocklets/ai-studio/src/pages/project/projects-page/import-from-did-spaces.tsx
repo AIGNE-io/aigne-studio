@@ -66,9 +66,10 @@ function ImportWayItem({
         '&:hover': {
           backgroundColor: 'rgba(19, 125, 250, 0.06)',
           '& .other-item-icon': {
-            display: 'inline-block',
+            display: 'inline-flex',
             transform: 'translateX(0)',
             opacity: '1',
+            flexShrink: 0,
           },
         },
         '& .other-item-icon': {
