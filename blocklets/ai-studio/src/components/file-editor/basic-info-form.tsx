@@ -66,7 +66,7 @@ export default function BasicInfoForm({
           <HoverBackgroundTextField
             hiddenLabel
             fullWidth
-            placeholder={t('description')}
+            placeholder={t('agentDescriptionPlaceholder')}
             value={value.description ?? ''}
             multiline
             maxRows={6}

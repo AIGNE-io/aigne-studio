@@ -291,7 +291,7 @@ function PublishViewContent({
         </Stack>
       </MyAccordion>
 
-      <MyAccordion persistenceId="publish-dialog" title={t('dialog')}>
+      <MyAccordion persistenceId="publish-dialog" title={t('dialogSettings')}>
         <Stack gap={2}>
           <PublishEntries assistant={assistant} />
 
@@ -361,7 +361,7 @@ function PublishViewContent({
         </Stack>
       </MyAccordion>
 
-      <MyAccordion persistenceId="publish-payment" title={t('payment')}>
+      <MyAccordion persistenceId="publish-payment" title={t('paymentSettings')}>
         <Stack gap={2}>
           <TableLayout component="table">
             <tr>

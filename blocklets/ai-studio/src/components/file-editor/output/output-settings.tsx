@@ -1,4 +1,5 @@
 import PopperMenu from '@app/components/menu/PopperMenu';
+import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
@@ -65,7 +66,7 @@ export default function OutputSettings({
     <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
         <Box display="flex" alignItems="center" gap={0.5}>
-          <Box component={Icon} icon="tabler:arrow-autofit-down" />
+          <Box component={AigneLogoOutput} fontSize={14} />
           <Typography variant="subtitle2" mb={0}>
             {t('outputs')}
           </Typography>

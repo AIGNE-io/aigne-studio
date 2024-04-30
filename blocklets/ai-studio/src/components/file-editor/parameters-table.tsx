@@ -1,5 +1,6 @@
 import Dataset from '@api/store/models/dataset/dataset';
 import PopperMenu, { PopperMenuImperative } from '@app/components/menu/PopperMenu';
+import AigneLogoInput from '@app/icons/aigne-logo-input';
 import { getDatasets } from '@app/libs/dataset';
 import Close from '@app/pages/project/icons/close';
 import DragVertical from '@app/pages/project/icons/drag-vertical';
@@ -271,7 +272,8 @@ export default function ParametersTable({
       }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
         <Box display="flex" alignItems="center" gap={0.5}>
-          <Box component={Icon} icon="tabler:arrow-autofit-up" />
+          <Box component={AigneLogoInput} fontSize={14} />
+
           <Typography variant="subtitle2" mb={0}>
             {t('inputs')}
           </Typography>
