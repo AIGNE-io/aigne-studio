@@ -189,7 +189,7 @@ export default flat({
   },
   notOpenFile: 'Please open the file from the file list on the left first!',
   noProjectTip: "You haven't created any projects yet. You can create one from the template above!",
-  aboutTokens: 'About {tokens} tokens',
+  aboutTokens: 'About {tokens}',
   test: 'Tests',
   discuss: 'Collaboration',
   variable: 'Variable',

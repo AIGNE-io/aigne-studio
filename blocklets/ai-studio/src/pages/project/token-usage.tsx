@@ -30,7 +30,10 @@ function TokenUsage({ assistant }: { assistant: AssistantYjs }) {
       : undefined;
   }, [assistant, prompts]);
 
-  return <Typography variant="subtitle3">{t('aboutTokens', { tokens: tokens?.usedTokens || 0 })}</Typography>;
+  const tokenNumber = tokens?.usedTokens || 0;
+  return (
+    <Typography variant="subtitle3">{`${t('aboutTokens', { tokens: tokenNumber })} ${tokenNumber > 0 ? 'Tokens' : 'Token'}`}</Typography>
+  );
 }
 
 export default TokenUsage;
