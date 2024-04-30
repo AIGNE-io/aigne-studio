@@ -1,3 +1,7 @@
+## 0.1.363 (2024-4-30)
+
+- chore: polish login and logout logic
+
 ## 0.1.362 (2024-4-30)
 
 - fix: inconsistent icon sizes

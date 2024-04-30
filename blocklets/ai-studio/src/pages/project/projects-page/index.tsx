@@ -78,11 +78,14 @@ export default function ProjectsPage() {
   const {
     state: { loading, templates, projects, examples },
     refetch,
+    clearState,
   } = useProjectsState();
 
   useEffect(() => {
     refetch();
-  }, [session?.user?.did]);
+
+    return clearState;
+  }, [session?.user?.did, session?.user?.role]);
 
   return (
     <Stack minHeight="100%" overflow="auto" bgcolor="#F9FAFB">
