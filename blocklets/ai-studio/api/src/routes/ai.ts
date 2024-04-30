@@ -275,6 +275,15 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       rejectOnEmpty: true,
     });
 
+    emit({
+      type: AssistantResponseType.INPUT_PARAMETER,
+      taskId,
+      assistantId: assistant.id,
+      delta: {
+        content: JSON.stringify(input.parameters),
+      },
+    });
+
     const result = await runAssistant({
       callAI,
       callAIImage,
