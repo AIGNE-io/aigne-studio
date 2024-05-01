@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { OutputVariableYjs, VariableYjs } from '@blocklet/ai-runtime/types';
+import { OutputVariableYjs } from '@blocklet/ai-runtime/types';
 import { Stack, TextField, TextFieldProps, Typography } from '@mui/material';
 
 import { getRuntimeOutputVariable } from './type';
