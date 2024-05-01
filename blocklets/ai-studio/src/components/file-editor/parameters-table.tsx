@@ -809,7 +809,7 @@ type Option = {
   parameters?: { [key: string]: any };
 };
 
-function SelectTool({
+export function SelectTool({
   placeholder,
   options,
   value,

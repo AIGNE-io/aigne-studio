@@ -5,7 +5,10 @@ import { TextField, TextFieldProps } from '@mui/material';
 const ignoreDescriptionVariables = new Set([
   RuntimeOutputVariable.text,
   RuntimeOutputVariable.images,
-  RuntimeOutputVariable.display,
+  RuntimeOutputVariable.appearancePage,
+  RuntimeOutputVariable.appearanceInput,
+  RuntimeOutputVariable.appearanceOutput,
+  RuntimeOutputVariable.children,
 ]);
 
 export default function OutputDescriptionCell({

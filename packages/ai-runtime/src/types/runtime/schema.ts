@@ -241,28 +241,33 @@ export enum RuntimeOutputVariable {
   images = '$images',
   suggestedQuestions = '$suggested.questions',
   referenceLinks = '$reference.links',
-  display = '$display',
+  appearancePage = '$appearance.page',
+  appearanceInput = '$appearance.input',
+  appearanceOutput = '$appearance.output',
+  children = '$children',
 }
 
 export function isRuntimeOutputVariable(variable: string): variable is RuntimeOutputVariable {
   return Object.values(RuntimeOutputVariable).includes(variable as RuntimeOutputVariable);
 }
 
-export interface OutputDisplayPreference {
-  page?: OutputDisplayPreferenceItem;
-  inputs?: OutputDisplayPreferenceItem;
-  outputs?: OutputDisplayPreferenceItem;
+export interface RuntimeOutputAppearance {
+  componentId?: string;
+  componentProps?: { [key: string]: any };
 }
 
-export interface OutputDisplayPreferenceItem {
-  componentId?: string;
+export interface RuntimeOutputChildren {
+  agents?: { id: string; name?: string }[];
 }
 
 export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.images]?: { url: string }[];
   [RuntimeOutputVariable.suggestedQuestions]?: { question: string }[];
   [RuntimeOutputVariable.referenceLinks]?: { title?: string; url: string }[];
-  [RuntimeOutputVariable.display]?: OutputDisplayPreference;
+  [RuntimeOutputVariable.appearancePage]?: RuntimeOutputAppearance;
+  [RuntimeOutputVariable.appearanceInput]?: RuntimeOutputAppearance;
+  [RuntimeOutputVariable.appearanceOutput]?: RuntimeOutputAppearance;
+  [RuntimeOutputVariable.children]?: RuntimeOutputChildren;
 }
 
 // export type Action =

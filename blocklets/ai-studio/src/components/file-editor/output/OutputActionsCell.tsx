@@ -2,7 +2,7 @@ import PopperMenu from '@app/components/menu/PopperMenu';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { NumberField } from '@blocklet/ai-runtime/components';
-import { OutputVariableYjs, RuntimeOutputVariable, VariableYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable, VariableYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Icon } from '@iconify-icon/react';
 import { Close } from '@mui/icons-material';
@@ -25,7 +25,8 @@ import { nanoid } from 'nanoid';
 import { useId, useState } from 'react';
 
 import SelectVariable from '../select-variable';
-import DisplaySettings from './DisplaySettings';
+import AppearanceSettings from './AppearanceSettings';
+import ChildrenSettings from './ChildrenSettings';
 import { getRuntimeOutputVariable } from './type';
 
 export default function OutputActionsCell({
@@ -34,6 +35,7 @@ export default function OutputActionsCell({
   variable,
   projectId,
   gitRef,
+  assistant,
   disabled,
   onRemove,
 }: {
@@ -42,6 +44,7 @@ export default function OutputActionsCell({
   variable?: VariableYjs;
   projectId: string;
   gitRef: string;
+  assistant: AssistantYjs;
   disabled?: boolean;
   onRemove?: () => void;
 }) {
@@ -77,6 +80,9 @@ export default function OutputActionsCell({
       )}
 
       <PopperButton
+        projectId={projectId}
+        gitRef={gitRef}
+        assistant={assistant}
         isSaveAs={Boolean(depth === 0 && !runtimeVariable)}
         runtimeVariable={Boolean(runtimeVariable)}
         variables={variables}
@@ -90,6 +96,9 @@ export default function OutputActionsCell({
 }
 
 function PopperButton({
+  projectId,
+  gitRef,
+  assistant,
   variables,
   variable,
   isSaveAs,
@@ -98,6 +107,9 @@ function PopperButton({
   disabled,
   onDelete,
 }: {
+  projectId: string;
+  gitRef: string;
+  assistant: AssistantYjs;
   variables: VariableYjs[];
   variable?: VariableYjs;
   isSaveAs: boolean;
@@ -113,8 +125,18 @@ function PopperButton({
   const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
 
   const renderParameterSettings = (output: OutputVariableYjs) => {
-    if (output.name === RuntimeOutputVariable.display) {
-      return <DisplaySettings output={output} />;
+    if (
+      [
+        RuntimeOutputVariable.appearancePage,
+        RuntimeOutputVariable.appearanceInput,
+        RuntimeOutputVariable.appearanceOutput,
+      ].includes(output.name as RuntimeOutputVariable)
+    ) {
+      return <AppearanceSettings output={output} />;
+    }
+
+    if (output.name === RuntimeOutputVariable.children) {
+      return <ChildrenSettings assistant={assistant} projectId={projectId} gitRef={gitRef} output={output} />;
     }
 
     if (currentSetting === 'setting') {
@@ -181,9 +203,7 @@ function PopperButton({
     return null;
   };
 
-  const isRenderSettings =
-    output.name === RuntimeOutputVariable.display ||
-    (runtimeVariable ? false : ['string', 'number'].includes(output.type || ''));
+  const isRenderSettings = runtimeVariable ? true : ['string', 'number'].includes(output.type || '');
 
   return (
     <>

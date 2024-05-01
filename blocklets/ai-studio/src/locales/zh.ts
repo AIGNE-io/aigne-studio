@@ -638,4 +638,9 @@ export default flat({
   from: '来自',
   group: '分组',
   uploadNewIcon: '您可以上传新的项目 LOGO',
+  appearancePage: '外观 - 页面',
+  appearanceInput: '外观 - 输入',
+  appearanceOutput: '外观 - 输出',
+  children: '子级 Agent',
+  selectCustomComponent: '选择一个组件',
 });

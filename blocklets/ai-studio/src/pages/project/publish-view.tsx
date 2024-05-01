@@ -1,3 +1,4 @@
+import { stringifyIdentity } from '@api/libs/aid';
 import LoadingButton from '@app/components/loading/loading-button';
 import LogoField from '@app/components/publish/LogoField';
 import PublishEntries from '@app/components/publish/PublishEntries';
@@ -115,7 +116,7 @@ function PublishViewContent({
     if (!release) return undefined;
     const pagesPrefix = blocklet?.componentMountPoints.find((i) => i.name === 'pages-kit')?.mountPoint || '/';
     return withQuery(joinURL(globalThis.location.origin, pagesPrefix, `@${AI_RUNTIME_COMPONENT_DID}`, '/ai/runtime'), {
-      assistantId: btoa([projectId, projectRef, assistant.id].join('/')),
+      aid: stringifyIdentity({ projectId, projectRef, assistantId: assistant.id }),
     });
   }, [release]);
 

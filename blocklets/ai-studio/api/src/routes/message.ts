@@ -2,7 +2,7 @@ import History from '@api/store/models/history';
 import { auth, user } from '@blocklet/sdk/lib/middlewares';
 import { Router } from 'express';
 import Joi from 'joi';
-import { uniqBy, zip } from 'lodash';
+import { pick, uniqBy, zip } from 'lodash';
 import orderBy from 'lodash/orderBy';
 import { Attributes, FindOptions, Op, cast, col, where } from 'sequelize';
 
@@ -149,15 +149,21 @@ export function messageRoutes(router: Router) {
     });
 
     res.json({
-      messages: messages.reverse().map((i) => ({
-        id: i.id,
-        taskId: i.taskId,
-        createdAt: i.createdAt,
-        updatedAt: i.updatedAt,
-        parameters: i.parameters,
-        result: i.result,
-        error: i.error,
-      })),
+      messages: messages
+        .reverse()
+        .map((i) =>
+          pick(i, [
+            'id',
+            'sessionId',
+            'assistantId',
+            'taskId',
+            'createdAt',
+            'updatedAt',
+            'parameters',
+            'result',
+            'error',
+          ])
+        ),
       count,
     });
   });

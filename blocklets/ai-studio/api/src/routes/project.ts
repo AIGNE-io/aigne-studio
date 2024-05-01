@@ -732,6 +732,7 @@ export function projectRoutes(router: Router) {
         'description',
         'type',
         'parameters',
+        'outputVariables',
         'createdAt',
         'updatedAt',
         'release',

@@ -1,5 +1,8 @@
+import AigneLogo from '@app/icons/aigne-logo';
+import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { OutputVariable, OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import { Box } from '@mui/material';
 import { ReactNode } from 'react';
 
 export const runtimeOutputVariables: {
@@ -33,10 +36,28 @@ export const runtimeOutputVariables: {
     name: RuntimeOutputVariable.referenceLinks,
   },
   {
-    icon: <Icon icon="tabler:wand" />,
-    title: 'Display',
-    i18nKey: 'display',
-    name: RuntimeOutputVariable.display,
+    icon: <Icon icon="tabler:layout" />,
+    title: 'Appearance Page',
+    i18nKey: 'appearancePage',
+    name: RuntimeOutputVariable.appearancePage,
+  },
+  {
+    icon: <Icon icon="tabler:forms" />,
+    title: 'Appearance Input',
+    i18nKey: 'appearanceInput',
+    name: RuntimeOutputVariable.appearanceInput,
+  },
+  {
+    icon: <Box component={AigneLogoOutput} fontSize={14} />,
+    title: 'Appearance Output',
+    i18nKey: 'appearanceOutput',
+    name: RuntimeOutputVariable.appearanceOutput,
+  },
+  {
+    icon: <Box component={AigneLogo} fontSize={14} />,
+    title: 'Children',
+    i18nKey: 'children',
+    name: RuntimeOutputVariable.children,
   },
 ];
 

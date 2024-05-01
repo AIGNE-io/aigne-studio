@@ -195,6 +195,7 @@ function VariableRow({
             variable={datastoreVariable}
             projectId={projectId}
             gitRef={gitRef}
+            assistant={value}
           />
         </Box>
       </Box>
