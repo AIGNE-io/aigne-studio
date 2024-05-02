@@ -15,8 +15,8 @@ import ApiAssistantEditor from '../api-assistant';
 import BasicInfoForm from '../basic-info-form';
 import FunctionAssistantEditor from '../function-file';
 import ImageAssistantEditor from '../image-file';
+import InputSettings from '../input/InputSettings';
 import OutputSettings from '../output/OutputSettings';
-import ParametersTable from '../parameters-table';
 import PromptAssistantEditor from '../prompt-file';
 
 export default function AgentEditor({
@@ -42,7 +42,7 @@ export default function AgentEditor({
       <Box height={20} width={1} />
 
       <Box sx={{ borderRadius: 1 }}>
-        <ParametersTable projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} />
+        <InputSettings projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} />
       </Box>
 
       <Box height={20} width={1} position="relative">
@@ -67,7 +67,7 @@ export default function AgentEditor({
                 <Icon icon="tabler:zzz" />
               </Box>
 
-              <Box sx={{ color: 'text.secondary' }}>{t('idleAgentDescription')}</Box>
+              <Box sx={{ color: 'text.disabled' }}>{t('idleAgentDescription')}</Box>
             </Stack>
           )}
         </AgentProcessingView>

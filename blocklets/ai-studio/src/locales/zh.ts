@@ -633,7 +633,7 @@ export default flat({
   idle: '空闲',
   logic: '逻辑',
   javascript: 'Javascript',
-  idleAgentDescription: '这个 Agent 不需要做任何处理',
+  idleAgentDescription: '该 Agent 不需要做任何处理',
   format: '格式',
   from: '来自',
   group: '分组',
@@ -643,4 +643,5 @@ export default flat({
   appearanceOutput: '外观 - 输出',
   children: '子级 Agent',
   selectCustomComponent: '选择一个组件',
+  noInputsTip: '该 Agent 没有输入',
 });

@@ -2,9 +2,19 @@ import { Component, getComponents } from '@app/libs/components';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { OutputVariableYjs, RuntimeOutputAppearance, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Box, MenuItem, Stack, TextField, TextFieldProps, Typography } from '@mui/material';
+import {
+  Autocomplete,
+  AutocompleteProps,
+  Box,
+  MenuItem,
+  Stack,
+  TextField,
+  TextFieldProps,
+  Typography,
+} from '@mui/material';
 import { WritableDraft } from 'immer';
 import { useEffect, useMemo } from 'react';
+import { useAsync } from 'react-use';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -23,14 +33,13 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
     });
   };
 
-  const title = useMemo(() => {
-    return (
-      {
-        [RuntimeOutputVariable.appearancePage]: t('appearancePage'),
-        [RuntimeOutputVariable.appearanceInput]: t('appearanceInput'),
-        [RuntimeOutputVariable.appearanceOutput]: t('appearanceOutput'),
-      } as { [key: string]: any }
-    )[output.name as any];
+  const { title, tags } = useMemo(() => {
+    const m: { [key: string]: { title: string; tags: string } } = {
+      [RuntimeOutputVariable.appearancePage]: { title: t('appearancePage'), tags: 'aigne-page' },
+      [RuntimeOutputVariable.appearanceInput]: { title: t('appearanceInput'), tags: 'aigne-input' },
+      [RuntimeOutputVariable.appearanceOutput]: { title: t('appearanceOutput'), tags: 'aigne-output' },
+    };
+    return m[output.name!] || { title: '', tags: '' };
   }, [output.name]);
 
   return (
@@ -41,10 +50,14 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
         <Box>
           <Typography variant="subtitle2">{t('selectCustomComponent')}</Typography>
           <ComponentSelect
-            value={initialValue?.componentId || ''}
-            onChange={(e) =>
+            tags={tags}
+            value={
+              initialValue?.componentId ? { id: initialValue.componentId, name: initialValue.componentName } : undefined
+            }
+            onChange={(_, v) =>
               setField((config) => {
-                config.componentId = e.target.value;
+                config.componentId = v?.id;
+                config.componentName = v?.name;
               })
             }
           />
@@ -56,23 +69,21 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
   );
 }
 
-function ComponentSelect({ ...props }: TextFieldProps) {
-  const state = componentsState();
-
-  useEffect(() => {
-    if (!state.components?.length) {
-      state.load();
-    }
-  }, []);
+function ComponentSelect({
+  tags,
+  ...props
+}: { tags?: string } & Partial<AutocompleteProps<Pick<Component, 'id' | 'name'>, false, false, false>>) {
+  const { value, loading } = useAsync(() => getComponents({ tags }), [tags]);
 
   return (
-    <TextField select fullWidth hiddenLabel {...props}>
-      {state.components?.map((i) => (
-        <MenuItem key={i.id} value={i.id}>
-          {i.name}
-        </MenuItem>
-      ))}
-    </TextField>
+    <Autocomplete
+      options={value?.components ?? []}
+      loading={loading}
+      {...props}
+      renderInput={(params) => <TextField hiddenLabel {...params} />}
+      getOptionLabel={(component) => component.name || component.id}
+      isOptionEqualToValue={(o, v) => o.id === v.id}
+    />
   );
 }
 

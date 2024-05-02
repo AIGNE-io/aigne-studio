@@ -20,7 +20,7 @@ export default function AddOutputVariableButton({
   return (
     <PopperMenu
       ButtonProps={{
-        sx: { my: 1 },
+        sx: { mt: 1 },
         startIcon: <Box fontSize={16} component={Icon} icon="tabler:plus" />,
         children: <Box>{t('output')}</Box>,
       }}

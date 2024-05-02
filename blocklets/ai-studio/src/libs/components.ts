@@ -8,6 +8,7 @@ export interface Component {
   createdAt: string;
   updatedAt: string;
   name?: string;
+  tags?: string[];
   properties?: {
     id: string;
     key?: string;
@@ -24,11 +25,13 @@ export interface Component {
 
 export async function getComponents({
   blockletId,
+  tags,
 }: {
   blockletId?: string;
+  tags?: string;
 }): Promise<{ defaultLocale?: string; components: Component[] }> {
   return axios
-    .get(joinURL('/api/components'), { baseURL: PAGES_KIT_MOUNT_POINT, params: { blockletId } })
+    .get(joinURL('/api/components'), { baseURL: PAGES_KIT_MOUNT_POINT, params: { blockletId, tags, mode: 'draft' } })
     .then((res) => res.data);
 }
 

@@ -648,4 +648,5 @@ export default flat({
   appearanceOutput: 'Appearance Output',
   children: 'Children',
   selectCustomComponent: 'Select a component',
+  noInputsTip: 'This agent has no input',
 });

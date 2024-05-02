@@ -5,7 +5,7 @@ import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Stack, Typography } from '@mui/material';
 import { WritableDraft } from 'immer';
 
-import { SelectTool } from '../parameters-table';
+import { SelectTool } from '../input/InputTable';
 
 export default function ChildrenSettings({
   assistant,
