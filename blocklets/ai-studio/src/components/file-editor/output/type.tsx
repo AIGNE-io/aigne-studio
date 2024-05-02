@@ -12,7 +12,7 @@ export const runtimeOutputVariables: {
   name: RuntimeOutputVariable;
 }[] = [
   {
-    icon: <Icon icon="tabler:forms" />,
+    icon: <Icon icon="tabler:writing" />,
     title: 'Stream Text Response',
     i18nKey: 'streamTextResponse',
     name: RuntimeOutputVariable.text,

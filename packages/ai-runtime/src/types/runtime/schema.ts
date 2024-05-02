@@ -17,6 +17,27 @@ export const variableBlockListForAgent: {
 type OmitUnion<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
 export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnion<OutputVariable, 'id'> } = {
+  $text: {
+    type: 'string',
+    description: 'Text Stream',
+  },
+  $images: {
+    type: 'array',
+    description: 'Generated Images',
+    element: {
+      id: '',
+      type: 'object',
+      properties: [
+        {
+          id: '',
+          type: 'string',
+          name: 'url',
+          description: 'Image Url',
+          required: true,
+        },
+      ],
+    },
+  },
   '$suggested.questions': {
     type: 'array',
     description: 'Generate 3 questions for users to ask you based on answers and context',

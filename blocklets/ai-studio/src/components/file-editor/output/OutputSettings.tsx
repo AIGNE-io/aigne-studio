@@ -96,24 +96,22 @@ export default function OutputSettings({
           </Table>
         </Box>
 
-        {value.type !== 'image' && (
-          <AddOutputVariableButton
-            assistant={value}
-            onSelect={({ name }) => {
-              setField((vars) => {
-                const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
-                if (exist) {
-                  delete vars[exist.data.id];
-                } else {
-                  const id = nanoid();
-                  vars[id] = { index: Object.values(vars).length, data: { id, name, type: 'string' } };
-                }
+        <AddOutputVariableButton
+          assistant={value}
+          onSelect={({ name }) => {
+            setField((vars) => {
+              const exist = name ? outputVariables?.find((i) => i.data.name === name) : undefined;
+              if (exist) {
+                delete vars[exist.data.id];
+              } else {
+                const id = nanoid();
+                vars[id] = { index: Object.values(vars).length, data: { id, name, type: 'string' } };
+              }
 
-                sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
-              });
-            }}
-          />
-        )}
+              sortBy(Object.values(vars), 'index').forEach((item, index) => (item.index = index));
+            });
+          }}
+        />
       </Box>
     </Box>
   );
