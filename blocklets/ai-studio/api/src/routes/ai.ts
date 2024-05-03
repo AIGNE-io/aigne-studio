@@ -2,6 +2,7 @@ import { stringifyIdentity } from '@api/libs/aid';
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
 import { InvalidSubscriptionError, ReachMaxRoundLimitError } from '@api/libs/error';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
+import logger from '@api/libs/logger';
 import { getActiveSubscriptionOfAssistant, reportUsage } from '@api/libs/payment';
 import History from '@api/store/models/history';
 import Release from '@api/store/models/release';
@@ -312,6 +313,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       }
     }
   } catch (e) {
+    logger.error('run assistant error', { error: e });
     let fetchErrorMsg = e?.response?.data?.error;
     if (typeof fetchErrorMsg !== 'string') fetchErrorMsg = fetchErrorMsg?.message;
 
