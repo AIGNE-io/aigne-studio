@@ -159,6 +159,8 @@ export const runtimeVariablesSchema: { [key in RuntimeOutputVariable]?: OmitUnio
 
 export function outputVariablesToJsonSchema(variables: OutputVariable[], datastoreVariables: Variable[]) {
   const variableToSchema = (variable: OmitUnion<OutputVariable, 'id'>): object | undefined => {
+    if (ignoreJsonSchemaOutputs.has(variable.name as RuntimeOutputVariable)) return undefined;
+
     if (variable.name && isRuntimeOutputVariable(variable.name)) {
       const runtimeVariable = runtimeVariablesSchema[variable.name as RuntimeOutputVariable];
       if (!runtimeVariable) return undefined;
@@ -267,6 +269,11 @@ export enum RuntimeOutputVariable {
   appearanceOutput = '$appearance.output',
   children = '$children',
 }
+
+const ignoreJsonSchemaOutputs: Set<RuntimeOutputVariable> = new Set([
+  RuntimeOutputVariable.text,
+  RuntimeOutputVariable.images,
+]);
 
 export function isRuntimeOutputVariable(variable: string): variable is RuntimeOutputVariable {
   return Object.values(RuntimeOutputVariable).includes(variable as RuntimeOutputVariable);

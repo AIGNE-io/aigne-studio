@@ -31,7 +31,7 @@ export async function getComponents({
   tags?: string;
 }): Promise<{ defaultLocale?: string; components: Component[] }> {
   return axios
-    .get(joinURL('/api/components'), { baseURL: PAGES_KIT_MOUNT_POINT, params: { blockletId, tags, mode: 'draft' } })
+    .get(joinURL('/api/components'), { baseURL: PAGES_KIT_MOUNT_POINT, params: { blockletId, tags } })
     .then((res) => res.data);
 }
 
