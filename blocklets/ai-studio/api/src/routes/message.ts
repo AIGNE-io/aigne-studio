@@ -4,7 +4,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 import { pick, uniqBy, zip } from 'lodash';
 import orderBy from 'lodash/orderBy';
-import { Attributes, FindOptions, Op, cast, col, where } from 'sequelize';
+import { Attributes, FindOptions, InferAttributes, Op, WhereOptions, cast, col, where } from 'sequelize';
 
 const searchOptionsSchema = Joi.object<{ sessionId: string; userId: string; limit: number; keyword?: string }>({
   sessionId: Joi.string().required(),
@@ -138,32 +138,45 @@ export function messageRoutes(router: Router) {
     res.json(messages);
   });
 
+  const getMessagesQuerySchema = Joi.object<{
+    limit: number;
+    before?: string;
+    after?: string;
+    orderDirection: 'asc' | 'desc';
+  }>({
+    limit: Joi.number().empty([null, '']).integer().min(1).max(1000).default(100),
+    before: Joi.string().empty([null, '']),
+    after: Joi.string().empty([null, '']),
+    orderDirection: Joi.string().empty([null, '']).valid('asc', 'desc').default('desc'),
+  });
+
   router.get('/sessions/:sessionId/messages', user(), auth(), async (req, res) => {
     const { did: userId } = req.user!;
+
     const { sessionId } = req.params;
+    if (!sessionId) throw new Error('Missing required param `sessionId`');
+
+    const query = await getMessagesQuerySchema.validateAsync(req.query, { stripUnknown: true });
+
+    const where: WhereOptions<InferAttributes<History>> = { userId, sessionId };
+
+    if (query.before) {
+      where.id = { ...(typeof where.id === 'object' ? where.id : {}), [Op.lt]: query.before };
+    }
+    if (query.after) {
+      where.id = { ...(typeof where.id === 'object' ? where.id : {}), [Op.gt]: query.after };
+    }
 
     const { rows: messages, count } = await History.findAndCountAll({
-      where: { userId, sessionId },
-      order: [['id', 'desc']],
-      limit: 100,
+      where,
+      order: [['id', query.orderDirection]],
+      limit: query.limit,
     });
 
     res.json({
-      messages: messages
-        .reverse()
-        .map((i) =>
-          pick(i, [
-            'id',
-            'sessionId',
-            'assistantId',
-            'taskId',
-            'createdAt',
-            'updatedAt',
-            'parameters',
-            'result',
-            'error',
-          ])
-        ),
+      messages: messages.map((i) =>
+        pick(i, ['id', 'sessionId', 'assistantId', 'taskId', 'createdAt', 'updatedAt', 'parameters', 'result', 'error'])
+      ),
       count,
     });
   });
