@@ -7,8 +7,6 @@ import { Autocomplete, AutocompleteProps, Box, Stack, TextField, Typography } fr
 import { WritableDraft } from 'immer';
 import { useMemo } from 'react';
 import { useAsync } from 'react-use';
-import { create } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
 
 import ComponentSettings from './ComponentSettings';
 
@@ -109,29 +107,3 @@ function ComponentSelect({
     />
   );
 }
-
-const componentsState = create<{
-  loading?: boolean;
-  components?: Component[];
-  load: () => Promise<Component[]>;
-}>()(
-  immer((set) => ({
-    async load() {
-      set((state) => {
-        state.loading = true;
-      });
-      try {
-        const { components } = await getComponents({});
-        set((state) => {
-          state.components = components;
-        });
-
-        return components;
-      } finally {
-        set((state) => {
-          state.loading = false;
-        });
-      }
-    },
-  }))
-);
