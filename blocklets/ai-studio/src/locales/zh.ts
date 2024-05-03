@@ -644,4 +644,7 @@ export default flat({
   children: '子级 Agent',
   selectCustomComponent: '选择一个组件',
   noInputsTip: '该 Agent 没有输入',
+  preview: '预览',
+  previewInNewTab: '新标签页中预览',
+  copyPreviewUrl: '复制预览地址',
 });

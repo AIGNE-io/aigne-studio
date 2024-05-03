@@ -649,4 +649,7 @@ export default flat({
   children: 'Children',
   selectCustomComponent: 'Select a component',
   noInputsTip: 'This agent has no input',
+  preview: 'Preview',
+  previewInNewTab: 'Preview in new tab',
+  copyPreviewUrl: 'Copy preview URL',
 });

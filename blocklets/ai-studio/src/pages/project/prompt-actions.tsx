@@ -1,3 +1,4 @@
+import LoadingButton from '@app/components/loading/loading-button';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { isAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
@@ -74,25 +75,15 @@ export default function HeaderActions() {
       </>
 
       <>
-        <Button
+        <LoadingButton
           variant="contained"
-          startIcon={<Box component={Icon} icon="tabler:rocket" sx={{ fontSize: 16 }} />}
+          startIcon={<Box component={Icon} icon="tabler:eye-bolt" sx={{ fontSize: 16 }} />}
           size="small"
           {...bindTrigger(publishPopperState)}>
-          {t('publish')}
-        </Button>
+          {t('preview')}
+        </LoadingButton>
 
-        <Popper
-          {...bindPopper(publishPopperState)}
-          sx={{
-            zIndex: 1101,
-            maxWidth: 450,
-            maxHeight: '80vh',
-            width: '100%',
-            height: '100%',
-          }}
-          transition
-          placement="bottom-end">
+        <Popper {...bindPopper(publishPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
           {({ TransitionProps }) => (
             <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
               <Paper
