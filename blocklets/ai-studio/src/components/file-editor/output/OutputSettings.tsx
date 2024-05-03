@@ -1,12 +1,12 @@
 import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs, OutputVariableYjs } from '@blocklet/ai-runtime/types';
+import { AssistantYjs, OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { Box, Stack, Switch, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import AddOutputVariableButton from './AddOutputVariableButton';
 import OutputActionsCell from './OutputActionsCell';
@@ -37,6 +37,24 @@ export default function OutputSettings({
       sortBy(Object.values(value.outputVariables), 'index').forEach((item, index) => (item.index = index));
     });
   };
+
+  // Auto add text/images for old agents
+  useEffect(() => {
+    if (!outputVariables) {
+      if (!value.type || value.type === 'prompt') {
+        setField((outputs) => {
+          const id = nanoid();
+          outputs[id] = { index: 0, data: { id, name: RuntimeOutputVariable.text } };
+        });
+      }
+      if (value.type === 'image') {
+        setField((outputs) => {
+          const id = nanoid();
+          outputs[id] = { index: 0, data: { id, name: RuntimeOutputVariable.images } };
+        });
+      }
+    }
+  }, [value]);
 
   return (
     <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
