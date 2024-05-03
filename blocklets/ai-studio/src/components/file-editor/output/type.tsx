@@ -1,5 +1,8 @@
+import AigneLogo from '@app/icons/aigne-logo';
+import AigneLogoOutput from '@app/icons/aigne-logo-output';
 import { OutputVariable, OutputVariableYjs, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
+import { Box } from '@mui/material';
 import { ReactNode } from 'react';
 
 export const runtimeOutputVariables: {
@@ -9,7 +12,7 @@ export const runtimeOutputVariables: {
   name: RuntimeOutputVariable;
 }[] = [
   {
-    icon: <Icon icon="tabler:forms" />,
+    icon: <Icon icon="tabler:writing" />,
     title: 'Stream Text Response',
     i18nKey: 'streamTextResponse',
     name: RuntimeOutputVariable.text,
@@ -32,19 +35,30 @@ export const runtimeOutputVariables: {
     i18nKey: 'referencedLinks',
     name: RuntimeOutputVariable.referenceLinks,
   },
-  // {
-  //   icon: <Icon icon="tabler:photo" />,
-  //   title: 'Background Image',
-  //   i18nKey: 'backgroundImage',
-  //   name: '$page.background.image',
-  // },
-  // {
-  //   icon: <Icon icon="tabler:paint" />,
-  //   title: 'Background Color',
-  //   i18nKey: 'backgroundColor',
-  //   name: '$page.background.color',
-  // },
-  // { icon: <Icon icon="tabler:forms" />, title: 'Input Controller', i18nKey: 'inputController', name: '$input' },
+  {
+    icon: <Icon icon="tabler:layout" />,
+    title: 'Appearance Page',
+    i18nKey: 'appearancePage',
+    name: RuntimeOutputVariable.appearancePage,
+  },
+  {
+    icon: <Icon icon="tabler:forms" />,
+    title: 'Appearance Input',
+    i18nKey: 'appearanceInput',
+    name: RuntimeOutputVariable.appearanceInput,
+  },
+  {
+    icon: <Box component={AigneLogoOutput} fontSize={14} />,
+    title: 'Appearance Output',
+    i18nKey: 'appearanceOutput',
+    name: RuntimeOutputVariable.appearanceOutput,
+  },
+  {
+    icon: <Box component={AigneLogo} fontSize={14} />,
+    title: 'Children',
+    i18nKey: 'children',
+    name: RuntimeOutputVariable.children,
+  },
 ];
 
 const runtimeOutputVariableNames = new Map<string, (typeof runtimeOutputVariables)[number]>(

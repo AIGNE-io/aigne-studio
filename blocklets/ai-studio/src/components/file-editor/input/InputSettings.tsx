@@ -1,0 +1,79 @@
+import AigneLogoInput from '@app/icons/aigne-logo-input';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { AssistantYjs } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
+import { Box, Stack, Typography } from '@mui/material';
+import { isEmpty } from 'lodash';
+
+import AddInputButton from './AddInputButton';
+import InputTable from './InputTable';
+
+export const FROM_PARAMETER = 'agentParameter';
+export const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
+
+export default function InputSettings({
+  value,
+  readOnly,
+  projectId,
+  gitRef,
+  compareValue,
+  isRemoteCompare,
+}: {
+  readOnly?: boolean;
+  value: AssistantYjs;
+  projectId: string;
+  gitRef: string;
+  compareValue?: AssistantYjs;
+  isRemoteCompare?: boolean;
+}) {
+  const { t } = useLocaleContext();
+
+  const noInputs = isEmpty(value.parameters);
+
+  return (
+    <Box
+      sx={{
+        background: '#F9FAFB',
+        py: 1.5,
+        px: 2,
+        borderRadius: 1,
+        pb: 2,
+      }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+        <Box display="flex" alignItems="center" gap={0.5}>
+          <Box component={AigneLogoInput} fontSize={14} />
+
+          <Typography variant="subtitle2" mb={0}>
+            {t('inputs')}
+          </Typography>
+
+          {noInputs && (
+            <AddInputButton
+              assistant={value}
+              ButtonProps={{
+                startIcon: undefined,
+                children: <Icon icon="tabler:plus" />,
+                sx: { minWidth: 24, minHeight: 24 },
+              }}
+            />
+          )}
+        </Box>
+      </Stack>
+
+      {noInputs ? (
+        <Stack alignItems="center">
+          <Typography color="text.disabled">{t('noInputsTip')}</Typography>
+        </Stack>
+      ) : (
+        <InputTable
+          assistant={value}
+          readOnly={readOnly}
+          projectId={projectId}
+          gitRef={gitRef}
+          compareValue={compareValue}
+          isRemoteCompare={isRemoteCompare}
+        />
+      )}
+    </Box>
+  );
+}

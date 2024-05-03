@@ -59,7 +59,10 @@ export type VariableTypeYjs = VariableTypeBase &
       }
   );
 
-export type OutputVariableYjs = VariableTypeYjs & { variable?: { key: string; scope: string } };
+export type OutputVariableYjs = VariableTypeYjs & {
+  initialValue?: any;
+  variable?: { key: string; scope: string };
+};
 
 export type PromptYjs =
   | {

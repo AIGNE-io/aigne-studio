@@ -1,3 +1,8 @@
+## 0.1.365 (2024-5-4)
+
+- feat: support preview agents
+- feat: add appearance outputs
+
 ## 0.1.364 (2024-4-30)
 
 - fix: debug view new ui

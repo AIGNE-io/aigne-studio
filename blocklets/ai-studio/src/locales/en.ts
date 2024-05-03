@@ -643,4 +643,13 @@ export default flat({
   from: 'From',
   group: 'Group',
   uploadNewIcon: 'You can upload the new project logo',
+  appearancePage: 'Appearance Page',
+  appearanceInput: 'Appearance Input',
+  appearanceOutput: 'Appearance Output',
+  children: 'Children',
+  selectCustomComponent: 'Select a component',
+  noInputsTip: 'This agent has no input',
+  preview: 'Preview',
+  previewInNewTab: 'Preview in new tab',
+  copyPreviewUrl: 'Copy preview URL',
 });

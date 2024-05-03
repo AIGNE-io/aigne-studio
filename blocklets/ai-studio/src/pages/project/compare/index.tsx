@@ -19,7 +19,7 @@ import ApiAssistantEditor from '../../../components/file-editor/api-assistant';
 import BasicInfoForm from '../../../components/file-editor/basic-info-form';
 import FunctionAssistantEditor from '../../../components/file-editor/function-file';
 import ImageAssistantEditor from '../../../components/file-editor/image-file';
-import ParametersTable from '../../../components/file-editor/parameters-table';
+import InputSettings from '../../../components/file-editor/input/InputSettings';
 import PromptAssistantEditor from '../../../components/file-editor/prompt-file';
 import { getLogs } from '../../../libs/log';
 import { getFileIdFromPath } from '../../../utils/path';
@@ -286,7 +286,7 @@ export default function Compare({
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
         <Box flex={1} display="flex" flexDirection="column">
           {state.template && (
-            <ParametersTable
+            <InputSettings
               projectId={projectId}
               gitRef={gitRef}
               value={state.template}
@@ -298,7 +298,7 @@ export default function Compare({
         </Box>
 
         <Box flex={1} display="flex" flexDirection="column">
-          <ParametersTable
+          <InputSettings
             projectId={projectId}
             gitRef={gitRef}
             value={template}
