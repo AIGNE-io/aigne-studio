@@ -1,22 +1,21 @@
-import { useUploader } from '@app/contexts/uploader';
+import { getImageSize, getVideoSize, useUploader } from '@app/contexts/uploader';
 import Avatar from '@arcblock/ux/lib/Avatar';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { Box, Stack, Typography } from '@mui/material';
 
 export default function LogoField({
-  assistant,
-  setRelease,
+  value,
+  onChange,
 }: {
-  assistant: AssistantYjs;
-  setRelease: (update: (release: NonNullable<AssistantYjs['release']>) => void) => void;
+  value?: { url: string; width?: number; height?: number };
+  onChange?: (value: { url: string; width?: number; height?: number }) => void;
 }) {
   const { t } = useLocaleContext();
   const uploaderRef = useUploader();
 
   return (
     <Box>
-      <Typography mb={0.5} variant="subtitle2">
+      <Typography variant="subtitle1" mb={1}>
         {t('agentLogo')}
       </Typography>
 
@@ -28,19 +27,21 @@ export default function LogoField({
 
           uploader?.open();
 
-          uploader.onceUploadSuccess((data: any) => {
-            const { response } = data;
-            const url = response?.data?.url || response?.data?.fileUrl;
-            setRelease((release) => (release.logo = url));
+          uploader.onceUploadSuccess(async ({ response }: any) => {
+            const url: string = response?.data?.url || response?.data?.fileUrl;
+
+            let size: Awaited<ReturnType<typeof getImageSize> | ReturnType<typeof getVideoSize>> | undefined;
+
+            if (url) {
+              size = await getImageSize(url)
+                .catch(() => getVideoSize(url))
+                .catch(() => undefined);
+            }
+
+            onChange?.({ url, width: size?.naturalWidth, height: size?.naturalHeight });
           });
         }}>
-        <Box
-          component={Avatar}
-          src={assistant.release?.logo}
-          did={window.blocklet.appId}
-          size={100}
-          sx={{ borderRadius: 1 }}
-        />
+        <Box component={Avatar} src={value?.url} did={window.blocklet.appId} size={100} sx={{ borderRadius: 1 }} />
 
         <Typography variant="caption" color="text.secondary">
           {t('clickToUploadAgentLogo')}

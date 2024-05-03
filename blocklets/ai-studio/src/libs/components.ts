@@ -12,7 +12,7 @@ export interface Component {
   properties?: {
     id: string;
     key?: string;
-    type: 'string' | 'number';
+    type: 'string' | 'number' | 'url' | 'boolean';
     multiline?: boolean;
     locales?: {
       [locale: string]: {

@@ -285,6 +285,12 @@ export interface RuntimeOutputAppearance {
   componentProps?: { [key: string]: any };
 }
 
+export interface RuntimeOutputAppearancePage extends RuntimeOutputAppearance {
+  name?: string;
+  description?: string;
+  logo?: { url: string; width?: number; height?: number };
+}
+
 export interface RuntimeOutputChildren {
   agents?: { id: string; name?: string }[];
 }
@@ -293,7 +299,7 @@ export interface RuntimeOutputVariablesSchema {
   [RuntimeOutputVariable.images]?: { url: string }[];
   [RuntimeOutputVariable.suggestedQuestions]?: { question: string }[];
   [RuntimeOutputVariable.referenceLinks]?: { title?: string; url: string }[];
-  [RuntimeOutputVariable.appearancePage]?: RuntimeOutputAppearance;
+  [RuntimeOutputVariable.appearancePage]?: RuntimeOutputAppearancePage;
   [RuntimeOutputVariable.appearanceInput]?: RuntimeOutputAppearance;
   [RuntimeOutputVariable.appearanceOutput]?: RuntimeOutputAppearance;
   [RuntimeOutputVariable.children]?: RuntimeOutputChildren;

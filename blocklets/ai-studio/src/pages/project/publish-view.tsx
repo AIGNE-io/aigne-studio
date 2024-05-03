@@ -1,6 +1,5 @@
 import { stringifyIdentity } from '@api/libs/aid';
 import LoadingButton from '@app/components/loading/loading-button';
-import LogoField from '@app/components/publish/LogoField';
 import PublishEntries from '@app/components/publish/PublishEntries';
 import NumberField from '@app/components/template-form/number-field';
 import { getErrorMessage } from '@app/libs/api';
@@ -23,18 +22,14 @@ import {
   Box,
   CircularProgress,
   FormControl,
-  FormControlLabel,
   FormHelperText,
   FormLabel,
   Link,
-  Radio,
-  RadioGroup,
   Stack,
   Typography,
   accordionClasses,
   accordionSummaryClasses,
 } from '@mui/material';
-import { styled as muiStyled } from '@mui/material/styles';
 import { useLocalStorageState } from 'ahooks';
 import { ReactNode, Suspense, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -45,20 +40,6 @@ import BaseInput from '../../components/custom/input';
 import Switch from '../../components/custom/switch';
 import { useCanReleasePaymentProject } from '../../contexts/session';
 import { saveButtonState, useProjectState } from './state';
-
-const TemplateImage = styled('img')({
-  width: '100%',
-  height: '100%',
-});
-
-const StyledFormControlLabel = muiStyled(FormControlLabel)({
-  width: '50%',
-  maxWidth: 200,
-  margin: 0,
-  '& .MuiTypography-root': {
-    width: '95%',
-  },
-});
 
 export default function PublishView({
   projectId,
@@ -207,91 +188,6 @@ function PublishViewContent({
           },
         },
       }}>
-      <MyAccordion persistenceId="publish-appearance" title={t('appearance')}>
-        <Stack gap={2}>
-          <FormControl>
-            <Typography variant="subtitle2">{t('appearanceTemplate')}</Typography>
-
-            <RadioGroup
-              row
-              sx={{ rowGap: 1 }}
-              value={assistant.release?.template || 'chat'}
-              onChange={(_, value) => setRelease((release) => (release.template = value))}>
-              <StyledFormControlLabel
-                labelPlacement="top"
-                control={<Radio />}
-                value="chat"
-                label={
-                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-chat.svg')} alt="" />
-                }
-              />
-              <StyledFormControlLabel
-                labelPlacement="top"
-                control={<Radio />}
-                value="form"
-                label={
-                  <TemplateImage src={joinURL(window?.blocklet?.prefix ?? '/', '/images/template-form.svg')} alt="" />
-                }
-              />
-            </RadioGroup>
-          </FormControl>
-
-          <LogoField assistant={assistant} setRelease={setRelease} />
-
-          <FormControl>
-            <Typography variant="subtitle2">{t('agentName')}</Typography>
-            <BaseInput
-              placeholder={t('agentNamePlaceholder')}
-              value={assistant.release?.title || ''}
-              onChange={(e) => setRelease((release) => (release.title = e.target.value))}
-            />
-          </FormControl>
-
-          <FormControl>
-            <Typography variant="subtitle2">{t('agentDescription')}</Typography>
-
-            <BaseInput
-              multiline
-              sx={{ padding: 0 }}
-              placeholder={t('agentDescriptionPlaceholder')}
-              minRows={3}
-              value={assistant.release?.description || ''}
-              onChange={(e) => setRelease((release) => (release.description = e.target.value))}
-            />
-          </FormControl>
-
-          <TableLayout component="table">
-            <tr>
-              <td colSpan={2}>
-                <Typography variant="subtitle2" noWrap sx={{ mb: 0 }}>
-                  {t('chatButton')}
-                </Typography>
-              </td>
-            </tr>
-
-            <tr>
-              <td>
-                <FormLabel>{t('buttonText')}</FormLabel>
-              </td>
-
-              <td>
-                <BaseInput
-                  fullWidth
-                  placeholder={t('send')}
-                  value={assistant.release?.submitButton?.title || ''}
-                  onChange={(e) =>
-                    setRelease((release) => {
-                      release.submitButton ??= {};
-                      release.submitButton.title = e.target.value;
-                    })
-                  }
-                />
-              </td>
-            </tr>
-          </TableLayout>
-        </Stack>
-      </MyAccordion>
-
       <MyAccordion persistenceId="publish-dialog" title={t('dialogSettings')}>
         <Stack gap={2}>
           <PublishEntries assistant={assistant} />

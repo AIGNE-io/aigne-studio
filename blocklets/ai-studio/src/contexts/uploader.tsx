@@ -1,5 +1,5 @@
 import UploadIcon from '@mui/icons-material/Upload';
-import { IconButton } from '@mui/material';
+import { IconButton, IconButtonProps } from '@mui/material';
 import { ReactNode, createContext, lazy, useContext, useRef } from 'react';
 
 // @ts-ignore
@@ -19,7 +19,7 @@ export function useUploader() {
   return uploaderRef;
 }
 
-export function UploaderButton({ onChange }: { onChange?: Function }) {
+export function UploaderButton({ onChange, ...props }: { onChange?: Function } & Omit<IconButtonProps, 'onChange'>) {
   const uploaderRef = useUploader();
 
   const handleOpen = () => {
@@ -42,7 +42,8 @@ export function UploaderButton({ onChange }: { onChange?: Function }) {
       key="uploader-trigger"
       size="small"
       onClick={handleOpen}
-      sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)' }}>
+      {...props}
+      sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)', ...props.sx }}>
       <UploadIcon />
     </IconButton>
   );

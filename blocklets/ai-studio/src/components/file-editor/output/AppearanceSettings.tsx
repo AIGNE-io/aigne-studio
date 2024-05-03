@@ -1,19 +1,11 @@
+import LogoField from '@app/components/publish/LogoField';
 import { Component, getComponents } from '@app/libs/components';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { OutputVariableYjs, RuntimeOutputAppearance, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
+import { OutputVariableYjs, RuntimeOutputAppearancePage, RuntimeOutputVariable } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import {
-  Autocomplete,
-  AutocompleteProps,
-  Box,
-  MenuItem,
-  Stack,
-  TextField,
-  TextFieldProps,
-  Typography,
-} from '@mui/material';
+import { Autocomplete, AutocompleteProps, Box, Stack, TextField, Typography } from '@mui/material';
 import { WritableDraft } from 'immer';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useAsync } from 'react-use';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
@@ -23,10 +15,10 @@ import ComponentSettings from './ComponentSettings';
 export default function AppearanceSettings({ output }: { output: OutputVariableYjs }) {
   const { t } = useLocaleContext();
 
-  const initialValue = output.initialValue as RuntimeOutputAppearance | undefined;
+  const initialValue = output.initialValue as RuntimeOutputAppearancePage | undefined;
 
   const doc = (getYjsValue(output) as Map<any>).doc!;
-  const setField = (update: (draft: WritableDraft<RuntimeOutputAppearance>) => void) => {
+  const setField = (update: (draft: WritableDraft<RuntimeOutputAppearancePage>) => void) => {
     doc.transact(() => {
       if (typeof output.initialValue !== 'object') output.initialValue = {};
       update(output.initialValue);
@@ -44,6 +36,37 @@ export default function AppearanceSettings({ output }: { output: OutputVariableY
 
   return (
     <Stack gap={2}>
+      {output.name === RuntimeOutputVariable.appearancePage && (
+        <>
+          <LogoField value={initialValue?.logo} onChange={(v) => setField((f) => (f.logo = v))} />
+
+          <Box>
+            <Typography variant="subtitle2">{t('agentName')}</Typography>
+            <TextField
+              fullWidth
+              hiddenLabel
+              multiline
+              placeholder={t('agentNamePlaceholder')}
+              value={initialValue?.name || ''}
+              onChange={(e) => setField((f) => (f.name = e.target.value))}
+            />
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2">{t('agentDescription')}</Typography>
+            <TextField
+              fullWidth
+              hiddenLabel
+              multiline
+              minRows={2}
+              placeholder={t('agentDescriptionPlaceholder')}
+              value={initialValue?.description || ''}
+              onChange={(e) => setField((f) => (f.description = e.target.value))}
+            />
+          </Box>
+        </>
+      )}
+
       <Stack gap={1}>
         <Typography variant="subtitle1">{title}</Typography>
 
