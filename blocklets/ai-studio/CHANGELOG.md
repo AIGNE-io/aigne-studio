@@ -1,3 +1,8 @@
+## 0.1.366 (2024-5-4)
+
+- fix: use switchDid instead of switchPassport
+- fix: send button not working
+
 ## 0.1.365 (2024-5-4)
 
 - feat: support preview agents

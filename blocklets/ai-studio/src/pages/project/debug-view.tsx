@@ -1,10 +1,10 @@
 import ErrorCard from '@app/components/error-card';
 import ErrorBoundary from '@app/components/error/error-boundary';
+import LoadingButton from '@app/components/loading/loading-button';
 import MdViewer from '@app/components/md-viewer';
 import BasicTree from '@app/components/trace';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import Toast from '@arcblock/ux/lib/Toast';
 import { ImagePreview } from '@blocklet/ai-kit/components';
 import { ParameterField } from '@blocklet/ai-runtime/components';
 import { AssistantYjs, Role, isPromptAssistant, parameterFromYjs } from '@blocklet/ai-runtime/types';
@@ -20,7 +20,6 @@ import {
   Avatar,
   Box,
   Button,
-  CircularProgress,
   IconButton,
   MenuItem,
   Select,
@@ -46,7 +45,6 @@ import { Virtuoso } from 'react-virtuoso';
 
 import { useSessionContext } from '../../contexts/session';
 import Empty from './icons/empty';
-import Record from './icons/record';
 import SegmentedControl from './segmented-control';
 import { SessionItem, useDebugState, useProjectState } from './state';
 
@@ -554,7 +552,6 @@ function ChatModeForm({
     }
 
     if (!question.trim()) {
-      Toast.error(t('emptyInput'));
       return;
     }
 
@@ -577,7 +574,15 @@ function ChatModeForm({
   };
 
   return (
-    <Stack component="form" onSubmit={(e) => e.preventDefault()} direction="row" alignItems="center" gap={1}>
+    <Stack
+      component="form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit();
+      }}
+      direction="row"
+      alignItems="center"
+      gap={1}>
       <TextField
         hiddenLabel
         fullWidth
@@ -599,10 +604,11 @@ function ChatModeForm({
       />
 
       <Tooltip title={lastMessage?.loading ? t('stop') : t('send')} placement="top">
-        <Button
+        <LoadingButton
           type="submit"
           variant="contained"
           sx={{
+            px: 2,
             whiteSpace: 'nowrap',
             background: '#030712',
             color: '#fff',
@@ -610,20 +616,11 @@ function ChatModeForm({
               background: '#030712',
             },
           }}
-          endIcon={
-            lastMessage?.loading ? (
-              <Stack position="relative" alignItems="center" justifyContent="center" width={20} height={20}>
-                <CircularProgress
-                  size={20}
-                  color="inherit"
-                  sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, margin: 'auto' }}
-                />
-                <Record />
-              </Stack>
-            ) : null
-          }>
+          loading={lastMessage?.loading}
+          loadingPosition="end"
+          endIcon={<Icon icon="tabler:send" />}>
           {t('send')}
-        </Button>
+        </LoadingButton>
       </Tooltip>
     </Stack>
   );
@@ -840,7 +837,7 @@ function DebugModeForm({
 
         <Box flex={1} />
 
-        <Button
+        <LoadingButton
           type="submit"
           variant="contained"
           sx={{
@@ -850,20 +847,11 @@ function DebugModeForm({
               background: '#030712',
             },
           }}
-          endIcon={
-            lastMessage?.loading ? (
-              <Stack position="relative" alignItems="center" justifyContent="center" width={20} height={20}>
-                <CircularProgress
-                  size={20}
-                  color="inherit"
-                  sx={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, margin: 'auto' }}
-                />
-                <Record />
-              </Stack>
-            ) : null
-          }>
-          {lastMessage?.loading ? t('stop') : t('execute')}
-        </Button>
+          loading={lastMessage?.loading}
+          loadingPosition="end"
+          endIcon={<Icon icon="tabler:send" />}>
+          {t('execute')}
+        </LoadingButton>
       </Stack>
     </Stack>
   );
