@@ -1,3 +1,8 @@
+## 0.1.367 (2024-5-4)
+
+- feat: animated aigne logo
+- fix: group output fields
+
 ## 0.1.366 (2024-5-4)
 
 - fix: use switchDid instead of switchPassport

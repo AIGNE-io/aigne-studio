@@ -124,7 +124,7 @@ export default function ProjectsPage() {
               />
             </Stack>
           ) : (
-            <Stack alignItems="center">
+            <Stack alignItems="center" mt="15%">
               <Typography variant="subtitle1">💻</Typography>
               <Typography variant="subtitle4">{t('emptyProjectTitle')}</Typography>
               <Typography variant="subtitle5">{t('emptyProjectSubtitle')}</Typography>

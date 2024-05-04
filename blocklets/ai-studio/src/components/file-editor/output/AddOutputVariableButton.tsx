@@ -25,27 +25,36 @@ export default function AddOutputVariableButton({
         children: <Box>{t('output')}</Box>,
       }}
       PopperProps={{ placement: 'bottom-start' }}>
-      {runtimeOutputVariables.map((variable) => {
-        const blockList = variableBlockListForAgent[assistant.type];
-        if (blockList?.allow && !blockList.allow.has(variable.name)) return null;
-        if (blockList?.block && blockList.block.has(variable.name)) return null;
+      {runtimeOutputVariables.flatMap((group) => [
+        <Divider
+          key={`group-${group.group}`}
+          textAlign="left"
+          sx={{ my: '4px !important', p: 0, fontSize: 13, color: 'text.secondary' }}>
+          {t(group.group)}
+        </Divider>,
 
-        return (
-          <MenuItem
-            key={variable.name}
-            selected={exists.has(variable.name)}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect?.({ name: variable.name });
-            }}>
-            <ListItemIcon>{variable.icon}</ListItemIcon>
-            <Box flex={1}>{t(variable.i18nKey)}</Box>
-            <Box sx={{ width: 40, textAlign: 'right' }}>
-              {exists.has(variable.name) && <Box component={Icon} icon="tabler:check" />}
-            </Box>
-          </MenuItem>
-        );
-      })}
+        ...group.outputs.map((variable) => {
+          const blockList = variableBlockListForAgent[assistant.type];
+          if (blockList?.allow && !blockList.allow.has(variable.name)) return null;
+          if (blockList?.block && blockList.block.has(variable.name)) return null;
+
+          return (
+            <MenuItem
+              key={variable.name}
+              selected={exists.has(variable.name)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect?.({ name: variable.name });
+              }}>
+              <ListItemIcon>{variable.icon}</ListItemIcon>
+              <Box flex={1}>{t(variable.i18nKey)}</Box>
+              <Box sx={{ width: 40, textAlign: 'right' }}>
+                {exists.has(variable.name) && <Box component={Icon} icon="tabler:check" />}
+              </Box>
+            </MenuItem>
+          );
+        }),
+      ])}
 
       <Divider sx={{ my: '4px !important', p: 0 }} />
 
