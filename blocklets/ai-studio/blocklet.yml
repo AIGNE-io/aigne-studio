@@ -88,6 +88,10 @@ components:
     source:
       name: z2qa6fvjmjew4pWJyTsKaWFuNoMUMyXDh5A1D
       version: latest
+  - name: aigne-example-projects
+    source:
+      name: z2qZyjnsRffFtn2PDnDwDHTRbAu53RpKqDtFZ
+      version: latest
 navigation:
   - id: projects
     title:
