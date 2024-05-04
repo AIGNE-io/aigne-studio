@@ -1,3 +1,4 @@
+import AigneLogo from '@app/components/aigne-logo';
 import UploaderProvider from '@app/contexts/uploader';
 import currentGitStore from '@app/store/current-git-store';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
@@ -37,6 +38,7 @@ export default function ProjectRoutes() {
         />
         <StyledDashboard
           HeaderProps={{
+            logo: <AigneLogo />,
             addons: (exists) => [<SubscribeButton />, <AddonsRoutes />, ...exists],
             homeLink: joinURL(blocklet?.prefix || '', 'projects'),
           }}
