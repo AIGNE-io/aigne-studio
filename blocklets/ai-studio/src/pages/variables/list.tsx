@@ -113,12 +113,12 @@ function VariableList() {
     () => [
       {
         field: 'title',
-        headerName: t('variables.name'),
+        headerName: t('memory.name'),
         renderCell: (params: any) => params?.key || t('unnamed'),
       },
       {
         field: 'count',
-        headerName: t('variables.type'),
+        headerName: t('memory.type'),
         renderCell: (params: any) => {
           return <Box>{params?.type?.type}</Box>;
         },
@@ -295,7 +295,7 @@ function VariableList() {
               render={({ field: { ref, ...field }, fieldState }) => {
                 return (
                   <Box>
-                    <Typography variant="subtitle2">{t('outputVariableParameter.key')}</Typography>
+                    <Typography variant="subtitle2">{t('memory.name')}</Typography>
                     <TextField
                       inputRef={ref}
                       autoFocus
@@ -378,7 +378,7 @@ function VariableList() {
                 const { value } = field;
                 return (
                   <Box>
-                    <Typography variant="subtitle2">{t('outputVariableParameter.dataType')}</Typography>
+                    <Typography variant="subtitle2">{t('memory.type')}</Typography>
 
                     <Box display="flex" gap={2} alignItems="center">
                       <VariableTypeField
@@ -493,7 +493,7 @@ function VariableTypeField({ ...props }: TextFieldProps) {
   const { t } = useLocaleContext();
 
   return (
-    <TextField hiddenLabel placeholder={t('type')} select SelectProps={{ autoWidth: true }} {...props}>
+    <TextField hiddenLabel placeholder={t('format')} select SelectProps={{ autoWidth: true }} {...props}>
       <MenuItem value="string" disabled={props.disabled}>
         {t('text')}
       </MenuItem>
@@ -532,7 +532,7 @@ function VariableTable({ value, onChange }: { value: OutputVariableYjs; onChange
           <Box component="tr" sx={{ '>th': { fontSize: 12 } }}>
             <Box component="th">{t('name')}</Box>
             <Box component="th">{t('description')}</Box>
-            <Box component="th">{t('type')}</Box>
+            <Box component="th">{t('format')}</Box>
             <Box component="th">{t('required')}</Box>
             <Box component="th">{t('defaultValue')}</Box>
             <Box component="th">{t('actions')}</Box>

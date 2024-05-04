@@ -2,6 +2,7 @@ import { stringifyIdentity } from '@api/libs/aid';
 import { defaultImageModel, getSupportedImagesModels } from '@api/libs/common';
 import { InvalidSubscriptionError, ReachMaxRoundLimitError } from '@api/libs/error';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
+import logger from '@api/libs/logger';
 import { getActiveSubscriptionOfAssistant, reportUsage } from '@api/libs/payment';
 import History from '@api/store/models/history';
 import Release from '@api/store/models/release';
@@ -46,6 +47,7 @@ const callInputSchema = Joi.object<{
   working?: boolean;
   assistantId: string;
   parameters?: { [key: string]: any };
+  debug?: boolean;
 }>({
   userId: Joi.string().empty(['', null]),
   sessionId: Joi.string().empty(['', null]),
@@ -56,6 +58,7 @@ const callInputSchema = Joi.object<{
   parameters: Joi.object({
     $clientTime: Joi.string().isoDate().empty([null, '']),
   }).pattern(Joi.string(), Joi.any()),
+  debug: Joi.boolean().default(false),
 });
 
 router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (req, res) => {
@@ -246,7 +249,14 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       }
     }
 
-    if (userId && release?.paymentEnabled && release.paymentProductId) {
+    let debug = false;
+    if (input.debug && req.user) {
+      if ([project.createdBy].includes(req.user.did) || ['owner', 'admin'].includes(req.user.role)) {
+        debug = true;
+      }
+    }
+
+    if (!debug && userId && release?.paymentEnabled && release.paymentProductId) {
       if (
         !(await getActiveSubscriptionOfAssistant({
           aid: stringifyIdentity({ projectId: input.projectId, projectRef: input.ref, assistantId: input.assistantId }),
@@ -264,6 +274,15 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       working: input.working,
       fileName: 'variable',
       rejectOnEmpty: true,
+    });
+
+    emit({
+      type: AssistantResponseType.INPUT_PARAMETER,
+      taskId,
+      assistantId: assistant.id,
+      delta: {
+        content: JSON.stringify(input.parameters),
+      },
     });
 
     const result = await runAssistant({
@@ -294,6 +313,7 @@ router.post('/call', user(), compression(), ensureComponentCallOrAuth(), async (
       }
     }
   } catch (e) {
+    logger.error('run assistant error', { error: e });
     let fetchErrorMsg = e?.response?.data?.error;
     if (typeof fetchErrorMsg !== 'string') fetchErrorMsg = fetchErrorMsg?.message;
 

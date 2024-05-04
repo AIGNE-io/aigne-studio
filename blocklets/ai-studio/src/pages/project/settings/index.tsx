@@ -1,7 +1,7 @@
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { getSupportedModels } from '@blocklet/ai-runtime/common';
+import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -52,7 +52,6 @@ const init = {
   frequencyPenalty: 0,
   maxTokens: undefined,
   gitType: 'simple',
-  homePageUrl: '',
 };
 
 export default function ProjectSettings() {
@@ -92,7 +91,6 @@ export default function ProjectSettings() {
         'frequencyPenalty',
         'maxTokens',
         'gitType',
-        'homePageUrl',
       ]);
       merge.icon = getProjectIconUrl(projectId);
 
@@ -169,7 +167,7 @@ export default function ProjectSettings() {
         content: t('alert.unsave.content'),
         okText: t('save'),
         okColor: 'primary',
-        cancelText: t('alert.cancel'),
+        cancelText: t('cancel'),
         middleText: t('alert.discard'),
         middleColor: 'error',
         onOk: async () => {
@@ -232,20 +230,6 @@ export default function ProjectSettings() {
                       </Box>
                     </Stack>
                   </Box>
-
-                  <Box>
-                    <Typography variant="subtitle2" mb={0.5}>
-                      {t('projectSetting.homePageUrl')}
-                    </Typography>
-
-                    <TextField
-                      label={t('projectSetting.homePageUrl')}
-                      value={value.homePageUrl ?? ''}
-                      onChange={(e) => set('homePageUrl', e.target.value)}
-                      InputProps={{ readOnly }}
-                      sx={{ width: 1 }}
-                    />
-                  </Box>
                 </Stack>
               </Box>
 
@@ -258,7 +242,7 @@ export default function ProjectSettings() {
                   <ModelSelectField
                     hiddenLabel
                     fullWidth
-                    value={value.model ?? ''}
+                    value={value.model || defaultTextModel}
                     onChange={(e) => set('model', e.target.value)}
                     InputProps={{ readOnly }}
                     sx={{ width: 1 }}

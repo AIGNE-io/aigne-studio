@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 
+import config from '@blocklet/sdk/lib/config';
 import user from '@blocklet/sdk/lib/middlewares/user';
 import { Router } from 'express';
 import Joi from 'joi';
@@ -348,11 +349,17 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
     return;
   }
 
-  const { type, filename = req?.file.originalname, data = req?.file.buffer } = req.body;
+  const { type, filename = req?.file.originalname, data = req?.file.buffer, size } = req.body;
 
   if (!type || !filename || !data) {
     res.status(500).json({ error: 'missing required body `type` or `filename` or `data`' });
     return;
+  }
+
+  if (size > config.env.preferences.uploadFileLimit * 1000 * 1000) {
+    throw new Error(
+      `The number of files uploaded exceeds the maximum value. The number of files uploaded cannot exceed ${config.env.preferences.uploadFileLimit}MB`
+    );
   }
 
   let buffer = null;
@@ -376,16 +383,22 @@ router.post('/:datasetId/documents/file', user(), userAuth(), upload.single('dat
   await writeFile(filePath, buffer, 'utf8');
 
   const fileExtension = (path.extname(req.file.originalname) || '').replace('.', '');
+  const originalname = Buffer.from(
+    (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
+    'latin1'
+  ).toString('utf8');
 
   const document = await DatasetDocument.create({
     type: 'file',
-    name: (req.file.originalname || '').replace(path.extname(req.file.originalname), ''),
+    name: originalname,
     data: { type: fileExtension, path: filePath },
     datasetId,
     createdBy: did,
     updatedBy: did,
   });
-  await DatasetContent.create({ documentId: document.id, content: await readFile(filePath, 'utf8') });
+
+  // 不保存数据，在使用时，实时去取，防止数据太大，导致出错
+  await DatasetContent.create({ documentId: document.id, content: '' });
 
   queue.checkAndPush({ type: 'document', documentId: document.id });
 

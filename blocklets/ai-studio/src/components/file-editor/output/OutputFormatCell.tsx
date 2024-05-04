@@ -1,0 +1,118 @@
+import useDialog from '@app/utils/use-dialog';
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { OutputVariableYjs, VariableYjs } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
+import { Box, ListItemIcon, MenuItem, TextField, TextFieldProps, Typography } from '@mui/material';
+import { nanoid } from 'nanoid';
+
+import { getRuntimeOutputVariable } from './type';
+
+export default function OutputFormatCell({
+  output,
+  variable,
+  TextFieldProps,
+}: {
+  output: OutputVariableYjs;
+  variable?: VariableYjs;
+  TextFieldProps?: TextFieldProps;
+}) {
+  const { t } = useLocaleContext();
+  const { dialog, showDialog } = useDialog();
+
+  const runtimeVariable = getRuntimeOutputVariable(output);
+
+  if (runtimeVariable) return null;
+
+  return (
+    <>
+      {dialog}
+
+      <VariableTypeField
+        variant="standard"
+        {...TextFieldProps}
+        value={(variable?.type ?? output).type || 'string'}
+        onChange={(e) => {
+          const type = e.target.value as any;
+
+          if (output.variable?.key) {
+            showDialog({
+              formSx: {
+                '.MuiDialogTitle-root': {
+                  border: 0,
+                },
+                '.MuiDialogActions-root': {
+                  border: 0,
+                },
+                '.save': {
+                  background: '#d32f2f',
+                },
+              },
+              maxWidth: 'sm',
+              fullWidth: true,
+              title: <Box sx={{ wordWrap: 'break-word' }}>{t('outputVariableParameter.changeTypeTitle')}</Box>,
+              content: (
+                <Box>
+                  <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                    {t('outputVariableParameter.change')}
+                  </Typography>
+                </Box>
+              ),
+              okText: t('confirm'),
+              okColor: 'error',
+              cancelText: t('cancel'),
+              onOk: () => {
+                delete output.variable;
+
+                output.type = type;
+                if (output.type === 'array') {
+                  output.element ??= { id: nanoid(), name: 'element', type: 'string' };
+                }
+              },
+            });
+          } else {
+            output.type = type;
+            if (output.type === 'array') {
+              output.element ??= { id: nanoid(), name: 'element', type: 'string' };
+            }
+          }
+        }}
+      />
+    </>
+  );
+}
+
+function VariableTypeField({ ...props }: TextFieldProps) {
+  const { t } = useLocaleContext();
+
+  return (
+    <TextField hiddenLabel placeholder={t('format')} select SelectProps={{ autoWidth: true }} {...props}>
+      <MenuItem value="string">
+        <ListItemIcon>
+          <Icon icon="tabler:cursor-text" />
+        </ListItemIcon>
+        {t('text')}
+      </MenuItem>
+
+      <MenuItem value="number">
+        <ListItemIcon>
+          <Icon icon="tabler:square-number-1" />
+        </ListItemIcon>
+        {t('number')}
+      </MenuItem>
+
+      <MenuItem value="object">
+        <ListItemIcon>
+          <Icon icon="tabler:code-plus" />
+        </ListItemIcon>
+        {t('object')}
+      </MenuItem>
+
+      <MenuItem value="array">
+        <ListItemIcon>
+          <Icon icon="tabler:brackets-contain" />
+        </ListItemIcon>
+        {t('array')}
+      </MenuItem>
+    </TextField>
+  );
+}

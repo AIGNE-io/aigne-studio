@@ -1,3 +1,73 @@
+## 0.1.367 (2024-5-4)
+
+- feat: animated aigne logo
+- fix: group output fields
+
+## 0.1.366 (2024-5-4)
+
+- fix: use switchDid instead of switchPassport
+- fix: send button not working
+
+## 0.1.365 (2024-5-4)
+
+- feat: support preview agents
+- feat: add appearance outputs
+
+## 0.1.364 (2024-4-30)
+
+- fix: debug view new ui
+
+## 0.1.363 (2024-4-30)
+
+- chore: polish login and logout logic
+
+## 0.1.362 (2024-4-30)
+
+- fix: inconsistent icon sizes
+
+## 0.1.361 (2024-4-30)
+
+- fix: i18n text
+
+## 0.1.360 (2024-4-30)
+
+- chore: newly designed aigne icons
+
+## 0.1.359 (2024-4-29)
+
+- fix: remove project logo from header
+- fix: update ui texts
+
+## 0.1.358 (2024-4-29)
+
+- chore: update deps
+
+## 0.1.357 (2024-4-29)
+
+- fix: upload file size
+
+## 0.1.356 (2024-4-29)
+
+- chore: support disable payment in multi tenant
+
+## 0.1.355 (2024-4-29)
+
+- feat: guide the user to bind DID Wallet and DID Spaces
+
+## 0.1.354 (2024-4-29)
+
+- fix: correct agent file state
+- fix: allow setting required for the builtin outputs
+
+## 0.1.353 (2024-4-29)
+
+- fix: start server crashed
+
+## 0.1.352 (2024-4-28)
+
+- fix: add indexeddb to persist data in the browser
+- fix: polish ui texts
+
 ## 0.1.351 (2024-4-28)
 
 - fix: reload projects when switch user(#890)

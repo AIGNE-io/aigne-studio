@@ -1,5 +1,6 @@
 import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
+import { EVENTS } from '@arcblock/did-connect/lib/Session/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -49,7 +50,7 @@ import useDialog from '../../../utils/use-dialog';
 import DidSpacesLogo from '../icons/did-spaces';
 import Pin from '../icons/pin';
 import ImportFromBlank from './import-from-blank';
-import ImportFromDidSpaces, { SelectDidSpacesImportWay } from './import-from-did-spaces';
+import ImportFromDidSpaces, { FROM_DID_SPACES_IMPORT, SelectDidSpacesImportWay } from './import-from-did-spaces';
 import ImportFromGit from './import-from-git';
 import ImportFromTemplates from './import-from-templates';
 
@@ -58,24 +59,49 @@ const MAX_WIDTH = 300;
 
 export default function ProjectsPage() {
   const { t } = useLocaleContext();
-  const [search] = useSearchParams();
-  const endpoint = search.get('endpoint');
-  const { session } = useSessionContext();
+  const { session, events } = useSessionContext();
+  const [searchParams] = useSearchParams();
+  const endpoint = searchParams.get('endpoint');
+  const action = searchParams.get('action');
+  const [showSelectDidSpacesImportWay, setShowSelectDidSpacesImportWay] = useState(false);
+
+  useEffect(() => {
+    events.on(EVENTS.CONNECT_TO_DID_SPACE_FOR_FULL_ACCESS, () => {
+      if (action === FROM_DID_SPACES_IMPORT) {
+        setTimeout(() => {
+          setShowSelectDidSpacesImportWay(true);
+        }, 3000);
+      }
+    });
+  }, []);
 
   const {
     state: { loading, templates, projects, examples },
     refetch,
+    clearState,
   } = useProjectsState();
 
   useEffect(() => {
     refetch();
-  }, [session?.user?.did]);
+
+    return clearState;
+  }, [session?.user?.did, session?.user?.role]);
 
   return (
     <Stack minHeight="100%" overflow="auto" bgcolor="#F9FAFB">
       <Stack m={2.5} flexGrow={1} gap={2.5}>
         <ProjectMenu />
+
         {endpoint && <ImportFromDidSpaces />}
+
+        {showSelectDidSpacesImportWay && (
+          <SelectDidSpacesImportWay
+            onClose={() => {
+              setShowSelectDidSpacesImportWay(false);
+            }}
+          />
+        )}
+
         {examples && examples.length > 0 && (
           <Section title={t('examples')}>
             <ProjectList section="examples" list={examples} />
@@ -98,7 +124,7 @@ export default function ProjectsPage() {
               />
             </Stack>
           ) : (
-            <Stack alignItems="center">
+            <Stack alignItems="center" mt="15%">
               <Typography variant="subtitle1">💻</Typography>
               <Typography variant="subtitle4">{t('emptyProjectTitle')}</Typography>
               <Typography variant="subtitle5">{t('emptyProjectSubtitle')}</Typography>
@@ -141,7 +167,9 @@ function TemplatesProjects({ list }: { list?: ProjectWithUserInfo[] }) {
               </MenuItem>
             </MenuList>
           }>
-          <Button variant="outlined">{t('alert.import')}</Button>
+          <Button variant="outlined" startIcon={<Icon icon="tabler:transfer-in" />}>
+            {t('alert.import')}
+          </Button>
         </ButtonPopper>
 
         {resource.length ? (
@@ -272,7 +300,7 @@ function ProjectMenu() {
                   </Box>
                 </Stack>
               ),
-              cancelText: t('alert.cancel'),
+              cancelText: t('cancel'),
               okText: t('save'),
               okIcon: <SaveRoundedIcon />,
               onOk: async () => {
@@ -545,7 +573,7 @@ function ProjectList({
                         />
                       </Stack>
                     ),
-                    cancelText: t('alert.cancel'),
+                    cancelText: t('cancel'),
                     okText: t('create'),
                     okIcon: <RocketLaunchRoundedIcon />,
                     onOk: async () => {

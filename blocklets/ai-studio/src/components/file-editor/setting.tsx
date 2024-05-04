@@ -1,7 +1,12 @@
 import { useReadOnly } from '@app/contexts/session';
 import Close from '@app/pages/project/icons/close';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { defaultImageModel, getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
+import {
+  defaultImageModel,
+  defaultTextModel,
+  getSupportedImagesModels,
+  getSupportedModels,
+} from '@blocklet/ai-runtime/common';
 import { AssistantYjs, isImageAssistant, isPromptAssistant } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -11,7 +16,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   IconButton,
   Stack,
   Typography,
@@ -22,7 +26,6 @@ import { useAsync } from 'react-use';
 
 import { useProjectState } from '../../pages/project/state';
 import { brandIcon } from '../selector/model-select-field';
-import History from './history';
 import ImageSettings from './image-file/setting';
 import PromptSettings from './prompt-file/setting';
 
@@ -57,14 +60,14 @@ export default function PromptSetting({
 
   const defaultModel = useMemo(() => {
     if (isPromptAssistant(value)) {
-      return value?.model || project?.model;
+      return value?.model || project?.model || defaultTextModel;
     }
 
     if (isImageAssistant(value)) {
       return value?.model || defaultImageModel;
     }
 
-    return '';
+    return defaultTextModel;
   }, [(value as any).model, project]);
 
   const modelDetail = useMemo(() => {
@@ -118,20 +121,12 @@ export default function PromptSetting({
             {isImageAssistant(value) && (
               <ImageSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
             )}
-
-            <Divider sx={{ m: '0 !important' }} />
-
-            <History projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
           </Stack>
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={dialogState.close} variant="outlined">
-            {t('cancel')}
-          </Button>
-
           <Button variant="contained" onClick={dialogState.close}>
-            {t('save')}
+            {t('ok')}
           </Button>
         </DialogActions>
       </Dialog>

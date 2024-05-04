@@ -1,6 +1,8 @@
-import { ArrowDropDownRounded } from '@mui/icons-material';
+import { Icon } from '@iconify-icon/react';
 import { loadingButtonClasses } from '@mui/lab';
 import {
+  Box,
+  BoxProps,
   autocompleteClasses,
   filledInputClasses,
   inputBaseClasses,
@@ -385,7 +387,7 @@ export const theme = createTheme({
       },
     },
     MuiAutocomplete: {
-      defaultProps: { popupIcon: <ArrowDropDownRounded /> },
+      defaultProps: { popupIcon: <SelectIcon fontSize={14} /> },
       variants: [
         {
           props: {},
@@ -578,7 +580,7 @@ export const theme = createTheme({
           },
         },
       },
-      defaultProps: { variant: 'filled', IconComponent: ArrowDropDownRounded },
+      defaultProps: { variant: 'filled', IconComponent: SelectIcon },
       variants: [
         {
           props: {},
@@ -763,3 +765,7 @@ export const theme = createTheme({
     },
   },
 });
+
+function SelectIcon(props: BoxProps) {
+  return <Box {...props} component={Icon} icon="tabler:chevron-down" />;
+}

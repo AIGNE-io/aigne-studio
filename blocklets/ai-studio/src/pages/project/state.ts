@@ -439,7 +439,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               gitRef: message.type === 'debug' ? message.gitRef : undefined,
               parameters: message.type === 'debug' ? message.parameters : undefined,
               inputMessages: [],
-              loading: true,
+              loading: false,
             },
             { id: responseId, createdAt: now.toISOString(), role: 'assistant', content: '', loading: true }
           );
@@ -466,6 +466,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 assistantId: message.assistantId,
                 parameters: message.parameters,
                 sessionId: session?.sessionId,
+                debug: true,
               });
 
         const reader = result.getReader();
@@ -483,8 +484,13 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
               response += decoder.decode(value);
             } else if (typeof value === 'string') {
               response += value;
-            } else if (value.type === AssistantResponseType.INPUT) {
+            } else if (value.type === AssistantResponseType.INPUT_PARAMETER) {
               setMessage(sessionIndex, messageId, (message) => {
+                message.content = value.delta.content || '';
+                message.loading = false;
+              });
+            } else if (value.type === AssistantResponseType.INPUT) {
+              setMessage(sessionIndex, responseId, (message) => {
                 message.inputMessages ??= [];
 
                 let lastInput = message.inputMessages.findLast((input) => input.taskId === value.taskId);
@@ -536,7 +542,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                   });
                 }
 
-                setMessage(sessionIndex, messageId, (message) => {
+                setMessage(sessionIndex, responseId, (message) => {
                   if (message.cancelled) return;
 
                   const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
@@ -551,7 +557,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 });
               }
             } else if (value.type === AssistantResponseType.EXECUTE) {
-              setMessage(sessionIndex, messageId, (message) => {
+              setMessage(sessionIndex, responseId, (message) => {
                 message.inputMessages ??= [];
 
                 const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
@@ -588,7 +594,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
                 };
               });
             } else if (value.type === AssistantResponseType.LOG) {
-              setMessage(sessionIndex, messageId, (message) => {
+              setMessage(sessionIndex, responseId, (message) => {
                 if (message.cancelled) return;
                 const lastInput = message.inputMessages?.findLast((input) => input.taskId === value.taskId);
                 if (lastInput) {
@@ -628,7 +634,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
           message.loading = false;
         });
       } finally {
-        setMessage(sessionIndex, messageId, (message) => {
+        setMessage(sessionIndex, responseId, (message) => {
           message.loading = false;
         });
       }
@@ -800,6 +806,8 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
 
       setState((r) => ({ ...r, files: cloneDeep(files) }));
     };
+
+    getFile();
 
     getYjsDoc(store).getMap('files').observeDeep(getFile);
     getYjsDoc(store).getMap('tree').observeDeep(getFile);

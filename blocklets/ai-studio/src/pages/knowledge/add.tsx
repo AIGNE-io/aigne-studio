@@ -43,7 +43,7 @@ import DiscussList from './discuss';
 function formatBytes(bytes: number, decimals = 2) {
   if (bytes === 0) return '0 Bytes';
 
-  const k = 1024;
+  const k = 1000;
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
@@ -164,7 +164,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 alignItems="center"
                 sx={{ cursor: 'pointer' }}>
                 <Box className="center" gap={1}>
-                  <Box component={Icon} icon="tabler:arrow-bar-to-up" />
+                  <Box component={Icon} icon="tabler:upload" />
                   <Typography>{t('importFiles')}</Typography>
                 </Box>
 
@@ -183,7 +183,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 id="upload"
                 type="file"
                 onChange={onInputChange}
-                accept=".md, .txt, .pdf, .doc"
+                accept=".md, .txt, .doc, .docx"
                 component="input"
                 display="none"
               />
@@ -196,7 +196,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
             sx={{ mb: 2 }}
             type="submit"
             variant="contained"
-            disabled={!file}
+            disabled={!file || loading}
             startIcon={loading ? <CircularProgress sx={{ color: '#fff' }} size={16} /> : null}
             onClick={async () => {
               try {
@@ -206,6 +206,12 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                   const form = new FormData();
                   form.append('data', file);
                   form.append('type', 'file');
+
+                  const limit: number = window?.blocklet?.preferences?.uploadFileLimit || 1;
+                  if (file.size > limit * 1000 * 1000) {
+                    Toast.error(t('maxUploadFileLimit', { limit }));
+                    return;
+                  }
 
                   if (id) {
                     await updateFileDocument(datasetId, id, form);
@@ -223,7 +229,7 @@ function File({ datasetId, id }: { datasetId: string; id?: string }) {
                 setLoading(false);
               }
             }}>
-            {t('save')}
+            {loading ? t('processing') : t('save')}
           </LoadingButton>
         </Box>
       </Stack>
@@ -597,7 +603,7 @@ export default function KnowledgeDocumentsAdd() {
       id: 'file',
       icon: (
         <Box width={48} height={48} borderRadius={1} border="1px solid #E5E7EB" className="center">
-          <Box component={Icon} icon="tabler:file-description" fontSize={20} color="#3B82F6" />
+          <Box component={Icon} icon="tabler:upload" fontSize={20} color="#3B82F6" />
         </Box>
       ),
       title: t('knowledge.documents.file.title'),
@@ -640,16 +646,16 @@ export default function KnowledgeDocumentsAdd() {
             }}>
             <Box component={Icon} icon="tabler:chevron-left" width={20} />
             <Typography variant="subtitle2" mb={0}>
-              {state.dataset?.name}
+              {t('addDocumentToDataset', { dataset: state.dataset?.name })}
             </Typography>
           </Box>
 
-          <Box display="flex" alignItems="center">
+          {/* <Box display="flex" alignItems="center">
             <Box width={20} />
             <Typography variant="subtitle2" color="#4B5563" fontWeight={400} mb={0}>
-              {state.dataset?.name}
+              {state.dataset?.d}
             </Typography>
-          </Box>
+          </Box> */}
         </Box>
       </Stack>
 

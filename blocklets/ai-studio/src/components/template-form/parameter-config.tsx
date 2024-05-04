@@ -13,11 +13,12 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
   return (
     <Stack gap={2}>
       <Box>
-        <Typography variant="subtitle2">{t('label')}</Typography>
+        <Typography variant="subtitle2">{t('name')}</Typography>
 
         <TextField
           fullWidth
           hiddenLabel
+          placeholder={t('inputParameterLabelPlaceholder')}
           size="medium"
           value={value.label || ''}
           onChange={(e) => (value.label = e.target.value)}
@@ -31,6 +32,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
         <TextField
           fullWidth
           hiddenLabel
+          placeholder={t('inputParameterPlaceholderPlaceholder')}
           size="medium"
           value={value.placeholder || ''}
           onChange={(e) => (value.placeholder = e.target.value)}
@@ -136,8 +138,9 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       <Box>
         <FormControl>
           <FormControlLabel
-            sx={{ display: 'flex', alignItems: 'center' }}
-            label={t('required')}
+            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+            labelPlacement="start"
+            label={t('inputParameterRequiredLabel')}
             control={
               <BaseSwitch
                 sx={{ mr: 1, mt: '1px' }}

@@ -1,16 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { VariableYjs } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
-import {
-  Autocomplete,
-  Box,
-  Button,
-  IconButton,
-  MenuItem,
-  TextField,
-  Typography,
-  createFilterOptions,
-} from '@mui/material';
+import { Autocomplete, Box, IconButton, MenuItem, TextField, Typography, createFilterOptions } from '@mui/material';
 import { cloneDeep } from 'lodash';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -30,12 +21,15 @@ function sortVariables(variables: VariableYjs[]) {
 }
 
 const filter = createFilterOptions<any>();
+
 function SelectVariable({
+  placeholder,
   variables,
   variable,
   onChange,
   onDelete,
 }: {
+  placeholder?: string;
   variables: VariableYjs[];
   variable?: VariableYjs;
   onDelete?: () => void;
@@ -61,7 +55,7 @@ function SelectVariable({
           // groupBy={(option) => option.scope || ''}
           getOptionLabel={(option) => `${option.key}`}
           sx={{ width: 1, flex: 1 }}
-          renderInput={(params) => <TextField hiddenLabel {...params} />}
+          renderInput={(params) => <TextField hiddenLabel {...params} placeholder={placeholder} />}
           key={Boolean(variable).toString()}
           disableClearable
           clearOnBlur
@@ -91,10 +85,20 @@ function SelectVariable({
               );
             }
 
-            return null;
+            return (
+              <MenuItem onClick={() => navigate(`/projects/${projectId}/variables/${gitRef}`)}>
+                <Box sx={{ cursor: 'pointer' }}>{t('newObject', { object: t('memory.title') })}</Box>
+              </MenuItem>
+            );
           }}
           filterOptions={(_, params) => {
             const filtered = filter(sortVariables(variables), params);
+
+            const found = filtered.find((x) => !x.key);
+            if (!found) {
+              filtered.push({ key: '' });
+            }
+
             return filtered;
           }}
           onChange={(_, _value) => {
@@ -122,14 +126,14 @@ function SelectVariable({
         </Box>
       )}
 
-      <Button
+      {/* <Button
         sx={{ ml: -0.5 }}
         endIcon={<Box component={Icon} icon="tabler:arrow-right" />}
         onClick={() => {
           navigate(`/projects/${projectId}/variables/${gitRef}`);
         }}>
         {t('newObject', { object: t('memory.title') })}
-      </Button>
+      </Button> */}
     </Box>
   );
 }

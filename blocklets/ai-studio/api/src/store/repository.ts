@@ -518,7 +518,6 @@ export async function getVariablesFromRepository({
   ref,
   working,
   fileName,
-  rejectOnEmpty,
 }: {
   repository: Repository<any>;
   ref: string;
@@ -540,11 +539,7 @@ export async function getVariablesFromRepository({
   }
 
   if (!file || !isVariables(file)) {
-    if (rejectOnEmpty) {
-      throw typeof rejectOnEmpty !== 'boolean'
-        ? rejectOnEmpty
-        : new Error(`no such assistant ${JSON.stringify({ ref, fileName, working })}`);
-    }
+    return { type: 'variables' };
   }
 
   return file;

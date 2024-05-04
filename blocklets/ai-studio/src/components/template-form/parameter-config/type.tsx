@@ -30,7 +30,7 @@ export default function ParameterConfigType(props: TextFieldProps) {
       },
       {
         icon: <Icon icon="tabler:language-hiragana" />,
-        label: t('language'),
+        label: t('languageSelect'),
         value: 'language',
       },
     ];

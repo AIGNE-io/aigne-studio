@@ -1,7 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
-import { SaveRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Box,
@@ -127,7 +126,7 @@ export default function KnowledgeDatasets() {
         component="form"
         onSubmit={form.handleSubmit(onSave)}>
         <DialogTitle className="between" sx={{ border: 0 }}>
-          <Box>{t('knowledge.createTitle')}</Box>
+          <Box>{t('newObject', { object: t('knowledge.knowledge') })}</Box>
 
           <IconButton size="small" onClick={() => dialogState.close()}>
             <Close />
@@ -139,16 +138,15 @@ export default function KnowledgeDatasets() {
             <Controller
               control={form.control}
               name="name"
-              rules={{
-                required: t('validation.fieldRequired'),
-              }}
+              rules={{ required: t('validation.fieldRequired') }}
               render={({ field, fieldState }) => {
                 return (
                   <Box>
-                    <Typography variant="subtitle2">{t('knowledge.name')}</Typography>
+                    <Typography variant="subtitle2">{t('name')}</Typography>
                     <TextField
-                      label={t('knowledge.name')}
-                      sx={{ width: 1 }}
+                      fullWidth
+                      hiddenLabel
+                      placeholder={t('knowledge.namePlaceholder')}
                       {...field}
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message}
@@ -164,10 +162,12 @@ export default function KnowledgeDatasets() {
               render={({ field, fieldState }) => {
                 return (
                   <Box>
-                    <Typography variant="subtitle2">{t('knowledge.description')}</Typography>
+                    <Typography variant="subtitle2">{t('description')}</Typography>
                     <TextField
-                      label={t('knowledge.description')}
-                      sx={{ width: 1 }}
+                      fullWidth
+                      hiddenLabel
+                      multiline
+                      minRows={2}
                       {...field}
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message}
@@ -187,10 +187,10 @@ export default function KnowledgeDatasets() {
           <LoadingButton
             type="submit"
             variant="contained"
-            startIcon={<SaveRounded />}
+            startIcon={<Icon icon="tabler:plus" />}
             loadingPosition="start"
             loading={form.formState.isSubmitting}>
-            {t('save')}
+            {t('create')}
           </LoadingButton>
         </DialogActions>
       </Dialog>
@@ -251,7 +251,7 @@ function DatasetItem({
         }}>
         <Stack flexDirection="row" gap={1.5}>
           <Box width={72} height={72} className="center" bgcolor="#E5E7EB" borderRadius={1}>
-            <Box component={Icon} icon="tabler:book-2" fontSize={24} />
+            <Box component={Icon} icon="tabler:book-2" fontSize={30} />
           </Box>
 
           <Box width={0} flex={1}>
@@ -301,34 +301,40 @@ function DatasetItem({
                                 showDialog({
                                   maxWidth: 'sm',
                                   fullWidth: true,
-                                  title: <Box sx={{ wordWrap: 'break-word' }}>{t('knowledge.updateTitle')}</Box>,
+                                  title: (
+                                    <Box sx={{ wordWrap: 'break-word' }}>
+                                      {t('editObject', { object: t('knowledge.knowledge') })}
+                                    </Box>
+                                  ),
                                   content: (
                                     <Stack gap={2}>
                                       <Box>
-                                        <Typography variant="subtitle2">{t('knowledge.name')}</Typography>
+                                        <Typography variant="subtitle2">{t('name')}</Typography>
                                         <TextField
-                                          label={t('knowledge.name')}
-                                          sx={{ width: 1 }}
+                                          hiddenLabel
                                           fullWidth
+                                          placeholder={t('knowledge.namePlaceholder')}
                                           defaultValue={name}
                                           onChange={(e) => (newName = e.target.value)}
                                         />
                                       </Box>
 
                                       <Box>
-                                        <Typography variant="subtitle2">{t('knowledge.description')}</Typography>
+                                        <Typography variant="subtitle2">{t('description')}</Typography>
                                         <TextField
-                                          label={t('knowledge.description')}
-                                          sx={{ width: 1 }}
+                                          hiddenLabel
                                           fullWidth
+                                          multiline
+                                          minRows={2}
                                           defaultValue={description}
                                           onChange={(e) => (newDescription = e.target.value)}
                                         />
                                       </Box>
                                     </Stack>
                                   ),
+                                  okIcon: <Icon icon="tabler:device-floppy" />,
                                   okText: t('save'),
-                                  cancelText: t('alert.cancel'),
+                                  cancelText: t('cancel'),
                                   onOk: () => onUpdate({ name: newName, description: newDescription }),
                                 });
                               }}>
@@ -365,7 +371,7 @@ function DatasetItem({
                                   ),
                                   okText: t('alert.delete'),
                                   okColor: 'error',
-                                  cancelText: t('alert.cancel'),
+                                  cancelText: t('cancel'),
                                   onOk: onDelete,
                                 });
                               }}
@@ -393,7 +399,7 @@ function DatasetItem({
           </Box>
         </Stack>
 
-        <Typography variant="subtitle5">{`${documents || 0} ${t('knowledge.document')}`}</Typography>
+        <Typography variant="subtitle5">{`${documents || 0} ${(documents || 0) > 0 ? t('knowledge.documents.documents') : t('knowledge.documents.document')}`}</Typography>
       </DatasetItemRoot>
 
       {dialog}

@@ -1,3 +1,4 @@
+import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import {
   AssistantYjs,
   isApiAssistant,
@@ -5,6 +6,7 @@ import {
   isImageAssistant,
   isPromptAssistant,
 } from '@blocklet/ai-runtime/types';
+import { Icon } from '@iconify-icon/react';
 import { Box, Stack } from '@mui/material';
 
 import ArrowLine from '../../../pages/project/icons/line';
@@ -13,8 +15,8 @@ import ApiAssistantEditor from '../api-assistant';
 import BasicInfoForm from '../basic-info-form';
 import FunctionAssistantEditor from '../function-file';
 import ImageAssistantEditor from '../image-file';
-import OutputSettings from '../output/output-settings';
-import ParametersTable from '../parameters-table';
+import InputSettings from '../input/InputSettings';
+import OutputSettings from '../output/OutputSettings';
 import PromptAssistantEditor from '../prompt-file';
 
 export default function AgentEditor({
@@ -28,6 +30,7 @@ export default function AgentEditor({
   value: AssistantYjs;
   disabled?: boolean;
 }) {
+  const { t } = useLocaleContext();
   // const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
@@ -39,12 +42,12 @@ export default function AgentEditor({
       <Box height={20} width={1} />
 
       <Box sx={{ borderRadius: 1 }}>
-        <ParametersTable projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} />
+        <InputSettings projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} />
       </Box>
 
       <Box height={20} width={1} position="relative">
-        <Box position="absolute" left={4} top={-12}>
-          <ArrowLine sx={{ width: 8, height: 44 }} />
+        <Box position="absolute" left={20} top={-4}>
+          <ArrowLine sx={{ width: 8, height: 36 }} />
         </Box>
       </Box>
 
@@ -58,13 +61,21 @@ export default function AgentEditor({
             <FunctionAssistantEditor gitRef={gitRef} value={value} disabled={disabled} />
           ) : isApiAssistant(value) ? (
             <ApiAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
-          ) : null}
+          ) : (
+            <Stack alignItems="center">
+              <Box sx={{ fontSize: 28, color: 'text.disabled' }}>
+                <Icon icon="tabler:zzz" />
+              </Box>
+
+              <Box sx={{ color: 'text.disabled' }}>{t('idleAgentDescription')}</Box>
+            </Stack>
+          )}
         </AgentProcessingView>
       </Box>
 
       <Box height={20} width={1} position="relative">
-        <Box position="absolute" left={4} top={-12}>
-          <ArrowLine sx={{ width: 8, height: 44 }} />
+        <Box position="absolute" left={20} top={-4}>
+          <ArrowLine sx={{ width: 8, height: 36 }} />
         </Box>
       </Box>
 

@@ -114,12 +114,89 @@
                 "x-designable-id": "pjjw2k56bus",
                 "x-index": 1,
                 "description": "Limit the maximum number of projects each person can create in Multi Tenant (except for owner, admin, promptsEditor passport)"
+              },
+              "disablePaymentProject": {
+                "type": "boolean",
+                "title": "Disable Payment Project",
+                "x-decorator": "FormItem",
+                "x-component": "Switch",
+                "x-validator": [],
+                "x-component-props": {},
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "colon": false
+                },
+                "name": "disablePaymentProject",
+                "x-reactions": {
+                  "dependencies": [
+                    {
+                      "property": "value",
+                      "type": "string | number",
+                      "source": "8ijnww1wdf9.drcj4aejnt5.serviceMode",
+                      "name": "serviceMode"
+                    }
+                  ],
+                  "fulfill": {
+                    "state": {
+                      "visible": "{{$deps.serviceMode === 'multi-tenant'}}"
+                    }
+                  }
+                },
+                "default": false,
+                "description": "Limit whether everyone can release the payment project in Multi Tenant (except for owner, admin, promptsEditor passport)",
+                "x-designable-id": "kllog89clwt",
+                "x-index": 2
+              },
+              "uploadFileLimit": {
+                "type": "number",
+                "title": "Upload File Limits",
+                "x-decorator": "FormItem",
+                "x-component": "NumberPicker",
+                "x-validator": [
+                  {
+                    "exclusiveMinimum": 0,
+                    "min": null
+                  }
+                ],
+                "x-component-props": {
+                  "style": {
+                    "width": "auto"
+                  },
+                  "max": 10,
+                  "min": 0
+                },
+                "x-decorator-props": {
+                  "layout": "vertical",
+                  "size": "default",
+                  "fullness": false,
+                  "colon": false
+                },
+                "name": "uploadFileLimit",
+                "default": 3,
+                "x-reactions": {
+                  "dependencies": [
+                    {
+                      "property": "value",
+                      "type": "string | number",
+                      "source": "8ijnww1wdf9.drcj4aejnt5.serviceMode",
+                      "name": "serviceMode"
+                    }
+                  ],
+                  "fulfill": {
+                    "state": {
+                      "visible": "{{$deps.serviceMode === 'multi-tenant'}}"
+                    }
+                  }
+                },
+                "x-designable-id": "xd9eqqqhx9c",
+                "x-index": 3,
+                "description": "Limits the size of files uploaded to the knowledge"
               }
             }
           }
         }
       }
     },
-    "x-designable-id": "rumt7n1nwzw"
+    "x-designable-id": "w0lz8x87ps6"
   }
 }

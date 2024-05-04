@@ -3,6 +3,7 @@ import { access, copyFile, cp, mkdtemp, readFile, rm } from 'fs/promises';
 import path, { basename, dirname, isAbsolute, join } from 'path';
 
 import { Config } from '@api/libs/env';
+import { NoPermissionError } from '@api/libs/error';
 import { sampleIcon } from '@api/libs/icon';
 import { uploadImageToImageBin } from '@api/libs/image-bin';
 import logger from '@api/libs/logger';
@@ -193,8 +194,8 @@ export const checkProjectPermission = ({ req, project }: { req: Request; project
   ) {
     return true;
   }
-  const errorText = 'Project no permission';
-  throw new Error(errorText);
+
+  throw new NoPermissionError('You are not authorized to access this project');
 };
 
 export const checkProjectLimit = async ({ req }: { req: Request }) => {
@@ -724,7 +725,20 @@ export function projectRoutes(router: Router) {
     const assistant = await getAssistantFromRepository({ repository, ref, assistantId, working: query.working });
 
     res.json(
-      pick(assistant, 'id', 'name', 'description', 'type', 'parameters', 'createdAt', 'updatedAt', 'release', 'entries')
+      pick(
+        assistant,
+        'id',
+        'name',
+        'description',
+        'type',
+        'parameters',
+        'outputVariables',
+        'createdAt',
+        'updatedAt',
+        'release',
+        'entries',
+        'createdBy'
+      )
     );
   });
 

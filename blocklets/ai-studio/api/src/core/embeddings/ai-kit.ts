@@ -66,10 +66,9 @@ export class AIKitEmbeddings extends Embeddings implements AIKitEmbeddingsParams
 
     for (let i = 0; i < subPrompts.length; i += 1) {
       const input = subPrompts[i]!;
-      const { data } = await this.embeddingWithRetry({
-        model: this.modelName,
-        input,
-      });
+
+      const { data } = await this.embeddingWithRetry({ model: this.modelName, input });
+
       for (let j = 0; j < input.length; j += 1) {
         embeddings.push(data[j]!.embedding);
       }
