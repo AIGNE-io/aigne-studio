@@ -65,14 +65,20 @@ export default function AigneLogo() {
       ref={avatarRef}
       style={{ backgroundImage: 'url("https://www.aigne.io/image-bin/uploads/cc17dbd7750530beb89374fcd7063e7f.png")' }}>
       <Eye
-        leftPercentage={13.5 + eyePosition.leftOffset}
-        topPercentage={51 + eyePosition.topOffset}
-        isBlinking={isBlinking}
+        style={{
+          left: `${13.5 + eyePosition.leftOffset}%`,
+          top: `${51 + eyePosition.topOffset}%`,
+          height: isBlinking ? '0' : '18%',
+          transform: `translate(-50%, -50%) scaleY(${isBlinking ? '0.4' : '1'})`,
+        }}
       />
       <Eye
-        leftPercentage={21 + eyePosition.leftOffset}
-        topPercentage={51 + eyePosition.topOffset}
-        isBlinking={isBlinking}
+        style={{
+          left: `${21 + eyePosition.leftOffset}%`,
+          top: `${51 + eyePosition.topOffset}%`,
+          height: isBlinking ? '0' : '18%',
+          transform: `translate(-50%, -50%) scaleY(${isBlinking ? '0.4' : '1'})`,
+        }}
       />
     </AvatarContainer>
   );
@@ -86,14 +92,10 @@ const AvatarContainer = styled(Box)`
   margin: auto;
 `;
 
-const Eye = styled(Box)<{ isBlinking?: boolean; leftPercentage: number; topPercentage: number }>`
+const Eye = styled(Box)<{ isBlinking?: boolean; leftPercentage?: number; topPercentage?: number }>`
   position: absolute;
   width: 3.5%;
-  height: ${(props) => (props.isBlinking ? '0' : '18%')};
   background-color: black;
   border-radius: 100% / 100%;
-  left: ${(props) => props.leftPercentage}%;
-  top: ${(props) => props.topPercentage}%;
-  transform: translate(-50%, -50%) scaleY(${(props) => (props.isBlinking ? '0.4' : '1')});
   transition: height 0.2s ease-out;
 `;
