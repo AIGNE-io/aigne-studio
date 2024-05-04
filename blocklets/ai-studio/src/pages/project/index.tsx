@@ -121,8 +121,8 @@ const StyledDashboard = styled(Dashboard)`
     padding-right: ${({ theme }) => theme.spacing(3)};
 
     ${({ theme }) => theme.breakpoints.down('md')} {
-      padding-left: ${({ theme }) => theme.spacing(1)};
-      padding-right: ${({ theme }) => theme.spacing(1)};
+      padding-left: ${({ theme }) => theme.spacing(2)};
+      padding-right: ${({ theme }) => theme.spacing(2)};
 
       .header-addons {
         button {

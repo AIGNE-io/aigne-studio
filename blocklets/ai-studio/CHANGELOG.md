@@ -1,3 +1,8 @@
+## 0.1.368 (2024-5-5)
+
+- fix: navigation menus not working on mobile
+- fix: correct icon size in zoom mode
+
 ## 0.1.367 (2024-5-4)
 
 - feat: animated aigne logo

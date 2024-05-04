@@ -70,15 +70,16 @@ export default function Dashboard({
           theme={theme}
           {...HeaderProps}
           prepend={
-            <>
-              {isPermanent ? null : (
-                <IconButton sx={{ mr: 1 }} onClick={() => setOpen(!open)}>
-                  {open ? <MenuOpenRounded /> : <MenuRounded />}
-                </IconButton>
-              )}
-
-              {HeaderProps?.prepend}
-            </>
+            menus && (
+              <>
+                {isPermanent ? null : (
+                  <IconButton sx={{ mr: 1 }} onClick={() => setOpen(!open)}>
+                    {open ? <MenuOpenRounded /> : <MenuRounded />}
+                  </IconButton>
+                )}
+                {HeaderProps?.prepend}
+              </>
+            )
           }
         />
       </Box>

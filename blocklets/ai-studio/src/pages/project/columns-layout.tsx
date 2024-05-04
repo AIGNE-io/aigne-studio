@@ -68,7 +68,7 @@ const ColumnsLayout = forwardRef<
 
         <Drawer
           open={leftDrawerOpen}
-          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1, [`.${backdropClasses.root}`]: { top: 64 } }}
+          sx={{ zIndex: (theme) => theme.zIndex.speedDial, [`.${backdropClasses.root}`]: { top: 64 } }}
           PaperProps={{ sx: { width: 300, top: 64, boxShadow: 0 } }}
           onClose={() => setLeftDrawerOpen(false)}>
           {left}
@@ -77,7 +77,7 @@ const ColumnsLayout = forwardRef<
         <Drawer
           anchor="right"
           open={rightDrawerOpen}
-          sx={{ zIndex: (theme) => theme.zIndex.appBar + 1, [`.${backdropClasses.root}`]: { top: 64 } }}
+          sx={{ zIndex: (theme) => theme.zIndex.speedDial, [`.${backdropClasses.root}`]: { top: 64 } }}
           PaperProps={{ sx: { width: 'calc(100% - 16px)', top: 64, boxShadow: 0 } }}
           onClose={() => setRightDrawerOpen(false)}>
           {right}
@@ -158,7 +158,7 @@ const ResizeHandleRoot = styled(Box)`
   overflow: visible;
   user-select: none;
   outline: none;
-  z-index: ${({ theme }) => theme.zIndex.appBar + 1};
+  z-index: ${({ theme }) => theme.zIndex.speedDial};
 
   .handler {
     position: absolute;
