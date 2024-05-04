@@ -27,6 +27,7 @@ export default function OutputSettings({
   const { t } = useLocaleContext();
 
   const outputVariables = value.outputVariables && sortBy(Object.values(value.outputVariables), 'index');
+  const groups = useSortedOutputs({ assistant: value });
 
   const doc = (getYjsValue(value) as Map<any>).doc!;
 
@@ -67,13 +68,31 @@ export default function OutputSettings({
         </Box>
       </Stack>
 
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5, overflow: 'auto' }}>
+      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
         <Box
           sx={{
             whiteSpace: 'nowrap',
             maxWidth: '100%',
             table: {
-              'th,td': { py: 0, px: 0, '&:not(:first-of-type)': { pl: 1 } },
+              'tr:last-of-type': {
+                'th,td': {
+                  borderBottom: 1,
+                  borderColor: 'divider',
+                },
+              },
+              'tr.group-header': {
+                borderTop: 1,
+                borderColor: 'divider',
+              },
+              'tr:not(.group-header):hover td': { bgcolor: 'grey.100' },
+              'th,td': {
+                borderBottom: 0,
+                py: 0,
+                px: 0,
+                '&:not(:first-of-type)': { pl: 1 },
+                '&:first-of-type': { pl: 1.5 },
+                '&:last-of-type': { pr: 1.5 },
+              },
               th: { pb: 0.5 },
             },
           }}>
@@ -92,24 +111,36 @@ export default function OutputSettings({
               </TableRow>
             </TableHead>
 
-            <TableBody
-              sx={{
-                'tr>td': {},
-              }}>
-              {outputVariables?.map((variable) => (
-                <VariableRow
-                  key={variable.data.id}
-                  variable={variable.data}
-                  value={value}
-                  projectId={projectId}
-                  gitRef={gitRef}
-                  onRemove={() =>
-                    setField(() => {
-                      delete value.outputVariables?.[variable.data.id];
-                    })
-                  }
-                />
-              ))}
+            <TableBody>
+              {Object.entries(groups).map(
+                ([group, outputs]) =>
+                  outputs.length > 0 && (
+                    <>
+                      <tr key={`group-${group}`} className="group-header">
+                        <td colSpan={5}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {t(group)}
+                          </Typography>
+                        </td>
+                      </tr>
+
+                      {outputs.map((item) => (
+                        <VariableRow
+                          key={item.data.id}
+                          variable={item.data}
+                          value={value}
+                          projectId={projectId}
+                          gitRef={gitRef}
+                          onRemove={() =>
+                            setField(() => {
+                              delete value.outputVariables?.[item.data.id];
+                            })
+                          }
+                        />
+                      ))}
+                    </>
+                  )
+              )}
             </TableBody>
           </Table>
         </Box>
@@ -133,6 +164,36 @@ export default function OutputSettings({
       </Box>
     </Box>
   );
+}
+
+const outputGroups: { [key in RuntimeOutputVariable]?: { group: 'system' | 'appearance'; index: number } } = {
+  [RuntimeOutputVariable.text]: { group: 'system', index: 0 },
+  [RuntimeOutputVariable.images]: { group: 'system', index: 1 },
+  [RuntimeOutputVariable.suggestedQuestions]: { group: 'system', index: 2 },
+  [RuntimeOutputVariable.referenceLinks]: { group: 'system', index: 3 },
+  [RuntimeOutputVariable.children]: { group: 'system', index: 4 },
+  [RuntimeOutputVariable.appearancePage]: { group: 'appearance', index: 0 },
+  [RuntimeOutputVariable.appearanceInput]: { group: 'appearance', index: 1 },
+  [RuntimeOutputVariable.appearanceOutput]: { group: 'appearance', index: 2 },
+};
+
+function useSortedOutputs({ assistant }: { assistant: AssistantYjs }) {
+  const groups: { [key in 'system' | 'appearance' | 'custom']: { index: number; data: OutputVariableYjs }[] } = {
+    system: [],
+    appearance: [],
+    custom: [],
+  };
+
+  const outputs = sortBy(
+    Object.values(assistant.outputVariables ?? {}),
+    (item) => outputGroups[item.data.name as RuntimeOutputVariable]?.index ?? item.index
+  );
+  for (const item of outputs) {
+    const group = outputGroups[item.data.name as RuntimeOutputVariable]?.group || 'custom';
+    groups[group].push(item);
+  }
+
+  return groups;
 }
 
 function VariableRow({
