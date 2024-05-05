@@ -1,3 +1,7 @@
+## 0.1.369 (2024-5-5)
+
+- fix: react-virtuoso list bug
+
 ## 0.1.368 (2024-5-5)
 
 - fix: navigation menus not working on mobile
