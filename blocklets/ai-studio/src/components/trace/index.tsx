@@ -134,7 +134,7 @@ interface ContainerProps {
 }
 
 const Container = styled(Accordion)<ContainerProps>(({ theme, deep = 0 }) => ({
-  margin: `${deep === 0 ? '0' : '16px'} 0 0 ${theme.spacing(deep * 3)}`,
+  margin: `${deep === 0 ? '0' : '8px'} 0 0 ${theme.spacing(deep * 3)}`,
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
   '&::before': {

@@ -389,13 +389,13 @@ const MessageView = memo(
   }) => {
     return (
       <ErrorBoundary>
-        <Stack mt={message.role === 'user' && index !== 0 ? 4 : 0} sx={{ mb: 2.5 }}>
+        <Stack pt={message.role === 'user' && index !== 0 ? 1.5 : 0} pb={2.5}>
           {message.role === 'user' && (
-            <Typography alignSelf="center" ml={0.5} component="span" color="text.secondary" whiteSpace="nowrap">
+            <Typography alignSelf="center" mb={1} component="span" color="text.secondary" whiteSpace="nowrap">
               {dayjs(message.createdAt).format('YYYY-MM-DD HH:mm:ss')}
             </Typography>
           )}
-          <Stack px={2.5} py={1} gap={1} flexDirection="row" position="relative">
+          <Stack px={2.5} gap={1} flexDirection="row" position="relative">
             <CustomAvatar role={message.role} projectId={projectId} gitRef={gitRef} />
 
             <Box sx={{ overflowX: 'hidden', flexGrow: 1 }} display="flex" flexDirection="column" gap={1}>
