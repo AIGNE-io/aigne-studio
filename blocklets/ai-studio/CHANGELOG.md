@@ -1,6 +1,11 @@
+## 0.1.370 (2024-5-5)
+
+- fix: improve project icon loading speed
+- fix: display the aigne logo on the home page
+
 ## 0.1.369 (2024-5-5)
 
-- fix: react-virtuoso list bug
+- fix: scrolling problem in debug view
 
 ## 0.1.368 (2024-5-5)
 
