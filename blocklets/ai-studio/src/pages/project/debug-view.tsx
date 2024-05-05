@@ -389,7 +389,7 @@ const MessageView = memo(
       <ErrorBoundary>
         <Stack pt={message.role === 'user' && index !== 0 ? 1.5 : 0} pb={2.5}>
           {message.role === 'user' && (
-            <Typography alignSelf="center" ml={0.5} component="span" color="text.secondary" whiteSpace="nowrap">
+            <Typography alignSelf="center" mb={1} component="span" color="text.secondary" whiteSpace="nowrap">
               {dayjs(message.createdAt).format('YYYY-MM-DD HH:mm:ss')}
             </Typography>
           )}
