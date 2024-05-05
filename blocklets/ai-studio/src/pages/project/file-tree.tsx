@@ -761,6 +761,7 @@ function EditTextItem({
         lineHeight: '24px',
         display: 'flex',
         alignItems: 'center',
+        pl: 0.5,
       }}
       classes={{
         focused: css`
