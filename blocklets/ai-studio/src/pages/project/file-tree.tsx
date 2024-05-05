@@ -361,7 +361,7 @@ const FileTree = forwardRef<
                     }
                     depth={depth}
                     onClick={onToggle}
-                    edited={filepath === editingFolderPath}
+                    editing={filepath === editingFolderPath}
                     actions={
                       <TreeItemMenus
                         projectId={projectId}
@@ -439,7 +439,7 @@ const FileTree = forwardRef<
                     key={node.id}
                     icon={<FileIcon type={meta.type} />}
                     depth={depth}
-                    edited={meta.name === editingFileName}
+                    editing={meta.name === editingFileName}
                     selected={selected}
                     onClick={() => navigate(joinURL('.', filepath))}
                     actions={actions}
@@ -757,16 +757,12 @@ function EditTextItem({
       value={value || ''}
       onChange={(e) => setValue(e.target.value)}
       sx={{
+        fontSize: 13,
         height: 24,
+        fontWeight: 500,
         lineHeight: '24px',
         display: 'flex',
         alignItems: 'center',
-      }}
-      classes={{
-        focused: css`
-          outline: 1px solid #1976d2;
-          outline-offset: -1px;
-        `,
       }}
       autoFocus
       inputProps={{ style: { height: '100%', padding: 0 } }}
@@ -796,7 +792,7 @@ function TreeItem({
   children,
   depth = 0,
   actions,
-  edited,
+  editing,
   selected,
   otherActions,
   ...props
@@ -805,7 +801,7 @@ function TreeItem({
   children?: ReactNode;
   depth?: number;
   actions?: ReactNode;
-  edited?: boolean;
+  editing?: boolean;
   selected?: boolean;
   otherActions?: ReactNode;
 } & StackProps) {
@@ -826,7 +822,7 @@ function TreeItem({
       sx={{
         mx: 1,
         borderRadius: 1,
-        bgcolor: edited ? 'action.hover' : selected ? '#EFF6FF' : open ? 'action.hover' : undefined,
+        bgcolor: editing ? 'action.hover' : selected ? '#EFF6FF' : open ? 'action.hover' : undefined,
         color: selected ? '#3B82F6' : undefined,
         fontWeight: 500,
         fontSize: 13,
@@ -834,6 +830,9 @@ function TreeItem({
           bgcolor: selected ? 'action.selected' : 'action.hover',
           '.hover-visible': { maxWidth: '100%' },
         },
+        outline: editing ? 1 : 0,
+        outlineColor: 'primary.main',
+        outlineOffset: -1,
       }}>
       <Stack
         ref={ref}
@@ -871,6 +870,8 @@ function TreeItem({
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            minHeight: 24,
+            lineHeight: '24px',
           }}>
           {children}
         </Box>

@@ -49,7 +49,7 @@ export default function ImportFromTemplates({
         <DialogContent>
           <Stack overflow="auto" flexWrap="wrap" m="-6px" flexDirection="row">
             {templates.map((x) => {
-              const { icon, name, description, createdAt, _id: id, users } = x;
+              const { icon, name, description, createdAt, _id: id, users, updatedAt } = x;
 
               return (
                 <ProjectItemRoot
@@ -102,7 +102,11 @@ export default function ImportFromTemplates({
                   }}>
                   <Stack direction="row" gap={1.5} alignItems="center">
                     <Box className="logo" sx={{ width: '72px', height: '72px' }}>
-                      {icon ? <Box component="img" src={icon} /> : <Box component="img" src={getProjectIconUrl(id)} />}
+                      {icon ? (
+                        <Box component="img" src={icon} />
+                      ) : (
+                        <Box component="img" src={getProjectIconUrl(id, updatedAt)} />
+                      )}
                     </Box>
 
                     <Box flex={1} alignSelf="flex-start">

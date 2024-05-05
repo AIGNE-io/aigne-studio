@@ -1,6 +1,6 @@
 import { Assistant } from '@blocklet/ai-runtime/types';
 import pick from 'lodash/pick';
-import { joinURL } from 'ufo';
+import { joinURL, withQuery } from 'ufo';
 
 import {
   AddProjectRemoteInput,
@@ -105,8 +105,22 @@ export async function projectSync(projectId: string, target: SyncTarget = 'githu
   return axios.post(`/api/projects/${projectId}/remote/sync?target=${target}`).then((res) => res.data);
 }
 
-export function getProjectIconUrl(projectId?: string) {
+// FIXME: use logo version instead of updatedAt for better caching
+export function getProjectIconUrl(
+  projectId: string,
+  updatedAt: string | number | Date,
+  { original }: { original?: boolean } = {}
+) {
   if (!projectId) return '';
   const component = blocklet?.componentMountPoints.find((i) => i.did === AI_STUDIO_COMPONENT_DID);
-  return joinURL(component?.mountPoint || '', `/api/projects/${projectId}/logo.png`);
+  return withQuery(
+    joinURL(component?.mountPoint || '', `/api/projects/${projectId}/logo.png`),
+    original
+      ? {}
+      : {
+          imageFilter: 'resize',
+          w: 140,
+          version: updatedAt,
+        }
+  );
 }

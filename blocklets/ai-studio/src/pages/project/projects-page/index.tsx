@@ -685,7 +685,6 @@ function ProjectItem({
   icon,
   name,
   description,
-  updatedAt,
   createdAt,
   actions,
   section,
@@ -695,6 +694,7 @@ function ProjectItem({
   loading = false,
   didSpaceAutoSync,
   id,
+  updatedAt,
   isFromResource,
   ...props
 }: {
@@ -703,7 +703,7 @@ function ProjectItem({
   icon?: string;
   name?: string;
   description?: string;
-  updatedAt?: string | Date;
+  updatedAt: string | Date;
   createdAt?: string | Date;
   gitUrl?: string;
   model?: string;
@@ -739,7 +739,7 @@ function ProjectItem({
     <ProjectItemRoot {...props} className={cx(props.className)} gap={2}>
       <Stack direction="row" gap={1.5} alignItems="center">
         <Box className="logo" sx={{ width: '72px', height: '72px' }}>
-          {icon ? <Box component="img" src={icon} /> : <Box component="img" src={getProjectIconUrl(id)} />}
+          {icon ? <Box component="img" src={icon} /> : <Box component="img" src={getProjectIconUrl(id, updatedAt)} />}
         </Box>
 
         <Box flex={1} width={0} alignSelf="flex-start">
