@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/co-git",
-  "version": "0.1.369",
+  "version": "0.1.370",
   "description": "The cooperative component library for AI Studio",
   "publishConfig": {
     "access": "public"
@@ -65,7 +65,7 @@
     "@syncedstore/core": "^0.6.0",
     "@syncedstore/react": "^0.6.0",
     "fs-extra": "^11.2.0",
-    "isomorphic-git": "^1.25.7",
+    "isomorphic-git": "^1.25.8",
     "lib0": "^0.2.93",
     "lodash": "^4.17.21",
     "queue": "^6.0.2",
@@ -75,7 +75,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
-    "@types/lodash": "^4.17.0",
+    "@types/lodash": "^4.17.1",
     "npm-run-all": "^4.1.5",
     "rimraf": "^5.0.5",
     "typescript": "^5.4.5"

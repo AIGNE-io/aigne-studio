@@ -92,7 +92,7 @@ export default function ProjectSettings() {
         'maxTokens',
         'gitType',
       ]);
-      merge.icon = getProjectIconUrl(projectId);
+      merge.icon = getProjectIconUrl(projectId, project.updatedAt, { original: true });
 
       origin.current = merge;
       setValue(merge);

@@ -546,7 +546,6 @@ export function projectRoutes(router: Router) {
     );
 
     const author = { name: fullName, email: userId };
-    await commitProjectSettingWorking({ project, author });
 
     await commitProjectSettingWorking({ project, author, icon });
 
