@@ -1,3 +1,4 @@
+import AigneLogo from '@app/components/aigne-logo';
 import { useIsRole, useSessionContext } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscribeButton } from '@blocklet/ai-kit/components';
@@ -14,12 +15,15 @@ export default function Home() {
   return (
     <Dashboard
       HeaderProps={{
+        logo: <AigneLogo />,
         addons: (exists: ReactNode[]) => [<SubscribeButton />, ...exists],
       }}>
       <Box mx="auto" flexGrow={1} my={4} maxWidth={800}>
         {blocklet && (
           <Stack alignItems="center" gap={2} mt="30%">
-            <Box component="img" src={blocklet.appLogo} width={80} />
+            <Box sx={{ transform: 'scale(2)' }} my={2}>
+              <AigneLogo />
+            </Box>
             <Typography variant="h4">{blocklet.appName}</Typography>
             <Typography variant="caption" component="div">
               v{blocklet.version}

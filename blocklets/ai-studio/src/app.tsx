@@ -16,6 +16,7 @@ import {
 } from 'react-router-dom';
 import { RecoilRoot } from 'recoil';
 
+import AigneLogo from './components/aigne-logo';
 import ErrorBoundary from './components/error/error-boundary';
 import Loading from './components/loading';
 import { SessionProvider, useInitialized, useIsPromptEditor } from './contexts/session';
@@ -137,6 +138,7 @@ function Layout({ children }: { children: ReactNode }) {
   return (
     <Dashboard
       HeaderProps={{
+        logo: <AigneLogo />,
         addons: (exists: ReactNode[]) => [<SubscribeButton />, ...exists],
       }}>
       {children}
