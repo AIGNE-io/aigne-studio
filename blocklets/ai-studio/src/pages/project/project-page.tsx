@@ -136,7 +136,7 @@ export default function ProjectPage() {
               position: 'sticky',
               top: 0,
               bgcolor: 'background.paper',
-              zIndex: (theme) => theme.zIndex.appBar,
+              zIndex: 10,
             }}>
             <Toolbar variant="dense" sx={{ px: { xs: 2, gap: 1.5 }, overflow: 'hidden', minHeight: 36 }}>
               <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
@@ -207,8 +207,8 @@ export default function ProjectPage() {
           <Box
             sx={{
               bgcolor: 'background.paper',
-              zIndex: (theme) => theme.zIndex.appBar,
               borderBottom: '1px solid #E5E7EB',
+              zIndex: 10,
             }}>
             <Box
               className="between"
@@ -289,7 +289,7 @@ export default function ProjectPage() {
               position: 'sticky',
               top: 0,
               bgcolor: 'background.paper',
-              zIndex: (theme) => theme.zIndex.appBar,
+              zIndex: 10,
             }}>
             {(!leftOpen || !rightOpen) && (
               <Toolbar variant="dense" sx={{ px: { xs: 1 } }}>

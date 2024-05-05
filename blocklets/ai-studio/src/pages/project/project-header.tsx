@@ -38,7 +38,7 @@ export default function ProjectHeader() {
 
   return (
     <Stack height={1} overflow="hidden">
-      <Box height={64} borderBottom="1px solid #E5E7EB" px={2.5} className="between">
+      <Box height={64} borderBottom="1px solid #E5E7EB" px={{ xs: 2, md: 3 }} className="between">
         <Box flex={1}>
           <ProjectBrand />
         </Box>

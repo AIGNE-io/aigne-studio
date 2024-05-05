@@ -87,11 +87,11 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
 
 export const brandIcon = (brand: string) =>
   ({
-    OpenAI: <OpenAIIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
-    'Azure OpenAI': <AzureIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
-    'Hugging Face': <HuggingFaceIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
-    Replicate: <ReplicateIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
-    'Vertex AI': <VertexAIIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
-    Google: <GoogleIcon fontSize="small" sx={{ width: '100%', height: '100%' }} />,
-    'Mistral AI': <Box component="img" src={MistralIcon} width={15} height={15} />,
+    OpenAI: <OpenAIIcon fontSize="small" />,
+    'Azure OpenAI': <AzureIcon fontSize="small" />,
+    'Hugging Face': <HuggingFaceIcon fontSize="small" />,
+    Replicate: <ReplicateIcon fontSize="small" />,
+    'Vertex AI': <VertexAIIcon fontSize="small" />,
+    Google: <GoogleIcon fontSize="small" />,
+    'Mistral AI': <Box component="img" src={MistralIcon} width="1rem" height="1rem" />,
   })[brand];
